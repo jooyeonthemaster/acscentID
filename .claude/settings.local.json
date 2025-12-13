@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(test:*)",
+      "Bash(npm install)",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: AC''SCENT IDENTITY 향수 추천 앱 초기 릴리즈\n\n주요 기능:\n- AI 이미지 분석 기반 향수 추천\n- Gemini API 연동\n- 공유 기능 (Supabase 연동)\n- 반응형 UI 디자인\n- 주접 멘트 생성기\n\n보안:\n- Next.js 16.0.10 (CVE-2025-55182 패치됨)\n- React 19.2.3\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")"
+    ]
+  }
+}
