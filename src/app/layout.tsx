@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -24,16 +25,18 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} antialiased bg-[#FAFAFA] flex justify-center min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
       >
-        <ToastProvider>
-          <div className="
-            w-full min-h-screen bg-background relative overflow-x-hidden
-            sm:max-w-[480px] sm:shadow-2xl
-            md:max-w-[420px]
-            lg:max-w-[380px]
-          ">
-            {children}
-          </div>
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <div className="
+              w-full min-h-screen bg-background relative overflow-x-hidden
+              sm:max-w-[480px] sm:shadow-2xl
+              md:max-w-[420px]
+              lg:max-w-[380px]
+            ">
+              {children}
+            </div>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

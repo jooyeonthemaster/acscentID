@@ -2,16 +2,17 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronLeft, Scale, Beaker, Sparkles, Copy, CheckCircle2 } from 'lucide-react'
+import { Check, ChevronLeft, Scale, Beaker, Sparkles, Copy, CheckCircle2, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   GeneratedRecipe,
   ProductType,
   PRODUCT_TYPES,
   calculateGranuleAmounts,
-  GranuleAmount,
 } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
+import { useAuth } from '@/contexts/AuthContext'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 interface RecipeConfirmProps {
   recipe: GeneratedRecipe
@@ -26,8 +27,55 @@ export function RecipeConfirm({
   onBack,
   onComplete,
 }: RecipeConfirmProps) {
+  const { user } = useAuth()
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('perfume_10ml')
   const [copied, setCopied] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // 레시피 저장 (로그인된 경우)
+  const handleSaveRecipe = async () => {
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      // 레시피를 계정에 저장하는 API 호출
+      const fingerprint = localStorage.getItem('user_fingerprint')
+
+      await fetch('/api/feedback/save-to-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(fingerprint && { 'x-fingerprint': fingerprint }),
+        },
+        body: JSON.stringify({
+          recipe,
+          perfumeName,
+          selectedProduct,
+        }),
+      })
+
+      onComplete()
+    } catch (error) {
+      console.error('레시피 저장 실패:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 확정 버튼 핸들러
+  const handleComplete = () => {
+    if (user) {
+      // 로그인된 경우: 저장 후 완료
+      handleSaveRecipe()
+    } else {
+      // 비로그인: 로그인 모달 표시
+      setShowAuthModal(true)
+    }
+  }
 
   // 선택된 제품 정보
   const productInfo = useMemo(() => {
@@ -270,17 +318,44 @@ AC'SCENT IDENTITY에서 생성됨`
 
       {/* 확정 버튼 */}
       <div className="space-y-2">
-        <Button
-          onClick={onComplete}
-          className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
-        >
-          <Check size={18} />
-          이 레시피로 확정하기
-        </Button>
+        {user ? (
+          // 로그인된 경우
+          <Button
+            onClick={handleComplete}
+            disabled={isSaving}
+            className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Check size={18} />
+            {isSaving ? '저장 중...' : '이 레시피로 확정하기'}
+          </Button>
+        ) : (
+          // 비로그인인 경우
+          <Button
+            onClick={handleComplete}
+            className="w-full h-12 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white rounded-xl font-bold shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"
+          >
+            <LogIn size={18} />
+            내 레시피 저장하기
+          </Button>
+        )}
         <p className="text-[10px] text-slate-400 text-center">
-          확정 후에도 언제든 다시 레시피를 생성할 수 있어요
+          {user
+            ? '확정 후에도 언제든 다시 레시피를 생성할 수 있어요'
+            : '로그인하면 내 레시피를 안전하게 보관할 수 있어요'}
         </p>
       </div>
+
+      {/* 로그인 모달 */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="내 레시피 저장하기"
+        description="로그인하면 분석 결과와 레시피를 안전하게 보관할 수 있어요!"
+        onSuccess={() => {
+          setShowAuthModal(false)
+          handleSaveRecipe()
+        }}
+      />
     </motion.div>
   )
 }

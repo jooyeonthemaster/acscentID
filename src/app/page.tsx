@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { Header } from "@/components/layout/Header"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -30,6 +31,9 @@ const staggerContainer = {
 export default function Home() {
   return (
     <main className="relative flex flex-col items-center min-h-screen p-6 overflow-hidden bg-[#FAFAFA] font-sans">
+
+      {/* Header with hamburger menu */}
+      <Header />
 
       {/* Background */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">

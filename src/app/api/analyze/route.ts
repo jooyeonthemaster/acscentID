@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] ⚠️ 이미지 없이 텍스트만 분석`);
     }
 
-    // 6. Gemini API 호출 (30초 타임아웃)
+    // 6. Gemini API 호출 (60초 타임아웃)
     console.log(`[${requestId}] 🔄 Gemini API 호출 중...`);
     const apiStartTime = Date.now();
 
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
       model.generateContent({
         contents: [{ role: 'user', parts }],
       }),
-      30000,
-      'Gemini API request timed out (30 seconds)'
+      60000,
+      'Gemini API request timed out (60 seconds)'
     );
 
     const apiDuration = Date.now() - apiStartTime;
