@@ -292,6 +292,8 @@ export default function SharedResultPage() {
         onClose={() => setIsShareModalOpen(false)}
         userImage={userImageUrl || undefined}
         twitterName={twitterName}
+        userName={twitterName || '익명'}
+        userGender={'Unknown'}
         perfumeName={perfumeName}
         perfumeBrand={perfumeBrand}
         analysisData={analysisData}

@@ -59,12 +59,29 @@ function generateMockResult(): ImageAnalysisResult {
           keywords: randomPerfume.keywords,
           primaryColor: randomPerfume.primaryColor,
           secondaryColor: randomPerfume.secondaryColor,
-          mainScent: randomPerfume.mainScent,
-          subScent1: randomPerfume.subScent1,
-          subScent2: randomPerfume.subScent2,
-          recommendation: randomPerfume.recommendation,
+          mainScent: {
+            ...randomPerfume.mainScent,
+            fanComment: '첫인상부터 심장 저격하는 탑노트! 💘 우리 애의 밝은 에너지가 딱 이 향이야! ✨',
+          },
+          subScent1: {
+            ...randomPerfume.subScent1,
+            fanComment: '우리 애의 다채로운 매력을 담은 미들노트! 🌸💕 이 향 맡으면 자동 심쿵!',
+          },
+          subScent2: {
+            ...randomPerfume.subScent2,
+            fanComment: '은은하게 남는 베이스노트가 우리 애 숨은 카리스마 표현! 🌙✨ 반전매력 실화!',
+          },
+          recommendation: '우리 애 생각하면서 출근할 때 뿌려! 💼✨ 하루 종일 행복한 향기에 취해서 일하다가 퇴근 후엔 콘텐츠 보면서 힐링! 콘서트 가기 전에 뿌리면 현장에서 우리 애랑 향으로 연결되는 기분! 🎤💕',
           mood: randomPerfume.mood,
           personality: randomPerfume.personality,
+          usageGuide: {
+            situation: '우리 애 생각하면서 출근할 때 뿌려! 💼✨',
+            tips: [
+              '손목에 뿌리고 귀 뒤에 살짝 톡톡! 우리 애 포카 볼 때마다 향기가 올라와서 행복 두 배! 🌸✨',
+              '옷보다 피부에 직접! 체온으로 향이 퍼지면서 우리 애 따뜻한 매력이 느껴지는 착각 옴! 💕🔥',
+              '문지르지 말고 자연 건조! 향의 레이어가 살아있어야 우리 애의 다채로운 매력처럼 시간별로 다르게 느껴짐! 🌈✨',
+            ],
+          },
         },
       },
     ],
@@ -77,12 +94,33 @@ function generateMockResult(): ImageAnalysisResult {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const startTime = Date.now();
+
+  console.log('\n' + '='.repeat(80));
+  console.log(`[${requestId}] 🚀 분석 요청 시작`);
+  console.log('='.repeat(80));
+
   try {
     // 1. 요청 파싱
     const body: AnalyzeRequest = await request.json();
     const { formData, imageBase64 } = body;
 
+    // 📊 입력 데이터 로깅
+    console.log(`\n[${requestId}] 📊 입력 데이터:`);
+    console.log(`  - 아이돌 이름: ${formData?.name || 'N/A'}`);
+    console.log(`  - 성별: ${formData?.gender || 'N/A'}`);
+    console.log(`  - 스타일: ${formData?.styles?.join(', ') || 'N/A'}`);
+    console.log(`  - 성격: ${formData?.personalities?.join(', ') || 'N/A'}`);
+    console.log(`  - 매력 포인트: ${formData?.charmPoints?.join(', ') || 'N/A'}`);
+    console.log(`  - 이미지 첨부: ${imageBase64 ? '✅ YES' : '❌ NO'}`);
+    if (imageBase64) {
+      const imageSize = imageBase64.length;
+      console.log(`  - 이미지 크기: ${(imageSize / 1024).toFixed(2)} KB`);
+    }
+
     if (!formData) {
+      console.log(`[${requestId}] ❌ 오류: Form data 누락`);
       return NextResponse.json<AnalyzeResponse>(
         {
           success: false,
@@ -95,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // 2. API 키 확인
     if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not configured');
+      console.error(`[${requestId}] ❌ 오류: GEMINI_API_KEY 미설정`);
       return NextResponse.json<AnalyzeResponse>(
         {
           success: false,
@@ -105,12 +143,15 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+    console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
     // 3. 프롬프트 생성
     const prompt = buildGeminiPrompt(formData);
+    console.log(`[${requestId}] ✅ 프롬프트 생성 완료 (${prompt.length} 문자)`);
 
     // 4. Gemini 모델 가져오기
     const model = getModel();
+    console.log(`[${requestId}] ✅ Gemini 모델 초기화 완료`);
 
     // 5. 요청 parts 구성
     const parts: any[] = [{ text: prompt }];
@@ -128,9 +169,15 @@ export async function POST(request: NextRequest) {
           data: base64Data,
         },
       });
+      console.log(`[${requestId}] ✅ 이미지 데이터 첨부 완료`);
+    } else {
+      console.log(`[${requestId}] ⚠️ 이미지 없이 텍스트만 분석`);
     }
 
     // 6. Gemini API 호출 (30초 타임아웃)
+    console.log(`[${requestId}] 🔄 Gemini API 호출 중...`);
+    const apiStartTime = Date.now();
+
     const result = await withTimeout(
       model.generateContent({
         contents: [{ role: 'user', parts }],
@@ -139,11 +186,50 @@ export async function POST(request: NextRequest) {
       'Gemini API request timed out (30 seconds)'
     );
 
+    const apiDuration = Date.now() - apiStartTime;
+    console.log(`[${requestId}] ✅ Gemini API 응답 수신 (${apiDuration}ms)`);
+
     // 7. 응답 텍스트 추출
     const responseText = result.response.text();
+    console.log(`[${requestId}] 📝 응답 텍스트 길이: ${responseText.length} 문자`);
+
+    // 🔍 AI 응답 핵심 내용 로깅 (디버깅용)
+    console.log(`\n[${requestId}] 🔍 AI 응답 미리보기:`);
+    console.log('-'.repeat(60));
+    // imageInterpretation 부분 추출해서 로깅
+    const imageInterpMatch = responseText.match(/"imageInterpretation"\s*:\s*"([^"]+)"/);
+    if (imageInterpMatch) {
+      console.log(`  📸 이미지 해석: ${imageInterpMatch[1].substring(0, 200)}...`);
+    }
+    // traits 부분 추출
+    const traitsMatch = responseText.match(/"traits"\s*:\s*\{([^}]+)\}/);
+    if (traitsMatch) {
+      console.log(`  📊 특성값: ${traitsMatch[1].substring(0, 150)}...`);
+    }
+    // perfumeId 추출
+    const perfumeIdMatch = responseText.match(/"perfumeId"\s*:\s*"([^"]+)"/);
+    if (perfumeIdMatch) {
+      console.log(`  🧴 추천 향수: ${perfumeIdMatch[1]}`);
+    }
+    console.log('-'.repeat(60));
 
     // 8. 응답 파싱 및 검증
+    console.log(`[${requestId}] 🔄 응답 파싱 중...`);
     const parsedData = parseGeminiResponse(responseText);
+    console.log(`[${requestId}] ✅ 응답 파싱 완료`);
+
+    // 파싱 결과 요약 로깅
+    console.log(`\n[${requestId}] 📋 파싱 결과 요약:`);
+    console.log(`  - traits.sexy: ${parsedData.traits.sexy}`);
+    console.log(`  - traits.cute: ${parsedData.traits.cute}`);
+    console.log(`  - traits.charisma: ${parsedData.traits.charisma}`);
+    console.log(`  - traits.darkness: ${parsedData.traits.darkness}`);
+    console.log(`  - 추천 향수: ${parsedData.matchingPerfumes[0]?.persona?.id || 'N/A'}`);
+    console.log(`  - 매칭 점수: ${parsedData.matchingPerfumes[0]?.score || 'N/A'}`);
+
+    const totalDuration = Date.now() - startTime;
+    console.log(`\n[${requestId}] ✅ 분석 완료 (총 ${totalDuration}ms)`);
+    console.log('='.repeat(80) + '\n');
 
     // 9. 성공 응답
     return NextResponse.json<AnalyzeResponse>({
@@ -151,9 +237,16 @@ export async function POST(request: NextRequest) {
       data: parsedData,
     });
   } catch (error: any) {
-    // 에러 로깅
-    console.error('Gemini API Error:', error);
-    console.error('Error details:', error.message);
+    const totalDuration = Date.now() - startTime;
+
+    // 상세 에러 로깅
+    console.error(`\n[${requestId}] ❌ 오류 발생 (${totalDuration}ms 경과)`);
+    console.error(`[${requestId}] 에러 타입: ${error.name || 'Unknown'}`);
+    console.error(`[${requestId}] 에러 메시지: ${error.message}`);
+    if (error.stack) {
+      console.error(`[${requestId}] 스택 트레이스:\n${error.stack}`);
+    }
+    console.error('='.repeat(80) + '\n');
 
     // Fallback mock 데이터 반환
     return NextResponse.json<AnalyzeResponse>(

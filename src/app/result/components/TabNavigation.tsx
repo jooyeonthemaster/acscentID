@@ -11,8 +11,8 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   const tabs = [
-    { id: 'analysis' as const, label: '분석 결과', icon: Scan },
     { id: 'perfume' as const, label: '향수 추천', icon: FlaskConical },
+    { id: 'analysis' as const, label: '분석 결과', icon: Scan },
     { id: 'comparison' as const, label: '비교 분석', icon: GitCompare }
   ]
 

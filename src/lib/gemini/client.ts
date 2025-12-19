@@ -16,7 +16,7 @@ export function getModel() {
   const genAI = initializeGemini();
 
   return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-3-flash-preview",
     generationConfig: {
       temperature: 0.7,
       topP: 0.9,

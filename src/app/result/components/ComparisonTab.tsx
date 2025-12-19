@@ -87,18 +87,13 @@ export function ComparisonTab({ displayedAnalysis }: ComparisonTabProps) {
           {/* 데코 패턴 */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/20 rounded-full blur-3xl" />
 
-          <div className="relative z-10 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0 shadow-md">
-              <Eye size={18} className="text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-                {comparison.imageInterpretation}
-              </p>
-              <p className="text-indigo-600 text-xs mt-3 font-semibold">
-                - AI Vision System
-              </p>
-            </div>
+          <div className="relative z-10">
+            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+              {comparison.imageInterpretation}
+            </p>
+            <p className="text-indigo-600 text-xs mt-3 font-semibold">
+              - AI Vision System
+            </p>
           </div>
         </div>
       </motion.div>
@@ -116,18 +111,13 @@ export function ComparisonTab({ displayedAnalysis }: ComparisonTabProps) {
           {/* 데코 패턴 */}
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
 
-          <div className="relative z-10 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-md">
-              <User size={18} className="text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-                {comparison.userInputSummary}
-              </p>
-              <p className="text-purple-600 text-xs mt-3 font-semibold">
-                - 팬의 최애 분석
-              </p>
-            </div>
+          <div className="relative z-10">
+            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+              {comparison.userInputSummary}
+            </p>
+            <p className="text-purple-600 text-xs mt-3 font-semibold">
+              - 팬의 최애 분석
+            </p>
           </div>
         </div>
       </motion.div>

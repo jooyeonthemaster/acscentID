@@ -12,6 +12,7 @@ export const useResultData = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [twitterName, setTwitterName] = useState<string>('')
+  const [userInfo, setUserInfo] = useState<{ name: string; gender: string } | null>(null)
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -22,6 +23,15 @@ export const useResultData = () => {
 
         if (savedUserImage) {
           setUserImage(savedUserImage)
+        }
+
+        const savedUserInfo = localStorage.getItem('userInfo')
+        if (savedUserInfo) {
+          try {
+            setUserInfo(JSON.parse(savedUserInfo))
+          } catch (e) {
+            console.error('User info parse error', e)
+          }
         }
 
         if (savedResult) {
@@ -69,6 +79,7 @@ export const useResultData = () => {
     isLoaded,
     userImage,
     twitterName,
+    userInfo,
     displayedAnalysis: analysisResult
   }
 }

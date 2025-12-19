@@ -156,6 +156,11 @@ export function useInputForm() {
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
                 }
+                // 사용자 정보 저장 (이름, 성별)
+                localStorage.setItem('userInfo', JSON.stringify({
+                    name: formData.name,
+                    gender: formData.gender
+                }))
                 showToast('분석 완료! 🎉', 'success', 2000)
                 setTimeout(() => router.push('/result'), 1000)
             } else {
@@ -163,6 +168,10 @@ export function useInputForm() {
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
                 }
+                localStorage.setItem('userInfo', JSON.stringify({
+                    name: formData.name,
+                    gender: formData.gender
+                }))
                 showToast('분석에 문제가 있어 샘플 결과를 보여드립니다.', 'info', 3000)
                 setTimeout(() => router.push('/result'), 1500)
             }

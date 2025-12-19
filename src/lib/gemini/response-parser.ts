@@ -22,6 +22,10 @@ export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
       throw new Error(`Perfume not found: ${perfumeId}`);
     }
 
+    // AI가 생성한 노트별 주접 코멘트 가져오기
+    const noteComments = parsed.matchingPerfumes[0]?.noteComments || {};
+    const usageGuide = parsed.matchingPerfumes[0]?.usageGuide || {};
+
     const result: ImageAnalysisResult = {
       traits: parsed.traits,
       scentCategories: parsed.scentCategories,
@@ -43,12 +47,28 @@ export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
             keywords: perfumeData.keywords,
             primaryColor: perfumeData.primaryColor,
             secondaryColor: perfumeData.secondaryColor,
-            mainScent: perfumeData.mainScent,
-            subScent1: perfumeData.subScent1,
-            subScent2: perfumeData.subScent2,
-            recommendation: perfumeData.recommendation,
+            // 노트에 AI 생성 주접 코멘트 추가
+            mainScent: {
+              ...perfumeData.mainScent,
+              fanComment: noteComments.top || undefined,
+            },
+            subScent1: {
+              ...perfumeData.subScent1,
+              fanComment: noteComments.middle || undefined,
+            },
+            subScent2: {
+              ...perfumeData.subScent2,
+              fanComment: noteComments.base || undefined,
+            },
+            // AI 생성 사용 추천 (기존 recommendation 대체)
+            recommendation: usageGuide.situation || perfumeData.recommendation,
             mood: perfumeData.mood,
             personality: perfumeData.personality,
+            // AI 생성 사용 가이드
+            usageGuide: usageGuide.tips ? {
+              situation: usageGuide.situation || '',
+              tips: usageGuide.tips || [],
+            } : undefined,
           },
         },
       ],

@@ -37,6 +37,13 @@ export interface PersonalColor {
 export interface ScentNote {
   name: string;
   description?: string;
+  fanComment?: string;  // 주접 멘트 (AI 생성)
+}
+
+// 사용 가이드 정보 (주접 멘트)
+export interface UsageGuide {
+  situation: string;      // 사용 상황 주접 멘트
+  tips: string[];         // 사용 팁 주접 멘트 배열
 }
 
 // 향수 페르소나
@@ -55,6 +62,7 @@ export interface PerfumePersona {
   recommendation?: string;
   mood?: string;
   personality?: string;
+  usageGuide?: UsageGuide;  // AI 생성 사용 가이드
 }
 
 // 비교 분석 결과 타입

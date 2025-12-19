@@ -12,6 +12,8 @@ interface ShareModalProps {
   onClose: () => void
   userImage?: string
   twitterName: string
+  userName: string
+  userGender: string
   perfumeName: string
   perfumeBrand: string
   analysisData: ImageAnalysisResult
@@ -23,6 +25,8 @@ export function ShareModal({
   onClose,
   userImage,
   twitterName,
+  userName,
+  userGender,
   perfumeName,
   perfumeBrand,
   analysisData,
@@ -92,10 +96,10 @@ export function ShareModal({
       await waitForAssets(cardRef.current)
 
       const dataUrl = await domToPng(cardRef.current, {
-        width: 400,
-        height: 500,
+        width: 600,
+        height: 800,
         scale: 2,
-        backgroundColor: '#fbbf24'
+        backgroundColor: '#feffff'
       })
 
       // dataUrl → Blob 변환
@@ -235,6 +239,8 @@ export function ShareModal({
                 ref={cardRef}
                 userImage={userImage}
                 twitterName={twitterName}
+                userName={userName}
+                userGender={userGender}
                 perfumeName={perfumeName}
                 perfumeBrand={perfumeBrand}
                 analysisData={analysisData}

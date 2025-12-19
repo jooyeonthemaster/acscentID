@@ -142,10 +142,10 @@ export function PerfumeTab({ displayedAnalysis }: PerfumeTabProps) {
                 <SectionHeader
                   icon={<Clock size={14} />}
                   title="사용 추천"
-                  subtitle="이럴 때 뿌리세요"
+                  subtitle="이 향기와 함께하면 완벽!"
                 />
-                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-100">
-                  <p className="text-slate-600 text-sm leading-relaxed">
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 border border-amber-200/50">
+                  <p className="text-slate-700 text-sm leading-relaxed">
                     {match.persona.recommendation}
                   </p>
                 </div>
@@ -157,12 +157,22 @@ export function PerfumeTab({ displayedAnalysis }: PerfumeTabProps) {
               <SectionHeader
                 icon={<BookOpen size={14} />}
                 title="사용 가이드"
-                subtitle="향수 사용 팁"
+                subtitle="우리 애와 함께하는 향수 팁"
               />
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
-                <GuideItem text="손목 안쪽이나 귀 뒤에 뿌려주세요" />
-                <GuideItem text="문지르지 말고 자연스럽게 마르도록 해주세요" />
-                <GuideItem text="옷보다는 피부에 직접 뿌리는 것이 좋아요" />
+                {match.persona?.usageGuide?.tips && match.persona.usageGuide.tips.length > 0 ? (
+                  // AI 생성 주접 가이드가 있으면 표시
+                  match.persona.usageGuide.tips.map((tip, i) => (
+                    <GuideItem key={i} text={tip} />
+                  ))
+                ) : (
+                  // 기본 가이드
+                  <>
+                    <GuideItem text="손목에 뿌리고 귀 뒤에 살짝 톡톡! 우리 애 생각하면서 향기 맡으면 행복 두 배! 🌸✨" />
+                    <GuideItem text="옷보다 피부에 직접! 체온으로 향이 퍼지면서 우리 애의 따뜻한 매력이 느껴지는 느낌! 💕" />
+                    <GuideItem text="문지르지 말고 자연 건조! 향의 레이어가 살아있어야 다채로운 매력이 시간별로 펼쳐짐! 🌈✨" />
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

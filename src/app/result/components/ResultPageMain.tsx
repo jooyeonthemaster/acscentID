@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, RotateCcw, Share2, Sparkles } from 'lucide-react'
+import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History } from 'lucide-react'
 import Link from 'next/link'
 
 // Hooks
@@ -16,6 +16,8 @@ import { AnalysisTab } from './AnalysisTab'
 import { PerfumeTab } from './PerfumeTab'
 import { ComparisonTab } from './ComparisonTab'
 import { ShareModal } from './ShareModal'
+import { FeedbackModal } from './FeedbackModal'
+import { FeedbackHistory } from './feedback/FeedbackHistory'
 import { Button } from '@/components/ui/button'
 
 // 애니메이션 variants
@@ -44,10 +46,12 @@ const staggerContainer = {
 
 export default function ResultPageMain() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('analysis')
+  const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
   const [isSaving, setIsSaving] = useState(false)
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
+  const [isFeedbackHistoryOpen, setIsFeedbackHistoryOpen] = useState(false)
 
   const {
     loading,
@@ -55,6 +59,7 @@ export default function ResultPageMain() {
     isLoaded,
     userImage,
     twitterName,
+    userInfo,
     displayedAnalysis
   } = useResultData()
 
@@ -282,6 +287,22 @@ export default function ResultPageMain() {
                   <Share2 size={18} />
                   <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
                 </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsFeedbackModalOpen(true)}
+                    className="flex-1 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-xl hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <MessageSquarePlus size={18} />
+                    <span>피드백 기록</span>
+                  </Button>
+                  <Button
+                    onClick={() => setIsFeedbackHistoryOpen(true)}
+                    variant="outline"
+                    className="h-12 px-4 border-2 border-purple-200 bg-white/60 text-purple-600 rounded-2xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center gap-2"
+                  >
+                    <History size={18} />
+                  </Button>
+                </div>
                 <Button
                   variant="outline"
                   onClick={handleRestart}
@@ -315,12 +336,40 @@ export default function ResultPageMain() {
           onClose={() => setIsShareModalOpen(false)}
           userImage={userImage || undefined}
           twitterName={twitterName}
+          userName={userInfo?.name || '익명'}
+          userGender={userInfo?.gender || 'Unknown'}
           perfumeName={displayedAnalysis.matchingPerfumes?.[0]?.persona?.name || '추천 향수'}
           perfumeBrand={displayedAnalysis.matchingPerfumes?.[0]?.persona?.recommendation || 'AC\'SCENT'}
           analysisData={displayedAnalysis}
           shareUrl={shareUrl}
         />
       )}
+
+      {/* 피드백 모달 */}
+      {displayedAnalysis && displayedAnalysis.matchingPerfumes?.[0] && (
+        <FeedbackModal
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          perfumeId={displayedAnalysis.matchingPerfumes[0].perfumeId || 'AC\'SCENT 01'}
+          perfumeName={displayedAnalysis.matchingPerfumes[0].persona?.name || '추천 향수'}
+          perfumeCharacteristics={displayedAnalysis.matchingPerfumes[0].persona?.categories || { citrus: 5, floral: 5, woody: 5, musky: 5, fruity: 5, spicy: 5 }}
+          perfumeCategory={
+            displayedAnalysis.matchingPerfumes[0].persona?.categories
+              ? Object.entries(displayedAnalysis.matchingPerfumes[0].persona.categories).reduce(
+                  (max, [key, val]) => (val > max.val ? { key, val } : max),
+                  { key: 'floral', val: 0 }
+                ).key
+              : 'floral'
+          }
+          // characterName은 전달하지 않음 - twitterName은 주접 멘트이지 캐릭터 이름이 아님
+        />
+      )}
+
+      {/* 피드백 히스토리 모달 */}
+      <FeedbackHistory
+        isOpen={isFeedbackHistoryOpen}
+        onClose={() => setIsFeedbackHistoryOpen(false)}
+      />
     </div>
   )
 }

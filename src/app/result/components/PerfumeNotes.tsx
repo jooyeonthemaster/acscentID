@@ -14,7 +14,8 @@ export function PerfumeNotes({ persona }: PerfumeNotesProps) {
     {
       type: '탑노트',
       name: persona?.mainScent?.name || '시트러스',
-      description: '첫 인상을 결정하는 가벼운 향',
+      // AI 생성 주접 멘트가 있으면 사용, 없으면 기본 설명
+      description: persona?.mainScent?.fanComment || '첫 인상을 결정하는 가벼운 향 ✨',
       time: '0-30분',
       gradient: 'from-yellow-400 to-amber-400',
       bg: 'bg-yellow-50',
@@ -23,7 +24,7 @@ export function PerfumeNotes({ persona }: PerfumeNotesProps) {
     {
       type: '미들노트',
       name: persona?.subScent1?.name || '플로럴',
-      description: '향수의 핵심이 되는 중심 향',
+      description: persona?.subScent1?.fanComment || '향수의 핵심이 되는 중심 향 💕',
       time: '30분-2시간',
       gradient: 'from-amber-400 to-orange-400',
       bg: 'bg-amber-50',
@@ -32,7 +33,7 @@ export function PerfumeNotes({ persona }: PerfumeNotesProps) {
     {
       type: '베이스노트',
       name: persona?.subScent2?.name || '우디',
-      description: '오래 지속되는 깊은 향',
+      description: persona?.subScent2?.fanComment || '오래 지속되는 깊은 향 🌙',
       time: '2-6시간',
       gradient: 'from-orange-400 to-rose-400',
       bg: 'bg-orange-50',
@@ -65,22 +66,23 @@ export function PerfumeNotes({ persona }: PerfumeNotesProps) {
             {/* 그라디언트 라인 */}
             <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${note.gradient}`} />
 
-            <div className="flex items-center justify-between pl-2">
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  {note.type}
-                </span>
-                <h4 className="text-sm font-bold text-slate-800 mt-0.5">
+            <div className="flex gap-3 pl-2">
+              {/* 메인 콘텐츠 */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    {note.type}
+                  </span>
+                  <span className="text-[9px] text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
+                    {note.time}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-800">
                   {note.name}
                 </h4>
-                <p className="text-[10px] text-slate-500 mt-0.5">
+                <p className="text-[10px] text-slate-600 mt-1 leading-relaxed">
                   {note.description}
                 </p>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] font-semibold text-slate-400">
-                  {note.time}
-                </span>
               </div>
             </div>
           </motion.div>
