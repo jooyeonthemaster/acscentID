@@ -17,7 +17,8 @@ export function AuthModal({
   isOpen,
   onClose,
   title = '로그인하고 저장하기',
-  description = '내 레시피와 분석 결과를 안전하게 보관하세요!',
+  description = '로그인하면 분석 결과와 레시피가 자동으로 내 계정에 연동됩니다!',
+  onSuccess,
 }: AuthModalProps) {
   const { signInWithGoogle, signInWithKakao, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)

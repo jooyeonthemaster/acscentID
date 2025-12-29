@@ -12,7 +12,9 @@ export async function POST(request: NextRequest) {
       twitterName,
       perfumeName,
       perfumeBrand,
-      matchingKeywords
+      matchingKeywords,
+      userId,
+      userFingerprint
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -20,6 +22,8 @@ export async function POST(request: NextRequest) {
       perfumeName: string
       perfumeBrand: string
       matchingKeywords?: string[]
+      userId?: string | null
+      userFingerprint?: string | null
     }
 
     // 필수 데이터 검증
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Supabase에 저장
+    // Supabase에 저장 (user_id, user_fingerprint 포함)
     const { data, error } = await supabase
       .from('analysis_results')
       .insert({
@@ -39,7 +43,9 @@ export async function POST(request: NextRequest) {
         twitter_name: twitterName,
         perfume_name: perfumeName,
         perfume_brand: perfumeBrand,
-        matching_keywords: matchingKeywords || []
+        matching_keywords: matchingKeywords || [],
+        user_id: userId || null,
+        user_fingerprint: userFingerprint || null
       })
       .select('id')
       .single()

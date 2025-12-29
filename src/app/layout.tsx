@@ -23,16 +23,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${outfit.variable} antialiased bg-[#FAFAFA] flex justify-center min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
+        className={`${outfit.variable} antialiased bg-[#FAFAFA] min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
       >
         <AuthProvider>
           <ToastProvider>
-            <div className="
-              w-full min-h-screen bg-background relative overflow-x-hidden
-              sm:max-w-[480px] sm:shadow-2xl
-              md:max-w-[420px]
-              lg:max-w-[380px]
-            ">
+            <div className="w-full min-h-screen bg-background relative overflow-x-hidden">
               {children}
             </div>
           </ToastProvider>

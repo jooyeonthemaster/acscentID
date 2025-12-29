@@ -1,12 +1,13 @@
+import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// 브라우저용 클라이언트 (기존)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// 브라우저용 클라이언트 (쿠키 기반 - 서버 세션과 동기화)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
-// 서버사이드용 클라이언트 (API Routes에서 사용)
+// 서버사이드용 클라이언트 (API Routes에서 사용) - 세션 미저장
 export const createServerSupabaseClient = () => {
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {

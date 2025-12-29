@@ -3,11 +3,15 @@
 import React, { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History } from 'lucide-react'
+import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History, CheckCircle2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 // Hooks
 import { useResultData } from '../hooks/useResultData'
+import { useAutoSave } from '../hooks/useAutoSave'
+
+// Auth
+import { useAuth } from '@/contexts/AuthContext'
 
 // Components
 import { TwitterNameDisplay } from './TwitterNameDisplay'
@@ -19,6 +23,8 @@ import { ShareModal } from './ShareModal'
 import { FeedbackModal } from './FeedbackModal'
 import { FeedbackHistory } from './feedback/FeedbackHistory'
 import { Button } from '@/components/ui/button'
+import { Header } from '@/components/layout/Header'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 // 애니메이션 variants
 const fadeInUp = {
@@ -46,6 +52,7 @@ const staggerContainer = {
 
 export default function ResultPageMain() {
   const router = useRouter()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
@@ -63,9 +70,24 @@ export default function ResultPageMain() {
     displayedAnalysis
   } = useResultData()
 
+  // 자동 저장 훅
+  const {
+    isSaved: isAutoSaved,
+    isSaving: isAutoSaving,
+    savedResultId,
+    showLoginPrompt,
+    setShowLoginPrompt
+  } = useAutoSave({
+    analysisResult: displayedAnalysis,
+    userImage,
+    twitterName,
+    user
+  })
+
   const handleRestart = () => {
     localStorage.removeItem('analysisResult')
     localStorage.removeItem('userImage')
+    localStorage.removeItem('savedResultId')
     router.push('/')
   }
 
@@ -75,6 +97,14 @@ export default function ResultPageMain() {
 
     // 이미 저장된 URL이 있으면 바로 모달 열기
     if (shareUrl) {
+      setIsShareModalOpen(true)
+      return
+    }
+
+    // 자동 저장된 ID가 있으면 사용
+    if (savedResultId) {
+      const newShareUrl = `${window.location.origin}/result/${savedResultId}`
+      setShareUrl(newShareUrl)
       setIsShareModalOpen(true)
       return
     }
@@ -116,7 +146,7 @@ export default function ResultPageMain() {
     } finally {
       setIsSaving(false)
     }
-  }, [displayedAnalysis, userImage, twitterName, shareUrl])
+  }, [displayedAnalysis, userImage, twitterName, shareUrl, savedResultId])
 
   // 로딩 상태
   if (loading) {
@@ -204,18 +234,11 @@ export default function ResultPageMain() {
       </div>
 
       {/* 헤더 */}
-      <header className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2">
-        <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-white/50 transition-colors">
-          <ChevronLeft size={24} className="text-slate-800" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-yellow-500" />
-          <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">
-            AC&apos;SCENT IDENTITY
-          </span>
-        </div>
-        <div className="w-10" />
-      </header>
+      <Header
+        title="분석 결과"
+        showBack={true}
+        backHref="/"
+      />
 
       {/* 메인 콘텐츠 */}
       <main className="relative z-10 flex-1 px-5 pb-6 overflow-y-auto">
@@ -229,8 +252,23 @@ export default function ResultPageMain() {
             <>
               {/* 타이틀 섹션 */}
               <motion.div variants={fadeInUp} className="text-center pt-2">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400/20 rounded-full mb-3">
-                  <span className="text-yellow-600 text-xs font-bold">✨ 분석 완료</span>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400/20 rounded-full">
+                    <span className="text-yellow-600 text-xs font-bold">✨ 분석 완료</span>
+                  </div>
+                  {/* 저장 상태 배지 */}
+                  {isAutoSaving && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 rounded-full">
+                      <Loader2 size={12} className="text-slate-500 animate-spin" />
+                      <span className="text-slate-500 text-xs font-medium">저장 중</span>
+                    </div>
+                  )}
+                  {isAutoSaved && !isAutoSaving && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-100 rounded-full">
+                      <CheckCircle2 size={12} className="text-green-600" />
+                      <span className="text-green-600 text-xs font-medium">저장됨</span>
+                    </div>
+                  )}
                 </div>
                 <h1 className="text-2xl font-black text-slate-900 leading-tight">
                   당신만의 향기를<br />
@@ -356,12 +394,12 @@ export default function ResultPageMain() {
           perfumeCategory={
             displayedAnalysis.matchingPerfumes[0].persona?.categories
               ? Object.entries(displayedAnalysis.matchingPerfumes[0].persona.categories).reduce(
-                  (max, [key, val]) => (val > max.val ? { key, val } : max),
-                  { key: 'floral', val: 0 }
-                ).key
+                (max, [key, val]) => (val > max.val ? { key, val } : max),
+                { key: 'floral', val: 0 }
+              ).key
               : 'floral'
           }
-          // characterName은 전달하지 않음 - twitterName은 주접 멘트이지 캐릭터 이름이 아님
+        // characterName은 전달하지 않음 - twitterName은 주접 멘트이지 캐릭터 이름이 아님
         />
       )}
 
@@ -369,6 +407,14 @@ export default function ResultPageMain() {
       <FeedbackHistory
         isOpen={isFeedbackHistoryOpen}
         onClose={() => setIsFeedbackHistoryOpen(false)}
+      />
+
+      {/* 로그인 유도 모달 (익명 사용자용) */}
+      <AuthModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        title="로그인하고 결과 저장하기"
+        description="로그인하면 분석 결과가 내 계정에 영구 저장됩니다!"
       />
     </div>
   )

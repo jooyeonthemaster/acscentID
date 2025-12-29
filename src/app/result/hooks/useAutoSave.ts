@@ -1,0 +1,239 @@
+'use client'
+
+/**
+ * 분석 결과 자동 저장 훅
+ *
+ * - 분석 완료 시 자동으로 Storage에 이미지 업로드 + DB 저장
+ * - 로그인 사용자: user_id로 저장
+ * - 익명 사용자: fingerprint로 저장 + 로그인 유도
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { User } from '@supabase/supabase-js'
+import { ImageAnalysisResult } from '@/types/analysis'
+
+interface UseAutoSaveProps {
+  analysisResult: ImageAnalysisResult | null
+  userImage: string | null
+  twitterName: string
+  user: User | null
+}
+
+interface UseAutoSaveReturn {
+  isSaved: boolean
+  isSaving: boolean
+  savedResultId: string | null
+  saveError: string | null
+  showLoginPrompt: boolean
+  setShowLoginPrompt: (show: boolean) => void
+  retryCount: number
+}
+
+/**
+ * fingerprint 가져오기 또는 생성
+ */
+function getOrCreateFingerprint(): string {
+  if (typeof window === 'undefined') return ''
+
+  let fp = localStorage.getItem('user_fingerprint')
+  if (!fp) {
+    fp = `fp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    localStorage.setItem('user_fingerprint', fp)
+  }
+  return fp
+}
+
+/**
+ * 이미 저장된 결과 ID 가져오기
+ */
+function getSavedResultId(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('savedResultId')
+}
+
+/**
+ * 저장된 결과 ID 저장
+ */
+function setSavedResultIdToStorage(id: string): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('savedResultId', id)
+}
+
+export function useAutoSave({
+  analysisResult,
+  userImage,
+  twitterName,
+  user
+}: UseAutoSaveProps): UseAutoSaveReturn {
+  const [isSaved, setIsSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [savedResultId, setSavedResultId] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+
+  // 중복 저장 방지
+  const saveAttemptedRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  // 저장 함수
+  const saveResult = useCallback(async () => {
+    if (!analysisResult || isSaving) return
+    if (saveAttemptedRef.current) return
+
+    // 이미 저장된 ID가 있으면 스킵
+    const existingId = getSavedResultId()
+    if (existingId) {
+      setSavedResultId(existingId)
+      setIsSaved(true)
+      return
+    }
+
+    saveAttemptedRef.current = true
+    setIsSaving(true)
+    setSaveError(null)
+
+    try {
+      const fingerprint = getOrCreateFingerprint()
+
+      // 향수 정보 추출
+      const topPerfume = analysisResult.matchingPerfumes?.[0]
+      const perfumeName = topPerfume?.persona?.name || '추천 향수'
+      const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
+
+      let imageUrl: string | null = null
+
+      // 1. 이미지가 있으면 Storage에 업로드
+      if (userImage) {
+        // 이미 URL인 경우 (Supabase Storage URL 등) 그대로 사용
+        if (userImage.startsWith('http://') || userImage.startsWith('https://')) {
+          imageUrl = userImage
+          console.log('[AutoSave] Using existing image URL:', imageUrl)
+        } else if (userImage.startsWith('data:image/')) {
+          // base64인 경우 Storage에 업로드 (data:image/ 로 시작해야 함)
+          try {
+            // base64 데이터 유효성 간단 검사
+            const base64Part = userImage.split(',')[1]
+            if (!base64Part || base64Part.length < 100) {
+              console.warn('[AutoSave] Invalid base64 data, skipping upload')
+            } else {
+              console.log('[AutoSave] Uploading image to Storage...')
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageBase64: userImage,
+                  userId: user?.id || null,
+                  fingerprint
+                })
+              })
+
+              const uploadData = await uploadResponse.json()
+
+              if (uploadData.success && uploadData.url) {
+                imageUrl = uploadData.url
+                console.log('[AutoSave] Image uploaded:', imageUrl)
+              } else {
+                console.warn('[AutoSave] Image upload failed:', uploadData.error)
+              }
+            }
+          } catch (uploadError) {
+            console.error('[AutoSave] Image upload error:', uploadError)
+            // 이미지 업로드 실패해도 계속 진행 (이미지 없이 저장)
+          }
+        } else if (userImage.startsWith('data:')) {
+          // data:로 시작하지만 image가 아닌 경우 스킵
+          console.warn('[AutoSave] Non-image data URL, skipping upload')
+        } else {
+          console.warn('[AutoSave] Unknown image format, skipping upload')
+        }
+      }
+
+      // 2. 결과 데이터 저장
+      console.log('[AutoSave] Saving analysis result...')
+      const response = await fetch('/api/results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userImageUrl: imageUrl,
+          analysisData: analysisResult,
+          twitterName,
+          perfumeName,
+          perfumeBrand,
+          matchingKeywords: analysisResult.matchingKeywords || [],
+          userId: user?.id || null,
+          userFingerprint: fingerprint
+        })
+      })
+
+      const data = await response.json()
+
+      if (!mountedRef.current) return
+
+      if (data.success && data.id) {
+        console.log('[AutoSave] Success! ID:', data.id)
+        setSavedResultId(data.id)
+        setSavedResultIdToStorage(data.id)
+        setIsSaved(true)
+
+        // 익명 사용자면 로그인 유도 (2초 후)
+        if (!user) {
+          setTimeout(() => {
+            if (mountedRef.current) {
+              setShowLoginPrompt(true)
+            }
+          }, 2000)
+        }
+      } else {
+        throw new Error(data.error || '저장 실패')
+      }
+    } catch (error) {
+      console.error('[AutoSave] Error:', error)
+      if (mountedRef.current) {
+        setSaveError(error instanceof Error ? error.message : '저장 중 오류 발생')
+        saveAttemptedRef.current = false // 재시도 허용
+        setRetryCount(prev => prev + 1)
+      }
+    } finally {
+      if (mountedRef.current) {
+        setIsSaving(false)
+      }
+    }
+  }, [analysisResult, userImage, twitterName, user, isSaving])
+
+  // 컴포넌트 마운트 시 자동 저장
+  useEffect(() => {
+    mountedRef.current = true
+
+    if (analysisResult && !saveAttemptedRef.current) {
+      // 약간의 딜레이 후 저장 (UI가 먼저 렌더링되도록)
+      const timer = setTimeout(() => {
+        saveResult()
+      }, 500)
+
+      return () => clearTimeout(timer)
+    }
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [analysisResult, saveResult])
+
+  // 로그인 후 데이터 재연동은 AuthContext에서 처리됨 (linkFingerprintData)
+  // 여기서는 로그인 프롬프트만 닫아줌
+  useEffect(() => {
+    if (user && showLoginPrompt) {
+      setShowLoginPrompt(false)
+    }
+  }, [user, showLoginPrompt])
+
+  return {
+    isSaved,
+    isSaving,
+    savedResultId,
+    saveError,
+    showLoginPrompt,
+    setShowLoginPrompt,
+    retryCount
+  }
+}

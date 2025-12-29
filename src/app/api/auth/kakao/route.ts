@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/client'
+import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID!
 const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET
+
+/**
+ * Kakao 사용자를 위한 고정 비밀번호 생성
+ * - 동일한 Kakao ID에 대해 항상 같은 비밀번호 반환
+ */
+function generateKakaoPassword(kakaoId: string): string {
+  return `kakao_secure_${kakaoId}_acscent_2025`
+}
 
 /**
  * GET /api/auth/kakao - Kakao 로그인 시작 (인가 코드 요청)
@@ -71,8 +79,8 @@ async function handleKakaoCallback(code: string, next: string, origin: string) {
 
     const kakaoUser = await userResponse.json()
 
-    // 3. Supabase에 사용자 생성/로그인
-    const supabase = createServerSupabaseClient()
+    // 3. Supabase에 사용자 생성/로그인 (쿠키 기반 세션 사용)
+    const supabase = await createServerSupabaseClientWithCookies()
 
     // Kakao 사용자 정보 추출
     const kakaoAccount = kakaoUser.kakao_account || {}
@@ -82,26 +90,40 @@ async function handleKakaoCallback(code: string, next: string, origin: string) {
     const name = kakaoProfile.nickname || kakaoAccount.name || '카카오 사용자'
     const avatarUrl = kakaoProfile.profile_image_url || kakaoProfile.thumbnail_image_url
 
-    // Supabase Admin API로 사용자 생성/조회
-    // 참고: 이 방식은 signInWithIdToken을 사용하지 않고 직접 처리
-    const { data: existingUser } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('email', email)
-      .single()
+    // 고정 비밀번호 생성 (동일 Kakao ID는 항상 같은 비밀번호)
+    const password = generateKakaoPassword(kakaoUser.id.toString())
 
-    if (existingUser) {
-      // 기존 사용자 - 세션 생성을 위해 매직 링크 방식 사용
-      // 또는 커스텀 토큰 방식 필요
-      console.log('Existing Kakao user:', email)
+    // 1. 먼저 기존 사용자인지 확인하고 로그인 시도
+    console.log('Attempting Kakao login for:', email)
+
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    // 로그인 성공 - 기존 사용자
+    if (signInData?.session) {
+      console.log('Existing Kakao user logged in:', email)
+
+      // 프로필 정보 업데이트 (이름, 아바타가 변경되었을 수 있음)
+      await supabase
+        .from('user_profiles')
+        .update({
+          name,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', signInData.user.id)
+
+      return NextResponse.redirect(`${origin}${next}?login_success=true`)
     }
 
-    // Supabase Auth에 사용자 생성 (signUp with generated password)
-    const generatedPassword = `kakao_${kakaoUser.id}_${Date.now()}_${Math.random().toString(36)}`
+    // 2. 로그인 실패 - 새 사용자이므로 회원가입 진행
+    console.log('New Kakao user, signing up:', email)
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
-      password: generatedPassword,
+      password,
       options: {
         data: {
           name,
@@ -112,56 +134,40 @@ async function handleKakaoCallback(code: string, next: string, origin: string) {
       },
     })
 
-    // 이미 존재하는 사용자인 경우 signIn 시도
-    if (signUpError?.message?.includes('already registered')) {
-      // 기존 사용자 - 비밀번호 없이 로그인 불가
-      // 이 경우 매직 링크나 OTP 방식 필요
-      // 임시로 에러 페이지로 리다이렉트
-      console.log('User already exists, redirecting...')
-
-      // 기존 사용자의 경우 쿠키 기반 세션 설정이 어려우므로
-      // 클라이언트에서 처리하도록 정보 전달
-      const redirectUrl = new URL('/auth/kakao-complete', origin)
-      redirectUrl.searchParams.set('email', email)
-      redirectUrl.searchParams.set('name', name)
-      redirectUrl.searchParams.set('avatar', avatarUrl || '')
-      redirectUrl.searchParams.set('kakao_id', kakaoUser.id.toString())
-      redirectUrl.searchParams.set('next', next)
-
-      return NextResponse.redirect(redirectUrl.toString())
-    }
-
+    // 회원가입 에러 처리
     if (signUpError) {
       console.error('Supabase sign up error:', signUpError)
+
+      // 이미 등록된 사용자인데 비밀번호가 다른 경우 (이전 방식으로 가입한 사용자)
+      if (signUpError.message?.includes('already registered')) {
+        console.log('User exists with different password, redirecting to error page')
+        return NextResponse.redirect(`${origin}/?error=kakao_existing_user&message=이미 가입된 계정입니다. 다른 방법으로 로그인해주세요.`)
+      }
+
       return NextResponse.redirect(`${origin}/?error=supabase_signup_failed`)
     }
 
     // 회원가입 성공 - 자동 로그인
     if (signUpData.session) {
-      console.log('Kakao user created and logged in:', email)
-
-      const response = NextResponse.redirect(`${origin}${next}?login_success=true`)
-
-      // 세션 쿠키 설정 (Supabase는 자동으로 처리하지만 명시적으로 설정)
-      return response
+      console.log('New Kakao user created and logged in:', email)
+      return NextResponse.redirect(`${origin}${next}?login_success=true`)
     }
 
-    // 이메일 확인 필요한 경우 (Supabase 설정에 따라)
+    // 이메일 확인이 필요한 경우 (Supabase 설정에 따라) - 바로 로그인 시도
     if (signUpData.user && !signUpData.session) {
-      console.log('Kakao user created, email confirmation required')
+      console.log('Kakao user created, attempting auto sign-in')
 
-      // 이메일 확인 없이 바로 로그인 시도
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: autoSignInData, error: autoSignInError } = await supabase.auth.signInWithPassword({
         email,
-        password: generatedPassword,
+        password,
       })
 
-      if (signInError) {
-        console.error('Auto sign in after signup failed:', signInError)
+      if (autoSignInError) {
+        console.error('Auto sign in after signup failed:', autoSignInError)
         return NextResponse.redirect(`${origin}/?error=auto_signin_failed`)
       }
 
-      if (signInData.session) {
+      if (autoSignInData.session) {
         return NextResponse.redirect(`${origin}${next}?login_success=true`)
       }
     }

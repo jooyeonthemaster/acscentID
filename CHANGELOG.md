@@ -1,5 +1,119 @@
 # CHANGELOG
 
+## 2025-12-30 - [FIX] Kakao 로그인 후 세션 유지 안되는 문제 수정 (2차 수정)
+
+**Changed Files**:
+- src/lib/supabase/client.ts (Before: 42 lines → After: 43 lines)
+- src/lib/supabase/server.ts (신규, 31 lines)
+- src/app/api/auth/kakao/route.ts (import 수정)
+- package.json (@supabase/ssr 의존성 추가)
+
+**Changes**:
+- **클라이언트도 쿠키 기반으로 변경 (2차 수정)**
+  - `createClient` → `createBrowserClient`로 변경
+  - 클라이언트에서도 쿠키에 저장된 세션을 읽을 수 있게 됨
+
+- **@supabase/ssr 패키지 설치 및 쿠키 기반 세션 관리 (1차 수정)**
+  - `@supabase/ssr` 패키지 추가
+  - `src/lib/supabase/server.ts` 파일 생성 (서버 전용)
+  - `createServerSupabaseClientWithCookies()` 함수로 쿠키 기반 세션 생성
+  - Kakao 로그인 라우트에서 새 함수 사용
+
+**Reason**:
+- 버그: Kakao 로그인 후에도 Header에서 "로그인" 버튼이 계속 표시됨
+- 1차 원인: 서버 `createServerSupabaseClient()`가 `persistSession: false`라 쿠키에 세션 미저장
+- 2차 원인: 클라이언트 `createClient`가 localStorage만 확인, 쿠키의 세션을 읽지 못함
+
+**Tried But Failed Approaches**:
+- ❌ 서버만 쿠키 기반으로 변경: 클라이언트가 여전히 localStorage만 확인해서 실패
+
+**Impact**:
+- 서버-클라이언트 간 세션 동기화 완료
+- Kakao 로그인 후 즉시 Header에 로그인 상태 표시
+- 세션이 쿠키에 저장되어 페이지 새로고침 후에도 로그인 유지
+
+---
+
+## 2025-12-30 - [UPDATE] 로그인 UX 개선 및 비회원 시작하기 기능 추가
+
+**Changed Files**:
+- src/components/layout/Header.tsx (Before: 273 lines → After: 273 lines)
+- src/app/api/auth/kakao/route.ts (Before: 181 lines → After: 181 lines)
+- src/app/page.tsx (Before: 277 lines → After: 345 lines)
+- src/components/auth/AuthModal.tsx (Before: 141 lines → After: 142 lines)
+
+**Changes**:
+- **Header에 로그인 상태 표시 추가**
+  - 로그인 시: 녹색 "로그인됨" 배지 + 아바타 표시
+  - 비로그인 시: 노란색 "로그인" 버튼 표시 (데스크탑)
+  - 햄버거 메뉴에서도 로그인 상태 확인 가능
+
+- **Kakao 기존 사용자 재로그인 처리 개선**
+  - 기존: 매번 새 비밀번호 생성 → 기존 사용자 로그인 실패
+  - 변경: Kakao ID 기반 고정 비밀번호 생성 (`generateKakaoPassword`)
+  - 로그인 시도 → 실패 시 회원가입 순서로 변경
+  - 기존 사용자 프로필 정보 자동 업데이트
+
+- **메인 페이지 로그인 체크 모달 추가**
+  - 분석 기능 클릭 시 비로그인 사용자에게 안내 모달 표시
+  - 로그인 혜택 안내 (분석 결과 자동 저장, 마이페이지에서 확인)
+  - 비회원 경고 (페이지 나가면 결과 사라짐)
+
+- **비회원 시작하기 기능 추가**
+  - "비회원으로 시작하기 (저장 안됨)" 버튼
+  - 로그인 없이 분석 기능 사용 가능
+  - 로그인/회원가입 버튼과 함께 선택지 제공
+
+**Reason**:
+- 사용자 요청: 로그인 상태가 메인 페이지에서 표시되지 않음
+- 사용자 요청: 카카오 기존 사용자 재가입 시 오류 발생
+- 사용자 요청: 분석 기능 사용 전 로그인 안내 및 비회원 옵션 제공
+
+**Impact**:
+- 로그인 상태 가시성 향상 (Header에서 즉시 확인)
+- Kakao 로그인 안정성 개선 (기존 사용자 재로그인 가능)
+- 사용자 선택권 증가 (로그인 vs 비회원)
+- 비로그인 사용자에게 데이터 미저장 경고 제공
+
+---
+
+## 2025-12-21 - [ADD] 분석 결과 자동 저장 및 Supabase Storage 연동
+
+**Changed Files**:
+- supabase-storage-migration.sql (신규, SQL 마이그레이션)
+- src/lib/image/compressor.ts (Before: 132 lines → After: 236 lines)
+- src/lib/supabase/storage.ts (신규, 104 lines)
+- src/app/api/upload/route.ts (신규, 89 lines)
+- src/app/api/results/route.ts (Before: 67 lines → After: 71 lines)
+- src/app/result/hooks/useAutoSave.ts (신규, 166 lines)
+- src/components/auth/AuthModal.tsx (Before: 141 lines → After: 141 lines)
+- src/app/result/components/ResultPageMain.tsx (Before: 370 lines → After: 422 lines)
+
+**Changes**:
+- 분석 완료 시 자동으로 결과 저장 (공유 버튼 클릭 불필요)
+- Supabase Storage `analysis-images` 버켓으로 이미지 저장
+- 이미지 압축 최적화 (800x960, 품질 0.7, 최대 500KB 목표)
+- 익명 사용자: fingerprint로 저장 → 로그인 시 자동 연동
+- 로그인 사용자: user_id로 즉시 저장
+- 결과 페이지에 저장 상태 배지 표시 (저장 중 / 저장됨)
+- 익명 사용자 로그인 유도 모달 추가
+- link_fingerprint_data RPC 업데이트 (analysis_results도 연동)
+
+**Reason**:
+- 마이페이지에서 분석 결과가 표시되지 않는 문제 해결
+- 기존: user_id 없이 저장 → 마이페이지에서 조회 불가
+- 이미지를 base64로 DB에 저장하던 비효율 개선
+
+**Impact**:
+- 마이페이지 "분석 결과" 탭에서 이전 분석 결과 확인 가능
+- 이미지가 Supabase Storage에 저장되어 용량/속도 최적화
+- 익명으로 분석 후 로그인하면 데이터 자동 연동
+
+**SQL 실행 필요**:
+- `supabase-storage-migration.sql` 파일을 Supabase SQL Editor에서 실행 필요
+
+---
+
 ## 2025-12-19 - [UPDATE] Gemini 모델 업그레이드 (2.0 → 3.0 Flash)
 
 **Changed Files**:
