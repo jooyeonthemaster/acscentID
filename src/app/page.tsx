@@ -34,16 +34,19 @@ const staggerContainer = {
 
 export default function Home() {
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  // 로그인 여부 확인 (Supabase Auth 또는 카카오 커스텀 세션)
+  const isLoggedIn = !!(user || unifiedUser)
 
   // 카드 클릭 핸들러
   const handleCardClick = (href: string) => {
     if (loading) return
 
-    if (user) {
+    if (isLoggedIn) {
       // 로그인된 사용자는 바로 이동
       router.push(href)
     } else {
@@ -77,7 +80,7 @@ export default function Home() {
 
       <Header />
 
-      <div className="relative z-10 w-full max-w-7xl px-6 mx-auto flex-1 flex flex-col justify-center lg:flex-row lg:items-center lg:justify-between gap-12 pt-20 pb-10">
+      <div className="relative z-10 w-full max-w-7xl px-6 mx-auto flex-1 flex flex-col justify-center lg:flex-row lg:items-center lg:justify-between gap-12 pt-28 pb-10">
 
         {/* Left Column: Hero */}
         <motion.div
@@ -110,11 +113,31 @@ export default function Home() {
             <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-yellow-300 rounded-full blur-2xl opacity-50 -z-10 animate-pulse" />
           </h1>
 
-          <p className="max-w-md text-slate-600 text-lg font-medium leading-relaxed bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-slate-200/50">
+          <p className="max-w-md text-slate-600 text-lg font-medium leading-relaxed bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-slate-200/50 mb-6">
             <span className="font-bold text-slate-900">덕질을 향기로 기록하다.</span><br />
             최애의 이미지, 분위기, 성격을 분석하여<br />
             세상에 하나뿐인 시그니처 향수를 추천해드립니다.
           </p>
+
+          <div className="mt-8 mb-4">
+            <Link
+              href="/mypage?tab=analyses"
+              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-4 px-8 py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-black text-xl sm:text-2xl shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all group overflow-hidden border-2 border-black"
+            >
+              {/* Animated Background Shine */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shine" />
+
+              <div className="relative flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-slate-900 ring-2 ring-black">
+                  <Sparkles size={20} className="animate-pulse" />
+                </span>
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1">Analysis Complete?</span>
+                  <span>나만의 향수 <span className="text-yellow-400 decoration-wavy underline decoration-2 underline-offset-4">구매하러 가기</span> 👉</span>
+                </div>
+              </div>
+            </Link>
+          </div>
         </motion.div>
 
         {/* Right Column: Menu Grid (Polco Style) */}
@@ -134,7 +157,8 @@ export default function Home() {
               image="/제목 없는 디자인 (3)/1.png"
               color="bg-yellow-50"
               accentColor="bg-yellow-400"
-              icon={<Star className="text-yellow-600" />}
+              price="24,000원"
+              priceDetail="10ml / 50ml 48,000원"
               onClick={handleCardClick}
             />
           </div>
@@ -149,7 +173,7 @@ export default function Home() {
               image="/제목 없는 디자인 (3)/2.png"
               color="bg-blue-50"
               accentColor="bg-blue-400"
-              icon={<Heart className="text-blue-600" />}
+              price="48,000원"
               onClick={handleCardClick}
             />
           </div>
@@ -164,7 +188,8 @@ export default function Home() {
               image="/제목 없는 디자인 (3)/3.png"
               color="bg-purple-50"
               accentColor="bg-purple-400"
-              icon={<Sparkles className="text-purple-600" />}
+              price="24,000원"
+              priceDetail="10ml / 50ml 48,000원"
               onClick={handleCardClick}
             />
           </div>
@@ -177,95 +202,98 @@ export default function Home() {
           </span>
         </div>
 
-      </div>
+      </div >
 
       {/* 로그인 안내 모달 */}
       <AnimatePresence>
-        {showLoginPrompt && (
-          <>
-            {/* 백드롭 */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            />
+        {
+          showLoginPrompt && (
+            <>
+              {/* 백드롭 */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowLoginPrompt(false)}
+                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              />
 
-            {/* 모달 */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
-            >
-              {/* 헤더 */}
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
-                <button
-                  onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                  <X size={20} className="text-slate-400" />
-                </button>
+              {/* 모달 */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
+              >
+                {/* 헤더 */}
+                <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
+                  <button
+                    onClick={() => setShowLoginPrompt(false)}
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                  >
+                    <X size={20} className="text-slate-400" />
+                  </button>
 
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/30 border-2 border-black">
-                  <AlertTriangle size={28} className="text-white" />
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/30 border-2 border-black">
+                    <AlertTriangle size={28} className="text-white" />
+                  </div>
+
+                  <h2 className="text-xl font-black text-slate-900 mb-2">잠깐! 🤔</h2>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    로그인하지 않으면 분석 결과가<br />
+                    <span className="font-bold text-red-500">저장되지 않아요!</span>
+                  </p>
                 </div>
 
-                <h2 className="text-xl font-black text-slate-900 mb-2">잠깐! 🤔</h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  로그인하지 않으면 분석 결과가<br />
-                  <span className="font-bold text-red-500">저장되지 않아요!</span>
-                </p>
-              </div>
-
-              {/* 안내 내용 */}
-              <div className="px-6 py-4 bg-slate-50 border-y border-slate-200">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">로그인하면 분석 결과가 자동 저장돼요</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">마이페이지에서 언제든 다시 볼 수 있어요</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">비회원은 페이지를 나가면 결과가 사라져요</span>
+                {/* 안내 내용 */}
+                <div className="px-6 py-4 bg-slate-50 border-y border-slate-200">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span className="text-slate-600">로그인하면 분석 결과가 자동 저장돼요</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span className="text-slate-600">마이페이지에서 언제든 다시 볼 수 있어요</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-amber-500 font-bold">!</span>
+                      <span className="text-slate-600">비회원은 페이지를 나가면 결과가 사라져요</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 버튼 */}
-              <div className="p-6 space-y-3">
-                {/* 로그인/회원가입 버튼 */}
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800 border-2 border-black"
-                >
-                  로그인 / 회원가입
-                </button>
+                {/* 버튼 */}
+                <div className="p-6 space-y-3">
+                  {/* 로그인/회원가입 버튼 */}
+                  <button
+                    onClick={handleLoginClick}
+                    className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800 border-2 border-black"
+                  >
+                    로그인 / 회원가입
+                  </button>
 
-                {/* 비회원 시작 버튼 */}
-                <button
-                  onClick={handleGuestStart}
-                  className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>비회원으로 시작하기</span>
-                  <span className="text-xs text-slate-400">(저장 안됨)</span>
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                  {/* 비회원 시작 버튼 */}
+                  <button
+                    onClick={handleGuestStart}
+                    className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>비회원으로 시작하기</span>
+                    <span className="text-xs text-slate-400">(저장 안됨)</span>
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )
+        }
+      </AnimatePresence >
 
       {/* 로그인 모달 */}
-      <AuthModal
+      < AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => setShowAuthModal(false)
+        }
         onSuccess={() => {
           setShowAuthModal(false)
           if (pendingHref) {
@@ -273,7 +301,7 @@ export default function Home() {
           }
         }}
       />
-    </main>
+    </main >
   )
 }
 
@@ -286,11 +314,12 @@ interface MenuCardProps {
   image: string
   color: string
   accentColor: string
-  icon: React.ReactNode
+  price?: string
+  priceDetail?: string
   onClick?: (href: string) => void
 }
 
-function MenuCard({ href, tag, title, description, image, color, accentColor, icon, onClick }: MenuCardProps) {
+function MenuCard({ href, tag, title, description, image, color, accentColor, price, priceDetail, onClick }: MenuCardProps) {
   const handleClick = (e: React.MouseEvent) => {
     if (onClick) {
       e.preventDefault()
@@ -300,7 +329,7 @@ function MenuCard({ href, tag, title, description, image, color, accentColor, ic
 
   return (
     <Link href={href} onClick={handleClick} className="block group relative">
-      <div className={`relative overflow-hidden rounded-[2rem] border-2 border-black box-shadow-hard group-hover:box-shadow-hard-lg transition-all duration-300 ${color} h-[220px] sm:h-[260px]`}>
+      <div className={`relative overflow-hidden rounded-[2rem] border-2 border-black box-shadow-hard group-hover:box-shadow-hard-lg transition-all duration-300 ${color} h-[240px] sm:h-[280px]`}>
 
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 h-10 border-b-2 border-black bg-white flex items-center px-4 justify-between z-10">
@@ -313,27 +342,30 @@ function MenuCard({ href, tag, title, description, image, color, accentColor, ic
         </div>
 
         {/* Content */}
-        <div className="relative h-full pt-10 flex flex-col items-center justify-center p-6 text-center group-hover:scale-105 transition-transform duration-500">
+        <div className="relative h-full pt-12 flex flex-col items-center justify-start p-6 text-center group-hover:scale-105 transition-transform duration-500">
           {/* Image Circle */}
-          <div className="w-24 h-24 rounded-full border-2 border-black overflow-hidden mb-3 bg-white shadow-md relative">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-black overflow-hidden mb-3 bg-white shadow-md relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image} alt="" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
           </div>
 
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 transition-all">
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 transition-all">
             {title}
           </h3>
-          <p className="text-sm font-bold text-slate-500">
+          <p className="text-xs sm:text-sm font-bold text-slate-500 mb-3">
             {description}
           </p>
-        </div>
 
-        {/* Sticker Decoration */}
-        <div className="absolute bottom-3 right-3 transform rotate-12 group-hover:rotate-45 transition-transform duration-300">
-          <div className={`w-10 h-10 ${accentColor} border-2 border-black rounded-full flex items-center justify-center`}>
-            {icon}
-          </div>
+          {/* Pricing Section */}
+          {price && (
+            <div className="flex flex-col items-center gap-0.5 mt-auto pb-2 w-full">
+              <div className="bg-white/90 border-2 border-black rounded-lg px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 transform group-hover:-rotate-2 transition-transform max-w-full">
+                <span className="text-xs sm:text-sm font-black text-slate-900 whitespace-nowrap">{price}</span>
+                {priceDetail && <span className="text-[10px] sm:text-xs font-bold text-slate-500 border-l border-slate-300 pl-1.5 whitespace-nowrap">{priceDetail}</span>}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Shine Overlay */}

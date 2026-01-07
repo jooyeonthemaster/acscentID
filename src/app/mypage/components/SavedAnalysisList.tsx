@@ -1,8 +1,19 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Sparkles, Calendar, Trash2, ChevronRight, User } from 'lucide-react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, Heart, Trash2, ExternalLink, X, Calendar, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
+
+interface RecipeGranule {
+  id: string
+  name: string
+  ratio: number
+}
+
+interface ConfirmedRecipe {
+  granules: RecipeGranule[]
+}
 
 interface Analysis {
   id: string
@@ -12,6 +23,7 @@ interface Analysis {
   perfume_brand: string
   user_image_url: string | null
   analysis_data: object
+  confirmed_recipe: ConfirmedRecipe | null  // 확정된 레시피
 }
 
 interface SavedAnalysisListProps {
@@ -21,6 +33,23 @@ interface SavedAnalysisListProps {
 }
 
 export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysisListProps) {
+  const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
+
+  // 좋아요 토글
+  const toggleLike = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLikedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
   // 상대 시간 포맷
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -36,24 +65,24 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
     if (diffDays < 7) return `${diffDays}일 전`
 
     return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
     })
   }
 
-  // 로딩 스켈레톤
+  // 로딩 스켈레톤 (갤러리 스타일)
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 animate-pulse border border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-slate-200 rounded-xl" />
-              <div className="flex-1">
-                <div className="h-4 bg-slate-200 rounded w-1/2 mb-2" />
-                <div className="h-3 bg-slate-100 rounded w-2/3" />
-              </div>
+      <div className="grid grid-cols-2 gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="aspect-[3/4] bg-white rounded-2xl animate-pulse border border-slate-100 overflow-hidden"
+          >
+            <div className="h-3/4 bg-gradient-to-br from-slate-100 to-slate-200" />
+            <div className="p-3 space-y-2">
+              <div className="h-3 bg-slate-200 rounded w-2/3" />
+              <div className="h-2 bg-slate-100 rounded w-1/2" />
             </div>
           </div>
         ))}
@@ -65,16 +94,16 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
   if (analyses.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-20 h-20 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
-          <Sparkles size={36} className="text-purple-300" />
+        <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center shadow-lg shadow-purple-500/10">
+          <Sparkles size={40} className="text-purple-400" />
         </div>
-        <p className="text-slate-600 font-medium">저장된 분석 결과가 없어요</p>
-        <p className="text-slate-400 text-sm mt-1">
-          이미지를 분석하고 나만의 향수를 찾아보세요!
+        <p className="text-slate-700 font-bold text-lg">나만의 갤러리가 비어있어요</p>
+        <p className="text-slate-400 text-sm mt-2">
+          이미지를 분석하고 최애 향수를 찾아보세요!
         </p>
         <Link
           href="/"
-          className="inline-block mt-4 px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold text-sm shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-shadow"
+          className="inline-block mt-6 px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 transition-all"
         >
           분석 시작하기
         </Link>
@@ -83,70 +112,233 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
   }
 
   return (
-    <div className="space-y-3">
-      {analyses.map((analysis, index) => (
-        <motion.div
-          key={analysis.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-start gap-3">
-            {/* 이미지 또는 아이콘 */}
-            {analysis.user_image_url ? (
-              <img
-                src={analysis.user_image_url}
-                alt="분석 이미지"
-                className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <User size={20} className="text-purple-600" />
+    <>
+      {/* 갤러리 그리드 */}
+      <div className="grid grid-cols-2 gap-3">
+        {analyses.map((analysis, index) => (
+          <motion.div
+            key={analysis.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.08, type: 'spring', stiffness: 200 }}
+            onClick={() => setSelectedImage(analysis)}
+            className="group cursor-pointer"
+          >
+            {/* 폴라로이드 스타일 카드 */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300">
+              {/* 이미지 영역 */}
+              <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50">
+                {analysis.user_image_url ? (
+                  <img
+                    src={analysis.user_image_url}
+                    alt={analysis.twitter_name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">✨</div>
+                      <span className="text-purple-400 text-xs font-medium">No Image</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 오버레이 그라데이션 */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* 좋아요 버튼 */}
+                <button
+                  onClick={(e) => toggleLike(analysis.id, e)}
+                  className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                >
+                  <Heart
+                    size={16}
+                    className={likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}
+                  />
+                </button>
+
+                {/* 날짜 뱃지 */}
+                <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-[10px] font-medium flex items-center gap-1">
+                  <Calendar size={10} />
+                  {formatRelativeTime(analysis.created_at)}
+                </div>
+
+                {/* 호버 시 액션 버튼들 */}
+                <div className="absolute bottom-2 left-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                  <Link
+                    href={`/result?id=${analysis.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 py-2 px-3 bg-white/90 backdrop-blur-sm rounded-xl text-xs font-bold text-purple-600 flex items-center justify-center gap-1 hover:bg-white transition-colors"
+                  >
+                    <ExternalLink size={12} />
+                    보기
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(analysis.id)
+                    }}
+                    className="py-2 px-3 bg-red-500/90 backdrop-blur-sm rounded-xl text-xs font-bold text-white flex items-center justify-center hover:bg-red-500 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               </div>
-            )}
 
-            {/* 분석 정보 */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-slate-900 truncate">{analysis.twitter_name}</h3>
+              {/* 정보 영역 */}
+              <div className="p-3">
+                <h3 className="font-bold text-slate-900 text-sm truncate leading-tight">
+                  {analysis.twitter_name}
+                </h3>
+                <p className="text-[11px] text-slate-500 truncate mt-1">
+                  {analysis.perfume_name}
+                </p>
+                {/* 확정 레시피가 있으면 granules 표시 */}
+                {analysis.confirmed_recipe?.granules && (
+                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                    {analysis.confirmed_recipe.granules.slice(0, 2).map((g, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-full text-[10px] font-medium text-amber-700"
+                      >
+                        {g.name} {g.ratio}%
+                      </span>
+                    ))}
+                    {analysis.confirmed_recipe.granules.length > 2 && (
+                      <span className="text-[10px] text-slate-400">
+                        +{analysis.confirmed_recipe.granules.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
 
-              {/* 향수 정보 */}
-              <p className="text-xs text-slate-600 truncate mt-0.5">
-                {analysis.perfume_name}
-                <span className="text-slate-400 ml-1">· {analysis.perfume_brand}</span>
-              </p>
-
-              {/* 날짜 */}
-              <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                <Calendar size={11} />
-                {formatRelativeTime(analysis.created_at)}
-              </p>
+                {/* 구매하기 버튼 (카드 내부) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    alert('준비 중인 기능입니다!')
+                  }}
+                  className="w-full mt-3 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-colors shadow-sm"
+                >
+                  <ShoppingBag size={12} className="text-yellow-400" />
+                  향수 구매하기
+                </button>
+              </div>
             </div>
+          </motion.div>
+        ))}
+      </div>
 
-            {/* 액션 버튼 */}
-            <div className="flex items-center gap-1">
+      {/* 이미지 상세보기 모달 */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-sm w-full"
+            >
+              {/* 닫기 버튼 */}
               <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  onDelete(analysis.id)
-                }}
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                title="삭제"
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors"
               >
-                <Trash2 size={16} />
+                <X size={24} />
               </button>
 
-              <Link
-                href={`/result?id=${analysis.id}`}
-                className="p-2 text-slate-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
-                title="상세보기"
-              >
-                <ChevronRight size={16} />
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+              {/* 이미지 카드 */}
+              <div className="bg-white rounded-3xl overflow-hidden shadow-2xl">
+                {/* 큰 이미지 */}
+                <div className="relative aspect-square">
+                  {selectedImage.user_image_url ? (
+                    <img
+                      src={selectedImage.user_image_url}
+                      alt={selectedImage.twitter_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                      <span className="text-6xl">✨</span>
+                    </div>
+                  )}
+
+                  {/* 좋아요 */}
+                  <button
+                    onClick={(e) => toggleLike(selectedImage.id, e)}
+                    className="absolute top-4 right-4 p-3 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:scale-110 transition-transform"
+                  >
+                    <Heart
+                      size={24}
+                      className={likedIds.has(selectedImage.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}
+                    />
+                  </button>
+                </div>
+
+                {/* 상세 정보 */}
+                <div className="p-5">
+                  <div>
+                    <h2 className="font-black text-xl text-slate-900">
+                      {selectedImage.twitter_name}
+                    </h2>
+                    <p className="text-slate-600 text-sm mt-1">
+                      {selectedImage.perfume_name}
+                    </p>
+                  </div>
+
+                  {/* 확정 레시피가 있으면 표시 */}
+                  {selectedImage.confirmed_recipe?.granules && (
+                    <div className="mt-4 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-200">
+                      <p className="text-xs font-bold text-amber-700 mb-2">🧪 확정 레시피</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedImage.confirmed_recipe.granules.map((g, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-white rounded-lg text-xs font-medium text-amber-800 shadow-sm"
+                          >
+                            {g.name} {g.ratio}%
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 mt-4">
+                    <Link
+                      href={`/result?id=${selectedImage.id}`}
+                      className="flex-1 py-3 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl font-bold text-center hover:bg-slate-50 transition-colors"
+                    >
+                      결과 상세보기
+                    </Link>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        alert('준비 중인 기능입니다!')
+                      }}
+                      className="flex-[1.5] py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 hover:scale-[1.02] hover:shadow-purple-500/40 transition-all"
+                    >
+                      <ShoppingBag size={18} />
+                      향수 구매하기
+                    </button>
+                  </div>
+
+                  <p className="text-center text-slate-400 text-xs mt-4">
+                    {formatRelativeTime(selectedImage.created_at)}에 분석됨
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }

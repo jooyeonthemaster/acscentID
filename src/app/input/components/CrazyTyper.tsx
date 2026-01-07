@@ -134,25 +134,53 @@ const REACTIONS: Record<string, string[]> = {
     ],
 
     // Step 4: Charm Point
-    "눈": [
-        "눈에 은하수 박았어?! 눈빛 만으로 서사 뚝딱 완성...",
-        "눈 쳐다보면 심정지 올 듯... 선글라스 필수 지참...",
-        "그 눈망울에 건배... 빠져죽어도 좋아 엉엉 ㅠㅠ"
+    "눈웃음": [
+        "눈웃음 미쳤다... 심장이 녹아내려 ㅠㅠㅠ 물웅덩이 됐어...",
+        "웃을 때 눈이 초승달 되는 거 실화?! 달빛 요정이세요?!",
+        "그 눈웃음에 맞으면 즉사야... 방탄조끼 필수 착용!!!",
+        "눈웃음 한 번에 내 수명 10년 늘어남... 불로장생 비결 발견!!"
     ],
-    "코": [
-        "코에서 미끄럼틀 타도 될 듯... 에베레스트 등반 가능?!",
-        "콧대 실화냐... 베일 것 같아 조심해!!!",
-        "조각이야 조각... 루브르 박물관에서 탈출했니?!"
-    ],
-    "입술": [
-        "입술... 젤리세요?! 앙 깨물어보고 싶다 진심...",
-        "입동굴 미쳤다... 거기서 살고 싶어 월세 얼마야??",
-        "웃을 때 입꼬리 ㅠㅠㅠ 내 심장 저격수... 탕탕탕!!"
+    "목소리": [
+        "목소리 뭐야?! 귀가 임신했어 ㅠㅠㅠ 고막 터져도 좋아...",
+        "ASMR이 따로 없다... 하루종일 듣고 싶어 무한 반복 재생!!!",
+        "목소리에서 꿀 뚝뚝... 성대가 황금이야?! 국보급 목소리!!!",
+        "저음/고음 미쳤다... 귓가에 캠핑하고 싶어 텐트 칠게요..."
     ],
     "손": [
         "섬섬옥수 미쳤다... 손마저 잘생겼으면 반칙 아냐?!",
         "핏줄... 설렌다... 링거 꽂아주고 싶다(?)",
-        "피아노 잘 칠 것 같아... 그 손으로 내 머리 쓰담쓰담 좀..."
+        "피아노 잘 칠 것 같아... 그 손으로 내 머리 쓰담쓰담 좀...",
+        "손 사진 찍어서 액자에 걸어두고 싶다... 예술 작품이야..."
+    ],
+    "분위기": [
+        "분위기 깡패다... 존재 자체가 한 편의 영화야 ㅠㅠ",
+        "아우라 미쳤다!!! 공기가 달라져 숨을 못 쉬겠어...",
+        "같이 있으면 내가 주인공이 된 기분이야... 로맨스 찍자!!!",
+        "무드등이 필요 없어 자체 조명이니까... 분위기 맛집 인정!!"
+    ],
+    "눈빛": [
+        "눈빛에 은하수 박았어?! 빠져든다 빠져들어... 익사 각!!",
+        "그 눈으로 쳐다보면 심장 폭발이야... 소화기 가져와!!!",
+        "눈빛 하나로 서사 뚝딱... 눈싸움하면 내가 100% 져 ㅠㅠ",
+        "눈빛이 말을 해... 무슨 말인지는 모르겠지만 사랑해!!!"
+    ],
+    "미소": [
+        "미소 짓는 순간 세상이 환해져!!! 태양 실직 위기...",
+        "그 미소에 맞으면 기절이야... 자동 심폐소생술 필요!!!",
+        "웃는 얼굴 보면 모든 걱정이 싹 사라져... 만병통치약...",
+        "1일 1미소 안 보면 금단현상 와... 미소 중독자 인정 ㅠㅠ"
+    ],
+    "말투": [
+        "말투 미쳤다... 어떻게 그렇게 말해?! 녹음해서 알람 삼을래!!!",
+        "말 한마디에 심장이 콩닥콩닥... 대화만 해도 설레 ㅠㅠ",
+        "특유의 말투가 중독성 있어... 하루종일 듣고 싶다 진짜...",
+        "말투만 들어도 누군지 알아... 성대모사 불가 유일무이 말투!!!"
+    ],
+    "제스처": [
+        "제스처 하나하나가 예술이야... 몸이 곧 캔버스!!!",
+        "손짓 하나에 심장이 두근두근... 수화로 사랑 고백해줘!!!",
+        "움직임이 물 흐르듯... 춤 안 춰도 춤추는 것 같아 ㅠㅠ",
+        "제스처 장인 인정!!! 온몸으로 말하는 사람 처음 봐..."
     ]
 }
 
@@ -270,20 +298,33 @@ function Content({ step, formData }: CrazyTyperProps) {
         const prev = prevDataRef.current
         let reaction = ""
 
-        // Logic similar to above...
+        // Style added
         if (formData.styles.length > prev.styles.length) {
             const newStyle = formData.styles[formData.styles.length - 1]
             const list = REACTIONS[newStyle] || [`${newStyle}?!!? 대박!!`]
             reaction = list[Math.floor(Math.random() * list.length)]
         }
-        // Gender
+        // Personality added
+        else if (formData.personalities.length > prev.personalities.length) {
+            const newPers = formData.personalities[formData.personalities.length - 1]
+            const list = REACTIONS[newPers] || [`${newPers}?!!? 대박!!`]
+            reaction = list[Math.floor(Math.random() * list.length)]
+        }
+        // Charm point added
+        else if (formData.charmPoints.length > prev.charmPoints.length) {
+            const newCharm = formData.charmPoints[formData.charmPoints.length - 1]
+            const list = REACTIONS[newCharm] || [`${newCharm}?!!? 대박!!`]
+            reaction = list[Math.floor(Math.random() * list.length)]
+        }
+        // Gender changed
         else if (formData.gender !== prev.gender) {
             const list = REACTIONS[formData.gender] || []
             if (list.length) reaction = list[Math.floor(Math.random() * list.length)]
         }
-        // Step change resets to specific intro
-        else if (step !== 1 && prev.styles === formData.styles && step === 2) reaction = "어떤 스타일이야??!"
-        else if (step === 3 && prev.personalities === formData.personalities) reaction = "성격은 어때??!"
+        // Step change - show intro text
+        else if (step === 2 && prev.styles.length === formData.styles.length) reaction = "어떤 스타일이야??!"
+        else if (step === 3 && prev.personalities.length === formData.personalities.length) reaction = "성격은 어때??!"
+        else if (step === 4 && prev.charmPoints.length === formData.charmPoints.length) reaction = "매력 포인트는??!"
 
         if (reaction) {
             setMainText(reaction)

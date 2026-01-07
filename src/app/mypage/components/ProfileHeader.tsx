@@ -4,25 +4,43 @@ import { User } from '@supabase/supabase-js'
 import { User as UserIcon, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
-interface ProfileHeaderProps {
-  user: User | null
+// 통합 사용자 타입 (AuthContext와 동일하게 맞춤)
+interface UnifiedUser {
+  id: string
+  name: string | null
+  email: string | null
+  avatar_url: string | null
+  provider: string
 }
 
-export function ProfileHeader({ user }: ProfileHeaderProps) {
+interface ProfileHeaderProps {
+  user: User | null
+  unifiedUser: UnifiedUser | null
+}
+
+export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
   const { signOut } = useAuth()
 
-  if (!user) return null
+  // Kakao 사용자는 unifiedUser, Google 사용자는 user 사용
+  if (!user && !unifiedUser) return null
 
-  const userName =
-    user.user_metadata?.name ||
-    user.user_metadata?.full_name ||
-    user.email?.split('@')[0] ||
+  // 이름 가져오기
+  const userName = unifiedUser?.name ||
+    user?.user_metadata?.name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
     '사용자'
 
-  const userAvatar =
-    user.user_metadata?.avatar_url || user.user_metadata?.picture
+  // 아바타 가져오기
+  const userAvatar = unifiedUser?.avatar_url ||
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture
 
-  const provider = user.app_metadata?.provider || 'email'
+  // 이메일 가져오기
+  const userEmail = unifiedUser?.email || user?.email
+
+  // 프로바이더 가져오기
+  const provider = unifiedUser?.provider || user?.app_metadata?.provider || 'email'
   const providerLabel = provider === 'google' ? 'Google' : provider === 'kakao' ? 'Kakao' : '이메일'
 
   const handleSignOut = async () => {
@@ -50,7 +68,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         {/* 프로필 정보 */}
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-slate-900 truncate">{userName}</h2>
-          <p className="text-sm text-slate-500 truncate">{user.email}</p>
+          <p className="text-sm text-slate-500 truncate">{userEmail || '카카오 로그인'}</p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
               {providerLabel} 로그인

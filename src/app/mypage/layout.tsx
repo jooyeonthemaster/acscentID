@@ -10,15 +10,17 @@ interface MyPageLayoutProps {
 }
 
 export default function MyPageLayout({ children }: MyPageLayoutProps) {
-  const { user, loading } = useAuth()
+  const { user, unifiedUser, loading } = useAuth()
   const router = useRouter()
+  // 카카오 사용자는 unifiedUser에만 있음
+  const currentUser = unifiedUser || user
 
   useEffect(() => {
     // 로딩이 끝났고 사용자가 없으면 홈으로 리다이렉트
-    if (!loading && !user) {
+    if (!loading && !currentUser) {
       router.push('/?login=required')
     }
-  }, [user, loading, router])
+  }, [currentUser, loading, router])
 
   // 로딩 중
   if (loading) {
@@ -33,7 +35,7 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
   }
 
   // 로그인되지 않은 경우 (리다이렉트 대기 중)
-  if (!user) {
+  if (!currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <div className="text-center">

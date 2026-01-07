@@ -1,11 +1,15 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { generateTwitterName } from '../utils/twitterNameGenerator'
 import { perfumes } from '@/data/perfumes'
 
 export const useResultData = () => {
+  const searchParams = useSearchParams()
+  const resultId = searchParams.get('id') // URL에서 id 파라미터 가져오기
+
   const [analysisResult, setAnalysisResult] = useState<ImageAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,7 +21,36 @@ export const useResultData = () => {
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        // localStorage에서 분석 결과 가져오기
+        // URL에 id가 있으면 DB에서 가져오기
+        if (resultId) {
+          console.log('[useResultData] Fetching from DB, id:', resultId)
+          const response = await fetch(`/api/results/${resultId}`)
+          const data = await response.json()
+
+          if (data.success && data.result) {
+            // DB에서 가져온 데이터 설정
+            const dbResult = data.result
+
+            // API 응답은 camelCase (analysisData)
+            const analysisData = typeof dbResult.analysisData === 'string'
+              ? JSON.parse(dbResult.analysisData)
+              : dbResult.analysisData
+
+            setAnalysisResult(analysisData)
+            setUserImage(dbResult.userImageUrl || null)
+            setTwitterName(dbResult.twitterName || generateTwitterName(analysisData))
+
+            setLoading(false)
+            setTimeout(() => setIsLoaded(true), 100)
+            return
+          } else {
+            console.error('[useResultData] Failed to fetch from DB:', data.error)
+            // DB에서 못 가져오면 localStorage 시도
+          }
+        }
+
+        // localStorage에서 분석 결과 가져오기 (기존 로직)
+        console.log('[useResultData] Using localStorage')
         const savedResult = localStorage.getItem('analysisResult')
         const savedUserImage = localStorage.getItem('userImage')
 
@@ -70,7 +103,7 @@ export const useResultData = () => {
     }
 
     fetchResult()
-  }, [])
+  }, [resultId])
 
   return {
     analysisResult,
@@ -149,6 +182,3 @@ function generateMockResult(): ImageAnalysisResult {
     ]
   }
 }
-
-
-

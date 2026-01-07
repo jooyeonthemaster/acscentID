@@ -1,15 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase/client'
 import { ProfileHeader } from './components/ProfileHeader'
 import { SavedRecipeList } from './components/SavedRecipeList'
 import { SavedAnalysisList } from './components/SavedAnalysisList'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChevronLeft, Beaker, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+
+interface RecipeGranule {
+  id: string
+  name: string
+  ratio: number
+}
+
+interface ConfirmedRecipe {
+  granules: RecipeGranule[]
+}
 
 interface AnalysisResult {
   id: string
@@ -19,6 +29,7 @@ interface AnalysisResult {
   perfume_brand: string
   user_image_url: string | null
   analysis_data: object
+  confirmed_recipe: ConfirmedRecipe | null  // 확정된 레시피
 }
 
 interface RecipeResult {
@@ -33,69 +44,69 @@ interface RecipeResult {
   retention_percentage: number
 }
 
-export default function MyPage() {
-  const { user } = useAuth()
+function MyPageContent() {
+  const { user, unifiedUser } = useAuth()
+  const searchParams = useSearchParams()
+  // 카카오 사용자는 unifiedUser에만 있음
+  const currentUser = unifiedUser || user
+  const userId = unifiedUser?.id || user?.id
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [recipes, setRecipes] = useState<RecipeResult[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('recipes')
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'analyses' ? 'analyses' : 'recipes')
+
+  // API를 통해 데이터 조회 (RLS 우회)
+  const fetchData = useCallback(async () => {
+    if (!userId) return
+
+    setLoading(true)
+    try {
+      // fingerprint를 함께 전송하여 미연동 데이터도 조회 + 자동 연동
+      const fingerprint = typeof window !== 'undefined'
+        ? localStorage.getItem('user_fingerprint')
+        : null
+      const url = fingerprint
+        ? `/api/user/data?fingerprint=${encodeURIComponent(fingerprint)}`
+        : '/api/user/data'
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Failed to fetch user data:', data.error)
+        return
+      }
+
+      setAnalyses(data.analyses || [])
+      setRecipes(data.recipes || [])
+
+      if (data.analysisError) {
+        console.error('Analysis fetch error:', data.analysisError)
+      }
+      if (data.recipeError) {
+        console.error('Recipe fetch error:', data.recipeError)
+      }
+    } catch (error) {
+      console.error('Failed to fetch data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
 
   useEffect(() => {
-    if (!user) return
-
-    const fetchData = async () => {
-      setLoading(true)
-
-      try {
-        // 분석 결과 조회
-        const { data: analysisData, error: analysisError } = await supabase
-          .from('analysis_results')
-          .select('id, created_at, twitter_name, perfume_name, perfume_brand, user_image_url, analysis_data')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-
-        if (analysisError) {
-          console.error('Failed to fetch analyses:', analysisError)
-        } else {
-          setAnalyses(analysisData || [])
-        }
-
-        // 레시피 조회 (generated_recipe가 있는 것만)
-        const { data: recipeData, error: recipeError } = await supabase
-          .from('perfume_feedbacks')
-          .select('id, created_at, perfume_name, perfume_id, generated_recipe, retention_percentage')
-          .eq('user_id', user.id)
-          .not('generated_recipe', 'is', null)
-          .order('created_at', { ascending: false })
-
-        if (recipeError) {
-          console.error('Failed to fetch recipes:', recipeError)
-        } else {
-          setRecipes(recipeData || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchData()
-  }, [user])
+  }, [fetchData])
 
-  // 레시피 삭제
+  // 레시피 삭제 (API 사용)
   const handleDeleteRecipe = async (id: string) => {
     if (!confirm('이 레시피를 삭제할까요?')) return
 
     try {
-      const { error } = await supabase
-        .from('perfume_feedbacks')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id)
+      const response = await fetch(`/api/user/recipe/${id}`, { method: 'DELETE' })
+      const data = await response.json()
 
-      if (error) {
-        console.error('Failed to delete recipe:', error)
+      if (!response.ok) {
+        console.error('Failed to delete recipe:', data.error)
         alert('삭제에 실패했습니다')
         return
       }
@@ -103,22 +114,20 @@ export default function MyPage() {
       setRecipes((prev) => prev.filter((r) => r.id !== id))
     } catch (error) {
       console.error('Delete error:', error)
+      alert('삭제 중 오류가 발생했습니다')
     }
   }
 
-  // 분석 결과 삭제
+  // 분석 결과 삭제 (API 사용)
   const handleDeleteAnalysis = async (id: string) => {
     if (!confirm('이 분석 결과를 삭제할까요?')) return
 
     try {
-      const { error } = await supabase
-        .from('analysis_results')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id)
+      const response = await fetch(`/api/user/analysis/${id}`, { method: 'DELETE' })
+      const data = await response.json()
 
-      if (error) {
-        console.error('Failed to delete analysis:', error)
+      if (!response.ok) {
+        console.error('Failed to delete analysis:', data.error)
         alert('삭제에 실패했습니다')
         return
       }
@@ -126,6 +135,7 @@ export default function MyPage() {
       setAnalyses((prev) => prev.filter((a) => a.id !== id))
     } catch (error) {
       console.error('Delete error:', error)
+      alert('삭제 중 오류가 발생했습니다')
     }
   }
 
@@ -149,7 +159,7 @@ export default function MyPage() {
         </div>
 
         {/* 프로필 헤더 */}
-        <ProfileHeader user={user} />
+        <ProfileHeader user={user} unifiedUser={unifiedUser} />
 
         {/* 탭 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
@@ -200,5 +210,14 @@ export default function MyPage() {
         </Tabs>
       </div>
     </div>
+  )
+}
+
+// Force rebuild
+export default function MyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA]" />}>
+      <MyPageContent />
+    </Suspense>
   )
 }

@@ -85,7 +85,7 @@ function InputForm() {
             </div>
 
             {/* Right Side (Mobile: Full Width, Desktop: 1/2) */}
-            <div className="flex-1 h-full flex flex-col relative bg-[#FAFAFA] z-0 pt-20">
+            <div className="flex-1 h-full flex flex-col relative bg-[#FAFAFA] z-0 pt-28">
                 {/* Mobile Background (Light) */}
                 <div className="lg:hidden">
                     <Background />

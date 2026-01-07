@@ -1,18 +1,19 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Droplet, TestTube2, AlertTriangle, PartyPopper, TrendingUp, TrendingDown, Minus, Check, RotateCcw } from 'lucide-react'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Droplet, TestTube2, AlertTriangle, PartyPopper, TrendingUp, TrendingDown, Minus, Check, RotateCcw, Target, Sparkles } from 'lucide-react'
 import { GeneratedRecipe, CategoryChange, PerfumeFeedback } from '@/types/feedback'
 import { Button } from '@/components/ui/button'
 import { perfumes } from '@/data/perfumes'
 
 interface FeedbackSuccessProps {
-  recipe: GeneratedRecipe
+  userDirectRecipe: GeneratedRecipe // 1안: 사용자 직접 선택
+  aiRecommendedRecipe: GeneratedRecipe | null // 2안: AI 추천
   perfumeName: string
   previousFeedback?: PerfumeFeedback // 이전 피드백 정보
   onClose: () => void
-  onConfirmRecipe: () => void // 레시피 확정하기
+  onConfirmRecipe: (recipe: GeneratedRecipe) => void // 레시피 확정하기 (선택된 탭의 레시피)
   onRetryFeedback: () => void // 다시 피드백 기록하기
 }
 
@@ -50,13 +51,20 @@ const CATEGORY_COLORS: Record<string, { bg: string; bar: string }> = {
 }
 
 export function FeedbackSuccess({
-  recipe,
+  userDirectRecipe,
+  aiRecommendedRecipe,
   perfumeName,
   previousFeedback,
   onClose,
   onConfirmRecipe,
   onRetryFeedback
 }: FeedbackSuccessProps) {
+  // 탭 상태 (1안: user, 2안: ai)
+  const [activeTab, setActiveTab] = useState<'user' | 'ai'>('user')
+
+  // 현재 선택된 레시피
+  const recipe = activeTab === 'user' ? userDirectRecipe : (aiRecommendedRecipe || userDirectRecipe)
+
   // 향수 색상 가져오기
   const getGranuleColor = (id: string) => {
     const perfume = perfumes.find((p) => p.id === id)
@@ -124,6 +132,68 @@ export function FeedbackSuccess({
           </p>
         </motion.div>
       </div>
+
+      {/* 2탭 선택 UI */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="flex bg-slate-100 p-1 rounded-xl gap-1"
+      >
+        <button
+          onClick={() => setActiveTab('user')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'user'
+              ? 'bg-white text-amber-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Target size={14} />
+          <span>1안: 직접 선택</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('ai')}
+          disabled={!aiRecommendedRecipe}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'ai'
+              ? 'bg-white text-purple-600 shadow-sm'
+              : aiRecommendedRecipe
+                ? 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-300 cursor-not-allowed'
+          }`}
+        >
+          <Sparkles size={14} />
+          <span>2안: AI 추천</span>
+        </button>
+      </motion.div>
+
+      {/* 탭별 설명 배너 */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.2 }}
+          className={`rounded-xl p-3 border text-center text-sm ${
+            activeTab === 'user'
+              ? 'bg-amber-50 border-amber-200 text-amber-700'
+              : 'bg-purple-50 border-purple-200 text-purple-700'
+          }`}
+        >
+          {activeTab === 'user' ? (
+            <p className="flex items-center justify-center gap-2">
+              <Target size={16} />
+              AI 수정 없이 내가 선택한 그대로예요!
+            </p>
+          ) : (
+            <p className="flex items-center justify-center gap-2">
+              <Sparkles size={16} />
+              자연어 피드백을 반영해 AI가 추천해요!
+            </p>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* 전체 설명 */}
       <motion.div
@@ -334,11 +404,15 @@ export function FeedbackSuccess({
       >
         {/* 레시피 확정하기 버튼 */}
         <Button
-          onClick={onConfirmRecipe}
-          className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
+          onClick={() => onConfirmRecipe(recipe)}
+          className={`w-full h-12 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
+            activeTab === 'user'
+              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/30'
+              : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-purple-500/30'
+          }`}
         >
           <Check size={18} />
-          레시피 확정하기
+          {activeTab === 'user' ? '1안으로 확정하기' : '2안으로 확정하기'}
         </Button>
 
         {/* 다시 피드백 기록하기 버튼 */}

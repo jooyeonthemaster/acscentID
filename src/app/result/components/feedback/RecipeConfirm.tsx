@@ -17,6 +17,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 interface RecipeConfirmProps {
   recipe: GeneratedRecipe
   perfumeName: string
+  resultId?: string  // 분석 결과 ID - 레시피를 분석 결과와 연결
   onBack: () => void
   onComplete: () => void
 }
@@ -24,10 +25,11 @@ interface RecipeConfirmProps {
 export function RecipeConfirm({
   recipe,
   perfumeName,
+  resultId,
   onBack,
   onComplete,
 }: RecipeConfirmProps) {
-  const { user } = useAuth()
+  const { unifiedUser } = useAuth()
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('perfume_10ml')
   const [copied, setCopied] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -35,7 +37,7 @@ export function RecipeConfirm({
 
   // 레시피 저장 (로그인된 경우)
   const handleSaveRecipe = async () => {
-    if (!user) {
+    if (!unifiedUser) {
       setShowAuthModal(true)
       return
     }
@@ -55,6 +57,7 @@ export function RecipeConfirm({
           recipe,
           perfumeName,
           selectedProduct,
+          resultId,  // 분석 결과와 연결
         }),
       })
 
@@ -68,7 +71,7 @@ export function RecipeConfirm({
 
   // 확정 버튼 핸들러
   const handleComplete = () => {
-    if (user) {
+    if (unifiedUser) {
       // 로그인된 경우: 저장 후 완료
       handleSaveRecipe()
     } else {
@@ -318,7 +321,7 @@ AC'SCENT IDENTITY에서 생성됨`
 
       {/* 확정 버튼 */}
       <div className="space-y-2">
-        {user ? (
+        {unifiedUser ? (
           // 로그인된 경우
           <Button
             onClick={handleComplete}
@@ -339,7 +342,7 @@ AC'SCENT IDENTITY에서 생성됨`
           </Button>
         )}
         <p className="text-[10px] text-slate-400 text-center">
-          {user
+          {unifiedUser
             ? '확정 후에도 언제든 다시 레시피를 생성할 수 있어요'
             : '로그인하면 내 레시피를 안전하게 보관할 수 있어요'}
         </p>

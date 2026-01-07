@@ -22,6 +22,7 @@ interface RecipeRequest {
     category: string
   }
   characterName?: string // 분석된 캐릭터 이름
+  naturalLanguageFeedback?: string // 자연어 피드백 (Step 3)
 }
 
 export async function POST(request: NextRequest) {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as RecipeRequest
-    const { feedback, originalPerfume, characterName } = body
+    const { feedback, originalPerfume, characterName, naturalLanguageFeedback } = body
 
     // 유효성 검사
     if (!feedback || !originalPerfume) {
@@ -82,8 +83,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, recipe })
     }
 
-    // 프롬프트 생성 (캐릭터 이름 포함)
-    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName)
+    // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 포함)
+    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback)
     console.log(`[${requestId}] Prompt built, calling Gemini API...`)
 
     let recipe: GeneratedRecipe | null = null
@@ -153,19 +154,48 @@ export async function POST(request: NextRequest) {
           return granule
         })
 
-        // 총 drops 계산
-        parsedRecipe.totalDrops = parsedRecipe.granules.reduce(
+        // 🚨 drops 합계를 정확히 10으로 보정
+        const TARGET_DROPS = 10
+        let currentDropsTotal = parsedRecipe.granules.reduce(
           (sum, g) => sum + (g.drops || 0),
           0
         )
 
-        // 강도 추정
-        parsedRecipe.estimatedStrength =
-          parsedRecipe.totalDrops <= 5
-            ? 'light'
-            : parsedRecipe.totalDrops <= 12
-              ? 'medium'
-              : 'strong'
+        if (currentDropsTotal !== TARGET_DROPS && currentDropsTotal > 0) {
+          // 비율에 맞게 재분배
+          const sortedByRatio = [...parsedRecipe.granules].sort((a, b) => b.ratio - a.ratio)
+
+          // 1차: floor로 재계산
+          parsedRecipe.granules = parsedRecipe.granules.map(g => ({
+            ...g,
+            drops: Math.max(1, Math.floor((g.ratio / 100) * TARGET_DROPS))
+          }))
+
+          // 2차: 나머지 분배
+          currentDropsTotal = parsedRecipe.granules.reduce((sum, g) => sum + g.drops, 0)
+          const remaining = TARGET_DROPS - currentDropsTotal
+
+          if (remaining > 0) {
+            for (let i = 0; i < remaining; i++) {
+              const targetId = sortedByRatio[i % sortedByRatio.length].id
+              const granule = parsedRecipe.granules.find(g => g.id === targetId)
+              if (granule) granule.drops += 1
+            }
+          } else if (remaining < 0) {
+            // 초과 시 가장 큰 것에서 빼기
+            for (let i = 0; i < Math.abs(remaining); i++) {
+              const targetId = sortedByRatio[i % sortedByRatio.length].id
+              const granule = parsedRecipe.granules.find(g => g.id === targetId)
+              if (granule && granule.drops > 1) granule.drops -= 1
+            }
+          }
+        }
+
+        // 총 drops 계산
+        parsedRecipe.totalDrops = TARGET_DROPS
+
+        // 강도 추정 (10방울은 medium)
+        parsedRecipe.estimatedStrength = 'medium'
 
         recipe = parsedRecipe
         console.log(`[${requestId}] Recipe generated successfully with ${recipe.granules.length} granules`)

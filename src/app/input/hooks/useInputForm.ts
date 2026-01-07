@@ -152,6 +152,8 @@ export function useInputForm() {
             const result = await response.json()
 
             if (result.success) {
+                // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
+                localStorage.removeItem('savedResultId')
                 localStorage.setItem('analysisResult', JSON.stringify(result.data))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
@@ -164,6 +166,8 @@ export function useInputForm() {
                 showToast('분석 완료! 🎉', 'success', 2000)
                 setTimeout(() => router.push('/result'), 1000)
             } else {
+                // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
+                localStorage.removeItem('savedResultId')
                 localStorage.setItem('analysisResult', JSON.stringify(result.fallback))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)

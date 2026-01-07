@@ -97,6 +97,7 @@ export interface PerfumeFeedback {
   categoryPreferences: CategoryPreferences
   specificScents: SpecificScent[]
   notes?: string
+  naturalLanguageFeedback?: string // 자연어 피드백 (Step 3, 선택사항)
 }
 
 // 피드백 초기값
@@ -110,7 +111,17 @@ export const createInitialFeedback = (
   categoryPreferences: { ...DEFAULT_CATEGORY_PREFERENCES },
   specificScents: [],
   notes: '',
+  naturalLanguageFeedback: '',
 })
+
+// ============================================
+// 듀얼 레시피 타입 (1안: 직접선택, 2안: AI추천)
+// ============================================
+
+export interface DualRecipeResult {
+  userDirectRecipe: GeneratedRecipe    // 사용자 직접 선택 (AI 추가 없음)
+  aiRecommendedRecipe: GeneratedRecipe | null  // AI 추천 (실패 시 null)
+}
 
 // ============================================
 // 생성된 레시피 타입

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // 요청 본문 파싱
     const body = await request.json()
-    const { recipe, perfumeName, selectedProduct, feedbackId } = body
+    const { recipe, perfumeName, selectedProduct, feedbackId, resultId } = body
 
     // fingerprint 헤더 확인
     const fingerprint = request.headers.get('x-fingerprint')
@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
         category_preferences: {},
         generated_recipe: recipe,
         user_fingerprint: fingerprint || null,
-        user_id: user?.id || null
+        user_id: user?.id || null,
+        result_id: resultId || null  // 분석 결과와 연결
       }
 
       const { data, error } = await supabase

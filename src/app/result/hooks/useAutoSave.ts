@@ -9,14 +9,14 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { User } from '@supabase/supabase-js'
 import { ImageAnalysisResult } from '@/types/analysis'
 
 interface UseAutoSaveProps {
   analysisResult: ImageAnalysisResult | null
   userImage: string | null
   twitterName: string
-  user: User | null
+  userId: string | null  // 통합 사용자 ID (Supabase Auth + 카카오)
+  authLoading?: boolean  // AuthContext 로딩 상태 (타이밍 문제 해결용)
 }
 
 interface UseAutoSaveReturn {
@@ -63,7 +63,8 @@ export function useAutoSave({
   analysisResult,
   userImage,
   twitterName,
-  user
+  userId,
+  authLoading = false
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -123,7 +124,7 @@ export function useAutoSave({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   imageBase64: userImage,
-                  userId: user?.id || null,
+                  userId: userId,
                   fingerprint
                 })
               })
@@ -161,7 +162,7 @@ export function useAutoSave({
           perfumeName,
           perfumeBrand,
           matchingKeywords: analysisResult.matchingKeywords || [],
-          userId: user?.id || null,
+          userId: userId,
           userFingerprint: fingerprint
         })
       })
@@ -177,7 +178,7 @@ export function useAutoSave({
         setIsSaved(true)
 
         // 익명 사용자면 로그인 유도 (2초 후)
-        if (!user) {
+        if (!userId) {
           setTimeout(() => {
             if (mountedRef.current) {
               setShowLoginPrompt(true)
@@ -199,11 +200,19 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, user, isSaving])
+  }, [analysisResult, userImage, twitterName, userId, isSaving])
 
   // 컴포넌트 마운트 시 자동 저장
+  // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)
   useEffect(() => {
     mountedRef.current = true
+
+    // authLoading이 true면 아직 사용자 정보 로딩 중 → 저장 대기
+    if (authLoading) {
+      return () => {
+        mountedRef.current = false
+      }
+    }
 
     if (analysisResult && !saveAttemptedRef.current) {
       // 약간의 딜레이 후 저장 (UI가 먼저 렌더링되도록)
@@ -217,15 +226,15 @@ export function useAutoSave({
     return () => {
       mountedRef.current = false
     }
-  }, [analysisResult, saveResult])
+  }, [analysisResult, saveResult, authLoading])
 
   // 로그인 후 데이터 재연동은 AuthContext에서 처리됨 (linkFingerprintData)
   // 여기서는 로그인 프롬프트만 닫아줌
   useEffect(() => {
-    if (user && showLoginPrompt) {
+    if (userId && showLoginPrompt) {
       setShowLoginPrompt(false)
     }
-  }, [user, showLoginPrompt])
+  }, [userId, showLoginPrompt])
 
   return {
     isSaved,

@@ -52,7 +52,7 @@ const staggerContainer = {
 
 export default function ResultPageMain() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, unifiedUser, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
@@ -70,7 +70,7 @@ export default function ResultPageMain() {
     displayedAnalysis
   } = useResultData()
 
-  // 자동 저장 훅
+  // 자동 저장 훅 (authLoading이 완료된 후에만 저장 시작)
   const {
     isSaved: isAutoSaved,
     isSaving: isAutoSaving,
@@ -81,7 +81,8 @@ export default function ResultPageMain() {
     analysisResult: displayedAnalysis,
     userImage,
     twitterName,
-    user
+    userId: user?.id || unifiedUser?.id || null,
+    authLoading  // 로딩 완료 후 저장하도록 전달
   })
 
   const handleRestart = () => {
@@ -117,7 +118,12 @@ export default function ResultPageMain() {
       const perfumeName = topPerfume?.persona?.name || '추천 향수'
       const perfumeBrand = topPerfume?.persona?.recommendation || 'AC\'SCENT'
 
-      // API로 결과 저장
+      // fingerprint 가져오기
+      const fingerprint = typeof window !== 'undefined'
+        ? localStorage.getItem('user_fingerprint')
+        : null
+
+      // API로 결과 저장 (userId, userFingerprint 포함)
       const response = await fetch('/api/results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,7 +133,9 @@ export default function ResultPageMain() {
           twitterName,
           perfumeName,
           perfumeBrand,
-          matchingKeywords: displayedAnalysis.matchingKeywords || []
+          matchingKeywords: displayedAnalysis.matchingKeywords || [],
+          userId: user?.id || unifiedUser?.id || null,
+          userFingerprint: fingerprint
         })
       })
 
@@ -241,7 +249,7 @@ export default function ResultPageMain() {
       />
 
       {/* 메인 콘텐츠 */}
-      <main className="relative z-10 flex-1 px-5 pb-6 overflow-y-auto">
+      <main className="relative z-10 flex-1 px-5 pt-28 pb-6 overflow-y-auto">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -399,7 +407,7 @@ export default function ResultPageMain() {
               ).key
               : 'floral'
           }
-        // characterName은 전달하지 않음 - twitterName은 주접 멘트이지 캐릭터 이름이 아님
+          resultId={savedResultId || undefined}
         />
       )}
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useFeedbackForm } from '../hooks/useFeedbackForm'
 import { FeedbackStep1 } from './feedback/FeedbackStep1'
 import { FeedbackStep2New } from './feedback/FeedbackStep2New'
+import { FeedbackStep3NL } from './feedback/FeedbackStep3NL'
 import { FeedbackSuccess } from './feedback/FeedbackSuccess'
 import { RecipeConfirm } from './feedback/RecipeConfirm'
 import { RetryFeedbackGuide } from './feedback/RetryFeedbackGuide'
@@ -27,7 +28,7 @@ interface FeedbackModalProps {
   characterName?: string // 분석된 캐릭터 이름
 }
 
-// 2단계 구조로 변경
+// 3단계 구조 (Step 3: 자연어 피드백)
 const STEP_INFO = [
   {
     title: '추천 향 비율',
@@ -38,6 +39,11 @@ const STEP_INFO = [
     title: '향료 선택',
     subtitle: '추가하고 싶은 향료를 골라주세요',
     icon: '✨',
+  },
+  {
+    title: '원하는 느낌',
+    subtitle: '추가로 원하는 느낌이 있나요?',
+    icon: '💬',
   },
   {
     title: '레시피 완성!',
@@ -68,7 +74,8 @@ export function FeedbackModal({
   const {
     step,
     feedback,
-    recipe,
+    userDirectRecipe,
+    aiRecommendedRecipe,
     isSubmitting,
     isGenerating,
     error,
@@ -96,6 +103,9 @@ export function FeedbackModal({
 
   // 이전 피드백 저장 (재피드백용)
   const [previousFeedback, setPreviousFeedback] = useState<PerfumeFeedback | null>(null)
+
+  // 확정할 레시피 저장
+  const [selectedRecipe, setSelectedRecipe] = useState<typeof userDirectRecipe>(null)
 
   // 로딩 메시지 순환
   const [loadingMessageIndex, setLoadingMessageIndex] = React.useState(0)
@@ -136,12 +146,13 @@ export function FeedbackModal({
     reset()
     setModalView('form')
     setPreviousFeedback(null)
+    setSelectedRecipe(null)
     onClose()
   }
 
-  // 다음 단계 핸들러 (2단계에서 바로 제출)
+  // 다음 단계 핸들러 (3단계에서 제출)
   const handleNext = () => {
-    if (step === 2) {
+    if (step === 3) {
       submit()
     } else {
       nextStep()
@@ -150,13 +161,14 @@ export function FeedbackModal({
 
   // 레시피 완성 시 success 뷰로 전환
   useEffect(() => {
-    if (step === 3 && recipe) {
+    if (step === 4 && userDirectRecipe) {
       setModalView('success')
     }
-  }, [step, recipe])
+  }, [step, userDirectRecipe])
 
-  // 레시피 확정 버튼 핸들러
-  const handleConfirmRecipe = () => {
+  // 레시피 확정 버튼 핸들러 (선택된 레시피를 받음)
+  const handleConfirmRecipe = (recipe: NonNullable<typeof userDirectRecipe>) => {
+    setSelectedRecipe(recipe)
     setModalView('confirm')
   }
 
@@ -239,10 +251,10 @@ export function FeedbackModal({
               </button>
             </div>
 
-            {/* 단계 표시 (성공 화면 제외) - 이제 2단계만 표시 */}
-            {step < 3 && (
+            {/* 단계 표시 (성공 화면 제외) - 3단계 표시 */}
+            {step < 4 && (
               <div className="px-5 py-3 flex gap-2 flex-shrink-0">
-                {[1, 2].map((s) => (
+                {[1, 2, 3].map((s) => (
                   <motion.div
                     key={s}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -356,7 +368,7 @@ export function FeedbackModal({
 
               {/* 뷰별 컴포넌트 렌더링 */}
               <AnimatePresence mode="wait">
-                {/* 폼 뷰: Step 1, 2 */}
+                {/* 폼 뷰: Step 1, 2, 3 */}
                 {modalView === 'form' && step === 1 && (
                   <FeedbackStep1
                     key="step1"
@@ -381,12 +393,21 @@ export function FeedbackModal({
                     previousFeedback={previousFeedback}
                   />
                 )}
+                {modalView === 'form' && step === 3 && (
+                  <FeedbackStep3NL
+                    key="step3"
+                    feedback={feedback}
+                    naturalLanguageFeedback={feedback.naturalLanguageFeedback || ''}
+                    onNaturalLanguageFeedbackChange={(value) => updateFeedback({ naturalLanguageFeedback: value })}
+                  />
+                )}
 
                 {/* 성공 뷰 */}
-                {modalView === 'success' && recipe && (
+                {modalView === 'success' && userDirectRecipe && (
                   <FeedbackSuccess
                     key="success"
-                    recipe={recipe}
+                    userDirectRecipe={userDirectRecipe}
+                    aiRecommendedRecipe={aiRecommendedRecipe}
                     perfumeName={perfumeName}
                     previousFeedback={previousFeedback || undefined}
                     onClose={handleClose}
@@ -396,11 +417,12 @@ export function FeedbackModal({
                 )}
 
                 {/* 레시피 확정 뷰 */}
-                {modalView === 'confirm' && recipe && (
+                {modalView === 'confirm' && selectedRecipe && (
                   <RecipeConfirm
                     key="confirm"
-                    recipe={recipe}
+                    recipe={selectedRecipe}
                     perfumeName={perfumeName}
+                    resultId={resultId}
                     onBack={handleBackFromConfirm}
                     onComplete={handleCompleteConfirm}
                   />
@@ -420,7 +442,7 @@ export function FeedbackModal({
             </div>
 
             {/* 푸터 (폼 뷰에서만 표시) */}
-            {modalView === 'form' && step < 3 && (
+            {modalView === 'form' && step < 4 && (
               <div className="px-5 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0 bg-white">
                 {step > 1 && (
                   <Button
@@ -435,11 +457,15 @@ export function FeedbackModal({
                 )}
                 <Button
                   onClick={handleNext}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (step === 2 && currentTotalRatio !== 100)}
                   className={`flex-1 h-12 rounded-2xl font-bold text-white transition-all ${
-                    step === 2
-                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-lg shadow-amber-500/30'
-                      : 'bg-slate-900 hover:bg-slate-800'
+                    step === 2 && currentTotalRatio !== 100
+                      ? 'bg-slate-400 cursor-not-allowed'
+                      : step === 3
+                        ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-lg shadow-purple-500/30'
+                        : step === 2
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-lg shadow-amber-500/30'
+                          : 'bg-slate-900 hover:bg-slate-800'
                   }`}
                 >
                   {isSubmitting ? (
@@ -447,10 +473,19 @@ export function FeedbackModal({
                       <Loader2 size={18} className="animate-spin mr-2" />
                       생성 중...
                     </>
-                  ) : step === 2 ? (
+                  ) : step === 2 && currentTotalRatio !== 100 ? (
+                    currentTotalRatio > 100
+                      ? `비율 초과! (${currentTotalRatio}%)`
+                      : `비율을 100%로 맞춰주세요 (${currentTotalRatio}%)`
+                  ) : step === 3 ? (
                     <>
                       <Sparkles size={18} className="mr-2" />
                       레시피 생성하기
+                    </>
+                  ) : step === 2 ? (
+                    <>
+                      다음 단계로
+                      <ChevronRight size={18} className="ml-1" />
                     </>
                   ) : (
                     <>

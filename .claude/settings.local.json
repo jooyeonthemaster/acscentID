@@ -25,7 +25,11 @@
       "Bash(tree:*)",
       "Bash(npm run dev:*)",
       "Bash(node test-gemini.js:*)",
-      "Bash(node test-gemini-image.js:*)"
+      "Bash(node test-gemini-image.js:*)",
+      "Bash(cd:*)",
+      "Skill(sc:analyze)",
+      "Skill(sc:analyze:*)",
+      "Bash(curl:*)"
     ]
   }
 }

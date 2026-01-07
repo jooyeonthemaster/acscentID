@@ -1,5 +1,47 @@
 # CHANGELOG
 
+## 2025-01-07 - [FIX] Next.js 빌드 에러 수정 (useSearchParams Suspense boundary)
+
+**Changed Files**:
+- src/app/result/page.tsx (Before: 6 lines → After: 35 lines)
+
+**Changes**:
+- `ResultPageMain` 컴포넌트를 `<Suspense>` boundary로 감싸기
+- `ResultLoading` 로딩 컴포넌트 추가 (기존 스타일 유지)
+
+**Reason**:
+- 빌드 에러: `useSearchParams() should be wrapped in a suspense boundary at page "/result"`
+- Next.js App Router에서 `useSearchParams()` 사용 시 Suspense 필수
+
+**Impact**:
+- 빌드 성공
+- `/result` 페이지 초기 로딩 시 로딩 UI 표시
+
+---
+
+## 2025-01-06 - [UPDATE] 마이페이지 갤러리 카드에 확정 레시피 표시
+
+**Changed Files**:
+- src/app/api/user/data/route.ts (Before: 129 lines → After: ~150 lines)
+- src/app/mypage/components/SavedAnalysisList.tsx (Before: 287 lines → After: ~300 lines)
+- src/app/mypage/page.tsx (타입 수정)
+
+**Changes**:
+- **API 수정**: 분석 결과 조회 시 연결된 확정 레시피(result_id) 함께 조회
+- **갤러리 카드 수정**: perfume_brand 태그 대신 확정 레시피 granules 표시
+  - 레시피가 있으면: "블랙베리 40%", "시트러스 30%" 등 향료 태그 표시
+  - 레시피가 없으면: 기존 perfume_brand 표시
+
+**Reason**:
+- 사용자 요청: 갤러리 카드에서 주접 멘트 대신 확정한 레시피 표시
+- UX 개선: 어떤 레시피를 확정했는지 한눈에 확인 가능
+
+**Impact**:
+- 마이페이지 분석 결과 갤러리에서 확정 레시피 바로 확인 가능
+- 레시피 미확정 분석은 기존대로 브랜드명 표시
+
+---
+
 ## 2025-12-30 - [FIX] Kakao 로그인 후 세션 유지 안되는 문제 수정 (2차 수정)
 
 **Changed Files**:

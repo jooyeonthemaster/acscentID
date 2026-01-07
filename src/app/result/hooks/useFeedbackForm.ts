@@ -7,8 +7,10 @@ import {
   CategoryPreferences,
   SpecificScent,
   createInitialFeedback,
+  RecipeGranule,
 } from '@/types/feedback'
 import { ScentCategoryScores } from '@/types/analysis'
+import { getPerfumeById } from '@/data/perfumes'
 
 interface UseFeedbackFormProps {
   perfumeId: string
@@ -23,7 +25,8 @@ interface UseFeedbackFormReturn {
   // 상태
   step: number
   feedback: PerfumeFeedback
-  recipe: GeneratedRecipe | null
+  userDirectRecipe: GeneratedRecipe | null // 1안: 사용자 직접 선택
+  aiRecommendedRecipe: GeneratedRecipe | null // 2안: AI 추천
   isSubmitting: boolean
   isGenerating: boolean
   error: string | null
@@ -72,10 +75,78 @@ export function useFeedbackForm({
   const [feedback, setFeedback] = useState<PerfumeFeedback>(() =>
     createInitialFeedback(perfumeId, perfumeName)
   )
-  const [recipe, setRecipe] = useState<GeneratedRecipe | null>(null)
+  const [userDirectRecipe, setUserDirectRecipe] = useState<GeneratedRecipe | null>(null)
+  const [aiRecommendedRecipe, setAiRecommendedRecipe] = useState<GeneratedRecipe | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  /**
+   * 사용자 직접 선택 레시피 생성 (클라이언트 사이드, AI 호출 X)
+   * 총 drops 합계는 항상 10방울
+   */
+  const generateUserDirectRecipe = useCallback((currentFeedback: PerfumeFeedback): GeneratedRecipe => {
+    const TARGET_DROPS = 10 // 항상 10방울
+
+    // 모든 향료 정보 수집
+    const allScents = [
+      { id: currentFeedback.perfumeId, name: currentFeedback.perfumeName, ratio: currentFeedback.retentionPercentage, isMain: true },
+      ...currentFeedback.specificScents.map(s => ({ id: s.id, name: s.name, ratio: s.ratio, isMain: false }))
+    ]
+
+    // 1차: 비율 기반으로 drops 계산 (floor 사용)
+    let drops = allScents.map(scent => ({
+      ...scent,
+      drops: Math.floor((scent.ratio / 100) * TARGET_DROPS)
+    }))
+
+    // 2차: 합계가 10이 될 때까지 나머지 분배 (비율이 높은 순으로)
+    let currentTotal = drops.reduce((sum, d) => sum + d.drops, 0)
+    const remaining = TARGET_DROPS - currentTotal
+
+    if (remaining > 0) {
+      // 비율이 높은 순으로 정렬해서 나머지 분배
+      const sortedByRatio = [...drops].sort((a, b) => b.ratio - a.ratio)
+      for (let i = 0; i < remaining; i++) {
+        const target = sortedByRatio[i % sortedByRatio.length]
+        const original = drops.find(d => d.id === target.id)
+        if (original) original.drops += 1
+      }
+    }
+
+    // granules 생성
+    const granules: RecipeGranule[] = drops.map(scent => {
+      const perfumeData = getPerfumeById(scent.id)
+      return {
+        id: scent.id,
+        name: scent.name,
+        mainCategory: perfumeData?.category || (scent.isMain ? perfumeCategory : 'unknown'),
+        drops: scent.drops,
+        ratio: scent.ratio,
+        reason: scent.isMain
+          ? `추천받은 ${scent.name} 향을 ${scent.ratio}% 그대로 유지! 💯`
+          : `내가 선택한 ${scent.name}을(를) ${scent.ratio}%로! 🎯`,
+        fanComment: scent.isMain
+          ? `내가 직접 선택한 비율이에요! ✨`
+          : `직접 고른 향료예요! 💕`,
+      }
+    })
+
+    return {
+      granules,
+      overallExplanation: `내가 직접 선택한 조합이에요! ${currentFeedback.perfumeName}을(를) ${currentFeedback.retentionPercentage}%로 유지하고${currentFeedback.specificScents.length > 0 ? `, ${currentFeedback.specificScents.map(s => s.name).join(', ')}을(를) 추가했어요` : ''}. AI 수정 없이 내 선택 그대로! 🎯`,
+      categoryChanges: [],
+      testingInstructions: {
+        step1: '🌸 선택한 향료들을 비율대로 섞어주세요',
+        step2: '✨ 손목이나 귀 뒤에 살짝 뿌려서 테스트해보세요',
+        step3: '💕 30분 후 잔향이 어떻게 변하는지 확인해보세요',
+        caution: '내가 선택한 조합이니까 자신감을 가지세요! 😎',
+      },
+      fanMessage: `완전 나만의 레시피 완성! 🎉 직접 고른 조합이라 더 특별해요~ ✨💕`,
+      totalDrops: TARGET_DROPS,
+      estimatedStrength: 'medium', // 10방울은 medium
+    }
+  }, [perfumeCategory])
 
   // 에러 클리어
   const clearError = useCallback(() => {
@@ -162,9 +233,9 @@ export function useFeedbackForm({
     }))
   }, [])
 
-  // 다음 단계 (이제 2단계까지만)
+  // 다음 단계 (3단계까지)
   const nextStep = useCallback(() => {
-    if (step < 2) {
+    if (step < 3) {
       setStep((prev) => prev + 1)
       setError(null)
     }
@@ -185,8 +256,14 @@ export function useFeedbackForm({
     setError(null)
 
     try {
-      // Step 1: 레시피 생성
-      console.log('[Feedback] Generating recipe...')
+      // Step 1: 사용자 직접 선택 레시피 생성 (클라이언트 사이드)
+      console.log('[Feedback] Generating user direct recipe...')
+      const directRecipe = generateUserDirectRecipe(feedback)
+      setUserDirectRecipe(directRecipe)
+      console.log('[Feedback] User direct recipe generated:', directRecipe.granules.length, 'granules')
+
+      // Step 2: AI 추천 레시피 생성 (서버 사이드)
+      console.log('[Feedback] Generating AI recommended recipe...')
 
       const recipeResponse = await fetch('/api/feedback/customize', {
         method: 'POST',
@@ -200,21 +277,24 @@ export function useFeedbackForm({
             category: perfumeCategory,
           },
           characterName, // 분석된 캐릭터 이름 전달
+          naturalLanguageFeedback: feedback.naturalLanguageFeedback || '', // 자연어 피드백
         }),
       })
 
       const recipeData = await recipeResponse.json()
       setIsGenerating(false)
 
-      if (!recipeData.success) {
-        throw new Error(recipeData.error || '레시피 생성에 실패했습니다.')
+      if (recipeData.success) {
+        const aiRecipe = recipeData.recipe as GeneratedRecipe
+        setAiRecommendedRecipe(aiRecipe)
+        console.log('[Feedback] AI recipe generated:', aiRecipe.granules.length, 'granules')
+      } else {
+        // AI 레시피 실패해도 사용자 직접 레시피는 사용 가능
+        console.warn('[Feedback] AI recipe failed:', recipeData.error)
+        setAiRecommendedRecipe(null)
       }
 
-      const generatedRecipe = recipeData.recipe as GeneratedRecipe
-      setRecipe(generatedRecipe)
-      console.log('[Feedback] Recipe generated:', generatedRecipe.granules.length, 'granules')
-
-      // Step 2: 피드백 저장
+      // Step 3: 피드백 저장
       const fingerprint = getOrCreateFingerprint()
 
       const saveResponse = await fetch('/api/feedback', {
@@ -228,7 +308,8 @@ export function useFeedbackForm({
           categoryPreferences: feedback.categoryPreferences,
           specificScents: feedback.specificScents,
           notes: feedback.notes,
-          generatedRecipe,
+          naturalLanguageFeedback: feedback.naturalLanguageFeedback,
+          generatedRecipe: directRecipe, // 저장할 때는 사용자 직접 레시피
           userFingerprint: fingerprint,
         }),
       })
@@ -242,8 +323,8 @@ export function useFeedbackForm({
         console.log('[Feedback] Saved successfully:', saveData.id)
       }
 
-      // 성공 단계로 이동 (2단계 구조에서 성공은 step 3)
-      setStep(3)
+      // 성공 단계로 이동 (3단계 구조에서 성공은 step 4)
+      setStep(4)
     } catch (err) {
       console.error('[Feedback] Submit error:', err)
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
@@ -251,20 +332,22 @@ export function useFeedbackForm({
       setIsSubmitting(false)
       setIsGenerating(false)
     }
-  }, [feedback, perfumeId, perfumeName, perfumeCharacteristics, perfumeCategory, resultId, characterName])
+  }, [feedback, perfumeId, perfumeName, perfumeCharacteristics, perfumeCategory, resultId, characterName, generateUserDirectRecipe])
 
   // 리셋
   const reset = useCallback(() => {
     setStep(1)
     setFeedback(createInitialFeedback(perfumeId, perfumeName))
-    setRecipe(null)
+    setUserDirectRecipe(null)
+    setAiRecommendedRecipe(null)
     setError(null)
   }, [perfumeId, perfumeName])
 
   return {
     step,
     feedback,
-    recipe,
+    userDirectRecipe,
+    aiRecommendedRecipe,
     isSubmitting,
     isGenerating,
     error,

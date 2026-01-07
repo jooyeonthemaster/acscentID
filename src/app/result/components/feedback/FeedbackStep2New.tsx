@@ -413,36 +413,56 @@ export function FeedbackStep2New({
         })}
       </div>
 
-      {/* 추가 메모 */}
-      <div className="space-y-3 pt-2">
-        <h3 className="text-sm font-bold text-slate-700">
-          추가 메모 <span className="text-slate-400 font-normal">(선택사항)</span>
-        </h3>
-        <textarea
-          placeholder="원하는 느낌이나 특별한 요청사항을 자유롭게 적어주세요... 예) 좀 더 상큼하게, 가을 분위기로"
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          rows={3}
-          maxLength={200}
-          className="w-full px-4 py-3 bg-slate-50 rounded-2xl border border-slate-200
-            focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-            outline-none transition-all text-sm resize-none"
-        />
-        <p className="text-xs text-slate-400 text-right">{notes.length}/200</p>
-      </div>
+      {/* 현재 비율 상태 표시 */}
+      <div className={`rounded-2xl p-4 border-2 ${
+        currentTotalRatio === 100
+          ? 'bg-green-50 border-green-300'
+          : currentTotalRatio > 100
+            ? 'bg-red-50 border-red-300'
+            : 'bg-amber-50 border-amber-300'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-bold text-slate-700">현재 비율 상태</span>
+          <span className={`text-lg font-black ${
+            currentTotalRatio === 100
+              ? 'text-green-600'
+              : currentTotalRatio > 100
+                ? 'text-red-600'
+                : 'text-amber-600'
+          }`}>
+            {currentTotalRatio}% / 100%
+          </span>
+        </div>
 
-      {/* 팁 박스 */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200/50"
-      >
-        <p className="text-sm text-purple-800">
-          💜 <span className="font-semibold">팁!</span> 추가 향료를 선택하지 않아도 AI가
-          선택한 비율에 맞춰 최적의 레시피를 만들어줄 거예요! ✨
+        {/* 프로그레스 바 */}
+        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${
+              currentTotalRatio === 100
+                ? 'bg-green-500'
+                : currentTotalRatio > 100
+                  ? 'bg-red-500'
+                  : 'bg-amber-500'
+            }`}
+            style={{ width: `${Math.min(currentTotalRatio, 100)}%` }}
+          />
+        </div>
+
+        {/* 상태 메시지 */}
+        <p className={`text-xs mt-2 font-medium ${
+          currentTotalRatio === 100
+            ? 'text-green-700'
+            : currentTotalRatio > 100
+              ? 'text-red-700'
+              : 'text-amber-700'
+        }`}>
+          {currentTotalRatio === 100
+            ? '✅ 완벽해요! 다음 단계로 진행할 수 있어요'
+            : currentTotalRatio > 100
+              ? `❌ 비율이 ${currentTotalRatio - 100}% 초과했어요! 조절해주세요`
+              : `⚠️ 아직 ${100 - currentTotalRatio}% 남았어요! 향료를 더 추가하거나 비율을 조절해주세요`}
         </p>
-      </motion.div>
+      </div>
     </motion.div>
   )
 }

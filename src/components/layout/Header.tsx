@@ -24,7 +24,9 @@ interface HeaderProps {
 }
 
 export function Header({ title, showBack, backHref = "/", hideLogo = false }: HeaderProps) {
-  const { user, loading, signOut } = useAuth()
+  const { user, unifiedUser, loading, signOut } = useAuth()
+  // 카카오 사용자는 unifiedUser에만 있음
+  const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -130,7 +132,7 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
           {/* Right: Login Status + Hamburger Menu */}
           <div className="flex-1 flex justify-end items-center gap-3">
             {/* 로그인 상태 표시 */}
-            {!loading && user ? (
+            {!loading && currentUser ? (
               <div className="flex items-center gap-2">
                 {/* 로그인 배지 */}
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border-2 border-green-400 rounded-full">
@@ -139,8 +141,8 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
                 </div>
                 {/* 아바타 */}
                 <div className="w-8 h-8 rounded-full border-2 border-black bg-white overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  {user.user_metadata?.avatar_url ? (
-                    <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                  {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
+                    <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
                       <User size={14} className="text-white" />
@@ -148,7 +150,7 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
                   )}
                 </div>
               </div>
-            ) : !loading && !user ? (
+            ) : !loading && !currentUser ? (
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-full hover:bg-yellow-200 transition-colors"
@@ -194,23 +196,23 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
                     <div className="p-8 text-center">
                       <div className="w-8 h-8 border-2 border-black border-dashed rounded-full animate-spin mx-auto mb-2" />
                     </div>
-                  ) : user ? (
+                  ) : currentUser ? (
                     <div className="flex flex-col flex-1 pb-20">
                       <div className="p-6 bg-slate-50/50">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full border-2 border-black bg-white flex items-center justify-center overflow-hidden">
-                            {user.user_metadata?.avatar_url ? (
-                              <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                            {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
+                              <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <User size={20} />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-900 truncate">
-                              {user.user_metadata?.full_name || user.user_metadata?.name || '사용자'}
+                              {unifiedUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || '사용자'}
                             </p>
                             <p className="text-xs text-slate-500 truncate mt-0.5">
-                              {user.email}
+                              {unifiedUser?.email || user?.email || '카카오 로그인'}
                             </p>
                           </div>
                         </div>
