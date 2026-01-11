@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 
 interface ComparisonTabProps {
   displayedAnalysis: ImageAnalysisResult
+  isDesktop?: boolean
 }
 
 interface ParsedReflection {
@@ -46,7 +47,7 @@ function parseReflectionDetails(text: string): ParsedReflection {
   return sections
 }
 
-export function ComparisonTab({ displayedAnalysis }: ComparisonTabProps) {
+export function ComparisonTab({ displayedAnalysis, isDesktop = false }: ComparisonTabProps) {
   const comparison = displayedAnalysis.comparisonAnalysis
 
   // comparisonAnalysis가 없으면 기본 메시지 표시
@@ -57,7 +58,7 @@ export function ComparisonTab({ displayedAnalysis }: ComparisonTabProps) {
         initial="hidden"
         animate="visible"
         exit={{ opacity: 0, y: -10 }}
-        className="text-center py-8"
+        className={`text-center ${isDesktop ? 'py-12' : 'py-8'}`}
       >
         <p className="text-slate-400 text-sm">비교 분석 데이터가 없습니다.</p>
       </motion.div>
@@ -67,6 +68,131 @@ export function ComparisonTab({ displayedAnalysis }: ComparisonTabProps) {
   // reflectionDetails 파싱
   const parsedReflection = parseReflectionDetails(comparison.reflectionDetails)
 
+  // PC: 2컬럼 그리드 레이아웃
+  if (isDesktop) {
+    return (
+      <motion.div
+        key="comparison"
+        initial="hidden"
+        animate="visible"
+        exit={{ opacity: 0, y: -10 }}
+        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        className="space-y-6"
+      >
+        {/* 2컬럼: AI 해석 + 유저 요약 */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* AI 이미지 해석 */}
+          <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+            <SectionHeader
+              icon={<Eye size={14} />}
+              title="AI의 이미지 해석"
+              subtitle="사진만 보고 느낀 첫인상"
+            />
+            <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border border-blue-200/50 h-[calc(100%-48px)]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/20 rounded-full blur-3xl" />
+              <div className="relative z-10 flex flex-col h-full">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1">
+                  {comparison.imageInterpretation}
+                </p>
+                <p className="text-indigo-600 text-xs mt-3 font-semibold">
+                  - AI Vision System
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 유저 응답 요약 */}
+          <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+            <SectionHeader
+              icon={<User size={14} />}
+              title="팬이 본 아이돌"
+              subtitle="직접 선택한 최애의 매력"
+            />
+            <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border border-purple-200/50 h-[calc(100%-48px)]">
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
+              <div className="relative z-10 flex flex-col h-full">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1">
+                  {comparison.userInputSummary}
+                </p>
+                <p className="text-purple-600 text-xs mt-3 font-semibold">
+                  - 팬의 최애 분석
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* 비교 분석 상세 */}
+        <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+          <SectionHeader
+            icon={<Sparkles size={14} />}
+            title="찰떡 조합의 비밀"
+            subtitle="AI와 팬의 시선이 만나는 순간"
+          />
+
+          {/* 2x2 그리드로 분석 카드 배치 */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* ㅇㅈ 포인트 */}
+            {parsedReflection.agree && (
+              <AnalysisCard
+                icon={<CheckCircle2 size={16} />}
+                badge="ㅇㅈ 포인트"
+                badgeColor="bg-green-500"
+                bgGradient="from-green-50 to-emerald-50"
+                borderColor="border-green-200/50"
+                content={parsedReflection.agree}
+              />
+            )}
+
+            {/* 숨은 매력 발견 */}
+            {parsedReflection.hidden && (
+              <AnalysisCard
+                icon={<Lightbulb size={16} />}
+                badge="숨은 매력 발견"
+                badgeColor="bg-amber-500"
+                bgGradient="from-amber-50 to-yellow-50"
+                borderColor="border-amber-200/50"
+                content={parsedReflection.hidden}
+              />
+            )}
+
+            {/* 갭 분석 */}
+            {parsedReflection.gap && (
+              <AnalysisCard
+                icon={<GitCompare size={16} />}
+                badge="갭 분석"
+                badgeColor="bg-purple-500"
+                bgGradient="from-purple-50 to-pink-50"
+                borderColor="border-purple-200/50"
+                content={parsedReflection.gap}
+              />
+            )}
+
+            {/* 최종 향수 매칭 */}
+            {parsedReflection.final && (
+              <AnalysisCard
+                icon={<Target size={16} />}
+                badge="최종 향수 매칭"
+                badgeColor="bg-rose-500"
+                bgGradient="from-rose-50 to-pink-50"
+                borderColor="border-rose-200/50"
+                content={parsedReflection.final}
+                highlight
+              />
+            )}
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500 font-semibold">
+            <span>🎯</span>
+            <span>AI + 팬 = 완벽한 향수 추천!</span>
+            <span>✨</span>
+          </div>
+        </motion.div>
+      </motion.div>
+    )
+  }
+
+  // 모바일: 기존 레이아웃 유지
   return (
     <motion.div
       key="comparison"

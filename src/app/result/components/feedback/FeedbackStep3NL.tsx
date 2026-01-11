@@ -101,10 +101,15 @@ export function FeedbackStep3NL({
       </div>
 
       {/* 자연어 피드백 입력 */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-          <MessageSquare size={16} className="text-purple-500" />
-          원하는 느낌이 있나요? <span className="text-xs font-normal text-slate-400">(선택사항)</span>
+      <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 rounded-2xl p-4 border-2 border-purple-200/60 shadow-sm">
+        <h3 className="text-sm font-bold text-purple-800 flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+            <MessageSquare size={15} className="text-purple-600" />
+          </div>
+          원하는 느낌이 있나요?
+          <span className="text-xs font-normal text-purple-400 bg-purple-100/50 px-2 py-0.5 rounded-full">
+            선택사항
+          </span>
         </h3>
 
         <textarea
@@ -113,12 +118,17 @@ export function FeedbackStep3NL({
           placeholder="예: 더 상큼하고 가벼운 느낌으로, 가을 분위기가 나는 향, 데이트할 때 뿌리기 좋은 향..."
           maxLength={500}
           rows={4}
-          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-none text-sm placeholder:text-slate-300"
+          className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-none text-sm placeholder:text-purple-300"
         />
 
-        <div className="flex justify-between text-xs text-slate-400">
-          <span>AI가 이 피드백을 참고해서 2안을 만들어요</span>
-          <span>{naturalLanguageFeedback.length} / 500</span>
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center gap-1.5 text-xs text-purple-600 font-medium">
+            <Sparkles size={12} className="text-purple-500" />
+            <span>AI가 이 피드백을 참고해서 2안을 만들어요</span>
+          </div>
+          <span className="text-xs text-purple-400 font-medium">
+            {naturalLanguageFeedback.length} / 500
+          </span>
         </div>
       </div>
 

@@ -85,7 +85,7 @@ function InputForm() {
             </div>
 
             {/* Right Side (Mobile: Full Width, Desktop: 1/2) */}
-            <div className="flex-1 h-full flex flex-col relative bg-[#FAFAFA] z-0 pt-28">
+            <div className="flex-1 h-full flex flex-col relative bg-[#FAFAFA] z-0 pt-24">
                 {/* Mobile Background (Light) */}
                 <div className="lg:hidden">
                     <Background />
@@ -104,7 +104,7 @@ function InputForm() {
                 <ProgressBar currentStep={currentStep} />
 
                 {/* 메인 콘텐츠 Container */}
-                <main className="relative z-10 flex-1 overflow-hidden flex flex-col justify-center max-w-xl mx-auto w-full px-6">
+                <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-start max-w-xl mx-auto w-full px-4">
                     <AnimatePresence mode="wait">
                         {currentStep === 1 && (
                             <Step1
@@ -156,9 +156,11 @@ function InputForm() {
                             />
                         )}
                     </AnimatePresence>
-                    {/* Mobile Only CrazyTyper */}
-                    <div className="lg:hidden w-full py-8 min-h-[120px] flex items-center justify-center pointer-events-none">
-                        <CrazyTyper step={currentStep} formData={formData} />
+                    {/* Mobile Only CrazyTyper - 컴팩트 버전 */}
+                    <div className="lg:hidden w-full py-2 min-h-[50px] flex items-center justify-center pointer-events-none">
+                        <div className="scale-75 origin-center">
+                            <CrazyTyper step={currentStep} formData={formData} />
+                        </div>
                     </div>
                 </main>
 
@@ -202,7 +204,7 @@ function Background({ isDark = false }: { isDark?: boolean }) {
 // ===== 프로그레스 바 컴포넌트 =====
 function ProgressBar({ currentStep }: { currentStep: number }) {
     return (
-        <div className="relative z-10 px-6 py-2 pt-20">
+        <div className="relative z-10 px-4 py-2">
             <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                 <motion.div
                     className="h-full bg-yellow-400 rounded-full"
@@ -226,7 +228,7 @@ interface NavigationButtonsProps {
 
 function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext }: NavigationButtonsProps) {
     return (
-        <div className="relative z-10 px-6 pb-6 pt-2">
+        <div className="relative z-10 px-4 pb-4 pt-2">
             <div className="flex gap-3">
                 {currentStep > 1 && (
                     <motion.button

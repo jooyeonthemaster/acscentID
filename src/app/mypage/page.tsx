@@ -53,7 +53,7 @@ function MyPageContent() {
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [recipes, setRecipes] = useState<RecipeResult[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'analyses' ? 'analyses' : 'recipes')
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'recipes' ? 'recipes' : 'analyses')
 
   // API를 통해 데이터 조회 (RLS 우회)
   const fetchData = useCallback(async () => {
@@ -120,7 +120,8 @@ function MyPageContent() {
 
   // 분석 결과 삭제 (API 사용)
   const handleDeleteAnalysis = async (id: string) => {
-    if (!confirm('이 분석 결과를 삭제할까요?')) return
+    console.log('🔥 handleDeleteAnalysis 호출됨, ID:', id)
+    console.log('✅ 삭제 진행 중...')
 
     try {
       const response = await fetch(`/api/user/analysis/${id}`, { method: 'DELETE' })

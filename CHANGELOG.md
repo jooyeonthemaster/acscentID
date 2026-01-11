@@ -1,5 +1,363 @@
 # CHANGELOG
 
+## 2026-01-12 03:30 - [UPDATE] 마이페이지 기본 탭 변경 및 삭제 버튼 개선
+
+**Changed Files**:
+- src/app/mypage/page.tsx (224 lines)
+- src/app/mypage/components/SavedAnalysisList.tsx (345 lines → 359 lines)
+
+**Changes**:
+- 마이페이지 진입 시 기본 활성 탭을 "내 레시피" → "분석 결과"로 변경
+- URL 파라미터 `?tab=recipes`로 내 레시피 탭 직접 접근 가능
+- 분석 결과 카드에 삭제 버튼을 항상 표시 (호버 아님)
+- 삭제 버튼 위치를 이미지 위 → 정보 영역 오른쪽으로 이동 (클릭 문제 해결)
+
+**Reason**:
+- 사용자 요청: "마이페이지에서 처음 들어가면 분석 결과가 기본적으로 먼저 뜨게 해줘"
+- 사용자 요청: "호버시 삭제가 아니라 처음부터 삭제 버튼이 보이게 해줘"
+- 사용자 버그 리포트: "삭제 버튼 눌러도 클릭이 안 된다"
+
+**Impact**:
+- 마이페이지 UX 개선 (분석 결과 먼저 표시)
+- 삭제 버튼 접근성 개선 (항상 보임, 클릭 가능)
+
+---
+
+## 2026-01-12 03:15 - [FIX] 커스텀 스크롤바 CSS 우선순위 수정
+
+**Changed Files**:
+- src/app/globals.css (411 lines → 418 lines)
+
+**Changes**:
+- 스크롤바 스타일을 `@layer base` 밖으로 이동
+- Tailwind CSS layer 우선순위 문제 해결
+
+**Reason**:
+- `@layer base` 안의 CSS는 Tailwind의 layer 우선순위 때문에 브라우저 기본 스타일보다 낮은 우선순위를 가짐
+- 결과적으로 커스텀 스크롤바가 적용되지 않고 기본 회색 스크롤바가 표시됨
+
+**Tried But Failed Approaches**:
+- ❌ `@layer base` 내에 전역 스크롤바 스타일 정의: layer 우선순위로 인해 적용 안 됨
+
+**Impact**:
+- 전역 커스텀 스크롤바가 정상적으로 적용됨
+
+---
+
+## 2026-01-12 02:30 - [UPDATE] 직접 입력하기 버튼 스크롤 영역 분리 및 스크롤바 스타일 추가
+
+**Changed Files**:
+- src/app/input/components/Step2.tsx (57 lines)
+- src/app/input/components/Step3.tsx (57 lines)
+- src/app/input/components/Step4.tsx (57 lines)
+- src/app/globals.css (330 lines → 411 lines)
+
+**Changes**:
+- Step2, Step3, Step4에서 CustomInputToggle 컴포넌트를 overflow-y-auto 영역 밖으로 이동
+- 선택 칩 목록만 스크롤되고 직접 입력하기 버튼은 항상 하단에 고정
+- 전역 스크롤바 스타일 추가 (custom-scrollbar, custom-scrollbar-auto, custom-scrollbar-dark)
+- 스크롤바: 6px 너비, 그라데이션 thumb, 둥근 모서리, 호버 효과
+
+**Reason**:
+- 사용자 요청: "직접 입력하기는 스크롤 밖으로 빼줘"
+- 사용자 요청: "전역 스타일로 스크롤 모양 좀 이쁘게 개선해봐"
+
+**Impact**:
+- 선택 항목이 많을 때도 직접 입력 버튼이 항상 보임
+- 깔끔하고 모던한 스크롤바 UI 적용 가능
+
+---
+
+## 2026-01-12 02:00 - [FIX] 모바일 입력 폼 레이아웃 잘림 현상 수정
+
+**Changed Files**:
+- src/app/input/page.tsx
+- src/app/input/components/Step1.tsx
+
+**Changes**:
+- 작은 화면(< 640px)에서 CrazyTyper 숨김 (`hidden sm:flex lg:hidden`)
+- 상단 패딩 축소 (`pt-28` → `pt-24`)
+- main 컨테이너 정렬 변경 (`justify-center` → `justify-start`)
+- 전체적인 패딩 축소 (`px-6` → `px-4`, `pb-6` → `pb-4`)
+- Step1 여백 축소 (`space-y-6` → `space-y-4`, `mt-6` → `mt-4`)
+- ProgressBar 패딩 최적화
+
+**Reason**:
+- iPhone SE (375x667) 등 작은 화면에서 스크롤 없이 모든 요소가 한 화면에 담기도록 요청
+- 기존 레이아웃이 약 778px 높이를 요구하여 667px 화면에서 잘림
+
+**Impact**:
+- 375x667 화면에서 모든 폼 요소가 스크롤 없이 표시됨
+- 640px 이상 화면에서는 CrazyTyper 유지
+
+---
+
+## 2026-01-12 01:30 - [FIX] PC 레이아웃 이미지 움찔거림 현상 수정 (2차)
+
+**Changed Files**:
+- src/app/result/components/ResultPageMain.tsx
+
+**Changes**:
+- PC 좌측 사이드바에서 `max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-thin` 제거
+- 스크롤바 동적 표시/숨김으로 인한 레이아웃 시프트 제거
+
+**Reason**:
+- 사용자 보고: "PC에서만 이미지가 계속 움찔거린다"
+- 원인: overflow-y-auto + scrollbar-thin이 콘텐츠에 따라 스크롤바 표시/숨김 반복
+- 스크롤바 너비만큼 레이아웃이 계속 재계산됨
+
+**Tried But Failed Approaches**:
+- ❌ 배경 blob CSS 애니메이션 변경: PC에서 여전히 문제 (모바일은 해결)
+
+**Impact**:
+- PC 레이아웃 사이드바 안정화
+
+---
+
+## 2026-01-12 01:25 - [FIX] 결과 페이지 배경 애니메이션 성능 최적화
+
+**Changed Files**:
+- src/app/result/components/ResultPageMain.tsx
+- src/app/globals.css (CSS 애니메이션 추가)
+
+**Changes**:
+- 배경 blob 회전 애니메이션을 framer-motion에서 CSS @keyframes로 변경
+- motion.div → 일반 div + CSS animate 클래스
+
+**Impact**:
+- GPU 가속 CSS 애니메이션으로 성능 향상
+
+---
+
+## 2026-01-12 01:15 - [STYLE] 피드백 입력 섹션 시각적 강조 개선
+
+**Changed Files**:
+- src/app/result/components/feedback/FeedbackStep3NL.tsx (Before: 173 lines → After: ~185 lines)
+
+**Changes**:
+- 피드백 입력 영역에 그라데이션 배경 카드 추가 (from-violet-50 to-purple-50)
+- textarea 배경을 흰색으로, 테두리 강조 (purple-200)
+- 작성 유도 힌트 아이콘 및 텍스트 강조
+- AI 피드백 활용 안내 문구 시각적 개선
+
+**Reason**:
+- 사용자 요청: "피드백 입력 부분이 좀 더 잘 보였으면 좋겠어"
+- 기존: 다른 섹션들에 비해 배경 없이 단조로움
+- 개선: 다른 카드들과 일관된 시각적 강조
+
+**Impact**:
+- 피드백 입력 영역이 더 눈에 띄어 사용자 입력 유도 개선
+
+---
+
+## 2026-01-12 01:00 - [FIX] PC 레이아웃 좌측 이미지 카드와 우측 탭 높이 정렬
+
+**Changed Files**:
+- src/app/result/components/ResultPageMain.tsx (Before: 552 lines → After: 556 lines)
+
+**Changes**:
+- 타이틀 섹션("당신만의 향기를 찾았어요!")을 양쪽 컬럼 위로 분리
+- 새로운 PC 전용 wrapper div 추가 (`lg:flex lg:flex-row lg:items-start`)
+- 좌측 사이드바: 이미지 카드부터 시작 (타이틀 제거)
+- 우측 콘텐츠: 탭 네비게이션부터 시작
+- 결과: 좌측 이미지 카드 상단 = 우측 탭 네비게이션 상단 (높이 일치)
+
+**Reason**:
+- 사용자 요청: "왼쪽 이미지 섹션을 오른쪽 탭 네비게이션과 높이를 맞춰줘"
+- 기존에는 왼쪽에 타이틀이 있어서 이미지가 탭보다 아래에 위치했음
+
+**Impact**:
+- ✅ PC 레이아웃: 좌측 이미지 카드와 우측 탭 네비게이션이 같은 높이에서 시작
+- ✅ PC 레이아웃: 타이틀은 양쪽 컬럼 위에 공통으로 표시
+- ✅ 모바일 레이아웃: 영향 없음 (기존 유지)
+
+---
+
+## 2026-01-12 00:30 - [UPDATE] 분석 결과 페이지 PC 전용 레이아웃 추가
+
+**Changed Files**:
+- src/app/result/components/ResultPageMain.tsx (PC/모바일 분기 레이아웃)
+- src/app/result/components/TabNavigation.tsx (Before: ~117 lines → After: ~117 lines)
+- src/app/result/components/AnalysisTab.tsx (Before: ~350 lines → After: ~350 lines)
+- src/app/result/components/PerfumeTab.tsx (Before: ~242 lines → After: ~380 lines)
+- src/app/result/components/ComparisonTab.tsx (Before: ~264 lines → After: ~340 lines)
+
+**Changes**:
+- **ResultPageMain.tsx**: PC용 2컬럼 레이아웃 추가
+  - 좌측: 사용자 이미지 + 트위터 ID + 액션 버튼 (sticky sidebar)
+  - 우측: 탭 네비게이션 + 탭 콘텐츠 (flex-1 확장)
+  - lg: breakpoint(1024px) 기준 PC/모바일 분기
+- **TabNavigation.tsx**: `isDesktop` prop 추가
+  - PC: 가로 3열 균등 배치 (grid-cols-3)
+  - 모바일: 기존 2+1 행 배치 유지
+- **AnalysisTab.tsx**: `isDesktop` prop 추가
+  - PC: 2컬럼 그리드 (좌: 이미지 분위기, 특성 차트, 컬러 타입 / 우: 스타일 분석, 매칭 키워드)
+  - 각 섹션 카드 래핑 (bg-white/40, rounded-2xl, border)
+  - Separator 모바일에서만 표시
+- **PerfumeTab.tsx**: `isDesktop` prop 추가
+  - PC: 헤더 카드 확장 (더 큰 매칭률 원형, 키워드 6개)
+  - 향 노트 + 프로필 2컬럼 배치
+  - 스토리 + 사용 추천 2컬럼 배치
+  - 사용 가이드 3컬럼 그리드
+- **ComparisonTab.tsx**: `isDesktop` prop 추가
+  - PC: AI 해석 + 유저 요약 2컬럼 배치
+  - 비교 분석 카드 2x2 그리드 배치
+
+**Reason**:
+- 사용자 요청: "PC 레이아웃에서는 가로도 전체 활용해서 PC용 레이아웃으로 만들어줘"
+- 모바일 레이아웃은 이미 완성도 높음 → 그대로 유지
+- PC에서는 넓은 화면을 활용하지 못하고 있었음
+
+**Impact**:
+- ✅ PC (1024px+): 가로 전체 활용하는 2컬럼 레이아웃
+- ✅ 모바일: 기존 레이아웃 100% 유지
+- ✅ 모든 기존 데이터/기능 완벽 유지
+- ✅ 반응형 전환 자연스럽게 동작
+
+---
+
+## 2026-01-11 23:30 - [FIX] 마이페이지 기존 결과 상세보기 시 중복 저장 버그 수정
+
+**Changed Files**:
+- src/app/result/hooks/useResultData.ts (Before: 185 lines → After: 185 lines)
+- src/app/result/hooks/useAutoSave.ts (Before: 250 lines → After: 260 lines)
+- src/app/result/components/ResultPageMain.tsx (Before: 430 lines → After: 432 lines)
+
+**Changes**:
+- `useResultData`에서 URL의 `id` 파라미터를 `existingResultId`로 반환
+- `useAutoSave`에 `existingResultId` 파라미터 추가
+- URL에 `id`가 있으면 (기존 저장된 결과 조회 중) 자동 저장 스킵
+- 콘솔 로그 추가: `[AutoSave] Viewing existing result, skipping save`
+
+**Reason**:
+- 사용자 버그 리포트: "마이페이지에서 기존 분석 결과를 클릭하면 동일한 내용이 중복되어 쌓임"
+- 문제 흐름:
+  1. 마이페이지 → 분석 결과 클릭 → `/result?id=xxx` 이동
+  2. `useResultData`가 URL의 `id`로 DB에서 데이터 가져옴
+  3. `useAutoSave`가 실행되면서 "새로운 결과"로 판단하여 다시 저장 시도
+  4. 중복 데이터 생성!
+- 근본 원인: `useAutoSave`가 localStorage의 `savedResultId`만 확인하고, URL의 `id`는 확인하지 않음
+
+**Impact**:
+- ✅ 기존 저장된 결과 조회 시 중복 저장 방지
+- ✅ 새로운 분석은 기존처럼 자동 저장
+- ✅ 마이페이지 데이터 정합성 유지
+
+---
+
+## 2026-01-11 - [UPDATE] AI 프롬프트에 캐릭터 배경 지식 활용 기능 추가
+
+**Changed Files**:
+- src/lib/gemini/prompt-builder.ts (Before: 202 lines → After: ~240 lines)
+
+**Changes**:
+- Gemini AI가 유명 캐릭터/아이돌을 인식하면 배경 지식을 적극 활용하도록 프롬프트 개선
+- 새로운 "캐릭터/아이돌 인식 및 배경 지식 활용" 섹션 추가
+  - 공식 설정 (성격, 능력, 배경 스토리, 관계도)
+  - 작품 속 명장면, 명대사
+  - 팬덤 사이 유명한 별명, 밈, 특징
+  - 원작의 분위기, 콘셉트
+- 예시 추가:
+  - "명탐정 코난" → 천재 탐정, 쿨한 추리, "진실은 언제나 하나!"
+  - "BTS 지민" → 춤신춤왕, 부산 사투리, ARMY 사이 별명
+  - "원신 레이든 쇼군" → 번개 신, 영원 추구, 단팥죽 좋아함
+- 안전장치: 캐릭터를 모르거나 확신 없으면 이미지 분석에만 집중
+
+**Reason**:
+- 사용자 요청: "코난을 입력하면 실제 코난을 알고 있다는 가정하에 주접을 날리는게 가능할까?"
+- 현재는 이미지만 분석, 캐릭터의 스토리/설정은 활용 안 함
+- Gemini 3.0은 유명 캐릭터/아이돌 지식 보유, 이를 활용하면 더 깊이 있는 주접 가능
+
+**Impact**:
+- 유명 캐릭터: 공식 설정 기반 풍부한 주접 멘트 생성
+  - 예: "코난의 쿨한 추리력처럼 이 향도 날카롭고 이성적이야! 🔍✨"
+- K-pop 아이돌: 실제 멤버 특징 반영 (춤, 성격, 별명)
+- 마이너 캐릭터: 기존처럼 이미지만 분석 (환각 방지)
+- 표면적 분석 → 깊이 있는 팬 언어
+
+---
+
+## 2026-01-11 - [REFACTOR] 향수 카드 디자인 개선 - 시각적 어필 + 가독성 확보
+
+**Changed Files**:
+- src/app/result/components/PerfumeTab.tsx (Before: ~225 lines → After: ~200 lines)
+
+**Changes**:
+- 밝은 배경(bg-white) 유지하되 향수 색상을 포인트로 활용
+- 향수 primaryColor를 배경과 테두리에만 적용, **텍스트는 모두 검정 고정**
+  - 테두리: 2px solid primaryColor
+  - 그림자: 향수 색상 기반 soft shadow
+  - 배지: primaryColor 20% 투명도 배경 + **검정 텍스트 (text-slate-700)**
+  - 키워드: primaryColor 20% 배경 + 40% 테두리 + **검정 텍스트 (text-slate-700)**
+  - 매칭률: primaryColor 원형 진행바 + **검정 숫자 (text-slate-800)**
+- 배경 데코: primaryColor/secondaryColor blur 효과 (opacity 20%/15%)
+- 모든 텍스트 검정 고정으로 가독성 보장
+  - 배지/키워드: text-slate-700
+  - 메인 텍스트: text-slate-800
+  - 보조 텍스트: text-slate-600, text-slate-500
+
+**Reason**:
+- 이전 단순 디자인이 시각적으로 심심함
+- 향수 색상을 텍스트에 적용했더니 밝은 색(노랑, 핑크)이 흰 배경에서 안 보임
+- 사용자 피드백: "하... ㅅㅂ 텍스트가 노랑색이니 또 하나도 안 읽히잖아"
+- 해결: 향수 색상은 배경/테두리만, 텍스트는 무조건 검정
+
+**Impact**:
+- 각 향수가 고유 색상으로 시각적으로 구분됨
+- **모든 텍스트 가독성 100% 보장** (밝은 배경 + 검정 텍스트)
+- 색상 포인트로 프리미엄한 느낌 유지
+
+---
+
+## 2026-01-11 - [FIX] 마이페이지에서 주접 멘트가 달라지는 타이밍 버그 수정
+
+**Changed Files**:
+- src/app/result/hooks/useAutoSave.ts (Before: 249 lines → After: 249 lines)
+
+**Changes**:
+- 자동 저장 조건에 `twitterName` 존재 여부 체크 추가
+- `analysisResult && twitterName` 둘 다 있을 때만 저장 실행
+
+**Reason**:
+- 문제: 마이페이지에서 과거 분석 결과를 볼 때 주접 멘트가 처음과 달라짐
+- 원인: `twitterName`이 비동기로 생성되는 동안 빈 문자열로 DB 저장
+  - useResultData: twitterName을 useEffect 안에서 비동기 생성
+  - useAutoSave: analysisResult만 체크하고 즉시 저장 실행
+  - twitterName이 빈 문자열 ''일 때 DB에 저장됨
+  - 나중에 불러올 때: DB의 빈 twitter_name → generateTwitterName() 재실행 → 새 랜덤 멘트 생성
+- 해결: twitterName이 생성될 때까지 저장 대기
+
+**Impact**:
+- 처음 분석한 주접 멘트가 마이페이지에서도 동일하게 유지됨
+- twitterName이 DB에 제대로 저장됨
+
+---
+
+## 2026-01-11 - [FIX] 밝은 배경색 향수 카드 텍스트 가시성 개선
+
+**Changed Files**:
+- src/utils/colorUtils.ts (신규, 37 lines)
+- src/app/result/components/PerfumeTab.tsx (Before: 220 lines → After: ~225 lines)
+
+**Changes**:
+- 배경색 밝기 기반 동적 텍스트 색상 계산 함수 추가 (`getContrastTextColor`)
+- Luminance 계산 로직 구현 (WCAG 표준 기반)
+- PerfumeTab 향수 카드에서 배경색에 따라 텍스트 색상 자동 선택
+  - 밝은 배경 (luminance > 0.5): 어두운 텍스트 (#1E293B)
+  - 어두운 배경 (luminance ≤ 0.5): 흰색 텍스트 (#FFFFFF)
+
+**Reason**:
+- 문제: AC'SCENT 02, 03, 09, 13, 22 등 밝은 배경색 향수에서 흰색 텍스트가 거의 보이지 않음
+- 원인: PerfumeTab에서 동적 배경색 사용, 텍스트는 항상 `text-white` 고정
+- 해결: 배경색 밝기를 계산하여 텍스트 색상을 자동으로 선택
+
+**Impact**:
+- 모든 향수(30개)에서 텍스트 가시성 자동 보장
+- 새 향수 추가 시에도 별도 작업 없이 자동 적용
+- WCAG 접근성 기준 준수
+
+---
+
 ## 2025-01-07 - [FIX] Next.js 빌드 에러 수정 (useSearchParams Suspense boundary)
 
 **Changed Files**:

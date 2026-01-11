@@ -264,6 +264,42 @@
   animation-delay: 1s;
 }
 
+/* Blob 회전 애니메이션 - GPU 가속 */
+@keyframes blob-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blob-rotate-reverse {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.animate-blob-rotate {
+  animation: blob-rotate 100s linear infinite;
+  will-change: transform;
+}
+
+.animate-blob-rotate-reverse {
+  animation: blob-rotate-reverse 120s linear infinite;
+  will-change: transform;
+}
+
+.animate-blob-rotate-fast {
+  animation: blob-rotate 90s linear infinite;
+  will-change: transform;
+}
+
 /* Kitsch Patterns */
 .bg-grid-pattern {
   background-size: 40px 40px;
@@ -293,4 +329,90 @@
 
 .box-shadow-hard-lg {
   box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Global Custom Scrollbar Styles - MUST be outside @layer for proper specificity */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #facc15 transparent;
+}
+
+/* Chrome, Edge, and Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #facc15;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #eab308;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #ca8a04;
+}
+
+/* Retain utility class just in case specific override is needed, but map it to same styles - commented out to avoid empty rule lint */
+/* .custom-scrollbar {} */
+
+
+/* Hide scrollbar when not scrolling (optional - shows on hover) */
+.custom-scrollbar-auto {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.custom-scrollbar-auto:hover {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.custom-scrollbar-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-auto::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar-auto:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+/* Dark variant for dark backgrounds */
+.custom-scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+  border-radius: 10px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
 }

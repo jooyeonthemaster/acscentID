@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Heart, Trash2, ExternalLink, X, Calendar, ShoppingBag } from 'lucide-react'
+import { Sparkles, Heart, Trash2, X, Calendar, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 
 interface RecipeGranule {
@@ -35,6 +35,7 @@ interface SavedAnalysisListProps {
 export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysisListProps) {
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
+  const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
 
   // 좋아요 토글
   const toggleLike = (id: string, e: React.MouseEvent) => {
@@ -121,13 +122,15 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.08, type: 'spring', stiffness: 200 }}
-            onClick={() => setSelectedImage(analysis)}
-            className="group cursor-pointer"
+            className="group"
           >
             {/* 폴라로이드 스타일 카드 */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300">
-              {/* 이미지 영역 */}
-              <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50">
+              {/* 이미지 영역 - 클릭 시 모달 열기 */}
+              <div
+                className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 cursor-pointer"
+                onClick={() => setSelectedImage(analysis)}
+              >
                 {analysis.user_image_url ? (
                   <img
                     src={analysis.user_image_url}
@@ -163,36 +166,33 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
                   {formatRelativeTime(analysis.created_at)}
                 </div>
 
-                {/* 호버 시 액션 버튼들 */}
-                <div className="absolute bottom-2 left-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                  <Link
-                    href={`/result?id=${analysis.id}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex-1 py-2 px-3 bg-white/90 backdrop-blur-sm rounded-xl text-xs font-bold text-purple-600 flex items-center justify-center gap-1 hover:bg-white transition-colors"
-                  >
-                    <ExternalLink size={12} />
-                    보기
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete(analysis.id)
-                    }}
-                    className="py-2 px-3 bg-red-500/90 backdrop-blur-sm rounded-xl text-xs font-bold text-white flex items-center justify-center hover:bg-red-500 transition-colors"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
               </div>
 
               {/* 정보 영역 */}
               <div className="p-3">
-                <h3 className="font-bold text-slate-900 text-sm truncate leading-tight">
-                  {analysis.twitter_name}
-                </h3>
-                <p className="text-[11px] text-slate-500 truncate mt-1">
-                  {analysis.perfume_name}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-slate-900 text-sm truncate leading-tight">
+                      {analysis.twitter_name}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 truncate mt-1">
+                      {analysis.perfume_name}
+                    </p>
+                  </div>
+                  {/* 삭제 버튼 - 항상 표시 */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setDeleteTarget(analysis)
+                    }}
+                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
+                    title="삭제"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
                 {/* 확정 레시피가 있으면 granules 표시 */}
                 {analysis.confirmed_recipe?.granules && (
                   <div className="flex items-center gap-1 mt-2 flex-wrap">
@@ -333,6 +333,56 @@ export function SavedAnalysisList({ analyses, loading, onDelete }: SavedAnalysis
                   <p className="text-center text-slate-400 text-xs mt-4">
                     {formatRelativeTime(selectedImage.created_at)}에 분석됨
                   </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 삭제 확인 모달 */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDeleteTarget(null)}
+            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl"
+            >
+              <div className="text-center">
+                <div className="w-14 h-14 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 size={28} className="text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">삭제할까요?</h3>
+                <p className="text-sm text-slate-500 mb-6">
+                  "{deleteTarget.twitter_name}" 분석 결과를 삭제합니다.<br />
+                  이 작업은 되돌릴 수 없어요.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeleteTarget(null)}
+                    className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      onDelete(deleteTarget.id)
+                      setDeleteTarget(null)
+                    }}
+                    className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors"
+                  >
+                    삭제
+                  </button>
                 </div>
               </div>
             </motion.div>

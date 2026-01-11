@@ -17,6 +17,7 @@ interface UseAutoSaveProps {
   twitterName: string
   userId: string | null  // 통합 사용자 ID (Supabase Auth + 카카오)
   authLoading?: boolean  // AuthContext 로딩 상태 (타이밍 문제 해결용)
+  existingResultId?: string | null  // URL에서 가져온 기존 결과 ID (있으면 저장 스킵)
 }
 
 interface UseAutoSaveReturn {
@@ -64,7 +65,8 @@ export function useAutoSave({
   userImage,
   twitterName,
   userId,
-  authLoading = false
+  authLoading = false,
+  existingResultId = null
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -82,7 +84,16 @@ export function useAutoSave({
     if (!analysisResult || isSaving) return
     if (saveAttemptedRef.current) return
 
-    // 이미 저장된 ID가 있으면 스킵
+    // URL에 기존 결과 ID가 있으면 스킩 (기존 저장된 결과를 보는 중)
+    if (existingResultId) {
+      console.log('[AutoSave] Viewing existing result, skipping save:', existingResultId)
+      setSavedResultId(existingResultId)
+      setIsSaved(true)
+      saveAttemptedRef.current = true
+      return
+    }
+
+    // localStorage에 이미 저장된 ID가 있으면 스킵
     const existingId = getSavedResultId()
     if (existingId) {
       setSavedResultId(existingId)
@@ -200,7 +211,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)
@@ -214,7 +225,8 @@ export function useAutoSave({
       }
     }
 
-    if (analysisResult && !saveAttemptedRef.current) {
+    // twitterName이 생성될 때까지 대기 (빈 문자열로 저장 방지)
+    if (analysisResult && twitterName && !saveAttemptedRef.current) {
       // 약간의 딜레이 후 저장 (UI가 먼저 렌더링되도록)
       const timer = setTimeout(() => {
         saveResult()
@@ -226,7 +238,7 @@ export function useAutoSave({
     return () => {
       mountedRef.current = false
     }
-  }, [analysisResult, saveResult, authLoading])
+  }, [analysisResult, twitterName, saveResult, authLoading])
 
   // 로그인 후 데이터 재연동은 AuthContext에서 처리됨 (linkFingerprintData)
   // 여기서는 로그인 프롬프트만 닫아줌

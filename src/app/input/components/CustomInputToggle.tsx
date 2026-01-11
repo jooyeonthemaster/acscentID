@@ -29,10 +29,12 @@ export function CustomInputToggle({
                     type="button"
                     onClick={onToggle}
                     className="
-                        w-full py-3
-                        text-sm text-slate-400
-                        hover:text-yellow-600
-                        transition-colors
+                        w-full py-3 px-4
+                        text-sm font-medium text-slate-600
+                        bg-white/80 rounded-xl
+                        border-2 border-dashed border-slate-300
+                        hover:border-yellow-400 hover:text-yellow-600 hover:bg-yellow-50
+                        transition-all duration-200
                     "
                 >
                     + 직접 입력하기

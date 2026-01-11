@@ -107,7 +107,7 @@ export const createInitialFeedback = (
 ): PerfumeFeedback => ({
   perfumeId,
   perfumeName,
-  retentionPercentage: 50,
+  retentionPercentage: 0,
   categoryPreferences: { ...DEFAULT_CATEGORY_PREFERENCES },
   specificScents: [],
   notes: '',

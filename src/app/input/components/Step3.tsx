@@ -25,7 +25,7 @@ export function Step3({ formData, setFormData, togglePersonality, isIdol }: Step
                 description={`${isIdol ? "최애" : "본인"}가 어떤 성격인지 선택해주세요 (복수 선택 가능)`}
             />
 
-            <div className="flex-1 mt-5 overflow-y-auto">
+            <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-2">
                     {PERSONALITIES.map((personality, index) => (
                         <motion.div
@@ -42,15 +42,15 @@ export function Step3({ formData, setFormData, togglePersonality, isIdol }: Step
                         </motion.div>
                     ))}
                 </div>
-
-                <CustomInputToggle
-                    isOpen={showCustomInput}
-                    onToggle={() => setShowCustomInput(true)}
-                    value={formData.customPersonality}
-                    onChange={(value) => setFormData(prev => ({ ...prev, customPersonality: value }))}
-                    placeholder="다른 성격을 입력해주세요"
-                />
             </div>
+
+            <CustomInputToggle
+                isOpen={showCustomInput}
+                onToggle={() => setShowCustomInput(true)}
+                value={formData.customPersonality}
+                onChange={(value) => setFormData(prev => ({ ...prev, customPersonality: value }))}
+                placeholder="다른 성격을 입력해주세요"
+            />
         </motion.div>
     )
 }

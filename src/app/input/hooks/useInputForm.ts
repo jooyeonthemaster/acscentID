@@ -9,7 +9,7 @@ import type { FormDataType } from "../types"
 const INITIAL_FORM_DATA: FormDataType = {
     pin: "",
     name: "",
-    gender: "Male",
+    gender: "",
     styles: [],
     customStyle: "",
     personalities: [],

@@ -113,7 +113,8 @@ export const useResultData = () => {
     userImage,
     twitterName,
     userInfo,
-    displayedAnalysis: analysisResult
+    displayedAnalysis: analysisResult,
+    existingResultId: resultId // URL에서 가져온 기존 결과 ID
   }
 }
 

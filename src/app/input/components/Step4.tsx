@@ -25,7 +25,7 @@ export function Step4({ formData, setFormData, toggleCharmPoint, isIdol }: Step4
                 description={`${isIdol ? "최애" : "본인"}의 매력 포인트를 선택해주세요 (복수 선택 가능)`}
             />
 
-            <div className="flex-1 mt-5 overflow-y-auto">
+            <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-2">
                     {CHARM_POINTS.map((point, index) => (
                         <motion.div
@@ -42,15 +42,15 @@ export function Step4({ formData, setFormData, toggleCharmPoint, isIdol }: Step4
                         </motion.div>
                     ))}
                 </div>
-
-                <CustomInputToggle
-                    isOpen={showCustomInput}
-                    onToggle={() => setShowCustomInput(true)}
-                    value={formData.customCharm}
-                    onChange={(value) => setFormData(prev => ({ ...prev, customCharm: value }))}
-                    placeholder="다른 매력 포인트를 입력해주세요"
-                />
             </div>
+
+            <CustomInputToggle
+                isOpen={showCustomInput}
+                onToggle={() => setShowCustomInput(true)}
+                value={formData.customCharm}
+                onChange={(value) => setFormData(prev => ({ ...prev, customCharm: value }))}
+                placeholder="다른 매력 포인트를 입력해주세요"
+            />
         </motion.div>
     )
 }

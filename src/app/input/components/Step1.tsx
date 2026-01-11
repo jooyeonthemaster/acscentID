@@ -20,7 +20,7 @@ export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedF
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="h-full px-6 py-4 flex flex-col"
+            className="h-full px-4 py-2 flex flex-col"
         >
             <StepHeader
                 title="기본 정보를 입력해주세요"
@@ -28,7 +28,7 @@ export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedF
                 description={`더 정확한 ${isIdol ? "최애" : "퍼스널"} 향기 분석을 위해 필요한 정보입니다.`}
             />
 
-            <div className="flex-1 space-y-6 mt-6">
+            <div className="flex-1 space-y-4 mt-4">
                 <InputField
                     label="인증 번호 (숫자 4자리)"
                     value={formData.pin}

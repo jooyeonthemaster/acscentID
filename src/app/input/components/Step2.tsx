@@ -25,7 +25,7 @@ export function Step2({ formData, setFormData, toggleStyle, isIdol }: Step2Props
                 description={`${isIdol ? "최애" : "본인"}가 어떤 스타일인지 선택해주세요 (복수 선택 가능)`}
             />
 
-            <div className="flex-1 mt-5 overflow-y-auto">
+            <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-2">
                     {STYLES.map((style, index) => (
                         <motion.div
@@ -42,15 +42,15 @@ export function Step2({ formData, setFormData, toggleStyle, isIdol }: Step2Props
                         </motion.div>
                     ))}
                 </div>
-
-                <CustomInputToggle
-                    isOpen={showCustomInput}
-                    onToggle={() => setShowCustomInput(true)}
-                    value={formData.customStyle}
-                    onChange={(value) => setFormData(prev => ({ ...prev, customStyle: value }))}
-                    placeholder="다른 스타일을 입력해주세요"
-                />
             </div>
+
+            <CustomInputToggle
+                isOpen={showCustomInput}
+                onToggle={() => setShowCustomInput(true)}
+                value={formData.customStyle}
+                onChange={(value) => setFormData(prev => ({ ...prev, customStyle: value }))}
+                placeholder="다른 스타일을 입력해주세요"
+            />
         </motion.div>
     )
 }
