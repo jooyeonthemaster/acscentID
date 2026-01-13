@@ -1,376 +1,357 @@
 "use client"
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useCallback } from "react"
+import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, Heart, Star, X, AlertTriangle } from "lucide-react"
+import { Sparkles, Zap, User, ArrowRight, TrendingUp, Heart, HelpCircle, BarChart3 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number]
-    }
-  }
-}
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-}
+import { KitschHero } from "@/components/home/KitschHero"
 
 export default function Home() {
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [pendingHref, setPendingHref] = useState<string | null>(null)
+  const [userStats, setUserStats] = useState({ analysisCount: 0, recipeCount: 0 })
+  const [statsLoading, setStatsLoading] = useState(false)
 
-  // 로그인 여부 확인 (Supabase Auth 또는 카카오 커스텀 세션)
   const isLoggedIn = !!(user || unifiedUser)
+  const userName = user?.user_metadata?.name || unifiedUser?.name || user?.email?.split('@')[0] || "방문자"
 
-  // 카드 클릭 핸들러
+  // 사용자 통계 데이터 가져오기
+  const fetchUserStats = useCallback(async () => {
+    if (!isLoggedIn) return
+
+    setStatsLoading(true)
+    try {
+      const fingerprint = typeof window !== 'undefined'
+        ? localStorage.getItem('user_fingerprint')
+        : null
+      const url = fingerprint
+        ? `/api/user/data?fingerprint=${encodeURIComponent(fingerprint)}`
+        : '/api/user/data'
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (response.ok) {
+        setUserStats({
+          analysisCount: data.analyses?.length || 0,
+          recipeCount: data.recipes?.length || 0
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch user stats:', error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [isLoggedIn])
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUserStats()
+    }
+  }, [isLoggedIn, fetchUserStats])
+
   const handleCardClick = (href: string) => {
     if (loading) return
-
     if (isLoggedIn) {
-      // 로그인된 사용자는 바로 이동
       router.push(href)
     } else {
-      // 비로그인 사용자는 모달 표시
-      setPendingHref(href)
-      setShowLoginPrompt(true)
+      setShowAuthModal(true)
     }
-  }
-
-  // 비회원으로 시작
-  const handleGuestStart = () => {
-    if (pendingHref) {
-      router.push(pendingHref)
-    }
-    setShowLoginPrompt(false)
-  }
-
-  // 로그인하기 선택
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
   }
 
   return (
-    <main className="relative flex flex-col min-h-screen overflow-hidden bg-[#FAFAFA] font-sans">
-
-      {/* Background Pattern */}
-      <div className="absolute inset-0 z-0 bg-grid-pattern opacity-[0.4] pointer-events-none" />
-
-      {/* Top Marquee moved to Header */}
-
+    <main className="relative min-h-screen bg-[#FFFDF5] font-sans selection:bg-pink-200 selection:text-pink-900">
       <Header />
 
-      <div className="relative z-10 w-full max-w-7xl px-6 mx-auto flex-1 flex flex-col justify-center lg:flex-row lg:items-center lg:justify-between gap-12 pt-28 pb-10">
+      {/* 1. Hero Section */}
+      <KitschHero />
 
-        {/* Left Column: Hero */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="flex-1 text-left relative"
-        >
-          {/* Decorative Floaters */}
-          <div className="absolute -top-20 -left-10 animate-float hidden lg:block">
-            <Star size={48} className="text-yellow-400 fill-yellow-400 drop-shadow-md" />
-          </div>
-          <div className="absolute top-10 right-10 animate-float-delayed hidden lg:block">
-            <Heart size={40} className="text-pink-400 fill-pink-400 drop-shadow-md" />
-          </div>
+      {/* 2. Dashboard Interface Container */}
+      <div className="relative z-10 mt-[100vh] bg-[#FFFDF5] rounded-t-[40px] px-4 md:px-8 py-12 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t-4 border-slate-900 min-h-[800px]">
 
-          <div className="inline-block px-4 py-1.5 rounded-full border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-6 transform -rotate-2">
-            <span className="text-xs font-black text-black tracking-widest uppercase flex items-center gap-2">
-              <Sparkles size={14} className="text-yellow-500" />
-              Signature Scent Curation
-            </span>
-          </div>
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
 
-          <h1 className="text-[3.5rem] sm:text-[4.5rem] lg:text-[6.5rem] font-black text-slate-900 leading-[0.9] tracking-tighter mb-6 relative">
-            <span className="relative z-10">AC&apos;SCENT</span><br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 relative z-10">
-              IDENTITY
-            </span>
-            {/* Behind text blob */}
-            <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-yellow-300 rounded-full blur-2xl opacity-50 -z-10 animate-pulse" />
-          </h1>
+          {/* =========================================================
+                [LEFT COLUMN] MAIN SERVICES & ACTIVITY
+            ========================================================= */}
+          <div className="flex-1 space-y-10">
 
-          <p className="max-w-md text-slate-600 text-lg font-medium leading-relaxed bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-slate-200/50 mb-6">
-            <span className="font-bold text-slate-900">덕질을 향기로 기록하다.</span><br />
-            최애의 이미지, 분위기, 성격을 분석하여<br />
-            세상에 하나뿐인 시그니처 향수를 추천해드립니다.
-          </p>
+            {/* 2.1 Service Header (Greeting) */}
+            <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  👋 {isLoggedIn ? `반가워요, ${userName}님!` : "나만의 향기를 찾아보세요!"}
+                </h2>
+                <p className="text-sm text-slate-500 font-bold mt-1">
+                  오늘의 기분과 이미지를 향기로 기록해보세요.
+                </p>
+              </div>
+              {!isLoggedIn && (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-[#F472B6] text-white px-5 py-2 rounded-xl border-2 border-slate-900 font-bold text-sm hover:shadow-none shadow-[2px_2px_0px_#000] transition-all"
+                >
+                  로그인하기
+                </button>
+              )}
+            </div>
 
-          <div className="mt-8 mb-4">
-            <Link
-              href="/mypage?tab=analyses"
-              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-4 px-8 py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-black text-xl sm:text-2xl shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all group overflow-hidden border-2 border-black"
-            >
-              {/* Animated Background Shine */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shine" />
+            {/* 2.2 Main Programs (Grid) */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="text-yellow-400 fill-yellow-400" />
+                <h3 className="text-2xl font-black text-slate-900">추천 프로그램</h3>
+              </div>
 
-              <div className="relative flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-slate-900 ring-2 ring-black">
-                  <Sparkles size={20} className="animate-pulse" />
-                </span>
-                <div className="flex flex-col items-start leading-none">
-                  <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1">Analysis Complete?</span>
-                  <span>나만의 향수 <span className="text-yellow-400 decoration-wavy underline decoration-2 underline-offset-4">구매하러 가기</span> 👉</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card 1: IDOL */}
+                <RetroCard
+                  title="AI 아이돌 이미지 분석"
+                  subtitle="최애의 무드를 향기로 재해석"
+                  image="/제목 없는 디자인 (3)/2.png"
+                  price="₩ 24,000"
+                  accentColor="bg-[#FBCFE8]"
+                  tag="POPULAR"
+                  tags={["K-POP", "맞춤향수", "AI분석"]}
+                  onClick={() => handleCardClick("/programs/idol-image")}
+                />
+
+                {/* Card 2: FIGURE */}
+                <RetroCard
+                  title="피규어 테마 향수"
+                  subtitle="캐릭터의 서사를 담은 향"
+                  image="/제목 없는 디자인 (3)/1.png"
+                  price="₩ 48,000"
+                  accentColor="bg-[#A5F3FC]"
+                  tag="NEW"
+                  tags={["캐릭터", "피규어", "커스텀"]}
+                  onClick={() => handleCardClick("/programs/figure")}
+                />
+
+                {/* Card 3: PERSONAL (Full Width) */}
+                <div className="md:col-span-2">
+                  <RetroCard
+                    layout="horizontal"
+                    title="나만의 퍼스널 센트"
+                    subtitle="당신의 이미지를 완성하는 데일리 시그니처 향수"
+                    image="/제목 없는 디자인 (3)/3.png"
+                    price="₩ 24,000"
+                    accentColor="bg-[#C4B5FD]"
+                    tag="SIGNATURE"
+                    tags={["시그니처", "데일리", "퍼스널"]}
+                    onClick={() => handleCardClick("/programs/personal")}
+                  />
                 </div>
               </div>
-            </Link>
-          </div>
-        </motion.div>
+            </div>
 
-        {/* Right Column: Menu Grid (Polco Style) */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="flex-1 w-full max-w-md lg:max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 p-4"
-        >
-          {/* Card 1 */}
-          <div className="sm:col-span-2 transform hover:rotate-1 transition-transform duration-300">
-            <MenuCard
-              href="/input?type=idol_image"
-              tag="BEST"
-              title="AI 이미지 분석"
-              description="최애의 레전드 짤로 찾는 향수"
-              image="/제목 없는 디자인 (3)/1.png"
-              color="bg-yellow-50"
-              accentColor="bg-yellow-400"
-              price="24,000원"
-              priceDetail="10ml / 50ml 48,000원"
-              onClick={handleCardClick}
-            />
-          </div>
+            {/* 2.3 How It Works (Process) */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="text-blue-400 fill-blue-400" />
+                <h3 className="text-2xl font-black text-slate-900">진행 과정 안내</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ProcessStep
+                  number="01"
+                  text="이미지/키워드 입력"
+                  color="bg-white"
+                />
+                <ProcessStep
+                  number="02"
+                  text="AI 정밀 분석"
+                  color="bg-white"
+                />
+                <ProcessStep
+                  number="03"
+                  text="나만의 레시피 도출"
+                  color="bg-white"
+                />
+              </div>
+            </div>
 
-          {/* Card 2 */}
-          <div className="transform hover:-rotate-1 transition-transform duration-300">
-            <MenuCard
-              href="/input?type=figure"
-              tag="GOODS"
-              title="피규어 화분"
-              description="캐릭터 테마 향기"
-              image="/제목 없는 디자인 (3)/2.png"
-              color="bg-blue-50"
-              accentColor="bg-blue-400"
-              price="48,000원"
-              onClick={handleCardClick}
-            />
           </div>
 
-          {/* Card 3 */}
-          <div className="transform hover:rotate-1 transition-transform duration-300">
-            <MenuCard
-              href="/input?type=personal"
-              tag="ANALYSIS"
-              title="퍼스널 센트"
-              description="나만의 시그니처"
-              image="/제목 없는 디자인 (3)/3.png"
-              color="bg-purple-50"
-              accentColor="bg-purple-400"
-              price="24,000원"
-              priceDetail="10ml / 50ml 48,000원"
-              onClick={handleCardClick}
-            />
-          </div>
-        </motion.div>
+          {/* =========================================================
+                [RIGHT COLUMN] ALERTS & STATUS (SIDEBAR)
+            ========================================================= */}
+          <div className="w-full lg:w-80 flex flex-col gap-6">
 
-        {/* Footer */}
-        <div className="absolute bottom-6 left-0 w-full text-center lg:text-left lg:px-6 pointer-events-none z-10">
-          <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase bg-white/80 px-2 py-1 rounded-full">
-            © 2025 Ac&apos;scent Identity
-          </span>
-        </div>
-
-      </div >
-
-      {/* 로그인 안내 모달 */}
-      <AnimatePresence>
-        {
-          showLoginPrompt && (
-            <>
-              {/* 백드롭 */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowLoginPrompt(false)}
-                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-              />
-
-              {/* 모달 */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
+            {/* 3.1 User Profile Widget */}
+            <div className="bg-[#FEF9C3] border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center overflow-hidden">
+                  {/* Retro Avatar */}
+                  <img src="/assets/retro/computer.png" className="w-9 h-9 object-contain" alt="Profile" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-lg">My Page</div>
+                  <div className="text-xs text-slate-500 font-bold">나의 분석 기록 확인하기</div>
+                </div>
+              </div>
+              {isLoggedIn && (
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="bg-white/50 rounded-xl p-2 text-center border border-slate-900/10">
+                    <div className="text-xs text-slate-500 font-bold">분석 횟수</div>
+                    <div className="font-black text-slate-900">
+                      {statsLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+                      ) : userStats.analysisCount}
+                    </div>
+                  </div>
+                  <div className="bg-white/50 rounded-xl p-2 text-center border border-slate-900/10">
+                    <div className="text-xs text-slate-500 font-bold">보유 레시피</div>
+                    <div className="font-black text-slate-900">
+                      {statsLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+                      ) : userStats.recipeCount}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => isLoggedIn ? router.push('/mypage') : setShowAuthModal(true)}
+                className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all shadow-[2px_2px_0px_#F472B6]"
               >
-                {/* 헤더 */}
-                <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
-                  <button
-                    onClick={() => setShowLoginPrompt(false)}
-                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
-                  >
-                    <X size={20} className="text-slate-400" />
-                  </button>
+                {isLoggedIn ? "마이페이지로 이동" : "로그인하고 시작하기"}
+              </button>
+            </div>
 
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/30 border-2 border-black">
-                    <AlertTriangle size={28} className="text-white" />
-                  </div>
+            {/* 3.2 Service Statistics Widget (Trust Indicators) */}
+            <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-black text-slate-900 flex items-center gap-2">
+                  <BarChart3 size={18} />
+                  서비스 현황
+                </h4>
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              </div>
+              <div className="space-y-4">
+                <StatItem label="누적 분석 완료" value="10,000+" icon="🧪" />
+                <StatItem label="생성된 향기 레시피" value="25,400+" icon="✨" />
+                <StatItem label="AI 매칭 정확도" value="98.5%" icon="🎯" />
+              </div>
+            </div>
 
-                  <h2 className="text-xl font-black text-slate-900 mb-2">잠깐! 🤔</h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    로그인하지 않으면 분석 결과가<br />
-                    <span className="font-bold text-red-500">저장되지 않아요!</span>
-                  </p>
+            {/* 3.3 Brand Values (Why Us) */}
+            <div className="bg-[#E9D5FF] border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
+              <h4 className="font-black text-slate-900 mb-4 flex items-center gap-2">
+                <Heart size={18} className="text-red-500 fill-red-500" />
+                Why Ppuduck?
+              </h4>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">1</div>
+                  <p className="text-sm font-bold text-slate-800 leading-tight">단, 30초 만에 완성되는<br />나만의 시그니처 향수</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">2</div>
+                  <p className="text-sm font-bold text-slate-800 leading-tight">이미지와 키워드를 분석하는<br />고도화된 AI 알고리즘</p>
+                </li>
+              </ul>
+            </div>
+
+            {/* 3.4 Help Center Link */}
+            <Link href="/cs" className="block group">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-[2px_2px_0px_#000] group-hover:-translate-y-1 transition-transform">
+                <div className="flex items-center gap-3">
+                  <HelpCircle className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+                  <span className="font-bold text-slate-600 group-hover:text-slate-900">고객센터 / 문의하기</span>
                 </div>
+                <ArrowRight size={16} className="text-slate-400" />
+              </div>
+            </Link>
 
-                {/* 안내 내용 */}
-                <div className="px-6 py-4 bg-slate-50 border-y border-slate-200">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-start gap-2">
-                      <span className="text-green-500 font-bold">✓</span>
-                      <span className="text-slate-600">로그인하면 분석 결과가 자동 저장돼요</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-green-500 font-bold">✓</span>
-                      <span className="text-slate-600">마이페이지에서 언제든 다시 볼 수 있어요</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-amber-500 font-bold">!</span>
-                      <span className="text-slate-600">비회원은 페이지를 나가면 결과가 사라져요</span>
-                    </div>
-                  </div>
-                </div>
+          </div>
 
-                {/* 버튼 */}
-                <div className="p-6 space-y-3">
-                  {/* 로그인/회원가입 버튼 */}
-                  <button
-                    onClick={handleLoginClick}
-                    className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800 border-2 border-black"
-                  >
-                    로그인 / 회원가입
-                  </button>
+        </div>
+      </div>
 
-                  {/* 비회원 시작 버튼 */}
-                  <button
-                    onClick={handleGuestStart}
-                    className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>비회원으로 시작하기</span>
-                    <span className="text-xs text-slate-400">(저장 안됨)</span>
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )
-        }
-      </AnimatePresence >
-
-      {/* 로그인 모달 */}
-      < AuthModal
+      <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)
-        }
-        onSuccess={() => {
-          setShowAuthModal(false)
-          if (pendingHref) {
-            router.push(pendingHref)
-          }
-        }}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => setShowAuthModal(false)}
       />
-    </main >
+    </main>
   )
 }
 
-// --- Menu Card (Kitsch Polco Style) ---
-interface MenuCardProps {
-  href: string
-  tag: string
-  title: string
-  description: string
-  image: string
-  color: string
-  accentColor: string
-  price?: string
-  priceDetail?: string
-  onClick?: (href: string) => void
+// ----------------------------------------------------------------------
+// SUB-COMPONENTS
+// ----------------------------------------------------------------------
+
+function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layout = "vertical", onClick }: any) {
+  return (
+    <div
+      onClick={onClick}
+      className={`group relative bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer overflow-hidden ${layout === 'horizontal' ? 'flex items-center gap-6' : 'flex flex-col'}`}
+    >
+      <div className={`absolute top-4 ${layout === 'horizontal' ? 'left-4' : 'right-4'} px-3 py-1 bg-slate-900 text-white text-[10px] font-bold rounded-full tracking-widest uppercase z-10`}>
+        {tag}
+      </div>
+
+      <div className={`relative ${layout === 'horizontal' ? 'w-1/3 h-40' : 'w-full h-48'} rounded-2xl border-2 border-slate-900 mb-4 overflow-hidden flex-shrink-0 flex items-center justify-center`}>
+        <img
+          src={image}
+          alt={title}
+          className="w-[120%] h-[120%] object-contain transition-transform group-hover:scale-110 duration-500"
+        />
+      </div>
+
+      <div className={`flex-1 ${layout === "horizontal" ? "py-2" : ""}`}>
+        <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight group-hover:text-purple-600 transition-colors">
+          {title}
+        </h3>
+        <p className="text-sm text-slate-500 font-bold mb-4">
+          {subtitle}
+        </p>
+
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {tags.map((t: string, i: number) => (
+              <span
+                key={i}
+                className={`text-xs px-3 py-1 rounded-full font-bold border-2 border-slate-900 ${accentColor} text-slate-900`}
+              >
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <span className="font-black text-xl text-slate-900">{price}</span>
+          <button className="w-8 h-8 rounded-full border-2 border-slate-900 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors">
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function MenuCard({ href, tag, title, description, image, color, accentColor, price, priceDetail, onClick }: MenuCardProps) {
-  const handleClick = (e: React.MouseEvent) => {
-    if (onClick) {
-      e.preventDefault()
-      onClick(href)
-    }
-  }
-
+function StatItem({ label, value, icon }: any) {
   return (
-    <Link href={href} onClick={handleClick} className="block group relative">
-      <div className={`relative overflow-hidden rounded-[2rem] border-2 border-black box-shadow-hard group-hover:box-shadow-hard-lg transition-all duration-300 ${color} h-[240px] sm:h-[280px]`}>
-
-        {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 h-10 border-b-2 border-black bg-white flex items-center px-4 justify-between z-10">
-          <div className="flex gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full border border-black bg-red-400" />
-            <div className="w-2.5 h-2.5 rounded-full border border-black bg-yellow-400" />
-            <div className="w-2.5 h-2.5 rounded-full border border-black bg-green-400" />
-          </div>
-          <span className="text-[10px] font-black tracking-widest">{tag}</span>
-        </div>
-
-        {/* Content */}
-        <div className="relative h-full pt-12 flex flex-col items-center justify-start p-6 text-center group-hover:scale-105 transition-transform duration-500">
-          {/* Image Circle */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-black overflow-hidden mb-3 bg-white shadow-md relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
-          </div>
-
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 transition-all">
-            {title}
-          </h3>
-          <p className="text-xs sm:text-sm font-bold text-slate-500 mb-3">
-            {description}
-          </p>
-
-          {/* Pricing Section */}
-          {price && (
-            <div className="flex flex-col items-center gap-0.5 mt-auto pb-2 w-full">
-              <div className="bg-white/90 border-2 border-black rounded-lg px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 transform group-hover:-rotate-2 transition-transform max-w-full">
-                <span className="text-xs sm:text-sm font-black text-slate-900 whitespace-nowrap">{price}</span>
-                {priceDetail && <span className="text-[10px] sm:text-xs font-bold text-slate-500 border-l border-slate-300 pl-1.5 whitespace-nowrap">{priceDetail}</span>}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Shine Overlay */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-white mix-blend-overlay transition-opacity" />
+    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+      <div className="flex items-center gap-3">
+        <span className="text-xl">{icon}</span>
+        <span className="text-xs font-bold text-slate-500">{label}</span>
       </div>
-    </Link>
+      <span className="font-black text-slate-900">{value}</span>
+    </div>
+  )
+}
+
+function ProcessStep({ number, text, color }: any) {
+  return (
+    <div className={`${color} border-2 border-slate-900 rounded-2xl p-4 flex items-center gap-4 shadow-[2px_2px_0px_#000]`}>
+      <div className="text-3xl font-black text-slate-200">{number}</div>
+      <div className="font-bold text-slate-800 leading-tight">{text}</div>
+    </div>
   )
 }

@@ -294,7 +294,7 @@ export function useFeedbackForm({
         setAiRecommendedRecipe(null)
       }
 
-      // Step 3: 피드백 저장
+      // Step 3: 피드백 저장 (레시피는 "확정" 단계에서만 저장)
       const fingerprint = getOrCreateFingerprint()
 
       const saveResponse = await fetch('/api/feedback', {
@@ -309,7 +309,7 @@ export function useFeedbackForm({
           specificScents: feedback.specificScents,
           notes: feedback.notes,
           naturalLanguageFeedback: feedback.naturalLanguageFeedback,
-          generatedRecipe: directRecipe, // 저장할 때는 사용자 직접 레시피
+          // generatedRecipe는 "확정" 단계에서 RecipeConfirm에서 저장
           userFingerprint: fingerprint,
         }),
       })
@@ -320,7 +320,7 @@ export function useFeedbackForm({
         console.warn('[Feedback] Save failed:', saveData.error)
         // 저장 실패해도 레시피는 생성되었으므로 계속 진행
       } else {
-        console.log('[Feedback] Saved successfully:', saveData.id)
+        console.log('[Feedback] Feedback saved (without recipe):', saveData.id)
       }
 
       // 성공 단계로 이동 (3단계 구조에서 성공은 step 4)

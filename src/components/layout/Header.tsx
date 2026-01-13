@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, User, LogOut, Sparkles, X, ChevronLeft, Star } from 'lucide-react'
+import { Menu, User, LogOut, Sparkles, X, ChevronLeft, Star, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthModal } from '@/components/auth/AuthModal'
 import {
@@ -23,13 +24,143 @@ interface HeaderProps {
   hideLogo?: boolean
 }
 
+// Navigation Links
+const NAV_LINKS = {
+  about: [
+    { href: '/about/brand', label: '브랜드 스토리' },
+    { href: '/about/vision', label: '비전' },
+    { href: '/about/how-it-works', label: '작동 원리' },
+  ],
+  programs: [
+    { href: '/programs/idol-image', label: 'AI 이미지 분석' },
+    { href: '/programs/figure', label: '피규어 향수' },
+    { href: '/programs/personal', label: '퍼스널 센트' },
+  ],
+}
+
+// Desktop Dropdown Component
+function DesktopDropdown({
+  title,
+  links,
+  isActive
+}: {
+  title: string
+  links: Array<{ href: string; label: string }>
+  isActive: boolean
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <button
+        className={cn(
+          "flex items-center gap-1 px-3 py-2 rounded-lg font-bold text-sm transition-all",
+          isActive
+            ? "text-purple-600 bg-purple-50"
+            : "text-slate-700 hover:text-black hover:bg-slate-50"
+        )}
+      >
+        {title}
+        <ChevronDown size={14} className={cn("transition-transform", isOpen && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 w-48 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50"
+          >
+            {links.map((link, index) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "block px-4 py-3 text-sm font-medium text-slate-700 hover:bg-yellow-100 hover:text-black transition-colors",
+                  index !== links.length - 1 && "border-b border-slate-200"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// Mobile Collapsible Section
+function MobileSection({
+  title,
+  links,
+  isActive,
+  onLinkClick
+}: {
+  title: string
+  links: Array<{ href: string; label: string }>
+  isActive: boolean
+  onLinkClick: () => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="border-b border-slate-100 last:border-b-0">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "w-full flex items-center justify-between px-4 py-4 font-bold text-left transition-colors",
+          isActive ? "text-purple-600 bg-purple-50" : "text-slate-900 hover:bg-slate-50"
+        )}
+      >
+        {title}
+        <ChevronDown size={16} className={cn("transition-transform", isOpen && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden bg-slate-50"
+          >
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={onLinkClick}
+                className="block px-8 py-3 text-sm text-slate-600 hover:text-black hover:bg-yellow-100 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function Header({ title, showBack, backHref = "/", hideLogo = false }: HeaderProps) {
   const { user, unifiedUser, loading, signOut } = useAuth()
+  const pathname = usePathname()
   // 카카오 사용자는 unifiedUser에만 있음
   const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+
+  // Check if current path is active
+  const isAboutActive = pathname?.startsWith('/about') || false
+  const isProgramsActive = pathname?.startsWith('/programs') || false
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,38 +226,58 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
             )}
           </div>
 
-          {/* Center: Title (Mobile/Tablet) or Logo (Mobile) */}
-          <div className="flex-[2] flex items-center justify-center md:hidden">
-            <AnimatePresence mode="wait">
-              {title ? (
-                <motion.span
-                  key={title}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="text-xs font-black tracking-[0.2em] text-slate-800 uppercase block truncate px-2"
-                >
-                  {title}
-                </motion.span>
-              ) : !hideLogo ? (
-                <Link href="/">
-                  <motion.div
-                    key="logo"
+          {/* Center: Title (Mobile) or Desktop Navigation */}
+          <div className="flex-[2] flex items-center justify-center">
+            {/* Mobile: Title or Logo */}
+            <div className="md:hidden">
+              <AnimatePresence mode="wait">
+                {title ? (
+                  <motion.span
+                    key={title}
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
-                    className="flex flex-col items-center"
+                    className="text-xs font-black tracking-[0.2em] text-slate-800 uppercase block truncate px-2"
                   >
-                    <span className="text-lg font-black tracking-tighter text-slate-900">
-                      AC&apos;SCENT
-                    </span>
-                    <span className="text-[8px] font-bold tracking-[0.3em] text-slate-500 -mt-1">
-                      IDENTITY
-                    </span>
-                  </motion.div>
-                </Link>
-              ) : null}
-            </AnimatePresence>
+                    {title}
+                  </motion.span>
+                ) : !hideLogo ? (
+                  <Link href="/">
+                    <motion.div
+                      key="logo"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="flex flex-col items-center"
+                    >
+                      <span className="text-lg font-black tracking-tighter text-slate-900">
+                        AC&apos;SCENT
+                      </span>
+                      <span className="text-[8px] font-bold tracking-[0.3em] text-slate-500 -mt-1">
+                        IDENTITY
+                      </span>
+                    </motion.div>
+                  </Link>
+                ) : null}
+              </AnimatePresence>
+            </div>
+
+            {/* Desktop: Navigation */}
+            <nav className="hidden md:flex items-center gap-2">
+              <DesktopDropdown title="About" links={NAV_LINKS.about} isActive={isAboutActive} />
+              <DesktopDropdown title="Programs" links={NAV_LINKS.programs} isActive={isProgramsActive} />
+              <Link
+                href="/mypage"
+                className={cn(
+                  "px-3 py-2 rounded-lg font-bold text-sm transition-all",
+                  pathname === '/mypage'
+                    ? "text-purple-600 bg-purple-50"
+                    : "text-slate-700 hover:text-black hover:bg-slate-50"
+                )}
+              >
+                My Page
+              </Link>
+            </nav>
           </div>
 
           {/* Right: Login Status + Hamburger Menu */}
@@ -218,18 +369,37 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
                         </div>
                       </div>
 
-                      <nav className="p-4 space-y-2">
+                      <nav className="flex-1 overflow-y-auto">
+                        <Link
+                          href="/"
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                        >
+                          Home
+                        </Link>
+                        <MobileSection
+                          title="About"
+                          links={NAV_LINKS.about}
+                          isActive={isAboutActive}
+                          onLinkClick={() => setIsOpen(false)}
+                        />
+                        <MobileSection
+                          title="Programs"
+                          links={NAV_LINKS.programs}
+                          isActive={isProgramsActive}
+                          onLinkClick={() => setIsOpen(false)}
+                        />
                         <Link
                           href="/mypage"
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-4 rounded-xl border-2 border-transparent hover:border-black hover:bg-yellow-100 transition-all font-bold"
+                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                         >
                           <Sparkles size={18} />
-                          마이페이지
+                          My Page
                         </Link>
                       </nav>
 
-                      <div className="mt-auto p-4">
+                      <div className="mt-auto p-4 border-t border-slate-100">
                         <Button
                           variant="ghost"
                           onClick={handleSignOut}
@@ -241,20 +411,44 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col h-full p-6">
-                      <h3 className="text-2xl font-black text-slate-900 mb-2">WELCOME!</h3>
-                      <p className="text-sm text-slate-500 mb-8">
-                        로그인하고 나만의 향기를<br />기록해보세요.
-                      </p>
-                      <Button
-                        onClick={() => {
-                          setShowAuthModal(true)
-                          setIsOpen(false)
-                        }}
-                        className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800"
-                      >
-                        LOGIN
-                      </Button>
+                    <div className="flex flex-col h-full">
+                      <nav className="flex-1 overflow-y-auto">
+                        <Link
+                          href="/"
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                        >
+                          Home
+                        </Link>
+                        <MobileSection
+                          title="About"
+                          links={NAV_LINKS.about}
+                          isActive={isAboutActive}
+                          onLinkClick={() => setIsOpen(false)}
+                        />
+                        <MobileSection
+                          title="Programs"
+                          links={NAV_LINKS.programs}
+                          isActive={isProgramsActive}
+                          onLinkClick={() => setIsOpen(false)}
+                        />
+                      </nav>
+
+                      <div className="p-6 border-t border-slate-100 bg-slate-50">
+                        <h3 className="text-2xl font-black text-slate-900 mb-2">WELCOME!</h3>
+                        <p className="text-sm text-slate-500 mb-6">
+                          로그인하고 나만의 향기를<br />기록해보세요.
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setShowAuthModal(true)
+                            setIsOpen(false)
+                          }}
+                          className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800"
+                        >
+                          LOGIN
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>

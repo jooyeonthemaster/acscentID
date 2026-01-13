@@ -18,6 +18,7 @@ interface UseAutoSaveProps {
   userId: string | null  // 통합 사용자 ID (Supabase Auth + 카카오)
   authLoading?: boolean  // AuthContext 로딩 상태 (타이밍 문제 해결용)
   existingResultId?: string | null  // URL에서 가져온 기존 결과 ID (있으면 저장 스킵)
+  idolName?: string | null  // 최애 이름 (입력 폼에서 입력한 이름)
 }
 
 interface UseAutoSaveReturn {
@@ -66,7 +67,8 @@ export function useAutoSave({
   twitterName,
   userId,
   authLoading = false,
-  existingResultId = null
+  existingResultId = null,
+  idolName = null
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -174,7 +176,8 @@ export function useAutoSave({
           perfumeBrand,
           matchingKeywords: analysisResult.matchingKeywords || [],
           userId: userId,
-          userFingerprint: fingerprint
+          userFingerprint: fingerprint,
+          idolName: idolName
         })
       })
 
@@ -211,7 +214,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)

@@ -114,7 +114,8 @@ export const useResultData = () => {
     twitterName,
     userInfo,
     displayedAnalysis: analysisResult,
-    existingResultId: resultId // URL에서 가져온 기존 결과 ID
+    existingResultId: resultId, // URL에서 가져온 기존 결과 ID
+    idolName: userInfo?.name || null // 최애 이름 (입력 폼에서 입력한 이름)
   }
 }
 

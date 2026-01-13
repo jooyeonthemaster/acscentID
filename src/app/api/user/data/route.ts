@@ -139,9 +139,90 @@ export async function GET(request: NextRequest) {
       confirmed_recipe: linkedRecipesMap.get(analysis.id) || null
     }))
 
+    // 레시피를 분석 결과별로 그룹핑
+    interface RecipeItem {
+      id: string
+      result_id: string | null
+      created_at: string
+      perfume_name: string
+      perfume_id: string
+      generated_recipe: object | null
+      retention_percentage: number
+    }
+
+    interface AnalysisInfo {
+      id: string
+      twitter_name: string
+      perfume_name: string
+      perfume_brand: string
+      user_image_url: string | null
+      created_at: string
+    }
+
+    const recipesByAnalysis = new Map<string | null, RecipeItem[]>()
+
+    recipes.forEach((recipe: RecipeItem) => {
+      const key = recipe.result_id || null
+      if (!recipesByAnalysis.has(key)) {
+        recipesByAnalysis.set(key, [])
+      }
+      recipesByAnalysis.get(key)!.push(recipe)
+    })
+
+    // 분석 정보 맵 생성
+    const analysisInfoMap = new Map<string, AnalysisInfo>()
+    analysesRaw.forEach((a: AnalysisInfo) => {
+      analysisInfoMap.set(a.id, {
+        id: a.id,
+        twitter_name: a.twitter_name,
+        perfume_name: a.perfume_name,
+        perfume_brand: a.perfume_brand,
+        user_image_url: a.user_image_url,
+        created_at: a.created_at
+      })
+    })
+
+    // 그룹 배열 생성 (연결된 분석이 있는 것부터, 최신순)
+    const recipeGroups: Array<{
+      analysis: AnalysisInfo | null
+      recipes: RecipeItem[]
+    }> = []
+
+    // 연결된 레시피 그룹 추가
+    recipesByAnalysis.forEach((groupRecipes, analysisId) => {
+      if (analysisId) {
+        const analysisInfo = analysisInfoMap.get(analysisId) || null
+        recipeGroups.push({
+          analysis: analysisInfo,
+          recipes: groupRecipes.sort((a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+        })
+      }
+    })
+
+    // 분석 날짜 기준 정렬
+    recipeGroups.sort((a, b) => {
+      const dateA = a.analysis ? new Date(a.analysis.created_at).getTime() : 0
+      const dateB = b.analysis ? new Date(b.analysis.created_at).getTime() : 0
+      return dateB - dateA
+    })
+
+    // 연결 안 된 레시피 그룹 (마지막에 추가)
+    const unlinkedRecipes = recipesByAnalysis.get(null)
+    if (unlinkedRecipes && unlinkedRecipes.length > 0) {
+      recipeGroups.push({
+        analysis: null,
+        recipes: unlinkedRecipes.sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      })
+    }
+
     return NextResponse.json({
       analyses,
-      recipes,
+      recipes,  // 기존 호환성 유지
+      recipeGroups,  // 새로운 그룹핑 데이터
       analysisError: results[0].error?.message || null,
       recipeError: results[1].error?.message || null,
     })

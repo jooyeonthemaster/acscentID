@@ -27,7 +27,9 @@ interface RecipeData {
 export default function RecipeDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, unifiedUser } = useAuth()
+  // 카카오 사용자는 unifiedUser에만 있음
+  const currentUser = unifiedUser || user
   const recipeId = params.id as string
 
   const [recipe, setRecipe] = useState<RecipeData | null>(null)
@@ -37,19 +39,43 @@ export default function RecipeDetailPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    if (!recipeId || !user) return
+    if (!recipeId || !currentUser) return
 
     const fetchRecipe = async () => {
       setLoading(true)
       setError(null)
 
       try {
-        const { data, error: fetchError } = await supabase
+        // 먼저 user_id로 조회 시도, 없으면 fingerprint로 조회
+        let data = null
+        let fetchError = null
+
+        // user_id로 조회 (Google OAuth 사용자)
+        const result = await supabase
           .from('perfume_feedbacks')
           .select('*')
           .eq('id', recipeId)
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .single()
+
+        data = result.data
+        fetchError = result.error
+
+        // user_id로 못 찾으면 fingerprint로 조회 (카카오 사용자 등)
+        if (fetchError && typeof window !== 'undefined') {
+          const fingerprint = localStorage.getItem('user_fingerprint')
+          if (fingerprint) {
+            const fpResult = await supabase
+              .from('perfume_feedbacks')
+              .select('*')
+              .eq('id', recipeId)
+              .eq('user_fingerprint', fingerprint)
+              .single()
+
+            data = fpResult.data
+            fetchError = fpResult.error
+          }
+        }
 
         if (fetchError) {
           console.error('Failed to fetch recipe:', fetchError)
@@ -72,7 +98,7 @@ export default function RecipeDetailPage() {
     }
 
     fetchRecipe()
-  }, [recipeId, user])
+  }, [recipeId, currentUser])
 
   // 선택된 제품 정보
   const productInfo = useMemo(() => {
@@ -131,15 +157,35 @@ AC'SCENT IDENTITY에서 생성됨`
 
   // 레시피 삭제
   const handleDelete = async () => {
-    if (!recipe || !user) return
+    if (!recipe || !currentUser) return
     if (!confirm('이 레시피를 삭제할까요?')) return
 
     try {
-      const { error } = await supabase
+      // user_id 또는 fingerprint로 삭제
+      let error = null
+
+      // 먼저 user_id로 삭제 시도
+      const result = await supabase
         .from('perfume_feedbacks')
         .delete()
         .eq('id', recipe.id)
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
+
+      error = result.error
+
+      // user_id로 삭제 실패시 fingerprint로 삭제 시도
+      if (error && typeof window !== 'undefined') {
+        const fingerprint = localStorage.getItem('user_fingerprint')
+        if (fingerprint) {
+          const fpResult = await supabase
+            .from('perfume_feedbacks')
+            .delete()
+            .eq('id', recipe.id)
+            .eq('user_fingerprint', fingerprint)
+
+          error = fpResult.error
+        }
+      }
 
       if (error) {
         console.error('Delete error:', error)

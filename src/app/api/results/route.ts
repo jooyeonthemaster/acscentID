@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
       perfumeBrand,
       matchingKeywords,
       userId,
-      userFingerprint
+      userFingerprint,
+      idolName
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
       matchingKeywords?: string[]
       userId?: string | null
       userFingerprint?: string | null
+      idolName?: string | null
     }
 
     // 필수 데이터 검증
@@ -45,7 +47,8 @@ export async function POST(request: NextRequest) {
         perfume_brand: perfumeBrand,
         matching_keywords: matchingKeywords || [],
         user_id: userId || null,
-        user_fingerprint: userFingerprint || null
+        user_fingerprint: userFingerprint || null,
+        idol_name: idolName || null
       })
       .select('id')
       .single()

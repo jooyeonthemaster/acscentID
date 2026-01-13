@@ -1,7 +1,7 @@
 'use client'
 
 import { User } from '@supabase/supabase-js'
-import { User as UserIcon, LogOut, Settings } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 // 통합 사용자 타입 (AuthContext와 동일하게 맞춤)
@@ -18,6 +18,11 @@ interface ProfileHeaderProps {
   unifiedUser: UnifiedUser | null
 }
 
+// 기본 아바타 URL 생성 (DiceBear API 사용)
+function getDefaultAvatar(seed: string): string {
+  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed)}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`
+}
+
 export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
   const { signOut } = useAuth()
 
@@ -31,10 +36,14 @@ export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
     user?.email?.split('@')[0] ||
     '사용자'
 
-  // 아바타 가져오기
+  // 아바타 시드 (userId 또는 이메일 기반 - 항상 같은 캐릭터 표시)
+  const avatarSeed = unifiedUser?.id || user?.id || unifiedUser?.email || user?.email || 'default'
+
+  // 아바타 가져오기 (없으면 기본 캐릭터)
   const userAvatar = unifiedUser?.avatar_url ||
     user?.user_metadata?.avatar_url ||
-    user?.user_metadata?.picture
+    user?.user_metadata?.picture ||
+    getDefaultAvatar(avatarSeed)
 
   // 이메일 가져오기
   const userEmail = unifiedUser?.email || user?.email
@@ -53,17 +62,11 @@ export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
       <div className="flex items-center gap-4">
         {/* 프로필 이미지 */}
-        {userAvatar ? (
-          <img
-            src={userAvatar}
-            alt="프로필"
-            className="w-16 h-16 rounded-full object-cover border-3 border-amber-400 shadow-lg"
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center border-3 border-amber-400 shadow-lg">
-            <UserIcon size={28} className="text-amber-600" />
-          </div>
-        )}
+        <img
+          src={userAvatar}
+          alt="프로필"
+          className="w-16 h-16 rounded-full object-cover border-3 border-amber-400 shadow-lg bg-amber-100"
+        />
 
         {/* 프로필 정보 */}
         <div className="flex-1 min-w-0">

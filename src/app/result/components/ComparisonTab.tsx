@@ -4,8 +4,6 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Eye, User, Sparkles, CheckCircle2, Lightbulb, GitCompare, Target } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 
 interface ComparisonTabProps {
   displayedAnalysis: ImageAnalysisResult
@@ -82,19 +80,20 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         {/* 2컬럼: AI 해석 + 유저 요약 */}
         <div className="grid grid-cols-2 gap-6">
           {/* AI 이미지 해석 */}
-          <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+          <motion.div variants={fadeIn} className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
             <SectionHeader
               icon={<Eye size={14} />}
               title="AI의 이미지 해석"
               subtitle="사진만 보고 느낀 첫인상"
             />
-            <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border border-blue-200/50 h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border-2 border-blue-200 h-[calc(100%-48px)]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/20 rounded-full blur-3xl" />
+              <div className="absolute top-2 right-2 text-base">🤖</div>
               <div className="relative z-10 flex flex-col h-full">
-                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.imageInterpretation}
                 </p>
-                <p className="text-indigo-600 text-xs mt-3 font-semibold">
+                <p className="text-indigo-600 text-xs mt-3 font-black">
                   - AI Vision System
                 </p>
               </div>
@@ -102,19 +101,20 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           </motion.div>
 
           {/* 유저 응답 요약 */}
-          <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+          <motion.div variants={fadeIn} className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
             <SectionHeader
               icon={<User size={14} />}
               title="팬이 본 아이돌"
               subtitle="직접 선택한 최애의 매력"
             />
-            <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border border-purple-200/50 h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200 h-[calc(100%-48px)]">
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
+              <div className="absolute top-2 right-2 text-base">💜</div>
               <div className="relative z-10 flex flex-col h-full">
-                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.userInputSummary}
                 </p>
-                <p className="text-purple-600 text-xs mt-3 font-semibold">
+                <p className="text-purple-600 text-xs mt-3 font-black">
                   - 팬의 최애 분석
                 </p>
               </div>
@@ -123,7 +123,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         </div>
 
         {/* 비교 분석 상세 */}
-        <motion.div variants={fadeIn} className="bg-white/40 rounded-2xl p-5 border border-slate-100">
+        <motion.div variants={fadeIn} className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
           <SectionHeader
             icon={<Sparkles size={14} />}
             title="찰떡 조합의 비밀"
@@ -182,9 +182,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500 font-semibold">
+          <div className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-[#FEF9C3] rounded-xl border-2 border-slate-900">
             <span>🎯</span>
-            <span>AI + 팬 = 완벽한 향수 추천!</span>
+            <span className="text-sm text-slate-800 font-black">AI + 팬 = 완벽한 향수 추천!</span>
             <span>✨</span>
           </div>
         </motion.div>
@@ -192,7 +192,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
     )
   }
 
-  // 모바일: 기존 레이아웃 유지
+  // 모바일: 키치 스타일
   return (
     <motion.div
       key="comparison"
@@ -200,58 +200,52 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       animate="visible"
       exit={{ opacity: 0, y: -10 }}
       variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-      className="space-y-6"
+      className="space-y-5"
     >
       {/* AI 이미지 해석 */}
-      <motion.div variants={fadeIn}>
+      <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
         <SectionHeader
           icon={<Eye size={14} />}
           title="AI의 이미지 해석"
           subtitle="사진만 보고 느낀 첫인상"
         />
-        <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 overflow-hidden border border-blue-200/50">
-          {/* 데코 패턴 */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/20 rounded-full blur-3xl" />
-
+        <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border-2 border-blue-200">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-300/20 rounded-full blur-2xl" />
+          <div className="absolute top-2 right-2 text-base">🤖</div>
           <div className="relative z-10">
-            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.imageInterpretation}
             </p>
-            <p className="text-indigo-600 text-xs mt-3 font-semibold">
+            <p className="text-indigo-600 text-xs mt-3 font-black">
               - AI Vision System
             </p>
           </div>
         </div>
       </motion.div>
 
-      <Separator className="bg-slate-100" />
-
       {/* 유저 응답 요약 */}
-      <motion.div variants={fadeIn}>
+      <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
         <SectionHeader
           icon={<User size={14} />}
           title="팬이 본 아이돌"
           subtitle="직접 선택한 최애의 매력"
         />
-        <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 overflow-hidden border border-purple-200/50">
-          {/* 데코 패턴 */}
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
-
+        <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200">
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-300/20 rounded-full blur-2xl" />
+          <div className="absolute top-2 right-2 text-base">💜</div>
           <div className="relative z-10">
-            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.userInputSummary}
             </p>
-            <p className="text-purple-600 text-xs mt-3 font-semibold">
+            <p className="text-purple-600 text-xs mt-3 font-black">
               - 팬의 최애 분석
             </p>
           </div>
         </div>
       </motion.div>
 
-      <Separator className="bg-slate-100" />
-
       {/* 비교 분석 상세 */}
-      <motion.div variants={fadeIn}>
+      <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
         <SectionHeader
           icon={<Sparkles size={14} />}
           title="찰떡 조합의 비밀"
@@ -309,9 +303,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           )}
         </div>
 
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500 font-semibold">
+        <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-[#FEF9C3] rounded-xl border-2 border-slate-900">
           <span>🎯</span>
-          <span>AI + 팬 = 완벽한 향수 추천!</span>
+          <span className="text-xs text-slate-800 font-black">AI + 팬 = 완벽한 향수 추천!</span>
           <span>✨</span>
         </div>
       </motion.div>
@@ -319,16 +313,16 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
   )
 }
 
-// 섹션 헤더 컴포넌트
+// 섹션 헤더 컴포넌트 - 키치 스타일
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="w-6 h-6 rounded-lg bg-yellow-400 flex items-center justify-center text-white">
+      <div className="w-7 h-7 rounded-lg bg-yellow-400 border-2 border-slate-900 flex items-center justify-center text-white shadow-[2px_2px_0px_#000]">
         {icon}
       </div>
       <div>
-        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-        <p className="text-[10px] text-slate-400">{subtitle}</p>
+        <h3 className="text-sm font-black text-slate-900">{title}</h3>
+        <p className="text-[10px] text-slate-500 font-bold">{subtitle}</p>
       </div>
     </div>
   )
@@ -342,7 +336,7 @@ function cleanContent(text: string): string {
     .trim()
 }
 
-// 분석 카드 컴포넌트
+// 분석 카드 컴포넌트 - 키치 스타일
 function AnalysisCard({
   icon,
   badge,
@@ -363,22 +357,22 @@ function AnalysisCard({
   const cleanedContent = cleanContent(content)
 
   return (
-    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-2xl p-4 overflow-hidden border ${borderColor} ${highlight ? 'shadow-md' : ''}`}>
+    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-2xl p-4 overflow-hidden border-2 border-slate-200 ${highlight ? 'ring-2 ring-yellow-400 ring-offset-1' : ''}`}>
       {/* 데코 패턴 */}
       <div className={`absolute top-0 right-0 w-24 h-24 ${badgeColor} opacity-10 rounded-full blur-2xl`} />
 
       <div className="relative z-10">
-        {/* 배지 헤더 */}
+        {/* 배지 헤더 - 키치 스타일 */}
         <div className="flex items-center gap-2 mb-3">
-          <Badge className={`${badgeColor} text-white border-0 flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold shadow-sm`}>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${badgeColor} text-white rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#000]`}>
             {icon}
-            {badge}
-          </Badge>
+            <span className="text-xs font-black">{badge}</span>
+          </div>
         </div>
 
         {/* 내용 */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
-          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+        <div className="bg-white/80 rounded-xl p-3 border border-slate-200">
+          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line font-medium">
             {cleanedContent}
           </p>
         </div>

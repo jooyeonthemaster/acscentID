@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History, CheckCircle2, Loader2 } from 'lucide-react'
+import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History, CheckCircle2, Loader2, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 
 // Hooks
@@ -59,6 +59,7 @@ export default function ResultPageMain() {
   const [isSaving, setIsSaving] = useState(false)
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
   const [isFeedbackHistoryOpen, setIsFeedbackHistoryOpen] = useState(false)
+  const [serviceMode, setServiceMode] = useState<'online' | 'offline'>('offline')
 
   const {
     loading,
@@ -68,8 +69,17 @@ export default function ResultPageMain() {
     twitterName,
     userInfo,
     displayedAnalysis,
-    existingResultId
+    existingResultId,
+    idolName
   } = useResultData()
+
+  // 서비스 모드 확인 (online: 구매 버튼 / offline: 피드백 버튼)
+  useEffect(() => {
+    const savedMode = localStorage.getItem('serviceMode')
+    if (savedMode === 'online') {
+      setServiceMode('online')
+    }
+  }, [])
 
   // 자동 저장 훅 (authLoading이 완료된 후에만 저장 시작)
   const {
@@ -84,7 +94,8 @@ export default function ResultPageMain() {
     twitterName,
     userId: user?.id || unifiedUser?.id || null,
     authLoading,  // 로딩 완료 후 저장하도록 전달
-    existingResultId  // URL에 id가 있으면 저장 스킵
+    existingResultId,  // URL에 id가 있으면 저장 스킵
+    idolName  // 최애 이름
   })
 
   const handleRestart = () => {
@@ -158,59 +169,59 @@ export default function ResultPageMain() {
     }
   }, [displayedAnalysis, userImage, twitterName, shareUrl, savedResultId])
 
-  // 로딩 상태
+  // 로딩 상태 - 키치 스타일
   if (loading) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FAFAFA] font-sans">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FEF9C3] font-sans">
         {/* 배경 */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
-            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-orange-200 rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center"
+          className="relative z-10 text-center bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000]"
         >
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-700 font-semibold">분석 결과를 불러오는 중...</p>
-          <p className="text-slate-400 text-sm mt-1">잠시만 기다려주세요</p>
+          <div className="w-16 h-16 border-4 border-yellow-400 border-t-slate-900 rounded-xl animate-spin mx-auto mb-4" />
+          <p className="text-slate-900 font-black">분석 결과를 불러오는 중...</p>
+          <p className="text-slate-500 text-sm mt-1 font-medium">잠시만 기다려주세요 ✨</p>
         </motion.div>
       </div>
     )
   }
 
-  // 에러 상태
+  // 에러 상태 - 키치 스타일
   if (error) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FAFAFA] font-sans">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FEF9C3] font-sans">
         {/* 배경 */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-center glass-card rounded-3xl p-8 max-w-sm"
+          className="relative z-10 text-center bg-white rounded-2xl p-8 max-w-sm border-2 border-slate-900 shadow-[4px_4px_0px_#000]"
         >
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-xl border-2 border-slate-900 flex items-center justify-center mx-auto mb-4 shadow-[2px_2px_0px_#000]">
             <span className="text-3xl">😢</span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">오류가 발생했어요</h2>
-          <p className="text-slate-500 text-sm mb-6">{error}</p>
+          <h2 className="text-xl font-black text-slate-900 mb-2">오류가 발생했어요</h2>
+          <p className="text-slate-500 text-sm mb-6 font-medium">{error}</p>
           <Button
             onClick={handleRestart}
-            className="bg-slate-900 text-white hover:bg-slate-800 rounded-2xl px-6 py-3 font-bold"
+            className="bg-yellow-400 text-slate-900 hover:bg-yellow-500 rounded-xl px-6 py-3 font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           >
             처음으로 돌아가기
           </Button>
@@ -250,12 +261,12 @@ export default function ResultPageMain() {
             <>
               {/* ========== PC 레이아웃: 좌/우 컬럼 컨테이너 ========== */}
               <div className="hidden lg:flex lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
-                {/* 좌측 사이드바 (sticky) - 스크롤바 제거로 레이아웃 안정화 */}
+                {/* 좌측 사이드바 (sticky) - 키치 스타일 */}
                 <div className="flex flex-col w-[320px] xl:w-[360px] flex-shrink-0 sticky top-24 gap-4">
                   {/* 사용자 이미지 + 트위터 이름 */}
-                <motion.div variants={fadeInUp} className="glass-card rounded-3xl p-4 space-y-4">
+                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-4 space-y-4 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                   {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+                    <div className="relative w-full aspect-[5/6] rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
                       <img
                         src={userImage}
                         alt="업로드한 이미지"
@@ -266,36 +277,48 @@ export default function ResultPageMain() {
                   <TwitterNameDisplay twitterName={twitterName} />
                 </motion.div>
 
-                {/* 액션 버튼 - PC */}
+                {/* 액션 버튼 - PC 키치 스타일 */}
                 <motion.div variants={fadeInUp} className="flex flex-col gap-3">
                   <Button
                     onClick={handleShare}
                     disabled={isSaving}
-                    className="w-full h-12 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-amber-500/30 hover:shadow-xl hover:from-yellow-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                    className="w-full h-12 bg-yellow-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                   >
                     <Share2 size={16} />
                     <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
                   </Button>
-                  <div className="flex gap-2">
+                  {serviceMode === 'online' ? (
+                    // 온라인 모드: 향수 구매 버튼
                     <Button
-                      onClick={() => setIsFeedbackModalOpen(true)}
-                      className="flex-1 h-11 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
+                      onClick={() => router.push('/checkout')}
+                      className="w-full h-11 bg-emerald-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
                     >
-                      <MessageSquarePlus size={16} />
-                      <span>피드백</span>
+                      <ShoppingCart size={16} />
+                      <span>향수 구매하기</span>
                     </Button>
-                    <Button
-                      onClick={() => setIsFeedbackHistoryOpen(true)}
-                      variant="outline"
-                      className="h-11 px-3 border-2 border-purple-200 bg-white/60 text-purple-600 rounded-2xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center"
-                    >
-                      <History size={16} />
-                    </Button>
-                  </div>
+                  ) : (
+                    // 오프라인 모드: 피드백 버튼
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setIsFeedbackModalOpen(true)}
+                        className="flex-1 h-11 bg-pink-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                      >
+                        <MessageSquarePlus size={16} />
+                        <span>피드백</span>
+                      </Button>
+                      <Button
+                        onClick={() => setIsFeedbackHistoryOpen(true)}
+                        variant="outline"
+                        className="h-11 px-3 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center"
+                      >
+                        <History size={16} />
+                      </Button>
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleRestart}
-                    className="w-full h-10 border-2 border-slate-200 bg-white/60 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-white hover:border-slate-300 transition-all flex items-center justify-center gap-2"
+                    className="w-full h-10 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold text-sm shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
                   >
                     <RotateCcw size={14} />
                     <span>다시 시작</span>
@@ -317,8 +340,8 @@ export default function ResultPageMain() {
 
                 {/* 우측 메인 콘텐츠 영역 */}
                 <div className="flex-1 min-w-0 mt-28">
-                  {/* 탭 네비게이션 + 콘텐츠 - PC */}
-                  <motion.div variants={fadeInUp} className="glass-card rounded-3xl overflow-hidden">
+                  {/* 탭 네비게이션 + 콘텐츠 - PC 키치 스타일 */}
+                  <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                     <TabNavigation
                       activeTab={activeTab}
                       onTabChange={setActiveTab}
@@ -342,39 +365,39 @@ export default function ResultPageMain() {
                 </div>
               </div>
 
-              {/* ========== 모바일 레이아웃 (기존 유지) ========== */}
+              {/* ========== 모바일 레이아웃 - 키치 스타일 ========== */}
               <div className="lg:hidden flex flex-col gap-5 w-full">
-                {/* 타이틀 섹션 - 모바일 */}
+                {/* 타이틀 섹션 - 모바일 키치 스타일 */}
                 <motion.div variants={fadeInUp} className="text-center pt-2">
                   <div className="flex items-center justify-center gap-2 mb-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400/20 rounded-full">
-                      <span className="text-yellow-600 text-xs font-bold">✨ 분석 완료</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_#000]">
+                      <span className="text-slate-900 text-xs font-black">✨ 분석 완료</span>
                     </div>
                     {isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 rounded-full">
-                        <Loader2 size={12} className="text-slate-500 animate-spin" />
-                        <span className="text-slate-500 text-xs font-medium">저장 중</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border-2 border-slate-300">
+                        <Loader2 size={12} className="text-slate-600 animate-spin" />
+                        <span className="text-slate-600 text-xs font-bold">저장 중</span>
                       </div>
                     )}
                     {isAutoSaved && !isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-100 rounded-full">
-                        <CheckCircle2 size={12} className="text-green-600" />
-                        <span className="text-green-600 text-xs font-medium">저장됨</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-100 rounded-xl border-2 border-emerald-400">
+                        <CheckCircle2 size={12} className="text-emerald-700" />
+                        <span className="text-emerald-700 text-xs font-bold">저장됨</span>
                       </div>
                     )}
                   </div>
                   <h1 className="text-2xl font-black text-slate-900 leading-tight">
                     당신만의 향기를<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-amber-500">
-                      찾았어요!
+                    <span className="text-yellow-500">
+                      찾았어요! 💛
                     </span>
                   </h1>
                 </motion.div>
 
-                {/* 사용자 이미지 + 트위터 이름 - 모바일 */}
-                <motion.div variants={fadeInUp} className="glass-card rounded-3xl p-4 space-y-4">
+                {/* 사용자 이미지 + 트위터 이름 - 모바일 키치 스타일 */}
+                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-4 space-y-4 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                   {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+                    <div className="relative w-full aspect-[5/6] rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={userImage}
@@ -386,8 +409,56 @@ export default function ResultPageMain() {
                   <TwitterNameDisplay twitterName={twitterName} />
                 </motion.div>
 
-                {/* 탭 네비게이션 + 콘텐츠 - 모바일 */}
-                <motion.div variants={fadeInUp} className="glass-card rounded-3xl overflow-hidden">
+                {/* 액션 버튼 - 모바일 키치 스타일 */}
+                <motion.div variants={fadeInUp} className="flex flex-col gap-3">
+                  <Button
+                    onClick={handleShare}
+                    disabled={isSaving}
+                    className="w-full h-14 bg-yellow-400 text-slate-900 rounded-xl font-black text-base border-2 border-slate-900 shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  >
+                    <Share2 size={18} />
+                    <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
+                  </Button>
+                  {serviceMode === 'online' ? (
+                    // 온라인 모드: 향수 구매 버튼
+                    <Button
+                      onClick={() => router.push('/checkout')}
+                      className="w-full h-12 bg-emerald-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart size={18} />
+                      <span>향수 구매하기</span>
+                    </Button>
+                  ) : (
+                    // 오프라인 모드: 피드백 버튼
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setIsFeedbackModalOpen(true)}
+                        className="flex-1 h-12 bg-pink-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                      >
+                        <MessageSquarePlus size={18} />
+                        <span>피드백 기록</span>
+                      </Button>
+                      <Button
+                        onClick={() => setIsFeedbackHistoryOpen(true)}
+                        variant="outline"
+                        className="h-12 px-4 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
+                      >
+                        <History size={18} />
+                      </Button>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={handleRestart}
+                    className="w-full h-12 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
+                  >
+                    <RotateCcw size={16} />
+                    <span>다시 시작하기</span>
+                  </Button>
+                </motion.div>
+
+                {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
+                <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                   <TabNavigation
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -406,42 +477,6 @@ export default function ResultPageMain() {
                       )}
                     </AnimatePresence>
                   </div>
-                </motion.div>
-
-                {/* 액션 버튼 - 모바일 */}
-                <motion.div variants={fadeInUp} className="flex flex-col gap-3 pt-2 pb-4">
-                  <Button
-                    onClick={handleShare}
-                    disabled={isSaving}
-                    className="w-full h-14 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-amber-500/30 hover:shadow-xl hover:from-yellow-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                  >
-                    <Share2 size={18} />
-                    <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
-                  </Button>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setIsFeedbackModalOpen(true)}
-                      className="flex-1 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-xl hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
-                    >
-                      <MessageSquarePlus size={18} />
-                      <span>피드백 기록</span>
-                    </Button>
-                    <Button
-                      onClick={() => setIsFeedbackHistoryOpen(true)}
-                      variant="outline"
-                      className="h-12 px-4 border-2 border-purple-200 bg-white/60 text-purple-600 rounded-2xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center gap-2"
-                    >
-                      <History size={18} />
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleRestart}
-                    className="w-full h-12 border-2 border-slate-200 bg-white/60 text-slate-600 rounded-2xl font-semibold hover:bg-white hover:border-slate-300 transition-all flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw size={16} />
-                    <span>다시 시작하기</span>
-                  </Button>
                 </motion.div>
 
                 {/* 푸터 - 모바일 */}
@@ -493,7 +528,7 @@ export default function ResultPageMain() {
               ).key
               : 'floral'
           }
-          resultId={savedResultId || undefined}
+          resultId={existingResultId || savedResultId || undefined}
         />
       )}
 

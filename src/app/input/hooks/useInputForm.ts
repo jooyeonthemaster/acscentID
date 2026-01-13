@@ -24,6 +24,7 @@ export function useInputForm() {
     const router = useRouter()
     const { showToast } = useToast()
     const type = searchParams.get("type")
+    const mode = searchParams.get("mode") // "online" | null (오프라인)
 
     const [currentStep, setCurrentStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -154,6 +155,8 @@ export function useInputForm() {
             if (result.success) {
                 // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
                 localStorage.removeItem('savedResultId')
+                // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
+                localStorage.setItem('serviceMode', mode || 'offline')
                 localStorage.setItem('analysisResult', JSON.stringify(result.data))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
@@ -168,6 +171,8 @@ export function useInputForm() {
             } else {
                 // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
                 localStorage.removeItem('savedResultId')
+                // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
+                localStorage.setItem('serviceMode', mode || 'offline')
                 localStorage.setItem('analysisResult', JSON.stringify(result.fallback))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
@@ -184,7 +189,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, isStepValid, isSubmitting, router, showToast])
+    }, [formData, imagePreview, isStepValid, isSubmitting, router, showToast, mode])
 
     return {
         // 상태

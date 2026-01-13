@@ -2,9 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { User, LogOut, BookMarked, ChevronDown } from 'lucide-react'
+import { LogOut, BookMarked, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+
+// 기본 아바타 URL 생성 (DiceBear API 사용)
+function getDefaultAvatar(seed: string): string {
+  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed)}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`
+}
 
 export function UserMenu() {
   const { user, signOut, loading } = useAuth()
@@ -46,7 +51,8 @@ export function UserMenu() {
   }
 
   const userName = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '사용자'
-  const userAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture
+  const avatarSeed = user.id || user.email || 'default'
+  const userAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || getDefaultAvatar(avatarSeed)
 
   const handleSignOut = async () => {
     try {
@@ -63,17 +69,11 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-slate-100 transition-colors"
       >
-        {userAvatar ? (
-          <img
-            src={userAvatar}
-            alt="프로필"
-            className="w-8 h-8 rounded-full object-cover border-2 border-amber-400"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center border-2 border-amber-400">
-            <User size={16} className="text-amber-600" />
-          </div>
-        )}
+        <img
+          src={userAvatar}
+          alt="프로필"
+          className="w-8 h-8 rounded-full object-cover border-2 border-amber-400 bg-amber-100"
+        />
         <ChevronDown
           size={14}
           className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
