@@ -17,7 +17,7 @@ export function Step2({ formData, setFormData, toggleStyle, isIdol }: Step2Props
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="h-full px-6 py-4 flex flex-col overflow-hidden"
+            className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col overflow-hidden"
         >
             <StepHeader
                 title={`${isIdol ? "최애" : "나"}의 스타일`}
@@ -27,19 +27,13 @@ export function Step2({ formData, setFormData, toggleStyle, isIdol }: Step2Props
 
             <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-2">
-                    {STYLES.map((style, index) => (
-                        <motion.div
+                    {STYLES.map((style) => (
+                        <SelectChip
                             key={style}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.03 }}
-                        >
-                            <SelectChip
-                                label={style}
-                                isSelected={formData.styles.includes(style)}
-                                onClick={() => toggleStyle(style)}
-                            />
-                        </motion.div>
+                            label={style}
+                            isSelected={formData.styles.includes(style)}
+                            onClick={() => toggleStyle(style)}
+                        />
                     ))}
                 </div>
             </div>

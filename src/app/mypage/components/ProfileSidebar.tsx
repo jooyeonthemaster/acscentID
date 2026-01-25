@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { LogOut, Home, Sparkles, Beaker, ChevronRight } from 'lucide-react'
+import { LogOut, Home, Sparkles, ChevronRight, Copy, Check, Share2, ShoppingCart, ShoppingBag, Ticket } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { useToast } from '@/components/ui/toast'
 
 interface UnifiedUser {
   id: string
@@ -64,7 +66,9 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
   const navItems = [
     { href: '/', icon: Home, label: '홈으로' },
     { href: '/mypage?tab=analyses', icon: Sparkles, label: '분석 결과' },
-    { href: '/mypage?tab=recipes', icon: Beaker, label: '내 레시피' },
+    { href: '/mypage?tab=cart', icon: ShoppingCart, label: '장바구니' },
+    { href: '/mypage?tab=orders', icon: ShoppingBag, label: '주문 내역' },
+    { href: '/mypage?tab=coupons', icon: Ticket, label: '쿠폰함' },
   ]
 
   return (
@@ -138,15 +142,68 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
       </div>
 
       {/* 프로모션 카드 */}
-      <div className="p-3 hidden lg:block">
-        <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-black shadow-[2px_2px_0_0_black]">
-          <div className="text-3xl mb-2">🎁</div>
-          <p className="font-black text-sm mb-1">친구 초대하기</p>
-          <p className="text-xs text-slate-600 mb-3">친구를 초대하고 특별한 혜택을 받아보세요!</p>
-          <button className="w-full py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors">
-            초대 링크 복사
-          </button>
-        </div>
+      <div className="p-3">
+        <InviteFriendCard />
+      </div>
+    </div>
+  )
+}
+
+// 친구 초대 카드 컴포넌트
+function InviteFriendCard() {
+  const [copied, setCopied] = useState(false)
+  const { showToast } = useToast()
+
+  const handleCopyLink = async () => {
+    const inviteLink = `${window.location.origin}?ref=invite`
+
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setCopied(true)
+      showToast('초대 링크가 복사되었습니다!', 'success')
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      showToast('링크 복사에 실패했습니다', 'error')
+    }
+  }
+
+  const handleShare = async () => {
+    const inviteLink = `${window.location.origin}?ref=invite`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "AC'SCENT - 나만의 향수 찾기",
+          text: '친구가 당신을 AC\'SCENT에 초대했어요! AI로 나만의 향수를 찾아보세요.',
+          url: inviteLink,
+        })
+      } catch {
+        // 사용자가 공유 취소
+      }
+    } else {
+      handleCopyLink()
+    }
+  }
+
+  return (
+    <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-black shadow-[2px_2px_0_0_black]">
+      <div className="text-3xl mb-2">🎁</div>
+      <p className="font-black text-sm mb-1">친구 초대하기</p>
+      <p className="text-xs text-slate-600 mb-3">친구를 초대하고 특별한 혜택을 받아보세요!</p>
+      <div className="flex gap-2">
+        <button
+          onClick={handleCopyLink}
+          className="flex-1 py-2 bg-white text-black text-xs font-bold rounded-lg border-2 border-black hover:bg-slate-50 transition-colors flex items-center justify-center gap-1"
+        >
+          {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+          {copied ? '복사됨' : '링크 복사'}
+        </button>
+        <button
+          onClick={handleShare}
+          className="py-2 px-3 bg-black text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <Share2 size={14} />
+        </button>
       </div>
     </div>
   )

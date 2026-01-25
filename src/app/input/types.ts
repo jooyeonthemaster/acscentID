@@ -22,6 +22,7 @@ export interface StepProps {
 export interface Step1Props extends StepProps {
     focusedField: string | null
     setFocusedField: (field: string | null) => void
+    isOnline: boolean
 }
 
 export interface Step2Props extends StepProps {

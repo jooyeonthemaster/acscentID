@@ -46,14 +46,6 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/about/vision"
-                  className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
-                >
-                  비전
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/about/how-it-works"
                   className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
                 >
@@ -83,14 +75,6 @@ export function Footer() {
                   className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
                 >
                   피규어 향수
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/programs/personal"
-                  className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
-                >
-                  퍼스널 센트
                 </Link>
               </li>
             </ul>

@@ -1,20 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, User, LogOut, Sparkles, X, ChevronLeft, Star, ChevronDown } from 'lucide-react'
+import { User, ChevronLeft, Star, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthModal } from '@/components/auth/AuthModal'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { Button } from '@/components/ui/button'
+import { MobileMenuSheet, NAV_LINKS } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 
 interface HeaderProps {
@@ -22,20 +15,6 @@ interface HeaderProps {
   showBack?: boolean
   backHref?: string
   hideLogo?: boolean
-}
-
-// Navigation Links
-const NAV_LINKS = {
-  about: [
-    { href: '/about/brand', label: '브랜드 스토리' },
-    { href: '/about/vision', label: '비전' },
-    { href: '/about/how-it-works', label: '작동 원리' },
-  ],
-  programs: [
-    { href: '/programs/idol-image', label: 'AI 이미지 분석' },
-    { href: '/programs/figure', label: '피규어 향수' },
-    { href: '/programs/personal', label: '퍼스널 센트' },
-  ],
 }
 
 // Desktop Dropdown Component
@@ -96,59 +75,6 @@ function DesktopDropdown({
   )
 }
 
-// Mobile Collapsible Section
-function MobileSection({
-  title,
-  links,
-  isActive,
-  onLinkClick
-}: {
-  title: string
-  links: Array<{ href: string; label: string }>
-  isActive: boolean
-  onLinkClick: () => void
-}) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  return (
-    <div className="border-b border-slate-100 last:border-b-0">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "w-full flex items-center justify-between px-4 py-4 font-bold text-left transition-colors",
-          isActive ? "text-purple-600 bg-purple-50" : "text-slate-900 hover:bg-slate-50"
-        )}
-      >
-        {title}
-        <ChevronDown size={16} className={cn("transition-transform", isOpen && "rotate-180")} />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden bg-slate-50"
-          >
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={onLinkClick}
-                className="block px-8 py-3 text-sm text-slate-600 hover:text-black hover:bg-yellow-100 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
 export function Header({ title, showBack, backHref = "/", hideLogo = false }: HeaderProps) {
   const { user, unifiedUser, loading, signOut } = useAuth()
   const pathname = usePathname()
@@ -156,24 +82,10 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
   const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
 
   // Check if current path is active
   const isAboutActive = pathname?.startsWith('/about') || false
   const isProgramsActive = pathname?.startsWith('/programs') || false
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const handleSignOut = async () => {
-    await signOut()
-    setIsOpen(false)
-  }
 
   return (
     <>
@@ -311,149 +223,36 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
               </button>
             ) : null}
 
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="w-10 h-10 rounded-full border-2 border-black flex flex-col items-center justify-center gap-1 bg-white hover:bg-yellow-400 transition-all active:scale-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
-                  aria-label="메뉴 열기"
-                >
-                  <motion.span
-                    animate={isOpen ? { rotate: 45, y: 5, width: "20px" } : { rotate: 0, y: 0, width: "20px" }}
-                    className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
-                  />
-                  <motion.span
-                    animate={isOpen ? { opacity: 0, x: 10 } : { opacity: 1, x: 0 }}
-                    className="h-[2px] w-[20px] bg-black rounded-full transition-all duration-300"
-                  />
-                  <motion.span
-                    animate={isOpen ? { rotate: -45, y: -5, width: "20px" } : { rotate: 0, y: 0, width: "20px" }}
-                    className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
-                  />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] border-l-2 border-black bg-white p-0">
-                <SheetHeader className="p-6 border-b-2 border-slate-100 bg-yellow-50">
-                  <SheetTitle className="text-left text-xs font-black tracking-widest text-slate-900 uppercase flex items-center gap-2">
-                    <Star size={14} className="fill-black" /> Menu
-                  </SheetTitle>
-                </SheetHeader>
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setIsOpen(true)}
+              className="w-10 h-10 rounded-full border-2 border-black flex flex-col items-center justify-center gap-1 bg-white hover:bg-yellow-400 transition-all active:scale-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
+              aria-label="메뉴 열기"
+            >
+              <motion.span
+                animate={isOpen ? { rotate: 45, y: 5, width: "20px" } : { rotate: 0, y: 0, width: "20px" }}
+                className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
+              />
+              <motion.span
+                animate={isOpen ? { opacity: 0, x: 10 } : { opacity: 1, x: 0 }}
+                className="h-[2px] w-[20px] bg-black rounded-full transition-all duration-300"
+              />
+              <motion.span
+                animate={isOpen ? { rotate: -45, y: -5, width: "20px" } : { rotate: 0, y: 0, width: "20px" }}
+                className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
+              />
+            </button>
 
-                <div className="flex flex-col h-full overflow-y-auto">
-                  {/* Keep existing Menu Content logic but maybe cleanup styles later if needed. 
-                        For now, assuming reuse of internal content is fine. 
-                        Re-implementing the simplistic version from previous file for safety.
-                    */}
-                  {loading ? (
-                    <div className="p-8 text-center">
-                      <div className="w-8 h-8 border-2 border-black border-dashed rounded-full animate-spin mx-auto mb-2" />
-                    </div>
-                  ) : currentUser ? (
-                    <div className="flex flex-col flex-1 pb-20">
-                      <div className="p-6 bg-slate-50/50">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full border-2 border-black bg-white flex items-center justify-center overflow-hidden">
-                            {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
-                              <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <User size={20} />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-900 truncate">
-                              {unifiedUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || '사용자'}
-                            </p>
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
-                              {unifiedUser?.email || user?.email || '카카오 로그인'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <nav className="flex-1 overflow-y-auto">
-                        <Link
-                          href="/"
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
-                        >
-                          Home
-                        </Link>
-                        <MobileSection
-                          title="About"
-                          links={NAV_LINKS.about}
-                          isActive={isAboutActive}
-                          onLinkClick={() => setIsOpen(false)}
-                        />
-                        <MobileSection
-                          title="Programs"
-                          links={NAV_LINKS.programs}
-                          isActive={isProgramsActive}
-                          onLinkClick={() => setIsOpen(false)}
-                        />
-                        <Link
-                          href="/mypage"
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
-                        >
-                          <Sparkles size={18} />
-                          My Page
-                        </Link>
-                      </nav>
-
-                      <div className="mt-auto p-4 border-t border-slate-100">
-                        <Button
-                          variant="ghost"
-                          onClick={handleSignOut}
-                          className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-xl hover:bg-red-50 hover:text-red-600 text-slate-500 transition-all font-medium"
-                        >
-                          <LogOut size={18} />
-                          <span>로그아웃</span>
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col h-full">
-                      <nav className="flex-1 overflow-y-auto">
-                        <Link
-                          href="/"
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
-                        >
-                          Home
-                        </Link>
-                        <MobileSection
-                          title="About"
-                          links={NAV_LINKS.about}
-                          isActive={isAboutActive}
-                          onLinkClick={() => setIsOpen(false)}
-                        />
-                        <MobileSection
-                          title="Programs"
-                          links={NAV_LINKS.programs}
-                          isActive={isProgramsActive}
-                          onLinkClick={() => setIsOpen(false)}
-                        />
-                      </nav>
-
-                      <div className="p-6 border-t border-slate-100 bg-slate-50">
-                        <h3 className="text-2xl font-black text-slate-900 mb-2">WELCOME!</h3>
-                        <p className="text-sm text-slate-500 mb-6">
-                          로그인하고 나만의 향기를<br />기록해보세요.
-                        </p>
-                        <Button
-                          onClick={() => {
-                            setShowAuthModal(true)
-                            setIsOpen(false)
-                          }}
-                          className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800"
-                        >
-                          LOGIN
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+            {/* Mobile Menu Sheet */}
+            <MobileMenuSheet
+              isOpen={isOpen}
+              onOpenChange={setIsOpen}
+              user={user}
+              unifiedUser={unifiedUser}
+              loading={loading}
+              onSignOut={signOut}
+              onLoginClick={() => setShowAuthModal(true)}
+            />
           </div>
         </div>
       </header>
@@ -462,6 +261,7 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        redirectPath="/mypage"
       />
     </>
   )

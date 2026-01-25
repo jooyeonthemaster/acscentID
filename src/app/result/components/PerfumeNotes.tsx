@@ -226,7 +226,7 @@ function DesktopNoteCard({
                 <span className={`text-sm font-black ${textColor}`}>{name}</span>
               </div>
             </div>
-            <div className={`text-[10px] font-bold ${isDark ? 'text-slate-400' : labelColor} bg-white/50 px-2 py-0.5 rounded-full`}>
+            <div className={`text-[10px] font-bold ${isDark ? 'text-slate-600' : labelColor} bg-white/80 px-2 py-0.5 rounded-full`}>
               {time}
             </div>
           </div>

@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProfileSidebar } from './components/ProfileSidebar'
-import { StatsSidebar } from './components/StatsSidebar'
 import { SavedAnalysisList } from './components/SavedAnalysisList'
 import { OrderHistory } from './components/OrderHistory'
 import { CouponList } from './components/CouponList'
-import { Sparkles, LayoutGrid, List, ShoppingBag, Ticket } from 'lucide-react'
+import { Sparkles, LayoutGrid, List, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
+import { CartList } from './components/CartList'
+import { InviteFriendBanner } from './components/InviteFriendBanner'
 
 interface RecipeGranule {
   id: string
@@ -63,15 +64,15 @@ function MyPageContent() {
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const initialTab = searchParams.get('tab')
-  const [activeTab, setActiveTab] = useState<'analyses' | 'orders' | 'coupons'>(
-    initialTab === 'orders' ? 'orders' : initialTab === 'coupons' ? 'coupons' : 'analyses'
+  const [activeTab, setActiveTab] = useState<'analyses' | 'orders' | 'coupons' | 'cart'>(
+    initialTab === 'orders' ? 'orders' : initialTab === 'coupons' ? 'coupons' : initialTab === 'cart' ? 'cart' : 'analyses'
   )
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   // URL 파라미터 변경 시 탭 상태 동기화
   useEffect(() => {
     const tab = searchParams.get('tab')
-    if (tab === 'analyses' || tab === 'orders' || tab === 'coupons') {
+    if (tab === 'analyses' || tab === 'orders' || tab === 'coupons' || tab === 'cart') {
       setActiveTab(tab)
     }
   }, [searchParams])
@@ -159,11 +160,11 @@ function MyPageContent() {
 
       {/* 메인 레이아웃 */}
       <div className="relative z-10 px-4 lg:px-8 py-6 lg:py-8">
-        <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="flex flex-col lg:flex-row gap-6">
 
-            {/* 왼쪽 사이드바 - 프로필 */}
-            <aside className="lg:w-72 flex-shrink-0">
+            {/* 왼쪽 사이드바 - 프로필 (데스크톱만) */}
+            <aside className="hidden lg:block lg:w-72 flex-shrink-0">
               <div className="lg:sticky lg:top-8">
                 <ProfileSidebar user={user} unifiedUser={unifiedUser} />
               </div>
@@ -171,65 +172,88 @@ function MyPageContent() {
 
             {/* 중앙 메인 콘텐츠 */}
             <main className="flex-1 min-w-0">
+              {/* 모바일 친구 초대 배너 */}
+              <div className="lg:hidden mb-4">
+                <InviteFriendBanner />
+              </div>
+
               {/* 콘텐츠 헤더 */}
-              <div className="bg-white border-2 border-black rounded-2xl p-4 mb-6 shadow-[4px_4px_0_0_black]">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* 탭 버튼 */}
-                  <div className="flex gap-2 flex-wrap">
+              <div className="bg-white border-2 border-black rounded-2xl p-3 sm:p-4 mb-6 shadow-[4px_4px_0_0_black]">
+                {/* 상단: 탭 네비게이션 */}
+                <div className="flex items-center justify-between gap-3">
+                  {/* 메인 탭 (분석/장바구니) */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setActiveTab('analyses')}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 border-black ${
+                      className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full font-bold text-sm transition-all ${
                         activeTab === 'analyses'
-                          ? 'bg-purple-400 text-white shadow-[2px_2px_0_0_black]'
-                          : 'bg-white hover:bg-purple-100'
+                          ? 'bg-black text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
-                      <Sparkles size={16} />
-                      분석 결과 ({analyses.length})
+                      <Sparkles size={14} />
+                      <span>분석</span>
+                      <span className="text-xs opacity-70">({analyses.length})</span>
                     </button>
                     <button
-                      onClick={() => setActiveTab('orders')}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 border-black ${
-                        activeTab === 'orders'
-                          ? 'bg-emerald-400 text-white shadow-[2px_2px_0_0_black]'
-                          : 'bg-white hover:bg-emerald-100'
+                      onClick={() => setActiveTab('cart')}
+                      className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full font-bold text-sm transition-all ${
+                        activeTab === 'cart'
+                          ? 'bg-amber-400 text-black border-2 border-black shadow-[2px_2px_0_0_black]'
+                          : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                       }`}
                     >
-                      <ShoppingBag size={16} />
-                      주문 내역 ({orders.length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('coupons')}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 border-black ${
-                        activeTab === 'coupons'
-                          ? 'bg-[#F472B6] text-white shadow-[2px_2px_0_0_black]'
-                          : 'bg-white hover:bg-pink-100'
-                      }`}
-                    >
-                      <Ticket size={16} />
-                      쿠폰함
+                      <ShoppingCart size={14} />
+                      <span>장바구니</span>
                     </button>
                   </div>
 
                   {/* 뷰 모드 토글 */}
-                  <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg border-2 border-black">
+                  <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-lg transition-colors ${
-                        viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-white/50'
+                      className={`p-1.5 rounded-md transition-colors ${
+                        viewMode === 'grid' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'
                       }`}
                     >
-                      <LayoutGrid size={18} />
+                      <LayoutGrid size={16} />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-lg transition-colors ${
-                        viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-white/50'
+                      className={`p-1.5 rounded-md transition-colors ${
+                        viewMode === 'list' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'
                       }`}
                     >
-                      <List size={18} />
+                      <List size={16} />
                     </button>
                   </div>
+                </div>
+
+                {/* 하단: 서브 탭 (주문/쿠폰) */}
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => setActiveTab('orders')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                      activeTab === 'orders'
+                        ? 'bg-emerald-100 text-emerald-700 font-bold'
+                        : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <ShoppingBag size={14} />
+                    <span>주문</span>
+                    <span className="text-xs opacity-70">({orders.length})</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('coupons')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                      activeTab === 'coupons'
+                        ? 'bg-pink-100 text-pink-700 font-bold'
+                        : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Ticket size={14} />
+                    <span>쿠폰</span>
+                  </button>
                 </div>
               </div>
 
@@ -248,6 +272,9 @@ function MyPageContent() {
                     viewMode={viewMode}
                   />
                 )}
+                {activeTab === 'cart' && (
+                  <CartList viewMode={viewMode} />
+                )}
                 {activeTab === 'orders' && (
                   <OrderHistory
                     orders={orders}
@@ -261,16 +288,6 @@ function MyPageContent() {
                 )}
               </motion.div>
             </main>
-
-            {/* 오른쪽 사이드바 - 통계 */}
-            <aside className="lg:w-80 flex-shrink-0">
-              <div className="lg:sticky lg:top-8">
-                <StatsSidebar
-                  analyses={analyses}
-                  loading={loading}
-                />
-              </div>
-            </aside>
           </div>
         </div>
       </div>

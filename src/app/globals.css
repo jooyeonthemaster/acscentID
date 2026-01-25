@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
+  --font-jua: var(--font-jua);
 
 
   --color-sidebar-ring: var(--sidebar-ring);
@@ -225,6 +226,18 @@
   }
 }
 
+/* SelectChip 체크마크 애니메이션 */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes ticker {
   0% {
     transform: translateX(0);
@@ -415,4 +428,13 @@
 
 .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* Hide scrollbar completely */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

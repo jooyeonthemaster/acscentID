@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, RotateCcw, Share2, Sparkles, MessageSquarePlus, History, CheckCircle2, Loader2, ShoppingCart } from 'lucide-react'
-import Link from 'next/link'
+import { RotateCcw, Share2, MessageSquarePlus, History, CheckCircle2, Loader2, ShoppingCart } from 'lucide-react'
 
 // Hooks
 import { useResultData } from '../hooks/useResultData'
@@ -22,9 +21,12 @@ import { ComparisonTab } from './ComparisonTab'
 import { ShareModal } from './ShareModal'
 import { FeedbackModal } from './FeedbackModal'
 import { FeedbackHistory } from './feedback/FeedbackHistory'
+import { ResultBottomActions } from './ResultBottomActions'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
+// 피규어 모드 컴포넌트
+import { MemoryTab, FigureTab } from './figure'
 
 // 애니메이션 variants
 const fadeInUp = {
@@ -52,8 +54,15 @@ const staggerContainer = {
 
 export default function ResultPageMain() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('perfume')
+
+  // 뒤로가기 경로 결정 (마이페이지에서 왔으면 마이페이지로)
+  const fromPage = searchParams.get('from')
+  const backHref = fromPage === 'mypage' ? '/mypage' : '/'
+  // 탭 타입 (피규어 모드 포함)
+  type TabType = 'analysis' | 'perfume' | 'comparison' | 'memory' | 'figure'
+  const [activeTab, setActiveTab] = useState<TabType>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
   const [isSaving, setIsSaving] = useState(false)
@@ -64,14 +73,23 @@ export default function ResultPageMain() {
   const {
     loading,
     error,
-    isLoaded,
     userImage,
     twitterName,
     userInfo,
     displayedAnalysis,
     existingResultId,
-    idolName
+    idolName,
+    // 피규어 모드 데이터
+    isFigureMode,
+    figureImage
   } = useResultData()
+
+  // 피규어 모드일 때 기본 탭을 'memory'로 설정
+  useEffect(() => {
+    if (isFigureMode) {
+      setActiveTab('memory')
+    }
+  }, [isFigureMode])
 
   // 서비스 모드 확인 (online: 구매 버튼 / offline: 피드백 버튼)
   useEffect(() => {
@@ -246,7 +264,7 @@ export default function ResultPageMain() {
       <Header
         title="분석 결과"
         showBack={true}
-        backHref="/"
+        backHref={backHref}
       />
 
       {/* 메인 콘텐츠 */}
@@ -260,13 +278,13 @@ export default function ResultPageMain() {
           {displayedAnalysis && (
             <>
               {/* ========== PC 레이아웃: 좌/우 컬럼 컨테이너 ========== */}
-              <div className="hidden lg:flex lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
-                {/* 좌측 사이드바 (sticky) - 키치 스타일 */}
-                <div className="flex flex-col w-[320px] xl:w-[360px] flex-shrink-0 sticky top-24 gap-4">
+              <div className="hidden lg:block">
+                {/* 좌측 사이드바 (fixed) - 블로그 프로필 스타일 - 30% 축소 */}
+                <div className="fixed top-36 left-8 xl:left-12 w-[200px] xl:w-[220px] pr-2 flex flex-col gap-3 z-20 max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-hide">
                   {/* 사용자 이미지 + 트위터 이름 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-4 space-y-4 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                <motion.div variants={fadeInUp} className="bg-white rounded-xl p-3 space-y-3 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                   {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
+                    <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-slate-100 border-2 border-slate-200">
                       <img
                         src={userImage}
                         alt="업로드한 이미지"
@@ -274,53 +292,53 @@ export default function ResultPageMain() {
                       />
                     </div>
                   )}
-                  <TwitterNameDisplay twitterName={twitterName} />
+                  <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} isCompact={true} />
                 </motion.div>
 
-                {/* 액션 버튼 - PC 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="flex flex-col gap-3">
+                {/* 액션 버튼 - PC 키치 스타일 - 30% 축소 */}
+                <motion.div variants={fadeInUp} className="flex flex-col gap-2">
                   <Button
                     onClick={handleShare}
                     disabled={isSaving}
-                    className="w-full h-12 bg-yellow-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                    className="w-full h-9 bg-yellow-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
                   >
-                    <Share2 size={16} />
+                    <Share2 size={14} />
                     <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
                   </Button>
                   {serviceMode === 'online' ? (
                     // 온라인 모드: 향수 구매 버튼
                     <Button
                       onClick={() => router.push('/checkout')}
-                      className="w-full h-11 bg-emerald-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                      className="w-full h-8 bg-emerald-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
                     >
-                      <ShoppingCart size={16} />
+                      <ShoppingCart size={14} />
                       <span>향수 구매하기</span>
                     </Button>
                   ) : (
                     // 오프라인 모드: 피드백 버튼
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <Button
                         onClick={() => setIsFeedbackModalOpen(true)}
-                        className="flex-1 h-11 bg-pink-400 text-slate-900 rounded-xl font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                        className="flex-1 h-8 bg-pink-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1"
                       >
-                        <MessageSquarePlus size={16} />
+                        <MessageSquarePlus size={12} />
                         <span>피드백</span>
                       </Button>
                       <Button
                         onClick={() => setIsFeedbackHistoryOpen(true)}
                         variant="outline"
-                        className="h-11 px-3 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center"
+                        className="h-8 px-2 border-2 border-slate-900 bg-white text-slate-900 rounded-lg font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center"
                       >
-                        <History size={16} />
+                        <History size={12} />
                       </Button>
                     </div>
                   )}
                   <Button
                     variant="outline"
                     onClick={handleRestart}
-                    className="w-full h-10 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold text-sm shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
+                    className="w-full h-7 border-2 border-slate-900 bg-white text-slate-900 rounded-lg font-bold text-xs shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
                   >
-                    <RotateCcw size={14} />
+                    <RotateCcw size={12} />
                     <span>다시 시작</span>
                   </Button>
                 </motion.div>
@@ -336,18 +354,24 @@ export default function ResultPageMain() {
                     © 2025 Ac&apos;scent Identity
                   </span>
                 </motion.div>
-              </div>
+                </div>
 
-                {/* 우측 메인 콘텐츠 영역 */}
-                <div className="flex-1 min-w-0 mt-28">
-                  {/* 탭 네비게이션 + 콘텐츠 - PC 키치 스타일 */}
-                  <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                {/* 우측 상단 고정 탭 네비게이션 */}
+                <div className="fixed top-36 left-[252px] xl:left-[276px] right-8 xl:right-12 z-30">
+                  <motion.div variants={fadeInUp} className="bg-[#FEF9C3] rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#000] overflow-hidden">
                     <TabNavigation
                       activeTab={activeTab}
                       onTabChange={setActiveTab}
                       isDesktop={true}
+                      isFigureMode={isFigureMode}
                     />
+                  </motion.div>
+                </div>
 
+                {/* 우측 메인 콘텐츠 영역 - 스크롤 가능한 컨테이너 */}
+                <div className="fixed top-[13rem] left-[252px] xl:left-[276px] right-8 xl:right-12 bottom-8 z-10 overflow-y-auto scrollbar-hide">
+                  {/* 콘텐츠 - PC 키치 스타일 */}
+                  <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                     <div className="p-6 xl:p-8">
                       <AnimatePresence mode="wait">
                         {activeTab === 'analysis' && (
@@ -356,8 +380,15 @@ export default function ResultPageMain() {
                         {activeTab === 'perfume' && (
                           <PerfumeTab key="perfume" displayedAnalysis={displayedAnalysis} isDesktop={true} />
                         )}
-                        {activeTab === 'comparison' && (
+                        {activeTab === 'comparison' && !isFigureMode && (
                           <ComparisonTab key="comparison" displayedAnalysis={displayedAnalysis} isDesktop={true} />
+                        )}
+                        {/* 피규어 모드 전용 탭 */}
+                        {activeTab === 'memory' && isFigureMode && (
+                          <MemoryTab key="memory" displayedAnalysis={displayedAnalysis} memoryImage={userImage || undefined} isDesktop={true} />
+                        )}
+                        {activeTab === 'figure' && isFigureMode && (
+                          <FigureTab key="figure" displayedAnalysis={displayedAnalysis} figureImage={figureImage || undefined} isDesktop={true} />
                         )}
                       </AnimatePresence>
                     </div>
@@ -387,10 +418,21 @@ export default function ResultPageMain() {
                     )}
                   </div>
                   <h1 className="text-2xl font-black text-slate-900 leading-tight">
-                    당신만의 향기를<br />
-                    <span className="text-yellow-500">
-                      찾았어요! 💛
-                    </span>
+                    {isFigureMode ? (
+                      <>
+                        기억을 향기로<br />
+                        <span className="text-pink-500">
+                          담았어요! 💕
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        당신만의 향기를<br />
+                        <span className="text-yellow-500">
+                          찾았어요! 💛
+                        </span>
+                      </>
+                    )}
                   </h1>
                 </motion.div>
 
@@ -406,62 +448,35 @@ export default function ResultPageMain() {
                       />
                     </div>
                   )}
-                  <TwitterNameDisplay twitterName={twitterName} />
+                  <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} />
                 </motion.div>
 
-                {/* 액션 버튼 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="flex flex-col gap-3">
-                  <Button
-                    onClick={handleShare}
-                    disabled={isSaving}
-                    className="w-full h-14 bg-yellow-400 text-slate-900 rounded-xl font-black text-base border-2 border-slate-900 shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                  >
-                    <Share2 size={18} />
-                    <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
-                  </Button>
-                  {serviceMode === 'online' ? (
-                    // 온라인 모드: 향수 구매 버튼
+                {/* 오프라인 모드: 피드백 버튼 (본문에 유지) */}
+                {serviceMode === 'offline' && (
+                  <motion.div variants={fadeInUp} className="flex gap-2">
                     <Button
-                      onClick={() => router.push('/checkout')}
-                      className="w-full h-12 bg-emerald-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
+                      onClick={() => setIsFeedbackModalOpen(true)}
+                      className="flex-1 h-12 bg-pink-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
                     >
-                      <ShoppingCart size={18} />
-                      <span>향수 구매하기</span>
+                      <MessageSquarePlus size={18} />
+                      <span>피드백 기록</span>
                     </Button>
-                  ) : (
-                    // 오프라인 모드: 피드백 버튼
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setIsFeedbackModalOpen(true)}
-                        className="flex-1 h-12 bg-pink-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
-                      >
-                        <MessageSquarePlus size={18} />
-                        <span>피드백 기록</span>
-                      </Button>
-                      <Button
-                        onClick={() => setIsFeedbackHistoryOpen(true)}
-                        variant="outline"
-                        className="h-12 px-4 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
-                      >
-                        <History size={18} />
-                      </Button>
-                    </div>
-                  )}
-                  <Button
-                    variant="outline"
-                    onClick={handleRestart}
-                    className="w-full h-12 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw size={16} />
-                    <span>다시 시작하기</span>
-                  </Button>
-                </motion.div>
+                    <Button
+                      onClick={() => setIsFeedbackHistoryOpen(true)}
+                      variant="outline"
+                      className="h-12 px-4 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
+                    >
+                      <History size={18} />
+                    </Button>
+                  </motion.div>
+                )}
 
                 {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
                 <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                   <TabNavigation
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
+                    isFigureMode={isFigureMode}
                   />
 
                   <div className="p-5">
@@ -472,19 +487,26 @@ export default function ResultPageMain() {
                       {activeTab === 'perfume' && (
                         <PerfumeTab key="perfume" displayedAnalysis={displayedAnalysis} />
                       )}
-                      {activeTab === 'comparison' && (
+                      {activeTab === 'comparison' && !isFigureMode && (
                         <ComparisonTab key="comparison" displayedAnalysis={displayedAnalysis} />
+                      )}
+                      {/* 피규어 모드 전용 탭 */}
+                      {activeTab === 'memory' && isFigureMode && (
+                        <MemoryTab key="memory" displayedAnalysis={displayedAnalysis} memoryImage={userImage || undefined} />
+                      )}
+                      {activeTab === 'figure' && isFigureMode && (
+                        <FigureTab key="figure" displayedAnalysis={displayedAnalysis} figureImage={figureImage || undefined} />
                       )}
                     </AnimatePresence>
                   </div>
                 </motion.div>
 
-                {/* 푸터 - 모바일 */}
+                {/* 푸터 - 모바일 (하단 고정 버튼 공간 확보) */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2, duration: 1 }}
-                  className="w-full text-center pb-4"
+                  className="w-full text-center pb-36"
                 >
                   <span className="text-[9px] font-semibold text-slate-400/80 tracking-[0.3em] uppercase">
                     © 2025 Ac&apos;scent Identity
@@ -495,6 +517,16 @@ export default function ResultPageMain() {
           )}
         </motion.div>
       </main>
+
+      {/* 모바일 하단 고정 액션 버튼 */}
+      {displayedAnalysis && (
+        <ResultBottomActions
+          onShare={handleShare}
+          onPurchase={() => router.push('/checkout')}
+          isShareSaving={isSaving}
+          serviceMode={serviceMode}
+        />
+      )}
 
       {/* 공유 모달 */}
       {displayedAnalysis && (

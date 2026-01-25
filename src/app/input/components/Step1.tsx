@@ -6,7 +6,7 @@ import { InputField } from "./InputField"
 import { GENDER_OPTIONS } from "../constants"
 import type { Step1Props } from "../types"
 
-export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedField }: Step1Props) {
+export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, setFocusedField }: Step1Props) {
     const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/[^0-9]/g, "")
         if (val.length <= 4) {
@@ -20,7 +20,7 @@ export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedF
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="h-full px-4 py-2 flex flex-col"
+            className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col"
         >
             <StepHeader
                 title="기본 정보를 입력해주세요"
@@ -29,18 +29,21 @@ export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedF
             />
 
             <div className="flex-1 space-y-4 mt-4">
-                <InputField
-                    label="인증 번호 (숫자 4자리)"
-                    value={formData.pin}
-                    onChange={handlePinChange}
-                    placeholder="0000"
-                    isFocused={focusedField === "pin"}
-                    onFocus={() => setFocusedField("pin")}
-                    onBlur={() => setFocusedField(null)}
-                    type="tel"
-                    center
-                    letterSpacing
-                />
+                {/* 오프라인 모드에서만 인증 번호 표시 */}
+                {!isOnline && (
+                    <InputField
+                        label="인증 번호 (숫자 4자리)"
+                        value={formData.pin}
+                        onChange={handlePinChange}
+                        placeholder="0000"
+                        isFocused={focusedField === "pin"}
+                        onFocus={() => setFocusedField("pin")}
+                        onBlur={() => setFocusedField(null)}
+                        type="tel"
+                        center
+                        letterSpacing
+                    />
+                )}
 
                 <InputField
                     label={isIdol ? "최애 이름 (또는 애칭)" : "본인 이름 (또는 닉네임)"}
@@ -62,10 +65,10 @@ export function Step1({ formData, setFormData, isIdol, focusedField, setFocusedF
                                 key={key}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setFormData(prev => ({ ...prev, gender: key }))}
-                                className={`relative flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden ${
+                                className={`relative flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden backdrop-blur-md border ${
                                     formData.gender === key
-                                        ? "text-slate-900 shadow-md"
-                                        : "bg-white/60 text-slate-400 hover:bg-white"
+                                        ? "text-slate-900 shadow-lg border-yellow-300"
+                                        : "bg-white/80 text-slate-500 border-white/60 shadow-md shadow-slate-900/5 hover:bg-white/90 hover:border-white"
                                 }`}
                             >
                                 {formData.gender === key && (

@@ -235,7 +235,8 @@ export default function SharedResultPage() {
           <motion.div variants={fadeInUp} className="glass-card rounded-3xl overflow-hidden">
             <TabNavigation
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={(tab) => setActiveTab(tab as 'analysis' | 'perfume' | 'comparison')}
+              isFigureMode={false}
             />
 
             <div className="p-5">

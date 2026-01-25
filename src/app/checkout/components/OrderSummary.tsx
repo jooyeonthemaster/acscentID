@@ -103,7 +103,7 @@ export function OrderSummary({
               </div>
             )}
             <p className="font-black text-slate-900 text-base lg:text-lg">10ml</p>
-            <p className="text-[10px] lg:text-xs text-slate-500 font-bold">롤온 타입</p>
+            <p className="text-[10px] lg:text-xs text-slate-500 font-bold">스프레이 타입</p>
             <p className="text-sm font-black text-slate-900 mt-0.5 lg:mt-1">24,000원</p>
           </button>
           <button

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, Zap, User, ArrowRight, TrendingUp, Heart, HelpCircle, BarChart3 } from "lucide-react"
+import { Sparkles, ArrowRight, Heart, HelpCircle } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
@@ -65,14 +65,14 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen bg-[#FFFDF5] font-sans selection:bg-pink-200 selection:text-pink-900">
+    <div className="relative min-h-[200vh] bg-[#FFFDF5] font-sans selection:bg-pink-200 selection:text-pink-900 flex flex-col">
       <Header />
 
       {/* 1. Hero Section */}
       <KitschHero />
 
       {/* 2. Dashboard Interface Container */}
-      <div className="relative z-10 mt-[100vh] bg-[#FFFDF5] rounded-t-[40px] px-4 md:px-8 py-12 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t-4 border-slate-900 min-h-[800px]">
+      <div className="relative z-10 mt-[100vh] bg-[#FFFDF5] rounded-t-[40px] px-4 md:px-8 py-12 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t-4 border-slate-900 pb-32 flex-1">
 
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
 
@@ -111,8 +111,8 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card 1: IDOL */}
                 <RetroCard
-                  title="AI 아이돌 이미지 분석"
-                  subtitle="최애의 무드를 향기로 재해석"
+                  title="AI 이미지 분석 향수"
+                  subtitle="내가 좋아하는 사진과 나만의 최애 향♥"
                   image="/제목 없는 디자인 (3)/2.png"
                   price="₩ 24,000"
                   accentColor="bg-[#FBCFE8]"
@@ -123,7 +123,7 @@ export default function Home() {
 
                 {/* Card 2: FIGURE */}
                 <RetroCard
-                  title="피규어 테마 향수"
+                  title="피규어 화분 디퓨저"
                   subtitle="캐릭터의 서사를 담은 향"
                   image="/제목 없는 디자인 (3)/1.png"
                   price="₩ 48,000"
@@ -133,45 +133,6 @@ export default function Home() {
                   onClick={() => handleCardClick("/programs/figure")}
                 />
 
-                {/* Card 3: PERSONAL (Full Width) */}
-                <div className="md:col-span-2">
-                  <RetroCard
-                    layout="horizontal"
-                    title="나만의 퍼스널 센트"
-                    subtitle="당신의 이미지를 완성하는 데일리 시그니처 향수"
-                    image="/제목 없는 디자인 (3)/3.png"
-                    price="₩ 24,000"
-                    accentColor="bg-[#C4B5FD]"
-                    tag="SIGNATURE"
-                    tags={["시그니처", "데일리", "퍼스널"]}
-                    onClick={() => handleCardClick("/programs/personal")}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 2.3 How It Works (Process) */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="text-blue-400 fill-blue-400" />
-                <h3 className="text-2xl font-black text-slate-900">진행 과정 안내</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <ProcessStep
-                  number="01"
-                  text="이미지/키워드 입력"
-                  color="bg-white"
-                />
-                <ProcessStep
-                  number="02"
-                  text="AI 정밀 분석"
-                  color="bg-white"
-                />
-                <ProcessStep
-                  number="03"
-                  text="나만의 레시피 도출"
-                  color="bg-white"
-                />
               </div>
             </div>
 
@@ -222,23 +183,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 3.2 Service Statistics Widget (Trust Indicators) */}
-            <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-black text-slate-900 flex items-center gap-2">
-                  <BarChart3 size={18} />
-                  서비스 현황
-                </h4>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              </div>
-              <div className="space-y-4">
-                <StatItem label="누적 분석 완료" value="10,000+" icon="🧪" />
-                <StatItem label="생성된 향기 레시피" value="25,400+" icon="✨" />
-                <StatItem label="AI 매칭 정확도" value="98.5%" icon="🎯" />
-              </div>
-            </div>
-
-            {/* 3.3 Brand Values (Why Us) */}
+            {/* 3.2 Brand Values (Why Us) */}
             <div className="bg-[#E9D5FF] border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
               <h4 className="font-black text-slate-900 mb-4 flex items-center gap-2">
                 <Heart size={18} className="text-red-500 fill-red-500" />
@@ -277,7 +222,7 @@ export default function Home() {
         onClose={() => setShowAuthModal(false)}
         onSuccess={() => setShowAuthModal(false)}
       />
-    </main>
+    </div>
   )
 }
 
@@ -335,23 +280,3 @@ function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layo
   )
 }
 
-function StatItem({ label, value, icon }: any) {
-  return (
-    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
-      <div className="flex items-center gap-3">
-        <span className="text-xl">{icon}</span>
-        <span className="text-xs font-bold text-slate-500">{label}</span>
-      </div>
-      <span className="font-black text-slate-900">{value}</span>
-    </div>
-  )
-}
-
-function ProcessStep({ number, text, color }: any) {
-  return (
-    <div className={`${color} border-2 border-slate-900 rounded-2xl p-4 flex items-center gap-4 shadow-[2px_2px_0px_#000]`}>
-      <div className="text-3xl font-black text-slate-200">{number}</div>
-      <div className="font-bold text-slate-800 leading-tight">{text}</div>
-    </div>
-  )
-}

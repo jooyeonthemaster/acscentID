@@ -43,10 +43,19 @@
       "Bash(ping:*)",
       "Bash(findstr:*)",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "Bash(setx GEMINI_API_KEY \"AIzaSyAvRLaeEuijt2eeU4Qaq8HDocCnPaYH_dY\")",
+      "Bash($env:GEMINI_API_KEY = \"AIzaSyAvRLaeEuijt2eeU4Qaq8HDocCnPaYH_dY\")",
+      "Bash(node generate-image.js:*)",
+      "Bash(export:*)",
+      "Bash(GEMINI_API_KEY=AIzaSyAvRLaeEuijt2eeU4Qaq8HDocCnPaYH_dY node generate-image.js:*)",
+      "WebFetch(domain:www.drmartens.co.kr)",
+      "Bash(npm ls:*)",
+      "Bash(git reset:*)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\admin\\qr"
+      "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\admin\\qr",
+      "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\cart"
     ]
   }
 }

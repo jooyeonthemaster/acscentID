@@ -11,6 +11,7 @@ interface AuthModalProps {
   title?: string
   description?: string
   onSuccess?: () => void
+  redirectPath?: string  // 로그인 후 이동할 경로
 }
 
 export function AuthModal({
@@ -19,6 +20,7 @@ export function AuthModal({
   title = '로그인하고 저장하기',
   description = '로그인하면 분석 결과와 레시피가 자동으로 내 계정에 연동됩니다!',
   onSuccess,
+  redirectPath,
 }: AuthModalProps) {
   const { signInWithGoogle, signInWithKakao, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -26,7 +28,7 @@ export function AuthModal({
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true)
-      await signInWithGoogle()
+      await signInWithGoogle(redirectPath)
     } catch (error) {
       console.error('Google login error:', error)
       setIsLoading(false)
@@ -36,7 +38,7 @@ export function AuthModal({
   const handleKakaoLogin = async () => {
     try {
       setIsLoading(true)
-      await signInWithKakao()
+      await signInWithKakao(redirectPath)
     } catch (error) {
       console.error('Kakao login error:', error)
       setIsLoading(false)

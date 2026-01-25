@@ -88,7 +88,6 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             />
             <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border-2 border-blue-200 h-[calc(100%-48px)]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/20 rounded-full blur-3xl" />
-              <div className="absolute top-2 right-2 text-base">🤖</div>
               <div className="relative z-10 flex flex-col h-full">
                 <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.imageInterpretation}
@@ -109,7 +108,6 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             />
             <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200 h-[calc(100%-48px)]">
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
-              <div className="absolute top-2 right-2 text-base">💜</div>
               <div className="relative z-10 flex flex-col h-full">
                 <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.userInputSummary}
@@ -211,7 +209,6 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         />
         <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 overflow-hidden border-2 border-blue-200">
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-300/20 rounded-full blur-2xl" />
-          <div className="absolute top-2 right-2 text-base">🤖</div>
           <div className="relative z-10">
             <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.imageInterpretation}
@@ -232,7 +229,6 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         />
         <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200">
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-300/20 rounded-full blur-2xl" />
-          <div className="absolute top-2 right-2 text-base">💜</div>
           <div className="relative z-10">
             <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.userInputSummary}

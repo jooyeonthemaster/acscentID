@@ -48,8 +48,6 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     style={{ backgroundColor: secondaryColor }}
                   />
 
-                  {/* 코너 장식 */}
-                  <div className="absolute top-3 right-3 text-2xl">✨</div>
 
                   <div className="relative z-10">
                     {/* 향수 정보 */}
@@ -80,52 +78,47 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                   </div>
                 </div>
 
-                {/* 2컬럼 그리드: 향 노트 + 향수 프로필 */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                    <PerfumeNotes persona={match.persona} isDesktop={true} />
-                  </div>
-                  <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                    <PerfumeProfile persona={match.persona} isDesktop={true} />
-                  </div>
+                {/* 세로 배치: 향 노트 */}
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                  <PerfumeNotes persona={match.persona} isDesktop={true} />
                 </div>
 
-                {/* 2컬럼 그리드: 향수 스토리 + 사용 추천 */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* 향수 스토리 */}
-                  {match.matchReason && (
-                    <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                      <SectionHeader
-                        icon={<Sparkles size={14} />}
-                        title="향수 스토리"
-                        subtitle="전문가 평가"
-                      />
-                      <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
-                        <div className="absolute top-2 right-2 text-base">💬</div>
-                        <p className="text-slate-700 text-sm leading-relaxed font-medium italic">
-                          &quot;{match.matchReason}&quot;
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 사용 추천 */}
-                  {match.persona?.recommendation && (
-                    <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                      <SectionHeader
-                        icon={<Clock size={14} />}
-                        title="사용 추천"
-                        subtitle="이 향기와 함께하면 완벽!"
-                      />
-                      <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
-                        <div className="absolute top-2 right-2 text-base">⏰</div>
-                        <p className="text-slate-700 text-sm leading-relaxed font-medium">
-                          {match.persona.recommendation}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                {/* 세로 배치: 향수 프로필 */}
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                  <PerfumeProfile persona={match.persona} isDesktop={true} />
                 </div>
+
+                {/* 향수 스토리 */}
+                {match.matchReason && (
+                  <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                    <SectionHeader
+                      icon={<Sparkles size={14} />}
+                      title="향수 스토리"
+                      subtitle="전문가 평가"
+                    />
+                    <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
+                      <p className="text-slate-700 text-sm leading-relaxed font-medium italic">
+                        &quot;{match.matchReason}&quot;
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 사용 추천 */}
+                {match.persona?.recommendation && (
+                  <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                    <SectionHeader
+                      icon={<Clock size={14} />}
+                      title="사용 추천"
+                      subtitle="이 향기와 함께하면 완벽!"
+                    />
+                    <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
+                      <p className="text-slate-700 text-sm leading-relaxed font-medium">
+                        {match.persona.recommendation}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* 사용 가이드 - 전체 너비 */}
                 <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
@@ -134,28 +127,16 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     title="사용 가이드"
                     subtitle="우리 애와 함께하는 향수 팁"
                   />
-                  <div className="bg-[#FEF9C3] rounded-xl p-4 grid grid-cols-3 gap-4 border-2 border-slate-200">
+                  <div className="bg-[#FEF9C3] rounded-xl p-4 space-y-3 border-2 border-slate-200">
                     {match.persona?.usageGuide?.tips && match.persona.usageGuide.tips.length > 0 ? (
                       match.persona.usageGuide.tips.map((tip, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-400 border border-slate-900 mt-1 flex-shrink-0" />
-                          <p className="text-slate-700 text-xs leading-relaxed font-medium">{tip}</p>
-                        </div>
+                        <GuideItem key={i} text={tip} />
                       ))
                     ) : (
                       <>
-                        <div className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-400 border border-slate-900 mt-1 flex-shrink-0" />
-                          <p className="text-slate-700 text-xs leading-relaxed font-medium">손목에 뿌리고 귀 뒤에 살짝 톡톡! 우리 애 생각하면서 향기 맡으면 행복 두 배!</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-400 border border-slate-900 mt-1 flex-shrink-0" />
-                          <p className="text-slate-700 text-xs leading-relaxed font-medium">옷보다 피부에 직접! 체온으로 향이 퍼지면서 우리 애의 따뜻한 매력이 느껴지는 느낌!</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-400 border border-slate-900 mt-1 flex-shrink-0" />
-                          <p className="text-slate-700 text-xs leading-relaxed font-medium">문지르지 말고 자연 건조! 향의 레이어가 살아있어야 다채로운 매력이 시간별로 펼쳐짐!</p>
-                        </div>
+                        <GuideItem text="손목에 뿌리고 귀 뒤에 살짝 톡톡! 우리 애 생각하면서 향기 맡으면 행복 두 배!" />
+                        <GuideItem text="옷보다 피부에 직접! 체온으로 향이 퍼지면서 우리 애의 따뜻한 매력이 느껴지는 느낌!" />
+                        <GuideItem text="문지르지 말고 자연 건조! 향의 레이어가 살아있어야 다채로운 매력이 시간별로 펼쳐짐!" />
                       </>
                     )}
                   </div>
@@ -208,9 +189,6 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                   style={{ backgroundColor: secondaryColor }}
                 />
 
-                {/* 코너 장식 */}
-                <div className="absolute top-3 right-3 text-xl">✨</div>
-
                 <div className="relative z-10">
                   {/* 향수 정보 */}
                   <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-400 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#000] mb-2">
@@ -255,7 +233,6 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     subtitle="전문가 평가"
                   />
                   <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
-                    <div className="absolute top-2 right-2 text-base">💬</div>
                     <p className="text-slate-700 text-sm leading-relaxed italic font-medium">
                       &quot;{match.matchReason}&quot;
                     </p>
@@ -272,7 +249,6 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     subtitle="이 향기와 함께하면 완벽!"
                   />
                   <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
-                    <div className="absolute top-2 right-2 text-base">⏰</div>
                     <p className="text-slate-700 text-sm leading-relaxed font-medium">
                       {match.persona.recommendation}
                     </p>

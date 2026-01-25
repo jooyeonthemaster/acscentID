@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getModel, withTimeout } from '@/lib/gemini/client';
-import { buildGeminiPrompt } from '@/lib/gemini/prompt-builder';
+import { buildGeminiPrompt, buildFigureGeminiPrompt, FigureDataInput } from '@/lib/gemini/prompt-builder';
 import { parseGeminiResponse } from '@/lib/gemini/response-parser';
 import { AnalyzeRequest, AnalyzeResponse } from '@/types/gemini';
 import { ImageAnalysisResult } from '@/types/analysis';
@@ -103,11 +103,15 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. 요청 파싱
-    const body: AnalyzeRequest = await request.json();
-    const { formData, imageBase64 } = body;
+    const body: AnalyzeRequest & { programType?: string; figureData?: FigureDataInput } = await request.json();
+    const { formData, imageBase64, programType, figureData } = body;
+
+    // 피규어 모드 여부
+    const isFigureMode = programType === 'figure';
 
     // 📊 입력 데이터 로깅
     console.log(`\n[${requestId}] 📊 입력 데이터:`);
+    console.log(`  - 프로그램 타입: ${programType || 'default'}`);
     console.log(`  - 아이돌 이름: ${formData?.name || 'N/A'}`);
     console.log(`  - 성별: ${formData?.gender || 'N/A'}`);
     console.log(`  - 스타일: ${formData?.styles?.join(', ') || 'N/A'}`);
@@ -117,6 +121,16 @@ export async function POST(request: NextRequest) {
     if (imageBase64) {
       const imageSize = imageBase64.length;
       console.log(`  - 이미지 크기: ${(imageSize / 1024).toFixed(2)} KB`);
+    }
+
+    // 피규어 모드 추가 로깅
+    if (isFigureMode && figureData) {
+      console.log(`  - [피규어] 기억 이야기: ${figureData.memoryStory?.substring(0, 50)}...`);
+      console.log(`  - [피규어] 감정: ${figureData.emotion}`);
+      console.log(`  - [피규어] 계절/시간: ${figureData.seasonTime}`);
+      console.log(`  - [피규어] 색감: ${figureData.colorTone}`);
+      console.log(`  - [피규어] 요청사항: ${figureData.figureRequest || '없음'}`);
+      console.log(`  - [피규어] 피규어 이미지: ${figureData.figureImageBase64 ? '✅ YES' : '❌ NO'}`);
     }
 
     if (!formData) {
@@ -145,9 +159,15 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
-    // 3. 프롬프트 생성
-    const prompt = buildGeminiPrompt(formData);
-    console.log(`[${requestId}] ✅ 프롬프트 생성 완료 (${prompt.length} 문자)`);
+    // 3. 프롬프트 생성 (피규어 모드 분기)
+    let prompt: string;
+    if (isFigureMode && figureData) {
+      prompt = buildFigureGeminiPrompt(formData, figureData);
+      console.log(`[${requestId}] ✅ 피규어 전용 프롬프트 생성 완료 (${prompt.length} 문자)`);
+    } else {
+      prompt = buildGeminiPrompt(formData);
+      console.log(`[${requestId}] ✅ 일반 프롬프트 생성 완료 (${prompt.length} 문자)`);
+    }
 
     // 4. Gemini 모델 가져오기
     const model = getModel();
@@ -169,9 +189,24 @@ export async function POST(request: NextRequest) {
           data: base64Data,
         },
       });
-      console.log(`[${requestId}] ✅ 이미지 데이터 첨부 완료`);
+      console.log(`[${requestId}] ✅ 기억 장면 이미지 첨부 완료`);
     } else {
       console.log(`[${requestId}] ⚠️ 이미지 없이 텍스트만 분석`);
+    }
+
+    // 피규어 모드: 피규어 이미지 추가 첨부
+    if (isFigureMode && figureData?.figureImageBase64) {
+      const figureBase64Data = figureData.figureImageBase64.includes(',')
+        ? figureData.figureImageBase64.split(',')[1]
+        : figureData.figureImageBase64;
+
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: figureBase64Data,
+        },
+      });
+      console.log(`[${requestId}] ✅ 피규어용 이미지 첨부 완료`);
     }
 
     // 6. Gemini API 호출 (60초 타임아웃)

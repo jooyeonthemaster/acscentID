@@ -23,7 +23,7 @@ export function Step5({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="h-full px-6 py-4 flex flex-col"
+            className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col"
         >
             <StepHeader
                 title={`${isIdol ? "최애" : "나"} 이미지`}
@@ -39,7 +39,7 @@ export function Step5({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 border border-yellow-200/50"
+                            className="bg-gradient-to-br from-yellow-50/90 to-orange-50/90 backdrop-blur-md rounded-2xl p-5 border border-yellow-200 shadow-lg shadow-slate-900/5"
                         >
                             <div className="flex items-center gap-2 mb-3">
                                 <Camera size={18} className="text-yellow-600" />
@@ -52,7 +52,7 @@ export function Step5({
                             <p className="text-xs text-slate-500 mb-3">
                                 (예: 500×600px, 400×480px 등)
                             </p>
-                            <div className="flex items-start gap-2 p-3 bg-white/60 rounded-xl">
+                            <div className="flex items-start gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-white/60">
                                 <Sparkles size={14} className="text-yellow-500 mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-slate-600">
                                     <span className="font-semibold">팁:</span> {isIdol ? "최애" : "본인"}가 잘 보이는 고화질 사진을
@@ -109,7 +109,7 @@ export function Step5({
                     ) : (
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full aspect-[5/6] max-h-[220px] rounded-2xl border-2 border-dashed border-slate-200 bg-white/40 hover:bg-white/60 hover:border-yellow-400 transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
+                            className="w-full aspect-[5/6] max-h-[220px] rounded-2xl border-2 border-dashed border-slate-300 bg-white/80 backdrop-blur-md shadow-lg shadow-slate-900/5 hover:bg-white/90 hover:border-yellow-400 transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
                         >
                             <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-yellow-100 flex items-center justify-center transition-colors">
                                 <ImageIcon size={24} className="text-slate-400 group-hover:text-yellow-600 transition-colors" />

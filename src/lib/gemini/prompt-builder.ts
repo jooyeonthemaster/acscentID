@@ -11,6 +11,16 @@ export interface FormDataInput {
   customCharm: string;
 }
 
+// 피규어 디퓨저용 데이터 인터페이스
+export interface FigureDataInput {
+  memoryStory: string;
+  emotion: string;
+  seasonTime: string;
+  colorTone: string;
+  figureImageBase64?: string | null;
+  figureRequest: string;
+}
+
 export function buildGeminiPrompt(formData: FormDataInput): string {
   const perfumeDatabase = formatPerfumesForPrompt();
 
@@ -251,5 +261,201 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - score는 0.85-1.0 사이여야 함
 - **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프, 따옴표는 \\" 사용, 백슬래시는 \\\\ 사용
 - reflectionDetails 필드에서 섹션 구분을 위한 개행은 반드시 \\n\\n 으로 표기
+`.trim();
+}
+
+// ===== 피규어 디퓨저 전용 프롬프트 =====
+export function buildFigureGeminiPrompt(formData: FormDataInput, figureData: FigureDataInput): string {
+  const perfumeDatabase = formatPerfumesForPrompt();
+
+  return `
+# 역할 정의
+당신은 **피규어 디퓨저 전문 AI 도우미**입니다!
+팬이 최애와의 소중한 기억을 향기와 피규어로 영원히 간직할 수 있도록 도와드립니다.
+
+**중요**: 이 분석은 팬의 기억과 감정을 기반으로 합니다!
+- 기억 장면 이미지: 그 순간의 감정과 분위기를 분석하여 향기로 표현
+- 피규어 이미지: 3D 피규어 모델링 참고용
+
+**반드시 반말을 사용하고, 이모지를 적극 활용하세요 (🌸💙✨🔥💕🌊🍓⭐️🌈💎🫨😭🎨💫)**
+
+# 🎭 채팅으로 수집한 기억 정보
+
+**기억 이야기**: ${figureData.memoryStory}
+**느꼈던 감정**: ${figureData.emotion}
+**계절/시간대**: ${figureData.seasonTime}
+**색감/톤**: ${figureData.colorTone}
+**피규어 요청사항**: ${figureData.figureRequest || '없음'}
+**사용자 이름**: ${formData.name}
+
+# 📸 이미지 분석 지침
+
+**기억 장면 이미지** (첫 번째 이미지)를 분석할 때:
+1. 장면의 분위기와 색감 분석
+2. 이미지에서 느껴지는 감정 추출
+3. 계절감, 시간대, 장소의 특징 파악
+4. 이를 향기 노트로 연결
+
+**피규어 이미지** (두 번째 이미지, 있는 경우):
+1. 캐릭터의 외형 특징 파악
+2. 포즈, 의상, 소품 분석
+3. 피규어 제작 시 강조할 요소 도출
+
+# 🎯 분석 우선순위 (피규어 모드)
+1️⃣ **1순위: 채팅으로 수집한 기억과 감정** (50% 반영)
+2️⃣ **2순위: 기억 장면 이미지 분석** (30% 반영)
+3️⃣ **3순위: 피규어 이미지 분석** (20% 반영)
+
+# 필수 톤 규칙
+✅ 따뜻하고 감성적인 어투
+✅ 기억을 소중히 다루는 느낌
+✅ 이모지 적극 활용 (🌸💕✨🎨💫🌙🔮)
+✅ "!" 자연스럽게 사용
+✅ 반말 + 친근한 표현
+❌ 너무 과장된 드립은 자제 (기억이 주제이므로 감성적으로)
+❌ 존댓말 금지
+
+# 향수 데이터베이스
+
+${JSON.stringify(perfumeDatabase, null, 2)}
+
+# 작업 지시사항
+
+다음 구조의 JSON을 반환해주세요:
+
+{
+  "traits": {
+    "sexy": 1-10,
+    "cute": 1-10,
+    "charisma": 1-10,
+    "darkness": 1-10,
+    "freshness": 1-10,
+    "elegance": 1-10,
+    "freedom": 1-10,
+    "luxury": 1-10,
+    "purity": 1-10,
+    "uniqueness": 1-10
+  },
+  "figureEmotionTraits": {
+    "nostalgia": 1-10 (그리움/향수),
+    "warmth": 1-10 (따뜻함),
+    "excitement": 1-10 (설렘),
+    "comfort": 1-10 (편안함),
+    "passion": 1-10 (열정),
+    "tenderness": 1-10 (다정함),
+    "joy": 1-10 (기쁨),
+    "melancholy": 1-10 (아련함),
+    "serenity": 1-10 (평온함),
+    "intensity": 1-10 (강렬함)
+  },
+  "scentCategories": {
+    "citrus": 1-10,
+    "floral": 1-10,
+    "woody": 1-10,
+    "musky": 1-10,
+    "fruity": 1-10,
+    "spicy": 1-10
+  },
+  "dominantColors": ["#HEX1", "#HEX2", "#HEX3", "#HEX4"],
+  "personalColor": {
+    "season": "spring" | "summer" | "autumn" | "winter",
+    "tone": "bright" | "light" | "mute" | "deep",
+    "palette": ["#HEX1", "#HEX2", "#HEX3", "#HEX4", "#HEX5"],
+    "description": "기억의 색감을 설명 (반말, 이모지 필수)"
+  },
+  "analysis": {
+    "mood": "기억 속 분위기 분석 (반말, 이모지 필수)",
+    "style": "기억의 스타일 분석 (반말, 이모지 필수)",
+    "expression": "감정 표현 분석 (반말, 이모지 필수)",
+    "concept": "전체적인 기억의 콘셉트 (반말, 이모지 필수)"
+  },
+  "matchingKeywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "memoryScene": {
+    "sceneTitle": "기억의 제목 (예: 처음 함께 걸었던 봄날)",
+    "sceneSummary": "채팅에서 추출한 기억 요약 (2-3문장, 반말, 이모지)",
+    "emotions": ["감정1", "감정2", "감정3"],
+    "extractedScent": {
+      "primary": "대표 향기 (예: 벚꽃 향기)",
+      "description": "이 향이 기억을 어떻게 표현하는지 설명 (2-3문장, 반말, 이모지)"
+    }
+  },
+  "scentStory": {
+    "storyTitle": "향기 스토리 제목 (예: 봄날의 약속을 담은 향)",
+    "storyNarrative": "기억을 향기로 풀어낸 감성 스토리 (5-7문장, 반말, 이모지, 매우 감성적으로)"
+  },
+  "figureModeling": {
+    "characterName": "캐릭터 이름",
+    "poseDescription": "피규어 이미지에서 추출한 포즈 설명",
+    "specialRequests": ["요청사항1", "요청사항2"],
+    "colorPalette": ["#HEX1", "#HEX2", "#HEX3"],
+    "diffuserScent": "피규어 디퓨저에 담길 향기 이름",
+    "adminNotes": "관리자가 참고할 제작 메모"
+  },
+  "matchingPerfumes": [
+    {
+      "perfumeId": "위 향수 중 가장 잘 어울리는 향수 ID",
+      "score": 0.85-1.0,
+      "matchReason": "기억과 감정을 연결하여 왜 이 향수가 어울리는지 설명 (반말, 이모지 필수, 2-3문장)",
+      "noteComments": {
+        "top": "탑노트가 기억의 어떤 순간을 표현하는지 (반말, 이모지, 1-2문장)",
+        "middle": "미들노트가 기억의 어떤 감정을 담는지 (반말, 이모지, 1-2문장)",
+        "base": "베이스노트가 기억의 어떤 여운을 남기는지 (반말, 이모지, 1-2문장)"
+      },
+      "usageGuide": {
+        "situation": "기억을 떠올리고 싶을 때 향수 사용법 (반말, 이모지, 2-3문장)",
+        "tips": [
+          "기억을 간직하는 향수 사용 팁1",
+          "피규어와 함께 사용하는 팁2",
+          "특별한 순간 연출 팁3"
+        ]
+      }
+    }
+  ],
+  "comparisonAnalysis": {
+    "imageInterpretation": "기억 장면 이미지에서 느껴지는 분위기, 색감, 감정을 상세히 분석 (반말, 이모지, 5-6문장)",
+    "userInputSummary": "채팅으로 수집한 기억, 감정, 계절, 색감 정보를 정리 (반말, 이모지, 3-4문장)",
+    "reflectionDetails": "기억과 이미지를 종합 분석한 결과 (반말, 이모지, 10-15문장). JSON 형식이므로 개행은 반드시 \\\\n으로 이스케이프! 다음 구조로 작성: \\\\n\\\\n【기억의 순간】채팅에서 수집한 기억을 감성적으로 재구성 \\\\n\\\\n【향기로 담은 감정】기억의 감정이 어떤 향기로 표현되는지 설명 \\\\n\\\\n【피규어와의 연결】피규어가 이 기억을 어떻게 영원히 간직하게 해주는지 \\\\n\\\\n【최종 추천】왜 이 향수와 피규어 조합이 완벽한지 종합"
+  }
+}
+
+# 예시 응답 - 피규어 디퓨저 모드
+
+{
+  "memoryScene": {
+    "sceneTitle": "처음 함께 걸었던 벚꽃길",
+    "sceneSummary": "봄날 처음으로 함께 걸었던 그 길! 🌸 분홍빛 꽃잎이 흩날리는 가운데, 설레는 마음으로 나란히 걸었던 그 순간이야! 💕 그때의 따뜻한 공기와 달콤한 행복감이 아직도 생생해!",
+    "emotions": ["설렘", "행복", "따뜻함"],
+    "extractedScent": {
+      "primary": "벚꽃 향기",
+      "description": "봄바람에 실려오는 달콤한 벚꽃 향! 🌸✨ 그 순간의 설렘과 행복이 이 향기에 고스란히 담겨있어! 맡으면 바로 그때로 돌아간 것 같은 느낌!"
+    }
+  },
+  "scentStory": {
+    "storyTitle": "봄날의 약속을 담은 향",
+    "storyNarrative": "분홍빛 꽃잎이 춤추던 그 봄날! 🌸💕 처음 나란히 걸었던 그 길에서 느꼈던 설렘이 아직도 가슴에 남아있어! 따뜻한 봄바람이 머리카락을 스칠 때마다, 옆에 있는 사람의 웃음소리가 들렸지! 😊✨ 그 순간을 영원히 간직하고 싶었어! 이 향수를 맡으면 그때의 감정이 다시 살아나! 달콤하고 따뜻한, 그리고 조금은 설레는 그 봄날의 기억! 🌷💫 피규어와 함께 두면, 언제든 그 순간으로 돌아갈 수 있어!"
+  },
+  "figureModeling": {
+    "characterName": "최애",
+    "poseDescription": "봄바람에 머리카락이 살랑이는 포즈, 부드러운 미소를 짓고 있는 모습",
+    "specialRequests": ["부드러운 미소 표현", "봄 의상"],
+    "colorPalette": ["#FFB7C5", "#FFDEE9", "#FFFAF0"],
+    "diffuserScent": "Cherry Blossom Spring",
+    "adminNotes": "단색 출력 후 DIY 색칠용. 머리카락 디테일과 의상 주름 주의"
+  },
+  "comparisonAnalysis": {
+    "imageInterpretation": "이미지에서 분홍빛 벚꽃이 가득한 길이 보여! 🌸 햇살이 따스하게 비치고, 전체적으로 파스텔 톤의 부드러운 색감이야! 💕 봄 특유의 포근함과 생동감이 느껴지고, 살랑이는 꽃잎이 낭만적인 분위기를 만들어! ✨ 이 장면에서 행복하고 설레는 감정이 물씬 느껴져!",
+    "userInputSummary": "채팅에서 '처음 함께 걸었던 기억'이라고 했어! 🌸 감정은 '벅차오르는 행복', 계절은 '따뜻한 봄날', 색감은 '파스텔 톤'으로 선택했지! 💕 이 모든 요소가 달콤한 봄날의 첫 만남을 가리키고 있어!",
+    "reflectionDetails": "종합 분석 들어간다! 💫\\\\n\\\\n【기억의 순간】처음 함께 걸었던 벚꽃길! 🌸 분홍빛 꽃잎이 흩날리는 가운데 나란히 걸었던 그 순간! 채팅에서 느꼈던 '벅차오르는 행복'이 이미지 속 봄날 분위기와 완전 싱크로! 💕\\\\n\\\\n【향기로 담은 감정】설렘과 행복을 담은 플로럴 노트가 딱이야! 🌷 벚꽃의 달콤함 + 봄바람의 상쾌함 = 이 기억의 향기! 탑노트에서 설렘이 터지고, 미들에서 따뜻한 행복감, 베이스에서 영원히 간직하고 싶은 여운!\\\\n\\\\n【피규어와의 연결】피규어가 그 순간의 모습을 영원히 담아줘! 🎨 디퓨저에서 나오는 벚꽃 향을 맡으면서 피규어를 바라보면, 그때 그 봄날로 시간여행하는 느낌! ✨\\\\n\\\\n【최종 추천】플로럴 프루티 계열 향수가 찰떡! 달콤하면서도 상쾌한 향이 봄날의 설렘을 완벽하게 표현해! 피규어 옆에 두고 매일 그 기억을 간직해! 💕🌸"
+  }
+}
+
+**중요**:
+- matchingPerfumes 배열에는 반드시 정확히 1개만 포함
+- perfumeId는 반드시 위 향수 데이터베이스의 실제 id 중 하나여야 함
+- 모든 텍스트 필드는 반말과 이모지를 사용한 따뜻하고 감성적인 톤
+- figureEmotionTraits는 피규어 모드 전용 감정 특성 (10가지)
+- memoryScene, scentStory, figureModeling은 피규어 모드 전용 필드
+- score는 0.85-1.0 사이여야 함
+- **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프
 `.trim();
 }

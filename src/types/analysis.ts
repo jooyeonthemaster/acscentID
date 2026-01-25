@@ -164,5 +164,148 @@ export const TONE_LABELS: Record<ToneType, string> = {
   deep: '딥'
 };
 
+// ========================================
+// 피규어 디퓨저 전용 타입
+// ========================================
+
+// 피규어 감정 특성 (10가지)
+export interface FigureEmotionTraits {
+  nostalgia: number;      // 그리움/향수 (1-10)
+  warmth: number;         // 따뜻함 (1-10)
+  excitement: number;     // 설렘 (1-10)
+  comfort: number;        // 편안함 (1-10)
+  passion: number;        // 열정 (1-10)
+  tenderness: number;     // 다정함 (1-10)
+  joy: number;            // 기쁨 (1-10)
+  melancholy: number;     // 아련함 (1-10)
+  serenity: number;       // 평온함 (1-10)
+  intensity: number;      // 강렬함 (1-10)
+}
+
+// 피규어 감정 특성 라벨
+export const FIGURE_EMOTION_LABELS: Record<keyof FigureEmotionTraits, string> = {
+  nostalgia: '그리움',
+  warmth: '따뜻함',
+  excitement: '설렘',
+  comfort: '편안함',
+  passion: '열정',
+  tenderness: '다정함',
+  joy: '기쁨',
+  melancholy: '아련함',
+  serenity: '평온함',
+  intensity: '강렬함'
+};
+
+// 피규어 감정 특성 아이콘
+export const FIGURE_EMOTION_ICONS: Record<keyof FigureEmotionTraits, string> = {
+  nostalgia: '🌙',
+  warmth: '☀️',
+  excitement: '💓',
+  comfort: '🛋️',
+  passion: '🔥',
+  tenderness: '💕',
+  joy: '😊',
+  melancholy: '🌧️',
+  serenity: '🍃',
+  intensity: '⚡'
+};
+
+// 기억 장면 정보
+export interface MemoryScene {
+  sceneImage?: string;           // 업로드한 장면 이미지 URL
+  sceneTitle: string;            // 장면 제목 (예: "처음 함께 걸었던 봄날")
+  sceneSummary: string;          // 채팅에서 추출한 장면 요약
+  emotions: string[];            // 감정 키워드 배열
+  sceneDate?: string;            // 사용자가 언급한 시기 (선택)
+  seasonTime?: string;           // 계절/시간대
+  colorTone?: string;            // 색감/톤
+  extractedScent: {
+    primary: string;             // 추출된 주요 향 (예: "벚꽃 향기")
+    description: string;         // 향 설명
+  };
+}
+
+// 피규어 모델링 정보
+export interface FigureModeling {
+  figureImage: string;           // 피규어용 이미지 URL
+  characterName: string;         // 캐릭터명
+  poseDescription?: string;      // 포즈 설명
+  specialRequests: string[];     // 사용자 요청사항 배열
+  colorPalette?: string[];       // 추천 색상 팔레트
+  diffuserScent?: string;        // 디퓨저에 담길 향
+  adminNotes?: string;           // 관리자 확인용 메모
+}
+
+// 향기 스토리
+export interface ScentStory {
+  storyTitle: string;            // 스토리 제목 (예: "봄날의 약속을 담은 향")
+  storyNarrative: string;        // AI 생성 향수 스토리
+  memoryConnection: string;      // 기억과 향의 연결 설명
+}
+
+// 피규어 분석 데이터 (ImageAnalysisResult 확장용)
+export interface FigureAnalysisData {
+  memoryScene: MemoryScene;
+  figureModeling: FigureModeling;
+  scentStory: ScentStory;
+  emotionTraits: FigureEmotionTraits;
+}
+
+// 채팅 메시지 타입
+export interface FigureChatMessage {
+  id: string;
+  type: 'ai' | 'user';
+  content: string;
+  timestamp: Date;
+  image?: string;                // 이미지 URL 또는 base64
+  imageType?: 'memory' | 'figure';
+  isEmpathy?: boolean;           // AI 공감 반응 여부
+}
+
+// 빠른 응답 옵션
+export interface QuickReply {
+  id: string;
+  label: string;
+  value: string;
+  emoji?: string;
+}
+
+// 채팅 단계
+export type FigureChatPhase =
+  | 'greeting'        // 인사 & 기억 수집
+  | 'emotion'         // 감정 수집
+  | 'context'         // 분위기/맥락 수집
+  | 'memory_image'    // 기억 장면 이미지
+  | 'color_tone'      // 색감/톤 수집
+  | 'figure_intro'    // 피규어 안내
+  | 'figure_image'    // 피규어 이미지
+  | 'figure_request'  // 피규어 요청사항
+  | 'complete'        // 완료 & 분석
+  | 'analyzing';      // 분석 중
+
+// 채팅 수집 데이터
+export interface FigureChatData {
+  memoryStory: string;           // 기억 이야기
+  emotion: string;               // 감정
+  seasonTime: string;            // 계절/시간
+  colorTone: string;             // 색감/톤
+  memoryImage: File | null;      // 기억 장면 이미지
+  memoryImagePreview: string | null;  // 미리보기 base64
+  figureImage: File | null;      // 피규어용 이미지
+  figureImagePreview: string | null;  // 미리보기 base64
+  figureRequest: string;         // 피규어 요청사항
+  userName?: string;             // 사용자/최애 이름
+}
+
+// 채팅 상태
+export interface FigureChatState {
+  messages: FigureChatMessage[];
+  currentPhase: FigureChatPhase;
+  collectedData: FigureChatData;
+  isAiTyping: boolean;
+  isSubmitting: boolean;
+  progress: number;              // 0-100
+}
+
 
 

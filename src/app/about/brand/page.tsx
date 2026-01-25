@@ -242,12 +242,6 @@ export default function BrandStoryPage() {
               <Sparkles size={20} />
               프로그램 시작하기
             </Link>
-            <Link
-              href="/about/vision"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-white text-slate-900 rounded-2xl font-bold text-lg border-2 border-black hover:bg-slate-50 transition-all"
-            >
-              비전 보기
-            </Link>
           </div>
         </motion.div>
       </section>

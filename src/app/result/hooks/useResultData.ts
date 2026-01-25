@@ -17,6 +17,10 @@ export const useResultData = () => {
   const [userImage, setUserImage] = useState<string | null>(null)
   const [twitterName, setTwitterName] = useState<string>('')
   const [userInfo, setUserInfo] = useState<{ name: string; gender: string } | null>(null)
+  // 피규어 모드 전용 상태
+  const [programType, setProgramType] = useState<string | null>(null)
+  const [figureImage, setFigureImage] = useState<string | null>(null)
+  const [figureChatData, setFigureChatData] = useState<any>(null)
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -64,6 +68,26 @@ export const useResultData = () => {
             setUserInfo(JSON.parse(savedUserInfo))
           } catch (e) {
             console.error('User info parse error', e)
+          }
+        }
+
+        // 피규어 모드 전용 데이터 로드
+        const savedProgramType = localStorage.getItem('programType')
+        if (savedProgramType) {
+          setProgramType(savedProgramType)
+        }
+
+        const savedFigureImage = localStorage.getItem('figureImage')
+        if (savedFigureImage) {
+          setFigureImage(savedFigureImage)
+        }
+
+        const savedFigureChatData = localStorage.getItem('figureChatData')
+        if (savedFigureChatData) {
+          try {
+            setFigureChatData(JSON.parse(savedFigureChatData))
+          } catch (e) {
+            console.error('Figure chat data parse error', e)
           }
         }
 
@@ -115,7 +139,12 @@ export const useResultData = () => {
     userInfo,
     displayedAnalysis: analysisResult,
     existingResultId: resultId, // URL에서 가져온 기존 결과 ID
-    idolName: userInfo?.name || null // 최애 이름 (입력 폼에서 입력한 이름)
+    idolName: userInfo?.name || null, // 최애 이름 (입력 폼에서 입력한 이름)
+    // 피규어 모드 전용
+    programType,
+    figureImage,
+    figureChatData,
+    isFigureMode: programType === 'figure'
   }
 }
 

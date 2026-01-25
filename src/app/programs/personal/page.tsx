@@ -73,7 +73,7 @@ export default function PersonalPage() {
 
   const faqs = [
     { q: "어떤 정보를 입력해야 하나요?", a: "본인을 표현하는 키워드, 선호 스타일, 좋아하는 분위기 등을 입력해주시면 됩니다. 사진 없이 텍스트만으로도 충분해요!" },
-    { q: "향수는 어떤 타입인가요?", a: "10ml 롤온 타입으로 제공됩니다. 휴대하기 좋고 은은하게 발향되어 일상에서 사용하기 좋아요." },
+    { q: "향수는 어떤 타입인가요?", a: "10ml 스프레이 타입으로 제공됩니다. 휴대하기 좋고 은은하게 발향되어 일상에서 사용하기 좋아요." },
     { q: "분석은 얼마나 걸리나요?", a: "AI 분석은 즉시 완료됩니다. 결과를 확인하신 후 마음에 드시면 주문하시면 돼요." },
     { q: "환불이 가능한가요?", a: "맞춤 제작 상품 특성상 제작 시작 후에는 환불이 어렵습니다. 분석 결과를 충분히 확인 후 주문해주세요." },
   ]
@@ -81,7 +81,7 @@ export default function PersonalPage() {
   const productIncludes = [
     { icon: FileText, name: "퍼스널리티 리포트", desc: "AI 분석 결과" },
     { icon: Star, name: "TOP 3 추천", desc: "맞춤 향수 추천" },
-    { icon: Droplets, name: "시그니처 향수 10ml", desc: "롤온 타입" },
+    { icon: Droplets, name: "시그니처 향수 10ml", desc: "스프레이 타입" },
     { icon: Package, name: "프리미엄 패키징", desc: "선물용 박스" },
   ]
 
@@ -196,7 +196,7 @@ export default function PersonalPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Droplets size={16} className="text-black" />
-                    <span>맞춤 향수 10ml (롤온 타입)</span>
+                    <span>맞춤 향수 10ml (스프레이 타입)</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Truck size={16} className="text-black" />
@@ -677,10 +677,7 @@ export default function PersonalPage() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onSuccess={() => {
-          setShowAuthModal(false)
-          router.push("/input?type=personal")
-        }}
+        redirectPath="/input?type=personal&mode=online"
       />
     </main>
   )

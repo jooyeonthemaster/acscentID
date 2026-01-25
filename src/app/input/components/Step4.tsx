@@ -17,7 +17,7 @@ export function Step4({ formData, setFormData, toggleCharmPoint, isIdol }: Step4
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="h-full px-6 py-4 flex flex-col overflow-hidden"
+            className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col overflow-hidden"
         >
             <StepHeader
                 title={`${isIdol ? "최애" : "나"}의 매력 포인트`}
@@ -27,19 +27,13 @@ export function Step4({ formData, setFormData, toggleCharmPoint, isIdol }: Step4
 
             <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-2">
-                    {CHARM_POINTS.map((point, index) => (
-                        <motion.div
+                    {CHARM_POINTS.map((point) => (
+                        <SelectChip
                             key={point}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.03 }}
-                        >
-                            <SelectChip
-                                label={point}
-                                isSelected={formData.charmPoints.includes(point)}
-                                onClick={() => toggleCharmPoint(point)}
-                            />
-                        </motion.div>
+                            label={point}
+                            isSelected={formData.charmPoints.includes(point)}
+                            onClick={() => toggleCharmPoint(point)}
+                        />
                     ))}
                 </div>
             </div>

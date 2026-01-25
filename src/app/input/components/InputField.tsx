@@ -34,10 +34,10 @@ export function InputField({
                 onFocus={onFocus}
                 onBlur={onBlur}
                 placeholder={placeholder}
-                className={`w-full bg-white/60 backdrop-blur-sm rounded-xl p-4 text-lg font-semibold text-slate-800 placeholder:text-slate-300 placeholder:font-normal outline-none transition-all duration-300 ${
+                className={`w-full bg-white/80 backdrop-blur-md rounded-xl p-4 text-lg font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all duration-300 border border-white/60 shadow-lg shadow-slate-900/5 ${
                     center ? "text-center" : ""
                 } ${letterSpacing ? "tracking-[0.3em]" : ""} ${
-                    isFocused ? "ring-2 ring-yellow-400 bg-white" : "hover:bg-white/80"
+                    isFocused ? "ring-2 ring-yellow-400 bg-white border-yellow-200" : "hover:bg-white/90 hover:border-white"
                 }`}
             />
         </motion.div>

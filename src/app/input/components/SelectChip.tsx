@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { memo } from "react"
 
 interface SelectChipProps {
     label: string
@@ -8,29 +8,25 @@ interface SelectChipProps {
     onClick: () => void
 }
 
-export function SelectChip({ label, isSelected, onClick }: SelectChipProps) {
+// memo로 불필요한 리렌더링 방지
+export const SelectChip = memo(function SelectChip({ label, isSelected, onClick }: SelectChipProps) {
     return (
-        <motion.button
-            whileTap={{ scale: 0.95 }}
+        <button
             onClick={onClick}
-            className={`relative w-full py-3.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden ${
-                isSelected
-                    ? "bg-yellow-400 text-slate-900 shadow-md"
-                    : "bg-white/60 text-slate-500 hover:bg-white/80"
-            }`}
+            className={`relative w-full py-3.5 px-4 rounded-xl text-sm font-semibold overflow-hidden border
+                transition-colors duration-150 ease-out
+                active:scale-[0.97] transform-gpu will-change-transform
+                ${isSelected
+                    ? "bg-yellow-400 text-slate-900 shadow-lg border-yellow-300"
+                    : "bg-white/90 text-slate-600 border-white/70 shadow-md hover:bg-white hover:border-slate-200"
+                }`}
         >
-            <span className="relative z-10 flex items-center justify-center gap-2">
+            <span className="flex items-center justify-center gap-2">
                 {isSelected && (
-                    <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="text-slate-800"
-                    >
-                        ✓
-                    </motion.span>
+                    <span className="text-slate-800 animate-[scaleIn_0.15s_ease-out]">✓</span>
                 )}
                 {label}
             </span>
-        </motion.button>
+        </button>
     )
-}
+})

@@ -1,17 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Sparkles, Camera, Star, Heart, CheckCircle2, X, AlertTriangle,
-  Package, Truck, Gift, Shield, Zap, ChevronDown, ChevronRight,
-  Palette, FileText, Box, Droplets, PenTool, Gem
+  Sparkles, Camera, Star, X, AlertTriangle,
+  Truck, ChevronDown, ChevronRight,
+  Box, Droplets, PenTool, Gem
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
+import { getReviewStats } from "@/lib/supabase/reviews"
+import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -30,53 +33,35 @@ const staggerContainer = {
   }
 }
 
-// 20개 색상 팔레트
-const colorPalette = [
-  { id: "c1", name: "체리 레드", hex: "#FF4757" },
-  { id: "c2", name: "코랄 핑크", hex: "#FF6B81" },
-  { id: "c3", name: "피치", hex: "#FFAB91" },
-  { id: "c4", name: "선셋 오렌지", hex: "#FFA502" },
-  { id: "c5", name: "레몬 옐로우", hex: "#FFDA79" },
-  { id: "c6", name: "민트 그린", hex: "#7BED9F" },
-  { id: "c7", name: "에메랄드", hex: "#2ED573" },
-  { id: "c8", name: "스카이 블루", hex: "#74B9FF" },
-  { id: "c9", name: "오션 블루", hex: "#3742FA" },
-  { id: "c10", name: "라벤더", hex: "#A29BFE" },
-  { id: "c11", name: "바이올렛", hex: "#9B59B6" },
-  { id: "c12", name: "로즈 핑크", hex: "#FFB5BA" },
-  { id: "c13", name: "아쿠아", hex: "#81ECEC" },
-  { id: "c14", name: "테라코타", hex: "#CD8D7B" },
-  { id: "c15", name: "올리브", hex: "#A6BB8D" },
-  { id: "c16", name: "모카", hex: "#8D7B68" },
-  { id: "c17", name: "아이보리", hex: "#FFF5B5" },
-  { id: "c18", name: "쿨 그레이", hex: "#DFE6E9" },
-  { id: "c19", name: "차콜", hex: "#636E72" },
-  { id: "c20", name: "퓨어 화이트", hex: "#FFFFFF" },
-]
-
 export default function FigurePage() {
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedColors, setSelectedColors] = useState<string[]>([])
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-  // 색상 선택 토글
-  const toggleColor = (colorId: string) => {
-    setSelectedColors(prev => {
-      if (prev.includes(colorId)) {
-        return prev.filter(c => c !== colorId)
-      }
-      if (prev.length >= 4) {
-        return prev // 이미 4개 선택됨
-      }
-      return [...prev, colorId]
-    })
-  }
+  // 리뷰 관련 상태
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showReviewWriteModal, setShowReviewWriteModal] = useState(false)
+  const [reviewStats, setReviewStats] = useState<ReviewStatsType | null>(null)
+  const [reviewRatingFilter, setReviewRatingFilter] = useState<number | null>(null)
 
   const isLoggedIn = !!(user || unifiedUser)
+  const currentUserId = user?.id || unifiedUser?.id
+
+  // 리뷰 통계 로드
+  useEffect(() => {
+    const loadReviewStats = async () => {
+      try {
+        const stats = await getReviewStats('figure')
+        setReviewStats(stats)
+      } catch (error) {
+        console.error('Failed to load review stats:', error)
+      }
+    }
+    loadReviewStats()
+  }, [])
 
   const productImages = [
     "/제목 없는 디자인 (3)/1.png",
@@ -103,25 +88,18 @@ export default function FigurePage() {
     setShowAuthModal(true)
   }
 
-  const reviews = [
-    { name: "피규어덕후", character: "하츠네 미쿠", text: "3D 모델링 퀄리티가 미쳤어요... 직접 색칠하는 재미도 있고 향기까지 최고!", rating: 5 },
-    { name: "오타쿠공주", character: "원신 나히다", text: "나히다 피규어 받고 울었어요 ㅠㅠ 향기도 숲속 느낌나서 찰떡이에요", rating: 5 },
-    { name: "굿즈수집가", character: "주술회전 고죠", text: "선물용으로 샀는데 친구가 너무 좋아해서 저도 주문했어요ㅋㅋ", rating: 5 },
-  ]
-
   const faqs = [
     { q: "어떤 이미지를 보내야 하나요?", a: "캐릭터의 전신 또는 상반신이 잘 보이는 이미지가 좋아요. 일러스트, 애니메이션 캡처, 게임 스크린샷 모두 가능합니다!" },
     { q: "3D 모델링은 어떤 스타일인가요?", a: "귀여운 '룩업(Look Up)' 스타일로 제작됩니다. SD 캐릭터처럼 2등신~3등신의 아담하고 귀여운 비율이에요." },
-    { q: "색칠은 어떻게 하나요?", a: "단색 피규어와 함께 4색 아크릴 마커가 제공됩니다. 마르면 물에 안 지워지는 전문가용이에요. 처음이어도 쉽게 할 수 있어요!" },
-    { q: "향기는 얼마나 오래가나요?", a: "샤쉐스톤에 향을 뿌려 사용하시면 약 2-3주 정도 향이 유지됩니다. 리필용 향수도 별도 구매 가능해요." },
+    { q: "향 에센스는 어떻게 사용하나요?", a: "샤쉐스톤에 AI 맞춤 향 에센스를 뿌려 디퓨저 스팟에 올려두시면 됩니다. 피규어와 함께 전시하면 향기로운 덕질 공간 완성!" },
+    { q: "향기는 얼마나 오래가나요?", a: "샤쉐스톤에 향을 뿌려 사용하시면 약 2-3주 정도 향이 유지됩니다. 리필용 향 에센스도 별도 구매 가능해요." },
   ]
 
   const productComponents = [
     { icon: Box, name: "3D 모델링 피규어", desc: "룩업 스타일 단색 피규어", color: "bg-cyan-400" },
-    { icon: PenTool, name: "4색 아크릴 마커", desc: "선택한 컬러 세트", color: "bg-pink-400" },
     { icon: Gem, name: "샤쉐스톤", desc: "향기를 담는 천연석", color: "bg-purple-400" },
     { icon: Droplets, name: "시그니처 디퓨저", desc: "피규어 전용 스팟", color: "bg-blue-400" },
-    { icon: Sparkles, name: "AI 맞춤 향수 5ml", desc: "캐릭터 분석 기반", color: "bg-yellow-400" },
+    { icon: Sparkles, name: "AI 맞춤 향 에센스 5ml", desc: "캐릭터 분석 기반", color: "bg-yellow-400" },
   ]
 
   return (
@@ -131,27 +109,27 @@ export default function FigurePage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-32 pb-12 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <section className="pt-36 lg:pt-52 pb-12 px-4 md:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
 
             {/* 왼쪽: 이미지 갤러리 */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex-1 lg:max-w-[55%]"
+              className="flex-1 lg:max-w-[45%]"
             >
               {/* 메인 이미지 */}
-              <div className="relative bg-white border-2 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0_0_black] mb-4">
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
-                  <span className="px-3 py-1 bg-cyan-400 text-black text-xs font-black rounded-full border-2 border-black">
+              <div className="relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl overflow-hidden shadow-[6px_6px_0_0_black] lg:shadow-[8px_8px_0_0_black] mb-3 lg:mb-4">
+                <div className="absolute top-3 left-3 lg:top-4 lg:left-4 z-10 flex gap-2">
+                  <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-cyan-400 text-black text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
                     NEW
                   </span>
-                  <span className="px-3 py-1 bg-purple-400 text-white text-xs font-black rounded-full border-2 border-black">
+                  <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-purple-400 text-white text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
                     DIY KIT
                   </span>
                 </div>
-                <div className="aspect-square flex items-center justify-center p-8 bg-gradient-to-br from-cyan-50 to-blue-50">
+                <div className="aspect-square flex items-center justify-center p-6 lg:p-8 bg-gradient-to-br from-cyan-50 to-blue-50">
                   <motion.img
                     key={selectedImage}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -159,20 +137,20 @@ export default function FigurePage() {
                     transition={{ duration: 0.3 }}
                     src={productImages[selectedImage]}
                     alt="제품 이미지"
-                    className="w-[85%] h-[85%] object-contain"
+                    className="w-[80%] h-[80%] lg:w-[85%] lg:h-[85%] object-contain"
                   />
                 </div>
               </div>
 
               {/* 썸네일 */}
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-2 lg:gap-3 justify-center">
                 {productImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`w-20 h-20 rounded-xl border-2 overflow-hidden transition-all ${
+                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${
                       selectedImage === idx
-                        ? 'border-black shadow-[3px_3px_0_0_black] scale-105'
+                        ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
                         : 'border-slate-300 hover:border-slate-500'
                     }`}
                   >
@@ -198,87 +176,44 @@ export default function FigurePage() {
               </div>
 
               {/* 타이틀 */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                  <Star className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                  <Star className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                  <Star className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                  <Star className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                  <span className="text-sm font-bold text-slate-600 ml-1">4.8 (1,203)</span>
+              <div className="mb-5">
+                <div className="mb-2">
+                  <ReviewTrigger
+                    averageRating={reviewStats?.average_rating || 4.8}
+                    totalCount={reviewStats?.total_count || 0}
+                    onClick={() => setShowReviewModal(true)}
+                  />
                 </div>
-                <h1 className="text-3xl md:text-4xl font-black text-black leading-tight mb-3">
-                  3D 피규어 디퓨저<br />
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500">
-                    최애를 직접 만들다
+                    3D 피규어 디퓨저
                   </span>
                 </h1>
-                <p className="text-slate-600 font-medium">
-                  AI가 3D로 모델링한 최애 피규어 + 직접 색칠하는 DIY 키트
+                <p className="text-sm lg:text-base text-slate-600 font-medium">
+                  AI가 3D로 모델링한 최애 피규어♥<br />
+                  직접 색칠하고 향기까지 더해보세요
                 </p>
               </div>
 
-              {/* 태그 */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["#3D모델링", "#DIY키트", "#피규어", "#디퓨저", "#덕질굿즈"].map((tag) => (
-                  <span key={tag} className="px-3 py-1 bg-cyan-100 text-cyan-800 text-sm font-bold rounded-full border border-cyan-300">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {/* 가격 + 구성품 안내 */}
+              <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black] mb-5">
+                {/* 가격 */}
+                <div className="flex items-end gap-2 mb-3">
+                  <span className="text-xl lg:text-2xl font-black text-black">48,000원</span>
+                  <span className="text-xs lg:text-sm text-slate-400 line-through">68,000원</span>
+                  <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">29% OFF</span>
+                </div>
 
-              {/* 가격 */}
-              <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black] mb-6">
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-4xl font-black text-black">48,000원</span>
-                  <span className="text-lg text-slate-400 line-through">68,000원</span>
-                  <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">29% OFF</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Box size={16} className="text-cyan-600" />
-                    <span>3D 모델링 피규어 + 4색 마커 키트</span>
+                {/* 구성품 안내 */}
+                <div className="bg-cyan-50 border border-cyan-200 rounded-lg lg:rounded-xl p-2.5 lg:p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Star size={14} className="fill-cyan-400 text-cyan-400" />
+                    <span className="font-bold text-xs lg:text-sm text-black">3D 피규어 + 디퓨저 세트</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Truck size={16} className="text-cyan-600" />
-                    <span>제작 후 2~3일 배송 (무료배송)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Gift size={16} className="text-cyan-600" />
-                    <span className="text-purple-600 font-bold">🎁 샤쉐스톤 + AI 맞춤 향수 포함!</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 컬러 선택 */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-bold text-slate-700">🎨 마커 4색 선택</p>
-                  <span className={`text-xs font-bold ${selectedColors.length === 4 ? 'text-green-600' : 'text-slate-400'}`}>
-                    {selectedColors.length}/4
-                  </span>
-                </div>
-                <div className="grid grid-cols-10 gap-1.5">
-                  {colorPalette.map((color) => {
-                    const isSelected = selectedColors.includes(color.id)
-                    const isDisabled = !isSelected && selectedColors.length >= 4
-                    return (
-                      <button
-                        key={color.id}
-                        onClick={() => toggleColor(color.id)}
-                        disabled={isDisabled}
-                        className={`aspect-square rounded-lg border-2 transition-all ${
-                          isSelected
-                            ? 'border-black shadow-[2px_2px_0_0_black] ring-2 ring-cyan-400'
-                            : isDisabled
-                            ? 'border-transparent opacity-30 cursor-not-allowed'
-                            : 'border-transparent hover:border-black'
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      />
-                    )
-                  })}
+                  <ul className="space-y-0.5 text-[11px] lg:text-xs text-slate-600 pl-5">
+                    <li className="list-disc">샤쉐스톤 + AI 맞춤 향 에센스 포함</li>
+                    <li className="list-disc">제작 후 2~3일 배송</li>
+                  </ul>
                 </div>
               </div>
 
@@ -286,13 +221,13 @@ export default function FigurePage() {
               <button
                 onClick={handleStartClick}
                 disabled={loading}
-                className="w-full py-5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-xl rounded-2xl border-2 border-black shadow-[6px_6px_0_0_black] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full py-4 lg:py-5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-lg lg:text-xl rounded-xl lg:rounded-2xl border-2 border-black shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] lg:hover:translate-x-[3px] lg:hover:translate-y-[3px] lg:hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-2 lg:gap-3 disabled:opacity-50"
               >
-                <Camera size={24} />
+                <Camera size={20} className="lg:w-6 lg:h-6" />
                 최애 이미지로 주문하기
               </button>
 
-              <p className="text-center text-sm text-slate-500 mt-3">
+              <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
                 📸 최애 사진만 보내주세요! AI가 3D로 만들어드려요
               </p>
             </motion.div>
@@ -336,21 +271,39 @@ export default function FigurePage() {
             </motion.h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {/* 메인 구성품 - 2x2 그리드 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {productComponents.map((item, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black] text-center"
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="group relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:shadow-[6px_6px_0_0_black] lg:hover:shadow-[8px_8px_0_0_black] transition-shadow"
               >
-                <div className={`w-12 h-12 ${item.color} border-2 border-black rounded-xl shadow-[2px_2px_0_0_black] flex items-center justify-center mx-auto mb-3`}>
-                  <item.icon size={24} className="text-white" />
+                {/* 번호 배지 */}
+                <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-7 h-7 lg:w-8 lg:h-8 bg-black text-white rounded-full flex items-center justify-center font-black text-xs lg:text-sm border-2 border-white">
+                  {idx + 1}
                 </div>
-                <h3 className="font-black text-sm text-black mb-1">{item.name}</h3>
-                <p className="text-xs text-slate-500">{item.desc}</p>
+
+                {/* 아이콘 */}
+                <div className={`w-14 h-14 lg:w-16 lg:h-16 ${item.color} border-2 border-black rounded-xl lg:rounded-2xl shadow-[3px_3px_0_0_black] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
+                  <item.icon size={28} className="text-white lg:w-8 lg:h-8" />
+                </div>
+
+                {/* 텍스트 */}
+                <h3 className="font-black text-sm lg:text-base text-black mb-1 text-center">{item.name}</h3>
+                <p className="text-xs lg:text-sm text-slate-500 text-center">{item.desc}</p>
               </motion.div>
             ))}
           </div>
+
+          {/* 하단 안내 */}
+          <motion.div variants={fadeInUp} className="mt-8 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-100 to-purple-100 rounded-full border border-slate-200">
+              <Truck size={16} className="text-slate-600" />
+              <span className="text-sm text-slate-600 font-medium">전 구성품 한 박스에 담아 배송!</span>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
@@ -415,35 +368,62 @@ export default function FigurePage() {
             </motion.h2>
           </div>
 
-          <div className="relative">
-            {/* 연결선 */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-black -translate-y-1/2 z-0" />
+          {/* 모바일: 2x2 그리드 / 데스크톱: 4열 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+            {[
+              { step: "01", title: "이미지 전송", desc: "최애 사진을 업로드해요", icon: Camera, color: "bg-cyan-400" },
+              { step: "02", title: "3D 모델링", desc: "AI가 룩업 스타일로 제작", icon: Box, color: "bg-blue-400" },
+              { step: "03", title: "향기 분석", desc: "캐릭터에 맞는 향 조향", icon: Sparkles, color: "bg-purple-400" },
+              { step: "04", title: "키트 배송", desc: "풀 패키지로 배송!", icon: Truck, color: "bg-pink-400" },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                variants={fadeInUp}
+                className="relative bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black]"
+              >
+                {/* 스텝 번호 배지 */}
+                <div className="absolute -top-2 -left-2 lg:-top-3 lg:-left-3 w-7 h-7 lg:w-8 lg:h-8 bg-black text-white rounded-full flex items-center justify-center font-black text-xs border-2 border-white">
+                  {item.step}
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
-              {[
-                { step: "01", title: "이미지 전송", desc: "최애 사진을 업로드해요", icon: Camera, color: "bg-cyan-400" },
-                { step: "02", title: "3D 모델링", desc: "AI가 룩업 스타일로 제작", icon: Box, color: "bg-blue-400" },
-                { step: "03", title: "향기 분석", desc: "캐릭터에 맞는 향 조향", icon: Sparkles, color: "bg-purple-400" },
-                { step: "04", title: "키트 배송", desc: "풀 패키지로 배송!", icon: Truck, color: "bg-pink-400" },
-              ].map((item, idx) => (
-                <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
-                  <div className={`w-20 h-20 ${item.color} border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] flex items-center justify-center mb-4`}>
-                    <item.icon size={32} className="text-white" />
+                {/* 아이콘 */}
+                <div className={`w-12 h-12 lg:w-16 lg:h-16 ${item.color} border-2 border-black rounded-xl lg:rounded-2xl shadow-[2px_2px_0_0_black] flex items-center justify-center mx-auto mb-3`}>
+                  <item.icon size={24} className="text-white lg:w-8 lg:h-8" />
+                </div>
+
+                {/* 텍스트 */}
+                <h3 className="text-sm lg:text-base font-black text-black mb-1 text-center">{item.title}</h3>
+                <p className="text-[11px] lg:text-sm text-slate-500 text-center leading-tight">{item.desc}</p>
+
+                {/* 연결 화살표 (마지막 아이템 제외) */}
+                {idx < 3 && (
+                  <div className={`hidden lg:flex absolute top-1/2 -right-4 w-8 h-8 items-center justify-center text-slate-300 font-bold text-xl ${idx === 1 ? 'lg:hidden' : ''}`}>
+                    →
                   </div>
-                  <span className="text-3xl font-black text-slate-200 mb-2">{item.step}</span>
-                  <h3 className="text-lg font-black text-black mb-1">{item.title}</h3>
-                  <p className="text-sm text-slate-600">{item.desc}</p>
-                </motion.div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 하단 진행 표시 */}
+          <motion.div variants={fadeInUp} className="mt-6 flex justify-center items-center gap-2">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4].map((num) => (
+                <div key={num} className="flex items-center">
+                  <div className="w-2 h-2 lg:w-3 lg:h-3 bg-black rounded-full" />
+                  {num < 4 && <div className="w-4 lg:w-8 h-0.5 bg-black" />}
+                </div>
               ))}
             </div>
-          </div>
+            <span className="text-xs lg:text-sm text-slate-500 ml-2">약 3-5일 소요</span>
+          </motion.div>
         </motion.div>
       </section>
 
       {/* ============================================
           결과물 미리보기
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-white border-y-2 border-black">
+      <section className="py-10 lg:py-16 px-4 md:px-8 bg-white border-y-2 border-black">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -451,65 +431,65 @@ export default function FigurePage() {
           variants={staggerContainer}
           className="max-w-6xl mx-auto"
         >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-pink-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
+          <div className="text-center mb-8 lg:mb-12">
+            <motion.div variants={fadeInUp} className="inline-block px-3 lg:px-4 py-1.5 lg:py-2 bg-pink-400 text-white text-xs lg:text-sm font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] mb-3 lg:mb-4">
               🎁 RESULT PREVIEW
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-4">
+            <motion.h2 variants={fadeInUp} className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-3 lg:mb-4">
               이렇게 완성돼요!
             </motion.h2>
           </div>
 
-          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-cyan-50 to-purple-50 border-2 border-black rounded-3xl p-6 md:p-10 shadow-[8px_8px_0_0_black]">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-cyan-50 to-purple-50 border-2 border-black rounded-2xl lg:rounded-3xl p-4 lg:p-10 shadow-[4px_4px_0_0_black] lg:shadow-[8px_8px_0_0_black]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
 
               {/* 왼쪽: 완성 과정 */}
               <div className="space-y-4">
-                <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black]">
-                  <h4 className="font-black text-lg mb-4 flex items-center gap-2">
-                    <PenTool size={20} className="text-pink-500" />
+                <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black]">
+                  <h4 className="font-black text-base lg:text-lg mb-3 lg:mb-4 flex items-center gap-2">
+                    <PenTool size={18} className="text-pink-500 lg:w-5 lg:h-5" />
                     DIY 색칠 과정
                   </h4>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 text-center">
-                      <div className="w-16 h-16 mx-auto bg-slate-100 rounded-xl border-2 border-black mb-2 flex items-center justify-center">
-                        <span className="text-2xl">⬜</span>
+                  <div className="flex items-center justify-between gap-1 lg:gap-4">
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-slate-100 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
+                        <span className="text-lg lg:text-2xl">⬜</span>
                       </div>
-                      <p className="text-xs font-bold text-slate-500">단색 피규어</p>
+                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">단색 피규어</p>
                     </div>
-                    <div className="text-2xl">→</div>
-                    <div className="flex-1 text-center">
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-pink-200 to-purple-200 rounded-xl border-2 border-black mb-2 flex items-center justify-center">
-                        <span className="text-2xl">🎨</span>
+                    <div className="text-base lg:text-2xl text-slate-400 flex-shrink-0">→</div>
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-gradient-to-br from-pink-200 to-purple-200 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
+                        <span className="text-lg lg:text-2xl">🎨</span>
                       </div>
-                      <p className="text-xs font-bold text-slate-500">직접 색칠</p>
+                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">직접 색칠</p>
                     </div>
-                    <div className="text-2xl">→</div>
-                    <div className="flex-1 text-center">
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-cyan-200 to-blue-200 rounded-xl border-2 border-black mb-2 flex items-center justify-center">
-                        <span className="text-2xl">✨</span>
+                    <div className="text-base lg:text-2xl text-slate-400 flex-shrink-0">→</div>
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-gradient-to-br from-cyan-200 to-blue-200 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
+                        <span className="text-lg lg:text-2xl">✨</span>
                       </div>
-                      <p className="text-xs font-bold text-slate-500">완성!</p>
+                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">완성!</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black]">
-                  <h4 className="font-black text-lg mb-3 flex items-center gap-2">
-                    <Droplets size={20} className="text-blue-500" />
+                <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black]">
+                  <h4 className="font-black text-base lg:text-lg mb-2 lg:mb-3 flex items-center gap-2">
+                    <Droplets size={18} className="text-blue-500 lg:w-5 lg:h-5" />
                     디퓨저 사용법
                   </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-3 p-2 bg-cyan-50 rounded-lg">
-                      <span className="w-6 h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-xs font-bold border border-black">1</span>
+                  <div className="space-y-1.5 lg:space-y-2 text-xs lg:text-sm">
+                    <div className="flex items-center gap-2 lg:gap-3 p-1.5 lg:p-2 bg-cyan-50 rounded-lg">
+                      <span className="w-5 h-5 lg:w-6 lg:h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-[10px] lg:text-xs font-bold border border-black flex-shrink-0">1</span>
                       <span>샤쉐스톤을 디퓨저 스팟에 올려요</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 bg-cyan-50 rounded-lg">
-                      <span className="w-6 h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-xs font-bold border border-black">2</span>
-                      <span>AI 맞춤 향수를 스톤에 뿌려요</span>
+                    <div className="flex items-center gap-2 lg:gap-3 p-1.5 lg:p-2 bg-cyan-50 rounded-lg">
+                      <span className="w-5 h-5 lg:w-6 lg:h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-[10px] lg:text-xs font-bold border border-black flex-shrink-0">2</span>
+                      <span>AI 맞춤 향 에센스를 스톤에 뿌려요</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 bg-cyan-50 rounded-lg">
-                      <span className="w-6 h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-xs font-bold border border-black">3</span>
+                    <div className="flex items-center gap-2 lg:gap-3 p-1.5 lg:p-2 bg-cyan-50 rounded-lg">
+                      <span className="w-5 h-5 lg:w-6 lg:h-6 bg-cyan-400 text-white rounded-full flex items-center justify-center text-[10px] lg:text-xs font-bold border border-black flex-shrink-0">3</span>
                       <span>피규어와 함께 전시하면 끝! 💕</span>
                     </div>
                   </div>
@@ -517,18 +497,18 @@ export default function FigurePage() {
               </div>
 
               {/* 오른쪽: 완성품 이미지 */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center mt-4 lg:mt-0">
                 <div className="relative">
-                  <div className="w-64 h-64 bg-white border-2 border-black rounded-3xl shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
+                  <div className="w-48 h-48 lg:w-64 lg:h-64 bg-white border-2 border-black rounded-2xl lg:rounded-3xl shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
                     <img src="/제목 없는 디자인 (3)/1.png" alt="완성품" className="w-[80%] h-[80%] object-contain" />
                   </div>
-                  <div className="absolute -top-3 -right-3 px-4 py-2 bg-cyan-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-sm">
+                  <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 px-2.5 lg:px-4 py-1 lg:py-2 bg-cyan-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-xs lg:text-sm">
                     3D 제작 ✨
                   </div>
                 </div>
-                <div className="mt-6 text-center">
-                  <h3 className="text-2xl font-black text-black mb-2">나만의 최애 피규어</h3>
-                  <p className="text-slate-600">세상에 하나뿐인 DIY 굿즈 완성!</p>
+                <div className="mt-4 lg:mt-6 text-center">
+                  <h3 className="text-xl lg:text-2xl font-black text-black mb-1 lg:mb-2">나만의 최애 피규어</h3>
+                  <p className="text-sm lg:text-base text-slate-600">세상에 하나뿐인 DIY 굿즈 완성!</p>
                 </div>
               </div>
             </div>
@@ -566,17 +546,17 @@ export default function FigurePage() {
                 color: "bg-cyan-400"
               },
               {
-                icon: PenTool,
-                title: "프리미엄 마커 세트",
-                desc: "물에 안 지워지는 전문가용 아크릴 마커 4색. 초보자도 쉽게!",
-                badge: "4색 포함",
+                icon: Gem,
+                title: "프리미엄 샤쉐스톤",
+                desc: "천연 원석으로 만든 향기 디퓨저 스톤. 오래 지속되는 향!",
+                badge: "천연석",
                 color: "bg-pink-400"
               },
               {
                 icon: Sparkles,
-                title: "AI 맞춤 향수",
+                title: "AI 맞춤 향 에센스",
                 desc: "캐릭터 이미지를 분석해 어울리는 향을 조향. 5ml 제공!",
-                badge: "무료 증정",
+                badge: "포함사항",
                 color: "bg-purple-400"
               },
             ].map((item, idx) => (
@@ -602,7 +582,7 @@ export default function FigurePage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-white">
+      <section id="reviews" className="py-16 px-4 md:px-8 bg-white">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -614,36 +594,38 @@ export default function FigurePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-yellow-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2">
               덕후들의 실제 후기
             </motion.h2>
+            <motion.button
+              variants={fadeInUp}
+              onClick={() => setShowReviewModal(true)}
+              className="text-sm text-slate-500 hover:text-black transition-colors underline underline-offset-4"
+            >
+              전체 리뷰 보기 →
+            </motion.button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((review, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-cyan-50 border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black]"
-              >
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} size={16} className="fill-cyan-400 text-cyan-400" />
-                  ))}
-                </div>
-                <p className="text-slate-700 mb-4 leading-relaxed">"{review.text}"</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-black text-black">{review.name}</p>
-                    <p className="text-xs text-slate-500">{review.character} 제작</p>
-                  </div>
-                  <div className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">
-                    구매인증
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* 리뷰 통계 */}
+          {reviewStats && (
+            <motion.div variants={fadeInUp} className="mb-8">
+              <ReviewStats
+                stats={reviewStats}
+                onRatingFilter={setReviewRatingFilter}
+                selectedRating={reviewRatingFilter}
+              />
+            </motion.div>
+          )}
+
+          {/* 리뷰 목록 */}
+          <motion.div variants={fadeInUp}>
+            <ReviewList
+              programType="figure"
+              currentUserId={currentUserId}
+              ratingFilter={reviewRatingFilter}
+              onRatingFilterChange={setReviewRatingFilter}
+            />
+          </motion.div>
         </motion.div>
       </section>
 
@@ -821,9 +803,32 @@ export default function FigurePage() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        redirectPath="/input?type=figure&mode=online"
+      />
+
+      {/* 리뷰 모달 */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        programType="figure"
+        programName="3D 피규어 디퓨저"
+        currentUserId={currentUserId}
+        onWriteReview={() => {
+          setShowReviewModal(false)
+          setShowReviewWriteModal(true)
+        }}
+      />
+
+      {/* 리뷰 작성 모달 */}
+      <ReviewWriteModal
+        isOpen={showReviewWriteModal}
+        onClose={() => setShowReviewWriteModal(false)}
+        programType="figure"
+        programName="3D 피규어 디퓨저"
+        userId={currentUserId || ''}
         onSuccess={() => {
-          setShowAuthModal(false)
-          router.push("/input?type=figure")
+          // 리뷰 통계 새로고침
+          getReviewStats('figure').then(setReviewStats)
         }}
       />
     </main>

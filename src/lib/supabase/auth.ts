@@ -3,11 +3,17 @@ import { supabase } from './client'
 /**
  * Google OAuth 로그인
  */
-export async function signInWithGoogle(redirectTo?: string) {
+export async function signInWithGoogle(nextPath?: string) {
+  // nextPath: 로그인 후 이동할 경로 (예: /input?type=idol_image, /mypage)
+  const callbackUrl = new URL('/auth/callback', window.location.origin)
+  if (nextPath) {
+    callbackUrl.searchParams.set('next', nextPath)
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+      redirectTo: callbackUrl.toString(),
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

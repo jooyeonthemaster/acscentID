@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -12,6 +12,9 @@ import {
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
+import { getReviewStats } from "@/lib/supabase/reviews"
+import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -38,7 +41,27 @@ export default function IdolImagePage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
+  // 리뷰 관련 상태
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showReviewWriteModal, setShowReviewWriteModal] = useState(false)
+  const [reviewStats, setReviewStats] = useState<ReviewStatsType | null>(null)
+  const [reviewRatingFilter, setReviewRatingFilter] = useState<number | null>(null)
+
   const isLoggedIn = !!(user || unifiedUser)
+  const currentUserId = user?.id || unifiedUser?.id
+
+  // 리뷰 통계 로드
+  useEffect(() => {
+    const loadReviewStats = async () => {
+      try {
+        const stats = await getReviewStats('idol_image')
+        setReviewStats(stats)
+      } catch (error) {
+        console.error('Failed to load review stats:', error)
+      }
+    }
+    loadReviewStats()
+  }, [])
 
   const productImages = [
     "/제목 없는 디자인 (3)/2.png",
@@ -68,15 +91,8 @@ export default function IdolImagePage() {
     setShowAuthModal(true)
   }
 
-  const reviews = [
-    { name: "윤지★", idol: "방탄소년단 뷔", text: "진짜 뷔 느낌 그대로예요... 달달하면서 시크한 향이 너무 좋아요 ㅠㅠ", rating: 5 },
-    { name: "민트초코", idol: "aespa 카리나", text: "언니 분위기 그대로! 시원하면서 세련된 향 완전 최애각", rating: 5 },
-    { name: "덕질은행복", idol: "스트레이키즈 현진", text: "이 향 뿌리면 현진이 옆에 있는 느낌ㅋㅋㅋ 추천합니다!", rating: 5 },
-  ]
-
   const faqs = [
     { q: "어떤 사진을 올려야 하나요?", a: "최애의 얼굴이 잘 보이는 사진이면 OK! 화보, 무대, 셀카 등 어떤 사진이든 분석 가능해요. 고화질일수록 더 정확한 분석이 가능합니다." },
-    { q: "분석 결과가 마음에 안 들면요?", a: "피드백을 남겨주시면 AI가 다시 분석해서 더 맞춤화된 레시피를 제안해드려요. 무제한 피드백이 가능합니다!" },
     { q: "향수는 어떻게 받나요?", a: "결제 완료 후 2~3일 내에 예쁜 패키지에 담아 배송해드려요. 분석 보고서도 함께 동봉됩니다." },
     { q: "선물용으로 구매 가능한가요?", a: "물론이죠! 주문 시 선물 포장 옵션을 선택하시면 특별한 포장과 메시지 카드를 함께 보내드려요." },
   ]
@@ -88,27 +104,27 @@ export default function IdolImagePage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-32 pb-12 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <section className="pt-36 lg:pt-52 pb-12 px-4 md:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
 
             {/* 왼쪽: 이미지 갤러리 */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex-1 lg:max-w-[55%]"
+              className="flex-1 lg:max-w-[45%]"
             >
               {/* 메인 이미지 */}
-              <div className="relative bg-white border-2 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0_0_black] mb-4">
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
-                  <span className="px-3 py-1 bg-yellow-400 text-black text-xs font-black rounded-full border-2 border-black">
+              <div className="relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl overflow-hidden shadow-[6px_6px_0_0_black] lg:shadow-[8px_8px_0_0_black] mb-3 lg:mb-4">
+                <div className="absolute top-3 left-3 lg:top-4 lg:left-4 z-10 flex gap-2">
+                  <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-yellow-400 text-black text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
                     BEST
                   </span>
-                  <span className="px-3 py-1 bg-pink-400 text-white text-xs font-black rounded-full border-2 border-black">
+                  <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-pink-400 text-white text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
                     K-POP
                   </span>
                 </div>
-                <div className="aspect-square flex items-center justify-center p-8 bg-gradient-to-br from-yellow-50 to-amber-50">
+                <div className="aspect-square flex items-center justify-center p-6 lg:p-8 bg-gradient-to-br from-yellow-50 to-amber-50">
                   <motion.img
                     key={selectedImage}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -116,20 +132,20 @@ export default function IdolImagePage() {
                     transition={{ duration: 0.3 }}
                     src={productImages[selectedImage]}
                     alt="제품 이미지"
-                    className="w-[85%] h-[85%] object-contain"
+                    className="w-[80%] h-[80%] lg:w-[85%] lg:h-[85%] object-contain"
                   />
                 </div>
               </div>
 
               {/* 썸네일 */}
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-2 lg:gap-3 justify-center">
                 {productImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`w-20 h-20 rounded-xl border-2 overflow-hidden transition-all ${
+                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${
                       selectedImage === idx
-                        ? 'border-black shadow-[3px_3px_0_0_black] scale-105'
+                        ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
                         : 'border-slate-300 hover:border-slate-500'
                     }`}
                   >
@@ -155,68 +171,44 @@ export default function IdolImagePage() {
               </div>
 
               {/* 타이틀 */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-bold text-slate-600 ml-1">4.9 (2,847)</span>
+              <div className="mb-5">
+                <div className="mb-2">
+                  <ReviewTrigger
+                    averageRating={reviewStats?.average_rating || 4.9}
+                    totalCount={reviewStats?.total_count || 0}
+                    onClick={() => setShowReviewModal(true)}
+                  />
                 </div>
-                <h1 className="text-3xl md:text-4xl font-black text-black leading-tight mb-3">
-                  AI 아이돌 이미지 분석<br />
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500">
-                    최애의 향기를 담다
+                    AI 이미지 분석 향수
                   </span>
                 </h1>
-                <p className="text-slate-600 font-medium">
-                  레전드 짤 한 장으로 찾는 나만의 최애 향수
+                <p className="text-sm lg:text-base text-slate-600 font-medium">
+                  내가 좋아하는 사진과 나만의 최애 향♥<br />
+                  이제 사진을 향기로 간직하세요
                 </p>
               </div>
 
-              {/* 태그 */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["#AI분석", "#맞춤향수", "#K-POP", "#덕질필수", "#선물추천"].map((tag) => (
-                  <span key={tag} className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-bold rounded-full border border-yellow-300">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* 가격 */}
-              <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black] mb-6">
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-4xl font-black text-black">24,000원</span>
-                  <span className="text-lg text-slate-400 line-through">35,000원</span>
-                  <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">31% OFF</span>
+              {/* 가격 + 구성품 안내 */}
+              <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black] mb-5">
+                {/* 가격 */}
+                <div className="flex items-end gap-2 mb-3">
+                  <span className="text-xl lg:text-2xl font-black text-black">24,000원</span>
+                  <span className="text-xs lg:text-sm text-slate-400 line-through">35,000원</span>
+                  <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">31% OFF</span>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Package size={16} className="text-yellow-600" />
-                    <span>10ml 롤온 향수 포함</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Truck size={16} className="text-yellow-600" />
-                    <span>주문 후 2~3일 배송 (무료배송)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Gift size={16} className="text-yellow-600" />
-                    <span className="text-pink-600 font-bold">🎁 실물 분석 보고서 특별 증정!</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* 옵션 선택 */}
-              <div className="mb-6">
-                <p className="text-sm font-bold text-slate-700 mb-2">용량 선택</p>
-                <div className="flex gap-3">
-                  <button className="flex-1 py-3 bg-black text-white font-bold rounded-xl border-2 border-black">
-                    10ml · 24,000원
-                  </button>
-                  <button className="flex-1 py-3 bg-white text-black font-bold rounded-xl border-2 border-black hover:bg-yellow-50 transition-colors">
-                    50ml · 48,000원
-                  </button>
+                {/* 구성품 안내 */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg lg:rounded-xl p-2.5 lg:p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                    <span className="font-bold text-xs lg:text-sm text-black">뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서</span>
+                  </div>
+                  <ul className="space-y-0.5 text-[11px] lg:text-xs text-slate-600 pl-5">
+                    <li className="list-disc">10ml / 50ml 용량 선택 가능</li>
+                    <li className="list-disc">주문 후 2~3일 내 배송</li>
+                  </ul>
                 </div>
               </div>
 
@@ -224,42 +216,16 @@ export default function IdolImagePage() {
               <button
                 onClick={handleStartClick}
                 disabled={loading}
-                className="w-full py-5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-xl rounded-2xl border-2 border-black shadow-[6px_6px_0_0_black] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full py-4 lg:py-5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-lg lg:text-xl rounded-xl lg:rounded-2xl border-2 border-black shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] lg:hover:translate-x-[3px] lg:hover:translate-y-[3px] lg:hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-2 lg:gap-3 disabled:opacity-50"
               >
-                <Camera size={24} />
+                <Camera size={20} className="lg:w-6 lg:h-6" />
                 지금 바로 분석 시작하기
               </button>
 
-              <p className="text-center text-sm text-slate-500 mt-3">
+              <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
                 💡 먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
               </p>
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          덕후 필수 배너
-      ============================================ */}
-      <section className="py-8 px-4 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-white">
-            <div className="flex items-center gap-2">
-              <Shield size={20} className="text-yellow-400" />
-              <span className="font-bold">100% 커스터마이징</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText size={20} className="text-yellow-400" />
-              <span className="font-bold">실물 보고서 증정</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Truck size={20} className="text-yellow-400" />
-              <span className="font-bold">2~3일 빠른 배송</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Heart size={20} className="text-yellow-400 fill-yellow-400" />
-              <span className="font-bold">덕질 특화 분석</span>
-            </div>
           </div>
         </div>
       </section>
@@ -471,7 +437,7 @@ export default function IdolImagePage() {
             </motion.h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {[
               {
                 icon: FileText,
@@ -479,13 +445,6 @@ export default function IdolImagePage() {
                 desc: "AI가 분석한 최애의 이미지 분석 결과를 예쁜 카드 형태로 제작해 함께 보내드려요!",
                 badge: "무료 증정",
                 color: "bg-purple-400"
-              },
-              {
-                icon: Shield,
-                title: "100% 커스터마이징",
-                desc: "공장에서 찍어내는 향수가 아닌, 분석 결과를 바탕으로 1:1 조향사가 직접 블렌딩해요.",
-                badge: "프리미엄",
-                color: "bg-blue-400"
               },
               {
                 icon: Truck,
@@ -517,7 +476,7 @@ export default function IdolImagePage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-white">
+      <section id="reviews" className="py-16 px-4 md:px-8 bg-white">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -529,36 +488,38 @@ export default function IdolImagePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-yellow-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2">
               덕후들의 실제 후기
             </motion.h2>
+            <motion.button
+              variants={fadeInUp}
+              onClick={() => setShowReviewModal(true)}
+              className="text-sm text-slate-500 hover:text-black transition-colors underline underline-offset-4"
+            >
+              전체 리뷰 보기 →
+            </motion.button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((review, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-yellow-50 border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black]"
-              >
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} size={16} className="fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-slate-700 mb-4 leading-relaxed">"{review.text}"</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-black text-black">{review.name}</p>
-                    <p className="text-xs text-slate-500">{review.idol} 분석</p>
-                  </div>
-                  <div className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">
-                    구매인증
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* 리뷰 통계 */}
+          {reviewStats && (
+            <motion.div variants={fadeInUp} className="mb-8">
+              <ReviewStats
+                stats={reviewStats}
+                onRatingFilter={setReviewRatingFilter}
+                selectedRating={reviewRatingFilter}
+              />
+            </motion.div>
+          )}
+
+          {/* 리뷰 목록 */}
+          <motion.div variants={fadeInUp}>
+            <ReviewList
+              programType="idol_image"
+              currentUserId={currentUserId}
+              ratingFilter={reviewRatingFilter}
+              onRatingFilterChange={setReviewRatingFilter}
+            />
+          </motion.div>
         </motion.div>
       </section>
 
@@ -736,9 +697,32 @@ export default function IdolImagePage() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        redirectPath="/input?type=idol_image&mode=online"
+      />
+
+      {/* 리뷰 모달 */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        programType="idol_image"
+        programName="AI 아이돌 이미지 분석"
+        currentUserId={currentUserId}
+        onWriteReview={() => {
+          setShowReviewModal(false)
+          setShowReviewWriteModal(true)
+        }}
+      />
+
+      {/* 리뷰 작성 모달 */}
+      <ReviewWriteModal
+        isOpen={showReviewWriteModal}
+        onClose={() => setShowReviewWriteModal(false)}
+        programType="idol_image"
+        programName="AI 아이돌 이미지 분석"
+        userId={currentUserId || ''}
         onSuccess={() => {
-          setShowAuthModal(false)
-          router.push("/input?type=idol_image")
+          // 리뷰 통계 새로고침
+          getReviewStats('idol_image').then(setReviewStats)
         }}
       />
     </main>

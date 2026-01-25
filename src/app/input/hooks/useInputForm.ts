@@ -35,18 +35,22 @@ export function useInputForm() {
     const [focusedField, setFocusedField] = useState<string | null>(null)
 
     const isIdol = type === "idol_image" || type === "figure"
+    const isOnline = mode === "online"
 
     // 스텝 유효성 검사
     const isStepValid = useCallback((step: number): boolean => {
         switch (step) {
-            case 1: return formData.pin.length === 4 && formData.name.length > 0
+            // 온라인 모드에서는 인증 번호 불필요
+            case 1: return isOnline
+                ? formData.name.length > 0
+                : (formData.pin.length === 4 && formData.name.length > 0)
             case 2: return formData.styles.length > 0 || formData.customStyle.length > 0
             case 3: return formData.personalities.length > 0 || formData.customPersonality.length > 0
             case 4: return formData.charmPoints.length > 0 || formData.customCharm.length > 0
             case 5: return formData.image !== null
             default: return false
         }
-    }, [formData])
+    }, [formData, isOnline])
 
     // 토글 함수들
     const toggleStyle = useCallback((style: string) => {
@@ -204,6 +208,7 @@ export function useInputForm() {
         isSubmitting,
         isCompressing,
         isIdol,
+        isOnline,
 
         // 함수들
         isStepValid,

@@ -3,8 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Heart, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets } from 'lucide-react'
+import { Sparkles, Heart, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
+import { PerfumeNotes } from '@/app/result/components/PerfumeNotes'
+import { PerfumeProfile } from '@/app/result/components/PerfumeProfile'
+import { PerfumePersona } from '@/types/analysis'
+import { PRODUCT_TYPE_BADGES, getDefaultSize, getDefaultPrice, type ProductType } from '@/types/cart'
 
 interface RecipeGranule {
   id: string
@@ -26,22 +30,15 @@ interface Analysis {
   user_image_url: string | null
   analysis_data: AnalysisData
   confirmed_recipe: ConfirmedRecipe | null
+  product_type?: ProductType
 }
 
 // 분석 데이터 타입 (레시피 모달에서 사용)
 interface AnalysisData {
   matchingPerfumes?: Array<{
     matchScore?: number
-    persona?: {
-      name?: string
-      recommendation?: string
-      scentProfile?: {
-        top?: string[]
-        middle?: string[]
-        base?: string[]
-      }
-      keywords?: string[]
-    }
+    score?: number
+    persona?: PerfumePersona
   }>
   matchingKeywords?: string[]
 }
@@ -59,6 +56,111 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
+
+  // 다중 선택 관련 상태
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+
+  // 장바구니 결과 모달 상태
+  const [cartResultModal, setCartResultModal] = useState<{
+    type: 'success' | 'error'
+    added?: number
+    duplicates?: number
+    message?: string
+  } | null>(null)
+
+  // 선택 토글
+  const toggleSelection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  // 전체 선택/해제
+  const toggleSelectAll = () => {
+    if (selectedIds.size === analyses.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(analyses.map(a => a.id)))
+    }
+  }
+
+  // 선택 모드 종료
+  const exitSelectionMode = () => {
+    setIsSelectionMode(false)
+    setSelectedIds(new Set())
+  }
+
+  // 장바구니 담기
+  const handleAddToCart = async () => {
+    if (selectedIds.size === 0) return
+
+    setIsAddingToCart(true)
+    try {
+      const selectedAnalyses = analyses.filter(a => selectedIds.has(a.id))
+      const cartItems = selectedAnalyses.map(a => ({
+        analysis_id: a.id,
+        product_type: a.product_type || 'image_analysis',
+        perfume_name: a.perfume_name,
+        perfume_brand: a.perfume_brand || undefined,
+        twitter_name: a.twitter_name || undefined,
+        size: getDefaultSize(a.product_type || 'image_analysis'),
+        price: getDefaultPrice(a.product_type || 'image_analysis'),
+        quantity: 1,
+        image_url: a.user_image_url || undefined,
+        analysis_data: a.analysis_data || undefined,
+      }))
+
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setCartResultModal({
+          type: 'success',
+          added: data.added,
+          duplicates: data.duplicates || 0,
+        })
+        exitSelectionMode()
+      } else {
+        setCartResultModal({
+          type: 'error',
+          message: data.error || '장바구니 담기에 실패했습니다',
+        })
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error)
+      setCartResultModal({
+        type: 'error',
+        message: '장바구니 담기 중 오류가 발생했습니다',
+      })
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
+  // 상품 타입 뱃지 렌더링
+  const renderProductTypeBadge = (productType?: ProductType) => {
+    const type = productType || 'image_analysis'
+    const badge = PRODUCT_TYPE_BADGES[type]
+    return (
+      <span className={`px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded ${badge.bg} ${badge.text} border ${badge.border}`}>
+        {badge.labelShort}
+      </span>
+    )
+  }
 
   // 구매하기 버튼 클릭 - 체크아웃으로 이동
   const handlePurchase = (analysis: Analysis, e: React.MouseEvent) => {
@@ -120,16 +222,16 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   // 로딩 스켈레톤
   if (loading) {
     return (
-      <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4' : 'space-y-3'}>
+      <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4' : 'space-y-3'}>
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className="bg-white rounded-2xl animate-pulse border-2 border-black shadow-[4px_4px_0_0_black] overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl animate-pulse border-[1.5px] sm:border-2 border-black shadow-[2px_2px_0_0_black] sm:shadow-[4px_4px_0_0_black] overflow-hidden"
           >
             <div className="aspect-square bg-gradient-to-br from-slate-100 to-slate-200" />
-            <div className="p-3 space-y-2">
-              <div className="h-4 bg-slate-200 rounded w-2/3" />
-              <div className="h-3 bg-slate-100 rounded w-1/2" />
+            <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
+              <div className="h-3 sm:h-4 bg-slate-200 rounded w-2/3" />
+              <div className="h-2.5 sm:h-3 bg-slate-100 rounded w-1/2" />
             </div>
           </div>
         ))}
@@ -162,7 +264,52 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   if (viewMode === 'grid') {
     return (
       <>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* 선택 모드 툴바 */}
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center gap-2">
+            {isSelectionMode ? (
+              <>
+                <button
+                  onClick={toggleSelectAll}
+                  className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg border-2 border-black bg-white hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+                >
+                  {selectedIds.size === analyses.length ? (
+                    <>
+                      <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      전체 해제
+                    </>
+                  ) : (
+                    <>
+                      <Square className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      전체 선택
+                    </>
+                  )}
+                </button>
+                <span className="text-xs sm:text-sm text-slate-500">
+                  {selectedIds.size}개 선택됨
+                </span>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsSelectionMode(true)}
+                className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg border-2 border-black bg-amber-400 hover:bg-amber-300 transition-colors flex items-center gap-1.5"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                장바구니 담기
+              </button>
+            )}
+          </div>
+          {isSelectionMode && (
+            <button
+              onClick={exitSelectionMode}
+              className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              취소
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {analyses.map((analysis, index) => (
             <motion.div
               key={analysis.id}
@@ -170,13 +317,34 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05, type: 'spring', stiffness: 200 }}
             >
-              {/* 키치 스타일 카드 */}
-              <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all group">
+              {/* 키치 스타일 카드 - 모바일에서 더 컴팩트 */}
+              <div
+                className={`bg-white border-[1.5px] sm:border-2 rounded-xl sm:rounded-2xl overflow-hidden shadow-[2px_2px_0_0_black] sm:shadow-[4px_4px_0_0_black] hover:shadow-[3px_3px_0_0_black] sm:hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all group ${
+                  isSelectionMode && selectedIds.has(analysis.id)
+                    ? 'border-purple-500 ring-2 ring-purple-300'
+                    : 'border-black'
+                }`}
+                onClick={isSelectionMode ? (e) => toggleSelection(analysis.id, e) : undefined}
+              >
                 {/* 이미지 영역 */}
                 <div
                   className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 cursor-pointer"
-                  onClick={() => setSelectedImage(analysis)}
+                  onClick={isSelectionMode ? undefined : () => setSelectedImage(analysis)}
                 >
+                  {/* 선택 모드 체크박스 */}
+                  {isSelectionMode && (
+                    <div
+                      className={`absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                        selectedIds.has(analysis.id)
+                          ? 'bg-purple-500 border-purple-500'
+                          : 'bg-white/90 border-black'
+                      }`}
+                    >
+                      {selectedIds.has(analysis.id) && (
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                  )}
                   {analysis.user_image_url ? (
                     <img
                       src={analysis.user_image_url}
@@ -186,8 +354,8 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center">
-                        <div className="text-4xl mb-2">✨</div>
-                        <span className="text-purple-400 text-xs font-bold">No Image</span>
+                        <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">✨</div>
+                        <span className="text-purple-400 text-[10px] sm:text-xs font-bold">No Image</span>
                       </div>
                     </div>
                   )}
@@ -198,40 +366,49 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   {/* 좋아요 버튼 */}
                   <button
                     onClick={(e) => toggleLike(analysis.id, e)}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-white border-2 border-black shadow-[2px_2px_0_0_black] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                    className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 p-1.5 sm:p-2 rounded-full bg-white border-[1.5px] sm:border-2 border-black shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
                   >
                     <Heart
-                      size={14}
-                      className={likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}
+                      size={12}
+                      className={`sm:w-3.5 sm:h-3.5 ${likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}`}
                     />
                   </button>
 
-                  {/* 날짜 뱃지 */}
-                  <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-white border-2 border-black text-[10px] font-bold flex items-center gap-1 shadow-[2px_2px_0_0_black]">
-                    <Calendar size={10} />
-                    {formatRelativeTime(analysis.created_at)}
+                  {/* 날짜 뱃지 - 선택 모드가 아닐 때만 표시 */}
+                  {!isSelectionMode && (
+                    <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-white border-[1.5px] sm:border-2 border-black text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1 shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black]">
+                      <Calendar className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      {formatRelativeTime(analysis.created_at)}
+                    </div>
+                  )}
+
+                  {/* 상품 타입 뱃지 */}
+                  <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2">
+                    {renderProductTypeBadge(analysis.product_type)}
                   </div>
 
-                  {/* 보기 버튼 (호버 시) */}
-                  <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setSelectedImage(analysis)}
-                      className="w-full py-2 bg-white border-2 border-black rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0_0_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
-                    >
-                      <Eye size={12} />
-                      자세히 보기
-                    </button>
-                  </div>
+                  {/* 보기 버튼 (호버 시) - 선택 모드가 아닐 때만 */}
+                  {!isSelectionMode && (
+                    <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 right-1.5 sm:right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => setSelectedImage(analysis)}
+                        className="w-full py-1.5 sm:py-2 bg-white border-[1.5px] sm:border-2 border-black rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                      >
+                        <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        자세히 보기
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* 정보 영역 */}
-                <div className="p-3 border-t-2 border-black">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="p-2 sm:p-3 border-t-[1.5px] sm:border-t-2 border-black">
+                  <div className="flex items-start justify-between gap-1 sm:gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-black text-sm truncate leading-tight">
+                      <h3 className="font-black text-[11px] sm:text-sm truncate leading-tight">
                         {analysis.idol_name || analysis.twitter_name}
                       </h3>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      <p className="text-[9px] sm:text-[11px] text-slate-500 truncate mt-0.5">
                         {analysis.perfume_name}
                       </p>
                     </div>
@@ -243,20 +420,20 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         e.stopPropagation()
                         setDeleteTarget(analysis)
                       }}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                      className="p-1 sm:p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md sm:rounded-lg transition-colors flex-shrink-0"
                       title="삭제"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
 
                   {/* 버튼 영역 */}
-                  <div className="flex flex-col gap-2 mt-3">
+                  <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                     <button
                       onClick={(e) => handlePurchase(analysis, e)}
-                      className="w-full py-2 bg-black text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-colors"
+                      className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors"
                     >
-                      <ShoppingBag size={12} className="text-yellow-400" />
+                      <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
                       향수 구매하기
                     </button>
                     <button
@@ -264,9 +441,9 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         e.stopPropagation()
                         setRecipeModalTarget(analysis)
                       }}
-                      className="w-full py-2 bg-amber-400 text-black text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 hover:bg-amber-300 transition-colors border-2 border-black"
+                      className="w-full py-1.5 sm:py-2 bg-amber-400 text-black text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-amber-300 transition-colors border-[1.5px] sm:border-2 border-black"
                     >
-                      <Beaker size={12} />
+                      <Beaker className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       레시피 확인하기
                     </button>
                   </div>
@@ -275,6 +452,42 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
             </motion.div>
           ))}
         </div>
+
+        {/* 선택 모드 플로팅 바 */}
+        <AnimatePresence>
+          {isSelectionMode && selectedIds.size > 0 && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="fixed bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-40"
+            >
+              <div className="bg-black text-white rounded-2xl border-2 border-white shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] p-4 flex items-center justify-between gap-4 max-w-md mx-auto sm:mx-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center font-black text-lg">
+                    {selectedIds.size}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">상품 선택됨</p>
+                    <p className="text-xs text-white/70">장바구니에 담기</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart}
+                  className="px-5 py-2.5 bg-amber-400 text-black font-bold rounded-xl border-2 border-black hover:bg-amber-300 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAddingToCart ? (
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <ShoppingCart className="w-4 h-4" />
+                  )}
+                  담기
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 모달들 */}
         {renderModals()}
@@ -285,6 +498,51 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   // 리스트 뷰
   return (
     <>
+      {/* 선택 모드 툴바 */}
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center gap-2">
+          {isSelectionMode ? (
+            <>
+              <button
+                onClick={toggleSelectAll}
+                className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg border-2 border-black bg-white hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+              >
+                {selectedIds.size === analyses.length ? (
+                  <>
+                    <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    전체 해제
+                  </>
+                ) : (
+                  <>
+                    <Square className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    전체 선택
+                  </>
+                )}
+              </button>
+              <span className="text-xs sm:text-sm text-slate-500">
+                {selectedIds.size}개 선택됨
+              </span>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsSelectionMode(true)}
+              className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg border-2 border-black bg-amber-400 hover:bg-amber-300 transition-colors flex items-center gap-1.5"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              장바구니 담기
+            </button>
+          )}
+        </div>
+        {isSelectionMode && (
+          <button
+            onClick={exitSelectionMode}
+            className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            취소
+          </button>
+        )}
+      </div>
+
       <div className="space-y-3">
         {analyses.map((analysis, index) => (
           <motion.div
@@ -293,12 +551,34 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all">
+            <div
+              className={`bg-white border-2 rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all ${
+                isSelectionMode && selectedIds.has(analysis.id)
+                  ? 'border-purple-500 ring-2 ring-purple-300'
+                  : 'border-black'
+              }`}
+              onClick={isSelectionMode ? (e) => toggleSelection(analysis.id, e) : undefined}
+            >
               <div className="flex items-center gap-4 p-4">
+                {/* 선택 모드 체크박스 */}
+                {isSelectionMode && (
+                  <div
+                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                      selectedIds.has(analysis.id)
+                        ? 'bg-purple-500 border-purple-500'
+                        : 'bg-white border-black'
+                    }`}
+                  >
+                    {selectedIds.has(analysis.id) && (
+                      <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                    )}
+                  </div>
+                )}
+
                 {/* 이미지 */}
                 <div
                   className="w-20 h-20 rounded-xl overflow-hidden border-2 border-black flex-shrink-0 cursor-pointer"
-                  onClick={() => setSelectedImage(analysis)}
+                  onClick={isSelectionMode ? undefined : () => setSelectedImage(analysis)}
                 >
                   {analysis.user_image_url ? (
                     <img
@@ -317,15 +597,18 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-black text-lg truncate">{analysis.idol_name || analysis.twitter_name}</h3>
-                    <button
-                      onClick={(e) => toggleLike(analysis.id, e)}
-                      className="p-1"
-                    >
-                      <Heart
-                        size={16}
-                        className={likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-300 hover:text-red-400'}
-                      />
-                    </button>
+                    {renderProductTypeBadge(analysis.product_type)}
+                    {!isSelectionMode && (
+                      <button
+                        onClick={(e) => toggleLike(analysis.id, e)}
+                        className="p-1"
+                      >
+                        <Heart
+                          size={16}
+                          className={likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-300 hover:text-red-400'}
+                        />
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-slate-600 truncate">{analysis.perfume_name}</p>
                   <div className="flex items-center gap-3 mt-2">
@@ -341,44 +624,82 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   </div>
                 </div>
 
-                {/* 액션 버튼 */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setDeleteTarget(analysis)
-                    }}
-                    className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                    title="삭제"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                {/* 액션 버튼 - 선택 모드가 아닐 때만 */}
+                {!isSelectionMode && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setDeleteTarget(analysis)
+                      }}
+                      className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                      title="삭제"
+                    >
+                      <Trash2 size={18} />
+                    </button>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setRecipeModalTarget(analysis)
-                    }}
-                    className="px-4 py-2.5 bg-amber-400 text-black text-sm font-bold rounded-xl hover:bg-amber-300 transition-colors flex items-center gap-1.5 border-2 border-black"
-                  >
-                    <Beaker size={16} />
-                    레시피
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setRecipeModalTarget(analysis)
+                      }}
+                      className="px-4 py-2.5 bg-amber-400 text-black text-sm font-bold rounded-xl hover:bg-amber-300 transition-colors flex items-center gap-1.5 border-2 border-black"
+                    >
+                      <Beaker size={16} />
+                      레시피
+                    </button>
 
-                  <Link
-                    href={`/result?id=${analysis.id}`}
-                    className="px-4 py-2.5 bg-purple-500 text-white text-sm font-bold rounded-xl hover:bg-purple-600 transition-colors flex items-center gap-1.5"
-                  >
-                    상세보기
-                    <ChevronRight size={16} />
-                  </Link>
-                </div>
+                    <Link
+                      href={`/result?id=${analysis.id}&from=mypage`}
+                      className="px-4 py-2.5 bg-purple-500 text-white text-sm font-bold rounded-xl hover:bg-purple-600 transition-colors flex items-center gap-1.5"
+                    >
+                      상세보기
+                      <ChevronRight size={16} />
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
         ))}
       </div>
+
+      {/* 선택 모드 플로팅 바 */}
+      <AnimatePresence>
+        {isSelectionMode && selectedIds.size > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-40"
+          >
+            <div className="bg-black text-white rounded-2xl border-2 border-white shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] p-4 flex items-center justify-between gap-4 max-w-md mx-auto sm:mx-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center font-black text-lg">
+                  {selectedIds.size}
+                </div>
+                <div>
+                  <p className="font-bold text-sm">상품 선택됨</p>
+                  <p className="text-xs text-white/70">장바구니에 담기</p>
+                </div>
+              </div>
+              <button
+                onClick={handleAddToCart}
+                disabled={isAddingToCart}
+                className="px-5 py-2.5 bg-amber-400 text-black font-bold rounded-xl border-2 border-black hover:bg-amber-300 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAddingToCart ? (
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ShoppingCart className="w-4 h-4" />
+                )}
+                담기
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 모달들 */}
       {renderModals()}
@@ -467,7 +788,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
 
                     <div className="flex gap-2 mt-4">
                       <Link
-                        href={`/result?id=${selectedImage.id}`}
+                        href={`/result?id=${selectedImage.id}&from=mypage`}
                         className="flex-1 py-3 bg-white border-2 border-black text-black rounded-xl font-bold text-center hover:bg-slate-50 transition-colors"
                       >
                         결과 상세보기
@@ -549,7 +870,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setRecipeModalTarget(null)}
-              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 pt-28 pb-24 sm:pb-4 overflow-y-auto"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -557,10 +878,10 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white border-2 border-black rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-[8px_8px_0_0_black]"
+                className="bg-white border-2 border-black rounded-2xl max-w-md w-full max-h-full flex flex-col shadow-[8px_8px_0_0_black] overflow-hidden"
               >
                 {/* 모달 헤더 */}
-                <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-amber-400 to-yellow-400 flex items-center justify-between">
+                <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-amber-400 to-yellow-400 flex items-center justify-between flex-shrink-0">
                   <h3 className="font-black text-lg flex items-center gap-2">
                     <Beaker size={20} />
                     {recipeModalTarget.confirmed_recipe ? '확정 레시피' : '향수 분석 정보'}
@@ -574,25 +895,30 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 </div>
 
                 {/* 모달 콘텐츠 */}
-                <div className="p-5 overflow-y-auto max-h-[calc(80vh-120px)]">
+                <div className="p-5 overflow-y-auto flex-1 min-h-0">
                   {/* 대상 정보 */}
-                  <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200">
-                    {recipeModalTarget.user_image_url ? (
-                      <img
-                        src={recipeModalTarget.user_image_url}
-                        alt=""
-                        className="w-14 h-14 rounded-xl object-cover border-2 border-black"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center border-2 border-black">
-                        <Sparkles size={24} className="text-purple-500" />
+                  {(() => {
+                    const modalPersona = recipeModalTarget.analysis_data?.matchingPerfumes?.[0]?.persona
+                    return (
+                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+                        {recipeModalTarget.user_image_url ? (
+                          <img
+                            src={recipeModalTarget.user_image_url}
+                            alt=""
+                            className="w-14 h-14 rounded-xl object-cover border-2 border-black"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center border-2 border-black">
+                            <Sparkles size={24} className="text-purple-500" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs text-slate-500">{recipeModalTarget.idol_name || recipeModalTarget.twitter_name}</p>
+                          <h2 className="text-xl font-black leading-tight text-slate-900">{modalPersona?.name || recipeModalTarget.perfume_name}</h2>
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <p className="font-black text-lg">{recipeModalTarget.idol_name || recipeModalTarget.twitter_name}</p>
-                      <p className="text-sm text-slate-500">{recipeModalTarget.perfume_name}</p>
-                    </div>
-                  </div>
+                    )
+                  })()}
 
                   {recipeModalTarget.confirmed_recipe?.granules ? (
                     /* 확정 레시피가 있는 경우: 향료별 계량 표시 */
@@ -619,81 +945,30 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                       </div>
                     </div>
                   ) : (
-                    /* 확정 레시피가 없는 경우: 기본 향수 분석 정보 */
-                    <div className="space-y-4">
+                    /* 확정 레시피가 없는 경우: 향 노트 + 향 계열 그래프 */
+                    <div className="space-y-5">
                       {(() => {
                         const perfume = recipeModalTarget.analysis_data?.matchingPerfumes?.[0]
                         const persona = perfume?.persona
-                        const matchScore = perfume?.matchScore
 
                         return (
                           <>
-                            {/* 매칭률 */}
-                            {matchScore && (
-                              <div className="text-center p-4 bg-purple-50 rounded-xl border-2 border-purple-200">
-                                <p className="text-xs text-purple-600 font-bold mb-1">매칭률</p>
-                                <p className="text-3xl font-black text-purple-700">{Math.round(matchScore)}%</p>
-                              </div>
+                            {/* 향 노트 (탑/미들/베이스) */}
+                            {persona && (persona.mainScent || persona.subScent1 || persona.subScent2) && (
+                              <PerfumeNotes persona={persona} isDesktop={false} />
                             )}
 
-                            {/* 향노트 */}
-                            {persona?.scentProfile && (
-                              <div className="space-y-2">
-                                <p className="text-sm font-bold text-slate-600">🌸 향노트</p>
-                                <div className="grid grid-cols-3 gap-2">
-                                  {persona.scentProfile.top && persona.scentProfile.top.length > 0 && (
-                                    <div className="p-2 bg-pink-50 rounded-lg border border-pink-200 text-center">
-                                      <p className="text-[10px] text-pink-600 font-bold">TOP</p>
-                                      <p className="text-xs font-bold mt-1 truncate">
-                                        {persona.scentProfile.top.slice(0, 2).join(', ')}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {persona.scentProfile.middle && persona.scentProfile.middle.length > 0 && (
-                                    <div className="p-2 bg-rose-50 rounded-lg border border-rose-200 text-center">
-                                      <p className="text-[10px] text-rose-600 font-bold">MIDDLE</p>
-                                      <p className="text-xs font-bold mt-1 truncate">
-                                        {persona.scentProfile.middle.slice(0, 2).join(', ')}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {persona.scentProfile.base && persona.scentProfile.base.length > 0 && (
-                                    <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-center">
-                                      <p className="text-[10px] text-amber-600 font-bold">BASE</p>
-                                      <p className="text-xs font-bold mt-1 truncate">
-                                        {persona.scentProfile.base.slice(0, 2).join(', ')}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* 키워드 */}
-                            {(persona?.keywords || recipeModalTarget.analysis_data?.matchingKeywords) && (
-                              <div className="space-y-2">
-                                <p className="text-sm font-bold text-slate-600">✨ 매칭 키워드</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {(persona?.keywords || recipeModalTarget.analysis_data?.matchingKeywords || [])
-                                    .slice(0, 6)
-                                    .map((keyword, idx) => (
-                                      <span
-                                        key={idx}
-                                        className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700"
-                                      >
-                                        {keyword}
-                                      </span>
-                                    ))}
-                                </div>
-                              </div>
+                            {/* 향 계열 그래프 */}
+                            {persona?.categories && (
+                              <PerfumeProfile persona={persona} isDesktop={false} />
                             )}
 
                             {/* 분석 정보가 없는 경우 */}
-                            {!matchScore && !persona?.scentProfile && !persona?.keywords && (
+                            {!persona?.mainScent && !persona?.categories && (
                               <div className="text-center py-8">
                                 <p className="text-slate-400 text-sm">상세 분석 정보가 없어요</p>
                                 <Link
-                                  href={`/result?id=${recipeModalTarget.id}`}
+                                  href={`/result?id=${recipeModalTarget.id}&from=mypage`}
                                   className="inline-block mt-3 px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-lg"
                                 >
                                   결과 페이지에서 확인하기
@@ -714,7 +989,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 </div>
 
                 {/* 모달 푸터 */}
-                <div className="px-5 py-4 border-t-2 border-black bg-slate-50">
+                <div className="px-5 py-4 border-t-2 border-black bg-slate-50 flex-shrink-0">
                   <div className="flex gap-2">
                     <button
                       onClick={() => setRecipeModalTarget(null)}
@@ -723,13 +998,97 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                       닫기
                     </button>
                     <Link
-                      href={`/result?id=${recipeModalTarget.id}`}
+                      href={`/result?id=${recipeModalTarget.id}&from=mypage`}
                       className="flex-1 py-3 bg-purple-500 text-white border-2 border-black rounded-xl font-bold text-center hover:bg-purple-600 transition-colors"
                       onClick={() => setRecipeModalTarget(null)}
                     >
                       결과 상세보기
                     </Link>
                   </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 장바구니 결과 모달 */}
+        <AnimatePresence>
+          {cartResultModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCartResultModal(null)}
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white border-2 border-black rounded-2xl p-6 max-w-xs w-full shadow-[8px_8px_0_0_black]"
+              >
+                <div className="text-center">
+                  {cartResultModal.type === 'success' ? (
+                    <>
+                      {/* 성공 아이콘 */}
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-yellow-400 rounded-2xl flex items-center justify-center border-2 border-black shadow-[4px_4px_0_0_black]">
+                        <ShoppingCart size={36} className="text-black" />
+                      </div>
+                      <h3 className="text-xl font-black mb-2">장바구니에 담았어요!</h3>
+                      <p className="text-3xl font-black text-purple-600 mb-1">
+                        {cartResultModal.added}개
+                      </p>
+                      {cartResultModal.duplicates && cartResultModal.duplicates > 0 && (
+                        <p className="text-sm text-slate-500 mb-4">
+                          ({cartResultModal.duplicates}개는 이미 담겨있어요)
+                        </p>
+                      )}
+                      {(!cartResultModal.duplicates || cartResultModal.duplicates === 0) && (
+                        <p className="text-sm text-slate-500 mb-4">
+                          상품이 장바구니에 추가되었어요
+                        </p>
+                      )}
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={() => setCartResultModal(null)}
+                          className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors border-2 border-black"
+                        >
+                          계속 쇼핑
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCartResultModal(null)
+                            // 마이페이지의 장바구니 탭으로 이동 (부모 컴포넌트에서 탭 전환 필요)
+                            const cartTab = document.querySelector('[data-tab="cart"]') as HTMLButtonElement
+                            if (cartTab) cartTab.click()
+                          }}
+                          className="flex-1 py-3 bg-amber-400 text-black rounded-xl font-bold hover:bg-amber-300 transition-colors border-2 border-black flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingCart size={16} />
+                          장바구니
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* 에러 아이콘 */}
+                      <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center border-2 border-black shadow-[4px_4px_0_0_black]">
+                        <X size={36} className="text-red-500" />
+                      </div>
+                      <h3 className="text-xl font-black mb-2">앗, 문제가 생겼어요</h3>
+                      <p className="text-sm text-slate-500 mb-6">
+                        {cartResultModal.message}
+                      </p>
+                      <button
+                        onClick={() => setCartResultModal(null)}
+                        className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors border-2 border-black"
+                      >
+                        닫기
+                      </button>
+                    </>
+                  )}
                 </div>
               </motion.div>
             </motion.div>

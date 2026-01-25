@@ -17,11 +17,13 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext"
 import { Header } from "@/components/layout/Header"
-import { Button } from "@/components/ui/button"
 import { OrderSummary } from "./components/OrderSummary"
+import { MultiItemOrderSummary } from "./components/MultiItemOrderSummary"
 import { CheckoutForm, CheckoutFormData } from "./components/CheckoutForm"
 import { CouponSelector } from "./components/CouponSelector"
 import { CheckoutCoupon } from "@/types/coupon"
+import type { CartItem } from "@/types/cart"
+import { PRODUCT_PRICING, formatPrice, calculateCartTotals } from "@/types/cart"
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -45,16 +47,23 @@ const BANK_INFO = {
 export default function CheckoutPage() {
   const router = useRouter()
   const { user, unifiedUser, loading: authLoading } = useAuth()
+
+  // 다중 상품 모드
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
+  const [isMultiItemMode, setIsMultiItemMode] = useState(false)
+
+  // 단일 상품 모드 (기존 호환)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [idolName, setIdolName] = useState<string | null>(null)
   const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml">("10ml")
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
 
-  // 폼 데이터 상태 (상위 컴포넌트에서 관리)
+  // 폼 데이터 상태
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: "",
     phone1: "010",
@@ -69,7 +78,7 @@ export default function CheckoutPage() {
   const userId = user?.id || unifiedUser?.id
   const userName = unifiedUser?.name || user?.user_metadata?.full_name || ""
 
-  // 로그인 확인 및 분석 결과 로드
+  // 로그인 확인 및 데이터 로드
   useEffect(() => {
     if (!authLoading && !userId) {
       router.push("/")
@@ -81,6 +90,24 @@ export default function CheckoutPage() {
       setFormData(prev => ({ ...prev, name: userName }))
     }
 
+    // 1. 다중 상품 모드 확인 (장바구니에서 온 경우)
+    const savedCheckoutItems = localStorage.getItem("checkoutItems")
+    if (savedCheckoutItems) {
+      try {
+        const items = JSON.parse(savedCheckoutItems)
+        if (Array.isArray(items) && items.length > 0) {
+          setCheckoutItems(items)
+          setIsMultiItemMode(true)
+          // 사용 후 삭제
+          localStorage.removeItem("checkoutItems")
+          return
+        }
+      } catch (e) {
+        console.error("Failed to parse checkout items:", e)
+      }
+    }
+
+    // 2. 단일 상품 모드 (기존 방식)
     const savedResult = localStorage.getItem("analysisResult")
     const savedImage = localStorage.getItem("userImage")
     const savedUserInfo = localStorage.getItem("userInfo")
@@ -107,24 +134,63 @@ export default function CheckoutPage() {
     }
   }, [authLoading, userId, router, userName])
 
+  // 단일 상품 정보
   const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
-  // idolName: 입력 폼에서 입력한 최애 이름을 표시
   const displayIdolName = idolName || "AC'SCENT"
 
-  const prices = {
-    "10ml": 24000,
-    "50ml": 48000,
+  // 다중 상품: 수량 변경
+  const handleUpdateQuantity = (itemId: string, delta: number) => {
+    setCheckoutItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const newQty = Math.max(1, Math.min(10, item.quantity + delta))
+        return { ...item, quantity: newQty }
+      }
+      return item
+    }))
   }
 
-  // 배송비: 10ml는 3000원, 50ml는 무료
-  const shippingFee = selectedSize === "10ml" ? 3000 : 0
+  // 다중 상품: 사이즈 변경
+  const handleUpdateSize = (itemId: string, newSize: string) => {
+    setCheckoutItems(prev => prev.map(item => {
+      if (item.id === itemId && item.product_type !== 'figure_diffuser') {
+        const pricing = PRODUCT_PRICING[item.product_type]
+        const newPrice = pricing.find(p => p.size === newSize)?.price || item.price
+        return { ...item, size: newSize as CartItem['size'], price: newPrice }
+      }
+      return item
+    }))
+  }
 
-  // 쿠폰 할인 계산
-  const productPrice = prices[selectedSize]
-  const discountAmount = selectedCoupon
-    ? Math.floor(productPrice * (selectedCoupon.discount_percent / 100))
+  // 다중 상품: 아이템 삭제
+  const handleRemoveItem = (itemId: string) => {
+    setCheckoutItems(prev => {
+      const updated = prev.filter(item => item.id !== itemId)
+      if (updated.length === 0) {
+        router.push("/mypage")
+      }
+      return updated
+    })
+  }
+
+  // 가격 계산
+  const prices = { "10ml": 24000, "50ml": 48000 }
+
+  // 다중 상품 모드
+  const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent) : null
+
+  // 단일 상품 모드
+  const singleProductPrice = prices[selectedSize]
+  const singleShippingFee = selectedSize === "10ml" ? 3000 : 0
+  const singleDiscountAmount = selectedCoupon
+    ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0
-  const totalPrice = productPrice + shippingFee - discountAmount
+  const singleTotalPrice = singleProductPrice + singleShippingFee - singleDiscountAmount
+
+  // 최종 가격
+  const productPrice = isMultiItemMode ? multiTotals!.subtotal : singleProductPrice
+  const shippingFee = isMultiItemMode ? multiTotals!.shippingFee : singleShippingFee
+  const discountAmount = isMultiItemMode ? multiTotals!.discount : singleDiscountAmount
+  const totalPrice = isMultiItemMode ? multiTotals!.total : singleTotalPrice
 
   // 계좌번호 복사
   const copyAccountNumber = async () => {
@@ -133,7 +199,6 @@ export default function CheckoutPage() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      // 폴백: execCommand 사용
       const textArea = document.createElement("textarea")
       textArea.value = BANK_INFO.accountRaw
       document.body.appendChild(textArea)
@@ -154,7 +219,8 @@ export default function CheckoutPage() {
       formData.phone3.length === 4 &&
       formData.zipCode !== "" &&
       formData.address !== "" &&
-      privacyAgreed
+      privacyAgreed &&
+      (isMultiItemMode ? checkoutItems.length > 0 : true)
     )
   }
 
@@ -167,29 +233,60 @@ export default function CheckoutPage() {
     setIsSubmitting(true)
 
     try {
-      const orderData = {
-        userId,
-        perfumeName,
-        perfumeBrand: displayIdolName,
-        size: selectedSize,
-        price: productPrice,
-        shippingFee,
-        totalPrice,
-        // 쿠폰 정보
-        userCouponId: selectedCoupon?.userCouponId || null,
-        discountAmount,
-        originalPrice: productPrice + shippingFee,
-        finalPrice: totalPrice,
-        // 배송 정보
+      // 공통 배송 정보
+      const shippingInfo = {
         recipientName: formData.name,
         phone: `${formData.phone1}-${formData.phone2}-${formData.phone3}`,
         zipCode: formData.zipCode,
         address: formData.address,
         addressDetail: formData.addressDetail,
         memo: formData.memo,
-        userImage,
-        keywords: analysisResult?.matchingKeywords || [],
-        analysisData: analysisResult, // 전체 분석 데이터 (레시피 표시용)
+      }
+
+      let orderData
+
+      if (isMultiItemMode) {
+        // 다중 상품 주문
+        orderData = {
+          userId,
+          items: checkoutItems.map(item => ({
+            analysisId: item.analysis_id,
+            productType: item.product_type,
+            perfumeName: item.perfume_name,
+            perfumeBrand: item.perfume_brand || item.twitter_name,
+            size: item.size,
+            unitPrice: item.price,
+            quantity: item.quantity,
+            imageUrl: item.image_url,
+            analysisData: item.analysis_data,
+          })),
+          subtotal: productPrice,
+          shippingFee,
+          discountAmount,
+          originalPrice: productPrice + shippingFee,
+          finalPrice: totalPrice,
+          userCouponId: selectedCoupon?.userCouponId || null,
+          ...shippingInfo,
+        }
+      } else {
+        // 단일 상품 주문 (기존 호환)
+        orderData = {
+          userId,
+          perfumeName,
+          perfumeBrand: displayIdolName,
+          size: selectedSize,
+          price: singleProductPrice,
+          shippingFee: singleShippingFee,
+          totalPrice: singleTotalPrice,
+          userCouponId: selectedCoupon?.userCouponId || null,
+          discountAmount: singleDiscountAmount,
+          originalPrice: singleProductPrice + singleShippingFee,
+          finalPrice: singleTotalPrice,
+          userImage,
+          keywords: analysisResult?.matchingKeywords || [],
+          analysisData: analysisResult,
+          ...shippingInfo,
+        }
       }
 
       const response = await fetch("/api/orders", {
@@ -203,6 +300,16 @@ export default function CheckoutPage() {
       if (!response.ok) {
         console.error("주문 생성 에러:", result)
         throw new Error(result.error || "주문 생성 실패")
+      }
+
+      // 다중 상품 모드: 장바구니에서 주문한 상품 삭제
+      if (isMultiItemMode) {
+        const cartItemIds = checkoutItems.map(item => item.id)
+        await fetch("/api/cart", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: cartItemIds }),
+        })
       }
 
       // 주문 완료 페이지로 이동
@@ -232,7 +339,7 @@ export default function CheckoutPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-200/10 rounded-full blur-3xl" />
       </div>
 
-      <Header title="주문하기" showBack={true} backHref="/result" />
+      <Header title="주문하기" showBack={true} backHref={isMultiItemMode ? "/mypage" : "/result"} />
 
       <main className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
@@ -244,7 +351,9 @@ export default function CheckoutPage() {
           >
             <div className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2 rounded-full border-2 border-slate-900 shadow-[3px_3px_0px_#FBCFE8] mb-4">
               <Sparkles size={16} className="text-[#F472B6]" />
-              <span className="font-bold text-sm tracking-wide">ORDER YOUR SIGNATURE SCENT</span>
+              <span className="font-bold text-sm tracking-wide">
+                {isMultiItemMode ? `${checkoutItems.length}개 상품 주문` : "ORDER YOUR SIGNATURE SCENT"}
+              </span>
             </div>
           </motion.div>
 
@@ -255,15 +364,24 @@ export default function CheckoutPage() {
           >
             {/* 왼쪽: 주문 요약 */}
             <div className="space-y-6">
-              <OrderSummary
-                perfumeName={perfumeName}
-                perfumeBrand={displayIdolName}
-                userImage={userImage}
-                selectedSize={selectedSize}
-                onSizeChange={setSelectedSize}
-                price={prices[selectedSize]}
-                keywords={analysisResult?.matchingKeywords || []}
-              />
+              {isMultiItemMode ? (
+                <MultiItemOrderSummary
+                  items={checkoutItems}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onUpdateSize={handleUpdateSize}
+                  onRemoveItem={handleRemoveItem}
+                />
+              ) : (
+                <OrderSummary
+                  perfumeName={perfumeName}
+                  perfumeBrand={displayIdolName}
+                  userImage={userImage}
+                  selectedSize={selectedSize}
+                  onSizeChange={setSelectedSize}
+                  price={prices[selectedSize]}
+                  keywords={analysisResult?.matchingKeywords || []}
+                />
+              )}
             </div>
 
             {/* 오른쪽: 배송 정보 */}
@@ -361,20 +479,22 @@ export default function CheckoutPage() {
                 <p className="text-sm font-black text-slate-900 mb-4">결제 금액</p>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">상품 금액</span>
-                    <span className="font-black text-slate-900">{productPrice.toLocaleString()}원</span>
+                    <span className="text-slate-500 font-bold">
+                      상품 금액 {isMultiItemMode && `(${checkoutItems.length}개)`}
+                    </span>
+                    <span className="font-black text-slate-900">{formatPrice(productPrice)}원</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 font-bold">배송비</span>
                     <span className={`font-black ${shippingFee === 0 ? "text-[#F472B6]" : "text-slate-900"}`}>
-                      {shippingFee === 0 ? "무료" : `${shippingFee.toLocaleString()}원`}
+                      {shippingFee === 0 ? "무료" : `${formatPrice(shippingFee)}원`}
                     </span>
                   </div>
                   {discountAmount > 0 && (
                     <div className="flex justify-between">
                       <span className="text-slate-500 font-bold">쿠폰 할인</span>
                       <span className="font-black text-[#F472B6]">
-                        -{discountAmount.toLocaleString()}원
+                        -{formatPrice(discountAmount)}원
                       </span>
                     </div>
                   )}
@@ -383,11 +503,11 @@ export default function CheckoutPage() {
                     <div className="text-right">
                       {discountAmount > 0 && (
                         <span className="text-sm text-slate-400 line-through mr-2">
-                          {(productPrice + shippingFee).toLocaleString()}원
+                          {formatPrice(productPrice + shippingFee)}원
                         </span>
                       )}
                       <span className="font-black text-2xl text-slate-900">
-                        {totalPrice.toLocaleString()}원
+                        {formatPrice(totalPrice)}원
                       </span>
                     </div>
                   </div>
@@ -449,7 +569,7 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <Sparkles size={20} />
-                      <span>{totalPrice.toLocaleString()}원 주문하기</span>
+                      <span>{formatPrice(totalPrice)}원 주문하기</span>
                     </>
                   )}
                 </div>
