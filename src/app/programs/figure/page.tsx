@@ -205,7 +205,7 @@ export default function FigurePage() {
                   </div>
                   <ul className="space-y-0.5 text-[11px] lg:text-xs text-slate-600 pl-5">
                     <li className="list-disc">샤쉐스톤 + AI 맞춤 향 에센스 포함</li>
-                    <li className="list-disc">제작 후 2~3일 배송</li>
+                    <li className="list-disc">제작 후 2~3일 내 배송</li>
                   </ul>
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function FigurePage() {
           </div>
 
           {/* 메인 구성품 - 모바일: 가로 스크롤 / 데스크톱: 그리드 */}
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:px-0 scrollbar-hide">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0 lg:mx-auto lg:max-w-3xl lg:px-0 scrollbar-hide">
             {productComponents.map((item, idx) => (
               <motion.div
                 key={idx}
@@ -472,41 +472,6 @@ export default function FigurePage() {
               onRatingFilterChange={setReviewRatingFilter}
             />
           </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
-          최종 CTA
-      ============================================ */}
-      <section className="py-20 px-4 md:px-8 bg-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight break-keep">
-            세상에 하나뿐인<br />
-            <span className="text-cyan-400">나만의 최애 피규어</span>
-          </h2>
-          <p className="text-slate-400 mb-8 text-lg">
-            최애 사진 한 장이면 3D 피규어로 만들어드려요.<br />
-            직접 색칠하고, 향기까지 더해서 나만의 굿즈 완성!
-          </p>
-
-          <button
-            onClick={handleStartClick}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-cyan-400 text-black font-black text-xl rounded-2xl border-2 border-black shadow-[8px_8px_0_0_white] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0_0_white] transition-all disabled:opacity-50"
-          >
-            <Box size={28} />
-            지금 바로 주문하기
-          </button>
-
-          <p className="text-slate-500 mt-6 text-sm">
-            제작 기간: 3D 모델링 완료 후 2~3일 배송 🚀
-          </p>
         </motion.div>
       </section>
 

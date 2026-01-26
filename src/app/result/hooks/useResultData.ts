@@ -21,6 +21,10 @@ export const useResultData = () => {
   const [programType, setProgramType] = useState<string | null>(null)
   const [figureImage, setFigureImage] = useState<string | null>(null)
   const [figureChatData, setFigureChatData] = useState<any>(null)
+  // 피규어 온라인 모드: 모델링 이미지 & 요청사항
+  const [modelingImage, setModelingImage] = useState<string | null>(null)
+  const [modelingRequest, setModelingRequest] = useState<string | null>(null)
+  const [productType, setProductType] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -91,6 +95,22 @@ export const useResultData = () => {
           }
         }
 
+        // 피규어 온라인 모드: 모델링 이미지 & 요청사항
+        const savedModelingImage = localStorage.getItem('modelingImage')
+        if (savedModelingImage) {
+          setModelingImage(savedModelingImage)
+        }
+
+        const savedModelingRequest = localStorage.getItem('modelingRequest')
+        if (savedModelingRequest) {
+          setModelingRequest(savedModelingRequest)
+        }
+
+        const savedProductType = localStorage.getItem('productType')
+        if (savedProductType) {
+          setProductType(savedProductType)
+        }
+
         if (savedResult) {
           try {
             const parsedResult: ImageAnalysisResult = JSON.parse(savedResult)
@@ -144,7 +164,12 @@ export const useResultData = () => {
     programType,
     figureImage,
     figureChatData,
-    isFigureMode: programType === 'figure'
+    isFigureMode: programType === 'figure',
+    // 피규어 온라인 모드: 모델링 이미지 & 요청사항
+    modelingImage,
+    modelingRequest,
+    productType,
+    isFigureOnlineMode: productType === 'figure_diffuser'
   }
 }
 

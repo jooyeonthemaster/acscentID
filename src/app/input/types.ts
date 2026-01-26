@@ -11,6 +11,9 @@ export interface FormDataType {
     charmPoints: string[]
     customCharm: string
     image: File | null
+    // 피규어 온라인 모드 전용 - 3D 모델링용
+    modelingImage: File | null
+    modelingRequest: string
 }
 
 export interface StepProps {
@@ -45,6 +48,14 @@ export interface Step5Props {
     removeImage: () => void
     isIdol: boolean
     isCompressing?: boolean
+    // 피규어 온라인 모드 전용
+    isFigureOnline?: boolean
+    modelingImagePreview?: string | null
+    modelingRequest?: string
+    setModelingRequest?: (request: string) => void
+    handleModelingImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void
+    removeModelingImage?: () => void
+    isModelingCompressing?: boolean
 }
 
 export interface InputFieldProps {

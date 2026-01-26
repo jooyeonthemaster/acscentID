@@ -19,6 +19,10 @@ interface UseAutoSaveProps {
   authLoading?: boolean  // AuthContext 로딩 상태 (타이밍 문제 해결용)
   existingResultId?: string | null  // URL에서 가져온 기존 결과 ID (있으면 저장 스킵)
   idolName?: string | null  // 최애 이름 (입력 폼에서 입력한 이름)
+  // 피규어 온라인 모드 전용
+  modelingImage?: string | null  // 3D 모델링용 참조 이미지
+  modelingRequest?: string | null  // 모델링 요청사항
+  productType?: string | null  // 상품 타입 (figure_diffuser 등)
 }
 
 interface UseAutoSaveReturn {
@@ -68,7 +72,11 @@ export function useAutoSave({
   userId,
   authLoading = false,
   existingResultId = null,
-  idolName = null
+  idolName = null,
+  // 피규어 온라인 모드 전용
+  modelingImage = null,
+  modelingRequest = null,
+  productType = null
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -116,6 +124,7 @@ export function useAutoSave({
       const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
 
       let imageUrl: string | null = null
+      let modelingImageUrl: string | null = null
 
       // 1. 이미지가 있으면 Storage에 업로드
       if (userImage) {
@@ -163,8 +172,54 @@ export function useAutoSave({
         }
       }
 
+      // 1-2. 피규어 온라인 모드: 모델링 이미지 업로드
+      if (modelingImage && productType === 'figure_diffuser') {
+        if (modelingImage.startsWith('http://') || modelingImage.startsWith('https://')) {
+          modelingImageUrl = modelingImage
+          console.log('[AutoSave] Using existing modeling image URL:', modelingImageUrl)
+        } else if (modelingImage.startsWith('data:image/')) {
+          try {
+            const base64Part = modelingImage.split(',')[1]
+            if (!base64Part || base64Part.length < 100) {
+              console.warn('[AutoSave] Invalid modeling image base64 data, skipping upload')
+            } else {
+              console.log('[AutoSave] Uploading modeling image to Storage...')
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageBase64: modelingImage,
+                  userId: userId,
+                  fingerprint,
+                  subfolder: 'modeling'  // 모델링 이미지 전용 폴더
+                })
+              })
+
+              const uploadData = await uploadResponse.json()
+
+              if (uploadData.success && uploadData.url) {
+                modelingImageUrl = uploadData.url
+                console.log('[AutoSave] Modeling image uploaded:', modelingImageUrl)
+              } else {
+                console.warn('[AutoSave] Modeling image upload failed:', uploadData.error)
+              }
+            }
+          } catch (uploadError) {
+            console.error('[AutoSave] Modeling image upload error:', uploadError)
+          }
+        } else {
+          console.warn('[AutoSave] Unknown modeling image format, skipping upload')
+        }
+      }
+
       // 2. 결과 데이터 저장
       console.log('[AutoSave] Saving analysis result...')
+
+      // 서비스 모드 가져오기
+      const serviceMode = typeof window !== 'undefined'
+        ? localStorage.getItem('serviceMode') || 'offline'
+        : 'offline'
+
       const response = await fetch('/api/results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,7 +232,14 @@ export function useAutoSave({
           matchingKeywords: analysisResult.matchingKeywords || [],
           userId: userId,
           userFingerprint: fingerprint,
-          idolName: idolName
+          idolName: idolName,
+          // 피규어 온라인 모드 전용
+          ...(productType === 'figure_diffuser' && {
+            modelingImageUrl,
+            modelingRequest,
+            productType,
+            serviceMode
+          })
         })
       })
 
@@ -214,7 +276,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, modelingImage, modelingRequest, productType])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)

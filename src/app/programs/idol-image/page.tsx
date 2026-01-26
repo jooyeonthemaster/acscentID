@@ -214,7 +214,7 @@ export default function IdolImagePage() {
               </button>
 
               <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
-                먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
+                💡 먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
               </p>
             </motion.div>
           </div>

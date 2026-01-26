@@ -15,7 +15,12 @@ export async function POST(request: NextRequest) {
       matchingKeywords,
       userId,
       userFingerprint,
-      idolName
+      idolName,
+      // 피규어 디퓨저 온라인 모드 전용
+      modelingImageUrl,
+      modelingRequest,
+      productType,
+      serviceMode
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -26,6 +31,11 @@ export async function POST(request: NextRequest) {
       userId?: string | null
       userFingerprint?: string | null
       idolName?: string | null
+      // 피규어 디퓨저 온라인 모드 전용
+      modelingImageUrl?: string | null
+      modelingRequest?: string | null
+      productType?: string | null
+      serviceMode?: string | null
     }
 
     // 필수 데이터 검증
@@ -48,7 +58,13 @@ export async function POST(request: NextRequest) {
         matching_keywords: matchingKeywords || [],
         user_id: userId || null,
         user_fingerprint: userFingerprint || null,
-        idol_name: idolName || null
+        idol_name: idolName || null,
+        // 피규어 디퓨저 온라인 모드 전용
+        modeling_image_url: modelingImageUrl || null,
+        modeling_request: modelingRequest || null,
+        modeling_submitted_at: modelingImageUrl ? new Date().toISOString() : null,
+        product_type: productType || 'image_analysis',
+        service_mode: serviceMode || 'online'
       })
       .select('id')
       .single()

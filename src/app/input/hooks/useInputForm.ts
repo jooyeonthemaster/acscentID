@@ -16,7 +16,10 @@ const INITIAL_FORM_DATA: FormDataType = {
     customPersonality: "",
     charmPoints: [],
     customCharm: "",
-    image: null
+    image: null,
+    // 피규어 온라인 모드 전용
+    modelingImage: null,
+    modelingRequest: ""
 }
 
 export function useInputForm() {
@@ -34,8 +37,13 @@ export function useInputForm() {
     const [showImageGuide, setShowImageGuide] = useState(true)
     const [focusedField, setFocusedField] = useState<string | null>(null)
 
+    // 피규어 모델링용 상태
+    const [modelingImagePreview, setModelingImagePreview] = useState<string | null>(null)
+    const [isModelingCompressing, setIsModelingCompressing] = useState(false)
+
     const isIdol = type === "idol_image" || type === "figure"
     const isOnline = mode === "online"
+    const isFigureOnline = type === "figure" && isOnline
 
     // 스텝 유효성 검사
     const isStepValid = useCallback((step: number): boolean => {
@@ -47,10 +55,15 @@ export function useInputForm() {
             case 2: return formData.styles.length > 0 || formData.customStyle.length > 0
             case 3: return formData.personalities.length > 0 || formData.customPersonality.length > 0
             case 4: return formData.charmPoints.length > 0 || formData.customCharm.length > 0
-            case 5: return formData.image !== null
+            case 5:
+                // 피규어 온라인 모드: AI 향 추천용 이미지 + 모델링용 이미지 둘 다 필요
+                if (isFigureOnline) {
+                    return formData.image !== null && formData.modelingImage !== null
+                }
+                return formData.image !== null
             default: return false
         }
-    }, [formData, isOnline])
+    }, [formData, isOnline, isFigureOnline])
 
     // 토글 함수들
     const toggleStyle = useCallback((style: string) => {
@@ -128,6 +141,44 @@ export function useInputForm() {
         setImagePreview(null)
     }, [])
 
+    // 모델링 이미지 업로드 (피규어 온라인 모드 전용)
+    const handleModelingImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsModelingCompressing(true)
+        setFormData(prev => ({ ...prev, modelingImage: file }))
+
+        try {
+            // 이미지 압축 (최대 800x960, 품질 80%)
+            const compressedBase64 = await compressImage(file, {
+                maxWidth: 800,
+                maxHeight: 960,
+                quality: 0.8
+            })
+
+            setModelingImagePreview(compressedBase64)
+        } catch (error) {
+            console.error("모델링 이미지 압축 실패:", error)
+            // 압축 실패 시 원본 사용
+            const reader = new FileReader()
+            reader.onload = (ev) => setModelingImagePreview(ev.target?.result as string)
+            reader.readAsDataURL(file)
+        } finally {
+            setIsModelingCompressing(false)
+        }
+    }, [])
+
+    const removeModelingImage = useCallback(() => {
+        setFormData(prev => ({ ...prev, modelingImage: null }))
+        setModelingImagePreview(null)
+    }, [])
+
+    // 모델링 요청사항 설정
+    const setModelingRequest = useCallback((request: string) => {
+        setFormData(prev => ({ ...prev, modelingRequest: request }))
+    }, [])
+
     // 폼 제출
     const handleComplete = useCallback(async () => {
         if (!isStepValid(5) || isSubmitting) return
@@ -150,7 +201,13 @@ export function useInputForm() {
                         charmPoints: formData.charmPoints,
                         customCharm: formData.customCharm
                     },
-                    imageBase64: imagePreview
+                    imageBase64: imagePreview,
+                    // 피규어 온라인 모드 전용 데이터
+                    ...(isFigureOnline && {
+                        modelingImageBase64: modelingImagePreview,
+                        modelingRequest: formData.modelingRequest,
+                        productType: 'figure_diffuser'
+                    })
                 })
             })
 
@@ -161,9 +218,18 @@ export function useInputForm() {
                 localStorage.removeItem('savedResultId')
                 // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
                 localStorage.setItem('serviceMode', mode || 'offline')
+                // 상품 타입 저장 (피규어 디퓨저인 경우)
+                if (isFigureOnline) {
+                    localStorage.setItem('productType', 'figure_diffuser')
+                }
                 localStorage.setItem('analysisResult', JSON.stringify(result.data))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
+                }
+                // 피규어 온라인 모드: 모델링 이미지도 저장
+                if (isFigureOnline && modelingImagePreview) {
+                    localStorage.setItem('modelingImage', modelingImagePreview)
+                    localStorage.setItem('modelingRequest', formData.modelingRequest || '')
                 }
                 // 사용자 정보 저장 (이름, 성별)
                 localStorage.setItem('userInfo', JSON.stringify({
@@ -177,9 +243,18 @@ export function useInputForm() {
                 localStorage.removeItem('savedResultId')
                 // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
                 localStorage.setItem('serviceMode', mode || 'offline')
+                // 상품 타입 저장 (피규어 디퓨저인 경우)
+                if (isFigureOnline) {
+                    localStorage.setItem('productType', 'figure_diffuser')
+                }
                 localStorage.setItem('analysisResult', JSON.stringify(result.fallback))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
+                }
+                // 피규어 온라인 모드: 모델링 이미지도 저장
+                if (isFigureOnline && modelingImagePreview) {
+                    localStorage.setItem('modelingImage', modelingImagePreview)
+                    localStorage.setItem('modelingRequest', formData.modelingRequest || '')
                 }
                 localStorage.setItem('userInfo', JSON.stringify({
                     name: formData.name,
@@ -193,7 +268,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, isStepValid, isSubmitting, router, showToast, mode])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, router, showToast, mode])
 
     return {
         // 상태
@@ -210,6 +285,11 @@ export function useInputForm() {
         isIdol,
         isOnline,
 
+        // 피규어 온라인 모드 전용
+        isFigureOnline,
+        modelingImagePreview,
+        isModelingCompressing,
+
         // 함수들
         isStepValid,
         toggleStyle,
@@ -219,6 +299,9 @@ export function useInputForm() {
         handlePrev,
         handleImageUpload,
         removeImage,
+        handleModelingImageUpload,
+        removeModelingImage,
+        setModelingRequest,
         handleComplete
     }
 }

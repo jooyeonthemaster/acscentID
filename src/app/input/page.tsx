@@ -26,6 +26,10 @@ function InputForm() {
         isCompressing,
         isIdol,
         isOnline,
+        // 피규어 온라인 모드 전용
+        isFigureOnline,
+        modelingImagePreview,
+        isModelingCompressing,
         isStepValid,
         toggleStyle,
         togglePersonality,
@@ -34,6 +38,9 @@ function InputForm() {
         handlePrev,
         handleImageUpload,
         removeImage,
+        handleModelingImageUpload,
+        removeModelingImage,
+        setModelingRequest,
         handleComplete
     } = useInputForm()
 
@@ -105,6 +112,14 @@ function InputForm() {
                             removeImage={removeImage}
                             isIdol={isIdol}
                             isCompressing={isCompressing}
+                            // 피규어 온라인 모드 전용
+                            isFigureOnline={isFigureOnline}
+                            modelingImagePreview={modelingImagePreview}
+                            modelingRequest={formData.modelingRequest}
+                            setModelingRequest={setModelingRequest}
+                            handleModelingImageUpload={handleModelingImageUpload}
+                            removeModelingImage={removeModelingImage}
+                            isModelingCompressing={isModelingCompressing}
                         />
                     )}
                 </AnimatePresence>

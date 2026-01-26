@@ -81,7 +81,12 @@ export default function ResultPageMain() {
     idolName,
     // 피규어 모드 데이터
     isFigureMode,
-    figureImage
+    figureImage,
+    // 피규어 온라인 모드 데이터
+    modelingImage,
+    modelingRequest,
+    productType,
+    isFigureOnlineMode
   } = useResultData()
 
   // 피규어 모드일 때 기본 탭을 'memory'로 설정
@@ -113,7 +118,11 @@ export default function ResultPageMain() {
     userId: user?.id || unifiedUser?.id || null,
     authLoading,  // 로딩 완료 후 저장하도록 전달
     existingResultId,  // URL에 id가 있으면 저장 스킵
-    idolName  // 최애 이름
+    idolName,  // 최애 이름
+    // 피규어 온라인 모드 전용
+    modelingImage,
+    modelingRequest,
+    productType
   })
 
   const handleRestart = () => {
