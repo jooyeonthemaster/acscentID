@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence, useSpring, useMotionValue } from "framer-motion"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { StickerCartridge, StickerStar } from "./Stickers"
-import { useAuth } from "@/contexts/AuthContext"
 
 // --- Slide Data (2개: Brand + Programs) ---
 const SLIDES = [
@@ -17,23 +16,6 @@ const SLIDES = [
 export function KitschHero() {
     const [currentSlide, setCurrentSlide] = useState(0)
     const [direction, setDirection] = useState(0)
-
-    // Mouse Parallax Logic
-    const mouseX = useMotionValue(0)
-    const mouseY = useMotionValue(0)
-    const springConfig = { damping: 25, stiffness: 150 }
-    const springX = useSpring(mouseX, springConfig)
-    const springY = useSpring(mouseY, springConfig)
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            const { innerWidth, innerHeight } = window
-            mouseX.set(e.clientX / innerWidth - 0.5)
-            mouseY.set(e.clientY / innerHeight - 0.5)
-        }
-        window.addEventListener("mousemove", handleMouseMove)
-        return () => window.removeEventListener("mousemove", handleMouseMove)
-    }, [mouseX, mouseY])
 
     const nextSlide = () => {
         setDirection(1)
@@ -71,15 +53,18 @@ export function KitschHero() {
         <section data-hero-section className="fixed top-0 left-0 w-full h-[100vh] z-0 overflow-hidden bg-[#FEFCE2] flex flex-col font-sans selection:bg-yellow-200 selection:text-yellow-900 border-b-4 border-slate-900">
 
             {/* --- Background Image Layer --- */}
-            <div className="absolute inset-0 z-0">
-                {/* Desktop background */}
-                <Image
-                    src="/images/hero/forest_bg_new.png"
-                    alt="Forest Background"
-                    fill
-                    className="object-cover hidden md:block"
-                    priority
-                />
+            <div className="absolute inset-0 z-0 flex items-center justify-center">
+                {/* Desktop background - 16:9 ratio, centered and scaled to fit */}
+                <div className="hidden md:block relative w-full h-full">
+                    <Image
+                        src="/images/hero/hf_20260126_101725_e5d21415-948c-4a81-a5f5-5959169a43d4.avif"
+                        alt="Forest Background"
+                        fill
+                        className="object-contain"
+                        style={{ objectPosition: 'center center' }}
+                        priority
+                    />
+                </div>
                 {/* Mobile background */}
                 <Image
                     src="/images/hero/mhero.svg"
@@ -88,8 +73,6 @@ export function KitschHero() {
                     className="object-cover md:hidden"
                     priority
                 />
-                {/* Gradient overlay for text readability - desktop only */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/40 to-transparent hidden md:block" />
             </div>
 
             {/* --- Main Carousel --- */}
@@ -108,7 +91,7 @@ export function KitschHero() {
                         }}
                         className="absolute inset-0 flex flex-col justify-center items-center w-full h-full p-4 will-change-transform"
                     >
-                        {currentSlide === 0 && <BrandSlideX springX={springX} springY={springY} goToSlide={goToSlide} />}
+                        {currentSlide === 0 && <BrandSlideX goToSlide={goToSlide} />}
                         {currentSlide === 1 && <ProgramSlideX />}
                     </motion.div>
                 </AnimatePresence>
@@ -146,42 +129,17 @@ export function KitschHero() {
 }
 
 // --- SLIDE 1: BRAND INTRO (Kinetic) ---
-function BrandSlideX({ springX, springY, goToSlide }: { springX: any; springY: any; goToSlide: (index: number) => void }) {
-    const { unifiedUser } = useAuth()
-    const userName = unifiedUser?.name || unifiedUser?.email?.split('@')[0]
-
+function BrandSlideX({ goToSlide }: { goToSlide: (index: number) => void }) {
     return (
         <>
             {/* === MOBILE LAYOUT === */}
             <div className="md:hidden relative w-full h-full flex flex-col px-4 pt-14 pb-20">
-                {/* Top: Badge */}
-                <motion.div
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="inline-block self-start bg-yellow-400 text-slate-900 text-xs font-black px-3 py-1 rounded-full border-2 border-slate-900 shadow-[2px_2px_0px_#000] rotate-[-2deg] mt-16"
-                >
-                    ✨ NO.1 AI 향수 큐레이션
-                </motion.div>
-
-                {/* Greeting Message - separate from main text */}
-                <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-sm font-bold text-slate-600 mt-4"
-                >
-                    {unifiedUser ? (
-                        <span>{userName}님 반가워요!</span>
-                    ) : (
-                        <span>로그인하고 나만의 향을 찾아보세요</span>
-                    )}
-                </motion.p>
-
-                {/* Middle: Title Image */}
+                    {/* Middle: Title Image */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="flex-1 flex items-start justify-center w-full mt-0"
+                    className="flex-1 flex items-start justify-center w-full mt-28"
                 >
                     <Image
                         src="/images/hero/title.png"
@@ -230,89 +188,28 @@ function BrandSlideX({ springX, springY, goToSlide }: { springX: any; springY: a
             </div>
 
             {/* === DESKTOP LAYOUT === */}
-            <div className="hidden md:flex relative w-full max-w-7xl h-full flex-row items-center justify-between pointer-events-none px-4">
-                {/* Main Content - Aligned Left */}
-                <div className="relative z-30 text-left w-full max-w-xl flex flex-col items-start">
-                    <motion.div
-                        initial={{ y: -50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="inline-block bg-yellow-400 text-slate-900 text-lg font-black px-6 py-2 rounded-full border-4 border-slate-900 shadow-[4px_4px_0px_#000] rotate-[-2deg] mb-4"
-                    >
-                        ✨ NO.1 AI 향수 큐레이션
-                    </motion.div>
-
-                    <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-lg font-bold text-slate-600 mb-4"
-                    >
-                        {unifiedUser ? (
-                            <span>{userName}님 반가워요!</span>
-                        ) : (
-                            <span>로그인하고 나만의 향을 찾아보세요</span>
-                        )}
-                    </motion.p>
-
-                    {/* PC Title Image */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="relative z-50 -ml-4 mt-2"
-                    >
-                        <Image
-                            src="/images/hero/pctitle.png"
-                            alt="악센트 아이디 - 나만의 향을 찾아주는 가장 유쾌한 브랜드"
-                            width={600}
-                            height={300}
-                            className="w-[500px] h-auto object-contain"
-                            priority
-                        />
-                    </motion.div>
-
-                    {/* CTA Buttons */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
-                        className="flex flex-row gap-4 mt-8 pointer-events-auto"
-                    >
-                        <button
-                            onClick={() => goToSlide(1)}
-                            className="bg-yellow-400 border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-                        >
-                            프로그램 둘러보기
-                        </button>
-                        <a
-                            href="https://map.naver.com/p/entry/place/1274492663?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202601242226&locale=ko&svcName=map_pcv5&searchType=place&lng=126.9267345&lat=37.5549328&c=15.00,0,0,0,dh"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-white border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-center"
-                        >
-                            현장방문 예약하기
-                        </a>
-                    </motion.div>
-                </div>
-
-                {/* Duck Character (Parallax + Floating) - Positioned Right */}
+            <div className="hidden md:flex relative w-full max-w-7xl h-full flex-row items-end justify-start pointer-events-none px-4 pb-32">
+                {/* CTA Buttons Only - Title is in background image */}
                 <motion.div
-                    style={{ x: springX, y: springY }}
-                    className="relative z-20 pointer-events-auto mr-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex flex-row gap-4 pointer-events-auto ml-8"
                 >
-                    <motion.div
-                        animate={{ y: [0, -15, 0] }}
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        className="relative w-[380px] h-[500px]"
+                    <button
+                        onClick={() => goToSlide(1)}
+                        className="bg-yellow-400 border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
                     >
-                        <Image
-                            src="/images/hero/ppuduck_fullbody_v2.png"
-                            alt="PPU Duck Character"
-                            fill
-                            className="object-contain"
-                            priority
-                            unoptimized
-                        />
-                    </motion.div>
+                        프로그램 둘러보기
+                    </button>
+                    <a
+                        href="https://map.naver.com/p/entry/place/1274492663?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202601242226&locale=ko&svcName=map_pcv5&searchType=place&lng=126.9267345&lat=37.5549328&c=15.00,0,0,0,dh"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-center"
+                    >
+                        현장방문 예약하기
+                    </a>
                 </motion.div>
             </div>
         </>

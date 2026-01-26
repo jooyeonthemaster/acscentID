@@ -179,6 +179,17 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
               <DesktopDropdown title="About" links={NAV_LINKS.about} isActive={isAboutActive} />
               <DesktopDropdown title="Programs" links={NAV_LINKS.programs} isActive={isProgramsActive} />
               <Link
+                href="/faq"
+                className={cn(
+                  "px-3 py-2 rounded-lg font-bold text-sm transition-all",
+                  pathname === '/faq'
+                    ? "text-purple-600 bg-purple-50"
+                    : "text-slate-700 hover:text-black hover:bg-slate-50"
+                )}
+              >
+                FAQ
+              </Link>
+              <Link
                 href="/mypage"
                 className={cn(
                   "px-3 py-2 rounded-lg font-bold text-sm transition-all",

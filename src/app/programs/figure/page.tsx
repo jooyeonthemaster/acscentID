@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Sparkles, Camera, Star, X, AlertTriangle,
-  Truck, ChevronDown, ChevronRight,
-  Box, Droplets, PenTool, Gem
+  Sparkles, Star, X, AlertTriangle,
+  Truck, ChevronRight,
+  Box, Droplets, PenTool, Gem, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -39,7 +39,6 @@ export default function FigurePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -87,13 +86,6 @@ export default function FigurePage() {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
   }
-
-  const faqs = [
-    { q: "어떤 이미지를 보내야 하나요?", a: "캐릭터의 전신 또는 상반신이 잘 보이는 이미지가 좋아요. 일러스트, 애니메이션 캡처, 게임 스크린샷 모두 가능합니다!" },
-    { q: "3D 모델링은 어떤 스타일인가요?", a: "귀여운 '룩업(Look Up)' 스타일로 제작됩니다. SD 캐릭터처럼 2등신~3등신의 아담하고 귀여운 비율이에요." },
-    { q: "향 에센스는 어떻게 사용하나요?", a: "샤쉐스톤에 AI 맞춤 향 에센스를 뿌려 디퓨저 스팟에 올려두시면 됩니다. 피규어와 함께 전시하면 향기로운 덕질 공간 완성!" },
-    { q: "향기는 얼마나 오래가나요?", a: "샤쉐스톤에 향을 뿌려 사용하시면 약 2-3주 정도 향이 유지됩니다. 리필용 향 에센스도 별도 구매 가능해요." },
-  ]
 
   const productComponents = [
     { icon: Box, name: "3D 모델링 피규어", desc: "룩업 스타일 단색 피규어", color: "bg-cyan-400" },
@@ -190,8 +182,8 @@ export default function FigurePage() {
                   </span>
                 </h1>
                 <p className="text-sm lg:text-base text-slate-600 font-medium">
-                  AI가 3D로 모델링한 최애 피규어♥<br />
-                  직접 색칠하고 향기까지 더해보세요
+                  좋아하는 최애 이미지로 제작되는<br />
+                  나만의 최애 피규어 디퓨저
                 </p>
               </div>
 
@@ -208,7 +200,7 @@ export default function FigurePage() {
                 <div className="bg-cyan-50 border border-cyan-200 rounded-lg lg:rounded-xl p-2.5 lg:p-3">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Star size={14} className="fill-cyan-400 text-cyan-400" />
-                    <span className="font-bold text-xs lg:text-sm text-black">3D 피규어 + 디퓨저 세트</span>
+                    <span className="font-bold text-xs lg:text-sm text-black">3D 피규어 + 디퓨저(5ml) + 실물 분석보고서</span>
                   </div>
                   <ul className="space-y-0.5 text-[11px] lg:text-xs text-slate-600 pl-5">
                     <li className="list-disc">샤쉐스톤 + AI 맞춤 향 에센스 포함</li>
@@ -223,12 +215,11 @@ export default function FigurePage() {
                 disabled={loading}
                 className="w-full py-4 lg:py-5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-lg lg:text-xl rounded-xl lg:rounded-2xl border-2 border-black shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] lg:hover:translate-x-[3px] lg:hover:translate-y-[3px] lg:hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-2 lg:gap-3 disabled:opacity-50"
               >
-                <Camera size={20} className="lg:w-6 lg:h-6" />
-                최애 이미지로 주문하기
+                지금 바로 제작하기
               </button>
 
               <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
-                📸 최애 사진만 보내주세요! AI가 3D로 만들어드려요
+                최애 사진만 보내주세요! 3D 피규어로 만들어드려요
               </p>
             </motion.div>
           </div>
@@ -304,47 +295,6 @@ export default function FigurePage() {
               <span className="text-sm text-slate-600 font-medium">전 구성품 한 박스에 담아 배송!</span>
             </div>
           </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
-          이런 분께 추천
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-white border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-purple-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              🎯 TARGET
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              이런 덕후분들께 딱이에요!
-            </motion.h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { emoji: "🎨", title: "손으로 만드는 걸 좋아하는 분", desc: "직접 색칠해서 완성하는 DIY의 즐거움!" },
-              { emoji: "🏠", title: "덕질 공간을 꾸미고 싶은 분", desc: "피규어 + 향기로 나만의 성지 완성" },
-              { emoji: "💝", title: "특별한 굿즈 선물을 찾는 분", desc: "세상에 하나뿐인 커스텀 피규어 선물" },
-              { emoji: "✨", title: "시중에 없는 굿즈가 필요한 분", desc: "어떤 캐릭터든 3D로 만들어드려요" },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black] hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
-              >
-                <div className="text-4xl mb-3">{item.emoji}</div>
-                <h3 className="text-xl font-black text-black mb-2">{item.title}</h3>
-                <p className="text-slate-600">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
       </section>
 
@@ -517,69 +467,6 @@ export default function FigurePage() {
       </section>
 
       {/* ============================================
-          특별 혜택
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-br from-cyan-100 to-blue-100 border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-red-500 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              🎁 SPECIAL BENEFITS
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              지금 주문 시 특별 혜택!
-            </motion.h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Box,
-                title: "AI 3D 모델링",
-                desc: "전문 툴로 제작하는 고퀄리티 룩업 스타일 피규어. 어떤 캐릭터든 귀엽게!",
-                badge: "프리미엄",
-                color: "bg-cyan-400"
-              },
-              {
-                icon: Gem,
-                title: "프리미엄 샤쉐스톤",
-                desc: "천연 원석으로 만든 향기 디퓨저 스톤. 오래 지속되는 향!",
-                badge: "천연석",
-                color: "bg-pink-400"
-              },
-              {
-                icon: Sparkles,
-                title: "AI 맞춤 향 에센스",
-                desc: "캐릭터 이미지를 분석해 어울리는 향을 조향. 5ml 제공!",
-                badge: "포함사항",
-                color: "bg-purple-400"
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black] relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 px-3 py-1 bg-red-500 text-white text-xs font-black border-l-2 border-b-2 border-black rounded-bl-xl">
-                  {item.badge}
-                </div>
-                <div className={`w-14 h-14 ${item.color} border-2 border-black rounded-xl shadow-[3px_3px_0_0_black] flex items-center justify-center mb-4`}>
-                  <item.icon size={24} className="text-white" />
-                </div>
-                <h3 className="text-xl font-black text-black mb-2">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
           실제 후기
       ============================================ */}
       <section id="reviews" className="py-16 px-4 md:px-8 bg-white">
@@ -626,63 +513,6 @@ export default function FigurePage() {
               onRatingFilterChange={setReviewRatingFilter}
             />
           </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
-          FAQ
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F0FDFF] border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-3xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-slate-800 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_#22d3ee] mb-4">
-              ❓ FAQ
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              자주 묻는 질문
-            </motion.h2>
-          </div>
-
-          <div className="space-y-4">
-            {faqs.map((faq, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left font-black text-black hover:bg-cyan-50 transition-colors"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-cyan-400 border-2 border-black rounded-lg flex items-center justify-center text-sm text-white">Q</span>
-                    {faq.q}
-                  </span>
-                  <ChevronDown size={20} className={`transition-transform ${openFaq === idx ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {openFaq === idx && (
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: "auto" }}
-                      exit={{ height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-5 pt-0">
-                        <div className="pl-11 text-slate-600 leading-relaxed">{faq.a}</div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
       </section>
 

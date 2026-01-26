@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, LogOut, Sparkles, Star, ChevronDown } from 'lucide-react'
+import { User, LogOut, Sparkles, ChevronDown, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -22,8 +22,8 @@ export const NAV_LINKS = {
     { href: '/about/how-it-works', label: '작동 원리' },
   ],
   programs: [
-    { href: '/programs/idol-image', label: 'AI 이미지 분석' },
-    { href: '/programs/figure', label: '피규어 향수' },
+    { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸' },
+    { href: '/programs/figure', label: '피규어 화분 디퓨저' },
   ],
 }
 
@@ -126,7 +126,7 @@ export function MobileMenuSheet({
       <SheetContent side="right" className="w-[300px] border-l-2 border-black bg-white p-0">
         <SheetHeader className="p-6 border-b-2 border-slate-100 bg-yellow-50">
           <SheetTitle className="text-left text-xs font-black tracking-widest text-slate-900 uppercase flex items-center gap-2">
-            <Star size={14} className="fill-black" /> Menu
+            Menu
           </SheetTitle>
         </SheetHeader>
 
@@ -180,6 +180,14 @@ export function MobileMenuSheet({
                   onLinkClick={handleClose}
                 />
                 <Link
+                  href="/faq"
+                  onClick={handleClose}
+                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  <HelpCircle size={18} />
+                  FAQ
+                </Link>
+                <Link
                   href="/mypage"
                   onClick={handleClose}
                   className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
@@ -224,6 +232,14 @@ export function MobileMenuSheet({
                   isActive={isProgramsActive}
                   onLinkClick={handleClose}
                 />
+                <Link
+                  href="/faq"
+                  onClick={handleClose}
+                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  <HelpCircle size={18} />
+                  FAQ
+                </Link>
               </nav>
 
               {/* Login CTA */}

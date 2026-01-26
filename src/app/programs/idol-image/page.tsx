@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Sparkles, Camera, Star, Heart, CheckCircle2, X, AlertTriangle,
-  Package, Truck, Clock, Gift, Shield, Zap, ChevronDown, ChevronRight,
-  MessageCircle, ThumbsUp, Award, Palette, FileText
+  Sparkles, Star, X, AlertTriangle,
+  Gift, Zap, ChevronRight,
+  Palette, FileText, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -39,7 +39,6 @@ export default function IdolImagePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -91,12 +90,6 @@ export default function IdolImagePage() {
     setShowAuthModal(true)
   }
 
-  const faqs = [
-    { q: "어떤 사진을 올려야 하나요?", a: "최애의 얼굴이 잘 보이는 사진이면 OK! 화보, 무대, 셀카 등 어떤 사진이든 분석 가능해요. 고화질일수록 더 정확한 분석이 가능합니다." },
-    { q: "향수는 어떻게 받나요?", a: "결제 완료 후 2~3일 내에 예쁜 패키지에 담아 배송해드려요. 분석 보고서도 함께 동봉됩니다." },
-    { q: "선물용으로 구매 가능한가요?", a: "물론이죠! 주문 시 선물 포장 옵션을 선택하시면 특별한 포장과 메시지 카드를 함께 보내드려요." },
-  ]
-
   return (
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
@@ -119,9 +112,6 @@ export default function IdolImagePage() {
                 <div className="absolute top-3 left-3 lg:top-4 lg:left-4 z-10 flex gap-2">
                   <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-yellow-400 text-black text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
                     BEST
-                  </span>
-                  <span className="px-2 lg:px-3 py-0.5 lg:py-1 bg-pink-400 text-white text-[10px] lg:text-xs font-black rounded-full border-2 border-black">
-                    K-POP
                   </span>
                 </div>
                 <div className="aspect-square flex items-center justify-center p-6 lg:p-8 bg-gradient-to-br from-yellow-50 to-amber-50">
@@ -185,8 +175,8 @@ export default function IdolImagePage() {
                   </span>
                 </h1>
                 <p className="text-sm lg:text-base text-slate-600 font-medium">
-                  내가 좋아하는 사진과 나만의 최애 향♥<br />
-                  이제 사진을 향기로 간직하세요
+                  좋아하는 최애 이미지로<br />
+                  추출하는 나만의 최애 향수
                 </p>
               </div>
 
@@ -218,57 +208,15 @@ export default function IdolImagePage() {
                 disabled={loading}
                 className="w-full py-4 lg:py-5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-lg lg:text-xl rounded-xl lg:rounded-2xl border-2 border-black shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] lg:hover:translate-x-[3px] lg:hover:translate-y-[3px] lg:hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-2 lg:gap-3 disabled:opacity-50"
               >
-                <Camera size={20} className="lg:w-6 lg:h-6" />
-                지금 바로 분석 시작하기
+                지금 바로 분석하기
               </button>
 
               <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
-                💡 먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
+                먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
               </p>
             </motion.div>
           </div>
         </div>
-      </section>
-
-      {/* ============================================
-          이런 분께 추천해요
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-[#FFFDF5] to-yellow-50">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-yellow-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              🎯 TARGET
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              이런 덕후분들께 추천해요!
-            </motion.h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { emoji: "💜", title: "최애 생각하면 심장이 뛰는 분", desc: "최애의 분위기를 향기로 간직하고 싶은 진정한 팬" },
-              { emoji: "🎁", title: "덕메에게 특별한 선물을 주고 싶은 분", desc: "세상에 하나뿐인 맞춤 향수로 감동 선사" },
-              { emoji: "✨", title: "나만의 시그니처 향을 찾고 싶은 분", desc: "최애처럼 매력적인 향기를 뿌리고 싶은 분" },
-              { emoji: "📸", title: "레전드 짤을 소장하고 계신 분", desc: "그 사진의 분위기를 향기로 변환해드려요" },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black] hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
-              >
-                <div className="text-4xl mb-3">{item.emoji}</div>
-                <h3 className="text-xl font-black text-black mb-2">{item.title}</h3>
-                <p className="text-slate-600">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </section>
 
       {/* ============================================
@@ -418,62 +366,6 @@ export default function IdolImagePage() {
       </section>
 
       {/* ============================================
-          특별 혜택 섹션
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-br from-yellow-100 to-amber-100 border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-red-500 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              🎁 SPECIAL BENEFITS
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              지금 주문하시면 드리는 특별 혜택!
-            </motion.h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {[
-              {
-                icon: FileText,
-                title: "실물 분석 보고서",
-                desc: "AI가 분석한 최애의 이미지 분석 결과를 예쁜 카드 형태로 제작해 함께 보내드려요!",
-                badge: "무료 증정",
-                color: "bg-purple-400"
-              },
-              {
-                icon: Truck,
-                title: "2~3일 빠른 배송",
-                desc: "주문 후 조향부터 배송까지 2~3일 안에! 기다림 없이 빠르게 받아보세요.",
-                badge: "무료 배송",
-                color: "bg-green-400"
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl p-6 shadow-[4px_4px_0_0_black] relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 px-3 py-1 bg-red-500 text-white text-xs font-black border-l-2 border-b-2 border-black rounded-bl-xl">
-                  {item.badge}
-                </div>
-                <div className={`w-14 h-14 ${item.color} border-2 border-black rounded-xl shadow-[3px_3px_0_0_black] flex items-center justify-center mb-4`}>
-                  <item.icon size={24} className="text-white" />
-                </div>
-                <h3 className="text-xl font-black text-black mb-2">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
           실제 후기
       ============================================ */}
       <section id="reviews" className="py-16 px-4 md:px-8 bg-white">
@@ -524,63 +416,6 @@ export default function IdolImagePage() {
       </section>
 
       {/* ============================================
-          FAQ
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#FFFDF5] border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-3xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-slate-800 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_#facc15] mb-4">
-              ❓ FAQ
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              자주 묻는 질문
-            </motion.h2>
-          </div>
-
-          <div className="space-y-4">
-            {faqs.map((faq, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left font-black text-black hover:bg-yellow-50 transition-colors"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-yellow-400 border-2 border-black rounded-lg flex items-center justify-center text-sm">Q</span>
-                    {faq.q}
-                  </span>
-                  <ChevronDown size={20} className={`transition-transform ${openFaq === idx ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {openFaq === idx && (
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: "auto" }}
-                      exit={{ height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-5 pt-0">
-                        <div className="pl-11 text-slate-600 leading-relaxed">{faq.a}</div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
           최종 CTA
       ============================================ */}
       <section className="py-20 px-4 md:px-8 bg-black">
@@ -592,12 +427,11 @@ export default function IdolImagePage() {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
-            덕후라면 반드시 해야 할<br />
-            <span className="text-yellow-400">최애 향기 체험</span>
+            좋아하는 최애 이미지로<br />
+            <span className="text-yellow-400">나만의 최애 향수</span>
           </h2>
           <p className="text-slate-400 mb-8 text-lg">
-            최애의 분위기를 향기로 담아, 언제 어디서나 함께하세요.<br />
-            지금 바로 시작하면 실물 보고서도 무료!
+            최애의 분위기를 향기로 담아, 언제 어디서나 함께하세요.
           </p>
 
           <button
@@ -605,12 +439,11 @@ export default function IdolImagePage() {
             disabled={loading}
             className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-yellow-400 text-black font-black text-xl rounded-2xl border-2 border-black shadow-[8px_8px_0_0_white] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0_0_white] transition-all disabled:opacity-50"
           >
-            <Sparkles size={28} />
-            무료로 분석 시작하기
+            지금 바로 분석하기
           </button>
 
           <p className="text-slate-500 mt-6 text-sm">
-            분석은 무료! 결과가 마음에 들면 그때 결제하세요 ✨
+            분석은 무료! 결과가 마음에 들면 그때 결제하세요
           </p>
         </motion.div>
       </section>
