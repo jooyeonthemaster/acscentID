@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Sparkles, User, Menu, X, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTransition } from '@/contexts/TransitionContext'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
@@ -134,6 +135,7 @@ export function MobileBottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, unifiedUser, loading, signOut } = useAuth()
+  const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)
@@ -212,13 +214,13 @@ export function MobileBottomNav() {
 
     if (isIdolImagePage) {
       if (currentUser) {
-        router.push('/input?type=idol_image&mode=online')
+        startTransition('/input?type=idol_image&mode=online')
       } else {
         setShowAuthModal(true)
       }
     } else if (isFigurePage) {
       if (currentUser) {
-        router.push('/input?type=figure&mode=online')
+        startTransition('/input?type=figure&mode=online')
       } else {
         setShowAuthModal(true)
       }
@@ -370,8 +372,8 @@ export function MobileBottomNav() {
         onClose={() => setShowAuthModal(false)}
         redirectPath={
           isIdolImagePage ? '/input?type=idol_image&mode=online' :
-          isFigurePage ? '/input?type=figure&mode=online' :
-          '/mypage'
+            isFigurePage ? '/input?type=figure&mode=online' :
+              '/mypage'
         }
       />
     </>

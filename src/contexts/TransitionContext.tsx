@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 
 type TransitionStage = 'open' | 'closing' | 'closed' | 'opening'
 
@@ -89,7 +90,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     )
 }
 
-import { motion, AnimatePresence } from "framer-motion"
+
 
 function DoorTransitionController({
     stage,
@@ -103,7 +104,7 @@ function DoorTransitionController({
     // stage에 따라 애니메이션 제어
 
     return (
-        <div className="fixed inset-0 z-[9999] pointer-events-none flex">
+        <div className="fixed inset-0 z-[100000] pointer-events-none flex">
             {/* 왼쪽 문 */}
             <motion.div
                 initial={{ x: "-100%" }}
@@ -123,12 +124,32 @@ function DoorTransitionController({
                         onOpened()
                     }
                 }}
-                className="w-1/2 h-full bg-black border-r border-white/10 relative pointer-events-auto"
+                className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative pointer-events-auto flex items-center justify-end"
             >
-                {/* 문에 장식 요소 추가 가능 */}
+                {/* 왼쪽 문 디자인 (SVG) */}
+                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                    <defs>
+                        <pattern id="wood-pattern" width="100" height="100" patternUnits="userSpaceOnUse">
+                            <path d="M0 0h100v100H0z" fill="#fbbf24" />
+                            <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#wood-pattern)" />
+
+                    {/* 문틀 장식 */}
+                    <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                    <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                </svg>
+
+                {/* 손잡이 */}
+                <div className="relative z-10 mr-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                </div>
+
+                {/* 문구 */}
                 {(stage === 'closing' || stage === 'closed') && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 whitespace-nowrap font-black text-6xl rotate-90 opacity-50">
-                        LOADING
+                    <div className="absolute right-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl rotate-90 z-20">
+                        OPEN
                     </div>
                 )}
             </motion.div>
@@ -143,11 +164,25 @@ function DoorTransitionController({
                     duration: 0.6,
                     ease: [0.22, 1, 0.36, 1]
                 }}
-                className="w-1/2 h-full bg-black border-l border-white/10 relative pointer-events-auto"
+                className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative pointer-events-auto flex items-center justify-start"
             >
+                {/* 오른쪽 문 디자인 (SVG) */}
+                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                    <rect width="100%" height="100%" fill="url(#wood-pattern)" />
+
+                    {/* 문틀 장식 */}
+                    <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                    <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                </svg>
+
+                {/* 손잡이 */}
+                <div className="relative z-10 ml-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                </div>
+
                 {(stage === 'closing' || stage === 'closed') && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 whitespace-nowrap font-black text-6xl -rotate-90 opacity-50">
-                        ANALYSIS
+                    <div className="absolute left-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl -rotate-90 z-20">
+                        YOUR WORLD
                     </div>
                 )}
             </motion.div>

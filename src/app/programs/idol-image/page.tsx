@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
+import { useTransition } from "@/contexts/TransitionContext"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
@@ -68,11 +69,13 @@ export default function IdolImagePage() {
     "/제목 없는 디자인 (3)/3.png",
   ]
 
+  const { startTransition } = useTransition()
+
   const handleStartClick = () => {
     if (loading) return
     if (isLoggedIn) {
       // 온라인 모드: 로그인 필수, 결과 페이지에서 구매 버튼 표시
-      router.push("/input?type=idol_image&mode=online")
+      startTransition("/input?type=idol_image&mode=online")
     } else {
       setShowLoginPrompt(true)
     }
@@ -134,8 +137,8 @@ export default function IdolImagePage() {
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
                     className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${selectedImage === idx
-                        ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
-                        : 'border-slate-300 hover:border-slate-500'
+                      ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
+                      : 'border-slate-300 hover:border-slate-500'
                       }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
