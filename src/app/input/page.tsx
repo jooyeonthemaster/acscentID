@@ -1,7 +1,6 @@
 "use client"
 
 import { Suspense } from "react"
-import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
@@ -9,7 +8,6 @@ import Image from "next/image"
 import { useInputForm } from "./hooks/useInputForm"
 import { Step1, Step2, Step3, Step4, Step5 } from "./components"
 import { TOTAL_STEPS } from "./constants"
-import { FigureChatMain } from "./figure/components"
 
 import { Header } from "@/components/layout/Header"
 
@@ -132,7 +130,7 @@ function Background() {
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
             {/* 숲 배경 이미지 */}
             <Image
-                src="/images/hero/forest_bg_new.png"
+                src="/images/hero/forest_bg.png"
                 alt="Forest Background"
                 fill
                 className="object-cover"
@@ -217,33 +215,11 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
     )
 }
 
-// ===== 피규어 모드 래퍼 =====
-function FigureChatWrapper() {
-    const searchParams = useSearchParams()
-    const userName = searchParams.get('name') || undefined
-
-    return <FigureChatMain userName={userName} />
-}
-
-// ===== 콘텐츠 분기 컴포넌트 =====
-function InputContent() {
-    const searchParams = useSearchParams()
-    const type = searchParams.get('type')
-
-    // type=figure일 때 채팅 UI 렌더링
-    if (type === 'figure') {
-        return <FigureChatWrapper />
-    }
-
-    // 기존 Step 폼 렌더링
-    return <InputForm />
-}
-
 // ===== 메인 Export =====
 export default function InputPage() {
     return (
         <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA]" />}>
-            <InputContent />
+            <InputForm />
         </Suspense>
     )
 }

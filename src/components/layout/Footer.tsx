@@ -74,7 +74,7 @@ export function Footer() {
                   href="/programs/figure"
                   className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
                 >
-                  피규어 향수
+                  피규어 디퓨저
                 </Link>
               </li>
             </ul>

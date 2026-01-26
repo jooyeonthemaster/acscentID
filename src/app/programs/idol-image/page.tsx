@@ -63,8 +63,8 @@ export default function IdolImagePage() {
   }, [])
 
   const productImages = [
-    "/제목 없는 디자인 (3)/2.png",
-    "/제목 없는 디자인 (3)/1.png",
+    "/images/perfume/KakaoTalk_20260125_225218071.jpg",
+    "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
     "/제목 없는 디자인 (3)/3.png",
   ]
 
@@ -114,7 +114,7 @@ export default function IdolImagePage() {
                     BEST
                   </span>
                 </div>
-                <div className="aspect-square flex items-center justify-center p-6 lg:p-8 bg-gradient-to-br from-yellow-50 to-amber-50">
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-50">
                   <motion.img
                     key={selectedImage}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -122,7 +122,7 @@ export default function IdolImagePage() {
                     transition={{ duration: 0.3 }}
                     src={productImages[selectedImage]}
                     alt="제품 이미지"
-                    className="w-[80%] h-[80%] lg:w-[85%] lg:h-[85%] object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
@@ -133,11 +133,10 @@ export default function IdolImagePage() {
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${
-                      selectedImage === idx
+                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${selectedImage === idx
                         ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
                         : 'border-slate-300 hover:border-slate-500'
-                    }`}
+                      }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
                   </button>
@@ -169,7 +168,7 @@ export default function IdolImagePage() {
                     onClick={() => setShowReviewModal(true)}
                   />
                 </div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2 break-keep">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500">
                     AI 이미지 분석 향수
                   </span>
@@ -234,7 +233,7 @@ export default function IdolImagePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-pink-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               📊 RESULT PREVIEW
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-4">
+            <motion.h2 variants={fadeInUp} className="text-xl md:text-4xl font-black text-black mb-4 break-keep">
               이런 분석 결과를 받아보실 수 있어요
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-slate-600 max-w-2xl mx-auto">
@@ -304,7 +303,7 @@ export default function IdolImagePage() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="w-64 h-64 bg-white border-2 border-black rounded-3xl shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
-                    <img src="/제목 없는 디자인 (3)/2.png" alt="향수" className="w-[80%] h-[80%] object-contain" />
+                    <img src="/images/perfume/KakaoTalk_20260125_225218071.jpg" alt="향수" className="w-[80%] h-[80%] object-contain" />
                   </div>
                   <div className="absolute -top-3 -right-3 px-4 py-2 bg-yellow-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-sm">
                     AI 추천 ✨
@@ -335,16 +334,13 @@ export default function IdolImagePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-blue-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               📋 PROCESS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black break-keep">
               어떻게 진행되나요?
             </motion.h2>
           </div>
 
           <div className="relative">
-            {/* 연결선 (데스크톱) */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-black -translate-y-1/2 z-0" />
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 relative z-10">
               {[
                 { step: "01", title: "이미지 업로드", desc: "최애 사진을 올려주세요", icon: Camera, color: "bg-yellow-400" },
                 { step: "02", title: "정보 입력", desc: "이름과 선호도를 알려주세요", icon: FileText, color: "bg-orange-400" },
@@ -380,7 +376,7 @@ export default function IdolImagePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-yellow-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2 break-keep">
               덕후들의 실제 후기
             </motion.h2>
             <motion.button
@@ -426,7 +422,7 @@ export default function IdolImagePage() {
           variants={fadeInUp}
           className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight break-keep">
             좋아하는 최애 이미지로<br />
             <span className="text-yellow-400">나만의 최애 향수</span>
           </h2>

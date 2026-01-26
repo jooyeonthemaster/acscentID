@@ -153,16 +153,16 @@ export default function FAQPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-2 md:gap-3 mb-10"
+            className="flex justify-center gap-1.5 md:gap-3 mb-10"
           >
             {FAQ_DATA.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleTabChange(category.id)}
                 className={cn(
-                  "px-4 py-2.5 rounded-xl font-bold text-sm border-2 transition-all",
+                  "px-2 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl font-bold text-[11px] md:text-sm border-2 transition-all whitespace-nowrap",
                   activeTab === category.id
-                    ? "bg-black text-white border-black shadow-[3px_3px_0px_0px_#FACC15]"
+                    ? "bg-black text-white border-black shadow-[2px_2px_0px_0px_#FACC15] md:shadow-[3px_3px_0px_0px_#FACC15]"
                     : "bg-white text-slate-700 border-slate-300 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 )}
               >
@@ -200,7 +200,7 @@ export default function FAQPage() {
             <h3 className="text-xl font-black text-slate-900 mb-2">
               원하는 답변을 찾지 못하셨나요?
             </h3>
-            <p className="text-slate-600 mb-6">
+            <p className="text-slate-600 mb-6 whitespace-nowrap text-sm">
               추가 문의사항이 있으시면 언제든 연락해 주세요.
             </p>
             <a

@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Sparkles, Star, X, AlertTriangle,
-  Truck, ChevronRight,
-  Box, Droplets, PenTool, Gem, Camera
+  Truck, ChevronRight, ShoppingCart,
+  Box, Droplets, Gem, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
+import { useTransition } from "@/contexts/TransitionContext"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
@@ -63,22 +64,24 @@ export default function FigurePage() {
   }, [])
 
   const productImages = [
-    "/제목 없는 디자인 (3)/1.png",
-    "/제목 없는 디자인 (3)/2.png",
+    "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
+    "/images/diffuser/KakaoTalk_20260125_225229624_01.jpg",
     "/제목 없는 디자인 (3)/3.png",
   ]
+
+  const { startTransition } = useTransition()
 
   const handleStartClick = () => {
     if (loading) return
     if (isLoggedIn) {
-      router.push("/input?type=figure")
+      startTransition("/input?type=figure&mode=online")
     } else {
       setShowLoginPrompt(true)
     }
   }
 
   const handleGuestStart = () => {
-    router.push("/input?type=figure")
+    startTransition("/input?type=figure&mode=online")
     setShowLoginPrompt(false)
   }
 
@@ -90,8 +93,7 @@ export default function FigurePage() {
   const productComponents = [
     { icon: Box, name: "3D 모델링 피규어", desc: "룩업 스타일 단색 피규어", color: "bg-cyan-400" },
     { icon: Gem, name: "샤쉐스톤", desc: "향기를 담는 천연석", color: "bg-purple-400" },
-    { icon: Droplets, name: "시그니처 디퓨저", desc: "피규어 전용 스팟", color: "bg-blue-400" },
-    { icon: Sparkles, name: "AI 맞춤 향 에센스 5ml", desc: "캐릭터 분석 기반", color: "bg-yellow-400" },
+    { icon: Sparkles, name: "AI 맞춤 에센스", desc: "캐릭터 분석 기반", color: "bg-yellow-400" },
   ]
 
   return (
@@ -121,7 +123,7 @@ export default function FigurePage() {
                     DIY KIT
                   </span>
                 </div>
-                <div className="aspect-square flex items-center justify-center p-6 lg:p-8 bg-gradient-to-br from-cyan-50 to-blue-50">
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50">
                   <motion.img
                     key={selectedImage}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -129,7 +131,7 @@ export default function FigurePage() {
                     transition={{ duration: 0.3 }}
                     src={productImages[selectedImage]}
                     alt="제품 이미지"
-                    className="w-[80%] h-[80%] lg:w-[85%] lg:h-[85%] object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
@@ -140,11 +142,10 @@ export default function FigurePage() {
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${
-                      selectedImage === idx
-                        ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
-                        : 'border-slate-300 hover:border-slate-500'
-                    }`}
+                    className={`w-16 h-16 lg:w-18 lg:h-18 rounded-lg lg:rounded-xl border-2 overflow-hidden transition-all ${selectedImage === idx
+                      ? 'border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] scale-105'
+                      : 'border-slate-300 hover:border-slate-500'
+                      }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
                   </button>
@@ -176,7 +177,7 @@ export default function FigurePage() {
                     onClick={() => setShowReviewModal(true)}
                   />
                 </div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2 break-keep">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500">
                     3D 피규어 디퓨저
                   </span>
@@ -215,7 +216,7 @@ export default function FigurePage() {
                 disabled={loading}
                 className="w-full py-4 lg:py-5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-lg lg:text-xl rounded-xl lg:rounded-2xl border-2 border-black shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] lg:hover:translate-x-[3px] lg:hover:translate-y-[3px] lg:hover:shadow-[3px_3px_0_0_black] transition-all flex items-center justify-center gap-2 lg:gap-3 disabled:opacity-50"
               >
-                지금 바로 제작하기
+                지금 바로 분석하기
               </button>
 
               <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
@@ -257,19 +258,19 @@ export default function FigurePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-cyan-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               📦 PACKAGE
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black break-keep">
               풀 패키지 구성품
             </motion.h2>
           </div>
 
-          {/* 메인 구성품 - 2x2 그리드 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {/* 메인 구성품 - 모바일: 가로 스크롤 / 데스크톱: 그리드 */}
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:px-0 scrollbar-hide">
             {productComponents.map((item, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInUp}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="group relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:shadow-[6px_6px_0_0_black] lg:hover:shadow-[8px_8px_0_0_black] transition-shadow"
+                className="flex-shrink-0 w-[240px] lg:w-auto snap-center group relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:shadow-[6px_6px_0_0_black] lg:hover:shadow-[8px_8px_0_0_black] transition-shadow"
               >
                 {/* 번호 배지 */}
                 <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-7 h-7 lg:w-8 lg:h-8 bg-black text-white rounded-full flex items-center justify-center font-black text-xs lg:text-sm border-2 border-white">
@@ -313,7 +314,7 @@ export default function FigurePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-blue-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               📋 PROCESS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black break-keep">
               어떻게 진행되나요?
             </motion.h2>
           </div>
@@ -322,9 +323,9 @@ export default function FigurePage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
             {[
               { step: "01", title: "이미지 전송", desc: "최애 사진을 업로드해요", icon: Camera, color: "bg-cyan-400" },
-              { step: "02", title: "3D 모델링", desc: "AI가 룩업 스타일로 제작", icon: Box, color: "bg-blue-400" },
-              { step: "03", title: "향기 분석", desc: "캐릭터에 맞는 향 조향", icon: Sparkles, color: "bg-purple-400" },
-              { step: "04", title: "키트 배송", desc: "풀 패키지로 배송!", icon: Truck, color: "bg-pink-400" },
+              { step: "02", title: "향 분석 및 추천", desc: "AI가 캐릭터에 맞는 향 추천", icon: Sparkles, color: "bg-purple-400" },
+              { step: "03", title: "상품 주문", desc: "마음에 드시면 주문!", icon: ShoppingCart, color: "bg-blue-400" },
+              { step: "04", title: "3D 모델링 및 배송", desc: "제작 후 배송까지!", icon: Truck, color: "bg-pink-400" },
             ].map((item, idx) => (
               <motion.div
                 key={idx}
@@ -354,19 +355,6 @@ export default function FigurePage() {
               </motion.div>
             ))}
           </div>
-
-          {/* 하단 진행 표시 */}
-          <motion.div variants={fadeInUp} className="mt-6 flex justify-center items-center gap-2">
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4].map((num) => (
-                <div key={num} className="flex items-center">
-                  <div className="w-2 h-2 lg:w-3 lg:h-3 bg-black rounded-full" />
-                  {num < 4 && <div className="w-4 lg:w-8 h-0.5 bg-black" />}
-                </div>
-              ))}
-            </div>
-            <span className="text-xs lg:text-sm text-slate-500 ml-2">약 3-5일 소요</span>
-          </motion.div>
         </motion.div>
       </section>
 
@@ -385,7 +373,7 @@ export default function FigurePage() {
             <motion.div variants={fadeInUp} className="inline-block px-3 lg:px-4 py-1.5 lg:py-2 bg-pink-400 text-white text-xs lg:text-sm font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] lg:shadow-[3px_3px_0_0_black] mb-3 lg:mb-4">
               🎁 RESULT PREVIEW
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-3 lg:mb-4">
+            <motion.h2 variants={fadeInUp} className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-3 lg:mb-4 break-keep">
               이렇게 완성돼요!
             </motion.h2>
           </div>
@@ -393,37 +381,8 @@ export default function FigurePage() {
           <motion.div variants={fadeInUp} className="bg-gradient-to-br from-cyan-50 to-purple-50 border-2 border-black rounded-2xl lg:rounded-3xl p-4 lg:p-10 shadow-[4px_4px_0_0_black] lg:shadow-[8px_8px_0_0_black]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
 
-              {/* 왼쪽: 완성 과정 */}
+              {/* 왼쪽: 디퓨저 사용법 */}
               <div className="space-y-4">
-                <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black]">
-                  <h4 className="font-black text-base lg:text-lg mb-3 lg:mb-4 flex items-center gap-2">
-                    <PenTool size={18} className="text-pink-500 lg:w-5 lg:h-5" />
-                    DIY 색칠 과정
-                  </h4>
-                  <div className="flex items-center justify-between gap-1 lg:gap-4">
-                    <div className="flex-1 text-center min-w-0">
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-slate-100 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
-                        <span className="text-lg lg:text-2xl">⬜</span>
-                      </div>
-                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">단색 피규어</p>
-                    </div>
-                    <div className="text-base lg:text-2xl text-slate-400 flex-shrink-0">→</div>
-                    <div className="flex-1 text-center min-w-0">
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-gradient-to-br from-pink-200 to-purple-200 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
-                        <span className="text-lg lg:text-2xl">🎨</span>
-                      </div>
-                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">직접 색칠</p>
-                    </div>
-                    <div className="text-base lg:text-2xl text-slate-400 flex-shrink-0">→</div>
-                    <div className="flex-1 text-center min-w-0">
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto bg-gradient-to-br from-cyan-200 to-blue-200 rounded-lg lg:rounded-xl border-2 border-black mb-1.5 lg:mb-2 flex items-center justify-center">
-                        <span className="text-lg lg:text-2xl">✨</span>
-                      </div>
-                      <p className="text-[10px] lg:text-xs font-bold text-slate-500">완성!</p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="bg-white border-2 border-black rounded-xl lg:rounded-2xl p-4 lg:p-5 shadow-[3px_3px_0_0_black] lg:shadow-[4px_4px_0_0_black]">
                   <h4 className="font-black text-base lg:text-lg mb-2 lg:mb-3 flex items-center gap-2">
                     <Droplets size={18} className="text-blue-500 lg:w-5 lg:h-5" />
@@ -450,7 +409,7 @@ export default function FigurePage() {
               <div className="flex flex-col items-center mt-4 lg:mt-0">
                 <div className="relative">
                   <div className="w-48 h-48 lg:w-64 lg:h-64 bg-white border-2 border-black rounded-2xl lg:rounded-3xl shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
-                    <img src="/제목 없는 디자인 (3)/1.png" alt="완성품" className="w-[80%] h-[80%] object-contain" />
+                    <img src="/images/diffuser/KakaoTalk_20260125_225229624.jpg" alt="완성품" className="w-[80%] h-[80%] object-contain" />
                   </div>
                   <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 px-2.5 lg:px-4 py-1 lg:py-2 bg-cyan-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-xs lg:text-sm">
                     3D 제작 ✨
@@ -481,7 +440,7 @@ export default function FigurePage() {
             <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-yellow-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-2 break-keep">
               덕후들의 실제 후기
             </motion.h2>
             <motion.button
@@ -527,7 +486,7 @@ export default function FigurePage() {
           variants={fadeInUp}
           className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight break-keep">
             세상에 하나뿐인<br />
             <span className="text-cyan-400">나만의 최애 피규어</span>
           </h2>

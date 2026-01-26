@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, ArrowRight, Heart, HelpCircle } from "lucide-react"
+import { Sparkles, ArrowRight, HelpCircle } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
@@ -113,11 +113,12 @@ export default function Home() {
                 <RetroCard
                   title="AI 이미지 분석 향수"
                   subtitle="내가 좋아하는 사진과 나만의 최애 향♥"
-                  image="/제목 없는 디자인 (3)/2.png"
+                  image="/images/perfume/KakaoTalk_20260125_225218071.jpg"
                   price="₩ 24,000"
                   accentColor="bg-[#FBCFE8]"
                   tag="POPULAR"
                   tags={["K-POP", "맞춤향수", "AI분석"]}
+                  bgColor="bg-[#ecddbe]"
                   onClick={() => handleCardClick("/programs/idol-image")}
                 />
 
@@ -125,11 +126,12 @@ export default function Home() {
                 <RetroCard
                   title="피규어 화분 디퓨저"
                   subtitle="캐릭터의 서사를 담은 향"
-                  image="/제목 없는 디자인 (3)/1.png"
+                  image="/images/diffuser/KakaoTalk_20260125_225229624.jpg"
                   price="₩ 48,000"
                   accentColor="bg-[#A5F3FC]"
                   tag="NEW"
                   tags={["캐릭터", "피규어", "커스텀"]}
+                  bgColor="bg-[#ecddbe]"
                   onClick={() => handleCardClick("/programs/figure")}
                 />
 
@@ -183,24 +185,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 3.2 Brand Values (Why Us) */}
-            <div className="bg-[#E9D5FF] border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
-              <h4 className="font-black text-slate-900 mb-4 flex items-center gap-2">
-                <Heart size={18} className="text-red-500 fill-red-500" />
-                Why Ppuduck?
-              </h4>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">1</div>
-                  <p className="text-sm font-bold text-slate-800 leading-tight">단, 30초 만에 완성되는<br />나만의 시그니처 향수</p>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">2</div>
-                  <p className="text-sm font-bold text-slate-800 leading-tight">이미지와 키워드를 분석하는<br />고도화된 AI 알고리즘</p>
-                </li>
-              </ul>
-            </div>
-
             {/* 3.4 Help Center Link */}
             <Link href="/cs" className="block group">
               <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-[2px_2px_0px_#000] group-hover:-translate-y-1 transition-transform">
@@ -230,7 +214,7 @@ export default function Home() {
 // SUB-COMPONENTS
 // ----------------------------------------------------------------------
 
-function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layout = "vertical", onClick }: any) {
+function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layout = "vertical", onClick, bgColor = "bg-white" }: any) {
   return (
     <div
       onClick={onClick}
@@ -240,7 +224,7 @@ function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layo
         {tag}
       </div>
 
-      <div className={`relative ${layout === 'horizontal' ? 'w-1/3 h-40' : 'w-full h-48'} rounded-2xl border-2 border-slate-900 mb-4 overflow-hidden flex-shrink-0 flex items-center justify-center`}>
+      <div className={`relative ${layout === 'horizontal' ? 'w-1/3 h-40' : 'w-full h-48'} rounded-2xl border-2 border-slate-900 mb-4 overflow-hidden flex-shrink-0 flex items-center justify-center ${bgColor}`}>
         <img
           src={image}
           alt={title}

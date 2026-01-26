@@ -5,6 +5,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CouponProvider } from "@/contexts/CouponContext";
+import { TransitionProvider } from "@/contexts/TransitionContext";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { CouponSystem } from "@/components/coupon/CouponSystem";
@@ -50,16 +51,18 @@ export default function RootLayout({
       >
         <AuthProvider>
           <CouponProvider>
-            <ToastProvider>
-              <div className="w-full min-h-screen bg-[#FFFDF5] relative overflow-x-hidden flex flex-col">
-                <main className="flex-1 md:pb-0 relative z-10 bg-[#FFFDF5]">
-                  {children}
-                </main>
-                <Footer />
-                <MobileBottomNav />
-              </div>
-              <CouponSystem />
-            </ToastProvider>
+            <TransitionProvider>
+              <ToastProvider>
+                <div className="w-full min-h-screen bg-[#FFFDF5] relative overflow-x-hidden flex flex-col">
+                  <main className="flex-1 md:pb-0 relative z-10 bg-[#FFFDF5]">
+                    {children}
+                  </main>
+                  <Footer />
+                  <MobileBottomNav />
+                </div>
+                <CouponSystem />
+              </ToastProvider>
+            </TransitionProvider>
           </CouponProvider>
         </AuthProvider>
       </body>

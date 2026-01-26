@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Sparkles, User, Menu, X, ChevronRight, Camera } from 'lucide-react'
+import { Home, Sparkles, User, Menu, X, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -13,8 +13,8 @@ import { cn } from '@/lib/utils'
 
 // Programs 드롭업 메뉴 항목
 const PROGRAM_LINKS = [
-  { href: '/programs/idol-image', label: 'AI 이미지 분석', emoji: '🎤' },
-  { href: '/programs/figure', label: '피규어 향수', emoji: '🎭' },
+  { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
 ]
 
 // NavItem 컴포넌트
@@ -110,8 +110,8 @@ function ProgramsSheet({
               onClick={onClose}
               className="flex items-center gap-4 p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl hover:border-purple-400 hover:bg-purple-50 transition-all group"
             >
-              <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] flex items-center justify-center text-2xl group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)] transition-all">
-                {link.emoji}
+              <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] flex items-center justify-center overflow-hidden group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)] transition-all">
+                <img src={link.image} alt={link.label} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
                 <h4 className="font-bold text-slate-900 group-hover:text-purple-700 transition-colors">{link.label}</h4>
@@ -194,7 +194,7 @@ export function MobileBottomNav() {
     if (loading) return
     if (currentUser) {
       if (pathname !== '/mypage') {
-        window.location.href = '/mypage'
+        router.push('/mypage')
       }
     } else {
       setShowAuthModal(true)
@@ -227,8 +227,8 @@ export function MobileBottomNav() {
 
   // 프로그램별 CTA 텍스트
   const getProgramCTAText = () => {
-    if (isIdolImagePage) return '지금 바로 분석 시작하기'
-    if (isFigurePage) return '지금 바로 분석 시작하기'
+    if (isIdolImagePage) return '지금 바로 분석하기'
+    if (isFigurePage) return '지금 바로 분석하기'
     return '시작하기'
   }
 
@@ -248,7 +248,6 @@ export function MobileBottomNav() {
             disabled={loading}
             className="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Camera size={18} />
             {getProgramCTAText()}
           </button>
         </div>
@@ -297,29 +296,39 @@ export function MobileBottomNav() {
             )}>Programs</span>
           </button>
 
-          {/* My */}
-          <button
-            onClick={handleMyClick}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
-              isMyPageActive
-                ? "text-yellow-600"
-                : "text-slate-600 hover:text-slate-900"
-            )}
-          >
-            <div className={cn(
-              "p-1.5 rounded-xl transition-all",
-              isMyPageActive && "bg-yellow-100"
-            )}>
-              <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
-            </div>
-            <span className={cn(
-              "text-[10px] tracking-wide",
-              isMyPageActive ? "font-black" : "font-bold"
-            )}>
-              {currentUser ? "My" : "Login"}
-            </span>
-          </button>
+          {/* My - 로그인 상태면 Link, 아니면 button */}
+          {currentUser ? (
+            <Link
+              href="/mypage"
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
+                isMyPageActive
+                  ? "text-yellow-600"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <div className={cn(
+                "p-1.5 rounded-xl transition-all",
+                isMyPageActive && "bg-yellow-100"
+              )}>
+                <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
+              </div>
+              <span className={cn(
+                "text-[10px] tracking-wide",
+                isMyPageActive ? "font-black" : "font-bold"
+              )}>My</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-slate-600 hover:text-slate-900"
+            >
+              <div className="p-1.5 rounded-xl transition-all">
+                <User size={20} strokeWidth={2} />
+              </div>
+              <span className="text-[10px] tracking-wide font-bold">Login</span>
+            </button>
+          )}
 
           {/* Menu */}
           <button

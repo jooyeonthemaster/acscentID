@@ -60,7 +60,7 @@ export function KitschHero() {
                         src="/images/hero/hf_20260126_101725_e5d21415-948c-4a81-a5f5-5959169a43d4.avif"
                         alt="Forest Background"
                         fill
-                        className="object-contain"
+                        className="object-cover"
                         style={{ objectPosition: 'center center' }}
                         priority
                     />
@@ -188,27 +188,56 @@ function BrandSlideX({ goToSlide }: { goToSlide: (index: number) => void }) {
             </div>
 
             {/* === DESKTOP LAYOUT === */}
-            <div className="hidden md:flex relative w-full max-w-7xl h-full flex-row items-end justify-start pointer-events-none px-4 pb-32">
-                {/* CTA Buttons Only - Title is in background image */}
+            <div className="hidden md:flex relative w-full max-w-7xl h-full flex-col items-center justify-center pointer-events-none px-4">
+                {/* Title Image */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-24"
+                >
+                    <Image
+                        src="/images/hero/title.png"
+                        alt="악센트 아이디 - 나만의 향을 찾아주는 가장 유쾌한 브랜드"
+                        width={800}
+                        height={600}
+                        className="w-[650px] h-auto object-contain"
+                        priority
+                    />
+                </motion.div>
+
+                {/* CTA Buttons - Image Buttons */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="flex flex-row gap-4 pointer-events-auto ml-8"
+                    className="flex flex-row gap-4 pointer-events-auto"
                 >
                     <button
                         onClick={() => goToSlide(1)}
-                        className="bg-yellow-400 border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        className="active:scale-95 hover:scale-105 transition-transform"
                     >
-                        프로그램 둘러보기
+                        <Image
+                            src="/images/hero/4.png"
+                            alt="프로그램 둘러보기"
+                            width={240}
+                            height={72}
+                            className="h-auto w-[200px]"
+                        />
                     </button>
                     <a
                         href="https://map.naver.com/p/entry/place/1274492663?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202601242226&locale=ko&svcName=map_pcv5&searchType=place&lng=126.9267345&lat=37.5549328&c=15.00,0,0,0,dh"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-white border-4 border-slate-900 px-8 py-4 font-black text-lg text-slate-900 rounded-xl shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-center"
+                        className="active:scale-95 hover:scale-105 transition-transform"
                     >
-                        현장방문 예약하기
+                        <Image
+                            src="/images/hero/5.png"
+                            alt="현장방문 예약하기"
+                            width={240}
+                            height={72}
+                            className="h-auto w-[200px]"
+                        />
                     </a>
                 </motion.div>
             </div>
@@ -220,9 +249,26 @@ function BrandSlideX({ goToSlide }: { goToSlide: (index: number) => void }) {
 function ProgramSlideX() {
     return (
         <div className="w-full max-w-4xl flex flex-col items-center px-4 md:px-8 pt-12 md:pt-0 relative">
-            <h2 className="text-xl sm:text-3xl md:text-6xl font-black text-slate-900 mb-6 md:mb-16 relative inline-block text-center break-keep drop-shadow-sm">
+            {/* Title Image - 모바일 전용 */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="md:hidden mb-6 -mt-4"
+            >
+                <Image
+                    src="/images/hero/title.png"
+                    alt="악센트 아이디"
+                    width={300}
+                    height={225}
+                    className="w-[70vw] max-w-[300px] h-auto object-contain"
+                />
+            </motion.div>
+
+            {/* 데스크톱 전용 타이틀 */}
+            <h2 className="hidden md:block text-6xl font-black text-slate-900 mb-16 relative text-center break-keep drop-shadow-sm">
                 원하는 테마를 선택하세요
-                <StickerStar className="absolute -top-6 -right-6 md:-top-10 md:-right-12 w-10 h-10 md:w-20 md:h-20 hidden sm:block" />
+                <StickerStar className="absolute -top-10 -right-12 w-20 h-20" />
             </h2>
 
             {/* 2개 카트리지 균형 잡힌 배치 */}
