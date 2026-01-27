@@ -58,7 +58,7 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
     if (!referralCode) return
 
     const shareUrl = `${window.location.origin}?ref=${referralCode}`
-    const text = `AC'SCENT에서 나만의 향수를 만들어보세요! 이 코드로 가입하면 10% 할인!\n\n추천인 코드: ${referralCode}`
+    const text = `AC'SCENT에서 나만의 퍼퓸을 만들어보세요! 이 코드로 가입하면 10% 할인!\n\n추천인 코드: ${referralCode}`
 
     if (navigator.share) {
       navigator.share({

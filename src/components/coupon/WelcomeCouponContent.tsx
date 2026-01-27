@@ -108,7 +108,7 @@ export function WelcomeCouponContent({ coupon }: WelcomeCouponContentProps) {
           </div>
           <div>
             <p className="font-bold text-sm text-slate-900">AI가 찾아주는 나만의 향기</p>
-            <p className="text-xs text-slate-600 font-bold">이미지 분석으로 시그니처 향수를 만들어보세요</p>
+            <p className="text-xs text-slate-600 font-bold">이미지 분석으로 시그니처 퍼퓸을 만들어보세요</p>
           </div>
         </div>
       </div>

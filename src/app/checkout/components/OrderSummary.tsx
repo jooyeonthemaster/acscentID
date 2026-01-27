@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Package, Star, Sparkles, Check, Palette } from "lucide-react"
 import type { ProductType } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/types/cart"
 
 interface OrderSummaryProps {
   perfumeName: string
@@ -195,7 +196,7 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px] lg:text-xs">✓</span>
-                무료 배송
+                {price >= FREE_SHIPPING_THRESHOLD ? "무료 배송" : "배송비 3,000원"}
               </li>
             </>
           ) : (
@@ -215,7 +216,7 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px] lg:text-xs">✓</span>
-                {selectedSize === "50ml" ? "무료 배송" : "배송비 3,000원"}
+                {price >= FREE_SHIPPING_THRESHOLD ? "무료 배송" : "배송비 3,000원"}
               </li>
             </>
           )}

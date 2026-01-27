@@ -392,7 +392,7 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                                     자세한 분석 받기
                                 </motion.button>
                                 <p className="text-center text-[10px] text-slate-400 mt-2">
-                                    최종 향수 레시피와 맞춤 추천을 받아보세요
+                                    최종 퍼퓸 레시피와 맞춤 추천을 받아보세요
                                 </p>
                             </div>
                         </div>

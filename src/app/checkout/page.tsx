@@ -23,7 +23,7 @@ import { CheckoutForm, CheckoutFormData } from "./components/CheckoutForm"
 import { CouponSelector } from "./components/CouponSelector"
 import { CheckoutCoupon } from "@/types/coupon"
 import type { CartItem, ProductType } from "@/types/cart"
-import { PRODUCT_PRICING, formatPrice, calculateCartTotals } from "@/types/cart"
+import { PRODUCT_PRICING, formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
   }, [authLoading, userId, router, userName])
 
   // 단일 상품 정보
-  const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
+  const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || "맞춤 퍼퓸"
   const displayIdolName = idolName || "AC'SCENT"
 
   // 다중 상품: 수량 변경
@@ -193,8 +193,8 @@ export default function CheckoutPage() {
 
   // 단일 상품 모드
   const singleProductPrice = prices[selectedSize]
-  // 50ml 또는 피규어 세트는 무료배송
-  const singleShippingFee = (selectedSize === "50ml" || selectedSize === "set") ? 0 : 3000
+  // 5만원 이상 무료배송
+  const singleShippingFee = singleProductPrice >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE
   const singleDiscountAmount = selectedCoupon
     ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0

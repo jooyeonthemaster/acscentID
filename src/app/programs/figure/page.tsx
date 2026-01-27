@@ -182,8 +182,8 @@ export default function FigurePage() {
                   </span>
                 </h1>
                 <p className="text-sm lg:text-base text-slate-600 font-medium">
-                  좋아하는 최애 이미지로 제작되는<br />
-                  나만의 최애 피규어 디퓨저
+                  좋아하는 이미지로 제작되는<br />
+                  나만의 화분 피규어 디퓨저
                 </p>
               </div>
 
@@ -219,7 +219,7 @@ export default function FigurePage() {
               </button>
 
               <p className="text-center text-xs lg:text-sm text-slate-500 mt-2 lg:mt-3">
-                최애 사진만 보내주세요! 3D 피규어로 만들어드려요
+                사진만 보내주세요! 3D 피규어로 만들어드려요
               </p>
             </motion.div>
           </div>
@@ -240,62 +240,6 @@ export default function FigurePage() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* ============================================
-          구성품 상세
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-[#F0FDFF] to-white">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-cyan-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              📦 PACKAGE
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black break-keep">
-              풀 패키지 구성품
-            </motion.h2>
-          </div>
-
-          {/* 메인 구성품 - 모바일: 가로 스크롤 / 데스크톱: 그리드 */}
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0 lg:mx-auto lg:max-w-3xl lg:px-0 scrollbar-hide">
-            {productComponents.map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="flex-shrink-0 w-[240px] lg:w-auto snap-center group relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:shadow-[6px_6px_0_0_black] lg:hover:shadow-[8px_8px_0_0_black] transition-shadow"
-              >
-                {/* 번호 배지 */}
-                <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-7 h-7 lg:w-8 lg:h-8 bg-black text-white rounded-full flex items-center justify-center font-black text-xs lg:text-sm border-2 border-white">
-                  {idx + 1}
-                </div>
-
-                {/* 아이콘 */}
-                <div className={`w-14 h-14 lg:w-16 lg:h-16 ${item.color} border-2 border-black rounded-xl lg:rounded-2xl shadow-[3px_3px_0_0_black] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon size={28} className="text-white lg:w-8 lg:h-8" />
-                </div>
-
-                {/* 텍스트 */}
-                <h3 className="font-black text-sm lg:text-base text-black mb-1 text-center">{item.name}</h3>
-                <p className="text-xs lg:text-sm text-slate-500 text-center">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* 하단 안내 */}
-          <motion.div variants={fadeInUp} className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-100 to-purple-100 rounded-full border border-slate-200">
-              <Truck size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-600 font-medium">전 구성품 한 박스에 담아 배송!</span>
-            </div>
-          </motion.div>
-        </motion.div>
       </section>
 
       {/* ============================================
@@ -354,6 +298,62 @@ export default function FigurePage() {
               </motion.div>
             ))}
           </div>
+        </motion.div>
+      </section>
+
+      {/* ============================================
+          구성품 상세
+      ============================================ */}
+      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-[#F0FDFF] to-white">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+          className="max-w-5xl mx-auto"
+        >
+          <div className="text-center mb-12">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-cyan-400 text-black text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
+              📦 PACKAGE
+            </motion.div>
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black break-keep">
+              풀 패키지 구성품
+            </motion.h2>
+          </div>
+
+          {/* 메인 구성품 - 모바일: 가로 스크롤 / 데스크톱: 그리드 */}
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0 lg:mx-auto lg:max-w-3xl lg:px-0 scrollbar-hide">
+            {productComponents.map((item, idx) => (
+              <motion.div
+                key={idx}
+                variants={fadeInUp}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="flex-shrink-0 w-[240px] lg:w-auto snap-center group relative bg-white border-2 border-black rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-[4px_4px_0_0_black] lg:shadow-[6px_6px_0_0_black] hover:shadow-[6px_6px_0_0_black] lg:hover:shadow-[8px_8px_0_0_black] transition-shadow"
+              >
+                {/* 번호 배지 */}
+                <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-7 h-7 lg:w-8 lg:h-8 bg-black text-white rounded-full flex items-center justify-center font-black text-xs lg:text-sm border-2 border-white">
+                  {idx + 1}
+                </div>
+
+                {/* 아이콘 */}
+                <div className={`w-14 h-14 lg:w-16 lg:h-16 ${item.color} border-2 border-black rounded-xl lg:rounded-2xl shadow-[3px_3px_0_0_black] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
+                  <item.icon size={28} className="text-white lg:w-8 lg:h-8" />
+                </div>
+
+                {/* 텍스트 */}
+                <h3 className="font-black text-sm lg:text-base text-black mb-1 text-center">{item.name}</h3>
+                <p className="text-xs lg:text-sm text-slate-500 text-center">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 하단 안내 */}
+          <motion.div variants={fadeInUp} className="mt-8 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-100 to-purple-100 rounded-full border border-slate-200">
+              <Truck size={16} className="text-slate-600" />
+              <span className="text-sm text-slate-600 font-medium">전 구성품 한 박스에 담아 배송!</span>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 

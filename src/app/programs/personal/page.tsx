@@ -66,22 +66,22 @@ export default function PersonalPage() {
   }
 
   const reviews = [
-    { name: "향수초보", rating: 5, text: "처음 써보는 향수인데 제 스타일이랑 너무 잘 맞아서 놀랐어요!" },
+    { name: "퍼퓸초보", rating: 5, text: "처음 써보는 퍼퓸인데 제 스타일이랑 너무 잘 맞아서 놀랐어요!" },
     { name: "직장인A", rating: 5, text: "출근할 때 뿌리니까 하루종일 기분 좋아요. 은은해서 좋음" },
     { name: "선물러", rating: 5, text: "여자친구한테 선물했는데 진짜 본인한테 딱 맞는다고 감동받음ㅋㅋ" },
   ]
 
   const faqs = [
     { q: "어떤 정보를 입력해야 하나요?", a: "본인을 표현하는 키워드, 선호 스타일, 좋아하는 분위기 등을 입력해주시면 됩니다. 사진 없이 텍스트만으로도 충분해요!" },
-    { q: "향수는 어떤 타입인가요?", a: "10ml 스프레이 타입으로 제공됩니다. 휴대하기 좋고 은은하게 발향되어 일상에서 사용하기 좋아요." },
+    { q: "퍼퓸는 어떤 타입인가요?", a: "10ml 스프레이 타입으로 제공됩니다. 휴대하기 좋고 은은하게 발향되어 일상에서 사용하기 좋아요." },
     { q: "분석은 얼마나 걸리나요?", a: "AI 분석은 즉시 완료됩니다. 결과를 확인하신 후 마음에 드시면 주문하시면 돼요." },
     { q: "환불이 가능한가요?", a: "맞춤 제작 상품 특성상 제작 시작 후에는 환불이 어렵습니다. 분석 결과를 충분히 확인 후 주문해주세요." },
   ]
 
   const productIncludes = [
     { icon: FileText, name: "퍼스널리티 리포트", desc: "AI 분석 결과" },
-    { icon: Star, name: "TOP 3 추천", desc: "맞춤 향수 추천" },
-    { icon: Droplets, name: "시그니처 향수 10ml", desc: "스프레이 타입" },
+    { icon: Star, name: "TOP 3 추천", desc: "맞춤 퍼퓸 추천" },
+    { icon: Droplets, name: "시그니처 퍼퓸 10ml", desc: "스프레이 타입" },
     { icon: Package, name: "프리미엄 패키징", desc: "선물용 박스" },
   ]
 
@@ -173,13 +173,13 @@ export default function PersonalPage() {
                   </span>
                 </h1>
                 <p className="text-slate-600 font-medium">
-                  AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 향수
+                  AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 퍼퓸
                 </p>
               </div>
 
               {/* 태그 */}
               <div className="flex flex-wrap gap-2 mb-6">
-                {["#퍼스널리티", "#시그니처향", "#AI분석", "#맞춤향수", "#입문추천"].map((tag) => (
+                {["#퍼스널리티", "#시그니처향", "#AI분석", "#맞춤퍼퓸", "#입문추천"].map((tag) => (
                   <span key={tag} className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-bold rounded-full border border-slate-300">
                     {tag}
                   </span>
@@ -196,7 +196,7 @@ export default function PersonalPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Droplets size={16} className="text-black" />
-                    <span>맞춤 향수 10ml (스프레이 타입)</span>
+                    <span>맞춤 퍼퓸 10ml (스프레이 타입)</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Truck size={16} className="text-black" />
@@ -318,8 +318,8 @@ export default function PersonalPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { emoji: "🌱", title: "향수 입문자", desc: "처음 시작하는 분께 가장 추천!" },
-              { emoji: "🎁", title: "특별한 선물을 찾는 분", desc: "세상에 하나뿐인 맞춤 향수 선물" },
+              { emoji: "🌱", title: "퍼퓸 입문자", desc: "처음 시작하는 분께 가장 추천!" },
+              { emoji: "🎁", title: "특별한 선물을 찾는 분", desc: "세상에 하나뿐인 맞춤 퍼퓸 선물" },
               { emoji: "💼", title: "나만의 이미지를 원하는 분", desc: "프로페셔널한 시그니처 향" },
               { emoji: "🔍", title: "내 취향을 알고 싶은 분", desc: "AI가 분석하는 퍼스널리티" },
             ].map((item, idx) => (
@@ -365,8 +365,8 @@ export default function PersonalPage() {
               {[
                 { step: "01", title: "정보 입력", desc: "나를 표현하는 키워드 입력", icon: User },
                 { step: "02", title: "AI 분석", desc: "퍼스널리티 종합 분석", icon: Sparkles },
-                { step: "03", title: "향수 추천", desc: "TOP 3 시그니처 향 추천", icon: Star },
-                { step: "04", title: "제품 배송", desc: "맞춤 향수 제작 & 배송", icon: Truck },
+                { step: "03", title: "퍼퓸 추천", desc: "TOP 3 시그니처 향 추천", icon: Star },
+                { step: "04", title: "제품 배송", desc: "맞춤 퍼퓸 제작 & 배송", icon: Truck },
               ].map((item, idx) => (
                 <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
                   <div className="w-20 h-20 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_black] flex items-center justify-center mb-4">
@@ -425,7 +425,7 @@ export default function PersonalPage() {
                 <div className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black]">
                   <h4 className="font-black text-lg mb-3 flex items-center gap-2">
                     <Star size={20} className="text-black" />
-                    TOP 3 향수 추천
+                    TOP 3 퍼퓸 추천
                   </h4>
                   <div className="space-y-2">
                     {["1위: 시그니처 머스크", "2위: 우디 앰버", "3위: 시트러스 프레시"].map((item, idx) => (
@@ -450,7 +450,7 @@ export default function PersonalPage() {
                 </div>
                 <div className="mt-6 text-center">
                   <h3 className="text-2xl font-black text-black mb-2">나만의 시그니처</h3>
-                  <p className="text-slate-600">세상에 하나뿐인 맞춤 향수</p>
+                  <p className="text-slate-600">세상에 하나뿐인 맞춤 퍼퓸</p>
                 </div>
               </div>
             </div>
@@ -576,7 +576,7 @@ export default function PersonalPage() {
             <span className="text-slate-400">시그니처 향을 찾아보세요</span>
           </h2>
           <p className="text-slate-500 mb-8 text-lg">
-            AI가 분석하는 퍼스널리티 기반 맞춤 향수.<br />
+            AI가 분석하는 퍼스널리티 기반 맞춤 퍼퓸.<br />
             결제는 분석 결과가 마음에 드실 때만!
           </p>
 

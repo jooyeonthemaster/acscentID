@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Share2, ShoppingCart, MessageSquarePlus, History } from 'lucide-react'
+import { Share2, ShoppingCart, MessageSquarePlus, History, CreditCard } from 'lucide-react'
 
 interface ResultBottomActionsProps {
   onShare: () => void
@@ -88,7 +88,7 @@ export function ResultBottomActions({
           className="flex-1 py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
         >
           <Share2 size={16} />
-          <span>{isShareSaving ? '저장 중...' : '공유하기'}</span>
+          <span>{isShareSaving ? '저장 중...' : '공유'}</span>
         </button>
 
         {/* 장바구니 담기 + 바로 구매 버튼 (online 모드) */}
@@ -106,6 +106,7 @@ export function ResultBottomActions({
               onClick={onCheckout}
               className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
             >
+              <CreditCard size={16} />
               <span>구매</span>
             </button>
           </>

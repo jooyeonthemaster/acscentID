@@ -285,7 +285,7 @@ export interface ProductTypeInfo {
 export const PRODUCT_TYPES: ProductTypeInfo[] = [
   {
     id: 'perfume_10ml',
-    label: '향수 10ml',
+    label: '퍼퓸 10ml',
     totalVolumeMl: 10,
     fragranceVolumeMl: 2,
     icon: '🧴',
@@ -293,7 +293,7 @@ export const PRODUCT_TYPES: ProductTypeInfo[] = [
   },
   {
     id: 'perfume_50ml',
-    label: '향수 50ml',
+    label: '퍼퓸 50ml',
     totalVolumeMl: 50,
     fragranceVolumeMl: 10,
     icon: '🍾',

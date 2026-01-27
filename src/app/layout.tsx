@@ -8,7 +8,7 @@ import { CouponProvider } from "@/contexts/CouponContext";
 import { TransitionProvider } from "@/contexts/TransitionContext";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
-import { CouponSystem } from "@/components/coupon/CouponSystem";
+// import { CouponSystem } from "@/components/coupon/CouponSystem";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -30,7 +30,7 @@ const kirangHaerang = Kirang_Haerang({
 
 export const metadata: Metadata = {
   title: "AC'SCENT IDENTITY",
-  description: "AI 기반 맞춤 향수 추천 서비스",
+  description: "AI 기반 맞춤 퍼퓸 추천 서비스",
 };
 
 export default function RootLayout({
@@ -60,7 +60,7 @@ export default function RootLayout({
                   <Footer />
                   <MobileBottomNav />
                 </div>
-                <CouponSystem />
+                {/* <CouponSystem /> */}
               </ToastProvider>
             </TransitionProvider>
           </CouponProvider>

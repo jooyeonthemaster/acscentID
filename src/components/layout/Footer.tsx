@@ -25,7 +25,7 @@ export function Footer() {
               나만의 향기를 찾는<br />가장 즐거운 서비스
             </p>
             <p className="text-xs text-slate-400">
-              AI 기술과 향수 전문성의 결합으로<br />
+              AI 기술과 퍼퓸 전문성의 결합으로<br />
               누구나 자신만의 향을 찾을 수 있습니다.
             </p>
           </div>

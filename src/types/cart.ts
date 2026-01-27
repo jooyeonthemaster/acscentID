@@ -67,17 +67,21 @@ export interface PricingOption {
   shippingFee: number
 }
 
+// 배송비 정책: 5만원 이상 무료배송, 미만 시 3,000원
+export const FREE_SHIPPING_THRESHOLD = 50000
+export const DEFAULT_SHIPPING_FEE = 3000
+
 export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   image_analysis: [
-    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: 3000 },
-    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: 0 },
+    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   figure_diffuser: [
-    { size: 'set', price: 48000, label: '피규어+디퓨저 세트', shippingFee: 0 },
+    { size: 'set', price: 48000, label: '피규어+디퓨저 세트', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   personal_scent: [
-    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: 3000 },
-    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: 0 },
+    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
 }
 
@@ -148,11 +152,8 @@ export function calculateCartTotals(
   // 상품 소계
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  // 배송비: 50ml 또는 피규어 세트가 포함되면 무료
-  const hasFreeShipping = items.some(
-    (item) => item.size === '50ml' || item.size === 'set'
-  )
-  const shippingFee = hasFreeShipping ? 0 : (items.length > 0 ? 3000 : 0)
+  // 배송비: 5만원 이상 무료배송
+  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : (items.length > 0 ? DEFAULT_SHIPPING_FEE : 0)
 
   // 쿠폰 할인: 전체 소계에 적용
   const discount = couponDiscountPercent

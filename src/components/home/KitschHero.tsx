@@ -234,7 +234,7 @@ function ExperienceSlide({ goToSlide }: { goToSlide: (index: number) => void }) 
                 >
                     <h1 className="text-2xl font-black text-white mb-2 drop-shadow-lg">
                         <span className="text-yellow-400">이미지</span>로<br />
-                        나만의 향수 만들기
+                        나만의 퍼퓸 만들기
                     </h1>
                     <p className="text-sm text-white/80 font-medium">
                         사진을 올리면 AI가 분석해드려요 ✨
@@ -366,18 +366,18 @@ function ExperienceSlide({ goToSlide }: { goToSlide: (index: number) => void }) 
                     className="flex-1 max-w-xl"
                 >
                     <div className="inline-block px-4 py-2 bg-yellow-400 text-slate-900 text-sm font-black rounded-full border-3 border-slate-900 shadow-[3px_3px_0px_#000] mb-6">
-                        ✨ AI 이미지 분석 향수
+                        ✨ AI 이미지 분석 퍼퓸
                     </div>
 
                     <h1 className="text-5xl lg:text-6xl font-black text-white leading-tight mb-6 drop-shadow-lg">
                         <span className="text-yellow-400">이미지</span>로<br />
-                        나만의 향수 만들기
+                        나만의 퍼퓸 만들기
                     </h1>
 
                     <p className="text-lg text-white/80 font-medium mb-8 leading-relaxed">
                         좋아하는 사진을 업로드하면<br />
                         AI가 색감과 분위기를 분석하여<br />
-                        세상에 하나뿐인 향수 레시피를 만들어드려요.
+                        세상에 하나뿐인 퍼퓸 레시피를 만들어드려요.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
@@ -475,7 +475,7 @@ function ExperienceSlide({ goToSlide }: { goToSlide: (index: number) => void }) 
                                             드래그해서 놓으세요
                                         </p>
                                         <div className="mt-6 flex gap-2">
-                                            {['AI분석', '맞춤향수', '커스텀'].map((tag) => (
+                                            {['AI분석', '맞춤퍼퓸', '커스텀'].map((tag) => (
                                                 <span
                                                     key={tag}
                                                     className="px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full"
@@ -547,7 +547,7 @@ function ProgramSlide() {
             {/* 2개 카트리지 균형 잡힌 배치 */}
             <div className="w-full flex justify-center">
                 <div className="flex flex-row items-center justify-center gap-4 sm:gap-8 md:gap-16">
-                    {/* 최애 향수 - 왼쪽 기울임 */}
+                    {/* 최애 퍼퓸 - 왼쪽 기울임 */}
                     <a href="/programs/idol-image" className="w-[140px] h-[180px] sm:w-[180px] sm:h-[230px] md:w-auto md:h-auto flex items-center justify-center">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -557,7 +557,7 @@ function ProgramSlide() {
                             className="relative"
                         >
                             <StickerCartridge
-                                title="최애 향수"
+                                title="최애 퍼퓸"
                                 subtitle="AI 이미지 분석"
                                 color="bg-[#C084FC]"
                                 className="scale-[0.55] sm:scale-[0.75] md:scale-105 origin-center -rotate-3"

@@ -25,6 +25,8 @@ export const useResultData = () => {
   const [modelingImage, setModelingImage] = useState<string | null>(null)
   const [modelingRequest, setModelingRequest] = useState<string | null>(null)
   const [productType, setProductType] = useState<string | null>(null)
+  // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
+  const [serviceMode, setServiceMode] = useState<'online' | 'offline' | null>(null)
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -54,6 +56,11 @@ export const useResultData = () => {
                 name: dbResult.idolName || '',
                 gender: dbResult.idolGender || ''
               })
+            }
+
+            // DB에서 service_mode 설정
+            if (dbResult.serviceMode) {
+              setServiceMode(dbResult.serviceMode)
             }
 
             setLoading(false)
@@ -119,6 +126,12 @@ export const useResultData = () => {
           setProductType(savedProductType)
         }
 
+        // localStorage에서 serviceMode 로드
+        const savedServiceMode = localStorage.getItem('serviceMode')
+        if (savedServiceMode === 'online' || savedServiceMode === 'offline') {
+          setServiceMode(savedServiceMode)
+        }
+
         if (savedResult) {
           try {
             const parsedResult: ImageAnalysisResult = JSON.parse(savedResult)
@@ -177,7 +190,9 @@ export const useResultData = () => {
     modelingImage,
     modelingRequest,
     productType,
-    isFigureOnlineMode: productType === 'figure_diffuser'
+    isFigureOnlineMode: productType === 'figure_diffuser',
+    // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
+    serviceMode
   }
 }
 

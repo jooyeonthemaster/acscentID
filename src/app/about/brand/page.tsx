@@ -107,7 +107,7 @@ export default function BrandStoryPage() {
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 sm:mb-3 break-keep">모두가 자신만의 향을 가질 권리</h3>
                   <p className="text-slate-600 leading-relaxed text-base sm:text-lg break-keep">
-                    향수는 더 이상 소수만의 전유물이 아닙니다. 누구나 쉽고 즐겁게
+                    퍼퓸는 더 이상 소수만의 전유물이 아닙니다. 누구나 쉽고 즐겁게
                     자신만의 시그니처 향을 찾을 수 있어야 한다고 믿습니다.
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function BrandStoryPage() {
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 sm:mb-3 break-keep">기술과 감성의 만남</h3>
                   <p className="text-slate-600 leading-relaxed text-base sm:text-lg break-keep">
-                    최신 AI 기술과 향수 전문가의 노하우를 결합하여,
+                    최신 AI 기술과 퍼퓸 전문가의 노하우를 결합하여,
                     개인화된 향기 경험을 제공합니다.
                   </p>
                 </div>
@@ -163,7 +163,7 @@ export default function BrandStoryPage() {
               <div className="text-4xl sm:text-5xl mb-4">🎉</div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 sm:mb-3 break-keep">즐거움</h3>
               <p className="text-slate-600 leading-relaxed text-base break-keep">
-                향수 찾기가 즐겁고 의미있는 경험이 되도록 만듭니다.
+                퍼퓸 찾기가 즐겁고 의미있는 경험이 되도록 만듭니다.
               </p>
             </motion.div>
 
@@ -202,7 +202,7 @@ export default function BrandStoryPage() {
 
             <motion.div variants={fadeInUp} className="text-center">
               <div className="text-3xl sm:text-4xl font-black text-slate-900 mb-2 break-keep">맞춤</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-600 break-keep">향수 레시피</div>
+              <div className="text-xs sm:text-sm font-bold text-slate-600 break-keep">퍼퓸 레시피</div>
             </motion.div>
 
             <motion.div variants={fadeInUp} className="text-center">

@@ -68,7 +68,6 @@ export default function ResultPageMain() {
   const [isSaving, setIsSaving] = useState(false)
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
   const [isFeedbackHistoryOpen, setIsFeedbackHistoryOpen] = useState(false)
-  const [serviceMode, setServiceMode] = useState<'online' | 'offline'>('offline')
   const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   const {
@@ -87,8 +86,13 @@ export default function ResultPageMain() {
     modelingImage,
     modelingRequest,
     productType,
-    isFigureOnlineMode
+    isFigureOnlineMode,
+    // 서비스 모드 (DB 또는 localStorage에서 로드)
+    serviceMode: loadedServiceMode
   } = useResultData()
+
+  // 서비스 모드: DB/localStorage에서 로드된 값 사용, 없으면 기본값 'offline'
+  const serviceMode = loadedServiceMode || 'offline'
 
   // 피규어 모드일 때 기본 탭을 'memory'로 설정
   useEffect(() => {
@@ -97,13 +101,6 @@ export default function ResultPageMain() {
     }
   }, [isFigureMode])
 
-  // 서비스 모드 확인 (online: 구매 버튼 / offline: 피드백 버튼)
-  useEffect(() => {
-    const savedMode = localStorage.getItem('serviceMode')
-    if (savedMode === 'online') {
-      setServiceMode('online')
-    }
-  }, [])
 
   // 자동 저장 훅 (authLoading이 완료된 후에만 저장 시작)
   const {
@@ -528,26 +525,6 @@ export default function ResultPageMain() {
                   )}
                   <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} />
                 </motion.div>
-
-                {/* 오프라인 모드: 피드백 버튼 (본문에 유지) */}
-                {serviceMode === 'offline' && (
-                  <motion.div variants={fadeInUp} className="flex gap-2">
-                    <Button
-                      onClick={() => setIsFeedbackModalOpen(true)}
-                      className="flex-1 h-12 bg-pink-400 text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-2"
-                    >
-                      <MessageSquarePlus size={18} />
-                      <span>피드백 기록</span>
-                    </Button>
-                    <Button
-                      onClick={() => setIsFeedbackHistoryOpen(true)}
-                      variant="outline"
-                      className="h-12 px-4 border-2 border-slate-900 bg-white text-slate-900 rounded-xl font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
-                    >
-                      <History size={18} />
-                    </Button>
-                  </motion.div>
-                )}
 
                 {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
                 <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">

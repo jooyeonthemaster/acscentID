@@ -204,7 +204,7 @@ export function ReviewWriteModal({
 
                   {/* 별점 선택 */}
                   <div className="text-center">
-                    <p className="text-sm font-bold text-slate-700 mb-3">향수가 어떠셨나요?</p>
+                    <p className="text-sm font-bold text-slate-700 mb-3">퍼퓸이 어떠셨나요?</p>
                     <div className="flex items-center justify-center gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button

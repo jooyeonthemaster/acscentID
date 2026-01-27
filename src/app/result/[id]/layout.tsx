@@ -66,11 +66,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function getDefaultMetadata(): Metadata {
   return {
-    title: "AC'SCENT IDENTITY - 향수 추천 결과",
-    description: '나만의 향수를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
+    title: "AC'SCENT IDENTITY - 퍼퓸 추천 결과",
+    description: '나만의 퍼퓸를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
     openGraph: {
       title: "AC'SCENT IDENTITY",
-      description: '나만의 향수를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
+      description: '나만의 퍼퓸를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
       siteName: "AC'SCENT IDENTITY",
       type: 'website',
       locale: 'ko_KR'

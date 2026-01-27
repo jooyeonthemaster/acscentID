@@ -100,7 +100,7 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
         {/* Marquee Bar (Top) */}
         <div className="w-full bg-yellow-400 border-b-2 border-black py-1.5 overflow-hidden flex items-center h-8">
           <div className="animate-ticker whitespace-nowrap flex gap-8 items-center font-black text-[10px] tracking-[0.2em] uppercase text-black">
-            {Array(10).fill("AC'SCENT IDENTITY • FIND YOUR IDOL SCENT • ").map((text, i) => (
+            {Array(10).fill("AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 • ").map((text, i) => (
               <span key={i} className="flex items-center gap-2">
                 {text} <Star size={10} fill="black" />
               </span>

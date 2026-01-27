@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, ArrowRight, HelpCircle } from "lucide-react"
+import { Sparkles, ArrowRight } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
@@ -111,13 +110,13 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card 1: IDOL */}
                 <RetroCard
-                  title="AI 이미지 분석 향수"
+                  title="AI 이미지 분석 퍼퓸"
                   subtitle="내가 좋아하는 사진과 나만의 최애 향♥"
                   image="/images/perfume/KakaoTalk_20260125_225218071.jpg"
                   price="₩ 24,000"
                   accentColor="bg-[#FBCFE8]"
                   tag="POPULAR"
-                  tags={["K-POP", "맞춤향수", "AI분석"]}
+                  tags={["K-POP", "맞춤퍼퓸", "AI분석"]}
                   bgColor="bg-[#ecddbe]"
                   onClick={() => handleCardClick("/programs/idol-image")}
                 />
@@ -184,17 +183,6 @@ export default function Home() {
                 {isLoggedIn ? "마이페이지로 이동" : "로그인하고 시작하기"}
               </button>
             </div>
-
-            {/* 3.4 Help Center Link */}
-            <Link href="/cs" className="block group">
-              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-[2px_2px_0px_#000] group-hover:-translate-y-1 transition-transform">
-                <div className="flex items-center gap-3">
-                  <HelpCircle className="text-slate-400 group-hover:text-slate-900 transition-colors" />
-                  <span className="font-bold text-slate-600 group-hover:text-slate-900">고객센터 / 문의하기</span>
-                </div>
-                <ArrowRight size={16} className="text-slate-400" />
-              </div>
-            </Link>
 
           </div>
 

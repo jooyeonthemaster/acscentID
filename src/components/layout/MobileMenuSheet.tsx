@@ -118,7 +118,6 @@ export function MobileMenuSheet({
   const pathname = usePathname()
   const currentUser = unifiedUser || user
 
-  const isAboutActive = pathname?.startsWith('/about') || false
   const isProgramsActive = pathname?.startsWith('/programs') || false
 
   const handleClose = () => onOpenChange(false)
@@ -170,16 +169,10 @@ export function MobileMenuSheet({
                 <Link
                   href="/"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   Home
                 </Link>
-                <MobileSection
-                  title="About"
-                  links={NAV_LINKS.about}
-                  isActive={isAboutActive}
-                  onLinkClick={handleClose}
-                />
                 <MobileSection
                   title="Programs"
                   links={NAV_LINKS.programs}
@@ -222,16 +215,10 @@ export function MobileMenuSheet({
                 <Link
                   href="/"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   Home
                 </Link>
-                <MobileSection
-                  title="About"
-                  links={NAV_LINKS.about}
-                  isActive={isAboutActive}
-                  onLinkClick={handleClose}
-                />
                 <MobileSection
                   title="Programs"
                   links={NAV_LINKS.programs}

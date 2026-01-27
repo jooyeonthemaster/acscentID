@@ -2,30 +2,23 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image"
 
 // 향기 관련 재미있는 멘트들
 const SCENT_QUOTES = [
-    { text: "당신의 최애, 향기까지 완벽하시군요... 💕", type: "주접" },
-    { text: "향기란, 보이지 않는 영혼의 옷이다.", type: "명언" },
-    { text: "이 향기 맡으면 심장이 뛰어요... 두근두근", type: "주접" },
-    { text: "좋은 향기는 기억 속에 영원히 남는다.", type: "명언" },
-    { text: "최애 옆자리 향수 아니고요, 최애 향수입니다!", type: "드립" },
-    { text: "당신의 덕력이 향기가 됩니다... ✨", type: "주접" },
-    { text: "향기는 시간을 초월하는 사랑의 언어다.", type: "명언" },
-    { text: "덕질하다 보니 향수까지 만들었네요 ㅋㅋㅋ", type: "드립" },
-    { text: "이 향기, 심쿵 주의보입니다... 💘", type: "주접" },
-    { text: "사랑하는 마음을 향기에 담는 중...", type: "주접" },
-    { text: "향수는 보이지 않는 포옹이다.", type: "명언" },
-    { text: "최애한테서 이런 향기 났으면... (현실도피)", type: "드립" },
-    { text: "당신의 덕심, 향기로 증명합니다!", type: "주접" },
-    { text: "향기는 추억의 가장 강력한 트리거다.", type: "명언" },
-    { text: "이 향 뿌리면 최애가 저한테... (망상 중)", type: "드립" },
-    { text: "당신의 최애를 위한 세상에 하나뿐인 향기...", type: "주접" },
-    { text: "좋은 향기는 자기 소개서보다 강하다.", type: "명언" },
-    { text: "향수 뿌리면 덕력 +10 상승 (확정)", type: "드립" },
-    { text: "이미지에서 향기가 느껴져요... 어떻게 그게 가능하죠?", type: "주접" },
-    { text: "향기는 기억의 문을 여는 열쇠다.", type: "명언" },
+    "당신의 최애, 향기까지 완벽하시군요...",
+    "향기란, 보이지 않는 영혼의 옷이다.",
+    "이 향기 맡으면 심장이 뛰어요... 두근두근",
+    "좋은 향기는 기억 속에 영원히 남는다.",
+    "당신의 덕력이 향기가 됩니다...",
+    "향기는 시간을 초월하는 사랑의 언어다.",
+    "이 향기, 심쿵 주의보입니다...",
+    "사랑하는 마음을 향기에 담는 중...",
+    "향수는 보이지 않는 포옹이다.",
+    "당신의 덕심, 향기로 증명합니다!",
+    "향기는 추억의 가장 강력한 트리거다.",
+    "당신의 최애를 위한 세상에 하나뿐인 향기...",
+    "좋은 향기는 자기 소개서보다 강하다.",
+    "향기는 기억의 문을 여는 열쇠다.",
 ]
 
 interface AnalyzingOverlayProps {
@@ -134,108 +127,65 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                 </motion.div>
             </div>
 
-            {/* 뿌덕 캐릭터 + 말풍선 (문 위에 표시) - 문 열릴 때 페이드아웃 */}
+            {/* 로딩 콘텐츠 - 문 위에 중앙 배치 */}
             <motion.div
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{
                     opacity: doorState === 'opening' ? 0 : 1,
-                    y: doorState === 'opening' ? -30 : 0
+                    y: doorState === 'opening' ? -20 : 0
                 }}
-                transition={{ duration: 0.4 }}
-                className="relative z-10 flex flex-col items-center"
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="relative z-10 flex flex-col items-center px-8"
             >
-                {/* 말풍선 */}
+                {/* 분석 중 타이틀 */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="relative mb-4 max-w-[320px] mx-4"
+                    className="text-center mb-8"
                 >
-                    <div className="bg-white rounded-3xl px-6 py-5 shadow-2xl border-2 border-black relative">
-                        {/* 말풍선 꼬리 */}
-                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-r-2 border-b-2 border-black rotate-45" />
-
-                        {/* 분석 중 상태 */}
-                        <div className="text-center mb-3">
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                className="inline-block text-2xl mb-2"
-                            >
-                                🌸
-                            </motion.div>
-                            <p className="font-bold text-slate-800 text-sm">
-                                <span className="text-amber-500">{userName}</span>님의 향수 분석 중...
-                            </p>
-                        </div>
-
-                        {/* 로딩 바 */}
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
-                            <motion.div
-                                className="h-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 rounded-full"
-                                initial={{ width: "0%" }}
-                                animate={{ width: isComplete ? "100%" : "90%" }}
-                                transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
-                            />
-                        </div>
-
-                        {/* 재미있는 멘트 - 부드러운 전환 */}
-                        <div className="text-center min-h-[40px] flex flex-col items-center justify-center">
-                            <AnimatePresence mode="wait">
-                                <motion.p
-                                    key={currentQuoteIndex}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="text-slate-700 text-sm leading-relaxed break-keep"
-                                >
-                                    "{currentQuote.text}"
-                                </motion.p>
-                            </AnimatePresence>
-                        </div>
-                    </div>
+                    <p className="text-2xl md:text-3xl font-black text-amber-900 mb-2 drop-shadow-sm">
+                        <span className="text-amber-700">{userName}</span>님의
+                    </p>
+                    <p className="text-2xl md:text-3xl font-black text-amber-900 drop-shadow-sm">
+                        퍼퓸 분석 중...
+                    </p>
                 </motion.div>
 
-                {/* 뿌덕 캐릭터 */}
-                <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative"
-                >
-                    <Image
-                        src="/images/hero/ppuduck_fullbody_v2.png"
-                        alt="뿌덕"
-                        width={200}
-                        height={200}
-                        className="drop-shadow-2xl"
-                        priority
+                {/* 로딩 바 */}
+                <div className="w-64 md:w-80 h-3 bg-amber-200/80 rounded-full overflow-hidden mb-8 border-2 border-amber-600">
+                    <motion.div
+                        className="h-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 rounded-full"
+                        initial={{ width: "0%" }}
+                        animate={{ width: isComplete ? "100%" : "90%" }}
+                        transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
                     />
-                    {/* 반짝이 이펙트 */}
-                    <motion.div
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="absolute -top-2 -right-2 text-2xl"
-                    >
-                        ✨
-                    </motion.div>
-                    <motion.div
-                        animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
-                        className="absolute top-4 -left-4 text-xl"
-                    >
-                        💫
-                    </motion.div>
-                </motion.div>
+                </div>
+
+                {/* 재미있는 멘트 */}
+                <div className="text-center min-h-[60px] flex flex-col items-center justify-center max-w-sm">
+                    <AnimatePresence mode="wait">
+                        <motion.p
+                            key={currentQuoteIndex}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.4 }}
+                            className="text-amber-800 text-base md:text-lg font-medium leading-relaxed break-keep"
+                        >
+                            "{currentQuote}"
+                        </motion.p>
+                    </AnimatePresence>
+                </div>
 
                 {/* 하단 안내 문구 */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-6 text-amber-900/70 text-sm font-medium"
+                    transition={{ delay: 0.6 }}
+                    className="mt-8 text-amber-700/80 text-sm font-medium"
                 >
-                    최대 30초 정도 소요됩니다 🕐
+                    최대 30초 정도 소요됩니다
                 </motion.p>
             </motion.div>
         </motion.div>

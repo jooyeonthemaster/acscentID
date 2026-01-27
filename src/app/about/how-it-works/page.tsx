@@ -76,14 +76,14 @@ export default function HowItWorksPage() {
         >
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-black text-slate-900 mb-8">
-              AI가 향수를 추천하는 방법
+              AI가 퍼퓸를 추천하는 방법
             </h2>
           </div>
 
           <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <p className="text-xl text-slate-700 leading-relaxed text-center">
               최신 AI 기술을 활용하여 이미지와 텍스트를 동시에 분석하고,
-              당신만을 위한 향수 레시피를 만들어드립니다.
+              당신만을 위한 퍼퓸 레시피를 만들어드립니다.
             </p>
           </div>
         </motion.div>
@@ -132,9 +132,9 @@ export default function HowItWorksPage() {
               <div className="w-12 h-12 bg-yellow-400 border-2 border-black rounded-full flex items-center justify-center mb-4">
                 <Database size={24} className="text-black" />
               </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">향수 데이터</h3>
+              <h3 className="text-xl font-black text-slate-900 mb-2">퍼퓸 데이터</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                다양한 향수 데이터를 기반으로 맞춤 레시피를 만듭니다.
+                다양한 퍼퓸 데이터를 기반으로 맞춤 레시피를 만듭니다.
               </p>
             </motion.div>
 
@@ -145,7 +145,7 @@ export default function HowItWorksPage() {
               </div>
               <h3 className="text-xl font-black text-slate-900 mb-2">매칭 알고리즘</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                특성 기반 최적 매칭으로 당신에게 맞는 향수를 찾습니다.
+                특성 기반 최적 매칭으로 당신에게 맞는 퍼퓸를 찾습니다.
               </p>
             </motion.div>
           </div>
@@ -166,7 +166,7 @@ export default function HowItWorksPage() {
               분석 프로세스
             </h2>
             <p className="text-lg text-slate-600">
-              4단계로 완성되는 당신만의 향수 추천
+              4단계로 완성되는 당신만의 퍼퓸 추천
             </p>
           </div>
 
@@ -239,8 +239,8 @@ export default function HowItWorksPage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-black text-slate-900 mb-3">레시피 생성</h3>
                   <p className="text-slate-600 leading-relaxed text-lg mb-4">
-                    분석 결과를 바탕으로 당신만을 위한 향수 레시피를 만듭니다.
-                    각 향수는 10가지 특성(sexy, cute, charisma 등)과
+                    분석 결과를 바탕으로 당신만을 위한 퍼퓸 레시피를 만듭니다.
+                    각 퍼퓸는 10가지 특성(sexy, cute, charisma 등)과
                     6가지 향 카테고리(citrus, floral, woody 등)로 정의되어 있습니다.
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -270,12 +270,12 @@ export default function HowItWorksPage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-black text-slate-900 mb-3">추천 생성</h3>
                   <p className="text-slate-600 leading-relaxed text-lg mb-4">
-                    가장 높은 매칭도를 보이는 향수를 추천하고,
+                    가장 높은 매칭도를 보이는 퍼퓸를 추천하고,
                     팬덤 톤의 재미있는 설명과 함께 제공합니다.
                     사용자는 피드백을 통해 추천을 조정할 수 있습니다.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-white border-2 border-black rounded-full text-sm font-bold">향수 추천</span>
+                    <span className="px-3 py-1 bg-white border-2 border-black rounded-full text-sm font-bold">퍼퓸 추천</span>
                     <span className="px-3 py-1 bg-white border-2 border-black rounded-full text-sm font-bold">재미있는 설명</span>
                     <span className="px-3 py-1 bg-white border-2 border-black rounded-full text-sm font-bold">피드백 반영</span>
                   </div>
@@ -297,7 +297,7 @@ export default function HowItWorksPage() {
         >
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black text-slate-900 mb-4">
-              다양한 향수 카테고리
+              다양한 퍼퓸 카테고리
             </h2>
             <p className="text-lg text-slate-600">
               당신에게 어울리는 향기를 찾아드립니다
@@ -345,7 +345,7 @@ export default function HowItWorksPage() {
 
           <div className="mt-8 text-center">
             <p className="text-slate-600 text-lg">
-              각 카테고리의 특성을 분석하여 당신에게 맞는 향수 레시피를 만들어드립니다.
+              각 카테고리의 특성을 분석하여 당신에게 맞는 퍼퓸 레시피를 만들어드립니다.
             </p>
           </div>
         </motion.div>
@@ -411,7 +411,7 @@ export default function HowItWorksPage() {
             지금 바로 체험해보세요
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            AI가 분석하는 당신만의 시그니처 향수를 만나보세요.
+            AI가 분석하는 당신만의 시그니처 퍼퓸를 만나보세요.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

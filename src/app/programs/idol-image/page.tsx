@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Sparkles, Star, X, AlertTriangle,
+  Star, X, AlertTriangle,
   Gift, Zap, ChevronRight,
-  Palette, FileText, Camera
+  FileText, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -16,6 +16,7 @@ import { AuthModal } from "@/components/auth/AuthModal"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
+import { AnalysisPreviewPlayer } from "@/components/remotion/AnalysisPreviewPlayer"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -158,7 +159,7 @@ export default function IdolImagePage() {
                 <ChevronRight size={14} />
                 <Link href="/" className="hover:text-black">프로그램</Link>
                 <ChevronRight size={14} />
-                <span className="text-black font-bold">AI 아이돌 이미지 분석</span>
+                <span className="text-black font-bold">AI 이미지 분석 퍼퓸</span>
               </div>
 
               {/* 타이틀 */}
@@ -172,12 +173,12 @@ export default function IdolImagePage() {
                 </div>
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2 break-keep">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500">
-                    AI 이미지 분석 향수
+                    AI 이미지 분석 퍼퓸
                   </span>
                 </h1>
                 <p className="text-sm lg:text-base text-slate-600 font-medium">
-                  좋아하는 최애 이미지로<br />
-                  추출하는 나만의 최애 향수
+                  좋아하는 이미지로<br />
+                  추출하는 나만의 퍼퓸
                 </p>
               </div>
 
@@ -221,107 +222,6 @@ export default function IdolImagePage() {
       </section>
 
       {/* ============================================
-          분석 결과 미리보기
-      ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-white border-y-2 border-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-6xl mx-auto"
-        >
-          <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-pink-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
-              📊 RESULT PREVIEW
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-xl md:text-4xl font-black text-black mb-4 break-keep">
-              이런 분석 결과를 받아보실 수 있어요
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-slate-600 max-w-2xl mx-auto">
-              AI가 이미지의 색감, 분위기, 감정을 분석하여 최애에게 어울리는 향수 레시피를 만들어드려요
-            </motion.p>
-          </div>
-
-          {/* 결과 미리보기 카드 */}
-          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-black rounded-3xl p-6 md:p-10 shadow-[8px_8px_0_0_black]">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-
-              {/* 왼쪽: 분석 요약 */}
-              <div className="space-y-6">
-                <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black]">
-                  <h4 className="font-black text-lg mb-3 flex items-center gap-2">
-                    <Palette size={20} className="text-purple-500" />
-                    이미지 분석 결과
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">주요 컬러</span>
-                      <div className="flex gap-1">
-                        <div className="w-6 h-6 rounded-full bg-purple-400 border border-black" />
-                        <div className="w-6 h-6 rounded-full bg-pink-300 border border-black" />
-                        <div className="w-6 h-6 rounded-full bg-slate-800 border border-black" />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">분위기 키워드</span>
-                      <div className="flex gap-1">
-                        {["시크", "달콤", "카리스마"].map((k) => (
-                          <span key={k} className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{k}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">감정 분석</span>
-                      <span className="font-bold text-black">신비로움 87%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black]">
-                  <h4 className="font-black text-lg mb-3 flex items-center gap-2">
-                    <Sparkles size={20} className="text-yellow-500" />
-                    추천 향수 레시피
-                  </h4>
-                  <div className="space-y-2">
-                    {[
-                      { note: "탑노트", scent: "베르가못, 블랙커런트", percent: "25%" },
-                      { note: "미들노트", scent: "다마스크 로즈, 피오니", percent: "45%" },
-                      { note: "베이스노트", scent: "머스크, 샌달우드", percent: "30%" },
-                    ].map((item) => (
-                      <div key={item.note} className="flex items-center justify-between p-3 bg-yellow-50 rounded-xl">
-                        <div>
-                          <span className="text-xs text-slate-500">{item.note}</span>
-                          <p className="font-bold text-sm">{item.scent}</p>
-                        </div>
-                        <span className="text-sm font-black text-yellow-600">{item.percent}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 오른쪽: 향수 이미지 */}
-              <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-64 h-64 bg-white border-2 border-black rounded-3xl shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
-                    <img src="/images/perfume/KakaoTalk_20260125_225218071.jpg" alt="향수" className="w-[80%] h-[80%] object-contain" />
-                  </div>
-                  <div className="absolute -top-3 -right-3 px-4 py-2 bg-yellow-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-sm">
-                    AI 추천 ✨
-                  </div>
-                </div>
-                <div className="mt-6 text-center">
-                  <h3 className="text-2xl font-black text-black mb-2">"Purple Dream"</h3>
-                  <p className="text-slate-600">신비롭고 매혹적인 최애의 향기</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
           진행 과정
       ============================================ */}
       <section className="py-16 px-4 md:px-8 bg-[#FFFDF5]">
@@ -344,10 +244,10 @@ export default function IdolImagePage() {
           <div className="relative">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 relative z-10">
               {[
-                { step: "01", title: "이미지 업로드", desc: "최애 사진을 올려주세요", icon: Camera, color: "bg-yellow-400" },
+                { step: "01", title: "이미지 업로드", desc: "사진을 올려주세요", icon: Camera, color: "bg-yellow-400" },
                 { step: "02", title: "정보 입력", desc: "이름과 선호도를 알려주세요", icon: FileText, color: "bg-orange-400" },
                 { step: "03", title: "AI 분석", desc: "30초 만에 분석 완료!", icon: Zap, color: "bg-pink-400" },
-                { step: "04", title: "레시피 확인", desc: "맞춤 향수를 만나보세요", icon: Gift, color: "bg-purple-400" },
+                { step: "04", title: "레시피 확인", desc: "맞춤 퍼퓸를 만나보세요", icon: Gift, color: "bg-purple-400" },
               ].map((item, idx) => (
                 <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
                   <div className={`w-20 h-20 ${item.color} border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] flex items-center justify-center mb-4`}>
@@ -360,6 +260,49 @@ export default function IdolImagePage() {
               ))}
             </div>
           </div>
+        </motion.div>
+      </section>
+
+      {/* ============================================
+          분석 결과 미리보기
+      ============================================ */}
+      <section className="py-16 px-4 md:px-8 bg-white border-y-2 border-black">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+          className="max-w-6xl mx-auto"
+        >
+          <div className="text-center mb-12">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-pink-400 text-white text-sm font-black rounded-full border-2 border-black shadow-[3px_3px_0_0_black] mb-4">
+              📊 RESULT PREVIEW
+            </motion.div>
+            <motion.h2 variants={fadeInUp} className="text-xl md:text-4xl font-black text-black mb-4 break-keep">
+              이런 분석 결과를 받아보실 수 있어요
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-slate-600 max-w-2xl mx-auto">
+              AI가 이미지의 색감, 분위기, 감정을 분석하여 어울리는 퍼퓸 레시피를 만들어드려요
+            </motion.p>
+          </div>
+
+          {/* 결과 미리보기 - Remotion Player */}
+          <motion.div variants={fadeInUp} className="flex justify-center">
+            <div className="w-full max-w-md">
+              <AnalysisPreviewPlayer
+                colors={['#C084FC', '#F9A8D4', '#1E293B']}
+                keywords={['시크', '달콤', '카리스마']}
+                moodScore={87}
+                perfumeName="Purple Dream"
+                topNotes="베르가못, 블랙커런트"
+                middleNotes="다마스크 로즈, 피오니"
+                baseNotes="머스크, 샌달우드"
+              />
+              <p className="text-center text-sm text-slate-500 mt-4">
+                실제 분석 결과가 이렇게 애니메이션으로 표시돼요!
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
@@ -410,39 +353,6 @@ export default function IdolImagePage() {
               onRatingFilterChange={setReviewRatingFilter}
             />
           </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ============================================
-          최종 CTA
-      ============================================ */}
-      <section className="py-20 px-4 md:px-8 bg-black">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight break-keep">
-            좋아하는 최애 이미지로<br />
-            <span className="text-yellow-400">나만의 최애 향수</span>
-          </h2>
-          <p className="text-slate-400 mb-8 text-lg">
-            최애의 분위기를 향기로 담아, 언제 어디서나 함께하세요.
-          </p>
-
-          <button
-            onClick={handleStartClick}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-yellow-400 text-black font-black text-xl rounded-2xl border-2 border-black shadow-[8px_8px_0_0_white] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0_0_white] transition-all disabled:opacity-50"
-          >
-            지금 바로 분석하기
-          </button>
-
-          <p className="text-slate-500 mt-6 text-sm">
-            분석은 무료! 결과가 마음에 들면 그때 결제하세요
-          </p>
         </motion.div>
       </section>
 

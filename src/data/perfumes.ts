@@ -49,7 +49,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 01",
         name: "블랙베리",
-        description: "달콤하고 진한 블랙베리 향이 매력적인 향수입니다. 달콤하면서도 약간의 시큼함이 있어 독특한 매력을 가지고 있습니다.",
+        description: "달콤하고 진한 블랙베리 향이 매력적인 퍼퓸입니다. 달콤하면서도 약간의 시큼함이 있어 독특한 매력을 가지고 있습니다.",
         mood: "달콤한, 과일향, 상큼한, 매력적인",
         personality: "유니크하고 달콤한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "블랙베리" },
@@ -66,7 +66,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 02",
         name: "만다린 오렌지",
-        description: "상큼하고 활기찬 만다린 오렌지 향이 기분을 밝게 해주는 향수입니다.",
+        description: "상큼하고 활기찬 만다린 오렌지 향이 기분을 밝게 해주는 퍼퓸입니다.",
         mood: "상큼한, 활기찬, 밝은, 에너지 넘치는",
         personality: "밝고 활기찬 에너지를 가진, 긍정적인 사람에게 어울립니다.",
         mainScent: { name: "만다린 오렌지" },
@@ -83,7 +83,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 03",
         name: "스트로베리",
-        description: "달콤하고 싱그러운 딸기 향이 매력적인 향수입니다. 사랑스럽고 귀여운 분위기를 연출합니다.",
+        description: "달콤하고 싱그러운 딸기 향이 매력적인 퍼퓸입니다. 사랑스럽고 귀여운 분위기를 연출합니다.",
         mood: "달콤한, 사랑스러운, 귀여운, 싱그러운",
         personality: "사랑스럽고 귀여운 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "스트로베리" },
@@ -100,7 +100,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 04",
         name: "베르가못",
-        description: "시트러스와 허브 향이 조화롭게 어우러진 베르가못 향수입니다. 상쾌하면서도 우아한 느낌을 줍니다.",
+        description: "시트러스와 허브 향이 조화롭게 어우러진 베르가못 퍼퓸입니다. 상쾌하면서도 우아한 느낌을 줍니다.",
         mood: "상쾌한, 우아한, 세련된, 깔끔한",
         personality: "세련되고 우아한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "베르가못" },
@@ -117,7 +117,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 05",
         name: "비터 오렌지",
-        description: "쌉싸름한 오렌지 향이 독특한 매력을 가진 향수입니다. 상큼하면서도 깊이 있는 향이 오래 지속됩니다.",
+        description: "쌉싸름한 오렌지 향이 독특한 매력을 가진 퍼퓸입니다. 상큼하면서도 깊이 있는 향이 오래 지속됩니다.",
         mood: "쌉싸름한, 독특한, 깊이있는, 성숙한",
         personality: "독특하고 깊이 있는 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "비터 오렌지" },
@@ -134,7 +134,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 06",
         name: "캐럿",
-        description: "달콤하면서도 흙내음이 나는 독특한 당근 향수입니다. 편안하면서도 유니크한 분위기를 연출합니다.",
+        description: "달콤하면서도 흙내음이 나는 독특한 당근 퍼퓸입니다. 편안하면서도 유니크한 분위기를 연출합니다.",
         mood: "편안한, 독특한, 자연적인, 달콤한",
         personality: "편안하면서도 독특한 개성을 가진 사람에게 어울립니다.",
         mainScent: { name: "캐럿" },
@@ -151,7 +151,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 07",
         name: "로즈",
-        description: "우아하고 고급스러운 장미 향이 매력적인 향수입니다. 로맨틱하고 여성스러운 분위기를 연출합니다.",
+        description: "우아하고 고급스러운 장미 향이 매력적인 퍼퓸입니다. 로맨틱하고 여성스러운 분위기를 연출합니다.",
         mood: "우아한, 로맨틱한, 여성스러운, 고급스러운",
         personality: "우아하고 로맨틱한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "로즈" },
@@ -168,7 +168,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 08",
         name: "튜베로즈",
-        description: "강렬하고 관능적인 튜베로즈 향이 매력적인 향수입니다. 깊이 있고 인상적인 향이 오래 지속됩니다.",
+        description: "강렬하고 관능적인 튜베로즈 향이 매력적인 퍼퓸입니다. 깊이 있고 인상적인 향이 오래 지속됩니다.",
         mood: "강렬한, 관능적인, 깊이있는, 인상적인",
         personality: "강렬하고 깊은 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "튜베로즈" },
@@ -185,7 +185,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 09",
         name: "오렌지 블라썸",
-        description: "상큼하고 화사한 오렌지 꽃 향이 매력적인 향수입니다. 밝고 사랑스러운 분위기를 연출합니다.",
+        description: "상큼하고 화사한 오렌지 꽃 향이 매력적인 퍼퓸입니다. 밝고 사랑스러운 분위기를 연출합니다.",
         mood: "화사한, 상큼한, 사랑스러운, 봄같은",
         personality: "화사하고 사랑스러운 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "오렌지 블라썸" },
@@ -202,7 +202,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 10",
         name: "튤립",
-        description: "신선하고 맑은 튤립 향이 매력적인 향수입니다. 깔끔하고 우아한 분위기를 연출합니다.",
+        description: "신선하고 맑은 튤립 향이 매력적인 퍼퓸입니다. 깔끔하고 우아한 분위기를 연출합니다.",
         mood: "신선한, 맑은, 깔끔한, 우아한",
         personality: "깔끔하고 우아한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "튤립" },
@@ -219,7 +219,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 11",
         name: "라임",
-        description: "상큼하고 톡 쏘는 라임 향이 매력적인 향수입니다. 활기차고 신선한 분위기를 연출합니다.",
+        description: "상큼하고 톡 쏘는 라임 향이 매력적인 퍼퓸입니다. 활기차고 신선한 분위기를 연출합니다.",
         mood: "상큼한, 활기찬, 톡쏘는, 신선한",
         personality: "활기차고 신선한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "라임" },
@@ -236,7 +236,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 12",
         name: "은방울꽃",
-        description: "섬세하고 순수한 은방울꽃 향이 매력적인 향수입니다. 청순하고 깨끗한 분위기를 연출합니다.",
+        description: "섬세하고 순수한 은방울꽃 향이 매력적인 퍼퓸입니다. 청순하고 깨끗한 분위기를 연출합니다.",
         mood: "섬세한, 순수한, 청순한, 깨끗한",
         personality: "순수하고 청순한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "은방울꽃" },
@@ -253,7 +253,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 13",
         name: "유자",
-        description: "상큼하고 달콤한 유자 향이 매력적인 향수입니다. 밝고 활기찬 분위기를 연출합니다.",
+        description: "상큼하고 달콤한 유자 향이 매력적인 퍼퓸입니다. 밝고 활기찬 분위기를 연출합니다.",
         mood: "상큼한, 달콤한, 밝은, 활기찬",
         personality: "밝고 활기찬 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "유자" },
@@ -270,7 +270,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 14",
         name: "민트",
-        description: "시원하고 청량한 민트 향이 매력적인 향수입니다. 상쾌하고 깔끔한 분위기를 연출합니다.",
+        description: "시원하고 청량한 민트 향이 매력적인 퍼퓸입니다. 상쾌하고 깔끔한 분위기를 연출합니다.",
         mood: "시원한, 청량한, 상쾌한, 깔끔한",
         personality: "청량하고 상쾌한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "민트" },
@@ -287,7 +287,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 15",
         name: "페티그레인",
-        description: "상큼하면서도 우아한 페티그레인 향이 매력적인 향수입니다. 세련되고 깔끔한 분위기를 연출합니다.",
+        description: "상큼하면서도 우아한 페티그레인 향이 매력적인 퍼퓸입니다. 세련되고 깔끔한 분위기를 연출합니다.",
         mood: "상큼한, 우아한, 세련된, 깔끔한",
         personality: "세련되고 우아한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "페티그레인" },
@@ -304,7 +304,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 16",
         name: "샌달우드",
-        description: "따뜻하고 부드러운 샌달우드 향이 매력적인 향수입니다. 깊이 있고 편안한 분위기를 연출합니다.",
+        description: "따뜻하고 부드러운 샌달우드 향이 매력적인 퍼퓸입니다. 깊이 있고 편안한 분위기를 연출합니다.",
         mood: "따뜻한, 부드러운, 깊이있는, 편안한",
         personality: "따뜻하고 편안한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "샌달우드" },
@@ -321,7 +321,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 17",
         name: "레몬페퍼",
-        description: "상큼한 레몬과 스파이시한 후추가 어우러진 향수입니다. 독특하고 활기찬, 센스있는 분위기를 연출합니다.",
+        description: "상큼한 레몬과 스파이시한 후추가 어우러진 퍼퓸입니다. 독특하고 활기찬, 센스있는 분위기를 연출합니다.",
         mood: "상큼한, 스파이시한, 독특한, 활기찬",
         personality: "독특하고 센스있는 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "레몬페퍼" },
@@ -338,7 +338,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 18",
         name: "핑크페퍼",
-        description: "달콤하면서도 스파이시한 핑크페퍼 향이 매력적인 향수입니다. 유니크하고 세련된 분위기를 연출합니다.",
+        description: "달콤하면서도 스파이시한 핑크페퍼 향이 매력적인 퍼퓸입니다. 유니크하고 세련된 분위기를 연출합니다.",
         mood: "달콤한, 스파이시한, 유니크한, 세련된",
         personality: "유니크하고 세련된 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "핑크페퍼" },
@@ -355,7 +355,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 19",
         name: "바다소금",
-        description: "시원하고 청량한 바다소금 향이 매력적인 향수입니다. 깨끗하고 상쾌한 분위기를 연출합니다.",
+        description: "시원하고 청량한 바다소금 향이 매력적인 퍼퓸입니다. 깨끗하고 상쾌한 분위기를 연출합니다.",
         mood: "시원한, 청량한, 깨끗한, 상쾌한",
         personality: "깨끗하고 상쾌한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "바다소금" },
@@ -372,7 +372,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 20",
         name: "타임",
-        description: "허브향이 강한 타임 향수입니다. 상쾌하면서도 깊이 있는 향이 매력적입니다.",
+        description: "허브향이 강한 타임 퍼퓸입니다. 상쾌하면서도 깊이 있는 향이 매력적입니다.",
         mood: "상쾌한, 허브향, 깊이있는, 자연적인",
         personality: "자연적이고 깊이 있는 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "타임" },
@@ -389,7 +389,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 21",
         name: "머스크",
-        description: "부드럽고 따뜻한 머스크 향이 매력적인 향수입니다. 섹시하고 포근한 분위기를 연출합니다.",
+        description: "부드럽고 따뜻한 머스크 향이 매력적인 퍼퓸입니다. 섹시하고 포근한 분위기를 연출합니다.",
         mood: "부드러운, 따뜻한, 섹시한, 포근한",
         personality: "부드럽고 섹시한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "머스크" },
@@ -406,7 +406,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 22",
         name: "화이트로즈",
-        description: "순수하고 우아한 화이트로즈 향이 매력적인 향수입니다. 깨끗하고 로맨틱한 분위기를 연출합니다.",
+        description: "순수하고 우아한 화이트로즈 향이 매력적인 퍼퓸입니다. 깨끗하고 로맨틱한 분위기를 연출합니다.",
         mood: "순수한, 우아한, 깨끗한, 로맨틱한",
         personality: "순수하고 로맨틱한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "화이트로즈" },
@@ -423,7 +423,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 23",
         name: "스웨이드",
-        description: "부드럽고 따뜻한 스웨이드 향이 매력적인 향수입니다. 편안하고 고급스러운 분위기를 연출합니다.",
+        description: "부드럽고 따뜻한 스웨이드 향이 매력적인 퍼퓸입니다. 편안하고 고급스러운 분위기를 연출합니다.",
         mood: "부드러운, 따뜻한, 편안한, 고급스러운",
         personality: "편안하고 고급스러운 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "스웨이드" },
@@ -440,7 +440,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 24",
         name: "이탈리안만다린",
-        description: "상큼하고 활기찬 이탈리안만다린 향이 매력적인 향수입니다. 밝고 에너지 넘치는 분위기를 연출합니다.",
+        description: "상큼하고 활기찬 이탈리안만다린 향이 매력적인 퍼퓸입니다. 밝고 에너지 넘치는 분위기를 연출합니다.",
         mood: "상큼한, 활기찬, 밝은, 에너지 넘치는",
         personality: "밝고 에너지 넘치는 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "이탈리안만다린" },
@@ -457,7 +457,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 25",
         name: "라벤더",
-        description: "편안하고 안정적인 라벤더 향이 매력적인 향수입니다. 차분하고 힐링되는 분위기를 연출합니다.",
+        description: "편안하고 안정적인 라벤더 향이 매력적인 퍼퓸입니다. 차분하고 힐링되는 분위기를 연출합니다.",
         mood: "편안한, 안정적인, 차분한, 힐링되는",
         personality: "차분하고 편안한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "라벤더" },
@@ -474,7 +474,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 26",
         name: "이탈리안사이프러스",
-        description: "우디하고 시원한 사이프러스 향이 매력적인 향수입니다. 자연적이고 신비로운 분위기를 연출합니다.",
+        description: "우디하고 시원한 사이프러스 향이 매력적인 퍼퓸입니다. 자연적이고 신비로운 분위기를 연출합니다.",
         mood: "우디한, 시원한, 자연적인, 신비로운",
         personality: "자연적이고 신비로운 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "이탈리안사이프러스" },
@@ -491,7 +491,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 27",
         name: "스모키 블렌드 우드",
-        description: "깊고 스모키한 우드 향이 매력적인 향수입니다. 신비롭고 강렬한 분위기를 연출합니다.",
+        description: "깊고 스모키한 우드 향이 매력적인 퍼퓸입니다. 신비롭고 강렬한 분위기를 연출합니다.",
         mood: "스모키한, 깊은, 신비로운, 강렬한",
         personality: "깊이 있고 신비로운 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "스모키 블렌드 우드" },
@@ -508,7 +508,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 28",
         name: "레더",
-        description: "고급스럽고 따뜻한 가죽 향이 매력적인 향수입니다. 세련되고 카리스마 있는 분위기를 연출합니다.",
+        description: "고급스럽고 따뜻한 가죽 향이 매력적인 퍼퓸입니다. 세련되고 카리스마 있는 분위기를 연출합니다.",
         mood: "고급스러운, 따뜻한, 세련된, 카리스마있는",
         personality: "세련되고 카리스마 있는 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "레더" },
@@ -525,7 +525,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 29",
         name: "바이올렛",
-        description: "섬세하고 우아한 바이올렛 향이 매력적인 향수입니다. 로맨틱하고 여성스러운 분위기를 연출합니다.",
+        description: "섬세하고 우아한 바이올렛 향이 매력적인 퍼퓸입니다. 로맨틱하고 여성스러운 분위기를 연출합니다.",
         mood: "섬세한, 우아한, 로맨틱한, 여성스러운",
         personality: "섬세하고 로맨틱한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "바이올렛" },
@@ -542,7 +542,7 @@ export const perfumes: Perfume[] = [
     {
         id: "AC'SCENT 30",
         name: "무화과",
-        description: "달콤하면서도 깊이 있는 무화과 향이 매력적인 향수입니다. 포근하고 안정적인, 성숙한 분위기를 연출합니다.",
+        description: "달콤하면서도 깊이 있는 무화과 향이 매력적인 퍼퓸입니다. 포근하고 안정적인, 성숙한 분위기를 연출합니다.",
         mood: "달콤한, 포근한, 안정적인, 성숙한",
         personality: "포근하고 성숙한 매력을 가진 사람에게 어울립니다.",
         mainScent: { name: "무화과" },

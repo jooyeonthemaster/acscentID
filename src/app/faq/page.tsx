@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Sparkles, HelpCircle } from 'lucide-react'
+import { ChevronDown, HelpCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { cn } from '@/lib/utils'
 
@@ -189,27 +189,6 @@ export default function FAQPage() {
             ))}
           </motion.div>
 
-          {/* Contact Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-16 text-center p-8 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <Sparkles size={32} className="mx-auto mb-4 text-purple-500" />
-            <h3 className="text-xl font-black text-slate-900 mb-2">
-              원하는 답변을 찾지 못하셨나요?
-            </h3>
-            <p className="text-slate-600 mb-6 whitespace-nowrap text-sm">
-              추가 문의사항이 있으시면 언제든 연락해 주세요.
-            </p>
-            <a
-              href="mailto:support@acscent.com"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-            >
-              문의하기
-            </a>
-          </motion.div>
         </div>
       </main>
     </>

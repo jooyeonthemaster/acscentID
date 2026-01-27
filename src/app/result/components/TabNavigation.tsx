@@ -22,14 +22,14 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isFig
   // 피규어 모드 탭
   const figureTabs = [
     { id: 'memory' as const, label: '기억의 순간', icon: Camera, emoji: '📸' },
-    { id: 'perfume' as const, label: '맞춤 향수', icon: FlaskConical, emoji: '💎' },
+    { id: 'perfume' as const, label: '맞춤 퍼퓸', icon: FlaskConical, emoji: '💎' },
     { id: 'figure' as const, label: '피규어', icon: Palette, emoji: '🎨' },
     { id: 'analysis' as const, label: '분석 결과', icon: Scan, emoji: '🔍' }
   ]
 
   // 일반 모드 탭
   const defaultTabs = [
-    { id: 'perfume' as const, label: '향수 추천', icon: FlaskConical, emoji: '💎' },
+    { id: 'perfume' as const, label: '퍼퓸 추천', icon: FlaskConical, emoji: '💎' },
     { id: 'analysis' as const, label: '분석 결과', icon: Scan, emoji: '🔍' },
     { id: 'comparison' as const, label: '비교 분석', icon: GitCompare, emoji: '⚡' }
   ]

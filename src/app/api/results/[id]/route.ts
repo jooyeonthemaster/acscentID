@@ -50,7 +50,8 @@ export async function GET(
         matchingKeywords: data.matching_keywords,
         viewCount: data.view_count,
         idolName: data.idol_name,
-        idolGender: data.idol_gender
+        idolGender: data.idol_gender,
+        serviceMode: data.service_mode || 'online'
       }
     })
   } catch (error) {
