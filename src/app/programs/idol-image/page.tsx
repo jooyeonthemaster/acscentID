@@ -7,7 +7,7 @@ import Link from "next/link"
 import {
   Star, X, AlertTriangle,
   Gift, Zap, ChevronRight,
-  FileText, Camera
+  FileText, Camera, Sparkles, Palette, FileCheck
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -217,6 +217,28 @@ export default function IdolImagePage() {
                 💡 먼저 무료로 분석해보고, 마음에 드시면 결제하세요!
               </p>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+          Feature Bar - 검은 배경
+      ============================================ */}
+      <section className="py-8 px-4 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-cyan-400" />
+              <span className="font-bold text-sm">AI 맞춤 분석</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Palette size={18} className="text-cyan-400" />
+              <span className="font-bold text-sm">나만의 퍼퓸</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileCheck size={18} className="text-cyan-400" />
+              <span className="font-bold text-sm">실물 분석 보고서</span>
+            </div>
           </div>
         </div>
       </section>

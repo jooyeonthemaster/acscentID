@@ -80,38 +80,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Support Links (Placeholder) */}
+          {/* Support Links */}
           <div>
             <h3 className="text-sm font-black tracking-wider uppercase text-yellow-400 mb-4">
               고객지원
             </h3>
             <ul className="space-y-2">
               <li>
-                <button
-                  disabled
-                  className="text-sm text-slate-500 cursor-not-allowed"
-                  title="준비 중"
+                <Link
+                  href="/faq"
+                  className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
                 >
-                  문의하기 (준비 중)
-                </button>
+                  FAQ
+                </Link>
               </li>
               <li>
-                <button
-                  disabled
-                  className="text-sm text-slate-500 cursor-not-allowed"
-                  title="준비 중"
+                <Link
+                  href="/privacy"
+                  className="text-sm text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all"
                 >
-                  FAQ (준비 중)
-                </button>
-              </li>
-              <li>
-                <button
-                  disabled
-                  className="text-sm text-slate-500 cursor-not-allowed"
-                  title="준비 중"
-                >
-                  개인정보처리방침 (준비 중)
-                </button>
+                  개인정보처리방침
+                </Link>
               </li>
             </ul>
           </div>

@@ -180,19 +180,19 @@ export function MobileMenuSheet({
                   onLinkClick={handleClose}
                 />
                 <Link
+                  href="/mypage"
+                  onClick={handleClose}
+                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  My Page
+                </Link>
+                <Link
                   href="/faq"
                   onClick={handleClose}
                   className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   <HelpCircle size={18} />
                   FAQ
-                </Link>
-                <Link
-                  href="/mypage"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
-                >
-                  My Page
                 </Link>
               </nav>
 

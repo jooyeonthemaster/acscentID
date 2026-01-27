@@ -3,55 +3,72 @@
 import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { Sparkles, ArrowRight } from "lucide-react"
+import { ChevronRight, User } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
-import { KitschHero } from "@/components/home/KitschHero"
+import Image from "next/image"
+
+
+// 상품 데이터
+const PRODUCTS = [
+  {
+    id: "idol-image",
+    category: "perfume",
+    title: "AI 이미지 분석 퍼퓸",
+    subtitle: "좋아하는 이미지로 추출하는\n나만의 퍼퓸",
+    image: "/images/perfume/KakaoTalk_20260125_225218071.jpg",
+    price: 24000,
+    tags: ["맞춤퍼퓸", "AI분석"],
+    badge: "",
+    badgeColor: "bg-[#FF6B9D]",
+    accentColor: "bg-[#FBCFE8]",
+    isNew: false,
+    href: "/programs/idol-image"
+  },
+  {
+    id: "figure",
+    category: "diffuser",
+    title: "피규어 화분 디퓨저",
+    subtitle: "좋아하는 이미지로 제작되는\n나만의 화분 피규어 디퓨저",
+    image: "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
+    price: 48000,
+    tags: ["피규어", "커스텀"],
+    badge: "NEW",
+    badgeColor: "bg-[#A78BFA]",
+    accentColor: "bg-[#A5F3FC]",
+    isNew: true,
+    href: "/programs/figure"
+  }
+]
 
 export default function Home() {
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [userStats, setUserStats] = useState({ analysisCount: 0, recipeCount: 0 })
-  const [statsLoading, setStatsLoading] = useState(false)
+    const [userStats, setUserStats] = useState({ analysisCount: 0, recipeCount: 0 })
 
   const isLoggedIn = !!(user || unifiedUser)
-  const userName = user?.user_metadata?.name || unifiedUser?.name || user?.email?.split('@')[0] || "방문자"
+  const userName = user?.user_metadata?.name || unifiedUser?.name || user?.email?.split('@')[0] || "Guest"
 
-  // 사용자 통계 데이터 가져오기
+
   const fetchUserStats = useCallback(async () => {
     if (!isLoggedIn) return
-
-    setStatsLoading(true)
     try {
-      const fingerprint = typeof window !== 'undefined'
-        ? localStorage.getItem('user_fingerprint')
-        : null
-      const url = fingerprint
-        ? `/api/user/data?fingerprint=${encodeURIComponent(fingerprint)}`
-        : '/api/user/data'
-
+      const fingerprint = typeof window !== 'undefined' ? localStorage.getItem('user_fingerprint') : null
+      const url = fingerprint ? `/api/user/data?fingerprint=${encodeURIComponent(fingerprint)}` : '/api/user/data'
       const response = await fetch(url)
       const data = await response.json()
-
       if (response.ok) {
-        setUserStats({
-          analysisCount: data.analyses?.length || 0,
-          recipeCount: data.recipes?.length || 0
-        })
+        setUserStats({ analysisCount: data.analyses?.length || 0, recipeCount: data.recipes?.length || 0 })
       }
     } catch (error) {
       console.error('Failed to fetch user stats:', error)
-    } finally {
-      setStatsLoading(false)
     }
   }, [isLoggedIn])
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchUserStats()
-    }
+    if (isLoggedIn) fetchUserStats()
   }, [isLoggedIn, fetchUserStats])
 
   const handleCardClick = (href: string) => {
@@ -64,191 +81,179 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-[200vh] bg-[#FFFDF5] font-sans selection:bg-pink-200 selection:text-pink-900 flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-[#FFFDF5] font-sans selection:bg-yellow-200 selection:text-yellow-900 relative">
+      {/* 배경 이미지 */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/images/hero/forest_bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      <div className="relative z-10">
+        <Header />
 
-      {/* 1. Hero Section */}
-      <KitschHero />
+      {/* 모바일 우선 레이아웃 (390px 기준) */}
+      <main className="pt-28 pb-24 px-4">
+        <div className="max-w-7xl mx-auto">
 
-      {/* 2. Dashboard Interface Container */}
-      <div className="relative z-10 mt-[100vh] bg-[#FFFDF5] rounded-t-[40px] px-4 md:px-8 py-12 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t-4 border-slate-900 pb-32 flex-1">
-
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-
-          {/* =========================================================
-                [LEFT COLUMN] MAIN SERVICES & ACTIVITY
-            ========================================================= */}
-          <div className="flex-1 space-y-10">
-
-            {/* 2.1 Service Header (Greeting) */}
-            <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  👋 {isLoggedIn ? `반가워요, ${userName}님!` : "나만의 향기를 찾아보세요!"}
-                </h2>
-                <p className="text-sm text-slate-500 font-bold mt-1">
-                  오늘의 기분과 이미지를 향기로 기록해보세요.
-                </p>
-              </div>
-              {!isLoggedIn && (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="bg-[#F472B6] text-white px-5 py-2 rounded-xl border-2 border-slate-900 font-bold text-sm hover:shadow-none shadow-[2px_2px_0px_#000] transition-all"
-                >
-                  로그인하기
-                </button>
-              )}
-            </div>
-
-            {/* 2.2 Main Programs (Grid) */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="text-yellow-400 fill-yellow-400" />
-                <h3 className="text-2xl font-black text-slate-900">추천 프로그램</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Card 1: IDOL */}
-                <RetroCard
-                  title="AI 이미지 분석 퍼퓸"
-                  subtitle="내가 좋아하는 사진과 나만의 최애 향♥"
-                  image="/images/perfume/KakaoTalk_20260125_225218071.jpg"
-                  price="₩ 24,000"
-                  accentColor="bg-[#FBCFE8]"
-                  tag="POPULAR"
-                  tags={["K-POP", "맞춤퍼퓸", "AI분석"]}
-                  bgColor="bg-[#ecddbe]"
-                  onClick={() => handleCardClick("/programs/idol-image")}
-                />
-
-                {/* Card 2: FIGURE */}
-                <RetroCard
-                  title="피규어 화분 디퓨저"
-                  subtitle="캐릭터의 서사를 담은 향"
-                  image="/images/diffuser/KakaoTalk_20260125_225229624.jpg"
-                  price="₩ 48,000"
-                  accentColor="bg-[#A5F3FC]"
-                  tag="NEW"
-                  tags={["캐릭터", "피규어", "커스텀"]}
-                  bgColor="bg-[#ecddbe]"
-                  onClick={() => handleCardClick("/programs/figure")}
-                />
-
-              </div>
-            </div>
-
-          </div>
-
-          {/* =========================================================
-                [RIGHT COLUMN] ALERTS & STATUS (SIDEBAR)
-            ========================================================= */}
-          <div className="w-full lg:w-80 flex flex-col gap-6">
-
-            {/* 3.1 User Profile Widget */}
-            <div className="bg-[#FEF9C3] border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000]">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center overflow-hidden">
-                  {/* Retro Avatar */}
-                  <img src="/assets/retro/computer.png" className="w-9 h-9 object-contain" alt="Profile" />
-                </div>
-                <div>
-                  <div className="font-bold text-slate-900 text-lg">My Page</div>
-                  <div className="text-xs text-slate-500 font-bold">나의 분석 기록 확인하기</div>
-                </div>
-              </div>
-              {isLoggedIn && (
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="bg-white/50 rounded-xl p-2 text-center border border-slate-900/10">
-                    <div className="text-xs text-slate-500 font-bold">분석 횟수</div>
-                    <div className="font-black text-slate-900">
-                      {statsLoading ? (
-                        <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
-                      ) : userStats.analysisCount}
+          {/* ===== 프로필 / 로그인 카드 (상단 납작하게) ===== */}
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-5"
+          >
+            {isLoggedIn ? (
+              // 로그인 상태: 프로필 카드
+              <div className="bg-gradient-to-r from-[#FEF08A] to-[#FACC15] border-2 border-slate-900 rounded-2xl shadow-[4px_4px_0px_#000] overflow-hidden">
+                <div className="flex items-center justify-between p-3">
+                  {/* 프로필 정보 */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-white border-2 border-slate-900 flex items-center justify-center shadow-[2px_2px_0px_#000]">
+                      <User size={22} className="text-slate-900" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-900 text-sm">{userName}</h3>
+                      <p className="text-slate-600 text-[10px] font-medium">향기 컬렉터</p>
                     </div>
                   </div>
-                  <div className="bg-white/50 rounded-xl p-2 text-center border border-slate-900/10">
-                    <div className="text-xs text-slate-500 font-bold">보유 레시피</div>
-                    <div className="font-black text-slate-900">
-                      {statsLoading ? (
-                        <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
-                      ) : userStats.recipeCount}
+                  {/* 스탯 */}
+                  <div className="flex items-center gap-3">
+                    <div className="text-center">
+                      <div className="text-lg font-black text-slate-900">{userStats.analysisCount}</div>
+                      <div className="text-[8px] font-bold text-slate-500 uppercase">분석</div>
                     </div>
+                    <div className="w-px h-8 bg-slate-900/20" />
+                    <div className="text-center">
+                      <div className="text-lg font-black text-slate-900">{userStats.recipeCount}</div>
+                      <div className="text-[8px] font-bold text-slate-500 uppercase">레시피</div>
+                    </div>
+                    <button
+                      onClick={() => router.push('/mypage')}
+                      className="ml-2 w-9 h-9 rounded-xl bg-white border-2 border-slate-900 flex items-center justify-center shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                    >
+                      <ChevronRight size={18} className="text-slate-900" />
+                    </button>
                   </div>
                 </div>
-              )}
-              <button
-                onClick={() => isLoggedIn ? router.push('/mypage') : setShowAuthModal(true)}
-                className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all shadow-[2px_2px_0px_#F472B6]"
-              >
-                {isLoggedIn ? "마이페이지로 이동" : "로그인하고 시작하기"}
-              </button>
-            </div>
+              </div>
+            ) : (
+              // 비로그인 상태: 로그인 유도
+              <div className="bg-white border-2 border-slate-900 rounded-2xl shadow-[4px_4px_0px_#000] p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#FEF9C3] border-2 border-slate-900 flex items-center justify-center">
+                      <User size={20} className="text-slate-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-900 text-sm">로그인하고 시작하기</h3>
+                      <p className="text-slate-500 text-[10px] font-medium">나만의 향기 레시피를 저장해요</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="px-4 py-2 bg-[#FEF9C3] text-slate-900 font-bold text-xs rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                  >
+                    로그인
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.section>
 
-          </div>
+
+          {/* ===== 상품 카드 리스트 ===== */}
+          <section className="space-y-12 mt-16">
+            {PRODUCTS.map((product, index) => (
+              <NFTStyleCard
+                key={product.id}
+                product={product}
+                index={index}
+                onClick={() => handleCardClick(product.href)}
+              />
+            ))}
+          </section>
 
         </div>
-      </div>
+      </main>
 
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSuccess={() => setShowAuthModal(false)}
       />
+      </div>
     </div>
   )
 }
 
-// ----------------------------------------------------------------------
-// SUB-COMPONENTS
-// ----------------------------------------------------------------------
+// ============================================================
+// NFT 스타일 카드 (레퍼런스 이미지 기반)
+// ============================================================
 
-function RetroCard({ title, subtitle, image, price, accentColor, tag, tags, layout = "vertical", onClick, bgColor = "bg-white" }: any) {
+interface NFTStyleCardProps {
+  product: typeof PRODUCTS[0]
+  index: number
+  onClick: () => void
+}
+
+function NFTStyleCard({ product, index, onClick }: NFTStyleCardProps) {
+  const isReversed = index % 2 === 1
+
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
       onClick={onClick}
-      className={`group relative bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer overflow-hidden ${layout === 'horizontal' ? 'flex items-center gap-6' : 'flex flex-col'}`}
+      className="group relative cursor-pointer"
     >
-      <div className={`absolute top-4 ${layout === 'horizontal' ? 'left-4' : 'right-4'} px-3 py-1 bg-slate-900 text-white text-[10px] font-bold rounded-full tracking-widest uppercase z-10`}>
-        {tag}
-      </div>
-
-      <div className={`relative ${layout === 'horizontal' ? 'w-1/3 h-40' : 'w-full h-48'} rounded-2xl border-2 border-slate-900 mb-4 overflow-hidden flex-shrink-0 flex items-center justify-center ${bgColor}`}>
-        <img
-          src={image}
-          alt={title}
-          className="w-[120%] h-[120%] object-contain transition-transform group-hover:scale-110 duration-500"
+      {/* 이미지 - 크게! 여백 없이 꽉 차게 */}
+      <div
+        className={`relative w-[60%] aspect-square ${product.accentColor} rounded-[20px] border-2 border-slate-900 shadow-[4px_4px_0px_#000] overflow-hidden ${
+          isReversed ? 'ml-auto mr-[-8px] rotate-[3deg]' : 'ml-[-8px] -rotate-[3deg]'
+        }`}
+      >
+        <Image
+          src={product.image}
+          alt={product.title}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          style={{ transform: isReversed ? 'scale(1.15) translateX(8%)' : 'scale(1.15) translateX(-8%)', transformOrigin: 'center' }}
         />
-      </div>
-
-      <div className={`flex-1 ${layout === "horizontal" ? "py-2" : ""}`}>
-        <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight group-hover:text-purple-600 transition-colors">
-          {title}
-        </h3>
-        <p className="text-sm text-slate-500 font-bold mb-4">
-          {subtitle}
-        </p>
-
-        {tags && tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((t: string, i: number) => (
-              <span
-                key={i}
-                className={`text-xs px-3 py-1 rounded-full font-bold border-2 border-slate-900 ${accentColor} text-slate-900`}
-              >
-                #{t}
-              </span>
-            ))}
+        {/* 뱃지 */}
+        {product.badge && (
+          <div className={`absolute top-3 left-3 px-2.5 py-1 ${product.badgeColor} text-white text-[9px] font-black rounded-full border border-white/30`}>
+            {product.badge}
           </div>
         )}
+      </div>
 
-        <div className="flex items-center justify-between">
-          <span className="font-black text-xl text-slate-900">{price}</span>
-          <button className="w-8 h-8 rounded-full border-2 border-slate-900 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors">
-            <ArrowRight size={16} />
-          </button>
+      {/* 정보 카드 - 더 크게! */}
+      <div
+        className={`absolute bottom-2 ${isReversed ? 'left-0' : 'right-0'} w-[60%] bg-white border-2 border-slate-900 rounded-2xl p-4 shadow-[3px_3px_0px_#000] group-hover:shadow-[1px_1px_0px_#000] group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all`}
+      >
+        <h3 className="font-black text-slate-900 text-base leading-tight mb-1">
+          {product.title}
+        </h3>
+        <p className="text-[11px] text-slate-500 font-bold mb-3 whitespace-pre-line">{product.subtitle}</p>
+
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {product.tags.map((tag) => (
+            <span key={tag} className="text-[9px] px-2 py-0.5 bg-slate-100 rounded-full font-bold text-slate-500">
+              #{tag}
+            </span>
+          ))}
+        </div>
+
+        <div className="pt-3 border-t border-slate-100">
+          <div className="font-black text-slate-900 text-xl">
+            ₩{product.price.toLocaleString()}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
-
