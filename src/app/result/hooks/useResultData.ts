@@ -48,6 +48,14 @@ export const useResultData = () => {
             setUserImage(dbResult.userImageUrl || null)
             setTwitterName(dbResult.twitterName || generateTwitterName(analysisData))
 
+            // DB에서 idol_name, idol_gender 설정
+            if (dbResult.idolName || dbResult.idolGender) {
+              setUserInfo({
+                name: dbResult.idolName || '',
+                gender: dbResult.idolGender || ''
+              })
+            }
+
             setLoading(false)
             setTimeout(() => setIsLoaded(true), 100)
             return

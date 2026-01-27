@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -98,6 +99,8 @@ export function FeedbackModal({
     characterName,
   })
 
+  const router = useRouter()
+
   // 현재 모달 뷰 상태
   const [modalView, setModalView] = useState<ModalView>('form')
 
@@ -192,8 +195,9 @@ export function FeedbackModal({
 
   // 확정 완료 핸들러
   const handleCompleteConfirm = () => {
-    // TODO: 필요시 확정 데이터 저장 로직 추가
+    // 레시피 확정 후 마이페이지로 이동
     handleClose()
+    router.push('/mypage')
   }
 
   // 재피드백 취소 (이전 레시피로 돌아가기)
@@ -443,7 +447,7 @@ export function FeedbackModal({
 
             {/* 푸터 (폼 뷰에서만 표시) */}
             {modalView === 'form' && step < 4 && (
-              <div className="px-5 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0 bg-white">
+              <div className="px-5 pt-4 pb-20 md:pb-4 border-t border-slate-100 flex gap-3 flex-shrink-0 bg-white">
                 {step > 1 && (
                   <Button
                     variant="outline"

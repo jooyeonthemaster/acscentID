@@ -66,7 +66,6 @@ export default function IdolImagePage() {
   const productImages = [
     "/images/perfume/KakaoTalk_20260125_225218071.jpg",
     "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
-    "/제목 없는 디자인 (3)/3.png",
   ]
 
   const { startTransition } = useTransition()

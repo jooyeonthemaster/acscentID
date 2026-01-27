@@ -69,6 +69,7 @@ export default function ResultPageMain() {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
   const [isFeedbackHistoryOpen, setIsFeedbackHistoryOpen] = useState(false)
   const [serviceMode, setServiceMode] = useState<'online' | 'offline'>('offline')
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   const {
     loading,
@@ -119,6 +120,7 @@ export default function ResultPageMain() {
     authLoading,  // 로딩 완료 후 저장하도록 전달
     existingResultId,  // URL에 id가 있으면 저장 스킵
     idolName,  // 최애 이름
+    idolGender: userInfo?.gender || null,  // 최애 성별
     // 피규어 온라인 모드 전용
     modelingImage,
     modelingRequest,
@@ -131,6 +133,64 @@ export default function ResultPageMain() {
     localStorage.removeItem('savedResultId')
     router.push('/')
   }
+
+  // 바로 구매하기 - productType 정보 저장 후 결제 페이지로 이동
+  const handleCheckout = useCallback(() => {
+    // 피규어 모드 여부에 따라 productType 저장
+    const currentProductType = isFigureMode ? 'figure_diffuser' : 'image_analysis'
+    localStorage.setItem('checkoutProductType', currentProductType)
+    router.push('/checkout')
+  }, [isFigureMode, router])
+
+  // 장바구니 담기
+  const handleAddToCart = useCallback(async () => {
+    if (!displayedAnalysis || isAddingToCart) return
+
+    // 로그인 확인
+    if (!user && !unifiedUser) {
+      setShowLoginPrompt(true)
+      return
+    }
+
+    setIsAddingToCart(true)
+
+    try {
+      const topPerfume = displayedAnalysis.matchingPerfumes?.[0]
+      const perfumeName = topPerfume?.persona?.name || '추천 향수'
+      const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
+      const analysisId = savedResultId || existingResultId || `temp-${Date.now()}`
+
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          analysis_id: analysisId,
+          product_type: isFigureMode ? 'figure_diffuser' : 'image_analysis',
+          perfume_name: perfumeName,
+          perfume_brand: perfumeBrand,
+          twitter_name: twitterName,
+          size: isFigureMode ? 'set' : '50ml',
+          price: isFigureMode ? 48000 : 48000,
+          image_url: userImage,
+          analysis_data: displayedAnalysis
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // 장바구니 페이지로 이동
+        router.push('/mypage?tab=cart')
+      } else {
+        alert(data.error || '장바구니 추가에 실패했습니다')
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error)
+      alert('장바구니 추가 중 오류가 발생했습니다')
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }, [displayedAnalysis, isAddingToCart, user, unifiedUser, savedResultId, existingResultId, isFigureMode, twitterName, userImage, router, setShowLoginPrompt])
 
   // 결과 저장 및 공유 URL 생성
   const handleShare = useCallback(async () => {
@@ -315,14 +375,23 @@ export default function ResultPageMain() {
                     <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
                   </Button>
                   {serviceMode === 'online' ? (
-                    // 온라인 모드: 향수 구매 버튼
-                    <Button
-                      onClick={() => router.push('/checkout')}
-                      className="w-full h-8 bg-emerald-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <ShoppingCart size={14} />
-                      <span>향수 구매하기</span>
-                    </Button>
+                    // 온라인 모드: 장바구니 담기 + 구매하기 버튼
+                    <div className="flex flex-col gap-1.5">
+                      <Button
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                        className="w-full h-8 bg-emerald-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
+                      >
+                        <ShoppingCart size={14} />
+                        <span>{isAddingToCart ? '담는 중...' : '장바구니 담기'}</span>
+                      </Button>
+                      <Button
+                        onClick={handleCheckout}
+                        className="w-full h-8 bg-amber-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <span>바로 구매하기</span>
+                      </Button>
+                    </div>
                   ) : (
                     // 오프라인 모드: 피드백 버튼
                     <div className="flex gap-1.5">
@@ -531,8 +600,12 @@ export default function ResultPageMain() {
       {displayedAnalysis && (
         <ResultBottomActions
           onShare={handleShare}
-          onPurchase={() => router.push('/checkout')}
+          onAddToCart={handleAddToCart}
+          onCheckout={handleCheckout}
+          onFeedback={() => setIsFeedbackModalOpen(true)}
+          onFeedbackHistory={() => setIsFeedbackHistoryOpen(true)}
           isShareSaving={isSaving}
+          isAddingToCart={isAddingToCart}
           serviceMode={serviceMode}
         />
       )}

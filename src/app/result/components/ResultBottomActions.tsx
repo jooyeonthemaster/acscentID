@@ -2,19 +2,27 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Share2, ShoppingCart } from 'lucide-react'
+import { Share2, ShoppingCart, MessageSquarePlus, History } from 'lucide-react'
 
 interface ResultBottomActionsProps {
   onShare: () => void
-  onPurchase: () => void
+  onAddToCart: () => void
+  onCheckout: () => void
+  onFeedback?: () => void
+  onFeedbackHistory?: () => void
   isShareSaving?: boolean
+  isAddingToCart?: boolean
   serviceMode: 'online' | 'offline'
 }
 
 export function ResultBottomActions({
   onShare,
-  onPurchase,
+  onAddToCart,
+  onCheckout,
+  onFeedback,
+  onFeedbackHistory,
   isShareSaving = false,
+  isAddingToCart = false,
   serviceMode
 }: ResultBottomActionsProps) {
   const [isNavVisible, setIsNavVisible] = useState(true)
@@ -80,18 +88,46 @@ export function ResultBottomActions({
           className="flex-1 py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
         >
           <Share2 size={16} />
-          <span>{isShareSaving ? '저장 중...' : '결과 공유하기'}</span>
+          <span>{isShareSaving ? '저장 중...' : '공유하기'}</span>
         </button>
 
-        {/* 향수 구매하기 버튼 (online 모드) */}
+        {/* 장바구니 담기 + 바로 구매 버튼 (online 모드) */}
         {serviceMode === 'online' && (
-          <button
-            onClick={onPurchase}
-            className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
-          >
-            <ShoppingCart size={16} />
-            <span>향수 구매하기</span>
-          </button>
+          <>
+            <button
+              onClick={onAddToCart}
+              disabled={isAddingToCart}
+              className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              <ShoppingCart size={16} />
+              <span>{isAddingToCart ? '담는 중...' : '담기'}</span>
+            </button>
+            <button
+              onClick={onCheckout}
+              className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+            >
+              <span>구매</span>
+            </button>
+          </>
+        )}
+
+        {/* 피드백 기록 + 히스토리 버튼 (offline 모드) */}
+        {serviceMode === 'offline' && (
+          <>
+            <button
+              onClick={onFeedback}
+              className="flex-1 py-3.5 bg-gradient-to-r from-pink-400 to-rose-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+            >
+              <MessageSquarePlus size={16} />
+              <span>피드백 기록</span>
+            </button>
+            <button
+              onClick={onFeedbackHistory}
+              className="py-3.5 px-4 bg-white text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center"
+            >
+              <History size={16} />
+            </button>
+          </>
         )}
       </div>
 

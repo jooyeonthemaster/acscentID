@@ -88,6 +88,18 @@ export function useFeedbackForm({
   const generateUserDirectRecipe = useCallback((currentFeedback: PerfumeFeedback): GeneratedRecipe => {
     const TARGET_DROPS = 10 // 항상 10방울
 
+    // 카테고리별 원본 점수 (perfumeCharacteristics에서 가져옴)
+    // perfumeCharacteristics는 0-10 스케일이므로 10을 곱해서 0-100 스케일로 변환
+    const SCALE_FACTOR = 10
+    const originalScores: Record<string, number> = {
+      citrus: (perfumeCharacteristics?.citrus || 0) * SCALE_FACTOR,
+      floral: (perfumeCharacteristics?.floral || 0) * SCALE_FACTOR,
+      woody: (perfumeCharacteristics?.woody || 0) * SCALE_FACTOR,
+      musky: (perfumeCharacteristics?.musky || 0) * SCALE_FACTOR,
+      fruity: (perfumeCharacteristics?.fruity || 0) * SCALE_FACTOR,
+      spicy: (perfumeCharacteristics?.spicy || 0) * SCALE_FACTOR,
+    }
+
     // 모든 향료 정보 수집
     const allScents = [
       { id: currentFeedback.perfumeId, name: currentFeedback.perfumeName, ratio: currentFeedback.retentionPercentage, isMain: true },
@@ -132,21 +144,78 @@ export function useFeedbackForm({
       }
     })
 
+    // 새 레시피의 카테고리별 점수 계산
+    const newScores: Record<string, number> = { citrus: 0, floral: 0, woody: 0, musky: 0, fruity: 0, spicy: 0 }
+
+    // 각 향료의 카테고리 점수를 비율에 맞게 반영
+    granules.forEach(granule => {
+      const perfumeData = getPerfumeById(granule.id)
+      const ratio = granule.ratio / 100
+
+      if (perfumeData?.characteristics) {
+        // 향수 데이터의 characteristics 사용 (0-10 스케일이므로 SCALE_FACTOR 곱함)
+        Object.keys(newScores).forEach(cat => {
+          const catKey = cat as keyof typeof newScores
+          const charValue = perfumeData.characteristics[catKey as keyof typeof perfumeData.characteristics] || 0
+          newScores[catKey] += charValue * SCALE_FACTOR * ratio
+        })
+      } else if (granule.id === currentFeedback.perfumeId) {
+        // 메인 향수의 경우 원본 점수 비율 적용 (이미 스케일 적용됨)
+        Object.keys(originalScores).forEach(cat => {
+          newScores[cat] += originalScores[cat] * ratio
+        })
+      }
+    })
+
+    // categoryChanges 생성
+    const categoryKorean: Record<string, string> = {
+      citrus: '시트러스', floral: '플로럴', woody: '우디',
+      musky: '머스크', fruity: '프루티', spicy: '스파이시'
+    }
+
+    const categoryChanges = Object.keys(originalScores).map(cat => {
+      const original = Math.round(originalScores[cat])
+      const newScore = Math.round(newScores[cat])
+      const diff = newScore - original
+      const change = diff > 5 ? 'increased' as const : diff < -5 ? 'decreased' as const : 'maintained' as const
+      const reasonText = change === 'increased'
+        ? `${categoryKorean[cat]} 노트가 더 풍성해졌어요! ✨`
+        : change === 'decreased'
+          ? `${categoryKorean[cat]} 노트가 살짝 줄었어요~`
+          : `${categoryKorean[cat]} 노트는 그대로 유지! 💕`
+      return {
+        category: categoryKorean[cat] || cat,
+        originalScore: original,
+        newScore: newScore,
+        change,
+        reason: reasonText,
+      }
+    })
+
+    // overallExplanation 생성 (더 재미있게!)
+    const addedScents = currentFeedback.specificScents.map(s => s.name).join(', ')
+    const explanations = [
+      `내가 직접 선택한 조합이에요! ${currentFeedback.perfumeName}을(를) ${currentFeedback.retentionPercentage}%로 유지하고${addedScents ? `, ${addedScents}을(를) 추가했어요` : ''}. AI 수정 없이 내 선택 그대로! 🎯`,
+      `완전 나만의 시그니처 레시피 탄생! ✨ ${currentFeedback.perfumeName}의 매력을 ${currentFeedback.retentionPercentage}% 담고${addedScents ? ` ${addedScents}로 포인트를 줬어요` : ''}! 이건 진짜 세상에 하나뿐인 조합이에요 💕`,
+      `오 마이 갓... 이 조합 실화?! 😍 ${currentFeedback.perfumeName} ${currentFeedback.retentionPercentage}%에${addedScents ? ` ${addedScents}까지` : ''} 완벽한 밸런스! 직접 만든 레시피라 더 특별해요! 🔥`,
+    ]
+    const overallExplanation = explanations[Math.floor(Math.random() * explanations.length)]
+
     return {
       granules,
-      overallExplanation: `내가 직접 선택한 조합이에요! ${currentFeedback.perfumeName}을(를) ${currentFeedback.retentionPercentage}%로 유지하고${currentFeedback.specificScents.length > 0 ? `, ${currentFeedback.specificScents.map(s => s.name).join(', ')}을(를) 추가했어요` : ''}. AI 수정 없이 내 선택 그대로! 🎯`,
-      categoryChanges: [],
+      overallExplanation,
+      categoryChanges,
       testingInstructions: {
-        step1: '🌸 선택한 향료들을 비율대로 섞어주세요',
-        step2: '✨ 손목이나 귀 뒤에 살짝 뿌려서 테스트해보세요',
-        step3: '💕 30분 후 잔향이 어떻게 변하는지 확인해보세요',
+        step1: '선택한 향료들을 비율대로 섞어주세요',
+        step2: '손목이나 귀 뒤에 살짝 뿌려서 테스트해보세요',
+        step3: '30분 후 잔향이 어떻게 변하는지 확인해보세요',
         caution: '내가 선택한 조합이니까 자신감을 가지세요! 😎',
       },
       fanMessage: `완전 나만의 레시피 완성! 🎉 직접 고른 조합이라 더 특별해요~ ✨💕`,
       totalDrops: TARGET_DROPS,
       estimatedStrength: 'medium', // 10방울은 medium
     }
-  }, [perfumeCategory])
+  }, [perfumeCategory, perfumeCharacteristics])
 
   // 에러 클리어
   const clearError = useCallback(() => {
@@ -223,12 +292,12 @@ export function useFeedbackForm({
     }))
   }, [])
 
-  // 향료 비율 업데이트 (최소 5%, 최대는 컴포넌트에서 동적으로 계산)
+  // 향료 비율 업데이트 (최소 5%, 최대 95% - 컴포넌트에서 동적으로 max 제한)
   const updateScentRatio = useCallback((scentId: string, ratio: number) => {
     setFeedback((prev) => ({
       ...prev,
       specificScents: prev.specificScents.map((s) =>
-        s.id === scentId ? { ...s, ratio: Math.max(5, Math.min(50, ratio)) } : s
+        s.id === scentId ? { ...s, ratio: Math.max(5, Math.min(95, ratio)) } : s
       ),
     }))
   }, [])

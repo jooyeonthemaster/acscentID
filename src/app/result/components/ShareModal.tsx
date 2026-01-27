@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, Image, Download, Loader2, Check } from 'lucide-react'
+import { X, Link2, Image, Download, Loader2, Check, ArrowLeft } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 import { ImageAnalysisResult } from '@/types/analysis'
-import { ShareCard } from './ShareCard'
+import { ShareCardNew } from './ShareCardNew'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -35,6 +35,8 @@ export function ShareModal({
   const cardRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [previewMode, setPreviewMode] = useState(false)
+  const previewCardRef = useRef<HTMLDivElement>(null)
 
   // iOS Safari 배경 스크롤 차단
   useEffect(() => {
@@ -96,10 +98,10 @@ export function ShareModal({
       await waitForAssets(cardRef.current)
 
       const dataUrl = await domToPng(cardRef.current, {
-        width: 600,
-        height: 800,
+        width: 430,
+        height: 932,
         scale: 2,
-        backgroundColor: '#feffff'
+        backgroundColor: 'transparent'
       })
 
       // dataUrl → Blob 변환
@@ -155,8 +157,8 @@ export function ShareModal({
           text: twitterName
         })
       } else {
-        // 파일 공유 미지원 → 다운로드로 대체
-        await handleDownload()
+        // 파일 공유 미지원 → 미리보기로 대체
+        handlePreview()
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {
@@ -168,28 +170,43 @@ export function ShareModal({
     }
   }
 
-  // 3. 이미지 다운로드
-  const handleDownload = async () => {
+  // 3. 미리보기 열기 (웹 UI로 보여줌)
+  const handlePreview = () => {
+    setPreviewMode(true)
+  }
+
+  // 4. 미리보기에서 실제 다운로드 (이때 이미지 생성)
+  const handleDownloadFromPreview = async () => {
+    if (!previewCardRef.current) return
+
     setIsGenerating(true)
-
     try {
-      const blob = await generateImage()
-      if (!blob) throw new Error('이미지 생성 실패')
+      await waitForAssets(previewCardRef.current)
 
-      const url = URL.createObjectURL(blob)
+      const dataUrl = await domToPng(previewCardRef.current, {
+        width: 430,
+        height: 932,
+        scale: 2,
+        backgroundColor: 'transparent'
+      })
+
       const link = document.createElement('a')
-      link.href = url
+      link.href = dataUrl
       link.download = `acscent_${Date.now()}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Download error:', error)
       alert('다운로드 중 오류가 발생했습니다.')
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  // 5. 미리보기 닫기
+  const handleClosePreview = () => {
+    setPreviewMode(false)
   }
 
   return (
@@ -235,7 +252,7 @@ export function ShareModal({
 
             {/* 공유 카드 프리뷰 (숨김 처리) */}
             <div className="absolute -left-[9999px] -top-[9999px]">
-              <ShareCard
+              <ShareCardNew
                 ref={cardRef}
                 userImage={userImage}
                 twitterName={twitterName}
@@ -307,7 +324,7 @@ export function ShareModal({
 
               {/* 이미지 다운로드 */}
               <button
-                onClick={handleDownload}
+                onClick={handlePreview}
                 disabled={isGenerating}
                 className="
                   w-full flex items-center gap-4 p-4
@@ -340,6 +357,85 @@ export function ShareModal({
               </p>
             </div>
           </motion.div>
+
+          {/* 웹 UI 미리보기 모달 */}
+          <AnimatePresence>
+            {previewMode && (
+              <>
+                {/* 미리보기 배경 */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={handleClosePreview}
+                  className="fixed inset-0 z-[60] bg-black/90"
+                />
+
+                {/* 미리보기 콘텐츠 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 50 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  className="fixed inset-0 z-[60] flex flex-col items-center overflow-hidden"
+                >
+                  {/* 상단 헤더 */}
+                  <div className="w-full flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-sm">
+                    <button
+                      onClick={handleClosePreview}
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    >
+                      <ArrowLeft size={24} className="text-white" />
+                    </button>
+                    <span className="text-white font-bold">미리보기</span>
+                    <button
+                      onClick={handleClosePreview}
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    >
+                      <X size={24} className="text-white" />
+                    </button>
+                  </div>
+
+                  {/* ShareCardNew 컴포넌트 직접 렌더링 */}
+                  <div className="flex-1 overflow-auto flex items-center justify-center py-4">
+                    <div
+                      className="origin-center"
+                      style={{
+                        transform: 'scale(0.85)',
+                      }}
+                    >
+                      <ShareCardNew
+                        ref={previewCardRef}
+                        userImage={userImage}
+                        twitterName={twitterName}
+                        userName={userName}
+                        userGender={userGender}
+                        perfumeName={perfumeName}
+                        perfumeBrand={perfumeBrand}
+                        analysisData={analysisData}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 하단 저장 버튼 */}
+                  <div className="w-full p-4 bg-black/50 backdrop-blur-sm">
+                    <button
+                      onClick={handleDownloadFromPreview}
+                      disabled={isGenerating}
+                      className="w-full py-4 px-6 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 disabled:opacity-50 text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      {isGenerating ? (
+                        <Loader2 size={20} className="animate-spin" />
+                      ) : (
+                        <Download size={20} />
+                      )}
+                      {isGenerating ? '저장 중...' : '이미지로 저장하기'}
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>

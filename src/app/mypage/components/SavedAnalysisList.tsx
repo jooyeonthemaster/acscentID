@@ -9,6 +9,23 @@ import { PerfumeNotes } from '@/app/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'
 import { PRODUCT_TYPE_BADGES, getDefaultSize, getDefaultPrice, type ProductType } from '@/types/cart'
+import { perfumes } from '@/data/perfumes'
+
+// 향수 ID로 색상 가져오기
+const getPerfumeColor = (id: string): string => {
+  const perfume = perfumes.find(p => p.id === id)
+  return perfume?.primaryColor || '#6B7280'
+}
+
+// 밝은 색상인지 판별
+const isLightColor = (hexColor: string): boolean => {
+  const hex = hexColor.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 160
+}
 
 interface RecipeGranule {
   id: string
@@ -31,6 +48,7 @@ interface Analysis {
   analysis_data: AnalysisData
   confirmed_recipe: ConfirmedRecipe | null
   product_type?: ProductType
+  service_mode?: 'online' | 'offline'
 }
 
 // 분석 데이터 타입 (레시피 모달에서 사용)
@@ -181,6 +199,8 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
     localStorage.setItem('analysisResult', JSON.stringify(analysisResult))
     localStorage.setItem('userImage', analysis.user_image_url || '')
     localStorage.setItem('serviceMode', 'online')
+    // 상품 타입 저장 (피규어 디퓨저 vs 향수 구분)
+    localStorage.setItem('checkoutProductType', analysis.product_type || 'image_analysis')
 
     router.push('/checkout')
   }
@@ -382,9 +402,14 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                     </div>
                   )}
 
-                  {/* 상품 타입 뱃지 */}
-                  <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2">
+                  {/* 상품 타입 뱃지 + 오프라인 뱃지 */}
+                  <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 flex gap-1">
                     {renderProductTypeBadge(analysis.product_type)}
+                    {analysis.service_mode === 'offline' && (
+                      <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded bg-slate-700 text-white border border-slate-800">
+                        오프라인
+                      </span>
+                    )}
                   </div>
 
                   {/* 보기 버튼 (호버 시) - 선택 모드가 아닐 때만 */}
@@ -434,7 +459,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                       className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors"
                     >
                       <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
-                      향수 구매하기
+                      구매하기
                     </button>
                     <button
                       onClick={(e) => {
@@ -598,6 +623,11 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-black text-lg truncate">{analysis.idol_name || analysis.twitter_name}</h3>
                     {renderProductTypeBadge(analysis.product_type)}
+                    {analysis.service_mode === 'offline' && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-slate-700 text-white border border-slate-800">
+                        오프라인
+                      </span>
+                    )}
                     {!isSelectionMode && (
                       <button
                         onClick={(e) => toggleLike(analysis.id, e)}
@@ -726,20 +756,20 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative max-w-md w-full"
+                className="relative max-w-md w-full max-h-[85vh] flex flex-col"
               >
                 {/* 닫기 버튼 */}
                 <button
                   onClick={() => setSelectedImage(null)}
-                  className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors"
+                  className="absolute -top-10 right-0 p-2 text-white/70 hover:text-white transition-colors z-10"
                 >
                   <X size={24} />
                 </button>
 
-                {/* 카드 */}
-                <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black]">
-                  {/* 이미지 */}
-                  <div className="relative aspect-square">
+                {/* 카드 - 스크롤 가능 */}
+                <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black] overflow-y-auto">
+                  {/* 이미지 - 모바일에서 크기 제한 */}
+                  <div className="relative aspect-[4/3] sm:aspect-square max-h-[40vh] sm:max-h-[50vh]">
                     {selectedImage.user_image_url ? (
                       <img
                         src={selectedImage.user_image_url}
@@ -798,7 +828,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         className="flex-[1.5] py-3 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all"
                       >
                         <ShoppingBag size={18} className="text-yellow-400" />
-                        향수 구매하기
+                        구매하기
                       </button>
                     </div>
 
@@ -921,26 +951,82 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   })()}
 
                   {recipeModalTarget.confirmed_recipe?.granules ? (
-                    /* 확정 레시피가 있는 경우: 향료별 계량 표시 */
-                    <div className="space-y-3">
-                      <p className="text-sm font-bold text-slate-600 mb-3">🧪 커스텀 조향 레시피</p>
-                      {recipeModalTarget.confirmed_recipe.granules.map((granule, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border-2 border-amber-200"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Droplets size={16} className="text-amber-600" />
-                            <span className="font-bold">{granule.name}</span>
-                          </div>
-                          <span className="px-3 py-1 bg-white rounded-lg font-black text-amber-700 border border-amber-300">
-                            {granule.ratio}%
-                          </span>
+                    /* 확정 레시피가 있는 경우: 시각화된 향료별 계량 표시 */
+                    <div className="space-y-4">
+                      {/* 섹션 헤더 */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-400 rounded-lg flex items-center justify-center border border-amber-500">
+                          <Beaker size={14} className="text-white" />
                         </div>
-                      ))}
-                      <div className="mt-4 p-3 bg-slate-50 rounded-xl text-center">
-                        <p className="text-xs text-slate-500">
-                          피드백을 통해 조정된 나만의 레시피에요
+                        <span className="text-sm font-black text-slate-700">커스텀 조향 레시피</span>
+                      </div>
+
+                      {/* 레시피 카드들 */}
+                      <div className="space-y-2.5">
+                        {recipeModalTarget.confirmed_recipe.granules.map((granule, idx) => {
+                          const color = getPerfumeColor(granule.id)
+                          const isLight = isLightColor(color)
+
+                          return (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className="relative overflow-hidden rounded-xl border-2 border-black shadow-[3px_3px_0_0_black]"
+                            >
+                              {/* 배경 바 */}
+                              <div
+                                className="absolute inset-0 opacity-20"
+                                style={{ backgroundColor: color }}
+                              />
+                              <div
+                                className="absolute left-0 top-0 bottom-0 opacity-30"
+                                style={{
+                                  backgroundColor: color,
+                                  width: `${granule.ratio}%`
+                                }}
+                              />
+
+                              {/* 콘텐츠 */}
+                              <div className="relative flex items-center gap-3 p-3">
+                                {/* 컬러 인디케이터 */}
+                                <div
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm border-2 ${isLight ? 'border-slate-300' : 'border-white/30'}`}
+                                  style={{
+                                    backgroundColor: color,
+                                    color: isLight ? '#1e293b' : 'white'
+                                  }}
+                                >
+                                  {granule.ratio}%
+                                </div>
+
+                                {/* 향료 정보 */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-black text-slate-900 truncate">{granule.name}</p>
+                                  <p className="text-[10px] text-slate-500 font-medium">{granule.id}</p>
+                                </div>
+
+                                {/* 드롭 아이콘 */}
+                                <Droplets size={16} className="text-slate-400 flex-shrink-0" />
+                              </div>
+                            </motion.div>
+                          )
+                        })}
+                      </div>
+
+                      {/* 총 비율 표시 */}
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-sm font-bold text-slate-600">총 비율</span>
+                        <span className="text-lg font-black text-slate-900">
+                          {recipeModalTarget.confirmed_recipe.granules.reduce((sum, g) => sum + g.ratio, 0)}%
+                        </span>
+                      </div>
+
+                      {/* 안내 메시지 */}
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <p className="text-xs text-amber-700 text-center">
+                          ✨ 피드백을 통해 조정된 나만의 레시피에요
                         </p>
                       </div>
                     </div>

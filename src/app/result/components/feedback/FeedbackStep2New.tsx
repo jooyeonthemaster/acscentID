@@ -284,8 +284,8 @@ export function FeedbackStep2New({
                           const otherScentsRatio = selectedScents
                             .filter((s) => s.id !== perfume.id)
                             .reduce((sum, s) => sum + s.ratio, 0)
-                          // 이 향료가 가질 수 있는 최대 비율
-                          const maxRatioForThis = Math.min(remainingRatio - otherScentsRatio, 50)
+                          // 이 향료가 가질 수 있는 최대 비율 (남은 비율 전체 사용 가능)
+                          const maxRatioForThis = remainingRatio - otherScentsRatio
                           const canIncrease = selectedScent && selectedScent.ratio < maxRatioForThis
 
                           return (

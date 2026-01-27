@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare, Beaker, X, Droplets } from 'lucide-react'
 import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
 import { PRODUCT_TYPE_BADGES, PRODUCT_PRICING, formatPrice, calculateCartTotals } from '@/types/cart'
+import { PerfumeNotes } from '@/app/result/components/PerfumeNotes'
+import { PerfumeProfile } from '@/app/result/components/PerfumeProfile'
+import { PerfumePersona } from '@/types/analysis'
 
 interface CartListProps {
   viewMode: 'grid' | 'list'
@@ -18,6 +21,7 @@ export function CartList({ viewMode }: CartListProps) {
   const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
+  const [recipeModalTarget, setRecipeModalTarget] = useState<CartItem | null>(null)
 
   // 장바구니 로드
   useEffect(() => {
@@ -324,9 +328,17 @@ export function CartList({ viewMode }: CartListProps) {
                       {renderProductTypeBadge(item.product_type)}
                     </div>
                     <p className="font-black truncate">{item.perfume_name}</p>
-                    <p className="text-xs text-slate-600">{item.perfume_brand}</p>
-                    {item.twitter_name && (
-                      <p className="text-xs text-purple-600 mt-1">@{item.twitter_name}</p>
+                    {item.analysis_id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setRecipeModalTarget(item)
+                        }}
+                        className="mt-1.5 w-fit py-1 px-2 bg-amber-400 text-black text-[10px] sm:text-xs font-bold rounded-md flex items-center gap-1 hover:bg-amber-300 transition-colors border-[1.5px] border-black"
+                      >
+                        <Beaker className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        레시피 확인하기
+                      </button>
                     )}
                   </div>
                   <button
@@ -430,6 +442,160 @@ export function CartList({ viewMode }: CartListProps) {
           </button>
         </div>
       </div>
+
+      {/* 레시피 확인 모달 */}
+      <AnimatePresence>
+        {recipeModalTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setRecipeModalTarget(null)}
+            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 pt-28 pb-24 sm:pb-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border-2 border-black rounded-2xl max-w-md w-full max-h-full flex flex-col shadow-[8px_8px_0_0_black] overflow-hidden"
+            >
+              {/* 모달 헤더 */}
+              <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-amber-400 to-yellow-400 flex items-center justify-between flex-shrink-0">
+                <h3 className="font-black text-lg flex items-center gap-2">
+                  <Beaker size={20} />
+                  향수 분석 정보
+                </h3>
+                <button
+                  onClick={() => setRecipeModalTarget(null)}
+                  className="p-1 hover:bg-black/10 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* 모달 콘텐츠 */}
+              <div className="p-5 overflow-y-auto flex-1 min-h-0">
+                {/* 대상 정보 */}
+                {(() => {
+                  const analysisData = recipeModalTarget.analysis_data as {
+                    matchingPerfumes?: Array<{
+                      persona?: PerfumePersona
+                    }>
+                    confirmedRecipe?: {
+                      granules: Array<{ id: string; name: string; ratio: number }>
+                    }
+                  } | null
+                  const persona = analysisData?.matchingPerfumes?.[0]?.persona
+                  const confirmedRecipe = analysisData?.confirmedRecipe
+
+                  return (
+                    <>
+                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+                        {recipeModalTarget.image_url ? (
+                          <img
+                            src={recipeModalTarget.image_url}
+                            alt=""
+                            className="w-14 h-14 rounded-xl object-cover border-2 border-black"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center border-2 border-black">
+                            <Sparkles size={24} className="text-purple-500" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs text-slate-500">{recipeModalTarget.twitter_name || '분석 결과'}</p>
+                          <h2 className="text-xl font-black leading-tight text-slate-900">
+                            {persona?.name || recipeModalTarget.perfume_name}
+                          </h2>
+                        </div>
+                      </div>
+
+                      {confirmedRecipe?.granules ? (
+                        /* 확정 레시피가 있는 경우 */
+                        <div className="space-y-3">
+                          <p className="text-sm font-bold text-slate-600 mb-3">🧪 커스텀 조향 레시피</p>
+                          {confirmedRecipe.granules.map((granule, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border-2 border-amber-200"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Droplets size={16} className="text-amber-600" />
+                                <span className="font-bold">{granule.name}</span>
+                              </div>
+                              <span className="px-3 py-1 bg-white rounded-lg font-black text-amber-700 border border-amber-300">
+                                {granule.ratio}%
+                              </span>
+                            </div>
+                          ))}
+                          <div className="mt-4 p-3 bg-slate-50 rounded-xl text-center">
+                            <p className="text-xs text-slate-500">
+                              피드백을 통해 조정된 나만의 레시피에요
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* 확정 레시피가 없는 경우: 향 노트 + 향 계열 그래프 */
+                        <div className="space-y-5">
+                          {/* 향 노트 (탑/미들/베이스) */}
+                          {persona && (persona.mainScent || persona.subScent1 || persona.subScent2) && (
+                            <PerfumeNotes persona={persona} isDesktop={false} />
+                          )}
+
+                          {/* 향 계열 그래프 */}
+                          {persona?.categories && (
+                            <PerfumeProfile persona={persona} isDesktop={false} />
+                          )}
+
+                          {/* 분석 정보가 없는 경우 */}
+                          {!persona?.mainScent && !persona?.categories && (
+                            <div className="text-center py-8">
+                              <p className="text-slate-400 text-sm">상세 분석 정보가 없어요</p>
+                              <Link
+                                href={`/result?id=${recipeModalTarget.analysis_id}&from=mypage`}
+                                className="inline-block mt-3 px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-lg"
+                              >
+                                결과 페이지에서 확인하기
+                              </Link>
+                            </div>
+                          )}
+
+                          <div className="mt-4 p-3 bg-slate-50 rounded-xl text-center">
+                            <p className="text-xs text-slate-500">
+                              피드백을 통해 나만의 레시피를 만들어보세요!
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
+              </div>
+
+              {/* 모달 푸터 */}
+              <div className="px-5 py-4 border-t-2 border-black bg-slate-50 flex-shrink-0">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setRecipeModalTarget(null)}
+                    className="flex-1 py-3 bg-white border-2 border-black rounded-xl font-bold hover:bg-slate-100 transition-colors"
+                  >
+                    닫기
+                  </button>
+                  <Link
+                    href={`/result?id=${recipeModalTarget.analysis_id}&from=mypage`}
+                    className="flex-1 py-3 bg-purple-500 text-white border-2 border-black rounded-xl font-bold text-center hover:bg-purple-600 transition-colors"
+                    onClick={() => setRecipeModalTarget(null)}
+                  >
+                    결과 상세보기
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

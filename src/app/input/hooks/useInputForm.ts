@@ -31,6 +31,7 @@ export function useInputForm() {
 
     const [currentStep, setCurrentStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isAnalysisComplete, setIsAnalysisComplete] = useState(false)
     const [isCompressing, setIsCompressing] = useState(false)
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -213,45 +214,17 @@ export function useInputForm() {
 
             const result = await response.json()
 
-            if (result.success) {
-                // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
+            // 공통 저장 로직
+            const saveToLocalStorage = (data: unknown) => {
                 localStorage.removeItem('savedResultId')
-                // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
-                localStorage.setItem('serviceMode', mode || 'offline')
-                // 상품 타입 저장 (피규어 디퓨저인 경우)
+                localStorage.setItem('serviceMode', mode === 'online' ? 'online' : 'offline')
                 if (isFigureOnline) {
                     localStorage.setItem('productType', 'figure_diffuser')
                 }
-                localStorage.setItem('analysisResult', JSON.stringify(result.data))
+                localStorage.setItem('analysisResult', JSON.stringify(data))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
                 }
-                // 피규어 온라인 모드: 모델링 이미지도 저장
-                if (isFigureOnline && modelingImagePreview) {
-                    localStorage.setItem('modelingImage', modelingImagePreview)
-                    localStorage.setItem('modelingRequest', formData.modelingRequest || '')
-                }
-                // 사용자 정보 저장 (이름, 성별)
-                localStorage.setItem('userInfo', JSON.stringify({
-                    name: formData.name,
-                    gender: formData.gender
-                }))
-                showToast('분석 완료! 🎉', 'success', 2000)
-                setTimeout(() => router.push('/result'), 1000)
-            } else {
-                // 새 분석 시작 시 이전 저장 ID 초기화 (중복 저장 방지 로직 리셋)
-                localStorage.removeItem('savedResultId')
-                // 서비스 모드 저장 (online/offline - 결과 페이지에서 버튼 분기용)
-                localStorage.setItem('serviceMode', mode || 'offline')
-                // 상품 타입 저장 (피규어 디퓨저인 경우)
-                if (isFigureOnline) {
-                    localStorage.setItem('productType', 'figure_diffuser')
-                }
-                localStorage.setItem('analysisResult', JSON.stringify(result.fallback))
-                if (imagePreview) {
-                    localStorage.setItem('userImage', imagePreview)
-                }
-                // 피규어 온라인 모드: 모델링 이미지도 저장
                 if (isFigureOnline && modelingImagePreview) {
                     localStorage.setItem('modelingImage', modelingImagePreview)
                     localStorage.setItem('modelingRequest', formData.modelingRequest || '')
@@ -260,15 +233,29 @@ export function useInputForm() {
                     name: formData.name,
                     gender: formData.gender
                 }))
-                showToast('분석에 문제가 있어 샘플 결과를 보여드립니다.', 'info', 3000)
-                setTimeout(() => router.push('/result'), 1500)
             }
+
+            if (result.success) {
+                saveToLocalStorage(result.data)
+                showToast('분석 완료! 🎉', 'success', 2000)
+            } else {
+                saveToLocalStorage(result.fallback)
+                showToast('분석에 문제가 있어 샘플 결과를 보여드립니다.', 'info', 3000)
+            }
+
+            // 분석 완료 상태로 변경 (문 열림 애니메이션 트리거)
+            setIsAnalysisComplete(true)
         } catch (error) {
             console.error('분석 오류:', error)
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, router, showToast, mode])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, mode])
+
+    // 문 열린 후 결과 페이지로 이동
+    const navigateToResult = useCallback(() => {
+        router.push('/result')
+    }, [router])
 
     return {
         // 상태
@@ -281,6 +268,7 @@ export function useInputForm() {
         focusedField,
         setFocusedField,
         isSubmitting,
+        isAnalysisComplete,
         isCompressing,
         isIdol,
         isOnline,
@@ -292,6 +280,7 @@ export function useInputForm() {
 
         // 함수들
         isStepValid,
+        navigateToResult,
         toggleStyle,
         togglePersonality,
         toggleCharmPoint,

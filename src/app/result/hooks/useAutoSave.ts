@@ -19,6 +19,7 @@ interface UseAutoSaveProps {
   authLoading?: boolean  // AuthContext 로딩 상태 (타이밍 문제 해결용)
   existingResultId?: string | null  // URL에서 가져온 기존 결과 ID (있으면 저장 스킵)
   idolName?: string | null  // 최애 이름 (입력 폼에서 입력한 이름)
+  idolGender?: string | null  // 최애 성별 (입력 폼에서 입력한 성별)
   // 피규어 온라인 모드 전용
   modelingImage?: string | null  // 3D 모델링용 참조 이미지
   modelingRequest?: string | null  // 모델링 요청사항
@@ -73,6 +74,7 @@ export function useAutoSave({
   authLoading = false,
   existingResultId = null,
   idolName = null,
+  idolGender = null,
   // 피규어 온라인 모드 전용
   modelingImage = null,
   modelingRequest = null,
@@ -233,6 +235,7 @@ export function useAutoSave({
           userId: userId,
           userFingerprint: fingerprint,
           idolName: idolName,
+          idolGender: idolGender,
           // 피규어 온라인 모드 전용
           ...(productType === 'figure_diffuser' && {
             modelingImageUrl,
@@ -276,7 +279,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, modelingImage, modelingRequest, productType])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, idolGender, modelingImage, modelingRequest, productType])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)

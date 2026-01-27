@@ -22,7 +22,7 @@ import { MultiItemOrderSummary } from "./components/MultiItemOrderSummary"
 import { CheckoutForm, CheckoutFormData } from "./components/CheckoutForm"
 import { CouponSelector } from "./components/CouponSelector"
 import { CheckoutCoupon } from "@/types/coupon"
-import type { CartItem } from "@/types/cart"
+import type { CartItem, ProductType } from "@/types/cart"
 import { PRODUCT_PRICING, formatPrice, calculateCartTotals } from "@/types/cart"
 
 interface AnalysisResult {
@@ -56,7 +56,8 @@ export default function CheckoutPage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [idolName, setIdolName] = useState<string | null>(null)
-  const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml">("10ml")
+  const [productType, setProductType] = useState<ProductType>("image_analysis")
+  const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml" | "set">("10ml")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -111,6 +112,7 @@ export default function CheckoutPage() {
     const savedResult = localStorage.getItem("analysisResult")
     const savedImage = localStorage.getItem("userImage")
     const savedUserInfo = localStorage.getItem("userInfo")
+    const savedProductType = localStorage.getItem("checkoutProductType")
 
     if (savedResult) {
       try {
@@ -131,6 +133,17 @@ export default function CheckoutPage() {
       } catch (e) {
         console.error("Failed to parse user info:", e)
       }
+    }
+
+    // 상품 타입 설정 (피규어 디퓨저 vs 향수)
+    if (savedProductType) {
+      const pType = savedProductType as ProductType
+      setProductType(pType)
+      // 피규어 디퓨저면 자동으로 세트 선택
+      if (pType === "figure_diffuser") {
+        setSelectedSize("set")
+      }
+      localStorage.removeItem("checkoutProductType")
     }
   }, [authLoading, userId, router, userName])
 
@@ -173,14 +186,15 @@ export default function CheckoutPage() {
   }
 
   // 가격 계산
-  const prices = { "10ml": 24000, "50ml": 48000 }
+  const prices: Record<string, number> = { "10ml": 24000, "50ml": 48000, "set": 48000 }
 
   // 다중 상품 모드
   const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent) : null
 
   // 단일 상품 모드
   const singleProductPrice = prices[selectedSize]
-  const singleShippingFee = selectedSize === "10ml" ? 3000 : 0
+  // 50ml 또는 피규어 세트는 무료배송
+  const singleShippingFee = (selectedSize === "50ml" || selectedSize === "set") ? 0 : 3000
   const singleDiscountAmount = selectedCoupon
     ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0
@@ -272,6 +286,7 @@ export default function CheckoutPage() {
         // 단일 상품 주문 (기존 호환)
         orderData = {
           userId,
+          productType, // 상품 타입 추가 (image_analysis / figure_diffuser)
           perfumeName,
           perfumeBrand: displayIdolName,
           size: selectedSize,
@@ -376,6 +391,7 @@ export default function CheckoutPage() {
                   perfumeName={perfumeName}
                   perfumeBrand={displayIdolName}
                   userImage={userImage}
+                  productType={productType}
                   selectedSize={selectedSize}
                   onSizeChange={setSelectedSize}
                   price={prices[selectedSize]}

@@ -4,6 +4,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export function initializeGemini() {
   const apiKey = process.env.GEMINI_API_KEY;
 
+  // 디버깅용: 실제 사용되는 API 키 확인 (앞 15자만 표시)
+  console.log(`[Gemini] 사용 중인 API 키: ${apiKey?.substring(0, 15)}...`);
+
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY environment variable is not set');
   }

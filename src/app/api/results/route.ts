@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       userId,
       userFingerprint,
       idolName,
+      idolGender,
       // 피규어 디퓨저 온라인 모드 전용
       modelingImageUrl,
       modelingRequest,
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
       userId?: string | null
       userFingerprint?: string | null
       idolName?: string | null
+      idolGender?: string | null
       // 피규어 디퓨저 온라인 모드 전용
       modelingImageUrl?: string | null
       modelingRequest?: string | null
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
         user_id: userId || null,
         user_fingerprint: userFingerprint || null,
         idol_name: idolName || null,
+        idol_gender: idolGender || null,
         // 피규어 디퓨저 온라인 모드 전용
         modeling_image_url: modelingImageUrl || null,
         modeling_request: modelingRequest || null,

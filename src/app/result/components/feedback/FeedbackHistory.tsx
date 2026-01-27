@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Clock, Droplet, ChevronRight, Trash2, Loader2, Sparkles, Check, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,7 @@ function getPerfumeColor(id: string): string {
 }
 
 export function FeedbackHistory({ isOpen, onClose }: FeedbackHistoryProps) {
+  const router = useRouter()
   const [feedbacks, setFeedbacks] = useState<FeedbackRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -208,6 +210,8 @@ export function FeedbackHistory({ isOpen, onClose }: FeedbackHistoryProps) {
                   onComplete={() => {
                     setShowRecipeConfirm(false)
                     setSelectedFeedback(null)
+                    onClose()
+                    router.push('/mypage')
                   }}
                 />
               )}

@@ -132,7 +132,7 @@ export function RetryFeedbackGuide({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="space-y-3"
+        className="space-y-3 pb-16 md:pb-0"
       >
         <Button
           onClick={onConfirm}

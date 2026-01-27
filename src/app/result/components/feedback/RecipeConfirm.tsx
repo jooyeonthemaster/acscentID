@@ -219,7 +219,7 @@ AC'SCENT IDENTITY에서 생성됨`
             <p>향료 10ml + 에탄올 40ml = 총 50ml (정품)</p>
           )}
           {productInfo.id === 'diffuser_5ml' && (
-            <p>향료 5ml (디퓨저 베이스에 혼합)</p>
+            <p>향료 5ml</p>
           )}
         </div>
       </motion.div>
@@ -320,7 +320,7 @@ AC'SCENT IDENTITY에서 생성됨`
       </div>
 
       {/* 확정 버튼 */}
-      <div className="space-y-2">
+      <div className="space-y-2 pb-16 md:pb-0">
         {unifiedUser ? (
           // 로그인된 경우
           <Button

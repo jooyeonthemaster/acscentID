@@ -48,7 +48,9 @@ export async function GET(
         perfumeName: data.perfume_name,
         perfumeBrand: data.perfume_brand,
         matchingKeywords: data.matching_keywords,
-        viewCount: data.view_count
+        viewCount: data.view_count,
+        idolName: data.idol_name,
+        idolGender: data.idol_gender
       }
     })
   } catch (error) {

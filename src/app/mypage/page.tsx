@@ -7,7 +7,7 @@ import { ProfileSidebar } from './components/ProfileSidebar'
 import { SavedAnalysisList } from './components/SavedAnalysisList'
 import { OrderHistory } from './components/OrderHistory'
 import { CouponList } from './components/CouponList'
-import { Sparkles, LayoutGrid, List, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
+import { Sparkles, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { CartList } from './components/CartList'
@@ -67,7 +67,7 @@ function MyPageContent() {
   const [activeTab, setActiveTab] = useState<'analyses' | 'orders' | 'coupons' | 'cart'>(
     initialTab === 'orders' ? 'orders' : initialTab === 'coupons' ? 'coupons' : initialTab === 'cart' ? 'cart' : 'analyses'
   )
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const viewMode = 'grid' as const
 
   // URL 파라미터 변경 시 탭 상태 동기화
   useEffect(() => {
@@ -208,25 +208,6 @@ function MyPageContent() {
                     </button>
                   </div>
 
-                  {/* 뷰 모드 토글 */}
-                  <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-1.5 rounded-md transition-colors ${
-                        viewMode === 'grid' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                    >
-                      <LayoutGrid size={16} />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`p-1.5 rounded-md transition-colors ${
-                        viewMode === 'list' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                    >
-                      <List size={16} />
-                    </button>
-                  </div>
                 </div>
 
                 {/* 하단: 서브 탭 (주문/쿠폰) */}

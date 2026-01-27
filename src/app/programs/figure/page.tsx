@@ -66,7 +66,6 @@ export default function FigurePage() {
   const productImages = [
     "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
     "/images/diffuser/KakaoTalk_20260125_225229624_01.jpg",
-    "/제목 없는 디자인 (3)/3.png",
   ]
 
   const { startTransition } = useTransition()
@@ -165,7 +164,7 @@ export default function FigurePage() {
                 <ChevronRight size={14} />
                 <Link href="/" className="hover:text-black">프로그램</Link>
                 <ChevronRight size={14} />
-                <span className="text-black font-bold">3D 피규어 디퓨저</span>
+                <span className="text-black font-bold">피규어 화분 디퓨저</span>
               </div>
 
               {/* 타이틀 */}
@@ -179,7 +178,7 @@ export default function FigurePage() {
                 </div>
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-black leading-tight mb-2 break-keep">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500">
-                    3D 피규어 디퓨저
+                    피규어 화분 디퓨저
                   </span>
                 </h1>
                 <p className="text-sm lg:text-base text-slate-600 font-medium">
@@ -565,7 +564,7 @@ export default function FigurePage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         programType="figure"
-        programName="3D 피규어 디퓨저"
+        programName="피규어 화분 디퓨저"
         currentUserId={currentUserId}
         onWriteReview={() => {
           setShowReviewModal(false)
@@ -578,7 +577,7 @@ export default function FigurePage() {
         isOpen={showReviewWriteModal}
         onClose={() => setShowReviewWriteModal(false)}
         programType="figure"
-        programName="3D 피규어 디퓨저"
+        programName="피규어 화분 디퓨저"
         userId={currentUserId || ''}
         onSuccess={() => {
           // 리뷰 통계 새로고침

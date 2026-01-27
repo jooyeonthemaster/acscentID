@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, LogOut, Sparkles, ChevronDown, HelpCircle } from 'lucide-react'
+import { User, LogOut, ChevronDown, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -22,8 +22,8 @@ export const NAV_LINKS = {
     { href: '/about/how-it-works', label: '작동 원리' },
   ],
   programs: [
-    { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸' },
-    { href: '/programs/figure', label: '피규어 화분 디퓨저' },
+    { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+    { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
   ],
 }
 
@@ -54,7 +54,7 @@ export function MobileSection({
   onLinkClick
 }: {
   title: string
-  links: Array<{ href: string; label: string }>
+  links: Array<{ href: string; label: string; image?: string }>
   isActive: boolean
   onLinkClick: () => void
 }) {
@@ -87,8 +87,15 @@ export function MobileSection({
                 key={link.href}
                 href={link.href}
                 onClick={onLinkClick}
-                className="block px-8 py-3 text-sm text-slate-600 hover:text-black hover:bg-yellow-100 transition-colors"
+                className="flex items-center gap-3 px-8 py-3 text-sm text-slate-600 hover:text-black hover:bg-yellow-100 transition-colors"
               >
+                {link.image && (
+                  <img
+                    src={link.image}
+                    alt=""
+                    className="w-8 h-8 rounded-md object-cover border border-slate-200"
+                  />
+                )}
                 {link.label}
               </Link>
             ))}
@@ -192,7 +199,6 @@ export function MobileMenuSheet({
                   onClick={handleClose}
                   className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                  <Sparkles size={18} />
                   My Page
                 </Link>
               </nav>

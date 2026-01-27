@@ -6,7 +6,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 
 import { useInputForm } from "./hooks/useInputForm"
-import { Step1, Step2, Step3, Step4, Step5 } from "./components"
+import { Step1, Step2, Step3, Step4, Step5, AnalyzingOverlay } from "./components"
 import { TOTAL_STEPS } from "./constants"
 
 import { Header } from "@/components/layout/Header"
@@ -23,6 +23,7 @@ function InputForm() {
         focusedField,
         setFocusedField,
         isSubmitting,
+        isAnalysisComplete,
         isCompressing,
         isIdol,
         isOnline,
@@ -31,6 +32,7 @@ function InputForm() {
         modelingImagePreview,
         isModelingCompressing,
         isStepValid,
+        navigateToResult,
         toggleStyle,
         togglePersonality,
         toggleCharmPoint,
@@ -46,6 +48,14 @@ function InputForm() {
 
     return (
         <div className="relative w-full min-h-screen bg-[#FAFAFA] font-sans text-slate-800 flex flex-col">
+            {/* 분석 중 로딩 오버레이 */}
+            <AnalyzingOverlay
+                isVisible={isSubmitting}
+                userName={formData.name}
+                isComplete={isAnalysisComplete}
+                onDoorOpened={navigateToResult}
+            />
+
             {/* 배경 */}
             <Background />
 
@@ -206,26 +216,10 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                         : "bg-slate-200 text-slate-400 cursor-not-allowed"
                         }`}
                 >
-                    <div className="flex items-center justify-center gap-2">
-                        {isSubmitting ? (
-                            <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                <span>분석 중...</span>
-                            </>
-                        ) : (
-                            <>
-                                <span>{currentStep === TOTAL_STEPS ? "완료" : "다음"}</span>
-                                <ArrowRight size={18} />
-                            </>
-                        )}
-                    </div>
+                    <span>{currentStep === TOTAL_STEPS ? "완료" : "다음"}</span>
+                    <ArrowRight size={18} />
                 </motion.button>
             </div>
-            {isSubmitting && (
-                <div className="text-xs text-slate-500 text-center mt-3 animate-pulse">
-                    AI가 향수를 분석하는 중... ✨ (최대 30초 소요)
-                </div>
-            )}
         </div>
     )
 }

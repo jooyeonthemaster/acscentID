@@ -400,7 +400,7 @@ export function FeedbackSuccess({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="space-y-3"
+        className="space-y-3 pb-16 md:pb-0"
       >
         {/* 레시피 확정하기 버튼 */}
         <Button
