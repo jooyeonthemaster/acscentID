@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
-import { compressImage } from "@/lib/image/compressor"
+import { compressImage, base64ToBlob } from "@/lib/image/compressor"
 import type { FormDataType } from "../types"
 
 const INITIAL_FORM_DATA: FormDataType = {
@@ -28,6 +28,7 @@ export function useInputForm() {
     const { showToast } = useToast()
     const type = searchParams.get("type")
     const mode = searchParams.get("mode") // "online" | null (오프라인)
+    const from = searchParams.get("from") // "hero" - 히어로 섹션에서 이미지 업로드 후 이동
 
     const [currentStep, setCurrentStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,6 +46,27 @@ export function useInputForm() {
     const isIdol = type === "idol_image" || type === "figure"
     const isOnline = mode === "online"
     const isFigureOnline = type === "figure" && isOnline
+
+    // 히어로 섹션에서 업로드된 이미지 불러오기
+    useEffect(() => {
+        if (from === "hero") {
+            const heroImage = sessionStorage.getItem('hero_uploaded_image')
+            if (heroImage) {
+                // base64를 File 객체로 변환
+                const blob = base64ToBlob(heroImage)
+                const file = new File([blob], 'hero_upload.jpg', { type: 'image/jpeg' })
+
+                setFormData(prev => ({ ...prev, image: file }))
+                setImagePreview(heroImage)
+                setShowImageGuide(false)
+
+                // 사용한 이미지는 sessionStorage에서 제거
+                sessionStorage.removeItem('hero_uploaded_image')
+
+                showToast('이미지가 업로드되었습니다! 정보를 입력해주세요 ✨', 'success', 3000)
+            }
+        }
+    }, [from, showToast])
 
     // 스텝 유효성 검사
     const isStepValid = useCallback((step: number): boolean => {
