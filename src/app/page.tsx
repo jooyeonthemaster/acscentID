@@ -82,9 +82,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF5] font-sans selection:bg-yellow-200 selection:text-yellow-900 relative">
-      {/* 배경 이미지 */}
+      {/* 배경 이미지 - 455px 컨테이너 내부에 맞춤 */}
       <div
-        className="fixed inset-0 z-0"
+        className="absolute inset-0 z-0"
         style={{
           backgroundImage: 'url(/images/hero/forest_bg.png)',
           backgroundSize: 'cover',
@@ -95,9 +95,9 @@ export default function Home() {
       <div className="relative z-10">
         <Header />
 
-      {/* 모바일 우선 레이아웃 (390px 기준) */}
-      <main className="pt-28 pb-24 px-4">
-        <div className="max-w-7xl mx-auto">
+      {/* 455px 기준 레이아웃 */}
+      <main className="pt-24 pb-24 px-4">
+        <div className="w-full">
 
           {/* ===== 프로필 / 로그인 카드 (상단 납작하게) ===== */}
           <motion.section

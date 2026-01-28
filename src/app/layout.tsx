@@ -53,12 +53,14 @@ export default function RootLayout({
           <CouponProvider>
             <TransitionProvider>
               <ToastProvider>
-                <div className="w-full min-h-screen bg-[#FFFDF5] relative overflow-x-hidden flex flex-col">
-                  <main className="flex-1 md:pb-0 relative z-10 bg-[#FFFDF5]">
-                    {children}
-                  </main>
-                  <Footer />
-                  <MobileBottomNav />
+                <div className="w-full min-h-screen bg-slate-100 relative overflow-x-hidden flex flex-col">
+                  <div className="w-full max-w-[455px] mx-auto min-h-screen bg-[#FFFDF5] shadow-xl relative flex flex-col">
+                    <main className="flex-1 md:pb-0 relative z-10 bg-[#FFFDF5]">
+                      {children}
+                    </main>
+                    <Footer />
+                    <MobileBottomNav />
+                  </div>
                 </div>
                 {/* <CouponSystem /> */}
               </ToastProvider>

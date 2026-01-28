@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Sparkles, User, Menu, X, ChevronRight } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTransition } from '@/contexts/TransitionContext'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -79,7 +78,7 @@ function ProgramsSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-black rounded-t-3xl shadow-[0_-8px_0px_0px_rgba(250,204,21,1)]"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 bg-white border-t-2 border-black rounded-t-3xl shadow-[0_-8px_0px_0px_rgba(250,204,21,1)]"
       >
         {/* 핸들 바 */}
         <div className="flex justify-center pt-3 pb-2">
@@ -133,7 +132,6 @@ function ProgramsSheet({
 
 export function MobileBottomNav() {
   const pathname = usePathname()
-  const router = useRouter()
   const { user, unifiedUser, loading, signOut } = useAuth()
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
@@ -191,18 +189,6 @@ export function MobileBottomNav() {
   const isProgramsActive = pathname?.startsWith('/programs') || false
   const isMyPageActive = pathname === '/mypage' || pathname?.startsWith('/mypage') || false
 
-  // My 탭 클릭 핸들러
-  const handleMyClick = () => {
-    if (loading) return
-    if (currentUser) {
-      if (pathname !== '/mypage') {
-        router.push('/mypage')
-      }
-    } else {
-      setShowAuthModal(true)
-    }
-  }
-
   // 로그인 모달 열기 핸들러
   const handleLoginClick = () => {
     setShowAuthModal(true)
@@ -240,7 +226,7 @@ export function MobileBottomNav() {
       {isProgramDetailPage && (
         <div
           className={cn(
-            "md:hidden fixed left-0 right-0 z-50 px-4 py-2 bg-white border-t-2 border-black safe-area-bottom",
+            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t-2 border-black safe-area-bottom",
             "transition-all duration-300 ease-out",
             isVisible ? "bottom-16" : "bottom-0 shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]"
           )}
@@ -258,7 +244,7 @@ export function MobileBottomNav() {
       {/* 하단 네비게이션 바 (4탭) */}
       <nav
         className={cn(
-          "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(250,204,21,1)] safe-area-bottom",
+          "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(250,204,21,1)] safe-area-bottom",
           "transition-transform duration-300 ease-out",
           isVisible ? "translate-y-0" : "translate-y-full"
         )}
