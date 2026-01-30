@@ -8,7 +8,7 @@ import { getReviews, toggleReviewLike } from "@/lib/supabase/reviews"
 import type { Review, ReviewFilter } from "@/lib/supabase/reviews"
 
 interface ReviewListProps {
-  programType: 'idol_image' | 'personal' | 'figure'
+  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack'
   currentUserId?: string
   ratingFilter?: number | null
   onRatingFilterChange?: (rating: number | null) => void
@@ -198,7 +198,7 @@ export function ReviewList({
           <p className="text-xs md:text-sm text-slate-400 mt-1">첫 번째 리뷰를 작성해보세요!</p>
         </div>
       ) : (
-        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+        <div className="space-y-4">
           {reviews.map((review) => (
             <ReviewCard
               key={review.id}

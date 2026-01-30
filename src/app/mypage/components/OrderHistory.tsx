@@ -39,6 +39,7 @@ interface Order {
   user_image_url?: string
   keywords?: string[]
   analysis_data?: ImageAnalysisResult
+  product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature'
 }
 
 interface OrderHistoryProps {
@@ -126,6 +127,8 @@ function OrderCard({
 
   const hasAnalysisData = !!order.analysis_data
   const canCancel = order.status !== 'cancel_requested' && order.status !== 'cancelled'
+  // 시그니처 상품인지 확인 (키워드에 "시그니처" 포함 여부)
+  const isSignatureProduct = order.keywords?.some(k => k.includes('시그니처')) ?? false
 
   // 분석 상세보기 핸들러
   const handleViewAnalysis = () => {
@@ -147,8 +150,10 @@ function OrderCard({
     if (order.user_image_url) {
       localStorage.setItem('userImage', order.user_image_url)
     }
-    // 가격 정보도 저장
-    localStorage.setItem('lastOrderPrice', order.price.toString())
+    // productType 저장 (졸업 퍼퓸, 피규어 디퓨저 등)
+    if (order.product_type) {
+      localStorage.setItem('checkoutProductType', order.product_type)
+    }
     router.push('/checkout')
   }
 
@@ -218,7 +223,8 @@ function OrderCard({
 
             {/* 버튼들 (리스트뷰에서는 간소화) */}
             <div className="flex items-center gap-2">
-              {hasAnalysisData && (
+              {/* 레시피 - 시그니처 상품은 숨김 */}
+              {hasAnalysisData && !isSignatureProduct && (
                 <button
                   onClick={() => setShowRecipeModal(true)}
                   className="px-3 py-1.5 text-xs font-bold bg-[#FEF9C3] border-2 border-slate-900 rounded-lg hover:shadow-[2px_2px_0px_#000] transition-all"
@@ -342,33 +348,37 @@ function OrderCard({
 
           {/* 액션 버튼들 */}
           <div className="grid grid-cols-2 gap-2 pt-2">
-            {/* 분석 상세보기 */}
-            <button
-              onClick={handleViewAnalysis}
-              disabled={!hasAnalysisData}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
-                hasAnalysisData
-                  ? 'bg-white border-slate-900 text-slate-900 hover:bg-slate-50 hover:shadow-[2px_2px_0px_#000]'
-                  : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-              }`}
-            >
-              <Eye size={16} />
-              분석 상세
-            </button>
+            {/* 분석 상세보기 - 시그니처 상품은 숨김 */}
+            {!isSignatureProduct && (
+              <button
+                onClick={handleViewAnalysis}
+                disabled={!hasAnalysisData}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                  hasAnalysisData
+                    ? 'bg-white border-slate-900 text-slate-900 hover:bg-slate-50 hover:shadow-[2px_2px_0px_#000]'
+                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <Eye size={16} />
+                분석 상세
+              </button>
+            )}
 
-            {/* 레시피 보기 */}
-            <button
-              onClick={() => setShowRecipeModal(true)}
-              disabled={!hasAnalysisData}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
-                hasAnalysisData
-                  ? 'bg-[#FEF9C3] border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000]'
-                  : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-              }`}
-            >
-              <FlaskConical size={16} />
-              레시피
-            </button>
+            {/* 레시피 보기 - 시그니처 상품은 숨김 */}
+            {!isSignatureProduct && (
+              <button
+                onClick={() => setShowRecipeModal(true)}
+                disabled={!hasAnalysisData}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                  hasAnalysisData
+                    ? 'bg-[#FEF9C3] border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000]'
+                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <FlaskConical size={16} />
+                레시피
+              </button>
+            )}
 
             {/* 재구매 */}
             <button
@@ -527,7 +537,7 @@ export function OrderHistory({ orders, loading, viewMode, onOrderUpdate }: Order
 
   return (
     <div className={viewMode === 'grid'
-      ? 'grid grid-cols-1 md:grid-cols-2 gap-4'
+      ? 'space-y-4'
       : 'space-y-3'
     }>
       <AnimatePresence mode="popLayout">

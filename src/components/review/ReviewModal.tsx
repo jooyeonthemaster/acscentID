@@ -11,7 +11,7 @@ import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 interface ReviewModalProps {
   isOpen: boolean
   onClose: () => void
-  programType: 'idol_image' | 'personal' | 'figure'
+  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack'
   programName: string
   currentUserId?: string
   onWriteReview?: () => void

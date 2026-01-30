@@ -1,6 +1,6 @@
 // 장바구니 및 주문 상품 관련 타입 정의
 
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent'
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature'
 
 // DB cart_items 테이블 타입
 export interface CartItem {
@@ -83,6 +83,12 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
+  graduation: [
+    { size: '10ml', price: 34000, label: '졸업 퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+  ],
+  signature: [
+    { size: '10ml', price: 34000, label: 'LE QUACK 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+  ],
 }
 
 // 상품 타입 뱃지 스타일
@@ -115,6 +121,20 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     bg: 'bg-pink-100',
     text: 'text-pink-700',
     border: 'border-pink-300',
+  },
+  graduation: {
+    label: '졸업 퍼퓸',
+    labelShort: '졸업',
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-700',
+    border: 'border-emerald-300',
+  },
+  signature: {
+    label: '시그니처 퍼퓸',
+    labelShort: '시그니처',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    border: 'border-amber-300',
   },
 }
 

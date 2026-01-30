@@ -90,18 +90,17 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-white border-2 border-slate-900 rounded-2xl lg:rounded-3xl p-5 lg:p-9 shadow-[4px_4px_0px_#000] space-y-5 lg:space-y-9"
+      className="bg-white border-2 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#000] space-y-5"
     >
       {/* 헤더 */}
-      <div className="flex items-center gap-2 lg:gap-3">
-        <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#FEF9C3] border-2 border-slate-900 flex items-center justify-center">
-          <MapPin size={16} className="text-slate-900 lg:hidden" />
-          <MapPin size={20} className="text-slate-900 hidden lg:block" />
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-[#FEF9C3] border-2 border-slate-900 flex items-center justify-center">
+          <MapPin size={16} className="text-slate-900" />
         </div>
-        <h3 className="font-black text-lg lg:text-xl text-slate-900">배송 정보</h3>
+        <h3 className="font-black text-lg text-slate-900">배송 정보</h3>
       </div>
 
-      <div className="space-y-4 lg:space-y-5">
+      <div className="space-y-4">
         {/* 받는 분 */}
         <div>
           <label className="flex items-center gap-2 text-sm font-bold text-slate-900 mb-2">
@@ -113,7 +112,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             value={formData.name}
             onChange={(e) => handleChange("name", e.target.value)}
             placeholder="이름을 입력해주세요"
-            className="w-full px-3 lg:px-4 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 bg-white hover:bg-slate-50 font-medium text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 bg-white hover:bg-slate-50 font-medium text-sm"
           />
         </div>
 
@@ -123,7 +122,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             <Phone size={14} />
             연락처 <span className="text-[#F472B6]">*</span>
           </label>
-          <div className="flex items-center gap-1.5 lg:gap-2">
+          <div className="flex items-center gap-2">
             <input
               type="tel"
               inputMode="numeric"
@@ -131,7 +130,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               onChange={(e) => handlePhoneChange("phone1", e.target.value, 3)}
               placeholder="010"
               maxLength={3}
-              className="flex-1 min-w-0 px-2 lg:px-3 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
+              className="flex-1 min-w-0 px-2 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
             />
             <span className="text-slate-900 font-bold text-sm">-</span>
             <input
@@ -142,7 +141,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               onChange={(e) => handlePhoneChange("phone2", e.target.value, 4)}
               placeholder="0000"
               maxLength={4}
-              className="flex-1 min-w-0 px-2 lg:px-3 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
+              className="flex-1 min-w-0 px-2 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
             />
             <span className="text-slate-900 font-bold text-sm">-</span>
             <input
@@ -153,7 +152,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               onChange={(e) => handlePhoneChange("phone3", e.target.value, 4)}
               placeholder="0000"
               maxLength={4}
-              className="flex-1 min-w-0 px-2 lg:px-3 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
+              className="flex-1 min-w-0 px-2 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-center font-bold bg-white hover:bg-slate-50"
             />
           </div>
         </div>
@@ -164,21 +163,20 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             <Home size={14} />
             주소 <span className="text-[#F472B6]">*</span>
           </label>
-          <div className="flex gap-1.5 lg:gap-2 mb-2">
+          <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={formData.zipCode}
               readOnly
               placeholder="우편번호"
-              className="flex-1 min-w-0 px-3 lg:px-4 py-3 lg:py-3.5 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 cursor-not-allowed font-medium text-sm lg:text-base"
+              className="flex-1 min-w-0 px-3 py-3 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 cursor-not-allowed font-medium text-sm"
             />
             <button
               type="button"
               onClick={openAddressSearch}
-              className="flex-shrink-0 bg-[#FEF9C3] text-slate-900 px-3 lg:px-5 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 font-bold flex items-center gap-1.5 lg:gap-2 hover:bg-[#FEF08A] transition-colors text-sm lg:text-base"
+              className="flex-shrink-0 bg-[#FEF9C3] text-slate-900 px-3 py-3 rounded-xl border-2 border-slate-900 font-bold flex items-center gap-1.5 hover:bg-[#FEF08A] transition-colors text-sm"
             >
-              <Search size={14} className="lg:hidden" />
-              <Search size={16} className="hidden lg:block" />
+              <Search size={14} />
               주소 검색
             </button>
           </div>
@@ -187,14 +185,14 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             value={formData.address}
             readOnly
             placeholder="주소 검색 버튼을 눌러주세요"
-            className="w-full px-3 lg:px-4 py-3 lg:py-3.5 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 mb-2 cursor-not-allowed font-medium text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 mb-2 cursor-not-allowed font-medium text-sm"
           />
           <input
             type="text"
             value={formData.addressDetail}
             onChange={(e) => handleChange("addressDetail", e.target.value)}
             placeholder="상세 주소 (동/호수)"
-            className="w-full px-3 lg:px-4 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 bg-white hover:bg-slate-50 font-medium text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 bg-white hover:bg-slate-50 font-medium text-sm"
           />
         </div>
 
@@ -207,7 +205,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
           <select
             value={formData.memo}
             onChange={(e) => handleChange("memo", e.target.value)}
-            className="w-full px-3 lg:px-4 py-3 lg:py-3.5 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 bg-white hover:bg-slate-50 font-medium cursor-pointer appearance-none text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 bg-white hover:bg-slate-50 font-medium cursor-pointer appearance-none text-sm"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
               backgroundPosition: 'right 0.75rem center',

@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
@@ -8,6 +9,7 @@ import Image from "next/image"
 import { useInputForm } from "./hooks/useInputForm"
 import { Step1, Step2, Step3, Step4, Step5, AnalyzingOverlay } from "./components"
 import { TOTAL_STEPS } from "./constants"
+import { GraduationInputForm } from "./graduation/GraduationInputForm"
 
 import { Header } from "@/components/layout/Header"
 
@@ -47,7 +49,7 @@ function InputForm() {
     } = useInputForm()
 
     return (
-        <div className="relative w-full min-h-screen bg-[#FAFAFA] font-sans text-slate-800 flex flex-col">
+        <div className="min-h-screen bg-[#FAFAFA] font-sans text-slate-800">
             {/* 분석 중 로딩 오버레이 */}
             <AnalyzingOverlay
                 isVisible={isSubmitting}
@@ -56,23 +58,34 @@ function InputForm() {
                 onDoorOpened={navigateToResult}
             />
 
-            {/* 배경 */}
-            <Background />
-
             {/* 헤더 */}
             <Header
                 showBack={currentStep > 1}
                 backHref="back"
             />
 
-            {/* 헤더 높이만큼 여백 (fixed 헤더: marquee 32px + main 64px = 96px) */}
-            <div className="h-24 flex-shrink-0" />
+            {/* 455px 고정 너비 컨테이너 */}
+            <div className="relative w-full max-w-[455px] mx-auto min-h-screen flex flex-col">
+                {/* 배경 - 숲 이미지 + 오버레이 */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <Image
+                        src="/images/hero/forest_bg.png"
+                        alt="Forest Background"
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-white/70" />
+                </div>
 
-            {/* 프로그레스 바 */}
-            <ProgressBar currentStep={currentStep} />
+                {/* 헤더 높이만큼 여백 (fixed 헤더: marquee 32px + main 64px = 96px) */}
+                <div className="h-24 flex-shrink-0" />
 
-            {/* 메인 콘텐츠 Container */}
-            <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col max-w-xl mx-auto w-full px-4 pt-8 pb-32">
+                {/* 프로그레스 바 */}
+                <ProgressBar currentStep={currentStep} />
+
+                {/* 메인 콘텐츠 Container */}
+                <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col w-full px-4 pt-8 pb-32">
                 <AnimatePresence mode="wait">
                     {currentStep === 1 && (
                         <Step1
@@ -145,33 +158,15 @@ function InputForm() {
                     />
                 </div>
             </main>
+            </div>
         </div>
     )
 }
-
-// ===== 배경 컴포넌트 =====
-function Background() {
-    return (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            {/* 숲 배경 이미지 */}
-            <Image
-                src="/images/hero/forest_bg.png"
-                alt="Forest Background"
-                fill
-                className="object-cover"
-                priority
-            />
-            {/* 그라데이션 오버레이 - 텍스트 가독성 */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/80" />
-        </div>
-    )
-}
-
 
 // ===== 프로그레스 바 컴포넌트 =====
 function ProgressBar({ currentStep }: { currentStep: number }) {
     return (
-        <div className="relative z-10 px-4 py-2 max-w-xl mx-auto w-full">
+        <div className="relative z-10 px-4 py-2 w-full">
             <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                 <motion.div
                     className="h-full bg-yellow-400 rounded-full"
@@ -225,10 +220,23 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
 }
 
 // ===== 메인 Export =====
+function InputPageContent() {
+    const searchParams = useSearchParams()
+    const type = searchParams.get("type")
+
+    // 졸업 프로그램인 경우 전용 폼 렌더링
+    if (type === "graduation") {
+        return <GraduationInputForm />
+    }
+
+    // 기본 폼 (idol_image, figure 등)
+    return <InputForm />
+}
+
 export default function InputPage() {
     return (
         <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA]" />}>
-            <InputForm />
+            <InputPageContent />
         </Suspense>
     )
 }

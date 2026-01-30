@@ -308,13 +308,13 @@ export default function FigurePage() {
             </motion.h2>
           </div>
 
-          {/* 메인 구성품 - 가로 스크롤 */}
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 -mx-4 px-4 scrollbar-hide">
+          {/* 메인 구성품 - 가로 가운데 정렬 */}
+          <div className="flex justify-center gap-3 pt-4 pb-4">
             {productComponents.map((item, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="flex-shrink-0 w-[140px] snap-center group relative bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black]"
+                className="w-[140px] group relative bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black]"
               >
                 {/* 번호 배지 */}
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center font-black text-[10px] border-2 border-white">
@@ -389,7 +389,7 @@ export default function FigurePage() {
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center gap-2 p-1.5 bg-cyan-50 rounded-lg">
                   <span className="w-5 h-5 bg-cyan-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold border border-black flex-shrink-0">1</span>
-                  <span>샤쉐스톤을 디퓨저 스팟에 올려요</span>
+                  <span>샤쉐스톤을 디퓨저 스팟에 넣어요</span>
                 </div>
                 <div className="flex items-center gap-2 p-1.5 bg-cyan-50 rounded-lg">
                   <span className="w-5 h-5 bg-cyan-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold border border-black flex-shrink-0">2</span>

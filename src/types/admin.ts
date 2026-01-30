@@ -3,7 +3,7 @@
 import { ImageAnalysisResult } from './analysis'
 
 // 상품 타입
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent'
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation'
 
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
@@ -13,6 +13,7 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   image_analysis: '최애 이미지 분석',
   figure_diffuser: '피규어 디퓨저',
   personal_scent: '퍼스널 센트',
+  graduation: '졸업 퍼퓸',
 }
 
 // 서비스 모드 한글 라벨

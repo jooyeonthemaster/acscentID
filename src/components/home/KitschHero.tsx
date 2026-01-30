@@ -13,8 +13,8 @@ import { HeroAnalysisModal, type HeroAnalysisData } from "./HeroAnalysisModal"
 
 // --- Slide Data (2개: Experience + Programs) ---
 const SLIDES = [
-    { id: "experience", bg: "bg-[#FEFCE2]" },
-    { id: "programs", bg: "bg-[#FEFCE2]" }
+    { id: "experience", bg: "bg-[#FEFCE2]", image: "/images/hero/1.jpg" },
+    { id: "programs", bg: "bg-[#FEFCE2]", image: "/images/hero/2.jpg" }
 ]
 
 export function KitschHero() {
@@ -58,15 +58,26 @@ export function KitschHero() {
 
             {/* --- Background Image Layer --- */}
             <div className="absolute inset-0 z-0">
-                {/* Desktop & Mobile - hero background (살짝 블러) */}
-                <Image
-                    src="/images/hero/here.png"
-                    alt="Hero Background"
-                    fill
-                    className="object-cover blur-[2px] scale-105"
-                    style={{ objectPosition: 'center center' }}
-                    priority
-                />
+                {/* Desktop & Mobile - hero background (슬라이드별 이미지) */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentSlide}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0"
+                    >
+                        <Image
+                            src={SLIDES[currentSlide].image}
+                            alt="Hero Background"
+                            fill
+                            className="object-cover blur-[2px] scale-105"
+                            style={{ objectPosition: 'center center' }}
+                            priority
+                        />
+                    </motion.div>
+                </AnimatePresence>
                 {/* 어두운 오버레이 - 텍스트 가독성 */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40" />
             </div>

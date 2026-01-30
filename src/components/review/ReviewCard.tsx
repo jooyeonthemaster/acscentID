@@ -56,7 +56,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-yellow-50 border-2 border-black rounded-2xl p-4 md:p-5 shadow-[3px_3px_0_0_black] md:shadow-[4px_4px_0_0_black] hover:shadow-[4px_4px_0_0_black] md:hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+        className="bg-yellow-50 border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
       >
         {/* 헤더: 별점 + 작성자 정보 */}
         <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
@@ -104,7 +104,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
 
         {/* 리뷰 내용 */}
         {review.content && (
-          <p className="text-xs md:text-sm text-slate-700 leading-relaxed mb-3 md:mb-4">
+          <p className="text-sm text-slate-700 leading-relaxed mb-3">
             "{review.content}"
           </p>
         )}
@@ -137,7 +137,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
         )}
 
         {/* 도움돼요 버튼 */}
-        <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-yellow-200">
+        <div className="flex items-center justify-between pt-3 border-t border-yellow-200">
           <button
             onClick={handleLike}
             disabled={!currentUserId || isLiking}

@@ -80,114 +80,137 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[99999] flex items-center justify-center"
         >
-            {/* 뒤가 안 보이게 불투명 배경 */}
-            <div className="absolute inset-0 bg-[#FFFDF5]" />
+            {/* 뒤가 안 보이게 불투명 배경 & 글래스모피즘 */}
+            <div className="absolute inset-0 bg-white/20 backdrop-blur-xl z-10" />
 
             {/* 문 배경 */}
             <div className="absolute inset-0 flex">
-                {/* 왼쪽 문 */}
+                {/* 문 디자인 (기존 SVG 유지) */}
+                <div className="absolute inset-0 flex pointer-events-none">
+                    {/* 왼쪽 문 */}
+                    <motion.div
+                        initial={{ x: "-100%" }}
+                        animate={{ x: doorPosition.left }}
+                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                        onAnimationComplete={handleDoorAnimationComplete}
+                        className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative flex items-center justify-end"
+                    >
+                        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                            <defs>
+                                <pattern id="wood-pattern-analyze" width="100" height="100" patternUnits="userSpaceOnUse">
+                                    <path d="M0 0h100v100H0z" fill="#fbbf24" />
+                                    <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
+                            <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                            <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                        </svg>
+                        <div className="relative z-10 mr-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
+                            <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                        </div>
+                    </motion.div>
+
+                    {/* 오른쪽 문 */}
+                    <motion.div
+                        initial={{ x: "100%" }}
+                        animate={{ x: doorPosition.right }}
+                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                        className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative flex items-center justify-start"
+                    >
+                        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                            <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
+                            <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                            <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                        </svg>
+                        <div className="relative z-10 ml-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
+                            <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* 로딩 콘텐츠 - 상하 분산 배치 (손잡이 피하기) */}
+            <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-between pt-[18vh] pb-[12vh]">
+                {/* 상단 섹션: 타이틀 및 프로그레스 */}
                 <motion.div
-                    initial={{ x: "-100%" }}
-                    animate={{ x: doorPosition.left }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    onAnimationComplete={handleDoorAnimationComplete}
-                    className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative flex items-center justify-end"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{
+                        opacity: doorState === 'opening' ? 0 : 1,
+                        y: doorState === 'opening' ? -40 : 0
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full max-w-sm px-8 text-center"
                 >
-                    <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                        <defs>
-                            <pattern id="wood-pattern-analyze" width="100" height="100" patternUnits="userSpaceOnUse">
-                                <path d="M0 0h100v100H0z" fill="#fbbf24" />
-                                <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
-                        <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                        <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                    </svg>
-                    <div className="relative z-10 mr-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                        <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="mb-8"
+                    >
+                        <p className="text-2xl md:text-3xl font-black text-amber-950 mb-1 drop-shadow-md">
+                            <span className="text-amber-800">{userName}</span>님의
+                        </p>
+                        <p className="text-2xl md:text-3xl font-black text-amber-950 drop-shadow-md">
+                            퍼퓸 분석 중...
+                        </p>
+                    </motion.div>
+
+                    {/* 로딩 바 - 프리미엄 글래스 스타일 */}
+                    <div className="relative w-64 md:w-80 h-6 bg-white/20 rounded-full overflow-hidden border-2 border-amber-600/30 backdrop-blur-md shadow-inner mx-auto">
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600 rounded-full shadow-[0_0_15px_rgba(217,119,6,0.4)]"
+                            initial={{ width: "0%" }}
+                            animate={{ width: isComplete ? "100%" : "90%" }}
+                            transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
+                        />
+                        {/* 진행률 텍스트 인라인 */}
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white mix-blend-difference">
+                            {isComplete ? '100%' : 'ANALYZING...'}
+                        </div>
                     </div>
                 </motion.div>
 
-                {/* 오른쪽 문 */}
+                {/* 하단 섹션: 멘트 카드 */}
                 <motion.div
-                    initial={{ x: "100%" }}
-                    animate={{ x: doorPosition.right }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative flex items-center justify-start"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{
+                        opacity: doorState === 'opening' ? 0 : 1,
+                        scale: doorState === 'opening' ? 0.9 : 1
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full max-w-sm px-8"
                 >
-                    <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                        <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
-                        <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                        <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                    </svg>
-                    <div className="relative z-10 ml-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                        <div className="w-2 h-12 bg-amber-600 rounded-full" />
+                    <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl text-center relative overflow-hidden">
+                        {/* 미니 장식 요소 */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+
+                        <div className="min-h-[64px] flex flex-col items-center justify-center">
+                            <AnimatePresence mode="wait">
+                                <motion.p
+                                    key={currentQuoteIndex}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.4 }}
+                                    className="text-amber-950 text-base md:text-lg font-bold leading-relaxed italic"
+                                >
+                                    "{currentQuote}"
+                                </motion.p>
+                            </AnimatePresence>
+                        </div>
+
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="mt-6 text-amber-800/80 text-xs font-black uppercase tracking-[0.3em]"
+                        >
+                            Est. Time: 30 Seconds
+                        </motion.p>
                     </div>
                 </motion.div>
             </div>
-
-            {/* 로딩 콘텐츠 - 문 위에 중앙 배치 */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{
-                    opacity: doorState === 'opening' ? 0 : 1,
-                    y: doorState === 'opening' ? -20 : 0
-                }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="relative z-10 flex flex-col items-center px-8"
-            >
-                {/* 분석 중 타이틀 */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-center mb-8"
-                >
-                    <p className="text-2xl md:text-3xl font-black text-amber-900 mb-2 drop-shadow-sm">
-                        <span className="text-amber-700">{userName}</span>님의
-                    </p>
-                    <p className="text-2xl md:text-3xl font-black text-amber-900 drop-shadow-sm">
-                        퍼퓸 분석 중...
-                    </p>
-                </motion.div>
-
-                {/* 로딩 바 */}
-                <div className="w-64 md:w-80 h-3 bg-amber-200/80 rounded-full overflow-hidden mb-8 border-2 border-amber-600">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 rounded-full"
-                        initial={{ width: "0%" }}
-                        animate={{ width: isComplete ? "100%" : "90%" }}
-                        transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
-                    />
-                </div>
-
-                {/* 재미있는 멘트 */}
-                <div className="text-center min-h-[60px] flex flex-col items-center justify-center max-w-sm">
-                    <AnimatePresence mode="wait">
-                        <motion.p
-                            key={currentQuoteIndex}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.4 }}
-                            className="text-amber-800 text-base md:text-lg font-medium leading-relaxed break-keep"
-                        >
-                            "{currentQuote}"
-                        </motion.p>
-                    </AnimatePresence>
-                </div>
-
-                {/* 하단 안내 문구 */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="mt-8 text-amber-700/80 text-sm font-medium"
-                >
-                    최대 30초 정도 소요됩니다
-                </motion.p>
-            </motion.div>
         </motion.div>
     )
 }

@@ -8,22 +8,32 @@ import { Scan, FlaskConical, GitCompare, Camera, Palette } from 'lucide-react'
 type DefaultTabType = 'analysis' | 'perfume' | 'comparison'
 // 피규어 모드 탭 타입
 type FigureTabType = 'memory' | 'perfume' | 'figure' | 'analysis'
+// 졸업 모드 탭 타입
+type GraduationTabType = 'graduation' | 'perfume' | 'analysis'
 // 통합 탭 타입
-type TabType = DefaultTabType | FigureTabType
+type TabType = DefaultTabType | FigureTabType | GraduationTabType
 
 interface TabNavigationProps {
   activeTab: TabType
   onTabChange: (tab: TabType) => void
   isDesktop?: boolean
   isFigureMode?: boolean
+  isGraduationMode?: boolean
 }
 
-export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isFigureMode = false }: TabNavigationProps) {
+export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isFigureMode = false, isGraduationMode = false }: TabNavigationProps) {
   // 피규어 모드 탭
   const figureTabs = [
     { id: 'memory' as const, label: '기억의 순간', icon: Camera, emoji: '📸' },
     { id: 'perfume' as const, label: '맞춤 퍼퓸', icon: FlaskConical, emoji: '💎' },
     { id: 'figure' as const, label: '피규어', icon: Palette, emoji: '🎨' },
+    { id: 'analysis' as const, label: '분석 결과', icon: Scan, emoji: '🔍' }
+  ]
+
+  // 졸업 모드 탭
+  const graduationTabs = [
+    { id: 'graduation' as const, label: '졸업 여정', icon: Camera, emoji: '🎓' },
+    { id: 'perfume' as const, label: '추천 향수', icon: FlaskConical, emoji: '💎' },
     { id: 'analysis' as const, label: '분석 결과', icon: Scan, emoji: '🔍' }
   ]
 
@@ -34,10 +44,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isFig
     { id: 'comparison' as const, label: '비교 분석', icon: GitCompare, emoji: '⚡' }
   ]
 
-  const tabs = isFigureMode ? figureTabs : defaultTabs
+  const tabs = isGraduationMode ? graduationTabs : (isFigureMode ? figureTabs : defaultTabs)
 
   // PC 레이아웃: 가로 배치 (키치 스타일)
-  // 피규어 모드: 4열, 일반 모드: 3열
+  // 피규어 모드: 4열, 졸업/일반 모드: 3열
   if (isDesktop) {
     return (
       <div className="relative bg-[#FEF9C3] p-2.5 rounded-t-2xl border-b-2 border-slate-900">
@@ -69,6 +79,36 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isFig
   }
 
   // 모바일 레이아웃 (키치 스타일)
+  // 졸업 모드: 3개 탭을 한 줄에 표시
+  if (isGraduationMode) {
+    return (
+      <div className="relative bg-[#FEF9C3] p-2 rounded-t-2xl border-b-2 border-slate-900">
+        <div className="grid grid-cols-3 gap-2">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`relative flex items-center justify-center gap-1 py-2.5 px-2 text-sm transition-all rounded-xl border-2 ${
+                  isActive
+                    ? 'text-slate-900 bg-white border-slate-900 shadow-[2px_2px_0px_#000]'
+                    : 'text-slate-500 bg-white/50 border-transparent hover:bg-white/80'
+                }`}
+              >
+                <span className="flex flex-col items-center gap-0.5">
+                  <span className="text-sm">{tab.emoji}</span>
+                  <span className="font-bold text-[10px]">{tab.label}</span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   // 피규어 모드: 4개 탭을 2x2 그리드로 표시
   if (isFigureMode) {
     return (

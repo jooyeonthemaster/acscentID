@@ -24,6 +24,7 @@ export const NAV_LINKS = {
   programs: [
     { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
     { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+    { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/perfume/graduate.avif', limitedUntil: '2/28' },
   ],
 }
 
@@ -54,7 +55,7 @@ export function MobileSection({
   onLinkClick
 }: {
   title: string
-  links: Array<{ href: string; label: string; image?: string }>
+  links: Array<{ href: string; label: string; image?: string; limitedUntil?: string }>
   isActive: boolean
   onLinkClick: () => void
 }) {
@@ -90,13 +91,27 @@ export function MobileSection({
                 className="flex items-center gap-3 px-8 py-3 text-sm text-slate-600 hover:text-black hover:bg-yellow-100 transition-colors"
               >
                 {link.image && (
-                  <img
-                    src={link.image}
-                    alt=""
-                    className="w-8 h-8 rounded-md object-cover border border-slate-200"
-                  />
+                  <div className="relative">
+                    <img
+                      src={link.image}
+                      alt=""
+                      className="w-8 h-8 rounded-md object-cover border border-slate-200"
+                    />
+                    {link.limitedUntil && (
+                      <span className="absolute -top-1 -right-1 px-1 py-0.5 bg-red-500 text-white text-[8px] font-black rounded leading-none">
+                        D-DAY
+                      </span>
+                    )}
+                  </div>
                 )}
-                {link.label}
+                <div className="flex items-center gap-2">
+                  {link.label}
+                  {link.limitedUntil && (
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">
+                      ~{link.limitedUntil}
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </motion.div>

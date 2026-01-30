@@ -281,87 +281,89 @@ export function CartList({ viewMode }: CartListProps) {
       </div>
 
       {/* 장바구니 아이템 목록 */}
-      <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-3'}>
+      <div className="space-y-3">
         {cartItems.map((item, index) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`bg-white border-2 rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] transition-all ${
-              selectedIds.has(item.id) ? 'border-purple-500 ring-2 ring-purple-200' : 'border-black'
+            className={`bg-white rounded-2xl overflow-hidden transition-all ${
+              selectedIds.has(item.id) ? 'ring-2 ring-amber-400' : ''
             } ${updatingIds.has(item.id) ? 'opacity-60' : ''}`}
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           >
-            <div className={`p-4 ${viewMode === 'list' ? 'flex gap-4' : ''}`}>
-              {/* 선택 체크박스 + 이미지 */}
-              <div className={`flex gap-3 ${viewMode === 'list' ? '' : 'mb-3'}`}>
+            {/* 상단: 체크박스 + 뱃지 + 삭제 */}
+            <div className="flex items-center justify-between px-4 pt-3 pb-2">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggleSelect(item.id)}
-                  className="flex-shrink-0 mt-1"
+                  className="flex-shrink-0"
                 >
                   {selectedIds.has(item.id) ? (
-                    <div className="w-5 h-5 bg-purple-500 rounded border-2 border-purple-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    <div className="w-5 h-5 bg-amber-400 rounded-md flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-5 h-5 bg-white rounded border-2 border-black" />
+                    <div className="w-5 h-5 bg-slate-100 rounded-md border border-slate-300" />
                   )}
                 </button>
+                {renderProductTypeBadge(item.product_type)}
+              </div>
+              <button
+                onClick={() => removeItem(item.id)}
+                disabled={updatingIds.has(item.id)}
+                className="p-1.5 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+
+            {/* 중앙: 이미지 + 정보 */}
+            <div className="flex gap-4 px-4 pb-3">
+              {/* 이미지 */}
+              <div className="flex-shrink-0">
                 {item.image_url ? (
                   <img
                     src={item.image_url}
                     alt={item.perfume_name}
-                    className="w-16 h-16 rounded-xl object-cover border-2 border-black"
+                    className="w-20 h-20 rounded-xl object-cover bg-slate-100"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-amber-100 border-2 border-black flex items-center justify-center">
-                    <ShoppingBag size={24} className="text-amber-600" />
+                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center">
+                    <ShoppingBag size={28} className="text-amber-500" />
                   </div>
                 )}
               </div>
 
               {/* 상품 정보 */}
-              <div className={`flex-1 ${viewMode === 'list' ? '' : 'mt-2'}`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {renderProductTypeBadge(item.product_type)}
-                    </div>
-                    <p className="font-black truncate">{item.perfume_name}</p>
-                    {item.analysis_id && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setRecipeModalTarget(item)
-                        }}
-                        className="mt-1.5 w-fit py-1 px-2 bg-amber-400 text-black text-[10px] sm:text-xs font-bold rounded-md flex items-center gap-1 hover:bg-amber-300 transition-colors border-[1.5px] border-black"
-                      >
-                        <Beaker className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        레시피 확인하기
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    disabled={updatingIds.has(item.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-slate-900 truncate mb-1">{item.perfume_name}</h3>
 
-                {/* 사이즈 선택 & 가격 */}
-                <div className="mt-2 flex items-center justify-between gap-2">
+                {/* 레시피 버튼 */}
+                {item.analysis_id && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setRecipeModalTarget(item)
+                    }}
+                    className="mb-2 py-1 px-2.5 bg-amber-400 text-black text-[11px] font-bold rounded-md flex items-center gap-1 hover:bg-amber-300 transition-colors"
+                  >
+                    <Beaker className="w-3 h-3" />
+                    레시피 확인하기
+                  </button>
+                )}
+
+                {/* 옵션 선택 */}
+                <div className="text-sm text-slate-500">
                   {item.product_type === 'figure_diffuser' ? (
-                    <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded-lg text-xs font-bold border border-cyan-300">
-                      세트 상품
-                    </span>
+                    <span className="text-xs">세트 상품</span>
                   ) : (
                     <select
                       value={item.size}
                       onChange={(e) => updateSize(item, e.target.value)}
                       disabled={updatingIds.has(item.id)}
-                      className="px-2 py-1 bg-white rounded-lg text-xs font-bold border-2 border-black disabled:opacity-50"
+                      className="text-xs text-slate-600 bg-slate-50 rounded-md px-2 py-1 border-none outline-none disabled:opacity-50"
                     >
                       {PRODUCT_PRICING[item.product_type].map(option => (
                         <option key={option.size} value={option.size}>
@@ -370,35 +372,32 @@ export function CartList({ viewMode }: CartListProps) {
                       ))}
                     </select>
                   )}
-                  <span className="font-black text-amber-600">
-                    {formatPrice(item.price)}원
-                  </span>
-                </div>
-
-                {/* 수량 조절 */}
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 border-2 border-black rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => updateQuantity(item, -1)}
-                      className="p-1.5 hover:bg-slate-100 transition-colors disabled:opacity-50"
-                      disabled={item.quantity <= 1 || updatingIds.has(item.id)}
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item, 1)}
-                      className="p-1.5 hover:bg-slate-100 transition-colors disabled:opacity-50"
-                      disabled={item.quantity >= 10 || updatingIds.has(item.id)}
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <span className="font-black">
-                    {formatPrice(item.price * item.quantity)}원
-                  </span>
                 </div>
               </div>
+            </div>
+
+            {/* 하단: 수량 + 가격 */}
+            <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80">
+              <div className="flex items-center bg-white rounded-lg border border-slate-200">
+                <button
+                  onClick={() => updateQuantity(item, -1)}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                  disabled={item.quantity <= 1 || updatingIds.has(item.id)}
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="w-8 text-center font-bold text-sm text-slate-700">{item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity(item, 1)}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                  disabled={item.quantity >= 10 || updatingIds.has(item.id)}
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+              <span className="font-black text-lg text-slate-900">
+                {formatPrice(item.price * item.quantity)}원
+              </span>
             </div>
           </motion.div>
         ))}

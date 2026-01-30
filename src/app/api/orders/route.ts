@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       userImage,
       keywords,
       analysisData,
+      productType,  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature)
     } = body
 
     // 다중 상품 모드 확인
@@ -250,6 +251,7 @@ export async function POST(request: NextRequest) {
         user_image_url: userImage,
         keywords: keywords || [],
         analysis_data: analysisData || null,
+        product_type: productType || 'image_analysis',  // 상품 타입
         status: 'pending',
         item_count: 1,
         subtotal: price,

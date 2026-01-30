@@ -236,10 +236,13 @@ export function useAutoSave({
           userFingerprint: fingerprint,
           idolName: idolName,
           idolGender: idolGender,
-          // 피규어 온라인 모드 전용
+          // 피규어 온라인 모드 전용 (모델링 이미지/요청)
           ...(productType === 'figure_diffuser' && {
             modelingImageUrl,
             modelingRequest,
+          }),
+          // 피규어 또는 졸업 퍼퓸일 때 productType, serviceMode 저장
+          ...((productType === 'figure_diffuser' || productType === 'graduation') && {
             productType,
             serviceMode
           })

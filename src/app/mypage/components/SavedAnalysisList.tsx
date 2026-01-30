@@ -242,7 +242,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   // 로딩 스켈레톤
   if (loading) {
     return (
-      <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4' : 'space-y-3'}>
+      <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-2' : 'space-y-3'}>
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
@@ -329,7 +329,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2">
           {analyses.map((analysis, index) => (
             <motion.div
               key={analysis.id}

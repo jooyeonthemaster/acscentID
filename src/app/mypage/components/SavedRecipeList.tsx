@@ -301,7 +301,7 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
                 >
                   <div className="p-4 pt-0 border-t-2 border-dashed border-slate-200">
                     <div className={viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4'
+                      ? 'grid grid-cols-2 gap-2 pt-4'
                       : 'space-y-3 pt-4'
                     }>
                       {group.recipes.map((recipe) => (

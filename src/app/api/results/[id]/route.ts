@@ -51,7 +51,8 @@ export async function GET(
         viewCount: data.view_count,
         idolName: data.idol_name,
         idolGender: data.idol_gender,
-        serviceMode: data.service_mode || 'online'
+        serviceMode: data.service_mode || 'online',
+        productType: data.product_type || 'image_analysis'
       }
     })
   } catch (error) {

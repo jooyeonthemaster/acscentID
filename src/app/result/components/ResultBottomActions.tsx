@@ -70,7 +70,7 @@ export function ResultBottomActions({
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={`
-        md:hidden fixed left-0 right-0 z-50 px-4 py-3
+        fixed left-1/2 -translate-x-1/2 z-50 w-full max-w-[455px] px-4 py-3
         bg-white border-t-2 border-black safe-area-bottom
         transition-all duration-300 ease-out
         ${isNavVisible

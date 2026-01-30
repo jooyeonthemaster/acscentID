@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Package,
@@ -44,9 +44,32 @@ const BANK_INFO = {
   holder: "김주연"
 }
 
+// 로딩 컴포넌트
+function CheckoutLoading() {
+  return (
+    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin" />
+    </div>
+  )
+}
+
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<CheckoutLoading />}>
+      <CheckoutContent />
+    </Suspense>
+  )
+}
+
+function CheckoutContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
+
+  // URL 파라미터에서 시그니처 상품 확인
+  const urlProduct = searchParams.get("product")
+  const urlType = searchParams.get("type")
+  const isSignatureProduct = urlProduct === "le-quack" && urlType === "signature"
 
   // 다중 상품 모드
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
@@ -81,7 +104,9 @@ export default function CheckoutPage() {
 
   // 로그인 확인 및 데이터 로드
   useEffect(() => {
-    if (!authLoading && !userId) {
+    // 비회원 구매 허용 (시그니처 상품)
+    const isGuestCheckout = searchParams.get("guest") === "true"
+    if (!authLoading && !userId && !isGuestCheckout) {
       router.push("/")
       return
     }
@@ -89,6 +114,26 @@ export default function CheckoutPage() {
     // 사용자 이름 초기화
     if (userName && !formData.name) {
       setFormData(prev => ({ ...prev, name: userName }))
+    }
+
+    // 0. 시그니처 상품 (LE QUACK) - URL 파라미터로 처리
+    if (isSignatureProduct) {
+      setProductType("signature")
+      setSelectedSize("10ml")
+      setUserImage("/images/perfume/LE QUACK.avif")
+      setIdolName("AC'SCENT")
+      // 시그니처 상품은 분석 결과가 없으므로 빈 객체 설정
+      setAnalysisResult({
+        matchingPerfumes: [{
+          perfumeId: "le-quack",
+          persona: {
+            name: "SIGNATURE 뿌덕퍼퓸",
+            recommendation: "AC'SCENT 시그니처 퍼퓸"
+          }
+        }],
+        matchingKeywords: ["시그니처", "퍼퓸키링", "AC'SCENT"]
+      })
+      return
     }
 
     // 1. 다중 상품 모드 확인 (장바구니에서 온 경우)
@@ -135,7 +180,7 @@ export default function CheckoutPage() {
       }
     }
 
-    // 상품 타입 설정 (피규어 디퓨저 vs 향수)
+    // 상품 타입 설정 (피규어 디퓨저 vs 향수 vs 졸업)
     if (savedProductType) {
       const pType = savedProductType as ProductType
       setProductType(pType)
@@ -143,9 +188,13 @@ export default function CheckoutPage() {
       if (pType === "figure_diffuser") {
         setSelectedSize("set")
       }
+      // 졸업 퍼퓸은 10ml 단일 옵션
+      if (pType === "graduation") {
+        setSelectedSize("10ml")
+      }
       localStorage.removeItem("checkoutProductType")
     }
-  }, [authLoading, userId, router, userName])
+  }, [authLoading, userId, router, userName, isSignatureProduct, searchParams])
 
   // 단일 상품 정보
   const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || "맞춤 퍼퓸"
@@ -185,14 +234,18 @@ export default function CheckoutPage() {
     })
   }
 
-  // 가격 계산
-  const prices: Record<string, number> = { "10ml": 24000, "50ml": 48000, "set": 48000 }
+  // 가격 계산 - PRODUCT_PRICING에서 가져오기
+  const getPriceForSize = (pType: ProductType, size: string): number => {
+    const pricing = PRODUCT_PRICING[pType]
+    const option = pricing.find(p => p.size === size)
+    return option?.price || pricing[0].price
+  }
 
   // 다중 상품 모드
   const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent) : null
 
   // 단일 상품 모드
-  const singleProductPrice = prices[selectedSize]
+  const singleProductPrice = getPriceForSize(productType, selectedSize)
   // 5만원 이상 무료배송
   const singleShippingFee = singleProductPrice >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE
   const singleDiscountAmount = selectedCoupon
@@ -327,6 +380,15 @@ export default function CheckoutPage() {
         })
       }
 
+      // 주문 완료 페이지에서 사용할 정보 저장
+      localStorage.setItem("lastOrderPrice", totalPrice.toString())
+      localStorage.setItem("lastOrderPerfumeName", isMultiItemMode
+        ? checkoutItems.map(i => i.perfume_name).join(", ")
+        : perfumeName)
+      localStorage.setItem("lastOrderSize", isMultiItemMode
+        ? checkoutItems.map(i => i.size).join(", ")
+        : selectedSize)
+
       // 주문 완료 페이지로 이동
       router.push(`/checkout/complete?orderId=${result.orderId}`)
     } catch (error) {
@@ -375,7 +437,7 @@ export default function CheckoutPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            className="flex flex-col gap-6"
           >
             {/* 왼쪽: 주문 요약 */}
             <div className="space-y-6">
@@ -394,7 +456,7 @@ export default function CheckoutPage() {
                   productType={productType}
                   selectedSize={selectedSize}
                   onSizeChange={setSelectedSize}
-                  price={prices[selectedSize]}
+                  price={singleProductPrice}
                   keywords={analysisResult?.matchingKeywords || []}
                 />
               )}
@@ -435,8 +497,8 @@ export default function CheckoutPage() {
               <h3 className="font-black text-xl text-slate-900">결제 정보</h3>
             </div>
 
-            {/* 결제 내용 - 2컬럼 레이아웃 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 결제 내용 */}
+            <div className="flex flex-col gap-5">
               {/* 왼쪽: 계좌 정보 */}
               <div className="space-y-4">
                 {/* 결제 방법 안내 */}

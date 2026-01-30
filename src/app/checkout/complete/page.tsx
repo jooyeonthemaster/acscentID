@@ -40,22 +40,39 @@ function OrderCompleteContent() {
   } | null>(null)
 
   useEffect(() => {
-    // 주문 정보 로드 (localStorage에서 임시로 가져오거나 API 호출)
+    // 주문 정보 로드 (localStorage에서 가져오기)
     const loadOrderInfo = async () => {
       if (orderId) {
         try {
-          // localStorage에서 최근 분석 결과 가져오기
-          const savedResult = localStorage.getItem("analysisResult")
-          const price = localStorage.getItem("lastOrderPrice") || "24000"
+          // checkout 페이지에서 저장한 주문 정보 가져오기
+          const price = localStorage.getItem("lastOrderPrice")
+          const perfumeName = localStorage.getItem("lastOrderPerfumeName")
+          const size = localStorage.getItem("lastOrderSize")
 
-          if (savedResult) {
-            const result = JSON.parse(savedResult)
+          if (price) {
             setOrderInfo({
               orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
               price: parseInt(price),
-              size: "10ml",
-              perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
+              size: size || "10ml",
+              perfumeName: perfumeName || "맞춤 향수"
             })
+
+            // 사용 후 정리
+            localStorage.removeItem("lastOrderPrice")
+            localStorage.removeItem("lastOrderPerfumeName")
+            localStorage.removeItem("lastOrderSize")
+          } else {
+            // fallback: 기존 방식
+            const savedResult = localStorage.getItem("analysisResult")
+            if (savedResult) {
+              const result = JSON.parse(savedResult)
+              setOrderInfo({
+                orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+                price: 24000,
+                size: "10ml",
+                perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
+              })
+            }
           }
         } catch (e) {
           console.error("Failed to load order info:", e)

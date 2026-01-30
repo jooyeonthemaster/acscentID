@@ -31,16 +31,15 @@ export function MultiItemOrderSummary({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border-2 border-slate-900 rounded-2xl lg:rounded-3xl p-5 lg:p-7 shadow-[4px_4px_0px_#000] space-y-5"
+      className="bg-white border-2 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#000] space-y-5"
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 lg:gap-3">
-          <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#FBCFE8] border-2 border-slate-900 flex items-center justify-center">
-            <Package size={16} className="text-slate-900 lg:hidden" />
-            <Package size={20} className="text-slate-900 hidden lg:block" />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-[#FBCFE8] border-2 border-slate-900 flex items-center justify-center">
+            <Package size={16} className="text-slate-900" />
           </div>
-          <h3 className="font-black text-lg lg:text-xl text-slate-900">주문 상품</h3>
+          <h3 className="font-black text-lg text-slate-900">주문 상품</h3>
         </div>
         <span className="text-sm font-bold text-slate-500">{items.length}개</span>
       </div>

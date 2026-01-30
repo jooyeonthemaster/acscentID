@@ -135,6 +135,7 @@ export default function AnalysisPage() {
               <option value="image_analysis">최애 이미지 분석</option>
               <option value="figure_diffuser">피규어 디퓨저</option>
               <option value="personal_scent">퍼스널 센트</option>
+              <option value="graduation">졸업 퍼퓸</option>
             </select>
 
             {/* 서비스 모드 필터 */}

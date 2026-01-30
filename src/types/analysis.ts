@@ -308,4 +308,89 @@ export interface FigureChatState {
 }
 
 
+// ========================================
+// 졸업 향 추천 프로그램 (JOLLDUCK) 타입
+// ========================================
+
+// 졸업 유형
+export type GraduationType = 'elementary' | 'middle' | 'high' | 'university' | 'graduate' | 'other';
+
+// 졸업 유형 라벨
+export const GRADUATION_TYPE_LABELS: Record<GraduationType, string> = {
+  elementary: '초등학교',
+  middle: '중학교',
+  high: '고등학교',
+  university: '대학교',
+  graduate: '대학원',
+  other: '기타'
+};
+
+// 졸업 폼 데이터 타입
+export interface GraduationFormDataType {
+  // 기본 정보
+  name: string;                    // 분석 대상 이름
+  gender: string;                  // 성별
+  graduationType: GraduationType;  // 졸업 유형
+  schoolName?: string;             // 학교명 (선택)
+
+  // 학창 시절의 모습 (과거)
+  pastStyles: string[];            // 학창 시절 스타일
+  pastPersonalities: string[];     // 학창 시절 성격
+  pastMemories: string;            // 학창 시절 기억/추억 (자유 서술)
+
+  // 졸업하는 지금의 모습 (현재)
+  currentFeeling: string;          // 현재 감정 상태
+  currentGrowth: string[];         // 성장한 점들
+  currentAchievements: string;     // 이룬 것들 (자유 서술)
+
+  // 졸업 후의 모습 (미래)
+  futureDreams: string[];          // 미래 꿈/목표
+  futurePersonality: string[];     // 되고 싶은 모습
+  futureWish: string;              // 미래에 대한 바람 (자유 서술)
+
+  // 이미지
+  image: File | null;              // 졸업 사진 또는 현재 사진
+  imagePreview?: string | null;    // 이미지 미리보기 base64
+
+  // 이미지 변환 여부 (선택)
+  transformImage?: boolean;        // 졸업사진 스타일로 변환 여부
+  transformedImageUrl?: string;    // 변환된 이미지 URL
+}
+
+// 시간별 향기 분석
+export interface TimeScentAnalysis {
+  description: string;             // 해당 시간대 향기 설명
+  keywords: string[];              // 키워드
+  noteConnection: string;          // 향 노트와의 연결 설명
+}
+
+// 졸업 분석 데이터
+export interface GraduationAnalysis {
+  pastScent: TimeScentAnalysis;    // 학창 시절의 향기 (탑노트 연결)
+  presentScent: TimeScentAnalysis; // 현재의 향기 (미들노트 연결)
+  futureScent: TimeScentAnalysis;  // 미래의 향기 (베이스노트 연결)
+}
+
+// 시간 여정 스토리
+export interface TimeJourney {
+  storyTitle: string;              // 졸업 향수 스토리 제목
+  storyNarrative: string;          // 과거-현재-미래를 아우르는 감동적인 스토리
+}
+
+// 졸업 메시지
+export interface GraduationMessage {
+  congratulation: string;          // 졸업 축하 메시지
+  encouragement: string;           // 미래를 향한 응원 메시지
+}
+
+// 졸업 분석 결과 (ImageAnalysisResult 확장)
+export interface GraduationAnalysisResult extends ImageAnalysisResult {
+  graduationAnalysis: GraduationAnalysis;
+  timeJourney: TimeJourney;
+  graduationMessage: GraduationMessage;
+  graduationType?: GraduationType;
+  schoolName?: string;
+}
+
+
 

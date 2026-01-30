@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getModel, withTimeout } from '@/lib/gemini/client';
-import { buildGeminiPrompt, buildFigureGeminiPrompt, FigureDataInput } from '@/lib/gemini/prompt-builder';
+import { buildGeminiPrompt, buildFigureGeminiPrompt, buildGraduationGeminiPrompt, FigureDataInput, GraduationFormInput } from '@/lib/gemini/prompt-builder';
 import { parseGeminiResponse } from '@/lib/gemini/response-parser';
 import { AnalyzeRequest, AnalyzeResponse } from '@/types/gemini';
 import { ImageAnalysisResult } from '@/types/analysis';
@@ -103,11 +103,16 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. 요청 파싱
-    const body: AnalyzeRequest & { programType?: string; figureData?: FigureDataInput } = await request.json();
-    const { formData, imageBase64, programType, figureData } = body;
+    const body: AnalyzeRequest & {
+      programType?: string;
+      figureData?: FigureDataInput;
+      graduationData?: GraduationFormInput;
+    } = await request.json();
+    const { formData, imageBase64, programType, figureData, graduationData } = body;
 
-    // 피규어 모드 여부
+    // 프로그램 모드 여부
     const isFigureMode = programType === 'figure';
+    const isGraduationMode = programType === 'graduation';
 
     // 📊 입력 데이터 로깅
     console.log(`\n[${requestId}] 📊 입력 데이터:`);
@@ -131,6 +136,16 @@ export async function POST(request: NextRequest) {
       console.log(`  - [피규어] 색감: ${figureData.colorTone}`);
       console.log(`  - [피규어] 요청사항: ${figureData.figureRequest || '없음'}`);
       console.log(`  - [피규어] 피규어 이미지: ${figureData.figureImageBase64 ? '✅ YES' : '❌ NO'}`);
+    }
+
+    // 졸업 모드 추가 로깅
+    if (isGraduationMode && graduationData) {
+      console.log(`  - [졸업] 이름: ${graduationData.name}`);
+      console.log(`  - [졸업] 졸업 유형: ${graduationData.graduationType}`);
+      console.log(`  - [졸업] 학교명: ${graduationData.schoolName || '(미입력)'}`);
+      console.log(`  - [졸업] 학창시절 스타일: ${graduationData.pastStyles?.join(', ')}`);
+      console.log(`  - [졸업] 현재 감정: ${graduationData.currentFeeling}`);
+      console.log(`  - [졸업] 미래 꿈: ${graduationData.futureDreams?.join(', ')}`);
     }
 
     if (!formData) {
@@ -159,9 +174,12 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
-    // 3. 프롬프트 생성 (피규어 모드 분기)
+    // 3. 프롬프트 생성 (모드별 분기)
     let prompt: string;
-    if (isFigureMode && figureData) {
+    if (isGraduationMode && graduationData) {
+      prompt = buildGraduationGeminiPrompt(graduationData);
+      console.log(`[${requestId}] ✅ 졸업 전용 프롬프트 생성 완료 (${prompt.length} 문자)`);
+    } else if (isFigureMode && figureData) {
       prompt = buildFigureGeminiPrompt(formData, figureData);
       console.log(`[${requestId}] ✅ 피규어 전용 프롬프트 생성 완료 (${prompt.length} 문자)`);
     } else {

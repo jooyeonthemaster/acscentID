@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 const PROGRAM_LINKS = [
   { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
   { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/perfume/graduate.avif', limitedUntil: '2/28' },
 ]
 
 // NavItem 컴포넌트
@@ -108,19 +109,59 @@ function ProgramsSheet({
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className="flex items-center gap-4 p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl hover:border-purple-400 hover:bg-purple-50 transition-all group"
+              className={cn(
+                "flex items-center gap-4 p-4 border-2 rounded-2xl transition-all group",
+                link.limitedUntil
+                  ? "bg-red-50 border-red-200 hover:border-red-400 hover:bg-red-100"
+                  : "bg-slate-50 border-slate-200 hover:border-purple-400 hover:bg-purple-50"
+              )}
             >
-              <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] flex items-center justify-center overflow-hidden group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)] transition-all">
-                <img src={link.image} alt={link.label} className="w-full h-full object-cover" />
+              <div className="relative">
+                <div className={cn(
+                  "w-14 h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center overflow-hidden transition-all",
+                  link.limitedUntil
+                    ? "shadow-[3px_3px_0px_0px_rgba(239,68,68,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(220,38,38,1)]"
+                    : "shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)]"
+                )}>
+                  <img src={link.image} alt={link.label} className="w-full h-full object-cover" />
+                </div>
+                {link.limitedUntil && (
+                  <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-white animate-pulse">
+                    한정
+                  </span>
+                )}
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-slate-900 group-hover:text-purple-700 transition-colors">{link.label}</h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {link.href === '/programs/idol-image' ? '최애의 무드를 향기로 재해석' : '캐릭터의 서사를 담은 향'}
+                <div className="flex items-center gap-2">
+                  <h4 className={cn(
+                    "font-bold transition-colors",
+                    link.limitedUntil
+                      ? "text-red-700 group-hover:text-red-800"
+                      : "text-slate-900 group-hover:text-purple-700"
+                  )}>{link.label}</h4>
+                  {link.limitedUntil && (
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
+                      ~{link.limitedUntil}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5 whitespace-pre-line">
+                  {link.href === '/programs/idol-image' ? '좋아하는 이미지로 추출하는\n나만의 퍼퓸' :
+                   link.href === '/programs/figure' ? '좋아하는 이미지로 제작되는\n나만의 피규어 디퓨저' :
+                   '졸업의 추억을 향기로\n특별한 졸업 기념 퍼퓸'}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center group-hover:border-purple-400 group-hover:bg-purple-100 transition-all">
-                <ChevronRight size={16} className="text-slate-400 group-hover:text-purple-600" />
+              <div className={cn(
+                "w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center transition-all",
+                link.limitedUntil
+                  ? "border-red-200 group-hover:border-red-400 group-hover:bg-red-100"
+                  : "border-slate-200 group-hover:border-purple-400 group-hover:bg-purple-100"
+              )}>
+                <ChevronRight size={16} className={cn(
+                  link.limitedUntil
+                    ? "text-red-400 group-hover:text-red-600"
+                    : "text-slate-400 group-hover:text-purple-600"
+                )} />
               </div>
             </Link>
           ))}
@@ -144,7 +185,8 @@ export function MobileBottomNav() {
   // 프로그램 상세 페이지인지 확인
   const isIdolImagePage = pathname === '/programs/idol-image'
   const isFigurePage = pathname === '/programs/figure'
-  const isProgramDetailPage = isIdolImagePage || isFigurePage
+  const isGraduationPage = pathname === '/programs/graduation'
+  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage
 
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
@@ -210,6 +252,12 @@ export function MobileBottomNav() {
       } else {
         setShowAuthModal(true)
       }
+    } else if (isGraduationPage) {
+      if (currentUser) {
+        startTransition('/input?type=graduation&mode=online')
+      } else {
+        setShowAuthModal(true)
+      }
     }
   }
 
@@ -217,6 +265,7 @@ export function MobileBottomNav() {
   const getProgramCTAText = () => {
     if (isIdolImagePage) return '지금 바로 분석하기'
     if (isFigurePage) return '지금 바로 분석하기'
+    if (isGraduationPage) return '지금 바로 분석하기'
     return '시작하기'
   }
 
@@ -359,7 +408,8 @@ export function MobileBottomNav() {
         redirectPath={
           isIdolImagePage ? '/input?type=idol_image&mode=online' :
             isFigurePage ? '/input?type=figure&mode=online' :
-              '/mypage'
+              isGraduationPage ? '/input?type=graduation&mode=online' :
+                '/mypage'
         }
       />
     </>

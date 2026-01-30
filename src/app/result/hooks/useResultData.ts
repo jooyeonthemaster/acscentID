@@ -63,6 +63,11 @@ export const useResultData = () => {
               setServiceMode(dbResult.serviceMode)
             }
 
+            // DB에서 product_type 설정 (graduation, figure_diffuser, image_analysis 등)
+            if (dbResult.productType) {
+              setProductType(dbResult.productType)
+            }
+
             setLoading(false)
             setTimeout(() => setIsLoaded(true), 100)
             return
@@ -191,6 +196,8 @@ export const useResultData = () => {
     modelingRequest,
     productType,
     isFigureOnlineMode: productType === 'figure_diffuser',
+    // 졸업 모드
+    isGraduationMode: productType === 'graduation',
     // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
     serviceMode
   }

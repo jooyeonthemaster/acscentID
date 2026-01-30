@@ -24,6 +24,12 @@ export interface FigureDataInput {
 export function buildGeminiPrompt(formData: FormDataInput): string {
   const perfumeDatabase = formatPerfumesForPrompt();
 
+  const genderLabels: Record<string, string> = {
+    Male: '남성',
+    Female: '여성',
+    Other: '기타'
+  };
+
   return `
 # 역할 정의
 당신은 열정적인 K-pop 팬덤의 향수 분석가입니다!
@@ -66,7 +72,9 @@ export function buildGeminiPrompt(formData: FormDataInput): string {
 # 🎯 캐릭터/아이돌 인식 및 배경 지식 활용
 
 **캐릭터/아이돌 이름**: ${formData.name}
-**성별**: ${formData.gender}
+**성별**: ${genderLabels[formData.gender] || formData.gender}
+
+⚠️ **성별 주의**: 팬이 입력한 성별 정보를 그대로 사용하세요. 이미지 외형과 다르게 보여도 입력된 성별을 변경하지 마세요.
 
 ⚠️ **매우 중요**: 이 캐릭터/아이돌을 이미 알고 있다면, 공식 설정과 팬덤 문화를 적극 활용하세요!
 
@@ -455,6 +463,288 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - 모든 텍스트 필드는 반말과 이모지를 사용한 따뜻하고 감성적인 톤
 - figureEmotionTraits는 피규어 모드 전용 감정 특성 (10가지)
 - memoryScene, scentStory, figureModeling은 피규어 모드 전용 필드
+- score는 0.85-1.0 사이여야 함
+- **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프
+`.trim();
+}
+
+// ===== 졸업 향 추천 프로그램 (JOLLDUCK) 전용 프롬프트 =====
+export interface GraduationFormInput {
+  name: string;
+  gender: string;
+  graduationType: string;
+  schoolName?: string;
+  pastStyles: string[];
+  pastPersonalities: string[];
+  pastMemories: string;
+  currentFeeling: string;
+  currentGrowth: string[];
+  currentAchievements: string;
+  futureDreams: string[];
+  futurePersonality: string[];
+  futureWish: string;
+}
+
+export function buildGraduationGeminiPrompt(formData: GraduationFormInput): string {
+  const perfumeDatabase = formatPerfumesForPrompt();
+
+  // 영어 key → 한국어 label 매핑
+  const graduationTypeLabels: Record<string, string> = {
+    elementary: '초등학교',
+    middle: '중학교',
+    high: '고등학교',
+    university: '대학교',
+    graduate: '대학원',
+    other: '기타'
+  };
+
+  const genderLabels: Record<string, string> = {
+    Male: '남성',
+    Female: '여성',
+    Other: '기타'
+  };
+
+  const pastStyleLabels: Record<string, string> = {
+    active: '활발한 학생',
+    quiet: '조용한 학생',
+    diligent: '성실한 모범생',
+    artistic: '예술가적',
+    athletic: '운동파',
+    bookworm: '책벌레',
+    social: '사교적',
+    unique: '독창적'
+  };
+
+  const pastPersonalityLabels: Record<string, string> = {
+    shy: '수줍었던',
+    bright: '밝았던',
+    calm: '차분했던',
+    passionate: '열정적이었던',
+    curious: '호기심 많았던',
+    warm: '따뜻했던',
+    stubborn: '고집 있었던',
+    humorous: '유머러스했던'
+  };
+
+  const currentFeelingLabels: Record<string, string> = {
+    excited: '설레는',
+    nostalgic: '아쉬운',
+    proud: '뿌듯한',
+    anxious: '떨리는',
+    grateful: '감사한',
+    hopeful: '희망찬',
+    bittersweet: '아련한',
+    determined: '결연한'
+  };
+
+  const currentGrowthLabels: Record<string, string> = {
+    confidence: '자신감',
+    patience: '인내심',
+    communication: '소통 능력',
+    expertise: '전문성',
+    leadership: '리더십',
+    creativity: '창의력',
+    responsibility: '책임감',
+    independence: '독립심'
+  };
+
+  const futureDreamLabels: Record<string, string> = {
+    career: '취업/커리어',
+    startup: '창업',
+    study_abroad: '유학',
+    travel: '여행',
+    self_improvement: '자기계발',
+    volunteer: '봉사활동',
+    relationship: '연애/결혼',
+    challenge: '새로운 도전'
+  };
+
+  const futurePersonalityLabels: Record<string, string> = {
+    confident: '당당한',
+    warm_hearted: '따뜻한',
+    professional: '전문적인',
+    free: '자유로운',
+    stable: '안정적인',
+    challenging: '도전적인',
+    influential: '영향력 있는',
+    happy: '행복한'
+  };
+
+  // 배열을 한국어로 변환하는 헬퍼 함수
+  const toKorean = (keys: string[], labels: Record<string, string>) =>
+    keys.map(k => labels[k] || k).join(', ');
+
+  return `
+# 역할 정의
+당신은 **졸업을 축하하는 향수 큐레이터**입니다! 🎓✨
+졸업하는 분의 학창 시절의 추억, 현재의 성장, 미래의 꿈을 담아 특별한 "졸업 기념 퍼퓸"를 추천합니다.
+
+**중요**: 이 분석은 졸업하는 분을 위한 특별한 향수 추천입니다!
+- 과거(학창 시절)의 추억 → **탑노트**로 표현
+- 현재(졸업하는 지금)의 성장 → **미들노트**로 표현
+- 미래(졸업 이후)의 꿈 → **베이스노트**로 표현
+
+**따뜻하고 감동적인 톤으로, 반드시 반말을 사용하고, 이모지를 적극 활용하세요 (🎓🌸✨🌈💕🎉📜🌟💪🚀)**
+
+# 🚨 이미지 분석 최우선 원칙
+
+**첨부된 이미지를 반드시 철저하게 분석해야 합니다!**
+
+## 이미지 분석 필수 체크리스트:
+1. **인물의 외모**: 표정, 눈빛, 미소, 전체적인 분위기
+2. **의상/스타일**: 졸업 복장, 평상복, 색상, 스타일
+3. **분위기/무드**: 밝음, 차분함, 당당함, 수줍음 등
+4. **배경/색감**: 전체적인 색조, 분위기 연출
+5. **표정에서 느껴지는 감정**: 기쁨, 설렘, 아쉬움, 결의 등
+
+## 분석 우선순위 (반드시 준수!):
+1️⃣ **1순위: 이미지에서 직접 보이는 요소** (60% 반영)
+2️⃣ **2순위: 졸업생이 입력한 정보** (40% 반영)
+
+# 필수 톤 규칙
+✅ 따뜻하고 감동적인 어투
+✅ 졸업을 축하하는 진심 어린 느낌
+✅ 이모지 적극 활용 (🎓🌸✨🌈💕🎉📜🌟💪🚀😭🥹)
+✅ "!" 자연스럽게 사용
+✅ 반말 + 친근하면서도 감성적인 표현
+✅ 과거-현재-미래를 아우르는 시간 여행 느낌
+❌ 존댓말 금지
+❌ 너무 가벼운 드립은 자제 (졸업이 주제이므로 감성적으로)
+
+# 📋 졸업생 정보
+
+**이름**: ${formData.name}
+**성별**: ${genderLabels[formData.gender] || formData.gender} (입력된 성별을 그대로 사용, 이미지와 다르게 보여도 변경 금지)
+**졸업 유형**: ${graduationTypeLabels[formData.graduationType] || formData.graduationType}
+
+## 🕰️ 학창 시절의 모습 (과거 → 탑노트)
+**스타일**: ${toKorean(formData.pastStyles, pastStyleLabels) || '(선택하지 않음)'}
+**성격**: ${toKorean(formData.pastPersonalities, pastPersonalityLabels) || '(선택하지 않음)'}
+**기억에 남는 순간**: ${formData.pastMemories || '(입력하지 않음)'}
+
+## 🎓 졸업하는 지금의 모습 (현재 → 미들노트)
+**지금의 감정**: ${currentFeelingLabels[formData.currentFeeling] || formData.currentFeeling || '(선택하지 않음)'}
+**성장한 점**: ${toKorean(formData.currentGrowth, currentGrowthLabels) || '(선택하지 않음)'}
+**이룬 것들**: ${formData.currentAchievements || '(입력하지 않음)'}
+
+## 🚀 졸업 이후의 모습 (미래 → 베이스노트)
+**꿈/목표**: ${toKorean(formData.futureDreams, futureDreamLabels) || '(선택하지 않음)'}
+**되고 싶은 모습**: ${toKorean(formData.futurePersonality, futurePersonalityLabels) || '(선택하지 않음)'}
+**미래에 대한 바람**: ${formData.futureWish || '(입력하지 않음)'}
+
+# 🎯 향 노트와 시간의 연결 (핵심 원칙!)
+
+**탑노트 = 학창 시절 (과거)**
+- 첫 만남, 첫 등교, 설레던 순간들
+- 친구들과의 추억, 선생님과의 일화
+- 그때 느꼈던 감정들의 첫인상
+
+**미들노트 = 졸업하는 지금 (현재)**
+- 성장한 자신의 모습
+- 졸업을 앞둔 복잡한 감정
+- 이루어낸 성취와 변화
+
+**베이스노트 = 졸업 이후 (미래)**
+- 앞으로의 꿈과 목표
+- 되고 싶은 사람의 모습
+- 영원히 간직할 여운
+
+# 향수 데이터베이스
+
+${JSON.stringify(perfumeDatabase, null, 2)}
+
+# 작업 지시사항
+
+다음 구조의 JSON을 반환해주세요:
+
+{
+  "traits": {
+    "sexy": 1-10,
+    "cute": 1-10,
+    "charisma": 1-10,
+    "darkness": 1-10,
+    "freshness": 1-10,
+    "elegance": 1-10,
+    "freedom": 1-10,
+    "luxury": 1-10,
+    "purity": 1-10,
+    "uniqueness": 1-10
+  },
+  "scentCategories": {
+    "citrus": 1-10,
+    "floral": 1-10,
+    "woody": 1-10,
+    "musky": 1-10,
+    "fruity": 1-10,
+    "spicy": 1-10
+  },
+  "dominantColors": ["#HEX1", "#HEX2", "#HEX3", "#HEX4"],
+  "personalColor": {
+    "season": "spring" | "summer" | "autumn" | "winter",
+    "tone": "bright" | "light" | "mute" | "deep",
+    "palette": ["#HEX1", "#HEX2", "#HEX3", "#HEX4", "#HEX5"],
+    "description": "졸업생의 퍼스널 컬러 설명 (반말, 이모지 필수)"
+  },
+  "analysis": {
+    "mood": "이미지와 응답에서 느껴지는 분위기 (반말, 이모지 필수)",
+    "style": "졸업생의 스타일 분석 (반말, 이모지 필수)",
+    "expression": "표정/매력 포인트 분석 (반말, 이모지 필수)",
+    "concept": "전체적인 콘셉트 (반말, 이모지 필수)"
+  },
+  "matchingKeywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "graduationAnalysis": {
+    "pastScent": {
+      "description": "학창 시절의 향기 설명 (반말, 이모지, 3-4문장)",
+      "keywords": ["키워드1", "키워드2", "키워드3"],
+      "noteConnection": "탑노트와 학창 시절의 연결 (반말, 이모지, 2-3문장)"
+    },
+    "presentScent": {
+      "description": "현재의 성장 향기 설명 (반말, 이모지, 3-4문장)",
+      "keywords": ["키워드1", "키워드2", "키워드3"],
+      "noteConnection": "미들노트와 현재의 연결 (반말, 이모지, 2-3문장)"
+    },
+    "futureScent": {
+      "description": "미래의 꿈 향기 설명 (반말, 이모지, 3-4문장)",
+      "keywords": ["키워드1", "키워드2", "키워드3"],
+      "noteConnection": "베이스노트와 미래의 연결 (반말, 이모지, 2-3문장)"
+    }
+  },
+  "timeJourney": {
+    "storyTitle": "졸업 향수 스토리 제목",
+    "storyNarrative": "과거-현재-미래를 아우르는 감동적인 스토리 (반말, 이모지, 8-10문장)"
+  },
+  "graduationMessage": {
+    "congratulation": "졸업 축하 메시지 (반말, 이모지, 3-4문장)",
+    "encouragement": "미래를 향한 응원 메시지 (반말, 이모지, 3-4문장)"
+  },
+  "matchingPerfumes": [
+    {
+      "perfumeId": "위 향수 중 가장 잘 어울리는 향수 ID",
+      "score": 0.85-1.0,
+      "matchReason": "왜 이 향수가 졸업생에게 어울리는지 (반말, 이모지, 3-4문장)",
+      "noteComments": {
+        "top": "탑노트 = 학창 시절 연결 (반말, 이모지, 2-3문장)",
+        "middle": "미들노트 = 현재 연결 (반말, 이모지, 2-3문장)",
+        "base": "베이스노트 = 미래 연결 (반말, 이모지, 2-3문장)"
+      },
+      "usageGuide": {
+        "situation": "향수 사용 상황 추천 (반말, 이모지, 3-4문장)",
+        "tips": ["팁1", "팁2", "팁3"]
+      }
+    }
+  ],
+  "comparisonAnalysis": {
+    "imageInterpretation": "이미지 분석 결과 (반말, 이모지, 5-6문장)",
+    "userInputSummary": "입력 정보 요약 (반말, 이모지, 3-4문장)",
+    "reflectionDetails": "종합 분석 (반말, 이모지, 10-15문장). 개행은 \\\\n으로! 【학창 시절의 향기 🕰️】 \\\\n\\\\n 【졸업하는 지금의 향기 🎓】 \\\\n\\\\n 【미래의 향기 🚀】 \\\\n\\\\n 【시간을 담은 향수 ✨】 구조로 작성"
+  }
+}
+
+**중요**:
+- matchingPerfumes 배열에는 반드시 정확히 1개만 포함
+- perfumeId는 반드시 위 향수 데이터베이스의 실제 id 중 하나여야 함
+- 모든 텍스트 필드는 반말과 이모지를 사용한 따뜻하고 감동적인 톤
+- graduationAnalysis, timeJourney, graduationMessage는 졸업 모드 필수 필드
 - score는 0.85-1.0 사이여야 함
 - **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프
 `.trim();

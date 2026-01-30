@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RotateCcw, Share2, MessageSquarePlus, History, CheckCircle2, Loader2, ShoppingCart } from 'lucide-react'
+import { CheckCircle2, Loader2 } from 'lucide-react'
 
 // Hooks
 import { useResultData } from '../hooks/useResultData'
@@ -27,6 +27,8 @@ import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
 // 피규어 모드 컴포넌트
 import { MemoryTab, FigureTab } from './figure'
+// 졸업 모드 컴포넌트
+import { GraduationTab } from './graduation'
 
 // 애니메이션 variants
 const fadeInUp = {
@@ -60,8 +62,8 @@ export default function ResultPageMain() {
   // 뒤로가기 경로 결정 (마이페이지에서 왔으면 마이페이지로)
   const fromPage = searchParams.get('from')
   const backHref = fromPage === 'mypage' ? '/mypage' : '/'
-  // 탭 타입 (피규어 모드 포함)
-  type TabType = 'analysis' | 'perfume' | 'comparison' | 'memory' | 'figure'
+  // 탭 타입 (피규어 모드, 졸업 모드 포함)
+  type TabType = 'analysis' | 'perfume' | 'comparison' | 'memory' | 'figure' | 'graduation'
   const [activeTab, setActiveTab] = useState<TabType>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
@@ -87,6 +89,8 @@ export default function ResultPageMain() {
     modelingRequest,
     productType,
     isFigureOnlineMode,
+    // 졸업 모드
+    isGraduationMode,
     // 서비스 모드 (DB 또는 localStorage에서 로드)
     serviceMode: loadedServiceMode
   } = useResultData()
@@ -100,6 +104,13 @@ export default function ResultPageMain() {
       setActiveTab('memory')
     }
   }, [isFigureMode])
+
+  // 졸업 모드일 때 기본 탭을 'perfume'으로 설정 (추천 향수 먼저 표시)
+  useEffect(() => {
+    if (isGraduationMode) {
+      setActiveTab('perfume')
+    }
+  }, [isGraduationMode])
 
 
   // 자동 저장 훅 (authLoading이 완료된 후에만 저장 시작)
@@ -133,11 +144,12 @@ export default function ResultPageMain() {
 
   // 바로 구매하기 - productType 정보 저장 후 결제 페이지로 이동
   const handleCheckout = useCallback(() => {
-    // 피규어 모드 여부에 따라 productType 저장
-    const currentProductType = isFigureMode ? 'figure_diffuser' : 'image_analysis'
+    // productType이 이미 설정되어 있으면 그것을 사용 (피규어 온라인, 졸업 등)
+    // 아니면 피규어 모드 여부에 따라 결정
+    const currentProductType = productType || (isFigureMode ? 'figure_diffuser' : 'image_analysis')
     localStorage.setItem('checkoutProductType', currentProductType)
     router.push('/checkout')
-  }, [isFigureMode, router])
+  }, [isFigureMode, productType, router])
 
   // 장바구니 담기
   const handleAddToCart = useCallback(async () => {
@@ -157,17 +169,33 @@ export default function ResultPageMain() {
       const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
       const analysisId = savedResultId || existingResultId || `temp-${Date.now()}`
 
+      // productType에 따른 상품 정보 결정
+      const currentProductType = productType || (isFigureMode ? 'figure_diffuser' : 'image_analysis')
+      let cartSize: string
+      let cartPrice: number
+
+      if (currentProductType === 'figure_diffuser') {
+        cartSize = 'set'
+        cartPrice = 48000
+      } else if (currentProductType === 'graduation') {
+        cartSize = '10ml'
+        cartPrice = 34000
+      } else {
+        cartSize = '50ml'
+        cartPrice = 48000
+      }
+
       const response = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           analysis_id: analysisId,
-          product_type: isFigureMode ? 'figure_diffuser' : 'image_analysis',
+          product_type: currentProductType,
           perfume_name: perfumeName,
           perfume_brand: perfumeBrand,
           twitter_name: twitterName,
-          size: isFigureMode ? 'set' : '50ml',
-          price: isFigureMode ? 48000 : 48000,
+          size: cartSize,
+          price: cartPrice,
           image_url: userImage,
           analysis_data: displayedAnalysis
         })
@@ -187,7 +215,7 @@ export default function ResultPageMain() {
     } finally {
       setIsAddingToCart(false)
     }
-  }, [displayedAnalysis, isAddingToCart, user, unifiedUser, savedResultId, existingResultId, isFigureMode, twitterName, userImage, router, setShowLoginPrompt])
+  }, [displayedAnalysis, isAddingToCart, user, unifiedUser, savedResultId, existingResultId, isFigureMode, productType, twitterName, userImage, router, setShowLoginPrompt])
 
   // 결과 저장 및 공유 URL 생성
   const handleShare = useCallback(async () => {
@@ -333,146 +361,18 @@ export default function ResultPageMain() {
         backHref={backHref}
       />
 
-      {/* 메인 콘텐츠 */}
-      <main className="relative z-10 flex-1 px-5 pt-28 pb-6 overflow-y-auto lg:px-8 lg:pt-24 xl:px-12">
+      {/* 메인 콘텐츠 - 455px 고정 */}
+      <main className="relative z-10 flex-1 pt-28 pb-6 overflow-y-auto">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="w-full max-w-full px-1 sm:max-w-[420px] sm:px-0 md:max-w-[380px] mx-auto flex flex-col gap-5 lg:max-w-none lg:gap-6"
+          className="w-full max-w-[455px] mx-auto px-4 flex flex-col gap-5"
         >
           {displayedAnalysis && (
             <>
-              {/* ========== PC 레이아웃: 좌/우 컬럼 컨테이너 ========== */}
-              <div className="hidden lg:block">
-                {/* 좌측 사이드바 (fixed) - 블로그 프로필 스타일 - 30% 축소 */}
-                <div className="fixed top-36 left-8 xl:left-12 w-[200px] xl:w-[220px] pr-2 flex flex-col gap-3 z-20 max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-hide">
-                  {/* 사용자 이미지 + 트위터 이름 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-xl p-3 space-y-3 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
-                  {userImage && (
-                    <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-slate-100 border-2 border-slate-200">
-                      <img
-                        src={userImage}
-                        alt="업로드한 이미지"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                  <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} isCompact={true} />
-                </motion.div>
-
-                {/* 액션 버튼 - PC 키치 스타일 - 30% 축소 */}
-                <motion.div variants={fadeInUp} className="flex flex-col gap-2">
-                  <Button
-                    onClick={handleShare}
-                    disabled={isSaving}
-                    className="w-full h-9 bg-yellow-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
-                  >
-                    <Share2 size={14} />
-                    <span>{isSaving ? '저장 중...' : '결과 공유하기'}</span>
-                  </Button>
-                  {serviceMode === 'online' ? (
-                    // 온라인 모드: 장바구니 담기 + 구매하기 버튼
-                    <div className="flex flex-col gap-1.5">
-                      <Button
-                        onClick={handleAddToCart}
-                        disabled={isAddingToCart}
-                        className="w-full h-8 bg-emerald-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
-                      >
-                        <ShoppingCart size={14} />
-                        <span>{isAddingToCart ? '담는 중...' : '장바구니 담기'}</span>
-                      </Button>
-                      <Button
-                        onClick={handleCheckout}
-                        className="w-full h-8 bg-amber-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
-                      >
-                        <span>바로 구매하기</span>
-                      </Button>
-                    </div>
-                  ) : (
-                    // 오프라인 모드: 피드백 버튼
-                    <div className="flex gap-1.5">
-                      <Button
-                        onClick={() => setIsFeedbackModalOpen(true)}
-                        className="flex-1 h-8 bg-pink-400 text-slate-900 rounded-lg font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1"
-                      >
-                        <MessageSquarePlus size={12} />
-                        <span>피드백</span>
-                      </Button>
-                      <Button
-                        onClick={() => setIsFeedbackHistoryOpen(true)}
-                        variant="outline"
-                        className="h-8 px-2 border-2 border-slate-900 bg-white text-slate-900 rounded-lg font-bold shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center"
-                      >
-                        <History size={12} />
-                      </Button>
-                    </div>
-                  )}
-                  <Button
-                    variant="outline"
-                    onClick={handleRestart}
-                    className="w-full h-7 border-2 border-slate-900 bg-white text-slate-900 rounded-lg font-bold text-xs shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <RotateCcw size={12} />
-                    <span>다시 시작</span>
-                  </Button>
-                </motion.div>
-
-                {/* 푸터 - PC */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2, duration: 1 }}
-                  className="text-left pt-2"
-                >
-                  <span className="text-[9px] font-semibold text-slate-400/80 tracking-[0.3em] uppercase">
-                    © 2025 Ac&apos;scent Identity
-                  </span>
-                </motion.div>
-                </div>
-
-                {/* 우측 상단 고정 탭 네비게이션 */}
-                <div className="fixed top-36 left-[252px] xl:left-[276px] right-8 xl:right-12 z-30">
-                  <motion.div variants={fadeInUp} className="bg-[#FEF9C3] rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#000] overflow-hidden">
-                    <TabNavigation
-                      activeTab={activeTab}
-                      onTabChange={setActiveTab}
-                      isDesktop={true}
-                      isFigureMode={isFigureMode}
-                    />
-                  </motion.div>
-                </div>
-
-                {/* 우측 메인 콘텐츠 영역 - 스크롤 가능한 컨테이너 */}
-                <div className="fixed top-[13rem] left-[252px] xl:left-[276px] right-8 xl:right-12 bottom-8 z-10 overflow-y-auto scrollbar-hide">
-                  {/* 콘텐츠 - PC 키치 스타일 */}
-                  <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                    <div className="p-6 xl:p-8">
-                      <AnimatePresence mode="wait">
-                        {activeTab === 'analysis' && (
-                          <AnalysisTab key="analysis" displayedAnalysis={displayedAnalysis} isDesktop={true} />
-                        )}
-                        {activeTab === 'perfume' && (
-                          <PerfumeTab key="perfume" displayedAnalysis={displayedAnalysis} isDesktop={true} />
-                        )}
-                        {activeTab === 'comparison' && !isFigureMode && (
-                          <ComparisonTab key="comparison" displayedAnalysis={displayedAnalysis} isDesktop={true} />
-                        )}
-                        {/* 피규어 모드 전용 탭 */}
-                        {activeTab === 'memory' && isFigureMode && (
-                          <MemoryTab key="memory" displayedAnalysis={displayedAnalysis} memoryImage={userImage || undefined} isDesktop={true} />
-                        )}
-                        {activeTab === 'figure' && isFigureMode && (
-                          <FigureTab key="figure" displayedAnalysis={displayedAnalysis} figureImage={figureImage || undefined} isDesktop={true} />
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* ========== 모바일 레이아웃 - 키치 스타일 ========== */}
-              <div className="lg:hidden flex flex-col gap-5 w-full">
+              {/* ========== 455px 고정 레이아웃 ========== */}
+              <div className="flex flex-col gap-5 w-full">
                 {/* 타이틀 섹션 - 모바일 키치 스타일 */}
                 <motion.div variants={fadeInUp} className="text-center pt-2">
                   <div className="flex items-center justify-center gap-2 mb-3">
@@ -493,7 +393,14 @@ export default function ResultPageMain() {
                     )}
                   </div>
                   <h1 className="text-2xl font-black text-slate-900 leading-tight">
-                    {isFigureMode ? (
+                    {isGraduationMode ? (
+                      <>
+                        졸업을 축하해요!<br />
+                        <span className="text-amber-500">
+                          특별한 향기를 담았어요 🎓
+                        </span>
+                      </>
+                    ) : isFigureMode ? (
                       <>
                         기억을 향기로<br />
                         <span className="text-pink-500">
@@ -532,6 +439,7 @@ export default function ResultPageMain() {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     isFigureMode={isFigureMode}
+                    isGraduationMode={isGraduationMode}
                   />
 
                   <div className="p-5">
@@ -551,6 +459,10 @@ export default function ResultPageMain() {
                       )}
                       {activeTab === 'figure' && isFigureMode && (
                         <FigureTab key="figure" displayedAnalysis={displayedAnalysis} figureImage={figureImage || undefined} />
+                      )}
+                      {/* 졸업 모드 전용 탭 */}
+                      {activeTab === 'graduation' && isGraduationMode && (
+                        <GraduationTab key="graduation" displayedAnalysis={displayedAnalysis as any} userName={userInfo?.name} />
                       )}
                     </AnimatePresence>
                   </div>
