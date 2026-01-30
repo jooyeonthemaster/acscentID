@@ -73,15 +73,15 @@ export const DEFAULT_SHIPPING_FEE = 3000
 
 export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   image_analysis: [
-    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
-    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: 24000, label: '10ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '50ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   figure_diffuser: [
     { size: 'set', price: 48000, label: '피규어+디퓨저 세트', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   personal_scent: [
-    { size: '10ml', price: 24000, label: '스프레이 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
-    { size: '50ml', price: 48000, label: '스프레이 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: 24000, label: '10ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '50ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   graduation: [
     { size: '10ml', price: 34000, label: '졸업 퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
