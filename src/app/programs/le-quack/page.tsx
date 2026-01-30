@@ -116,7 +116,7 @@ export default function LeQuackPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
                   src={productImages[selectedImage]}
-                  alt="LE QUACK"
+                  alt="SIGNATURE 뿌덕퍼퓸"
                   className="w-full h-full object-cover"
                 />
               </div>

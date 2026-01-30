@@ -87,7 +87,7 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: '10ml', price: 34000, label: '졸업 퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   signature: [
-    { size: '10ml', price: 34000, label: 'LE QUACK 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
 }
 

@@ -272,7 +272,7 @@ export default function Home() {
                     <div className="relative w-full h-full grayscale-[0.3]">
                       <Image
                         src="/images/perfume/LE QUACK.avif"
-                        alt="LE QUACK"
+                        alt="SIGNATURE 뿌덕퍼퓸"
                         fill
                         className="object-cover blur-sm"
                       />
@@ -291,7 +291,7 @@ export default function Home() {
                 </div>
                 <div className="mt-2 px-1 opacity-50">
                   <h3 className="font-bold text-slate-900 text-sm truncate">
-                    LE QUACK
+                    SIGNATURE 뿌덕퍼퓸
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
                     시그니처 퍼퓸 + 오리 키링
