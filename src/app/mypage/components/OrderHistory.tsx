@@ -16,7 +16,10 @@ import {
   XCircle,
   Ban,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  Phone,
+  Mail,
+  Headphones
 } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { RecipeModal } from './RecipeModal'
@@ -513,6 +516,60 @@ function CancelConfirmDialog({
   )
 }
 
+// 고객센터 바로가기 배너
+function CustomerServiceBanner() {
+  return (
+    <div className="bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] border-2 border-slate-900 rounded-2xl p-4 mb-4 shadow-[4px_4px_0px_#000]">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-slate-900 shadow-[2px_2px_0px_#000]">
+          <Headphones size={20} className="text-slate-900" />
+        </div>
+        <div>
+          <h3 className="font-black text-slate-900">고객센터</h3>
+          <p className="text-xs text-slate-600 font-bold">모든 문의사항은 아래로 연락주세요!</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {/* 전화번호 */}
+        <a
+          href="tel:02-336-3368"
+          className="flex items-center gap-3 bg-white border-2 border-slate-900 rounded-xl px-3 py-2.5 hover:shadow-[2px_2px_0px_#000] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        >
+          <div className="w-8 h-8 bg-[#A7F3D0] rounded-lg flex items-center justify-center border border-slate-900">
+            <Phone size={16} className="text-slate-900" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-slate-900">02-336-3368</p>
+            <p className="text-[10px] text-slate-500 font-bold">탭하여 전화걸기</p>
+          </div>
+        </a>
+
+        {/* 이메일 */}
+        <a
+          href="mailto:nadr110619@gmail.com"
+          className="flex items-center gap-3 bg-white border-2 border-slate-900 rounded-xl px-3 py-2.5 hover:shadow-[2px_2px_0px_#000] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        >
+          <div className="w-8 h-8 bg-[#BFDBFE] rounded-lg flex items-center justify-center border border-slate-900">
+            <Mail size={16} className="text-slate-900" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-slate-900 text-sm">nadr110619@gmail.com</p>
+            <p className="text-[10px] text-slate-500 font-bold">탭하여 이메일 보내기</p>
+          </div>
+        </a>
+      </div>
+
+      {/* 운영시간 안내 */}
+      <div className="mt-3 bg-white/60 rounded-lg px-3 py-2 border border-slate-300">
+        <p className="text-xs text-slate-600 font-bold text-center">
+          <span className="text-slate-900">상담 운영시간</span> · 오후 1시 ~ 6시 (평일)
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function OrderHistory({ orders, loading, viewMode, onOrderUpdate }: OrderHistoryProps) {
   if (loading) {
     return (
@@ -525,31 +582,37 @@ export function OrderHistory({ orders, loading, viewMode, onOrderUpdate }: Order
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-20">
-        <div className="w-20 h-20 bg-[#FEF9C3] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
-          <Package size={32} className="text-slate-500" />
+      <div>
+        <CustomerServiceBanner />
+        <div className="text-center py-20">
+          <div className="w-20 h-20 bg-[#FEF9C3] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
+            <Package size={32} className="text-slate-500" />
+          </div>
+          <h3 className="text-xl font-black text-slate-900 mb-2">주문 내역이 없습니다</h3>
+          <p className="text-slate-500 font-bold">아직 주문한 향수가 없어요.</p>
         </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2">주문 내역이 없습니다</h3>
-        <p className="text-slate-500 font-bold">아직 주문한 향수가 없어요.</p>
       </div>
     )
   }
 
   return (
-    <div className={viewMode === 'grid'
-      ? 'space-y-4'
-      : 'space-y-3'
-    }>
-      <AnimatePresence mode="popLayout">
-        {orders.map((order) => (
-          <OrderCard
-            key={order.id}
-            order={order}
-            viewMode={viewMode}
-            onOrderUpdate={onOrderUpdate}
-          />
-        ))}
-      </AnimatePresence>
+    <div>
+      <CustomerServiceBanner />
+      <div className={viewMode === 'grid'
+        ? 'space-y-4'
+        : 'space-y-3'
+      }>
+        <AnimatePresence mode="popLayout">
+          {orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              viewMode={viewMode}
+              onOrderUpdate={onOrderUpdate}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
