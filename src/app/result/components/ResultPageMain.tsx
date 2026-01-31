@@ -132,7 +132,9 @@ export default function ResultPageMain() {
     // 피규어 온라인 모드 전용
     modelingImage,
     modelingRequest,
-    productType
+    productType,
+    // 오프라인 모드 인증 번호
+    pin: userInfo?.pin || null
   })
 
   const handleRestart = () => {

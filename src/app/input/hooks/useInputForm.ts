@@ -27,7 +27,9 @@ export function useInputForm() {
     const router = useRouter()
     const { showToast } = useToast()
     const type = searchParams.get("type")
-    const mode = searchParams.get("mode") // "online" | null (오프라인)
+    const mode = searchParams.get("mode") // "online" | "qr" | null
+    const serviceMode = searchParams.get("service_mode") // QR 리다이렉트에서 사용: "online" | "offline"
+    const qrCode = searchParams.get("qr_code") // QR 코드 ID
     const from = searchParams.get("from") // "hero" - 히어로 섹션에서 이미지 업로드 후 이동
 
     const [currentStep, setCurrentStep] = useState(1)
@@ -44,8 +46,13 @@ export function useInputForm() {
     const [isModelingCompressing, setIsModelingCompressing] = useState(false)
 
     const isIdol = type === "idol_image" || type === "figure"
-    const isOnline = mode === "online"
+    const isGraduation = type === "graduation"
+    // 온라인 모드 판단: mode=online이거나 service_mode=online (QR 리다이렉트)
+    // mode=qr 또는 service_mode=offline이면 오프라인
+    const isOnline = mode === "online" || (serviceMode === "online" && mode !== "qr")
+    const isOffline = mode === "qr" || serviceMode === "offline" || (!isOnline && qrCode)
     const isFigureOnline = type === "figure" && isOnline
+    const isGraduationOnline = isGraduation && isOnline
 
     // 히어로 섹션에서 업로드된 이미지 불러오기
     useEffect(() => {
@@ -222,7 +229,9 @@ export function useInputForm() {
                         personalities: formData.personalities,
                         customPersonality: formData.customPersonality,
                         charmPoints: formData.charmPoints,
-                        customCharm: formData.customCharm
+                        customCharm: formData.customCharm,
+                        // 오프라인 모드에서만 pin 포함
+                        ...(isOffline && { pin: formData.pin })
                     },
                     imageBase64: imagePreview,
                     // 피규어 온라인 모드 전용 데이터
@@ -239,10 +248,27 @@ export function useInputForm() {
             // 공통 저장 로직
             const saveToLocalStorage = (data: unknown) => {
                 localStorage.removeItem('savedResultId')
-                localStorage.setItem('serviceMode', mode === 'online' ? 'online' : 'offline')
+
+                // 서비스 모드 저장: 오프라인 조건 확인
+                const resolvedServiceMode = isOffline ? 'offline' : 'online'
+                localStorage.setItem('serviceMode', resolvedServiceMode)
+
+                // 프로그램 타입에 따른 productType/programType 설정
                 if (isFigureOnline) {
                     localStorage.setItem('productType', 'figure_diffuser')
+                    localStorage.setItem('programType', 'figure')
+                } else if (type === 'figure') {
+                    localStorage.setItem('productType', 'figure_diffuser')
+                    localStorage.setItem('programType', 'figure')
+                } else if (isGraduation) {
+                    localStorage.setItem('productType', 'graduation')
+                    localStorage.setItem('programType', 'graduation')
+                } else {
+                    // 일반 분석 (idol_image 등): 이전 값 초기화
+                    localStorage.setItem('productType', 'image_analysis')
+                    localStorage.removeItem('programType')
                 }
+
                 localStorage.setItem('analysisResult', JSON.stringify(data))
                 if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
@@ -251,10 +277,14 @@ export function useInputForm() {
                     localStorage.setItem('modelingImage', modelingImagePreview)
                     localStorage.setItem('modelingRequest', formData.modelingRequest || '')
                 }
-                localStorage.setItem('userInfo', JSON.stringify({
+                const userInfoToSave = {
                     name: formData.name,
-                    gender: formData.gender
-                }))
+                    gender: formData.gender,
+                    // 오프라인 모드에서만 pin 저장
+                    ...(isOffline && { pin: formData.pin })
+                }
+                console.log('[useInputForm] Saving userInfo:', userInfoToSave, 'isOffline:', isOffline)
+                localStorage.setItem('userInfo', JSON.stringify(userInfoToSave))
             }
 
             if (result.success) {
@@ -272,7 +302,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, mode])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type])
 
     // 문 열린 후 결과 페이지로 이동
     const navigateToResult = useCallback(() => {
@@ -294,6 +324,9 @@ export function useInputForm() {
         isCompressing,
         isIdol,
         isOnline,
+        isOffline,
+        isGraduation,
+        isGraduationOnline,
 
         // 피규어 온라인 모드 전용
         isFigureOnline,

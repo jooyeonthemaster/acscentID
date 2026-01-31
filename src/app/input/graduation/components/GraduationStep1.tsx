@@ -11,6 +11,8 @@ interface GraduationStep1Props {
     setName: (name: string) => void
     setGender: (gender: string) => void
     setGraduationType: (type: string) => void
+    setPin: (pin: string) => void
+    isOffline: boolean
     focusedField: string | null
     setFocusedField: (field: string | null) => void
 }
@@ -20,9 +22,17 @@ export function GraduationStep1({
     setName,
     setGender,
     setGraduationType,
+    setPin,
+    isOffline,
     focusedField,
     setFocusedField
 }: GraduationStep1Props) {
+    const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.replace(/[^0-9]/g, "")
+        if (val.length <= 4) {
+            setPin(val)
+        }
+    }
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -38,6 +48,22 @@ export function GraduationStep1({
             />
 
             <div className="flex-1 space-y-4 mt-4">
+                {/* 오프라인 모드에서만 인증 번호 표시 */}
+                {isOffline && (
+                    <InputField
+                        label="인증 번호 (숫자 4자리)"
+                        value={formData.pin || ""}
+                        onChange={handlePinChange}
+                        placeholder="0000"
+                        isFocused={focusedField === "pin"}
+                        onFocus={() => setFocusedField("pin")}
+                        onBlur={() => setFocusedField(null)}
+                        type="tel"
+                        center
+                        letterSpacing
+                    />
+                )}
+
                 {/* 이름 */}
                 <InputField
                     label="이름 (또는 애칭)"

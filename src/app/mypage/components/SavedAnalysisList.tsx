@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Heart, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart } from 'lucide-react'
+import { Sparkles, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { PerfumeNotes } from '@/app/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/result/components/PerfumeProfile'
@@ -71,7 +71,6 @@ interface SavedAnalysisListProps {
 export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'grid' }: SavedAnalysisListProps) {
   const router = useRouter()
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
 
@@ -205,20 +204,6 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
     router.push('/checkout')
   }
 
-  // 좋아요 토글
-  const toggleLike = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLikedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
-
   // 상대 시간 포맷
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -268,7 +253,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
         </div>
         <h3 className="text-xl font-black mb-2">나만의 갤러리가 비어있어요</h3>
         <p className="text-slate-500 text-sm mb-6">
-          이미지를 분석하고 최애 향수를 찾아보세요!
+          이미지를 분석하고 나만의 향수를 찾아보세요!
         </p>
         <Link
           href="/"
@@ -382,17 +367,6 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
 
                   {/* 오버레이 */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  {/* 좋아요 버튼 */}
-                  <button
-                    onClick={(e) => toggleLike(analysis.id, e)}
-                    className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 p-1.5 sm:p-2 rounded-full bg-white border-[1.5px] sm:border-2 border-black shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                  >
-                    <Heart
-                      size={12}
-                      className={`sm:w-3.5 sm:h-3.5 ${likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}`}
-                    />
-                  </button>
 
                   {/* 날짜 뱃지 - 선택 모드가 아닐 때만 표시 */}
                   {!isSelectionMode && (
@@ -628,17 +602,6 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         오프라인
                       </span>
                     )}
-                    {!isSelectionMode && (
-                      <button
-                        onClick={(e) => toggleLike(analysis.id, e)}
-                        className="p-1"
-                      >
-                        <Heart
-                          size={16}
-                          className={likedIds.has(analysis.id) ? 'fill-red-500 text-red-500' : 'text-slate-300 hover:text-red-400'}
-                        />
-                      </button>
-                    )}
                   </div>
                   <p className="text-sm text-slate-600 truncate">{analysis.perfume_name}</p>
                   <div className="flex items-center gap-3 mt-2">
@@ -781,17 +744,6 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         <span className="text-6xl">✨</span>
                       </div>
                     )}
-
-                    {/* 좋아요 */}
-                    <button
-                      onClick={(e) => toggleLike(selectedImage.id, e)}
-                      className="absolute top-4 right-4 p-3 rounded-xl bg-white border-2 border-black shadow-[2px_2px_0_0_black] hover:scale-110 transition-transform"
-                    >
-                      <Heart
-                        size={24}
-                        className={likedIds.has(selectedImage.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'}
-                      />
-                    </button>
                   </div>
 
                   {/* 정보 */}
@@ -1126,16 +1078,11 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                       <p className="text-3xl font-black text-purple-600 mb-1">
                         {cartResultModal.added}개
                       </p>
-                      {cartResultModal.duplicates && cartResultModal.duplicates > 0 && (
-                        <p className="text-sm text-slate-500 mb-4">
-                          ({cartResultModal.duplicates}개는 이미 담겨있어요)
-                        </p>
-                      )}
-                      {(!cartResultModal.duplicates || cartResultModal.duplicates === 0) && (
-                        <p className="text-sm text-slate-500 mb-4">
-                          상품이 장바구니에 추가되었어요
-                        </p>
-                      )}
+                      <p className="text-sm text-slate-500 mb-4">
+                        {cartResultModal.duplicates && cartResultModal.duplicates > 0
+                          ? `(${cartResultModal.duplicates}개는 이미 담겨있어요)`
+                          : '상품이 장바구니에 추가되었어요'}
+                      </p>
                       <div className="flex gap-3 mt-6">
                         <button
                           onClick={() => setCartResultModal(null)}

@@ -10,10 +10,10 @@ export type ServiceMode = 'online' | 'offline'
 
 // 상품 타입 한글 라벨
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-  image_analysis: '최애 이미지 분석',
-  figure_diffuser: '피규어 디퓨저',
+  image_analysis: 'AI 이미지 분석 퍼퓸',
+  figure_diffuser: '피규어 화분 디퓨저',
   personal_scent: '퍼스널 센트',
-  graduation: '졸업 퍼퓸',
+  graduation: '졸업 기념 퍼퓸',
 }
 
 // 서비스 모드 한글 라벨
@@ -53,6 +53,7 @@ export interface AdminAnalysisRecord {
   matching_keywords: string[]
   user_image_url: string | null
   idol_name: string | null
+  pin: string | null  // 오프라인 모드 인증 번호 (4자리)
   // 조인된 데이터
   user_profile?: {
     id: string

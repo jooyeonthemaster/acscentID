@@ -252,9 +252,9 @@ export function Step5({
             className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col"
         >
             <StepHeader
-                title={`${isIdol ? "최애" : "나"} 이미지`}
+                title={`${isIdol ? "분석 대상" : "나"} 이미지`}
                 step={5}
-                description={`${isIdol ? "최애" : "본인"}의 이미지를 업로드해주세요. 향수 추천에 활용됩니다.`}
+                description={`${isIdol ? "분석 대상" : "본인"}의 이미지를 업로드해주세요. 향수 추천에 활용됩니다.`}
             />
 
             <div className="flex-1 mt-4 overflow-y-auto">
@@ -281,7 +281,7 @@ export function Step5({
                             <div className="flex items-start gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-white/60">
                                 <Sparkles size={14} className="text-yellow-500 mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-slate-600">
-                                    <span className="font-semibold">팁:</span> {isIdol ? "최애" : "본인"}가 잘 보이는 고화질 사진을
+                                    <span className="font-semibold">팁:</span> {isIdol ? "분석 대상" : "본인"}이 잘 보이는 고화질 사진을
                                     선택하시면 더 정확한 분석이 가능해요!
                                 </p>
                             </div>

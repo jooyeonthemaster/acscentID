@@ -1,10 +1,15 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Instagram, Twitter, Facebook, Mail } from 'lucide-react'
 
 export function Footer() {
+  const pathname = usePathname()
   const currentYear = new Date().getFullYear()
+
+  // 관리자 페이지에서는 숨김
+  if (pathname?.startsWith('/admin')) return null
 
   return (
     <footer className="relative z-20 bg-black text-white border-t-4 border-yellow-400">

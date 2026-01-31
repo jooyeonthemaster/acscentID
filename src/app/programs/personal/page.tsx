@@ -200,7 +200,7 @@ export default function PersonalPage() {
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Truck size={16} className="text-black" />
-                    <span>제작 후 2~3일 배송 (무료배송)</span>
+                    <span>제작 후 2~3일 배송 (배송비 3,000원)</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Gift size={16} className="text-black" />

@@ -103,8 +103,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           <motion.div variants={fadeIn} className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
             <SectionHeader
               icon={<User size={14} />}
-              title="팬이 본 아이돌"
-              subtitle="직접 선택한 최애의 매력"
+              title="내가 본 이미지"
+              subtitle="직접 선택한 매력 포인트"
             />
             <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200 h-[calc(100%-48px)]">
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
@@ -113,7 +113,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
                   {comparison.userInputSummary}
                 </p>
                 <p className="text-purple-600 text-xs mt-3 font-black">
-                  - 팬의 최애 분석
+                  - 내가 선택한 분석
                 </p>
               </div>
             </div>
@@ -224,8 +224,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
         <SectionHeader
           icon={<User size={14} />}
-          title="팬이 본 아이돌"
-          subtitle="직접 선택한 최애의 매력"
+          title="내가 본 이미지"
+          subtitle="직접 선택한 매력 포인트"
         />
         <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-purple-200">
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-300/20 rounded-full blur-2xl" />
@@ -234,7 +234,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
               {comparison.userInputSummary}
             </p>
             <p className="text-purple-600 text-xs mt-3 font-black">
-              - 팬의 최애 분석
+              - 내가 선택한 분석
             </p>
           </div>
         </div>

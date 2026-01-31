@@ -130,9 +130,6 @@ export function OrderSummary({
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
                 <p className="text-xl font-black text-slate-900">48,000원</p>
-                <span className="px-2 py-1 bg-cyan-400 text-white text-xs font-black rounded-full border border-slate-900">
-                  무료배송!
-                </span>
               </div>
             </div>
           </div>
@@ -222,9 +219,6 @@ export function OrderSummary({
               <p className="font-black text-slate-900 text-base">50ml</p>
               <p className="text-[10px] text-slate-500 font-bold">스프레이 타입</p>
               <p className="text-sm font-black text-slate-900 mt-0.5">48,000원</p>
-              <span className="inline-block mt-1.5 px-1.5 py-0.5 bg-[#F472B6] text-white text-[9px] font-black rounded-full border border-slate-900">
-                무료배송!
-              </span>
             </button>
           </div>
         )}

@@ -22,7 +22,7 @@ export function FigureTab({ displayedAnalysis, figureImage, isDesktop }: FigureT
   // 데이터가 없을 경우 기본값 사용
   const defaultFigureModeling: FigureModeling = {
     figureImage: figureImage || '',
-    characterName: '최애',
+    characterName: '캐릭터',
     poseDescription: '피규어 포즈를 분석 중입니다...',
     specialRequests: [],
     diffuserScent: '분석 중'

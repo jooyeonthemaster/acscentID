@@ -540,12 +540,12 @@ function CheckoutContent() {
                 </div>
 
                 {/* 안내 문구 */}
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2 text-sm text-slate-900 bg-[#FBCFE8] border-2 border-slate-900 p-3 rounded-xl">
-                    <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
-                    <span className="font-bold">주문자와 입금자의 이름이 반드시 동일해야 합니다.</span>
-                  </div>
-                  <p className="text-sm text-slate-600 font-bold flex items-center gap-2 px-1">
+                <div className="space-y-2">
+                  <p className="text-sm text-red-500 font-bold flex items-center gap-2">
+                    <AlertCircle size={14} />
+                    주문자와 입금자명이 동일해야 합니다.
+                  </p>
+                  <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
                     <Truck size={14} />
                     입금 확인 후 2~3일 내 배송됩니다.
                   </p>

@@ -15,8 +15,16 @@ import {
   AlertCircle,
   X
 } from 'lucide-react'
-import { AdminAnalysisRecord, PRODUCT_TYPE_LABELS, SERVICE_MODE_LABELS, ProductType, ServiceMode } from '@/types/admin'
+import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode } from '@/types/admin'
 import Link from 'next/link'
+
+// 테이블용 짧은 라벨
+const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
+  image_analysis: '최애 이미지',
+  figure_diffuser: '피규어',
+  personal_scent: '퍼스널',
+  graduation: '졸업 퍼퓸',
+}
 
 export default function AnalysisPage() {
   const [analyses, setAnalyses] = useState<AdminAnalysisRecord[]>([])
@@ -90,13 +98,12 @@ export default function AnalysisPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+    return `${year}.${month}.${day} ${hour}:${minute}`
   }
 
   return (
@@ -215,18 +222,19 @@ export default function AnalysisPage() {
         {/* 분석 목록 */}
         {!loading && !error && (
           <>
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
-              <table className="w-full">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0] overflow-x-auto">
+              <table className="w-full min-w-[1100px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
-                    <th className="w-10 px-4 py-3"></th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">아이돌명</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">상품 타입</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">모드</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">추천 향수</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">사용자</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">분석일</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-600">액션</th>
+                    <th className="w-10 px-3 py-3"></th>
+                    <th className="w-[180px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">아이돌명</th>
+                    <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">상품 타입</th>
+                    <th className="w-[80px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">모드</th>
+                    <th className="w-[60px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">PIN</th>
+                    <th className="w-[160px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">추천 향수</th>
+                    <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">사용자</th>
+                    <th className="w-[130px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석일</th>
+                    <th className="w-[70px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">액션</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -236,24 +244,28 @@ export default function AnalysisPage() {
                         className="hover:bg-slate-50 transition-colors cursor-pointer"
                         onClick={() => setExpandedId(expandedId === analysis.id ? null : analysis.id)}
                       >
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <ChevronRight
                             className={`w-5 h-5 text-slate-400 transition-transform ${
                               expandedId === analysis.id ? 'rotate-90' : ''
                             }`}
                           />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-slate-900">{analysis.idol_name || '-'}</div>
-                          <div className="text-sm text-slate-500">{analysis.twitter_name}</div>
+                        <td className="px-3 py-3 max-w-[200px]">
+                          <div className="font-medium text-slate-900 truncate" title={analysis.idol_name || '-'}>
+                            {analysis.idol_name || '-'}
+                          </div>
+                          <div className="text-xs text-slate-500 truncate" title={analysis.twitter_name}>
+                            {analysis.twitter_name}
+                          </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
-                            {PRODUCT_TYPE_LABELS[analysis.product_type as ProductType] || '최애 이미지 분석'}
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+                            {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
                             analysis.service_mode === 'offline'
                               ? 'bg-purple-100 text-purple-700'
                               : 'bg-blue-100 text-blue-700'
@@ -261,38 +273,51 @@ export default function AnalysisPage() {
                             {SERVICE_MODE_LABELS[analysis.service_mode as ServiceMode] || '온라인'}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="text-slate-900">{analysis.perfume_name}</div>
-                          <div className="text-sm text-slate-500">{analysis.perfume_brand}</div>
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                          {analysis.service_mode === 'offline' && analysis.pin ? (
+                            <span className="inline-block px-2 py-1 text-sm font-mono font-bold bg-slate-100 text-slate-800 rounded tracking-wider">
+                              {analysis.pin}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">-</span>
+                          )}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-slate-400" />
-                            <span className="text-sm text-slate-600">
+                        <td className="px-3 py-3 max-w-[160px]">
+                          <div className="font-medium text-slate-900 truncate" title={analysis.perfume_name}>
+                            {analysis.perfume_name}
+                          </div>
+                          <div className="text-xs text-slate-500 truncate" title={analysis.perfume_brand}>
+                            {analysis.perfume_brand}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <span className="text-sm text-slate-600 truncate max-w-[70px]" title={analysis.user_profile?.name || analysis.user_profile?.email || '익명'}>
                               {analysis.user_profile?.name || analysis.user_profile?.email || '익명'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-3 py-3 text-sm text-slate-600 whitespace-nowrap">
                           {formatDate(analysis.created_at)}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="px-3 py-3">
+                          <div className="flex items-center justify-center gap-1">
                             <Link
                               href={`/admin/analysis/${analysis.id}`}
-                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                               title="상세 보기"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Eye className="w-5 h-5 text-slate-600" />
+                              <Eye className="w-4 h-4 text-slate-600" />
                             </Link>
                             <Link
                               href={`/admin/analysis/${analysis.id}/print`}
-                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                               title="보고서 출력"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Printer className="w-5 h-5 text-slate-600" />
+                              <Printer className="w-4 h-4 text-slate-600" />
                             </Link>
                           </div>
                         </td>
@@ -300,7 +325,7 @@ export default function AnalysisPage() {
                       {/* 확장된 상세 정보 */}
                       {expandedId === analysis.id && (
                         <tr>
-                          <td colSpan={8} className="px-4 py-4 bg-slate-50">
+                          <td colSpan={9} className="px-4 py-4 bg-slate-50">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">키워드:</span>

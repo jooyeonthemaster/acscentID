@@ -157,58 +157,53 @@ function MyPageContent() {
           <InviteFriendBanner />
         </div>
 
-        {/* 콘텐츠 헤더 */}
-        <div className="bg-white border-2 border-black rounded-2xl p-3 mb-4 shadow-[4px_4px_0_0_black]">
-          {/* 상단: 탭 네비게이션 */}
-          <div className="flex items-center gap-2">
+        {/* 탭 네비게이션 */}
+        <div className="bg-white border-2 border-black rounded-2xl p-2 mb-4 shadow-[4px_4px_0_0_black]">
+          <div className="grid grid-cols-4 gap-1">
             <button
               onClick={() => setActiveTab('analyses')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'analyses'
                   ? 'bg-black text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Sparkles size={14} />
+              <Sparkles size={18} />
               <span>분석</span>
-              <span className="text-xs opacity-70">({analyses.length})</span>
+              <span className="text-[10px] opacity-70">{analyses.length}개</span>
             </button>
             <button
               onClick={() => setActiveTab('cart')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'cart'
-                  ? 'bg-amber-400 text-black border-2 border-black shadow-[2px_2px_0_0_black]'
-                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  ? 'bg-black text-white'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <ShoppingCart size={14} />
+              <ShoppingCart size={18} />
               <span>장바구니</span>
             </button>
-          </div>
-
-          {/* 하단: 서브 탭 (주문/쿠폰) */}
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
             <button
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'orders'
-                  ? 'bg-emerald-100 text-emerald-700 font-bold'
-                  : 'text-gray-500 hover:bg-gray-100'
+                  ? 'bg-black text-white'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <ShoppingBag size={14} />
+              <ShoppingBag size={18} />
               <span>주문</span>
-              <span className="text-xs opacity-70">({orders.length})</span>
+              <span className="text-[10px] opacity-70">{orders.length}개</span>
             </button>
             <button
               onClick={() => setActiveTab('coupons')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'coupons'
-                  ? 'bg-pink-100 text-pink-700 font-bold'
-                  : 'text-gray-500 hover:bg-gray-100'
+                  ? 'bg-black text-white'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Ticket size={14} />
+              <Ticket size={18} />
               <span>쿠폰</span>
             </button>
           </div>

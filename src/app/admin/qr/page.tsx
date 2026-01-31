@@ -57,9 +57,9 @@ function CreateQRModal({ isOpen, onClose, onSubmit }: CreateQRModalProps) {
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
               required
             >
-              <option value="image_analysis">최애 이미지 분석</option>
-              <option value="figure_diffuser">피규어 디퓨저</option>
-              <option value="personal_scent">퍼스널 센트</option>
+              <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
+              <option value="figure_diffuser">피규어 화분 디퓨저</option>
+              <option value="graduation">졸업 기념 퍼퓸</option>
             </select>
           </div>
 
@@ -497,9 +497,9 @@ export default function AdminQRPage() {
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
               <option value="all">전체</option>
-              <option value="image_analysis">최애 이미지 분석</option>
-              <option value="figure_diffuser">피규어 디퓨저</option>
-              <option value="personal_scent">퍼스널 센트</option>
+              <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
+              <option value="figure_diffuser">피규어 화분 디퓨저</option>
+              <option value="graduation">졸업 기념 퍼퓸</option>
             </select>
           </div>
 

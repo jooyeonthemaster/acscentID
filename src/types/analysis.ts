@@ -26,6 +26,18 @@ export interface ScentCategoryScores {
 export type SeasonType = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ToneType = 'bright' | 'light' | 'mute' | 'deep';
 
+// 추천 계절/시간대 타입
+export type BestSeasonType = 'spring' | 'summer' | 'autumn' | 'winter';
+export type BestTimeType = 'morning' | 'afternoon' | 'evening' | 'night';
+
+// 추천 계절/시간대 정보
+export interface ScentRecommendation {
+  best_season: BestSeasonType;
+  best_time: BestTimeType;
+  season_reason?: string;
+  time_reason?: string;
+}
+
 export interface PersonalColor {
   season: SeasonType;
   tone: ToneType;
@@ -94,6 +106,7 @@ export interface ImageAnalysisResult {
     persona?: PerfumePersona;
   }[];
   comparisonAnalysis?: ComparisonAnalysis;  // 이미지 vs 유저 응답 비교 분석
+  scentRecommendation?: ScentRecommendation;  // 추천 계절/시간대
 }
 
 // 사용자 입력 폼 데이터
@@ -162,6 +175,22 @@ export const TONE_LABELS: Record<ToneType, string> = {
   light: '라이트',
   mute: '뮤트',
   deep: '딥'
+};
+
+// 추천 계절 라벨
+export const BEST_SEASON_LABELS: Record<BestSeasonType, { label: string; icon: string }> = {
+  spring: { label: '봄', icon: '🌸' },
+  summer: { label: '여름', icon: '☀️' },
+  autumn: { label: '가을', icon: '🍂' },
+  winter: { label: '겨울', icon: '❄️' }
+};
+
+// 추천 시간대 라벨
+export const BEST_TIME_LABELS: Record<BestTimeType, { label: string; icon: string }> = {
+  morning: { label: '오전', icon: '🌅' },
+  afternoon: { label: '오후', icon: '☀️' },
+  evening: { label: '저녁', icon: '🌆' },
+  night: { label: '밤', icon: '🌙' }
 };
 
 // ========================================
@@ -328,6 +357,7 @@ export const GRADUATION_TYPE_LABELS: Record<GraduationType, string> = {
 // 졸업 폼 데이터 타입
 export interface GraduationFormDataType {
   // 기본 정보
+  pin?: string;                    // 오프라인 모드 인증 번호 (4자리)
   name: string;                    // 분석 대상 이름
   gender: string;                  // 성별
   graduationType: GraduationType;  // 졸업 유형

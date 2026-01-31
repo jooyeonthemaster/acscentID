@@ -38,18 +38,20 @@ export default async function QRRedirectPage({ params }: PageProps) {
   const serviceMode = qrCode.service_mode || 'offline'
   const qrCodeId = qrCode.code
 
-  // 현재는 image_analysis만 구현되어 있음
-  // 향후 다른 상품 타입 추가 시 분기 처리
+  // 상품 타입에 따른 리다이렉트
+  // mode 파라미터: qr (오프라인 QR 스캔), online (온라인 모드)
+  const modeParam = serviceMode === 'offline' ? 'qr' : 'online'
+
   switch (productType) {
     case 'image_analysis':
-      redirect(`/input?service_mode=${serviceMode}&qr_code=${qrCodeId}`)
+      redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'figure_diffuser':
-      // TODO: 피규어 디퓨저 경로 구현 시 변경
-      redirect(`/input?product_type=figure_diffuser&service_mode=${serviceMode}&qr_code=${qrCodeId}`)
+      redirect(`/input?type=figure&mode=${modeParam}&qr_code=${qrCodeId}`)
+    case 'graduation':
+      redirect(`/input?type=graduation&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'personal_scent':
-      // TODO: 퍼스널 센트 경로 구현 시 변경
-      redirect(`/input?product_type=personal_scent&service_mode=${serviceMode}&qr_code=${qrCodeId}`)
+      redirect(`/input?type=personal&mode=${modeParam}&qr_code=${qrCodeId}`)
     default:
-      redirect(`/input?service_mode=${serviceMode}&qr_code=${qrCodeId}`)
+      redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
   }
 }

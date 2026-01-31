@@ -88,9 +88,9 @@ export default function FigurePage() {
   }
 
   const productComponents = [
-    { icon: Box, name: "3D 모델링 피규어", desc: "룩업 스타일 단색 피규어", color: "bg-cyan-400" },
-    { icon: Gem, name: "샤쉐스톤", desc: "향기를 담는 천연석", color: "bg-purple-400" },
-    { icon: Sparkles, name: "AI 맞춤 에센스", desc: "캐릭터 분석 기반", color: "bg-yellow-400" },
+    { icon: Box, name: "3D 피규어", desc: "1:1 맞춤제작", color: "bg-cyan-400" },
+    { icon: Gem, name: "샤쉐스톤", desc: "천연석 베이스", color: "bg-purple-400" },
+    { icon: Sparkles, name: "AI 에센스", desc: "이미지 분석", color: "bg-yellow-400" },
   ]
 
   return (
@@ -259,7 +259,7 @@ export default function FigurePage() {
           {/* 2x2 그리드 */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { step: "01", title: "이미지 전송", desc: "최애 사진을 업로드해요", icon: Camera, color: "bg-cyan-400" },
+              { step: "01", title: "이미지 전송", desc: "사진을 업로드해요", icon: Camera, color: "bg-cyan-400" },
               { step: "02", title: "향 분석 및 추천", desc: "AI가 캐릭터에 맞는 향 추천", icon: Sparkles, color: "bg-purple-400" },
               { step: "03", title: "상품 주문", desc: "마음에 드시면 주문!", icon: ShoppingCart, color: "bg-blue-400" },
               { step: "04", title: "3D 모델링 및 배송", desc: "제작 후 배송까지!", icon: Truck, color: "bg-pink-400" },
@@ -327,8 +327,8 @@ export default function FigurePage() {
                 </div>
 
                 {/* 텍스트 */}
-                <h3 className="font-black text-xs text-black mb-0.5 text-center">{item.name}</h3>
                 <p className="text-[10px] text-slate-500 text-center">{item.desc}</p>
+                <h3 className="font-black text-xs text-black text-center">{item.name}</h3>
               </motion.div>
             ))}
           </div>
@@ -375,7 +375,7 @@ export default function FigurePage() {
                 </div>
               </div>
               <div className="mt-3 text-center">
-                <h3 className="text-lg font-black text-black mb-1">나만의 최애 피규어</h3>
+                <h3 className="text-lg font-black text-black mb-1">나만의 피규어</h3>
                 <p className="text-xs text-slate-600">세상에 하나뿐인 DIY 굿즈 완성!</p>
               </div>
             </div>

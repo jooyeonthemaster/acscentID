@@ -463,7 +463,7 @@ export default function IdolImagePage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         programType="idol_image"
-        programName="AI 아이돌 이미지 분석"
+        programName="AI 이미지 분석"
         currentUserId={currentUserId}
         onWriteReview={() => {
           setShowReviewModal(false)
@@ -476,7 +476,7 @@ export default function IdolImagePage() {
         isOpen={showReviewWriteModal}
         onClose={() => setShowReviewWriteModal(false)}
         programType="idol_image"
-        programName="AI 아이돌 이미지 분석"
+        programName="AI 이미지 분석"
         userId={currentUserId || ''}
         onSuccess={() => {
           // 리뷰 통계 새로고침

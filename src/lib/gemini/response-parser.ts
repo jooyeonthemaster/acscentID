@@ -73,6 +73,7 @@ export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
         },
       ],
       comparisonAnalysis: parsed.comparisonAnalysis || undefined,
+      scentRecommendation: validateScentRecommendation(parsed.scentRecommendation),
     };
 
     return result;
@@ -157,4 +158,34 @@ function validateMatchingPerfumes(perfumes: any[]) {
   if (!perfume.matchReason || perfume.matchReason.trim().length === 0) {
     throw new Error('Perfume matchReason is required');
   }
+}
+
+// Scent recommendation 검증 및 기본값 제공
+function validateScentRecommendation(recommendation: any) {
+  const validSeasons = ['spring', 'summer', 'autumn', 'winter'];
+  const validTimes = ['morning', 'afternoon', 'evening', 'night'];
+
+  // 필드가 없으면 기본값 반환
+  if (!recommendation) {
+    return {
+      best_season: 'spring' as const,
+      best_time: 'afternoon' as const,
+    };
+  }
+
+  // 유효하지 않은 값이면 기본값으로 대체
+  const best_season = validSeasons.includes(recommendation.best_season)
+    ? recommendation.best_season
+    : 'spring';
+
+  const best_time = validTimes.includes(recommendation.best_time)
+    ? recommendation.best_time
+    : 'afternoon';
+
+  return {
+    best_season,
+    best_time,
+    season_reason: recommendation.season_reason || undefined,
+    time_reason: recommendation.time_reason || undefined,
+  };
 }

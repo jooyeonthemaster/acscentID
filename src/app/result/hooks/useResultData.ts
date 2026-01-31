@@ -16,7 +16,7 @@ export const useResultData = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [twitterName, setTwitterName] = useState<string>('')
-  const [userInfo, setUserInfo] = useState<{ name: string; gender: string } | null>(null)
+  const [userInfo, setUserInfo] = useState<{ name: string; gender: string; pin?: string } | null>(null)
   // 피규어 모드 전용 상태
   const [programType, setProgramType] = useState<string | null>(null)
   const [figureImage, setFigureImage] = useState<string | null>(null)
@@ -89,7 +89,9 @@ export const useResultData = () => {
         const savedUserInfo = localStorage.getItem('userInfo')
         if (savedUserInfo) {
           try {
-            setUserInfo(JSON.parse(savedUserInfo))
+            const parsedUserInfo = JSON.parse(savedUserInfo)
+            console.log('[useResultData] Loaded userInfo from localStorage:', parsedUserInfo)
+            setUserInfo(parsedUserInfo)
           } catch (e) {
             console.error('User info parse error', e)
           }

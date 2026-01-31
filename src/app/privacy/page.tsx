@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion"
 import { Header } from "@/components/layout/Header"
-import { Footer } from "@/components/layout/Footer"
 import { Shield, Lock, Eye, Trash2, Mail } from "lucide-react"
 
 const fadeInUp = {
@@ -187,8 +186,6 @@ export default function PrivacyPage() {
           </motion.div>
         </div>
       </section>
-
-      <Footer />
     </main>
   )
 }

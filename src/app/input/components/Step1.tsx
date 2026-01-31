@@ -25,7 +25,7 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
             <StepHeader
                 title="기본 정보를 입력해주세요"
                 step={1}
-                description={`더 정확한 ${isIdol ? "최애" : "퍼스널"} 향기 분석을 위해 필요한 정보입니다.`}
+                description={`더 정확한 ${isIdol ? "이미지" : "퍼스널"} 향기 분석을 위해 필요한 정보입니다.`}
             />
 
             <div className="flex-1 space-y-4 mt-4">
@@ -46,7 +46,7 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                 )}
 
                 <InputField
-                    label={isIdol ? "최애 이름 (또는 애칭)" : "본인 이름 (또는 닉네임)"}
+                    label={isIdol ? "분석 대상 이름 (또는 애칭)" : "본인 이름 (또는 닉네임)"}
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder={isIdol ? "예: 변우석" : "예: 김주연"}
@@ -57,7 +57,7 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
 
                 <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        {isIdol ? "최애 성별" : "본인 성별"}
+                        {isIdol ? "분석 대상 성별" : "본인 성별"}
                     </label>
                     <div className="flex gap-2">
                         {GENDER_OPTIONS.map(({ key, label }) => (

@@ -20,7 +20,7 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
       transition={{ delay: 0.3, duration: 0.5, type: "spring" }}
       className="relative"
     >
-      {/* 최애 정보 카드 */}
+      {/* 분석 대상 정보 카드 */}
       <div className={`relative overflow-hidden border-2 border-slate-900 ${
         isCompact
           ? 'rounded-xl shadow-[2px_2px_0px_#000]'
@@ -44,7 +44,7 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
           <div className={`flex items-center gap-2 border-b-2 border-orange-200/60 ${isCompact ? 'mb-3 pb-2' : 'mb-4 pb-3'}`}>
             <span className={`${isCompact ? 'text-base' : 'text-lg'}`}>✨</span>
             <p className={`text-orange-600 font-black ${isCompact ? 'text-xs' : 'text-sm'}`}>
-              나의 최애 정보
+              분석 대상 정보
             </p>
           </div>
 

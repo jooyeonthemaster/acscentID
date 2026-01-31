@@ -568,7 +568,7 @@ function ProgramSlide() {
                             className="relative"
                         >
                             <StickerCartridge
-                                title="최애 퍼퓸"
+                                title="이미지 퍼퓸"
                                 subtitle="AI 이미지 분석"
                                 color="bg-[#C084FC]"
                                 className="scale-[0.55] sm:scale-[0.75] md:scale-105 origin-center -rotate-3"

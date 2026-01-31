@@ -20,9 +20,9 @@ export function Step4({ formData, setFormData, toggleCharmPoint, isIdol }: Step4
             className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col overflow-hidden"
         >
             <StepHeader
-                title={`${isIdol ? "최애" : "나"}의 매력 포인트`}
+                title={`${isIdol ? "분석 대상" : "나"}의 매력 포인트`}
                 step={4}
-                description={`${isIdol ? "최애" : "본인"}의 매력 포인트를 선택해주세요 (복수 선택 가능)`}
+                description={`${isIdol ? "분석 대상" : "본인"}의 매력 포인트를 선택해주세요 (복수 선택 가능)`}
             />
 
             <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">

@@ -24,7 +24,7 @@ export const NAV_LINKS = {
   programs: [
     { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
     { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-    { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/perfume/graduate.avif', limitedUntil: '2/28' },
+    { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
   ],
 }
 
@@ -197,7 +197,7 @@ export function MobileMenuSheet({
                 <Link
                   href="/mypage"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   My Page
                 </Link>

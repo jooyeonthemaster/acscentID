@@ -90,7 +90,7 @@ export default function BrandStoryPage() {
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 sm:mb-3 break-keep">덕질을 향기로 기록하다</h3>
                   <p className="text-slate-600 leading-relaxed text-base sm:text-lg break-keep">
-                    "최애를 생각하면 어떤 향이 날까?" 이 단순한 질문에서 시작되었습니다.
+                    "좋아하는 사람을 생각하면 어떤 향이 날까?" 이 단순한 질문에서 시작되었습니다.
                     덕질은 시각과 청각뿐만 아니라 후각으로도 기억될 수 있다는 믿음으로
                     AC'SCENT IDENTITY가 탄생했습니다.
                   </p>

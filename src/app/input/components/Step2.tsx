@@ -20,9 +20,9 @@ export function Step2({ formData, setFormData, toggleStyle, isIdol }: Step2Props
             className="h-full lg:h-auto px-2 pt-2 pb-4 flex flex-col overflow-hidden"
         >
             <StepHeader
-                title={`${isIdol ? "최애" : "나"}의 스타일`}
+                title={`${isIdol ? "분석 대상" : "나"}의 스타일`}
                 step={2}
-                description={`${isIdol ? "최애" : "본인"}가 어떤 스타일인지 선택해주세요 (복수 선택 가능)`}
+                description={`${isIdol ? "분석 대상" : "본인"}이 어떤 스타일인지 선택해주세요 (복수 선택 가능)`}
             />
 
             <div className="flex-1 mt-5 overflow-y-auto custom-scrollbar">

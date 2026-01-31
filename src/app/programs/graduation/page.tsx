@@ -199,14 +199,20 @@ export default function GraduationPage() {
 
               {/* 구성품 안내 */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-xs text-black">뿌덕퍼퓸(10ml) + 실물 분석보고서</span>
+                <div className="space-y-1 mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-xs text-black">뿌덕퍼퓸 (10ml)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-xs text-black">학사모오리 퍼퓸키링</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-xs text-black">졸업장 st 분석보고서</span>
+                  </div>
                 </div>
-                <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
-                  <li className="list-disc">주문 후 2~3일 내 배송</li>
-                  <li className="list-disc">졸업 축하 메시지 카드 포함</li>
-                </ul>
               </div>
             </div>
 

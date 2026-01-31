@@ -13,7 +13,8 @@ export default function AdminLayout({
 }) {
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-slate-50">
+      {/* fixed position으로 부모의 455px 제한을 벗어남 */}
+      <div className="fixed inset-0 min-h-screen bg-slate-50 overflow-auto z-[9999]">
         <AdminSidebar />
         <main className="ml-64 min-h-screen transition-all duration-300">
           {children}

@@ -125,6 +125,7 @@ export const GRADUATION_THEME = {
 
 // 기본 폼 데이터 초기값
 export const INITIAL_GRADUATION_FORM_DATA = {
+  pin: "",
   name: "",
   gender: "",
   graduationType: "" as const,

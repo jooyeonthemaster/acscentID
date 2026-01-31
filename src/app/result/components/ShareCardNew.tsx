@@ -63,6 +63,18 @@ const calculateMarkerPoints = (traits: TraitScores, center: number = 60, maxRadi
 // 한글 라벨 (순서: 귀여움, 섹시함, 럭셔리, 순수함, 자유로움, 카리스마, 다크함, 우아함, 청량함, 독특함)
 const TRAIT_KO_LABELS = ['귀여움', '섹시함', '럭셔리', '순수함', '자유로움', '카리스마', '다크함', '우아함', '청량함', '독특함']
 
+// 텍스트 줄바꿈 함수 (20자 기준)
+const formatDescription = (text: string) => {
+    if (!text) return '';
+    const firstSentence = text.split(/[.!?]/)[0] + (text.match(/[.!?]/)?.[0] || '');
+
+    const lines = [];
+    for (let i = 0; i < firstSentence.length; i += 20) {
+        lines.push(firstSentence.slice(i, i + 20));
+    }
+    return lines.join('\n');
+}
+
 export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
     function ShareCardNew({ userImage, twitterName, userName, perfumeName, perfumeBrand, analysisData }, ref) {
         const { traits, matchingPerfumes, scentCategories, personalColor } = analysisData
@@ -143,7 +155,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     </h2>
                 </div>
 
-                {/* 2. 최애 이미지 - Top Square Box */}
+                {/* 2. 분석 이미지 - Top Square Box */}
                 <div
                     style={{
                         position: 'absolute',
@@ -164,7 +176,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     {userImage ? (
                         <img
                             src={userImage}
-                            alt="최애 이미지"
+                            alt="분석 이미지"
                             style={{
                                 width: '100%',
                                 height: '100%',
@@ -345,7 +357,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                 </div>
 
                 {/* =================================================================================
-                    BOTTOM LEFT AREA: NOTES (Low)
+                    BOTTOM LEFT AREA: NOTES & KEYWORDS
                    ================================================================================= */}
                 <div
                     style={{
@@ -413,11 +425,11 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', marginTop: 5 }}>
                             {/* Title */}
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 10, fontWeight: 900, color: '#1e293b', transform: 'translateY(-5px)' }}>
+                                <div style={{ fontSize: 10, fontWeight: 900, color: '#1e293b', transform: 'translate(29px, -5px)', textAlign: 'left' }}>
                                     {SEASON_LABELS[personalColor.season]} {TONE_LABELS[personalColor.tone]}
                                 </div>
-                                <div style={{ fontSize: 9, color: '#64748b', marginTop: 3, wordBreak: 'keep-all', lineHeight: 1.3, textAlign: 'left', transform: 'translateX(-35px)' }}>
-                                    {personalColor.description.split(/[.!?]/)[0]}{(personalColor.description.match(/[.!?]/)?.[0] || '')}
+                                <div style={{ fontSize: 9, color: '#64748b', marginTop: 3, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.3, textAlign: 'left', transform: 'translateX(-35px)' }}>
+                                    {formatDescription(personalColor.description)}
                                 </div>
                             </div>
 
@@ -507,6 +519,42 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                 )
                             })}
                         </svg>
+                    </div>
+
+                    {/* Keywords (Bottom Right, under Radar Chart) */}
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'nowrap', // Changed from 'wrap' to prevent wrapping in download
+                        justifyContent: 'center',
+                        gap: 2, // Slightly reduced gap further to fit horizontal
+                        marginTop: -48, // Moved 2px further down from -50
+                        transform: 'translateX(-40px)', // Align with chart
+                        zIndex: 10
+                    }}>
+                        {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
+                            <div key={idx} style={{
+                                opacity: 1
+                            }}>
+                                <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    background: idx === 0
+                                        ? 'linear-gradient(135deg, #CFFAFE, #99F6E4)'
+                                        : idx === 1
+                                            ? 'linear-gradient(135deg, #CFFAFE, #99F6E4)'
+                                            : 'linear-gradient(135deg, #34D399, #4ADE80)',
+                                    color: idx === 2 ? '#FFFFFF' : '#0F766E',
+                                    fontWeight: 'bold',
+                                    borderRadius: '9999px',
+                                    padding: '2px 5px', // Slightly tightened padding
+                                    fontSize: '7px', // Reduced from 8px
+                                    border: idx === 2 ? 'none' : '0.5px solid #5EEAD4',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}>
+                                    <span style={{ whiteSpace: 'nowrap' }}>{keyword}</span>
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 

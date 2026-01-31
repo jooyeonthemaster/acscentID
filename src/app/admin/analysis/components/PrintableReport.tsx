@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores } from '@/types/analysis'
+import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
 
 interface PrintableReportProps {
   analysis: {
@@ -38,72 +38,247 @@ interface PrintableReportProps {
   } | null
 }
 
-// 특성 한글 라벨
-const TRAIT_LABELS: Record<keyof TraitScores, string> = {
-  sexy: '섹시',
-  cute: '큐트',
-  charisma: '카리스마',
-  darkness: '다크',
-  freshness: '청량',
-  elegance: '우아',
-  freedom: '자유',
-  luxury: '럭셔리',
-  purity: '순수',
-  uniqueness: '유니크',
+// 특성 컬러 테마 (기존 TraitRadarChart와 동일)
+const TRAIT_COLORS: Record<keyof TraitScores, { bg: string; text: string; border: string }> = {
+  sexy: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-400' },
+  cute: { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-400' },
+  charisma: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-400' },
+  darkness: { bg: 'bg-slate-200', text: 'text-slate-700', border: 'border-slate-500' },
+  freshness: { bg: 'bg-cyan-100', text: 'text-cyan-700', border: 'border-cyan-400' },
+  elegance: { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-400' },
+  freedom: { bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-400' },
+  luxury: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-500' },
+  purity: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-300' },
+  uniqueness: { bg: 'bg-fuchsia-100', text: 'text-fuchsia-700', border: 'border-fuchsia-400' },
 }
 
-// 향 카테고리 한글 라벨
-const SCENT_LABELS: Record<keyof ScentCategoryScores, string> = {
-  citrus: '시트러스',
-  floral: '플로럴',
-  woody: '우디',
-  musky: '머스크',
-  fruity: '프루티',
-  spicy: '스파이시',
+// 향 카테고리 컬러 (기존 PerfumeProfile과 동일)
+const categoryColors: Record<string, { bar: string; bg: string; border: string; text: string }> = {
+  citrus: { bar: 'bg-yellow-400', bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-700' },
+  floral: { bar: 'bg-pink-400', bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-700' },
+  woody: { bar: 'bg-amber-500', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700' },
+  musky: { bar: 'bg-purple-400', bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700' },
+  fruity: { bar: 'bg-red-400', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700' },
+  spicy: { bar: 'bg-orange-500', bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-700' },
 }
 
-// 퍼스널 컬러 한글
-const SEASON_LABELS: Record<string, string> = {
-  spring: '봄 웜톤',
-  summer: '여름 쿨톤',
-  autumn: '가을 웜톤',
-  winter: '겨울 쿨톤',
+// 키워드 스타일 (기존 KeywordCloud와 동일)
+const KEYWORD_STYLES = [
+  { bg: 'bg-gradient-to-r from-pink-400 to-rose-400', text: 'text-white', shape: 'rounded-lg', decoration: '🎀', border: '' },
+  { bg: 'bg-[#FEF9C3]', text: 'text-amber-800', shape: 'rounded-xl', decoration: '⭐', border: 'border-2 border-slate-900' },
+  { bg: 'bg-gradient-to-br from-cyan-200 to-teal-200', text: 'text-teal-800', shape: 'rounded-full', decoration: '✨', border: 'border border-teal-300' },
+  { bg: 'bg-violet-100', text: 'text-violet-700', shape: 'rounded-2xl', decoration: '💜', border: 'border-2 border-violet-300 border-dashed' },
+  { bg: 'bg-gradient-to-r from-orange-400 to-amber-400', text: 'text-white', shape: 'rounded-lg', decoration: '🔥', border: '' },
+  { bg: 'bg-sky-50', text: 'text-sky-700', shape: 'rounded-lg', decoration: '💙', border: 'border-2 border-sky-300' },
+  { bg: 'bg-rose-50', text: 'text-rose-600', shape: 'rounded-xl', decoration: '💕', border: 'border-2 border-rose-200' },
+  { bg: 'bg-gradient-to-r from-emerald-400 to-green-400', text: 'text-white', shape: 'rounded-full', decoration: '🌿', border: '' },
+]
+
+// 계절/시간 아이콘
+const SEASON_ICONS: Record<string, { emoji: string; label: string }> = {
+  spring: { emoji: '🌸', label: '봄' },
+  summer: { emoji: '☀️', label: '여름' },
+  autumn: { emoji: '🍂', label: '가을' },
+  winter: { emoji: '❄️', label: '겨울' },
 }
 
-export function PrintableReport({ analysis, feedback, userProfile }: PrintableReportProps) {
+const TIME_ICONS: Record<string, { emoji: string; label: string }> = {
+  morning: { emoji: '🌅', label: '오전' },
+  afternoon: { emoji: '☀️', label: '오후' },
+  evening: { emoji: '🌆', label: '저녁' },
+  night: { emoji: '🌙', label: '밤' },
+}
+
+// 시드 기반 랜덤 (KeywordCloud와 동일)
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
+
+// 정적 레이더 차트 (기존 TraitRadarChart 스타일)
+function PrintRadarChart({ traits }: { traits: TraitScores }) {
+  const centerX = 100
+  const centerY = 100
+  const radius = 55
+  const maxValue = 10
+
+
+
+  const characteristics = Object.entries(traits).map(([key, value]) => ({
+    key: key as keyof TraitScores,
+    label: TRAIT_LABELS[key as keyof TraitScores],
+    value,
+    icon: TRAIT_ICONS[key as keyof TraitScores]
+  }))
+
+  const angleStep = (Math.PI * 2) / characteristics.length
+
+  const getCoordinates = (value: number, index: number) => {
+    const normalizedValue = value / maxValue
+    const angle = index * angleStep - Math.PI / 2
+    const x = centerX + radius * normalizedValue * Math.cos(angle)
+    const y = centerY + radius * normalizedValue * Math.sin(angle)
+    return { x, y }
+  }
+
+  const createPath = () => {
+    const points = characteristics.map((char, i) => {
+      const { x, y } = getCoordinates(char.value, i)
+      return `${x},${y}`
+    })
+    return `M${points.join(' L')} Z`
+  }
+
+  // 그리드 원 (5단계)
+  const gridCircles = Array.from({ length: 5 }).map((_, i) => {
+    const gridRadius = (radius * (i + 1)) / 5
+    return (
+      <circle
+        key={`grid-${i}`}
+        cx={centerX}
+        cy={centerY}
+        r={gridRadius}
+        fill="none"
+        stroke="#e2e8f0"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )
+  })
+
+  // 축선 (10개)
+  const axisLines = characteristics.map((_, i) => {
+    const { x, y } = getCoordinates(maxValue, i)
+    return (
+      <line
+        key={`axis-${i}`}
+        x1={centerX}
+        y1={centerY}
+        x2={x}
+        y2={y}
+        stroke="#e2e8f0"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
+    )
+  })
+
+  // 라벨
+  const labels = characteristics.map((char, i) => {
+    const angle = i * angleStep - Math.PI / 2
+    // 텍스트 정렬을 위한 좌표 (그래프와 더 가깝게 모음)
+    const labelRadius = radius * 1.12
+    const x = centerX + labelRadius * Math.cos(angle)
+
+
+    const y = centerY + labelRadius * Math.sin(angle)
+
+    // 각도에 따른 텍스트 정렬 설정 (겹침 방지)
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+
+    let textAnchor: "middle" | "start" | "end" = "middle"
+    if (cos > 0.2) textAnchor = "start"
+    else if (cos < -0.2) textAnchor = "end"
+
+    let dominantBaseline: "middle" | "auto" | "hanging" = "middle"
+    if (sin > 0.5) dominantBaseline = "hanging"
+    else if (sin < -0.5) dominantBaseline = "auto"
+
+    return (
+      <text
+        key={`label-${i}`}
+        x={x}
+        y={y}
+        dominantBaseline={dominantBaseline}
+        textAnchor={textAnchor}
+        fontSize="8"
+        fontWeight="900"
+        fill="#64748b"
+      >
+
+
+        {char.label}
+      </text>
+    )
+  })
+
+  return (
+    <svg
+      width="200"
+      height="200"
+      viewBox="0 0 200 200"
+      style={{ transform: 'translateZ(0)' }}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {gridCircles}
+      {axisLines}
+      <path
+        d={createPath()}
+        fill="rgba(6, 182, 212, 0.15)"
+        stroke="url(#printGradient)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient id="printGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F472B6" />
+          <stop offset="50%" stopColor="#FACC15" />
+          <stop offset="100%" stopColor="#60A5FA" />
+        </linearGradient>
+      </defs>
+      {labels}
+      {characteristics.map((char, i) => {
+        const { x, y } = getCoordinates(char.value, i)
+        return <circle key={`point-${i}`} cx={x} cy={y} r={4} fill="url(#printGradient)" stroke="#fff" strokeWidth="1.5" />
+      })}
+    </svg>
+  )
+}
+
+export function PrintableReport({ analysis }: PrintableReportProps) {
   const analysisData = analysis.analysis_data
   const traits = analysisData.traits
   const scentCategories = analysisData.scentCategories
   const personalColor = analysisData.personalColor
-  const dominantColors = analysisData.dominantColors || []
   const matchingPerfume = analysisData.matchingPerfumes?.[0]
-  const isOffline = analysis.service_mode === 'offline'
+  const scentRecommendation = analysisData.scentRecommendation
 
-  // 확정 향수 정보 (오프라인은 피드백 기반, 온라인은 초기 추천)
-  const finalPerfumeName = isOffline && feedback?.perfume_name
-    ? feedback.perfume_name
-    : analysis.perfume_name
-
-  // 특성 정렬 (높은 순)
-  const sortedTraits = useMemo(() => {
-    return Object.entries(traits)
+  // 상위 3개 특성
+  const topTraits = useMemo(() =>
+    Object.entries(traits)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-  }, [traits])
+      .slice(0, 3)
+      .map(([key, value]) => ({
+        key: key as keyof TraitScores,
+        value,
+        label: TRAIT_LABELS[key as keyof TraitScores],
+        icon: TRAIT_ICONS[key as keyof TraitScores],
+        colors: TRAIT_COLORS[key as keyof TraitScores]
+      })),
+    [traits]
+  )
 
-  // 향 카테고리 정렬 (높은 순)
-  const sortedScents = useMemo(() => {
-    return Object.entries(scentCategories)
-      .sort(([, a], [, b]) => b - a)
-  }, [scentCategories])
+  // 향 카테고리 정렬
+  const sortedScents = useMemo(() =>
+    Object.entries(scentCategories).sort(([, a], [, b]) => b - a),
+    [scentCategories]
+  )
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  // 컬러 타입 이름
+  const colorTypeName = personalColor
+    ? `${SEASON_LABELS[personalColor.season]} ${TONE_LABELS[personalColor.tone]}`
+    : ''
+
+  // 키워드에 스타일 할당
+  const styledKeywords = useMemo(() => {
+    return (analysis.matching_keywords || []).slice(0, 5).map((keyword, index) => {
+      const styleIndex = Math.floor(seededRandom(index + 100) * KEYWORD_STYLES.length)
+      return { text: keyword, style: KEYWORD_STYLES[styleIndex] }
     })
-  }
+  }, [analysis.matching_keywords])
 
   return (
     <>
@@ -112,225 +287,253 @@ export function PrintableReport({ analysis, feedback, userProfile }: PrintableRe
         @media print {
           @page {
             size: A4 landscape;
-            margin: 8mm;
+            margin: 0;
           }
+
+          /* 모든 요소 숨기기 */
+          body * {
+            visibility: hidden;
+          }
+
+          /* 보고서 컨테이너와 그 자식들만 보이기 */
+          #printable-report,
+          #printable-report * {
+            visibility: visible;
+          }
+
+          /* 보고서를 좌상단에 고정 (레이아웃 유지) */
+          #printable-report {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+          }
+
+          /* 컬러 정확하게 출력 */
           body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          .print-container {
-            width: 100%;
-            height: 100%;
-            page-break-inside: avoid;
+            color-adjust: exact !important;
           }
         }
       `}</style>
 
       {/* 보고서 컨테이너 */}
-      <div className="print-container bg-white min-h-screen p-4 print:p-0">
-        <div className="max-w-[297mm] mx-auto bg-white">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-900">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center border-2 border-slate-900">
-                <span className="text-slate-900 font-bold text-sm">AC</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">AC'SCENT IDENTITY</h1>
-                <p className="text-sm text-slate-600">향수 분석 보고서</p>
-              </div>
+      <div id="printable-report" className="w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden">
+        {/* 배경 SVG */}
+        <img src="/background.svg" alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
+
+        {/* ===== IMAGE PROFILE 섹션 ===== */}
+
+        {/* NAME 값 */}
+        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 320, top: 120 }}>
+          {analysis.idol_name || analysis.twitter_name || '-'}
+        </div>
+
+
+
+
+        {/* GENDER 값 */}
+        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 320, top: 152 }}>
+          {analysisData.analysis?.mood?.includes('남') ? '남성' : '여성'}
+        </div>
+
+
+
+
+        {/* KEYWORDS - 기존 KeywordCloud 스타일 */}
+        <div className="absolute flex flex-wrap gap-1" style={{ left: 210, top: 210, width: 180 }}>
+          {styledKeywords.map((keyword, idx) => (
+            <span
+              key={idx}
+              className={`inline-flex items-center text-[10px] px-2 py-1 font-bold ${keyword.style.bg} ${keyword.style.text} ${keyword.style.shape} ${keyword.style.border}`}
+              style={{ transform: `rotate(${(idx % 2 === 0 ? -2 : 2)}deg)` }}
+            >
+              {keyword.text}
+            </span>
+          ))}
+        </div>
+
+        {/* 분석 이미지 */}
+        <div
+          className="absolute overflow-hidden rounded-lg shadow-[2px_2px_0px_#000]"
+          style={{ left: 32, top: 95, width: 156, height: 189 }}
+        >
+          {analysis.user_image_url ? (
+            <img src={analysis.user_image_url} alt="분석 이미지" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+              <span className="text-slate-400 text-[8px]">이미지 없음</span>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-lg text-slate-900">{analysis.idol_name || analysis.twitter_name}</p>
-              <p className="text-sm text-slate-500">{formatDate(analysis.created_at)}</p>
+          )}
+        </div>
+
+        {/* FEATURE 레이더 차트 */}
+        <div
+          className="absolute"
+          style={{
+            left: 10,
+            top: 280,
+            transform: 'translate3d(0,0,0)',
+            filter: 'blur(0)',
+            WebkitFilter: 'blur(0)',
+          }}
+        >
+          <PrintRadarChart traits={traits} />
+        </div>
+
+
+
+
+
+        {/* Top 3 특성 배지 - 심플 스타일 */}
+        <div
+          className="absolute bg-white border-2 border-gray-700 rounded-xl p-1 flex flex-col gap-1.5"
+          style={{ left: 210, top: 349, width: 160 }}
+        >
+          {topTraits.map((trait, idx) => (
+            <div key={trait.key} className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-[8px] font-bold">{idx + 1}</span>
+              </div>
+              <span className="text-[11px] font-black text-gray-700">{trait.label}</span>
             </div>
+          ))}
+        </div>
+
+        {/* COLOR TYPE - 컬러 동그라미들 */}
+        <div className="absolute flex gap-1" style={{ left: 45, top: 490 }}>
+          {personalColor?.palette?.slice(0, 4).map((color, idx) => (
+            <div
+              key={idx}
+              className="w-8 h-8 rounded-full border border-slate-200 shadow-sm"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+
+        {/* COLOR TYPE - 설명 박스 */}
+        <div className="absolute" style={{ left: 210, top: 478, width: 160 }}>
+          <div className="border-2 border-gray-700 rounded-[16px] p-2 min-h-[70px] bg-white">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div
+                className="w-3 h-3 rounded-full border border-slate-300"
+                style={{ backgroundColor: personalColor?.palette?.[0] }}
+              />
+              <span className="text-[12px] font-black text-blue-900 uppercase tracking-wide">
+                {colorTypeName}
+              </span>
+            </div>
+            <p className="text-[8px] font-bold text-slate-600 leading-tight">
+              {personalColor?.description
+                ?.split(/(?<=[!.?])\s+/)
+                .slice(0, 2)
+                .join(' ')}
+            </p>
           </div>
+        </div>
 
-          {/* 메인 콘텐츠 (2컬럼) */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* 왼쪽: 최애 분석 */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-900 bg-slate-100 px-3 py-2 rounded-lg border-2 border-slate-900">
-                최애 분석
-              </h2>
 
-              {/* 레이더 차트 (정적 SVG) */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">특성 프로필</h3>
-                <div className="flex items-start gap-4">
-                  {/* 간단한 레이더 차트 대체 - 바 차트 */}
-                  <div className="flex-1 space-y-2">
-                    {sortedTraits.map(([key, value]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <span className="w-16 text-xs text-slate-600">
-                          {TRAIT_LABELS[key as keyof TraitScores]}
-                        </span>
-                        <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-yellow-400 rounded-full transition-all"
-                            style={{ width: `${value * 10}%` }}
-                          />
-                        </div>
-                        <span className="w-6 text-xs font-medium text-slate-900">{value}</span>
-                      </div>
-                    ))}
+        {/* ===== SCENT PROFILE 섹션 ===== */}
+
+        {/* TOP NOTE */}
+        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 128 }}>
+          {matchingPerfume?.persona?.mainScent?.name || '-'}
+        </div>
+
+        {/* MIDDLE NOTE */}
+        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 166 }}>
+          {matchingPerfume?.persona?.subScent1?.name || '-'}
+        </div>
+
+        {/* BASE NOTE */}
+        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 204 }}>
+          {matchingPerfume?.persona?.subScent2?.name || '-'}
+        </div>
+
+        {/* 향기 계열 바 차트 - 기존 PerfumeProfile 스타일 (도트 형태) */}
+        <div className="absolute space-y-0" style={{ left: 460, top: 245, width: 320 }}>
+          {sortedScents.map(([key, value], index) => {
+            const info = CATEGORY_INFO[key] || { icon: '⚪', name: key }
+            const colors = categoryColors[key] || { bar: 'bg-slate-400', bg: 'bg-slate-50', border: 'border-slate-300', text: 'text-slate-700' }
+            const isMain = index === 0
+
+            return (
+              <div
+                key={key}
+                className="relative rounded-md py-0.5 px-1.5"
+              >
+                {isMain && (
+                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-yellow-400 rounded-full border border-slate-900 flex items-center justify-center text-[10px]">
+                    👑
                   </div>
-                </div>
-              </div>
-
-              {/* 키워드 */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">매칭 키워드</h3>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.matching_keywords?.slice(0, 8).map((keyword, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full border border-yellow-300"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* 퍼스널 컬러 */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">퍼스널 컬러</h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex gap-1">
-                    {personalColor?.palette?.slice(0, 5).map((color, idx) => (
-                      <div
-                        key={idx}
-                        className="w-8 h-8 rounded-lg border border-slate-200"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900">
-                      {SEASON_LABELS[personalColor?.season || ''] || personalColor?.season}
-                    </p>
-                    <p className="text-xs text-slate-500">{personalColor?.tone}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 도미넌트 컬러 */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">이미지 컬러</h3>
-                <div className="flex gap-2">
-                  {dominantColors.slice(0, 5).map((color, idx) => (
-                    <div key={idx} className="text-center">
-                      <div
-                        className="w-10 h-10 rounded-lg border-2 border-slate-200 mb-1"
-                        style={{ backgroundColor: color }}
-                      />
-                      <span className="text-[10px] text-slate-500 font-mono">{color}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 오른쪽: 향 정보 */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-900 bg-yellow-400 px-3 py-2 rounded-lg border-2 border-slate-900">
-                {isOffline ? '확정 향수' : '추천 향수'}
-              </h2>
-
-              {/* 향수 정보 */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <div className="flex items-center gap-4 mb-4">
-                  <div
-                    className="w-12 h-12 rounded-xl border-2 border-slate-900"
-                    style={{ backgroundColor: matchingPerfume?.persona?.primaryColor || '#FEF9C3' }}
-                  />
-                  <div>
-                    <p className="font-bold text-xl text-slate-900">{finalPerfumeName}</p>
-                    <p className="text-slate-600">{analysis.perfume_brand}</p>
-                  </div>
-                </div>
-                {matchingPerfume && (
-                  <p className="text-sm text-slate-600">
-                    매칭 점수: <span className="font-medium">{Math.round((matchingPerfume.score || 0) * 100)}%</span>
-                  </p>
                 )}
-              </div>
-
-              {/* 향 노트 */}
-              {matchingPerfume?.persona && (
-                <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">향 노트</h3>
-                  <div className="space-y-3">
-                    {matchingPerfume.persona.mainScent && (
-                      <div className="flex items-center gap-3">
-                        <span className="w-16 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded">TOP</span>
-                        <span className="text-slate-900">{matchingPerfume.persona.mainScent.name}</span>
-                      </div>
-                    )}
-                    {matchingPerfume.persona.subScent1 && (
-                      <div className="flex items-center gap-3">
-                        <span className="w-16 text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded">HEART</span>
-                        <span className="text-slate-900">{matchingPerfume.persona.subScent1.name}</span>
-                      </div>
-                    )}
-                    {matchingPerfume.persona.subScent2 && (
-                      <div className="flex items-center gap-3">
-                        <span className="w-16 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">BASE</span>
-                        <span className="text-slate-900">{matchingPerfume.persona.subScent2.name}</span>
-                      </div>
-                    )}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 min-w-[75px]">
+                    <span className="text-[14px]">{info.icon}</span>
+                    <span className={`text-[12px] font-bold ${colors.text}`}>{info.name}</span>
                   </div>
-                </div>
-              )}
-
-              {/* 향 카테고리 프로필 */}
-              <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">향 카테고리</h3>
-                <div className="space-y-2">
-                  {sortedScents.map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <span className="w-16 text-xs text-slate-600">
-                        {SCENT_LABELS[key as keyof ScentCategoryScores]}
-                      </span>
-                      <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-400 rounded-full"
-                          style={{ width: `${value * 10}%` }}
-                        />
-                      </div>
-                      <span className="w-6 text-xs font-medium text-slate-900">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 커스텀 레시피 (오프라인 전용) */}
-              {isOffline && feedback?.generated_recipe && (
-                <div className="bg-purple-50 border-2 border-purple-300 rounded-xl p-4">
-                  <h3 className="text-sm font-medium text-purple-800 mb-3">커스텀 레시피</h3>
-                  <div className="grid grid-cols-5 gap-2">
-                    {feedback.generated_recipe.granules?.map((granule, idx) => (
-                      <div key={idx} className="bg-white rounded-lg p-2 text-center border border-purple-200">
-                        <p className="text-xs font-medium text-slate-900 truncate">{granule.name}</p>
-                        <p className="text-lg font-bold text-purple-700">{granule.drops}</p>
-                        <p className="text-[10px] text-slate-500">방울</p>
-                      </div>
+                  <div className="flex-grow flex items-center gap-[5px] ml-2">
+                    {[...Array(10)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-2.5 h-2.5 rounded-full border ${i < value ? `${colors.bar} border-slate-900` : 'bg-slate-200 border-slate-300'
+                          }`}
+                        style={{ transform: i >= value ? 'scale(0.6)' : 'scale(1)' }}
+                      />
                     ))}
                   </div>
-                  <p className="mt-2 text-xs text-purple-600 text-center">
-                    총 {feedback.generated_recipe.totalDrops}방울 | 잔향률 {feedback.retention_percentage}%
-                  </p>
+                  <div className={`flex-shrink-0 w-6 h-6 rounded ${colors.bar} border border-slate-900 flex items-center justify-center`}>
+                    <span className="text-[10px] font-black text-white">{value}</span>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )
+          })}
+        </div>
 
-          {/* 푸터 */}
-          <div className="mt-6 pt-3 border-t-2 border-slate-200 flex items-center justify-between text-sm text-slate-500">
-            <span>AC'SCENT IDENTITY - 당신의 최애를 위한 향수</span>
-            <span>Report ID: {analysis.id.slice(0, 8)}</span>
+        {/* BEST SEASON - 기존 스타일 */}
+        <div className="absolute border-2 border-gray-700 rounded-xl py-2 px-1 bg-white" style={{ left: 474, top: 475 }}>
+          <div className="flex gap-1">
+            {(['spring', 'summer', 'autumn', 'winter'] as const).map((season) => {
+              const isSelected = scentRecommendation?.best_season === season
+              const icon = SEASON_ICONS[season]
+              return (
+                <div
+                  key={season}
+                  className={`flex flex-col items-center justify-center w-8 h-11 rounded-lg border-2 ${isSelected
+                    ? 'bg-emerald-400 border-emerald-600 text-white shadow-md'
+                    : 'bg-gray-100 border-gray-200 text-gray-400'
+                    }`}
+                >
+                  <span className={`text-[10px] ${!isSelected ? 'grayscale opacity-50' : ''}`}>{icon.emoji}</span>
+                  <span className="text-[8px] font-bold">{icon.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* BEST TIME - 기존 스타일 */}
+        <div className="absolute border-2 border-gray-700 rounded-xl py-2 px-1 bg-white" style={{ left: 650, top: 475 }}>
+          <div className="flex gap-1">
+            {(['morning', 'afternoon', 'evening', 'night'] as const).map((time) => {
+              const isSelected = scentRecommendation?.best_time === time
+              const icon = TIME_ICONS[time]
+              return (
+                <div
+                  key={time}
+                  className={`flex flex-col items-center justify-center w-8 h-11 rounded-lg border-2 ${isSelected
+                    ? 'bg-blue-400 border-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 border-gray-200 text-gray-400'
+                    }`}
+                >
+                  <span className={`text-[10px] ${!isSelected ? 'grayscale opacity-50' : ''}`}>{icon.emoji}</span>
+                  <span className="text-[8px] font-bold">{icon.label}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

@@ -55,7 +55,7 @@ const PRODUCTS = [
     price: 34000,
     originalPrice: 49000,
     discount: 31,
-    includes: "뿌덕퍼퓸(10ml/50ml) + 졸업 분석보고서",
+    includes: "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서",
     delivery: "주문 후 2~3일 내 배송",
     tags: ["졸업", "기념향"],
     badge: "~2/28 한정",

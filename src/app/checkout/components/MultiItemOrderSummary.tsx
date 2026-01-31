@@ -144,7 +144,7 @@ export function MultiItemOrderSummary({
         <ul className="space-y-1.5 text-xs text-slate-700 font-bold">
           <li className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-            50ml 또는 세트 상품 포함 시 무료배송
+            5만원 이상 주문 시 무료배송
           </li>
           <li className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>

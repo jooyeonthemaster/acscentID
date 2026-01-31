@@ -24,6 +24,7 @@ interface UseAutoSaveProps {
   modelingImage?: string | null  // 3D 모델링용 참조 이미지
   modelingRequest?: string | null  // 모델링 요청사항
   productType?: string | null  // 상품 타입 (figure_diffuser 등)
+  pin?: string | null  // 오프라인 모드 인증 번호 (4자리)
 }
 
 interface UseAutoSaveReturn {
@@ -78,7 +79,8 @@ export function useAutoSave({
   // 피규어 온라인 모드 전용
   modelingImage = null,
   modelingRequest = null,
-  productType = null
+  productType = null,
+  pin = null
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -216,6 +218,7 @@ export function useAutoSave({
 
       // 2. 결과 데이터 저장
       console.log('[AutoSave] Saving analysis result...')
+      console.log('[AutoSave] pin value:', pin)
 
       // 서비스 모드 가져오기
       const serviceMode = typeof window !== 'undefined'
@@ -241,11 +244,11 @@ export function useAutoSave({
             modelingImageUrl,
             modelingRequest,
           }),
-          // 피규어 또는 졸업 퍼퓸일 때 productType, serviceMode 저장
-          ...((productType === 'figure_diffuser' || productType === 'graduation') && {
-            productType,
-            serviceMode
-          })
+          // 모든 분석에 productType, serviceMode 저장 (오프라인 태그 표시용)
+          productType: productType || 'image_analysis',
+          serviceMode,
+          // 오프라인 모드 인증 번호
+          ...(pin && { pin })
         })
       })
 
@@ -282,7 +285,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, idolGender, modelingImage, modelingRequest, productType])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, idolGender, modelingImage, modelingRequest, productType, pin])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)

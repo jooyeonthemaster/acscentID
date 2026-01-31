@@ -417,7 +417,7 @@ export function CartList({ viewMode }: CartListProps) {
             </span>
           </div>
           {totals.shippingFee === 0 && (
-            <p className="text-xs text-amber-700">✓ 50ml 또는 세트 상품 포함 시 무료배송</p>
+            <p className="text-xs text-amber-700">✓ 5만원 이상 주문 시 무료배송</p>
           )}
         </div>
 

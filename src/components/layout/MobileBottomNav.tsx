@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 const PROGRAM_LINKS = [
   { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
   { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/perfume/graduate.avif', limitedUntil: '2/28' },
+  { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
 ]
 
 // NavItem 컴포넌트
@@ -182,17 +182,25 @@ export function MobileBottomNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
 
+  // hooks는 조건부 return 이전에 호출되어야 함
+  const lastScrollY = useRef(0)
+  const ticking = useRef(false)
+
+  // 관리자 페이지에서는 숨김
+  const isAdminPage = pathname?.startsWith('/admin')
+
   // 프로그램 상세 페이지인지 확인
   const isIdolImagePage = pathname === '/programs/idol-image'
   const isFigurePage = pathname === '/programs/figure'
   const isGraduationPage = pathname === '/programs/graduation'
   const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage
 
-  const lastScrollY = useRef(0)
-  const ticking = useRef(false)
-
   // 스크롤 방향 감지 - 아래로 스크롤하면 숨기고, 위로 스크롤하면 보이기
+  // (모든 hooks는 조건부 return 이전에 호출되어야 함)
   useEffect(() => {
+    // 관리자 페이지면 스크롤 리스너 등록 안함
+    if (isAdminPage) return
+
     const handleScroll = () => {
       if (!ticking.current) {
         window.requestAnimationFrame(() => {
@@ -224,7 +232,10 @@ export function MobileBottomNav() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isAdminPage])
+
+  // 관리자 페이지면 렌더링하지 않음
+  if (isAdminPage) return null
 
   // 현재 경로에 따른 활성 탭 판별
   const isHomeActive = pathname === '/'

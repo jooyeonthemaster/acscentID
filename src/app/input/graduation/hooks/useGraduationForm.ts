@@ -11,7 +11,9 @@ export function useGraduationForm() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const { showToast } = useToast()
-    const mode = searchParams.get("mode") // "online" | null
+    const mode = searchParams.get("mode") // "online" | "qr" | null
+    const serviceMode = searchParams.get("service_mode") // QR 리다이렉트에서 사용: "online" | "offline"
+    const qrCode = searchParams.get("qr_code") // QR 코드 ID
 
     const [currentStep, setCurrentStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,7 +28,10 @@ export function useGraduationForm() {
     const [isTransforming, setIsTransforming] = useState(false)
     const [transformedImagePreview, setTransformedImagePreview] = useState<string | null>(null)
 
-    const isOnline = mode === "online"
+    // 온라인 모드 판단: mode=online이거나 service_mode=online (QR 리다이렉트)
+    // mode=qr 또는 service_mode=offline이면 오프라인
+    const isOnline = mode === "online" || (serviceMode === "online" && mode !== "qr")
+    const isOffline = mode === "qr" || serviceMode === "offline" || (!isOnline && !!qrCode)
     const totalSteps = GRADUATION_TOTAL_STEPS
 
     // 스텝 유효성 검사 (5단계: 기본정보 → 학창시절 → 지금감정 → 앞으로 → 이미지)
@@ -34,11 +39,14 @@ export function useGraduationForm() {
         switch (step) {
             case 1:
                 // 기본 정보: 이름, 성별, 졸업 유형 필수
-                return (
-                    formData.name.length > 0 &&
+                // 오프라인 모드에서는 PIN 4자리도 필수
+                const basicValid = formData.name.length > 0 &&
                     formData.gender.length > 0 &&
                     formData.graduationType.length > 0
-                )
+                if (isOffline) {
+                    return basicValid && (formData.pin?.length === 4)
+                }
+                return basicValid
             case 2:
                 // 학창 시절: 키워드 최소 1개
                 return formData.pastStyles.length > 0
@@ -54,7 +62,7 @@ export function useGraduationForm() {
             default:
                 return false
         }
-    }, [formData])
+    }, [formData, isOffline])
 
     // 토글 함수들 - 과거
     const togglePastStyle = useCallback((style: string) => {
@@ -126,6 +134,11 @@ export function useGraduationForm() {
 
     const setSchoolName = useCallback((schoolName: string) => {
         setFormData(prev => ({ ...prev, schoolName }))
+    }, [])
+
+    // PIN 설정 (오프라인 모드용)
+    const setPin = useCallback((pin: string) => {
+        setFormData(prev => ({ ...prev, pin }))
     }, [])
 
     // 텍스트 필드 설정
@@ -322,8 +335,11 @@ export function useGraduationForm() {
             // 3. 저장 로직 - 변환된 이미지 우선 저장
             const saveToLocalStorage = (data: unknown) => {
                 localStorage.removeItem('savedResultId')
-                localStorage.setItem('serviceMode', mode === 'online' ? 'online' : 'offline')
+                // 서비스 모드 저장: 오프라인 조건 확인
+                const resolvedServiceMode = isOffline ? 'offline' : 'online'
+                localStorage.setItem('serviceMode', resolvedServiceMode)
                 localStorage.setItem('productType', 'graduation')
+                localStorage.setItem('programType', 'graduation')
                 localStorage.setItem('analysisResult', JSON.stringify(data))
                 // 졸업사진 변환 이미지가 있으면 그걸 메인으로, 아니면 원본
                 if (graduationImageBase64) {
@@ -332,12 +348,17 @@ export function useGraduationForm() {
                 } else if (imagePreview) {
                     localStorage.setItem('userImage', imagePreview)
                 }
-                localStorage.setItem('userInfo', JSON.stringify({
+                // userInfo 저장 - 오프라인 모드에서는 pin 포함
+                const userInfoToSave = {
                     name: formData.name,
                     gender: formData.gender,
                     graduationType: formData.graduationType,
-                    schoolName: formData.schoolName
-                }))
+                    schoolName: formData.schoolName,
+                    // 오프라인 모드에서만 pin 저장
+                    ...(isOffline && { pin: formData.pin })
+                }
+                console.log('[useGraduationForm] Saving userInfo:', userInfoToSave, 'isOffline:', isOffline)
+                localStorage.setItem('userInfo', JSON.stringify(userInfoToSave))
             }
 
             if (result.success) {
@@ -355,7 +376,7 @@ export function useGraduationForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, mode])
+    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, isOffline])
 
     // 문 열린 후 결과 페이지로 이동
     const navigateToResult = useCallback(() => {
@@ -379,6 +400,7 @@ export function useGraduationForm() {
         isCompressing,
         isTransforming,
         isOnline,
+        isOffline,
 
         // 유효성 검사
         isStepValid,
@@ -388,6 +410,7 @@ export function useGraduationForm() {
         setGender,
         setGraduationType,
         setSchoolName,
+        setPin,
 
         // 과거 토글 함수
         togglePastStyle,

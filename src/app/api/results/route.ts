@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       modelingImageUrl,
       modelingRequest,
       productType,
-      serviceMode
+      serviceMode,
+      pin
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -38,7 +39,11 @@ export async function POST(request: NextRequest) {
       modelingRequest?: string | null
       productType?: string | null
       serviceMode?: string | null
+      pin?: string | null
     }
+
+    // 디버그: pin 값 확인
+    console.log('[/api/results] Received pin:', pin, 'serviceMode:', serviceMode)
 
     // 필수 데이터 검증
     if (!analysisData || !twitterName || !perfumeName || !perfumeBrand) {
@@ -67,7 +72,8 @@ export async function POST(request: NextRequest) {
         modeling_request: modelingRequest || null,
         modeling_submitted_at: modelingImageUrl ? new Date().toISOString() : null,
         product_type: productType || 'image_analysis',
-        service_mode: serviceMode || 'online'
+        service_mode: serviceMode || 'online',
+        pin: pin || null
       })
       .select('id')
       .single()

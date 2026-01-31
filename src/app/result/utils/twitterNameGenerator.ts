@@ -115,7 +115,7 @@ export const generateHashtags = (analysisResult: ImageAnalysisResult): string[] 
     '#존잘존예',
     '#레전드급',
     '#갓벽',
-    '#최애등극',
+    '#향기발견',
     '#취저',
     '#입덕완료'
   ]

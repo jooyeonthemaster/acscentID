@@ -238,7 +238,7 @@ export function ReviewWriteModal({
                     <textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
-                      placeholder="최애의 향기가 어떠셨나요? 솔직한 후기를 남겨주세요!"
+                      placeholder="이 향기가 어떠셨나요? 솔직한 후기를 남겨주세요!"
                       className="w-full h-28 px-4 py-3 bg-white border-2 border-black rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
                     />
                     <p className="text-xs text-slate-400 text-right mt-1">

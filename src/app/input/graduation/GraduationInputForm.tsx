@@ -31,10 +31,12 @@ export function GraduationInputForm() {
         isAnalysisComplete,
         isCompressing,
         isTransforming,
+        isOffline,
         isStepValid,
         setName,
         setGender,
         setGraduationType,
+        setPin,
         togglePastStyle,
         togglePastPersonality,
         setPastMemories,
@@ -105,6 +107,8 @@ export function GraduationInputForm() {
                                 setName={setName}
                                 setGender={setGender}
                                 setGraduationType={setGraduationType}
+                                setPin={setPin}
+                                isOffline={isOffline}
                                 focusedField={focusedField}
                                 setFocusedField={setFocusedField}
                             />

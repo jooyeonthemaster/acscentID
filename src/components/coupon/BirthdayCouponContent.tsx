@@ -145,13 +145,13 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
               <Star className={`w-5 h-5 ${proofType === 'idol' ? 'text-white' : 'text-slate-400'}`} />
             </div>
             <span className={`text-sm font-black ${proofType === 'idol' ? 'text-slate-900' : 'text-slate-600'}`}>
-              최애 생일
+              특별한 생일
             </span>
           </motion.button>
         </div>
       </div>
 
-      {/* 최애 이름 표시 (최애 생일 선택 시) */}
+      {/* 분석 대상 이름 표시 (특별한 생일 선택 시) */}
       <AnimatePresence>
         {proofType === 'idol' && (
           <motion.div
@@ -165,7 +165,7 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
                 <Star className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-slate-500 font-bold">분석한 최애</p>
+                <p className="text-xs text-slate-500 font-bold">분석 대상</p>
                 <p className="font-black text-sm text-slate-900">{idolName || '(이름 없음)'}</p>
               </div>
             </div>

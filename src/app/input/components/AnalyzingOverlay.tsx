@@ -5,18 +5,18 @@ import { motion, AnimatePresence } from "framer-motion"
 
 // 향기 관련 재미있는 멘트들
 const SCENT_QUOTES = [
-    "당신의 최애, 향기까지 완벽하시군요...",
+    "이 사람, 향기까지 완벽하네요...",
     "향기란, 보이지 않는 영혼의 옷이다.",
     "이 향기 맡으면 심장이 뛰어요... 두근두근",
     "좋은 향기는 기억 속에 영원히 남는다.",
-    "당신의 덕력이 향기가 됩니다...",
+    "당신의 마음이 향기가 됩니다...",
     "향기는 시간을 초월하는 사랑의 언어다.",
     "이 향기, 심쿵 주의보입니다...",
     "사랑하는 마음을 향기에 담는 중...",
     "향수는 보이지 않는 포옹이다.",
-    "당신의 덕심, 향기로 증명합니다!",
+    "당신의 진심, 향기로 증명합니다!",
     "향기는 추억의 가장 강력한 트리거다.",
-    "당신의 최애를 위한 세상에 하나뿐인 향기...",
+    "세상에 하나뿐인 특별한 향기를 만드는 중...",
     "좋은 향기는 자기 소개서보다 강하다.",
     "향기는 기억의 문을 여는 열쇠다.",
 ]
@@ -93,7 +93,7 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                         animate={{ x: doorPosition.left }}
                         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                         onAnimationComplete={handleDoorAnimationComplete}
-                        className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative flex items-center justify-end"
+                        className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative"
                     >
                         <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
                             <defs>
@@ -106,9 +106,6 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                             <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
                             <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
                         </svg>
-                        <div className="relative z-10 mr-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                            <div className="w-2 h-12 bg-amber-600 rounded-full" />
-                        </div>
                     </motion.div>
 
                     {/* 오른쪽 문 */}
@@ -116,22 +113,19 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                         initial={{ x: "100%" }}
                         animate={{ x: doorPosition.right }}
                         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                        className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative flex items-center justify-start"
+                        className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative"
                     >
                         <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
                             <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
                             <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
                             <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
                         </svg>
-                        <div className="relative z-10 ml-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                            <div className="w-2 h-12 bg-amber-600 rounded-full" />
-                        </div>
                     </motion.div>
                 </div>
             </div>
 
-            {/* 로딩 콘텐츠 - 상하 분산 배치 (손잡이 피하기) */}
-            <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-between pt-[18vh] pb-[12vh]">
+            {/* 로딩 콘텐츠 - 중앙 배치 */}
+            <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center gap-8">
                 {/* 상단 섹션: 타이틀 및 프로그레스 */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}

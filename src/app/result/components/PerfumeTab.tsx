@@ -6,6 +6,7 @@ import { Sparkles, Clock, BookOpen, Search } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { PerfumeNotes } from './PerfumeNotes'
 import { PerfumeProfile } from './PerfumeProfile'
+import { ScentRecommendationCard } from './ScentRecommendationCard'
 
 interface PerfumeTabProps {
   displayedAnalysis: ImageAnalysisResult
@@ -117,6 +118,11 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                         {match.persona.recommendation}
                       </p>
                     </div>
+                    {/* 추천 계절/시간대 */}
+                    <ScentRecommendationCard
+                      recommendation={displayedAnalysis.scentRecommendation}
+                      isDesktop={true}
+                    />
                   </div>
                 )}
 
@@ -253,6 +259,11 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                       {match.persona.recommendation}
                     </p>
                   </div>
+                  {/* 추천 계절/시간대 */}
+                  <ScentRecommendationCard
+                    recommendation={displayedAnalysis.scentRecommendation}
+                    isDesktop={false}
+                  />
                 </div>
               )}
 
