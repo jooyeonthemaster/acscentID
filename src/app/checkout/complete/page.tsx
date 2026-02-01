@@ -21,10 +21,10 @@ import { Header } from "@/components/layout/Header"
 
 // 계좌 정보
 const BANK_INFO = {
-  bank: "카카오뱅크",
-  account: "3333 09 3215346",
-  accountRaw: "3333093215346",
-  holder: "김주연"
+  bank: "우리",
+  account: "1005-204-549279",
+  accountRaw: "1005204549279",
+  holder: "(주)네안데르"
 }
 
 function OrderCompleteContent() {
