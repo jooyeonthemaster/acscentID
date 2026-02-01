@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Instagram, Twitter, Facebook, Mail } from 'lucide-react'
+import { Instagram, Twitter } from 'lucide-react'
 
 export function Footer() {
   const pathname = usePathname()
@@ -82,36 +82,52 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Company Info */}
+        <div className="border-t border-slate-700 pt-4 mb-4">
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            <span className="font-bold text-slate-300">NEANDER Co.,LTD</span>
+            <br />
+            대표 유재영, 이동주 | 사업자등록번호 683-86-02812
+            <br />
+            통신판매신고번호 2023-서울서대문-1558
+            <br />
+            서울 마포구 와우산로29라길 22
+            <br />
+            Tel. 02-336-3368 | Mail. neander@neander.co.kr
+          </p>
+          <div className="flex gap-3 mt-2">
+            <Link href="/terms" className="text-[10px] text-slate-400 hover:text-white transition-colors">
+              이용약관
+            </Link>
+            <Link href="/privacy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
+              개인정보처리방침
+            </Link>
+          </div>
+        </div>
+
         {/* Social Media & Copyright */}
         <div className="border-t border-slate-700 pt-4 flex items-center justify-between gap-3">
-          {/* Social Links (Placeholder) */}
+          {/* Social Links */}
           <div className="flex items-center gap-2">
-            <button
-              disabled
-              className="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center text-slate-600 cursor-not-allowed"
-              title="Coming Soon"
+            <Link
+              href="https://www.instagram.com/acscent_id/"
+              target="_blank"
+              className="w-8 h-8 rounded-full border border-slate-400 flex items-center justify-center text-slate-400 hover:border-white hover:text-white transition-colors"
             >
               <Instagram size={14} />
-            </button>
-            <button
-              disabled
-              className="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center text-slate-600 cursor-not-allowed"
-              title="Coming Soon"
+            </Link>
+            <Link
+              href="https://x.com/acscent_id"
+              target="_blank"
+              className="w-8 h-8 rounded-full border border-slate-400 flex items-center justify-center text-slate-400 hover:border-white hover:text-white transition-colors"
             >
               <Twitter size={14} />
-            </button>
-            <button
-              disabled
-              className="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center text-slate-600 cursor-not-allowed"
-              title="Coming Soon"
-            >
-              <Mail size={14} />
-            </button>
+            </Link>
           </div>
 
           {/* Copyright */}
           <p className="text-[10px] text-slate-400">
-            © {currentYear} AC&apos;SCENT IDENTITY
+            © {currentYear} NEANDER Co.,LTD
           </p>
         </div>
       </div>

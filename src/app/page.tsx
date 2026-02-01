@@ -4,10 +4,8 @@ import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronRight, ChevronLeft, Search, Gift } from "lucide-react"
+import { ChevronRight, ChevronLeft, Search, Gift, Handshake } from "lucide-react"
 import { Header } from "@/components/layout/Header"
-import { useAuth } from "@/contexts/AuthContext"
-import { AuthModal } from "@/components/auth/AuthModal"
 import Image from "next/image"
 
 // 상품 데이터
@@ -68,21 +66,12 @@ const PRODUCTS = [
 
 export default function Home() {
   const router = useRouter()
-  const { user, unifiedUser, loading } = useAuth()
-  const [showAuthModal, setShowAuthModal] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const slideRef = useRef<HTMLDivElement>(null)
 
-  const isLoggedIn = !!(user || unifiedUser)
-
   const handleCardClick = (href: string) => {
-    if (loading) return
-    if (isLoggedIn) {
-      router.push(href)
-    } else {
-      setShowAuthModal(true)
-    }
+    router.push(href)
   }
 
   // 히어로 슬라이드는 2개만 사용
@@ -117,7 +106,7 @@ export default function Home() {
         <div className="w-full max-w-[455px] mx-auto">
 
           {/* ===== 히어로 슬라이드 섹션 ===== */}
-          <section className="sticky top-[84px] z-0 w-full overflow-hidden">
+          <section className="sticky top-[84px] z-0 w-full overflow-hidden md:overflow-visible">
             {/* 슬라이드 컨테이너 */}
             <div className="relative h-[420px] flex items-center justify-center">
               {/* 슬라이드 */}
@@ -170,8 +159,7 @@ export default function Home() {
                 <ChevronRight size={20} className="text-slate-900" />
               </button>
 
-              {/* 페이지네이션 도트 - 이미지 위에 오버레이 */}
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+              <div className="absolute bottom-32 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
                 {[0, 1].map((index) => (
                   <button
                     key={index}
@@ -183,6 +171,7 @@ export default function Home() {
                   />
                 ))}
               </div>
+
             </div>
           </section>
 
@@ -190,7 +179,7 @@ export default function Home() {
           {/* Wrapper for Sticky Control */}
           <div className="relative">
             {/* ===== 프로그램 둘러보기 섹션 ===== */}
-            <section className="bg-white px-4 pt-8 pb-[180px] rounded-t-[32px] -mt-[72px] md:-mt-12 sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
+            <section id="programs-section" className="bg-white px-4 pt-8 pb-[180px] rounded-t-[32px] -mt-[100px] md:-mt-[60px] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
               {/* 섹션 타이틀 */}
               <div className="flex items-center gap-2 mb-6">
                 <Search size={20} className="text-slate-900" />
@@ -312,14 +301,48 @@ export default function Home() {
             </div>
           </section>
 
+          {/* ===== 콜라보 & 협업 문의 섹션 ===== */}
+          <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[100px] relative z-30 min-h-[40vh] border-2 border-slate-900 border-b-0">
+            <div className="flex items-center gap-2 mb-6">
+              <Handshake size={20} className="text-slate-900" />
+              <h2 className="text-lg font-black text-slate-900">협업 문의</h2>
+            </div>
+
+            {/* 협업 소개 */}
+            <div className="bg-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#FCD34D]">
+              <p className="text-white text-sm font-medium mb-4">
+                브랜드 · IP · 기업과 함께하는<br />
+                맞춤형 향 콜라보레이션
+              </p>
+
+              {/* 협업 아이템 */}
+              <div className="space-y-2 mb-5">
+                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
+                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
+                  <span className="text-xs text-white/90">AI 맞춤형 향 추천 프로그램 개발</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
+                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
+                  <span className="text-xs text-white/90">체험형 팝업스토어 기획 및 운영</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
+                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
+                  <span className="text-xs text-white/90">커스텀 향수 키링 케이스 제작</span>
+                </div>
+              </div>
+
+              {/* CTA 버튼 */}
+              <Link
+                href="/collaboration"
+                className="block w-full bg-[#FCD34D] text-slate-900 text-center font-bold text-sm py-3 rounded-xl border-2 border-slate-900 hover:bg-yellow-300 transition-colors"
+              >
+                협업 안내 보기
+              </Link>
+            </div>
+          </section>
+
         </div>
       </main>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={() => setShowAuthModal(false)}
-      />
     </div>
   )
 }

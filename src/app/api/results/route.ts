@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
+import { createServiceRoleClient } from '@/lib/supabase/service'
 import { ImageAnalysisResult } from '@/types/analysis'
+import { deductInventoryForAnalysis } from '@/lib/inventory-deduction'
 
 // POST: 분석 결과 저장
 export async function POST(request: NextRequest) {
@@ -86,9 +88,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 오프라인 모드일 때 재고 자동 차감
+    let inventoryDeduction = null
+    if (serviceMode === 'offline') {
+      console.log(`[/api/results] Offline mode - deducting inventory for analysis: ${data.id}`)
+      const serviceClient = createServiceRoleClient()
+
+      // analysisData에서 finalRecipe 추출
+      const finalRecipe = (analysisData as { finalRecipe?: object })?.finalRecipe || null
+
+      const deductionResult = await deductInventoryForAnalysis(
+        serviceClient,
+        data.id,
+        {
+          finalRecipe: finalRecipe as Parameters<typeof deductInventoryForAnalysis>[2]['finalRecipe'],
+          perfumeName: perfumeName,
+          productType: productType || 'image_analysis',
+        },
+        'QR_OFFLINE'
+      )
+
+      inventoryDeduction = {
+        success: deductionResult.success,
+        deductedCount: deductionResult.deducted.length,
+        errors: deductionResult.errors,
+      }
+
+      if (!deductionResult.success) {
+        console.warn(`[/api/results] Inventory deduction had errors:`, deductionResult.errors)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      id: data.id
+      id: data.id,
+      inventoryDeduction,
     })
   } catch (error) {
     console.error('API error:', error)

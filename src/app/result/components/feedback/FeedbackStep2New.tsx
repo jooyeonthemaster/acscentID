@@ -30,6 +30,17 @@ type CategoryKey = keyof typeof FEEDBACK_CATEGORY_INFO
 // 카테고리 순서
 const CATEGORY_ORDER: CategoryKey[] = ['citrus', 'floral', 'woody', 'musky', 'fruity', 'spicy']
 
+// 배경색이 밝은지 어두운지 판단 (밝으면 true)
+const isLightColor = (hexColor: string) => {
+  const hex = hexColor.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  // 밝기 계산 (YIQ 공식)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 180
+}
+
 export function FeedbackStep2New({
   recommendedPerfumeId,
   recommendedPerfumeName,
@@ -115,7 +126,9 @@ export function FeedbackStep2New({
       <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 border border-amber-200/50">
         <div className="flex items-center gap-3 mb-3">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg"
+            className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg ${
+              isLightColor(recommendedPerfume?.primaryColor || '#6B7280') ? 'text-slate-800' : 'text-white'
+            }`}
             style={{ backgroundColor: recommendedPerfume?.primaryColor || '#6B7280' }}
           >
             {recommendedPerfumeId.split(' ')[1]}
@@ -303,7 +316,9 @@ export function FeedbackStep2New({
                                 }`}
                               >
                                 <div
-                                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0"
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ${
+                                    isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                                  }`}
                                   style={{ backgroundColor: perfume.primaryColor }}
                                 >
                                   {perfume.id.split(' ')[1]}

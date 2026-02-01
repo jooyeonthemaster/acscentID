@@ -115,6 +115,18 @@ export const createInitialFeedback = (
 })
 
 // ============================================
+// 레시피 선택 타입
+// ============================================
+
+export type SelectedRecipeType = 'user_direct' | 'ai_recommended' | 'original'
+
+export const SELECTED_RECIPE_TYPE_LABELS: Record<SelectedRecipeType, string> = {
+  user_direct: '직접 선택',
+  ai_recommended: 'AI 추천',
+  original: '원본 유지',
+}
+
+// ============================================
 // 듀얼 레시피 타입 (1안: 직접선택, 2안: AI추천)
 // ============================================
 
@@ -178,6 +190,8 @@ export interface FeedbackRecord {
   notes?: string
   generatedRecipe: GeneratedRecipe | null
   userFingerprint?: string
+  naturalLanguageFeedback?: string
+  selectedRecipeType?: SelectedRecipeType
 }
 
 // Supabase Row 타입 (snake_case)
@@ -193,6 +207,8 @@ export interface FeedbackRow {
   notes: string | null
   generated_recipe: GeneratedRecipe | null
   user_fingerprint: string | null
+  natural_language_feedback: string | null
+  selected_recipe_type: SelectedRecipeType | null
 }
 
 // Row → Record 변환 함수
@@ -209,6 +225,8 @@ export function transformFeedbackRow(row: FeedbackRow): FeedbackRecord {
     notes: row.notes || undefined,
     generatedRecipe: row.generated_recipe,
     userFingerprint: row.user_fingerprint || undefined,
+    naturalLanguageFeedback: row.natural_language_feedback || undefined,
+    selectedRecipeType: row.selected_recipe_type || undefined,
   }
 }
 

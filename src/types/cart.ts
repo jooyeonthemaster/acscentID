@@ -156,7 +156,15 @@ export function getDefaultSize(productType: ProductType): string {
 }
 
 export function getDefaultPrice(productType: ProductType): number {
-  return productType === 'figure_diffuser' ? 48000 : 24000
+  switch (productType) {
+    case 'figure_diffuser':
+      return 48000
+    case 'graduation':
+    case 'signature':
+      return 34000
+    default:
+      return 24000
+  }
 }
 
 // 전체 장바구니 금액 계산

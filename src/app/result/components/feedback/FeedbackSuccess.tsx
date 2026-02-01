@@ -195,6 +195,58 @@ export function FeedbackSuccess({
         </motion.div>
       </AnimatePresence>
 
+      {/* 레시피 향료 목록 - 최상단 배치 */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25 }}
+        className="space-y-3"
+      >
+        <div className="flex items-center gap-2">
+          <Droplet size={14} className="text-amber-500" />
+          <h3 className="text-sm font-bold text-slate-700">레시피 구성</h3>
+        </div>
+
+        {recipe.granules.map((granule, index) => {
+          const bgColor = getGranuleColor(granule.id)
+          const textColorClass = isLightColor(bgColor) ? 'text-slate-800' : 'text-white'
+
+          return (
+          <motion.div
+            key={granule.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + index * 0.08 }}
+            className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm"
+          >
+            <div className="flex items-start gap-4">
+              {/* 방울 수 - 엄청 크게! */}
+              <div
+                className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg flex-shrink-0 ${textColorClass} ${isLightColor(bgColor) ? 'border-2 border-slate-200' : ''}`}
+                style={{ backgroundColor: bgColor }}
+              >
+                <span className="text-4xl leading-none">{granule.drops}</span>
+                <span className={`text-sm font-bold mt-1 ${isLightColor(bgColor) ? 'opacity-70' : 'opacity-90'}`}>방울</span>
+              </div>
+
+              {/* 향료 정보 */}
+              <div className="flex-1 min-w-0 py-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-slate-900 text-base">{granule.name}</span>
+                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold">
+                    {granule.ratio}%
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1">{granule.id}</p>
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                  {granule.reason}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )})}
+      </motion.div>
+
       {/* 전체 설명 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -296,58 +348,6 @@ export function FeedbackSuccess({
           </div>
         </motion.div>
       )}
-
-      {/* 레시피 향료 목록 */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-2"
-      >
-        <div className="flex items-center gap-2">
-          <Droplet size={14} className="text-amber-500" />
-          <h3 className="text-sm font-bold text-slate-700">레시피 구성</h3>
-        </div>
-
-        {recipe.granules.map((granule, index) => {
-          const bgColor = getGranuleColor(granule.id)
-          const textColorClass = isLightColor(bgColor) ? 'text-slate-800' : 'text-white'
-
-          return (
-          <motion.div
-            key={granule.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.55 + index * 0.08 }}
-            className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm"
-          >
-            <div className="flex items-start gap-3">
-              {/* 향료 아이콘 */}
-              <div
-                className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass} ${isLightColor(bgColor) ? 'border border-slate-200' : ''}`}
-                style={{ backgroundColor: bgColor }}
-              >
-                <span className="text-lg">{granule.drops}</span>
-                <span className={`text-[8px] ${isLightColor(bgColor) ? 'opacity-60' : 'opacity-80'}`}>방울</span>
-              </div>
-
-              {/* 향료 정보 */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-slate-900 text-sm">{granule.name}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">
-                    {granule.ratio}%
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">{granule.id}</p>
-                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                  {granule.reason}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )})}
-      </motion.div>
 
       {/* 테스트 방법 */}
       <motion.div

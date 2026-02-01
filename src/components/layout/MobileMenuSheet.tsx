@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, LogOut, ChevronDown, HelpCircle } from 'lucide-react'
+import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -211,8 +211,22 @@ export function MobileMenuSheet({
                 </Link>
               </nav>
 
-              {/* Sign Out */}
-              <div className="mt-auto p-4 border-t border-slate-100">
+              {/* Actions */}
+              <div className="mt-auto p-4 border-t border-slate-100 space-y-1">
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-xl hover:bg-yellow-50 hover:text-yellow-700 text-slate-500 transition-all font-medium"
+                >
+                  <a
+                    href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MapPin size={18} />
+                    <span>현장방문 예약</span>
+                  </a>
+                </Button>
                 <Button
                   variant="ghost"
                   onClick={handleSignOut}

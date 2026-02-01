@@ -11,7 +11,8 @@ import {
   QrCode,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Database
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -29,6 +30,12 @@ const navItems: NavItem[] = [
     label: '대시보드',
     icon: LayoutDashboard,
     description: '통계 현황',
+  },
+  {
+    href: '/admin/datacenter',
+    label: '데이터센터',
+    icon: Database,
+    description: '향수 통계 & 키워드',
   },
   {
     href: '/admin/analysis',

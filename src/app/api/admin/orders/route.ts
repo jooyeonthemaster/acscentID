@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com').split(',').map(e => e.trim().toLowerCase())
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const { isAdmin: isUserAdmin } = await isAdmin()
+    const { isAdmin: isUserAdmin, email } = await isAdmin()
 
     if (!isUserAdmin) {
       return NextResponse.json(
@@ -130,6 +131,16 @@ export async function PATCH(request: NextRequest) {
 
     const serviceClient = createServiceRoleClient()
 
+    // 기존 주문 상태 조회 (재고 차감 중복 방지)
+    const { data: existingOrder } = await serviceClient
+      .from('orders')
+      .select('status')
+      .eq('id', orderId)
+      .single()
+
+    const previousStatus = existingOrder?.status
+
+    // 주문 상태 업데이트
     const { data: order, error } = await serviceClient
       .from('orders')
       .update({
@@ -148,9 +159,30 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // 결제 완료(paid) 상태로 변경될 때 재고 자동 차감
+    // (기존 상태가 pending이고 새 상태가 paid인 경우에만 - 중복 차감 방지)
+    let inventoryDeduction = null
+    if (previousStatus === 'pending' && status === 'paid') {
+      console.log(`[Admin Orders] Deducting inventory for order: ${orderId}`)
+      const deductionResult = await deductInventoryForOrder(
+        serviceClient,
+        orderId,
+        email || undefined
+      )
+      inventoryDeduction = {
+        success: deductionResult.success,
+        deductedCount: deductionResult.deducted.length,
+        errors: deductionResult.errors,
+      }
+      if (!deductionResult.success) {
+        console.warn(`[Admin Orders] Inventory deduction had errors:`, deductionResult.errors)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      order
+      order,
+      inventoryDeduction,
     })
 
   } catch (error) {

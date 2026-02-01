@@ -6,6 +6,7 @@ import {
   GeneratedRecipe,
   FeedbackRow,
   transformFeedbackRow,
+  SelectedRecipeType,
 } from '@/types/feedback'
 
 // ============================================
@@ -27,6 +28,8 @@ export async function POST(request: NextRequest) {
       notes,
       generatedRecipe,
       userFingerprint,
+      naturalLanguageFeedback,
+      selectedRecipeType,
     } = body as {
       resultId?: string
       perfumeId: string
@@ -37,6 +40,8 @@ export async function POST(request: NextRequest) {
       notes?: string
       generatedRecipe?: GeneratedRecipe
       userFingerprint?: string
+      naturalLanguageFeedback?: string
+      selectedRecipeType?: SelectedRecipeType
     }
 
     // 유효성 검사
@@ -71,6 +76,8 @@ export async function POST(request: NextRequest) {
       notes: notes || null,
       generated_recipe: generatedRecipe || null,
       user_fingerprint: userFingerprint || null,
+      natural_language_feedback: naturalLanguageFeedback || null,
+      selected_recipe_type: selectedRecipeType || null,
     }
 
     console.log(`[${requestId}] Inserting feedback for perfume: ${perfumeName}`)

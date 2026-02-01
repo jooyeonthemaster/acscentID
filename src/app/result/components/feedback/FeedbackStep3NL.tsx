@@ -6,6 +6,17 @@ import { MessageSquare, Sparkles, User, Info } from 'lucide-react'
 import { PerfumeFeedback, FEEDBACK_CATEGORY_INFO } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
 
+// 배경색이 밝은지 어두운지 판단 (밝으면 true)
+const isLightColor = (hexColor: string) => {
+  const hex = hexColor.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  // 밝기 계산 (YIQ 공식)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 180
+}
+
 interface FeedbackStep3NLProps {
   feedback: PerfumeFeedback
   naturalLanguageFeedback: string
@@ -50,7 +61,9 @@ export function FeedbackStep3NL({
           {/* 추천 향 */}
           <div className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100">
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"
+              className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
+                isLightColor(getGranuleColor(feedback.perfumeId)) ? 'text-slate-800' : 'text-white'
+              }`}
               style={{ backgroundColor: getGranuleColor(feedback.perfumeId) }}
             >
               {feedback.perfumeId.split(' ')[1]}
@@ -79,7 +92,9 @@ export function FeedbackStep3NL({
                 className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100"
               >
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
+                    isLightColor(getGranuleColor(scent.id)) ? 'text-slate-800' : 'text-white'
+                  }`}
                   style={{ backgroundColor: getGranuleColor(scent.id) }}
                 >
                   {scent.id.split(' ')[1]}

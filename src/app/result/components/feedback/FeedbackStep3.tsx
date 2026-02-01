@@ -6,6 +6,17 @@ import { Search, X, Plus, Minus } from 'lucide-react'
 import { SpecificScent } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
 
+// 배경색이 밝은지 어두운지 판단 (밝으면 true)
+const isLightColor = (hexColor: string) => {
+  const hex = hexColor.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  // 밝기 계산 (YIQ 공식)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 180
+}
+
 interface FeedbackStep3Props {
   selectedScents: SpecificScent[]
   notes: string
@@ -99,7 +110,9 @@ export function FeedbackStep3({
                     <div className="flex items-center gap-3">
                       {perfumeData && (
                         <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-md"
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shadow-md ${
+                            isLightColor(perfumeData.primaryColor) ? 'text-slate-800' : 'text-white'
+                          }`}
                           style={{ backgroundColor: perfumeData.primaryColor }}
                         >
                           {scent.id.split(' ')[1]}
@@ -222,7 +235,9 @@ export function FeedbackStep3({
                       className="w-full flex items-center gap-3 p-3 hover:bg-amber-50 transition-colors border-b border-slate-100 last:border-b-0"
                     >
                       <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
+                          isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                        }`}
                         style={{ backgroundColor: perfume.primaryColor }}
                       >
                         {perfume.id.split(' ')[1]}
