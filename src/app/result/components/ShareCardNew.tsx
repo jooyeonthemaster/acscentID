@@ -225,7 +225,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         position: 'absolute',
                         top: 425,
                         left: '50%',
-                        transform: 'translateX(-50%)',
+                        transform: 'translateX(-55%)',
                         width: 290,
                         height: 75,
                         display: 'flex',
@@ -244,7 +244,9 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                             lineHeight: 1.4,
                             margin: 0,
                             wordBreak: 'keep-all',
-                            padding: '0 10px'
+                            padding: '8px 16px',
+                            backgroundColor: 'rgba(255, 251, 235, 0.85)',
+                            borderRadius: 8
                         }}
                     >
                         {twitterName || `${userName}님만의 특별한 향기`}
@@ -521,41 +523,20 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         </svg>
                     </div>
 
-                    {/* Keywords (Bottom Right, under Radar Chart) */}
-                    <div style={{
-                        display: 'flex',
-                        flexWrap: 'nowrap', // Changed from 'wrap' to prevent wrapping in download
-                        justifyContent: 'center',
-                        gap: 2, // Slightly reduced gap further to fit horizontal
-                        marginTop: -48, // Moved 2px further down from -50
-                        transform: 'translateX(-40px)', // Align with chart
-                        zIndex: 10
-                    }}>
-                        {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
-                            <div key={idx} style={{
-                                opacity: 1
-                            }}>
-                                <span style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    background: idx === 0
-                                        ? 'linear-gradient(135deg, #CFFAFE, #99F6E4)'
-                                        : idx === 1
-                                            ? 'linear-gradient(135deg, #CFFAFE, #99F6E4)'
-                                            : 'linear-gradient(135deg, #34D399, #4ADE80)',
-                                    color: idx === 2 ? '#FFFFFF' : '#0F766E',
-                                    fontWeight: 'bold',
-                                    borderRadius: '9999px',
-                                    padding: '2px 5px', // Slightly tightened padding
-                                    fontSize: '7px', // Reduced from 8px
-                                    border: idx === 2 ? 'none' : '0.5px solid #5EEAD4',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}>
-                                    <span style={{ whiteSpace: 'nowrap' }}>{keyword}</span>
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    {/* Keywords (Bottom Right, under Radar Chart) - 각 키워드 독립 배치 */}
+                    {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
+                        <span key={idx} style={{
+                            position: 'absolute',
+                            fontSize: '8px',
+                            fontWeight: 'bold',
+                            color: '#334155',
+                            whiteSpace: 'nowrap',
+                            top: 192,
+                            left: idx === 0 ? -9 : idx === 1 ? 25 : 60
+                        }}>
+                            {keyword}
+                        </span>
+                    ))}
                 </div>
 
                 {/* Footer Icon/Logo - if needed, using background image's bottom area */}
