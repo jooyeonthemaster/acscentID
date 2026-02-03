@@ -52,7 +52,10 @@ export async function GET(
         idolName: data.idol_name,
         idolGender: data.idol_gender,
         serviceMode: data.service_mode || 'online',
-        productType: data.product_type || 'image_analysis'
+        productType: data.product_type || 'image_analysis',
+        // 피규어 모드 전용 필드
+        modelingImageUrl: data.modeling_image_url || null,
+        modelingRequest: data.modeling_request || null
       }
     })
   } catch (error) {

@@ -87,6 +87,9 @@ function CheckoutContent() {
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
 
+  // 분석 ID (주문과 분석 결과 연결용)
+  const [analysisId, setAnalysisId] = useState<string | null>(null)
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: "",
@@ -158,6 +161,7 @@ function CheckoutContent() {
     const savedImage = localStorage.getItem("userImage")
     const savedUserInfo = localStorage.getItem("userInfo")
     const savedProductType = localStorage.getItem("checkoutProductType")
+    const savedAnalysisId = localStorage.getItem("checkoutAnalysisId")
 
     if (savedResult) {
       try {
@@ -193,6 +197,12 @@ function CheckoutContent() {
         setSelectedSize("10ml")
       }
       localStorage.removeItem("checkoutProductType")
+    }
+
+    // 분석 ID 설정 (주문과 분석 결과 연결용)
+    if (savedAnalysisId) {
+      setAnalysisId(savedAnalysisId)
+      localStorage.removeItem("checkoutAnalysisId")
     }
   }, [authLoading, userId, router, userName, isSignatureProduct, searchParams])
 
@@ -339,6 +349,7 @@ function CheckoutContent() {
         // 단일 상품 주문 (기존 호환)
         orderData = {
           userId,
+          analysisId, // 분석 ID (분석 결과 연결용)
           productType, // 상품 타입 추가 (image_analysis / figure_diffuser)
           perfumeName,
           perfumeBrand: displayIdolName,
@@ -357,17 +368,26 @@ function CheckoutContent() {
         }
       }
 
+      console.log("[Checkout] Sending order data:", JSON.stringify(orderData, null, 2))
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       })
 
+      console.log("[Checkout] Response status:", response.status, response.statusText)
+
       const result = await response.json()
 
       if (!response.ok) {
-        console.error("주문 생성 에러:", result)
-        throw new Error(result.error || "주문 생성 실패")
+        console.error("[Checkout] 주문 생성 에러:", {
+          status: response.status,
+          statusText: response.statusText,
+          result,
+          orderData
+        })
+        throw new Error(result.error || `주문 생성 실패 (${response.status})`)
       }
 
       // 다중 상품 모드: 장바구니에서 주문한 상품 삭제
@@ -381,13 +401,25 @@ function CheckoutContent() {
       }
 
       // 주문 완료 페이지에서 사용할 정보 저장
-      localStorage.setItem("lastOrderPrice", totalPrice.toString())
-      localStorage.setItem("lastOrderPerfumeName", isMultiItemMode
+      const savedPrice = totalPrice.toString()
+      const savedPerfumeName = isMultiItemMode
         ? checkoutItems.map(i => i.perfume_name).join(", ")
-        : perfumeName)
-      localStorage.setItem("lastOrderSize", isMultiItemMode
+        : perfumeName
+      const savedSize = isMultiItemMode
         ? checkoutItems.map(i => i.size).join(", ")
-        : selectedSize)
+        : selectedSize
+
+      console.log("[Checkout] Saving to localStorage:", {
+        price: savedPrice,
+        perfumeName: savedPerfumeName,
+        size: savedSize,
+        productType,
+        selectedSize
+      })
+
+      localStorage.setItem("lastOrderPrice", savedPrice)
+      localStorage.setItem("lastOrderPerfumeName", savedPerfumeName)
+      localStorage.setItem("lastOrderSize", savedSize)
 
       // 주문 완료 페이지로 이동
       router.push(`/checkout/complete?orderId=${result.orderId}`)

@@ -25,8 +25,6 @@ import { ResultBottomActions } from './ResultBottomActions'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
-// 피규어 모드 컴포넌트
-import { MemoryTab, FigureTab } from './figure'
 // 졸업 모드 컴포넌트
 import { GraduationTab } from './graduation'
 
@@ -63,7 +61,7 @@ export default function ResultPageMain() {
   const fromPage = searchParams.get('from')
   const backHref = fromPage === 'mypage' ? '/mypage' : '/'
   // 탭 타입 (피규어 모드, 졸업 모드 포함)
-  type TabType = 'analysis' | 'perfume' | 'comparison' | 'memory' | 'figure' | 'graduation'
+  type TabType = 'analysis' | 'perfume' | 'comparison' | 'graduation'
   const [activeTab, setActiveTab] = useState<TabType>('perfume')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
@@ -97,13 +95,6 @@ export default function ResultPageMain() {
 
   // 서비스 모드: DB/localStorage에서 로드된 값 사용, 없으면 기본값 'offline'
   const serviceMode = loadedServiceMode || 'offline'
-
-  // 피규어 모드일 때 기본 탭을 'memory'로 설정
-  useEffect(() => {
-    if (isFigureMode) {
-      setActiveTab('memory')
-    }
-  }, [isFigureMode])
 
   // 졸업 모드일 때 기본 탭을 'perfume'으로 설정 (추천 향수 먼저 표시)
   useEffect(() => {
@@ -144,14 +135,21 @@ export default function ResultPageMain() {
     router.push('/')
   }
 
-  // 바로 구매하기 - productType 정보 저장 후 결제 페이지로 이동
+  // 바로 구매하기 - productType, analysisId 정보 저장 후 결제 페이지로 이동
   const handleCheckout = useCallback(() => {
-    // productType이 이미 설정되어 있으면 그것을 사용 (피규어 온라인, 졸업 등)
-    // 아니면 피규어 모드 여부에 따라 결정
-    const currentProductType = productType || (isFigureMode ? 'figure_diffuser' : 'image_analysis')
+    // isFigureMode면 무조건 figure_diffuser (DB에 productType이 잘못 저장된 경우 대비)
+    // 그 외에는 productType 사용 (기본값 image_analysis)
+    const currentProductType = isFigureMode ? 'figure_diffuser' : (productType || 'image_analysis')
     localStorage.setItem('checkoutProductType', currentProductType)
+
+    // 분석 ID 저장 (주문과 분석 결과 연결용)
+    const analysisIdToSave = savedResultId || existingResultId
+    if (analysisIdToSave) {
+      localStorage.setItem('checkoutAnalysisId', analysisIdToSave)
+    }
+
     router.push('/checkout')
-  }, [isFigureMode, productType, router])
+  }, [isFigureMode, productType, savedResultId, existingResultId, router])
 
   // 장바구니 담기
   const handleAddToCart = useCallback(async () => {
@@ -171,8 +169,8 @@ export default function ResultPageMain() {
       const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
       const analysisId = savedResultId || existingResultId || `temp-${Date.now()}`
 
-      // productType에 따른 상품 정보 결정
-      const currentProductType = productType || (isFigureMode ? 'figure_diffuser' : 'image_analysis')
+      // productType에 따른 상품 정보 결정 (isFigureMode면 무조건 figure_diffuser)
+      const currentProductType = isFigureMode ? 'figure_diffuser' : (productType || 'image_analysis')
       let cartSize: string
       let cartPrice: number
 
@@ -452,15 +450,8 @@ export default function ResultPageMain() {
                       {activeTab === 'perfume' && (
                         <PerfumeTab key="perfume" displayedAnalysis={displayedAnalysis} />
                       )}
-                      {activeTab === 'comparison' && !isFigureMode && (
+                      {activeTab === 'comparison' && (
                         <ComparisonTab key="comparison" displayedAnalysis={displayedAnalysis} />
-                      )}
-                      {/* 피규어 모드 전용 탭 */}
-                      {activeTab === 'memory' && isFigureMode && (
-                        <MemoryTab key="memory" displayedAnalysis={displayedAnalysis} memoryImage={userImage || undefined} />
-                      )}
-                      {activeTab === 'figure' && isFigureMode && (
-                        <FigureTab key="figure" displayedAnalysis={displayedAnalysis} figureImage={figureImage || undefined} />
                       )}
                       {/* 졸업 모드 전용 탭 */}
                       {activeTab === 'graduation' && isGraduationMode && (

@@ -17,10 +17,21 @@ import {
   Printer,
   Loader2,
   AlertCircle,
-  XCircle
+  XCircle,
+  Image as ImageIcon,
+  Box
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
+
+interface OrderAnalysis {
+  id: string
+  modeling_image_url?: string | null
+  modeling_request?: string | null
+  product_type?: string | null
+  user_image_url?: string | null
+}
 
 interface Order {
   id: string
@@ -45,6 +56,8 @@ interface Order {
   updated_at: string
   user_coupon_id?: string
   analysis_id?: string
+  analysis?: OrderAnalysis | null
+  product_type?: string  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature 등)
 }
 
 interface Pagination {
@@ -86,6 +99,9 @@ export default function AdminOrdersPage() {
 
   // 상세 모달
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+
+  // 모델링 이미지 모달
+  const [modelingOrder, setModelingOrder] = useState<Order | null>(null)
 
   // 주문 목록 조회
   const fetchOrders = useCallback(async (page = 1) => {
@@ -339,7 +355,19 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-slate-900">{order.perfume_name}</div>
-                          <div className="text-sm text-slate-500">{order.size}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-sm text-slate-500">{order.size}</span>
+                            {/* 상품 타입 뱃지 */}
+                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-cyan-100 text-cyan-700 rounded">피규어</span>
+                            )}
+                            {(order.product_type === 'graduation' || order.analysis?.product_type === 'graduation') && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded">졸업</span>
+                            )}
+                            {(order.product_type === 'signature' || order.analysis?.product_type === 'signature') && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-pink-100 text-pink-700 rounded">시그니처</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{formatPrice(order.final_price || order.price)}</div>
@@ -379,6 +407,19 @@ export default function AdminOrdersPage() {
                             >
                               <Eye className="w-5 h-5 text-slate-600" />
                             </button>
+                            {/* 피규어 디퓨저 모델링 이미지 버튼 */}
+                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setModelingOrder(order)
+                                }}
+                                className="p-2 hover:bg-cyan-100 rounded-lg transition-colors"
+                                title="모델링 이미지 보기"
+                              >
+                                <Box className="w-5 h-5 text-cyan-600" />
+                              </button>
+                            )}
                             {order.analysis_id && (
                               <Link
                                 href={`/admin/analysis/${order.analysis_id}/print`}
@@ -417,6 +458,50 @@ export default function AdminOrdersPage() {
                                 <p className="text-slate-900 mt-1">{formatDate(order.updated_at)}</p>
                               </div>
                             </div>
+                            {/* 모델링 이미지 (피규어 디퓨저) */}
+                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <ImageIcon className="w-5 h-5 text-cyan-600" />
+                                  <span className="font-medium text-slate-900">3D 모델링용 참조 이미지</span>
+                                  <span className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded-full">피규어 디퓨저</span>
+                                </div>
+                                <div className="flex gap-6">
+                                  {order.analysis?.modeling_image_url ? (
+                                    <div className="flex-shrink-0">
+                                      <a
+                                        href={order.analysis.modeling_image_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block"
+                                      >
+                                        <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-colors">
+                                          <Image
+                                            src={order.analysis.modeling_image_url}
+                                            alt="모델링 참조 이미지"
+                                            fill
+                                            className="object-cover"
+                                          />
+                                        </div>
+                                      </a>
+                                      <p className="text-xs text-slate-500 mt-1 text-center">클릭하여 원본 보기</p>
+                                    </div>
+                                  ) : (
+                                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-100">
+                                      <span className="text-xs text-slate-400 text-center px-2">이미지 없음</span>
+                                    </div>
+                                  )}
+                                  {order.analysis?.modeling_request && (
+                                    <div className="flex-1">
+                                      <span className="text-slate-500 text-xs">모델링 요청사항:</span>
+                                      <p className="text-slate-900 mt-1 bg-white p-3 rounded-lg border border-slate-200">
+                                        {order.analysis.modeling_request}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}
@@ -490,8 +575,19 @@ export default function AdminOrdersPage() {
                       <p className="text-slate-900">{selectedOrder.perfume_name}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-slate-500">용량</label>
-                      <p className="text-slate-900">{selectedOrder.size}</p>
+                      <label className="text-sm text-slate-500">용량/타입</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-900">{selectedOrder.size}</span>
+                        {(selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
+                          <span className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded-full">피규어 디퓨저</span>
+                        )}
+                        {(selectedOrder.product_type === 'graduation' || selectedOrder.analysis?.product_type === 'graduation') && (
+                          <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">졸업 퍼퓸</span>
+                        )}
+                        {(selectedOrder.product_type === 'signature' || selectedOrder.analysis?.product_type === 'signature') && (
+                          <span className="px-2 py-0.5 text-xs bg-pink-100 text-pink-700 rounded-full">시그니처</span>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm text-slate-500">상품가</label>
@@ -539,6 +635,48 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
+                {/* 모델링 이미지 (피규어 디퓨저) */}
+                {(selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-cyan-600" />
+                      3D 모델링용 참조 이미지
+                    </h4>
+                    <div className="flex gap-4">
+                      {selectedOrder.analysis?.modeling_image_url ? (
+                        <a
+                          href={selectedOrder.analysis.modeling_image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block flex-shrink-0"
+                        >
+                          <div className="relative w-40 h-40 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-colors">
+                            <Image
+                              src={selectedOrder.analysis.modeling_image_url}
+                              alt="모델링 참조 이미지"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 text-center">클릭하여 원본 보기</p>
+                        </a>
+                      ) : (
+                        <div className="w-40 h-40 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-100">
+                          <span className="text-sm text-slate-400">이미지 없음</span>
+                        </div>
+                      )}
+                      {selectedOrder.analysis?.modeling_request && (
+                        <div className="flex-1">
+                          <label className="text-sm text-slate-500">모델링 요청사항</label>
+                          <p className="text-slate-900 mt-1 bg-slate-50 p-3 rounded-lg">
+                            {selectedOrder.analysis.modeling_request}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="border-t pt-4 flex justify-end">
                   {selectedOrder.analysis_id && (
                     <Link
@@ -549,6 +687,98 @@ export default function AdminOrdersPage() {
                       보고서 출력
                     </Link>
                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 모델링 이미지 전용 모달 */}
+        {modelingOrder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white p-4 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Box className="w-5 h-5 text-cyan-600" />
+                  <h3 className="text-lg font-bold text-slate-900">3D 모델링 참조 이미지</h3>
+                  <span className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded-full">피규어 디퓨저</span>
+                </div>
+                <button
+                  onClick={() => setModelingOrder(null)}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6">
+                {/* 주문 정보 요약 */}
+                <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-500">주문번호: <span className="font-mono text-slate-900">{modelingOrder.order_number}</span></span>
+                    <span className="text-slate-500">주문자: <span className="font-medium text-slate-900">{modelingOrder.recipient_name}</span></span>
+                  </div>
+                </div>
+
+                {/* 모델링 이미지 */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">참조 이미지</label>
+                  {modelingOrder.analysis?.modeling_image_url ? (
+                    <a
+                      href={modelingOrder.analysis.modeling_image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <div className="relative w-full max-w-md mx-auto aspect-square rounded-xl overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-colors">
+                        <Image
+                          src={modelingOrder.analysis.modeling_image_url}
+                          alt="모델링 참조 이미지"
+                          fill
+                          className="object-contain bg-slate-100"
+                        />
+                      </div>
+                      <p className="text-sm text-cyan-600 text-center mt-2 hover:underline">클릭하여 원본 이미지 열기 ↗</p>
+                    </a>
+                  ) : (
+                    <div className="w-full max-w-md mx-auto aspect-square rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-100">
+                      <span className="text-slate-400">이미지 없음</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 모델링 요청사항 */}
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">고객 요청사항</label>
+                  {modelingOrder.analysis?.modeling_request ? (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <p className="text-slate-900 whitespace-pre-wrap">{modelingOrder.analysis.modeling_request}</p>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-400">
+                      요청사항 없음
+                    </div>
+                  )}
+                </div>
+
+                {/* 하단 버튼 */}
+                <div className="mt-6 flex justify-end gap-3">
+                  {modelingOrder.analysis?.modeling_image_url && (
+                    <a
+                      href={modelingOrder.analysis.modeling_image_url}
+                      download
+                      className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white font-medium rounded-lg hover:bg-cyan-600 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      이미지 다운로드
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setModelingOrder(null)}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors"
+                  >
+                    닫기
+                  </button>
                 </div>
               </div>
             </div>

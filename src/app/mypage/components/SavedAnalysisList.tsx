@@ -200,6 +200,8 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
     localStorage.setItem('serviceMode', 'online')
     // 상품 타입 저장 (피규어 디퓨저 vs 향수 구분)
     localStorage.setItem('checkoutProductType', analysis.product_type || 'image_analysis')
+    // 분석 ID 저장 (주문과 분석 결과 연결용)
+    localStorage.setItem('checkoutAnalysisId', analysis.id)
 
     router.push('/checkout')
   }

@@ -68,6 +68,18 @@ export const useResultData = () => {
               setProductType(dbResult.productType)
             }
 
+            // 피규어 모드 전용 데이터 (DB에서)
+            if (dbResult.modelingImageUrl) {
+              setModelingImage(dbResult.modelingImageUrl)
+            }
+            if (dbResult.modelingRequest) {
+              setModelingRequest(dbResult.modelingRequest)
+            }
+            // 피규어 모드면 programType도 설정
+            if (dbResult.productType === 'figure_diffuser') {
+              setProgramType('figure')
+            }
+
             setLoading(false)
             setTimeout(() => setIsLoaded(true), 100)
             return
@@ -177,6 +189,14 @@ export const useResultData = () => {
     fetchResult()
   }, [resultId])
 
+  // 피규어 모드 여부: productType뿐만 아니라 실제 피규어 데이터가 있어야 함
+  const hasFigureData = Boolean(
+    (analysisResult as any)?.memoryScene ||
+    (analysisResult as any)?.scentStory ||
+    modelingImage
+  )
+  const isFigureModeComputed = (programType === 'figure' || productType === 'figure_diffuser') && hasFigureData
+
   return {
     analysisResult,
     loading,
@@ -192,12 +212,13 @@ export const useResultData = () => {
     programType,
     figureImage,
     figureChatData,
-    isFigureMode: programType === 'figure',
+    // isFigureMode: productType + 실제 피규어 데이터 존재 여부로 판단
+    isFigureMode: isFigureModeComputed,
     // 피규어 온라인 모드: 모델링 이미지 & 요청사항
     modelingImage,
     modelingRequest,
     productType,
-    isFigureOnlineMode: productType === 'figure_diffuser',
+    isFigureOnlineMode: productType === 'figure_diffuser' && hasFigureData,
     // 졸업 모드
     isGraduationMode: productType === 'graduation',
     // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)

@@ -37,27 +37,36 @@ function generateOrderNumber(): string {
  * - 다중 상품 주문 (items 배열)
  */
 export async function POST(request: NextRequest) {
+  console.log('[Orders API] POST request received')
+
   try {
     // 1. 사용자 인증 확인
     const kakaoSession = await getKakaoSession()
     let userId: string | null = null
 
+    console.log('[Orders API] Kakao session:', kakaoSession ? 'exists' : 'null')
+
     if (kakaoSession?.user) {
       userId = kakaoSession.user.id
+      console.log('[Orders API] Using Kakao user:', userId)
     } else {
       const supabase = await createServerSupabaseClientWithCookies()
       const { data: { user } } = await supabase.auth.getUser()
+      console.log('[Orders API] Supabase user:', user ? user.id : 'null')
       if (user) {
         userId = user.id
       }
     }
 
     if (!userId) {
+      console.log('[Orders API] No user found, returning 401')
       return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
     }
 
     // 2. 요청 데이터 파싱
+    console.log('[Orders API] Parsing request body...')
     const body = await request.json()
+    console.log('[Orders API] Request body keys:', Object.keys(body))
     const {
       // 다중 상품 주문
       items,
@@ -86,6 +95,7 @@ export async function POST(request: NextRequest) {
       keywords,
       analysisData,
       productType,  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature)
+      analysisId,   // 분석 ID (분석 결과 연결용)
     } = body
 
     // 다중 상품 모드 확인
@@ -129,6 +139,7 @@ export async function POST(request: NextRequest) {
         .insert({
           order_number: orderNumber,
           user_id: userId,
+          analysis_id: firstItem.analysisId || null,  // 첫 번째 상품의 분석 ID
           // 첫 번째 상품 정보 (기존 필드 호환)
           perfume_name: orderItems.length > 1
             ? `${firstItem.perfumeName} 외 ${orderItems.length - 1}건`
@@ -136,6 +147,7 @@ export async function POST(request: NextRequest) {
           perfume_brand: firstItem.perfumeBrand || '',
           size: orderItems.length > 1 ? 'mixed' : firstItem.size,
           price: calculatedSubtotal,
+          product_type: firstItem.productType || 'image_analysis',  // 첫 번째 상품의 타입
           // 다중 상품 정보
           item_count: itemCount,
           subtotal: calculatedSubtotal,
@@ -233,6 +245,7 @@ export async function POST(request: NextRequest) {
       .insert({
         order_number: orderNumber,
         user_id: userId,
+        analysis_id: analysisId || null,  // 분석 ID (분석 결과 연결용)
         perfume_name: perfumeName,
         perfume_brand: perfumeBrand,
         size,
@@ -293,9 +306,12 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Order API error:', error)
+    console.error('[Orders API] Unexpected error:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다' },
+      {
+        error: '서버 오류가 발생했습니다',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
