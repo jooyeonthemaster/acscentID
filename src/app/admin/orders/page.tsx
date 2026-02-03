@@ -19,8 +19,10 @@ import {
   AlertCircle,
   XCircle,
   Image as ImageIcon,
-  Box
+  Box,
+  Download
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
@@ -102,6 +104,9 @@ export default function AdminOrdersPage() {
 
   // 모델링 이미지 모달
   const [modelingOrder, setModelingOrder] = useState<Order | null>(null)
+
+  // 엑셀 다운로드 로딩
+  const [excelLoading, setExcelLoading] = useState(false)
 
   // 주문 목록 조회
   const fetchOrders = useCallback(async (page = 1) => {
@@ -194,6 +199,78 @@ export default function AdminOrdersPage() {
     setDateTo('')
   }
 
+  // 입금완료 주문 엑셀 다운로드
+  const downloadPaidOrdersExcel = async () => {
+    setExcelLoading(true)
+    try {
+      // 입금완료 상태 주문 전체 조회
+      const response = await fetch('/api/admin/orders?status=paid&export=true')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error)
+      }
+
+      const paidOrders = data.orders || []
+
+      if (paidOrders.length === 0) {
+        alert('입금완료 상태의 주문이 없습니다.')
+        return
+      }
+
+      // 엑셀 데이터 생성
+      const excelData = paidOrders.map((order: Order) => {
+        // 전체 주소 조합
+        const fullAddress = `[${order.zip_code}] ${order.address}${order.address_detail ? ' ' + order.address_detail : ''}`
+
+        // 내품명 결정 (피규어 디퓨저면 "디퓨저", 그 외는 "향수")
+        const productType = order.product_type || order.analysis?.product_type
+        const itemName = productType === 'figure_diffuser' ? '디퓨저' : '향수'
+
+        return {
+          '받는분주소(전체, 분할)': fullAddress,
+          '받는분성명': order.recipient_name,
+          '받는분전화번호': order.phone,
+          '받는분기타연락처': '',
+          '배송메세지1': order.memo || '',
+          '내품명': itemName,
+          '내품수량': 1
+        }
+      })
+
+      // 워크시트 생성
+      const worksheet = XLSX.utils.json_to_sheet(excelData)
+
+      // 열 너비 설정
+      worksheet['!cols'] = [
+        { wch: 50 },  // 받는분주소
+        { wch: 12 },  // 받는분성명
+        { wch: 15 },  // 받는분전화번호
+        { wch: 15 },  // 받는분기타연락처
+        { wch: 25 },  // 배송메세지1
+        { wch: 10 },  // 내품명
+        { wch: 10 },  // 내품수량
+      ]
+
+      // 워크북 생성
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, '입금완료주문')
+
+      // 파일명 생성 (오늘 날짜)
+      const today = new Date().toISOString().split('T')[0]
+      const fileName = `입금완료_주문_${today}.xlsx`
+
+      // 다운로드
+      XLSX.writeFile(workbook, fileName)
+
+    } catch (err) {
+      console.error('Excel download failed:', err)
+      alert('엑셀 다운로드에 실패했습니다.')
+    } finally {
+      setExcelLoading(false)
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ko-KR', {
       year: 'numeric',
@@ -269,6 +346,20 @@ export default function AdminOrdersPage() {
               className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             >
               검색
+            </button>
+
+            <button
+              onClick={downloadPaidOrdersExcel}
+              disabled={excelLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 shadow-[3px_3px_0px_#047857] hover:shadow-[1px_1px_0px_#047857] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              title="입금완료 상태 주문만 엑셀로 다운로드"
+            >
+              {excelLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              입금완료 엑셀
             </button>
           </div>
 

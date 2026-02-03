@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') // pending, paid, shipping, delivered
+    const exportAll = searchParams.get('export') === 'true' // 엑셀 다운로드용 전체 조회
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
@@ -59,10 +60,14 @@ export async function GET(request: NextRequest) {
       .from('orders')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+
+    // 엑셀 다운로드가 아닌 경우에만 페이지네이션 적용
+    if (!exportAll) {
+      query = query.range(offset, offset + limit - 1)
+    }
 
     // 상태 필터
-    if (status && ['pending', 'paid', 'shipping', 'delivered'].includes(status)) {
+    if (status && ['pending', 'paid', 'shipping', 'delivered', 'cancel_requested'].includes(status)) {
       query = query.eq('status', status)
     }
 
@@ -76,8 +81,32 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // analysis_id가 있는 주문들의 분석 정보 조회 (모델링 이미지 포함)
+    const analysisIds = orders?.filter(o => o.analysis_id).map(o => o.analysis_id) || []
+    let analysisMap: Record<string, any> = {}
+
+    if (analysisIds.length > 0) {
+      const { data: analyses } = await serviceClient
+        .from('analysis_results')
+        .select('id, modeling_image_url, modeling_request, product_type, user_image_url')
+        .in('id', analysisIds)
+
+      if (analyses) {
+        analysisMap = analyses.reduce((acc, a) => {
+          acc[a.id] = a
+          return acc
+        }, {} as Record<string, any>)
+      }
+    }
+
+    // 주문에 분석 정보 추가
+    const enrichedOrders = orders?.map(order => ({
+      ...order,
+      analysis: order.analysis_id ? analysisMap[order.analysis_id] : null
+    }))
+
     return NextResponse.json({
-      orders,
+      orders: enrichedOrders,
       pagination: {
         page,
         limit,
