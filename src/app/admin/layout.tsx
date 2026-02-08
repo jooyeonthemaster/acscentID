@@ -4,6 +4,7 @@ import { AdminSidebar } from './components/AdminSidebar'
 export const metadata = {
   title: "AC'SCENT Admin",
   description: "AC'SCENT IDENTITY 관리자 페이지",
+  robots: { index: false, follow: false },
 }
 
 export default function AdminLayout({

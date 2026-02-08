@@ -1,87 +1,80 @@
 import { Metadata } from 'next'
-
-// 기본 메타데이터
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://acscent-identity.vercel.app'
+import { getBaseUrl } from '@/lib/seo/metadata'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbSchema } from '@/lib/seo/schemas'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-// 동적 OG 메타 태그 생성
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
+  const baseUrl = getBaseUrl()
 
   try {
-    // API에서 결과 데이터 가져오기
     const response = await fetch(`${baseUrl}/api/results/${id}`, {
-      next: { revalidate: 3600 } // 1시간 캐시
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      return getDefaultMetadata()
-    }
+    if (!response.ok) return getDefaultMetadata()
 
     const data = await response.json()
+    if (!data.success || !data.result) return getDefaultMetadata()
 
-    if (!data.success || !data.result) {
-      return getDefaultMetadata()
-    }
+    const { twitterName, perfumeName, perfumeBrand, keywords } = data.result
 
-    const { twitterName, perfumeName, perfumeBrand } = data.result
-
-    const title = `AC'SCENT IDENTITY - ${perfumeName}`
-    const description = `${twitterName} | ${perfumeBrand}`
+    const title = `${twitterName || perfumeName}의 향기 분석 결과`
+    const description = `${twitterName ? `${twitterName}의 ` : ''}AI 이미지 분석 결과 - ${perfumeBrand} ${perfumeName}. ${keywords ? keywords.slice(0, 3).join(', ') : '맞춤 퍼퓸 추천'}`
+    const url = `${baseUrl}/result/${id}`
 
     return {
       title,
       description,
+      alternates: { canonical: url },
       openGraph: {
         title,
         description,
-        url: `${baseUrl}/result/${id}`,
+        url,
         siteName: "AC'SCENT IDENTITY",
-        type: 'website',
+        type: 'article',
         locale: 'ko_KR',
-        images: [
-          {
-            url: `${baseUrl}/og-image.png`,
-            width: 1200,
-            height: 630,
-            alt: "AC'SCENT IDENTITY 분석 결과"
-          }
-        ]
+        images: [{ url: `${baseUrl}/opengraph-image`, width: 1200, height: 630, alt: title }],
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
-        images: [`${baseUrl}/og-image.png`]
-      }
+        images: [`${baseUrl}/opengraph-image`],
+      },
     }
-  } catch (error) {
-    console.error('Metadata generation error:', error)
+  } catch {
     return getDefaultMetadata()
   }
 }
 
 function getDefaultMetadata(): Metadata {
   return {
-    title: "AC'SCENT IDENTITY - 퍼퓸 추천 결과",
-    description: '나만의 퍼퓸를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
+    title: '향기 분석 결과',
+    description: 'AI가 분석한 당신만의 시그니처 향기. 이미지에서 추출된 맞춤 퍼퓸 레시피를 확인하세요.',
     openGraph: {
-      title: "AC'SCENT IDENTITY",
-      description: '나만의 퍼퓸를 찾아보세요! AI가 분석한 당신만의 시그니처 향기',
+      title: "AC'SCENT IDENTITY - 향기 분석 결과",
+      description: 'AI가 분석한 당신만의 시그니처 향기',
       siteName: "AC'SCENT IDENTITY",
-      type: 'website',
-      locale: 'ko_KR'
-    }
+      type: 'article',
+      locale: 'ko_KR',
+    },
   }
 }
 
-export default function SharedResultLayout({
-  children
-}: {
-  children: React.ReactNode
-}) {
-  return <>{children}</>
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: '분석 결과', path: '/result' },
+])
+
+export default function SharedResultLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <JsonLd data={breadcrumbJsonLd} />
+      {children}
+    </>
+  )
 }
