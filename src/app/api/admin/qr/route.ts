@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { product_type, name, location } = body
+    const { product_type, name, location, custom_url } = body
 
     if (!product_type) {
       return NextResponse.json({ error: '상품 타입은 필수입니다' }, { status: 400 })
@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
         service_mode: 'offline', // QR은 기본적으로 오프라인
         name: name || null,
         location: location || null,
+        custom_url: custom_url || null,
         is_active: true,
         scan_count: 0,
         analysis_count: 0,

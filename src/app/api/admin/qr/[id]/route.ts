@@ -74,7 +74,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { name, location, is_active } = body
+    const { name, location, is_active, custom_url } = body
 
     const supabase = await createServerSupabaseClientWithCookies()
 
@@ -85,6 +85,7 @@ export async function PATCH(
     if (name !== undefined) updateData.name = name
     if (location !== undefined) updateData.location = location
     if (is_active !== undefined) updateData.is_active = is_active
+    if (custom_url !== undefined) updateData.custom_url = custom_url || null
 
     const { data, error } = await supabase
       .from('qr_codes')

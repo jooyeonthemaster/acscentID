@@ -15,23 +15,32 @@ const getQRImageUrl = (code: string, size: number = 200) => {
 interface CreateQRModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: { product_type: ProductType; name: string; location: string }) => Promise<void>
+  onSubmit: (data: { product_type: ProductType; name: string; location: string; custom_url?: string }) => Promise<void>
 }
 
 function CreateQRModal({ isOpen, onClose, onSubmit }: CreateQRModalProps) {
   const [productType, setProductType] = useState<ProductType>('image_analysis')
   const [name, setName] = useState('')
   const [location, setLocation] = useState('')
+  const [linkType, setLinkType] = useState<'default' | 'custom'>('default')
+  const [customUrl, setCustomUrl] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      await onSubmit({ product_type: productType, name, location })
+      await onSubmit({
+        product_type: linkType === 'custom' ? 'etc' : productType,
+        name,
+        location,
+        custom_url: linkType === 'custom' ? customUrl : undefined,
+      })
       setProductType('image_analysis')
       setName('')
       setLocation('')
+      setLinkType('default')
+      setCustomUrl('')
       onClose()
     } finally {
       setLoading(false)
@@ -43,25 +52,79 @@ function CreateQRModal({ isOpen, onClose, onSubmit }: CreateQRModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl p-6 max-w-md w-full mx-4"
+        className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold text-slate-900 mb-6">새 QR 코드 생성</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* 연결 링크 설정 (맨 위) */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">상품 타입 *</label>
-            <select
-              value={productType}
-              onChange={(e) => setProductType(e.target.value as ProductType)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              required
-            >
-              <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
-              <option value="figure_diffuser">피규어 화분 디퓨저</option>
-              <option value="graduation">졸업 기념 퍼퓸</option>
-            </select>
+            <label className="block text-sm font-medium text-slate-700 mb-2">연결 링크</label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setLinkType('default')}
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                  linkType === 'default'
+                    ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
+                    : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                기본 (상품 페이지)
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkType('custom')}
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                  linkType === 'custom'
+                    ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
+                    : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                커스텀 URL
+              </button>
+            </div>
+            {linkType === 'custom' && (
+              <div>
+                <input
+                  type="url"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  placeholder="https://example.com/page"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  QR 스캔 시 이 URL로 바로 이동합니다. 상품 타입은 자동으로 &apos;기타&apos;로 설정됩니다
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* 상품 타입 (기본 링크일 때만 선택 가능) */}
+          {linkType === 'default' ? (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">상품 타입 *</label>
+              <select
+                value={productType}
+                onChange={(e) => setProductType(e.target.value as ProductType)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                required
+              >
+                <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
+                <option value="figure_diffuser">피규어 화분 디퓨저</option>
+                <option value="graduation">졸업 기념 퍼퓸</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">상품 타입</label>
+              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 text-sm">
+                기타 (커스텀 URL)
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">QR 이름</label>
@@ -112,13 +175,14 @@ interface QRDetailModalProps {
   qr: QRCode | null
   isOpen: boolean
   onClose: () => void
-  onUpdate: (id: string, data: { name?: string; location?: string; is_active?: boolean }) => Promise<void>
+  onUpdate: (id: string, data: { name?: string; location?: string; is_active?: boolean; custom_url?: string | null }) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }
 
 function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModalProps) {
   const [name, setName] = useState('')
   const [location, setLocation] = useState('')
+  const [customUrl, setCustomUrl] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -127,6 +191,7 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
     if (qr) {
       setName(qr.name || '')
       setLocation(qr.location || '')
+      setCustomUrl(qr.custom_url || '')
       setIsActive(qr.is_active)
       setIsEditing(false)
     }
@@ -136,7 +201,7 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
     if (!qr) return
     setLoading(true)
     try {
-      await onUpdate(qr.id, { name, location, is_active: isActive })
+      await onUpdate(qr.id, { name, location, is_active: isActive, custom_url: customUrl || null })
       setIsEditing(false)
     } finally {
       setLoading(false)
@@ -225,8 +290,16 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">연결 URL</span>
-                <span className="text-xs font-mono text-slate-600 break-all">{qrUrl}</span>
+                <span className="text-xs font-mono text-slate-600 break-all">
+                  {qr.custom_url || qrUrl}
+                </span>
               </div>
+              {qr.custom_url && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">링크 타입</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">커스텀</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -263,6 +336,19 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">커스텀 URL</label>
+                <input
+                  type="url"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  placeholder="비워두면 기본 상품 페이지로 이동"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  입력 시 QR 스캔하면 이 URL로 이동. 비워두면 상품 타입 기본 페이지로 이동
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -284,6 +370,19 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
                 <span className="text-slate-500">위치</span>
                 <span className="font-medium">{qr.location || '-'}</span>
               </div>
+              {qr.custom_url && (
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-500 shrink-0">커스텀 URL</span>
+                  <a
+                    href={qr.custom_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-mono text-blue-600 hover:underline break-all text-right"
+                  >
+                    {qr.custom_url}
+                  </a>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-500">상태</span>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${qr.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
@@ -392,7 +491,7 @@ export default function AdminQRPage() {
     fetchQRCodes()
   }, [fetchQRCodes])
 
-  const handleCreate = async (data: { product_type: ProductType; name: string; location: string }) => {
+  const handleCreate = async (data: { product_type: ProductType; name: string; location: string; custom_url?: string }) => {
     const res = await fetch('/api/admin/qr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -407,7 +506,7 @@ export default function AdminQRPage() {
     fetchQRCodes()
   }
 
-  const handleUpdate = async (id: string, data: { name?: string; location?: string; is_active?: boolean }) => {
+  const handleUpdate = async (id: string, data: { name?: string; location?: string; is_active?: boolean; custom_url?: string | null }) => {
     const res = await fetch(`/api/admin/qr/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -500,6 +599,7 @@ export default function AdminQRPage() {
               <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
               <option value="figure_diffuser">피규어 화분 디퓨저</option>
               <option value="graduation">졸업 기념 퍼퓸</option>
+              <option value="etc">기타</option>
             </select>
           </div>
 

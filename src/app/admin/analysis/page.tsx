@@ -13,8 +13,10 @@ import {
   User,
   Loader2,
   AlertCircle,
-  X
+  X,
+  Image as ImageIcon
 } from 'lucide-react'
+import Image from 'next/image'
 import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode } from '@/types/admin'
 import Link from 'next/link'
 
@@ -24,6 +26,7 @@ const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   figure_diffuser: '피규어',
   personal_scent: '퍼스널',
   graduation: '졸업 퍼퓸',
+  etc: '기타',
 }
 
 export default function AnalysisPage() {
@@ -348,6 +351,50 @@ export default function AnalysisPage() {
                                 <p className="text-slate-900 mt-1 font-mono text-xs">{analysis.id}</p>
                               </div>
                             </div>
+                            {/* 모델링 이미지 (피규어 디퓨저) */}
+                            {analysis.product_type === 'figure_diffuser' && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <ImageIcon className="w-5 h-5 text-cyan-600" />
+                                  <span className="font-medium text-slate-900">3D 모델링용 참조 이미지</span>
+                                </div>
+                                <div className="flex gap-6">
+                                  {analysis.modeling_image_url ? (
+                                    <div className="flex-shrink-0">
+                                      <a
+                                        href={analysis.modeling_image_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-colors">
+                                          <Image
+                                            src={analysis.modeling_image_url}
+                                            alt="모델링 참조 이미지"
+                                            fill
+                                            className="object-cover"
+                                          />
+                                        </div>
+                                      </a>
+                                      <p className="text-xs text-slate-500 mt-1 text-center">클릭하여 원본 보기</p>
+                                    </div>
+                                  ) : (
+                                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-100">
+                                      <span className="text-xs text-slate-400 text-center px-2">이미지 없음</span>
+                                    </div>
+                                  )}
+                                  {analysis.modeling_request && (
+                                    <div className="flex-1">
+                                      <span className="text-slate-500 text-xs">모델링 요청사항:</span>
+                                      <p className="text-slate-900 mt-1 bg-white p-3 rounded-lg border border-slate-200">
+                                        {analysis.modeling_request}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}

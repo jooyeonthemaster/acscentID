@@ -3,7 +3,7 @@
 import { ImageAnalysisResult } from './analysis'
 
 // 상품 타입
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation'
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'etc'
 
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
@@ -14,6 +14,7 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   figure_diffuser: '피규어 화분 디퓨저',
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념 퍼퓸',
+  etc: '기타',
 }
 
 // 서비스 모드 한글 라벨
@@ -30,6 +31,7 @@ export interface QRCode {
   service_mode: ServiceMode
   name: string | null
   location: string | null
+  custom_url: string | null
   is_active: boolean
   scan_count: number
   analysis_count: number
@@ -54,6 +56,9 @@ export interface AdminAnalysisRecord {
   user_image_url: string | null
   idol_name: string | null
   pin: string | null  // 오프라인 모드 인증 번호 (4자리)
+  // 피규어 디퓨저 모델링 데이터
+  modeling_image_url: string | null
+  modeling_request: string | null
   // 조인된 데이터
   user_profile?: {
     id: string

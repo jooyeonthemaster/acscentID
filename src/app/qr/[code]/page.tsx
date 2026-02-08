@@ -33,6 +33,11 @@ export default async function QRRedirectPage({ params }: PageProps) {
     })
     .eq('id', qrCode.id)
 
+  // 커스텀 URL이 설정되어 있으면 해당 URL로 리다이렉트
+  if (qrCode.custom_url) {
+    redirect(qrCode.custom_url)
+  }
+
   // 상품 타입에 따라 적절한 경로로 리다이렉트
   const productType = qrCode.product_type
   const serviceMode = qrCode.service_mode || 'offline'
