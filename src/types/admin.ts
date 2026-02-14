@@ -146,6 +146,15 @@ export interface AdminOrderRecord {
   // 연관 데이터
   analysis_id?: string | null
   user_coupon_id?: string | null
+  // 결제 관련
+  payment_method?: string
+  payment_id?: string | null
+  pg_provider?: string | null
+  paid_at?: string | null
+  receipt_url?: string | null
+  refund_amount?: number
+  refunded_at?: string | null
+  refund_reason?: string | null
 }
 
 // 관리자용 회원 레코드

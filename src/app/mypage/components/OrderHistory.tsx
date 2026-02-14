@@ -43,6 +43,7 @@ interface Order {
   keywords?: string[]
   analysis_data?: ImageAnalysisResult
   product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature'
+  payment_method?: string
 }
 
 interface OrderHistoryProps {
@@ -91,6 +92,19 @@ const statusConfig = {
   }
 }
 
+function getPaymentMethodBadge(paymentMethod?: string) {
+  switch (paymentMethod) {
+    case 'card':
+      return { label: '카드결제', className: 'bg-blue-100 text-blue-700' }
+    case 'kakao_pay':
+      return { label: '카카오페이', className: 'bg-yellow-100 text-yellow-800' }
+    case 'naver_pay':
+      return { label: '네이버페이', className: 'bg-green-100 text-green-700' }
+    default:
+      return { label: '계좌이체', className: 'bg-gray-100 text-gray-600' }
+  }
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR', {
@@ -130,6 +144,10 @@ function OrderCard({
 
   const hasAnalysisData = !!order.analysis_data
   const canCancel = order.status !== 'cancel_requested' && order.status !== 'cancelled'
+  const paymentBadge = getPaymentMethodBadge(order.payment_method)
+  const statusLabel = order.status === 'paid' && order.payment_method && order.payment_method !== 'bank_transfer'
+    ? '결제완료'
+    : status.label
   // 시그니처 상품인지 확인 (키워드에 "시그니처" 포함 여부)
   const isSignatureProduct = order.keywords?.some(k => k.includes('시그니처')) ?? false
 
@@ -216,7 +234,10 @@ function OrderCard({
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-mono text-xs text-slate-500">{order.order_number}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${status.color}`}>
-                    {status.label}
+                    {statusLabel}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${paymentBadge.className}`}>
+                    {paymentBadge.label}
                   </span>
                 </div>
                 <h4 className="font-bold text-slate-900 truncate">{order.perfume_name}</h4>
@@ -279,10 +300,15 @@ function OrderCard({
         {/* 상단 헤더 */}
         <div className="bg-slate-50 border-b-2 border-slate-900 px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-xs text-slate-500">{order.order_number}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-slate-500">{order.order_number}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${paymentBadge.className}`}>
+                {paymentBadge.label}
+              </span>
+            </div>
             <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${status.color}`}>
               <StatusIcon size={12} />
-              {status.label}
+              {statusLabel}
             </span>
           </div>
         </div>

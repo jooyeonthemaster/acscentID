@@ -197,3 +197,13 @@ export function calculateCartTotals(
 export function formatPrice(price: number): string {
   return price.toLocaleString('ko-KR')
 }
+
+// 결제 방법
+export type PaymentMethod = 'bank_transfer' | 'card' | 'kakao_pay' | 'naver_pay'
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  bank_transfer: '계좌이체 (무통장입금)',
+  card: '신용/체크카드',
+  kakao_pay: '카카오페이',
+  naver_pay: '네이버페이',
+}

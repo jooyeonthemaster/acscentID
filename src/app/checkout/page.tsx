@@ -21,8 +21,10 @@ import { OrderSummary } from "./components/OrderSummary"
 import { MultiItemOrderSummary } from "./components/MultiItemOrderSummary"
 import { CheckoutForm, CheckoutFormData } from "./components/CheckoutForm"
 import { CouponSelector } from "./components/CouponSelector"
+import { PaymentMethodSelector } from "./components/PaymentMethodSelector"
+import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon } from "@/types/coupon"
-import type { CartItem, ProductType } from "@/types/cart"
+import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import { PRODUCT_PRICING, formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 
 interface AnalysisResult {
@@ -86,6 +88,10 @@ function CheckoutContent() {
   const [copied, setCopied] = useState(false)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer")
+
+  // PortOne 결제 Hook
+  const { initiatePayment } = usePortonePayment()
 
   // 분석 ID (주문과 분석 결과 연결용)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
@@ -326,6 +332,7 @@ function CheckoutContent() {
         // 다중 상품 주문
         orderData = {
           userId,
+          paymentMethod,
           items: checkoutItems.map(item => ({
             analysisId: item.analysis_id,
             productType: item.product_type,
@@ -349,6 +356,7 @@ function CheckoutContent() {
         // 단일 상품 주문 (기존 호환)
         orderData = {
           userId,
+          paymentMethod,
           analysisId, // 분석 ID (분석 결과 연결용)
           productType, // 상품 타입 추가 (image_analysis / figure_diffuser)
           perfumeName,
@@ -390,6 +398,31 @@ function CheckoutContent() {
         throw new Error(result.error || `주문 생성 실패 (${response.status})`)
       }
 
+      // 온라인 결제 (카드, 카카오페이, 네이버페이)
+      if (paymentMethod !== "bank_transfer") {
+        const orderName = isMultiItemMode
+          ? `${checkoutItems[0].perfume_name} 외 ${checkoutItems.length - 1}건`
+          : perfumeName
+
+        const paymentResult = await initiatePayment({
+          orderId: result.orderId,
+          orderName,
+          totalAmount: totalPrice,
+          paymentMethod,
+          customerName: formData.name,
+          customerPhone: `${formData.phone1}-${formData.phone2}-${formData.phone3}`,
+        })
+
+        if (!paymentResult.success) {
+          if (paymentResult.cancelled) {
+            // 사용자가 결제를 취소한 경우
+            setIsSubmitting(false)
+            return
+          }
+          throw new Error(paymentResult.error || "결제에 실패했습니다.")
+        }
+      }
+
       // 다중 상품 모드: 장바구니에서 주문한 상품 삭제
       if (isMultiItemMode) {
         const cartItemIds = checkoutItems.map(item => item.id)
@@ -421,11 +454,11 @@ function CheckoutContent() {
       localStorage.setItem("lastOrderPerfumeName", savedPerfumeName)
       localStorage.setItem("lastOrderSize", savedSize)
 
-      // 주문 완료 페이지로 이동
-      router.push(`/checkout/complete?orderId=${result.orderId}`)
+      // 주문 완료 페이지로 이동 (결제 방법 정보 포함)
+      router.push(`/checkout/complete?orderId=${result.orderId}&paymentMethod=${paymentMethod}`)
     } catch (error) {
       console.error("Order submission error:", error)
-      alert("주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.")
+      alert(error instanceof Error ? error.message : "주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.")
     } finally {
       setIsSubmitting(false)
     }
@@ -531,60 +564,63 @@ function CheckoutContent() {
 
             {/* 결제 내용 */}
             <div className="flex flex-col gap-5">
-              {/* 왼쪽: 계좌 정보 */}
+              {/* 결제 수단 선택 */}
               <div className="space-y-4">
-                {/* 결제 방법 안내 */}
-                <div className="bg-[#FEF9C3] border-2 border-slate-900 rounded-xl p-4">
-                  <p className="text-sm text-slate-900 font-bold flex items-center gap-2">
-                    <Building2 size={16} />
-                    현재 계좌이체 결제만 가능합니다
-                  </p>
-                </div>
-
-                {/* 계좌 정보 카드 */}
-                <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-500 font-bold">은행</span>
-                      <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-500 font-bold">계좌번호</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-900 font-mono">{BANK_INFO.account}</span>
-                        <button
-                          onClick={copyAccountNumber}
-                          className={`p-2 rounded-lg border-2 transition-all ${
-                            copied
-                              ? "bg-[#A5F3FC] border-slate-900 text-slate-900"
-                              : "bg-white border-slate-300 hover:border-slate-900 text-slate-600"
-                          }`}
-                        >
-                          {copied ? <Check size={14} /> : <Copy size={14} />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-500 font-bold">예금주</span>
-                      <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 안내 문구 */}
-                <div className="space-y-2">
-                  <p className="text-sm text-red-500 font-bold flex items-center gap-2">
-                    <AlertCircle size={14} />
-                    주문자와 입금자명이 동일해야 합니다.
-                  </p>
-                  <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
-                    <Truck size={14} />
-                    입금 확인 후 2~3일 내 배송됩니다.
-                  </p>
-                </div>
+                <p className="text-sm font-black text-slate-900">결제 수단 선택</p>
+                <PaymentMethodSelector
+                  selectedMethod={paymentMethod}
+                  onMethodChange={setPaymentMethod}
+                />
               </div>
 
-              {/* 오른쪽: 결제 금액 */}
+              {/* 계좌이체 선택 시 계좌 정보 표시 */}
+              {paymentMethod === "bank_transfer" && (
+                <div className="space-y-4">
+                  {/* 계좌 정보 카드 */}
+                  <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500 font-bold">은행</span>
+                        <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500 font-bold">계좌번호</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 font-mono">{BANK_INFO.account}</span>
+                          <button
+                            onClick={copyAccountNumber}
+                            className={`p-2 rounded-lg border-2 transition-all ${
+                              copied
+                                ? "bg-[#A5F3FC] border-slate-900 text-slate-900"
+                                : "bg-white border-slate-300 hover:border-slate-900 text-slate-600"
+                            }`}
+                          >
+                            {copied ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500 font-bold">예금주</span>
+                        <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 안내 문구 */}
+                  <div className="space-y-2">
+                    <p className="text-sm text-red-500 font-bold flex items-center gap-2">
+                      <AlertCircle size={14} />
+                      주문자와 입금자명이 동일해야 합니다.
+                    </p>
+                    <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
+                      <Truck size={14} />
+                      입금 확인 후 2~3일 내 배송됩니다.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 결제 금액 */}
               <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-5">
                 <p className="text-sm font-black text-slate-900 mb-4">결제 금액</p>
                 <div className="space-y-3 text-sm">
@@ -679,7 +715,7 @@ function CheckoutContent() {
                   ) : (
                     <>
                       <Sparkles size={20} />
-                      <span>{formatPrice(totalPrice)}원 주문하기</span>
+                      <span>{formatPrice(totalPrice)}원 {paymentMethod === "bank_transfer" ? "주문하기" : "결제하기"}</span>
                     </>
                   )}
                 </div>

@@ -303,6 +303,10 @@ export function useFigureChat(userName?: string) {
         localStorage.setItem('serviceMode', 'online');
         localStorage.setItem('programType', 'figure');
         localStorage.setItem('figureChatData', JSON.stringify(collectedData));
+        // 모델링 이미지 저장 (useAutoSave에서 DB에 업로드)
+        localStorage.setItem('modelingImage', collectedData.figureImagePreview || '');
+        localStorage.setItem('modelingRequest', collectedData.figureRequest || '');
+        localStorage.setItem('productType', 'figure_diffuser');
 
         // 결과 페이지로 이동
         router.push('/result');

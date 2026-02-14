@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { notifyCancelRequest } from '@/lib/email/admin-notify'
 
 /**
  * 주문 취소 요청 API
@@ -75,6 +76,23 @@ export async function PATCH(
         { error: '취소 요청 처리에 실패했습니다' },
         { status: 500 }
       )
+    }
+
+    // 관리자 이메일 알림 발송 (fire-and-forget)
+    notifyCancelRequest({
+      orderNumber: order.order_number,
+      recipientName: order.recipient_name,
+      perfumeName: order.perfume_name,
+      finalPrice: order.final_price,
+    })
+
+    // 온라인 결제 주문의 경우 관리자가 환불 처리 필요
+    if (order.payment_method && order.payment_method !== 'bank_transfer' && order.payment_id) {
+      console.log('[Order Cancel] Online payment order - admin refund needed:', {
+        orderId: order.id,
+        paymentMethod: order.payment_method,
+        paymentId: order.payment_id,
+      })
     }
 
     return NextResponse.json({

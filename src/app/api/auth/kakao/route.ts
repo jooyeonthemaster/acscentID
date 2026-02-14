@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateKakaoUser, createKakaoSession } from '@/lib/auth-session'
+import { notifyNewMember } from '@/lib/email/admin-notify'
 
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID!
 const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET
@@ -92,10 +93,21 @@ async function handleKakaoCallback(code: string, next: string, origin: string) {
       avatarUrl,
     })
 
-    // 5. 커스텀 세션 생성 (쿠키 기반)
+    // 5. 신규 회원 여부 확인 및 알림 (5초 이내 생성된 계정)
+    const createdAt = new Date(user.created_at).getTime()
+    const isNewUser = Date.now() - createdAt < 5000
+    if (isNewUser) {
+      notifyNewMember({
+        memberName: user.name,
+        provider: 'kakao',
+        email: user.email,
+      })
+    }
+
+    // 6. 커스텀 세션 생성 (쿠키 기반)
     await createKakaoSession(user)
 
-    console.log('Kakao login successful:', user.id)
+    console.log('Kakao login successful:', user.id, isNewUser ? '(새 회원)' : '')
 
     // 6. 리다이렉트
     return NextResponse.redirect(`${origin}${next}?login_success=true`)

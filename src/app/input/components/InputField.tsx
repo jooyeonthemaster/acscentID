@@ -13,7 +13,8 @@ export function InputField({
     onBlur,
     type = "text",
     center,
-    letterSpacing
+    letterSpacing,
+    maxLength
 }: InputFieldProps) {
     return (
         <motion.div
@@ -34,6 +35,7 @@ export function InputField({
                 onFocus={onFocus}
                 onBlur={onBlur}
                 placeholder={placeholder}
+                maxLength={maxLength}
                 className={`w-full bg-white/80 backdrop-blur-md rounded-xl p-4 text-lg font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all duration-300 border border-white/60 shadow-lg shadow-slate-900/5 ${
                     center ? "text-center" : ""
                 } ${letterSpacing ? "tracking-[0.3em]" : ""} ${

@@ -3,6 +3,28 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import type { ProductType } from '@/types/cart'
+import { PRODUCT_PRICING, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
+import { notifyNewOrder } from '@/lib/email/admin-notify'
+
+/**
+ * 서버사이드 가격 검증
+ * 클라이언트가 보낸 가격을 서버의 PRODUCT_PRICING과 대조하여 조작 여부를 확인합니다.
+ */
+function validatePrice(productType: ProductType, size: string, clientPrice: number): { valid: boolean; expectedPrice: number } {
+  const pricing = PRODUCT_PRICING[productType]
+  if (!pricing) {
+    return { valid: false, expectedPrice: 0 }
+  }
+  const option = pricing.find((p) => p.size === size)
+  if (!option) {
+    return { valid: false, expectedPrice: 0 }
+  }
+  return { valid: clientPrice === option.price, expectedPrice: option.price }
+}
+
+function calculateServerShippingFee(subtotal: number): number {
+  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE
+}
 
 // 주문 상품 아이템 타입
 interface OrderItem {
@@ -96,6 +118,8 @@ export async function POST(request: NextRequest) {
       analysisData,
       productType,  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature)
       analysisId,   // 분석 ID (분석 결과 연결용)
+      // 결제 방법
+      paymentMethod,  // 'bank_transfer' | 'card' | 'kakao_pay' | 'naver_pay'
     } = body
 
     // 다중 상품 모드 확인
@@ -124,11 +148,46 @@ export async function POST(request: NextRequest) {
     if (isMultiItemMode) {
       const orderItems: OrderItem[] = items
 
+      // 서버사이드 가격 검증: 각 상품의 단가를 서버 가격표와 대조
+      for (const item of orderItems) {
+        const itemProductType: ProductType = item.productType || 'image_analysis'
+        const itemPriceCheck = validatePrice(itemProductType, item.size, item.unitPrice)
+        if (!itemPriceCheck.valid) {
+          console.error('[Orders API] Multi-item price mismatch - item:', item.perfumeName, 'client:', item.unitPrice, 'expected:', itemPriceCheck.expectedPrice)
+          return NextResponse.json(
+            { error: `상품 "${item.perfumeName}"의 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.` },
+            { status: 400 }
+          )
+        }
+      }
+
       // 상품 정보 계산
       const itemCount = orderItems.reduce((sum, item) => sum + item.quantity, 0)
       const calculatedSubtotal = orderItems.reduce(
         (sum, item) => sum + item.unitPrice * item.quantity, 0
       )
+
+      // 배송비 및 최종 금액 검증
+      const expectedMultiShippingFee = calculateServerShippingFee(calculatedSubtotal)
+      const clientMultiShippingFee = shippingFee || 0
+      if (clientMultiShippingFee !== expectedMultiShippingFee) {
+        console.error('[Orders API] Multi-item shipping fee mismatch - client:', clientMultiShippingFee, 'expected:', expectedMultiShippingFee)
+        return NextResponse.json(
+          { error: '배송비가 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
+          { status: 400 }
+        )
+      }
+
+      const multiDiscountAmount = discountAmount || 0
+      const expectedMultiFinalPrice = calculatedSubtotal + expectedMultiShippingFee - multiDiscountAmount
+      const clientMultiFinalPrice = finalPrice || totalPrice || calculatedSubtotal
+      if (clientMultiFinalPrice !== expectedMultiFinalPrice) {
+        console.error('[Orders API] Multi-item final price mismatch - client:', clientMultiFinalPrice, 'expected:', expectedMultiFinalPrice)
+        return NextResponse.json(
+          { error: '결제 금액이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
+          { status: 400 }
+        )
+      }
 
       // 첫 번째 상품 정보 (orders 테이블 호환용)
       const firstItem = orderItems[0]
@@ -168,6 +227,7 @@ export async function POST(request: NextRequest) {
           user_image_url: firstItem.imageUrl || null,
           keywords: [],
           analysis_data: null,
+          payment_method: paymentMethod || 'bank_transfer',
           status: 'pending',
           created_at: now,
           updated_at: now,
@@ -230,6 +290,16 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // 관리자 이메일 알림 발송 (fire-and-forget)
+      notifyNewOrder({
+        orderNumber: order.order_number,
+        recipientName,
+        perfumeName: firstItem.perfumeName,
+        finalPrice: finalPrice || totalPrice || calculatedSubtotal,
+        productType: firstItem.productType || 'image_analysis',
+        itemCount: orderItems.length,
+      })
+
       return NextResponse.json({
         success: true,
         orderId: order.id,
@@ -240,6 +310,41 @@ export async function POST(request: NextRequest) {
     }
 
     // ===== 단일 상품 주문 (기존 호환) =====
+
+    // 서버사이드 가격 검증
+    const resolvedProductType: ProductType = productType || 'image_analysis'
+    const priceCheck = validatePrice(resolvedProductType, size, price)
+    if (!priceCheck.valid) {
+      console.error('[Orders API] Price mismatch - client:', price, 'expected:', priceCheck.expectedPrice, 'productType:', resolvedProductType, 'size:', size)
+      return NextResponse.json(
+        { error: '상품 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 배송비 검증
+    const expectedShippingFee = calculateServerShippingFee(price)
+    const clientShippingFee = shippingFee || 0
+    if (clientShippingFee !== expectedShippingFee) {
+      console.error('[Orders API] Shipping fee mismatch - client:', clientShippingFee, 'expected:', expectedShippingFee)
+      return NextResponse.json(
+        { error: '배송비가 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 최종 결제금액 검증
+    const serverDiscountAmount = discountAmount || 0
+    const expectedFinalPrice = price + expectedShippingFee - serverDiscountAmount
+    const clientFinalPrice = finalPrice || totalPrice || price
+    if (clientFinalPrice !== expectedFinalPrice) {
+      console.error('[Orders API] Final price mismatch - client:', clientFinalPrice, 'expected:', expectedFinalPrice)
+      return NextResponse.json(
+        { error: '결제 금액이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
+        { status: 400 }
+      )
+    }
+
     const { data: order, error: insertError } = await serviceClient
       .from('orders')
       .insert({
@@ -265,6 +370,7 @@ export async function POST(request: NextRequest) {
         keywords: keywords || [],
         analysis_data: analysisData || null,
         product_type: productType || 'image_analysis',  // 상품 타입
+        payment_method: paymentMethod || 'bank_transfer',
         status: 'pending',
         item_count: 1,
         subtotal: price,
@@ -297,6 +403,15 @@ export async function POST(request: NextRequest) {
         console.error('Coupon update failed:', couponUpdateError)
       }
     }
+
+    // 관리자 이메일 알림 발송 (fire-and-forget)
+    notifyNewOrder({
+      orderNumber: order.order_number,
+      recipientName,
+      perfumeName: perfumeName || '',
+      finalPrice: finalPrice || totalPrice || price,
+      productType: productType || 'image_analysis',
+    })
 
     return NextResponse.json({
       success: true,

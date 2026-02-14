@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Database
+  Database,
+  BarChart3
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -30,6 +31,12 @@ const navItems: NavItem[] = [
     label: '대시보드',
     icon: LayoutDashboard,
     description: '통계 현황',
+  },
+  {
+    href: '/admin/visitors',
+    label: '방문자 분석',
+    icon: BarChart3,
+    description: '트래픽 & 유입 경로',
   },
   {
     href: '/admin/datacenter',

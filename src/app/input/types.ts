@@ -69,4 +69,5 @@ export interface InputFieldProps {
     type?: string
     center?: boolean
     letterSpacing?: boolean
+    maxLength?: number
 }

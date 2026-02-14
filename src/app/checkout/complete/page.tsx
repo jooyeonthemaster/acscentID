@@ -31,6 +31,8 @@ function OrderCompleteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get("orderId")
+  const paymentMethodParam = searchParams.get("paymentMethod") || "bank_transfer"
+  const isBankTransfer = paymentMethodParam === "bank_transfer"
   const [copied, setCopied] = useState(false)
   const [orderInfo, setOrderInfo] = useState<{
     orderNumber: string
@@ -49,6 +51,8 @@ function OrderCompleteContent() {
           const perfumeName = localStorage.getItem("lastOrderPerfumeName")
           const size = localStorage.getItem("lastOrderSize")
 
+          console.log("[OrderComplete] localStorage values:", { price, perfumeName, size })
+
           if (price) {
             setOrderInfo({
               orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
@@ -62,16 +66,46 @@ function OrderCompleteContent() {
             localStorage.removeItem("lastOrderPerfumeName")
             localStorage.removeItem("lastOrderSize")
           } else {
-            // fallback: 기존 방식
-            const savedResult = localStorage.getItem("analysisResult")
-            if (savedResult) {
-              const result = JSON.parse(savedResult)
-              setOrderInfo({
-                orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
-                price: 24000,
-                size: "10ml",
-                perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
-              })
+            // fallback: API로 주문 정보 조회
+            console.log("[OrderComplete] localStorage empty, fetching from API...")
+            try {
+              const response = await fetch(`/api/orders/${orderId}`)
+              const data = await response.json()
+
+              if (data.success && data.order) {
+                console.log("[OrderComplete] API response:", data.order)
+                setOrderInfo({
+                  orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+                  price: data.order.final_price,
+                  size: data.order.size,
+                  perfumeName: data.order.perfume_name || "맞춤 향수"
+                })
+              } else {
+                // API 실패 시 최종 fallback
+                const savedResult = localStorage.getItem("analysisResult")
+                if (savedResult) {
+                  const result = JSON.parse(savedResult)
+                  setOrderInfo({
+                    orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+                    price: 24000,
+                    size: "10ml",
+                    perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
+                  })
+                }
+              }
+            } catch (apiError) {
+              console.error("[OrderComplete] API fetch failed:", apiError)
+              // 최종 fallback: 기본값 사용
+              const savedResult = localStorage.getItem("analysisResult")
+              if (savedResult) {
+                const result = JSON.parse(savedResult)
+                setOrderInfo({
+                  orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+                  price: 24000,
+                  size: "10ml",
+                  perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || "맞춤 향수"
+                })
+              }
             }
           }
         } catch (e) {
@@ -132,11 +166,13 @@ function OrderCompleteContent() {
             className="text-center mb-8"
           >
             <h1 className="text-2xl font-black text-slate-900 mb-2 flex items-center justify-center gap-2">
-              주문이 접수되었습니다!
+              {isBankTransfer ? "주문이 접수되었습니다!" : "결제가 완료되었습니다!"}
               <Heart size={24} className="text-[#F472B6] fill-[#F472B6]" />
             </h1>
             <p className="text-slate-600 font-bold">
-              아래 계좌로 입금해주시면 주문이 완료됩니다.
+              {isBankTransfer
+                ? "아래 계좌로 입금해주시면 주문이 완료됩니다."
+                : "주문이 정상적으로 처리되었습니다."}
             </p>
           </motion.div>
 
@@ -178,63 +214,80 @@ function OrderCompleteContent() {
             </motion.div>
           )}
 
-          {/* 입금 계좌 정보 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-[#FEF9C3] border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
-          >
-            <h3 className="font-black text-lg text-slate-900 mb-4 text-center flex items-center justify-center gap-2">
-              <Sparkles size={18} className="text-[#F472B6]" />
-              입금 계좌
-            </h3>
+          {/* 입금 계좌 정보 (계좌이체일 때만 표시) */}
+          {isBankTransfer ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-[#FEF9C3] border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
+            >
+              <h3 className="font-black text-lg text-slate-900 mb-4 text-center flex items-center justify-center gap-2">
+                <Sparkles size={18} className="text-[#F472B6]" />
+                입금 계좌
+              </h3>
 
-            <div className="bg-white rounded-2xl p-5 space-y-4 border-2 border-slate-900">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500 font-bold">은행</span>
-                <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500 font-bold">계좌번호</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-slate-900 font-mono text-lg">
-                    {BANK_INFO.account}
-                  </span>
-                  <button
-                    onClick={copyAccountNumber}
-                    className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all flex items-center gap-1 border-2 ${
-                      copied
-                        ? "bg-[#FBCFE8] border-slate-900 text-slate-900"
-                        : "bg-white border-slate-900 hover:bg-[#FEF9C3] text-slate-900"
-                    }`}
-                  >
-                    {copied ? (
-                      <>
-                        <Check size={14} />
-                        복사됨
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={14} />
-                        복사
-                      </>
-                    )}
-                  </button>
+              <div className="bg-white rounded-2xl p-5 space-y-4 border-2 border-slate-900">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500 font-bold">은행</span>
+                  <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500 font-bold">계좌번호</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-slate-900 font-mono text-lg">
+                      {BANK_INFO.account}
+                    </span>
+                    <button
+                      onClick={copyAccountNumber}
+                      className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all flex items-center gap-1 border-2 ${
+                        copied
+                          ? "bg-[#FBCFE8] border-slate-900 text-slate-900"
+                          : "bg-white border-slate-900 hover:bg-[#FEF9C3] text-slate-900"
+                      }`}
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={14} />
+                          복사됨
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          복사
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500 font-bold">예금주</span>
+                  <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500 font-bold">예금주</span>
-                <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
-              </div>
-            </div>
 
-            <div className="mt-4 p-3 bg-white rounded-xl border-2 border-[#F472B6]">
-              <p className="text-xs text-[#F472B6] text-center font-black">
-                ⚠️ 반드시 주문자와 동일한 이름으로 입금해주세요!
+              <div className="mt-4 p-3 bg-white rounded-xl border-2 border-[#F472B6]">
+                <p className="text-xs text-[#F472B6] text-center font-black">
+                  ⚠️ 반드시 주문자와 동일한 이름으로 입금해주세요!
+                </p>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-[#A5F3FC] border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
+            >
+              <h3 className="font-black text-lg text-slate-900 mb-3 text-center flex items-center justify-center gap-2">
+                <CheckCircle size={18} className="text-slate-900" />
+                결제 완료
+              </h3>
+              <p className="text-sm text-slate-700 font-bold text-center">
+                결제가 정상적으로 완료되었습니다. 영수증은 마이페이지에서 확인할 수 있습니다.
               </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* 배송 안내 */}
           <motion.div
@@ -254,7 +307,10 @@ function OrderCompleteContent() {
               <div className="flex items-start gap-3 text-sm bg-white/50 p-3 rounded-xl">
                 <Clock size={18} className="text-slate-900 mt-0.5 flex-shrink-0" />
                 <span className="text-slate-800 font-bold">
-                  입금 확인 후 <strong className="text-[#F472B6]">2~3일 내</strong> 배송됩니다.
+                  {isBankTransfer
+                    ? <>입금 확인 후 <strong className="text-[#F472B6]">2~3일 내</strong> 배송됩니다.</>
+                    : <>결제 완료 후 <strong className="text-[#F472B6]">2~3일 내</strong> 배송됩니다.</>
+                  }
                 </span>
               </div>
               <div className="flex items-start gap-3 text-sm bg-white/50 p-3 rounded-xl">

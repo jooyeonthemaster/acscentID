@@ -46,13 +46,19 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                 )}
 
                 <InputField
-                    label={isIdol ? "분석 대상 이름 (또는 애칭)" : "본인 이름 (또는 닉네임)"}
+                    label={isIdol ? "분석 대상 이름 또는 애칭 (5자 이내)" : "본인 이름 또는 닉네임 (5자 이내)"}
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => {
+                        const value = e.target.value
+                        if (value.length <= 5) {
+                            setFormData(prev => ({ ...prev, name: value }))
+                        }
+                    }}
                     placeholder={isIdol ? "예: 변우석" : "예: 김주연"}
                     isFocused={focusedField === "name"}
                     onFocus={() => setFocusedField("name")}
                     onBlur={() => setFocusedField(null)}
+                    maxLength={5}
                 />
 
                 <div className="space-y-3">

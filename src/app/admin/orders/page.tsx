@@ -60,6 +60,11 @@ interface Order {
   analysis_id?: string
   analysis?: OrderAnalysis | null
   product_type?: string  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature 등)
+  payment_method?: string
+  payment_id?: string | null
+  receipt_url?: string | null
+  refund_amount?: number
+  refunded_at?: string | null
 }
 
 interface Pagination {
@@ -77,6 +82,18 @@ const statusFilters = [
   { value: 'delivered', label: '배송완료', icon: CheckCircle },
   { value: 'cancel_requested', label: '취소요청', icon: XCircle },
 ]
+
+const PAYMENT_METHOD_BADGE: Record<string, { label: string; className: string }> = {
+  bank_transfer: { label: '계좌이체', className: 'bg-slate-100 text-slate-600' },
+  card: { label: '카드', className: 'bg-blue-100 text-blue-600' },
+  kakao_pay: { label: '카카오페이', className: 'bg-yellow-100 text-yellow-700' },
+  naver_pay: { label: '네이버페이', className: 'bg-green-100 text-green-600' },
+}
+
+function getPaymentBadge(method?: string) {
+  const badge = method ? PAYMENT_METHOD_BADGE[method] : undefined
+  return badge ?? { label: '계좌이체', className: 'bg-slate-100 text-slate-600' }
+}
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -197,6 +214,31 @@ export default function AdminOrdersPage() {
     setSearch('')
     setDateFrom('')
     setDateTo('')
+  }
+
+  // 환불 처리
+  const handleRefund = async (order: Order) => {
+    const reason = window.prompt('환불 사유를 입력하세요:')
+    if (!reason) return
+
+    try {
+      const response = await fetch('/api/admin/orders/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, reason })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '환불 처리에 실패했습니다')
+      }
+
+      alert('환불이 완료되었습니다')
+      fetchOrders(pagination.page)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '환불 처리에 실패했습니다')
+    }
   }
 
   // 입금완료 주문 엑셀 다운로드
@@ -438,7 +480,15 @@ export default function AdminOrdersPage() {
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <span className="font-mono text-sm text-slate-900">{order.order_number}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm text-slate-900">{order.order_number}</span>
+                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
+                              {getPaymentBadge(order.payment_method).label}
+                            </span>
+                            {order.refunded_at && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-100 text-red-600">환불됨</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{order.recipient_name}</div>
@@ -549,6 +599,43 @@ export default function AdminOrdersPage() {
                                 <p className="text-slate-900 mt-1">{formatDate(order.updated_at)}</p>
                               </div>
                             </div>
+                            {/* 결제 정보 및 환불 */}
+                            {order.payment_id && (
+                              <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
+                                <div className="flex items-center gap-3 text-sm">
+                                  <span className={`px-2 py-0.5 text-xs font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
+                                    {getPaymentBadge(order.payment_method).label}
+                                  </span>
+                                  {order.receipt_url && (
+                                    <a
+                                      href={order.receipt_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline text-xs"
+                                    >
+                                      영수증 보기
+                                    </a>
+                                  )}
+                                  {order.refunded_at && (
+                                    <span className="text-xs text-red-500">
+                                      환불완료 ({formatDate(order.refunded_at)})
+                                      {order.refund_amount != null && ` - ${formatPrice(order.refund_amount)}`}
+                                    </span>
+                                  )}
+                                </div>
+                                {order.status === 'paid' && !order.refunded_at && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleRefund(order)
+                                    }}
+                                    className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                                  >
+                                    환불 처리
+                                  </button>
+                                )}
+                              </div>
+                            )}
                             {/* 모델링 이미지 (피규어 디퓨저) */}
                             {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
                               <div className="mt-4 pt-4 border-t border-slate-200">
@@ -764,6 +851,44 @@ export default function AdminOrdersPage() {
                           </p>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 결제 정보 및 환불 */}
+                {selectedOrder.payment_id && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-slate-600" />
+                      결제 정보
+                    </h4>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className={`px-2.5 py-1 text-xs font-medium rounded ${getPaymentBadge(selectedOrder.payment_method).className}`}>
+                        {getPaymentBadge(selectedOrder.payment_method).label}
+                      </span>
+                      {selectedOrder.receipt_url && (
+                        <a
+                          href={selectedOrder.receipt_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          영수증 보기
+                        </a>
+                      )}
+                      {selectedOrder.refunded_at ? (
+                        <span className="text-sm text-red-500">
+                          환불완료 ({formatDate(selectedOrder.refunded_at)})
+                          {selectedOrder.refund_amount != null && ` - ${formatPrice(selectedOrder.refund_amount)}`}
+                        </span>
+                      ) : selectedOrder.status === 'paid' ? (
+                        <button
+                          onClick={() => handleRefund(selectedOrder)}
+                          className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          환불 처리
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 )}

@@ -12,6 +12,7 @@ interface PrintableReportProps {
     perfume_brand: string
     matching_keywords: string[]
     idol_name: string | null
+    idol_gender: string | null
     service_mode: string
     created_at: string
     user_image_url?: string | null
@@ -327,7 +328,10 @@ export function PrintableReport({ analysis }: PrintableReportProps) {
         {/* ===== IMAGE PROFILE 섹션 ===== */}
 
         {/* NAME 값 */}
-        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 320, top: 120 }}>
+        <div
+          className="absolute text-sm font-bold text-slate-900 leading-tight"
+          style={{ left: 320, top: 115, maxWidth: 70, wordBreak: 'keep-all', overflowWrap: 'break-word' }}
+        >
           {analysis.idol_name || analysis.twitter_name || '-'}
         </div>
 
@@ -336,7 +340,7 @@ export function PrintableReport({ analysis }: PrintableReportProps) {
 
         {/* GENDER 값 */}
         <div className="absolute text-sm font-bold text-slate-900" style={{ left: 320, top: 152 }}>
-          {analysisData.analysis?.mood?.includes('남') ? '남성' : '여성'}
+          {analysis.idol_gender === 'Male' ? '남성' : analysis.idol_gender === 'Female' ? '여성' : '기타'}
         </div>
 
 
