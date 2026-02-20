@@ -264,6 +264,24 @@ export function MobileMenuSheet({
                 </Link>
               </nav>
 
+              {/* 현장방문 예약 */}
+              <div className="p-4 border-t border-slate-100">
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-xl hover:bg-yellow-50 hover:text-yellow-700 text-slate-500 transition-all font-medium"
+                >
+                  <a
+                    href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MapPin size={18} />
+                    <span>현장방문 예약</span>
+                  </a>
+                </Button>
+              </div>
+
               {/* Login CTA */}
               <div className="p-6 border-t border-slate-100 bg-slate-50">
                 <h3 className="text-2xl font-black text-slate-900 mb-2">WELCOME!</h3>
