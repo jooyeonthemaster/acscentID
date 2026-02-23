@@ -245,6 +245,43 @@ export function useInputForm() {
 
             const result = await response.json()
 
+            // 이미지를 먼저 Storage에 업로드 (base64를 localStorage에 넣으면 모바일에서 용량 초과 위험)
+            // 병렬로 업로드하여 대기 시간 최소화
+            const fingerprint = typeof window !== 'undefined' ? localStorage.getItem('user_fingerprint') : null
+            let userImageUploadedUrl: string | null = null
+            let modelingImageUploadedUrl: string | null = null
+
+            const uploadImage = async (base64: string): Promise<string | null> => {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageBase64: base64, fingerprint })
+                })
+                const data = await res.json()
+                return data.success && data.url ? data.url : null
+            }
+
+            const uploadPromises: Promise<void>[] = []
+
+            if (imagePreview) {
+                uploadPromises.push(
+                    uploadImage(imagePreview)
+                        .then(url => { userImageUploadedUrl = url })
+                        .catch(e => console.error('[useInputForm] 유저 이미지 선업로드 에러:', e))
+                )
+            }
+            if (isFigureOnline && modelingImagePreview) {
+                uploadPromises.push(
+                    uploadImage(modelingImagePreview)
+                        .then(url => { modelingImageUploadedUrl = url })
+                        .catch(e => console.error('[useInputForm] 모델링 이미지 선업로드 에러:', e))
+                )
+            }
+
+            if (uploadPromises.length > 0) {
+                await Promise.all(uploadPromises)
+            }
+
             // 공통 저장 로직
             const saveToLocalStorage = (data: unknown) => {
                 localStorage.removeItem('savedResultId')
@@ -252,6 +289,13 @@ export function useInputForm() {
                 // 서비스 모드 저장: 오프라인 조건 확인
                 const resolvedServiceMode = isOffline ? 'offline' : 'online'
                 localStorage.setItem('serviceMode', resolvedServiceMode)
+
+                // QR 코드 ID 저장 (QR 스캔 추적용)
+                if (qrCode) {
+                    localStorage.setItem('qrCode', qrCode)
+                } else {
+                    localStorage.removeItem('qrCode')
+                }
 
                 // 프로그램 타입에 따른 productType/programType 설정
                 if (isFigureOnline) {
@@ -270,11 +314,24 @@ export function useInputForm() {
                 }
 
                 localStorage.setItem('analysisResult', JSON.stringify(data))
-                if (imagePreview) {
+                // 선업로드된 URL 저장 (작은 문자열이라 용량 문제 없음)
+                if (userImageUploadedUrl) {
+                    localStorage.setItem('userImage', userImageUploadedUrl)
+                } else if (imagePreview) {
+                    // 선업로드 실패 시 base64 폴백
                     localStorage.setItem('userImage', imagePreview)
                 }
-                if (isFigureOnline && modelingImagePreview) {
-                    localStorage.setItem('modelingImage', modelingImagePreview)
+                if (isFigureOnline) {
+                    if (modelingImageUploadedUrl) {
+                        localStorage.setItem('modelingImage', modelingImageUploadedUrl)
+                    } else if (modelingImagePreview) {
+                        // 선업로드 실패 시 base64 폴백
+                        try {
+                            localStorage.setItem('modelingImage', modelingImagePreview)
+                        } catch (e) {
+                            console.error('[useInputForm] modelingImage base64 폴백 저장 실패:', e)
+                        }
+                    }
                     localStorage.setItem('modelingRequest', formData.modelingRequest || '')
                 }
                 const userInfoToSave = {

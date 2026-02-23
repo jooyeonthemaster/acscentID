@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       modelingRequest,
       productType,
       serviceMode,
-      pin
+      pin,
+      qrCode
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
       productType?: string | null
       serviceMode?: string | null
       pin?: string | null
+      qrCode?: string | null
     }
 
     // 디버그: pin 값 확인
@@ -75,7 +77,8 @@ export async function POST(request: NextRequest) {
         modeling_submitted_at: modelingImageUrl ? new Date().toISOString() : null,
         product_type: productType || 'image_analysis',
         service_mode: serviceMode || 'online',
-        pin: pin || null
+        pin: pin || null,
+        qr_code_id: qrCode || null
       })
       .select('id')
       .single()

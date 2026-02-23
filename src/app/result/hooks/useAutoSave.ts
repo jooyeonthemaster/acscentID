@@ -216,6 +216,12 @@ export function useAutoSave({
         }
       }
 
+      // figure_diffuser인데 모델링 이미지 URL이 없으면 경고 (디버깅용)
+      if (productType === 'figure_diffuser' && !modelingImageUrl) {
+        console.warn('[AutoSave] ⚠️ figure_diffuser 주문인데 modelingImageUrl이 null입니다!',
+          { modelingImage: modelingImage ? `${modelingImage.substring(0, 50)}...` : null, productType })
+      }
+
       // 2. 결과 데이터 저장
       console.log('[AutoSave] Saving analysis result...')
       console.log('[AutoSave] pin value:', pin)
@@ -224,6 +230,11 @@ export function useAutoSave({
       const serviceMode = typeof window !== 'undefined'
         ? localStorage.getItem('serviceMode') || 'offline'
         : 'offline'
+
+      // QR 코드 ID 가져오기 (QR 스캔 추적용)
+      const qrCode = typeof window !== 'undefined'
+        ? localStorage.getItem('qrCode') || null
+        : null
 
       const response = await fetch('/api/results', {
         method: 'POST',
@@ -248,7 +259,9 @@ export function useAutoSave({
           productType: productType || 'image_analysis',
           serviceMode,
           // 오프라인 모드 인증 번호
-          ...(pin && { pin })
+          ...(pin && { pin }),
+          // QR 코드 ID (QR 스캔 추적용)
+          ...(qrCode && { qrCode })
         })
       })
 
