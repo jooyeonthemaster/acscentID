@@ -49,6 +49,8 @@ interface Analysis {
   confirmed_recipe: ConfirmedRecipe | null
   product_type?: ProductType
   service_mode?: 'online' | 'offline'
+  modeling_image_url?: string | null
+  modeling_request?: string | null
 }
 
 // 분석 데이터 타입 (레시피 모달에서 사용)
@@ -73,6 +75,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
+  const [recipeProductTab, setRecipeProductTab] = useState<'10ml' | '50ml' | '5ml'>('10ml')
 
   // 다중 선택 관련 상태
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -915,66 +918,103 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         <span className="text-sm font-black text-slate-700">커스텀 조향 레시피</span>
                       </div>
 
-                      {/* 레시피 카드들 */}
-                      <div className="space-y-2.5">
-                        {recipeModalTarget.confirmed_recipe.granules.map((granule, idx) => {
-                          const color = getPerfumeColor(granule.id)
-                          const isLight = isLightColor(color)
-
-                          return (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.1 }}
-                              className="relative overflow-hidden rounded-xl border-2 border-black shadow-[3px_3px_0_0_black]"
-                            >
-                              {/* 배경 바 */}
-                              <div
-                                className="absolute inset-0 opacity-20"
-                                style={{ backgroundColor: color }}
-                              />
-                              <div
-                                className="absolute left-0 top-0 bottom-0 opacity-30"
-                                style={{
-                                  backgroundColor: color,
-                                  width: `${granule.ratio}%`
-                                }}
-                              />
-
-                              {/* 콘텐츠 */}
-                              <div className="relative flex items-center gap-3 p-3">
-                                {/* 컬러 인디케이터 */}
-                                <div
-                                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm border-2 ${isLight ? 'border-slate-300' : 'border-white/30'}`}
-                                  style={{
-                                    backgroundColor: color,
-                                    color: isLight ? '#1e293b' : 'white'
-                                  }}
-                                >
-                                  {granule.ratio}%
-                                </div>
-
-                                {/* 향료 정보 */}
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-black text-slate-900 truncate">{granule.name}</p>
-                                  <p className="text-[10px] text-slate-500 font-medium">{granule.id}</p>
-                                </div>
-
-                                {/* 드롭 아이콘 */}
-                                <Droplets size={16} className="text-slate-400 flex-shrink-0" />
-                              </div>
-                            </motion.div>
-                          )
-                        })}
+                      {/* 제품 타입 탭 */}
+                      <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
+                        {([
+                          { key: '10ml' as const, label: '10ml 향수', sub: '향료 2g' },
+                          { key: '50ml' as const, label: '50ml 향수', sub: '향료 10g' },
+                          { key: '5ml' as const, label: '5ml 오일', sub: '향료 5g' },
+                        ]).map((tab) => (
+                          <button
+                            key={tab.key}
+                            onClick={() => setRecipeProductTab(tab.key)}
+                            className={`flex-1 py-2 px-1 rounded-lg text-center transition-all ${
+                              recipeProductTab === tab.key
+                                ? 'bg-white border-2 border-black shadow-[2px_2px_0_0_black] font-black'
+                                : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            <p className={`text-[11px] sm:text-xs ${recipeProductTab === tab.key ? 'text-black' : ''}`}>{tab.label}</p>
+                            <p className={`text-[9px] sm:text-[10px] ${recipeProductTab === tab.key ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>{tab.sub}</p>
+                          </button>
+                        ))}
                       </div>
 
-                      {/* 총 비율 표시 */}
+                      {/* 레시피 카드들 */}
+                      {(() => {
+                        const totalGrams = recipeProductTab === '10ml' ? 2 : recipeProductTab === '50ml' ? 10 : 5
+                        return (
+                          <div className="space-y-2.5">
+                            {recipeModalTarget.confirmed_recipe!.granules.map((granule, idx) => {
+                              const color = getPerfumeColor(granule.id)
+                              const isLight = isLightColor(color)
+                              const grams = totalGrams * (granule.ratio / 100)
+                              const gramsDisplay = grams < 0.1 ? grams.toFixed(2) : grams.toFixed(1)
+
+                              return (
+                                <motion.div
+                                  key={idx}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.1 }}
+                                  className="relative overflow-hidden rounded-xl border-2 border-black shadow-[3px_3px_0_0_black]"
+                                >
+                                  {/* 배경 바 */}
+                                  <div
+                                    className="absolute inset-0 opacity-20"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                  <div
+                                    className="absolute left-0 top-0 bottom-0 opacity-30"
+                                    style={{
+                                      backgroundColor: color,
+                                      width: `${granule.ratio}%`
+                                    }}
+                                  />
+
+                                  {/* 콘텐츠 */}
+                                  <div className="relative flex items-center gap-3 p-3">
+                                    {/* 컬러 인디케이터 */}
+                                    <div
+                                      className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm border-2 ${isLight ? 'border-slate-300' : 'border-white/30'}`}
+                                      style={{
+                                        backgroundColor: color,
+                                        color: isLight ? '#1e293b' : 'white'
+                                      }}
+                                    >
+                                      {granule.ratio}%
+                                    </div>
+
+                                    {/* 향료 정보 */}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-black text-slate-900 truncate">{granule.name}</p>
+                                      <p className="text-[10px] text-slate-500 font-medium">{granule.id}</p>
+                                    </div>
+
+                                    {/* 그램 수 표시 */}
+                                    <div className="flex flex-col items-center flex-shrink-0 bg-white/80 rounded-lg px-2 py-1 border border-slate-200">
+                                      <span className="text-sm font-black text-amber-600">{gramsDisplay}g</span>
+                                      <Droplets size={12} className="text-slate-400" />
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
+
+                      {/* 총 비율 + 총 그램 표시 */}
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl border border-slate-200">
-                        <span className="text-sm font-bold text-slate-600">총 비율</span>
-                        <span className="text-lg font-black text-slate-900">
-                          {recipeModalTarget.confirmed_recipe.granules.reduce((sum, g) => sum + g.ratio, 0)}%
-                        </span>
+                        <span className="text-sm font-bold text-slate-600">총 향료</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-slate-500">
+                            {recipeModalTarget.confirmed_recipe.granules.reduce((sum, g) => sum + g.ratio, 0)}%
+                          </span>
+                          <span className="text-lg font-black text-amber-600">
+                            {recipeProductTab === '10ml' ? '2' : recipeProductTab === '50ml' ? '10' : '5'}g
+                          </span>
+                        </div>
                       </div>
 
                       {/* 안내 메시지 */}

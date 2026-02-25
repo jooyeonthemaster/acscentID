@@ -57,6 +57,9 @@ export function FeedbackStep2New({
   // 열린 아코디언 상태
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
+  // 추천 향이 0%이면 최대 3개, 아니면 최대 2개
+  const maxScents = retentionPercentage === 0 ? 3 : 2
+
   // 추천 향수의 색상
   const recommendedPerfume = useMemo(() => {
     return perfumes.find((p) => p.id === recommendedPerfumeId)
@@ -151,7 +154,7 @@ export function FeedbackStep2New({
             💡 나머지 <span className="font-bold text-amber-600">{remainingRatio}%</span>를
             아래에서 추가 향료를 선택해 채워주세요!
           </p>
-          <p className="text-red-500 font-semibold">⚠️ 최대 2개까지 선택 가능</p>
+          <p className="text-red-500 font-semibold">⚠️ 최대 {maxScents}개까지 선택 가능</p>
         </div>
       </div>
 
@@ -186,9 +189,9 @@ export function FeedbackStep2New({
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-slate-700 mb-3">
           향료 카테고리별 탐색
-          {selectedScents.length >= 2 && (
+          {selectedScents.length >= maxScents && (
             <span className="text-xs font-normal text-slate-400 ml-2">
-              (최대 2개 선택 완료)
+              (최대 {maxScents}개 선택 완료)
             </span>
           )}
         </h3>
@@ -290,7 +293,7 @@ export function FeedbackStep2New({
                       ) : (
                         categoryPerfumes.map((perfume) => {
                           const alreadySelected = isSelected(perfume.id)
-                          const canAdd = selectedScents.length < 2
+                          const canAdd = selectedScents.length < maxScents
                           const selectedScent = selectedScents.find((s) => s.id === perfume.id)
 
                           // 이 향료를 제외한 다른 추가 향료들의 비율 합

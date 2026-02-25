@@ -96,7 +96,8 @@ export function buildRecipePrompt(
   feedback: PerfumeFeedback,
   originalPerfume: OriginalPerfumeInfo,
   characterName?: string, // 분석된 캐릭터 이름
-  naturalLanguageFeedback?: string // 자연어 피드백 (Step 3)
+  naturalLanguageFeedback?: string, // 자연어 피드백 (Step 3)
+  userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[] // 1안 향료 정보
 ): string {
   const perfumeDb = formatPerfumeDatabase()
   const categoryChanges = formatCategoryChanges(feedback.categoryPreferences)
@@ -203,10 +204,10 @@ ${perfumeDb}
 ${feedback.specificScents.length > 0 ? feedback.specificScents.map(s => `- 추가 향료: ${s.name} (${s.ratio}%)`).join('\n') : '- 추가 향료: 없음'}
 
 ## AI가 해야 할 것 (필수!)
-1. **사용자 선택을 기반으로 하되, 더 나은 조합을 제안!**
-   - 사용자가 선택한 향료를 포함하되 비율은 최적화해서 조정 가능
-   - 추가로 어울리는 향료 1-2개 더 추가 권장!
-   - 최종 향료 개수: 2-4개 (사용자 선택보다 많아도 됨!)
+1. **사용자 선택을 기반으로 하되, 완전히 다른 새로운 조합을 제안!**
+   - 🚨 **최종 향료 개수: 반드시 정확히 3개!** (2개도 안 되고 4개도 안 됨!)
+   - 1안에서 사용된 향료와 최대한 겹치지 않는 새로운 향료 선택!
+   - 단, 사용자가 선택한 향과 **비슷한 계열(카테고리)**의 향료로 구성!
 
 2. **자연어 피드백이 있으면 적극 반영!**
    ${naturalLanguageFeedback ? `- 사용자 요청: "${naturalLanguageFeedback}"
@@ -218,12 +219,21 @@ ${feedback.specificScents.length > 0 ? feedback.specificScents.map(s => `- 추�
 6. 모든 향료의 ratio 합계는 정확히 100%
 7. **각 향료의 reason은 서로 다르게! 같은 문장/표현 반복 금지!**
 
-## 1안과 다르게 만드는 방법 (중요!)
-- 사용자 선택: ${originalPerfume.name} ${feedback.retentionPercentage}%${feedback.specificScents.length > 0 ? ' + ' + feedback.specificScents.map(s => `${s.name} ${s.ratio}%`).join(' + ') : ''}
-- AI 추천에서는:
-  ✓ 추가 향료 1-2개 더해서 조화롭게!
-  ✓ 비율을 최적화해서 밸런스 맞추기!
-  ✓ ${naturalLanguageFeedback ? '자연어 피드백 분위기에 맞는 향료 추가!' : '어울리는 향 더 추가해서 완성도 높이기!'}
+## 🚨 1안과 겹치지 않게 만드는 규칙 (최우선!)
+
+### 1안에서 사용된 향료 (이 향료들은 피하세요!):
+${userDirectRecipeGranules && userDirectRecipeGranules.length > 0
+  ? userDirectRecipeGranules.map(g => `- ❌ ${g.id} "${g.name}" (${g.mainCategory}) - ${g.ratio}%`).join('\n')
+  : `- ${originalPerfume.name} ${feedback.retentionPercentage}%` + (feedback.specificScents.length > 0 ? '\n' + feedback.specificScents.map(s => `- ${s.name} ${s.ratio}%`).join('\n') : '')}
+
+### AI 추천(2안) 필수 규칙:
+1. ❌ **위 1안의 향료와 최대한 겹치지 않는 새로운 향료 3개를 선택!**
+2. ✅ **단, 사용자가 선택한 향과 비슷한 계열(카테고리)의 향료로 구성!**
+   - 1안에 시트러스 계열이 있으면 → 다른 시트러스 향료 선택
+   - 1안에 플로럴 계열이 있으면 → 다른 플로럴 향료 선택
+   - 같은 카테고리 내에서 다른 향을 골라 신선한 조합을 만들어!
+3. ✅ 반드시 **정확히 3개** 향료로 구성!
+4. ✅ ${naturalLanguageFeedback ? '자연어 피드백 분위기에 맞는 향료 추가!' : '어울리는 향으로 완성도 높이기!'}
 
 8. **categoryChanges 필수 규칙**:
     - 6개 카테고리 전부 포함 (시트러스, 플로럴, 우디, 머스크, 프루티, 스파이시)
@@ -252,7 +262,7 @@ ${hasCharacter ? `11. 플레이스홀더 사용 금지! 캐릭터 언급 시 "${
       "reason": "이 향료를 선택한 이유 (주접 톤, 2-3문장, 이모지 포함)",
       "fanComment": "광기 넘치는 주접 코멘트 (1문장, 이모지 폭격)"
     }
-    // 예: 향료1 drops:5 + 향료2 drops:3 + 향료3 drops:2 = 10
+    // ⚠️ 반드시 정확히 3개! 예: 향료1 drops:4 + 향료2 drops:3 + 향료3 drops:3 = 10
   ],
   "overallExplanation": "전체 레시피 설명 (주접+광기 폭발, 3-4문장, 이모지 많이)",
   "categoryChanges": [
@@ -399,13 +409,11 @@ export function validateRecipe(recipe: unknown): {
 
   const r = recipe as Record<string, unknown>
 
-  // granules 검사
+  // granules 검사 (정확히 3개 향료 필수)
   if (!Array.isArray(r.granules)) {
     errors.push('granules 배열이 없습니다.')
-  } else if (r.granules.length < 2) {
-    errors.push('최소 2개의 향료가 필요합니다.')
-  } else if (r.granules.length > 6) {
-    errors.push('최대 6개의 향료까지만 가능합니다.')
+  } else if (r.granules.length !== 3) {
+    errors.push(`향료는 정확히 3개여야 합니다. (현재: ${r.granules.length}개)`)
   }
 
   // 필수 필드 검사

@@ -23,6 +23,7 @@ interface RecipeRequest {
   }
   characterName?: string // 분석된 캐릭터 이름
   naturalLanguageFeedback?: string // 자연어 피드백 (Step 3)
+  userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[] // 1안 향료 정보
 }
 
 export async function POST(request: NextRequest) {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as RecipeRequest
-    const { feedback, originalPerfume, characterName, naturalLanguageFeedback } = body
+    const { feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules } = body
 
     // 유효성 검사
     if (!feedback || !originalPerfume) {
@@ -83,8 +84,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, recipe })
     }
 
-    // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 포함)
-    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback)
+    // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 + 1안 향료 정보 포함)
+    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules)
     console.log(`[${requestId}] Prompt built, calling Gemini API...`)
 
     let recipe: GeneratedRecipe | null = null

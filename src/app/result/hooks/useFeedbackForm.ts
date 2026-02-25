@@ -100,11 +100,11 @@ export function useFeedbackForm({
       spicy: (perfumeCharacteristics?.spicy || 0) * SCALE_FACTOR,
     }
 
-    // 모든 향료 정보 수집
+    // 모든 향료 정보 수집 (0% 비율인 향료는 제외)
     const allScents = [
       { id: currentFeedback.perfumeId, name: currentFeedback.perfumeName, ratio: currentFeedback.retentionPercentage, isMain: true },
       ...currentFeedback.specificScents.map(s => ({ id: s.id, name: s.name, ratio: s.ratio, isMain: false }))
-    ]
+    ].filter(s => s.ratio > 0)
 
     // 1차: 비율 기반으로 drops 계산 (floor 사용)
     let drops = allScents.map(scent => ({
@@ -257,9 +257,10 @@ export function useFeedbackForm({
     let added = false
 
     setFeedback((prev) => {
-      // 최대 2개
-      if (prev.specificScents.length >= 2) {
-        setError('최대 2개의 향료만 선택할 수 있어요!')
+      // 추천 향이 0%이면 최대 3개, 아니면 최대 2개
+      const maxScents = prev.retentionPercentage === 0 ? 3 : 2
+      if (prev.specificScents.length >= maxScents) {
+        setError(`최대 ${maxScents}개의 향료만 선택할 수 있어요!`)
         return prev
       }
 
@@ -347,6 +348,7 @@ export function useFeedbackForm({
           },
           characterName, // 분석된 캐릭터 이름 전달
           naturalLanguageFeedback: feedback.naturalLanguageFeedback || '', // 자연어 피드백
+          userDirectRecipeGranules: directRecipe.granules.map(g => ({ id: g.id, name: g.name, ratio: g.ratio, mainCategory: g.mainCategory })), // 1안 향료 정보
         }),
       })
 
