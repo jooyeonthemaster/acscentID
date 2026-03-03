@@ -206,6 +206,12 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
     // 분석 ID 저장 (주문과 분석 결과 연결용)
     localStorage.setItem('checkoutAnalysisId', analysis.id)
 
+    // 확정된 레시피 저장 (checkout 페이지에서 레시피 배지 표시용)
+    if (analysis.confirmed_recipe) {
+      localStorage.setItem('checkoutRecipe', JSON.stringify(analysis.confirmed_recipe))
+      localStorage.setItem('checkoutRecipePerfumeName', analysis.perfume_name || '')
+    }
+
     router.push('/checkout')
   }
 
@@ -434,21 +440,14 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                   {/* 버튼 영역 */}
                   <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                     <button
-                      onClick={(e) => handlePurchase(analysis, e)}
-                      className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors"
-                    >
-                      <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
-                      구매하기
-                    </button>
-                    <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setRecipeModalTarget(analysis)
                       }}
-                      className="w-full py-1.5 sm:py-2 bg-amber-400 text-black text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-amber-300 transition-colors border-[1.5px] sm:border-2 border-black"
+                      className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors"
                     >
-                      <Beaker className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                      레시피 확인하기
+                      <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
+                      구매하기
                     </button>
                   </div>
                 </div>
@@ -781,11 +780,15 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         결과 상세보기
                       </Link>
                       <button
-                        onClick={(e) => handlePurchase(selectedImage, e)}
-                        className="flex-[1.5] py-3 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedImage(null)
+                          setRecipeModalTarget(selectedImage)
+                        }}
+                        className="flex-[1.5] py-3 bg-amber-400 text-black border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-300 transition-all"
                       >
-                        <ShoppingBag size={18} className="text-yellow-400" />
-                        구매하기
+                        <Beaker size={18} />
+                        레시피 확인하기
                       </button>
                     </div>
 
@@ -1071,19 +1074,23 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 {/* 모달 푸터 */}
                 <div className="px-5 py-4 border-t-2 border-black bg-slate-50 flex-shrink-0">
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setRecipeModalTarget(null)}
-                      className="flex-1 py-3 bg-white border-2 border-black rounded-xl font-bold hover:bg-slate-100 transition-colors"
-                    >
-                      닫기
-                    </button>
                     <Link
                       href={`/result?id=${recipeModalTarget.id}&from=mypage`}
-                      className="flex-1 py-3 bg-purple-500 text-white border-2 border-black rounded-xl font-bold text-center hover:bg-purple-600 transition-colors"
+                      className="flex-1 py-3 bg-white border-2 border-black rounded-xl font-bold text-center hover:bg-slate-100 transition-colors"
                       onClick={() => setRecipeModalTarget(null)}
                     >
                       결과 상세보기
                     </Link>
+                    <button
+                      onClick={(e) => {
+                        setRecipeModalTarget(null)
+                        handlePurchase(recipeModalTarget, e)
+                      }}
+                      className="flex-[1.5] py-3 bg-black text-white border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
+                    >
+                      <ShoppingBag size={18} className="text-yellow-400" />
+                      구매하기
+                    </button>
                   </div>
                 </div>
               </motion.div>

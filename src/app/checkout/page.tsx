@@ -96,6 +96,10 @@ function CheckoutContent() {
   // 분석 ID (주문과 분석 결과 연결용)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
 
+  // 확정된 레시피 (재주문 시 전달됨)
+  const [confirmedRecipe, setConfirmedRecipe] = useState<any>(null)
+  const [confirmedRecipePerfumeName, setConfirmedRecipePerfumeName] = useState<string | null>(null)
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: "",
@@ -209,6 +213,20 @@ function CheckoutContent() {
     if (savedAnalysisId) {
       setAnalysisId(savedAnalysisId)
       localStorage.removeItem("checkoutAnalysisId")
+    }
+
+    // 확정된 레시피 로드 (재주문 시 전달됨)
+    const savedRecipe = localStorage.getItem("checkoutRecipe")
+    const savedRecipePerfumeName = localStorage.getItem("checkoutRecipePerfumeName")
+    if (savedRecipe) {
+      try {
+        setConfirmedRecipe(JSON.parse(savedRecipe))
+        setConfirmedRecipePerfumeName(savedRecipePerfumeName)
+      } catch (e) {
+        console.error("Failed to parse checkout recipe:", e)
+      }
+      localStorage.removeItem("checkoutRecipe")
+      localStorage.removeItem("checkoutRecipePerfumeName")
     }
   }, [authLoading, userId, router, userName, isSignatureProduct, searchParams])
 
@@ -372,6 +390,8 @@ function CheckoutContent() {
           userImage,
           keywords: analysisResult?.matchingKeywords || [],
           analysisData: analysisResult,
+          // 확정된 레시피 포함 (재주문 시)
+          ...(confirmedRecipe && { confirmedRecipe }),
           ...shippingInfo,
         }
       }
@@ -514,16 +534,39 @@ function CheckoutContent() {
                   onRemoveItem={handleRemoveItem}
                 />
               ) : (
-                <OrderSummary
-                  perfumeName={perfumeName}
-                  perfumeBrand={displayIdolName}
-                  userImage={userImage}
-                  productType={productType}
-                  selectedSize={selectedSize}
-                  onSizeChange={setSelectedSize}
-                  price={singleProductPrice}
-                  keywords={analysisResult?.matchingKeywords || []}
-                />
+                <>
+                  <OrderSummary
+                    perfumeName={perfumeName}
+                    perfumeBrand={displayIdolName}
+                    userImage={userImage}
+                    productType={productType}
+                    selectedSize={selectedSize}
+                    onSizeChange={setSelectedSize}
+                    price={singleProductPrice}
+                    keywords={analysisResult?.matchingKeywords || []}
+                  />
+                  {/* 확정 레시피 배지 (재주문 시) */}
+                  {confirmedRecipe && (
+                    <div className="bg-amber-50 border-2 border-slate-900 rounded-2xl p-4 shadow-[3px_3px_0px_#FBBF24]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-7 h-7 bg-amber-400 border-2 border-slate-900 rounded-lg flex items-center justify-center shadow-[1px_1px_0px_#1e293b]">
+                          <span className="text-sm">🧪</span>
+                        </div>
+                        <span className="font-black text-slate-900 text-sm tracking-tight">나만의 커스텀 레시피</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-3">
+                        {confirmedRecipePerfumeName || perfumeName} 기반 · 피드백으로 조향된 레시피
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {confirmedRecipe.granules?.map((g: any) => (
+                          <span key={g.id} className="text-[10px] px-2.5 py-1 bg-white border-[1.5px] border-slate-900 rounded-full text-slate-800 font-bold shadow-[1px_1px_0px_#FBBF24]">
+                            {g.name} {g.ratio}%
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

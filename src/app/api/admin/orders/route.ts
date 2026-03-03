@@ -150,7 +150,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 유효한 상태값 확인
-    const validStatuses = ['pending', 'paid', 'shipping', 'delivered']
+    const validStatuses = ['pending', 'paid', 'shipping', 'delivered', 'cancelled']
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { error: '유효하지 않은 상태값입니다' },
@@ -216,6 +216,130 @@ export async function PATCH(request: NextRequest) {
 
   } catch (error) {
     console.error('Admin orders PATCH error:', error)
+    return NextResponse.json(
+      { error: '서버 오류가 발생했습니다' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * 관리자 - 주문 삭제
+ * DELETE /api/admin/orders
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const { isAdmin: isUserAdmin } = await isAdmin()
+
+    if (!isUserAdmin) {
+      return NextResponse.json(
+        { error: '관리자 권한이 필요합니다' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { orderIds } = body
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return NextResponse.json(
+        { error: '삭제할 주문 ID가 필요합니다' },
+        { status: 400 }
+      )
+    }
+
+    const serviceClient = createServiceRoleClient()
+
+    // 관련 order_items 먼저 삭제
+    const { error: itemsError } = await serviceClient
+      .from('order_items')
+      .delete()
+      .in('order_id', orderIds)
+
+    if (itemsError) {
+      console.error('Order items delete failed:', itemsError)
+    }
+
+    // 주문 삭제
+    const { error, count } = await serviceClient
+      .from('orders')
+      .delete()
+      .in('id', orderIds)
+
+    if (error) {
+      console.error('Orders delete failed:', error)
+      return NextResponse.json(
+        { error: '주문 삭제에 실패했습니다' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: count || orderIds.length,
+    })
+
+  } catch (error) {
+    console.error('Admin orders DELETE error:', error)
+    return NextResponse.json(
+      { error: '서버 오류가 발생했습니다' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * 관리자 - 주문 메모 업데이트
+ * PUT /api/admin/orders
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const { isAdmin: isUserAdmin } = await isAdmin()
+
+    if (!isUserAdmin) {
+      return NextResponse.json(
+        { error: '관리자 권한이 필요합니다' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { orderId, admin_memo } = body
+
+    if (!orderId) {
+      return NextResponse.json(
+        { error: 'orderId가 필요합니다' },
+        { status: 400 }
+      )
+    }
+
+    const serviceClient = createServiceRoleClient()
+
+    const { data: order, error } = await serviceClient
+      .from('orders')
+      .update({
+        admin_memo,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Admin memo update failed:', error)
+      return NextResponse.json(
+        { error: '메모 저장에 실패했습니다' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      order,
+    })
+
+  } catch (error) {
+    console.error('Admin orders PUT error:', error)
     return NextResponse.json(
       { error: '서버 오류가 발생했습니다' },
       { status: 500 }

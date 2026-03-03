@@ -44,6 +44,7 @@ interface Order {
   analysis_data?: ImageAnalysisResult
   product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature'
   payment_method?: string
+  analysis_id?: string  // 분석 결과 ID (레시피 연결용)
 }
 
 interface OrderHistoryProps {
@@ -163,19 +164,50 @@ function OrderCard({
     }
   }
 
-  // 재구매 핸들러
-  const handleRepurchase = () => {
-    if (order.analysis_data) {
-      localStorage.setItem('analysisResult', JSON.stringify(order.analysis_data))
+  // 재구매 핸들러 - 확정 레시피가 있으면 함께 전달
+  const [isLoadingRepurchase, setIsLoadingRepurchase] = useState(false)
+  const handleRepurchase = async () => {
+    if (isLoadingRepurchase) return
+    setIsLoadingRepurchase(true)
+
+    try {
+      if (order.analysis_data) {
+        localStorage.setItem('analysisResult', JSON.stringify(order.analysis_data))
+      }
+      if (order.user_image_url) {
+        localStorage.setItem('userImage', order.user_image_url)
+      }
+      // productType 저장 (졸업 퍼퓸, 피규어 디퓨저 등)
+      if (order.product_type) {
+        localStorage.setItem('checkoutProductType', order.product_type)
+      }
+      // 분석 ID 저장 (주문과 분석 결과 연결용)
+      if (order.analysis_id) {
+        localStorage.setItem('checkoutAnalysisId', order.analysis_id)
+      }
+
+      // 확정된 레시피가 있으면 함께 전달 (현장 방문 후 온라인 재주문 지원)
+      if (order.analysis_id) {
+        try {
+          const response = await fetch(`/api/feedback?resultId=${order.analysis_id}&limit=1`)
+          const data = await response.json()
+          if (data.success && data.feedbacks?.length > 0) {
+            const latestFeedback = data.feedbacks[0]
+            if (latestFeedback.generatedRecipe) {
+              localStorage.setItem('checkoutRecipe', JSON.stringify(latestFeedback.generatedRecipe))
+              localStorage.setItem('checkoutRecipePerfumeName', latestFeedback.perfumeName || order.perfume_name)
+            }
+          }
+        } catch (e) {
+          console.error('레시피 조회 실패:', e)
+          // 레시피 조회 실패해도 재구매는 계속 진행
+        }
+      }
+
+      router.push('/checkout')
+    } finally {
+      setIsLoadingRepurchase(false)
     }
-    if (order.user_image_url) {
-      localStorage.setItem('userImage', order.user_image_url)
-    }
-    // productType 저장 (졸업 퍼퓸, 피규어 디퓨저 등)
-    if (order.product_type) {
-      localStorage.setItem('checkoutProductType', order.product_type)
-    }
-    router.push('/checkout')
   }
 
   // 주문 취소 핸들러

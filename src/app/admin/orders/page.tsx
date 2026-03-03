@@ -20,7 +20,11 @@ import {
   XCircle,
   Image as ImageIcon,
   Box,
-  Download
+  Download,
+  Trash2,
+  MessageSquare,
+  Save,
+  Check
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import Image from 'next/image'
@@ -65,6 +69,11 @@ interface Order {
   receipt_url?: string | null
   refund_amount?: number
   refunded_at?: string | null
+  admin_memo?: string | null
+  confirmed_recipe?: {
+    granules?: Array<{ id: string; name: string; ratio: number }>
+    [key: string]: any
+  } | null
 }
 
 interface Pagination {
@@ -124,6 +133,16 @@ export default function AdminOrdersPage() {
 
   // 엑셀 다운로드 로딩
   const [excelLoading, setExcelLoading] = useState(false)
+
+  // 체크박스 선택 (삭제용)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  // 관리자 메모
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null)
+  const [memoText, setMemoText] = useState('')
+  const [memoSaving, setMemoSaving] = useState(false)
+  const [memoSaved, setMemoSaved] = useState<string | null>(null)
 
   // 주문 목록 조회
   const fetchOrders = useCallback(async (page = 1) => {
@@ -238,6 +257,100 @@ export default function AdminOrdersPage() {
       fetchOrders(pagination.page)
     } catch (err) {
       alert(err instanceof Error ? err.message : '환불 처리에 실패했습니다')
+    }
+  }
+
+  // 체크박스 전체 선택/해제
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(orders.map(o => o.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  // 개별 체크박스 선택/해제
+  const handleSelectOne = (orderId: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (checked) {
+        next.add(orderId)
+      } else {
+        next.delete(orderId)
+      }
+      return next
+    })
+  }
+
+  // 선택 삭제
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return
+
+    const confirmed = window.confirm(
+      `선택한 ${selectedIds.size}개의 주문을 정말 삭제하시겠습니까?\n\n삭제된 주문은 복구할 수 없습니다.`
+    )
+    if (!confirmed) return
+
+    setDeleteLoading(true)
+    try {
+      const response = await fetch('/api/admin/orders', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: Array.from(selectedIds) })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error)
+      }
+
+      const data = await response.json()
+      alert(`${data.deletedCount}개의 주문이 삭제되었습니다.`)
+      setSelectedIds(new Set())
+      fetchOrders(pagination.page)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '주문 삭제에 실패했습니다')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  // 관리자 메모 편집 시작
+  const startEditMemo = (order: Order) => {
+    setEditingMemoId(order.id)
+    setMemoText(order.admin_memo || '')
+  }
+
+  // 관리자 메모 저장
+  const saveMemo = async (orderId: string) => {
+    setMemoSaving(true)
+    try {
+      const response = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, admin_memo: memoText })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error)
+      }
+
+      // 로컬 상태 업데이트
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === orderId
+            ? { ...order, admin_memo: memoText }
+            : order
+        )
+      )
+      setEditingMemoId(null)
+      setMemoSaved(orderId)
+      setTimeout(() => setMemoSaved(null), 2000)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '메모 저장에 실패했습니다')
+    } finally {
+      setMemoSaving(false)
     }
   }
 
@@ -403,6 +516,21 @@ export default function AdminOrdersPage() {
               )}
               입금완료 엑셀
             </button>
+
+            {selectedIds.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                disabled={deleteLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border-2 border-red-700 shadow-[3px_3px_0px_#b91c1c] hover:shadow-[1px_1px_0px_#b91c1c] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                선택 삭제 ({selectedIds.size})
+              </button>
+            )}
           </div>
 
           {/* 날짜 필터 */}
@@ -455,6 +583,14 @@ export default function AdminOrdersPage() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
+                    <th className="w-10 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={orders.length > 0 && selectedIds.size === orders.length}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+                      />
+                    </th>
                     <th className="w-10 px-4 py-3"></th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문번호</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문자</th>
@@ -469,9 +605,17 @@ export default function AdminOrdersPage() {
                   {orders.map((order) => (
                     <Fragment key={order.id}>
                       <tr
-                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        className={`hover:bg-slate-50 transition-colors cursor-pointer ${selectedIds.has(order.id) ? 'bg-yellow-50' : ''}`}
                         onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                       >
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(order.id)}
+                            onChange={(e) => handleSelectOne(order.id, e.target.checked)}
+                            className="w-4 h-4 rounded border-slate-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <ChevronRight
                             className={`w-5 h-5 text-slate-400 transition-transform ${
@@ -507,6 +651,9 @@ export default function AdminOrdersPage() {
                             )}
                             {(order.product_type === 'signature' || order.analysis?.product_type === 'signature') && (
                               <span className="px-1.5 py-0.5 text-[10px] font-medium bg-pink-100 text-pink-700 rounded">시그니처</span>
+                            )}
+                            {order.confirmed_recipe && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded">커스텀레시피</span>
                             )}
                           </div>
                         </td>
@@ -577,7 +724,7 @@ export default function AdminOrdersPage() {
                       {/* 확장된 상세 정보 */}
                       {expandedId === order.id && (
                         <tr>
-                          <td colSpan={8} className="px-4 py-4 bg-slate-50">
+                          <td colSpan={9} className="px-4 py-4 bg-slate-50">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">배송지:</span>
@@ -598,6 +745,92 @@ export default function AdminOrdersPage() {
                                 <span className="text-slate-500">수정일:</span>
                                 <p className="text-slate-900 mt-1">{formatDate(order.updated_at)}</p>
                               </div>
+                            </div>
+                            {/* 커스텀 조향 레시피 (제조용) */}
+                            {order.confirmed_recipe?.granules && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-base">🧪</span>
+                                  <span className="text-sm font-bold text-slate-900">커스텀 조향 레시피</span>
+                                  <span className="text-xs text-slate-400">({order.size} 기준)</span>
+                                </div>
+                                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                                  <table className="w-full text-sm">
+                                    <thead>
+                                      <tr className="bg-slate-100 text-slate-600">
+                                        <th className="px-3 py-2 text-left font-medium">향료 ID</th>
+                                        <th className="px-3 py-2 text-left font-medium">향료명</th>
+                                        <th className="px-3 py-2 text-center font-medium">비율</th>
+                                        <th className="px-3 py-2 text-center font-medium">방울 수</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {order.confirmed_recipe.granules.map((g: any, idx: number) => (
+                                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                          <td className="px-3 py-2 font-mono text-xs text-slate-500">{g.id}</td>
+                                          <td className="px-3 py-2 font-bold text-slate-900">{g.name}</td>
+                                          <td className="px-3 py-2 text-center font-bold text-amber-600">{g.ratio}%</td>
+                                          <td className="px-3 py-2 text-center font-bold text-slate-700">{g.drops || '-'}방울</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+                            {/* 관리자 메모 */}
+                            <div className="mt-4 pt-4 border-t border-slate-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <MessageSquare className="w-4 h-4 text-slate-500" />
+                                <span className="text-sm font-medium text-slate-700">관리자 메모</span>
+                                {memoSaved === order.id && (
+                                  <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                    <Check className="w-3 h-3" />
+                                    저장됨
+                                  </span>
+                                )}
+                              </div>
+                              {editingMemoId === order.id ? (
+                                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                  <textarea
+                                    value={memoText}
+                                    onChange={(e) => setMemoText(e.target.value)}
+                                    placeholder="주문에 대한 메모를 입력하세요..."
+                                    className="flex-1 px-3 py-2 text-sm border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-400 resize-none"
+                                    rows={2}
+                                    autoFocus
+                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <button
+                                      onClick={() => saveMemo(order.id)}
+                                      disabled={memoSaving}
+                                      className="px-3 py-1.5 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 hover:shadow-[2px_2px_0px_#1e293b] transition-all disabled:opacity-50"
+                                    >
+                                      {memoSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingMemoId(null)}
+                                      className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    startEditMemo(order)
+                                  }}
+                                  className="px-3 py-2 text-sm bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-yellow-400 transition-colors min-h-[40px] flex items-center"
+                                >
+                                  {order.admin_memo ? (
+                                    <span className="text-slate-900 whitespace-pre-wrap">{order.admin_memo}</span>
+                                  ) : (
+                                    <span className="text-slate-400 italic">클릭하여 메모 입력...</span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             {/* 결제 정보 및 환불 */}
                             {order.payment_id && (
@@ -788,6 +1021,28 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
+                {/* 커스텀 조향 레시피 */}
+                {selectedOrder.confirmed_recipe && selectedOrder.confirmed_recipe.granules && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                      <span className="text-lg">🧪</span>
+                      커스텀 조향 레시피
+                    </h4>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedOrder.confirmed_recipe.granules.map((g: any) => (
+                          <span
+                            key={g.id}
+                            className="text-xs px-2.5 py-1 bg-white border border-green-300 rounded-full text-green-800 font-medium"
+                          >
+                            {g.name} {g.ratio}%
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="border-t pt-4">
                   <h4 className="font-medium text-slate-900 mb-3">배송 정보</h4>
                   <div className="space-y-3">
@@ -811,6 +1066,56 @@ export default function AdminOrdersPage() {
                       <p className="text-slate-900">{selectedOrder.memo || '-'}</p>
                     </div>
                   </div>
+                </div>
+
+                {/* 관리자 메모 */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-slate-600" />
+                    관리자 메모
+                  </h4>
+                  {editingMemoId === selectedOrder.id ? (
+                    <div className="flex gap-2">
+                      <textarea
+                        value={memoText}
+                        onChange={(e) => setMemoText(e.target.value)}
+                        placeholder="주문에 대한 메모를 입력하세요..."
+                        className="flex-1 px-3 py-2 text-sm border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-400 resize-none"
+                        rows={3}
+                        autoFocus
+                      />
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => {
+                            saveMemo(selectedOrder.id)
+                            // 모달의 selectedOrder도 업데이트
+                            setSelectedOrder(prev => prev ? { ...prev, admin_memo: memoText } : null)
+                          }}
+                          disabled={memoSaving}
+                          className="px-3 py-2 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 hover:shadow-[2px_2px_0px_#1e293b] transition-all disabled:opacity-50"
+                        >
+                          {memoSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : '저장'}
+                        </button>
+                        <button
+                          onClick={() => setEditingMemoId(null)}
+                          className="px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => startEditMemo(selectedOrder)}
+                      className="px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:border-yellow-400 transition-colors min-h-[48px] flex items-center"
+                    >
+                      {selectedOrder.admin_memo ? (
+                        <span className="text-slate-900 whitespace-pre-wrap">{selectedOrder.admin_memo}</span>
+                      ) : (
+                        <span className="text-slate-400 italic">클릭하여 메모 입력...</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 모델링 이미지 (피규어 디퓨저) */}

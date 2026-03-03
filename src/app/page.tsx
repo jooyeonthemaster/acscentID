@@ -292,6 +292,29 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Product Card 2 - Custom Duck Case (New) */}
+              <Link href="/custom-duck" className="relative group cursor-pointer block">
+                <div className="relative bg-[#FFF7ED] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                  <div className="relative aspect-square overflow-hidden bg-yellow-100 flex items-center justify-center">
+                    <img src="/parts/main.png" alt="3D Custom Duck" className="w-full h-full object-cover" />
+
+                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-blue-500 text-white text-[8px] font-black rounded-full z-10">
+                      NEW
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 px-1">
+                  <h3 className="font-bold text-slate-900 text-sm truncate">
+                    나만의 오리 꾸미기
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    내 맘대로 조합하는 3D 오리
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-sm font-bold text-slate-900">₩10,000</span>
+                  </div>
+                </div>
+              </Link>
             </div>
 
             <div className="mt-12 text-center">

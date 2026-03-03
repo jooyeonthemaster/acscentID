@@ -1,5 +1,6 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import type { PaymentMethod } from "@/types/cart"
 
@@ -123,11 +124,17 @@ export function PaymentMethodSelector({
   selectedMethod,
   onMethodChange,
 }: PaymentMethodSelectorProps) {
+  const searchParams = useSearchParams()
+  const isPgReview = searchParams.get("pg_review") === "true"
+
+  // PG 심사 모드: 모든 결제수단 활성화
+  const disabledMethods = isPgReview ? new Set<PaymentMethod>() : DISABLED_METHODS
+
   return (
     <div className="space-y-3 max-w-sm">
       <div className="grid grid-cols-2 gap-3">
         {PAYMENT_OPTIONS.map((option) => {
-          const isDisabled = DISABLED_METHODS.has(option.method)
+          const isDisabled = disabledMethods.has(option.method)
           const isSelected = !isDisabled && selectedMethod === option.method
 
           return (
@@ -220,9 +227,11 @@ export function PaymentMethodSelector({
       </div>
 
       {/* 안내 문구 */}
-      <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-        카드 및 간편결제는 <span className="font-bold text-slate-500">3월 1일</span>부터 이용 가능합니다
-      </p>
+      {disabledMethods.size > 0 && (
+        <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+          카드 및 간편결제는 <span className="font-bold text-slate-500">곧</span> 이용 가능합니다
+        </p>
+      )}
     </div>
   )
 }

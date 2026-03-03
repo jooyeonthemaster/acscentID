@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   PerfumeFeedback,
   GeneratedRecipe,
@@ -62,6 +62,32 @@ function getOrCreateFingerprint(): string {
   return fp
 }
 
+/**
+ * localStorage에서 피드백 임시 저장 데이터 복원
+ * 24시간 이내의 데이터만 복원
+ */
+function loadFeedbackDraft(storageKey: string): { step: number; feedback: PerfumeFeedback } | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(storageKey)
+    if (!saved) return null
+    const parsed = JSON.parse(saved)
+    // 24시간 만료 체크
+    const isExpired = Date.now() - (parsed.savedAt || 0) > 24 * 60 * 60 * 1000
+    if (isExpired) {
+      localStorage.removeItem(storageKey)
+      return null
+    }
+    if (parsed.step && parsed.feedback) {
+      return { step: parsed.step, feedback: parsed.feedback }
+    }
+  } catch {
+    // 파싱 실패 시 삭제
+    try { localStorage.removeItem(storageKey) } catch {}
+  }
+  return null
+}
+
 export function useFeedbackForm({
   perfumeId,
   perfumeName,
@@ -70,16 +96,39 @@ export function useFeedbackForm({
   resultId,
   characterName,
 }: UseFeedbackFormProps): UseFeedbackFormReturn {
-  // 폼 상태
-  const [step, setStep] = useState(1)
+  // localStorage 키 (resultId 또는 perfumeId 기반)
+  const storageKey = `feedback_draft_${resultId || perfumeId}`
+
+  // 저장된 임시 데이터 복원 시도
+  const savedDraft = useRef(loadFeedbackDraft(storageKey))
+
+  // 폼 상태 (저장된 데이터가 있으면 복원)
+  const [step, setStep] = useState(() => savedDraft.current?.step || 1)
   const [feedback, setFeedback] = useState<PerfumeFeedback>(() =>
-    createInitialFeedback(perfumeId, perfumeName)
+    savedDraft.current?.feedback || createInitialFeedback(perfumeId, perfumeName)
   )
   const [userDirectRecipe, setUserDirectRecipe] = useState<GeneratedRecipe | null>(null)
   const [aiRecommendedRecipe, setAiRecommendedRecipe] = useState<GeneratedRecipe | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // step/feedback 변경 시 localStorage에 자동 저장
+  // step 4(성공)이면 저장 불필요
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (step >= 4) return // 완료 단계에서는 저장 불필요
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({
+        step,
+        feedback,
+        savedAt: Date.now(),
+      }))
+    } catch (e) {
+      console.warn('[FeedbackForm] localStorage 자동 저장 실패:', e)
+    }
+  }, [step, feedback, storageKey])
 
   /**
    * 사용자 직접 선택 레시피 생성 (클라이언트 사이드, AI 호출 X)
@@ -396,6 +445,9 @@ export function useFeedbackForm({
 
       // 성공 단계로 이동 (3단계 구조에서 성공은 step 4)
       setStep(4)
+
+      // 성공 시 임시 저장 데이터 삭제
+      try { localStorage.removeItem(storageKey) } catch {}
     } catch (err) {
       console.error('[Feedback] Submit error:', err)
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
@@ -412,7 +464,9 @@ export function useFeedbackForm({
     setUserDirectRecipe(null)
     setAiRecommendedRecipe(null)
     setError(null)
-  }, [perfumeId, perfumeName])
+    // 임시 저장 데이터 삭제
+    try { localStorage.removeItem(storageKey) } catch {}
+  }, [perfumeId, perfumeName, storageKey])
 
   return {
     step,

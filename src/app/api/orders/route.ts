@@ -120,6 +120,8 @@ export async function POST(request: NextRequest) {
       analysisId,   // 분석 ID (분석 결과 연결용)
       // 결제 방법
       paymentMethod,  // 'bank_transfer' | 'card' | 'kakao_pay' | 'naver_pay'
+      // 확정된 커스텀 레시피 (재주문 시)
+      confirmedRecipe,
     } = body
 
     // 다중 상품 모드 확인
@@ -369,6 +371,7 @@ export async function POST(request: NextRequest) {
         user_image_url: userImage,
         keywords: keywords || [],
         analysis_data: analysisData || null,
+        confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
         product_type: productType || 'image_analysis',  // 상품 타입
         payment_method: paymentMethod || 'bank_transfer',
         status: 'pending',

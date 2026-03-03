@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
 import { compressImage, base64ToBlob } from "@/lib/image/compressor"
@@ -53,6 +53,32 @@ export function useInputForm() {
     const isOffline = mode === "qr" || serviceMode === "offline" || (!isOnline && qrCode)
     const isFigureOnline = type === "figure" && isOnline
     const isGraduationOnline = isGraduation && isOnline
+
+    // QR 리다이렉트 무한 루프 방지
+    // QR 코드 스캔 → /qr/[code] (서버 리다이렉트) → /input 으로 오면
+    // 브라우저 뒤로가기 시 /qr/[code]로 돌아가서 다시 리다이렉트 되는 루프 발생
+    const currentStepRef = useRef(currentStep)
+    useEffect(() => {
+        currentStepRef.current = currentStep
+    }, [currentStep])
+
+    useEffect(() => {
+        if (!qrCode || typeof window === 'undefined') return
+
+        // 추가 히스토리 엔트리를 push하여 뒤로가기 시 QR 페이지 대신 이 엔트리가 pop됨
+        window.history.pushState({ qrGuard: true }, '', window.location.href)
+
+        const handlePopState = () => {
+            if (currentStepRef.current <= 1) {
+                // Step 1에서 뒤로가기 → 홈으로 이동 (QR 루프 차단)
+                window.location.replace('/')
+            }
+        }
+
+        window.addEventListener('popstate', handlePopState)
+        return () => window.removeEventListener('popstate', handlePopState)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [qrCode])
 
     // 히어로 섹션에서 업로드된 이미지 불러오기
     useEffect(() => {
@@ -362,9 +388,14 @@ export function useInputForm() {
     }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type])
 
     // 문 열린 후 결과 페이지로 이동
+    // QR/오프라인에서 온 경우 replace 사용 → 뒤로가기 시 input 페이지로 돌아가지 않음
     const navigateToResult = useCallback(() => {
-        router.push('/result')
-    }, [router])
+        if (qrCode || isOffline) {
+            router.replace('/result')
+        } else {
+            router.push('/result')
+        }
+    }, [router, qrCode, isOffline])
 
     return {
         // 상태

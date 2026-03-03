@@ -123,6 +123,18 @@ export function FeedbackModal({
     return () => clearInterval(interval)
   }, [isGenerating])
 
+  // 저장된 임시 데이터가 있으면 복원 알림 (모달 열릴 때)
+  const [showRestoredNotice, setShowRestoredNotice] = useState(false)
+  useEffect(() => {
+    if (isOpen && step > 1) {
+      // step이 1보다 크면 이전에 저장된 데이터가 복원된 것
+      setShowRestoredNotice(true)
+      const timer = setTimeout(() => setShowRestoredNotice(false), 4000)
+      return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
+
   // 바디 스크롤 잠금
   useEffect(() => {
     if (!isOpen) return
@@ -318,6 +330,28 @@ export function FeedbackModal({
 
             {/* 콘텐츠 */}
             <div className="flex-1 overflow-y-auto px-5 py-4">
+              {/* 이전 작업 복원 알림 */}
+              <AnimatePresence>
+                {showRestoredNotice && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between"
+                  >
+                    <p className="text-blue-600 text-sm">
+                      이전에 작성하던 내용을 이어서 진행합니다!
+                    </p>
+                    <button
+                      onClick={() => setShowRestoredNotice(false)}
+                      className="text-blue-400 hover:text-blue-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* 에러 메시지 */}
               <AnimatePresence>
                 {error && (
