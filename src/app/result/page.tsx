@@ -1,5 +1,12 @@
 import React, { Suspense } from 'react'
+import { Metadata } from 'next'
 import ResultPageMain from './components/ResultPageMain'
+
+export const metadata: Metadata = {
+  title: '분석 결과',
+  description: 'AI 이미지 분석으로 찾은 나만의 맞춤 퍼퓸 결과를 확인하세요.',
+  robots: { index: false, follow: false },
+}
 
 // 로딩 컴포넌트
 function ResultLoading() {
@@ -29,6 +36,3 @@ export default function ResultPage() {
     </Suspense>
   )
 }
-
-
-
