@@ -1,4 +1,6 @@
 import { formatPerfumesForPrompt } from './perfume-formatter';
+import { wrapPromptWithLocale } from './locale-prompt-wrapper';
+import type { Locale } from '@/i18n/config';
 
 export interface FormDataInput {
   name: string;
@@ -21,8 +23,8 @@ export interface FigureDataInput {
   figureRequest: string;
 }
 
-export function buildGeminiPrompt(formData: FormDataInput): string {
-  const perfumeDatabase = formatPerfumesForPrompt();
+export function buildGeminiPrompt(formData: FormDataInput, locale: Locale = 'ko'): string {
+  const perfumeDatabase = formatPerfumesForPrompt(locale);
 
   const genderLabels: Record<string, string> = {
     Male: '남성',
@@ -30,7 +32,7 @@ export function buildGeminiPrompt(formData: FormDataInput): string {
     Other: '기타'
   };
 
-  return `
+  const prompt = `
 # 역할 정의
 당신은 열정적인 캐릭터 향수 분석가입니다!
 **중요: 이 분석은 사용자가 좋아하는 캐릭터에 대한 분석입니다!**
@@ -294,13 +296,15 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - reflectionDetails 필드에서 섹션 구분을 위한 개행은 반드시 \\n\\n 으로 표기
 - **matchingKeywords는 반드시 긍정적인 키워드만 사용!** 부정적인 키워드(무기력, 피곤, 우울, 지친, 슬픈, 외로운, 불안한 등) 절대 금지!
 `.trim();
+
+  return wrapPromptWithLocale(prompt, locale);
 }
 
 // ===== 피규어 디퓨저 전용 프롬프트 =====
-export function buildFigureGeminiPrompt(formData: FormDataInput, figureData: FigureDataInput): string {
-  const perfumeDatabase = formatPerfumesForPrompt();
+export function buildFigureGeminiPrompt(formData: FormDataInput, figureData: FigureDataInput, locale: Locale = 'ko'): string {
+  const perfumeDatabase = formatPerfumesForPrompt(locale);
 
-  return `
+  const prompt = `
 # 역할 정의
 당신은 **피규어 디퓨저 전문 AI 도우미**입니다!
 사용자가 좋아하는 캐릭터와의 소중한 기억을 향기와 피규어로 영원히 간직할 수 있도록 도와드립니다.
@@ -513,6 +517,8 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프
 - **matchingKeywords는 반드시 긍정적인 키워드만 사용!** 부정적인 키워드(무기력, 피곤, 우울, 지친, 슬픈, 외로운, 불안한 등) 절대 금지!
 `.trim();
+
+  return wrapPromptWithLocale(prompt, locale);
 }
 
 // ===== 졸업 향 추천 프로그램 (JOLLDUCK) 전용 프롬프트 =====
@@ -532,8 +538,8 @@ export interface GraduationFormInput {
   futureWish: string;
 }
 
-export function buildGraduationGeminiPrompt(formData: GraduationFormInput): string {
-  const perfumeDatabase = formatPerfumesForPrompt();
+export function buildGraduationGeminiPrompt(formData: GraduationFormInput, locale: Locale = 'ko'): string {
+  const perfumeDatabase = formatPerfumesForPrompt(locale);
 
   // 영어 key → 한국어 label 매핑
   const graduationTypeLabels: Record<string, string> = {
@@ -621,7 +627,7 @@ export function buildGraduationGeminiPrompt(formData: GraduationFormInput): stri
   const toKorean = (keys: string[], labels: Record<string, string>) =>
     keys.map(k => labels[k] || k).join(', ');
 
-  return `
+  const prompt = `
 # 역할 정의
 당신은 **졸업을 축하하는 향수 큐레이터**입니다! 🎓✨
 졸업하는 분의 학창 시절의 추억, 현재의 성장, 미래의 꿈을 담아 특별한 "졸업 기념 퍼퓸"를 추천합니다.
@@ -819,4 +825,6 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - **JSON 형식 필수**: 모든 문자열 내 개행은 \\n으로 이스케이프
 - **matchingKeywords는 반드시 긍정적인 키워드만 사용!** 부정적인 키워드(무기력, 피곤, 우울, 지친, 슬픈, 외로운, 불안한 등) 절대 금지!
 `.trim();
+
+  return wrapPromptWithLocale(prompt, locale);
 }

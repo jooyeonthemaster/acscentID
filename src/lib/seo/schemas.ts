@@ -1,7 +1,32 @@
 import { getBaseUrl } from './metadata'
+import type { Locale } from '@/i18n/config'
+
+const DESCRIPTIONS: Record<string, string> = {
+  ko: 'AI 이미지 분석 기반 맞춤 퍼퓸 추천 서비스',
+  en: 'AI image analysis-based custom perfume recommendation service',
+  ja: 'AI画像分析ベースのカスタムパフューム推薦サービス',
+  zh: '基于AI图像分析的定制香水推荐服务',
+  es: 'Servicio de recomendación de perfume personalizado basado en análisis de imagen IA',
+}
+
+const LANG_CODES: Record<string, string> = {
+  ko: 'ko',
+  en: 'en',
+  ja: 'ja',
+  zh: 'zh',
+  es: 'es',
+}
+
+const HOME_LABELS: Record<string, string> = {
+  ko: '홈',
+  en: 'Home',
+  ja: 'ホーム',
+  zh: '首页',
+  es: 'Inicio',
+}
 
 // --- Organization ---
-export function organizationSchema() {
+export function organizationSchema(locale: Locale = 'ko') {
   const baseUrl = getBaseUrl()
   return {
     '@context': 'https://schema.org',
@@ -10,14 +35,14 @@ export function organizationSchema() {
     legalName: '주식회사 네안더',
     url: baseUrl,
     logo: `${baseUrl}/icon.png`,
-    description: 'AI 이미지 분석 기반 맞춤 퍼퓸 추천 서비스',
+    description: DESCRIPTIONS[locale] || DESCRIPTIONS.ko,
     foundingDate: '2023',
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+82-2-336-3368',
       email: 'neander@neander.co.kr',
       contactType: 'customer service',
-      availableLanguage: 'Korean',
+      availableLanguage: ['Korean', 'English', 'Japanese', 'Chinese', 'Spanish'],
     },
     sameAs: [
       'https://www.instagram.com/acscent_id/',
@@ -58,20 +83,20 @@ export function localBusinessSchema() {
 }
 
 // --- WebSite ---
-export function webSiteSchema() {
+export function webSiteSchema(locale: Locale = 'ko') {
   const baseUrl = getBaseUrl()
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: "AC'SCENT IDENTITY",
     url: baseUrl,
-    description: 'AI 이미지 분석 기반 맞춤 퍼퓸 추천 서비스',
-    inLanguage: 'ko',
+    description: DESCRIPTIONS[locale] || DESCRIPTIONS.ko,
+    inLanguage: LANG_CODES[locale] || 'ko',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${baseUrl}/faq?q={search_term_string}`,
+        urlTemplate: `${baseUrl}/${locale}/faq?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },
@@ -163,13 +188,13 @@ interface BreadcrumbItem {
   path: string
 }
 
-export function breadcrumbSchema(items: BreadcrumbItem[]) {
+export function breadcrumbSchema(items: BreadcrumbItem[], locale: Locale = 'ko') {
   const baseUrl = getBaseUrl()
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: '홈', item: baseUrl },
+      { '@type': 'ListItem', position: 1, name: HOME_LABELS[locale] || '홈', item: `${baseUrl}/${locale}` },
       ...items.map((item, index) => ({
         '@type': 'ListItem',
         position: index + 2,

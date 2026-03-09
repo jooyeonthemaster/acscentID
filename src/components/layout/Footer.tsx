@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Instagram, Twitter } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function Footer() {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
+  const t = useTranslations()
 
   // 관리자 페이지에서는 숨김
   if (pathname?.startsWith('/admin')) return null
@@ -27,14 +29,14 @@ export function Footer() {
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
-              나만의 향기를 찾는 가장 즐거운 서비스
+              {t('footer.tagline')}
             </p>
           </div>
 
           {/* Programs Links */}
           <div>
             <h3 className="text-xs font-black tracking-wider uppercase text-yellow-400 mb-3">
-              프로그램
+              {t('footer.programs')}
             </h3>
             <ul className="space-y-1.5">
               <li>
@@ -42,7 +44,7 @@ export function Footer() {
                   href="/programs/idol-image"
                   className="text-xs text-slate-300 hover:text-white inline-block transition-all"
                 >
-                  AI 이미지 분석
+                  {t('footer.aiImageAnalysis')}
                 </Link>
               </li>
               <li>
@@ -50,7 +52,7 @@ export function Footer() {
                   href="/programs/figure"
                   className="text-xs text-slate-300 hover:text-white inline-block transition-all"
                 >
-                  피규어 디퓨저
+                  {t('footer.figureDiffuser')}
                 </Link>
               </li>
             </ul>
@@ -59,7 +61,7 @@ export function Footer() {
           {/* Support Links */}
           <div>
             <h3 className="text-xs font-black tracking-wider uppercase text-yellow-400 mb-3">
-              고객지원
+              {t('footer.support')}
             </h3>
             <ul className="space-y-1.5">
               <li>
@@ -75,7 +77,7 @@ export function Footer() {
                   href="/privacy"
                   className="text-xs text-slate-300 hover:text-white inline-block transition-all"
                 >
-                  개인정보처리방침
+                  {t('footer.privacy')}
                 </Link>
               </li>
             </ul>
@@ -87,23 +89,23 @@ export function Footer() {
           <p className="text-[10px] text-slate-400 leading-relaxed">
             <span className="font-bold text-slate-300">NEANDER Co.,LTD</span>
             <br />
-            대표 유재영, 이동주 | 사업자등록번호 683-86-02812
+            {t('footer.companyInfo')}
             <br />
-            통신판매신고번호 2023-서울서대문-1558
+            {t('footer.salesRegistration')}
             <br />
-            서울 마포구 와우산로29라길 22
+            {t('footer.companyAddress')}
             <br />
-            Tel. 02-336-3368 | Mail. neander@neander.co.kr
+            {t('footer.companyContact')}
           </p>
           <div className="flex gap-3 mt-2">
             <Link href="/terms" className="text-[10px] text-slate-400 hover:text-white transition-colors">
-              이용약관
+              {t('footer.terms')}
             </Link>
             <Link href="/privacy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
-              개인정보처리방침
+              {t('footer.privacy')}
             </Link>
             <Link href="/refund-policy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
-              취소/환불/교환
+              {t('footer.cancelRefundExchange')}
             </Link>
           </div>
         </div>

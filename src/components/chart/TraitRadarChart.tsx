@@ -2,7 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { TraitScores, TRAIT_LABELS, TRAIT_ICONS } from '@/types/analysis'
+import { useTranslations } from 'next-intl'
+import { TraitScores, TRAIT_ICONS } from '@/types/analysis'
 
 interface TraitRadarChartProps {
   traits: TraitScores
@@ -155,6 +156,7 @@ const AI_MESSAGES: Record<string, string[]> = {
 }
 
 export default function TraitRadarChart({ traits, showAnimation = true }: TraitRadarChartProps) {
+  const tLabels = useTranslations('labels')
   const centerX = 140
   const centerY = 140
   const radius = 100
@@ -162,7 +164,7 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
 
   const characteristics = Object.entries(traits).map(([key, value]) => ({
     key: key as keyof TraitScores,
-    label: TRAIT_LABELS[key as keyof TraitScores],
+    label: tLabels(`traits.${key}`),
     value,
     icon: TRAIT_ICONS[key as keyof TraitScores]
   }))

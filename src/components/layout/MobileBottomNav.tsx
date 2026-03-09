@@ -10,12 +10,13 @@ import { useTransition } from '@/contexts/TransitionContext'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 // Programs 드롭업 메뉴 항목
 const PROGRAM_LINKS = [
-  { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-  { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
+  { href: '/programs/idol-image', labelKey: 'programs.subtitle.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { href: '/programs/figure', labelKey: 'programs.subtitle.figure' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { href: '/programs/graduation', labelKey: 'programs.subtitle.graduation' as const, descKey: 'programs.subtitle.graduation' as const, image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
 ]
 
 // NavItem 컴포넌트
@@ -56,12 +57,12 @@ function NavItem({
 
 // ProgramsSheet 컴포넌트 - 하단 시트 모달
 function ProgramsSheet({
-  links,
   onClose
 }: {
-  links: typeof PROGRAM_LINKS
   onClose: () => void
 }) {
+  const t = useTranslations()
+
   return (
     <>
       {/* 백드롭 */}
@@ -90,8 +91,8 @@ function ProgramsSheet({
         <div className="px-6 pb-4 border-b-2 border-slate-100">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-black text-slate-900">프로그램 선택</h3>
-              <p className="text-xs text-slate-500 mt-0.5">원하는 프로그램을 선택해주세요</p>
+              <h3 className="text-lg font-black text-slate-900">{t('nav.programSelect')}</h3>
+              <p className="text-xs text-slate-500 mt-0.5">{t('nav.programSelectDesc')}</p>
             </div>
             <button
               onClick={onClose}
@@ -104,7 +105,7 @@ function ProgramsSheet({
 
         {/* 프로그램 목록 */}
         <div className="p-4 pb-8 space-y-3">
-          {links.map((link) => (
+          {PROGRAM_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -123,11 +124,11 @@ function ProgramsSheet({
                     ? "shadow-[3px_3px_0px_0px_rgba(239,68,68,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(220,38,38,1)]"
                     : "shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)]"
                 )}>
-                  <img src={link.image} alt={link.label} className="w-full h-full object-cover" />
+                  <img src={link.image} alt={t(link.labelKey)} className="w-full h-full object-cover" />
                 </div>
                 {link.limitedUntil && (
                   <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-white animate-pulse">
-                    한정
+                    {t('nav.limited')}
                   </span>
                 )}
               </div>
@@ -138,7 +139,7 @@ function ProgramsSheet({
                     link.limitedUntil
                       ? "text-red-700 group-hover:text-red-800"
                       : "text-slate-900 group-hover:text-purple-700"
-                  )}>{link.label}</h4>
+                  )}>{t(link.labelKey)}</h4>
                   {link.limitedUntil && (
                     <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
                       ~{link.limitedUntil}
@@ -146,9 +147,7 @@ function ProgramsSheet({
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 whitespace-pre-line">
-                  {link.href === '/programs/idol-image' ? '좋아하는 이미지로 추출하는\n나만의 퍼퓸' :
-                   link.href === '/programs/figure' ? '좋아하는 이미지로 제작되는\n나만의 피규어 디퓨저' :
-                   '졸업의 추억을 향기로\n특별한 졸업 기념 퍼퓸'}
+                  {t(link.descKey)}
                 </p>
               </div>
               <div className={cn(
@@ -176,29 +175,24 @@ export function MobileBottomNav() {
   const { user, unifiedUser, loading, signOut } = useAuth()
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
+  const t = useTranslations()
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
 
-  // hooks는 조건부 return 이전에 호출되어야 함
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
 
-  // 관리자 페이지에서는 숨김
   const isAdminPage = pathname?.startsWith('/admin')
 
-  // 프로그램 상세 페이지인지 확인
   const isIdolImagePage = pathname === '/programs/idol-image'
   const isFigurePage = pathname === '/programs/figure'
   const isGraduationPage = pathname === '/programs/graduation'
   const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage
 
-  // 스크롤 방향 감지 - 아래로 스크롤하면 숨기고, 위로 스크롤하면 보이기
-  // (모든 hooks는 조건부 return 이전에 호출되어야 함)
   useEffect(() => {
-    // 관리자 페이지면 스크롤 리스너 등록 안함
     if (isAdminPage) return
 
     const handleScroll = () => {
@@ -207,19 +201,15 @@ export function MobileBottomNav() {
           const currentScrollY = window.scrollY
           const scrollDelta = currentScrollY - lastScrollY.current
 
-          // 스크롤 임계값 (10px 이상 움직여야 반응)
           if (Math.abs(scrollDelta) > 10) {
             if (scrollDelta > 0 && currentScrollY > 100) {
-              // 아래로 스크롤 - 숨기기 (페이지 상단 100px 이후부터)
               setIsVisible(false)
             } else if (scrollDelta < 0) {
-              // 위로 스크롤 - 보이기
               setIsVisible(true)
             }
             lastScrollY.current = currentScrollY
           }
 
-          // 페이지 최상단에서는 항상 보이기
           if (currentScrollY < 50) {
             setIsVisible(true)
           }
@@ -234,20 +224,16 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isAdminPage])
 
-  // 관리자 페이지면 렌더링하지 않음
   if (isAdminPage) return null
 
-  // 현재 경로에 따른 활성 탭 판별
   const isHomeActive = pathname === '/'
   const isProgramsActive = pathname?.startsWith('/programs') || false
   const isMyPageActive = pathname === '/mypage' || pathname?.startsWith('/mypage') || false
 
-  // 로그인 모달 열기 핸들러
   const handleLoginClick = () => {
     setShowAuthModal(true)
   }
 
-  // 프로그램 CTA 클릭 핸들러
   const handleProgramCTAClick = () => {
     if (loading) return
 
@@ -272,17 +258,9 @@ export function MobileBottomNav() {
     }
   }
 
-  // 프로그램별 CTA 텍스트
-  const getProgramCTAText = () => {
-    if (isIdolImagePage) return '지금 바로 분석하기'
-    if (isFigurePage) return '지금 바로 분석하기'
-    if (isGraduationPage) return '지금 바로 분석하기'
-    return '시작하기'
-  }
-
   return (
     <>
-      {/* 프로그램 상세 페이지: CTA 버튼 (항상 표시) */}
+      {/* 프로그램 상세 페이지: CTA 버튼 */}
       {isProgramDetailPage && (
         <div
           className={cn(
@@ -296,7 +274,7 @@ export function MobileBottomNav() {
             disabled={loading}
             className="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {getProgramCTAText()}
+            {t('buttons.analyzeNow')}
           </button>
         </div>
       )}
@@ -310,7 +288,6 @@ export function MobileBottomNav() {
         )}
       >
         <div className="flex items-center justify-around h-16 px-2 relative">
-          {/* Home */}
           <NavItem
             href="/"
             icon={Home}
@@ -318,7 +295,6 @@ export function MobileBottomNav() {
             isActive={isHomeActive}
           />
 
-          {/* Programs (드롭업) */}
           <button
             onClick={() => setShowProgramsMenu(!showProgramsMenu)}
             className={cn(
@@ -344,7 +320,6 @@ export function MobileBottomNav() {
             )}>Programs</span>
           </button>
 
-          {/* My - 로그인 상태면 Link, 아니면 button */}
           {currentUser ? (
             <Link
               href="/mypage"
@@ -374,11 +349,10 @@ export function MobileBottomNav() {
               <div className="p-1.5 rounded-xl transition-all">
                 <User size={20} strokeWidth={2} />
               </div>
-              <span className="text-[10px] tracking-wide font-bold">Login</span>
+              <span className="text-[10px] tracking-wide font-bold">{t('nav.login')}</span>
             </button>
           )}
 
-          {/* Menu */}
           <button
             onClick={() => setIsMenuOpen(true)}
             className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-slate-600 hover:text-slate-900 transition-all"
@@ -386,14 +360,12 @@ export function MobileBottomNav() {
             <div className="p-1.5 rounded-xl">
               <Menu size={20} strokeWidth={2} />
             </div>
-            <span className="text-[10px] font-bold tracking-wide">Menu</span>
+            <span className="text-[10px] font-bold tracking-wide">{t('nav.menu')}</span>
           </button>
 
-          {/* Programs 하단 시트 메뉴 */}
           <AnimatePresence>
             {showProgramsMenu && (
               <ProgramsSheet
-                links={PROGRAM_LINKS}
                 onClose={() => setShowProgramsMenu(false)}
               />
             )}
@@ -401,7 +373,6 @@ export function MobileBottomNav() {
         </div>
       </nav>
 
-      {/* Mobile Menu Sheet */}
       <MobileMenuSheet
         isOpen={isMenuOpen}
         onOpenChange={setIsMenuOpen}
@@ -412,7 +383,6 @@ export function MobileBottomNav() {
         onLoginClick={handleLoginClick}
       />
 
-      {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}

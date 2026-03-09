@@ -8,6 +8,7 @@ import Image from "next/image"
 import { StickerCartridge, StickerStar } from "./Stickers"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { apiFetch } from "@/lib/api-client"
 import { compressImage } from "@/lib/image/compressor"
 import { HeroAnalysisModal, type HeroAnalysisData } from "./HeroAnalysisModal"
 
@@ -176,7 +177,7 @@ function ExperienceSlide({ goToSlide }: { goToSlide: (index: number) => void }) 
             // Gemini Flash로 간단 분석 요청
             setIsAnalyzing(true)
             try {
-                const response = await fetch('/api/hero-analyze', {
+                const response = await apiFetch('/api/hero-analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ imageBase64: base64 })

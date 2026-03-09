@@ -8,6 +8,7 @@ import {
   validateRecipe,
 } from '@/lib/gemini/feedback-prompt'
 import { PerfumeFeedback, GeneratedRecipe, RecipeGranule } from '@/types/feedback'
+import { getApiLocale } from '@/lib/api-locale'
 import { perfumes, getPerfumeById } from '@/data/perfumes'
 
 const MAX_RETRIES = 1
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
   console.log(`[${requestId}] Recipe generation request received`)
 
   try {
+    const locale = getApiLocale(request)
     const body = (await request.json()) as RecipeRequest
     const { feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules } = body
 
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 + 1안 향료 정보 포함)
-    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules)
+    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules, locale)
     console.log(`[${requestId}] Prompt built, calling Gemini API...`)
 
     let recipe: GeneratedRecipe | null = null

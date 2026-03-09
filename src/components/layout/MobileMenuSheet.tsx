@@ -14,19 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { useState } from 'react'
-
-// Navigation Links
-export const NAV_LINKS = {
-  about: [
-    { href: '/about/brand', label: '브랜드 스토리' },
-    { href: '/about/how-it-works', label: '작동 원리' },
-  ],
-  programs: [
-    { href: '/programs/idol-image', label: 'AI 이미지 분석 퍼퓸', image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-    { href: '/programs/figure', label: '피규어 화분 디퓨저', image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-    { href: '/programs/graduation', label: '졸업 기념 퍼퓸', image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
-  ],
-}
+import { useTranslations } from 'next-intl'
 
 // Unified User Type
 interface UnifiedUser {
@@ -132,6 +120,7 @@ export function MobileMenuSheet({
 }: MobileMenuSheetProps) {
   const pathname = usePathname()
   const currentUser = unifiedUser || user
+  const t = useTranslations()
 
   const isProgramsActive = pathname?.startsWith('/programs') || false
 
@@ -142,12 +131,19 @@ export function MobileMenuSheet({
     handleClose()
   }
 
+  // Navigation Links with translated labels
+  const programLinks = [
+    { href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+    { href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+    { href: '/programs/graduation', label: t('programs.subtitle.graduation'), image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
+  ]
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[300px] border-l-2 border-black bg-white p-0">
         <SheetHeader className="p-6 border-b-2 border-slate-100 bg-yellow-50">
           <SheetTitle className="text-left text-xs font-black tracking-widest text-slate-900 uppercase flex items-center gap-2">
-            Menu
+            {t('nav.menu')}
           </SheetTitle>
         </SheetHeader>
 
@@ -170,10 +166,10 @@ export function MobileMenuSheet({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-slate-900 truncate">
-                      {unifiedUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || '사용자'}
+                      {unifiedUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || t('auth.defaultUser')}
                     </p>
                     <p className="text-xs text-slate-500 truncate mt-0.5">
-                      {unifiedUser?.email || user?.email || '카카오 로그인'}
+                      {unifiedUser?.email || user?.email || t('auth.kakaoLoginFallback')}
                     </p>
                   </div>
                 </div>
@@ -190,7 +186,7 @@ export function MobileMenuSheet({
                 </Link>
                 <MobileSection
                   title="Programs"
-                  links={NAV_LINKS.programs}
+                  links={programLinks}
                   isActive={isProgramsActive}
                   onLinkClick={handleClose}
                 />
@@ -199,7 +195,7 @@ export function MobileMenuSheet({
                   onClick={handleClose}
                   className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                  My Page
+                  {t('nav.myPage')}
                 </Link>
                 <Link
                   href="/faq"
@@ -224,7 +220,7 @@ export function MobileMenuSheet({
                     rel="noopener noreferrer"
                   >
                     <MapPin size={18} />
-                    <span>현장방문 예약</span>
+                    <span>{t('nav.visitReservation')}</span>
                   </a>
                 </Button>
                 <Button
@@ -233,7 +229,7 @@ export function MobileMenuSheet({
                   className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-xl hover:bg-red-50 hover:text-red-600 text-slate-500 transition-all font-medium"
                 >
                   <LogOut size={18} />
-                  <span>로그아웃</span>
+                  <span>{t('nav.logout')}</span>
                 </Button>
               </div>
             </div>
@@ -250,7 +246,7 @@ export function MobileMenuSheet({
                 </Link>
                 <MobileSection
                   title="Programs"
-                  links={NAV_LINKS.programs}
+                  links={programLinks}
                   isActive={isProgramsActive}
                   onLinkClick={handleClose}
                 />
@@ -264,7 +260,6 @@ export function MobileMenuSheet({
                 </Link>
               </nav>
 
-              {/* 현장방문 예약 */}
               <div className="p-4 border-t border-slate-100">
                 <Button
                   variant="ghost"
@@ -277,16 +272,16 @@ export function MobileMenuSheet({
                     rel="noopener noreferrer"
                   >
                     <MapPin size={18} />
-                    <span>현장방문 예약</span>
+                    <span>{t('nav.visitReservation')}</span>
                   </a>
                 </Button>
               </div>
 
               {/* Login CTA */}
               <div className="p-6 border-t border-slate-100 bg-slate-50">
-                <h3 className="text-2xl font-black text-slate-900 mb-2">WELCOME!</h3>
-                <p className="text-sm text-slate-500 mb-6">
-                  로그인하고 나만의 향기를<br />기록해보세요.
+                <h3 className="text-2xl font-black text-slate-900 mb-2">{t('auth.welcomeTitle')}</h3>
+                <p className="text-sm text-slate-500 mb-6 whitespace-pre-line">
+                  {t('auth.welcomeDesc')}
                 </p>
                 <Button
                   onClick={() => {
@@ -295,7 +290,7 @@ export function MobileMenuSheet({
                   }}
                   className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all active:bg-slate-800"
                 >
-                  LOGIN
+                  {t('auth.loginButton')}
                 </Button>
               </div>
             </div>

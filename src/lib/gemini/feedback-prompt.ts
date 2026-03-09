@@ -5,6 +5,8 @@
 
 import { PerfumeFeedback, CategoryPreferences, SpecificScent } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
+import { wrapPromptWithLocale } from './locale-prompt-wrapper'
+import type { Locale } from '@/i18n/config'
 
 interface OriginalPerfumeInfo {
   id: string
@@ -97,7 +99,8 @@ export function buildRecipePrompt(
   originalPerfume: OriginalPerfumeInfo,
   characterName?: string, // 분석된 캐릭터 이름
   naturalLanguageFeedback?: string, // 자연어 피드백 (Step 3)
-  userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[] // 1안 향료 정보
+  userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[], // 1안 향료 정보
+  locale: Locale = 'ko'
 ): string {
   const perfumeDb = formatPerfumeDatabase()
   const categoryChanges = formatCategoryChanges(feedback.categoryPreferences)
@@ -116,7 +119,7 @@ export function buildRecipePrompt(
   const charName = characterName || '좋아하는 캐릭터'
   const hasCharacter = !!characterName
 
-  return `
+  const prompt = `
 # 역할 정의
 
 당신은 세상에서 가장 열정적인 조향사 AI입니다! 🫠💀✨
@@ -322,6 +325,8 @@ newScore는 새 레시피에 맞게 계산해서 변화를 보여주세요!
 
 JSON만 반환하세요.
 `.trim()
+
+  return wrapPromptWithLocale(prompt, locale)
 }
 
 /**

@@ -1,11 +1,16 @@
 import { ImageAnalysisResult } from '@/types/analysis';
 import { getPerfumeById } from './perfume-formatter';
+import { getLocalizedPerfumeText } from '@/data/perfumes-i18n';
+import type { Locale } from '@/i18n/config';
 
-// Gemini 응답 파싱
-export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
+// Gemini 응답 파싱 (locale 기반 향수 데이터 반환)
+export function parseGeminiResponse(responseText: string, locale: Locale = 'ko'): ImageAnalysisResult {
   try {
-    // JSON 파싱
-    const parsed = JSON.parse(responseText);
+    // JSON 파싱 (배열로 감싸서 오는 경우 첫 번째 요소 사용)
+    let parsed = JSON.parse(responseText);
+    if (Array.isArray(parsed)) {
+      parsed = parsed[0];
+    }
 
     // 검증
     validateTraits(parsed.traits);
@@ -21,6 +26,9 @@ export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
     if (!perfumeData) {
       throw new Error(`Perfume not found: ${perfumeId}`);
     }
+
+    // locale별 번역 데이터 (ko가 아닌 경우)
+    const localized = getLocalizedPerfumeText(perfumeId, locale);
 
     // AI가 생성한 노트별 주접 코멘트 가져오기
     const noteComments = parsed.matchingPerfumes[0]?.noteComments || {};
@@ -40,30 +48,30 @@ export function parseGeminiResponse(responseText: string): ImageAnalysisResult {
           matchReason: parsed.matchingPerfumes[0].matchReason,
           persona: {
             id: perfumeData.id,
-            name: perfumeData.name,
-            description: perfumeData.description,
+            name: localized?.name || perfumeData.name,
+            description: localized?.description || perfumeData.description,
             traits: perfumeData.traits,
             categories: perfumeData.characteristics,
-            keywords: perfumeData.keywords,
+            keywords: localized?.keywords || perfumeData.keywords,
             primaryColor: perfumeData.primaryColor,
             secondaryColor: perfumeData.secondaryColor,
-            // 노트에 AI 생성 주접 코멘트 추가
+            // 노트에 AI 생성 주접 코멘트 추가 (번역된 향료명 사용)
             mainScent: {
-              ...perfumeData.mainScent,
+              name: localized?.mainScent || perfumeData.mainScent.name,
               fanComment: noteComments.top || undefined,
             },
             subScent1: {
-              ...perfumeData.subScent1,
+              name: localized?.subScent1 || perfumeData.subScent1.name,
               fanComment: noteComments.middle || undefined,
             },
             subScent2: {
-              ...perfumeData.subScent2,
+              name: localized?.subScent2 || perfumeData.subScent2.name,
               fanComment: noteComments.base || undefined,
             },
             // AI 생성 사용 추천 (기존 recommendation 대체)
-            recommendation: usageGuide.situation || perfumeData.recommendation,
-            mood: perfumeData.mood,
-            personality: perfumeData.personality,
+            recommendation: usageGuide.situation || localized?.recommendation || perfumeData.recommendation,
+            mood: localized?.mood || perfumeData.mood,
+            personality: localized?.personality || perfumeData.personality,
             // AI 생성 사용 가이드
             usageGuide: usageGuide.tips ? {
               situation: usageGuide.situation || '',

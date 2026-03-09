@@ -5,6 +5,7 @@ import { parseGeminiResponse } from '@/lib/gemini/response-parser';
 import { AnalyzeRequest, AnalyzeResponse } from '@/types/gemini';
 import { ImageAnalysisResult } from '@/types/analysis';
 import { perfumes } from '@/data/perfumes';
+import { getApiLocale } from '@/lib/api-locale';
 
 // Mock 데이터 생성 함수 (fallback용)
 function generateMockResult(): ImageAnalysisResult {
@@ -102,6 +103,9 @@ export async function POST(request: NextRequest) {
   console.log('='.repeat(80));
 
   try {
+    // 0. 언어 감지
+    const locale = getApiLocale(request);
+
     // 1. 요청 파싱
     const body: AnalyzeRequest & {
       programType?: string;
@@ -174,17 +178,17 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
-    // 3. 프롬프트 생성 (모드별 분기)
+    // 3. 프롬프트 생성 (모드별 분기 + 언어)
     let prompt: string;
     if (isGraduationMode && graduationData) {
-      prompt = buildGraduationGeminiPrompt(graduationData);
-      console.log(`[${requestId}] ✅ 졸업 전용 프롬프트 생성 완료 (${prompt.length} 문자)`);
+      prompt = buildGraduationGeminiPrompt(graduationData, locale);
+      console.log(`[${requestId}] ✅ 졸업 전용 프롬프트 생성 완료 (${prompt.length} 문자, locale: ${locale})`);
     } else if (isFigureMode && figureData) {
-      prompt = buildFigureGeminiPrompt(formData, figureData);
-      console.log(`[${requestId}] ✅ 피규어 전용 프롬프트 생성 완료 (${prompt.length} 문자)`);
+      prompt = buildFigureGeminiPrompt(formData, figureData, locale);
+      console.log(`[${requestId}] ✅ 피규어 전용 프롬프트 생성 완료 (${prompt.length} 문자, locale: ${locale})`);
     } else {
-      prompt = buildGeminiPrompt(formData);
-      console.log(`[${requestId}] ✅ 일반 프롬프트 생성 완료 (${prompt.length} 문자)`);
+      prompt = buildGeminiPrompt(formData, locale);
+      console.log(`[${requestId}] ✅ 일반 프롬프트 생성 완료 (${prompt.length} 문자, locale: ${locale})`);
     }
 
     // 4. Gemini 모델 가져오기
@@ -268,7 +272,7 @@ export async function POST(request: NextRequest) {
 
     // 8. 응답 파싱 및 검증
     console.log(`[${requestId}] 🔄 응답 파싱 중...`);
-    const parsedData = parseGeminiResponse(responseText);
+    const parsedData = parseGeminiResponse(responseText, locale);
     console.log(`[${requestId}] ✅ 응답 파싱 완료`);
 
     // 파싱 결과 요약 로깅

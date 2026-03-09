@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getModel, withTimeout } from '@/lib/gemini/client'
+import { getApiLocale } from '@/lib/api-locale'
+import { getHeroAnalyzeLocaleInstruction } from '@/lib/gemini/locale-prompt-wrapper'
 
 const HERO_ANALYZE_PROMPT = `당신은 이미지를 분석하여 향수 레시피를 추천하는 전문가입니다.
 사용자가 업로드한 이미지를 분석하고, 아래 형식의 JSON을 반환하세요.
@@ -45,6 +47,7 @@ const HERO_ANALYZE_PROMPT = `당신은 이미지를 분석하여 향수 레시�
 
 export async function POST(request: NextRequest) {
     try {
+        const locale = getApiLocale(request)
         const { imageBase64 } = await request.json()
 
         if (!imageBase64) {
@@ -60,9 +63,12 @@ export async function POST(request: NextRequest) {
 
         const model = getModel()
 
+        // Add locale-specific language instruction to prompt
+        const localizedPrompt = HERO_ANALYZE_PROMPT + getHeroAnalyzeLocaleInstruction(locale)
+
         const result = await withTimeout(
             model.generateContent([
-                { text: HERO_ANALYZE_PROMPT },
+                { text: localizedPrompt },
                 {
                     inlineData: {
                         mimeType: 'image/jpeg',

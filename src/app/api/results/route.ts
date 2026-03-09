@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase/client'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { deductInventoryForAnalysis } from '@/lib/inventory-deduction'
+import { getApiLocale } from '@/lib/api-locale'
 
 // POST: 분석 결과 저장
 export async function POST(request: NextRequest) {
@@ -25,7 +26,8 @@ export async function POST(request: NextRequest) {
       productType,
       serviceMode,
       pin,
-      qrCode
+      qrCode,
+      locale: bodyLocale,
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -44,10 +46,14 @@ export async function POST(request: NextRequest) {
       serviceMode?: string | null
       pin?: string | null
       qrCode?: string | null
+      locale?: string | null
     }
 
+    // Locale 감지 (body에서 먼저, 없으면 헤더에서)
+    const locale = bodyLocale || getApiLocale(request)
+
     // 디버그: pin 값 확인
-    console.log('[/api/results] Received pin:', pin, 'serviceMode:', serviceMode)
+    console.log('[/api/results] Received pin:', pin, 'serviceMode:', serviceMode, 'locale:', locale)
 
     // 필수 데이터 검증
     if (!analysisData || !twitterName || !perfumeName || !perfumeBrand) {
@@ -78,7 +84,8 @@ export async function POST(request: NextRequest) {
         product_type: productType || 'image_analysis',
         service_mode: serviceMode || 'online',
         pin: pin || null,
-        qr_code_id: qrCode || null
+        qr_code_id: qrCode || null,
+        locale: locale || 'ko'
       })
       .select('id')
       .single()

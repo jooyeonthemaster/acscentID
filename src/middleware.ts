@@ -1,26 +1,42 @@
+import createMiddleware from 'next-intl/middleware'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { routing } from '@/i18n/routing'
+
+// next-intl 미들웨어 생성
+const intlMiddleware = createMiddleware(routing)
 
 /**
- * Middleware - 쿠키 정리 및 세션 관리
- *
- * 이 미들웨어는 요청마다 실행되며:
- * 1. 이전 형식의 쿠키(한글 직접 저장)를 삭제
- * 2. 잘못된 쿠키로 인한 ByteString 에러 방지
+ * Middleware - 다국어 라우팅 + 쿠키 정리 및 세션 관리
  */
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next()
+  const { pathname } = request.nextUrl
+
+  // API, admin, auth, _next, 정적 파일은 i18n 미들웨어 제외
+  const shouldSkipIntl =
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    /\.(png|jpg|jpeg|svg|gif|ico|webp|woff|woff2|ttf|eot)$/.test(pathname)
+
+  // i18n 미들웨어 적용 또는 기본 응답
+  const response = shouldSkipIntl
+    ? NextResponse.next()
+    : intlMiddleware(request)
+
+  // === 기존 쿠키 정리 로직 유지 ===
 
   // 이전 쿠키 이름들 (삭제 대상)
   const OLD_COOKIE_NAMES = [
-    'acscent_kakao_session',  // 이전 카카오 세션 쿠키
+    'acscent_kakao_session', // 이전 카카오 세션 쿠키
   ]
 
   // 이전 쿠키 삭제
   for (const cookieName of OLD_COOKIE_NAMES) {
     const oldCookie = request.cookies.get(cookieName)
     if (oldCookie) {
-      // 쿠키 삭제 (만료 시간을 과거로 설정)
       response.cookies.set(cookieName, '', {
         expires: new Date(0),
         path: '/',
@@ -34,7 +50,6 @@ export function middleware(request: NextRequest) {
 
   if (sessionCookie) {
     try {
-      // Base64 디코딩 시도 - 실패하면 잘못된 쿠키
       const binary = atob(sessionCookie.value)
       const bytes = new Uint8Array(binary.length)
       for (let i = 0; i < binary.length; i++) {
@@ -42,20 +57,15 @@ export function middleware(request: NextRequest) {
       }
       const decoder = new TextDecoder()
       const decoded = decoder.decode(bytes)
-
-      // JSON 파싱 시도
       const sessionData = JSON.parse(decoded)
 
-      // 세션 만료 체크
       if (Date.now() > sessionData.expiresAt) {
-        // 만료된 세션 삭제
         response.cookies.set(SESSION_COOKIE_NAME, '', {
           expires: new Date(0),
           path: '/',
         })
       }
     } catch {
-      // 디코딩/파싱 실패 = 잘못된 쿠키 → 삭제
       console.log('Invalid session cookie detected, removing...')
       response.cookies.set(SESSION_COOKIE_NAME, '', {
         expires: new Date(0),
@@ -67,10 +77,9 @@ export function middleware(request: NextRequest) {
   return response
 }
 
-// 미들웨어가 실행될 경로 설정
 export const config = {
   matcher: [
-    // API 라우트 및 페이지에 적용
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)',
+    // next-intl + 기존 매처 통합
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.webp$).*)',
   ],
 }
