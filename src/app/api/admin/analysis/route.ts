@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const format = searchParams.get('format') // 'csv' for export
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const productType = searchParams.get('product_type')
@@ -52,6 +53,62 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit
 
     const supabase = await createServerSupabaseClientWithCookies()
+
+    // CSV 내보내기 - 페이지네이션 없이 전체 조회
+    if (format === 'csv') {
+      let csvQuery = supabase
+        .from('analysis_results')
+        .select('id, created_at, product_type, service_mode, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id')
+        .order('created_at', { ascending: false })
+        .limit(50000)
+
+      if (productType && productType !== 'all') csvQuery = csvQuery.eq('product_type', productType)
+      if (serviceMode && serviceMode !== 'all') csvQuery = csvQuery.eq('service_mode', serviceMode)
+      if (search) csvQuery = csvQuery.or(`idol_name.ilike.%${search}%,twitter_name.ilike.%${search}%,perfume_name.ilike.%${search}%`)
+      if (dateFrom) csvQuery = csvQuery.gte('created_at', dateFrom)
+      if (dateTo) csvQuery = csvQuery.lte('created_at', dateTo + 'T23:59:59.999Z')
+
+      const { data: csvAnalyses, error: csvError } = await csvQuery
+      if (csvError) {
+        return NextResponse.json({ error: 'CSV 생성 실패' }, { status: 500 })
+      }
+
+      const productLabels: Record<string, string> = {
+        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', etc: '기타',
+      }
+      const modeLabels: Record<string, string> = { online: '온라인', offline: '오프라인 QR' }
+
+      const BOM = '\uFEFF'
+      const headers = ['분석ID', '분석일시', '상품 타입', '서비스 모드', '아이돌명', '트위터이름', '추천 향수', '향수 브랜드', '키워드', 'QR코드ID', 'PIN']
+      const rows = (csvAnalyses || []).map((a: any) => [
+        a.id,
+        new Date(a.created_at).toLocaleString('ko-KR'),
+        productLabels[a.product_type] || a.product_type || '',
+        modeLabels[a.service_mode] || a.service_mode || '',
+        a.idol_name || '',
+        a.twitter_name || '',
+        a.perfume_name || '',
+        a.perfume_brand || '',
+        Array.isArray(a.matching_keywords) ? a.matching_keywords.join(', ') : '',
+        a.qr_code_id || '',
+        a.pin || '',
+      ])
+
+      const csvContent = BOM + [
+        headers.join(','),
+        ...rows.map((row: string[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n')
+
+      const date = new Date().toISOString().split('T')[0]
+      const filename = `ACSCENT_분석관리_${date}.csv`
+
+      return new NextResponse(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+        },
+      })
+    }
 
     // 기본 쿼리
     let query = supabase

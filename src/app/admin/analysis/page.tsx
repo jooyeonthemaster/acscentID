@@ -14,7 +14,8 @@ import {
   Loader2,
   AlertCircle,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Download,
 } from 'lucide-react'
 import Image from 'next/image'
 import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode } from '@/types/admin'
@@ -44,6 +45,8 @@ export default function AnalysisPage() {
     date_to: '',
   })
   const [showFilters, setShowFilters] = useState(false)
+
+  const [csvLoading, setCsvLoading] = useState(false)
 
   // 확장된 행 상태
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -97,6 +100,35 @@ export default function AnalysisPage() {
       date_to: '',
     })
     setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const downloadCSV = async () => {
+    setCsvLoading(true)
+    try {
+      const params = new URLSearchParams({ format: 'csv' })
+      if (filters.product_type !== 'all') params.set('product_type', filters.product_type)
+      if (filters.service_mode !== 'all') params.set('service_mode', filters.service_mode)
+      if (filters.search) params.set('search', filters.search)
+      if (filters.date_from) params.set('date_from', filters.date_from)
+      if (filters.date_to) params.set('date_to', filters.date_to)
+
+      const res = await fetch(`/api/admin/analysis?${params}`)
+      if (!res.ok) throw new Error('다운로드 실패')
+
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ACSCENT_분석관리_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      alert('CSV 다운로드에 실패했습니다.')
+    } finally {
+      setCsvLoading(false)
+    }
   }
 
   const formatDate = (dateStr: string) => {
@@ -175,6 +207,20 @@ export default function AnalysisPage() {
               className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             >
               검색
+            </button>
+
+            {/* CSV 다운로드 */}
+            <button
+              onClick={downloadCSV}
+              disabled={csvLoading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#1d4ed8] transition-all"
+            >
+              {csvLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {csvLoading ? '다운로드 중...' : 'CSV 다운로드'}
             </button>
           </div>
 

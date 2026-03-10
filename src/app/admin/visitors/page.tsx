@@ -23,7 +23,9 @@ import {
   ChevronRight,
   BarChart3,
   Timer,
+  Download,
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 // 타입 정의
 interface VisitorSummary {
@@ -212,6 +214,7 @@ function PeriodSelector({
     { value: '7d', label: '7일' },
     { value: '30d', label: '30일' },
     { value: '90d', label: '90일' },
+    { value: 'all', label: '전체' },
   ]
 
   return (
@@ -413,7 +416,7 @@ function DailyChart({ data, period }: { data: DailyData[]; period: string }) {
   const totalVisitors = data.reduce((sum, d) => sum + d.visitors, 0)
   const totalPV = data.reduce((sum, d) => sum + d.pageViews, 0)
   const avgVisitors = data.length > 0 ? Math.round(totalVisitors / data.length) : 0
-  const isCompact = period === '90d'
+  const isCompact = period === '90d' || period === 'all'
 
   return (
     <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
@@ -535,7 +538,7 @@ function DailyChart({ data, period }: { data: DailyData[]; period: string }) {
               const dayOfWeek = getDayOfWeek(day.date)
               const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
               // 30일: 5일 간격, 90일: 7일 간격, 7일: 매일
-              const showLabel = period === '7d' || (period === '30d' && idx % 5 === 0) || (period === '90d' && idx % 7 === 0)
+              const showLabel = period === '7d' || (period === '30d' && idx % 5 === 0) || ((period === '90d' || period === 'all') && idx % 7 === 0)
               return (
                 <div key={day.date} className="flex-1 text-center">
                   {showLabel && (
@@ -919,6 +922,8 @@ export default function VisitorsPage() {
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [excelLoading, setExcelLoading] = useState(false)
+  const [csvLoading, setCsvLoading] = useState(false)
 
   // 데이터 페칭 함수
   const fetchData = useCallback(async () => {
@@ -1029,6 +1034,371 @@ export default function VisitorsPage() {
     return () => clearInterval(interval)
   }, [fetchRealtime])
 
+  // 엑셀 다운로드 함수
+  const downloadVisitorExcel = async () => {
+    setExcelLoading(true)
+    try {
+      const baseUrl = `/api/admin/analytics/visitors?period=${period}`
+
+      // 모든 데이터 병렬 fetch
+      const fetchTypes = ['summary', 'daily', 'top-pages', 'referrers', 'devices', 'user-flow', 'duration-detail']
+      if (period === '1d') fetchTypes.push('hourly')
+
+      const responses = await Promise.all(
+        fetchTypes.map((type) => fetch(`${baseUrl}&type=${type}`))
+      )
+      const jsons = await Promise.all(responses.map((r) => r.json()))
+
+      const dataMap: Record<string, any> = {}
+      fetchTypes.forEach((type, idx) => { dataMap[type] = jsons[idx] })
+
+      const periodLabels: Record<string, string> = {
+        '1d': '오늘', '7d': '7일', '30d': '30일', '90d': '90일', 'all': '전체',
+      }
+      const periodLabel = periodLabels[period] || period
+
+      const workbook = XLSX.utils.book_new()
+
+      // ===== 시트 1: 요약 =====
+      const summaryData = dataMap['summary']
+      const summaryRows = [
+        { '지표': '방문자', '값': summaryData.summary?.visitors || 0, '단위': '명', '전기대비 변화(%)': summaryData.comparison?.visitorsChange ?? '-' },
+        { '지표': '페이지뷰', '값': summaryData.summary?.pageViews || 0, '단위': '회', '전기대비 변화(%)': summaryData.comparison?.pageViewsChange ?? '-' },
+        { '지표': '세션 수', '값': summaryData.summary?.sessions || 0, '단위': '회', '전기대비 변화(%)': summaryData.comparison?.sessionsChange ?? '-' },
+        { '지표': '평균 체류시간', '값': formatDuration(summaryData.summary?.avgDuration || 0), '단위': '', '전기대비 변화(%)': '-' },
+        { '지표': '이탈률', '값': summaryData.summary?.bounceRate || 0, '단위': '%', '전기대비 변화(%)': '-' },
+        { '지표': '페이지/세션', '값': summaryData.summary?.avgPagesPerSession || 0, '단위': '', '전기대비 변화(%)': '-' },
+      ]
+      const ws1 = XLSX.utils.json_to_sheet(summaryRows)
+      ws1['!cols'] = [{ wch: 18 }, { wch: 15 }, { wch: 8 }, { wch: 18 }]
+      ws1['!autofilter'] = { ref: `A1:D${summaryRows.length + 1}` }
+      XLSX.utils.book_append_sheet(workbook, ws1, '요약')
+
+      // ===== 시트 2: 일별 추이 =====
+      const dailyArr = dataMap['daily']?.daily || []
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+      const dailyRows = dailyArr.map((d: any) => ({
+        '날짜': d.date,
+        '요일': dayNames[new Date(d.date).getDay()],
+        '방문자': d.visitors,
+        '페이지뷰': d.pageViews,
+        'PV/방문자': d.visitors > 0 ? Math.round((d.pageViews / d.visitors) * 10) / 10 : 0,
+      }))
+      if (dailyRows.length > 0) {
+        const ws2 = XLSX.utils.json_to_sheet(dailyRows)
+        ws2['!cols'] = [{ wch: 12 }, { wch: 6 }, { wch: 10 }, { wch: 12 }, { wch: 12 }]
+        ws2['!autofilter'] = { ref: `A1:E${dailyRows.length + 1}` }
+        XLSX.utils.book_append_sheet(workbook, ws2, '일별 추이')
+      }
+
+      // ===== 시트 3: 시간별 (1일 뷰만) =====
+      if (period === '1d' && dataMap['hourly']?.hourly) {
+        const hourlyArr = dataMap['hourly'].hourly
+        const hourlyRows = hourlyArr.map((h: any) => ({
+          '시간대': `${String(h.hour).padStart(2, '0')}:00 ~ ${String(h.hour).padStart(2, '0')}:59`,
+          '방문자': h.visitors,
+          '페이지뷰': h.pageViews,
+          'PV/방문자': h.visitors > 0 ? Math.round((h.pageViews / h.visitors) * 10) / 10 : 0,
+        }))
+        const ws3 = XLSX.utils.json_to_sheet(hourlyRows)
+        ws3['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 12 }]
+        ws3['!autofilter'] = { ref: `A1:D${hourlyRows.length + 1}` }
+        XLSX.utils.book_append_sheet(workbook, ws3, '시간별')
+      }
+
+      // ===== 시트 4: 인기 페이지 =====
+      const pagesArr = dataMap['top-pages']?.pages || []
+      const pageRows = pagesArr.map((p: any, idx: number) => ({
+        '순위': idx + 1,
+        '페이지 경로': p.page_path,
+        '페이지명': formatPageName(p.page_path),
+        '조회수': p.views,
+        '순 방문자': p.unique_visitors,
+      }))
+      if (pageRows.length > 0) {
+        const ws4 = XLSX.utils.json_to_sheet(pageRows)
+        ws4['!cols'] = [{ wch: 6 }, { wch: 35 }, { wch: 18 }, { wch: 10 }, { wch: 12 }]
+        ws4['!autofilter'] = { ref: `A1:E${pageRows.length + 1}` }
+        XLSX.utils.book_append_sheet(workbook, ws4, '인기 페이지')
+      }
+
+      // ===== 시트 5: 유입 경로 =====
+      const refData = dataMap['referrers']
+      const refRows = (refData?.referrers || []).map((r: any) => ({
+        '유입 소스': r.referrer_domain,
+        '세션 수': r.sessions,
+        '비율(%)': r.percentage,
+      }))
+      // UTM 캠페인도 같은 시트 아래에 별도 섹션으로
+      const campaignRows = (refData?.campaigns || []).map((c: any) => ({
+        'UTM 캠페인': c.campaign,
+        '수': c.count,
+      }))
+      if (refRows.length > 0) {
+        const ws5 = XLSX.utils.json_to_sheet(refRows)
+        ws5['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 10 }]
+        ws5['!autofilter'] = { ref: `A1:C${refRows.length + 1}` }
+        // 캠페인 데이터가 있으면 우측에 추가
+        if (campaignRows.length > 0) {
+          XLSX.utils.sheet_add_json(ws5, campaignRows, { origin: `E1` })
+          ws5['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 3 }, { wch: 25 }, { wch: 10 }]
+        }
+        XLSX.utils.book_append_sheet(workbook, ws5, '유입 경로')
+      }
+
+      // ===== 시트 6: 디바이스 =====
+      const devData = dataMap['devices']
+      if (devData) {
+        const totalDev = Object.values(devData.devices || {}).reduce((a: number, b: any) => a + (b as number), 0) as number
+        const deviceRows: any[] = []
+
+        // 디바이스 타입
+        const deviceLabels: Record<string, string> = { mobile: '모바일', desktop: '데스크톱', tablet: '태블릿' }
+        Object.entries(devData.devices || {}).forEach(([key, count]) => {
+          deviceRows.push({
+            '분류': '디바이스',
+            '항목': deviceLabels[key] || key,
+            '수량': count as number,
+            '비율(%)': totalDev > 0 ? Math.round(((count as number) / totalDev) * 100) : 0,
+          })
+        })
+
+        // 브라우저
+        Object.entries(devData.browsers || {})
+          .sort((a, b) => (b[1] as number) - (a[1] as number))
+          .forEach(([key, count]) => {
+            deviceRows.push({
+              '분류': '브라우저',
+              '항목': key,
+              '수량': count as number,
+              '비율(%)': totalDev > 0 ? Math.round(((count as number) / totalDev) * 100) : 0,
+            })
+          })
+
+        // OS
+        Object.entries(devData.os || {})
+          .sort((a, b) => (b[1] as number) - (a[1] as number))
+          .forEach(([key, count]) => {
+            deviceRows.push({
+              '분류': 'OS',
+              '항목': key,
+              '수량': count as number,
+              '비율(%)': totalDev > 0 ? Math.round(((count as number) / totalDev) * 100) : 0,
+            })
+          })
+
+        if (deviceRows.length > 0) {
+          const ws6 = XLSX.utils.json_to_sheet(deviceRows)
+          ws6['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 10 }, { wch: 10 }]
+          ws6['!autofilter'] = { ref: `A1:D${deviceRows.length + 1}` }
+          XLSX.utils.book_append_sheet(workbook, ws6, '디바이스')
+        }
+      }
+
+      // ===== 시트 7: 사용자 흐름 =====
+      const flowArr = dataMap['user-flow']?.flows || []
+      const flowRows = flowArr.map((f: any, idx: number) => ({
+        '순위': idx + 1,
+        '출발 페이지': f.from,
+        '출발 페이지명': formatPageName(f.from),
+        '도착 페이지': f.to,
+        '도착 페이지명': formatPageName(f.to),
+        '이동 횟수': f.count,
+      }))
+      if (flowRows.length > 0) {
+        const ws7 = XLSX.utils.json_to_sheet(flowRows)
+        ws7['!cols'] = [{ wch: 6 }, { wch: 25 }, { wch: 14 }, { wch: 25 }, { wch: 14 }, { wch: 12 }]
+        ws7['!autofilter'] = { ref: `A1:F${flowRows.length + 1}` }
+        XLSX.utils.book_append_sheet(workbook, ws7, '사용자 흐름')
+      }
+
+      // ===== 시트 8: 체류시간 분석 =====
+      const durData = dataMap['duration-detail']
+      if (durData && durData.totalSessions > 0) {
+        const durRows: any[] = []
+
+        // 핵심 지표
+        durRows.push({ '구분': '=== 핵심 지표 ===', '항목': '', '값': '', '부가정보': '' })
+        durRows.push({ '구분': '평균 체류시간', '항목': '', '값': formatDuration(durData.avgDuration), '부가정보': '' })
+        durRows.push({ '구분': '중앙값', '항목': '', '값': formatDuration(durData.medianDuration), '부가정보': '' })
+        durRows.push({ '구분': '최대', '항목': '', '값': formatDuration(durData.maxDuration), '부가정보': '' })
+        durRows.push({ '구분': '총 세션', '항목': '', '값': durData.totalSessions, '부가정보': '' })
+        durRows.push({ '구분': '', '항목': '', '값': '', '부가정보': '' })
+
+        // 분포
+        durRows.push({ '구분': '=== 체류시간 분포 ===', '항목': '', '값': '', '부가정보': '' })
+        ;(durData.distribution || []).forEach((d: any) => {
+          durRows.push({ '구분': '분포', '항목': d.label, '값': d.count, '부가정보': `${d.percentage}%` })
+        })
+        durRows.push({ '구분': '', '항목': '', '값': '', '부가정보': '' })
+
+        // 디바이스별
+        durRows.push({ '구분': '=== 디바이스별 ===', '항목': '', '값': '', '부가정보': '' })
+        const devLabels: Record<string, string> = { mobile: '모바일', desktop: '데스크톱', tablet: '태블릿' }
+        Object.entries(durData.byDevice || {}).forEach(([dev, stats]: [string, any]) => {
+          durRows.push({ '구분': '디바이스', '항목': devLabels[dev] || dev, '값': formatDuration(stats.avg), '부가정보': `${stats.count}세션` })
+        })
+        durRows.push({ '구분': '', '항목': '', '값': '', '부가정보': '' })
+
+        // 페이지별
+        durRows.push({ '구분': '=== 페이지별 평균 체류 ===', '항목': '', '값': '', '부가정보': '' })
+        ;(durData.byPage || []).forEach((p: any) => {
+          durRows.push({ '구분': '페이지', '항목': formatPageName(p.page), '값': formatDuration(p.avgTime), '부가정보': `${p.views}뷰` })
+        })
+        durRows.push({ '구분': '', '항목': '', '값': '', '부가정보': '' })
+
+        // 일별 추이
+        durRows.push({ '구분': '=== 일별 체류시간 추이 ===', '항목': '', '값': '', '부가정보': '' })
+        ;(durData.dailyTrend || []).forEach((d: any) => {
+          durRows.push({ '구분': '일별', '항목': d.date, '값': formatDuration(d.avgDuration), '부가정보': `${d.sessions}세션` })
+        })
+
+        const ws8 = XLSX.utils.json_to_sheet(durRows)
+        ws8['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 18 }, { wch: 14 }]
+        ws8['!autofilter'] = { ref: `A1:D${durRows.length + 1}` }
+        XLSX.utils.book_append_sheet(workbook, ws8, '체류시간 분석')
+      }
+
+      // 파일 다운로드
+      const today = new Date().toISOString().split('T')[0]
+      const fileName = `ACSCENT_방문자분석_${periodLabel}_${today}.xlsx`
+      XLSX.writeFile(workbook, fileName)
+
+    } catch (err) {
+      console.error('Excel download failed:', err)
+      alert('엑셀 다운로드에 실패했습니다.')
+    } finally {
+      setExcelLoading(false)
+    }
+  }
+
+  // CSV 다운로드 함수
+  const downloadVisitorCSV = async () => {
+    setCsvLoading(true)
+    try {
+      const baseUrl = `/api/admin/analytics/visitors?period=${period}`
+      const fetchTypes = ['summary', 'daily', 'top-pages', 'referrers', 'devices', 'user-flow']
+      if (period === '1d') fetchTypes.push('hourly')
+
+      const responses = await Promise.all(
+        fetchTypes.map((type) => fetch(`${baseUrl}&type=${type}`))
+      )
+      const jsons = await Promise.all(responses.map((r) => r.json()))
+      const dataMap: Record<string, any> = {}
+      fetchTypes.forEach((type, idx) => { dataMap[type] = jsons[idx] })
+
+      const periodLabels: Record<string, string> = {
+        '1d': '오늘', '7d': '7일', '30d': '30일', '90d': '90일', 'all': '전체',
+      }
+      const periodLabel = periodLabels[period] || period
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+
+      // CSV 섹션들을 하나의 파일로 결합
+      const sections: string[] = []
+      const BOM = '\uFEFF'
+
+      // 요약
+      const summaryData = dataMap['summary']
+      sections.push('=== 요약 ===')
+      sections.push('지표,값,단위,전기대비 변화(%)')
+      sections.push(`방문자,${summaryData.summary?.visitors || 0},명,${summaryData.comparison?.visitorsChange ?? '-'}`)
+      sections.push(`페이지뷰,${summaryData.summary?.pageViews || 0},회,${summaryData.comparison?.pageViewsChange ?? '-'}`)
+      sections.push(`세션 수,${summaryData.summary?.sessions || 0},회,${summaryData.comparison?.sessionsChange ?? '-'}`)
+      sections.push(`평균 체류시간,"${formatDuration(summaryData.summary?.avgDuration || 0)}",,`)
+      sections.push(`이탈률,${summaryData.summary?.bounceRate || 0},%,`)
+      sections.push(`페이지/세션,${summaryData.summary?.avgPagesPerSession || 0},,`)
+      sections.push('')
+
+      // 일별 추이
+      const dailyArr = dataMap['daily']?.daily || []
+      if (dailyArr.length > 0) {
+        sections.push('=== 일별 추이 ===')
+        sections.push('날짜,요일,방문자,페이지뷰,PV/방문자')
+        dailyArr.forEach((d: any) => {
+          const pvRatio = d.visitors > 0 ? Math.round((d.pageViews / d.visitors) * 10) / 10 : 0
+          sections.push(`${d.date},${dayNames[new Date(d.date).getDay()]},${d.visitors},${d.pageViews},${pvRatio}`)
+        })
+        sections.push('')
+      }
+
+      // 시간별 (오늘만)
+      if (period === '1d' && dataMap['hourly']?.hourly) {
+        sections.push('=== 시간별 ===')
+        sections.push('시간대,방문자,페이지뷰')
+        dataMap['hourly'].hourly.forEach((h: any) => {
+          sections.push(`${String(h.hour).padStart(2, '0')}:00~${String(h.hour).padStart(2, '0')}:59,${h.visitors},${h.pageViews}`)
+        })
+        sections.push('')
+      }
+
+      // 인기 페이지
+      const pagesArr = dataMap['top-pages']?.pages || []
+      if (pagesArr.length > 0) {
+        sections.push('=== 인기 페이지 ===')
+        sections.push('순위,페이지 경로,페이지명,조회수,순 방문자')
+        pagesArr.forEach((p: any, idx: number) => {
+          sections.push(`${idx + 1},"${p.page_path}","${formatPageName(p.page_path)}",${p.views},${p.unique_visitors}`)
+        })
+        sections.push('')
+      }
+
+      // 유입 경로
+      const refArr = dataMap['referrers']?.referrers || []
+      if (refArr.length > 0) {
+        sections.push('=== 유입 경로 ===')
+        sections.push('유입 소스,세션 수,비율(%)')
+        refArr.forEach((r: any) => {
+          sections.push(`"${r.referrer_domain}",${r.sessions},${r.percentage}`)
+        })
+        sections.push('')
+      }
+
+      // 디바이스
+      const devData = dataMap['devices']
+      if (devData?.devices) {
+        const deviceLabels: Record<string, string> = { mobile: '모바일', desktop: '데스크톱', tablet: '태블릿' }
+        sections.push('=== 디바이스 ===')
+        sections.push('분류,항목,수량')
+        Object.entries(devData.devices).forEach(([key, count]) => {
+          sections.push(`디바이스,${deviceLabels[key] || key},${count}`)
+        })
+        Object.entries(devData.browsers || {}).sort((a, b) => (b[1] as number) - (a[1] as number)).forEach(([key, count]) => {
+          sections.push(`브라우저,${key},${count}`)
+        })
+        Object.entries(devData.os || {}).sort((a, b) => (b[1] as number) - (a[1] as number)).forEach(([key, count]) => {
+          sections.push(`OS,${key},${count}`)
+        })
+        sections.push('')
+      }
+
+      // 사용자 흐름
+      const flowArr = dataMap['user-flow']?.flows || []
+      if (flowArr.length > 0) {
+        sections.push('=== 사용자 흐름 ===')
+        sections.push('출발 페이지,도착 페이지,이동 횟수')
+        flowArr.forEach((f: any) => {
+          sections.push(`"${f.from}","${f.to}",${f.count}`)
+        })
+      }
+
+      const csvContent = BOM + sections.join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv; charset=utf-8' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ACSCENT_방문자분석_${periodLabel}_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('CSV download failed:', err)
+      alert('CSV 다운로드에 실패했습니다.')
+    } finally {
+      setCsvLoading(false)
+    }
+  }
+
   const handleCalendarMonthChange = (year: number, month: number) => {
     setCalendarYear(year)
     setCalendarMonth(month)
@@ -1076,13 +1446,39 @@ export default function VisitorsPage() {
         {/* 기간 선택 & 새로고침 */}
         <div className="flex items-center justify-between">
           <PeriodSelector period={period} onChange={setPeriod} />
-          <button
-            onClick={fetchData}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900"
-          >
-            <RefreshCw className="w-4 h-4" />
-            새로고침
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadVisitorExcel}
+              disabled={excelLoading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#047857] transition-all"
+            >
+              {excelLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {excelLoading ? '다운로드 중...' : '엑셀'}
+            </button>
+            <button
+              onClick={downloadVisitorCSV}
+              disabled={csvLoading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#1d4ed8] transition-all"
+            >
+              {csvLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {csvLoading ? '다운로드 중...' : 'CSV'}
+            </button>
+            <button
+              onClick={fetchData}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900"
+            >
+              <RefreshCw className="w-4 h-4" />
+              새로고침
+            </button>
+          </div>
         </div>
 
         {/* 실시간 + 주요 지표 */}

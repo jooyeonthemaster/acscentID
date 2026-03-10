@@ -16,7 +16,11 @@ export async function POST() {
     const supabase = await createServerSupabaseClientWithCookies()
     await supabase.auth.signOut()
 
-    return NextResponse.json({ success: true })
+    // 3. PG 심사 모드 쿠키 삭제
+    const response = NextResponse.json({ success: true })
+    response.cookies.delete('pg_review_mode')
+
+    return response
   } catch (error) {
     console.error('Logout error:', error)
     return NextResponse.json({ success: false, error: 'Logout failed' }, { status: 500 })

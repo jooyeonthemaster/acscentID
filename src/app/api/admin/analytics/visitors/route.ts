@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       periodStart = new Date(startDate)
       periodEnd = new Date(endDate)
     } else {
-      const days = period === '1d' ? 1 : period === '30d' ? 30 : period === '90d' ? 90 : 7
+      const days = period === 'all' ? 365 * 3 : period === '1d' ? 1 : period === '30d' ? 30 : period === '90d' ? 90 : 7
       periodStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
     }
 

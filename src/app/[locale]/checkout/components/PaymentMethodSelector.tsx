@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { useTranslations } from 'next-intl'
@@ -127,7 +128,15 @@ export function PaymentMethodSelector({
 }: PaymentMethodSelectorProps) {
   const t = useTranslations()
   const searchParams = useSearchParams()
-  const isPgReview = searchParams.get("pg_review") === "true"
+  const isPgReviewParam = searchParams.get("pg_review") === "true"
+
+  // PG 심사 모드 쿠키 확인 (심사 담당자 로그인 시 자동 설정)
+  const [isPgReviewCookie, setIsPgReviewCookie] = useState(false)
+  useEffect(() => {
+    setIsPgReviewCookie(document.cookie.includes('pg_review_mode=true'))
+  }, [])
+
+  const isPgReview = isPgReviewParam || isPgReviewCookie
 
   // PG 심사 모드: 모든 결제수단 활성화
   const disabledMethods = isPgReview ? new Set<PaymentMethod>() : DISABLED_METHODS

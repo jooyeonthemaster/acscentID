@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     // 모든 분석 결과 조회
     const { data: analyses, error } = await supabase
       .from('analysis_results')
-      .select('id, created_at, product_type, perfume_name, matching_keywords, idol_name, twitter_name, analysis_data')
+      .select('id, created_at, product_type, service_mode, perfume_name, matching_keywords, idol_name, twitter_name, analysis_data, qr_code_id, pin')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -263,15 +263,36 @@ function generateCSV(analyses: Array<Record<string, unknown>>, programFilter: st
     })
   }
 
+  // 상품 타입 라벨
+  const productTypeLabels: Record<string, string> = {
+    image_analysis: '최애 이미지',
+    idol_image: '최애 이미지',
+    figure_diffuser: '피규어 디퓨저',
+    figure: '피규어 디퓨저',
+    personal_scent: '퍼스널 센트',
+    graduation: '졸업 퍼퓸',
+    etc: '기타',
+  }
+
+  // 서비스 모드 라벨
+  const serviceModeLabels: Record<string, string> = {
+    online: '온라인',
+    offline: '오프라인 QR',
+  }
+
   // CSV 헤더
   const headers = [
     '분석ID',
     '분석일시',
     '프로그램',
+    '상품 타입(원본)',
+    '서비스 모드',
     '분석대상이름',
     '트위터이름',
     '추천향수',
     '키워드',
+    'QR코드ID',
+    'PIN',
   ]
 
   // CSV 데이터 행
@@ -288,10 +309,14 @@ function generateCSV(analyses: Array<Record<string, unknown>>, programFilter: st
       analysis.id as string,
       new Date(analysis.created_at as string).toLocaleString('ko-KR'),
       programLabel,
+      productTypeLabels[rawType] || rawType,
+      serviceModeLabels[(analysis.service_mode as string) || 'online'] || (analysis.service_mode as string) || '온라인',
       (analysis.idol_name as string) || '',
       (analysis.twitter_name as string) || '',
       (analysis.perfume_name as string) || '',
       keywordsStr,
+      (analysis.qr_code_id as string) || '',
+      (analysis.pin as string) || '',
     ]
   })
 
