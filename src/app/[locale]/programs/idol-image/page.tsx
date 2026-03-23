@@ -6,7 +6,7 @@ import Link from "next/link"
 import {
   Star, X, AlertTriangle,
   Gift, Zap, ChevronRight,
-  FileText, Camera, Sparkles, Palette, FileCheck
+  FileText, Camera, Sparkles, Palette, FileCheck, PenLine
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -183,7 +183,7 @@ export default function IdolImagePage() {
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}24,000</span>
+                <span className="text-xl font-black text-black">{t('currency.symbol')}24,000~</span>
                 <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}35,000</span>
                 <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">31% OFF</span>
               </div>
@@ -327,51 +327,61 @@ export default function IdolImagePage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section id="reviews" className="py-12 px-4 bg-white">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="w-full"
-        >
-          <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-yellow-400 text-black text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
+      <section id="reviews" className="py-8 px-4 bg-white">
+        <div className="w-full">
+          <div className="text-center mb-4">
+            <div className="inline-block px-3 py-1.5 bg-yellow-400 text-black text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
               {t('programs.reviews.badge')}
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black mb-2 break-keep">
+            </div>
+            <h2 className="text-2xl font-black text-black mb-2 break-keep">
               {t('programs.reviews.title')}
-            </motion.h2>
-            <motion.button
-              variants={fadeInUp}
+            </h2>
+            <button
               onClick={() => setShowReviewModal(true)}
               className="text-xs text-slate-500 hover:text-black transition-colors underline underline-offset-4"
             >
               {t('programs.reviews.viewAll')}
-            </motion.button>
+            </button>
           </div>
 
           {/* 리뷰 통계 */}
           {reviewStats && (
-            <motion.div variants={fadeInUp} className="mb-6">
+            <div className="mb-4">
               <ReviewStats
                 stats={reviewStats}
                 onRatingFilter={setReviewRatingFilter}
                 selectedRating={reviewRatingFilter}
               />
-            </motion.div>
+            </div>
           )}
 
+          {/* 리뷰 작성 버튼 */}
+          <div className="mb-4">
+            <button
+              onClick={() => {
+                if (!isLoggedIn) {
+                  setShowLoginPrompt(true)
+                } else {
+                  setShowReviewModal(true)
+                }
+              }}
+              className="w-full py-3 bg-yellow-400 text-black text-sm font-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+            >
+              <PenLine size={16} />
+              리뷰 작성하기
+            </button>
+          </div>
+
           {/* 리뷰 목록 */}
-          <motion.div variants={fadeInUp}>
+          <div>
             <ReviewList
               programType="idol_image"
               currentUserId={currentUserId}
               ratingFilter={reviewRatingFilter}
               onRatingFilterChange={setReviewRatingFilter}
             />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* ============================================

@@ -39,6 +39,22 @@ interface OrderAnalysis {
   user_image_url?: string | null
 }
 
+interface OrderItemData {
+  id: string
+  order_id: string
+  analysis_id: string | null
+  product_type: string
+  perfume_name: string
+  perfume_brand: string | null
+  twitter_name: string | null
+  size: string
+  unit_price: number
+  quantity: number
+  subtotal: number
+  image_url: string | null
+  analysis: OrderAnalysis | null
+}
+
 interface Order {
   id: string
   order_number: string
@@ -63,13 +79,15 @@ interface Order {
   user_coupon_id?: string
   analysis_id?: string
   analysis?: OrderAnalysis | null
-  product_type?: string  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature 등)
+  product_type?: string
   payment_method?: string
   payment_id?: string | null
   receipt_url?: string | null
   refund_amount?: number
   refunded_at?: string | null
   admin_memo?: string | null
+  item_count?: number
+  order_items?: OrderItemData[]
   confirmed_recipe?: {
     granules?: Array<{ id: string; name: string; ratio: number }>
     [key: string]: any
@@ -97,6 +115,17 @@ const PAYMENT_METHOD_BADGE: Record<string, { label: string; className: string }>
   card: { label: '카드', className: 'bg-blue-100 text-blue-600' },
   kakao_pay: { label: '카카오페이', className: 'bg-yellow-100 text-yellow-700' },
   naver_pay: { label: '네이버페이', className: 'bg-green-100 text-green-600' },
+}
+
+const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> = {
+  image_analysis: { label: '이미지분석', className: 'bg-blue-100 text-blue-700' },
+  figure_diffuser: { label: '피규어', className: 'bg-cyan-100 text-cyan-700' },
+  graduation: { label: '졸업', className: 'bg-purple-100 text-purple-700' },
+  signature: { label: '시그니처', className: 'bg-pink-100 text-pink-700' },
+}
+
+function getProductBadge(type?: string | null) {
+  return type ? PRODUCT_TYPE_BADGE[type] : null
 }
 
 function getPaymentBadge(method?: string) {
@@ -695,28 +724,38 @@ export default function AdminOrdersPage() {
                             >
                               <Eye className="w-5 h-5 text-slate-600" />
                             </button>
-                            {/* 피규어 디퓨저 모델링 이미지 버튼 */}
-                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setModelingOrder(order)
-                                }}
-                                className="p-2 hover:bg-cyan-100 rounded-lg transition-colors"
-                                title="모델링 이미지 보기"
-                              >
-                                <Box className="w-5 h-5 text-cyan-600" />
-                              </button>
+                            {/* 단일 상품: 기존 버튼 유지 */}
+                            {(!order.item_count || order.item_count <= 1) && (
+                              <>
+                                {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setModelingOrder(order)
+                                    }}
+                                    className="p-2 hover:bg-cyan-100 rounded-lg transition-colors"
+                                    title="모델링 이미지 보기"
+                                  >
+                                    <Box className="w-5 h-5 text-cyan-600" />
+                                  </button>
+                                )}
+                                {order.analysis_id && (
+                                  <Link
+                                    href={`/admin/analysis/${order.analysis_id}/print`}
+                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                    title="보고서 출력"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Printer className="w-5 h-5 text-slate-600" />
+                                  </Link>
+                                )}
+                              </>
                             )}
-                            {order.analysis_id && (
-                              <Link
-                                href={`/admin/analysis/${order.analysis_id}/print`}
-                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                title="보고서 출력"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Printer className="w-5 h-5 text-slate-600" />
-                              </Link>
+                            {/* 다중 상품: 펼쳐서 확인 안내 */}
+                            {order.item_count && order.item_count > 1 && (
+                              <span className="px-2 py-1 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full">
+                                {order.item_count}건 ▼
+                              </span>
                             )}
                           </div>
                         </td>
@@ -746,6 +785,121 @@ export default function AdminOrdersPage() {
                                 <p className="text-slate-900 mt-1">{formatDate(order.updated_at)}</p>
                               </div>
                             </div>
+                            {/* 개별 상품 목록 (다중 상품 주문) */}
+                            {order.item_count && order.item_count > 1 && order.order_items && order.order_items.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Package className="w-5 h-5 text-amber-600" />
+                                  <span className="font-bold text-slate-900">주문 상품 목록</span>
+                                  <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 text-amber-700 rounded-full">
+                                    {order.order_items.length}건
+                                  </span>
+                                </div>
+                                <div className="space-y-3">
+                                  {order.order_items.map((item, idx) => {
+                                    const badge = getProductBadge(item.product_type)
+                                    const isFigure = item.product_type === 'figure_diffuser'
+                                    return (
+                                      <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4">
+                                        {/* 상품 기본 정보 */}
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                            <span className="w-7 h-7 flex items-center justify-center bg-slate-100 text-slate-600 text-xs font-bold rounded-lg">
+                                              {idx + 1}
+                                            </span>
+                                            <div>
+                                              <div className="flex items-center gap-2">
+                                                <span className="font-bold text-slate-900">{item.perfume_name}</span>
+                                                {badge && (
+                                                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.className}`}>
+                                                    {badge.label}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <p className="text-xs text-slate-500 mt-0.5">
+                                                {item.size} · {item.quantity}개 · {formatPrice(item.unit_price)}
+                                                {item.quantity > 1 && ` = ${formatPrice(item.subtotal)}`}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          {/* 액션 버튼 */}
+                                          <div className="flex items-center gap-1">
+                                            {item.analysis_id && (
+                                              <Link
+                                                href={`/admin/analysis/${item.analysis_id}/print`}
+                                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                                title={`${item.perfume_name} 보고서 출력`}
+                                                onClick={(e) => e.stopPropagation()}
+                                              >
+                                                <Printer className="w-4 h-4 text-slate-600" />
+                                              </Link>
+                                            )}
+                                            {isFigure && item.analysis?.modeling_image_url && (
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  setModelingOrder({
+                                                    ...order,
+                                                    analysis: item.analysis,
+                                                    perfume_name: item.perfume_name,
+                                                  })
+                                                }}
+                                                className="p-2 hover:bg-cyan-100 rounded-lg transition-colors"
+                                                title={`${item.perfume_name} 모델링 이미지`}
+                                              >
+                                                <Box className="w-4 h-4 text-cyan-600" />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {/* 피규어 디퓨저: 모델링 참조 이미지 인라인 */}
+                                        {isFigure && (
+                                          <div className="mt-3 pt-3 border-t border-slate-100">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <ImageIcon className="w-4 h-4 text-cyan-600" />
+                                              <span className="text-xs font-medium text-slate-600">3D 모델링 참조 이미지</span>
+                                            </div>
+                                            <div className="flex gap-4">
+                                              {item.analysis?.modeling_image_url ? (
+                                                <a
+                                                  href={item.analysis.modeling_image_url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="flex-shrink-0"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-colors">
+                                                    <Image
+                                                      src={item.analysis.modeling_image_url}
+                                                      alt={`${item.perfume_name} 모델링 참조`}
+                                                      fill
+                                                      className="object-cover"
+                                                    />
+                                                  </div>
+                                                  <p className="text-[10px] text-slate-400 mt-1 text-center">원본 보기</p>
+                                                </a>
+                                              ) : (
+                                                <div className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50">
+                                                  <span className="text-[10px] text-slate-400 text-center px-1">이미지 없음</span>
+                                                </div>
+                                              )}
+                                              {item.analysis?.modeling_request && (
+                                                <div className="flex-1 min-w-0">
+                                                  <span className="text-[11px] text-slate-500">모델링 요청사항:</span>
+                                                  <p className="text-sm text-slate-900 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200 whitespace-pre-wrap">
+                                                    {item.analysis.modeling_request}
+                                                  </p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
                             {/* 커스텀 조향 레시피 (제조용) */}
                             {order.confirmed_recipe?.granules && (
                               <div className="mt-4 pt-4 border-t border-slate-200">
@@ -869,8 +1023,8 @@ export default function AdminOrdersPage() {
                                 )}
                               </div>
                             )}
-                            {/* 모델링 이미지 (피규어 디퓨저) */}
-                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                            {/* 모델링 이미지 (단일 상품 피규어 디퓨저) - 다중 상품은 위 개별 목록에서 표시 */}
+                            {(!order.item_count || order.item_count <= 1) && (order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
                               <div className="mt-4 pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-3">
                                   <ImageIcon className="w-5 h-5 text-cyan-600" />
@@ -980,26 +1134,83 @@ export default function AdminOrdersPage() {
 
                 <div className="border-t pt-4">
                   <h4 className="font-medium text-slate-900 mb-3">상품 정보</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-slate-500">상품명</label>
-                      <p className="text-slate-900">{selectedOrder.perfume_name}</p>
+
+                  {/* 다중 상품: 개별 아이템 목록 */}
+                  {selectedOrder.item_count && selectedOrder.item_count > 1 && selectedOrder.order_items && selectedOrder.order_items.length > 0 ? (
+                    <div className="space-y-3 mb-4">
+                      {selectedOrder.order_items.map((item, idx) => {
+                        const badge = getProductBadge(item.product_type)
+                        const isFigure = item.product_type === 'figure_diffuser'
+                        return (
+                          <div key={item.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="w-6 h-6 flex items-center justify-center bg-slate-200 text-slate-600 text-xs font-bold rounded-md">
+                                  {idx + 1}
+                                </span>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-900 text-sm">{item.perfume_name}</span>
+                                    {badge && (
+                                      <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.className}`}>
+                                        {badge.label}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-slate-500">{item.size} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {item.analysis_id && (
+                                  <Link
+                                    href={`/admin/analysis/${item.analysis_id}/print`}
+                                    className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                                    title={`${item.perfume_name} 보고서`}
+                                  >
+                                    <Printer className="w-4 h-4 text-slate-600" />
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                            {/* 피규어: 모델링 이미지 */}
+                            {isFigure && item.analysis?.modeling_image_url && (
+                              <div className="mt-2 pt-2 border-t border-slate-200 flex gap-3">
+                                <a href={item.analysis.modeling_image_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 hover:border-cyan-400 transition-colors">
+                                    <Image src={item.analysis.modeling_image_url} alt={`${item.perfume_name} 모델링`} fill className="object-cover" />
+                                  </div>
+                                </a>
+                                {item.analysis.modeling_request && (
+                                  <p className="text-xs text-slate-600 bg-white p-2 rounded-lg border border-slate-200 flex-1">{item.analysis.modeling_request}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
-                    <div>
-                      <label className="text-sm text-slate-500">용량/타입</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-900">{selectedOrder.size}</span>
-                        {(selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
-                          <span className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded-full">피규어 디퓨저</span>
-                        )}
-                        {(selectedOrder.product_type === 'graduation' || selectedOrder.analysis?.product_type === 'graduation') && (
-                          <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">졸업 퍼퓸</span>
-                        )}
-                        {(selectedOrder.product_type === 'signature' || selectedOrder.analysis?.product_type === 'signature') && (
-                          <span className="px-2 py-0.5 text-xs bg-pink-100 text-pink-700 rounded-full">시그니처</span>
-                        )}
+                  ) : (
+                    /* 단일 상품: 기존 표시 */
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-sm text-slate-500">상품명</label>
+                        <p className="text-slate-900">{selectedOrder.perfume_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-slate-500">용량/타입</label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-900">{selectedOrder.size}</span>
+                          {(() => {
+                            const badge = getProductBadge(selectedOrder.product_type || selectedOrder.analysis?.product_type)
+                            return badge ? <span className={`px-2 py-0.5 text-xs rounded-full ${badge.className}`}>{badge.label}</span> : null
+                          })()}
+                        </div>
                       </div>
                     </div>
+                  )}
+
+                  {/* 금액 정보 (공통) */}
+                  <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                     <div>
                       <label className="text-sm text-slate-500">상품가</label>
                       <p className="text-slate-900">{formatPrice(selectedOrder.price)}</p>
@@ -1118,8 +1329,8 @@ export default function AdminOrdersPage() {
                   )}
                 </div>
 
-                {/* 모델링 이미지 (피규어 디퓨저) */}
-                {(selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
+                {/* 모델링 이미지 (단일 상품 피규어 디퓨저) - 다중 상품은 위 상품 목록에서 표시 */}
+                {(!selectedOrder.item_count || selectedOrder.item_count <= 1) && (selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
                   <div className="border-t pt-4">
                     <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-cyan-600" />
@@ -1198,15 +1409,32 @@ export default function AdminOrdersPage() {
                   </div>
                 )}
 
-                <div className="border-t pt-4 flex justify-end">
-                  {selectedOrder.analysis_id && (
-                    <Link
-                      href={`/admin/analysis/${selectedOrder.analysis_id}/print`}
-                      className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-                    >
-                      <Printer className="w-5 h-5" />
-                      보고서 출력
-                    </Link>
+                <div className="border-t pt-4 flex justify-end gap-2 flex-wrap">
+                  {/* 다중 상품: 개별 보고서 버튼들 */}
+                  {selectedOrder.item_count && selectedOrder.item_count > 1 && selectedOrder.order_items ? (
+                    selectedOrder.order_items
+                      .filter(item => item.analysis_id)
+                      .map((item, idx) => (
+                        <Link
+                          key={item.id}
+                          href={`/admin/analysis/${item.analysis_id}/print`}
+                          className="flex items-center gap-2 px-3 py-2 bg-yellow-400 text-slate-900 text-sm font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        >
+                          <Printer className="w-4 h-4" />
+                          {item.perfume_name} 보고서
+                        </Link>
+                      ))
+                  ) : (
+                    /* 단일 상품: 기존 버튼 */
+                    selectedOrder.analysis_id && (
+                      <Link
+                        href={`/admin/analysis/${selectedOrder.analysis_id}/print`}
+                        className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                      >
+                        <Printer className="w-5 h-5" />
+                        보고서 출력
+                      </Link>
+                    )
                   )}
                 </div>
               </div>

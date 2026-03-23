@@ -1169,7 +1169,7 @@
     "option1Tab": "第1案：自分で選択",
     "option2Tab": "第2案：AIおすすめ",
     "option1Banner": "AI修正なしで自分が選んだそのままです！",
-    "option2Banner": "自然言語フィードバックを反映してAIがおすすめします！",
+    "option2Banner": "お好みの感じを書いてください、AIがレシピを調整します！",
     "recipeComposition": "レシピ構成",
     "drops": "滴",
     "totalDrops": "合計{count}滴",

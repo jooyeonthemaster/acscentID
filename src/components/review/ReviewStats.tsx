@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, Camera, MessageCircle } from "lucide-react"
+import { Star } from "lucide-react"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 
 interface ReviewStatsProps {
@@ -10,54 +10,33 @@ interface ReviewStatsProps {
 }
 
 export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewStatsProps) {
-  const { average_rating, total_count, rating_distribution, photo_review_count } = stats
+  const { average_rating, total_count, rating_distribution } = stats
 
   const maxCount = Math.max(...Object.values(rating_distribution), 1)
 
   return (
     <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]">
-      {/* 상단: 평균 별점 + 카운트 배지 */}
-      <div className="flex items-center justify-between mb-4">
-        {/* 평균 별점 */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={18}
-                className={star <= Math.round(average_rating)
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-slate-200"
-                }
-              />
-            ))}
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-black text-black">{average_rating.toFixed(1)}</span>
-            <span className="text-slate-400 text-sm font-medium">/ 5.0</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            총 {total_count.toLocaleString()}개의 리뷰
-          </p>
+      {/* 상단: 평균 별점 */}
+      <div className="mb-4">
+        <div className="flex items-center gap-1 mb-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              size={18}
+              className={star <= Math.round(average_rating)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-slate-200"
+              }
+            />
+          ))}
         </div>
-
-        {/* 사진/전체 리뷰 카운트 */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-50 rounded-xl border border-pink-200">
-            <Camera size={14} className="text-pink-500" />
-            <div className="text-right">
-              <p className="text-[10px] text-pink-600 font-medium">사진리뷰</p>
-              <p className="text-base font-black text-pink-700">{photo_review_count}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-xl border border-purple-200">
-            <MessageCircle size={14} className="text-purple-500" />
-            <div className="text-right">
-              <p className="text-[10px] text-purple-600 font-medium">전체리뷰</p>
-              <p className="text-base font-black text-purple-700">{total_count}</p>
-            </div>
-          </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl font-black text-black">{average_rating.toFixed(1)}</span>
+          <span className="text-slate-400 text-sm font-medium">/ 5.0</span>
         </div>
+        <p className="text-xs text-slate-500 mt-0.5">
+          총 {total_count.toLocaleString()}개의 리뷰
+        </p>
       </div>
 
       {/* 별점 분포 */}

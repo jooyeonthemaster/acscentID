@@ -646,7 +646,7 @@
     "option1Tab": "1안: 직접 선택",
     "option2Tab": "2안: AI 추천",
     "option1Banner": "AI 수정 없이 내가 선택한 그대로예요!",
-    "option2Banner": "자연어 피드백을 반영해 AI가 추천해요!",
+    "option2Banner": "원하는 느낌을 적어주세요, AI가 레시피를 바꿔드려요!",
     "recipeComposition": "레시피 구성",
     "drops": "방울",
     "totalDrops": "총 {count}방울",

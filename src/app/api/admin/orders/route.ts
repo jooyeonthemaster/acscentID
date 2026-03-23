@@ -81,15 +81,41 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // analysis_id가 있는 주문들의 분석 정보 조회 (모델링 이미지 포함)
-    const analysisIds = orders?.filter(o => o.analysis_id).map(o => o.analysis_id) || []
+    // order_items 조회 (엑셀 다운로드가 아닌 경우에만)
+    const orderIds = orders?.map(o => o.id) || []
+    let orderItemsMap: Record<string, any[]> = {}
+
+    if (!exportAll && orderIds.length > 0) {
+      const { data: orderItems } = await serviceClient
+        .from('order_items')
+        .select('*')
+        .in('order_id', orderIds)
+        .order('created_at', { ascending: true })
+
+      if (orderItems) {
+        orderItemsMap = orderItems.reduce((acc, item) => {
+          if (!acc[item.order_id]) acc[item.order_id] = []
+          acc[item.order_id].push(item)
+          return acc
+        }, {} as Record<string, any[]>)
+      }
+    }
+
+    // 모든 analysis_id 수집 (orders + order_items 모두)
+    const analysisIdsFromOrders = orders?.filter(o => o.analysis_id).map(o => o.analysis_id) || []
+    const analysisIdsFromItems = Object.values(orderItemsMap)
+      .flat()
+      .filter(item => item.analysis_id)
+      .map(item => item.analysis_id)
+    const allAnalysisIds = [...new Set([...analysisIdsFromOrders, ...analysisIdsFromItems])]
+
     let analysisMap: Record<string, any> = {}
 
-    if (analysisIds.length > 0) {
+    if (allAnalysisIds.length > 0) {
       const { data: analyses } = await serviceClient
         .from('analysis_results')
         .select('id, modeling_image_url, modeling_request, product_type, user_image_url')
-        .in('id', analysisIds)
+        .in('id', allAnalysisIds)
 
       if (analyses) {
         analysisMap = analyses.reduce((acc, a) => {
@@ -99,11 +125,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 주문에 분석 정보 추가
-    const enrichedOrders = orders?.map(order => ({
-      ...order,
-      analysis: order.analysis_id ? analysisMap[order.analysis_id] : null
-    }))
+    // 주문에 분석 정보 + order_items 추가
+    const enrichedOrders = orders?.map(order => {
+      const items = orderItemsMap[order.id] || []
+      const enrichedItems = items.map(item => ({
+        ...item,
+        analysis: item.analysis_id ? analysisMap[item.analysis_id] : null
+      }))
+      return {
+        ...order,
+        analysis: order.analysis_id ? analysisMap[order.analysis_id] : null,
+        order_items: enrichedItems,
+      }
+    })
 
     return NextResponse.json({
       orders: enrichedOrders,

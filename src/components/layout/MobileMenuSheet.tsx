@@ -135,7 +135,6 @@ export function MobileMenuSheet({
   const programLinks = [
     { href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
     { href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-    { href: '/programs/graduation', label: t('programs.subtitle.graduation'), image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
   ]
 
   return (

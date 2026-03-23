@@ -99,18 +99,23 @@ export function ReviewModal({
                     {/* 리뷰 작성 버튼 */}
                     {currentUserId && (
                       <button
-                        onClick={onWriteReview}
-                        disabled={!canWriteReview}
+                        onClick={() => {
+                          if (canWriteReview) {
+                            onWriteReview?.()
+                          } else if (hasReviewed) {
+                            alert('이미 리뷰를 작성했어요!')
+                          } else {
+                            alert('상품 구매 후 리뷰를 작성할 수 있어요!')
+                          }
+                        }}
                         className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-xl font-bold text-xs md:text-sm border-2 border-black transition-all ${
                           canWriteReview
-                            ? 'bg-yellow-400 shadow-[2px_2px_0_0_black] md:shadow-[3px_3px_0_0_black]'
-                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            ? 'bg-yellow-400 shadow-[2px_2px_0_0_black] md:shadow-[3px_3px_0_0_black] hover:shadow-[3px_3px_0_0_black] md:hover:shadow-[4px_4px_0_0_black]'
+                            : 'bg-white shadow-[2px_2px_0_0_black]'
                         }`}
                       >
                         <PenLine size={14} />
-                        <span className="hidden sm:inline">
-                          {hasReviewed ? '작성완료' : canWriteReview ? '리뷰쓰기' : '구매후작성'}
-                        </span>
+                        <span className="hidden sm:inline">리뷰쓰기</span>
                       </button>
                     )}
 

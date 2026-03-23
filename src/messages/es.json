@@ -1169,7 +1169,7 @@
     "option1Tab": "Opción 1: Mi selección",
     "option2Tab": "Opción 2: Recomendación IA",
     "option1Banner": "¡Exactamente como elegiste, sin modificaciones de la IA!",
-    "option2Banner": "¡La IA recomienda basándose en tu feedback!",
+    "option2Banner": "¡Describe lo que quieres y la IA ajustará tu receta!",
     "recipeComposition": "Composición de la receta",
     "drops": "gotas",
     "totalDrops": "Total {count} gotas",

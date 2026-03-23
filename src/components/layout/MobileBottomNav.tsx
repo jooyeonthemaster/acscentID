@@ -16,7 +16,6 @@ import { useTranslations } from 'next-intl'
 const PROGRAM_LINKS = [
   { href: '/programs/idol-image', labelKey: 'programs.subtitle.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
   { href: '/programs/figure', labelKey: 'programs.subtitle.figure' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  { href: '/programs/graduation', labelKey: 'programs.subtitle.graduation' as const, descKey: 'programs.subtitle.graduation' as const, image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg', limitedUntil: '2/28' },
 ]
 
 // NavItem 컴포넌트
@@ -110,57 +109,23 @@ function ProgramsSheet({
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className={cn(
-                "flex items-center gap-4 p-4 border-2 rounded-2xl transition-all group",
-                link.limitedUntil
-                  ? "bg-red-50 border-red-200 hover:border-red-400 hover:bg-red-100"
-                  : "bg-slate-50 border-slate-200 hover:border-purple-400 hover:bg-purple-50"
-              )}
+              className="flex items-center gap-4 p-4 border-2 rounded-2xl transition-all group bg-slate-50 border-slate-200 hover:border-purple-400 hover:bg-purple-50"
             >
               <div className="relative">
-                <div className={cn(
-                  "w-14 h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center overflow-hidden transition-all",
-                  link.limitedUntil
-                    ? "shadow-[3px_3px_0px_0px_rgba(239,68,68,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(220,38,38,1)]"
-                    : "shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)]"
-                )}>
+                <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center overflow-hidden transition-all shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)]">
                   <img src={link.image} alt={t(link.labelKey)} className="w-full h-full object-cover" />
                 </div>
-                {link.limitedUntil && (
-                  <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-white animate-pulse">
-                    {t('nav.limited')}
-                  </span>
-                )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className={cn(
-                    "font-bold transition-colors",
-                    link.limitedUntil
-                      ? "text-red-700 group-hover:text-red-800"
-                      : "text-slate-900 group-hover:text-purple-700"
-                  )}>{t(link.labelKey)}</h4>
-                  {link.limitedUntil && (
-                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
-                      ~{link.limitedUntil}
-                    </span>
-                  )}
+                  <h4 className="font-bold transition-colors text-slate-900 group-hover:text-purple-700">{t(link.labelKey)}</h4>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 whitespace-pre-line">
                   {t(link.descKey)}
                 </p>
               </div>
-              <div className={cn(
-                "w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center transition-all",
-                link.limitedUntil
-                  ? "border-red-200 group-hover:border-red-400 group-hover:bg-red-100"
-                  : "border-slate-200 group-hover:border-purple-400 group-hover:bg-purple-100"
-              )}>
-                <ChevronRight size={16} className={cn(
-                  link.limitedUntil
-                    ? "text-red-400 group-hover:text-red-600"
-                    : "text-slate-400 group-hover:text-purple-600"
-                )} />
+              <div className="w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center transition-all border-slate-200 group-hover:border-purple-400 group-hover:bg-purple-100">
+                <ChevronRight size={16} className="text-slate-400 group-hover:text-purple-600" />
               </div>
             </Link>
           ))}

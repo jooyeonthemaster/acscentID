@@ -25,6 +25,7 @@ export default function Home() {
       image: "/images/perfume/KakaoTalk_20260125_225218071.jpg",
       price: 24000,
       originalPrice: 35000,
+      priceRange: true,
       delivery: t('shipping.estimated'),
       badge: "31% OFF",
       badgeColor: "bg-[#FF6B9D]",
@@ -42,19 +43,6 @@ export default function Home() {
       badgeColor: "bg-[#A78BFA]",
       href: "/programs/figure"
     },
-    {
-      id: "graduation",
-      title: t('products.graduation'),
-      subtitle: t('programs.subtitle.graduation'),
-      image: "/images/jollduck/KakaoTalk_20260130_201156204.jpg",
-      price: 34000,
-      originalPrice: 49000,
-      delivery: t('shipping.estimated'),
-      badge: t('home.limitedBadge', { date: '2/28' }),
-      badgeColor: "bg-red-500",
-      limitedUntil: "2/28",
-      href: "/programs/graduation"
-    }
   ]
 
   const handleCardClick = (href: string) => {
@@ -195,7 +183,7 @@ export default function Home() {
                         />
                         {/* 뱃지 */}
                         {product.badge && (
-                          <div className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full ${product.limitedUntil ? 'animate-pulse' : ''}`}>
+                          <div className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full`}>
                             {product.badge}
                           </div>
                         )}
@@ -211,7 +199,7 @@ export default function Home() {
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className="text-sm font-bold text-slate-900">
-                          {t('currency.symbol')}{product.price.toLocaleString()}
+                          {t('currency.symbol')}{product.price.toLocaleString()}{product.priceRange && '~'}
                         </span>
                         {product.originalPrice && (
                           <span className="text-[10px] text-slate-400 line-through">
@@ -220,8 +208,8 @@ export default function Home() {
                         )}
                       </div>
 
-                      <p className={`text-[9px] font-medium mt-1 ${product.limitedUntil ? 'text-red-500 font-bold' : 'text-emerald-600'}`}>
-                        {product.limitedUntil ? t('home.limitedSale', { date: product.limitedUntil }) : product.delivery}
+                      <p className="text-[9px] font-medium mt-1 text-emerald-600">
+                        {product.delivery}
                       </p>
                     </div>
                   </motion.div>
