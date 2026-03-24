@@ -77,7 +77,7 @@ export function ReviewModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
           />
 
           {/* Modal */}
@@ -85,7 +85,7 @@ export function ReviewModal({
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed inset-x-0 bottom-0 top-16 z-50 overflow-hidden md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-4xl md:max-h-[85vh] md:w-[95vw]"
+            className="fixed inset-x-0 bottom-0 top-16 z-[60] overflow-hidden md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-4xl md:max-h-[85vh] md:w-[95vw]"
           >
             <div className="h-full bg-[#FFFDF5] rounded-t-3xl md:rounded-3xl border-t-2 md:border-2 border-black shadow-2xl flex flex-col">
               {/* Header */}
@@ -130,7 +130,7 @@ export function ReviewModal({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-36 md:pb-6 space-y-6 md:space-y-8">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-10 h-10 animate-spin text-yellow-500" />
