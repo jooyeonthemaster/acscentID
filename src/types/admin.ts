@@ -167,14 +167,21 @@ export interface AdminMemberRecord {
   referred_by: string | null
   created_at: string
   // 통계 데이터 (API에서 집계)
-  analysis_count?: number
-  order_count?: number
+  analysis_count: number
+  order_count: number
+  order_total: number
+  review_count: number
+  coupon_total: number
+  coupon_used: number
   // 추천 데이터 (API에서 집계)
-  referred_count?: number
+  referred_count: number
   referrer?: {
     name: string | null
     email: string | null
   } | null
+  // 시간 데이터
+  first_analysis_at: string | null
+  first_order_at: string | null
 }
 
 // 대시보드 통계

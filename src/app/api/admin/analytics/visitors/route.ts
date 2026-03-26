@@ -9,6 +9,47 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Supabase PostgREST 기본 max_rows=1000 제한을 우회하는 페이지네이션 헬퍼
+const PAGE_SIZE = 1000
+
+async function fetchAllRows<T = Record<string, unknown>>(
+  table: string,
+  select: string,
+  filters: { column: string; op: 'gte' | 'lte' | 'eq'; value: string }[],
+  options?: { order?: { column: string; ascending: boolean } }
+): Promise<T[]> {
+  const allRows: T[] = []
+  let from = 0
+
+  while (true) {
+    let query = supabaseAdmin
+      .from(table)
+      .select(select)
+      .range(from, from + PAGE_SIZE - 1)
+
+    for (const f of filters) {
+      if (f.op === 'gte') query = query.gte(f.column, f.value)
+      else if (f.op === 'lte') query = query.lte(f.column, f.value)
+      else if (f.op === 'eq') query = query.eq(f.column, f.value)
+    }
+
+    if (options?.order) {
+      query = query.order(options.order.column, { ascending: options.order.ascending })
+    }
+
+    const { data, error } = await query
+    if (error || !data || data.length === 0) break
+
+    allRows.push(...(data as T[]))
+
+    // 받은 데이터가 PAGE_SIZE 미만이면 더 이상 없음
+    if (data.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+
+  return allRows
+}
+
 // 관리자 이메일 목록
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
@@ -97,13 +138,16 @@ async function getSummary(start: Date, end: Date) {
   const startStr = start.toISOString()
   const endStr = end.toISOString()
 
-  // 현재 기간 통계
-  const { data: sessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('id, page_views_count, started_at, last_activity_at')
-    .gte('started_at', startStr)
-    .lte('started_at', endStr)
-    .limit(50000)
+  // 현재 기간 통계 - 페이지네이션으로 전체 세션 가져오기 (1000행 제한 우회)
+  const sessions = await fetchAllRows<{
+    id: string
+    page_views_count: number
+    started_at: string
+    last_activity_at: string
+  }>('analytics_sessions', 'id, page_views_count, started_at, last_activity_at', [
+    { column: 'started_at', op: 'gte', value: startStr },
+    { column: 'started_at', op: 'lte', value: endStr },
+  ])
 
   const { count: pageViews } = await supabaseAdmin
     .from('analytics_page_views')
@@ -111,17 +155,16 @@ async function getSummary(start: Date, end: Date) {
     .gte('viewed_at', startStr)
     .lte('viewed_at', endStr)
 
-  // 이전 기간 통계 (비교용)
+  // 이전 기간 통계 (비교용) - count만 필요하므로 head:true 사용
   const periodLength = end.getTime() - start.getTime()
   const prevStart = new Date(start.getTime() - periodLength)
   const prevEnd = new Date(start.getTime())
 
-  const { data: prevSessions } = await supabaseAdmin
+  const { count: previousVisitors } = await supabaseAdmin
     .from('analytics_sessions')
-    .select('id')
+    .select('*', { count: 'exact', head: true })
     .gte('started_at', prevStart.toISOString())
     .lte('started_at', prevEnd.toISOString())
-    .limit(50000)
 
   const { count: prevPageViews } = await supabaseAdmin
     .from('analytics_page_views')
@@ -129,14 +172,13 @@ async function getSummary(start: Date, end: Date) {
     .gte('viewed_at', prevStart.toISOString())
     .lte('viewed_at', prevEnd.toISOString())
 
-  const currentVisitors = sessions?.length || 0
-  const previousVisitors = prevSessions?.length || 0
+  const currentVisitors = sessions.length
   const currentPV = pageViews || 0
   const previousPV = prevPageViews || 0
 
   // 평균 세션 시간 계산
   let avgDuration = 0
-  if (sessions && sessions.length > 0) {
+  if (sessions.length > 0) {
     const totalDuration = sessions.reduce((acc, s) => {
       const duration =
         new Date(s.last_activity_at).getTime() - new Date(s.started_at).getTime()
@@ -146,7 +188,7 @@ async function getSummary(start: Date, end: Date) {
   }
 
   // 이탈률 계산
-  const bouncedSessions = sessions?.filter((s) => s.page_views_count === 1).length || 0
+  const bouncedSessions = sessions.filter((s) => s.page_views_count === 1).length
   const bounceRate =
     currentVisitors > 0 ? Math.round((bouncedSessions / currentVisitors) * 100) : 0
 
@@ -161,27 +203,29 @@ async function getSummary(start: Date, end: Date) {
         currentVisitors > 0 ? Math.round((currentPV / currentVisitors) * 10) / 10 : 0,
     },
     comparison: {
-      visitorsChange: calculateChange(currentVisitors, previousVisitors),
+      visitorsChange: calculateChange(currentVisitors, previousVisitors || 0),
       pageViewsChange: calculateChange(currentPV, previousPV),
-      sessionsChange: calculateChange(currentVisitors, previousVisitors),
+      sessionsChange: calculateChange(currentVisitors, previousVisitors || 0),
     },
   })
 }
 
 // 일별 통계
 async function getDailyStats(start: Date, end: Date) {
-  // sessions의 page_views_count를 활용하여 PV도 함께 집계 (1000행 제한 회피)
-  const { data: sessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('started_at, page_views_count')
-    .gte('started_at', start.toISOString())
-    .lte('started_at', end.toISOString())
-    .limit(50000)
+  // 페이지네이션으로 전체 세션 가져오기 (1000행 제한 우회)
+  const sessions = await fetchAllRows<{ started_at: string; page_views_count: number }>(
+    'analytics_sessions',
+    'started_at, page_views_count',
+    [
+      { column: 'started_at', op: 'gte', value: start.toISOString() },
+      { column: 'started_at', op: 'lte', value: end.toISOString() },
+    ]
+  )
 
   // 날짜별 집계
   const dailyMap = new Map<string, { visitors: number; pageViews: number }>()
 
-  sessions?.forEach((s) => {
+  sessions.forEach((s) => {
     const date = new Date(s.started_at).toISOString().split('T')[0]
     const existing = dailyMap.get(date) || { visitors: 0, pageViews: 0 }
     existing.visitors++
@@ -198,16 +242,18 @@ async function getDailyStats(start: Date, end: Date) {
 
 // 인기 페이지
 async function getTopPages(start: Date, end: Date) {
-  const { data } = await supabaseAdmin
-    .from('analytics_page_views')
-    .select('page_path, session_id')
-    .gte('viewed_at', start.toISOString())
-    .lte('viewed_at', end.toISOString())
-    .limit(50000)
+  const data = await fetchAllRows<{ page_path: string; session_id: string }>(
+    'analytics_page_views',
+    'page_path, session_id',
+    [
+      { column: 'viewed_at', op: 'gte', value: start.toISOString() },
+      { column: 'viewed_at', op: 'lte', value: end.toISOString() },
+    ]
+  )
 
   const pageMap = new Map<string, { views: number; sessions: Set<string> }>()
 
-  data?.forEach((pv) => {
+  data.forEach((pv) => {
     const existing = pageMap.get(pv.page_path) || { views: 0, sessions: new Set() }
     existing.views++
     existing.sessions.add(pv.session_id)
@@ -228,17 +274,20 @@ async function getTopPages(start: Date, end: Date) {
 
 // 유입 경로
 async function getReferrers(start: Date, end: Date) {
-  const { data } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('referrer_domain, utm_source, utm_medium, utm_campaign')
-    .gte('started_at', start.toISOString())
-    .lte('started_at', end.toISOString())
-    .limit(50000)
+  const data = await fetchAllRows<{
+    referrer_domain: string | null
+    utm_source: string | null
+    utm_medium: string | null
+    utm_campaign: string | null
+  }>('analytics_sessions', 'referrer_domain, utm_source, utm_medium, utm_campaign', [
+    { column: 'started_at', op: 'gte', value: start.toISOString() },
+    { column: 'started_at', op: 'lte', value: end.toISOString() },
+  ])
 
   const referrerMap = new Map<string, number>()
   let total = 0
 
-  data?.forEach((s) => {
+  data.forEach((s) => {
     const domain = s.referrer_domain || '직접 유입'
     referrerMap.set(domain, (referrerMap.get(domain) || 0) + 1)
     total++
@@ -255,7 +304,7 @@ async function getReferrers(start: Date, end: Date) {
 
   // UTM 캠페인별 통계
   const campaignMap = new Map<string, number>()
-  data?.forEach((s) => {
+  data.forEach((s) => {
     if (s.utm_campaign) {
       campaignMap.set(s.utm_campaign, (campaignMap.get(s.utm_campaign) || 0) + 1)
     }
@@ -270,18 +319,20 @@ async function getReferrers(start: Date, end: Date) {
 
 // 디바이스 통계
 async function getDevices(start: Date, end: Date) {
-  const { data } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('device_type, browser, os')
-    .gte('started_at', start.toISOString())
-    .lte('started_at', end.toISOString())
-    .limit(50000)
+  const data = await fetchAllRows<{
+    device_type: string | null
+    browser: string | null
+    os: string | null
+  }>('analytics_sessions', 'device_type, browser, os', [
+    { column: 'started_at', op: 'gte', value: start.toISOString() },
+    { column: 'started_at', op: 'lte', value: end.toISOString() },
+  ])
 
   const deviceMap = new Map<string, number>()
   const browserMap = new Map<string, number>()
   const osMap = new Map<string, number>()
 
-  data?.forEach((s) => {
+  data.forEach((s) => {
     deviceMap.set(s.device_type || 'unknown', (deviceMap.get(s.device_type || 'unknown') || 0) + 1)
     if (s.browser) browserMap.set(s.browser, (browserMap.get(s.browser) || 0) + 1)
     if (s.os) osMap.set(s.os, (osMap.get(s.os) || 0) + 1)
@@ -296,16 +347,19 @@ async function getDevices(start: Date, end: Date) {
 
 // 이벤트 통계
 async function getEvents(start: Date, end: Date) {
-  const { data } = await supabaseAdmin
-    .from('analytics_events')
-    .select('event_name, event_category, event_data, page_path')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
-    .limit(50000)
+  const data = await fetchAllRows<{
+    event_name: string
+    event_category: string | null
+    event_data: unknown
+    page_path: string | null
+  }>('analytics_events', 'event_name, event_category, event_data, page_path', [
+    { column: 'created_at', op: 'gte', value: start.toISOString() },
+    { column: 'created_at', op: 'lte', value: end.toISOString() },
+  ])
 
   const eventMap = new Map<string, number>()
 
-  data?.forEach((e) => {
+  data.forEach((e) => {
     eventMap.set(e.event_name, (eventMap.get(e.event_name) || 0) + 1)
   })
 
@@ -320,18 +374,20 @@ async function getEvents(start: Date, end: Date) {
 async function getRealtime() {
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
 
-  const { data: activeSessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('session_id, device_type')
-    .gte('last_activity_at', fiveMinutesAgo)
+  const activeSessions = await fetchAllRows<{ session_id: string; device_type: string | null }>(
+    'analytics_sessions',
+    'session_id, device_type',
+    [{ column: 'last_activity_at', op: 'gte', value: fiveMinutesAgo }]
+  )
 
-  const { data: recentPageViews } = await supabaseAdmin
-    .from('analytics_page_views')
-    .select('page_path, session_id')
-    .gte('viewed_at', fiveMinutesAgo)
+  const recentPageViews = await fetchAllRows<{ page_path: string; session_id: string }>(
+    'analytics_page_views',
+    'page_path, session_id',
+    [{ column: 'viewed_at', op: 'gte', value: fiveMinutesAgo }]
+  )
 
   const pageMap = new Map<string, number>()
-  recentPageViews?.forEach((pv) => {
+  recentPageViews.forEach((pv) => {
     pageMap.set(pv.page_path, (pageMap.get(pv.page_path) || 0) + 1)
   })
 
@@ -341,7 +397,7 @@ async function getRealtime() {
     .slice(0, 5)
 
   return NextResponse.json({
-    activeVisitors: activeSessions?.length || 0,
+    activeVisitors: activeSessions.length,
     currentPages,
     lastUpdated: new Date().toISOString(),
   })
@@ -349,17 +405,24 @@ async function getRealtime() {
 
 // 사용자 플로우
 async function getUserFlow(start: Date, end: Date) {
-  const { data } = await supabaseAdmin
-    .from('analytics_page_views')
-    .select('session_id, page_path, previous_page, viewed_at')
-    .gte('viewed_at', start.toISOString())
-    .lte('viewed_at', end.toISOString())
-    .order('viewed_at', { ascending: true })
-    .limit(50000)
+  const data = await fetchAllRows<{
+    session_id: string
+    page_path: string
+    previous_page: string | null
+    viewed_at: string
+  }>(
+    'analytics_page_views',
+    'session_id, page_path, previous_page, viewed_at',
+    [
+      { column: 'viewed_at', op: 'gte', value: start.toISOString() },
+      { column: 'viewed_at', op: 'lte', value: end.toISOString() },
+    ],
+    { order: { column: 'viewed_at', ascending: true } }
+  )
 
   const flowMap = new Map<string, number>()
 
-  data?.forEach((pv) => {
+  data.forEach((pv) => {
     if (pv.previous_page) {
       const key = `${pv.previous_page}|${pv.page_path}`
       flowMap.set(key, (flowMap.get(key) || 0) + 1)
@@ -379,12 +442,14 @@ async function getUserFlow(start: Date, end: Date) {
 
 // 시간별 통계 (1일 뷰용)
 async function getHourlyStats(start: Date, end: Date) {
-  const { data: sessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('started_at, page_views_count')
-    .gte('started_at', start.toISOString())
-    .lte('started_at', end.toISOString())
-    .limit(50000)
+  const sessions = await fetchAllRows<{ started_at: string; page_views_count: number }>(
+    'analytics_sessions',
+    'started_at, page_views_count',
+    [
+      { column: 'started_at', op: 'gte', value: start.toISOString() },
+      { column: 'started_at', op: 'lte', value: end.toISOString() },
+    ]
+  )
 
   // 시간별 집계 (0~23시) - sessions의 page_views_count 활용
   const hourlyMap = new Map<number, { visitors: number; pageViews: number }>()
@@ -392,7 +457,7 @@ async function getHourlyStats(start: Date, end: Date) {
     hourlyMap.set(i, { visitors: 0, pageViews: 0 })
   }
 
-  sessions?.forEach((s) => {
+  sessions.forEach((s) => {
     const hour = new Date(s.started_at).getHours()
     const existing = hourlyMap.get(hour)!
     existing.visitors++
@@ -415,18 +480,20 @@ async function getCalendarData(yearStr: string | null, monthStr: string | null) 
   const startOfMonth = new Date(year, month - 1, 1)
   const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999)
 
-  // sessions의 page_views_count를 활용하여 PV도 함께 집계 (1000행 제한 회피)
-  const { data: sessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('started_at, page_views_count, last_activity_at')
-    .gte('started_at', startOfMonth.toISOString())
-    .lte('started_at', endOfMonth.toISOString())
-    .limit(50000)
+  // 페이지네이션으로 전체 세션 가져오기 (1000행 제한 우회)
+  const sessions = await fetchAllRows<{
+    started_at: string
+    page_views_count: number
+    last_activity_at: string
+  }>('analytics_sessions', 'started_at, page_views_count, last_activity_at', [
+    { column: 'started_at', op: 'gte', value: startOfMonth.toISOString() },
+    { column: 'started_at', op: 'lte', value: endOfMonth.toISOString() },
+  ])
 
   // 일별 집계
   const dailyMap = new Map<number, { visitors: number; pageViews: number; avgDuration: number; totalDuration: number }>()
 
-  sessions?.forEach((s) => {
+  sessions.forEach((s) => {
     const day = new Date(s.started_at).getDate()
     const existing = dailyMap.get(day) || { visitors: 0, pageViews: 0, avgDuration: 0, totalDuration: 0 }
     existing.visitors++
@@ -466,21 +533,27 @@ async function getCalendarData(yearStr: string | null, monthStr: string | null) 
 
 // 체류시간 상세 분석
 async function getDurationDetail(start: Date, end: Date) {
-  const { data: sessions } = await supabaseAdmin
-    .from('analytics_sessions')
-    .select('id, started_at, last_activity_at, page_views_count, device_type')
-    .gte('started_at', start.toISOString())
-    .lte('started_at', end.toISOString())
-    .limit(50000)
+  const sessions = await fetchAllRows<{
+    id: string
+    started_at: string
+    last_activity_at: string
+    page_views_count: number
+    device_type: string | null
+  }>('analytics_sessions', 'id, started_at, last_activity_at, page_views_count, device_type', [
+    { column: 'started_at', op: 'gte', value: start.toISOString() },
+    { column: 'started_at', op: 'lte', value: end.toISOString() },
+  ])
 
-  const { data: pageViews } = await supabaseAdmin
-    .from('analytics_page_views')
-    .select('page_path, time_on_page, session_id')
-    .gte('viewed_at', start.toISOString())
-    .lte('viewed_at', end.toISOString())
-    .limit(50000)
+  const pageViews = await fetchAllRows<{
+    page_path: string
+    time_on_page: number | null
+    session_id: string
+  }>('analytics_page_views', 'page_path, time_on_page, session_id', [
+    { column: 'viewed_at', op: 'gte', value: start.toISOString() },
+    { column: 'viewed_at', op: 'lte', value: end.toISOString() },
+  ])
 
-  if (!sessions || sessions.length === 0) {
+  if (sessions.length === 0) {
     return NextResponse.json({
       avgDuration: 0,
       medianDuration: 0,
@@ -549,7 +622,7 @@ async function getDurationDetail(start: Date, end: Date) {
 
   // 페이지별 평균 체류시간
   const pageTimeMap = new Map<string, { totalTime: number; count: number }>()
-  pageViews?.forEach((pv) => {
+  pageViews.forEach((pv) => {
     if (pv.time_on_page && pv.time_on_page > 0) {
       const existing = pageTimeMap.get(pv.page_path) || { totalTime: 0, count: 0 }
       existing.totalTime += pv.time_on_page
