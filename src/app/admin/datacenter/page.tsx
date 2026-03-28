@@ -55,6 +55,8 @@ interface ProgramStats {
 interface DatacenterResponse {
   byProgram: Record<string, ProgramStats>
   total: ProgramStats
+  perfumeDailyTrend?: Record<string, string | number>[]
+  top10Perfumes?: string[]
 }
 
 const PROGRAM_LABELS: Record<ProgramType, { label: string; icon: React.ReactNode; color: string }> = {
@@ -193,6 +195,128 @@ function GenderChart({ genderCounts }: { genderCounts: CountItem[] }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// 일자별 향수 추천 트렌드 차트
+const TREND_COLORS = [
+  '#f59e0b', '#ef4444', '#3b82f6', '#10b981', '#8b5cf6',
+  '#ec4899', '#f97316', '#06b6d4', '#84cc16', '#6366f1',
+]
+
+function DailyPerfumeTrendChart({
+  trendData,
+  perfumeNames,
+}: {
+  trendData: Record<string, string | number>[]
+  perfumeNames: string[]
+}) {
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null)
+
+  // 최근 30일만 표시
+  const recentData = trendData.slice(-30)
+
+  if (recentData.length === 0) {
+    return <div className="text-center text-slate-400 py-8">데이터가 없습니다</div>
+  }
+
+  // 일자별 최대값 계산
+  const maxDailyTotal = Math.max(
+    ...recentData.map((d) =>
+      perfumeNames.reduce((sum, name) => sum + (Number(d[name]) || 0), 0)
+    ),
+    1
+  )
+
+  return (
+    <div className="space-y-4">
+      {/* 범례 */}
+      <div className="flex flex-wrap gap-2">
+        {perfumeNames.map((name, i) => (
+          <div key={name} className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 rounded-sm flex-shrink-0"
+              style={{ backgroundColor: TREND_COLORS[i % TREND_COLORS.length] }}
+            />
+            <span className="text-[10px] text-slate-600">{name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* 스택 바 차트 */}
+      <div className="space-y-1 max-h-[500px] overflow-y-auto pr-1">
+        {recentData.map((dayData) => {
+          const date = dayData.date as string
+          const shortDate = date.slice(5) // "MM-DD"
+          const dailyTotal = perfumeNames.reduce(
+            (sum, name) => sum + (Number(dayData[name]) || 0),
+            0
+          )
+          const isHovered = hoveredDate === date
+
+          return (
+            <div
+              key={date}
+              className={`flex items-center gap-2 py-1 px-1 rounded transition-colors ${
+                isHovered ? 'bg-slate-50' : ''
+              }`}
+              onMouseEnter={() => setHoveredDate(date)}
+              onMouseLeave={() => setHoveredDate(null)}
+            >
+              <span className="text-[10px] text-slate-400 w-12 flex-shrink-0 text-right font-mono">
+                {shortDate}
+              </span>
+              <div className="flex-1 flex h-5 bg-slate-100 rounded overflow-hidden">
+                {perfumeNames.map((name, i) => {
+                  const count = Number(dayData[name]) || 0
+                  if (count === 0) return null
+                  const widthPercent = (count / maxDailyTotal) * 100
+                  return (
+                    <div
+                      key={name}
+                      className="h-full transition-all relative group"
+                      style={{
+                        width: `${widthPercent}%`,
+                        backgroundColor: TREND_COLORS[i % TREND_COLORS.length],
+                      }}
+                      title={`${name}: ${count}건`}
+                    />
+                  )
+                })}
+              </div>
+              <span className="text-[10px] text-slate-500 w-8 flex-shrink-0 text-right font-bold">
+                {dailyTotal}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 호버 시 상세 정보 */}
+      {hoveredDate && (() => {
+        const dayData = recentData.find((d) => d.date === hoveredDate)
+        if (!dayData) return null
+        const entries = perfumeNames
+          .map((name, i) => ({ name, count: Number(dayData[name]) || 0, color: TREND_COLORS[i % TREND_COLORS.length] }))
+          .filter((e) => e.count > 0)
+          .sort((a, b) => b.count - a.count)
+
+        return (
+          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+            <p className="text-xs font-bold text-slate-700 mb-2">{hoveredDate} 상세</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              {entries.map((e) => (
+                <div key={e.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: e.color }} />
+                  <span className="text-[11px] text-slate-600 truncate">{e.name}</span>
+                  <span className="text-[11px] font-bold text-slate-800 ml-auto">{e.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -387,6 +511,30 @@ function OverviewSection({
                 <BarChart items={currentStats.perfumeCounts} colorClass="from-yellow-400 to-amber-500" />
               </div>
             </div>
+
+            {/* 일자별 향수 추천 트렌드 */}
+            {data?.perfumeDailyTrend && data.perfumeDailyTrend.length > 0 && (
+              <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+                <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-white">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                    <h2 className="font-bold text-slate-900">일자별 향수 추천 변화</h2>
+                    <span className="text-xs text-slate-500 ml-auto">
+                      상위 10종 · 최근 {data.perfumeDailyTrend.length}일
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    일자별로 어떤 향수가 추천되었는지 추이 확인 (프롬프트 변경 효과 추적용)
+                  </p>
+                </div>
+                <div className="p-5">
+                  <DailyPerfumeTrendChart
+                    trendData={data.perfumeDailyTrend}
+                    perfumeNames={data.top10Perfumes || []}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* 키워드 클라우드 */}
             <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">

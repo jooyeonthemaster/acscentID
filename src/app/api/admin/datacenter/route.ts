@@ -298,9 +298,35 @@ export async function GET(request: NextRequest) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
 
+    // 일자별 향수 추천 트렌드 (최근 30일)
+    const dailyPerfumeTrend: Record<string, Record<string, number>> = {}
+    for (const analysis of analyses) {
+      const date = new Date(analysis.created_at).toISOString().split('T')[0]
+      const rawName = analysis.perfume_name
+      if (!rawName) continue
+      const name = normalizePerfumeName(rawName)
+      if (!name) continue
+
+      if (!dailyPerfumeTrend[date]) dailyPerfumeTrend[date] = {}
+      dailyPerfumeTrend[date][name] = (dailyPerfumeTrend[date][name] || 0) + 1
+    }
+
+    // 날짜순 정렬 + 상위 10종만 추출
+    const top10Perfumes = totalStats.perfumeCounts.slice(0, 10).map((p) => p.name)
+    const sortedDates = Object.keys(dailyPerfumeTrend).sort()
+    const perfumeDailyTrend = sortedDates.map((date) => {
+      const entry: Record<string, string | number> = { date }
+      for (const perfume of top10Perfumes) {
+        entry[perfume] = dailyPerfumeTrend[date][perfume] || 0
+      }
+      return entry
+    })
+
     return NextResponse.json({
       byProgram: statsByProgram,
       total: totalStats,
+      perfumeDailyTrend,
+      top10Perfumes,
     })
   } catch (error) {
     console.error('Error in datacenter API:', error)
