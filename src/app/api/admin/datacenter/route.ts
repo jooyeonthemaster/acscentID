@@ -70,16 +70,39 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createServerSupabaseClientWithCookies()
 
-    // 모든 분석 결과 조회
-    const { data: analyses, error } = await supabase
-      .from('analysis_results')
-      .select('id, created_at, product_type, service_mode, perfume_name, matching_keywords, idol_name, twitter_name, analysis_data, qr_code_id, pin')
-      .order('created_at', { ascending: false })
+    // 모든 분석 결과 조회 (Supabase 기본 1000행 제한 우회 - 페이지네이션)
+    const PAGE_SIZE = 1000
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let allAnalyses: any[] = []
+    let page = 0
+    let hasMore = true
 
-    if (error) {
-      console.error('Error fetching analyses:', error)
-      return NextResponse.json({ error: '데이터를 불러오는데 실패했습니다' }, { status: 500 })
+    while (hasMore) {
+      const from = page * PAGE_SIZE
+      const to = from + PAGE_SIZE - 1
+
+      const { data: pageData, error: pageError } = await supabase
+        .from('analysis_results')
+        .select('id, created_at, product_type, service_mode, perfume_name, matching_keywords, idol_name, twitter_name, analysis_data, qr_code_id, pin')
+        .order('created_at', { ascending: false })
+        .range(from, to)
+
+      if (pageError) {
+        console.error('Error fetching analyses:', pageError)
+        return NextResponse.json({ error: '데이터를 불러오는데 실패했습니다' }, { status: 500 })
+      }
+
+      if (pageData && pageData.length > 0) {
+        allAnalyses = [...allAnalyses, ...pageData]
+        hasMore = pageData.length === PAGE_SIZE
+      } else {
+        hasMore = false
+      }
+      page++
     }
+
+    const analyses = allAnalyses
+    const error = null
 
     // CSV/엑셀 다운로드 요청인 경우
     if (format === 'csv') {

@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
         natural_language_feedback
       `)
       .order('created_at', { ascending: false })
+      .limit(10000)
 
     if (dateFrom) {
       query = query.gte('created_at', dateFrom)

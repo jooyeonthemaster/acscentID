@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
         generated_recipe
       `)
       .order('created_at', { ascending: false })
+      .limit(10000)
 
     if (dateFrom) {
       query = query.gte('created_at', dateFrom)

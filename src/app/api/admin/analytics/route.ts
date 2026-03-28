@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     const { data: analysisByProductData } = await supabase
       .from('analysis_results')
       .select('product_type')
+      .limit(50000)
 
     const analysisByProduct = {
       image_analysis: 0,
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
     const { data: analysisByModeData } = await supabase
       .from('analysis_results')
       .select('service_mode')
+      .limit(50000)
 
     const analysisByMode = {
       online: 0,
@@ -103,6 +105,7 @@ export async function GET(request: NextRequest) {
     const { data: ordersByStatusData } = await supabase
       .from('orders')
       .select('status')
+      .limit(50000)
 
     const ordersByStatus = {
       pending: 0,
@@ -126,6 +129,7 @@ export async function GET(request: NextRequest) {
       .select('final_price, created_at')
       .in('status', ['paid', 'shipping', 'delivered'])
       .eq('is_influencer', false)
+      .limit(50000)
 
     const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.final_price || 0), 0) || 0
 

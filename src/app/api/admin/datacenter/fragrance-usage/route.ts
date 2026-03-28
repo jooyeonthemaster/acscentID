@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
         service_mode
       `)
       .eq('service_mode', 'offline')
+      .limit(10000)
 
     if (dateFrom) {
       offlineQuery = offlineQuery.gte('created_at', dateFrom)
@@ -204,6 +205,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .in('orders.status', ['paid', 'delivered', 'shipping'])
+      .limit(10000)
 
     if (dateFrom) {
       onlineQuery = onlineQuery.gte('orders.created_at', dateFrom)
