@@ -13,7 +13,8 @@ import {
   ChevronRight,
   LogOut,
   Database,
-  BarChart3
+  BarChart3,
+  Bot,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -73,6 +74,12 @@ const navItems: NavItem[] = [
     label: '쿠폰 관리',
     icon: Ticket,
     description: '쿠폰 현황',
+  },
+  {
+    href: '/admin/ai-chat',
+    label: 'AI 분석봇',
+    icon: Bot,
+    description: 'DB 자연어 분석',
   },
 ]
 

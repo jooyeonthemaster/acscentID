@@ -20,6 +20,7 @@ interface RecipeConfirmProps {
   recipe: GeneratedRecipe
   perfumeName: string
   resultId?: string  // 분석 결과 ID - 레시피를 분석 결과와 연결
+  selectedRecipeType?: 'user_direct' | 'ai_recommended'  // 선택된 레시피 타입
   onBack: () => void
   onComplete: () => void
 }
@@ -28,6 +29,7 @@ export function RecipeConfirm({
   recipe,
   perfumeName,
   resultId,
+  selectedRecipeType,
   onBack,
   onComplete,
 }: RecipeConfirmProps) {
@@ -62,6 +64,7 @@ export function RecipeConfirm({
           perfumeName,
           selectedProduct,
           resultId,  // 분석 결과와 연결
+          selectedRecipeType: selectedRecipeType || 'user_direct',  // 선택된 레시피 타입
         }),
       })
 

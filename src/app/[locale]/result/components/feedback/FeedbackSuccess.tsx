@@ -15,7 +15,7 @@ interface FeedbackSuccessProps {
   perfumeName: string
   previousFeedback?: PerfumeFeedback // 이전 피드백 정보
   onClose: () => void
-  onConfirmRecipe: (recipe: GeneratedRecipe) => void // 레시피 확정하기 (선택된 탭의 레시피)
+  onConfirmRecipe: (recipe: GeneratedRecipe, recipeType: 'user_direct' | 'ai_recommended') => void // 레시피 확정하기 (선택된 탭의 레시피)
   onRetryFeedback: () => void // 다시 피드백 기록하기
 }
 
@@ -419,7 +419,7 @@ export function FeedbackSuccess({
       >
         {/* 레시피 확정하기 버튼 */}
         <Button
-          onClick={() => onConfirmRecipe(recipe)}
+          onClick={() => onConfirmRecipe(recipe, activeTab === 'user' ? 'user_direct' : 'ai_recommended')}
           className={`w-full h-12 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
             activeTab === 'user'
               ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/30'

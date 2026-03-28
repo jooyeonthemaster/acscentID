@@ -97,6 +97,7 @@ export function FeedbackModal({
 
   // 확정할 레시피 저장
   const [selectedRecipe, setSelectedRecipe] = useState<typeof userDirectRecipe>(null)
+  const [selectedRecipeType, setSelectedRecipeType] = useState<'user_direct' | 'ai_recommended'>('user_direct')
 
   // 로딩 메시지 순환
   const [loadingMessageIndex, setLoadingMessageIndex] = React.useState(0)
@@ -169,9 +170,10 @@ export function FeedbackModal({
     }
   }, [step, userDirectRecipe])
 
-  // 레시피 확정 버튼 핸들러 (선택된 레시피를 받음)
-  const handleConfirmRecipe = (recipe: NonNullable<typeof userDirectRecipe>) => {
+  // 레시피 확정 버튼 핸들러 (선택된 레시피와 타입을 받음)
+  const handleConfirmRecipe = (recipe: NonNullable<typeof userDirectRecipe>, recipeType: 'user_direct' | 'ai_recommended') => {
     setSelectedRecipe(recipe)
+    setSelectedRecipeType(recipeType)
     setModalView('confirm')
   }
 
@@ -449,6 +451,7 @@ export function FeedbackModal({
                     recipe={selectedRecipe}
                     perfumeName={perfumeName}
                     resultId={resultId}
+                    selectedRecipeType={selectedRecipeType}
                     onBack={handleBackFromConfirm}
                     onComplete={handleCompleteConfirm}
                   />
