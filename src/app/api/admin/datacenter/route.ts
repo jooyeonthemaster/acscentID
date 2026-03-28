@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getKakaoSession } from '@/lib/auth-session'
+import { perfumes } from '@/data/perfumes'
+import { getLocalizedPerfumeText } from '@/data/perfumes-i18n'
 
 // 관리자 이메일 목록
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
@@ -45,6 +47,35 @@ interface ProgramStats {
   keywordCounts: CountItem[]
   nameCounts: CountItem[]       // 분석 대상 이름 통계
   genderCounts: CountItem[]     // 성별 통계
+}
+
+// 다국어 향수 이름 → 한국어 이름 정규화 맵
+// DB에 영어/일본어/중국어 등 다양한 이름으로 저장된 것을 한국어로 통합
+const perfumeNameNormalizeMap: Record<string, string> = (() => {
+  const map: Record<string, string> = {}
+  const locales = ['en', 'ja', 'zh', 'es'] as const
+  for (const perfume of perfumes) {
+    // 한국어 이름은 그대로
+    map[perfume.name] = perfume.name
+    // 다국어 이름 → 한국어 이름 매핑
+    for (const locale of locales) {
+      const localized = getLocalizedPerfumeText(perfume.id, locale)
+      if (localized?.name) {
+        map[localized.name] = perfume.name
+      }
+    }
+  }
+  return map
+})()
+
+// 30종에 포함된 한국어 이름 Set
+const validPerfumeNames = new Set(perfumes.map((p) => p.name))
+
+function normalizePerfumeName(name: string): string | null {
+  const normalized = perfumeNameNormalizeMap[name]
+  if (normalized) return normalized
+  // 30종에 없는 이름은 null 반환 (AI가 잘못 생성한 이름 등)
+  return null
 }
 
 // 프로그램 타입 매핑 (DB 값 -> 표시용)
@@ -145,11 +176,14 @@ export async function GET(request: NextRequest) {
 
       statsByProgram[programType].totalAnalyses++
 
-      // 향수 이름 집계
-      const perfumeName = analysis.perfume_name
-      if (perfumeName) {
-        perfumeCountsTemp[programType][perfumeName] =
-          (perfumeCountsTemp[programType][perfumeName] || 0) + 1
+      // 향수 이름 집계 (다국어 이름을 한국어로 정규화, 30종 외 제외)
+      const rawPerfumeName = analysis.perfume_name
+      if (rawPerfumeName) {
+        const perfumeName = normalizePerfumeName(rawPerfumeName)
+        if (perfumeName) {
+          perfumeCountsTemp[programType][perfumeName] =
+            (perfumeCountsTemp[programType][perfumeName] || 0) + 1
+        }
       }
 
       // 키워드 집계
