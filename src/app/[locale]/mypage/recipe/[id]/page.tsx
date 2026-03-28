@@ -23,6 +23,7 @@ interface RecipeData {
   perfume_id: string
   generated_recipe: GeneratedRecipe
   retention_percentage: number
+  selected_product: string | null
 }
 
 export default function RecipeDetailPage() {
@@ -91,6 +92,10 @@ export default function RecipeDetailPage() {
         }
 
         setRecipe(data)
+        // DB에 저장된 제품 타입이 있으면 반영
+        if (data.selected_product && ['perfume_10ml', 'perfume_50ml', 'diffuser_5ml'].includes(data.selected_product)) {
+          setSelectedProduct(data.selected_product as ProductType)
+        }
       } catch (err) {
         console.error('Fetch error:', err)
         setError('로딩 중 오류가 발생했습니다')

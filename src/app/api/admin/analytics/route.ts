@@ -120,11 +120,12 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 3. 매출 통계
+    // 3. 매출 통계 (인플루언서 주문 제외)
     const { data: revenueData } = await supabase
       .from('orders')
       .select('final_price, created_at')
       .in('status', ['paid', 'shipping', 'delivered'])
+      .eq('is_influencer', false)
 
     const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.final_price || 0), 0) || 0
 

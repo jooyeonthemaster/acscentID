@@ -751,7 +751,7 @@
       "perfumeSub10": "香料 2g",
       "perfumeLabel50": "50ml 香水",
       "perfumeSub50": "香料 10g",
-      "oilLabel": "5ml オイル",
+      "oilLabel": "ディフューザー 5ml",
       "oilSub": "香料 5g",
       "totalIngredient": "総香料",
       "recipeAdjusted": "フィードバックで調整された自分だけのレシピです",
@@ -1141,6 +1141,9 @@
     "remainingGuide": "残り{ratio}%を下から追加香料を選んで埋めてください！",
     "maxSelectable": "⚠️ 最大{count}個まで選択可能",
     "previousSelectedScents": "前回選択した香料",
+    "searchScent": "香料検索",
+    "searchScentPlaceholder": "番号(01〜30)または名前で検索",
+    "searchNoResults": "検索結果がありません",
     "categoryExplore": "香料カテゴリー別に探す",
     "maxSelected": "（最大{count}個選択済み）",
     "recommendedCategory": "おすすめの香り系統",
@@ -1904,5 +1907,11 @@
       "linkTerms": "利用規約 →",
       "linkPrivacy": "個人情報処理方針 →"
     }
+  },
+  "cookieConsent": {
+    "message": "このウェブサイトはサービス向上のためCookieを使用しています。",
+    "accept": "同意",
+    "reject": "拒否",
+    "privacy": "プライバシーポリシー"
   }
 }

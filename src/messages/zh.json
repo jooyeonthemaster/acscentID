@@ -724,7 +724,7 @@
       "perfumeSub10": "香料2g",
       "perfumeLabel50": "50ml香水",
       "perfumeSub50": "香料10g",
-      "oilLabel": "5ml精油",
+      "oilLabel": "扩香 5ml",
       "oilSub": "香料5g",
       "totalIngredient": "总香料",
       "recipeAdjusted": "通过反馈调整的专属配方",
@@ -1114,6 +1114,9 @@
     "remainingGuide": "请在下方选择额外原料，填满剩余的{ratio}%！",
     "maxSelectable": "⚠️ 最多可选择{count}项",
     "previousSelectedScents": "之前选择的原料",
+    "searchScent": "搜索香料",
+    "searchScentPlaceholder": "按编号(01-30)或名称搜索",
+    "searchNoResults": "未找到结果",
     "categoryExplore": "按类别探索",
     "maxSelected": "（已选最大{count}项）",
     "recommendedCategory": "推荐类别",
@@ -1719,5 +1722,11 @@
       "linkTerms": "服务条款 →",
       "linkPrivacy": "隐私政策 →"
     }
+  },
+  "cookieConsent": {
+    "message": "本网站使用Cookie以提升您的使用体验。",
+    "accept": "接受",
+    "reject": "拒绝",
+    "privacy": "隐私政策"
   }
 }

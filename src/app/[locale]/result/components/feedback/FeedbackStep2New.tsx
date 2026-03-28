@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { ChevronDown, Plus, Minus, X, Info } from 'lucide-react'
+import { ChevronDown, Plus, Minus, X, Info, Search } from 'lucide-react'
 import { SpecificScent, FEEDBACK_CATEGORY_INFO, PerfumeFeedback } from '@/types/feedback'
 import { perfumes, getPerfumesByCategory } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
@@ -59,6 +59,10 @@ export function FeedbackStep2New({
   const t = useTranslations('feedback')
   const { getLocalizedName, getLocalizedKeywords } = useLocalizedPerfumes()
 
+  // 검색 상태
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+
   // 열린 아코디언 상태
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
@@ -92,6 +96,41 @@ export function FeedbackStep2New({
     })
     return result
   }, [recommendedPerfumeId])
+
+  // 검색 필터링 (번호, 이름, 키워드 모두 지원)
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim()
+    if (!query) return []
+
+    const lowerQuery = query.toLowerCase()
+    // 숫자만 입력한 경우 (예: "1", "01", "15") → 번호로 검색
+    const isNumericQuery = /^\d+$/.test(query)
+    const paddedNumber = isNumericQuery ? query.padStart(2, '0') : ''
+
+    return perfumes
+      .filter((p) => p.id !== recommendedPerfumeId) // 추천 향수 제외
+      .filter((p) => {
+        // 번호 검색: "1" → "01", "5" → "05"로 매칭
+        if (isNumericQuery) {
+          const perfumeNumber = p.id.split(' ')[1] // "AC'SCENT 05" → "05"
+          return perfumeNumber === paddedNumber || perfumeNumber.includes(query)
+        }
+        // 텍스트 검색: 이름, ID, 로컬라이즈된 이름, 키워드
+        const localizedName = getLocalizedName(p.id, p.name).toLowerCase()
+        const localizedKeywords = getLocalizedKeywords(p.id).map((k) => k.toLowerCase())
+        return (
+          p.name.toLowerCase().includes(lowerQuery) ||
+          localizedName.includes(lowerQuery) ||
+          p.id.toLowerCase().includes(lowerQuery) ||
+          p.category.toLowerCase().includes(lowerQuery) ||
+          p.keywords.some((k) => k.toLowerCase().includes(lowerQuery)) ||
+          localizedKeywords.some((k) => k.includes(lowerQuery))
+        )
+      })
+      .slice(0, 8) // 최대 8개
+  }, [searchQuery, recommendedPerfumeId, getLocalizedName, getLocalizedKeywords])
+
+  const isSearching = searchQuery.trim().length > 0
 
   // 카테고리 토글
   const toggleCategory = (category: string) => {
@@ -194,7 +233,186 @@ export function FeedbackStep2New({
         </motion.div>
       )}
 
-      {/* 카테고리 아코디언 */}
+      {/* 향료 검색 바 */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+          <Search size={14} className="text-amber-500" />
+          {t('searchScent')}
+        </h3>
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('searchScentPlaceholder')}
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border-2 border-slate-200 focus:border-amber-400 focus:ring-0 focus:outline-none text-sm bg-white transition-colors placeholder:text-slate-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                searchInputRef.current?.focus()
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-slate-100 transition-colors"
+            >
+              <X size={14} className="text-slate-400" />
+            </button>
+          )}
+        </div>
+
+        {/* 검색 결과 */}
+        <AnimatePresence>
+          {isSearching && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              {searchResults.length === 0 ? (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-slate-400">{t('searchNoResults')}</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[320px] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
+                  {searchResults.map((perfume) => {
+                    const alreadySelected = isSelected(perfume.id)
+                    const canAdd = selectedScents.length < maxScents
+                    const selectedScent = selectedScents.find((s) => s.id === perfume.id)
+                    const otherScentsRatio = selectedScents
+                      .filter((s) => s.id !== perfume.id)
+                      .reduce((sum, s) => sum + s.ratio, 0)
+                    const maxRatioForThis = remainingRatio - otherScentsRatio
+                    const canIncrease = selectedScent && selectedScent.ratio < maxRatioForThis
+
+                    return (
+                      <div key={perfume.id} className="space-y-0">
+                        <button
+                          onClick={() => !alreadySelected && canAdd && handleSelectScent(perfume)}
+                          disabled={!alreadySelected && !canAdd}
+                          className={`w-full flex items-center gap-3 p-3 transition-all ${
+                            alreadySelected
+                              ? 'bg-amber-100 border-2 border-amber-400 rounded-xl rounded-b-none'
+                              : canAdd
+                                ? 'bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl'
+                                : 'bg-slate-100 border border-slate-200 opacity-50 cursor-not-allowed rounded-xl'
+                          }`}
+                        >
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ${
+                              isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                            }`}
+                            style={{ backgroundColor: perfume.primaryColor }}
+                          >
+                            {perfume.id.split(' ')[1]}
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <p className="font-medium text-slate-900 text-sm truncate">
+                              {getLocalizedName(perfume.id, perfume.name)}
+                            </p>
+                            <p className="text-xs text-slate-400 truncate">
+                              {perfume.id} · {getLocalizedKeywords(perfume.id).slice(0, 3).join(' · ')}
+                            </p>
+                          </div>
+                          {alreadySelected ? (
+                            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                              {t('selected')}
+                            </span>
+                          ) : canAdd ? (
+                            <Plus size={18} className="text-amber-500 flex-shrink-0" />
+                          ) : null}
+                        </button>
+
+                        {/* 선택 시 슬라이더 */}
+                        <AnimatePresence>
+                          {alreadySelected && selectedScent && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: 'easeOut' }}
+                              className="overflow-hidden"
+                            >
+                              <div className="bg-amber-50 border-2 border-t-0 border-amber-400 rounded-b-xl px-4 py-3 space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs text-slate-600 font-medium">{t('additionalRatio')}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg font-bold text-amber-600">{selectedScent.ratio}%</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        onRemoveScent(perfume.id)
+                                      }}
+                                      className="p-1 rounded-full hover:bg-red-100 transition-colors"
+                                    >
+                                      <X size={14} className="text-slate-400 hover:text-red-500" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      onUpdateRatio(perfume.id, selectedScent.ratio - 10)
+                                    }}
+                                    disabled={selectedScent.ratio <= 10}
+                                    className="p-1.5 rounded-lg bg-white border border-amber-200 hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    <Minus size={14} className="text-amber-600" />
+                                  </button>
+                                  <input
+                                    id={`ratio-search-${perfume.id}`}
+                                    name={`ratio-search-${perfume.id}`}
+                                    type="range"
+                                    min={10}
+                                    max={maxRatioForThis}
+                                    step={10}
+                                    value={selectedScent.ratio}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => onUpdateRatio(perfume.id, parseInt(e.target.value))}
+                                    className="flex-1 h-2 bg-amber-200 rounded-full appearance-none cursor-pointer
+                                      [&::-webkit-slider-thumb]:appearance-none
+                                      [&::-webkit-slider-thumb]:w-5
+                                      [&::-webkit-slider-thumb]:h-5
+                                      [&::-webkit-slider-thumb]:bg-amber-500
+                                      [&::-webkit-slider-thumb]:rounded-full
+                                      [&::-webkit-slider-thumb]:shadow
+                                      [&::-webkit-slider-thumb]:cursor-grab
+                                      [&::-webkit-slider-thumb]:active:cursor-grabbing"
+                                  />
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      onUpdateRatio(perfume.id, selectedScent.ratio + 10)
+                                    }}
+                                    disabled={!canIncrease}
+                                    className="p-1.5 rounded-lg bg-white border border-amber-200 hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    <Plus size={14} className="text-amber-600" />
+                                  </button>
+                                </div>
+                                <p className="text-[10px] text-amber-600/70 text-right">
+                                  {t('maxRatio', { ratio: maxRatioForThis })}
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* 카테고리 아코디언 (검색 중이 아닐 때만 표시) */}
+      {!isSearching && (
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-slate-700 mb-3">
           {t('categoryExplore')}
@@ -439,6 +657,7 @@ export function FeedbackStep2New({
           )
         })}
       </div>
+      )}
 
       {/* 현재 비율 상태 표시 */}
       <div className={`rounded-2xl p-4 border-2 ${

@@ -169,8 +169,8 @@ async function getMemberList(searchParams: URLSearchParams) {
       'analysis_results', 'user_id, product_type, created_at',
       [{ column: 'user_id', op: 'in', value: memberIds }]
     ),
-    fetchAllRows<{ user_id: string; status: string; final_price: number; created_at: string }>(
-      'orders', 'user_id, status, final_price, created_at',
+    fetchAllRows<{ user_id: string; status: string; final_price: number; created_at: string; is_influencer: boolean }>(
+      'orders', 'user_id, status, final_price, created_at, is_influencer',
       [{ column: 'user_id', op: 'in', value: memberIds }]
     ),
     fetchAllRows<{ user_id: string }>(
@@ -199,7 +199,10 @@ async function getMemberList(searchParams: URLSearchParams) {
   orderData.forEach(o => {
     if (o.status !== 'cancelled' && o.status !== 'cancel_requested') {
       orderCounts[o.user_id] = (orderCounts[o.user_id] || 0) + 1
-      orderTotals[o.user_id] = (orderTotals[o.user_id] || 0) + (o.final_price || 0)
+      // 인플루언서 주문은 매출 집계에서 제외
+      if (!o.is_influencer) {
+        orderTotals[o.user_id] = (orderTotals[o.user_id] || 0) + (o.final_price || 0)
+      }
       if (!firstOrderDate[o.user_id] || o.created_at < firstOrderDate[o.user_id]) {
         firstOrderDate[o.user_id] = o.created_at
       }
@@ -322,7 +325,8 @@ async function getMemberInsights() {
     status: string
     final_price: number
     created_at: string
-  }>('orders', 'user_id, status, final_price, created_at')
+    is_influencer: boolean
+  }>('orders', 'user_id, status, final_price, created_at, is_influencer')
 
   // 전체 리뷰 데이터
   const allReviews = await fetchAllRows<{ user_id: string }>('reviews', 'user_id')
@@ -394,7 +398,8 @@ async function getMemberInsights() {
 
   const revenuePerUser: Record<string, number> = {}
   validOrders.forEach(o => {
-    if (o.user_id) revenuePerUser[o.user_id] = (revenuePerUser[o.user_id] || 0) + (o.final_price || 0)
+    // 인플루언서 주문은 매출 집계에서 제외
+    if (o.user_id && !o.is_influencer) revenuePerUser[o.user_id] = (revenuePerUser[o.user_id] || 0) + (o.final_price || 0)
   })
 
   allMembers.forEach(m => {
@@ -470,7 +475,8 @@ async function getMemberInsights() {
     .map(([month, count]) => ({ month, count }))
 
   // ===== 6. 주문 패턴 =====
-  const totalRevenue = validOrders.reduce((sum, o) => sum + (o.final_price || 0), 0)
+  const nonInfluencerOrders = validOrders.filter(o => !o.is_influencer)
+  const totalRevenue = nonInfluencerOrders.reduce((sum, o) => sum + (o.final_price || 0), 0)
   const avgOrderValue = membersWithOrder.size > 0 ? Math.round(totalRevenue / validOrders.length) : 0
   const repeatBuyers = Object.values(orderCountPerUser).filter(c => c >= 2).length
   const repeatRate = membersWithOrder.size > 0 ? Math.round((repeatBuyers / membersWithOrder.size) * 100) : 0

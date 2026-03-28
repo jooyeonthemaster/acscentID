@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
         .update({
           user_id: user.id,
           generated_recipe: recipe,
+          selected_product: selectedProduct || 'perfume_10ml',
           updated_at: new Date().toISOString()
         })
         .eq('id', feedbackId)
@@ -89,7 +90,8 @@ export async function POST(request: NextRequest) {
         generated_recipe: recipe,
         user_fingerprint: fingerprint || null,
         user_id: user?.id || null,
-        result_id: resultId || null  // 분석 결과와 연결
+        result_id: resultId || null,  // 분석 결과와 연결
+        selected_product: selectedProduct || 'perfume_10ml',  // 선택한 제품 타입 저장
       }
 
       const { data, error } = await supabase

@@ -724,7 +724,7 @@
       "perfumeSub10": "2g ingredients",
       "perfumeLabel50": "50ml Perfume",
       "perfumeSub50": "10g ingredients",
-      "oilLabel": "5ml Oil",
+      "oilLabel": "Diffuser 5ml",
       "oilSub": "5g ingredients",
       "totalIngredient": "Total Ingredients",
       "recipeAdjusted": "A recipe adjusted through your feedback",
@@ -1195,6 +1195,9 @@
     "remainingGuide": "Fill the remaining {ratio}% by selecting additional ingredients below!",
     "maxSelectable": "⚠️ Up to {count} selections allowed",
     "previousSelectedScents": "Previously Selected Ingredients",
+    "searchScent": "Search Ingredients",
+    "searchScentPlaceholder": "Search by number (01-30) or name",
+    "searchNoResults": "No results found",
     "categoryExplore": "Browse by Ingredient Category",
     "maxSelected": "(Max {count} selected)",
     "recommendedCategory": "Recommended Scent Category",
@@ -1877,5 +1880,11 @@
       "linkTerms": "Terms of Service →",
       "linkPrivacy": "Privacy Policy →"
     }
+  },
+  "cookieConsent": {
+    "message": "This website uses cookies to improve your experience.",
+    "accept": "Accept",
+    "reject": "Decline",
+    "privacy": "Privacy Policy"
   }
 }

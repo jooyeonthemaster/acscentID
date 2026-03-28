@@ -155,6 +155,8 @@ export interface AdminOrderRecord {
   refund_amount?: number
   refunded_at?: string | null
   refund_reason?: string | null
+  // 인플루언서 주문 여부
+  is_influencer?: boolean
 }
 
 // 관리자용 회원 레코드

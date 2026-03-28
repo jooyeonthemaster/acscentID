@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CouponProvider } from "@/contexts/CouponContext";
 import { TransitionProvider } from "@/contexts/TransitionContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
+import { ClarityProvider } from "@/contexts/ClarityContext";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -50,15 +51,17 @@ export default function RootLayout({
         className={`${outfit.variable} ${jua.variable} ${kirangHaerang.variable} antialiased bg-[#FAFAFA] min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
       >
         <AuthProvider>
-          <AnalyticsProvider>
-            <CouponProvider>
+          <ClarityProvider>
+            <AnalyticsProvider>
+              <CouponProvider>
               <TransitionProvider>
                 <ToastProvider>
-                  {children}
-                </ToastProvider>
-              </TransitionProvider>
-            </CouponProvider>
-          </AnalyticsProvider>
+                    {children}
+                  </ToastProvider>
+                </TransitionProvider>
+              </CouponProvider>
+            </AnalyticsProvider>
+          </ClarityProvider>
         </AuthProvider>
       </body>
     </html>

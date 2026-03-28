@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') // pending, paid, shipping, delivered
     const exportAll = searchParams.get('export') === 'true' // 엑셀 다운로드용 전체 조회
+    const influencerFilter = searchParams.get('influencer') // 'true', 'false', or null (all)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
@@ -69,6 +70,13 @@ export async function GET(request: NextRequest) {
     // 상태 필터
     if (status && ['pending', 'paid', 'shipping', 'delivered', 'cancel_requested'].includes(status)) {
       query = query.eq('status', status)
+    }
+
+    // 인플루언서 필터
+    if (influencerFilter === 'true') {
+      query = query.eq('is_influencer', true)
+    } else if (influencerFilter === 'false') {
+      query = query.eq('is_influencer', false)
     }
 
     const { data: orders, error, count } = await query
@@ -174,11 +182,42 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { orderId, status } = body
+    const { orderId, status, is_influencer } = body
 
-    if (!orderId || !status) {
+    if (!orderId) {
       return NextResponse.json(
-        { error: 'orderId와 status가 필요합니다' },
+        { error: 'orderId가 필요합니다' },
+        { status: 400 }
+      )
+    }
+
+    // is_influencer만 업데이트하는 경우
+    if (typeof is_influencer === 'boolean' && !status) {
+      const serviceClient = createServiceRoleClient()
+      const { data: order, error } = await serviceClient
+        .from('orders')
+        .update({
+          is_influencer,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Influencer flag update failed:', error)
+        return NextResponse.json(
+          { error: '인플루언서 설정 변경에 실패했습니다' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ success: true, order })
+    }
+
+    if (!status) {
+      return NextResponse.json(
+        { error: 'status가 필요합니다' },
         { status: 400 }
       )
     }
@@ -203,13 +242,18 @@ export async function PATCH(request: NextRequest) {
 
     const previousStatus = existingOrder?.status
 
-    // 주문 상태 업데이트
+    // 주문 상태 업데이트 (is_influencer도 함께 업데이트 가능)
+    const updateData: Record<string, any> = {
+      status,
+      updated_at: new Date().toISOString()
+    }
+    if (typeof is_influencer === 'boolean') {
+      updateData.is_influencer = is_influencer
+    }
+
     const { data: order, error } = await serviceClient
       .from('orders')
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', orderId)
       .select()
       .single()

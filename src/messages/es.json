@@ -751,7 +751,7 @@
       "perfumeSub10": "Ingrediente 2g",
       "perfumeLabel50": "Perfume 50ml",
       "perfumeSub50": "Ingrediente 10g",
-      "oilLabel": "Aceite 5ml",
+      "oilLabel": "Difusor 5ml",
       "oilSub": "Ingrediente 5g",
       "totalIngredient": "Total de ingredientes",
       "recipeAdjusted": "Mi receta ajustada a través de feedback",
@@ -1141,6 +1141,9 @@
     "remainingGuide": "¡Completa el {ratio}% restante seleccionando ingredientes adicionales abajo!",
     "maxSelectable": "⚠️ Máximo {count} selecciones permitidas",
     "previousSelectedScents": "Ingredientes seleccionados anteriormente",
+    "searchScent": "Buscar ingrediente",
+    "searchScentPlaceholder": "Buscar por número (01-30) o nombre",
+    "searchNoResults": "Sin resultados",
     "categoryExplore": "Explorar por categoría",
     "maxSelected": "(Máximo {count} seleccionados)",
     "recommendedCategory": "Categoría recomendada",
@@ -1904,5 +1907,11 @@
       "linkTerms": "Términos de servicio →",
       "linkPrivacy": "Política de privacidad →"
     }
+  },
+  "cookieConsent": {
+    "message": "Este sitio web utiliza cookies para mejorar su experiencia.",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "privacy": "Política de privacidad"
   }
 }

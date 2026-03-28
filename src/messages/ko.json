@@ -618,6 +618,9 @@
     "remainingGuide": "나머지 {ratio}%를 아래에서 추가 향료를 선택해 채워주세요!",
     "maxSelectable": "⚠️ 최대 {count}개까지 선택 가능",
     "previousSelectedScents": "이전에 선택한 향료",
+    "searchScent": "향료 검색",
+    "searchScentPlaceholder": "번호(01~30) 또는 향료 이름으로 검색",
+    "searchNoResults": "검색 결과가 없어요",
     "categoryExplore": "향료 카테고리별 탐색",
     "maxSelected": "(최대 {count}개 선택 완료)",
     "recommendedCategory": "추천 향 계열",
@@ -1038,7 +1041,7 @@
       "perfumeSub10": "향료 2g",
       "perfumeLabel50": "50ml 향수",
       "perfumeSub50": "향료 10g",
-      "oilLabel": "5ml 오일",
+      "oilLabel": "디퓨저 5ml",
       "oilSub": "향료 5g",
       "totalIngredient": "총 향료",
       "recipeAdjusted": "피드백을 통해 조정된 나만의 레시피에요",
@@ -1877,5 +1880,11 @@
       "linkTerms": "이용약관 →",
       "linkPrivacy": "개인정보처리방침 →"
     }
+  },
+  "cookieConsent": {
+    "message": "이 웹사이트는 서비스 개선을 위해 쿠키를 사용합니다.",
+    "accept": "수락",
+    "reject": "거부",
+    "privacy": "개인정보처리방침"
   }
 }

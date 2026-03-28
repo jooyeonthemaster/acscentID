@@ -1,0 +1,4 @@
+[     704ms] [ERROR] ChannelIO script included twice. @ https://developers.portone.io/_build/assets/client-Cz92J6bz.js:17
+[     819ms] [WARNING] [Meta Pixel] - You are sending a non-standard event 'PageView_DVweb'. The preferred way to send these events is using trackCustom. See 'https://developers.facebook.com/docs/ads-for-websites/pixel-events/#events' for more information. @ https://developers.portone.io/_build/assets/client-Cz92J6bz.js:17
+[    1003ms] [ERROR] Attestation check for Attribution Reporting on https://www.google-analytics.com failed. @ https://developers.portone.io/sdk/ko/v2-sdk/readme:0
+[    2750ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://o1147017.ingest.us.sentry.io/api/4508991414009856/envelope/?sentry_version=7&sentry_key=69c4cad76fedf7e26c5766282b6b1088&sentry_client=sentry.javascript.solidstart%2F10.12.0:0

@@ -9,6 +9,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, webSiteSchema } from "@/lib/seo/schemas";
 import { SetHtmlLang } from "./SetHtmlLang";
+import { CookieConsentBanner } from "@/components/cookie-consent/CookieConsentBanner";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.acscent.co.kr";
@@ -130,6 +131,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <Footer />
           <MobileBottomNav />
         </div>
+        <CookieConsentBanner />
       </div>
     </NextIntlClientProvider>
   );

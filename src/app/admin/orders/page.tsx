@@ -24,7 +24,8 @@ import {
   Trash2,
   MessageSquare,
   Save,
-  Check
+  Check,
+  UserCheck
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import Image from 'next/image'
@@ -86,6 +87,7 @@ interface Order {
   refund_amount?: number
   refunded_at?: string | null
   admin_memo?: string | null
+  is_influencer?: boolean
   item_count?: number
   order_items?: OrderItemData[]
   confirmed_recipe?: {
@@ -146,6 +148,7 @@ export default function AdminOrdersPage() {
 
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState('')
+  const [influencerFilter, setInfluencerFilter] = useState<'' | 'true' | 'false'>('')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -183,6 +186,7 @@ export default function AdminOrdersPage() {
       params.set('page', page.toString())
       params.set('limit', '20')
       if (statusFilter) params.set('status', statusFilter)
+      if (influencerFilter) params.set('influencer', influencerFilter)
       if (search) params.set('search', search)
       if (dateFrom) params.set('date_from', dateFrom)
       if (dateTo) params.set('date_to', dateTo)
@@ -206,7 +210,7 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, search, dateFrom, dateTo])
+  }, [statusFilter, influencerFilter, search, dateFrom, dateTo])
 
   useEffect(() => {
     fetchOrders()
@@ -256,9 +260,43 @@ export default function AdminOrdersPage() {
     fetchOrders(1)
   }
 
+  // 인플루언서 토글 핸들러
+  const handleInfluencerToggle = async (orderId: string, isInfluencer: boolean) => {
+    try {
+      const response = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, is_influencer: isInfluencer })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error)
+      }
+
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === orderId
+            ? { ...order, is_influencer: isInfluencer }
+            : order
+        )
+      )
+    } catch (err) {
+      console.error('Influencer toggle failed:', err)
+      alert('인플루언서 설정 변경에 실패했습니다')
+    }
+  }
+
+  // 인플루언서 필터 변경
+  const handleInfluencerFilterChange = (value: '' | 'true' | 'false') => {
+    setInfluencerFilter(value)
+    fetchOrders(1)
+  }
+
   // 필터 초기화
   const clearFilters = () => {
     setStatusFilter('')
+    setInfluencerFilter('')
     setSearch('')
     setDateFrom('')
     setDateTo('')
@@ -418,7 +456,9 @@ export default function AdminOrdersPage() {
           '받는분기타연락처': '',
           '배송메세지1': order.memo || '',
           '내품명': itemName,
-          '내품수량': 1
+          '내품수량': 1,
+          '인플루언서': order.is_influencer ? 'Y' : '',
+          '주문번호': order.order_number,
         }
       })
 
@@ -434,6 +474,8 @@ export default function AdminOrdersPage() {
         { wch: 25 },  // 배송메세지1
         { wch: 10 },  // 내품명
         { wch: 10 },  // 내품수량
+        { wch: 10 },  // 인플루언서
+        { wch: 25 },  // 주문번호
       ]
 
       // 워크북 생성
@@ -498,6 +540,21 @@ export default function AdminOrdersPage() {
                 </button>
               )
             })}
+
+            {/* 인플루언서 필터 구분선 */}
+            <div className="w-px h-8 bg-slate-200 mx-1" />
+
+            <button
+              onClick={() => handleInfluencerFilterChange(influencerFilter === 'true' ? '' : 'true')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
+                influencerFilter === 'true'
+                  ? 'bg-rose-400 border-rose-700 text-white shadow-[2px_2px_0px_#be123c]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
+              }`}
+            >
+              <UserCheck size={14} />
+              인플루언서
+            </button>
           </div>
 
           {/* 검색 */}
@@ -626,6 +683,7 @@ export default function AdminOrdersPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">상품</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">금액</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">상태</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-600">인플루언서</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문일</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-slate-600">액션</th>
                   </tr>
@@ -708,6 +766,20 @@ export default function AdminOrdersPage() {
                             <option value="delivered">배송완료</option>
                             <option value="cancelled">취소완료</option>
                           </select>
+                        </td>
+                        <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleInfluencerToggle(order.id, !order.is_influencer)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                              order.is_influencer
+                                ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                : 'bg-slate-50 text-slate-400 border border-slate-200 hover:border-slate-300'
+                            }`}
+                            title={order.is_influencer ? '인플루언서 해제' : '인플루언서로 설정'}
+                          >
+                            <UserCheck size={12} />
+                            {order.is_influencer ? '인플루언서' : '-'}
+                          </button>
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {formatDate(order.created_at)}
@@ -1131,6 +1203,13 @@ export default function AdminOrdersPage() {
                     <p className="text-slate-900">{formatDate(selectedOrder.created_at)}</p>
                   </div>
                 </div>
+
+                {selectedOrder.is_influencer && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg">
+                    <UserCheck size={16} className="text-rose-600" />
+                    <span className="text-sm font-medium text-rose-700">인플루언서 주문 (매출 집계 제외)</span>
+                  </div>
+                )}
 
                 <div className="border-t pt-4">
                   <h4 className="font-medium text-slate-900 mb-3">상품 정보</h4>
