@@ -41,7 +41,7 @@ export function CookieConsentBanner() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-32px)] max-w-[423px] bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-32px)] max-w-[423px] bg-white border-2 border-black/80 rounded-xl px-4 py-3 shadow-[3px_3px_0_0_rgba(0,0,0,0.15)]"
         >
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] text-gray-400 leading-snug shrink">
@@ -62,7 +62,7 @@ export function CookieConsentBanner() {
               </button>
               <button
                 onClick={handleAccept}
-                className="text-[11px] text-gray-600 font-medium px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                className="text-[11px] font-semibold px-3 py-1 rounded-md bg-slate-800 text-white hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 {t('accept')}
               </button>
