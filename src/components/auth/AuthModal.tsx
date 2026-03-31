@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sparkles } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 interface AuthModalProps {
@@ -25,6 +26,7 @@ export function AuthModal({
 }: AuthModalProps) {
   const { signInWithGoogle, signInWithKakao, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
   const t = useTranslations('auth')
 
   const displayTitle = title || t('loginTitle')
@@ -48,6 +50,11 @@ export function AuthModal({
       console.error('Kakao login error:', error)
       setIsLoading(false)
     }
+  }
+
+  const handleGuestLogin = () => {
+    onClose()
+    router.push('/reviewer')
   }
 
   const isButtonDisabled = loading || isLoading
@@ -112,6 +119,24 @@ export function AuthModal({
                   <path fill="#391B1B" d="M12 3C6.477 3 2 6.463 2 10.691c0 2.648 1.758 4.974 4.394 6.318-.14.51-.52 1.907-.595 2.2-.094.365.134.36.282.262.117-.077 1.848-1.26 2.594-1.773.432.063.878.096 1.325.096 5.523 0 10-3.463 10-7.103C20 6.463 15.523 3 12 3z" />
                 </svg>
                 {isLoading ? t('loginInProgress') : t('kakaoLogin')}
+              </button>
+
+              <div className="relative py-3">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-3 text-[11px] text-slate-400">또는</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleGuestLogin}
+                disabled={isButtonDisabled}
+                className="w-full h-12 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                {isLoading ? t('loginInProgress') : '비회원으로 계속하기'}
               </button>
 
               <p className="text-[11px] text-slate-400 text-center pt-2">

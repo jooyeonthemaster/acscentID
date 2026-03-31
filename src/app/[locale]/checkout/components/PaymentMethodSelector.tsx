@@ -69,8 +69,8 @@ function NaverIcon({ active }: { active: boolean }) {
   )
 }
 
-// 3월 1일 이후 자동 활성화
-const DISABLED_METHODS: Set<PaymentMethod> = new Set(["card", "kakao_pay", "naver_pay"])
+// 실연동 전환 완료 - 카드/간편결제 활성화
+const DISABLED_METHODS: Set<PaymentMethod> = new Set<PaymentMethod>([])
 
 const PAYMENT_OPTIONS: PaymentOption[] = [
   {

@@ -80,6 +80,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // next-intl + 기존 매처 통합
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.webp$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.webp$|.*\\.avif$).*)',
   ],
 }

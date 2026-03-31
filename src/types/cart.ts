@@ -1,6 +1,6 @@
 // 장바구니 및 주문 상품 관련 타입 정의
 
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature'
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'payment_test'
 
 // DB cart_items 테이블 타입
 export interface CartItem {
@@ -89,6 +89,9 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   signature: [
     { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
+  payment_test: [
+    { size: '10ml', price: 1000, label: '결제 테스트 상품', shippingFee: 0 },
+  ],
 }
 
 // 상품 타입 뱃지 스타일
@@ -136,6 +139,13 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     text: 'text-amber-700',
     border: 'border-amber-300',
   },
+  payment_test: {
+    label: '결제 테스트',
+    labelShort: '테스트',
+    bg: 'bg-red-100',
+    text: 'text-red-700',
+    border: 'border-red-300',
+  },
 }
 
 // 가격 관련 유틸리티 함수
@@ -157,6 +167,8 @@ export function getDefaultSize(productType: ProductType): string {
 
 export function getDefaultPrice(productType: ProductType): number {
   switch (productType) {
+    case 'payment_test':
+      return 1000
     case 'figure_diffuser':
       return 48000
     case 'graduation':

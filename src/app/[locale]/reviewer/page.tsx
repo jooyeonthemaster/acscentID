@@ -29,9 +29,8 @@ export default function ReviewerLoginPage() {
         return
       }
 
-      // 로그인 성공 → 메인 페이지로 이동
-      router.push("/")
-      router.refresh()
+      // 로그인 성공 → 시그니처 상품 체크아웃으로 바로 이동 (full reload로 세션 확실히 반영)
+      window.location.href = "/checkout?product=le-quack&type=signature"
     } catch {
       setError("네트워크 오류가 발생했습니다.")
       setLoading(false)

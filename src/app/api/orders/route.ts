@@ -22,7 +22,8 @@ function validatePrice(productType: ProductType, size: string, clientPrice: numb
   return { valid: clientPrice === option.price, expectedPrice: option.price }
 }
 
-function calculateServerShippingFee(subtotal: number): number {
+function calculateServerShippingFee(subtotal: number, productType?: string): number {
+  if (productType === 'payment_test') return 0
   return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE
 }
 
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
           keywords: [],
           analysis_data: null,
           payment_method: paymentMethod || 'bank_transfer',
-          status: 'pending',
+          status: paymentMethod && paymentMethod !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
           created_at: now,
           updated_at: now,
         })
@@ -292,15 +293,17 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 관리자 이메일 알림 발송 (fire-and-forget)
-      notifyNewOrder({
-        orderNumber: order.order_number,
-        recipientName,
-        perfumeName: firstItem.perfumeName,
-        finalPrice: finalPrice || totalPrice || calculatedSubtotal,
-        productType: firstItem.productType || 'image_analysis',
-        itemCount: orderItems.length,
-      })
+      // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
+      if (paymentMethod === 'bank_transfer') {
+        notifyNewOrder({
+          orderNumber: order.order_number,
+          recipientName,
+          perfumeName: firstItem.perfumeName,
+          finalPrice: finalPrice || totalPrice || calculatedSubtotal,
+          productType: firstItem.productType || 'image_analysis',
+          itemCount: orderItems.length,
+        })
+      }
 
       return NextResponse.json({
         success: true,
@@ -325,7 +328,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 배송비 검증
-    const expectedShippingFee = calculateServerShippingFee(price)
+    const expectedShippingFee = calculateServerShippingFee(price, resolvedProductType)
     const clientShippingFee = shippingFee || 0
     if (clientShippingFee !== expectedShippingFee) {
       console.error('[Orders API] Shipping fee mismatch - client:', clientShippingFee, 'expected:', expectedShippingFee)
@@ -374,7 +377,7 @@ export async function POST(request: NextRequest) {
         confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
         product_type: productType || 'image_analysis',  // 상품 타입
         payment_method: paymentMethod || 'bank_transfer',
-        status: 'pending',
+        status: paymentMethod && paymentMethod !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
         item_count: 1,
         subtotal: price,
         created_at: now,
@@ -407,14 +410,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 관리자 이메일 알림 발송 (fire-and-forget)
-    notifyNewOrder({
-      orderNumber: order.order_number,
-      recipientName,
-      perfumeName: perfumeName || '',
-      finalPrice: finalPrice || totalPrice || price,
-      productType: productType || 'image_analysis',
-    })
+    // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
+    if (paymentMethod === 'bank_transfer') {
+      notifyNewOrder({
+        orderNumber: order.order_number,
+        recipientName,
+        perfumeName: perfumeName || '',
+        finalPrice: finalPrice || totalPrice || price,
+        productType: productType || 'image_analysis',
+      })
+    }
 
     return NextResponse.json({
       success: true,

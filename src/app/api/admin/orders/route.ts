@@ -56,10 +56,11 @@ export async function GET(request: NextRequest) {
 
     const serviceClient = createServiceRoleClient()
 
-    // 기본 쿼리
+    // 기본 쿼리 (결제 대기 중인 주문은 제외 - 카드결제 완료 전 임시 주문)
     let query = serviceClient
       .from('orders')
       .select('*', { count: 'exact' })
+      .neq('status', 'awaiting_payment')
       .order('created_at', { ascending: false })
 
     // 엑셀 다운로드가 아닌 경우에만 페이지네이션 적용

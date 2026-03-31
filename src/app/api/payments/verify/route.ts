@@ -4,6 +4,7 @@ import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getPortOnePayment, cancelPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
+import { notifyNewOrder } from '@/lib/email/admin-notify'
 
 /**
  * 결제 검증 API
@@ -149,6 +150,16 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Payments Verify] Payment verified successfully:', orderId)
+
+    // 결제 완료 후 관리자 이메일 알림 발송 (fire-and-forget)
+    notifyNewOrder({
+      orderNumber: order.order_number,
+      recipientName: order.recipient_name || order.customer_name || '',
+      perfumeName: order.perfume_name || '',
+      finalPrice: order.final_price,
+      productType: order.product_type || 'image_analysis',
+      itemCount: order.item_count || 1,
+    })
 
     return NextResponse.json({
       success: true,

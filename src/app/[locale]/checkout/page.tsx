@@ -70,10 +70,11 @@ function CheckoutContent() {
   const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
 
-  // URL 파라미터에서 시그니처 상품 확인
+  // URL 파라미터에서 시그니처/테스트 상품 확인
   const urlProduct = searchParams.get("product")
   const urlType = searchParams.get("type")
   const isSignatureProduct = urlProduct === "le-quack" && urlType === "signature"
+  const isPaymentTest = urlProduct === "payment-test" && urlType === "payment_test"
 
   // 다중 상품 모드
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
@@ -119,9 +120,10 @@ function CheckoutContent() {
 
   // 로그인 확인 및 데이터 로드
   useEffect(() => {
-    // 비회원 구매 허용 (시그니처 상품)
-    const isGuestCheckout = searchParams.get("guest") === "true"
-    if (!authLoading && !userId && !isGuestCheckout) {
+    // 비회원 구매 허용 (시그니처 상품 / 결제 테스트 / PG 심사 모드)
+    const isGuestCheckout = searchParams.get("guest") === "true" || isPaymentTest
+    const isPgReview = typeof document !== 'undefined' && document.cookie.includes('pg_review_mode=true')
+    if (!authLoading && !userId && !isGuestCheckout && !isPgReview) {
       router.push("/")
       return
     }
@@ -131,7 +133,26 @@ function CheckoutContent() {
       setFormData(prev => ({ ...prev, name: userName }))
     }
 
-    // 0. 시그니처 상품 (LE QUACK) - URL 파라미터로 처리
+    // 0-1. 결제 테스트 상품 (1,000원) - URL 파라미터로 처리
+    if (isPaymentTest) {
+      setProductType("payment_test")
+      setSelectedSize("10ml")
+      setUserImage("/images/logo/logo.avif")
+      setIdolName("결제 테스트")
+      setAnalysisResult({
+        matchingPerfumes: [{
+          perfumeId: "payment-test",
+          persona: {
+            name: "결제 테스트 상품",
+            recommendation: "실결제 테스트용 1,000원 상품"
+          }
+        }],
+        matchingKeywords: ["테스트", "결제확인"]
+      })
+      return
+    }
+
+    // 0-2. 시그니처 상품 (LE QUACK) - URL 파라미터로 처리
     if (isSignatureProduct) {
       setProductType("signature")
       setSelectedSize("10ml")
@@ -230,7 +251,7 @@ function CheckoutContent() {
       localStorage.removeItem("checkoutRecipe")
       localStorage.removeItem("checkoutRecipePerfumeName")
     }
-  }, [authLoading, userId, router, userName, isSignatureProduct, searchParams])
+  }, [authLoading, userId, router, userName, isSignatureProduct, isPaymentTest, searchParams])
 
   // 단일 상품 정보
   const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || t('result.customPerfume')
@@ -282,8 +303,8 @@ function CheckoutContent() {
 
   // 단일 상품 모드
   const singleProductPrice = getPriceForSize(productType, selectedSize)
-  // 5만원 이상 무료배송
-  const singleShippingFee = singleProductPrice >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE
+  // 5만원 이상 무료배송 (테스트 상품은 배송비 없음)
+  const singleShippingFee = productType === 'payment_test' ? 0 : (singleProductPrice >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE)
   const singleDiscountAmount = selectedCoupon
     ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0
@@ -436,8 +457,18 @@ function CheckoutContent() {
         })
 
         if (!paymentResult.success) {
+          // 결제 미완료 주문 즉시 삭제 (결제가 안 됐으므로 주문 자체를 제거)
+          try {
+            await fetch(`/api/orders/${result.orderId}/payment-failed`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reason: paymentResult.cancelled ? "사용자 결제 취소" : "결제 실패" }),
+            })
+          } catch (e) {
+            console.error("[Checkout] Failed to clean up pending order:", e)
+          }
+
           if (paymentResult.cancelled) {
-            // 사용자가 결제를 취소한 경우
             setIsSubmitting(false)
             return
           }
