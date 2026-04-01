@@ -132,7 +132,7 @@ export function AdminSidebar() {
     <aside
       className={`
         fixed left-0 top-0 h-screen bg-slate-900 text-white
-        transition-all duration-300 ease-in-out z-40
+        transition-all duration-300 ease-in-out z-40 flex flex-col
         ${collapsed ? 'w-16' : 'w-64'}
       `}
     >
@@ -159,7 +159,7 @@ export function AdminSidebar() {
       </div>
 
       {/* 네비게이션 */}
-      <nav className="p-2 flex-1">
+      <nav className="p-2 flex-1 overflow-y-auto min-h-0">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
