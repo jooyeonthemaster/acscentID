@@ -15,6 +15,11 @@ import {
   Database,
   BarChart3,
   Bot,
+  Megaphone,
+  ImageIcon,
+  Package,
+  FileText,
+  Stamp,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -70,16 +75,46 @@ const navItems: NavItem[] = [
     description: 'QR 코드 생성',
   },
   {
-    href: '/admin/coupons',
-    label: '쿠폰 관리',
+    href: '/admin/promotions',
+    label: '프로모션',
     icon: Ticket,
-    description: '쿠폰 현황',
+    description: '배송비 무료 & 이벤트',
   },
   {
     href: '/admin/ai-chat',
     label: 'AI 분석봇',
     icon: Bot,
     description: 'DB 자연어 분석',
+  },
+  {
+    href: '/admin/popups',
+    label: '팝업 관리',
+    icon: Megaphone,
+    description: '메인 페이지 팝업',
+  },
+  {
+    href: '/admin/banners',
+    label: '배너 관리',
+    icon: ImageIcon,
+    description: '히어로 슬라이드 관리',
+  },
+  {
+    href: '/admin/product-images',
+    label: '상품 이미지',
+    icon: Package,
+    description: '상품별 이미지 관리',
+  },
+  {
+    href: '/admin/product-details',
+    label: '상세페이지',
+    icon: FileText,
+    description: '상품 상세페이지 편집',
+  },
+  {
+    href: '/admin/stamps',
+    label: '스탬프 관리',
+    icon: Stamp,
+    description: '회원 스탬프 & 리워드',
   },
 ]
 

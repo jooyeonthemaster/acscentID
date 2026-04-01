@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
+import { addStampsForUser } from '@/lib/stamps'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com').split(',').map(e => e.trim().toLowerCase())
@@ -234,10 +235,10 @@ export async function PATCH(request: NextRequest) {
 
     const serviceClient = createServiceRoleClient()
 
-    // 기존 주문 상태 조회 (재고 차감 중복 방지)
+    // 기존 주문 상태 조회 (재고 차감 및 스탬프 중복 방지)
     const { data: existingOrder } = await serviceClient
       .from('orders')
-      .select('status')
+      .select('status, user_id, item_count')
       .eq('id', orderId)
       .single()
 
@@ -267,9 +268,10 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // 결제 완료(paid) 상태로 변경될 때 재고 자동 차감
+    // 결제 완료(paid) 상태로 변경될 때 재고 자동 차감 + 스탬프 추가
     // (기존 상태가 pending이고 새 상태가 paid인 경우에만 - 중복 차감 방지)
     let inventoryDeduction = null
+    let stampResult = null
     if (previousStatus === 'pending' && status === 'paid') {
       console.log(`[Admin Orders] Deducting inventory for order: ${orderId}`)
       const deductionResult = await deductInventoryForOrder(
@@ -285,12 +287,26 @@ export async function PATCH(request: NextRequest) {
       if (!deductionResult.success) {
         console.warn(`[Admin Orders] Inventory deduction had errors:`, deductionResult.errors)
       }
+
+      // Add stamps for bank transfer orders confirmed by admin
+      if (existingOrder?.user_id) {
+        const itemCount = existingOrder.item_count || 1
+        console.log(`[Admin Orders] Adding ${itemCount} stamps for user ${existingOrder.user_id} (bank transfer confirmed)`)
+        stampResult = await addStampsForUser(
+          serviceClient,
+          existingOrder.user_id,
+          itemCount,
+          orderId,
+          'online_order'
+        )
+      }
     }
 
     return NextResponse.json({
       success: true,
       order,
       inventoryDeduction,
+      stampResult,
     })
 
   } catch (error) {

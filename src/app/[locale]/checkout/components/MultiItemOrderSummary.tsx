@@ -11,6 +11,8 @@ interface MultiItemOrderSummaryProps {
   onUpdateQuantity: (itemId: string, delta: number) => void
   onUpdateSize: (itemId: string, size: string) => void
   onRemoveItem: (itemId: string) => void
+  isFreeShippingPromo?: boolean
+  promoName?: string
 }
 
 export function MultiItemOrderSummary({
@@ -18,6 +20,8 @@ export function MultiItemOrderSummary({
   onUpdateQuantity,
   onUpdateSize,
   onRemoveItem,
+  isFreeShippingPromo = false,
+  promoName,
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
   const renderProductTypeBadge = (productType: ProductType) => {
@@ -146,7 +150,13 @@ export function MultiItemOrderSummary({
         <ul className="space-y-1.5 text-xs text-slate-700 font-bold">
           <li className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-            {t('checkout.freeShippingOver')}
+            {isFreeShippingPromo ? (
+              <span className="text-pink-600 font-bold">
+                {t('checkout.promoFreeShipping', { promoName: promoName || t('checkout.eventLabel') })}
+              </span>
+            ) : (
+              t('checkout.freeShippingOver')
+            )}
           </li>
           <li className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>

@@ -1148,9 +1148,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                         <button
                           onClick={() => {
                             setCartResultModal(null)
-                            // 마이페이지의 장바구니 탭으로 이동 (부모 컴포넌트에서 탭 전환 필요)
-                            const cartTab = document.querySelector('[data-tab="cart"]') as HTMLButtonElement
-                            if (cartTab) cartTab.click()
+                            router.push('/mypage?tab=cart')
                           }}
                           className="flex-1 py-3 bg-amber-400 text-black rounded-xl font-bold hover:bg-amber-300 transition-colors border-2 border-black flex items-center justify-center gap-1.5"
                         >

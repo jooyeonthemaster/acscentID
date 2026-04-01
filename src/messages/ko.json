@@ -52,7 +52,9 @@
     "guestBenefit2": "마이페이지에서 언제든 다시 볼 수 있어요",
     "guestWarning": "비회원은 페이지를 나가면 결과가 사라져요",
     "notSaved": "(저장 안됨)",
-    "notSavedBold": "저장되지 않아요!"
+    "notSavedBold": "저장되지 않아요!",
+    "qrLoginTitle": "로그인 후 이용 가능해요",
+    "qrLoginDescription": "오프라인 향수 분석을 시작하려면 먼저 로그인해주세요. 분석 결과가 자동으로 저장됩니다!"
   },
   "errors": {
     "generic": "오류가 발생했어요",
@@ -87,7 +89,7 @@
     "cancelRefundExchange": "취소/환불/교환",
     "companyInfo": "대표:유재영, 이동주 | 사업자등록번호 683-86-02812",
     "salesRegistration": "통신판매신고번호 2023-서울서대문-1558",
-    "companyAddress": "서울 마포구 와우산로29라길 22",
+    "companyAddress": "서울 마포구 독막로36길 10-6, 1층(대흥동)",
     "companyContact": "Tel. 02-336-3368 | Mail. neander@neander.co.kr"
   },
   "currency": {
@@ -874,7 +876,14 @@
     "includeAnalysisPerfume": "AI 맞춤 분석 향수 ({size})",
     "includeAnalysisCard": "분석 결과 카드",
     "setProduct": "세트 상품",
-    "orderNameMulti": "{name} 외 {count}건"
+    "orderNameMulti": "{name} 외 {count}건",
+    "eventLabel": "이벤트",
+    "promoFreeShipping": "{promoName} - 배송비 무료",
+    "quantitySelection": "수량 선택",
+    "stampCouponHint": "{quantity}개 구매 시 스탬프 쿠폰 할인이 적용될 수 있어요!",
+    "stampCouponAvailable": "스탬프 할인 쿠폰을 사용할 수 있어요!",
+    "stampDiscountApplied": "스탬프 {percent}% 할인 적용",
+    "freeProductApplied": "스탬프 무료 상품 적용"
   },
   "checkoutComplete": {
     "title": "주문 완료",

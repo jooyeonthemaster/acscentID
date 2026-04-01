@@ -11,7 +11,8 @@ import { Sparkles, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { CartList } from './components/CartList'
-import { InviteFriendBanner } from './components/InviteFriendBanner'
+import { StampTour } from './components/StampTour'
+import { useStamps } from '@/hooks/useStamps'
 
 interface RecipeGranule {
   id: string
@@ -59,6 +60,7 @@ function MyPageContent() {
   const { user, unifiedUser } = useAuth()
   const searchParams = useSearchParams()
   const userId = unifiedUser?.id || user?.id
+  const { stampInfo, loading: stampsLoading } = useStamps()
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -154,9 +156,13 @@ function MyPageContent() {
     <div className="min-h-screen bg-[#FFF8E7]">
       {/* 메인 레이아웃 */}
       <div className="px-4 py-4">
-        {/* 친구 초대 배너 */}
+        {/* 스탬프 투어 */}
         <div className="mb-4">
-          <InviteFriendBanner />
+          <StampTour
+            totalStamps={stampInfo?.totalStamps || 0}
+            rewards={stampInfo?.rewards || []}
+            loading={stampsLoading}
+          />
         </div>
 
         {/* 탭 네비게이션 */}

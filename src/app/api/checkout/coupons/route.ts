@@ -106,6 +106,16 @@ export async function GET() {
       }
     })
 
+    // 스탬프 쿠폰 자격 확인 (stamp_10, stamp_20, stamp_free 타입)
+    // 스탬프 쿠폰은 별도의 조건 없이 사용 가능 (이미 마일스톤 달성으로 발급됨)
+    // stamp_free 타입은 discount_percent가 100이지만, 실제 할인은 1개 상품 가격으로 제한
+    for (const coupon of checkoutCoupons) {
+      if (['stamp_10', 'stamp_20', 'stamp_free'].includes(coupon.type)) {
+        // 스탬프 쿠폰은 만료와 사용 여부만 체크 (이미 user_coupons에서 is_used=false로 필터됨)
+        // 별도의 추가 조건 없음 - isEligible은 이미 설정됨
+      }
+    }
+
     // 사용 가능한 쿠폰을 먼저, 할인율 높은 순으로 정렬
     checkoutCoupons.sort((a, b) => {
       if (a.isEligible && !b.isEligible) return -1

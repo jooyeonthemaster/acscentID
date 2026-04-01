@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird } from "lucide-react"
+import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Info } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
 import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/types/cart"
@@ -15,6 +15,9 @@ interface OrderSummaryProps {
   onSizeChange: (size: "10ml" | "50ml" | "set") => void
   price: number
   keywords: string[]
+  isFreeShippingPromo?: boolean
+  quantity: number
+  onQuantityChange: (quantity: number) => void
 }
 
 export function OrderSummary({
@@ -26,6 +29,9 @@ export function OrderSummary({
   onSizeChange,
   price,
   keywords,
+  isFreeShippingPromo = false,
+  quantity = 1,
+  onQuantityChange,
 }: OrderSummaryProps) {
   const t = useTranslations()
   const isFigureDiffuser = productType === "figure_diffuser"
@@ -83,7 +89,16 @@ export function OrderSummary({
           )}
 
           <p className="text-xl font-black text-slate-900">
-            {price.toLocaleString()}{t('currency.suffix')}
+            {quantity > 1 ? (
+              <>
+                {(price * quantity).toLocaleString()}{t('currency.suffix')}
+                <span className="text-xs text-slate-500 font-bold ml-1">
+                  ({price.toLocaleString()}{t('currency.suffix')} × {quantity})
+                </span>
+              </>
+            ) : (
+              <>{price.toLocaleString()}{t('currency.suffix')}</>
+            )}
           </p>
         </div>
       </div>
@@ -226,6 +241,48 @@ export function OrderSummary({
         )}
       </div>
 
+      {/* 수량 선택 */}
+      <div className="space-y-3">
+        <p className="text-sm font-black text-slate-900 flex items-center gap-2">
+          <Package size={14} className="text-amber-500" />
+          {t('checkout.quantitySelection')}
+        </p>
+        <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border-2 border-slate-200">
+          <div className="flex items-center bg-white rounded-lg border-2 border-slate-300">
+            <button
+              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
+              className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+              disabled={quantity <= 1}
+            >
+              <Minus size={16} />
+            </button>
+            <span className="w-10 text-center font-black text-lg text-slate-900">{quantity}</span>
+            <button
+              onClick={() => onQuantityChange(Math.min(10, quantity + 1))}
+              className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+              disabled={quantity >= 10}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          <span className="font-black text-xl text-slate-900">
+            {(price * quantity).toLocaleString()}{t('currency.suffix')}
+          </span>
+        </div>
+        {quantity >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 bg-purple-50 rounded-xl px-3 py-2 border border-purple-200"
+          >
+            <Info size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-purple-700 font-bold">
+              {quantity}개 구매 시 스탬프 쿠폰 할인이 적용될 수 있어요!
+            </p>
+          </motion.div>
+        )}
+      </div>
+
       {/* 포함 사항 */}
       <div className={`${isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
         <p className="text-sm font-black text-slate-900 mb-3">{t('checkout.included')}</p>
@@ -247,7 +304,9 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                {price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount')}
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
               </li>
             </>
           ) : isGraduation ? (
@@ -267,7 +326,9 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                {t('checkout.shippingFeeAmount')}
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : t('checkout.shippingFeeAmount')}
               </li>
             </>
           ) : isSignature ? (
@@ -287,7 +348,9 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                {t('checkout.freeShippingOverInfo')}
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : t('checkout.freeShippingOverInfo')}
               </li>
             </>
           ) : (
@@ -307,7 +370,9 @@ export function OrderSummary({
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                {price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount')}
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
               </li>
             </>
           )}

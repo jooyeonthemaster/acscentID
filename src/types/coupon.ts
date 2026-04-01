@@ -1,6 +1,6 @@
 // 쿠폰 시스템 타입 정의
 
-export type CouponType = 'birthday' | 'referral' | 'repurchase' | 'welcome'
+export type CouponType = 'birthday' | 'referral' | 'repurchase' | 'welcome' | 'stamp_10' | 'stamp_20' | 'stamp_free'
 
 export interface Coupon {
   id: string

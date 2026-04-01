@@ -52,7 +52,9 @@
     "kakaoLoginFallback": "Kakao登录",
     "welcomeTitle": "WELCOME!",
     "welcomeDesc": "登录后，开始\n记录属于你的香气吧。",
-    "loginButton": "LOGIN"
+    "loginButton": "LOGIN",
+    "qrLoginTitle": "需要登录",
+    "qrLoginDescription": "请先登录以开始线下香水分析。分析结果将自动保存！"
   },
   "errors": {
     "generic": "发生了错误",
@@ -87,7 +89,7 @@
     "cancelRefundExchange": "取消/退款/换货",
     "companyInfo": "代表 刘在英、李东柱 | 营业执照号 683-86-02812",
     "salesRegistration": "通信销售申报编号 2023-首尔西大门-1558",
-    "companyAddress": "首尔特别市麻浦区卧牛山路29罗街22号",
+    "companyAddress": "首尔特别市麻浦区独幕路36街10-6, 1层(大兴洞)",
     "companyContact": "Tel. 02-336-3368 | Mail. neander@neander.co.kr"
   },
   "currency": {
@@ -530,6 +532,7 @@
     "orderCreateFailedStatus": "订单创建失败（{status}）",
     "paymentFailed": "支付失败。",
     "sizeSelection": "选择容量",
+    "quantitySelection": "数量选择",
     "productSelection": "选择商品",
     "graduationPerfumeSelection": "选择毕业香水",
     "signaturePerfumeLabel": "签名香水",
@@ -557,7 +560,14 @@
     "includeAnalysisPerfume": "AI定制分析香水（{size}）",
     "includeAnalysisCard": "分析结果卡片",
     "setProduct": "套装商品",
-    "orderNameMulti": "{name} 等{count}件"
+    "orderNameMulti": "{name} 等{count}件",
+    "eventLabel": "活动",
+    "promoFreeShipping": "{promoName} - 免运费",
+    "quantitySelection": "数量选择",
+    "stampCouponHint": "购买{quantity}件时可能享受集章优惠券折扣！",
+    "stampCouponAvailable": "可以使用集章折扣优惠券！",
+    "stampDiscountApplied": "集章 {percent}% 折扣已应用",
+    "freeProductApplied": "集章免费商品已应用"
   },
   "checkoutComplete": {
     "title": "订单完成",

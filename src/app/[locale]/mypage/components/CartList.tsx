@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
 import { PRODUCT_TYPE_BADGES, PRODUCT_PRICING, formatPrice, calculateCartTotals } from '@/types/cart'
+import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'
@@ -28,6 +29,7 @@ export function CartList({ viewMode }: CartListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
   const [recipeModalTarget, setRecipeModalTarget] = useState<CartItem | null>(null)
+  const { freeShippingPromo } = useActivePromotions()
 
   // 장바구니 로드
   useEffect(() => {
@@ -217,9 +219,15 @@ export function CartList({ viewMode }: CartListProps) {
   }
 
   // 가격 계산
-  const totals = calculateCartTotals(
-    selectedIds.size > 0 ? cartItems.filter(i => selectedIds.has(i.id)) : cartItems
-  )
+  const selectedItems = selectedIds.size > 0 ? cartItems.filter(i => selectedIds.has(i.id)) : cartItems
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const shippingResult = calculateShippingWithPromotion(subtotal, undefined, freeShippingPromo)
+  const totals = {
+    subtotal,
+    shippingFee: shippingResult.finalFee,
+    discount: 0,
+    total: subtotal + shippingResult.finalFee,
+  }
 
   if (loading) {
     return (
@@ -417,12 +425,29 @@ export function CartList({ viewMode }: CartListProps) {
             <span className="font-bold">{formatPrice(totals.subtotal)}{tCurrency('suffix')}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span>{t('shippingFee')}</span>
+            <span className="flex items-center gap-1.5">
+              {t('shippingFee')}
+              {shippingResult.isFreeByPromotion && (
+                <span className="px-1.5 py-0.5 bg-pink-500 text-white text-[9px] font-black rounded-full">배송비</span>
+              )}
+            </span>
             <span className="font-bold">
-              {totals.shippingFee === 0 ? tCurrency('free') : `${formatPrice(totals.shippingFee)}${tCurrency('suffix')}`}
+              {shippingResult.isFreeByPromotion ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="line-through text-slate-400">{formatPrice(shippingResult.originalFee)}{tCurrency('suffix')}</span>
+                  <span className="text-pink-600 font-black">0{tCurrency('suffix')}</span>
+                </span>
+              ) : totals.shippingFee === 0 ? (
+                tCurrency('free')
+              ) : (
+                `${formatPrice(totals.shippingFee)}${tCurrency('suffix')}`
+              )}
             </span>
           </div>
-          {totals.shippingFee === 0 && (
+          {shippingResult.isFreeByPromotion && (
+            <p className="text-xs text-pink-600 font-bold">✓ {shippingResult.promotionName || '무료배송 이벤트'} 적용중</p>
+          )}
+          {!shippingResult.isFreeByPromotion && totals.shippingFee === 0 && (
             <p className="text-xs text-amber-700">✓ {t('freeShippingNote')}</p>
           )}
         </div>

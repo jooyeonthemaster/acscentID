@@ -52,7 +52,9 @@
     "kakaoLoginFallback": "Kakao Login",
     "welcomeTitle": "WELCOME!",
     "welcomeDesc": "Log in and start\nrecording your scent.",
-    "loginButton": "LOGIN"
+    "loginButton": "LOGIN",
+    "qrLoginTitle": "Login Required",
+    "qrLoginDescription": "Please log in to start the offline scent analysis. Your results will be saved automatically!"
   },
   "errors": {
     "generic": "An error occurred",
@@ -87,7 +89,7 @@
     "cancelRefundExchange": "Cancel/Refund/Exchange",
     "companyInfo": "CEO Yoo Jaeyoung, Lee Dongju | Business Registration No. 683-86-02812",
     "salesRegistration": "Mail-order Sales Registration No. 2023-Seoul Seodaemun-1558",
-    "companyAddress": "22, Wausan-ro 29ra-gil, Mapo-gu, Seoul",
+    "companyAddress": "10-6, Dongmak-ro 36-gil, Mapo-gu, Seoul, 1F (Daeheung-dong)",
     "companyContact": "Tel. 02-336-3368 | Mail. neander@neander.co.kr"
   },
   "currency": {
@@ -530,6 +532,7 @@
     "orderCreateFailedStatus": "Failed to create order ({status})",
     "paymentFailed": "Payment failed.",
     "sizeSelection": "Size Selection",
+    "quantitySelection": "Quantity",
     "productSelection": "Product Selection",
     "graduationPerfumeSelection": "Graduation Perfume Selection",
     "signaturePerfumeLabel": "Signature Perfume",
@@ -557,7 +560,13 @@
     "includeAnalysisPerfume": "AI custom analysis perfume ({size})",
     "includeAnalysisCard": "Analysis result card",
     "setProduct": "Set Product",
-    "orderNameMulti": "{name} and {count} more"
+    "orderNameMulti": "{name} and {count} more",
+    "eventLabel": "Event",
+    "promoFreeShipping": "{promoName} - Free Shipping",
+    "stampCouponHint": "Stamp coupon discount may apply when purchasing {quantity} items!",
+    "stampCouponAvailable": "Stamp discount coupon is available!",
+    "stampDiscountApplied": "Stamp {percent}% discount applied",
+    "freeProductApplied": "Stamp free product applied"
   },
   "checkoutComplete": {
     "title": "Order Complete",

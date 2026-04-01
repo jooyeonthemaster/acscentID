@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Ticket, Clock, Check, Sparkles, Gift, Users, ShoppingBag, Cake, Loader2, LucideIcon } from 'lucide-react'
+import { Ticket, Clock, Check, Sparkles, Gift, Users, ShoppingBag, Cake, Loader2, LucideIcon, Stamp, Crown, Star } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CouponUsageModal } from './CouponUsageModal'
 
@@ -31,6 +31,9 @@ const COUPON_TYPE_INFO: Record<string, { icon: LucideIcon; color: string; bgGrad
   birthday: { icon: Cake, color: 'text-[#F472B6]', bgGradient: 'from-[#FBCFE8] to-[#FFF8E7]' },
   referral: { icon: Users, color: 'text-[#F472B6]', bgGradient: 'from-[#FBCFE8] to-[#FFF8E7]' },
   repurchase: { icon: ShoppingBag, color: 'text-[#F472B6]', bgGradient: 'from-[#FBCFE8] to-[#FFF8E7]' },
+  stamp_10: { icon: Stamp, color: 'text-purple-600', bgGradient: 'from-purple-200 to-indigo-100' },
+  stamp_20: { icon: Crown, color: 'text-purple-600', bgGradient: 'from-purple-300 to-pink-100' },
+  stamp_free: { icon: Star, color: 'text-pink-600', bgGradient: 'from-pink-200 to-amber-100' },
 }
 
 export function CouponList({ viewMode }: CouponListProps) {

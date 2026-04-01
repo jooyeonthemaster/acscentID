@@ -27,6 +27,7 @@ import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import { PRODUCT_PRICING, formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
+import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -86,6 +87,7 @@ function CheckoutContent() {
   const [idolName, setIdolName] = useState<string | null>(null)
   const [productType, setProductType] = useState<ProductType>("image_analysis")
   const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml" | "set">("10ml")
+  const [singleQuantity, setSingleQuantity] = useState(1)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -95,6 +97,14 @@ function CheckoutContent() {
 
   // PortOne 결제 Hook
   const { initiatePayment } = usePortonePayment()
+
+  // 프로모션 Hook
+  const { freeShippingPromo } = useActivePromotions()
+
+  // 수량 변경 시 쿠폰 초기화
+  useEffect(() => {
+    setSelectedCoupon(null)
+  }, [singleQuantity])
 
   // 분석 ID (주문과 분석 결과 연결용)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
@@ -266,6 +276,7 @@ function CheckoutContent() {
       }
       return item
     }))
+    setSelectedCoupon(null) // Reset coupon when quantity changes
   }
 
   // 다중 상품: 사이즈 변경
@@ -278,6 +289,7 @@ function CheckoutContent() {
       }
       return item
     }))
+    setSelectedCoupon(null) // Reset coupon when size changes
   }
 
   // 다중 상품: 아이템 삭제
@@ -289,6 +301,7 @@ function CheckoutContent() {
       }
       return updated
     })
+    setSelectedCoupon(null) // Reset coupon when item removed
   }
 
   // 가격 계산 - PRODUCT_PRICING에서 가져오기
@@ -299,22 +312,24 @@ function CheckoutContent() {
   }
 
   // 다중 상품 모드
-  const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent) : null
+  const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent, selectedCoupon?.type) : null
 
   // 단일 상품 모드
-  const singleProductPrice = getPriceForSize(productType, selectedSize)
-  // 5만원 이상 무료배송 (테스트 상품은 배송비 없음)
-  const singleShippingFee = productType === 'payment_test' ? 0 : (singleProductPrice >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE)
+  const singleUnitPrice = getPriceForSize(productType, selectedSize)
+  const singleProductPrice = singleUnitPrice * singleQuantity
   const singleDiscountAmount = selectedCoupon
-    ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
+    ? selectedCoupon.type === 'stamp_free'
+      ? singleUnitPrice // stamp_free: 1개 상품 단가만큼 할인 (무료 상품 1개)
+      : Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0
-  const singleTotalPrice = singleProductPrice + singleShippingFee - singleDiscountAmount
 
-  // 최종 가격
+  // 최종 가격 (프로모션 적용)
   const productPrice = isMultiItemMode ? multiTotals!.subtotal : singleProductPrice
-  const shippingFee = isMultiItemMode ? multiTotals!.shippingFee : singleShippingFee
+  const subtotalForShipping = isMultiItemMode ? multiTotals!.subtotal : singleProductPrice
+  const shippingResult = calculateShippingWithPromotion(subtotalForShipping, isMultiItemMode ? undefined : productType, freeShippingPromo)
+  const shippingFee = shippingResult.finalFee
   const discountAmount = isMultiItemMode ? multiTotals!.discount : singleDiscountAmount
-  const totalPrice = isMultiItemMode ? multiTotals!.total : singleTotalPrice
+  const totalPrice = productPrice + shippingFee - discountAmount
 
   // 계좌번호 복사
   const copyAccountNumber = async () => {
@@ -386,11 +401,12 @@ function CheckoutContent() {
             analysisData: item.analysis_data,
           })),
           subtotal: productPrice,
-          shippingFee,
+          shippingFee: shippingResult.finalFee,
           discountAmount,
-          originalPrice: productPrice + shippingFee,
+          originalPrice: productPrice + shippingResult.originalFee,
           finalPrice: totalPrice,
           userCouponId: selectedCoupon?.userCouponId || null,
+          promotionId: freeShippingPromo?.id || null,
           ...shippingInfo,
         }
       } else {
@@ -403,16 +419,19 @@ function CheckoutContent() {
           perfumeName,
           perfumeBrand: displayIdolName,
           size: selectedSize,
-          price: singleProductPrice,
-          shippingFee: singleShippingFee,
-          totalPrice: singleTotalPrice,
+          price: singleUnitPrice,
+          quantity: singleQuantity,
+          subtotal: singleProductPrice,
+          shippingFee: shippingResult.finalFee,
+          totalPrice,
           userCouponId: selectedCoupon?.userCouponId || null,
           discountAmount: singleDiscountAmount,
-          originalPrice: singleProductPrice + singleShippingFee,
-          finalPrice: singleTotalPrice,
+          originalPrice: singleProductPrice + shippingResult.originalFee,
+          finalPrice: totalPrice,
           userImage,
           keywords: analysisResult?.matchingKeywords || [],
           analysisData: analysisResult,
+          promotionId: freeShippingPromo?.id || null,
           // 확정된 레시피 포함 (재주문 시)
           ...(confirmedRecipe && { confirmedRecipe }),
           ...shippingInfo,
@@ -565,6 +584,8 @@ function CheckoutContent() {
                   onUpdateQuantity={handleUpdateQuantity}
                   onUpdateSize={handleUpdateSize}
                   onRemoveItem={handleRemoveItem}
+                  isFreeShippingPromo={shippingResult.isFreeByPromotion}
+                  promoName={shippingResult.promotionName || undefined}
                 />
               ) : (
                 <>
@@ -575,8 +596,11 @@ function CheckoutContent() {
                     productType={productType}
                     selectedSize={selectedSize}
                     onSizeChange={setSelectedSize}
-                    price={singleProductPrice}
+                    price={singleUnitPrice}
                     keywords={analysisResult?.matchingKeywords || []}
+                    isFreeShippingPromo={shippingResult.isFreeByPromotion}
+                    quantity={singleQuantity}
+                    onQuantityChange={setSingleQuantity}
                   />
                   {/* 확정 레시피 배지 (재주문 시) */}
                   {confirmedRecipe && (
@@ -620,6 +644,16 @@ function CheckoutContent() {
               selectedCoupon={selectedCoupon}
               onSelectCoupon={setSelectedCoupon}
               productPrice={productPrice}
+              cheapestItemPrice={
+                isMultiItemMode
+                  ? Math.min(...checkoutItems.map(i => i.price))
+                  : singleUnitPrice
+              }
+              totalQuantity={
+                isMultiItemMode
+                  ? checkoutItems.reduce((sum, i) => sum + i.quantity, 0)
+                  : singleQuantity
+              }
             />
           </motion.div>
 
@@ -660,12 +694,12 @@ function CheckoutContent() {
                         <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500 font-bold">{t('checkout.accountLabel')}</span>
+                        <span className="text-sm text-slate-500 font-bold whitespace-nowrap mr-3">{t('checkout.accountLabel')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-900 font-mono">{BANK_INFO.account}</span>
+                          <span className="font-black text-slate-900 font-mono whitespace-nowrap text-[15px]">{BANK_INFO.account}</span>
                           <button
                             onClick={copyAccountNumber}
-                            className={`p-2 rounded-lg border-2 transition-all ${
+                            className={`p-2 rounded-lg border-2 transition-all flex-shrink-0 ${
                               copied
                                 ? "bg-[#A5F3FC] border-slate-900 text-slate-900"
                                 : "bg-white border-slate-300 hover:border-slate-900 text-slate-600"
@@ -685,11 +719,11 @@ function CheckoutContent() {
                   {/* 안내 문구 */}
                   <div className="space-y-2">
                     <p className="text-sm text-red-500 font-bold flex items-center gap-2">
-                      <AlertCircle size={14} />
+                      <AlertCircle size={14} className="flex-shrink-0" />
                       {t('checkout.sameNameWarning')}
                     </p>
                     <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
-                      <Truck size={14} />
+                      <Truck size={14} className="flex-shrink-0" />
                       {t('checkout.depositAfterShipping')}
                     </p>
                   </div>
@@ -706,12 +740,31 @@ function CheckoutContent() {
                     </span>
                     <span className="font-black text-slate-900">{formatPrice(productPrice)}{t('currency.suffix')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
-                    <span className={`font-black ${shippingFee === 0 ? "text-[#F472B6]" : "text-slate-900"}`}>
-                      {shippingFee === 0 ? t('currency.free') : `${formatPrice(shippingFee)}${t('currency.suffix')}`}
-                    </span>
-                  </div>
+                  {shippingResult.isFreeByPromotion ? (
+                    <div className="bg-pink-50 border border-pink-200 rounded-lg px-3 py-2.5">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-[#F472B6] text-white rounded font-bold tracking-tight">
+                            {shippingResult.promotionName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-slate-400 line-through">
+                            {formatPrice(shippingResult.originalFee)}{t('currency.suffix')}
+                          </span>
+                          <span className="font-black text-[#F472B6]">0{t('currency.suffix')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
+                      <span className={`font-black ${shippingFee === 0 ? "text-[#F472B6]" : "text-slate-900"}`}>
+                        {shippingFee === 0 ? t('currency.free') : `${formatPrice(shippingFee)}${t('currency.suffix')}`}
+                      </span>
+                    </div>
+                  )}
                   {discountAmount > 0 && (
                     <div className="flex justify-between">
                       <span className="text-slate-500 font-bold">{t('checkout.couponDiscount')}</span>
@@ -725,7 +778,7 @@ function CheckoutContent() {
                     <div className="text-right">
                       {discountAmount > 0 && (
                         <span className="text-sm text-slate-400 line-through mr-2">
-                          {formatPrice(productPrice + shippingFee)}{t('currency.suffix')}
+                          {formatPrice(productPrice + shippingResult.originalFee)}{t('currency.suffix')}
                         </span>
                       )}
                       <span className="font-black text-2xl text-slate-900">

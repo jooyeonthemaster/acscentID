@@ -52,7 +52,9 @@
     "kakaoLoginFallback": "カカオログイン",
     "welcomeTitle": "WELCOME!",
     "welcomeDesc": "ログインして、あなただけの香りを\n記録しましょう。",
-    "loginButton": "LOGIN"
+    "loginButton": "LOGIN",
+    "qrLoginTitle": "ログインが必要です",
+    "qrLoginDescription": "オフライン香水分析を始めるには、まずログインしてください。分析結果は自動的に保存されます！"
   },
   "errors": {
     "generic": "エラーが発生しました",
@@ -87,7 +89,7 @@
     "cancelRefundExchange": "キャンセル/返金/交換",
     "companyInfo": "代表 ユ・ジェヨン、イ・ドンジュ | 事業者登録番号 683-86-02812",
     "salesRegistration": "通信販売届出番号 2023-ソウル西大門-1558",
-    "companyAddress": "ソウル特別市 麻浦区 ワウサンロ29ラギル 22",
+    "companyAddress": "ソウル特別市 麻浦区 トンマクロ36ギル 10-6, 1階(大興洞)",
     "companyContact": "Tel. 02-336-3368 | Mail. neander@neander.co.kr"
   },
   "currency": {
@@ -557,6 +559,7 @@
     "orderCreateFailedStatus": "注文作成に失敗しました ({status})",
     "paymentFailed": "お支払いに失敗しました。",
     "sizeSelection": "容量選択",
+    "quantitySelection": "数量選択",
     "productSelection": "商品選択",
     "graduationPerfumeSelection": "卒業パフューム選択",
     "signaturePerfumeLabel": "シグネチャーパフューム",
@@ -584,7 +587,14 @@
     "includeAnalysisPerfume": "AIカスタム分析香水（{size}）",
     "includeAnalysisCard": "分析結果カード",
     "setProduct": "セット商品",
-    "orderNameMulti": "{name} 他{count}件"
+    "orderNameMulti": "{name} 他{count}件",
+    "eventLabel": "イベント",
+    "promoFreeShipping": "{promoName} - 送料無料",
+    "quantitySelection": "数量選択",
+    "stampCouponHint": "{quantity}個購入でスタンプクーポン割引が適用される場合があります！",
+    "stampCouponAvailable": "スタンプ割引クーポンが使えます！",
+    "stampDiscountApplied": "スタンプ {percent}% 割引適用",
+    "freeProductApplied": "スタンプ無料商品適用"
   },
   "checkoutComplete": {
     "title": "注文完了",

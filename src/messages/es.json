@@ -52,7 +52,9 @@
     "kakaoLoginFallback": "Iniciar sesión con Kakao",
     "welcomeTitle": "WELCOME!",
     "welcomeDesc": "Inicia sesión y comienza\na registrar tu fragancia.",
-    "loginButton": "LOGIN"
+    "loginButton": "LOGIN",
+    "qrLoginTitle": "Se requiere inicio de sesion",
+    "qrLoginDescription": "Inicia sesion para comenzar el analisis de perfume offline. Los resultados se guardaran automaticamente!"
   },
   "errors": {
     "generic": "Ocurrió un error",
@@ -87,7 +89,7 @@
     "cancelRefundExchange": "Cancelación/Reembolso/Cambio",
     "companyInfo": "CEO Yoo Jaeyoung, Lee Dongju | Nº de registro comercial 683-86-02812",
     "salesRegistration": "Nº de registro de venta por correo 2023-Seúl Seodaemun-1558",
-    "companyAddress": "22, Wausan-ro 29ra-gil, Mapo-gu, Seúl",
+    "companyAddress": "10-6, Dongmak-ro 36-gil, Mapo-gu, Seúl, 1F (Daeheung-dong)",
     "companyContact": "Tel. 02-336-3368 | Mail. neander@neander.co.kr"
   },
   "currency": {
@@ -557,6 +559,7 @@
     "orderCreateFailedStatus": "Error al crear el pedido ({status})",
     "paymentFailed": "El pago ha fallado.",
     "sizeSelection": "Seleccionar tamaño",
+    "quantitySelection": "Cantidad",
     "productSelection": "Seleccionar producto",
     "graduationPerfumeSelection": "Seleccionar perfume de graduación",
     "signaturePerfumeLabel": "Perfume Signature",
@@ -584,7 +587,14 @@
     "includeAnalysisPerfume": "Perfume personalizado con análisis IA ({size})",
     "includeAnalysisCard": "Tarjeta de resultados del análisis",
     "setProduct": "Producto en set",
-    "orderNameMulti": "{name} y {count} más"
+    "orderNameMulti": "{name} y {count} más",
+    "eventLabel": "Evento",
+    "promoFreeShipping": "{promoName} - Envío gratis",
+    "quantitySelection": "Selección de cantidad",
+    "stampCouponHint": "¡Al comprar {quantity} artículos puede aplicarse un descuento de cupón de sellos!",
+    "stampCouponAvailable": "¡Puedes usar el cupón de descuento de sellos!",
+    "stampDiscountApplied": "Descuento de sello {percent}% aplicado",
+    "freeProductApplied": "Producto gratis por sello aplicado"
   },
   "checkoutComplete": {
     "title": "Pedido completado",
