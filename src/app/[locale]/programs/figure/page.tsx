@@ -16,6 +16,10 @@ import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList }
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useTranslations } from 'next-intl'
+import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDetail } from '@/hooks/useProductDetail'
+import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
+import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -63,11 +67,13 @@ export default function FigurePage() {
     loadReviewStats()
   }, [])
 
-  const productImages = [
+  const { imageUrls: dynamicImages } = useProductImages('figure')
+  const productImages = dynamicImages.length > 0 ? dynamicImages : [
     "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
     "/images/diffuser/KakaoTalk_20260125_225229624_01.jpg",
   ]
 
+  const { isCustomMode, detail } = useProductDetail('figure')
   const { startTransition } = useTransition()
 
   const handleStartClick = () => {
@@ -96,6 +102,7 @@ export default function FigurePage() {
   ]
 
   return (
+    <InactiveProductGuard productSlug="figure">
     <main className="relative min-h-screen bg-[#F0FDFF] font-sans">
       <Header />
 
@@ -222,10 +229,14 @@ export default function FigurePage() {
         </div>
       </section>
 
-      {/* ============================================
-          구성품 배너
-      ============================================ */}
-      <section className="py-6 px-4 bg-black">
+      {isCustomMode ? (
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+      ) : (
+        <>
+          {/* ============================================
+              구성품 배너
+          ============================================ */}
+          <section className="py-6 px-4 bg-black">
         <div className="w-full">
           <div className="flex flex-wrap items-center justify-center gap-4 text-white">
             {productComponents.map((item, idx) => (
@@ -406,6 +417,8 @@ export default function FigurePage() {
           </motion.div>
         </motion.div>
       </section>
+        </>
+      )}
 
       {/* ============================================
           실제 후기
@@ -568,5 +581,6 @@ export default function FigurePage() {
         }}
       />
     </main>
+    </InactiveProductGuard>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { compressImage, base64ToBlob } from "@/lib/image/compressor"
 import { apiFetch } from "@/lib/api-client"
 import type { FormDataType } from "../types"
@@ -46,6 +47,10 @@ export function useInputForm() {
     const [modelingImagePreview, setModelingImagePreview] = useState<string | null>(null)
     const [isModelingCompressing, setIsModelingCompressing] = useState(false)
 
+    // Auth 상태 (QR 모드 로그인 게이트용)
+    const { user, unifiedUser, loading: authLoading } = useAuth()
+    const isLoggedIn = !!(user || unifiedUser)
+
     const isIdol = type === "idol_image" || type === "figure"
     const isGraduation = type === "graduation"
     // 온라인 모드 판단: mode=online이거나 service_mode=online (QR 리다이렉트)
@@ -54,6 +59,9 @@ export function useInputForm() {
     const isOffline = mode === "qr" || serviceMode === "offline" || (!isOnline && qrCode)
     const isFigureOnline = type === "figure" && isOnline
     const isGraduationOnline = isGraduation && isOnline
+
+    // QR 모드 로그인 게이트: 오프라인(QR)인데 로그인 안 된 상태면 차단
+    const showQrAuthGate = !!isOffline && !isLoggedIn && !authLoading
 
     // QR 리다이렉트 무한 루프 방지
     // QR 코드 스캔 → /qr/[code] (서버 리다이렉트) → /input 으로 오면
@@ -150,12 +158,13 @@ export function useInputForm() {
         }))
     }, [])
 
-    // 네비게이션
+    // 네비게이션 (QR 인증 게이트 활성화 시 차단)
     const handleNext = useCallback(() => {
+        if (showQrAuthGate) return
         if (currentStep < 5 && isStepValid(currentStep)) {
             setCurrentStep(prev => prev + 1)
         }
-    }, [currentStep, isStepValid])
+    }, [currentStep, isStepValid, showQrAuthGate])
 
     const handlePrev = useCallback(() => {
         if (currentStep > 1) {
@@ -236,8 +245,9 @@ export function useInputForm() {
         setFormData(prev => ({ ...prev, modelingRequest: request }))
     }, [])
 
-    // 폼 제출
+    // 폼 제출 (QR 인증 게이트 활성화 시 차단)
     const handleComplete = useCallback(async () => {
+        if (showQrAuthGate) return
         if (!isStepValid(5) || isSubmitting) return
 
         setIsSubmitting(true)
@@ -386,7 +396,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type, showQrAuthGate])
 
     // 문 열린 후 결과 페이지로 이동
     // QR/오프라인에서 온 경우 replace 사용 → 뒤로가기 시 input 페이지로 돌아가지 않음
@@ -416,6 +426,9 @@ export function useInputForm() {
         isOffline,
         isGraduation,
         isGraduationOnline,
+        // QR 로그인 게이트
+        showQrAuthGate,
+        authLoading,
 
         // 피규어 온라인 모드 전용
         isFigureOnline,

@@ -1,19 +1,25 @@
 "use client"
 
 import { Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 import { useInputForm } from "@/app/[locale]/input/hooks/useInputForm"
 import { Step1, Step2, Step3, Step4, Step5 } from "@/app/[locale]/input/components"
 import { TOTAL_STEPS } from "@/app/[locale]/input/constants"
 
 import { Header } from "@/components/layout/Header"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 // ===== QR 오프라인 전용 입력 폼 =====
 // 기존 input 페이지와 동일 - QR 코드로만 접근
 function QRInputForm() {
+    const searchParams = useSearchParams()
+    const t = useTranslations()
+
     const {
         currentStep,
         formData,
@@ -26,6 +32,7 @@ function QRInputForm() {
         isSubmitting,
         isCompressing,
         isIdol,
+        showQrAuthGate,
         isStepValid,
         toggleStyle,
         togglePersonality,
@@ -36,6 +43,8 @@ function QRInputForm() {
         removeImage,
         handleComplete
     } = useInputForm()
+
+    const qrRedirectPath = `/qr/input?${searchParams.toString()}`
 
     return (
         <div className="relative w-full min-h-screen bg-[#FAFAFA] font-sans text-slate-800 flex flex-col">
@@ -120,6 +129,17 @@ function QRInputForm() {
                     />
                 </div>
             </main>
+
+            {/* QR 오프라인 모드: 로그인 필수 게이트 */}
+            <AuthModal
+                isOpen={showQrAuthGate}
+                onClose={() => {}}
+                closeable={false}
+                showGuestOption={false}
+                title={t('auth.qrLoginTitle')}
+                description={t('auth.qrLoginDescription')}
+                redirectPath={qrRedirectPath}
+            />
         </div>
     )
 }

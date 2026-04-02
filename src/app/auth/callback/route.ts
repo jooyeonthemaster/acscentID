@@ -6,7 +6,10 @@ export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
     // if "next" is in param, use it as the redirect URL
+    // next 파라미터가 없으면 '/'로 폴백 (클라이언트 사이드 localStorage 백업이 최종 리다이렉트 보정)
     const next = searchParams.get('next') ?? '/'
+
+    console.log('[Auth Callback] code:', !!code, 'next:', next)
 
     if (code) {
         const supabase = await createServerSupabaseClientWithCookies()

@@ -16,6 +16,10 @@ import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList }
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useTranslations } from 'next-intl'
+import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDetail } from '@/hooks/useProductDetail'
+import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
+import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -63,12 +67,14 @@ export default function GraduationPage() {
     loadReviewStats()
   }, [])
 
-  const productImages = [
+  const { imageUrls: dynamicImages } = useProductImages('graduation')
+  const productImages = dynamicImages.length > 0 ? dynamicImages : [
     "/images/jollduck/KakaoTalk_20260130_201156204.jpg",
     "/images/jollduck/KakaoTalk_20260130_201156204_01.jpg",
     "/images/jollduck/KakaoTalk_20260130_201156204_02.jpg",
   ]
 
+  const { isCustomMode, detail } = useProductDetail('graduation')
   const { startTransition } = useTransition()
 
   const handleStartClick = () => {
@@ -91,6 +97,7 @@ export default function GraduationPage() {
   }
 
   return (
+    <InactiveProductGuard productSlug="graduation">
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
 
@@ -234,29 +241,33 @@ export default function GraduationPage() {
         </div>
       </section>
 
-      {/* ============================================
-          Feature Bar - 검은 배경
-      ============================================ */}
-      <section className="py-6 px-4 bg-black">
-        <div className="w-full">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-white">
-            <div className="flex items-center gap-1.5">
-              <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded animate-pulse">
-                ~2/28
-              </span>
-              <span className="font-bold text-xs">{t('programs.graduation.featureLimited')}</span>
+      {isCustomMode ? (
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+      ) : (
+        <>
+          {/* ============================================
+              Feature Bar - 검은 배경
+          ============================================ */}
+          <section className="py-6 px-4 bg-black">
+            <div className="w-full">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-white">
+                <div className="flex items-center gap-1.5">
+                  <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded animate-pulse">
+                    ~2/28
+                  </span>
+                  <span className="font-bold text-xs">{t('programs.graduation.featureLimited')}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <GraduationCap size={14} className="text-amber-400" />
+                  <span className="font-bold text-xs">{t('programs.graduation.featureGraduation')}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-amber-400" />
+                  <span className="font-bold text-xs">{t('programs.graduation.featureCustom')}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <GraduationCap size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">{t('programs.graduation.featureGraduation')}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Sparkles size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">{t('programs.graduation.featureCustom')}</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
       {/* ============================================
           진행 과정
@@ -381,6 +392,8 @@ export default function GraduationPage() {
           </motion.div>
         </motion.div>
       </section>
+        </>
+      )}
 
       {/* ============================================
           실제 후기
@@ -542,5 +555,6 @@ export default function GraduationPage() {
         }}
       />
     </main>
+    </InactiveProductGuard>
   )
 }

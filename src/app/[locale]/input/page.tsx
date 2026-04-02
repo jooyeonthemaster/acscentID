@@ -13,9 +13,23 @@ import { TOTAL_STEPS } from "./constants"
 import { GraduationInputForm } from "./graduation/GraduationInputForm"
 
 import { Header } from "@/components/layout/Header"
+import { AuthModal } from "@/components/auth/AuthModal"
+import { InactiveProductGuard } from "@/components/programs/InactiveProductGuard"
+
+// input type → product slug 매핑
+const INPUT_TYPE_TO_SLUG: Record<string, string> = {
+  idol_image: 'idol-image',
+  figure: 'figure',
+  graduation: 'graduation',
+  personal: 'personal',
+  le_quack: 'le-quack',
+}
 
 // ===== 메인 폼 컴포넌트 =====
 function InputForm() {
+    const searchParams = useSearchParams()
+    const t = useTranslations()
+
     const {
         currentStep,
         formData,
@@ -34,6 +48,8 @@ function InputForm() {
         isFigureOnline,
         modelingImagePreview,
         isModelingCompressing,
+        // QR 로그인 게이트
+        showQrAuthGate,
         isStepValid,
         navigateToResult,
         toggleStyle,
@@ -48,6 +64,9 @@ function InputForm() {
         setModelingRequest,
         handleComplete
     } = useInputForm()
+
+    // QR 로그인 후 복귀할 경로 (현재 URL 파라미터 보존)
+    const qrRedirectPath = `/input?${searchParams.toString()}`
 
     return (
         <div className="min-h-screen bg-[#FAFAFA] font-sans text-slate-800">
@@ -160,6 +179,17 @@ function InputForm() {
                 </div>
             </main>
             </div>
+
+            {/* QR 오프라인 모드: 로그인 필수 게이트 */}
+            <AuthModal
+                isOpen={showQrAuthGate}
+                onClose={() => {}}
+                closeable={false}
+                showGuestOption={false}
+                title={t('auth.qrLoginTitle')}
+                description={t('auth.qrLoginDescription')}
+                redirectPath={qrRedirectPath}
+            />
         </div>
     )
 }
@@ -225,14 +255,23 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
 function InputPageContent() {
     const searchParams = useSearchParams()
     const type = searchParams.get("type")
+    const productSlug = INPUT_TYPE_TO_SLUG[type || ''] || 'idol-image'
 
     // 졸업 프로그램인 경우 전용 폼 렌더링
     if (type === "graduation") {
-        return <GraduationInputForm />
+        return (
+            <InactiveProductGuard productSlug={productSlug}>
+                <GraduationInputForm />
+            </InactiveProductGuard>
+        )
     }
 
     // 기본 폼 (idol_image, figure 등)
-    return <InputForm />
+    return (
+        <InactiveProductGuard productSlug={productSlug}>
+            <InputForm />
+        </InactiveProductGuard>
+    )
 }
 
 export default function InputPage() {

@@ -8,6 +8,8 @@ export async function signInWithGoogle(nextPath?: string) {
   const callbackUrl = new URL('/auth/callback', window.location.origin)
   if (nextPath) {
     callbackUrl.searchParams.set('next', nextPath)
+    // OAuth 리다이렉트 중 next 파라미터 유실 대비 localStorage 백업
+    localStorage.setItem('auth_redirect_after_login', nextPath)
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -33,8 +35,13 @@ export async function signInWithGoogle(nextPath?: string) {
  * Kakao OAuth 로그인 (Custom Provider via API Route)
  */
 export async function signInWithKakao(redirectTo?: string) {
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
   const next = redirectTo || currentPath
+
+  // OAuth 리다이렉트 중 next 파라미터 유실 대비 localStorage 백업
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('auth_redirect_after_login', next)
+  }
 
   // Kakao 로그인 API 라우트로 리다이렉트
   window.location.href = `/api/auth/kakao?next=${encodeURIComponent(next)}`

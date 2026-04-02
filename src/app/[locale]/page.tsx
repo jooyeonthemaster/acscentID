@@ -8,6 +8,8 @@ import { ChevronRight, ChevronLeft, Search, Gift, Handshake } from "lucide-react
 import { Header } from "@/components/layout/Header"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
+import { PopupModal } from "@/components/home/PopupModal"
+import { useBanners, useActiveProducts } from "@/hooks/useAdminContent"
 
 export default function Home() {
   const router = useRouter()
@@ -15,9 +17,11 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const slideRef = useRef<HTMLDivElement>(null)
+  const { banners, loading: bannersLoading } = useBanners()
+  const { isProductActive } = useActiveProducts()
 
   // 상품 데이터 (번역 키 사용)
-  const PRODUCTS = [
+  const ALL_PRODUCTS = [
     {
       id: "idol-image",
       title: t('products.idolImage'),
@@ -45,20 +49,23 @@ export default function Home() {
     },
   ]
 
+  // 활성화된 상품만 필터링
+  const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductActive(p.id))
+
   const handleCardClick = (href: string) => {
     router.push(href)
   }
 
-  // 히어로 슬라이드는 2개만 사용
-  const HERO_SLIDE_COUNT = 2
+  // 히어로 슬라이드 (동적 배너)
+  const heroSlideCount = banners.length || 1
 
   // 슬라이드 네비게이션
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDE_COUNT)
+    setCurrentSlide((prev) => (prev + 1) % heroSlideCount)
   }
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDE_COUNT) % HERO_SLIDE_COUNT)
+    setCurrentSlide((prev) => (prev - 1 + heroSlideCount) % heroSlideCount)
   }
 
   // 드래그 핸들러
@@ -74,6 +81,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#FCD34D] font-sans selection:bg-yellow-200 selection:text-yellow-900">
+      <PopupModal />
       <Header />
 
       {/* 메인 컨텐츠 */}
@@ -81,7 +89,7 @@ export default function Home() {
         <div className="w-full max-w-[455px] mx-auto">
 
           {/* ===== 히어로 슬라이드 섹션 ===== */}
-          <section className="sticky top-[84px] z-0 w-full overflow-hidden md:overflow-visible">
+          <section className={`sticky top-[84px] z-0 w-full overflow-hidden md:overflow-visible transition-opacity duration-300 ${bannersLoading ? 'opacity-0' : 'opacity-100'}`}>
             {/* 슬라이드 컨테이너 */}
             <div className="relative h-[420px] flex items-center justify-center">
               {/* 슬라이드 */}
@@ -100,17 +108,16 @@ export default function Home() {
                   onDragEnd={handleDragEnd}
                   className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
                   onClick={() => {
-                    if (!isDragging) handleCardClick(PRODUCTS[currentSlide].href)
+                    if (!isDragging && banners[currentSlide]?.link_url) {
+                      router.push(banners[currentSlide].link_url!)
+                    }
                   }}
                 >
-                  {/* 슬라이드 배경 이미지 */}
+                  {/* 슬라이드 배경 이미지 (동적 배너) */}
                   <div className="absolute inset-0">
                     <Image
-                      src={
-                        currentSlide === 0 ? "/images/hero/1.jpg" :
-                          "/images/hero/2.jpg"
-                      }
-                      alt="hero background"
+                      src={banners[currentSlide]?.image_url || '/images/hero/1.jpg'}
+                      alt={banners[currentSlide]?.title || 'hero background'}
                       fill
                       className="object-contain"
                       style={{ objectPosition: 'center 5%' }}
@@ -135,7 +142,7 @@ export default function Home() {
               </button>
 
               <div className="absolute bottom-32 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-                {[0, 1].map((index) => (
+                {banners.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
@@ -267,29 +274,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Product Card 2 - Custom Duck Case (New) */}
-              <Link href="/custom-duck" className="relative group cursor-pointer block">
-                <div className="relative bg-[#FFF7ED] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                  <div className="relative aspect-square overflow-hidden bg-yellow-100 flex items-center justify-center">
-                    <img src="/parts/main.png" alt={t('products.customDuck')} className="w-full h-full object-cover" />
-
-                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-blue-500 text-white text-[8px] font-black rounded-full z-10">
-                      NEW
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 px-1">
-                  <h3 className="font-bold text-slate-900 text-sm truncate">
-                    {t('products.customDuck')}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {t('home.customDuckDesc')}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-sm font-bold text-slate-900">{t('currency.symbol')}10,000</span>
-                  </div>
-                </div>
-              </Link>
+              {/* Product Card 2 - Custom Duck Case (Disabled) */}
             </div>
 
             <div className="mt-12 text-center">

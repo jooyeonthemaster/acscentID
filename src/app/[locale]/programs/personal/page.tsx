@@ -12,6 +12,10 @@ import {
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDetail } from '@/hooks/useProductDetail'
+import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
+import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -39,8 +43,10 @@ export default function PersonalPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const isLoggedIn = !!(user || unifiedUser)
+  const { isCustomMode, detail } = useProductDetail('personal')
 
-  const productImages = [
+  const { imageUrls: dynamicImages } = useProductImages('personal')
+  const productImages = dynamicImages.length > 0 ? dynamicImages : [
     "/제목 없는 디자인 (4)/1.png",
     "/제목 없는 디자인 (4)/2.png",
     "/제목 없는 디자인 (4)/3.png",
@@ -86,6 +92,7 @@ export default function PersonalPage() {
   ]
 
   return (
+    <InactiveProductGuard productSlug="personal">
     <main className="relative min-h-screen bg-[#FAFAFA] font-sans">
       <Header />
 
@@ -242,10 +249,14 @@ export default function PersonalPage() {
         </div>
       </section>
 
-      {/* ============================================
-          구성품 배너
-      ============================================ */}
-      <section className="py-8 px-4 bg-black">
+      {isCustomMode ? (
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+      ) : (
+        <>
+          {/* ============================================
+              구성품 배너
+          ============================================ */}
+          <section className="py-8 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white">
             {productIncludes.map((item, idx) => (
@@ -457,6 +468,8 @@ export default function PersonalPage() {
           </motion.div>
         </motion.div>
       </section>
+        </>
+      )}
 
       {/* ============================================
           실제 후기
@@ -680,5 +693,6 @@ export default function PersonalPage() {
         redirectPath="/input?type=personal&mode=online"
       />
     </main>
+    </InactiveProductGuard>
   )
 }

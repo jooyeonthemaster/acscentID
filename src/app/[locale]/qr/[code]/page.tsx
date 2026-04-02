@@ -38,6 +38,24 @@ export default async function QRRedirectPage({ params }: PageProps) {
     redirect(qrCode.custom_url)
   }
 
+  // 상품 활성화 확인
+  const productTypeToSlug: Record<string, string> = {
+    image_analysis: 'idol-image',
+    figure_diffuser: 'figure',
+    graduation: 'graduation',
+    personal_scent: 'personal',
+  }
+  const productSlug = productTypeToSlug[qrCode.product_type] || 'idol-image'
+  const { data: product } = await supabase
+    .from('admin_products')
+    .select('is_active')
+    .eq('slug', productSlug)
+    .single()
+
+  if (product && !product.is_active) {
+    redirect('/')
+  }
+
   // 상품 타입에 따라 적절한 경로로 리다이렉트
   const productType = qrCode.product_type
   const serviceMode = qrCode.service_mode || 'offline'

@@ -109,8 +109,10 @@ async function handleKakaoCallback(code: string, next: string, origin: string) {
 
     console.log('Kakao login successful:', user.id, isNewUser ? '(새 회원)' : '')
 
-    // 6. 리다이렉트
-    return NextResponse.redirect(`${origin}${next}?login_success=true`)
+    // 6. 리다이렉트 (next에 이미 쿼리파라미터가 있을 수 있으므로 URL 객체로 안전하게 처리)
+    const redirectUrl = new URL(next, origin)
+    redirectUrl.searchParams.set('login_success', 'true')
+    return NextResponse.redirect(redirectUrl.toString())
 
   } catch (error) {
     console.error('Kakao OAuth error:', error)

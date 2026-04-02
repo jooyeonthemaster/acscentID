@@ -11,11 +11,12 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { useActiveProducts } from '@/hooks/useAdminContent'
 
-// Programs 드롭업 메뉴 항목
-const PROGRAM_LINKS = [
-  { href: '/programs/idol-image', labelKey: 'programs.subtitle.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-  { href: '/programs/figure', labelKey: 'programs.subtitle.figure' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+// Programs 드롭업 메뉴 항목 (전체)
+const ALL_PROGRAM_LINKS = [
+  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'programs.subtitle.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { slug: 'figure', href: '/programs/figure', labelKey: 'programs.subtitle.figure' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
 ]
 
 // NavItem 컴포넌트
@@ -56,9 +57,11 @@ function NavItem({
 
 // ProgramsSheet 컴포넌트 - 하단 시트 모달
 function ProgramsSheet({
-  onClose
+  onClose,
+  programLinks,
 }: {
   onClose: () => void
+  programLinks: typeof ALL_PROGRAM_LINKS
 }) {
   const t = useTranslations()
 
@@ -104,7 +107,7 @@ function ProgramsSheet({
 
         {/* 프로그램 목록 */}
         <div className="p-4 pb-8 space-y-3">
-          {PROGRAM_LINKS.map((link) => (
+          {programLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -141,6 +144,10 @@ export function MobileBottomNav() {
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
   const t = useTranslations()
+  const { isProductActive } = useActiveProducts()
+
+  // 활성 상품만 필터링
+  const PROGRAM_LINKS = ALL_PROGRAM_LINKS.filter((link) => isProductActive(link.slug))
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -332,6 +339,7 @@ export function MobileBottomNav() {
             {showProgramsMenu && (
               <ProgramsSheet
                 onClose={() => setShowProgramsMenu(false)}
+                programLinks={PROGRAM_LINKS}
               />
             )}
           </AnimatePresence>

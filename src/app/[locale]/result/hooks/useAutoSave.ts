@@ -280,7 +280,9 @@ export function useAutoSave({
         setIsSaved(true)
 
         // 익명 사용자면 로그인 유도 (2초 후)
-        if (!userId) {
+        // QR 오프라인 모드는 입력 단계에서 이미 로그인 강제하므로 스킵
+        const isQrMode = typeof window !== 'undefined' && localStorage.getItem('serviceMode') === 'offline'
+        if (!userId && !isQrMode) {
           setTimeout(() => {
             if (mountedRef.current) {
               setShowLoginPrompt(true)

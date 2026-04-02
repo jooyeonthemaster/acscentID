@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
+import { useActiveProducts } from '@/hooks/useAdminContent'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -131,11 +132,13 @@ export function MobileMenuSheet({
     handleClose()
   }
 
-  // Navigation Links with translated labels
+  const { isProductActive } = useActiveProducts()
+
+  // Navigation Links with translated labels (활성 상품만)
   const programLinks = [
-    { href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-    { href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  ]
+    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  ].filter((link) => isProductActive(link.slug))
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

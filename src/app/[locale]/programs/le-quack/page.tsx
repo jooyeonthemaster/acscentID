@@ -15,6 +15,10 @@ import { AuthModal } from "@/components/auth/AuthModal"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
+import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDetail } from '@/hooks/useProductDetail'
+import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
+import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -62,9 +66,12 @@ export default function LeQuackPage() {
     loadReviewStats()
   }, [])
 
-  const productImages = [
+  const { imageUrls: dynamicImages } = useProductImages('le-quack')
+  const productImages = dynamicImages.length > 0 ? dynamicImages : [
     "/images/perfume/LE QUACK.avif",
   ]
+
+  const { isCustomMode, detail } = useProductDetail('le-quack')
 
   // 바로 구매하기 - 주문 폼으로 이동
   const handlePurchaseClick = () => {
@@ -88,6 +95,7 @@ export default function LeQuackPage() {
   }
 
   return (
+    <InactiveProductGuard productSlug="le-quack">
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
 
@@ -228,91 +236,97 @@ export default function LeQuackPage() {
         </div>
       </section>
 
-      {/* ============================================
-          Feature Bar - 검은 배경
-      ============================================ */}
-      <section className="py-6 px-4 bg-black">
-        <div className="w-full">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-white">
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg">🦆</span>
-              <span className="font-bold text-xs">퍼퓸키링</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Sparkles size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">시그니처 향</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Package size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">빠른 배송</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Heart size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">선물 추천</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          제품 특징
-      ============================================ */}
-      <section className="py-12 px-4 bg-[#FFFDF5]">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="w-full"
-        >
-          <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-amber-400 text-white text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
-              ✨ FEATURES
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
-              시그니처 뿌덕퍼퓸의
-              <br />
-              특별함
-            </motion.h2>
-          </div>
-
-          <div className="space-y-4">
-            {/* 퍼퓸키링 */}
-            <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
-              <div className="flex items-start gap-3">
-                <div className="text-3xl">🦆</div>
-                <div>
-                  <h3 className="font-black text-slate-900 mb-2">귀여운 오리 퍼퓸키링</h3>
-                  <p className="text-slate-600 text-sm">AC&apos;SCENT의 마스코트 뿌덕이가 키링으로!<br />가방이나 열쇠에 달아 어디서든 귀여움을 뽐내세요</p>
+      {isCustomMode ? (
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+      ) : (
+        <>
+          {/* ============================================
+              Feature Bar - 검은 배경
+          ============================================ */}
+          <section className="py-6 px-4 bg-black">
+            <div className="w-full">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-white">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">🦆</span>
+                  <span className="font-bold text-xs">퍼퓸키링</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-amber-400" />
+                  <span className="font-bold text-xs">시그니처 향</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Package size={14} className="text-amber-400" />
+                  <span className="font-bold text-xs">빠른 배송</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Heart size={14} className="text-amber-400" />
+                  <span className="font-bold text-xs">선물 추천</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
+          </section>
 
-            {/* 시그니처 향 */}
-            <motion.div variants={fadeInUp} className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
-              <div className="flex items-start gap-3">
-                <div className="text-3xl">✨</div>
-                <div>
-                  <h3 className="font-black text-slate-900 mb-2">AC&apos;SCENT 시그니처 향</h3>
-                  <p className="text-slate-600 text-sm">브랜드를 대표하는 시그니처 향으로,<br />따뜻하고 편안한 느낌을 선사합니다</p>
-                </div>
+          {/* ============================================
+              제품 특징
+          ============================================ */}
+          <section className="py-12 px-4 bg-[#FFFDF5]">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+              className="w-full"
+            >
+              <div className="text-center mb-8">
+                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-amber-400 text-white text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
+                  ✨ FEATURES
+                </motion.div>
+                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
+                  시그니처 뿌덕퍼퓸의
+                  <br />
+                  특별함
+                </motion.h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* 퍼퓸키링 */}
+                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                  <div className="flex items-start gap-3">
+                    <div className="text-3xl">🦆</div>
+                    <div>
+                      <h3 className="font-black text-slate-900 mb-2">귀여운 오리 퍼퓸키링</h3>
+                      <p className="text-slate-600 text-sm">AC&apos;SCENT의 마스코트 뿌덕이가 키링으로!<br />가방이나 열쇠에 달아 어디서든 귀여움을 뽐내세요</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 시그니처 향 */}
+                <motion.div variants={fadeInUp} className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                  <div className="flex items-start gap-3">
+                    <div className="text-3xl">✨</div>
+                    <div>
+                      <h3 className="font-black text-slate-900 mb-2">AC&apos;SCENT 시그니처 향</h3>
+                      <p className="text-slate-600 text-sm">브랜드를 대표하는 시그니처 향으로,<br />따뜻하고 편안한 느낌을 선사합니다</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 선물용 */}
+                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                  <div className="flex items-start gap-3">
+                    <div className="text-3xl">🎁</div>
+                    <div>
+                      <h3 className="font-black text-slate-900 mb-2">선물하기 좋은 구성</h3>
+                      <p className="text-slate-600 text-sm">퍼퓸과 키링이 함께 들어있어 소중한<br />사람에게 선물하기 딱 좋아요</p>
+                    </div>
+                  </div>
+                </motion.div>
+
               </div>
             </motion.div>
-
-            {/* 선물용 */}
-            <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
-              <div className="flex items-start gap-3">
-                <div className="text-3xl">🎁</div>
-                <div>
-                  <h3 className="font-black text-slate-900 mb-2">선물하기 좋은 구성</h3>
-                  <p className="text-slate-600 text-sm">퍼퓸과 키링이 함께 들어있어 소중한<br />사람에게 선물하기 딱 좋아요</p>
-                </div>
-              </div>
-            </motion.div>
-
-          </div>
-        </motion.div>
-      </section>
+          </section>
+        </>
+      )}
 
       {/* ============================================
           실제 후기
@@ -493,5 +507,6 @@ export default function LeQuackPage() {
         }}
       />
     </main>
+    </InactiveProductGuard>
   )
 }

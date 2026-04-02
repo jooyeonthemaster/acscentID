@@ -124,11 +124,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         setLoading(false)
 
-        // 로그인 성공 시 fingerprint 데이터 연동
+        // 로그인 성공 시 fingerprint 데이터 연동 + 리다이렉트 복구
         if (event === 'SIGNED_IN' && currentSession?.user) {
           setTimeout(() => {
             linkFingerprintDataInternal(currentSession.user.id)
           }, 1000)
+
+          // OAuth 리다이렉트에서 next 파라미터가 유실된 경우 localStorage 백업으로 복구
+          const pendingRedirect = localStorage.getItem('auth_redirect_after_login')
+          if (pendingRedirect) {
+            localStorage.removeItem('auth_redirect_after_login')
+            const currentPath = window.location.pathname + window.location.search
+            if (currentPath !== pendingRedirect) {
+              window.location.href = pendingRedirect
+              return
+            }
+          }
         }
       }
     )
@@ -154,9 +165,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           }, 500)
         })
-        // URL 정리
-        const newUrl = window.location.pathname
-        window.history.replaceState({}, '', newUrl)
+
+        // OAuth 리다이렉트에서 경로가 유실된 경우 localStorage 백업으로 복구
+        const pendingRedirect = localStorage.getItem('auth_redirect_after_login')
+        if (pendingRedirect) {
+          localStorage.removeItem('auth_redirect_after_login')
+          const currentPath = window.location.pathname + window.location.search
+          // login_success 제거한 현재 URL과 비교
+          const cleanCurrent = new URL(window.location.href)
+          cleanCurrent.searchParams.delete('login_success')
+          const cleanPath = cleanCurrent.pathname + (cleanCurrent.search || '')
+          if (cleanPath !== pendingRedirect) {
+            window.location.href = pendingRedirect
+            return
+          }
+        }
+
+        // URL 정리 (login_success만 제거, 나머지 쿼리파라미터는 보존)
+        const cleanUrl = new URL(window.location.href)
+        cleanUrl.searchParams.delete('login_success')
+        const preserved = cleanUrl.pathname + (cleanUrl.search || '')
+        window.history.replaceState({}, '', preserved)
       }
     }
 

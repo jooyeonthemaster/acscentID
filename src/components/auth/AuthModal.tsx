@@ -14,6 +14,8 @@ interface AuthModalProps {
   description?: string
   onSuccess?: () => void
   redirectPath?: string
+  closeable?: boolean        // false면 X버튼 숨기고 배경 클릭 닫기 비활성화
+  showGuestOption?: boolean  // false면 비회원 버튼 숨김
 }
 
 export function AuthModal({
@@ -23,6 +25,8 @@ export function AuthModal({
   description,
   onSuccess,
   redirectPath,
+  closeable = true,
+  showGuestOption = true,
 }: AuthModalProps) {
   const { signInWithGoogle, signInWithKakao, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -67,7 +71,7 @@ export function AuthModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={closeable ? onClose : undefined}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
           />
 
@@ -79,13 +83,15 @@ export function AuthModal({
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden"
           >
             <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
-              <button
-                onClick={onClose}
-                disabled={isButtonDisabled}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors disabled:opacity-50"
-              >
-                <X size={20} className="text-slate-400" />
-              </button>
+              {closeable && (
+                <button
+                  onClick={onClose}
+                  disabled={isButtonDisabled}
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors disabled:opacity-50"
+                >
+                  <X size={20} className="text-slate-400" />
+                </button>
+              )}
 
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/30">
                 <Sparkles size={28} className="text-white" />
@@ -121,23 +127,27 @@ export function AuthModal({
                 {isLoading ? t('loginInProgress') : t('kakaoLogin')}
               </button>
 
-              <div className="relative py-3">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-3 text-[11px] text-slate-400">또는</span>
-                </div>
-              </div>
+              {showGuestOption && (
+                <>
+                  <div className="relative py-3">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-[11px] text-slate-400">또는</span>
+                    </div>
+                  </div>
 
-              <button
-                onClick={handleGuestLogin}
-                disabled={isButtonDisabled}
-                className="w-full h-12 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                {isLoading ? t('loginInProgress') : '비회원으로 계속하기'}
-              </button>
+                  <button
+                    onClick={handleGuestLogin}
+                    disabled={isButtonDisabled}
+                    className="w-full h-12 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    {isLoading ? t('loginInProgress') : '비회원으로 계속하기'}
+                  </button>
+                </>
+              )}
 
               <p className="text-[11px] text-slate-400 text-center pt-2">
                 {t('loginHint')}
