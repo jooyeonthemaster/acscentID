@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart } from 'lucide-react'
+import { Sparkles, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart, Heart } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
@@ -65,14 +65,26 @@ interface AnalysisData {
   matchingKeywords?: string[]
 }
 
+interface ChemistryAnalysis {
+  sessionId: string
+  characterA: Analysis
+  characterB: Analysis
+  chemistryData: object
+  chemistryType: string | null
+  chemistryTitle: string | null
+  created_at: string
+}
+
 interface SavedAnalysisListProps {
   analyses: Analysis[]
+  chemistryAnalyses?: ChemistryAnalysis[]
   loading: boolean
   onDelete: (id: string) => void
+  onDeleteChemistry?: (sessionId: string) => void
   viewMode?: 'grid' | 'list'
 }
 
-export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'grid' }: SavedAnalysisListProps) {
+export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, onDelete, onDeleteChemistry, viewMode = 'grid' }: SavedAnalysisListProps) {
   const router = useRouter()
   const t = useTranslations('mypage.gallery')
   const tButtons = useTranslations('buttons')
@@ -87,6 +99,12 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+
+  // 케미 삭제 대상
+  const [chemistryDeleteTarget, setChemistryDeleteTarget] = useState<ChemistryAnalysis | null>(null)
+
+  // 케미 상세보기 모달 대상
+  const [chemistryDetailTarget, setChemistryDetailTarget] = useState<ChemistryAnalysis | null>(null)
 
   // 장바구니 결과 모달 상태
   const [cartResultModal, setCartResultModal] = useState<{
@@ -180,7 +198,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   // 상품 타입 뱃지 렌더링
   const renderProductTypeBadge = (productType?: ProductType) => {
     const type = productType || 'image_analysis'
-    const badge = PRODUCT_TYPE_BADGES[type]
+    const badge = PRODUCT_TYPE_BADGES[type] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', labelShort: type }
     return (
       <span className={`px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded ${badge.bg} ${badge.text} border ${badge.border}`}>
         {badge.labelShort}
@@ -218,6 +236,81 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
       localStorage.setItem('checkoutRecipePerfumeName', analysis.perfume_name || '')
     }
 
+    router.push('/checkout')
+  }
+
+  // 케미 향수 장바구니 담기
+  const handleAddChemistryToCart = async (chem: ChemistryAnalysis) => {
+    setIsAddingToCart(true)
+    try {
+      const cartItems = [{
+        analysis_id: chem.characterA.id,
+        product_type: 'chemistry_set' as ProductType,
+        perfume_name: `${chem.characterA.perfume_name} x ${chem.characterB.perfume_name}`,
+        perfume_brand: chem.characterA.perfume_brand || "AC'SCENT",
+        twitter_name: `${chem.characterA.idol_name || chem.characterA.twitter_name} x ${chem.characterB.idol_name || chem.characterB.twitter_name}`,
+        size: getDefaultSize('chemistry_set'),
+        price: getDefaultPrice('chemistry_set'),
+        quantity: 1,
+        image_url: chem.characterA.user_image_url || undefined,
+        analysis_data: chem.chemistryData || undefined,
+      }]
+
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setCartResultModal({
+          type: 'success',
+          added: data.added,
+          duplicates: data.duplicates || 0,
+        })
+      } else {
+        setCartResultModal({
+          type: 'error',
+          message: data.error || t('addToCartFailed'),
+        })
+      }
+    } catch (error) {
+      console.error('Add chemistry to cart error:', error)
+      setCartResultModal({
+        type: 'error',
+        message: t('addToCartError'),
+      })
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
+  // 케미 결과 페이지로 이동 (sessionStorage에 데이터 세팅 후 이동)
+  const handleViewChemistryResult = (chem: ChemistryAnalysis) => {
+    // ChemistryResultPage가 sessionStorage에서 읽으므로 데이터 세팅
+    const chemistryResult = {
+      characterA: chem.characterA.analysis_data,
+      characterB: chem.characterB.analysis_data,
+      chemistry: chem.chemistryData,
+    }
+    const chemistryForm = {
+      character1Name: chem.characterA.twitter_name || chem.characterA.idol_name || 'A',
+      character2Name: chem.characterB.twitter_name || chem.characterB.idol_name || 'B',
+      image1Preview: chem.characterA.user_image_url || null,
+      image2Preview: chem.characterB.user_image_url || null,
+    }
+    sessionStorage.setItem('chemistry_result', JSON.stringify(chemistryResult))
+    sessionStorage.setItem('chemistry_form', JSON.stringify(chemistryForm))
+    router.push('/result?type=chemistry&from=mypage')
+  }
+
+  // 케미 향수 구매 (체크아웃 직행)
+  const handleChemistryPurchase = (chem: ChemistryAnalysis, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    localStorage.setItem('checkoutProductType', 'chemistry_set')
+    localStorage.setItem('checkoutAnalysisId', chem.sessionId)
     router.push('/checkout')
   }
 
@@ -262,7 +355,7 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
   }
 
   // 빈 상태
-  if (analyses.length === 0) {
+  if (analyses.length === 0 && chemistryAnalyses.length === 0) {
     return (
       <div className="bg-white border-2 border-black rounded-2xl p-12 text-center shadow-[4px_4px_0_0_black]">
         <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center border-2 border-black shadow-[2px_2px_0_0_black]">
@@ -332,8 +425,105 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {analyses.map((analysis, index) => (
-            <motion.div
+          {/* 일반 분석 + 케미 분석을 날짜순으로 통합 렌더링 */}
+          {(() => {
+            type MergedItem =
+              | { type: 'analysis'; data: Analysis; date: number }
+              | { type: 'chemistry'; data: ChemistryAnalysis; date: number }
+
+            const merged: MergedItem[] = [
+              ...analyses.map(a => ({ type: 'analysis' as const, data: a, date: new Date(a.created_at).getTime() })),
+              ...chemistryAnalyses.map(c => ({ type: 'chemistry' as const, data: c, date: new Date(c.created_at).getTime() })),
+            ].sort((a, b) => b.date - a.date)
+
+            return merged.map((item, index) => {
+              if (item.type === 'chemistry') {
+                const chem = item.data
+                return (
+                  <motion.div
+                    key={`chem-${chem.sessionId}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05, type: 'spring', stiffness: 200 }}
+                    className="col-span-2"
+                  >
+                    <div
+                      className="bg-white border-[1.5px] sm:border-2 border-black rounded-xl sm:rounded-2xl overflow-hidden shadow-[2px_2px_0_0_black] sm:shadow-[4px_4px_0_0_black] hover:shadow-[3px_3px_0_0_black] sm:hover:shadow-[6px_6px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all group"
+                    >
+                      {/* 이미지 영역 - 두 캐릭터 나란히 */}
+                      <div
+                        className="relative h-36 sm:h-44 overflow-hidden bg-gradient-to-br from-violet-100 via-pink-50 to-amber-50 cursor-pointer"
+                        onClick={() => setChemistryDetailTarget(chem)}
+                      >
+                        <div className="flex w-full h-full">
+                          <div className="w-1/2 h-full overflow-hidden relative">
+                            {chem.characterA.user_image_url ? (
+                              <img src={chem.characterA.user_image_url} alt={chem.characterA.idol_name || chem.characterA.twitter_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100"><span className="text-2xl sm:text-3xl">✨</span></div>
+                            )}
+                          </div>
+                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                            <div className="w-7 h-7 sm:w-9 sm:h-9 bg-white border-[1.5px] sm:border-2 border-black rounded-full flex items-center justify-center shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black]">
+                              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 fill-rose-500" />
+                            </div>
+                          </div>
+                          <div className="w-1/2 h-full overflow-hidden relative">
+                            {chem.characterB.user_image_url ? (
+                              <img src={chem.characterB.user_image_url} alt={chem.characterB.idol_name || chem.characterB.twitter_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-100 to-amber-100"><span className="text-2xl sm:text-3xl">✨</span></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex gap-1 items-center">
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded-md sm:rounded-lg bg-violet-100 text-violet-700 border-[1.5px] sm:border-2 border-violet-300 shadow-[1px_1px_0_0_rgba(0,0,0,0.2)]">
+                            {PRODUCT_TYPE_BADGES.chemistry_set.labelShort}
+                          </span>
+                        </div>
+                        <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2">
+                          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-white border-[1.5px] sm:border-2 border-black text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1 shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black]">
+                            <Calendar className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                            {formatRelativeTime(chem.created_at)}
+                          </div>
+                        </div>
+                      </div>
+                      {/* 정보 영역 */}
+                      <div className="p-2.5 sm:p-3 border-t-[1.5px] sm:border-t-2 border-black">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-black text-[11px] sm:text-sm truncate leading-tight">
+                              {chem.characterA.idol_name || chem.characterA.twitter_name} x {chem.characterB.idol_name || chem.characterB.twitter_name}
+                            </h3>
+                            <p className="text-[9px] sm:text-[11px] text-slate-500 truncate mt-0.5">
+                              {chem.characterA.perfume_name} x {chem.characterB.perfume_name}
+                            </p>
+                            {chem.chemistryTitle && (
+                              <p className="text-[8px] sm:text-[10px] text-violet-600 font-bold truncate mt-0.5">{chem.chemistryTitle}</p>
+                            )}
+                          </div>
+                          <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChemistryDeleteTarget(chem) }}
+                            className="p-1 sm:p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md sm:rounded-lg transition-colors flex-shrink-0" title={t('delete')}>
+                            <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          </button>
+                        </div>
+                        <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                          <button onClick={(e) => { e.stopPropagation(); setChemistryDetailTarget(chem) }}
+                            className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors">
+                            <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
+                            {t('purchase')}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              }
+
+              const analysis = item.data
+              return (
+          <motion.div
               key={analysis.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -459,7 +649,9 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                 </div>
               </div>
             </motion.div>
-          ))}
+              )
+            })
+          })()}
         </div>
 
         {/* 선택 모드 플로팅 바 */}
@@ -858,6 +1050,58 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
           )}
         </AnimatePresence>
 
+        {/* 케미 삭제 확인 모달 */}
+        <AnimatePresence>
+          {chemistryDeleteTarget && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setChemistryDeleteTarget(null)}
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white border-2 border-black rounded-2xl p-6 max-w-xs w-full shadow-[8px_8px_0_0_black]"
+              >
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center border-2 border-black">
+                    <Trash2 size={32} className="text-red-500" />
+                  </div>
+                  <h3 className="text-lg font-black mb-2">{t('deleteConfirm')}</h3>
+                  <p className="text-sm text-slate-500 mb-6">
+                    {t('deleteDesc', { name: `${chemistryDeleteTarget.characterA.idol_name || chemistryDeleteTarget.characterA.twitter_name} x ${chemistryDeleteTarget.characterB.idol_name || chemistryDeleteTarget.characterB.twitter_name}` })}<br />
+                    {t('deleteIrreversible')}
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setChemistryDeleteTarget(null)}
+                      className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors border-2 border-black"
+                    >
+                      {tButtons('cancel')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (onDeleteChemistry) {
+                          onDeleteChemistry(chemistryDeleteTarget.sessionId)
+                        }
+                        setChemistryDeleteTarget(null)
+                      }}
+                      className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors border-2 border-black"
+                    >
+                      {t('delete')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 레시피 확인 모달 */}
         <AnimatePresence>
           {recipeModalTarget && (
@@ -1091,6 +1335,223 @@ export function SavedAnalysisList({ analyses, loading, onDelete, viewMode = 'gri
                       onClick={(e) => {
                         setRecipeModalTarget(null)
                         handlePurchase(recipeModalTarget, e)
+                      }}
+                      className="flex-[1.5] py-3 bg-black text-white border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
+                    >
+                      <ShoppingBag size={18} className="text-yellow-400" />
+                      {t('purchase')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 케미 향수 상세 모달 */}
+        <AnimatePresence>
+          {chemistryDetailTarget && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setChemistryDetailTarget(null)}
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 pt-20 pb-24 sm:pb-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white border-2 border-black rounded-2xl max-w-md w-full max-h-full flex flex-col shadow-[8px_8px_0_0_black] overflow-hidden"
+              >
+                {/* 모달 헤더 */}
+                <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-violet-500 to-pink-500 flex items-center justify-between flex-shrink-0">
+                  <h3 className="font-black text-lg text-white flex items-center gap-2">
+                    <Heart size={20} className="fill-white" />
+                    케미 향수 상세
+                  </h3>
+                  <button
+                    onClick={() => setChemistryDetailTarget(null)}
+                    className="p-1 hover:bg-white/20 rounded-lg transition-colors text-white"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* 모달 콘텐츠 */}
+                <div className="p-5 overflow-y-auto flex-1 min-h-0 space-y-5">
+                  {/* 듀얼 이미지 */}
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border-2 border-violet-400 shadow-[2px_2px_0_0_rgba(139,92,246,0.5)] flex-shrink-0">
+                      {chemistryDetailTarget.characterA.user_image_url ? (
+                        <img
+                          src={chemistryDetailTarget.characterA.user_image_url}
+                          alt={chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-violet-100 to-pink-100 flex items-center justify-center">
+                          <span className="text-2xl">✨</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-[2px_2px_0_0_black]">
+                        <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                      </div>
+                    </div>
+
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border-2 border-pink-400 shadow-[2px_2px_0_0_rgba(236,72,153,0.5)] flex-shrink-0">
+                      {chemistryDetailTarget.characterB.user_image_url ? (
+                        <img
+                          src={chemistryDetailTarget.characterB.user_image_url}
+                          alt={chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-pink-100 to-amber-100 flex items-center justify-center">
+                          <span className="text-2xl">✨</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 캐릭터 이름 */}
+                  <div className="text-center">
+                    <h2 className="text-lg font-black text-slate-900 leading-tight">
+                      {chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
+                      <span className="text-rose-400 mx-1.5">x</span>
+                      {chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
+                    </h2>
+                    {chemistryDetailTarget.chemistryTitle && (
+                      <p className="text-sm text-violet-600 font-bold mt-1">
+                        &quot;{chemistryDetailTarget.chemistryTitle}&quot;
+                      </p>
+                    )}
+                    {chemistryDetailTarget.chemistryType && (
+                      <span className="inline-block mt-2 px-3 py-1 text-[10px] font-black rounded-full bg-violet-100 text-violet-700 border border-violet-300">
+                        {chemistryDetailTarget.chemistryType === 'milddang' && '밀당 케미'}
+                        {chemistryDetailTarget.chemistryType === 'slowburn' && '슬로우번 케미'}
+                        {chemistryDetailTarget.chemistryType === 'dalddal' && '달달 케미'}
+                        {chemistryDetailTarget.chemistryType === 'storm' && '폭풍 케미'}
+                        {!['milddang', 'slowburn', 'dalddal', 'storm'].includes(chemistryDetailTarget.chemistryType || '') && chemistryDetailTarget.chemistryType}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 향수 A 정보 */}
+                  {(() => {
+                    const personaA = chemistryDetailTarget.characterA.analysis_data?.matchingPerfumes?.[0]?.persona
+                    return (
+                      <div className="bg-violet-50 border-2 border-violet-200 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center">
+                            <span className="text-white text-[10px] font-black">A</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-violet-500 font-bold">
+                              {chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
+                            </p>
+                            <p className="text-sm font-black text-slate-900 truncate">
+                              {personaA?.name || chemistryDetailTarget.characterA.perfume_name}
+                            </p>
+                          </div>
+                        </div>
+                        {personaA && (personaA.mainScent || personaA.subScent1 || personaA.subScent2) && (
+                          <div className="space-y-1.5">
+                            {personaA.mainScent && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-violet-400 w-8 flex-shrink-0">TOP</span>
+                                <span className="text-xs text-slate-600">{typeof personaA.mainScent === 'string' ? personaA.mainScent : personaA.mainScent.name}</span>
+                              </div>
+                            )}
+                            {personaA.subScent1 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-violet-400 w-8 flex-shrink-0">MID</span>
+                                <span className="text-xs text-slate-600">{typeof personaA.subScent1 === 'string' ? personaA.subScent1 : personaA.subScent1.name}</span>
+                              </div>
+                            )}
+                            {personaA.subScent2 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-violet-400 w-8 flex-shrink-0">BASE</span>
+                                <span className="text-xs text-slate-600">{typeof personaA.subScent2 === 'string' ? personaA.subScent2 : personaA.subScent2.name}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  {/* 향수 B 정보 */}
+                  {(() => {
+                    const personaB = chemistryDetailTarget.characterB.analysis_data?.matchingPerfumes?.[0]?.persona
+                    return (
+                      <div className="bg-pink-50 border-2 border-pink-200 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center">
+                            <span className="text-white text-[10px] font-black">B</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-pink-500 font-bold">
+                              {chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
+                            </p>
+                            <p className="text-sm font-black text-slate-900 truncate">
+                              {personaB?.name || chemistryDetailTarget.characterB.perfume_name}
+                            </p>
+                          </div>
+                        </div>
+                        {personaB && (personaB.mainScent || personaB.subScent1 || personaB.subScent2) && (
+                          <div className="space-y-1.5">
+                            {personaB.mainScent && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-pink-400 w-8 flex-shrink-0">TOP</span>
+                                <span className="text-xs text-slate-600">{typeof personaB.mainScent === 'string' ? personaB.mainScent : personaB.mainScent.name}</span>
+                              </div>
+                            )}
+                            {personaB.subScent1 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-pink-400 w-8 flex-shrink-0">MID</span>
+                                <span className="text-xs text-slate-600">{typeof personaB.subScent1 === 'string' ? personaB.subScent1 : personaB.subScent1.name}</span>
+                              </div>
+                            )}
+                            {personaB.subScent2 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-pink-400 w-8 flex-shrink-0">BASE</span>
+                                <span className="text-xs text-slate-600">{typeof personaB.subScent2 === 'string' ? personaB.subScent2 : personaB.subScent2.name}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  {/* 분석 일시 */}
+                  <p className="text-center text-slate-400 text-xs">
+                    {t('analyzedAt', { time: formatRelativeTime(chemistryDetailTarget.created_at) })}
+                  </p>
+                </div>
+
+                {/* 모달 푸터 */}
+                <div className="px-5 py-4 border-t-2 border-black bg-slate-50 flex-shrink-0">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setChemistryDetailTarget(null)
+                        handleViewChemistryResult(chemistryDetailTarget)
+                      }}
+                      className="flex-1 py-3 bg-white border-2 border-black rounded-xl font-bold text-center hover:bg-slate-100 transition-colors"
+                    >
+                      {t('viewResult')}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        setChemistryDetailTarget(null)
+                        handleChemistryPurchase(chemistryDetailTarget, e)
                       }}
                       className="flex-[1.5] py-3 bg-black text-white border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
                     >

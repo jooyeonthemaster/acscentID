@@ -25,7 +25,7 @@ export function MultiItemOrderSummary({
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
   const renderProductTypeBadge = (productType: ProductType) => {
-    const badge = PRODUCT_TYPE_BADGES[productType]
+    const badge = PRODUCT_TYPE_BADGES[productType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', labelShort: productType }
     return (
       <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${badge.bg} ${badge.text} border ${badge.border}`}>
         {badge.labelShort}
