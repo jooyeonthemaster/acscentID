@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     // 각 분석 결과에 연결된 확정 레시피 조회
     const analysisIds = analysesRaw.map((a: { id: string }) => a.id)
 
-    let linkedRecipesMap: Map<string, { granules: Array<{ id: string; name: string; ratio: number }> }> = new Map()
+    const linkedRecipesMap: Map<string, { granules: Array<{ id: string; name: string; ratio: number }> }> = new Map()
 
     if (analysisIds.length > 0) {
       const { data: linkedRecipes } = await supabase
@@ -134,10 +134,96 @@ export async function GET(request: NextRequest) {
     }
 
     // 분석 결과에 연결된 레시피 정보 추가
-    const analyses = analysesRaw.map((analysis: { id: string }) => ({
+    const analysesWithRecipes = analysesRaw.map((analysis: { id: string }) => ({
       ...analysis,
       confirmed_recipe: linkedRecipesMap.get(analysis.id) || null
     }))
+
+    // ── 케미 향수(chemistry_set) 통합 처리 ──
+    // chemistry_set인 analysis ID들을 추출
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chemistryAnalysisIds = (analysesWithRecipes as any[])
+      .filter((a) => a.product_type === 'chemistry_set')
+      .map((a) => a.id as string)
+
+    interface ChemistryAnalysisItem {
+      id: string
+      twitter_name: string
+      perfume_name: string
+      perfume_brand: string
+      user_image_url: string | null
+      analysis_data: object
+      created_at: string
+      idol_name: string | null
+      product_type?: string
+      service_mode?: string
+      confirmed_recipe: { granules: Array<{ id: string; name: string; ratio: number }> } | null
+    }
+
+    interface ChemistryGroup {
+      sessionId: string
+      characterA: ChemistryAnalysisItem
+      characterB: ChemistryAnalysisItem
+      chemistryData: object
+      chemistryType: string | null
+      chemistryTitle: string | null
+      created_at: string
+    }
+
+    console.log(`[UserData] Total analyses: ${analysesWithRecipes.length}, Chemistry IDs: ${chemistryAnalysisIds.length}`, chemistryAnalysisIds)
+
+    const chemistryAnalyses: ChemistryGroup[] = []
+    const chemistryAnalysisIdSet = new Set<string>()
+
+    if (chemistryAnalysisIds.length > 0) {
+      // layering_sessions에서 해당 analysis_id들과 연결된 세션 조회
+      const idList = chemistryAnalysisIds.join(',')
+      const { data: layeringSessions, error: layeringError } = await supabase
+        .from('layering_sessions')
+        .select('*')
+        .or(`analysis_a_id.in.(${idList}),analysis_b_id.in.(${idList})`)
+        .order('created_at', { ascending: false })
+
+      if (layeringError) {
+        console.error('[UserData] layering_sessions query error:', layeringError)
+      }
+
+      console.log(`[UserData] layeringSessions found: ${layeringSessions?.length || 0}`)
+
+      if (layeringSessions && layeringSessions.length > 0) {
+        // analysis ID → analysis 데이터 맵
+        const chemAnalysisMap = new Map<string, ChemistryAnalysisItem>()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(analysesWithRecipes as any[])
+          .filter((a) => a.product_type === 'chemistry_set')
+          .forEach((a) => chemAnalysisMap.set(a.id, a as ChemistryAnalysisItem))
+
+        for (const session of layeringSessions) {
+          const charA = chemAnalysisMap.get(session.analysis_a_id)
+          const charB = chemAnalysisMap.get(session.analysis_b_id)
+
+          if (charA && charB) {
+            chemistryAnalyses.push({
+              sessionId: session.id,
+              characterA: charA,
+              characterB: charB,
+              chemistryData: session.chemistry_data || {},
+              chemistryType: session.chemistry_type || null,
+              chemistryTitle: session.chemistry_title || null,
+              created_at: session.created_at,
+            })
+            // 통합된 ID를 기록하여 일반 목록에서 제거
+            chemistryAnalysisIdSet.add(session.analysis_a_id)
+            chemistryAnalysisIdSet.add(session.analysis_b_id)
+          }
+        }
+      }
+    }
+
+    // 일반 분석 목록에서 chemistry_set 중 통합된 항목 제거
+    const analyses = analysesWithRecipes.filter(
+      (a: { id: string }) => !chemistryAnalysisIdSet.has(a.id)
+    )
 
     // 레시피를 분석 결과별로 그룹핑
     interface RecipeItem {
@@ -219,8 +305,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    console.log(`[UserData] Final: analyses=${analyses.length}, chemistryAnalyses=${chemistryAnalyses.length}`)
+
     return NextResponse.json({
       analyses,
+      chemistryAnalyses,  // 케미 향수 통합 데이터
       recipes,  // 기존 호환성 유지
       recipeGroups,  // 새로운 그룹핑 데이터
       analysisError: results[0].error?.message || null,

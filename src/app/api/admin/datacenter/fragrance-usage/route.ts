@@ -60,12 +60,13 @@ interface UsageDataItem {
   source: 'online' | 'offline'
 }
 
-// 프로그램별 집계 생성 함수
+// [FIX] HIGH: chemistry 프로그램 추가
 function createEmptyProgramUsage(): Record<ProgramType, ProgramUsage> {
   return {
     idol_image: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
     figure: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
     graduation: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
+    chemistry: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
   }
 }
 

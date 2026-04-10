@@ -10,7 +10,8 @@ import { GeneratedRecipe, RecipeGranule } from '@/types/feedback'
 // 타입 정의
 // ============================================
 
-export type ProgramType = 'idol_image' | 'figure' | 'graduation'
+// [FIX] HIGH: ProgramType에 chemistry 미등록, CRITICAL #14: 케미 세트 사이즈 인식
+export type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry'
 
 export interface FragranceUsageItem {
   id: string
@@ -112,6 +113,7 @@ export interface InventoryAlert {
 // ============================================
 
 // 제품 타입별 향료 용량 매핑 (ml)
+// [FIX] CRITICAL #14: set_10ml/set_50ml 사이즈 매핑 추가
 export const FRAGRANCE_VOLUME_MAP: Record<string, number> = {
   // 퍼퓸
   '10ml': 2,
@@ -119,17 +121,24 @@ export const FRAGRANCE_VOLUME_MAP: Record<string, number> = {
   // 디퓨저
   'set': 5,
   'diffuser': 5,
+  // 케미 향수 세트 (2병 기준이므로 개별 향수 용량)
+  'set_10ml': 2,
+  'set_50ml': 10,
   // 기본값
   'default': 2,
 }
 
 // 프로그램 타입 매핑
+// [FIX] HIGH: chemistry 미등록
 export const PROGRAM_TYPE_MAP: Record<string, ProgramType> = {
   'image_analysis': 'idol_image',
   'idol_image': 'idol_image',
   'figure_diffuser': 'figure',
   'figure': 'figure',
   'graduation': 'graduation',
+  'chemistry_set': 'chemistry',
+  'chemistry': 'chemistry',
+  'personal_scent': 'idol_image',
 }
 
 // 카테고리 메타데이터
@@ -168,11 +177,17 @@ export function getPerfumeById(id: string) {
 
 /**
  * 제품 사이즈에서 향료 용량 추출
+ * [FIX] CRITICAL #14: chemistry_set의 set_10ml/set_50ml 사이즈 인식
  */
 export function getFragranceVolume(productType: string, size: string): number {
   // 디퓨저인 경우
   if (productType?.includes('diffuser') || productType?.includes('figure')) {
     return FRAGRANCE_VOLUME_MAP['diffuser']
+  }
+
+  // 케미 세트: 직접 매핑된 사이즈가 있으면 사용
+  if (FRAGRANCE_VOLUME_MAP[size] !== undefined) {
+    return FRAGRANCE_VOLUME_MAP[size]
   }
 
   // 사이즈 문자열에서 용량 추출 (예: "50ml" → 10)

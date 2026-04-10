@@ -1,6 +1,6 @@
 // 장바구니 및 주문 상품 관련 타입 정의
 
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'payment_test'
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test'
 
 // DB cart_items 테이블 타입
 export interface CartItem {
@@ -11,7 +11,7 @@ export interface CartItem {
   perfume_name: string
   perfume_brand: string | null
   twitter_name: string | null
-  size: '10ml' | '50ml' | 'set'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
   price: number
   quantity: number
   image_url: string | null
@@ -27,7 +27,7 @@ export interface AddToCartRequest {
   perfume_name: string
   perfume_brand?: string
   twitter_name?: string
-  size: '10ml' | '50ml' | 'set'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
   price: number
   quantity?: number
   image_url?: string
@@ -36,7 +36,7 @@ export interface AddToCartRequest {
 
 // 장바구니 수정 요청 타입
 export interface UpdateCartItemRequest {
-  size?: '10ml' | '50ml' | 'set'
+  size?: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
   price?: number
   quantity?: number
 }
@@ -89,6 +89,10 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   signature: [
     { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
+  chemistry_set: [
+    { size: 'set_10ml', price: 38000, label: '케미 향수 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: 'set_50ml', price: 60000, label: '케미 향수 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+  ],
   payment_test: [
     { size: '10ml', price: 1000, label: '결제 테스트 상품', shippingFee: 0 },
   ],
@@ -139,6 +143,13 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     text: 'text-amber-700',
     border: 'border-amber-300',
   },
+  chemistry_set: {
+    label: '케미 향수 세트',
+    labelShort: '케미',
+    bg: 'bg-violet-100',
+    text: 'text-violet-700',
+    border: 'border-violet-300',
+  },
   payment_test: {
     label: '결제 테스트',
     labelShort: '테스트',
@@ -162,7 +173,9 @@ export function getShippingFee(productType: ProductType, size: string): number {
 }
 
 export function getDefaultSize(productType: ProductType): string {
-  return productType === 'figure_diffuser' ? 'set' : '10ml'
+  if (productType === 'figure_diffuser') return 'set'
+  if (productType === 'chemistry_set') return 'set_10ml'
+  return '10ml'
 }
 
 export function getDefaultPrice(productType: ProductType): number {
@@ -174,6 +187,8 @@ export function getDefaultPrice(productType: ProductType): number {
     case 'graduation':
     case 'signature':
       return 34000
+    case 'chemistry_set':
+      return 38000
     default:
       return 24000
   }

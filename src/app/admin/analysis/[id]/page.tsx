@@ -224,6 +224,20 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
+        {/* [FIX] CRITICAL #16: 케미 분석 전용 데이터 표시 */}
+        {analysis.product_type === 'chemistry_set' && (
+          <div className="bg-white rounded-xl border-2 border-violet-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Package className="w-5 h-5 text-violet-500" />
+              케미 분석 정보
+            </h3>
+            <div className="text-sm text-slate-600 space-y-2">
+              <p>이 분석은 <span className="font-bold text-violet-600">케미 향수 세트</span> 프로그램에서 생성되었습니다.</p>
+              <p>레이어링 세션과 연결된 두 캐릭터의 향수가 포함됩니다.</p>
+            </div>
+          </div>
+        )}
+
         {/* 피드백 정보 (오프라인 모드) */}
         {feedback && (
           <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">

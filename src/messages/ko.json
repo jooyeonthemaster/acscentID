@@ -144,7 +144,8 @@
     "graduation": "졸업 기념 퍼퓸",
     "personal": "퍼스널 센트",
     "leQuack": "SIGNATURE 뿌덕퍼퓸",
-    "customDuck": "나만의 오리 꾸미기"
+    "customDuck": "나만의 오리 꾸미기",
+    "chemistry": "케미 향수 세트"
   },
   "labels": {
     "traits": {
@@ -221,12 +222,14 @@
       "idolImage": "좋아하는 이미지로 추출하는 나만의 퍼퓸",
       "figure": "좋아하는 이미지로 제작되는 나만의 화분 피규어 디퓨저",
       "graduation": "졸업의 추억을 향기로, 특별한 졸업 기념 퍼퓸",
-      "personal": "나를 표현하는 나만의 시그니처 향"
+      "personal": "나를 표현하는 나만의 시그니처 향",
+      "chemistry": "두 주인공의 케미를 향기로 담는 세트"
     },
     "includes": {
       "idolImage": "뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서",
       "figure": "3D 피규어 + 디퓨저(5ml) + 실물 분석보고서",
-      "graduation": "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서"
+      "graduation": "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서",
+      "chemistry": "케미 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드"
     },
     "features": {
       "aiAnalysis": "AI 맞춤 분석",
@@ -283,7 +286,7 @@
       "processStep1": "이미지 전송",
       "processStep1Desc": "사진을 업로드해요",
       "processStep2": "향 분석 및 추천",
-      "processStep2Desc": "AI가 캐릭터에 맞는 향 추천",
+      "processStep2Desc": "AI가 맞춤 향 추천",
       "processStep3": "상품 주문",
       "processStep3Desc": "마음에 드시면 주문!",
       "processStep4": "3D 모델링 및 배송",
@@ -1895,5 +1898,78 @@
     "accept": "수락",
     "reject": "거부",
     "privacy": "개인정보처리방침"
+  },
+  "chemistry": {
+    "title": "케미 향수",
+    "description": "두 주인공의 케미를 향기로 담다",
+    "summon": {
+      "title": "두 주인공을 소환하세요",
+      "subtitle": "이미지와 이름을 입력해주세요",
+      "characterA": "주인공 A",
+      "characterB": "주인공 B",
+      "pinLabel": "인증 번호 (4자리)",
+      "uploadImage": "이미지 업로드",
+      "namePlaceholder": "이름 입력",
+      "imageGuide": "케미를 분석할 두 주인공의 이미지를 업로드해주세요. 실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!"
+    },
+    "deck": {
+      "tropeTitle": "이 둘의 관계는?",
+      "tropeSubtitle": "관계 트로프를 선택해주세요",
+      "archetypeTitle": "은(는) 어떤 성격인가요?",
+      "archetypeSubtitle": "가장 가까운 성격 유형을 골라주세요",
+      "sceneTitle": "이 둘이 만나는 장소는?",
+      "sceneSubtitle": "장면/분위기를 선택해주세요",
+      "emotionTitle": "이 둘 사이의 감정은?",
+      "emotionSubtitle": "2~3개를 선택해주세요",
+      "scentTitle": "원하는 향의 무드는?",
+      "scentSubtitle": "추천받을 향수의 전체적인 느낌을 정해주세요",
+      "fresh": "상쾌한",
+      "deep": "깊은",
+      "messagePlaceholder": "이 둘의 케미에 대해 자유롭게 적어주세요..."
+    },
+    "catalyst": {
+      "ready": "촉매 준비 완료",
+      "title": "케미 분석을 시작할까요?",
+      "subtitle": "입력한 내용을 확인해주세요",
+      "guide": "AI가 두 주인공의 이미지와 입력 정보를 분석하여 케미 프로필과 맞춤 향수 세트를 추천합니다!"
+    },
+    "analyzing": {
+      "quotes": [
+        "두 향이 만나는 순간을 조합하는 중...",
+        "케미의 화학 반응을 분석하고 있어요...",
+        "향수 분자가 서로를 찾아가는 중...",
+        "탑노트가 인사를 나누고 있어요...",
+        "미들노트에서 대화가 시작되었어요...",
+        "베이스노트가 서로의 온기를 느끼는 중...",
+        "두 향의 시너지를 계산하고 있어요...",
+        "케미 지수가 급상승하고 있어요!",
+        "향수병에 두 사람의 이야기를 담는 중...",
+        "레이어링 비율을 조율하고 있어요..."
+      ]
+    },
+    "result": {
+      "meetingTitle": "두 향이 만나는 순간",
+      "meetingSubtitle": "케미 분석 결과",
+      "scentHarmony": "향 케미",
+      "layeringGuide": "레이어링 가이드",
+      "colorChemistry": "색채 케미",
+      "traitsSynergy": "특성 시너지",
+      "relationship": "관계 다이나믹",
+      "scenarios": "만약에...",
+      "dialogues": "대표 대사",
+      "story": "케미 스토리",
+      "future": "미래 예측",
+      "purchase": "케미 향수 세트"
+    },
+    "buttons": {
+      "openDeck": "카드 덱 열기",
+      "nextCard": "다음 카드",
+      "startAnalysis": "케미 분석 시작하기",
+      "addToCart": "장바구니 담기",
+      "loginRequired": "로그인이 필요합니다.",
+      "noResult": "분석 결과를 찾을 수 없습니다.",
+      "addedToCart": "장바구니에 추가되었습니다!",
+      "addFailed": "장바구니 추가에 실패했습니다."
+    }
   }
 }

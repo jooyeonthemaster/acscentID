@@ -144,7 +144,8 @@
     "graduation": "Perfume Conmemorativo de Graduación",
     "personal": "Aroma Personal",
     "leQuack": "SIGNATURE Perfume PPUDUCK",
-    "customDuck": "Constructor de Pato Personalizado"
+    "customDuck": "Constructor de Pato Personalizado",
+    "chemistry": "Set de Perfume Química"
   },
   "labels": {
     "traits": {
@@ -222,6 +223,7 @@
       "figure": "Tu difusor con figura 3D hecho a partir de tu imagen favorita",
       "graduation": "Convierte el recuerdo de tu graduación en fragancia, un perfume conmemorativo especial",
       "personal": "Tu fragancia signature que te representa"
+      ,"chemistry": "Un set que captura la química de dos personajes en fragancia"
     },
     "includes": {
       "idolImage": "Perfume PPUDUCK (10ml/50ml) + Informe de análisis impreso",
@@ -1923,5 +1925,30 @@
     "accept": "Aceptar",
     "reject": "Rechazar",
     "privacy": "Política de privacidad"
+  },
+  "chemistry": {
+    "title": "Perfume Chemistry",
+    "description": "Capturando la química de dos personajes en un aroma",
+    "result": {
+      "meetingTitle": "El momento en que dos aromas se encuentran",
+      "meetingSubtitle": "Resultados del análisis de química",
+      "scentHarmony": "Química de aromas",
+      "layeringGuide": "Guía de capas",
+      "colorChemistry": "Química de colores",
+      "traitsSynergy": "Sinergia de rasgos",
+      "relationship": "Dinámica de relación",
+      "scenarios": "¿Y si...?",
+      "dialogues": "Líneas representativas",
+      "story": "Historia de química",
+      "future": "Visión futura",
+      "purchase": "Set de perfume Chemistry"
+    },
+    "buttons": {
+      "addToCart": "Agregar al carrito",
+      "loginRequired": "Se requiere iniciar sesión.",
+      "noResult": "Resultado del análisis no encontrado.",
+      "addedToCart": "¡Agregado al carrito!",
+      "addFailed": "Error al agregar al carrito."
+    }
   }
 }

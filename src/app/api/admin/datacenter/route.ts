@@ -33,7 +33,8 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
 }
 
 // 프로그램 타입 정의
-const PROGRAM_TYPES = ['idol_image', 'figure', 'graduation'] as const
+// [FIX] HIGH: chemistry 미등록
+const PROGRAM_TYPES = ['idol_image', 'figure', 'graduation', 'chemistry'] as const
 type ProgramType = typeof PROGRAM_TYPES[number]
 
 interface CountItem {

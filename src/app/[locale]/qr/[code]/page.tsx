@@ -39,11 +39,13 @@ export default async function QRRedirectPage({ params }: PageProps) {
   }
 
   // 상품 활성화 확인
+  // [FIX] CRITICAL #10: chemistry_set 경로 추가
   const productTypeToSlug: Record<string, string> = {
     image_analysis: 'idol-image',
     figure_diffuser: 'figure',
     graduation: 'graduation',
     personal_scent: 'personal',
+    chemistry_set: 'chemistry',
   }
   const productSlug = productTypeToSlug[qrCode.product_type] || 'idol-image'
   const { data: product } = await supabase
@@ -65,6 +67,7 @@ export default async function QRRedirectPage({ params }: PageProps) {
   // mode 파라미터: qr (오프라인 QR 스캔), online (온라인 모드)
   const modeParam = serviceMode === 'offline' ? 'qr' : 'online'
 
+  // [FIX] CRITICAL #10: chemistry_set 경로 추가
   switch (productType) {
     case 'image_analysis':
       redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
@@ -74,6 +77,8 @@ export default async function QRRedirectPage({ params }: PageProps) {
       redirect(`/input?type=graduation&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'personal_scent':
       redirect(`/input?type=personal&mode=${modeParam}&qr_code=${qrCodeId}`)
+    case 'chemistry_set':
+      redirect(`/input/chemistry?mode=${modeParam}&qr_code=${qrCodeId}`)
     default:
       redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
   }

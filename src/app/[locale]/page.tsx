@@ -9,7 +9,7 @@ import { Header } from "@/components/layout/Header"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
 import { PopupModal } from "@/components/home/PopupModal"
-import { useBanners, useActiveProducts } from "@/hooks/useAdminContent"
+import { useBanners, useActiveProducts, useProductImages } from "@/hooks/useAdminContent"
 
 export default function Home() {
   const router = useRouter()
@@ -20,13 +20,18 @@ export default function Home() {
   const { banners, loading: bannersLoading } = useBanners()
   const { isProductActive } = useActiveProducts()
 
+  // 각 상품의 DB 이미지 로드 (관리자 업로드 이미지 우선)
+  const { imageUrls: idolImages } = useProductImages('idol-image')
+  const { imageUrls: figureImages } = useProductImages('figure')
+  const { imageUrls: chemistryImages } = useProductImages('chemistry')
+
   // 상품 데이터 (번역 키 사용)
   const ALL_PRODUCTS = [
     {
       id: "idol-image",
       title: t('products.idolImage'),
       subtitle: t('programs.subtitle.idolImage'),
-      image: "/images/perfume/KakaoTalk_20260125_225218071.jpg",
+      image: idolImages[0] || "/images/perfume/KakaoTalk_20260125_225218071.jpg",
       price: 24000,
       originalPrice: 35000,
       priceRange: true,
@@ -39,13 +44,26 @@ export default function Home() {
       id: "figure",
       title: t('products.figureDiffuser'),
       subtitle: t('programs.subtitle.figure'),
-      image: "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
+      image: figureImages[0] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
       price: 48000,
       originalPrice: 68000,
       delivery: t('shipping.afterProduction'),
       badge: "NEW",
       badgeColor: "bg-[#A78BFA]",
       href: "/programs/figure"
+    },
+    {
+      id: "chemistry",
+      title: t('products.chemistry'),
+      subtitle: t('programs.subtitle.chemistry'),
+      image: chemistryImages[0] || "/images/chemistry/chemistry-thumbnail.jpg",
+      price: 38000,
+      originalPrice: 52000,
+      priceRange: true,
+      delivery: t('shipping.estimated'),
+      badge: "SEASON 3",
+      badgeColor: "bg-[#F472B6]",
+      href: "/programs/chemistry"
     },
   ]
 

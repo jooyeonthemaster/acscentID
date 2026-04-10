@@ -119,11 +119,14 @@ const PAYMENT_METHOD_BADGE: Record<string, { label: string; className: string }>
   naver_pay: { label: '네이버페이', className: 'bg-green-100 text-green-600' },
 }
 
+// [FIX] HIGH: chemistry_set 뱃지 추가
 const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> = {
   image_analysis: { label: '이미지분석', className: 'bg-blue-100 text-blue-700' },
   figure_diffuser: { label: '피규어', className: 'bg-cyan-100 text-cyan-700' },
   graduation: { label: '졸업', className: 'bg-purple-100 text-purple-700' },
   signature: { label: '시그니처', className: 'bg-pink-100 text-pink-700' },
+  chemistry_set: { label: '케미', className: 'bg-violet-100 text-violet-700' },
+  personal_scent: { label: '퍼스널', className: 'bg-emerald-100 text-emerald-700' },
 }
 
 function getProductBadge(type?: string | null) {

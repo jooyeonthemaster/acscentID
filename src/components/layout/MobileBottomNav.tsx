@@ -15,8 +15,9 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 
 // Programs 드롭업 메뉴 항목 (전체)
 const ALL_PROGRAM_LINKS = [
-  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'programs.subtitle.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-  { slug: 'figure', href: '/programs/figure', labelKey: 'programs.subtitle.figure' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, image: '/images/chemistry/chemistry-thumbnail.jpg' },
 ]
 
 // NavItem 컴포넌트
@@ -162,7 +163,8 @@ export function MobileBottomNav() {
   const isIdolImagePage = pathname === '/programs/idol-image'
   const isFigurePage = pathname === '/programs/figure'
   const isGraduationPage = pathname === '/programs/graduation'
-  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage
+  const isChemistryPage = pathname === '/programs/chemistry'
+  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage || isChemistryPage
 
   useEffect(() => {
     if (isAdminPage) return
@@ -224,6 +226,12 @@ export function MobileBottomNav() {
     } else if (isGraduationPage) {
       if (currentUser) {
         startTransition('/input?type=graduation&mode=online')
+      } else {
+        setShowAuthModal(true)
+      }
+    } else if (isChemistryPage) {
+      if (currentUser) {
+        startTransition('/input?type=chemistry&mode=online')
       } else {
         setShowAuthModal(true)
       }

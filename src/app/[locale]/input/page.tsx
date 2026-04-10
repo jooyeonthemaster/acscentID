@@ -11,6 +11,7 @@ import { useInputForm } from "./hooks/useInputForm"
 import { Step1, Step2, Step3, Step4, Step5, AnalyzingOverlay } from "./components"
 import { TOTAL_STEPS } from "./constants"
 import { GraduationInputForm } from "./graduation/GraduationInputForm"
+import ChemistryInputPage from "./chemistry/ChemistryInputPage"
 
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
@@ -23,6 +24,7 @@ const INPUT_TYPE_TO_SLUG: Record<string, string> = {
   graduation: 'graduation',
   personal: 'personal',
   le_quack: 'le-quack',
+  chemistry: 'chemistry',
 }
 
 // ===== 메인 폼 컴포넌트 =====
@@ -262,6 +264,15 @@ function InputPageContent() {
         return (
             <InactiveProductGuard productSlug={productSlug}>
                 <GraduationInputForm />
+            </InactiveProductGuard>
+        )
+    }
+
+    // 케미 프로그램인 경우 전용 폼 렌더링
+    if (type === "chemistry") {
+        return (
+            <InactiveProductGuard productSlug={productSlug}>
+                <ChemistryInputPage />
             </InactiveProductGuard>
         )
     }

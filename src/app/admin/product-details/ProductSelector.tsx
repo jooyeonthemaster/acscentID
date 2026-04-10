@@ -16,12 +16,14 @@ interface ProductDetail {
   updated_at: string | null
 }
 
+// [FIX] HIGH: chemistry 추가
 const PRODUCT_LABELS: Record<string, string> = {
   'idol-image': 'AI 이미지 분석 퍼퓸',
   'figure': '피규어 화분 디퓨저',
   'graduation': '졸업 기념 퍼퓸',
   'le-quack': 'LE QUACK 시그니처',
   'personal': '퍼스널 센트',
+  'chemistry': '케미 향수 세트',
 }
 
 interface ProductSelectorProps {

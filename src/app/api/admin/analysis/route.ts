@@ -73,8 +73,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'CSV 생성 실패' }, { status: 500 })
       }
 
+      // [FIX] HIGH: CSV productLabels에 chemistry_set, signature 추가
       const productLabels: Record<string, string> = {
-        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', etc: '기타',
+        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '케미 향수', etc: '기타',
       }
       const modeLabels: Record<string, string> = { online: '온라인', offline: '오프라인 QR' }
 

@@ -1,18 +1,19 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Info } from "lucide-react"
+import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Info, Heart } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
-import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, PRODUCT_PRICING, formatPrice } from "@/types/cart"
 
+// [FIX] CRITICAL #1, #2: selectedSize 타입에 set_10ml/set_50ml 추가
 interface OrderSummaryProps {
   perfumeName: string
   perfumeBrand: string
   userImage: string | null
   productType?: ProductType
-  selectedSize: "10ml" | "50ml" | "set"
-  onSizeChange: (size: "10ml" | "50ml" | "set") => void
+  selectedSize: "10ml" | "50ml" | "set" | "set_10ml" | "set_50ml"
+  onSizeChange: (size: "10ml" | "50ml" | "set" | "set_10ml" | "set_50ml") => void
   price: number
   keywords: string[]
   isFreeShippingPromo?: boolean
@@ -37,6 +38,8 @@ export function OrderSummary({
   const isFigureDiffuser = productType === "figure_diffuser"
   const isGraduation = productType === "graduation"
   const isSignature = productType === "signature"
+  // [FIX] CRITICAL #2: chemistry_set 분기 추가
+  const isChemistrySet = productType === "chemistry_set"
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -121,6 +124,11 @@ export function OrderSummary({
               <Bird size={14} className="text-amber-500" />
               {t('checkout.signaturePerfumeLabel')}
             </>
+          ) : isChemistrySet ? (
+            <>
+              <Heart size={14} className="text-violet-500" />
+              {t('chemistry.result.purchase')}
+            </>
           ) : (
             <>
               <Sparkles size={14} className="text-[#F472B6]" />
@@ -199,6 +207,29 @@ export function OrderSummary({
                 </div>
               </div>
             </div>
+          </div>
+        ) : isChemistrySet ? (
+          /* [FIX] CRITICAL #2: 케미 향수 세트 옵션 (set_10ml / set_50ml) */
+          <div className="grid grid-cols-2 gap-3">
+            {PRODUCT_PRICING.chemistry_set.map((option) => (
+              <button
+                key={option.size}
+                onClick={() => onSizeChange(option.size as "set_10ml" | "set_50ml")}
+                className={`relative p-3 rounded-xl border-2 transition-all ${
+                  selectedSize === option.size
+                    ? "border-violet-500 bg-violet-50 shadow-[2px_2px_0px_#8b5cf6]"
+                    : "border-slate-300 bg-white hover:border-violet-300 hover:shadow-[2px_2px_0px_#ddd]"
+                }`}
+              >
+                {selectedSize === option.size && (
+                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-violet-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                    <Check size={10} className="text-white" strokeWidth={3} />
+                  </div>
+                )}
+                <p className="font-black text-slate-900 text-base">{option.label}</p>
+                <p className="text-sm font-black text-violet-600 mt-0.5">{formatPrice(option.price)}{t('currency.suffix')}</p>
+              </button>
+            ))}
           </div>
         ) : (
           /* 향수 옵션 (10ml / 50ml) */
@@ -284,7 +315,8 @@ export function OrderSummary({
       </div>
 
       {/* 포함 사항 */}
-      <div className={`${isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
+      {/* [FIX] CRITICAL #2: chemistry_set 포함 사항 색상 분기 */}
+      <div className={`${isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : isChemistrySet ? 'bg-violet-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
         <p className="text-sm font-black text-slate-900 mb-3">{t('checkout.included')}</p>
         <ul className="space-y-2 text-sm text-slate-800 font-bold">
           {isFigureDiffuser ? (
@@ -351,6 +383,28 @@ export function OrderSummary({
                 {isFreeShippingPromo
                   ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
                   : t('checkout.freeShippingOverInfo')}
+              </li>
+            </>
+          ) : isChemistrySet ? (
+            /* [FIX] CRITICAL #2: 케미 향수 세트 포함 사항 */
+            <>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {t('chemistry.result.purchase')} ({selectedSize === 'set_50ml' ? '50ml' : '10ml'} x 2)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {t('checkout.includePremiumPackage')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {t('checkout.includeAnalysisCard')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
               </li>
             </>
           ) : (

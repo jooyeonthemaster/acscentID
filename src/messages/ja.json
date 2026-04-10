@@ -144,7 +144,8 @@
     "graduation": "卒業記念パフューム",
     "personal": "パーソナルセント",
     "leQuack": "SIGNATURE ップドゥックパフューム",
-    "customDuck": "カスタムダックビルダー"
+    "customDuck": "カスタムダックビルダー",
+    "chemistry": "ケミ香水セット"
   },
   "labels": {
     "traits": {
@@ -222,6 +223,7 @@
       "figure": "好きなイメージから作る花鉢フィギュアディフューザー",
       "graduation": "卒業の思い出を香りに、特別な卒業記念パフューム",
       "personal": "自分を表現するシグネチャーの香り"
+      ,"chemistry": "二人のキャラクターのケミストリーを香りに"
     },
     "includes": {
       "idolImage": "ップドゥックパフューム(10ml/50ml) + 分析レポート",
@@ -1923,5 +1925,78 @@
     "accept": "同意",
     "reject": "拒否",
     "privacy": "プライバシーポリシー"
+  },
+  "chemistry": {
+    "title": "ケミ香水",
+    "description": "二人のキャラクターのケミを香りに込めて",
+    "summon": {
+      "title": "二人のキャラクターを召喚しよう",
+      "subtitle": "画像とお名前を入力してください",
+      "characterA": "キャラクター A",
+      "characterB": "キャラクター B",
+      "pinLabel": "認証番号（4桁）",
+      "uploadImage": "画像アップロード",
+      "namePlaceholder": "名前入力",
+      "imageGuide": "ケミを分析する二人のキャラクター画像をアップロードしてください。写真、イラスト、ゲームキャラクターすべてOK！"
+    },
+    "deck": {
+      "tropeTitle": "二人の関係は？",
+      "tropeSubtitle": "関係トロープを選択してください",
+      "archetypeTitle": "のアーキタイプ",
+      "archetypeSubtitle": "性格タイプを選択してください",
+      "sceneTitle": "二人が出会う場所は？",
+      "sceneSubtitle": "シーン・雰囲気を選択してください",
+      "emotionTitle": "二人の間の感情は？",
+      "emotionSubtitle": "2〜3個を選択してください",
+      "scentTitle": "香りの方向は？",
+      "scentSubtitle": "ケミの香り方向を設定してください",
+      "fresh": "爽やか/軽め",
+      "deep": "重厚/深い",
+      "messagePlaceholder": "二人のケミについて自由にお書きください..."
+    },
+    "catalyst": {
+      "ready": "触媒準備完了",
+      "title": "ケミ分析を開始しますか？",
+      "subtitle": "入力内容をご確認ください",
+      "guide": "AIが二人のキャラクターの画像と入力情報を分析し、ケミプロフィールとカスタム香水セットを提案します！"
+    },
+    "analyzing": {
+      "quotes": [
+        "二つの香りが出会う瞬間を調合中...",
+        "ケミの化学反応を分析しています...",
+        "香水分子がお互いを探しています...",
+        "トップノートが挨拶を交わしています...",
+        "ミドルノートで会話が始まりました...",
+        "ベースノートがお互いの温もりを感じています...",
+        "二つの香りのシナジーを計算しています...",
+        "ケミ指数が急上昇しています！",
+        "香水瓶に二人の物語を詰めています...",
+        "レイヤリング比率を調整しています..."
+      ]
+    },
+    "result": {
+      "meetingTitle": "二つの香りが出会う瞬間",
+      "meetingSubtitle": "ケミ分析結果",
+      "scentHarmony": "香りケミ",
+      "layeringGuide": "レイヤリングガイド",
+      "colorChemistry": "カラーケミ",
+      "traitsSynergy": "特性シナジー",
+      "relationship": "関係ダイナミック",
+      "scenarios": "もしも...",
+      "dialogues": "代表セリフ",
+      "story": "ケミストーリー",
+      "future": "未来予測",
+      "purchase": "ケミ香水セット"
+    },
+    "buttons": {
+      "openDeck": "カードデッキを開く",
+      "nextCard": "次のカード",
+      "startAnalysis": "ケミ分析を開始する",
+      "addToCart": "カートに追加",
+      "loginRequired": "ログインが必要です。",
+      "noResult": "分析結果が見つかりません。",
+      "addedToCart": "カートに追加されました！",
+      "addFailed": "カートへの追加に失敗しました。"
+    }
   }
 }

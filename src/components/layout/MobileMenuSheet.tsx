@@ -138,6 +138,7 @@ export function MobileMenuSheet({
   const programLinks = [
     { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
     { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry'), image: '/images/chemistry/chemistry-thumbnail.jpg' },
   ].filter((link) => isProductActive(link.slug))
 
   return (

@@ -22,11 +22,14 @@ import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode } fr
 import Link from 'next/link'
 
 // 테이블용 짧은 라벨
+// [FIX] HIGH: signature 추가 (admin.ts ProductType 통합)
 const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   image_analysis: '최애 이미지',
   figure_diffuser: '피규어',
   personal_scent: '퍼스널',
   graduation: '졸업 퍼퓸',
+  signature: '시그니처',
+  chemistry_set: '케미 향수',
   etc: '기타',
 }
 
@@ -173,11 +176,13 @@ export default function AnalysisPage() {
               onChange={(e) => setFilters({ ...filters, product_type: e.target.value as ProductType | 'all' })}
               className="px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-400"
             >
+              {/* [FIX] HIGH: chemistry_set 옵션 추가 */}
               <option value="all">전체 상품</option>
               <option value="image_analysis">최애 이미지 분석</option>
               <option value="figure_diffuser">피규어 디퓨저</option>
               <option value="personal_scent">퍼스널 센트</option>
               <option value="graduation">졸업 퍼퓸</option>
+              <option value="chemistry_set">케미 향수</option>
             </select>
 
             {/* 서비스 모드 필터 */}

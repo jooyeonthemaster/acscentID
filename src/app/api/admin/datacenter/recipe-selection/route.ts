@@ -142,11 +142,12 @@ export async function GET(request: NextRequest) {
       original: 0,
     }
 
-    // 프로그램별 집계
+    // [FIX] HIGH: chemistry 추가
     const byProgram: Record<ProgramType, ProgramBreakdown> = {
       idol_image: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
       figure: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
       graduation: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
+      chemistry: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
     }
 
     // 월별 트렌드 집계

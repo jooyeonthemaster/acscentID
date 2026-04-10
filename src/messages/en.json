@@ -144,7 +144,8 @@
     "graduation": "Graduation Memorial Perfume",
     "personal": "Personal Scent",
     "leQuack": "SIGNATURE PPUDUCK Perfume",
-    "customDuck": "Custom Duck Builder"
+    "customDuck": "Custom Duck Builder",
+    "chemistry": "Chemistry Perfume Set"
   },
   "labels": {
     "traits": {
@@ -221,12 +222,14 @@
       "idolImage": "Your personalized perfume extracted from your favorite image",
       "figure": "Your custom figure planter diffuser made from your favorite image",
       "graduation": "A special graduation perfume capturing your memories in scent",
-      "personal": "Your signature scent that expresses who you are"
+      "personal": "Your signature scent that expresses who you are",
+      "chemistry": "A set that captures two characters' chemistry in scent"
     },
     "includes": {
       "idolImage": "PPUDUCK Perfume (10ml/50ml) + printed analysis report",
       "figure": "3D Figure + Diffuser (5ml) + printed analysis report",
-      "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report"
+      "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report",
+      "chemistry": "Chemistry Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card"
     },
     "features": {
       "aiAnalysis": "AI Custom Analysis",
@@ -1895,5 +1898,78 @@
     "accept": "Accept",
     "reject": "Decline",
     "privacy": "Privacy Policy"
+  },
+  "chemistry": {
+    "title": "Chemistry Perfume",
+    "description": "Capturing the chemistry of two characters in scent",
+    "summon": {
+      "title": "Summon Two Characters",
+      "subtitle": "Upload images and enter names",
+      "characterA": "Character A",
+      "characterB": "Character B",
+      "pinLabel": "PIN (4 digits)",
+      "uploadImage": "Upload Image",
+      "namePlaceholder": "Enter name",
+      "imageGuide": "Upload images of two characters to analyze their chemistry. Photos, illustrations, and game characters all work!"
+    },
+    "deck": {
+      "tropeTitle": "What's their relationship?",
+      "tropeSubtitle": "Select a relationship trope",
+      "archetypeTitle": "'s Archetype",
+      "archetypeSubtitle": "Select a personality type",
+      "sceneTitle": "Where do they meet?",
+      "sceneSubtitle": "Select a scene/atmosphere",
+      "emotionTitle": "What emotions between them?",
+      "emotionSubtitle": "Select 2-3 emotions",
+      "scentTitle": "Scent direction?",
+      "scentSubtitle": "Set the chemistry scent direction",
+      "fresh": "Fresh/Light",
+      "deep": "Deep/Heavy",
+      "messagePlaceholder": "Feel free to write about their chemistry..."
+    },
+    "catalyst": {
+      "ready": "Catalyst Ready",
+      "title": "Start chemistry analysis?",
+      "subtitle": "Please confirm your inputs",
+      "guide": "AI will analyze both characters' images and input to recommend a chemistry profile and custom perfume set!"
+    },
+    "analyzing": {
+      "quotes": [
+        "Blending the moment two scents meet...",
+        "Analyzing the chemical reaction of their chemistry...",
+        "Perfume molecules finding each other...",
+        "Top notes are exchanging greetings...",
+        "Middle notes are starting a conversation...",
+        "Base notes feeling each other's warmth...",
+        "Calculating the synergy of two scents...",
+        "Chemistry index is skyrocketing!",
+        "Bottling their story into a perfume...",
+        "Fine-tuning the layering ratio..."
+      ]
+    },
+    "result": {
+      "meetingTitle": "The Moment Two Scents Meet",
+      "meetingSubtitle": "Chemistry Analysis Results",
+      "scentHarmony": "Scent Chemistry",
+      "layeringGuide": "Layering Guide",
+      "colorChemistry": "Color Chemistry",
+      "traitsSynergy": "Traits Synergy",
+      "relationship": "Relationship Dynamic",
+      "scenarios": "What if...",
+      "dialogues": "Signature Lines",
+      "story": "Chemistry Story",
+      "future": "Future Vision",
+      "purchase": "Chemistry Perfume Set"
+    },
+    "buttons": {
+      "openDeck": "Open Card Deck",
+      "nextCard": "Next Card",
+      "startAnalysis": "Start Chemistry Analysis",
+      "addToCart": "Add to Cart",
+      "loginRequired": "Login is required.",
+      "noResult": "Analysis result not found.",
+      "addedToCart": "Added to cart!",
+      "addFailed": "Failed to add to cart."
+    }
   }
 }

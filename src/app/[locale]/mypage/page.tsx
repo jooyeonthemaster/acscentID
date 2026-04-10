@@ -36,6 +36,9 @@ interface AnalysisResult {
   confirmed_recipe: ConfirmedRecipe | null
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChemistryAnalysis = any
+
 interface Order {
   id: string
   order_number: string
@@ -62,6 +65,7 @@ function MyPageContent() {
   const userId = unifiedUser?.id || user?.id
   const { stampInfo, loading: stampsLoading } = useStamps()
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
+  const [chemistryAnalyses, setChemistryAnalyses] = useState<ChemistryAnalysis[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -120,6 +124,7 @@ function MyPageContent() {
       }
 
       setAnalyses(data.analyses || [])
+      setChemistryAnalyses(data.chemistryAnalyses || [])
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -152,6 +157,25 @@ function MyPageContent() {
     }
   }
 
+  // 케미 분석 결과 삭제 (세션 + 양쪽 분석 모두 삭제)
+  const handleDeleteChemistry = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/user/analysis/${sessionId}?type=chemistry`, { method: 'DELETE' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Failed to delete chemistry:', data.error)
+        alert(t('deleteFailed'))
+        return
+      }
+
+      setChemistryAnalyses((prev) => prev.filter((c) => c.sessionId !== sessionId))
+    } catch (error) {
+      console.error('Delete chemistry error:', error)
+      alert(t('deleteError'))
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF8E7]">
       {/* 메인 레이아웃 */}
@@ -178,7 +202,7 @@ function MyPageContent() {
             >
               <Sparkles size={18} />
               <span>{t('analysis')}</span>
-              <span className="text-[10px] opacity-70">{t('itemCount', { count: analyses.length })}</span>
+              <span className="text-[10px] opacity-70">{t('itemCount', { count: analyses.length + chemistryAnalyses.length })}</span>
             </button>
             <button
               onClick={() => setActiveTab('cart')}
@@ -227,8 +251,10 @@ function MyPageContent() {
           {activeTab === 'analyses' && (
             <SavedAnalysisList
               analyses={analyses}
+              chemistryAnalyses={chemistryAnalyses}
               loading={loading}
               onDelete={handleDeleteAnalysis}
+              onDeleteChemistry={handleDeleteChemistry}
               viewMode={viewMode}
             />
           )}

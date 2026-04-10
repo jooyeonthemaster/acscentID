@@ -241,6 +241,37 @@ function PrintRadarChart({ traits }: { traits: TraitScores }) {
 
 export function PrintableReport({ analysis }: PrintableReportProps) {
   const analysisData = analysis.analysis_data
+
+  // [FIX] CRITICAL #17: chemistry_set이면 간단한 레이아웃으로 early return (런타임 크래시 방지)
+  if ((analysis as any).product_type === 'chemistry_set' || !analysisData?.traits) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 bg-white print:p-4" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black text-slate-900">AC&apos;SCENT CHEMISTRY REPORT</h1>
+          <p className="text-slate-500 mt-2">케미 향수 분석 보고서</p>
+        </div>
+        <div className="border-2 border-slate-200 rounded-xl p-6 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div><span className="text-slate-500 text-sm">분석 대상</span><p className="font-bold">{analysis.twitter_name || analysis.idol_name || '-'}</p></div>
+            <div><span className="text-slate-500 text-sm">추천 향수</span><p className="font-bold">{analysis.perfume_name}</p></div>
+            <div><span className="text-slate-500 text-sm">브랜드</span><p className="font-bold">{analysis.perfume_brand}</p></div>
+            <div><span className="text-slate-500 text-sm">분석일</span><p className="font-bold">{new Date(analysis.created_at).toLocaleDateString('ko-KR')}</p></div>
+          </div>
+        </div>
+        {analysis.matching_keywords?.length > 0 && (
+          <div className="border-2 border-slate-200 rounded-xl p-6">
+            <h3 className="font-bold mb-3">매칭 키워드</h3>
+            <div className="flex flex-wrap gap-2">
+              {analysis.matching_keywords.map((kw, i) => (
+                <span key={i} className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-medium">{kw}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const traits = analysisData.traits
   const scentCategories = analysisData.scentCategories
   const personalColor = analysisData.personalColor

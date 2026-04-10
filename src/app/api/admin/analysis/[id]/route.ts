@@ -82,11 +82,26 @@ export async function GET(
       .eq('user_id', analysis.user_id)
       .order('created_at', { ascending: false })
 
+    // [FIX] HIGH: chemistry_set일 때 layering_sessions 포함
+    let layeringSession = null
+    if (analysis.product_type === 'chemistry_set') {
+      const { data: session } = await supabase
+        .from('layering_sessions')
+        .select('*')
+        .or(`analysis_a_id.eq.${id},analysis_b_id.eq.${id}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      layeringSession = session || null
+    }
+
     return NextResponse.json({
       analysis,
       user_profile: userProfile,
       feedback: feedback || null,
       orders: orders || [],
+      layering_session: layeringSession,
     })
   } catch (error) {
     console.error('Error fetching analysis detail:', error)

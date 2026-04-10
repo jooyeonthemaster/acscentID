@@ -43,12 +43,14 @@ export function newOrderTemplate(data: {
   itemCount?: number
   createdAt: string
 }) {
+  // [FIX] HIGH: chemistry_set 라벨 추가
   const productTypeLabel: Record<string, string> = {
     image_analysis: '이미지 분석 향수',
     figure_diffuser: '피규어 디퓨저',
     personal_scent: '퍼스널 센트',
     graduation: '졸업 에디션',
-    signature: '시그니처'
+    signature: '시그니처',
+    chemistry_set: '케미 향수 세트',
   }
 
   return {

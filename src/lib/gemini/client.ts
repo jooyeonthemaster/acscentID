@@ -29,6 +29,24 @@ export function getModel() {
   });
 }
 
+// 동적 maxOutputTokens 설정 모델 가져오기
+export function getModelWithConfig(options: {
+  maxOutputTokens?: number;
+  temperature?: number;
+}) {
+  const genAI = initializeGemini();
+
+  return genAI.getGenerativeModel({
+    model: "gemini-3-flash-preview",
+    generationConfig: {
+      temperature: options.temperature ?? 0.7,
+      topP: 0.9,
+      maxOutputTokens: options.maxOutputTokens ?? 8192,
+      responseMimeType: "application/json",
+    },
+  });
+}
+
 // 타임아웃 wrapper
 export async function withTimeout<T>(
   promise: Promise<T>,

@@ -37,6 +37,20 @@ export async function GET(
       .eq('id', id)
       .then(() => {})
 
+    // [FIX] CRITICAL #9: chemistry_set일 때 layering_sessions JOIN
+    let layeringSession = null
+    if (data.product_type === 'chemistry_set') {
+      const { data: session } = await supabase
+        .from('layering_sessions')
+        .select('*')
+        .or(`analysis_a_id.eq.${id},analysis_b_id.eq.${id}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      layeringSession = session || null
+    }
+
     return NextResponse.json({
       success: true,
       result: {
@@ -55,7 +69,9 @@ export async function GET(
         productType: data.product_type || 'image_analysis',
         // 피규어 모드 전용 필드
         modelingImageUrl: data.modeling_image_url || null,
-        modelingRequest: data.modeling_request || null
+        modelingRequest: data.modeling_request || null,
+        // [FIX] CRITICAL #9: 케미 세트 전용 필드
+        layeringSession: layeringSession,
       }
     })
   } catch (error) {

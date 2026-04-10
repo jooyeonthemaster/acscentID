@@ -22,7 +22,8 @@ export function useProductDetail(productSlug: string) {
         .eq('slug', productSlug)
         .single()
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = "Row not found" — 해당 slug의 상세 설정이 없으면 default 모드 사용
         console.error('[useProductDetail] error:', error)
       }
 

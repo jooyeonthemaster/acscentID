@@ -86,7 +86,8 @@ function CheckoutContent() {
   const [userImage, setUserImage] = useState<string | null>(null)
   const [idolName, setIdolName] = useState<string | null>(null)
   const [productType, setProductType] = useState<ProductType>("image_analysis")
-  const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml" | "set">("10ml")
+  // [FIX] CRITICAL #1: selectedSize 타입에 set_10ml/set_50ml 추가
+  const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml" | "set" | "set_10ml" | "set_50ml">("10ml")
   const [singleQuantity, setSingleQuantity] = useState(1)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -227,7 +228,7 @@ function CheckoutContent() {
       }
     }
 
-    // 상품 타입 설정 (피규어 디퓨저 vs 향수 vs 졸업)
+    // 상품 타입 설정 (피규어 디퓨저 vs 향수 vs 졸업 vs 케미)
     if (savedProductType) {
       const pType = savedProductType as ProductType
       setProductType(pType)
@@ -238,6 +239,10 @@ function CheckoutContent() {
       // 졸업 퍼퓸은 10ml 단일 옵션
       if (pType === "graduation") {
         setSelectedSize("10ml")
+      }
+      // [FIX] CRITICAL #3: chemistry_set이면 set_10ml로 설정
+      if (pType === "chemistry_set") {
+        setSelectedSize("set_10ml")
       }
       localStorage.removeItem("checkoutProductType")
     }
@@ -760,9 +765,18 @@ function CheckoutContent() {
                   ) : (
                     <div className="flex justify-between">
                       <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
-                      <span className={`font-black ${shippingFee === 0 ? "text-[#F472B6]" : "text-slate-900"}`}>
-                        {shippingFee === 0 ? t('currency.free') : `${formatPrice(shippingFee)}${t('currency.suffix')}`}
-                      </span>
+                      {shippingFee === 0 ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-slate-400 line-through">
+                            {formatPrice(DEFAULT_SHIPPING_FEE)}{t('currency.suffix')}
+                          </span>
+                          <span className="font-black text-[#F472B6]">0{t('currency.suffix')}</span>
+                        </div>
+                      ) : (
+                        <span className="font-black text-slate-900">
+                          {formatPrice(shippingFee)}{t('currency.suffix')}
+                        </span>
+                      )}
                     </div>
                   )}
                   {discountAmount > 0 && (

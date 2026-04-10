@@ -114,12 +114,29 @@
       "Bash(if grep:*)",
       "Bash(then)",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Read(//c/Users/jooye/**)",
+      "Bash(find /c/Users/jooye/Desktop/PPUDUCKXSPOT -type f \\\\\\(-name *.json -path *message* -o -name *.json -path *translation* -o -name *.json -path *locale* \\\\\\))",
+      "Bash(find /c/Users/jooye/Desktop/PPUDUCKXSPOT/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(head -200 /c/Users/jooye/Desktop/PPUDUCKXSPOT/src/app/[locale]/checkout/page.tsx)",
+      "Bash(mkdir -p /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/chemistry)",
+      "Bash(cp /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/perfume/KakaoTalk_20260125_225218071.jpg /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/chemistry/chemistry-thumbnail.jpg)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\admin\\qr",
       "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\cart",
-      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT"
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT",
+      "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\orders\\[id]",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\[locale]",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\messages",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\components\\home",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\hooks",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\supabase\\migrations",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\[locale]\\input\\chemistry\\hooks",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\analyze\\chemistry",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\[locale]\\result\\components\\chemistry",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\[locale]\\input\\chemistry\\components",
+      "C:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\[locale]\\input\\chemistry"
     ]
   }
 }

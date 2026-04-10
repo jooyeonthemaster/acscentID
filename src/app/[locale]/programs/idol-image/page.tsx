@@ -1,26 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import Link from "next/link"
 import {
-  Star, X, AlertTriangle,
-  Gift, Zap, ChevronRight,
-  FileText, Camera, Sparkles, Palette, FileCheck, PenLine
+  Star, Gift, Zap, ChevronRight,
+  FileText, Camera, Sparkles, Palette, FileCheck,
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTransition } from "@/contexts/TransitionContext"
 import { AuthModal } from "@/components/auth/AuthModal"
-import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
-import { getReviewStats } from "@/lib/supabase/reviews"
-import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { AnalysisPreviewPlayer } from "@/components/remotion/AnalysisPreviewPlayer"
 import { useTranslations } from 'next-intl'
-import { useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramImageGallery } from "@/components/programs/ProgramImageGallery"
+import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
+import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
+import { getReviewStats } from "@/lib/supabase/reviews"
+import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -43,36 +43,16 @@ export default function IdolImagePage() {
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
 
-  // 리뷰 관련 상태
-  const [showReviewModal, setShowReviewModal] = useState(false)
-  const [showReviewWriteModal, setShowReviewWriteModal] = useState(false)
+  // 리뷰 통계 (히어로 ReviewTrigger용)
   const [reviewStats, setReviewStats] = useState<ReviewStatsType | null>(null)
-  const [reviewRatingFilter, setReviewRatingFilter] = useState<number | null>(null)
+  useEffect(() => {
+    getReviewStats('idol_image').then(setReviewStats).catch(() => {})
+  }, [])
 
   const isLoggedIn = !!(user || unifiedUser)
   const currentUserId = user?.id || unifiedUser?.id
-
-  // 리뷰 통계 로드
-  useEffect(() => {
-    const loadReviewStats = async () => {
-      try {
-        const stats = await getReviewStats('idol_image')
-        setReviewStats(stats)
-      } catch (error) {
-        console.error('Failed to load review stats:', error)
-      }
-    }
-    loadReviewStats()
-  }, [])
-
-  const { imageUrls: dynamicImages } = useProductImages('idol-image')
-  const productImages = dynamicImages.length > 0 ? dynamicImages : [
-    "/images/perfume/KakaoTalk_20260125_225218071.jpg",
-    "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
-  ]
 
   const { isCustomMode, detail } = useProductDetail('idol-image')
   const { startTransition } = useTransition()
@@ -80,7 +60,6 @@ export default function IdolImagePage() {
   const handleStartClick = () => {
     if (loading) return
     if (isLoggedIn) {
-      // 온라인 모드: 로그인 필수, 결과 페이지에서 구매 버튼 표시
       startTransition("/input?type=idol_image&mode=online")
     } else {
       setShowLoginPrompt(true)
@@ -88,8 +67,6 @@ export default function IdolImagePage() {
   }
 
   const handleGuestStart = () => {
-    // 온라인 서비스는 로그인 필수 - 비회원 시작 비활성화
-    // 로그인 모달로 유도
     setShowAuthModal(true)
     setShowLoginPrompt(false)
   }
@@ -109,48 +86,15 @@ export default function IdolImagePage() {
       ============================================ */}
       <section className="pt-28 pb-10 px-4">
         <div className="w-full">
-          {/* 이미지 갤러리 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5"
-          >
-            {/* 메인 이미지 */}
-            <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
-              <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span className="px-2 py-0.5 bg-yellow-400 text-black text-[10px] font-black rounded-full border-2 border-black">
-                  BEST
-                </span>
-              </div>
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-50">
-                <motion.img
-                  key={selectedImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  src={productImages[selectedImage]}
-                  alt={t('programs.productImage')}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* 썸네일 */}
-            <div className="flex gap-2 justify-center">
-              {productImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${selectedImage === idx
-                    ? 'border-black shadow-[2px_2px_0_0_black] scale-105'
-                    : 'border-slate-300 hover:border-slate-500'
-                    }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-                </button>
-              ))}
-            </div>
-          </motion.div>
+          {/* 이미지 갤러리 (공유 컴포넌트) */}
+          <ProgramImageGallery
+            productSlug="idol-image"
+            fallbackImages={[
+              "/images/perfume/KakaoTalk_20260125_225218071.jpg",
+              "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
+            ]}
+            badge="BEST"
+          />
 
           {/* 제품 정보 */}
           <motion.div
@@ -173,7 +117,9 @@ export default function IdolImagePage() {
                 <ReviewTrigger
                   averageRating={reviewStats?.average_rating || 4.9}
                   totalCount={reviewStats?.total_count || 0}
-                  onClick={() => setShowReviewModal(true)}
+                  onClick={() => {
+                    document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
                 />
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
@@ -338,173 +284,29 @@ export default function IdolImagePage() {
       )}
 
       {/* ============================================
-          실제 후기
+          실제 후기 (공유 컴포넌트)
       ============================================ */}
-      <section id="reviews" className="py-8 px-4 bg-white">
-        <div className="w-full">
-          <div className="text-center mb-4">
-            <div className="inline-block px-3 py-1.5 bg-yellow-400 text-black text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
-              {t('programs.reviews.badge')}
-            </div>
-            <h2 className="text-2xl font-black text-black mb-2 break-keep">
-              {t('programs.reviews.title')}
-            </h2>
-            <button
-              onClick={() => setShowReviewModal(true)}
-              className="text-xs text-slate-500 hover:text-black transition-colors underline underline-offset-4"
-            >
-              {t('programs.reviews.viewAll')}
-            </button>
-          </div>
+      <ProgramReviewSection
+        programType="idol_image"
+        programName={t('footer.aiImageAnalysis')}
+        currentUserId={currentUserId}
+        isLoggedIn={isLoggedIn}
+        onLoginRequired={() => setShowLoginPrompt(true)}
+      />
 
-          {/* 리뷰 통계 */}
-          {reviewStats && (
-            <div className="mb-4">
-              <ReviewStats
-                stats={reviewStats}
-                onRatingFilter={setReviewRatingFilter}
-                selectedRating={reviewRatingFilter}
-              />
-            </div>
-          )}
-
-          {/* 리뷰 작성 버튼 */}
-          <div className="mb-4">
-            <button
-              onClick={() => {
-                if (!isLoggedIn) {
-                  setShowLoginPrompt(true)
-                } else {
-                  setShowReviewModal(true)
-                }
-              }}
-              className="w-full py-3 bg-yellow-400 text-black text-sm font-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-            >
-              <PenLine size={16} />
-              리뷰 작성하기
-            </button>
-          </div>
-
-          {/* 리뷰 목록 */}
-          <div>
-            <ReviewList
-              programType="idol_image"
-              currentUserId={currentUserId}
-              ratingFilter={reviewRatingFilter}
-              onRatingFilterChange={setReviewRatingFilter}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          로그인 안내 모달
-      ============================================ */}
-      <AnimatePresence>
-        {showLoginPrompt && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
-            >
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-yellow-50 to-white">
-                <button
-                  onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                  <X size={20} className="text-slate-400" />
-                </button>
-
-                <div className="w-16 h-16 mx-auto mb-4 bg-yellow-400 rounded-2xl flex items-center justify-center shadow-lg border-2 border-black shadow-[4px_4px_0_0_black]">
-                  <AlertTriangle size={28} className="text-black" />
-                </div>
-
-                <h2 className="text-xl font-black text-slate-900 mb-2">{t('auth.guestWarningTitle')}</h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {t('auth.guestWarningText')}
-                </p>
-              </div>
-
-              <div className="px-6 py-4 bg-slate-50 border-y-2 border-black">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">{t('auth.guestBenefit1')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">{t('auth.guestBenefit2')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">{t('auth.guestWarning')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-3">
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#FACC15] transition-all border-2 border-black"
-                >
-                  {t('buttons.loginSignup')}
-                </button>
-
-                <button
-                  onClick={handleGuestStart}
-                  className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>{t('buttons.startAsGuest')}</span>
-                  <span className="text-xs text-slate-400">{t('auth.notSaved')}</span>
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* 로그인 안내 모달 (공유 컴포넌트) */}
+      <ProgramLoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={handleLoginClick}
+        onGuest={handleGuestStart}
+      />
 
       {/* 로그인 모달 */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         redirectPath="/input?type=idol_image&mode=online"
-      />
-
-      {/* 리뷰 모달 */}
-      <ReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        programType="idol_image"
-        programName={t('footer.aiImageAnalysis')}
-        currentUserId={currentUserId}
-        onWriteReview={() => {
-          setShowReviewModal(false)
-          setShowReviewWriteModal(true)
-        }}
-      />
-
-      {/* 리뷰 작성 모달 */}
-      <ReviewWriteModal
-        isOpen={showReviewWriteModal}
-        onClose={() => setShowReviewWriteModal(false)}
-        programType="idol_image"
-        programName={t('footer.aiImageAnalysis')}
-        userId={currentUserId || ''}
-        onSuccess={() => {
-          // 리뷰 통계 새로고침
-          getReviewStats('idol_image').then(setReviewStats)
-        }}
       />
     </main>
     </InactiveProductGuard>

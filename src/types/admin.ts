@@ -2,18 +2,21 @@
 
 import { ImageAnalysisResult } from './analysis'
 
-// 상품 타입
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'etc'
+// 상품 타입 — [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 해소, signature 추가
+export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'etc'
 
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
 
 // 상품 타입 한글 라벨
+// [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 — signature 추가
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   image_analysis: 'AI 이미지 분석 퍼퓸',
   figure_diffuser: '피규어 화분 디퓨저',
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념 퍼퓸',
+  signature: '시그니처 퍼퓸',
+  chemistry_set: '케미 향수 세트',
   etc: '기타',
 }
 

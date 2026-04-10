@@ -90,6 +90,9 @@ export interface SpecificScent {
 // 피드백 데이터 타입
 // ============================================
 
+// [FIX] CRITICAL #13: chemistry_role 필드 추가 (기존 호환 유지, optional)
+export type ChemistryRole = 'character_a' | 'character_b' | null
+
 export interface PerfumeFeedback {
   perfumeId: string
   perfumeName: string
@@ -98,6 +101,7 @@ export interface PerfumeFeedback {
   specificScents: SpecificScent[]
   notes?: string
   naturalLanguageFeedback?: string // 자연어 피드백 (Step 3, 선택사항)
+  chemistryRole?: ChemistryRole // 케미 프로그램에서의 역할 (A 또는 B)
 }
 
 // 피드백 초기값
@@ -260,6 +264,57 @@ export function getRetentionMessage(retention: number) {
     RETENTION_MESSAGES.find((m) => retention <= m.max) ||
     RETENTION_MESSAGES[RETENTION_MESSAGES.length - 1]
   )
+}
+
+// ============================================
+// 케미 (2향수) 취향 반영 시스템
+// ============================================
+
+// 향 계열 3상태: 미선택 / 좋아요 / 싫어요
+export type ScentPreference = 'none' | 'like' | 'dislike'
+
+// 향 존재감 강도
+export type ScentIntensity = 'subtle' | 'moderate' | 'bold'
+
+// 향 계열 정보 (UI 표시용)
+export interface ScentFamilyInfo {
+  id: string
+  label: string
+  emoji: string
+  description: string
+  examples: string
+}
+
+export const SCENT_FAMILIES: ScentFamilyInfo[] = [
+  { id: 'citrus', label: '시트러스', emoji: '🍋', description: '상큼한 과일 껍질 향', examples: '레몬, 자몽, 오렌지, 베르가못' },
+  { id: 'floral', label: '플로럴', emoji: '🌸', description: '우아한 꽃향기', examples: '장미, 자스민, 라벤더, 은방울꽃' },
+  { id: 'woody', label: '우디', emoji: '🌳', description: '나무와 숲의 향', examples: '백단향, 편백나무, 시더우드' },
+  { id: 'musky', label: '머스크', emoji: '✨', description: '은은하고 포근한 향', examples: '깨끗한 비누, 섬유유연제, 파우더' },
+  { id: 'fruity', label: '프루티', emoji: '🍎', description: '달콤한 과일 향', examples: '딸기, 복숭아, 사과, 블랙베리' },
+  { id: 'spicy', label: '스파이시', emoji: '🌶️', description: '매콤하고 따뜻한 향', examples: '시나몬, 후추, 정향, 생강' },
+]
+
+// 케미 취향 반영 데이터
+export interface ChemistryTasteData {
+  sessionId: string
+  // Q1: 향 계열 선호 (3상태 토글)
+  scentPreferences: Record<string, ScentPreference>
+  // Q2: 향 온도감 (0=시원, 100=따뜻)
+  warmth: number
+  // Q3: 향 존재감
+  intensity: ScentIntensity
+  // Q4: 추가 요청 (자유 텍스트)
+  freeText: string
+}
+
+// 케미 레시피 결과 (A + B 각 2안씩)
+export interface ChemistryRecipeResult {
+  recipeA1: GeneratedRecipe
+  recipeA2: GeneratedRecipe
+  recipeB1: GeneratedRecipe
+  recipeB2: GeneratedRecipe
+  layeringNote: string
+  pairExplanation: string
 }
 
 // ============================================

@@ -37,7 +37,8 @@ const TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
 ]
 
 // 프로그램 타입 정의
-type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'all'
+// [FIX] HIGH: chemistry 추가
+type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry' | 'all'
 
 interface CountItem {
   name: string
@@ -59,11 +60,13 @@ interface DatacenterResponse {
   top10Perfumes?: string[]
 }
 
+// [FIX] HIGH: chemistry 추가
 const PROGRAM_LABELS: Record<ProgramType, { label: string; icon: React.ReactNode; color: string }> = {
   all: { label: '전체', icon: <TrendingUp className="w-4 h-4" />, color: 'bg-slate-500' },
   idol_image: { label: 'AI 이미지 분석', icon: <Sparkles className="w-4 h-4" />, color: 'bg-yellow-500' },
   figure: { label: '피규어 디퓨저', icon: <Box className="w-4 h-4" />, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: <GraduationCap className="w-4 h-4" />, color: 'bg-amber-500' },
+  chemistry: { label: '케미 향수', icon: <Users className="w-4 h-4" />, color: 'bg-violet-500' },
 }
 
 // 키워드 클라우드 컴포넌트

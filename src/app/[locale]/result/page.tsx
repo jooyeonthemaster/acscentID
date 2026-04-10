@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import ResultPageMain from './components/ResultPageMain'
+import { ChemistryResultRouter } from './components/chemistry/ChemistryResultRouter'
 
 export async function generateMetadata() {
   const t = await getTranslations('result')
@@ -35,7 +36,9 @@ function ResultLoading() {
 export default function ResultPage() {
   return (
     <Suspense fallback={<ResultLoading />}>
-      <ResultPageMain />
+      <ChemistryResultRouter>
+        <ResultPageMain />
+      </ChemistryResultRouter>
     </Suspense>
   )
 }

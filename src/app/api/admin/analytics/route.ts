@@ -60,16 +60,23 @@ export async function GET(request: NextRequest) {
       .select('product_type')
       .limit(50000)
 
-    const analysisByProduct = {
+    // [FIX] HIGH: analysisByProduct에 chemistry_set, graduation, signature 추가
+    const analysisByProduct: Record<string, number> = {
       image_analysis: 0,
       figure_diffuser: 0,
       personal_scent: 0,
+      graduation: 0,
+      signature: 0,
+      chemistry_set: 0,
     }
 
+    // [FIX] HIGH: 동적 키 처리
     analysisByProductData?.forEach(item => {
       const type = item.product_type || 'image_analysis'
       if (type in analysisByProduct) {
-        analysisByProduct[type as keyof typeof analysisByProduct]++
+        analysisByProduct[type]++
+      } else {
+        analysisByProduct[type] = 1
       }
     })
 

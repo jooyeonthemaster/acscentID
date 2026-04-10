@@ -144,7 +144,8 @@
     "graduation": "毕业纪念香水",
     "personal": "个人香氛",
     "leQuack": "SIGNATURE 鸭子香水",
-    "customDuck": "定制小鸭"
+    "customDuck": "定制小鸭",
+    "chemistry": "化学香水套装"
   },
   "labels": {
     "traits": {
@@ -222,6 +223,7 @@
       "figure": "用喜欢的图像制作专属于你的花盆手办香薰器",
       "graduation": "将毕业的回忆化为香气，特别的毕业纪念香水",
       "personal": "表达自我的专属签名香"
+      ,"chemistry": "将两个角色的化学反应融入香氛"
     },
     "includes": {
       "idolImage": "鸭子香水(10ml/50ml) + 实物分析报告",
@@ -1738,5 +1740,30 @@
     "accept": "接受",
     "reject": "拒绝",
     "privacy": "隐私政策"
+  },
+  "chemistry": {
+    "title": "Chemistry香水",
+    "description": "将两个角色的化学反应融入香氛",
+    "result": {
+      "meetingTitle": "两种香气相遇的瞬间",
+      "meetingSubtitle": "化学分析结果",
+      "scentHarmony": "香气化学",
+      "layeringGuide": "叠香指南",
+      "colorChemistry": "色彩化学",
+      "traitsSynergy": "特质协同",
+      "relationship": "关系动态",
+      "scenarios": "如果...",
+      "dialogues": "代表台词",
+      "story": "化学故事",
+      "future": "未来展望",
+      "purchase": "Chemistry香水套装"
+    },
+    "buttons": {
+      "addToCart": "加入购物车",
+      "loginRequired": "需要登录。",
+      "noResult": "未找到分析结果。",
+      "addedToCart": "已加入购物车！",
+      "addFailed": "加入购物车失败。"
+    }
   }
 }
