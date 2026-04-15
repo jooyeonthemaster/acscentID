@@ -72,6 +72,7 @@ interface ChemistryAnalysis {
   chemistryData: object
   chemistryType: string | null
   chemistryTitle: string | null
+  service_mode?: 'online' | 'offline'
   created_at: string
 }
 
@@ -481,6 +482,11 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded-md sm:rounded-lg bg-violet-100 text-violet-700 border-[1.5px] sm:border-2 border-violet-300 shadow-[1px_1px_0_0_rgba(0,0,0,0.2)]">
                             {PRODUCT_TYPE_BADGES.chemistry_set.labelShort}
                           </span>
+                          {chem.service_mode === 'offline' && (
+                            <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-md sm:rounded-lg bg-slate-700 text-white border border-slate-800">
+                              {t('offline')}
+                            </span>
+                          )}
                         </div>
                         <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2">
                           <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-white border-[1.5px] sm:border-2 border-black text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1 shadow-[1px_1px_0_0_black] sm:shadow-[2px_2px_0_0_black]">

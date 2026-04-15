@@ -167,6 +167,7 @@ export async function GET(request: NextRequest) {
       chemistryData: object
       chemistryType: string | null
       chemistryTitle: string | null
+      service_mode: string
       created_at: string
     }
 
@@ -210,6 +211,7 @@ export async function GET(request: NextRequest) {
               chemistryData: session.chemistry_data || {},
               chemistryType: session.chemistry_type || null,
               chemistryTitle: session.chemistry_title || null,
+              service_mode: session.service_mode || 'online',
               created_at: session.created_at,
             })
             // 통합된 ID를 기록하여 일반 목록에서 제거

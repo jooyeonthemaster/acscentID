@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Tag, ChevronDown, X, Check, Ticket, AlertCircle, Loader2, Zap } from 'lucide-react'
+import { Tag, ChevronDown, X, Check, Ticket, AlertCircle, Loader2, Gift } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CheckoutCoupon } from '@/types/coupon'
 
@@ -11,7 +11,6 @@ interface CouponSelectorProps {
   onSelectCoupon: (coupon: CheckoutCoupon | null) => void
   productPrice: number
   cheapestItemPrice?: number
-  totalQuantity?: number // 현재 결제할 총 상품 수량 (스탬프 즉시할인 계산용)
 }
 
 const COUPON_COLORS: Record<string, string> = {
@@ -19,35 +18,25 @@ const COUPON_COLORS: Record<string, string> = {
   referral: '#BAE6FD',
   repurchase: '#FEF08A',
   welcome: '#D9F99D',
-  stamp_10: '#C4B5FD',
-  stamp_20: '#C084FC',
-  stamp_free: '#F9A8D4',
 }
 
-export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, cheapestItemPrice, totalQuantity = 1 }: CouponSelectorProps) {
+export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice }: CouponSelectorProps) {
   const t = useTranslations()
   const [isOpen, setIsOpen] = useState(false)
   const [coupons, setCoupons] = useState<CheckoutCoupon[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 기존 쿠폰 + 스탬프 즉시할인 fetch
   useEffect(() => {
     fetchAllCoupons()
-  }, [totalQuantity])
+  }, [])
 
   const fetchAllCoupons = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      // 기존 쿠폰 + 스탬프 적격 할인 동시 fetch
-      const [couponRes, stampRes] = await Promise.all([
-        fetch('/api/checkout/coupons'),
-        fetch(`/api/stamps/checkout-eligible?quantity=${totalQuantity}`),
-      ])
-
+      const couponRes = await fetch('/api/checkout/coupons')
       const couponData = await couponRes.json()
-      const stampData = await stampRes.json()
 
       let allCoupons: CheckoutCoupon[] = []
 
@@ -57,43 +46,6 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
         setError(t('coupon.loginToUseCoupon'))
       }
 
-      // 스탬프 즉시할인 (prospective) 쿠폰 추가
-      if (stampData.success && stampData.eligibleDiscounts) {
-        for (const discount of stampData.eligibleDiscounts) {
-          // 이미 기존 쿠폰으로 존재하면 중복 추가 안 함
-          const alreadyExists = allCoupons.some(
-            c => c.type === discount.reward_type && c.isEligible
-          )
-          if (!alreadyExists) {
-            if (discount.source === 'prospective') {
-              // 아직 쿠폰이 발급되지 않았지만, 이번 구매로 마일스톤 달성 → 즉시 할인
-              allCoupons.unshift({
-                id: `prospective_${discount.reward_type}`,
-                userCouponId: `prospective_${discount.reward_type}`,
-                type: discount.reward_type,
-                discount_percent: discount.discount_percent,
-                title: `🎉 즉시 ${discount.label}`,
-                isEligible: true,
-                ineligibleReason: undefined,
-              })
-            } else if (discount.source === 'existing_coupon' && discount.userCouponId) {
-              // 기존에 발급된 스탬프 쿠폰이 있는데 checkout/coupons에서 안 나온 경우
-              const existsInCoupons = allCoupons.some(c => c.userCouponId === discount.userCouponId)
-              if (!existsInCoupons) {
-                allCoupons.unshift({
-                  id: discount.reward_type,
-                  userCouponId: discount.userCouponId,
-                  type: discount.reward_type,
-                  discount_percent: discount.discount_percent,
-                  title: `스탬프 ${discount.label}`,
-                  isEligible: true,
-                })
-              }
-            }
-          }
-        }
-      }
-
       setCoupons(allCoupons)
     } catch (e) {
       setError(t('errors.network'))
@@ -101,7 +53,10 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
     setIsLoading(false)
   }
 
-  const eligibleCoupons = coupons.filter(c => c.isEligible)
+  // 재구매 쿠폰이 맨 위로 오도록 정렬
+  const eligibleCoupons = coupons
+    .filter(c => c.isEligible)
+    .sort((a, b) => (a.type === 'repurchase' ? -1 : 0) - (b.type === 'repurchase' ? -1 : 0))
   const ineligibleCoupons = coupons.filter(c => !c.isEligible)
 
   const handleSelect = (coupon: CheckoutCoupon) => {
@@ -115,13 +70,10 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
   }
 
   const discountAmount = selectedCoupon
-    ? selectedCoupon.type === 'stamp_free'
-      ? (cheapestItemPrice || productPrice)
-      : Math.floor(productPrice * (selectedCoupon.discount_percent / 100))
+    ? Math.floor(productPrice * (selectedCoupon.discount_percent / 100))
     : 0
 
-  const isProspective = (coupon: CheckoutCoupon) =>
-    coupon.userCouponId?.startsWith('prospective_')
+  const isRepurchase = (coupon: CheckoutCoupon) => coupon.type === 'repurchase'
 
   return (
     <div className="space-y-3">
@@ -143,23 +95,32 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border-2 border-slate-900 rounded-xl p-3 flex items-center justify-between"
+          className={`bg-white rounded-xl p-3 flex items-center justify-between ${
+            isRepurchase(selectedCoupon)
+              ? 'border-2 border-pink-500 ring-2 ring-pink-300'
+              : 'border-2 border-slate-900'
+          }`}
           style={{ backgroundColor: COUPON_COLORS[selectedCoupon.type] || '#BAE6FD' }}
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg border-2 border-slate-900 flex items-center justify-center">
-              {isProspective(selectedCoupon) ? (
-                <Zap size={20} className="text-purple-600" />
+              {isRepurchase(selectedCoupon) ? (
+                <Gift size={20} className="text-pink-500" />
               ) : (
                 <Ticket size={20} className="text-slate-900" />
               )}
             </div>
             <div>
-              <p className="font-black text-slate-900">{selectedCoupon.title}</p>
+              <p className="font-black text-slate-900 flex items-center gap-1.5">
+                {selectedCoupon.title}
+                {isRepurchase(selectedCoupon) && (
+                  <span className="bg-yellow-200 text-yellow-800 font-black text-[10px] rounded-full px-1.5 py-0.5">
+                    무제한 사용
+                  </span>
+                )}
+              </p>
               <p className="text-sm font-bold text-slate-700">
-                {selectedCoupon.type === 'stamp_free'
-                  ? `상품 1개 무료 (-${(cheapestItemPrice || productPrice).toLocaleString()}원)`
-                  : t('coupon.discountPercent', { percent: selectedCoupon.discount_percent })}
+                {t('coupon.discountPercent', { percent: selectedCoupon.discount_percent })}
               </p>
             </div>
           </div>
@@ -219,25 +180,31 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
               {eligibleCoupons.length > 0 && (
                 <div className="divide-y-2 divide-slate-100">
                   {eligibleCoupons.map((coupon) => {
-                    const prospective = isProspective(coupon)
-                    const couponDiscount = coupon.type === 'stamp_free'
-                      ? (cheapestItemPrice || productPrice)
-                      : Math.floor(productPrice * (coupon.discount_percent / 100))
+                    const repurchase = isRepurchase(coupon)
+                    const couponDiscount = Math.floor(productPrice * (coupon.discount_percent / 100))
 
                     return (
                       <button
                         key={coupon.id}
                         onClick={() => handleSelect(coupon)}
-                        className="w-full p-3 hover:bg-slate-50 transition-colors flex items-center gap-3 text-left"
+                        className={`w-full p-3 hover:bg-slate-50 transition-colors flex items-center gap-3 text-left ${
+                          repurchase ? 'bg-gradient-to-r from-pink-50 to-yellow-50' : ''
+                        }`}
                       >
+                        {/* 재구매 강조 배지 */}
+                        {repurchase && (
+                          <div className="flex-shrink-0 px-2 py-1 bg-gradient-to-r from-pink-500 to-yellow-400 text-white text-[10px] font-black rounded-full border-2 border-slate-900 shadow-[1px_1px_0_#000] whitespace-nowrap">
+                            🎁 재구매 혜택
+                          </div>
+                        )}
                         <div
                           className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center flex-shrink-0 ${
-                            prospective ? 'border-purple-500 ring-2 ring-purple-300' : 'border-slate-900'
+                            repurchase ? 'border-pink-500 ring-2 ring-pink-300' : 'border-slate-900'
                           }`}
                           style={{ backgroundColor: COUPON_COLORS[coupon.type] || '#BAE6FD' }}
                         >
-                          {prospective ? (
-                            <Zap size={20} className="text-purple-700" />
+                          {repurchase ? (
+                            <Gift size={20} className="text-pink-600" />
                           ) : (
                             <span className="font-black text-slate-900">
                               {coupon.discount_percent === 100 ? 'FREE' : `${coupon.discount_percent}%`}
@@ -245,11 +212,11 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, c
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-slate-900">
+                          <p className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                             {coupon.title}
-                            {prospective && (
-                              <span className="ml-1.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-black rounded-full">
-                                즉시할인
+                            {repurchase && (
+                              <span className="bg-yellow-200 text-yellow-800 font-black text-[10px] rounded-full px-1.5 py-0.5">
+                                무제한 사용
                               </span>
                             )}
                           </p>

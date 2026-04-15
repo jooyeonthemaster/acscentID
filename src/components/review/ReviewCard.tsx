@@ -46,10 +46,13 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
     })
   }
 
-  const displayName = review.user_profile?.name || '익명'
-  const maskedName = displayName.length > 2
-    ? displayName[0] + '*'.repeat(displayName.length - 2) + displayName.slice(-1)
-    : displayName[0] + '*'
+  // admin_name이 있으면 우선 사용 (관리자 삽입 리뷰)
+  const displayName = review.admin_name || review.user_profile?.name || '익명'
+  const maskedName = displayName.length <= 1
+    ? displayName
+    : displayName.length === 2
+      ? displayName[0] + '*'
+      : displayName[0] + '*'.repeat(displayName.length - 2) + displayName.slice(-1)
 
   return (
     <>

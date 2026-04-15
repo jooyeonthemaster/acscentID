@@ -69,18 +69,10 @@ function NaverIcon({ active }: { active: boolean }) {
   )
 }
 
-// 실연동 전환 완료 - 카드/간편결제 활성화
-const DISABLED_METHODS: Set<PaymentMethod> = new Set<PaymentMethod>([])
+// 카카오페이/네이버페이는 PG사 심사 완료 전까지 비활성화 (심사 담당자는 pg_review 모드로 우회)
+const DISABLED_METHODS: Set<PaymentMethod> = new Set<PaymentMethod>(['kakao_pay', 'naver_pay'])
 
 const PAYMENT_OPTIONS: PaymentOption[] = [
-  {
-    method: "bank_transfer",
-    label: "payment.bankTransferShort",
-    sublabel: "payment.bankTransferSublabel",
-    icon: <BankIcon active={false} />,
-    accentColor: "#475569",
-    accentBg: "#F1F5F9",
-  },
   {
     method: "card",
     label: "payment.card",
@@ -101,6 +93,14 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
     icon: <NaverIcon active={false} />,
     accentColor: "#03C75A",
     accentBg: "#ECFDF5",
+  },
+  {
+    method: "bank_transfer",
+    label: "payment.bankTransferShort",
+    sublabel: "payment.bankTransferSublabel",
+    icon: <BankIcon active={false} />,
+    accentColor: "#475569",
+    accentBg: "#F1F5F9",
   },
 ]
 

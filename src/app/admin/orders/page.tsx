@@ -767,6 +767,7 @@ export default function AdminOrdersPage() {
                             <option value="paid">입금완료</option>
                             <option value="shipping">배송중</option>
                             <option value="delivered">배송완료</option>
+                            <option value="cancel_requested">취소요청</option>
                             <option value="cancelled">취소완료</option>
                           </select>
                         </td>
@@ -789,6 +790,19 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
+                            {/* 환불 처리 버튼 - 취소요청/입금완료 상태 & PG결제 & 미환불 */}
+                            {order.payment_id && !order.refunded_at && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleRefund(order)
+                                }}
+                                className="px-2.5 py-1 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                                title="PG 결제 환불"
+                              >
+                                환불
+                              </button>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -1085,7 +1099,7 @@ export default function AdminOrdersPage() {
                                     </span>
                                   )}
                                 </div>
-                                {order.status === 'paid' && !order.refunded_at && (
+                                {!order.refunded_at && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
@@ -1479,14 +1493,14 @@ export default function AdminOrdersPage() {
                           환불완료 ({formatDate(selectedOrder.refunded_at)})
                           {selectedOrder.refund_amount != null && ` - ${formatPrice(selectedOrder.refund_amount)}`}
                         </span>
-                      ) : selectedOrder.status === 'paid' ? (
+                      ) : (
                         <button
                           onClick={() => handleRefund(selectedOrder)}
                           className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
                         >
                           환불 처리
                         </button>
-                      ) : null}
+                      )}
                     </div>
                   </div>
                 )}

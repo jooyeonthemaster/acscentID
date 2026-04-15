@@ -8,7 +8,7 @@
     "logout": "로그아웃",
     "cart": "장바구니",
     "openMenu": "메뉴 열기",
-    "myPage": "마이페이지",
+    "myPage": "My Page",
     "programSelect": "프로그램 선택",
     "programSelectDesc": "원하는 프로그램을 선택해주세요",
     "visitReservation": "현장방문 예약",
@@ -106,6 +106,8 @@
     "afterPayment": "입금 확인 후 2~3일 내 배송"
   },
   "status": {
+    "awaitingPayment": "결제 진행중",
+    "awaitingPaymentDesc": "온라인 결제가 진행 중입니다",
     "pending": "입금대기",
     "paid": "입금완료",
     "shipping": "배송중",
@@ -883,10 +885,10 @@
     "eventLabel": "이벤트",
     "promoFreeShipping": "{promoName} - 배송비 무료",
     "quantitySelection": "수량 선택",
-    "stampCouponHint": "{quantity}개 구매 시 스탬프 쿠폰 할인이 적용될 수 있어요!",
-    "stampCouponAvailable": "스탬프 할인 쿠폰을 사용할 수 있어요!",
-    "stampDiscountApplied": "스탬프 {percent}% 할인 적용",
-    "freeProductApplied": "스탬프 무료 상품 적용"
+    "repurchaseBannerTitle": "재구매 고객님, 감사합니다! 🎉",
+    "repurchaseBannerSubtitle": "10% 할인 쿠폰을 아래에서 선택하여 적용해보세요",
+    "firstPurchasePromoTitle": "첫 구매 후 다음 주문부터 계속 10% 할인! 💝",
+    "firstPurchasePromoSubtitle": "재구매 쿠폰이 자동 발급되어 횟수 제한 없이 사용 가능해요"
   },
   "checkoutComplete": {
     "title": "주문 완료",
@@ -1192,6 +1194,7 @@
     "star": "{rating}점"
   },
   "coupon": {
+    "unlimitedUse": "무제한 사용",
     "specialOffer": "특별 혜택",
     "getTodayCoupon": "오늘의 쿠폰을 받아가세요",
     "loginToClaim": "로그인 후 쿠폰을 받을 수 있어요!",

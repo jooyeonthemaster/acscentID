@@ -11,13 +11,13 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
-import { useActiveProducts } from '@/hooks/useAdminContent'
+import { useActiveProducts, useProductImages } from '@/hooks/useAdminContent'
 
-// Programs 드롭업 메뉴 항목 (전체)
+// Programs 드롭업 메뉴 항목 (전체) - 기본 fallback 이미지 포함
 const ALL_PROGRAM_LINKS = [
-  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const, image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, image: '/images/chemistry/chemistry-thumbnail.jpg' },
+  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const, fallbackImage: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
 ]
 
 // NavItem 컴포넌트
@@ -57,12 +57,14 @@ function NavItem({
 }
 
 // ProgramsSheet 컴포넌트 - 하단 시트 모달
+type ProgramLink = (typeof ALL_PROGRAM_LINKS)[number] & { image: string }
+
 function ProgramsSheet({
   onClose,
   programLinks,
 }: {
   onClose: () => void
-  programLinks: typeof ALL_PROGRAM_LINKS
+  programLinks: ProgramLink[]
 }) {
   const t = useTranslations()
 
@@ -147,8 +149,25 @@ export function MobileBottomNav() {
   const t = useTranslations()
   const { isProductActive } = useActiveProducts()
 
-  // 활성 상품만 필터링
-  const PROGRAM_LINKS = ALL_PROGRAM_LINKS.filter((link) => isProductActive(link.slug))
+  // DB 대표 이미지 로드
+  const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
+  const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
+  const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
+  const imagesLoading = idolLoading || figureLoading || chemistryLoading
+
+  const dynamicImageMap: Record<string, string | undefined> = {
+    'idol-image': idolImages[0],
+    'figure': figureImages[0],
+    'chemistry': chemistryImages[0],
+  }
+
+  // 활성 상품만 필터링 + DB 이미지 연동
+  const PROGRAM_LINKS = ALL_PROGRAM_LINKS
+    .filter((link) => isProductActive(link.slug))
+    .map((link) => ({
+      ...link,
+      image: imagesLoading ? link.fallbackImage : (dynamicImageMap[link.slug] || link.fallbackImage),
+    }))
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)

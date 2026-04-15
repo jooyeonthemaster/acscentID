@@ -54,6 +54,15 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createServerSupabaseClientWithCookies()
 
+    // [FIX] 케미 향수: 세션당 2개 row가 생성되므로, 관리자 목록에서는 analysis_b_id를
+    // 전부 제외해 "세션 1건 = row 1건 (캐릭터 A 기준)"으로 표시
+    const { data: bIdRows } = await supabase
+      .from('layering_sessions')
+      .select('analysis_b_id')
+      .not('analysis_b_id', 'is', null)
+      .limit(100000)
+    const excludeBIds = (bIdRows || []).map((r: any) => r.analysis_b_id).filter(Boolean)
+
     // CSV 내보내기 - 페이지네이션 없이 전체 조회
     if (format === 'csv') {
       let csvQuery = supabase
@@ -62,6 +71,9 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(50000)
 
+      if (excludeBIds.length > 0) {
+        csvQuery = csvQuery.not('id', 'in', `(${excludeBIds.join(',')})`)
+      }
       if (productType && productType !== 'all') csvQuery = csvQuery.eq('product_type', productType)
       if (serviceMode && serviceMode !== 'all') csvQuery = csvQuery.eq('service_mode', serviceMode)
       if (search) csvQuery = csvQuery.or(`idol_name.ilike.%${search}%,twitter_name.ilike.%${search}%,perfume_name.ilike.%${search}%`)
@@ -73,6 +85,38 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'CSV 생성 실패' }, { status: 500 })
       }
 
+      // [FIX] 케미 향수: layering_sessions과 JOIN하여 파트너/PIN/QR 보강
+      const csvChemIds = (csvAnalyses || [])
+        .filter((a: any) => a.product_type === 'chemistry_set')
+        .map((a: any) => a.id)
+      const csvPairs: Record<string, { partnerName: string | null; pin: string | null; qrCodeId: string | null; chemistryTitle: string | null }> = {}
+
+      if (csvChemIds.length > 0) {
+        const { data: csvSessions } = await supabase
+          .from('layering_sessions')
+          .select('analysis_a_id, analysis_b_id, character_a_name, character_b_name, chemistry_title, pin, qr_code_id')
+          .or(`analysis_a_id.in.(${csvChemIds.join(',')}),analysis_b_id.in.(${csvChemIds.join(',')})`)
+
+        for (const s of csvSessions || []) {
+          if (csvChemIds.includes(s.analysis_a_id)) {
+            csvPairs[s.analysis_a_id] = {
+              partnerName: s.character_b_name || null,
+              pin: s.pin || null,
+              qrCodeId: s.qr_code_id || null,
+              chemistryTitle: s.chemistry_title || null,
+            }
+          }
+          if (csvChemIds.includes(s.analysis_b_id)) {
+            csvPairs[s.analysis_b_id] = {
+              partnerName: s.character_a_name || null,
+              pin: s.pin || null,
+              qrCodeId: s.qr_code_id || null,
+              chemistryTitle: s.chemistry_title || null,
+            }
+          }
+        }
+      }
+
       // [FIX] HIGH: CSV productLabels에 chemistry_set, signature 추가
       const productLabels: Record<string, string> = {
         image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '케미 향수', etc: '기타',
@@ -80,20 +124,25 @@ export async function GET(request: NextRequest) {
       const modeLabels: Record<string, string> = { online: '온라인', offline: '오프라인 QR' }
 
       const BOM = '\uFEFF'
-      const headers = ['분석ID', '분석일시', '상품 타입', '서비스 모드', '아이돌명', '트위터이름', '추천 향수', '향수 브랜드', '키워드', 'QR코드ID', 'PIN']
-      const rows = (csvAnalyses || []).map((a: any) => [
-        a.id,
-        new Date(a.created_at).toLocaleString('ko-KR'),
-        productLabels[a.product_type] || a.product_type || '',
-        modeLabels[a.service_mode] || a.service_mode || '',
-        a.idol_name || '',
-        a.twitter_name || '',
-        a.perfume_name || '',
-        a.perfume_brand || '',
-        Array.isArray(a.matching_keywords) ? a.matching_keywords.join(', ') : '',
-        a.qr_code_id || '',
-        a.pin || '',
-      ])
+      const headers = ['분석ID', '분석일시', '상품 타입', '서비스 모드', '아이돌명', '트위터이름', '케미 파트너', '케미 타이틀', '추천 향수', '향수 브랜드', '키워드', 'QR코드ID', 'PIN']
+      const rows = (csvAnalyses || []).map((a: any) => {
+        const pair = a.product_type === 'chemistry_set' ? csvPairs[a.id] : null
+        return [
+          a.id,
+          new Date(a.created_at).toLocaleString('ko-KR'),
+          productLabels[a.product_type] || a.product_type || '',
+          modeLabels[a.service_mode] || a.service_mode || '',
+          a.idol_name || '',
+          a.twitter_name || '',
+          pair?.partnerName || '',
+          pair?.chemistryTitle || '',
+          a.perfume_name || '',
+          a.perfume_brand || '',
+          Array.isArray(a.matching_keywords) ? a.matching_keywords.join(', ') : '',
+          a.qr_code_id || pair?.qrCodeId || '',
+          a.pin || pair?.pin || '',
+        ]
+      })
 
       const csvContent = BOM + [
         headers.join(','),
@@ -117,6 +166,11 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    // [FIX] 케미 향수: 세션당 2 row 중 analysis_b_id row는 제외 (캐릭터 A만 표시)
+    if (excludeBIds.length > 0) {
+      query = query.not('id', 'in', `(${excludeBIds.join(',')})`)
+    }
 
     // 필터 적용
     if (productType && productType !== 'all') {
@@ -182,12 +236,70 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // [FIX] 케미 향수: layering_sessions과 JOIN하여 파트너 이름/PIN/QR 보강
+    const chemistryIds = (analyses || [])
+      .filter(a => a.product_type === 'chemistry_set')
+      .map(a => a.id)
+    const chemistryPairs: Record<string, {
+      partnerName: string | null
+      sessionId: string | null
+      chemistryTitle: string | null
+      chemistryType: string | null
+      role: 'A' | 'B' | null
+      pin: string | null
+      qrCodeId: string | null
+    }> = {}
+
+    if (chemistryIds.length > 0) {
+      const { data: sessions } = await supabase
+        .from('layering_sessions')
+        .select('id, analysis_a_id, analysis_b_id, character_a_name, character_b_name, chemistry_title, chemistry_type, pin, qr_code_id')
+        .or(`analysis_a_id.in.(${chemistryIds.join(',')}),analysis_b_id.in.(${chemistryIds.join(',')})`)
+
+      for (const s of sessions || []) {
+        if (chemistryIds.includes(s.analysis_a_id)) {
+          chemistryPairs[s.analysis_a_id] = {
+            partnerName: s.character_b_name || null,
+            sessionId: s.id,
+            chemistryTitle: s.chemistry_title || null,
+            chemistryType: s.chemistry_type || null,
+            role: 'A',
+            pin: s.pin || null,
+            qrCodeId: s.qr_code_id || null,
+          }
+        }
+        if (chemistryIds.includes(s.analysis_b_id)) {
+          chemistryPairs[s.analysis_b_id] = {
+            partnerName: s.character_a_name || null,
+            sessionId: s.id,
+            chemistryTitle: s.chemistry_title || null,
+            chemistryType: s.chemistry_type || null,
+            role: 'B',
+            pin: s.pin || null,
+            qrCodeId: s.qr_code_id || null,
+          }
+        }
+      }
+    }
+
     // 응답 데이터 구성
-    const enrichedAnalyses = analyses?.map(analysis => ({
-      ...analysis,
-      user_profile: analysis.user_id ? userProfiles[analysis.user_id] : null,
-      feedback: feedbacks[analysis.id] || null,
-    }))
+    const enrichedAnalyses = analyses?.map(analysis => {
+      const pair = chemistryPairs[analysis.id]
+      return {
+        ...analysis,
+        user_profile: analysis.user_id ? userProfiles[analysis.user_id] : null,
+        feedback: feedbacks[analysis.id] || null,
+        // 케미 세션 정보 (chemistry_set일 때만 채워짐)
+        partner_name: pair?.partnerName ?? null,
+        layering_session_id: pair?.sessionId ?? null,
+        chemistry_title: pair?.chemistryTitle ?? null,
+        chemistry_type: pair?.chemistryType ?? null,
+        chemistry_role: pair?.role ?? null,
+        // 케미에서 analysis_results.pin이 비어있는 경우 layering_sessions.pin으로 보강
+        pin: analysis.pin || pair?.pin || null,
+        qr_code_id: analysis.qr_code_id || pair?.qrCodeId || null,
+      }
+    })
 
     return NextResponse.json({
       data: enrichedAnalyses || [],

@@ -11,8 +11,6 @@ import { Sparkles, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { CartList } from './components/CartList'
-import { StampTour } from './components/StampTour'
-import { useStamps } from '@/hooks/useStamps'
 
 interface RecipeGranule {
   id: string
@@ -50,7 +48,7 @@ interface Order {
   phone: string
   address: string
   address_detail: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
+  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
   user_image_url?: string
@@ -63,7 +61,6 @@ function MyPageContent() {
   const { user, unifiedUser } = useAuth()
   const searchParams = useSearchParams()
   const userId = unifiedUser?.id || user?.id
-  const { stampInfo, loading: stampsLoading } = useStamps()
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [chemistryAnalyses, setChemistryAnalyses] = useState<ChemistryAnalysis[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -180,15 +177,6 @@ function MyPageContent() {
     <div className="min-h-screen bg-[#FFF8E7]">
       {/* 메인 레이아웃 */}
       <div className="px-4 py-4">
-        {/* 스탬프 투어 */}
-        <div className="mb-4">
-          <StampTour
-            totalStamps={stampInfo?.totalStamps || 0}
-            rewards={stampInfo?.rewards || []}
-            loading={stampsLoading}
-          />
-        </div>
-
         {/* 탭 네비게이션 */}
         <div className="bg-white border-2 border-black rounded-2xl p-2 mb-4 shadow-[4px_4px_0_0_black]">
           <div className="grid grid-cols-4 gap-1">

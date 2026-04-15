@@ -5,45 +5,6 @@ import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import type { ProductType } from '@/types/cart'
 import { PRODUCT_PRICING, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
-import { addStampsForUser } from '@/lib/stamps'
-import { STAMP_MILESTONES } from '@/types/stamp'
-
-/**
- * Prospective stamp coupon 검증
- * userCouponId가 'prospective_stamp_10' 등인 경우:
- * - 현재 스탬프 + 구매 수량으로 해당 마일스톤 도달 가능한지 검증
- * - 할인율 반환
- */
-async function validateProspectiveStampCoupon(
-  userId: string,
-  userCouponId: string,
-  purchaseQuantity: number,
-  serviceClient: ReturnType<typeof createServiceRoleClient>
-): Promise<{ valid: boolean; discountPercent: number; rewardType: string }> {
-  // prospective_stamp_10, prospective_stamp_20, prospective_stamp_free
-  const rewardType = userCouponId.replace('prospective_', '')
-  const milestone = STAMP_MILESTONES.find(m => m.reward_type === rewardType)
-
-  if (!milestone) return { valid: false, discountPercent: 0, rewardType }
-
-  // 현재 스탬프 조회
-  const { data: userStamp } = await serviceClient
-    .from('user_stamps')
-    .select('total_stamps')
-    .eq('user_id', userId)
-    .single()
-
-  const currentStamps = userStamp?.total_stamps || 0
-  const projectedStamps = currentStamps + purchaseQuantity
-
-  // 마일스톤 도달 가능한지 확인
-  if (projectedStamps < milestone.milestone) {
-    return { valid: false, discountPercent: 0, rewardType }
-  }
-
-  return { valid: true, discountPercent: milestone.discount_percent, rewardType }
-}
-
 /**
  * 서버사이드 가격 검증
  * 클라이언트가 보낸 가격을 서버의 PRODUCT_PRICING과 대조하여 조작 여부를 확인합니다.
@@ -106,8 +67,6 @@ async function calculateServerShippingFeeWithPromotion(
   // 프로모션 적용: 배송비 무료
   return 0
 }
-
-// Stamp logic moved to shared utility: @/lib/stamps.ts
 
 // 주문 상품 아이템 타입
 interface OrderItem {
@@ -269,53 +228,26 @@ export async function POST(request: NextRequest) {
 
       // Validate coupon discount server-side (multi-item)
       let validatedMultiDiscount = 0
-      let isProspectiveCoupon = false
-      let prospectiveRewardType = ''
       if (userCouponId) {
-        if (typeof userCouponId === 'string' && userCouponId.startsWith('prospective_')) {
-          // Prospective stamp coupon: 이번 구매로 마일스톤 도달 → 즉시 할인
-          isProspectiveCoupon = true
-          const validation = await validateProspectiveStampCoupon(
-            userId, userCouponId, itemCount, serviceClient
-          )
-          if (!validation.valid) {
-            return NextResponse.json({ error: '스탬프 즉시 할인 조건을 충족하지 않습니다' }, { status: 400 })
-          }
-          prospectiveRewardType = validation.rewardType
-          if (validation.rewardType === 'stamp_free') {
-            const cheapestPrice = Math.min(...orderItems.map((item: any) => item.unitPrice))
-            validatedMultiDiscount = cheapestPrice
-          } else {
-            validatedMultiDiscount = Math.floor(calculatedSubtotal * (validation.discountPercent / 100))
-          }
-        } else {
-          // Regular coupon validation
-          const { data: userCouponData } = await serviceClient
-            .from('user_coupons')
-            .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
-            .eq('id', userCouponId)
-            .single()
+        const { data: userCouponData } = await serviceClient
+          .from('user_coupons')
+          .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
+          .eq('id', userCouponId)
+          .single()
 
-          if (!userCouponData) {
-            return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
-          }
-          if (userCouponData.user_id !== userId) {
-            return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
-          }
-          if (userCouponData.is_used) {
-            return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
-          }
-
-          const coupon = userCouponData.coupon as any
-          const couponPercent = coupon?.discount_percent || 0
-
-          if (coupon?.type === 'stamp_free') {
-            const cheapestPrice = Math.min(...orderItems.map((item: any) => item.unitPrice))
-            validatedMultiDiscount = cheapestPrice
-          } else {
-            validatedMultiDiscount = Math.floor(calculatedSubtotal * (couponPercent / 100))
-          }
+        if (!userCouponData) {
+          return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
         }
+        if (userCouponData.user_id !== userId) {
+          return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
+        }
+        if (userCouponData.is_used) {
+          return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
+        }
+
+        const coupon = userCouponData.coupon as any
+        const couponPercent = coupon?.discount_percent || 0
+        validatedMultiDiscount = Math.floor(calculatedSubtotal * (couponPercent / 100))
       }
 
       // Check client discount matches server-validated discount (allow minor rounding)
@@ -360,7 +292,7 @@ export async function POST(request: NextRequest) {
           subtotal: calculatedSubtotal,
           // 배송/결제 정보
           shipping_fee: shippingFee || 0,
-          user_coupon_id: isProspectiveCoupon ? null : (userCouponId || null),
+          user_coupon_id: userCouponId || null,
           discount_amount: validatedMultiDiscount || 0,
           original_price: originalPrice || (calculatedSubtotal + (shippingFee || 0)),
           final_price: finalPrice || totalPrice || calculatedSubtotal,
@@ -375,8 +307,8 @@ export async function POST(request: NextRequest) {
           user_image_url: firstItem.imageUrl || null,
           keywords: [],
           analysis_data: null,
-          payment_method: paymentMethod || 'bank_transfer',
-          status: paymentMethod && paymentMethod !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+          payment_method: paymentMethod || 'card',
+          status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
           created_at: now,
           updated_at: now,
         })
@@ -422,8 +354,8 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 5. 쿠폰 사용 처리 (prospective 쿠폰은 실제 user_coupon이 없으므로 skip)
-      if (userCouponId && !isProspectiveCoupon) {
+      // 5. 쿠폰 사용 처리
+      if (userCouponId) {
         const { error: couponUpdateError } = await serviceClient
           .from('user_coupons')
           .update({
@@ -438,10 +370,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 스탬프 추가 (카드/카카오/네이버페이 결제 시 바로 스탬프 추가, 무통장입금은 관리자 확인 후)
-      if (paymentMethod && paymentMethod !== 'bank_transfer') {
-        await addStampsForUser(serviceClient, userId, itemCount, order.id, 'online_order')
-      }
+      // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
+      // 주문 생성 시점에는 결제가 아직 완료되지 않았으므로 발급 금지.
 
       // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
       if (paymentMethod === 'bank_transfer') {
@@ -493,51 +423,28 @@ export async function POST(request: NextRequest) {
 
     // Validate coupon discount server-side (single-item)
     let validatedSingleDiscount = 0
-    let isSingleProspective = false
     const singleItemCount = body.quantity || 1
     const singleSubtotal = price * singleItemCount // 단가 × 수량 = 총 상품금액
     if (userCouponId) {
-      if (typeof userCouponId === 'string' && userCouponId.startsWith('prospective_')) {
-        isSingleProspective = true
-        const validation = await validateProspectiveStampCoupon(
-          userId, userCouponId, singleItemCount, serviceClient
-        )
-        if (!validation.valid) {
-          return NextResponse.json({ error: '스탬프 즉시 할인 조건을 충족하지 않습니다' }, { status: 400 })
-        }
-        if (validation.rewardType === 'stamp_free') {
-          // stamp_free: 단가 1개분 무료
-          validatedSingleDiscount = price
-        } else {
-          // 총 상품금액(단가×수량)에 할인율 적용
-          validatedSingleDiscount = Math.floor(singleSubtotal * (validation.discountPercent / 100))
-        }
-      } else {
-        const { data: userCouponData } = await serviceClient
-          .from('user_coupons')
-          .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
-          .eq('id', userCouponId)
-          .single()
+      const { data: userCouponData } = await serviceClient
+        .from('user_coupons')
+        .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
+        .eq('id', userCouponId)
+        .single()
 
-        if (!userCouponData) {
-          return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
-        }
-        if (userCouponData.user_id !== userId) {
-          return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
-        }
-        if (userCouponData.is_used) {
-          return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
-        }
-
-        const coupon = userCouponData.coupon as any
-        const couponPercent = coupon?.discount_percent || 0
-
-        if (coupon?.type === 'stamp_free') {
-          validatedSingleDiscount = price // 단가 1개분 무료
-        } else {
-          validatedSingleDiscount = Math.floor(singleSubtotal * (couponPercent / 100))
-        }
+      if (!userCouponData) {
+        return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
       }
+      if (userCouponData.user_id !== userId) {
+        return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
+      }
+      if (userCouponData.is_used) {
+        return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
+      }
+
+      const coupon = userCouponData.coupon as any
+      const couponPercent = coupon?.discount_percent || 0
+      validatedSingleDiscount = Math.floor(singleSubtotal * (couponPercent / 100))
     }
 
     // Check client discount matches server-validated discount (allow minor rounding)
@@ -571,7 +478,7 @@ export async function POST(request: NextRequest) {
         size,
         price: singleSubtotal, // 단가×수량 총액
         shipping_fee: shippingFee || 0,
-        user_coupon_id: isSingleProspective ? null : (userCouponId || null),
+        user_coupon_id: userCouponId || null,
         discount_amount: validatedSingleDiscount || 0,
         original_price: singleSubtotal + (expectedShippingFee || 0),
         final_price: clientFinalPrice,
@@ -587,8 +494,8 @@ export async function POST(request: NextRequest) {
         analysis_data: analysisData || null,
         confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
         product_type: productType || 'image_analysis',  // 상품 타입
-        payment_method: paymentMethod || 'bank_transfer',
-        status: paymentMethod && paymentMethod !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+        payment_method: paymentMethod || 'card',
+        status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
         item_count: singleItemCount,
         created_at: now,
         updated_at: now,
@@ -604,8 +511,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 쿠폰 사용 처리 (prospective 쿠폰은 실제 user_coupon이 없으므로 skip)
-    if (userCouponId && !isSingleProspective) {
+    // 쿠폰 사용 처리
+    if (userCouponId) {
       const { error: couponUpdateError } = await serviceClient
         .from('user_coupons')
         .update({
@@ -620,10 +527,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 스탬프 추가 (카드/카카오/네이버페이 결제 시 바로 스탬프 추가)
-    if (paymentMethod && paymentMethod !== 'bank_transfer') {
-      await addStampsForUser(serviceClient, userId, singleItemCount, order.id, 'online_order')
-    }
+    // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
 
     // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
     if (paymentMethod === 'bank_transfer') {
@@ -694,10 +598,12 @@ export async function GET(request: NextRequest) {
       ? '*, order_items(*)'
       : '*'
 
+    // awaiting_payment 주문 제외 (카드결제 완료 전 임시 주문 - 좀비 주문 방지)
     const { data: orders, error } = await serviceClient
       .from('orders')
       .select(selectQuery)
       .eq('user_id', userId)
+      .neq('status', 'awaiting_payment')
       .order('created_at', { ascending: false })
 
     if (error) {

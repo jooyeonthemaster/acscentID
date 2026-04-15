@@ -198,7 +198,7 @@ export function getDefaultPrice(productType: ProductType): number {
 export function calculateCartTotals(
   items: CartItem[],
   couponDiscountPercent?: number,
-  couponType?: string
+  _couponType?: string
 ): {
   subtotal: number
   shippingFee: number
@@ -211,16 +211,10 @@ export function calculateCartTotals(
   // 배송비: 5만원 이상 무료배송
   const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : (items.length > 0 ? DEFAULT_SHIPPING_FEE : 0)
 
-  // 쿠폰 할인: stamp_free는 최저가 상품 1개 무료, 나머지는 퍼센트 할인
+  // 쿠폰 할인: 퍼센트 할인
   let discount = 0
   if (couponDiscountPercent) {
-    if (couponType === 'stamp_free') {
-      // 최저가 상품 단가 1개 무료
-      const cheapestPrice = items.length > 0 ? Math.min(...items.map(i => i.price)) : 0
-      discount = cheapestPrice
-    } else {
-      discount = Math.floor(subtotal * (couponDiscountPercent / 100))
-    }
+    discount = Math.floor(subtotal * (couponDiscountPercent / 100))
   }
 
   const total = Math.max(0, subtotal + shippingFee - discount)

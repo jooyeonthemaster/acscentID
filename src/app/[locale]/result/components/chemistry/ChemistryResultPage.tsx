@@ -34,7 +34,6 @@ const CHEMISTRY_SECTIONS = [
   { id: 'traits', label: '특성', emoji: '\u{1F4CA}' },
   { id: 'scent', label: '향', emoji: '\u{1F9EA}' },
   { id: 'dynamic', label: '관계', emoji: '\u{1F4AB}' },
-  { id: 'future', label: '미래', emoji: '\u{1F52E}' },
 ] as const
 
 // 개별 캐릭터 프로필 헤더
@@ -162,7 +161,9 @@ export default function ChemistryResultPage() {
         character2ImageUrl: meta?.image2Preview || null,
         userId: userId || null,
         userFingerprint: fingerprint,
-        serviceMode: 'online',
+        serviceMode: meta?.serviceMode || 'online',
+        pin: meta?.pin || null,
+        qrCode: meta?.qrCode || null,
       }),
     })
     const saveData = await saveResponse.json()

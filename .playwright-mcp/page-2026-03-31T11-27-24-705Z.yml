@@ -1,0 +1,217 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - main [ref=e4]:
+      - main [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e8]:
+            - generic [ref=e9]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e10]
+            - generic [ref=e12]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e13]
+            - generic [ref=e15]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e16]
+            - generic [ref=e18]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e19]
+            - generic [ref=e21]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e22]
+            - generic [ref=e24]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e25]
+            - generic [ref=e27]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e28]
+            - generic [ref=e30]:
+              - text: AC'SCENT IDENTITY • AI 이미지 분석으로 나만의 향을 추천 •
+              - img [ref=e31]
+          - generic [ref=e33]:
+            - link "AC'SCENT IDENTITY" [ref=e35] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e36]:
+                - generic [ref=e37]: AC'SCENT
+                - generic [ref=e38]: IDENTITY
+            - generic [ref=e39]:
+              - button "Language" [ref=e41]:
+                - img [ref=e42]
+                - generic [ref=e45]: ko
+              - button "메뉴 열기" [ref=e46]
+        - generic [ref=e49]:
+          - generic [ref=e51]:
+            - generic [ref=e53]: SIGNATURE
+            - img "SIGNATURE 뿌덕퍼퓸" [ref=e55]
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - link "홈" [ref=e58] [cursor=pointer]:
+                - /url: /
+              - img [ref=e59]
+              - link "시그니처" [ref=e61] [cursor=pointer]:
+                - /url: /
+              - img [ref=e62]
+              - generic [ref=e64]: 시그니처 뿌덕퍼퓸
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - button "4.9 (0) 클릭하여 리뷰 보기 →" [ref=e67]:
+                  - generic [ref=e68]:
+                    - img [ref=e69]
+                    - img [ref=e71]
+                    - img [ref=e73]
+                    - img [ref=e75]
+                    - img [ref=e77]
+                  - generic [ref=e79]: 4.9 (0)
+                  - generic [ref=e80]: 클릭하여 리뷰 보기 →
+                - generic [ref=e81]: SIGNATURE
+              - heading "시그니처 뿌덕퍼퓸" [level=1] [ref=e82]
+              - paragraph [ref=e83]: AC'SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링
+            - generic [ref=e85]:
+              - generic [ref=e86]: 🦆
+              - generic [ref=e87]: AC'SCENT 시그니처 퍼퓸
+              - generic [ref=e88]: ✨
+            - generic [ref=e89]:
+              - generic [ref=e90]:
+                - generic [ref=e91]: 34,000원
+                - generic [ref=e92]: 45,000원
+                - generic [ref=e93]: 29% OFF
+              - generic [ref=e94]:
+                - generic [ref=e95]:
+                  - img [ref=e96]
+                  - generic [ref=e98]: 뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링
+                - list [ref=e99]:
+                  - listitem [ref=e100]: 주문 후 2~3일 내 배송
+                  - listitem [ref=e101]: 귀여운 오리 퍼퓸키링 포함
+                  - listitem [ref=e102]: 프리미엄 패키지
+                  - listitem [ref=e103]: 5만원 이상 무료배송
+            - button "지금 바로 구매하기" [disabled] [ref=e104]:
+              - img [ref=e105]
+              - text: 지금 바로 구매하기
+            - paragraph [ref=e109]: 🦆 AC'SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링!
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: 🦆
+            - generic [ref=e115]: 퍼퓸키링
+          - generic [ref=e116]:
+            - img [ref=e117]
+            - generic [ref=e120]: 시그니처 향
+          - generic [ref=e121]:
+            - img [ref=e122]
+            - generic [ref=e126]: 빠른 배송
+          - generic [ref=e127]:
+            - img [ref=e128]
+            - generic [ref=e130]: 선물 추천
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - generic [ref=e134]: ✨ FEATURES
+            - heading "시그니처 뿌덕퍼퓸의 특별함" [level=2] [ref=e135]:
+              - text: 시그니처 뿌덕퍼퓸의
+              - text: 특별함
+          - generic [ref=e136]:
+            - generic [ref=e138]:
+              - generic [ref=e139]: 🦆
+              - generic [ref=e140]:
+                - heading "귀여운 오리 퍼퓸키링" [level=3] [ref=e141]
+                - paragraph [ref=e142]:
+                  - text: AC'SCENT의 마스코트 뿌덕이가 키링으로!
+                  - text: 가방이나 열쇠에 달아 어디서든 귀여움을 뽐내세요
+            - generic [ref=e144]:
+              - generic [ref=e145]: ✨
+              - generic [ref=e146]:
+                - heading "AC'SCENT 시그니처 향" [level=3] [ref=e147]
+                - paragraph [ref=e148]:
+                  - text: 브랜드를 대표하는 시그니처 향으로,
+                  - text: 따뜻하고 편안한 느낌을 선사합니다
+            - generic [ref=e150]:
+              - generic [ref=e151]: 🎁
+              - generic [ref=e152]:
+                - heading "선물하기 좋은 구성" [level=3] [ref=e153]
+                - paragraph [ref=e154]:
+                  - text: 퍼퓸과 키링이 함께 들어있어 소중한
+                  - text: 사람에게 선물하기 딱 좋아요
+        - generic [ref=e156]:
+          - generic [ref=e157]:
+            - generic [ref=e158]: 💬 REAL REVIEWS
+            - heading "실제 구매 후기" [level=2] [ref=e159]
+            - button "전체 리뷰 보기 →" [ref=e160]
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - button "최신순" [ref=e165]:
+                - text: 최신순
+                - img [ref=e166]
+              - button "사진리뷰만" [ref=e168]:
+                - img [ref=e169]
+                - generic [ref=e172]: 사진리뷰만
+            - img [ref=e174]
+        - button "지금 바로 구매하기" [disabled] [ref=e178]:
+          - img [ref=e179]
+          - text: 지금 바로 구매하기
+    - contentinfo [ref=e184]:
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - generic [ref=e189]: AC'SCENT
+              - generic [ref=e190]: IDENTITY
+            - paragraph [ref=e191]: 나만의 향기를 찾는 가장 즐거운 서비스
+          - generic [ref=e192]:
+            - heading "프로그램" [level=3] [ref=e193]
+            - list [ref=e194]:
+              - listitem [ref=e195]:
+                - link "AI 이미지 분석" [ref=e196] [cursor=pointer]:
+                  - /url: /programs/idol-image
+              - listitem [ref=e197]:
+                - link "피규어 디퓨저" [ref=e198] [cursor=pointer]:
+                  - /url: /programs/figure
+          - generic [ref=e199]:
+            - heading "고객지원" [level=3] [ref=e200]
+            - list [ref=e201]:
+              - listitem [ref=e202]:
+                - link "FAQ" [ref=e203] [cursor=pointer]:
+                  - /url: /faq
+              - listitem [ref=e204]:
+                - link "개인정보처리방침" [ref=e205] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e206]:
+          - paragraph [ref=e207]:
+            - text: NEANDER Co.,LTD
+            - text: 대표:유재영, 이동주 | 사업자등록번호 683-86-02812
+            - text: 통신판매신고번호 2023-서울서대문-1558
+            - text: 서울 마포구 와우산로29라길 22
+            - text: Tel. 02-336-3368 | Mail. neander@neander.co.kr
+          - generic [ref=e208]:
+            - link "이용약관" [ref=e209] [cursor=pointer]:
+              - /url: /terms
+            - link "개인정보처리방침" [ref=e210] [cursor=pointer]:
+              - /url: /privacy
+            - link "취소/환불/교환" [ref=e211] [cursor=pointer]:
+              - /url: /refund-policy
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - link [ref=e214] [cursor=pointer]:
+              - /url: https://www.instagram.com/acscent_id/
+              - img [ref=e215]
+            - link [ref=e218] [cursor=pointer]:
+              - /url: https://x.com/acscent_id
+              - img [ref=e219]
+          - paragraph [ref=e221]: © 2026 NEANDER Co.,LTD
+    - navigation [ref=e222]:
+      - generic [ref=e223]:
+        - link "Home" [ref=e224] [cursor=pointer]:
+          - /url: /
+          - img [ref=e226]
+          - generic [ref=e229]: Home
+        - button "Programs" [ref=e230]:
+          - img [ref=e232]
+          - generic [ref=e235]: Programs
+        - button "로그인" [ref=e236]:
+          - img [ref=e238]
+          - generic [ref=e241]: 로그인
+        - button "메뉴" [ref=e242]:
+          - img [ref=e244]
+          - generic [ref=e245]: 메뉴
+  - generic:
+    - img [ref=e247]
+    - img [ref=e254]
+  - button "Open Next.js Dev Tools" [ref=e265] [cursor=pointer]:
+    - img [ref=e266]

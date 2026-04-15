@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Info, Heart } from "lucide-react"
+import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
 import { FREE_SHIPPING_THRESHOLD, PRODUCT_PRICING, formatPrice } from "@/types/cart"
@@ -19,6 +19,7 @@ interface OrderSummaryProps {
   isFreeShippingPromo?: boolean
   quantity: number
   onQuantityChange: (quantity: number) => void
+  isRepurchaser?: boolean
 }
 
 export function OrderSummary({
@@ -33,6 +34,7 @@ export function OrderSummary({
   isFreeShippingPromo = false,
   quantity = 1,
   onQuantityChange,
+  isRepurchaser,
 }: OrderSummaryProps) {
   const t = useTranslations()
   const isFigureDiffuser = productType === "figure_diffuser"
@@ -300,16 +302,30 @@ export function OrderSummary({
             {(price * quantity).toLocaleString()}{t('currency.suffix')}
           </span>
         </div>
-        {quantity >= 2 && (
+        {isRepurchaser === true && (
           <motion.div
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 bg-purple-50 rounded-xl px-3 py-2 border border-purple-200"
+            className="flex items-start gap-2 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl px-3 py-2.5 border-2 border-emerald-400"
           >
-            <Info size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-purple-700 font-bold">
-              {quantity}개 구매 시 스탬프 쿠폰 할인이 적용될 수 있어요!
-            </p>
+            <Check size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-emerald-800 font-black">재구매 고객님, 감사합니다! 🎉</p>
+              <p className="text-[11px] text-emerald-700 font-bold mt-0.5">10% 할인 쿠폰을 아래에서 선택하여 적용해보세요</p>
+            </div>
+          </motion.div>
+        )}
+        {isRepurchaser === false && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl px-3 py-2.5 border-2 border-pink-300"
+          >
+            <Gift size={16} className="text-pink-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-pink-700 font-black">첫 구매 후 다음 주문부터 계속 10% 할인! 💝</p>
+              <p className="text-[11px] text-pink-600 font-bold mt-0.5">재구매 쿠폰이 자동 발급되어 횟수 제한 없이 사용 가능해요</p>
+            </div>
           </motion.div>
         )}
       </div>

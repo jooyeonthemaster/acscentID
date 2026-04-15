@@ -84,6 +84,7 @@ export async function GET(
 
     // [FIX] HIGH: chemistry_set일 때 layering_sessions 포함
     let layeringSession = null
+    let partnerAnalysis = null
     if (analysis.product_type === 'chemistry_set') {
       const { data: session } = await supabase
         .from('layering_sessions')
@@ -94,6 +95,18 @@ export async function GET(
         .single()
 
       layeringSession = session || null
+
+      if (layeringSession) {
+        const partnerId = layeringSession.analysis_a_id === id ? layeringSession.analysis_b_id : layeringSession.analysis_a_id
+        if (partnerId) {
+          const { data: partnerData } = await supabase
+            .from('analysis_results')
+            .select('*')
+            .eq('id', partnerId)
+            .single()
+          partnerAnalysis = partnerData || null
+        }
+      }
     }
 
     return NextResponse.json({
@@ -102,6 +115,7 @@ export async function GET(
       feedback: feedback || null,
       orders: orders || [],
       layering_session: layeringSession,
+      partner_analysis: partnerAnalysis,
     })
   } catch (error) {
     console.error('Error fetching analysis detail:', error)

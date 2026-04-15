@@ -2,15 +2,17 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Sparkles, ChevronRight, ThumbsUp, ThumbsDown, Droplet, TestTube2, AlertTriangle, Check } from "lucide-react"
+import { X, Sparkles, ChevronRight, Droplet, Check } from "lucide-react"
 import { perfumes } from "@/data/perfumes"
 import {
-  SCENT_FAMILIES,
-  type ScentPreference, type ScentIntensity,
+  type ScentIntensity,
   type ChemistryTasteData, type ChemistryRecipeResult,
   type GeneratedRecipe,
 } from "@/types/feedback"
 import { apiFetch } from "@/lib/api-client"
+import { CategoryChangeChart, TestingInstructionsBox, OriginalPerfumeCard } from "../feedback/RecipeCategoryChart"
+import { RecipeGramDisplay } from "../feedback/RecipeGramDisplay"
+import type { ProductType } from "@/types/feedback"
 
 interface ChemistryFeedbackModalProps {
   isOpen: boolean
@@ -30,8 +32,6 @@ interface ChemistryFeedbackModalProps {
 interface SingleTasteState {
   satisfied: boolean // 만족해서 변경 불필요
   retention: number // 기존 향 유지 비율 0-100
-  scentPrefs: Record<string, ScentPreference>
-  warmth: number
   intensity: ScentIntensity
   feedbackGood: string // 기존 향에서 좋았던/싫었던 점
   feedbackWish: string // 이렇게 바뀌면 좋겠다
@@ -40,12 +40,44 @@ interface SingleTasteState {
 const createInitialTaste = (): SingleTasteState => ({
   satisfied: true,
   retention: 70,
-  scentPrefs: Object.fromEntries(SCENT_FAMILIES.map(f => [f.id, 'none' as ScentPreference])),
-  warmth: 50,
   intensity: 'moderate',
   feedbackGood: '',
   feedbackWish: '',
 })
+
+// 만족 케이스 — 원본 향수 100%짜리 단일 그래뉼 레시피 생성
+const buildOriginalRecipe = (perfumeId: string, perfumeName: string, characteristics?: Record<string, number>): GeneratedRecipe => {
+  const perfume = perfumes.find(p => p.id === perfumeId)
+  const mainCategory = perfume?.category || 'citrus'
+  return {
+    granules: [{
+      id: perfumeId,
+      name: perfume?.name || perfumeName,
+      mainCategory,
+      drops: 10,
+      ratio: 100,
+      reason: '원본 그대로가 가장 좋았다는 선택!',
+      fanComment: '이 향 그 자체가 정답이지',
+    }],
+    overallExplanation: '변경 없이 원본 향 그대로를 사용하는 레시피야.',
+    categoryChanges: Object.entries(characteristics || perfume?.characteristics || {}).map(([category, score]) => ({
+      category,
+      change: 'maintained' as const,
+      originalScore: Number(score) || 0,
+      newScore: Number(score) || 0,
+      reason: '원본 유지',
+    })),
+    testingInstructions: {
+      step1: '원본 향수를 그대로 사용해.',
+      step2: '추가 블렌딩 없이 단일 향으로 제조돼.',
+      step3: '원하는 용량(10ml/50ml/5ml)을 선택하면 정확한 향료량이 계산돼.',
+      caution: '블렌딩 없이 원본 향료만 사용하는 구성이야.',
+    },
+    fanMessage: '원본의 완성도를 믿는 선택, 완벽해!',
+    totalDrops: 10,
+    estimatedStrength: 'medium',
+  }
+}
 
 type ModalStep = 'formA' | 'formB' | 'generating' | 'result' | 'confirmed'
 
@@ -63,6 +95,7 @@ export function ChemistryFeedbackModal({
   const [resultTab, setResultTab] = useState<'A' | 'B'>('A')
   const [selectedA, setSelectedA] = useState<1 | 2 | null>(null)
   const [selectedB, setSelectedB] = useState<1 | 2 | null>(null)
+  const [confirmedProductType, setConfirmedProductType] = useState<ProductType>('perfume_10ml')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const goToStep = useCallback((s: ModalStep) => {
@@ -98,15 +131,10 @@ export function ChemistryFeedbackModal({
     }
   }, [isOpen])
 
-  // A→B 전환 또는 생성 (만족 시 스킵 처리)
+  // A→B 전환 (A 단계에서는 항상 B로 이동, 만족 판정은 B에서 종합)
   const handleNextFromA = useCallback(() => {
-    if (tasteA.satisfied && tasteB.satisfied) {
-      // 둘 다 만족 → 바로 닫기
-      onClose()
-      return
-    }
     goToStep('formB')
-  }, [tasteA.satisfied, tasteB.satisfied, goToStep, onClose])
+  }, [goToStep])
 
   // handleNextFromB는 handleGenerate 아래에서 정의
 
@@ -116,8 +144,6 @@ export function ChemistryFeedbackModal({
     try {
       const tasteData: ChemistryTasteData = {
         sessionId,
-        scentPreferences: tasteA.scentPrefs,
-        warmth: tasteA.warmth,
         intensity: tasteA.intensity,
         freeText: `${tasteA.feedbackGood ? '좋았던점: ' + tasteA.feedbackGood + '. ' : ''}${tasteA.feedbackWish ? '바라는점: ' + tasteA.feedbackWish : ''}`.trim(),
       }
@@ -128,7 +154,7 @@ export function ChemistryFeedbackModal({
           taste: { ...tasteData, satisfied: tasteA.satisfied, retention: tasteA.retention },
           tasteB: {
             satisfied: tasteB.satisfied, retention: tasteB.retention,
-            scentPreferences: tasteB.scentPrefs, warmth: tasteB.warmth, intensity: tasteB.intensity,
+            intensity: tasteB.intensity,
             freeText: `${tasteB.feedbackGood ? '좋았던점: ' + tasteB.feedbackGood + '. ' : ''}${tasteB.feedbackWish ? '바라는점: ' + tasteB.feedbackWish : ''}`.trim(),
           },
           perfumeA: { id: perfumeAId, name: perfumeAName, characteristics: perfumeACharacteristics || {} },
@@ -146,9 +172,25 @@ export function ChemistryFeedbackModal({
   }, [sessionId, tasteA, tasteB, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName])
 
   const handleNextFromB = useCallback(() => {
-    if (tasteA.satisfied && tasteB.satisfied) { onClose(); return }
+    if (tasteA.satisfied && tasteB.satisfied) {
+      // 둘 다 만족 → API 호출 없이 원본 100% 레시피로 confirmed 단계 이동
+      const syntheticRecipeA = buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics)
+      const syntheticRecipeB = buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics)
+      setResult({
+        recipeA1: syntheticRecipeA,
+        recipeA2: syntheticRecipeA,
+        recipeB1: syntheticRecipeB,
+        recipeB2: syntheticRecipeB,
+        layeringNote: `${characterAName}의 ${perfumeAName}과 ${characterBName}의 ${perfumeBName} — 두 향 모두 원본 그대로가 정답이라는 선택이야.`,
+        pairExplanation: '각자 원본 향의 완성도에 만족한 구성. 레이어링할 때도 서로 다른 개성이 그대로 살아나는 조합이야.',
+      })
+      setSelectedA(1)
+      setSelectedB(1)
+      goToStep('confirmed')
+      return
+    }
     handleGenerate()
-  }, [tasteA.satisfied, tasteB.satisfied, onClose, handleGenerate])
+  }, [tasteA.satisfied, tasteB.satisfied, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, goToStep, handleGenerate])
 
   if (!isOpen) return null
 
@@ -305,72 +347,8 @@ export function ChemistryFeedbackModal({
                         />
                       </TasteQuestion>
 
-                      {/* 끌리는 향 계열 */}
-                      <TasteQuestion
-                        number={4}
-                        title="끌리는 향 / 피하고 싶은 향"
-                        hint="탭 → 좋아요 👍  한번 더 → 싫어요 👎"
-                        optional
-                      >
-                        <div className="space-y-2">
-                          {SCENT_FAMILIES.map((family) => {
-                            const pref = currentTaste.scentPrefs[family.id]
-                            return (
-                              <button
-                                key={family.id}
-                                onClick={() => setCurrentTaste(prev => ({
-                                  ...prev,
-                                  scentPrefs: { ...prev.scentPrefs, [family.id]: pref === 'none' ? 'like' : pref === 'like' ? 'dislike' : 'none' }
-                                }))}
-                                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                                  pref === 'like'
-                                    ? 'border-black bg-emerald-100 shadow-[2px_2px_0_0_black] -translate-x-[1px] -translate-y-[1px]'
-                                    : pref === 'dislike'
-                                    ? 'border-black bg-red-100 shadow-[2px_2px_0_0_black] -translate-x-[1px] -translate-y-[1px]'
-                                    : 'border-slate-300 bg-white hover:border-black'
-                                }`}
-                              >
-                                <span className="text-2xl flex-shrink-0">{family.emoji}</span>
-                                <div className="flex-1 min-w-0">
-                                  <span className="text-sm font-black text-slate-800">{family.label}</span>
-                                  <span className="text-[10px] text-slate-400 block">{family.examples}</span>
-                                </div>
-                                <div className="flex-shrink-0">
-                                  {pref === 'like' && <ThumbsUp size={18} className="text-emerald-600" />}
-                                  {pref === 'dislike' && <ThumbsDown size={18} className="text-red-500" />}
-                                  {pref === 'none' && <div className="w-6 h-6 rounded-full border-2 border-slate-300" />}
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </TasteQuestion>
-
-                      {/* 온도감 */}
-                      <TasteQuestion number={5} title="원하는 향의 온도" optional>
-                        <div className="bg-white rounded-2xl p-4 border-2 border-black shadow-[3px_3px_0_0_black]">
-                          <div className="flex justify-between text-xs font-bold text-slate-500 mb-3">
-                            <span>🧊 시원 · 청량</span>
-                            <span>따뜻 · 포근 🔥</span>
-                          </div>
-                          <input
-                            type="range" min={0} max={100} value={currentTaste.warmth}
-                            onChange={(e) => setCurrentTaste(prev => ({ ...prev, warmth: Number(e.target.value) }))}
-                            className="w-full h-3 bg-gradient-to-r from-cyan-400 via-violet-200 to-amber-400 rounded-full appearance-none cursor-pointer
-                              [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8
-                              [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
-                              [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-[2px_2px_0_0_black] [&::-webkit-slider-thumb]:cursor-pointer"
-                          />
-                          <div className="text-center mt-3">
-                            <span className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-black text-slate-700">
-                              {currentTaste.warmth <= 30 ? '🧊 시원하고 청량한' : currentTaste.warmth <= 70 ? '⚖️ 밸런스' : '🔥 따뜻하고 포근한'}
-                            </span>
-                          </div>
-                        </div>
-                      </TasteQuestion>
-
                       {/* 존재감 */}
-                      <TasteQuestion number={6} title="원하는 향의 존재감" optional>
+                      <TasteQuestion number={4} title="원하는 향의 존재감" optional>
                         <div className="grid grid-cols-3 gap-2">
                           {([
                             { id: 'subtle' as ScentIntensity, label: '은은하게', sub: '살짝 스치는', emoji: '🌬️' },
@@ -414,50 +392,63 @@ export function ChemistryFeedbackModal({
             )}
 
             {step === 'result' && result && (
-              <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-5 py-4 space-y-4">
-                {/* A/B 탭 */}
-                <div className="flex gap-2">
-                  {!tasteA.satisfied && (
-                    <button
-                      onClick={() => { setResultTab('A'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                      className={`flex-1 py-2.5 rounded-xl border-2 text-center transition-all ${
-                        resultTab === 'A'
-                          ? 'border-black bg-violet-100 shadow-[2px_2px_0_0_black] font-black text-violet-700'
-                          : 'border-slate-200 bg-white text-slate-400'
-                      }`}
-                    >
-                      <span className="text-xs font-black">🌙 {characterAName}</span>
-                      {selectedA && <span className="text-emerald-500 ml-1 text-[10px]">✓</span>}
-                    </button>
-                  )}
-                  {!tasteB.satisfied && (
-                    <button
-                      onClick={() => { setResultTab('B'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                      className={`flex-1 py-2.5 rounded-xl border-2 text-center transition-all ${
-                        resultTab === 'B'
-                          ? 'border-black bg-pink-100 shadow-[2px_2px_0_0_black] font-black text-pink-700'
-                          : 'border-slate-200 bg-white text-slate-400'
-                      }`}
-                    >
-                      <span className="text-xs font-black">☀️ {characterBName}</span>
-                      {selectedB && <span className="text-emerald-500 ml-1 text-[10px]">✓</span>}
-                    </button>
-                  )}
+              <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                {/* A/B 탭 — sticky로 헤더 아래 고정 */}
+                <div className="sticky top-0 z-20 bg-white border-b-2 border-slate-100 px-5 pt-3 pb-3 -mx-0">
+                  <div className="flex gap-2">
+                    {!tasteA.satisfied && (
+                      <button
+                        onClick={() => { setResultTab('A'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-center transition-all ${
+                          resultTab === 'A'
+                            ? 'border-black bg-violet-100 shadow-[2px_2px_0_0_black] font-black text-violet-700'
+                            : 'border-slate-200 bg-white text-slate-400'
+                        }`}
+                      >
+                        <span className="text-xs font-black">🌙 {characterAName}</span>
+                        {selectedA && <span className="text-emerald-500 ml-1 text-[10px]">✓</span>}
+                      </button>
+                    )}
+                    {!tasteB.satisfied && (
+                      <button
+                        onClick={() => { setResultTab('B'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-center transition-all ${
+                          resultTab === 'B'
+                            ? 'border-black bg-pink-100 shadow-[2px_2px_0_0_black] font-black text-pink-700'
+                            : 'border-slate-200 bg-white text-slate-400'
+                        }`}
+                      >
+                        <span className="text-xs font-black">☀️ {characterBName}</span>
+                        {selectedB && <span className="text-emerald-500 ml-1 text-[10px]">✓</span>}
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 text-center mt-2">둘 중 하나를 골라주세요. 직접 맡아보고 결정!</p>
                 </div>
 
-                {/* 선택 안내 */}
-                <p className="text-[11px] text-slate-400 text-center">둘 중 하나를 골라주세요. 직접 맡아보고 결정!</p>
+                <div className="px-5 space-y-4">
 
                 <AnimatePresence mode="wait">
                   {/* A 레시피 선택 */}
                   {resultTab === 'A' && !tasteA.satisfied && (
                     <motion.div key="recA" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                      {/* 상단 안내 */}
+                      <div className="bg-violet-50 border-2 border-violet-200 rounded-xl p-3">
+                        <p className="text-[11px] font-bold text-violet-800 mb-1">🧪 테스팅 레시피 만드는 법</p>
+                        <p className="text-[10px] text-slate-600 leading-relaxed">
+                          총 10방울 기준으로 각 향료를 해당 방울 수만큼 섞어서 테스트해봐!
+                          원본 향을 중심으로 2가지 향료가 추가된 구성이야.
+                        </p>
+                      </div>
                       <SelectableRecipeCard
                         label="1안"
                         recipe={result.recipeA1}
                         selected={selectedA === 1}
                         onSelect={() => setSelectedA(1)}
                         accentColor="violet"
+                        originalPerfumeId={perfumeAId}
+                        originalPerfumeName={perfumeAName}
+                        retentionPercentage={tasteA.retention}
                       />
                       <SelectableRecipeCard
                         label="2안"
@@ -465,18 +456,32 @@ export function ChemistryFeedbackModal({
                         selected={selectedA === 2}
                         onSelect={() => setSelectedA(2)}
                         accentColor="violet"
+                        originalPerfumeId={perfumeAId}
+                        originalPerfumeName={perfumeAName}
+                        retentionPercentage={tasteA.retention}
                       />
                     </motion.div>
                   )}
                   {/* B 레시피 선택 */}
                   {resultTab === 'B' && !tasteB.satisfied && (
                     <motion.div key="recB" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                      {/* 상단 안내 */}
+                      <div className="bg-pink-50 border-2 border-pink-200 rounded-xl p-3">
+                        <p className="text-[11px] font-bold text-pink-800 mb-1">🧪 테스팅 레시피 만드는 법</p>
+                        <p className="text-[10px] text-slate-600 leading-relaxed">
+                          총 10방울 기준으로 각 향료를 해당 방울 수만큼 섞어서 테스트해봐!
+                          원본 향을 중심으로 2가지 향료가 추가된 구성이야.
+                        </p>
+                      </div>
                       <SelectableRecipeCard
                         label="1안"
                         recipe={result.recipeB1}
                         selected={selectedB === 1}
                         onSelect={() => setSelectedB(1)}
                         accentColor="pink"
+                        originalPerfumeId={perfumeBId}
+                        originalPerfumeName={perfumeBName}
+                        retentionPercentage={tasteB.retention}
                       />
                       <SelectableRecipeCard
                         label="2안"
@@ -484,16 +489,52 @@ export function ChemistryFeedbackModal({
                         selected={selectedB === 2}
                         onSelect={() => setSelectedB(2)}
                         accentColor="pink"
+                        originalPerfumeId={perfumeBId}
+                        originalPerfumeName={perfumeBName}
+                        retentionPercentage={tasteB.retention}
                       />
                     </motion.div>
                   )}
                 </AnimatePresence>
+                </div>
               </motion.div>
             )}
 
-            {/* 최종 확정 — 테스트 향료 제조 안내 */}
+            {/* 최종 확정 — 실제 제조용 그람 단위 안내 */}
             {step === 'confirmed' && result && (
               <motion.div key="confirmed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-5 py-5 space-y-5">
+                {/* 상단 안내 — 실제 제조용 */}
+                <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 shadow-[3px_3px_0_0_black]">
+                  <p className="text-sm font-black text-slate-900 mb-2">⚖️ 실제 제조 레시피</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    테스팅이 만족스러웠다면, 아래 정확한 <span className="font-bold text-green-700">그람(g) 단위</span>로 제조해.
+                    원하는 용량(10ml/50ml/5ml)을 선택하면 향료별 무게가 자동으로 계산돼!
+                  </p>
+                </div>
+
+                {/* 공용 용량 선택 탭 */}
+                <div className="bg-white rounded-xl p-3 border-2 border-slate-200">
+                  <p className="text-xs font-bold text-slate-700 mb-2">📏 제조할 용량 선택 (A·B 공통 적용)</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['perfume_10ml', 'perfume_50ml', 'diffuser_5ml'] as ProductType[]).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setConfirmedProductType(p)}
+                        className={`p-2 rounded-lg border-2 transition-all text-center ${
+                          confirmedProductType === p
+                            ? 'border-green-500 bg-green-50 shadow-md'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-xl block">{p === 'perfume_10ml' ? '🧴' : p === 'perfume_50ml' ? '🍾' : '🌿'}</span>
+                        <p className="text-[10px] font-bold text-slate-700 mt-0.5">
+                          {p === 'perfume_10ml' ? '퍼퓸 10ml' : p === 'perfume_50ml' ? '퍼퓸 50ml' : '디퓨저 5ml'}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {result.layeringNote && (
                   <div className="p-4 bg-black rounded-xl border-2 border-black">
                     <span className="text-[9px] font-black text-yellow-400 uppercase tracking-wider block mb-1">Layering Note</span>
@@ -501,23 +542,31 @@ export function ChemistryFeedbackModal({
                   </div>
                 )}
 
-                {/* 확정된 A 레시피 */}
-                {!tasteA.satisfied && selectedA && (
-                  <ConfirmedRecipeSection
-                    label={`${characterAName}의 향`}
-                    emoji="🌙"
-                    recipe={selectedA === 1 ? result.recipeA1 : result.recipeA2}
-                    accentColor="violet"
+                {/* 확정된 A 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
+                {(tasteA.satisfied || selectedA) && (
+                  <RecipeGramDisplay
+                    recipe={tasteA.satisfied ? result.recipeA1 : (selectedA === 1 ? result.recipeA1 : result.recipeA2)}
+                    perfumeName={perfumeAName}
+                    titleLabel={`${characterAName}의 향`}
+                    headerEmoji="🌙"
+                    headerColor="violet"
+                    showProductSelector={false}
+                    externalSelectedProduct={confirmedProductType}
+                    onProductChange={setConfirmedProductType}
                   />
                 )}
 
-                {/* 확정된 B 레시피 */}
-                {!tasteB.satisfied && selectedB && (
-                  <ConfirmedRecipeSection
-                    label={`${characterBName}의 향`}
-                    emoji="☀️"
-                    recipe={selectedB === 1 ? result.recipeB1 : result.recipeB2}
-                    accentColor="pink"
+                {/* 확정된 B 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
+                {(tasteB.satisfied || selectedB) && (
+                  <RecipeGramDisplay
+                    recipe={tasteB.satisfied ? result.recipeB1 : (selectedB === 1 ? result.recipeB1 : result.recipeB2)}
+                    perfumeName={perfumeBName}
+                    titleLabel={`${characterBName}의 향`}
+                    headerEmoji="☀️"
+                    headerColor="pink"
+                    showProductSelector={false}
+                    externalSelectedProduct={confirmedProductType}
+                    onProductChange={setConfirmedProductType}
                   />
                 )}
 
@@ -551,7 +600,7 @@ export function ChemistryFeedbackModal({
               }`}
             >
               {tasteA.satisfied && tasteB.satisfied ? (
-                <>확인</>
+                <><Check size={16} /> 원본 레시피로 확정</>
               ) : (
                 <><Sparkles size={16} /> 맞춤 레시피 생성</>
               )}
@@ -624,17 +673,24 @@ function isLightColor(hex: string) {
 }
 
 // 선택 가능한 레시피 카드
-function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor }: {
-  label: string; recipe: GeneratedRecipe; selected: boolean; onSelect: () => void; accentColor: 'violet' | 'pink'
+function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, originalPerfumeId, originalPerfumeName, retentionPercentage }: {
+  label: string
+  recipe: GeneratedRecipe
+  selected: boolean
+  onSelect: () => void
+  accentColor: 'violet' | 'pink'
+  originalPerfumeId?: string
+  originalPerfumeName?: string
+  retentionPercentage?: number
 }) {
   const st = accentColor === 'violet'
     ? { border: 'border-violet-500', bg: 'bg-violet-50', text: 'text-violet-700' }
     : { border: 'border-pink-500', bg: 'bg-pink-50', text: 'text-pink-700' }
 
   return (
-    <button
+    <div
       onClick={onSelect}
-      className={`w-full text-left border-2 rounded-xl overflow-hidden transition-all ${
+      className={`w-full text-left border-2 rounded-xl overflow-hidden transition-all cursor-pointer ${
         selected
           ? `${st.border} ${st.bg} shadow-[3px_3px_0_0_black] -translate-x-[1px] -translate-y-[1px]`
           : 'border-slate-300 bg-white hover:border-black'
@@ -644,10 +700,24 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor }
         <span className={`text-xs font-black ${selected ? st.text : 'text-slate-500'}`}>{label}</span>
         {selected && <Check size={14} className="text-emerald-500" />}
       </div>
+
+      {/* 원본 향 표시 */}
+      {originalPerfumeId && originalPerfumeName && (
+        <div className="p-3 pb-0">
+          <OriginalPerfumeCard
+            perfumeId={originalPerfumeId}
+            perfumeName={originalPerfumeName}
+            retentionPercentage={retentionPercentage}
+            label="기반 원본"
+          />
+        </div>
+      )}
+
       <div className="p-3 space-y-2">
         {recipe.granules.map((g, i) => {
           const bgColor = getGranuleColor(g.id)
           const txtCls = isLightColor(bgColor) ? 'text-slate-800 border border-slate-200' : 'text-white'
+          const isOriginal = originalPerfumeId && g.id === originalPerfumeId
           return (
             <div key={i} className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center font-black flex-shrink-0 ${txtCls}`} style={{ backgroundColor: bgColor }}>
@@ -655,9 +725,12 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor }
                 <span className="text-[8px] opacity-70">방울</span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-xs font-bold text-slate-800">{g.name}</span>
                   <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold">{g.ratio}%</span>
+                  {isOriginal && (
+                    <span className="text-[9px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-bold border border-violet-200">원본</span>
+                  )}
                 </div>
                 <span className="text-[10px] text-slate-400">{g.id}</span>
               </div>
@@ -667,14 +740,27 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor }
         {recipe.overallExplanation && (
           <p className="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-100">{recipe.overallExplanation}</p>
         )}
+
+        {/* 향 밸런스 변화 차트 */}
+        {recipe.categoryChanges && recipe.categoryChanges.length > 0 && (
+          <div className="pt-2">
+            <CategoryChangeChart categoryChanges={recipe.categoryChanges} compact />
+          </div>
+        )}
       </div>
-    </button>
+    </div>
   )
 }
 
 // 확정 레시피 섹션 (테스트 향료 제조 안내)
-function ConfirmedRecipeSection({ label, emoji, recipe, accentColor }: {
-  label: string; emoji: string; recipe: GeneratedRecipe; accentColor: 'violet' | 'pink'
+function ConfirmedRecipeSection({ label, emoji, recipe, accentColor, originalPerfumeId, originalPerfumeName, retentionPercentage }: {
+  label: string
+  emoji: string
+  recipe: GeneratedRecipe
+  accentColor: 'violet' | 'pink'
+  originalPerfumeId?: string
+  originalPerfumeName?: string
+  retentionPercentage?: number
 }) {
   const st = accentColor === 'violet'
     ? { header: 'bg-violet-100', text: 'text-violet-700' }
@@ -687,6 +773,16 @@ function ConfirmedRecipeSection({ label, emoji, recipe, accentColor }: {
         <span className={`text-sm font-black ${st.text}`}>{label}</span>
       </div>
       <div className="p-4 bg-white space-y-3">
+        {/* 원본 향 표시 */}
+        {originalPerfumeId && originalPerfumeName && (
+          <OriginalPerfumeCard
+            perfumeId={originalPerfumeId}
+            perfumeName={originalPerfumeName}
+            retentionPercentage={retentionPercentage}
+            label="기반 원본"
+          />
+        )}
+
         <div className="flex items-center gap-2 mb-1">
           <Droplet size={14} className="text-amber-500" />
           <h3 className="text-sm font-bold text-slate-700">레시피 구성</h3>
@@ -714,27 +810,14 @@ function ConfirmedRecipeSection({ label, emoji, recipe, accentColor }: {
           )
         })}
 
+        {/* 향 밸런스 변화 차트 */}
+        {recipe.categoryChanges && recipe.categoryChanges.length > 0 && (
+          <CategoryChangeChart categoryChanges={recipe.categoryChanges} />
+        )}
+
+        {/* 테스팅 방법 가이드 */}
         {recipe.testingInstructions && (
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <TestTube2 size={14} className="text-purple-500" />
-              <h3 className="text-sm font-bold text-slate-700">테스트 향료 제조</h3>
-            </div>
-            <div className="bg-purple-50 rounded-xl p-3 space-y-2">
-              {[recipe.testingInstructions.step1, recipe.testingInstructions.step2, recipe.testingInstructions.step3].filter(Boolean).map((s, i) => (
-                <div key={i} className="flex gap-2">
-                  <span className="w-5 h-5 bg-purple-200 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-700 flex-shrink-0">{i + 1}</span>
-                  <p className="text-xs text-slate-700 flex-1">{s}</p>
-                </div>
-              ))}
-            </div>
-            {recipe.testingInstructions.caution && (
-              <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-2.5 border border-amber-200/50">
-                <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-700">{recipe.testingInstructions.caution}</p>
-              </div>
-            )}
-          </div>
+          <TestingInstructionsBox instructions={recipe.testingInstructions} />
         )}
 
         {recipe.fanMessage && (

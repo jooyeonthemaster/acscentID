@@ -13,7 +13,7 @@ export interface Review {
   id: string
   created_at: string
   updated_at: string
-  user_id: string
+  user_id: string | null
   program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
   order_id: string | null
   rating: number
@@ -22,6 +22,8 @@ export interface Review {
   option_info: string | null
   is_verified: boolean
   helpful_count: number
+  admin_name: string | null
+  is_admin_review: boolean
   images: ReviewImage[]
   user_profile: {
     name: string | null
@@ -141,7 +143,7 @@ export async function getReviews(
     id: row.id as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
-    user_id: row.user_id as string,
+    user_id: row.user_id as string | null,
     program_type: row.program_type as Review['program_type'],
     order_id: row.order_id as string | null,
     rating: row.rating as number,
@@ -150,6 +152,8 @@ export async function getReviews(
     option_info: row.option_info as string | null,
     is_verified: row.is_verified as boolean,
     helpful_count: row.helpful_count as number,
+    admin_name: (row.admin_name as string | null) || null,
+    is_admin_review: (row.is_admin_review as boolean) || false,
     images: (row.review_images as ReviewImage[]) || [],
     user_profile: row.user_profiles as Review['user_profile'],
   }))

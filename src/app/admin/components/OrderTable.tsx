@@ -12,7 +12,8 @@ import {
   ChevronUp,
   MapPin,
   Phone,
-  User
+  User,
+  Loader2
 } from 'lucide-react'
 
 interface Order {
@@ -29,7 +30,7 @@ interface Order {
   address: string
   address_detail: string
   memo: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered'
+  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
 }
@@ -40,7 +41,12 @@ interface OrderTableProps {
   onStatusChange: (orderId: string, status: string) => Promise<void>
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+  awaiting_payment: {
+    label: '결제 진행중',
+    color: 'bg-cyan-100 text-cyan-700 border-cyan-300',
+    icon: Loader2,
+  },
   pending: {
     label: '입금대기',
     color: 'bg-amber-100 text-amber-700 border-amber-300',
@@ -60,6 +66,16 @@ const statusConfig = {
     label: '배송완료',
     color: 'bg-emerald-100 text-emerald-700 border-emerald-300',
     icon: CheckCircle,
+  },
+  cancel_requested: {
+    label: '취소요청',
+    color: 'bg-red-100 text-red-700 border-red-300',
+    icon: Clock,
+  },
+  cancelled: {
+    label: '취소완료',
+    color: 'bg-slate-100 text-slate-500 border-slate-300',
+    icon: Clock,
   }
 }
 
@@ -84,7 +100,7 @@ function formatDate(dateString: string): string {
 function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (orderId: string, status: string) => Promise<void> }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const status = statusConfig[order.status]
+  const status = statusConfig[order.status] || statusConfig.pending
   const StatusIcon = status.icon
 
   const handleStatusChange = async (newStatus: string) => {

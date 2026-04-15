@@ -297,13 +297,9 @@ export const SCENT_FAMILIES: ScentFamilyInfo[] = [
 // 케미 취향 반영 데이터
 export interface ChemistryTasteData {
   sessionId: string
-  // Q1: 향 계열 선호 (3상태 토글)
-  scentPreferences: Record<string, ScentPreference>
-  // Q2: 향 온도감 (0=시원, 100=따뜻)
-  warmth: number
-  // Q3: 향 존재감
+  // 향 존재감
   intensity: ScentIntensity
-  // Q4: 추가 요청 (자유 텍스트)
+  // 추가 요청 (자유 텍스트)
   freeText: string
 }
 

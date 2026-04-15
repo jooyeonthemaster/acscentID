@@ -8,7 +8,7 @@ import { TRAIT_LABELS, CATEGORY_INFO, CHEMISTRY_TYPE_COLORS, CHEMISTRY_TYPE_LABE
 import {
   SectionCard, SectionHeader,
   NameChemistryPyramid,
-  LayeringInfographic, FutureTimeline,
+  LayeringInfographic,
 } from "./ChemistryMeetingVisuals"
 
 
@@ -131,13 +131,7 @@ export function ChemistryMeetingChapter({
         <NameChemistryPyramid nameA={character1Name} nameB={character2Name} />
       </div>
 
-      {/* === 섹션: 미래 === */}
-      <div ref={setSectionRef('future')} className="scroll-mt-[256px]">
-        <FutureTimeline
-          predictions={chemistry.futurePredictions}
-          futureVision={chemistry.futureVision}
-        />
-      </div>
+      {/* 미래 예측 섹션 제거됨 */}
     </div>
   )
 }
@@ -601,22 +595,19 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
 function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/analysis').FaceMatch }) {
   const score = faceMatch.score
 
-  // 티어 판정
+  // 티어 판정 (최소 50%)
   const getTier = (s: number) => {
     if (s >= 90) return { label: '천생연분', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' }
     if (s >= 75) return { label: '찐이다 찐', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' }
-    if (s >= 60) return { label: '은근 케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200' }
-    if (s >= 40) return { label: '묘한 긴장감', emoji: '👀', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' }
-    if (s >= 20) return { label: '어색한 사이', emoji: '😅', color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' }
-    return { label: '세계관 붕괴', emoji: '💀', color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-200' }
+    if (s >= 65) return { label: '은근 케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200' }
+    return { label: '묘한 끌림', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' }
   }
 
   // 개별 바 색상 — 각 척도 자체 점수 기반
   const getBarColor = (s: number) => {
     if (s >= 80) return 'bg-gradient-to-r from-rose-400 to-pink-500'
-    if (s >= 60) return 'bg-gradient-to-r from-violet-400 to-purple-500'
-    if (s >= 40) return 'bg-gradient-to-r from-cyan-400 to-blue-500'
-    return 'bg-gradient-to-r from-slate-300 to-slate-400'
+    if (s >= 65) return 'bg-gradient-to-r from-violet-400 to-purple-500'
+    return 'bg-gradient-to-r from-cyan-400 to-blue-500'
   }
 
   const tier = getTier(score)

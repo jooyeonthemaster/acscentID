@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
+import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 
 /**
  * 포트원 웹훅 처리 API
@@ -51,8 +52,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true })
         }
 
-        // 이미 결제 완료 상태이면 중복 처리 방지
-        if (order.status !== 'pending') {
+        // 이미 결제 완료 이후 상태이면 중복 처리 방지
+        // awaiting_payment, pending 상태만 paid로 전환 허용
+        if (order.status !== 'pending' && order.status !== 'awaiting_payment') {
           console.log('[Payments Webhook] Order already processed:', order.id, order.status)
           return NextResponse.json({ success: true })
         }
@@ -87,6 +89,15 @@ export async function POST(request: NextRequest) {
           }
         } catch (deductionError) {
           console.error('[Payments Webhook] Inventory deduction failed:', deductionError)
+        }
+
+        // 재구매 10% 쿠폰 자동 발급 (실 결제 완료 시점에만 발급)
+        if (order.user_id) {
+          try {
+            await issueRepurchaseCouponIfNeeded(serviceClient, order.user_id)
+          } catch (couponError) {
+            console.error('[Payments Webhook] Repurchase coupon issuance failed:', couponError)
+          }
         }
 
       } catch (paymentError) {

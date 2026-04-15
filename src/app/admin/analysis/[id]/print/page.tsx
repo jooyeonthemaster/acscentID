@@ -8,6 +8,8 @@ interface PrintPageData {
   analysis: any
   user_profile: any
   feedback: any
+  layering_session?: any
+  partner_analysis?: any
 }
 
 export default function PrintReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -83,6 +85,8 @@ export default function PrintReportPage({ params }: { params: Promise<{ id: stri
         analysis={data.analysis}
         feedback={data.feedback}
         userProfile={data.user_profile}
+        layeringSession={data.layering_session}
+        partnerAnalysis={data.partner_analysis}
       />
     </>
   )

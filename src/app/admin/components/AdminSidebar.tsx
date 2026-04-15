@@ -19,7 +19,7 @@ import {
   ImageIcon,
   Package,
   FileText,
-  Stamp,
+  MessageSquare,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -111,10 +111,10 @@ const navItems: NavItem[] = [
     description: '상품 상세페이지 편집',
   },
   {
-    href: '/admin/stamps',
-    label: '스탬프 관리',
-    icon: Stamp,
-    description: '회원 스탬프 & 리워드',
+    href: '/admin/reviews',
+    label: '리뷰 관리',
+    icon: MessageSquare,
+    description: '상품 리뷰 & AI 생성',
   },
 ]
 

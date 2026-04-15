@@ -515,6 +515,7 @@ export interface ChemistryScore {
   scentMatch: number; // 0-100 향 궁합
   traitMatch: number; // 0-100 특성 궁합
   emotionMatch: number; // 0-100 감정 궁합
+  tierLabel?: string;
 }
 
 // 얼굴합 (비주얼 궁합)

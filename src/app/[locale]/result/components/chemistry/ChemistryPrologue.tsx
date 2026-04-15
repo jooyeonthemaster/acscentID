@@ -3,14 +3,12 @@
 import { motion } from "framer-motion"
 import { CHEMISTRY_TYPE_LABELS, CHEMISTRY_TYPE_COLORS, type ChemistryProfile } from "@/types/analysis"
 
-// 얼굴합 티어 시스템
+// 케미합 티어 시스템 (최소 50%)
 function getScoreTier(score: number) {
   if (score >= 90) return { tier: '천생연분', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200', barColor: 'from-rose-400 to-pink-500', desc: '우주가 허락한 만남' }
   if (score >= 75) return { tier: '찐케미', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', barColor: 'from-orange-400 to-amber-500', desc: '같은 세계관 확정' }
-  if (score >= 60) return { tier: '은근케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', barColor: 'from-violet-400 to-purple-500', desc: '은근히 잘 어울리는 사이' }
-  if (score >= 40) return { tier: '묘한 긴장감', emoji: '👀', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', barColor: 'from-cyan-400 to-blue-500', desc: '서로 다르기에 끌리는' }
-  if (score >= 20) return { tier: '어색한 첫만남', emoji: '😅', color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200', barColor: 'from-slate-300 to-slate-400', desc: '아직은 어색한 사이' }
-  return { tier: '세계관 붕괴', emoji: '💀', color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-200', barColor: 'from-slate-200 to-slate-300', desc: '각자의 세계에서 행복하세요' }
+  if (score >= 65) return { tier: '은근케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', barColor: 'from-violet-400 to-purple-500', desc: '은근히 잘 어울리는 사이' }
+  return { tier: '묘한 끌림', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', barColor: 'from-cyan-400 to-blue-500', desc: '다르기에 끌리는 의외의 매력' }
 }
 
 interface ChemistryPrologueProps {
@@ -26,7 +24,7 @@ export function ChemistryPrologue({
 }: ChemistryPrologueProps) {
   const typeColor = CHEMISTRY_TYPE_COLORS[chemistry.chemistryType]
   const typeLabel = CHEMISTRY_TYPE_LABELS[chemistry.chemistryType]
-  const score = chemistry.chemistryScore?.overall ?? Math.floor(Math.random() * 20 + 78)
+  const score = chemistry.chemistryScore?.overall ?? chemistry.faceMatch?.score ?? 75
   const tier = getScoreTier(score)
 
   const punchline = chemistry.traitsSynergy?.synergyOneLiner
@@ -129,7 +127,9 @@ export function ChemistryPrologue({
               <span className="text-lg">{tier.emoji}</span>
               <span className={`text-base font-black ${tier.color}`}>{tier.tier}</span>
             </span>
-            <p className="text-xs text-slate-500 mt-2 font-bold">{tier.desc}</p>
+            <p className="text-xs text-slate-500 mt-2 font-bold">
+              {chemistry.chemistryScore?.tierLabel || tier.desc}
+            </p>
           </motion.div>
 
           {/* 키워드 태그 */}

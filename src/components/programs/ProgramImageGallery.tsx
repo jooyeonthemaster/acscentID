@@ -19,8 +19,13 @@ export function ProgramImageGallery({
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
 
-  const { imageUrls: dynamicImages } = useProductImages(productSlug)
-  const productImages = dynamicImages.length > 0 ? dynamicImages : fallbackImages
+  const { imageUrls: dynamicImages, loading } = useProductImages(productSlug)
+  // loading 중에는 fallback을 보여주지 않음 (플리커 방지)
+  const productImages = loading
+    ? []
+    : dynamicImages.length > 0
+      ? dynamicImages
+      : fallbackImages
 
   return (
     <motion.div
@@ -36,20 +41,24 @@ export function ProgramImageGallery({
           </span>
         </div>
         <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-50">
-          <motion.img
-            key={selectedImage}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            src={productImages[selectedImage]}
-            alt={t('programs.productImage')}
-            className="w-full h-full object-cover"
-          />
+          {loading || productImages.length === 0 ? (
+            <div className="w-full h-full animate-pulse bg-gradient-to-br from-yellow-100 to-amber-100" />
+          ) : (
+            <motion.img
+              key={productImages[selectedImage]}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              src={productImages[selectedImage]}
+              alt={t('programs.productImage')}
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
       </div>
 
       {/* 썸네일 */}
-      {productImages.length > 1 && (
+      {!loading && productImages.length > 1 && (
         <div className="flex gap-2 justify-center">
           {productImages.map((img, idx) => (
             <button

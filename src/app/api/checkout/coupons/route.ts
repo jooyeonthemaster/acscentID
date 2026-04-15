@@ -35,6 +35,7 @@ export async function GET() {
     const serviceClient = createServiceRoleClient()
 
     // 사용자가 보유한 쿠폰 중 미사용 쿠폰 조회
+    // 과거 발급된 stamp_* 타입 쿠폰은 더 이상 지원하지 않으므로 제외
     const { data: userCoupons, error } = await serviceClient
       .from('user_coupons')
       .select(`
@@ -42,10 +43,11 @@ export async function GET() {
         coupon_id,
         is_used,
         claimed_at,
-        coupon:coupons(*)
+        coupon:coupons!inner(*)
       `)
       .eq('user_id', userId)
       .eq('is_used', false)
+      .not('coupon.type', 'in', '(stamp_10,stamp_20,stamp_free)')
 
     if (error) {
       console.error('Fetch user coupons error:', error)
@@ -105,16 +107,6 @@ export async function GET() {
         ineligibleReason,
       }
     })
-
-    // 스탬프 쿠폰 자격 확인 (stamp_10, stamp_20, stamp_free 타입)
-    // 스탬프 쿠폰은 별도의 조건 없이 사용 가능 (이미 마일스톤 달성으로 발급됨)
-    // stamp_free 타입은 discount_percent가 100이지만, 실제 할인은 1개 상품 가격으로 제한
-    for (const coupon of checkoutCoupons) {
-      if (['stamp_10', 'stamp_20', 'stamp_free'].includes(coupon.type)) {
-        // 스탬프 쿠폰은 만료와 사용 여부만 체크 (이미 user_coupons에서 is_used=false로 필터됨)
-        // 별도의 추가 조건 없음 - isEligible은 이미 설정됨
-      }
-    }
 
     // 사용 가능한 쿠폰을 먼저, 할인율 높은 순으로 정렬
     checkoutCoupons.sort((a, b) => {

@@ -15,6 +15,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Monitor,
+  Rocket,
 } from 'lucide-react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
@@ -55,9 +56,13 @@ interface ProductDetail {
   detail_mode: 'default' | 'custom'
   custom_html: string | null
   updated_at: string | null
+  published_html: string | null
+  published_detail_mode: 'default' | 'custom' | null
+  published_at: string | null
 }
 
 type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'error'
+type PublishStatus = 'in_sync' | 'pending' | 'publishing' | 'error'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -102,11 +107,11 @@ export default function ProductDetailsPage() {
   const [detailData, setDetailData] = useState<Record<string, ProductDetail>>({})
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>('in_sync')
   const [uploading, setUploading] = useState(false)
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor')
   const [previewHtml, setPreviewHtml] = useState<string>('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadingContent = useRef(false)
 
   // ─── Current Detail ───────────────────────────────────────────────────────
@@ -116,6 +121,9 @@ export default function ProductDetailsPage() {
     detail_mode: 'default' as const,
     custom_html: null,
     updated_at: null,
+    published_html: null,
+    published_detail_mode: null,
+    published_at: null,
   }
 
   const isCustomMode = currentDetail.detail_mode === 'custom'
@@ -213,7 +221,6 @@ export default function ProductDetailsPage() {
       setPreviewHtml(ed.getHTML())
       if (isLoadingContent.current) return
       setSaveStatus('unsaved')
-      debouncedAutoSave()
     },
   })
 
@@ -274,6 +281,37 @@ export default function ProductDetailsPage() {
     init()
   }, [fetchProducts])
 
+  // ─── Warn on Unsaved / Unpublished Changes ────────────────────────────────
+
+  useEffect(() => {
+    const hasUnsaved = saveStatus === 'unsaved' || saveStatus === 'error'
+    if (!hasUnsaved) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [saveStatus])
+
+  // ─── Publish Diff Helper ──────────────────────────────────────────────────
+
+  const computePublishStatus = useCallback((detail: ProductDetail | null | undefined): PublishStatus => {
+    if (!detail) return 'in_sync'
+    const draftMode = detail.detail_mode
+    const pubMode = detail.published_detail_mode
+    // 한 번도 배포된 적 없으면 pending (draft가 default여도 기본 상태로 간주해 동기화)
+    if (pubMode === null) {
+      if (draftMode === 'default' && !detail.custom_html) return 'in_sync'
+      return 'pending'
+    }
+    if (draftMode !== pubMode) return 'pending'
+    if (draftMode === 'custom' && (detail.custom_html || '') !== (detail.published_html || '')) {
+      return 'pending'
+    }
+    return 'in_sync'
+  }, [])
+
   // ─── Load Detail When Slug Changes ────────────────────────────────────────
 
   useEffect(() => {
@@ -290,14 +328,16 @@ export default function ProductDetailsPage() {
         setPreviewHtml('')
       }
       setSaveStatus('saved')
+      setPublishStatus(computePublishStatus(detail))
       setTimeout(() => {
         isLoadingContent.current = false
       }, 100)
     }
     loadDetail()
-  }, [selectedSlug, editor, fetchDetailForSlug])
+  }, [selectedSlug, editor, fetchDetailForSlug, computePublishStatus])
 
-  // ─── Save Functions ───────────────────────────────────────────────────────
+  // ─── Save (Draft) ─────────────────────────────────────────────────────────
+  // 저장은 draft(custom_html / detail_mode)만 갱신. 고객 화면에는 영향 없음.
 
   const saveContent = useCallback(async (mode?: 'default' | 'custom') => {
     if (!selectedSlug) return
@@ -305,14 +345,17 @@ export default function ProductDetailsPage() {
     setSaveStatus('saving')
 
     const detail_mode = mode ?? currentDetail.detail_mode
+    const nowIso = new Date().toISOString()
+    const nextCustomHtml =
+      detail_mode === 'custom' && editor
+        ? editor.getHTML()
+        : currentDetail.custom_html ?? null
+
     const payload: Record<string, unknown> = {
       slug: selectedSlug,
       detail_mode,
-      updated_at: new Date().toISOString(),
-    }
-
-    if (detail_mode === 'custom' && editor) {
-      payload.custom_html = editor.getHTML()
+      updated_at: nowIso,
+      custom_html: nextCustomHtml,
     }
 
     const { error } = await supabase
@@ -323,53 +366,103 @@ export default function ProductDetailsPage() {
       console.error('Failed to save:', error)
       setSaveStatus('error')
       showToast('저장에 실패했습니다.', 'error')
-    } else {
-      setSaveStatus('saved')
-      setDetailData((prev) => ({
-        ...prev,
-        [selectedSlug]: {
-          ...prev[selectedSlug],
+      return
+    }
+
+    setSaveStatus('saved')
+    setDetailData((prev) => {
+      const nextDetail: ProductDetail = {
+        ...(prev[selectedSlug] ?? {
           slug: selectedSlug,
-          detail_mode,
-          custom_html: detail_mode === 'custom' && editor ? editor.getHTML() : prev[selectedSlug]?.custom_html ?? null,
-          updated_at: payload.updated_at as string,
-        },
-      }))
-      showToast('저장되었습니다.', 'success')
-    }
-  }, [selectedSlug, currentDetail.detail_mode, editor, showToast])
+          published_html: null,
+          published_detail_mode: null,
+          published_at: null,
+        }),
+        slug: selectedSlug,
+        detail_mode,
+        custom_html: nextCustomHtml,
+        updated_at: nowIso,
+      } as ProductDetail
+      setPublishStatus(computePublishStatus(nextDetail))
+      return { ...prev, [selectedSlug]: nextDetail }
+    })
+    showToast('임시 저장되었습니다. 배포 전까지는 고객 화면에 반영되지 않습니다.', 'success')
+  }, [selectedSlug, currentDetail.detail_mode, currentDetail.custom_html, editor, showToast, computePublishStatus])
 
-  const debouncedAutoSave = useCallback(() => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => {
-      saveContent()
-    }, 2000)
-  }, [saveContent])
+  // ─── Publish ──────────────────────────────────────────────────────────────
+  // 배포는 현재 draft 상태를 published_* 컬럼에 복사. 이 시점부터 고객 화면에 반영.
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+  const publishContent = useCallback(async () => {
+    if (!selectedSlug) return
+
+    if (saveStatus === 'unsaved') {
+      const proceed = window.confirm('저장되지 않은 변경사항이 있습니다. 현재 에디터 상태로 저장 후 바로 배포할까요?')
+      if (!proceed) return
+      await saveContent()
     }
-  }, [])
+
+    const confirmed = window.confirm('현재 저장된 내용을 고객 화면에 배포하시겠습니까?\n배포 후에는 즉시 고객에게 노출됩니다.')
+    if (!confirmed) return
+
+    setPublishStatus('publishing')
+
+    const nowIso = new Date().toISOString()
+    const draftMode = detailData[selectedSlug]?.detail_mode ?? currentDetail.detail_mode
+    const draftHtml = detailData[selectedSlug]?.custom_html ?? currentDetail.custom_html ?? null
+
+    const payload = {
+      slug: selectedSlug,
+      published_detail_mode: draftMode,
+      published_html: draftMode === 'custom' ? draftHtml : null,
+      published_at: nowIso,
+    }
+
+    const { error } = await supabase
+      .from('admin_product_details')
+      .upsert(payload, { onConflict: 'slug' })
+
+    if (error) {
+      console.error('Failed to publish:', error)
+      setPublishStatus('error')
+      showToast('배포에 실패했습니다.', 'error')
+      return
+    }
+
+    setDetailData((prev) => {
+      const nextDetail: ProductDetail = {
+        ...(prev[selectedSlug] as ProductDetail),
+        published_detail_mode: draftMode,
+        published_html: draftMode === 'custom' ? draftHtml : null,
+        published_at: nowIso,
+      }
+      setPublishStatus(computePublishStatus(nextDetail))
+      return { ...prev, [selectedSlug]: nextDetail }
+    })
+    showToast('배포 완료! 고객 화면에 반영되었습니다.', 'success')
+  }, [selectedSlug, saveStatus, saveContent, detailData, currentDetail.detail_mode, currentDetail.custom_html, showToast, computePublishStatus])
 
   // ─── Mode Toggle ──────────────────────────────────────────────────────────
+  // 모드 전환은 draft 상태만 변경. 배포 전까지는 고객 화면 유지.
 
-  const handleModeToggle = async () => {
-    // 자동 저장 타이머 취소 (레이스 컨디션 방지)
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+  const handleModeToggle = () => {
     const newMode = isCustomMode ? 'default' : 'custom'
-    setDetailData((prev) => ({
-      ...prev,
-      [selectedSlug]: {
-        ...prev[selectedSlug],
+    setDetailData((prev) => {
+      const nextDetail: ProductDetail = {
+        ...(prev[selectedSlug] ?? {
+          slug: selectedSlug,
+          custom_html: null,
+          updated_at: null,
+          published_html: null,
+          published_detail_mode: null,
+          published_at: null,
+        }),
         slug: selectedSlug,
         detail_mode: newMode,
-        custom_html: prev[selectedSlug]?.custom_html ?? null,
-        updated_at: prev[selectedSlug]?.updated_at ?? null,
-      },
-    }))
-    await saveContent(newMode)
+      } as ProductDetail
+      setPublishStatus(computePublishStatus(nextDetail))
+      return { ...prev, [selectedSlug]: nextDetail }
+    })
+    setSaveStatus('unsaved')
   }
 
   // ─── Image Upload Handler ─────────────────────────────────────────────────
@@ -405,6 +498,27 @@ export default function ProductDetailsPage() {
     )
   }
 
+  // ─── Publish Status Indicator ─────────────────────────────────────────────
+
+  const PublishStatusBadge = () => {
+    const configs = {
+      in_sync: { icon: Check, label: '배포 완료', dotClass: 'bg-emerald-400', textClass: 'text-emerald-700' },
+      pending: { icon: AlertCircle, label: '미배포 변경사항', dotClass: 'bg-orange-400', textClass: 'text-orange-700' },
+      publishing: { icon: Loader2, label: '배포 중...', dotClass: 'bg-blue-400', textClass: 'text-blue-700' },
+      error: { icon: AlertCircle, label: '배포 실패', dotClass: 'bg-red-400', textClass: 'text-red-700' },
+    }
+    const config = configs[publishStatus]
+    const Icon = config.icon
+
+    return (
+      <div className={`flex items-center gap-2 text-sm ${config.textClass}`}>
+        <div className={`w-2 h-2 rounded-full ${config.dotClass} ${publishStatus === 'publishing' ? 'animate-pulse' : ''}`} />
+        <Icon className={`w-3.5 h-3.5 ${publishStatus === 'publishing' ? 'animate-spin' : ''}`} />
+        <span className="font-medium">{config.label}</span>
+      </div>
+    )
+  }
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -422,10 +536,14 @@ export default function ProductDetailsPage() {
     <div className="flex-1 flex flex-col min-h-screen bg-slate-50">
       <AdminHeader
         title="상세페이지 관리"
-        subtitle="상품별 커스텀 상세페이지를 편집합니다"
+        subtitle="저장은 임시 저장(Draft), 배포 버튼을 눌러야 고객 화면에 반영됩니다"
         actions={
-          <div className="flex items-center gap-3">
-            <SaveStatusBadge />
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
+              <SaveStatusBadge />
+              <span className="w-px h-4 bg-slate-200" />
+              <PublishStatusBadge />
+            </div>
             <button
               onClick={() => saveContent()}
               disabled={saveStatus === 'saving' || saveStatus === 'saved'}
@@ -439,6 +557,29 @@ export default function ProductDetailsPage() {
             >
               <Save className="w-4 h-4" />
               저장
+            </button>
+            <button
+              onClick={publishContent}
+              disabled={
+                publishStatus === 'publishing' ||
+                (publishStatus === 'in_sync' && saveStatus === 'saved')
+              }
+              className={`
+                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                ${publishStatus === 'publishing'
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  : publishStatus === 'in_sync' && saveStatus === 'saved'
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
+                }
+              `}
+            >
+              {publishStatus === 'publishing' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Rocket className="w-4 h-4" />
+              )}
+              배포
             </button>
           </div>
         }

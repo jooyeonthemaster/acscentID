@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
-import { useActiveProducts } from '@/hooks/useAdminContent'
+import { useActiveProducts, useProductImages } from '@/hooks/useAdminContent'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -134,12 +134,29 @@ export function MobileMenuSheet({
 
   const { isProductActive } = useActiveProducts()
 
-  // Navigation Links with translated labels (활성 상품만)
+  // DB 대표 이미지 로드
+  const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
+  const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
+  const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
+  const imagesLoading = idolLoading || figureLoading || chemistryLoading
+
+  const dynamicImageMap: Record<string, string | undefined> = {
+    'idol-image': idolImages[0],
+    'figure': figureImages[0],
+    'chemistry': chemistryImages[0],
+  }
+
+  // Navigation Links with translated labels (활성 상품만 + DB 이미지 연동)
   const programLinks = [
-    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), image: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser'), image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry'), image: '/images/chemistry/chemistry-thumbnail.jpg' },
-  ].filter((link) => isProductActive(link.slug))
+    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser'), fallbackImage: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry'), fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
+  ]
+    .filter((link) => isProductActive(link.slug))
+    .map((link) => ({
+      ...link,
+      image: imagesLoading ? link.fallbackImage : (dynamicImageMap[link.slug] || link.fallbackImage),
+    }))
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

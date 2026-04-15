@@ -95,6 +95,15 @@ function CheckoutContent() {
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer")
+  const [isRepurchaser, setIsRepurchaser] = useState<boolean | undefined>(undefined)
+
+  // 재구매 자격 확인
+  useEffect(() => {
+    fetch('/api/coupons/repurchase/eligible')
+      .then(r => r.json())
+      .then(d => { if (d.success) setIsRepurchaser(d.isEligible) })
+      .catch(() => {})
+  }, [])
 
   // PortOne 결제 Hook
   const { initiatePayment } = usePortonePayment()
@@ -323,9 +332,7 @@ function CheckoutContent() {
   const singleUnitPrice = getPriceForSize(productType, selectedSize)
   const singleProductPrice = singleUnitPrice * singleQuantity
   const singleDiscountAmount = selectedCoupon
-    ? selectedCoupon.type === 'stamp_free'
-      ? singleUnitPrice // stamp_free: 1개 상품 단가만큼 할인 (무료 상품 1개)
-      : Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
+    ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
     : 0
 
   // 최종 가격 (프로모션 적용)
@@ -591,6 +598,7 @@ function CheckoutContent() {
                   onRemoveItem={handleRemoveItem}
                   isFreeShippingPromo={shippingResult.isFreeByPromotion}
                   promoName={shippingResult.promotionName || undefined}
+                  isRepurchaser={isRepurchaser}
                 />
               ) : (
                 <>
@@ -606,6 +614,7 @@ function CheckoutContent() {
                     isFreeShippingPromo={shippingResult.isFreeByPromotion}
                     quantity={singleQuantity}
                     onQuantityChange={setSingleQuantity}
+                    isRepurchaser={isRepurchaser}
                   />
                   {/* 확정 레시피 배지 (재주문 시) */}
                   {confirmedRecipe && (
@@ -653,11 +662,6 @@ function CheckoutContent() {
                 isMultiItemMode
                   ? Math.min(...checkoutItems.map(i => i.price))
                   : singleUnitPrice
-              }
-              totalQuantity={
-                isMultiItemMode
-                  ? checkoutItems.reduce((sum, i) => sum + i.quantity, 0)
-                  : singleQuantity
               }
             />
           </motion.div>

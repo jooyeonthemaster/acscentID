@@ -106,6 +106,8 @@
     "afterPayment": "确认付款后2~3天内发货"
   },
   "status": {
+    "awaitingPayment": "支付处理中",
+    "awaitingPaymentDesc": "正在处理在线支付",
     "pending": "待付款",
     "paid": "已付款",
     "shipping": "配送中",
@@ -566,10 +568,10 @@
     "eventLabel": "活动",
     "promoFreeShipping": "{promoName} - 免运费",
     "quantitySelection": "数量选择",
-    "stampCouponHint": "购买{quantity}件时可能享受集章优惠券折扣！",
-    "stampCouponAvailable": "可以使用集章折扣优惠券！",
-    "stampDiscountApplied": "集章 {percent}% 折扣已应用",
-    "freeProductApplied": "集章免费商品已应用"
+    "repurchaseBannerTitle": "欢迎回购顾客！🎉",
+    "repurchaseBannerSubtitle": "请在下方选择并使用10%折扣券",
+    "firstPurchasePromoTitle": "首购后每次下单都享10%折扣！💝",
+    "firstPurchasePromoSubtitle": "自动发放回购券，无使用次数限制"
   },
   "checkoutComplete": {
     "title": "订单完成",
@@ -875,6 +877,7 @@
     "star": "{rating}分"
   },
   "coupon": {
+    "unlimitedUse": "无限使用",
     "specialOffer": "特别优惠",
     "getTodayCoupon": "领取今日优惠券吧",
     "loginToClaim": "登录后即可领取优惠券！",

@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
       .limit(50000)
 
     const ordersByStatus = {
+      awaiting_payment: 0,
       pending: 0,
       paid: 0,
       shipping: 0,

@@ -62,6 +62,12 @@ export interface AdminAnalysisRecord {
   // 피규어 디퓨저 모델링 데이터
   modeling_image_url: string | null
   modeling_request: string | null
+  // 케미 향수 페어 데이터 (product_type='chemistry_set'일 때 채워짐)
+  partner_name?: string | null
+  layering_session_id?: string | null
+  chemistry_title?: string | null
+  chemistry_type?: string | null
+  chemistry_role?: 'A' | 'B' | null
   // 조인된 데이터
   user_profile?: {
     id: string
@@ -102,10 +108,11 @@ export interface GeneratedRecipeData {
 }
 
 // 주문 상태
-export type OrderStatus = 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
+export type OrderStatus = 'awaiting_payment' | 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
 
 // 주문 상태 한글 라벨
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  awaiting_payment: '결제 진행중',
   pending: '입금대기',
   paid: '입금완료',
   shipping: '배송중',
@@ -116,6 +123,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 
 // 주문 상태 색상
 export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  awaiting_payment: 'bg-cyan-100 text-cyan-700',
   pending: 'bg-amber-100 text-amber-700',
   paid: 'bg-blue-100 text-blue-700',
   shipping: 'bg-purple-100 text-purple-700',

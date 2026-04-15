@@ -305,13 +305,31 @@ export default function AnalysisPage() {
                             }`}
                           />
                         </td>
-                        <td className="px-3 py-3 max-w-[200px]">
-                          <div className="font-medium text-slate-900 truncate" title={analysis.idol_name || '-'}>
-                            {analysis.idol_name || '-'}
-                          </div>
-                          <div className="text-xs text-slate-500 truncate" title={analysis.twitter_name}>
-                            {analysis.twitter_name}
-                          </div>
+                        <td className="px-3 py-3 max-w-[240px]">
+                          {analysis.product_type === 'chemistry_set' && analysis.partner_name ? (
+                            <>
+                              <div
+                                className="font-medium text-slate-900 truncate"
+                                title={`${analysis.idol_name || '-'} × ${analysis.partner_name}`}
+                              >
+                                <span className="text-violet-600">{analysis.idol_name || '-'}</span>
+                                <span className="mx-1 text-slate-400">×</span>
+                                <span className="text-pink-600">{analysis.partner_name}</span>
+                              </div>
+                              <div className="text-xs text-slate-500 truncate" title={analysis.chemistry_title || ''}>
+                                {analysis.chemistry_title || '케미 세션'}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="font-medium text-slate-900 truncate" title={analysis.idol_name || '-'}>
+                                {analysis.idol_name || '-'}
+                              </div>
+                              <div className="text-xs text-slate-500 truncate" title={analysis.twitter_name}>
+                                {analysis.twitter_name}
+                              </div>
+                            </>
+                          )}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
@@ -402,6 +420,37 @@ export default function AnalysisPage() {
                                 <p className="text-slate-900 mt-1 font-mono text-xs">{analysis.id}</p>
                               </div>
                             </div>
+                            {/* 케미 향수 세션 정보 */}
+                            {analysis.product_type === 'chemistry_set' && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-lg">💞</span>
+                                  <span className="font-medium text-slate-900">케미 세션 정보</span>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                  <div>
+                                    <span className="text-slate-500">파트너:</span>
+                                    <p className="text-slate-900 mt-1">{analysis.partner_name || '-'}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-500">역할:</span>
+                                    <p className="text-slate-900 mt-1">{analysis.chemistry_role ? `캐릭터 ${analysis.chemistry_role}` : '-'}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-500">케미 타이틀:</span>
+                                    <p className="text-slate-900 mt-1">{analysis.chemistry_title || '-'}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-500">케미 타입:</span>
+                                    <p className="text-slate-900 mt-1">{analysis.chemistry_type || '-'}</p>
+                                  </div>
+                                  <div className="col-span-2 md:col-span-4">
+                                    <span className="text-slate-500">세션 ID:</span>
+                                    <p className="text-slate-900 mt-1 font-mono text-xs">{analysis.layering_session_id || '-'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {/* 모델링 이미지 (피규어 디퓨저) */}
                             {analysis.product_type === 'figure_diffuser' && (
                               <div className="mt-4 pt-4 border-t border-slate-200">

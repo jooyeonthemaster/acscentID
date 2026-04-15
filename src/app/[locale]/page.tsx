@@ -21,9 +21,10 @@ export default function Home() {
   const { isProductActive } = useActiveProducts()
 
   // 각 상품의 DB 이미지 로드 (관리자 업로드 이미지 우선)
-  const { imageUrls: idolImages } = useProductImages('idol-image')
-  const { imageUrls: figureImages } = useProductImages('figure')
-  const { imageUrls: chemistryImages } = useProductImages('chemistry')
+  const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
+  const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
+  const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
+  const productImagesLoading = idolLoading || figureLoading || chemistryLoading
 
   // 상품 데이터 (번역 키 사용)
   const ALL_PRODUCTS = [
@@ -31,7 +32,7 @@ export default function Home() {
       id: "idol-image",
       title: t('products.idolImage'),
       subtitle: t('programs.subtitle.idolImage'),
-      image: idolImages[0] || "/images/perfume/KakaoTalk_20260125_225218071.jpg",
+      image: productImagesLoading ? null : (idolImages[0] || "/images/perfume/KakaoTalk_20260125_225218071.jpg"),
       price: 24000,
       originalPrice: 35000,
       priceRange: true,
@@ -44,7 +45,7 @@ export default function Home() {
       id: "figure",
       title: t('products.figureDiffuser'),
       subtitle: t('programs.subtitle.figure'),
-      image: figureImages[0] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
+      image: productImagesLoading ? null : (figureImages[0] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg"),
       price: 48000,
       originalPrice: 68000,
       delivery: t('shipping.afterProduction'),
@@ -56,7 +57,7 @@ export default function Home() {
       id: "chemistry",
       title: t('products.chemistry'),
       subtitle: t('programs.subtitle.chemistry'),
-      image: chemistryImages[0] || "/images/chemistry/chemistry-thumbnail.jpg",
+      image: productImagesLoading ? null : (chemistryImages[0] || "/images/chemistry/chemistry-thumbnail.jpg"),
       price: 38000,
       originalPrice: 52000,
       priceRange: true,
@@ -200,12 +201,16 @@ export default function Home() {
                     <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
                       {/* 카드 이미지 */}
                       <div className="relative aspect-square overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+                        {product.image ? (
+                          <Image
+                            src={product.image}
+                            alt={product.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full animate-pulse bg-gradient-to-br from-yellow-100 to-amber-100" />
+                        )}
                         {/* 뱃지 */}
                         {product.badge && (
                           <div className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full`}>

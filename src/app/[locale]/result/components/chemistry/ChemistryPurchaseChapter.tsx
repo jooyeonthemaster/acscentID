@@ -44,6 +44,9 @@ export function ChemistryPurchaseChapter({
       const resultStr = sessionStorage.getItem('chemistry_result')
       if (!resultStr) throw new Error(t('chemistry.buttons.noResult') || '분석 결과를 찾을 수 없습니다.')
 
+      const formStr = sessionStorage.getItem('chemistry_form')
+      const formMeta = formStr ? JSON.parse(formStr) : {}
+
       const saveResponse = await apiFetch('/api/results/chemistry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,6 +55,7 @@ export function ChemistryPurchaseChapter({
           character1Name,
           character2Name,
           userId: user?.id || unifiedUser?.id,
+          serviceMode: formMeta.serviceMode || 'online',
         }),
       })
 
@@ -175,6 +179,9 @@ export function ChemistryPurchaseChapter({
                 const resultStr = sessionStorage.getItem('chemistry_result')
                 if (!resultStr) throw new Error('분석 결과를 찾을 수 없습니다.')
 
+                const formStr2 = sessionStorage.getItem('chemistry_form')
+                const formMeta2 = formStr2 ? JSON.parse(formStr2) : {}
+
                 const saveResponse = await apiFetch('/api/results/chemistry', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -183,6 +190,7 @@ export function ChemistryPurchaseChapter({
                     character1Name,
                     character2Name,
                     userId: user?.id || unifiedUser?.id,
+                    serviceMode: formMeta2.serviceMode || 'online',
                   }),
                 })
                 const saveData = await saveResponse.json()

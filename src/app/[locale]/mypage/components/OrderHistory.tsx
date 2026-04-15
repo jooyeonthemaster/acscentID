@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Phone,
   Mail,
-  Headphones
+  Headphones,
+  Loader2
 } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { RecipeModal } from './RecipeModal'
@@ -36,14 +37,14 @@ interface Order {
   phone: string
   address: string
   address_detail: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
+  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
   // 새로 추가된 필드
   user_image_url?: string
   keywords?: string[]
   analysis_data?: ImageAnalysisResult
-  product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature'
+  product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test'
   payment_method?: string
   analysis_id?: string  // 분석 결과 ID (레시피 연결용)
 }
@@ -55,7 +56,11 @@ interface OrderHistoryProps {
   onOrderUpdate?: () => void
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
+  awaiting_payment: {
+    color: 'bg-cyan-100 text-cyan-700 border-cyan-300',
+    icon: Loader2,
+  },
   pending: {
     color: 'bg-amber-100 text-amber-700 border-amber-300',
     icon: Clock,
@@ -83,6 +88,7 @@ const statusConfig = {
 }
 
 const STATUS_KEYS: Record<string, { labelKey: string; descKey: string }> = {
+  awaiting_payment: { labelKey: 'awaitingPayment', descKey: 'awaitingPaymentDesc' },
   pending: { labelKey: 'pending', descKey: 'pendingDesc' },
   paid: { labelKey: 'paid', descKey: 'paidDesc' },
   shipping: { labelKey: 'shipping', descKey: 'shippingDesc' },
@@ -142,9 +148,9 @@ function OrderCard({
   const [isCancelling, setIsCancelling] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
-  const status = statusConfig[order.status]
+  const status = statusConfig[order.status] || statusConfig.pending
   const StatusIcon = status.icon
-  const statusKeys = STATUS_KEYS[order.status]
+  const statusKeys = STATUS_KEYS[order.status] || STATUS_KEYS.pending
 
   const hasAnalysisData = !!order.analysis_data
   const canCancel = order.status !== 'cancel_requested' && order.status !== 'cancelled'

@@ -225,7 +225,7 @@ AC'SCENT IDENTITY에서 생성됨`
             href="/mypage"
             className="text-amber-600 font-semibold hover:underline"
           >
-            마이페이지로 돌아가기
+            Back to My Page
           </Link>
         </div>
       </div>
