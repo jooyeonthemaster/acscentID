@@ -31,6 +31,7 @@ import * as XLSX from 'xlsx'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
+import { RefundModal } from '../components/RefundModal'
 
 interface OrderAnalysis {
   id: string
@@ -86,6 +87,9 @@ interface Order {
   receipt_url?: string | null
   refund_amount?: number
   refunded_at?: string | null
+  refund_reason?: string | null
+  cancellation_id?: string | null
+  refunded_by?: string | null
   admin_memo?: string | null
   is_influencer?: boolean
   item_count?: number
@@ -178,6 +182,32 @@ export default function AdminOrdersPage() {
   const [memoText, setMemoText] = useState('')
   const [memoSaving, setMemoSaving] = useState(false)
   const [memoSaved, setMemoSaved] = useState<string | null>(null)
+
+  // 환불 모달
+  const [refundTarget, setRefundTarget] = useState<Order | null>(null)
+
+  // 환불 처리 대기 집계 (배너용)
+  const [refundPending, setRefundPending] = useState<{
+    requested: number
+    orphan: number
+    bankPending: number
+    total: number
+  }>({ requested: 0, orphan: 0, bankPending: 0, total: 0 })
+
+  const fetchRefundPending = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/orders/refund/pending')
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.success) setRefundPending(data.counts)
+    } catch (e) {
+      console.warn('refund pending fetch failed', e)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchRefundPending()
+  }, [fetchRefundPending])
 
   // 주문 목록 조회
   const fetchOrders = useCallback(async (page = 1) => {
@@ -305,29 +335,15 @@ export default function AdminOrdersPage() {
     setDateTo('')
   }
 
-  // 환불 처리
-  const handleRefund = async (order: Order) => {
-    const reason = window.prompt('환불 사유를 입력하세요:')
-    if (!reason) return
+  // 환불 처리 — 모달 열기
+  const handleRefund = (order: Order) => {
+    setRefundTarget(order)
+  }
 
-    try {
-      const response = await fetch('/api/admin/orders/refund', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, reason })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '환불 처리에 실패했습니다')
-      }
-
-      alert('환불이 완료되었습니다')
-      fetchOrders(pagination.page)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '환불 처리에 실패했습니다')
-    }
+  // 환불 완료 후 목록/집계 재갱신
+  const handleRefundSuccess = async () => {
+    setRefundTarget(null)
+    await Promise.all([fetchOrders(pagination.page), fetchRefundPending()])
   }
 
   // 체크박스 전체 선택/해제
@@ -522,6 +538,44 @@ export default function AdminOrdersPage() {
       />
 
       <div className="p-6">
+        {/* 환불 처리 대기 배너 */}
+        {refundPending.total > 0 && (
+          <div className="mb-6 rounded-xl border-2 border-red-400 bg-red-50 p-4 shadow-[3px_3px_0px_#fca5a5]">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-black text-red-900 text-sm">
+                  환불 처리 대기: 총 {refundPending.total}건
+                </p>
+                <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                  {refundPending.requested > 0 && (
+                    <>
+                      <button
+                        onClick={() => handleFilterChange('cancel_requested')}
+                        className="underline font-bold hover:text-red-900"
+                      >
+                        고객 취소 요청 {refundPending.requested}건
+                      </button>
+                      {(refundPending.orphan > 0 || refundPending.bankPending > 0) && ' · '}
+                    </>
+                  )}
+                  {refundPending.orphan > 0 && (
+                    <>
+                      <span className="font-bold text-red-900">⚠️ DB만 취소완료 / 실제 환불 누락 {refundPending.orphan}건</span>
+                      {refundPending.bankPending > 0 && ' · '}
+                    </>
+                  )}
+                  {refundPending.bankPending > 0 && (
+                    <span className="font-bold">계좌이체 수동환불 대기 {refundPending.bankPending}건</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 검색 및 필터 */}
         <div className="bg-white rounded-xl border-2 border-slate-200 p-4 mb-6 shadow-[3px_3px_0px_#e2e8f0]">
           {/* 상태 필터 */}
@@ -714,14 +768,21 @@ export default function AdminOrdersPage() {
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono text-sm text-slate-900">{order.order_number}</span>
                             <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
                               {getPaymentBadge(order.payment_method).label}
                             </span>
-                            {order.refunded_at && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-100 text-red-600">환불됨</span>
-                            )}
+                            {/* 환불 상태 뱃지 — 환불 완료 vs 환불 누락(DB만 cancelled) 구분 */}
+                            {order.refunded_at ? (
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                환불완료
+                              </span>
+                            ) : order.status === 'cancelled' && order.payment_id ? (
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-600 text-white border border-red-700 animate-pulse">
+                                ⚠️ 환불 누락
+                              </span>
+                            ) : null}
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -768,7 +829,10 @@ export default function AdminOrdersPage() {
                             <option value="shipping">배송중</option>
                             <option value="delivered">배송완료</option>
                             <option value="cancel_requested">취소요청</option>
-                            <option value="cancelled">취소완료</option>
+                            {/* 'cancelled'(취소완료)는 환불 버튼을 통해서만 설정됨 — 포트원 실제 취소 + 감사 로그 동반 */}
+                            {order.status === 'cancelled' && (
+                              <option value="cancelled" disabled>취소완료</option>
+                            )}
                           </select>
                         </td>
                         <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -790,19 +854,62 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
-                            {/* 환불 처리 버튼 - 취소요청/입금완료 상태 & PG결제 & 미환불 */}
-                            {order.payment_id && !order.refunded_at && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleRefund(order)
-                                }}
-                                className="px-2.5 py-1 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                                title="PG 결제 환불"
-                              >
-                                환불
-                              </button>
-                            )}
+                            {/* 환불 버튼 — 상태에 따라 맥락화 */}
+                            {(() => {
+                              // 이미 환불 완료
+                              if (order.refunded_at) return null
+
+                              const isBank = order.payment_method === 'bank_transfer'
+                              const isOrphan = order.status === 'cancelled' && !order.refunded_at
+                              const isCustomerRequested = order.status === 'cancel_requested'
+
+                              // PG 결제 주문 환불 (카드/간편결제)
+                              if (order.payment_id && !isBank) {
+                                const label = isOrphan
+                                  ? '⚠️ 환불 누락'
+                                  : isCustomerRequested
+                                    ? '환불 처리 필요'
+                                    : '환불'
+                                const cls = isOrphan
+                                  ? 'text-white bg-red-600 border-red-700 animate-pulse'
+                                  : isCustomerRequested
+                                    ? 'text-white bg-red-500 border-red-600'
+                                    : 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100'
+                                return (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleRefund(order)
+                                    }}
+                                    className={`px-2.5 py-1 text-xs font-bold border rounded-lg transition-colors ${cls}`}
+                                    title={
+                                      isOrphan
+                                        ? 'DB는 취소완료인데 실제 환불이 안 된 주문. 즉시 처리 필요'
+                                        : 'PG 결제 환불 처리'
+                                    }
+                                  >
+                                    {label}
+                                  </button>
+                                )
+                              }
+
+                              // 계좌이체 주문 수동 환불
+                              if (isBank && (isCustomerRequested || isOrphan)) {
+                                return (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleRefund(order)
+                                    }}
+                                    className="px-2.5 py-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-300 rounded-lg hover:bg-amber-100 transition-colors"
+                                    title="계좌이체 수동 환불 기록"
+                                  >
+                                    수동환불
+                                  </button>
+                                )
+                              }
+                              return null
+                            })()}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -1076,9 +1183,9 @@ export default function AdminOrdersPage() {
                               )}
                             </div>
                             {/* 결제 정보 및 환불 */}
-                            {order.payment_id && (
-                              <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
-                                <div className="flex items-center gap-3 text-sm">
+                            {(order.payment_id || order.payment_method === 'bank_transfer') && (
+                              <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div className="flex items-center gap-3 text-sm flex-wrap">
                                   <span className={`px-2 py-0.5 text-xs font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
                                     {getPaymentBadge(order.payment_method).label}
                                   </span>
@@ -1092,10 +1199,20 @@ export default function AdminOrdersPage() {
                                       영수증 보기
                                     </a>
                                   )}
-                                  {order.refunded_at && (
-                                    <span className="text-xs text-red-500">
+                                  {order.refunded_at ? (
+                                    <span className="text-xs text-emerald-700 font-semibold">
                                       환불완료 ({formatDate(order.refunded_at)})
                                       {order.refund_amount != null && ` - ${formatPrice(order.refund_amount)}`}
+                                    </span>
+                                  ) : order.status === 'cancelled' && order.payment_id ? (
+                                    <span className="text-xs text-red-600 font-bold animate-pulse">
+                                      ⚠️ DB만 취소완료이고 실제 환불 미처리 — 환불 버튼으로 즉시 처리 필요
+                                    </span>
+                                  ) : null}
+                                  {/* 환불 사유 — 감사 추적용 */}
+                                  {order.refund_reason && (
+                                    <span className="text-xs text-slate-500">
+                                      사유: <span className="text-slate-700 font-medium">{order.refund_reason}</span>
                                     </span>
                                   )}
                                 </div>
@@ -1105,9 +1222,9 @@ export default function AdminOrdersPage() {
                                       e.stopPropagation()
                                       handleRefund(order)
                                     }}
-                                    className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                                    className="px-3 py-1 text-xs font-bold text-white bg-red-500 hover:bg-red-600 border-2 border-slate-900 rounded-lg shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex-shrink-0"
                                   >
-                                    환불 처리
+                                    {order.payment_method === 'bank_transfer' ? '수동환불 기록' : '환불 처리'}
                                   </button>
                                 )}
                               </div>
@@ -1628,6 +1745,26 @@ export default function AdminOrdersPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* 환불 모달 */}
+        {refundTarget && (
+          <RefundModal
+            order={{
+              id: refundTarget.id,
+              order_number: refundTarget.order_number,
+              recipient_name: refundTarget.recipient_name,
+              perfume_name: refundTarget.perfume_name,
+              final_price: refundTarget.final_price || refundTarget.price || 0,
+              payment_method: refundTarget.payment_method,
+              payment_id: refundTarget.payment_id,
+              receipt_url: refundTarget.receipt_url,
+              status: refundTarget.status,
+              refunded_at: refundTarget.refunded_at,
+            }}
+            onClose={() => setRefundTarget(null)}
+            onSuccess={handleRefundSuccess}
+          />
         )}
       </div>
     </div>

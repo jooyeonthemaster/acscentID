@@ -225,10 +225,24 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 유효한 상태값 확인
-    const validStatuses = ['pending', 'paid', 'shipping', 'delivered', 'cancelled']
+    // 주의: 'cancelled'는 허용하지 않음. 환불은 반드시 POST /api/admin/orders/refund 또는
+    //      POST /api/admin/orders/refund/manual 경로를 거쳐야 포트원 취소 및 감사 로그가 기록된다.
+    // 'cancel_requested'는 고객 취소 요청 확정/해제 용도로만 허용.
+    const validStatuses = [
+      'pending',
+      'paid',
+      'shipping',
+      'delivered',
+      'cancel_requested',
+    ]
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
-        { error: '유효하지 않은 상태값입니다' },
+        {
+          error:
+            status === 'cancelled'
+              ? '취소완료 상태는 환불 API를 통해서만 설정할 수 있습니다. 환불 버튼을 이용하세요.'
+              : '유효하지 않은 상태값입니다',
+        },
         { status: 400 }
       )
     }

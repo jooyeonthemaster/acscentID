@@ -129,11 +129,44 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true })
         }
 
-        // 주문 상태 업데이트
+        // 이미 우리 측에서 환불 처리된 주문이면 중복 업데이트 방지
+        if (order.refunded_at) {
+          console.log('[Payments Webhook] Order already refunded, skipping:', order.id)
+          return NextResponse.json({ success: true })
+        }
+
+        // 포트원에서 실제 결제 상태 재조회하여 정확한 환불 금액/시각 확보
+        let cancelledAmount = order.final_price
+        let cancelledAt: string = new Date().toISOString()
+        let cancellationId: string | null = null
+        let portonePayment = null
+        try {
+          portonePayment = await getPortOnePayment(data.paymentId)
+          if (portonePayment?.amount?.cancelled) {
+            cancelledAmount = portonePayment.amount.cancelled
+          }
+          // PortOneCancellation[]이 있으면 최신 취소 시각/ID 추출 (SDK 응답 구조에 따라 필드명 방어적 접근)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const cancellations = (portonePayment as any)?.cancellations as Array<{ cancelledAt?: string; id?: string }> | undefined
+          if (Array.isArray(cancellations) && cancellations.length > 0) {
+            const latest = cancellations[cancellations.length - 1]
+            if (latest?.cancelledAt) cancelledAt = latest.cancelledAt
+            if (latest?.id) cancellationId = latest.id
+          }
+        } catch (portoneErr) {
+          console.warn('[Payments Webhook] PortOne lookup failed, using fallback values:', portoneErr)
+        }
+
+        // 주문 상태 업데이트 — refunded_at 포함하여 동기화
         const { error: updateError } = await serviceClient
           .from('orders')
           .update({
             status: 'cancelled',
+            refunded_at: cancelledAt,
+            refund_amount: cancelledAmount,
+            refund_reason: order.refund_reason || '포트원 웹훅 취소 이벤트',
+            cancellation_id: cancellationId,
+            refunded_by: order.refunded_by || 'webhook',
             updated_at: new Date().toISOString(),
           })
           .eq('id', order.id)
@@ -142,6 +175,26 @@ export async function POST(request: NextRequest) {
           console.error('[Payments Webhook] Cancellation update failed:', updateError)
         } else {
           console.log('[Payments Webhook] Order cancelled:', order.id)
+        }
+
+        // refund_logs 감사 기록 (테이블 없으면 조용히 스킵)
+        try {
+          await serviceClient.from('refund_logs').insert({
+            order_id: order.id,
+            admin_email: 'webhook',
+            trigger_type: 'webhook',
+            payment_id: order.payment_id,
+            payment_method: order.payment_method,
+            pg_provider: order.pg_provider,
+            amount: cancelledAmount,
+            reason: '포트원 웹훅 취소 이벤트',
+            cancellation_id: cancellationId,
+            portone_response: portonePayment ?? null,
+            status: 'succeeded',
+            completed_at: new Date().toISOString(),
+          })
+        } catch (logErr) {
+          console.warn('[Payments Webhook] refund_logs skipped:', logErr)
         }
 
       } catch (cancelError) {

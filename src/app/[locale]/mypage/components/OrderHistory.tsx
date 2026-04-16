@@ -46,7 +46,14 @@ interface Order {
   analysis_data?: ImageAnalysisResult
   product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test'
   payment_method?: string
+  payment_id?: string | null
   analysis_id?: string  // 분석 결과 ID (레시피 연결용)
+  // 환불 관련 (cancelled 상태에서 유효)
+  refund_amount?: number | null
+  refunded_at?: string | null
+  refund_reason?: string | null
+  final_price?: number
+  cancel_requested_at?: string | null
 }
 
 interface OrderHistoryProps {
@@ -307,6 +314,12 @@ function OrderCard({
               )}
             </div>
           </div>
+          {/* 환불 상태 안내 — 리스트 뷰에서도 표시 */}
+          {(order.status === 'cancel_requested' || order.status === 'cancelled') && (
+            <div className="mt-3">
+              <RefundStatusCard order={order} />
+            </div>
+          )}
         </motion.div>
 
         {/* 레시피 모달 */}
@@ -415,6 +428,11 @@ function OrderCard({
             <StatusIcon size={14} />
             <span>{tStatus(statusKeys.descKey)}</span>
           </div>
+
+          {/* 환불 상태 안내 — 취소 요청/취소 완료 시 표시 */}
+          {(order.status === 'cancel_requested' || order.status === 'cancelled') && (
+            <RefundStatusCard order={order} />
+          )}
 
           {/* 액션 버튼들 */}
           <div className="grid grid-cols-2 gap-2 pt-2">
@@ -685,4 +703,121 @@ export function OrderHistory({ orders, loading, viewMode, onOrderUpdate }: Order
       </div>
     </div>
   )
+}
+
+/**
+ * 취소 요청/취소 완료 상태에서 환불 진행 상태를 고객에게 명확히 보여주는 카드.
+ *  - cancel_requested + 미환불: "환불 처리 중" 안내
+ *  - cancelled + 환불 완료: 금액·일시·결제수단별 반영 기간 안내
+ *  - cancelled + 미환불 (오염된 상태): 관리자에게 문의 안내
+ */
+function RefundStatusCard({ order }: { order: Order }) {
+  const isBank = order.payment_method === 'bank_transfer'
+  const hasPaymentId = !!order.payment_id
+  const isRefunded = !!order.refunded_at
+
+  const methodGuide = (() => {
+    switch (order.payment_method) {
+      case 'card':
+        return '신용/체크카드는 카드사 정책에 따라 영업일 기준 3~7일 내에 승인 취소 또는 환급이 반영됩니다.'
+      case 'kakao_pay':
+        return '카카오페이는 영업일 기준 1~3일 내에 잔액 또는 결제 수단으로 환불됩니다.'
+      case 'naver_pay':
+        return '네이버페이는 영업일 기준 1~3일 내에 잔액 또는 결제 수단으로 환불됩니다.'
+      case 'bank_transfer':
+        return '계좌이체는 입금자명 확인 후 지정 계좌로 영업일 기준 1~3일 내에 송금됩니다.'
+      default:
+        return '결제 수단으로 환불 처리되었습니다.'
+    }
+  })()
+
+  // cancel_requested: 환불 처리 중
+  if (order.status === 'cancel_requested') {
+    return (
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
+        <div className="flex items-start gap-2">
+          <Loader2 size={16} className="text-amber-600 mt-0.5 animate-spin flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs">
+            <p className="font-bold text-amber-900">환불 처리 중</p>
+            <p className="text-amber-800 mt-1 leading-relaxed">
+              취소 요청이 접수되어 관리자가 검토·처리 중입니다. {isBank ? '입금하신 계좌로 영업일 기준 1~3일 내 환불됩니다.' : '포트원을 통해 자동 환불되며, 결제 수단별 반영 기간은 아래와 같습니다.'}
+            </p>
+            {!isBank && (
+              <p className="text-slate-600 mt-1 text-[11px]">{methodGuide}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // cancelled + 환불 완료
+  if (order.status === 'cancelled' && isRefunded) {
+    return (
+      <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3">
+        <div className="flex items-start gap-2">
+          <CheckCircle size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs">
+            <p className="font-bold text-emerald-900">
+              환불 완료
+              {typeof order.refund_amount === 'number' && order.refund_amount > 0 && (
+                <span className="ml-2 text-emerald-700">
+                  {order.refund_amount.toLocaleString()}원
+                </span>
+              )}
+            </p>
+            {order.refunded_at && (
+              <p className="text-emerald-800 mt-0.5">
+                {formatDateTime(order.refunded_at)}
+              </p>
+            )}
+            <p className="text-slate-600 mt-1 leading-relaxed">
+              {methodGuide}
+            </p>
+            {order.refund_reason && (
+              <p className="text-slate-500 mt-1 text-[11px]">
+                사유: {order.refund_reason}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // cancelled + 미환불 (오염된 상태) — 고객에게 문제를 숨기지 않고 명확히 안내
+  if (order.status === 'cancelled' && !isRefunded && hasPaymentId) {
+    return (
+      <div className="bg-red-50 border-2 border-red-400 rounded-xl p-3">
+        <div className="flex items-start gap-2">
+          <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs">
+            <p className="font-bold text-red-900">환불 처리 확인 중</p>
+            <p className="text-red-800 mt-1 leading-relaxed">
+              주문은 취소됐으나 환불 반영이 확인되지 않았습니다. 수분 내 자동으로 반영되며, 계속 보이면 주문번호와 함께 고객센터로 문의해 주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // cancelled + 계좌이체 + 미환불 (수동 송금 대기)
+  if (order.status === 'cancelled' && !isRefunded && isBank) {
+    return (
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
+        <div className="flex items-start gap-2">
+          <Clock size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs">
+            <p className="font-bold text-amber-900">환불 준비 중</p>
+            <p className="text-amber-800 mt-1 leading-relaxed">
+              입금하신 계좌로 수동 송금 준비 중입니다. 영업일 기준 1~3일 내 완료됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return null
 }

@@ -95,6 +95,80 @@ export function newOrderTemplate(data: {
   }
 }
 
+// 환불 완료 안내 템플릿 (고객 대상) — 결제 수단별 안내 차등
+export function refundCompletedTemplate(data: {
+  orderNumber: string
+  recipientName: string
+  perfumeName: string
+  refundAmount: number
+  paymentMethod: string // 'card' | 'kakao_pay' | 'naver_pay' | 'bank_transfer'
+  refundedAt: string
+  reason?: string
+}) {
+  const methodGuide = (() => {
+    switch (data.paymentMethod) {
+      case 'card':
+        return '신용/체크카드로 결제하신 건은 카드사 정책에 따라 영업일 기준 <strong>3~7일 내</strong>에 승인 취소 또는 환급이 반영됩니다.'
+      case 'kakao_pay':
+        return '카카오페이로 결제하신 건은 카카오페이 잔액 또는 결제 수단으로 <strong>영업일 기준 1~3일 내</strong> 환불됩니다.'
+      case 'naver_pay':
+        return '네이버페이로 결제하신 건은 네이버페이 잔액 또는 결제 수단으로 <strong>영업일 기준 1~3일 내</strong> 환불됩니다.'
+      case 'bank_transfer':
+        return '계좌이체(무통장입금) 환불은 입금자명 확인 후 지정 계좌로 <strong>영업일 기준 1~3일 내</strong> 송금됩니다.'
+      default:
+        return '결제하신 수단으로 환불 처리되었습니다. 반영까지 영업일 기준 1~7일이 소요될 수 있습니다.'
+    }
+  })()
+
+  return {
+    subject: `[ACSCENT] 💸 환불이 완료되었습니다 · ${data.orderNumber}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1a1a1a; margin-bottom: 6px;">💸 환불이 완료되었습니다</h2>
+        <p style="color: #64748b; margin-top: 0; margin-bottom: 20px;">주문하신 상품의 환불 처리가 정상적으로 완료되었습니다.</p>
+
+        <table style="width: 100%; border-collapse: collapse; background: #f0fdf4; border-radius: 8px;">
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 600; width: 32%;">주문번호</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 700; color: #047857;">${data.orderNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 600;">주문자</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5;">${data.recipientName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 600;">상품</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5;">${data.perfumeName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 600;">환불 금액</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 700; color: #047857;">${data.refundAmount.toLocaleString()}원</td>
+          </tr>
+          ${data.reason ? `
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; font-weight: 600;">처리 사유</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #d1fae5; color: #475569;">${data.reason}</td>
+          </tr>` : ''}
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">완료일시</td>
+            <td style="padding: 12px 16px;">${data.refundedAt}</td>
+          </tr>
+        </table>
+
+        <div style="margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;">
+          <p style="margin: 0; color: #065f46; font-size: 14px; line-height: 1.6;">
+            ${methodGuide}
+          </p>
+        </div>
+
+        <p style="margin-top: 20px; color: #64748b; font-size: 13px; line-height: 1.5;">
+          환불 반영이 지연되거나 내역이 확인되지 않는 경우, 주문번호와 함께 고객센터로 문의해 주세요.
+        </p>
+      </div>
+    `
+  }
+}
+
 // 주문 취소 요청 알림 템플릿
 export function cancelRequestTemplate(data: {
   orderNumber: string
