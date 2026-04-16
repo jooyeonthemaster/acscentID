@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense, useMemo } from "react"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Package,
@@ -23,11 +23,13 @@ import { MultiItemOrderSummary } from "./components/MultiItemOrderSummary"
 import { CheckoutForm, CheckoutFormData } from "./components/CheckoutForm"
 import { CouponSelector } from "./components/CouponSelector"
 import { PaymentMethodSelector } from "./components/PaymentMethodSelector"
+import { InAppBrowserNotice } from "./components/InAppBrowserNotice"
 import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import { PRODUCT_PRICING, formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
+import { detectInAppBrowser } from "@/lib/mobile/inAppBrowser"
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -137,6 +139,23 @@ function CheckoutContent() {
 
   const userId = user?.id || unifiedUser?.id
   const userName = unifiedUser?.name || user?.user_metadata?.full_name || ""
+  const userEmail = user?.email || unifiedUser?.email || undefined
+
+  // 인앱브라우저 감지 (결제 시도 차단용)
+  const [isInApp, setIsInApp] = useState(false)
+  useEffect(() => {
+    setIsInApp(detectInAppBrowser().isInApp)
+  }, [])
+
+  // 현재 locale (PortOne redirectUrl에 전달)
+  const routeParams = useParams<{ locale?: string }>()
+  const currentLocale = routeParams?.locale ?? 'ko'
+  const completePath = useMemo(() => {
+    // localePrefix: 'as-needed' — ko는 prefix 없이 기본 경로 사용
+    return currentLocale && currentLocale !== 'ko'
+      ? `/${currentLocale}/checkout/complete`
+      : '/checkout/complete'
+  }, [currentLocale])
 
   // 로그인 확인 및 데이터 로드
   useEffect(() => {
@@ -474,9 +493,36 @@ function CheckoutContent() {
 
       // 온라인 결제 (카드, 카카오페이, 네이버페이)
       if (paymentMethod !== "bank_transfer") {
+        // 온라인 결제 선택 시점 인앱 재검증 — 배너를 무시하고 버튼을 누른 경우 방어
+        if (detectInAppBrowser().isInApp) {
+          await fetch(`/api/orders/${result.orderId}/payment-failed`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: "인앱 브라우저 결제 차단" }),
+          }).catch(() => {})
+          setIsSubmitting(false)
+          alert("현재 브라우저에서는 결제가 제한됩니다. Safari 또는 Chrome으로 다시 시도해주세요.")
+          return
+        }
+
         const orderName = isMultiItemMode
           ? t('checkout.orderNameMulti', { name: checkoutItems[0].perfume_name, count: checkoutItems.length - 1 })
           : perfumeName
+
+        // localStorage 주문 요약 정보는 모바일 리디렉션으로 페이지가 이탈하기
+        // 전에 미리 저장해 complete 페이지가 복원할 수 있도록 한다.
+        const savedPrice = totalPrice.toString()
+        const savedPerfumeName = isMultiItemMode
+          ? checkoutItems.map(i => i.perfume_name).join(", ")
+          : perfumeName
+        const savedSize = isMultiItemMode
+          ? checkoutItems.map(i => i.size).join(", ")
+          : selectedSize
+        try {
+          localStorage.setItem("lastOrderPrice", savedPrice)
+          localStorage.setItem("lastOrderPerfumeName", savedPerfumeName)
+          localStorage.setItem("lastOrderSize", savedSize)
+        } catch {}
 
         const paymentResult = await initiatePayment({
           orderId: result.orderId,
@@ -485,7 +531,14 @@ function CheckoutContent() {
           paymentMethod,
           customerName: formData.name,
           customerPhone: `${formData.phone1}-${formData.phone2}-${formData.phone3}`,
+          customerEmail: userEmail,
+          completePath,
         })
+
+        // 모바일 리디렉션 진행 중 — 페이지가 곧 PG로 이탈하므로 아무 것도 하지 않음
+        if (paymentResult.redirecting) {
+          return
+        }
 
         if (!paymentResult.success) {
           // 결제 미완료 주문 즉시 삭제 (결제가 안 됐으므로 주문 자체를 제거)
@@ -498,6 +551,13 @@ function CheckoutContent() {
           } catch (e) {
             console.error("[Checkout] Failed to clean up pending order:", e)
           }
+
+          // 리디렉션 실패 시 저장해둔 요약 정리
+          try {
+            localStorage.removeItem("lastOrderPrice")
+            localStorage.removeItem("lastOrderPerfumeName")
+            localStorage.removeItem("lastOrderSize")
+          } catch {}
 
           if (paymentResult.cancelled) {
             setIsSubmitting(false)
@@ -569,6 +629,9 @@ function CheckoutContent() {
 
       <main className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
+          {/* 인앱브라우저 경고 배너 — 결제 차단 전 최상단 안내 */}
+          <InAppBrowserNotice />
+
           {/* 페이지 타이틀 */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -842,35 +905,50 @@ function CheckoutContent() {
 
             {/* 결제 버튼 */}
             <div>
-              <button
-                onClick={handleSubmitOrder}
-                disabled={isSubmitting || !isFormValid()}
-                className="group relative w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="absolute inset-0 bg-slate-900 rounded-2xl translate-x-1 translate-y-1 transition-transform group-hover:translate-x-2 group-hover:translate-y-2 group-disabled:translate-x-1 group-disabled:translate-y-1" />
-                <div className="relative w-full h-14 bg-[#F472B6] text-white rounded-2xl border-2 border-slate-900 font-black text-lg flex items-center justify-center gap-2 transition-transform group-hover:-translate-y-0.5 group-disabled:hover:translate-y-0">
-                  {isSubmitting ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                      />
-                      <span>{t('checkout.processingOrder')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={20} />
-                      <span>{formatPrice(totalPrice)}{t('currency.suffix')} {paymentMethod === "bank_transfer" ? t('checkout.orderButton') : t('checkout.payButton')}</span>
-                    </>
-                  )}
-                </div>
-              </button>
-              {!isFormValid() && (
-                <p className="text-xs text-slate-500 text-center mt-3 font-bold">
-                  {t('checkout.fillRequired')}
-                </p>
-              )}
+              {(() => {
+                const isOnlinePayment = paymentMethod !== "bank_transfer"
+                const blockedByInApp = isOnlinePayment && isInApp
+                const buttonDisabled = isSubmitting || !isFormValid() || blockedByInApp
+                return (
+                  <>
+                    <button
+                      onClick={handleSubmitOrder}
+                      disabled={buttonDisabled}
+                      aria-disabled={buttonDisabled}
+                      className="group relative w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="absolute inset-0 bg-slate-900 rounded-2xl translate-x-1 translate-y-1 transition-transform group-hover:translate-x-2 group-hover:translate-y-2 group-disabled:translate-x-1 group-disabled:translate-y-1" />
+                      <div className="relative w-full h-14 bg-[#F472B6] text-white rounded-2xl border-2 border-slate-900 font-black text-lg flex items-center justify-center gap-2 transition-transform group-hover:-translate-y-0.5 group-disabled:hover:translate-y-0">
+                        {isSubmitting ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                            />
+                            <span>{t('checkout.processingOrder')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={20} />
+                            <span>{formatPrice(totalPrice)}{t('currency.suffix')} {paymentMethod === "bank_transfer" ? t('checkout.orderButton') : t('checkout.payButton')}</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                    {blockedByInApp && (
+                      <p className="text-xs text-red-600 text-center mt-3 font-bold break-keep">
+                        인앱 브라우저에서는 카드 결제가 제한됩니다. 상단 안내에 따라 외부 브라우저로 열어주세요.
+                      </p>
+                    )}
+                    {!isFormValid() && !blockedByInApp && (
+                      <p className="text-xs text-slate-500 text-center mt-3 font-bold">
+                        {t('checkout.fillRequired')}
+                      </p>
+                    )}
+                  </>
+                )
+              })()}
             </div>
 
             {/* 안내 문구 */}

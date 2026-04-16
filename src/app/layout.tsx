@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Jua, Kirang_Haerang } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -34,6 +34,16 @@ export const metadata: Metadata = {
   },
 };
 
+// 모바일 viewport 명시 — PG 결제창 호출 시 의도치 않은 줌/리사이즈 방지.
+// maximumScale=5로 접근성(확대) 여지를 남긴다.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: "#FEF9E7",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,9 +52,11 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <head>
+        {/* Daum 우편번호 — afterInteractive로 로드해 모바일 첫 클릭에서
+            스크립트가 준비되지 않아 발생하는 체감 지연을 방지한다. */}
         <Script
-          src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
-          strategy="lazyOnload"
+          src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+          strategy="afterInteractive"
         />
       </head>
       <body

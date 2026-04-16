@@ -13,7 +13,9 @@ import {
   Truck,
   Clock,
   Sparkles,
-  Heart
+  Heart,
+  AlertCircle,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from 'next-intl'
@@ -28,6 +30,14 @@ const BANK_INFO = {
   holder: "(주)네안데르"
 }
 
+type VerifyStatus =
+  | "idle"
+  | "verifying"
+  | "verified"
+  | "failed"
+  | "cancelled"
+  | "not_required"
+
 function OrderCompleteContent() {
   const t = useTranslations()
   const router = useRouter()
@@ -35,7 +45,16 @@ function OrderCompleteContent() {
   const orderId = searchParams.get("orderId")
   const paymentMethodParam = searchParams.get("paymentMethod") || "bank_transfer"
   const isBankTransfer = paymentMethodParam === "bank_transfer"
+
+  // PG가 리다이렉트하며 자동으로 붙이는 쿼리 파라미터 (PortOne V2)
+  const pgPaymentId = searchParams.get("paymentId")
+  const pgCode = searchParams.get("code")
+  const pgMessage = searchParams.get("message")
+  const pgTxId = searchParams.get("txId")
+
   const [copied, setCopied] = useState(false)
+  const [verifyStatus, setVerifyStatus] = useState<VerifyStatus>("idle")
+  const [verifyError, setVerifyError] = useState<string | null>(null)
   const [orderInfo, setOrderInfo] = useState<{
     orderNumber: string
     price: number
@@ -43,81 +62,141 @@ function OrderCompleteContent() {
     perfumeName: string
   } | null>(null)
 
+  // 결제 검증 + 주문 정보 로드
   useEffect(() => {
-    // 주문 정보 로드 (localStorage에서 가져오기)
-    const loadOrderInfo = async () => {
-      if (orderId) {
+    if (!orderId) return
+
+    let cancelled = false
+
+    const run = async () => {
+      // 1) PG가 전달한 에러/취소 먼저 판단
+      if (pgCode) {
+        if (pgCode === "USER_CANCEL" || pgCode === "PAY_PROCESS_CANCELED") {
+          setVerifyStatus("cancelled")
+          setVerifyError("결제가 취소되었습니다.")
+          // 미결제 주문 정리 (fire-and-forget)
+          fetch(`/api/orders/${orderId}/payment-failed`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: "사용자 결제 취소" }),
+          }).catch(() => {})
+          return
+        }
+        setVerifyStatus("failed")
+        setVerifyError(pgMessage || `결제 실패 (${pgCode})`)
+        fetch(`/api/orders/${orderId}/payment-failed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: `결제 실패: ${pgCode}` }),
+        }).catch(() => {})
+        return
+      }
+
+      // 2) 온라인 결제 — paymentId가 있으면 서버 검증 호출
+      if (!isBankTransfer) {
+        // 세션에 저장해둔 결제 컨텍스트 복원 (모바일 리디렉션 대응)
+        let pendingPaymentId = pgPaymentId
+        const pendingTxId = pgTxId
         try {
-          // checkout 페이지에서 저장한 주문 정보 가져오기
-          const price = localStorage.getItem("lastOrderPrice")
-          const perfumeName = localStorage.getItem("lastOrderPerfumeName")
-          const size = localStorage.getItem("lastOrderSize")
-
-          console.log("[OrderComplete] localStorage values:", { price, perfumeName, size })
-
-          if (price) {
-            setOrderInfo({
-              orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
-              price: parseInt(price),
-              size: size || "10ml",
-              perfumeName: perfumeName || t('result.customPerfumeAlt')
-            })
-
-            // 사용 후 정리
-            localStorage.removeItem("lastOrderPrice")
-            localStorage.removeItem("lastOrderPerfumeName")
-            localStorage.removeItem("lastOrderSize")
-          } else {
-            // fallback: API로 주문 정보 조회
-            console.log("[OrderComplete] localStorage empty, fetching from API...")
-            try {
-              const response = await fetch(`/api/orders/${orderId}`)
-              const data = await response.json()
-
-              if (data.success && data.order) {
-                console.log("[OrderComplete] API response:", data.order)
-                setOrderInfo({
-                  orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
-                  price: data.order.final_price,
-                  size: data.order.size,
-                  perfumeName: data.order.perfume_name || t('result.customPerfumeAlt')
-                })
-              } else {
-                // API 실패 시 최종 fallback
-                const savedResult = localStorage.getItem("analysisResult")
-                if (savedResult) {
-                  const result = JSON.parse(savedResult)
-                  setOrderInfo({
-                    orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
-                    price: 24000,
-                    size: "10ml",
-                    perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || t('result.customPerfumeAlt')
-                  })
-                }
-              }
-            } catch (apiError) {
-              console.error("[OrderComplete] API fetch failed:", apiError)
-              // 최종 fallback: 기본값 사용
-              const savedResult = localStorage.getItem("analysisResult")
-              if (savedResult) {
-                const result = JSON.parse(savedResult)
-                setOrderInfo({
-                  orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
-                  price: 24000,
-                  size: "10ml",
-                  perfumeName: result?.matchingPerfumes?.[0]?.persona?.name || t('result.customPerfumeAlt')
-                })
-              }
+          const raw = sessionStorage.getItem(`portone:pending:${orderId}`)
+          if (raw) {
+            const ctx = JSON.parse(raw) as {
+              paymentId?: string
+            }
+            if (!pendingPaymentId && ctx.paymentId) {
+              pendingPaymentId = ctx.paymentId
             }
           }
-        } catch (e) {
-          console.error("Failed to load order info:", e)
+        } catch {}
+
+        if (!pendingPaymentId) {
+          // 쿼리에도 세션에도 paymentId가 없으면 — PC 경로에서 이미
+          // initiatePayment가 직접 verify를 호출한 상태일 수 있음.
+          // 이 경우 주문 상태를 서버에서 그대로 읽어온다.
+          setVerifyStatus("not_required")
+        } else {
+          setVerifyStatus("verifying")
+          try {
+            const res = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                paymentId: pendingPaymentId,
+                orderId,
+                txId: pendingTxId || undefined,
+              }),
+            })
+            if (cancelled) return
+            if (!res.ok) {
+              const result = await res.json().catch(() => ({}))
+              setVerifyStatus("failed")
+              setVerifyError(result.error || "결제 검증에 실패했습니다.")
+              return
+            }
+            setVerifyStatus("verified")
+            // 세션 컨텍스트 정리
+            try {
+              sessionStorage.removeItem(`portone:pending:${orderId}`)
+            } catch {}
+          } catch (e) {
+            if (cancelled) return
+            console.error("[OrderComplete] Verify request failed:", e)
+            setVerifyStatus("failed")
+            setVerifyError("결제 검증 중 오류가 발생했습니다.")
+            return
+          }
         }
+      } else {
+        setVerifyStatus("not_required")
+      }
+
+      // 3) 주문 표시 정보 로드
+      const loadFromStorage = () => {
+        const price = localStorage.getItem("lastOrderPrice")
+        const perfumeName = localStorage.getItem("lastOrderPerfumeName")
+        const size = localStorage.getItem("lastOrderSize")
+        if (!price) return null
+        return {
+          orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+          price: parseInt(price, 10),
+          size: size || "10ml",
+          perfumeName: perfumeName || t('result.customPerfumeAlt'),
+        }
+      }
+
+      const fromStorage = loadFromStorage()
+      if (fromStorage) {
+        setOrderInfo(fromStorage)
+        localStorage.removeItem("lastOrderPrice")
+        localStorage.removeItem("lastOrderPerfumeName")
+        localStorage.removeItem("lastOrderSize")
+        return
+      }
+
+      // localStorage가 비어있는 경우 (모바일 리다이렉트 이후 등) API 조회
+      try {
+        const res = await fetch(`/api/orders/${orderId}`)
+        const data = await res.json()
+        if (cancelled) return
+        if (data.success && data.order) {
+          setOrderInfo({
+            orderNumber: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
+            price: data.order.final_price,
+            size: data.order.size || "10ml",
+            perfumeName: data.order.perfume_name || t('result.customPerfumeAlt'),
+          })
+        }
+      } catch (e) {
+        console.error("[OrderComplete] Order fetch failed:", e)
       }
     }
 
-    loadOrderInfo()
-  }, [orderId])
+    run()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, isBankTransfer, pgCode, pgMessage, pgPaymentId, pgTxId])
 
   // 계좌번호 복사
   const copyAccountNumber = async () => {
@@ -125,7 +204,7 @@ function OrderCompleteContent() {
       await navigator.clipboard.writeText(BANK_INFO.accountRaw)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch {
       const textArea = document.createElement("textarea")
       textArea.value = BANK_INFO.accountRaw
       document.body.appendChild(textArea)
@@ -135,6 +214,57 @@ function OrderCompleteContent() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  // 검증 중/실패 상태 UI
+  if (!isBankTransfer && verifyStatus === "verifying") {
+    return (
+      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-6">
+        <div className="w-full max-w-sm bg-white border-2 border-slate-900 rounded-3xl p-8 shadow-[4px_4px_0px_#000] flex flex-col items-center gap-4">
+          <div className="w-16 h-16 bg-[#A5F3FC] border-2 border-slate-900 rounded-full flex items-center justify-center">
+            <Loader2 size={28} className="text-slate-900 animate-spin" strokeWidth={2.5} />
+          </div>
+          <h2 className="font-black text-xl text-slate-900 text-center">결제를 확인하고 있습니다</h2>
+          <p className="text-sm text-slate-600 text-center font-medium leading-relaxed">
+            잠시만 기다려 주세요.<br />페이지를 닫거나 새로고침하지 마세요.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isBankTransfer && (verifyStatus === "failed" || verifyStatus === "cancelled")) {
+    const isCancel = verifyStatus === "cancelled"
+    return (
+      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm bg-white border-2 border-slate-900 rounded-3xl p-8 shadow-[4px_4px_0px_#000] flex flex-col items-center gap-4">
+          <div className={`w-16 h-16 border-2 border-slate-900 rounded-full flex items-center justify-center ${
+            isCancel ? "bg-slate-100" : "bg-red-100"
+          }`}>
+            <AlertCircle size={28} className={isCancel ? "text-slate-700" : "text-red-600"} strokeWidth={2.5} />
+          </div>
+          <h2 className="font-black text-xl text-slate-900 text-center">
+            {isCancel ? "결제가 취소되었습니다" : "결제에 실패했습니다"}
+          </h2>
+          <p className="text-sm text-slate-600 text-center font-medium leading-relaxed break-keep">
+            {verifyError || "결제 처리 중 문제가 발생했습니다."}
+          </p>
+          <div className="w-full flex flex-col gap-2 mt-2">
+            <button
+              onClick={() => router.push("/checkout")}
+              className="w-full h-12 bg-[#F472B6] text-white rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+            >
+              다시 결제하기
+            </button>
+            <Link href="/mypage" className="block">
+              <button className="w-full h-12 bg-white text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                마이페이지로 이동
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
