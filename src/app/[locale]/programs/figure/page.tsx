@@ -20,6 +20,8 @@ import { useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { useProductPricing } from "@/hooks/useProductPricing"
+import { formatPrice } from "@/types/cart"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -40,6 +42,11 @@ const staggerContainer = {
 
 export default function FigurePage() {
   const { user, unifiedUser, loading } = useAuth()
+  const { getOption } = useProductPricing()
+  const figureOpt = getOption('figure_diffuser', 'set')
+  const figureDiscount = (figureOpt?.price && figureOpt.original_price && figureOpt.original_price > figureOpt.price)
+    ? Math.round(((figureOpt.original_price - figureOpt.price) / figureOpt.original_price) * 100)
+    : null
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -190,9 +197,15 @@ export default function FigurePage() {
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}48,000</span>
-                <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}68,000</span>
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">29% OFF</span>
+                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
+                {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
+                  <>
+                    <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
+                    {figureDiscount !== null && (
+                      <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{figureDiscount}% OFF</span>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* 구성품 안내 */}

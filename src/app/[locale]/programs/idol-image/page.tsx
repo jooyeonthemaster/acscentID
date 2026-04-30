@@ -21,6 +21,8 @@ import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
+import { useProductPricing } from "@/hooks/useProductPricing"
+import { formatPrice } from "@/types/cart"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -41,6 +43,11 @@ const staggerContainer = {
 
 export default function IdolImagePage() {
   const { user, unifiedUser, loading } = useAuth()
+  const { getOption } = useProductPricing()
+  const idolOpt = getOption('image_analysis', '10ml')
+  const idolDiscount = (idolOpt?.price && idolOpt.original_price && idolOpt.original_price > idolOpt.price)
+    ? Math.round(((idolOpt.original_price - idolOpt.price) / idolOpt.original_price) * 100)
+    : null
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()
@@ -131,9 +138,15 @@ export default function IdolImagePage() {
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}24,000~</span>
-                <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}35,000</span>
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">31% OFF</span>
+                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(idolOpt?.price ?? 24000)}~</span>
+                {idolOpt?.original_price && idolOpt.original_price > idolOpt.price && (
+                  <>
+                    <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(idolOpt.original_price)}</span>
+                    {idolDiscount !== null && (
+                      <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{idolDiscount}% OFF</span>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* 구성품 안내 */}

@@ -12,6 +12,8 @@ import {
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { useProductPricing } from "@/hooks/useProductPricing"
+import { formatPrice } from "@/types/cart"
 import { useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
@@ -35,6 +37,13 @@ const staggerContainer = {
 }
 
 export default function PersonalPage() {
+  const { getOption } = useProductPricing()
+  const personal10 = getOption('personal_scent', '10ml')
+  const personal50 = getOption('personal_scent', '50ml')
+  const personalDiscount = (personal10?.price && personal10.original_price && personal10.original_price > personal10.price)
+    ? Math.round(((personal10.original_price - personal10.price) / personal10.original_price) * 100)
+    : null
+
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -191,9 +200,15 @@ export default function PersonalPage() {
               {/* 가격 */}
               <div className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black] mb-6">
                 <div className="flex items-end gap-3 mb-4">
-                  <span className="text-4xl font-black text-black">24,000원</span>
-                  <span className="text-lg text-slate-400 line-through">34,000원</span>
-                  <span className="px-2 py-1 bg-black text-white text-xs font-bold rounded-lg">30% OFF</span>
+                  <span className="text-4xl font-black text-black">{formatPrice(personal10?.price ?? 24000)}원</span>
+                  {personal10?.original_price && personal10.original_price > personal10.price && (
+                    <>
+                      <span className="text-lg text-slate-400 line-through">{formatPrice(personal10.original_price)}원</span>
+                      {personalDiscount !== null && (
+                        <span className="px-2 py-1 bg-black text-white text-xs font-bold rounded-lg">{personalDiscount}% OFF</span>
+                      )}
+                    </>
+                  )}
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-slate-600">
@@ -217,11 +232,11 @@ export default function PersonalPage() {
                 <div className="flex gap-3">
                   <button className="flex-1 p-4 rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] bg-white text-center">
                     <p className="text-lg font-black">10ml</p>
-                    <p className="text-sm text-slate-500">24,000원</p>
+                    <p className="text-sm text-slate-500">{formatPrice(personal10?.price ?? 24000)}원</p>
                   </button>
                   <button className="flex-1 p-4 rounded-xl border-2 border-slate-200 hover:border-black bg-white/50 text-center transition-all">
                     <p className="text-lg font-bold text-slate-600">50ml</p>
-                    <p className="text-sm text-slate-400">48,000원</p>
+                    <p className="text-sm text-slate-400">{formatPrice(personal50?.price ?? 48000)}원</p>
                   </button>
                 </div>
               </div>

@@ -41,6 +41,7 @@ export default function Home() {
   const idolPrice = minPrice('image_analysis')
   const figurePrice = minPrice('figure_diffuser')
   const chemistryPrice = minPrice('chemistry_set')
+  const leQuackPrice = minPrice('signature')
 
   const computeBadge = (p: { price: number; original_price: number | null } | null, fallback: string) => {
     if (!p || !p.original_price || p.original_price <= p.price) return fallback
@@ -314,10 +315,18 @@ export default function Home() {
                   <p className="text-xs text-slate-500 font-medium">
                     {t('home.signaturePerfumDesc')}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-sm font-bold text-slate-900">{t('currency.symbol')}34,000</span>
-                    <span className="text-[10px] text-slate-400 line-through">{t('currency.symbol')}45,000</span>
-                  </div>
+                  {(() => {
+                    const lqPrice: number = leQuackPrice?.price ?? 34000
+                    const lqOrig: number = leQuackPrice?.original_price ?? 0
+                    return (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-sm font-bold text-slate-900">{t('currency.symbol')}{lqPrice.toLocaleString()}</span>
+                        {lqOrig > lqPrice && (
+                          <span className="text-[10px] text-slate-400 line-through">{t('currency.symbol')}{lqOrig.toLocaleString()}</span>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
 

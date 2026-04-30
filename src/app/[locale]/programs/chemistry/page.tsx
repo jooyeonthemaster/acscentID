@@ -20,6 +20,8 @@ import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
+import { useProductPricing } from "@/hooks/useProductPricing"
+import { formatPrice } from "@/types/cart"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -40,6 +42,13 @@ const staggerContainer = {
 
 export default function ChemistryProgramPage() {
   const { user, unifiedUser, loading } = useAuth()
+  const { getOption, getOptions } = useProductPricing()
+  const chemSet10 = getOption('chemistry_set', 'set_10ml')
+  const chemSet50 = getOption('chemistry_set', 'set_50ml')
+  const chemMin = getOptions('chemistry_set').reduce<number | null>(
+    (acc, o) => (acc === null || o.price < acc ? o.price : acc),
+    null,
+  )
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()
@@ -130,11 +139,11 @@ export default function ChemistryProgramPage() {
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}38,000~</span>
+                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(chemMin ?? 38000)}~</span>
                 <span className="text-xs text-slate-400">(세트 기준)</span>
               </div>
               <div className="text-xs text-slate-500 mb-3">
-                10ml x 2 세트 {t('currency.symbol')}38,000 / 50ml x 2 세트 {t('currency.symbol')}60,000
+                10ml x 2 세트 {t('currency.symbol')}{formatPrice(chemSet10?.price ?? 38000)} / 50ml x 2 세트 {t('currency.symbol')}{formatPrice(chemSet50?.price ?? 60000)}
               </div>
 
               {/* 구성품 안내 */}

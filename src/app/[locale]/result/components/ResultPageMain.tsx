@@ -29,6 +29,9 @@ import { AuthModal } from '@/components/auth/AuthModal'
 // 졸업 모드 컴포넌트
 import { GraduationTab } from './graduation'
 
+import { useProductPricing } from '@/hooks/useProductPricing'
+import type { ProductType } from '@/types/cart'
+
 // 애니메이션 variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -58,6 +61,7 @@ export default function ResultPageMain() {
   const searchParams = useSearchParams()
   const t = useTranslations()
   const { user, unifiedUser, loading: authLoading } = useAuth()
+  const { getOption, getDefaultPrice, getDefaultSize } = useProductPricing()
 
   // 뒤로가기 경로 결정 (마이페이지에서 왔으면 마이페이지로)
   const fromPage = searchParams.get('from')
@@ -172,19 +176,26 @@ export default function ResultPageMain() {
       const analysisId = savedResultId || existingResultId || `temp-${Date.now()}`
 
       // productType에 따른 상품 정보 결정 (isFigureMode면 무조건 figure_diffuser)
-      const currentProductType = isFigureMode ? 'figure_diffuser' : (productType || 'image_analysis')
+      const currentProductType: ProductType = isFigureMode ? 'figure_diffuser' : ((productType as ProductType) || 'image_analysis')
       let cartSize: string
       let cartPrice: number
 
       if (currentProductType === 'figure_diffuser') {
         cartSize = 'set'
-        cartPrice = 48000
+        cartPrice = getOption('figure_diffuser', 'set')?.price ?? 48000
       } else if (currentProductType === 'graduation') {
         cartSize = '10ml'
-        cartPrice = 34000
+        cartPrice = getOption('graduation', '10ml')?.price ?? 34000
       } else {
+        // image_analysis, personal_scent 등 — 기본 50ml
         cartSize = '50ml'
-        cartPrice = 48000
+        cartPrice = getOption(currentProductType, '50ml')?.price
+          ?? getDefaultPrice(currentProductType)
+          ?? 48000
+        // 50ml 옵션이 없으면 기본 사이즈로 폴백
+        if (!getOption(currentProductType, '50ml')) {
+          cartSize = getDefaultSize(currentProductType)
+        }
       }
 
       const response = await fetch('/api/cart', {

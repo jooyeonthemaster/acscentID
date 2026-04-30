@@ -19,6 +19,8 @@ import { useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { useProductPricing } from "@/hooks/useProductPricing"
+import { formatPrice } from "@/types/cart"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -38,6 +40,12 @@ const staggerContainer = {
 }
 
 export default function LeQuackPage() {
+  const { getOption } = useProductPricing()
+  const sigOpt = getOption('signature', '10ml')
+  const sigDiscount = (sigOpt?.price && sigOpt.original_price && sigOpt.original_price > sigOpt.price)
+    ? Math.round(((sigOpt.original_price - sigOpt.price) / sigOpt.original_price) * 100)
+    : null
+
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -199,9 +207,15 @@ export default function LeQuackPage() {
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">34,000원</span>
-                <span className="text-xs text-slate-400 line-through">45,000원</span>
-                <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded">29% OFF</span>
+                <span className="text-xl font-black text-black">{formatPrice(sigOpt?.price ?? 34000)}원</span>
+                {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
+                  <>
+                    <span className="text-xs text-slate-400 line-through">{formatPrice(sigOpt.original_price)}원</span>
+                    {sigDiscount !== null && (
+                      <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded">{sigDiscount}% OFF</span>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* 구성품 안내 */}
