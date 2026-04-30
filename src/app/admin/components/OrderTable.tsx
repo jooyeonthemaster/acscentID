@@ -13,7 +13,8 @@ import {
   MapPin,
   Phone,
   User,
-  Loader2
+  Loader2,
+  PackageCheck
 } from 'lucide-react'
 
 interface Order {
@@ -30,7 +31,7 @@ interface Order {
   address: string
   address_detail: string
   memo: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
+  status: 'pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
 }
@@ -57,6 +58,11 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
     color: 'bg-blue-100 text-blue-700 border-blue-300',
     icon: CreditCard,
   },
+  preparing: {
+    label: '상품준비중',
+    color: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+    icon: PackageCheck,
+  },
   shipping: {
     label: '배송중',
     color: 'bg-purple-100 text-purple-700 border-purple-300',
@@ -82,6 +88,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 const statusOptions = [
   { value: 'pending', label: '입금대기' },
   { value: 'paid', label: '입금완료' },
+  { value: 'preparing', label: '상품준비중' },
   { value: 'shipping', label: '배송중' },
   { value: 'delivered', label: '배송완료' },
 ]

@@ -214,7 +214,7 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
 
   return (
     <div className="p-5">
-      {/* 주인공 이름 배너 - 2분할 레이아웃 */}
+      {/* 인물 이름 배너 - 2분할 레이아웃 */}
       <div className="bg-yellow-300 border-b-[3px] border-black -mx-5 -mt-5 mb-5 px-5 py-4">
         <div className="flex items-center gap-4">
           {/* 좌측: 사진 */}
@@ -234,7 +234,7 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               <span className="text-sm">{emoji}</span>
               <span className="text-sm font-black text-slate-900">{label}</span>
             </div>
-            <h2 className="text-sm font-black text-slate-900">이 주인공은 어떤 성격인가요?</h2>
+            <h2 className="text-sm font-black text-slate-900">이 인물은 어떤 성격인가요?</h2>
             <p className="text-[11px] text-slate-600 mt-0.5">해당하는 성격을 모두 골라주세요</p>
           </div>
         </div>

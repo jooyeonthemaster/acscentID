@@ -1,8 +1,8 @@
 "use client"
 
-import { useRef } from "react"
-import { motion } from "framer-motion"
-import { Camera, X, Loader2, Moon, Sun } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Camera, X, Loader2, Moon, Sun, KeyRound } from "lucide-react"
 import type { ChemistryFormState } from "../hooks/useChemistryForm"
 
 interface SummonPhaseProps {
@@ -27,6 +27,22 @@ export function SummonPhase({
   const input1Ref = useRef<HTMLInputElement>(null)
   const input2Ref = useRef<HTMLInputElement>(null)
 
+  // 핀 4자리 입력 완료 시 확인 토스트 (이미지 분석 프로그램과 동일한 패턴)
+  const [showPinToast, setShowPinToast] = useState(false)
+  const pinToastShownRef = useRef(false)
+
+  useEffect(() => {
+    if (formData.pin.length === 4 && !pinToastShownRef.current) {
+      pinToastShownRef.current = true
+      setShowPinToast(true)
+      const timer = setTimeout(() => setShowPinToast(false), 4000)
+      return () => clearTimeout(timer)
+    }
+    if (formData.pin.length < 4) {
+      pinToastShownRef.current = false
+    }
+  }, [formData.pin])
+
   return (
     <div className="space-y-6">
       {/* 타이틀 */}
@@ -36,7 +52,7 @@ export function SummonPhase({
           animate={{ opacity: 1, y: 0 }}
           className="text-2xl font-black text-slate-900"
         >
-          두 주인공을 소환하세요
+          두 인물을 소환하세요
         </motion.h1>
         <p className="text-sm text-slate-500 mt-1">이미지와 이름을 입력해주세요</p>
       </div>
@@ -46,26 +62,70 @@ export function SummonPhase({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]"
+          className="space-y-3"
         >
-          <label className="block text-sm font-bold text-slate-700 mb-2">인증 번호 (4자리)</label>
-          <input
-            type="text"
-            maxLength={4}
-            value={formData.pin}
-            onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value.replace(/\D/g, '') }))}
-            className="w-full h-12 px-4 text-center text-2xl font-bold tracking-[0.5em] border-2 border-slate-300 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
-            placeholder="0000"
-          />
+          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]">
+            <label className="block text-sm font-bold text-slate-700 mb-2">인증 번호 (숫자 4자리)</label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              maxLength={4}
+              value={formData.pin}
+              onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value.replace(/\D/g, '') }))}
+              className="w-full h-12 px-4 text-center text-2xl font-bold tracking-[0.5em] border-2 border-slate-300 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
+              placeholder="0000"
+            />
+          </div>
+
+          {/* 핀번호 안내 배너 — 이미지 분석 프로그램과 동일한 멘트 */}
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-start gap-2.5 bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-xl px-3.5 py-3"
+          >
+            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-rose-400 border-2 border-rose-500 flex items-center justify-center mt-0.5">
+              <KeyRound size={14} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-rose-700 leading-tight">
+                아무 숫자 4자리를 입력하고 기억해주세요!
+              </p>
+              <p className="text-[11px] text-rose-600/80 mt-0.5 leading-snug">
+                나중에 결과를 확인할 때 이 번호가 필요합니다. 본인만 기억하면 OK!
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
       )}
+
+      {/* 핀번호 확인 토스트 */}
+      <AnimatePresence>
+        {showPinToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ type: "spring", bounce: 0.4, duration: 0.6 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
+          >
+            <div className="bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl p-4 shadow-2xl shadow-rose-500/30 border-2 border-rose-400">
+              <div className="text-center">
+                <p className="text-white/80 text-xs font-medium">입력하신 번호는</p>
+                <p className="text-white text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
+              </div>
+              <p className="text-white/70 text-[11px] mt-2 text-center">이 번호를 꼭 기억해주세요! 📝</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 2열 카드 */}
       <div className="grid grid-cols-2 gap-4">
         {/* 캐릭터 A */}
         <CharacterCard
           icon={<Moon size={16} />}
-          label="주인공 A"
+          label="인물 A"
           emoji="🌙"
           name={formData.character1Name}
           imageBase64={formData.character1ImageBase64}
@@ -79,7 +139,7 @@ export function SummonPhase({
         {/* 캐릭터 B */}
         <CharacterCard
           icon={<Sun size={16} />}
-          label="주인공 B"
+          label="인물 B"
           emoji="☀️"
           name={formData.character2Name}
           imageBase64={formData.character2ImageBase64}
@@ -92,8 +152,8 @@ export function SummonPhase({
       </div>
 
       {/* [FIX] HIGH: file input에 라벨 추가 */}
-      <input ref={input1Ref} type="file" accept="image/*" className="hidden" onChange={handleImage1Upload} aria-label="주인공 A 이미지 업로드" id="chemistry-image-1" />
-      <input ref={input2Ref} type="file" accept="image/*" className="hidden" onChange={handleImage2Upload} aria-label="주인공 B 이미지 업로드" id="chemistry-image-2" />
+      <input ref={input1Ref} type="file" accept="image/*" className="hidden" onChange={handleImage1Upload} aria-label="인물 A 이미지 업로드" id="chemistry-image-1" />
+      <input ref={input2Ref} type="file" accept="image/*" className="hidden" onChange={handleImage2Upload} aria-label="인물 B 이미지 업로드" id="chemistry-image-2" />
 
       {/* 안내 문구 */}
       <motion.div
@@ -103,7 +163,7 @@ export function SummonPhase({
         className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 text-center"
       >
         <p className="text-xs text-violet-600 font-medium">
-          케미를 분석할 두 주인공의 이미지를 업로드해주세요.<br />
+          케미를 분석할 두 인물의 이미지를 업로드해주세요.<br />
           실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!
         </p>
       </motion.div>

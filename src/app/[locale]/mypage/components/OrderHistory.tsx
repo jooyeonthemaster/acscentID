@@ -21,10 +21,15 @@ import {
   Phone,
   Mail,
   Headphones,
-  Loader2
+  Loader2,
+  PackageCheck,
+  ExternalLink
 } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { RecipeModal } from './RecipeModal'
+import { getTrackingUrl, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS, type CarrierId } from '@/lib/shipping/cj'
+import { useActiveProducts } from '@/hooks/useAdminContent'
+import { isProductTypeDiscontinued } from '@/lib/products/active'
 
 interface Order {
   id: string
@@ -37,7 +42,7 @@ interface Order {
   phone: string
   address: string
   address_detail: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
+  status: 'pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
   // 새로 추가된 필드
@@ -54,6 +59,10 @@ interface Order {
   refund_reason?: string | null
   final_price?: number
   cancel_requested_at?: string | null
+  // 배송 운송장
+  tracking_number?: string | null
+  tracking_carrier?: string | null
+  shipped_at?: string | null
 }
 
 interface OrderHistoryProps {
@@ -75,6 +84,10 @@ const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
   paid: {
     color: 'bg-blue-100 text-blue-700 border-blue-300',
     icon: CreditCard,
+  },
+  preparing: {
+    color: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+    icon: PackageCheck,
   },
   shipping: {
     color: 'bg-purple-100 text-purple-700 border-purple-300',
@@ -98,6 +111,7 @@ const STATUS_KEYS: Record<string, { labelKey: string; descKey: string }> = {
   awaiting_payment: { labelKey: 'awaitingPayment', descKey: 'awaitingPaymentDesc' },
   pending: { labelKey: 'pending', descKey: 'pendingDesc' },
   paid: { labelKey: 'paid', descKey: 'paidDesc' },
+  preparing: { labelKey: 'preparing', descKey: 'preparingDesc' },
   shipping: { labelKey: 'shipping', descKey: 'shippingDesc' },
   delivered: { labelKey: 'delivered', descKey: 'deliveredDesc' },
   cancel_requested: { labelKey: 'cancelRequested', descKey: 'cancelRequestedDesc' },
@@ -115,6 +129,69 @@ function getPaymentMethodBadge(paymentMethod: string | undefined, tPayment: (key
     default:
       return { label: tPayment('bankTransferShort'), className: 'bg-gray-100 text-gray-600' }
   }
+}
+
+/**
+ * 운송장 정보 카드 — 마이페이지 grid/list 양쪽에서 재사용.
+ * 운송장 번호가 있고 형식이 유효할 때만 외부 조회 링크 노출.
+ */
+function TrackingInfoCard({
+  trackingNumber,
+  carrier,
+  shippedAt,
+  compact = false,
+}: {
+  trackingNumber?: string | null
+  carrier?: string | null
+  shippedAt?: string | null
+  compact?: boolean
+}) {
+  if (!trackingNumber) return null
+  const carrierId = (carrier as CarrierId) ?? 'cj'
+  const url = getTrackingUrl(trackingNumber, carrierId)
+  if (!url) return null
+  const carrierLabel = CARRIER_LABELS[carrierId] ?? carrier ?? 'CJ대한통운'
+
+  if (compact) {
+    return (
+      <a
+        href={url}
+        {...EXTERNAL_LINK_SAFE_ATTRS}
+        aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors"
+      >
+        <Truck size={12} />
+        <span className="font-mono">{trackingNumber}</span>
+        <ExternalLink size={10} aria-hidden />
+      </a>
+    )
+  }
+
+  return (
+    <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-3">
+      <div className="flex items-start gap-2">
+        <Truck size={16} className="text-purple-600 mt-0.5 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-purple-900">{carrierLabel} 배송 시작</p>
+          <a
+            href={url}
+            {...EXTERNAL_LINK_SAFE_ATTRS}
+            aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
+            className="inline-flex items-center gap-1 mt-1 font-mono text-sm text-purple-800 hover:text-purple-900 hover:underline break-all"
+          >
+            {trackingNumber}
+            <ExternalLink size={12} aria-hidden />
+          </a>
+          {shippedAt && (
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              발송: {new Date(shippedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          )}
+          <p className="text-[11px] text-purple-600 mt-1">클릭 시 외부 사이트(CJ대한통운)에서 자동 조회됩니다.</p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function formatDate(dateString: string): string {
@@ -168,6 +245,10 @@ function OrderCard({
   // 시그니처 상품인지 확인 (키워드에 "시그니처" 포함 여부)
   const isSignatureProduct = order.keywords?.some(k => k.includes('시그니처')) ?? false
 
+  // 상품 활성화 상태 — 비활성이면 재구매/분석상세보기 차단
+  const { isProductActive, loading: productsLoading } = useActiveProducts()
+  const isProductDiscontinued = isProductTypeDiscontinued(order.product_type, isProductActive, productsLoading)
+
   // 분석 상세보기 핸들러
   const handleViewAnalysis = () => {
     if (order.analysis_data) {
@@ -184,6 +265,10 @@ function OrderCard({
   const [isLoadingRepurchase, setIsLoadingRepurchase] = useState(false)
   const handleRepurchase = async () => {
     if (isLoadingRepurchase) return
+    if (isProductDiscontinued) {
+      alert(t('productDiscontinued'))
+      return
+    }
     setIsLoadingRepurchase(true)
 
     try {
@@ -314,10 +399,29 @@ function OrderCard({
               )}
             </div>
           </div>
+          {/* 운송장 — shipping/delivered 상태에서 표시 */}
+          {order.tracking_number && (order.status === 'shipping' || order.status === 'delivered') && (
+            <div className="mt-3">
+              <TrackingInfoCard
+                trackingNumber={order.tracking_number}
+                carrier={order.tracking_carrier}
+                shippedAt={order.shipped_at}
+              />
+            </div>
+          )}
           {/* 환불 상태 안내 — 리스트 뷰에서도 표시 */}
           {(order.status === 'cancel_requested' || order.status === 'cancelled') && (
             <div className="mt-3">
               <RefundStatusCard order={order} />
+            </div>
+          )}
+          {/* 상품 단종 안내 */}
+          {isProductDiscontinued && (
+            <div className="mt-3 bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5">
+              <div className="flex items-center gap-2 text-xs">
+                <AlertTriangle size={14} className="text-slate-500 flex-shrink-0" />
+                <span className="text-slate-600">{t('productDiscontinuedTitle')}</span>
+              </div>
             </div>
           )}
         </motion.div>
@@ -429,9 +533,31 @@ function OrderCard({
             <span>{tStatus(statusKeys.descKey)}</span>
           </div>
 
+          {/* 운송장 — shipping/delivered 상태에서 표시 */}
+          {order.tracking_number && (order.status === 'shipping' || order.status === 'delivered') && (
+            <TrackingInfoCard
+              trackingNumber={order.tracking_number}
+              carrier={order.tracking_carrier}
+              shippedAt={order.shipped_at}
+            />
+          )}
+
           {/* 환불 상태 안내 — 취소 요청/취소 완료 시 표시 */}
           {(order.status === 'cancel_requested' || order.status === 'cancelled') && (
             <RefundStatusCard order={order} />
+          )}
+
+          {/* 상품 단종 안내 — 재구매/분석상세 차단 사유 명시 */}
+          {isProductDiscontinued && (
+            <div className="bg-slate-50 border-2 border-slate-300 rounded-xl p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="text-slate-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0 text-xs">
+                  <p className="font-bold text-slate-700">{t('productDiscontinuedTitle')}</p>
+                  <p className="text-slate-500 mt-0.5 leading-relaxed">{t('productDiscontinuedDesc')}</p>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* 액션 버튼들 */}
@@ -440,9 +566,10 @@ function OrderCard({
             {!isSignatureProduct && (
               <button
                 onClick={handleViewAnalysis}
-                disabled={!hasAnalysisData}
+                disabled={!hasAnalysisData || isProductDiscontinued}
+                title={isProductDiscontinued ? t('productDiscontinued') : undefined}
                 className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
-                  hasAnalysisData
+                  hasAnalysisData && !isProductDiscontinued
                     ? 'bg-white border-slate-900 text-slate-900 hover:bg-slate-50 hover:shadow-[2px_2px_0px_#000]'
                     : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                 }`}
@@ -468,13 +595,19 @@ function OrderCard({
               </button>
             )}
 
-            {/* 재구매 */}
+            {/* 재구매 — 상품이 비활성화되면 차단 */}
             <button
               onClick={handleRepurchase}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold bg-[#FBCFE8] border-2 border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000] transition-all"
+              disabled={isProductDiscontinued}
+              title={isProductDiscontinued ? t('productDiscontinued') : undefined}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                isProductDiscontinued
+                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                  : 'bg-[#FBCFE8] border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000]'
+              }`}
             >
               <RefreshCw size={16} />
-              {t('repurchase')}
+              {isProductDiscontinued ? t('discontinuedShort') : t('repurchase')}
             </button>
 
             {/* 주문 취소 */}

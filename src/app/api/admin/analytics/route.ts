@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
       awaiting_payment: 0,
       pending: 0,
       paid: 0,
+      preparing: 0,
       shipping: 0,
       delivered: 0,
       cancel_requested: 0,
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
     const { data: revenueData } = await supabase
       .from('orders')
       .select('final_price, created_at')
-      .in('status', ['paid', 'shipping', 'delivered'])
+      .in('status', ['paid', 'preparing', 'shipping', 'delivered'])
       .eq('is_influencer', false)
       .limit(50000)
 

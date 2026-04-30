@@ -97,35 +97,62 @@ export function FeedbackStep2New({
     return result
   }, [recommendedPerfumeId])
 
-  // 검색 필터링 (번호, 이름, 키워드 모두 지원)
+  // 검색 필터링 (한글/영문/숫자 모두 지원, 공백·특수문자 무시)
+  // 예: "3", "03", "ac'scent 03", "acscent3", "AC SCENT 3", "블랙베리", "블랙" 모두 매칭
   const searchResults = useMemo(() => {
     const query = searchQuery.trim()
     if (!query) return []
 
+    // 영문/숫자/한글만 남기고 모두 제거 (공백·따옴표·하이픈 등 무시)
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9가-힣]/g, '')
+
     const lowerQuery = query.toLowerCase()
-    // 숫자만 입력한 경우 (예: "1", "01", "15") → 번호로 검색
-    const isNumericQuery = /^\d+$/.test(query)
-    const paddedNumber = isNumericQuery ? query.padStart(2, '0') : ''
+    const normalizedQuery = normalize(query)
+    if (!normalizedQuery) return []
+
+    // 쿼리에서 끝부분의 숫자를 분리해 0-padding 변형도 생성
+    // 예: "acscent3" → "acscent03", "scent7" → "scent07"
+    const trailingNum = normalizedQuery.match(/^(.*?)(\d+)$/)
+    const paddedQuery = trailingNum
+      ? trailingNum[1] + trailingNum[2].padStart(2, '0')
+      : null
+
+    // 매칭에 사용할 쿼리 변형들
+    const queryVariants = Array.from(
+      new Set([lowerQuery, normalizedQuery, paddedQuery].filter(Boolean) as string[])
+    )
+
+    // 순수 숫자 입력 시 향수 번호 직접 매칭 (예: "3" → "03")
+    const isNumericQuery = /^\d+$/.test(normalizedQuery)
+    const paddedNumber = isNumericQuery ? normalizedQuery.padStart(2, '0') : ''
 
     return perfumes
       .filter((p) => p.id !== recommendedPerfumeId) // 추천 향수 제외
       .filter((p) => {
-        // 번호 검색: "1" → "01", "5" → "05"로 매칭
+        // 1) 순수 숫자 검색: 향수 번호 우선 매칭
         if (isNumericQuery) {
-          const perfumeNumber = p.id.split(' ')[1] // "AC'SCENT 05" → "05"
-          return perfumeNumber === paddedNumber || perfumeNumber.includes(query)
+          const perfumeNumber = p.id.split(' ')[1] || '' // "AC'SCENT 05" → "05"
+          if (perfumeNumber === paddedNumber || perfumeNumber.includes(normalizedQuery)) {
+            return true
+          }
         }
-        // 텍스트 검색: 이름, ID, 로컬라이즈된 이름, 키워드
+
+        // 2) 다국어 이름 + 키워드 + 카테고리 + ID 모두 검색 대상에 포함
         const localizedName = getLocalizedName(p.id, p.name).toLowerCase()
         const localizedKeywords = getLocalizedKeywords(p.id).map((k) => k.toLowerCase())
-        return (
-          p.name.toLowerCase().includes(lowerQuery) ||
-          localizedName.includes(lowerQuery) ||
-          p.id.toLowerCase().includes(lowerQuery) ||
-          p.category.toLowerCase().includes(lowerQuery) ||
-          p.keywords.some((k) => k.toLowerCase().includes(lowerQuery)) ||
-          localizedKeywords.some((k) => k.includes(lowerQuery))
-        )
+        const candidates = [
+          p.name.toLowerCase(),
+          localizedName,
+          p.id.toLowerCase(),
+          p.category.toLowerCase(),
+          ...p.keywords.map((k) => k.toLowerCase()),
+          ...localizedKeywords,
+        ]
+        // 정규화된 후보군: "AC'SCENT 03" → "acscent03"
+        const normalizedCandidates = candidates.map(normalize)
+        const allCandidates = [...candidates, ...normalizedCandidates]
+
+        return queryVariants.some((q) => allCandidates.some((c) => c.includes(q)))
       })
       .slice(0, 8) // 최대 8개
   }, [searchQuery, recommendedPerfumeId, getLocalizedName, getLocalizedKeywords])

@@ -205,9 +205,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. 환불 가능 상태 검증
-    // paid, cancel_requested — 정상 환불 경로
+    // paid, preparing, cancel_requested — 정상 환불 경로
     // cancelled + refunded_at null — "DB만 cancelled로 바뀐 과거 오염" 복구 경로
-    const refundableStatuses = ['paid', 'cancel_requested', 'cancelled']
+    const refundableStatuses = ['paid', 'preparing', 'cancel_requested', 'cancelled']
     if (!refundableStatuses.includes(order.status)) {
       return NextResponse.json(
         {

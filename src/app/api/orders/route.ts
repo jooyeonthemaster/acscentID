@@ -3,23 +3,9 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import type { ProductType } from '@/types/cart'
-import { PRODUCT_PRICING, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
+import { FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
+import { validateServerPrice } from '@/lib/products/pricing'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
-/**
- * 서버사이드 가격 검증
- * 클라이언트가 보낸 가격을 서버의 PRODUCT_PRICING과 대조하여 조작 여부를 확인합니다.
- */
-function validatePrice(productType: ProductType, size: string, clientPrice: number): { valid: boolean; expectedPrice: number } {
-  const pricing = PRODUCT_PRICING[productType]
-  if (!pricing) {
-    return { valid: false, expectedPrice: 0 }
-  }
-  const option = pricing.find((p) => p.size === size)
-  if (!option) {
-    return { valid: false, expectedPrice: 0 }
-  }
-  return { valid: clientPrice === option.price, expectedPrice: option.price }
-}
 
 function calculateServerShippingFee(subtotal: number, productType?: string): number {
   if (productType === 'payment_test') return 0
@@ -194,16 +180,16 @@ export async function POST(request: NextRequest) {
     if (isMultiItemMode) {
       const orderItems: OrderItem[] = items
 
-      // 서버사이드 가격 검증: 각 상품의 단가를 서버 가격표와 대조
+      // 서버사이드 가격 검증: 각 상품의 단가를 DB 가격표와 대조
       for (const item of orderItems) {
         const itemProductType: ProductType = item.productType || 'image_analysis'
-        const itemPriceCheck = validatePrice(itemProductType, item.size, item.unitPrice)
+        const itemPriceCheck = await validateServerPrice(itemProductType, item.size, item.unitPrice)
         if (!itemPriceCheck.valid) {
-          console.error('[Orders API] Multi-item price mismatch - item:', item.perfumeName, 'client:', item.unitPrice, 'expected:', itemPriceCheck.expectedPrice)
-          return NextResponse.json(
-            { error: `상품 "${item.perfumeName}"의 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.` },
-            { status: 400 }
-          )
+          console.error('[Orders API] Multi-item price mismatch - item:', item.perfumeName, 'client:', item.unitPrice, 'expected:', itemPriceCheck.expectedPrice, 'reason:', itemPriceCheck.reason)
+          const reason = itemPriceCheck.reason === 'inactive'
+            ? `상품 "${item.perfumeName}"은(는) 현재 판매 중지 상태입니다.`
+            : `상품 "${item.perfumeName}"의 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.`
+          return NextResponse.json({ error: reason }, { status: 400 })
         }
       }
 
@@ -396,15 +382,15 @@ export async function POST(request: NextRequest) {
 
     // ===== 단일 상품 주문 (기존 호환) =====
 
-    // 서버사이드 가격 검증
+    // 서버사이드 가격 검증 (DB 기반)
     const resolvedProductType: ProductType = productType || 'image_analysis'
-    const priceCheck = validatePrice(resolvedProductType, size, price)
+    const priceCheck = await validateServerPrice(resolvedProductType, size, price)
     if (!priceCheck.valid) {
-      console.error('[Orders API] Price mismatch - client:', price, 'expected:', priceCheck.expectedPrice, 'productType:', resolvedProductType, 'size:', size)
-      return NextResponse.json(
-        { error: '상품 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.' },
-        { status: 400 }
-      )
+      console.error('[Orders API] Price mismatch - client:', price, 'expected:', priceCheck.expectedPrice, 'productType:', resolvedProductType, 'size:', size, 'reason:', priceCheck.reason)
+      const errorMsg = priceCheck.reason === 'inactive'
+        ? '해당 상품은 현재 판매 중지 상태입니다.'
+        : '상품 가격이 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.'
+      return NextResponse.json({ error: errorMsg }, { status: 400 })
     }
 
     // 배송비 검증 (프로모션 반영) - 단가×수량 기준으로 배송비 계산

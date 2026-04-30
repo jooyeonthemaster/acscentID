@@ -110,12 +110,14 @@
     "awaitingPaymentDesc": "온라인 결제가 진행 중입니다",
     "pending": "입금대기",
     "paid": "입금완료",
+    "preparing": "상품준비중",
     "shipping": "배송중",
     "delivered": "배송완료",
     "cancelRequested": "취소요청",
     "cancelled": "취소완료",
     "pendingDesc": "입금을 기다리고 있습니다",
     "paidDesc": "입금이 확인되었습니다",
+    "preparingDesc": "상품을 정성껏 준비하고 있어요",
     "shippingDesc": "상품이 배송 중입니다",
     "deliveredDesc": "배송이 완료되었습니다",
     "cancelRequestedDesc": "취소 요청이 접수되었습니다",
@@ -225,7 +227,7 @@
       "figure": "좋아하는 이미지로 제작되는 나만의 화분 피규어 디퓨저",
       "graduation": "졸업의 추억을 향기로, 특별한 졸업 기념 퍼퓸",
       "personal": "나를 표현하는 나만의 시그니처 향",
-      "chemistry": "두 주인공의 케미를 향기로 담는 세트"
+      "chemistry": "두 인물의 케미를 향기로 담는 세트"
     },
     "includes": {
       "idolImage": "뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서",
@@ -924,6 +926,10 @@
     "analysisDetail": "분석 상세",
     "recipe": "레시피",
     "repurchase": "재구매",
+    "discontinuedShort": "판매종료",
+    "productDiscontinued": "이 상품은 현재 판매가 중단되어 재구매할 수 없습니다.",
+    "productDiscontinuedTitle": "판매가 종료된 상품입니다",
+    "productDiscontinuedDesc": "이 상품은 현재 판매가 중단되어 재구매가 불가합니다. 다른 상품을 둘러보시겠어요?",
     "cancelOrder": "주문취소",
     "cancelling": "취소중",
     "cancelled": "취소됨",
@@ -1904,16 +1910,16 @@
   },
   "chemistry": {
     "title": "케미 향수",
-    "description": "두 주인공의 케미를 향기로 담다",
+    "description": "두 인물의 케미를 향기로 담다",
     "summon": {
-      "title": "두 주인공을 소환하세요",
+      "title": "두 인물을 소환하세요",
       "subtitle": "이미지와 이름을 입력해주세요",
-      "characterA": "주인공 A",
-      "characterB": "주인공 B",
+      "characterA": "인물 A",
+      "characterB": "인물 B",
       "pinLabel": "인증 번호 (4자리)",
       "uploadImage": "이미지 업로드",
       "namePlaceholder": "이름 입력",
-      "imageGuide": "케미를 분석할 두 주인공의 이미지를 업로드해주세요. 실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!"
+      "imageGuide": "케미를 분석할 두 인물의 이미지를 업로드해주세요. 실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!"
     },
     "deck": {
       "tropeTitle": "이 둘의 관계는?",
@@ -1934,7 +1940,7 @@
       "ready": "촉매 준비 완료",
       "title": "케미 분석을 시작할까요?",
       "subtitle": "입력한 내용을 확인해주세요",
-      "guide": "AI가 두 주인공의 이미지와 입력 정보를 분석하여 케미 프로필과 맞춤 향수 세트를 추천합니다!"
+      "guide": "AI가 두 인물의 이미지와 입력 정보를 분석하여 케미 프로필과 맞춤 향수 세트를 추천합니다!"
     },
     "analyzing": {
       "quotes": [

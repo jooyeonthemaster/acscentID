@@ -300,6 +300,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
                       order.status === 'shipping' ? 'bg-purple-100 text-purple-700' :
+                      order.status === 'preparing' ? 'bg-indigo-100 text-indigo-700' :
                       order.status === 'paid' ? 'bg-blue-100 text-blue-700' :
                       'bg-amber-100 text-amber-700'
                     }`}>

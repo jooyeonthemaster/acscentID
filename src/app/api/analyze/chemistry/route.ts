@@ -4,6 +4,7 @@ import { buildChemistryIndividualPrompt, buildChemistryProfilePrompt, ChemistryU
 import { parseChemistryIndividualResponse, parseChemistryProfileResponse } from '@/lib/gemini/chemistry-response-parser';
 import { ImageAnalysisResult, ChemistryProfile, ChemistryAnalysisResult } from '@/types/analysis';
 import { getApiLocale } from '@/lib/api-locale';
+import { requireAuthenticatedUser } from '@/lib/auth/require-user';
 
 interface ChemistryAnalyzeRequest {
   character1Name: string;
@@ -43,7 +44,17 @@ export async function POST(request: NextRequest) {
   console.log('='.repeat(80));
 
   try {
-    // 0. 언어 감지
+    // 0. 인증 — 비로그인 분석 차단 (서버 사이드 강제)
+    const authedUser = await requireAuthenticatedUser();
+    if (!authedUser) {
+      console.warn(`[${requestId}] ❌ 비로그인 케미 분석 시도 차단`);
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 0-1. 언어 감지
     const locale = getApiLocale(request);
 
     // 1. 요청 파싱

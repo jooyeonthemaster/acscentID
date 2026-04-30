@@ -13,7 +13,7 @@ import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
 import { apiFetch } from "@/lib/api-client"
-import { PRODUCT_PRICING } from "@/types/cart"
+import { useProductPricing } from "@/hooks/useProductPricing"
 
 interface ChemistryFormMeta {
   character1Name: string
@@ -92,6 +92,7 @@ export default function ChemistryResultPage() {
   const router = useRouter()
   const { user, unifiedUser } = useAuth()
   const { showToast } = useToast()
+  const { getOptions } = useProductPricing()
   const [result, setResult] = useState<ChemistryAnalysisResult | null>(null)
   const [formMeta, setFormMeta] = useState<ChemistryFormMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -223,8 +224,12 @@ export default function ChemistryResultPage() {
     try {
       const perfumeA = result.characterA.matchingPerfumes[0]?.persona
       const perfumeB = result.characterB.matchingPerfumes[0]?.persona
-      const pricing = PRODUCT_PRICING.chemistry_set
-      const selectedOption = pricing[0]
+      const chemistryOptions = getOptions('chemistry_set')
+      const selectedOption = chemistryOptions[0]
+      if (!selectedOption) {
+        showToast("가격 정보 로드 실패. 새로고침 후 다시 시도해주세요.", "error")
+        return
+      }
 
       const sessionId = await saveResultToDb(result, formMeta)
       if (!sessionId) throw new Error('결과 저장 실패')
@@ -268,8 +273,12 @@ export default function ChemistryResultPage() {
     try {
       const perfumeA = result.characterA.matchingPerfumes[0]?.persona
       const perfumeB = result.characterB.matchingPerfumes[0]?.persona
-      const pricing = PRODUCT_PRICING.chemistry_set
-      const selectedOption = pricing[0]
+      const chemistryOptions = getOptions('chemistry_set')
+      const selectedOption = chemistryOptions[0]
+      if (!selectedOption) {
+        showToast("가격 정보 로드 실패. 새로고침 후 다시 시도해주세요.", "error")
+        return
+      }
 
       const sessionId = await saveResultToDb(result, formMeta)
       if (!sessionId) throw new Error('결과 저장 실패')
@@ -537,6 +546,9 @@ export default function ChemistryResultPage() {
             &copy; 2025 Ac&apos;scent Identity
           </span>
         </div>
+
+        {/* 하단 액션 바(약 80px) 가림 방지 스페이서 */}
+        <div className="h-[100px]" aria-hidden />
       </div>
 
       {/* 5. 하단 액션 바 */}

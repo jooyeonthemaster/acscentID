@@ -69,9 +69,17 @@ export async function GET(request: NextRequest) {
       query = query.range(offset, offset + limit - 1)
     }
 
-    // 상태 필터
-    if (status && ['pending', 'paid', 'shipping', 'delivered', 'cancel_requested'].includes(status)) {
-      query = query.eq('status', status)
+    // 상태 필터 — 단일/다중(쉼표구분) 모두 허용
+    //   ?status=paid          → eq
+    //   ?status=paid,preparing → in (출고 대상 다중 조회 케이스)
+    if (status) {
+      const allowedStatuses = ['pending', 'paid', 'preparing', 'shipping', 'delivered', 'cancel_requested']
+      const requested = status.split(',').map(s => s.trim()).filter(s => allowedStatuses.includes(s))
+      if (requested.length === 1) {
+        query = query.eq('status', requested[0])
+      } else if (requested.length > 1) {
+        query = query.in('status', requested)
+      }
     }
 
     // 인플루언서 필터
@@ -231,6 +239,7 @@ export async function PATCH(request: NextRequest) {
     const validStatuses = [
       'pending',
       'paid',
+      'preparing',
       'shipping',
       'delivered',
       'cancel_requested',

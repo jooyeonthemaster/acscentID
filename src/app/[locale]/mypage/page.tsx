@@ -48,7 +48,7 @@ interface Order {
   phone: string
   address: string
   address_detail: string
-  status: 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
+  status: 'pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled' | 'awaiting_payment'
   created_at: string
   updated_at: string
   user_image_url?: string

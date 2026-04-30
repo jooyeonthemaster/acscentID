@@ -26,7 +26,7 @@ export function AuthModal({
   onSuccess,
   redirectPath,
   closeable = true,
-  showGuestOption = true,
+  showGuestOption = false, // [FIX] 비회원 분석 폐지 — 게스트 진입 기본 차단
 }: AuthModalProps) {
   const { signInWithGoogle, signInWithKakao, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)

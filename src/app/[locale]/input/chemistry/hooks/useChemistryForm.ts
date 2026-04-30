@@ -60,6 +60,11 @@ export function useChemistryForm() {
   // [FIX] CRITICAL #11: QR 코드 파라미터 추출
   const qrCode = searchParams.get("qr_code")
 
+  // 인증 상태 — 케미는 온라인/오프라인 무관하게 로그인 필수
+  const { user, unifiedUser, loading: authLoading } = useAuth()
+  const isLoggedIn = !!(user || unifiedUser)
+  const showAuthGate = !isLoggedIn && !authLoading
+
   const [phase, setPhase] = useState<ChemistryPhase>('summon')
   const [currentCard, setCurrentCard] = useState(0)
   const [formData, setFormData] = useState<ChemistryFormState>(INITIAL_FORM_DATA)
@@ -123,10 +128,11 @@ export function useChemistryForm() {
   }, [formData, isOnline])
 
   const goToDeck = useCallback(() => {
+    if (showAuthGate) return
     if (!isSummonValid()) return
     setPhase('deck')
     setCurrentCard(0)
-  }, [isSummonValid])
+  }, [isSummonValid, showAuthGate])
 
   // 카드 네비게이션
   const nextCard = useCallback(() => {
@@ -172,6 +178,7 @@ export function useChemistryForm() {
 
   // 분석 시작
   const handleComplete = useCallback(async () => {
+    if (showAuthGate) return
     if (isSubmitting) return
     setIsSubmitting(true)
 
@@ -249,6 +256,7 @@ export function useChemistryForm() {
     isCompressing2,
     isOffline,
     isOnline,
+    showAuthGate,
     TOTAL_CARDS,
     isSummonValid,
     isCardValid,

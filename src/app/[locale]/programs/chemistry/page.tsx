@@ -65,11 +65,6 @@ export default function ChemistryProgramPage() {
     }
   }
 
-  const handleGuestStart = () => {
-    setShowAuthModal(true)
-    setShowLoginPrompt(false)
-  }
-
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
@@ -220,7 +215,7 @@ export default function ChemistryProgramPage() {
               <div className="relative">
                 <div className="grid grid-cols-2 gap-4 relative z-10">
                   {[
-                    { step: "01", title: "캐릭터 소환", desc: "이미지와 이름 입력", icon: Camera, color: "bg-violet-400" },
+                    { step: "01", title: "정보 입력", desc: "이미지와 이름 입력", icon: Camera, color: "bg-violet-400" },
                     { step: "02", title: "관계 설정", desc: "트로프 & 아키타입 선택", icon: Heart, color: "bg-pink-400" },
                     { step: "03", title: "AI 케미 분석", desc: "각 캐릭터 향수 분석", icon: Sparkles, color: "bg-rose-400" },
                     { step: "04", title: "향수 세트", desc: "맞춤 케미 세트 완성", icon: FlaskConical, color: "bg-purple-400" },
@@ -296,7 +291,6 @@ export default function ChemistryProgramPage() {
         isOpen={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onLogin={handleLoginClick}
-        onGuest={handleGuestStart}
       />
 
       {/* 로그인 모달 */}

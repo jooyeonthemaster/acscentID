@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { compressImage } from "@/lib/image/compressor"
 import { apiFetch } from "@/lib/api-client"
 import type { GraduationFormDataType, GraduationType } from "@/types/analysis"
@@ -15,6 +16,11 @@ export function useGraduationForm() {
     const mode = searchParams.get("mode") // "online" | "qr" | null
     const serviceMode = searchParams.get("service_mode") // QR 리다이렉트에서 사용: "online" | "offline"
     const qrCode = searchParams.get("qr_code") // QR 코드 ID
+
+    // 인증 게이트 — 비로그인 분석 전면 차단 (온라인/오프라인 무관)
+    const { user, unifiedUser, loading: authLoading } = useAuth()
+    const isLoggedIn = !!(user || unifiedUser)
+    const showAuthGate = !isLoggedIn && !authLoading
 
     const [currentStep, setCurrentStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -155,12 +161,13 @@ export function useGraduationForm() {
         setFormData(prev => ({ ...prev, futureWish: wish }))
     }, [])
 
-    // 네비게이션
+    // 네비게이션 (인증 게이트 활성화 시 차단)
     const handleNext = useCallback(() => {
+        if (showAuthGate) return
         if (currentStep < totalSteps && isStepValid(currentStep)) {
             setCurrentStep(prev => prev + 1)
         }
-    }, [currentStep, isStepValid, totalSteps])
+    }, [currentStep, isStepValid, totalSteps, showAuthGate])
 
     const handlePrev = useCallback(() => {
         if (currentStep > 1) {
@@ -253,6 +260,7 @@ export function useGraduationForm() {
 
     // 폼 제출
     const handleComplete = useCallback(async () => {
+        if (showAuthGate) return
         if (!isStepValid(5) || isSubmitting) return
 
         setIsSubmitting(true)
@@ -377,7 +385,7 @@ export function useGraduationForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, isOffline])
+    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, isOffline, showAuthGate])
 
     // 문 열린 후 결과 페이지로 이동
     const navigateToResult = useCallback(() => {
@@ -402,6 +410,7 @@ export function useGraduationForm() {
         isTransforming,
         isOnline,
         isOffline,
+        showAuthGate,
 
         // 유효성 검사
         isStepValid,

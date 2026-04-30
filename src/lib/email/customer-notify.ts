@@ -1,5 +1,6 @@
 import { getResendClient, FROM_EMAIL } from './client'
-import { refundCompletedTemplate } from './templates'
+import { refundCompletedTemplate, orderShippedTemplate } from './templates'
+import { CARRIER_LABELS, type CarrierId } from '@/lib/shipping/cj'
 
 /**
  * 고객 개별 이메일 발송 (fire-and-forget).
@@ -87,6 +88,45 @@ export function notifyCustomerRefundCompleted(data: {
         })
       : getKoreanTime(),
     reason: data.reason,
+  })
+
+  sendCustomerEmail(data.customerEmail, tpl).catch(console.error)
+}
+
+// 발송(=운송장 등록) 알림 — 고객에게 발송
+export function notifyCustomerShipped(data: {
+  customerEmail: string | null | undefined
+  orderNumber: string
+  recipientName: string
+  perfumeName: string
+  trackingNumber: string
+  trackingCarrier: CarrierId
+  trackingUrl: string
+  shippedAt?: string
+}) {
+  if (!data.customerEmail) {
+    console.log('[Email/customer] shipped notification skipped — no email')
+    return
+  }
+
+  const tpl = orderShippedTemplate({
+    orderNumber: data.orderNumber,
+    recipientName: data.recipientName,
+    perfumeName: data.perfumeName,
+    carrierLabel: CARRIER_LABELS[data.trackingCarrier] ?? data.trackingCarrier,
+    trackingNumber: data.trackingNumber,
+    trackingUrl: data.trackingUrl,
+    shippedAt: data.shippedAt
+      ? new Date(data.shippedAt).toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : getKoreanTime(),
   })
 
   sendCustomerEmail(data.customerEmail, tpl).catch(console.error)

@@ -25,13 +25,16 @@ import {
   MessageSquare,
   Save,
   Check,
-  UserCheck
+  UserCheck,
+  PackageCheck,
+  ExternalLink
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
 import { RefundModal } from '../components/RefundModal'
+import { getTrackingUrl, isValidTrackingNumber, normalizeTrackingNumber, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS } from '@/lib/shipping/cj'
 
 interface OrderAnalysis {
   id: string
@@ -94,6 +97,10 @@ interface Order {
   is_influencer?: boolean
   item_count?: number
   order_items?: OrderItemData[]
+  // 배송 운송장
+  tracking_number?: string | null
+  tracking_carrier?: string | null
+  shipped_at?: string | null
   confirmed_recipe?: {
     granules?: Array<{ id: string; name: string; ratio: number }>
     [key: string]: any
@@ -111,6 +118,7 @@ const statusFilters = [
   { value: '', label: '전체', icon: Package },
   { value: 'pending', label: '입금대기', icon: Clock },
   { value: 'paid', label: '입금완료', icon: CreditCard },
+  { value: 'preparing', label: '상품준비중', icon: PackageCheck },
   { value: 'shipping', label: '배송중', icon: Truck },
   { value: 'delivered', label: '배송완료', icon: CheckCircle },
   { value: 'cancel_requested', label: '취소요청', icon: XCircle },
@@ -140,6 +148,192 @@ function getProductBadge(type?: string | null) {
 function getPaymentBadge(method?: string) {
   const badge = method ? PAYMENT_METHOD_BADGE[method] : undefined
   return badge ?? { label: '계좌이체', className: 'bg-slate-100 text-slate-600' }
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/**
+ * 운송장 인라인 에디터 — expanded row 안에서 모달 안 열고 바로 입력/저장.
+ * 자체 state로 캡슐화되어 모달 state(trackingInput 등)와 충돌하지 않음.
+ * order.id가 바뀌면 입력값/체크박스를 새로 동기화.
+ */
+function TrackingInlineEditor({
+  order,
+  onUpdated,
+}: {
+  order: Order
+  onUpdated: (updated: Partial<Order>) => void
+}) {
+  const initialNumber = order.tracking_number ?? ''
+  const [input, setInput] = useState(initialNumber)
+  // 신규 등록(운송장 없음) → 자동전환·이메일 default ON
+  // 이미 등록된 운송장 수정 → default OFF (의도치 않은 상태/메일 차단)
+  const [autoShipping, setAutoShipping] = useState(!initialNumber)
+  const [notifyCustomer, setNotifyCustomer] = useState(!initialNumber)
+  const [saving, setSaving] = useState(false)
+
+  // order.id 또는 tracking_number 변경 시 동기화
+  useEffect(() => {
+    setInput(order.tracking_number ?? '')
+    setAutoShipping(!order.tracking_number)
+    setNotifyCustomer(!order.tracking_number)
+  }, [order.id, order.tracking_number])
+
+  const isCancelledLike = order.status === 'cancelled' || order.status === 'cancel_requested'
+  const normalized = normalizeTrackingNumber(input)
+  const validFormat = isValidTrackingNumber(normalized)
+  const isUnchanged = normalized === (order.tracking_number ?? '')
+  const trackingUrl = order.tracking_number ? getTrackingUrl(order.tracking_number, 'cj') : null
+
+  const save = async (clear = false) => {
+    if (saving) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/tracking`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tracking_number: clear ? null : input.trim(),
+          tracking_carrier: 'cj',
+          auto_set_shipping: autoShipping,
+          notify_customer: notifyCustomer,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || '운송장 저장에 실패했습니다')
+        return
+      }
+
+      const updatedFields: Partial<Order> = {
+        tracking_number: data.order?.tracking_number ?? null,
+        tracking_carrier: data.order?.tracking_carrier ?? null,
+        shipped_at: data.order?.shipped_at ?? null,
+        status: data.order?.status ?? order.status,
+        updated_at: data.order?.updated_at ?? new Date().toISOString(),
+      }
+      onUpdated(updatedFields)
+
+      if (clear) {
+        alert('운송장을 해제했습니다')
+      } else {
+        const msgs = ['운송장이 저장되었습니다']
+        if (data.statusChanged) msgs.push('상태가 "배송중"으로 전환되었습니다')
+        if (data.emailSent) msgs.push('고객에게 발송 알림이 전송되었습니다')
+        alert(msgs.join('\n'))
+      }
+    } catch (err) {
+      console.error('Tracking save failed:', err)
+      alert('서버 오류가 발생했습니다')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // 취소(요청) 주문에는 운송장 입력 자체를 노출하지 않음
+  if (isCancelledLike) return null
+
+  return (
+    <div
+      className="md:col-span-4 mt-2 pt-3 border-t border-slate-200"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Truck className="w-4 h-4 text-purple-600" />
+        <span className="text-sm font-bold text-slate-700">운송장 관리</span>
+        <span className="text-[11px] text-slate-400">CJ대한통운 · 숫자 10~12자리</span>
+      </div>
+
+      {/* 등록된 운송장이 있을 때 — 조회 링크 + 발송시각 */}
+      {order.tracking_number && trackingUrl && (
+        <div className="mb-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-sm text-purple-900 break-all">{order.tracking_number}</span>
+            {order.shipped_at && (
+              <span className="text-[11px] text-slate-500">발송: {formatDate(order.shipped_at)}</span>
+            )}
+          </div>
+          <a
+            href={trackingUrl}
+            {...EXTERNAL_LINK_SAFE_ATTRS}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+          >
+            배송조회 <ExternalLink size={11} />
+          </a>
+        </div>
+      )}
+
+      {/* 입력 + 옵션 + 저장 — 한 줄 정렬 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          placeholder="예: 123456789012"
+          inputMode="numeric"
+          autoComplete="off"
+          aria-invalid={input.trim() ? !validFormat : undefined}
+          className={`flex-1 min-w-[180px] px-3 py-1.5 text-sm border-2 rounded-lg focus:outline-none focus:border-purple-400 font-mono transition-colors ${
+            input.trim() && !validFormat ? 'border-red-300' : 'border-slate-200'
+          }`}
+        />
+
+        <label className="flex items-center gap-1 text-[11px] text-slate-700 cursor-pointer whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={autoShipping}
+            onChange={(e) => setAutoShipping(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            className="w-3.5 h-3.5 accent-purple-600"
+          />
+          배송중 자동전환
+        </label>
+        <label className="flex items-center gap-1 text-[11px] text-slate-700 cursor-pointer whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={notifyCustomer}
+            onChange={(e) => setNotifyCustomer(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            className="w-3.5 h-3.5 accent-purple-600"
+          />
+          고객 알림 메일
+        </label>
+
+        <button
+          onClick={() => save(false)}
+          disabled={saving || !input.trim() || !validFormat || isUnchanged}
+          className="px-3 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-md border-2 border-purple-700 hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin inline" /> : '저장'}
+        </button>
+        {order.tracking_number && (
+          <button
+            onClick={() => {
+              if (confirm('등록된 운송장을 해제하시겠습니까?')) save(true)
+            }}
+            disabled={saving}
+            className="px-3 py-1.5 text-xs font-medium text-red-600 bg-white border-2 border-red-200 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            해제
+          </button>
+        )}
+      </div>
+
+      {input.trim() && !validFormat && (
+        <p className="text-[11px] text-red-600 mt-1">⚠️ 형식이 올바르지 않습니다 (숫자 10~12자리, 하이픈/공백 허용)</p>
+      )}
+    </div>
+  )
 }
 
 export default function AdminOrdersPage() {
@@ -185,6 +379,12 @@ export default function AdminOrdersPage() {
 
   // 환불 모달
   const [refundTarget, setRefundTarget] = useState<Order | null>(null)
+
+  // 운송장 입력 (모달)
+  const [trackingInput, setTrackingInput] = useState('')
+  const [trackingAutoShipping, setTrackingAutoShipping] = useState(true)
+  const [trackingNotifyCustomer, setTrackingNotifyCustomer] = useState(true)
+  const [trackingSaving, setTrackingSaving] = useState(false)
 
   // 환불 처리 대기 집계 (배너용)
   const [refundPending, setRefundPending] = useState<{
@@ -248,6 +448,69 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     fetchOrders()
   }, [])
+
+  // 모달 진입 시 운송장 입력값 / 옵션 동기화
+  useEffect(() => {
+    if (selectedOrder) {
+      setTrackingInput(selectedOrder.tracking_number ?? '')
+      // 새 등록(운송장 없음)일 때만 자동 전환을 default ON
+      // 이미 등록된 운송장 수정인 경우 status 변경 의도가 없을 수 있으므로 OFF
+      setTrackingAutoShipping(!selectedOrder.tracking_number)
+      setTrackingNotifyCustomer(!selectedOrder.tracking_number)
+    }
+  }, [selectedOrder?.id])
+
+  // 운송장 저장/해제 핸들러
+  const handleTrackingSave = async (clear = false) => {
+    if (!selectedOrder) return
+    if (trackingSaving) return
+
+    const payload: Record<string, unknown> = {
+      tracking_number: clear ? null : trackingInput.trim(),
+      tracking_carrier: 'cj',
+      auto_set_shipping: trackingAutoShipping,
+      notify_customer: trackingNotifyCustomer,
+    }
+
+    setTrackingSaving(true)
+    try {
+      const response = await fetch(`/api/admin/orders/${selectedOrder.id}/tracking`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        alert(data.error || '운송장 저장에 실패했습니다')
+        return
+      }
+
+      // 모달 + 리스트 둘 다 업데이트
+      const updatedFields = {
+        tracking_number: data.order?.tracking_number ?? null,
+        tracking_carrier: data.order?.tracking_carrier ?? null,
+        shipped_at: data.order?.shipped_at ?? null,
+        status: data.order?.status ?? selectedOrder.status,
+        updated_at: data.order?.updated_at ?? new Date().toISOString(),
+      }
+      setSelectedOrder(prev => prev ? { ...prev, ...updatedFields } : null)
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...updatedFields } : o))
+
+      if (clear) {
+        alert('운송장을 해제했습니다')
+      } else {
+        const msgs = ['운송장이 저장되었습니다']
+        if (data.statusChanged) msgs.push('상태가 "배송중"으로 전환되었습니다')
+        if (data.emailSent) msgs.push('고객에게 발송 알림이 전송되었습니다')
+        alert(msgs.join('\n'))
+      }
+    } catch (err) {
+      console.error('Tracking save failed:', err)
+      alert('서버 오류가 발생했습니다')
+    } finally {
+      setTrackingSaving(false)
+    }
+  }
 
   // 상태 변경 핸들러
   const handleStatusChange = async (orderId: string, status: string) => {
@@ -440,12 +703,12 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // 입금완료 주문 엑셀 다운로드
+  // 출고 대상 주문 엑셀 다운로드 (입금완료 + 상품준비중)
   const downloadPaidOrdersExcel = async () => {
     setExcelLoading(true)
     try {
-      // 입금완료 상태 주문 전체 조회
-      const response = await fetch('/api/admin/orders?status=paid&export=true')
+      // 출고 대상 상태(입금완료, 상품준비중) 주문 전체 조회
+      const response = await fetch('/api/admin/orders?status=paid,preparing&export=true')
       const data = await response.json()
 
       if (!response.ok) {
@@ -455,7 +718,7 @@ export default function AdminOrdersPage() {
       const paidOrders = data.orders || []
 
       if (paidOrders.length === 0) {
-        alert('입금완료 상태의 주문이 없습니다.')
+        alert('출고 대상 주문(입금완료/상품준비중)이 없습니다.')
         return
       }
 
@@ -499,11 +762,11 @@ export default function AdminOrdersPage() {
 
       // 워크북 생성
       const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, '입금완료주문')
+      XLSX.utils.book_append_sheet(workbook, worksheet, '출고대상주문')
 
       // 파일명 생성 (오늘 날짜)
       const today = new Date().toISOString().split('T')[0]
-      const fileName = `입금완료_주문_${today}.xlsx`
+      const fileName = `출고대상_주문_${today}.xlsx`
 
       // 다운로드
       XLSX.writeFile(workbook, fileName)
@@ -516,15 +779,6 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
 
   const formatPrice = (price: number) => {
     return `₩${price.toLocaleString()}`
@@ -650,14 +904,14 @@ export default function AdminOrdersPage() {
               onClick={downloadPaidOrdersExcel}
               disabled={excelLoading}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 shadow-[3px_3px_0px_#047857] hover:shadow-[1px_1px_0px_#047857] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              title="입금완료 상태 주문만 엑셀로 다운로드"
+              title="출고 대상 주문(입금완료 + 상품준비중)을 엑셀로 다운로드"
             >
               {excelLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              입금완료 엑셀
+              출고대상 엑셀
             </button>
 
             {selectedIds.size > 0 && (
@@ -783,6 +1037,15 @@ export default function AdminOrdersPage() {
                                 ⚠️ 환불 누락
                               </span>
                             ) : null}
+                            {/* 운송장 등록 뱃지 */}
+                            {order.tracking_number && (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700"
+                                title={`운송장: ${order.tracking_number}`}
+                              >
+                                <Truck size={10} /> 운송장
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -826,6 +1089,7 @@ export default function AdminOrdersPage() {
                           >
                             <option value="pending">입금대기</option>
                             <option value="paid">입금완료</option>
+                            <option value="preparing">상품준비중</option>
                             <option value="shipping">배송중</option>
                             <option value="delivered">배송완료</option>
                             <option value="cancel_requested">취소요청</option>
@@ -980,6 +1244,15 @@ export default function AdminOrdersPage() {
                                 <span className="text-slate-500">수정일:</span>
                                 <p className="text-slate-900 mt-1">{formatDate(order.updated_at)}</p>
                               </div>
+                              {/* 운송장 인라인 에디터 — 모달 안 열고 바로 입력/저장 */}
+                              <TrackingInlineEditor
+                                order={order}
+                                onUpdated={(updated) => {
+                                  setOrders(prev => prev.map(o => o.id === order.id ? { ...o, ...updated } : o))
+                                  // 모달이 같은 주문을 보고 있으면 모달 state도 동기화
+                                  setSelectedOrder(prev => prev && prev.id === order.id ? { ...prev, ...updated } : prev)
+                                }}
+                              />
                             </div>
                             {/* 개별 상품 목록 (다중 상품 주문) */}
                             {order.item_count && order.item_count > 1 && order.order_items && order.order_items.length > 0 && (
@@ -1491,6 +1764,101 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* 운송장 관리 — 취소(요청)된 주문에는 노출하지 않음 */}
+                {selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'cancel_requested' && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-purple-600" />
+                      운송장 관리
+                      <span className="text-xs font-normal text-slate-400">({CARRIER_LABELS.cj})</span>
+                    </h4>
+
+                    {/* 현재 등록된 운송장이 있다면 조회 링크 우선 노출 */}
+                    {selectedOrder.tracking_number && (() => {
+                      const url = getTrackingUrl(selectedOrder.tracking_number, 'cj')
+                      return url ? (
+                        <div className="mb-3 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-xs text-purple-700 font-medium">등록된 운송장</p>
+                            <p className="font-mono text-sm text-purple-900 break-all">{selectedOrder.tracking_number}</p>
+                            {selectedOrder.shipped_at && (
+                              <p className="text-[11px] text-slate-500 mt-0.5">발송 처리: {formatDate(selectedOrder.shipped_at)}</p>
+                            )}
+                          </div>
+                          <a
+                            href={url}
+                            {...EXTERNAL_LINK_SAFE_ATTRS}
+                            className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            배송조회 <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      ) : null
+                    })()}
+
+                    {/* 입력 / 수정 폼 */}
+                    <div className="space-y-2">
+                      <label className="text-sm text-slate-500">운송장 번호 (숫자 10~12자리)</label>
+                      <input
+                        type="text"
+                        value={trackingInput}
+                        onChange={(e) => setTrackingInput(e.target.value)}
+                        placeholder="예: 123456789012"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        className="w-full px-3 py-2 text-sm border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-400 font-mono"
+                      />
+                      {trackingInput.trim() && !isValidTrackingNumber(trackingInput) && (
+                        <p className="text-xs text-red-600">⚠️ 형식이 올바르지 않습니다 (숫자 10~12자리, 하이픈/공백 허용)</p>
+                      )}
+
+                      <div className="flex flex-wrap gap-3 pt-1">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={trackingAutoShipping}
+                            onChange={(e) => setTrackingAutoShipping(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-purple-600"
+                          />
+                          저장 시 "배송중"으로 자동 전환
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={trackingNotifyCustomer}
+                            onChange={(e) => setTrackingNotifyCustomer(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-purple-600"
+                          />
+                          고객에게 발송 알림 이메일 전송
+                        </label>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => handleTrackingSave(false)}
+                          disabled={trackingSaving || !trackingInput.trim() || !isValidTrackingNumber(trackingInput) || normalizeTrackingNumber(trackingInput) === (selectedOrder.tracking_number ?? '')}
+                          className="px-3 py-1.5 text-sm font-bold bg-purple-600 text-white rounded-lg border-2 border-purple-700 shadow-[2px_2px_0px_#581c87] hover:shadow-[1px_1px_0px_#581c87] hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0"
+                        >
+                          {trackingSaving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : '운송장 저장'}
+                        </button>
+                        {selectedOrder.tracking_number && (
+                          <button
+                            onClick={() => {
+                              if (confirm('등록된 운송장을 해제하시겠습니까?')) {
+                                handleTrackingSave(true)
+                              }
+                            }}
+                            disabled={trackingSaving}
+                            className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border-2 border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                          >
+                            운송장 해제
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 관리자 메모 */}
                 <div className="border-t pt-4">

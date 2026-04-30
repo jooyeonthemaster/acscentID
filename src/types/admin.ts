@@ -108,24 +108,28 @@ export interface GeneratedRecipeData {
 }
 
 // 주문 상태
-export type OrderStatus = 'awaiting_payment' | 'pending' | 'paid' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
+// 진행 순서: awaiting_payment → pending → paid → preparing → shipping → delivered
+//           (분기) cancel_requested → cancelled
+export type OrderStatus = 'awaiting_payment' | 'pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'cancel_requested' | 'cancelled'
 
 // 주문 상태 한글 라벨
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   awaiting_payment: '결제 진행중',
   pending: '입금대기',
   paid: '입금완료',
+  preparing: '상품준비중',
   shipping: '배송중',
   delivered: '배송완료',
   cancel_requested: '취소요청',
   cancelled: '취소완료',
 }
 
-// 주문 상태 색상
+// 주문 상태 색상 — 진행 단계별 모노토닉 그라데이션
 export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   awaiting_payment: 'bg-cyan-100 text-cyan-700',
   pending: 'bg-amber-100 text-amber-700',
   paid: 'bg-blue-100 text-blue-700',
+  preparing: 'bg-indigo-100 text-indigo-700',
   shipping: 'bg-purple-100 text-purple-700',
   delivered: 'bg-emerald-100 text-emerald-700',
   cancel_requested: 'bg-orange-100 text-orange-700',
@@ -168,6 +172,10 @@ export interface AdminOrderRecord {
   refund_reason?: string | null
   // 인플루언서 주문 여부
   is_influencer?: boolean
+  // 배송 운송장
+  tracking_number?: string | null
+  tracking_carrier?: string | null
+  shipped_at?: string | null
 }
 
 // 관리자용 회원 레코드

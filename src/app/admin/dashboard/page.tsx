@@ -66,6 +66,7 @@ function OrderStatusBar({ stats }: { stats: AdminDashboardStats['ordersByStatus'
   const segments = [
     { key: 'pending', label: '입금대기', color: 'bg-amber-400', count: stats.pending },
     { key: 'paid', label: '입금완료', color: 'bg-blue-400', count: stats.paid },
+    { key: 'preparing', label: '상품준비중', color: 'bg-indigo-400', count: stats.preparing },
     { key: 'shipping', label: '배송중', color: 'bg-purple-400', count: stats.shipping },
     { key: 'delivered', label: '배송완료', color: 'bg-emerald-400', count: stats.delivered },
   ]

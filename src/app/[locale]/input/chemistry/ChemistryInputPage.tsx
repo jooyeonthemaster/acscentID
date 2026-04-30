@@ -4,6 +4,8 @@ import { Suspense } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { useChemistryForm } from "./hooks/useChemistryForm"
 import { SummonPhase } from "./components/SummonPhase"
@@ -11,8 +13,11 @@ import { CardDeck } from "./components/CardDeck"
 import { CatalystPhase } from "./components/CatalystPhase"
 import { ChemistryAnalyzingOverlay } from "./components/ChemistryAnalyzingOverlay"
 import { Header } from "@/components/layout/Header"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 function ChemistryInputFormInner() {
+  const t = useTranslations()
+  const searchParams = useSearchParams()
   const {
     phase,
     currentCard,
@@ -23,6 +28,7 @@ function ChemistryInputFormInner() {
     isCompressing1,
     isCompressing2,
     isOffline,
+    showAuthGate,
     TOTAL_CARDS,
     isSummonValid,
     isCardValid,
@@ -39,6 +45,9 @@ function ChemistryInputFormInner() {
     image1Preview,
     image2Preview,
   } = useChemistryForm()
+
+  // 로그인 후 복귀할 경로 (현재 URL 파라미터 보존 — type=chemistry 포함)
+  const authRedirectPath = `/input?${searchParams.toString()}`
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans text-slate-800">
@@ -154,6 +163,17 @@ function ChemistryInputFormInner() {
           </div>
         </main>
       </div>
+
+      {/* 케미 분석: 온라인/오프라인 무관 로그인 필수 게이트 */}
+      <AuthModal
+        isOpen={showAuthGate}
+        onClose={() => {}}
+        closeable={false}
+        showGuestOption={false}
+        title={t('auth.qrLoginTitle')}
+        description={t('auth.qrLoginDescription')}
+        redirectPath={authRedirectPath}
+      />
     </div>
   )
 }
@@ -216,7 +236,7 @@ function ChemistryNavButtons({
               : "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300 shadow-none"
           }`}
         >
-          <span>카드 덱 열기</span>
+          <span>분석하기</span>
           <ArrowRight size={18} />
         </motion.button>
       </div>

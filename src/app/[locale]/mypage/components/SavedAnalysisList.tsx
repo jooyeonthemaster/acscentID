@@ -9,9 +9,12 @@ import Link from 'next/link'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'
-import { PRODUCT_TYPE_BADGES, getDefaultSize, getDefaultPrice, type ProductType } from '@/types/cart'
+import { PRODUCT_TYPE_BADGES, type ProductType } from '@/types/cart'
+import { useProductPricing } from '@/hooks/useProductPricing'
 import { perfumes } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
+import { useActiveProducts } from '@/hooks/useAdminContent'
+import { isProductTypeDiscontinued } from '@/lib/products/active'
 
 // 향수 ID로 색상 가져오기
 const getPerfumeColor = (id: string): string => {
@@ -88,9 +91,15 @@ interface SavedAnalysisListProps {
 export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, onDelete, onDeleteChemistry, viewMode = 'grid' }: SavedAnalysisListProps) {
   const router = useRouter()
   const t = useTranslations('mypage.gallery')
+  const tMypage = useTranslations('mypage')
   const tButtons = useTranslations('buttons')
   const tErrors = useTranslations('errors')
   const { getLocalizedName } = useLocalizedPerfumes()
+  const { isProductActive, loading: productsLoading } = useActiveProducts()
+  const { getDefaultSize, getDefaultPrice } = useProductPricing()
+  const isAnalysisDiscontinued = (productType: string | null | undefined) =>
+    isProductTypeDiscontinued(productType, isProductActive, productsLoading)
+  const isChemistryDiscontinued = isAnalysisDiscontinued('chemistry_set')
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
@@ -211,6 +220,12 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   const handlePurchase = (analysis: Analysis, e: React.MouseEvent) => {
     e.stopPropagation()
 
+    // 비활성 상품(관리자에서 판매중단)이면 차단 — 분석 결과 카드에서 뒤늦게 구매 시도 방어
+    if (isAnalysisDiscontinued(analysis.product_type)) {
+      alert(tMypage('productDiscontinued'))
+      return
+    }
+
     // 분석 결과를 localStorage에 저장 (checkout 페이지에서 사용)
     const analysisResult = {
       matchingPerfumes: [{
@@ -310,6 +325,13 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   // 케미 향수 구매 (체크아웃 직행)
   const handleChemistryPurchase = (chem: ChemistryAnalysis, e?: React.MouseEvent) => {
     e?.stopPropagation()
+
+    // 케미 상품이 비활성(판매중단)이면 차단
+    if (isChemistryDiscontinued) {
+      alert(tMypage('productDiscontinued'))
+      return
+    }
+
     localStorage.setItem('checkoutProductType', 'chemistry_set')
     localStorage.setItem('checkoutAnalysisId', chem.sessionId)
     router.push('/checkout')
@@ -515,10 +537,18 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           </button>
                         </div>
                         <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                          <button onClick={(e) => { e.stopPropagation(); setChemistryDetailTarget(chem) }}
-                            className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors">
-                            <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
-                            {t('purchase')}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setChemistryDetailTarget(chem) }}
+                            disabled={isChemistryDiscontinued}
+                            title={isChemistryDiscontinued ? tMypage('productDiscontinued') : undefined}
+                            className={`w-full py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
+                              isChemistryDiscontinued
+                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                : 'bg-black text-white hover:bg-slate-800'
+                            }`}
+                          >
+                            <ShoppingBag className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isChemistryDiscontinued ? 'text-slate-400' : 'text-yellow-400'}`} />
+                            {isChemistryDiscontinued ? tMypage('discontinuedShort') : t('purchase')}
                           </button>
                         </div>
                       </div>
@@ -641,16 +671,31 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
                   {/* 버튼 영역 */}
                   <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setRecipeModalTarget(analysis)
-                      }}
-                      className="w-full py-1.5 sm:py-2 bg-black text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-slate-800 transition-colors"
-                    >
-                      <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
-                      {t('purchase')}
-                    </button>
+                    {(() => {
+                      const discontinued = isAnalysisDiscontinued(analysis.product_type)
+                      return (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (discontinued) {
+                              alert(tMypage('productDiscontinued'))
+                              return
+                            }
+                            setRecipeModalTarget(analysis)
+                          }}
+                          disabled={discontinued}
+                          title={discontinued ? tMypage('productDiscontinued') : undefined}
+                          className={`w-full py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
+                            discontinued
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                              : 'bg-black text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          <ShoppingBag className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${discontinued ? 'text-slate-400' : 'text-yellow-400'}`} />
+                          {discontinued ? tMypage('discontinuedShort') : t('purchase')}
+                        </button>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1337,16 +1382,27 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     >
                       {t('viewResult')}
                     </Link>
-                    <button
-                      onClick={(e) => {
-                        setRecipeModalTarget(null)
-                        handlePurchase(recipeModalTarget, e)
-                      }}
-                      className="flex-[1.5] py-3 bg-black text-white border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
-                    >
-                      <ShoppingBag size={18} className="text-yellow-400" />
-                      {t('purchase')}
-                    </button>
+                    {(() => {
+                      const discontinued = isAnalysisDiscontinued(recipeModalTarget.product_type)
+                      return (
+                        <button
+                          onClick={(e) => {
+                            setRecipeModalTarget(null)
+                            handlePurchase(recipeModalTarget, e)
+                          }}
+                          disabled={discontinued}
+                          title={discontinued ? tMypage('productDiscontinued') : undefined}
+                          className={`flex-[1.5] py-3 border-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${
+                            discontinued
+                              ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                              : 'bg-black text-white border-black hover:bg-slate-800'
+                          }`}
+                        >
+                          <ShoppingBag size={18} className={discontinued ? 'text-slate-400' : 'text-yellow-400'} />
+                          {discontinued ? tMypage('discontinuedShort') : t('purchase')}
+                        </button>
+                      )
+                    })()}
                   </div>
                 </div>
               </motion.div>
@@ -1559,10 +1615,16 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         setChemistryDetailTarget(null)
                         handleChemistryPurchase(chemistryDetailTarget, e)
                       }}
-                      className="flex-[1.5] py-3 bg-black text-white border-2 border-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
+                      disabled={isChemistryDiscontinued}
+                      title={isChemistryDiscontinued ? tMypage('productDiscontinued') : undefined}
+                      className={`flex-[1.5] py-3 border-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${
+                        isChemistryDiscontinued
+                          ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                          : 'bg-black text-white border-black hover:bg-slate-800'
+                      }`}
                     >
-                      <ShoppingBag size={18} className="text-yellow-400" />
-                      {t('purchase')}
+                      <ShoppingBag size={18} className={isChemistryDiscontinued ? 'text-slate-400' : 'text-yellow-400'} />
+                      {isChemistryDiscontinued ? tMypage('discontinuedShort') : t('purchase')}
                     </button>
                   </div>
                 </div>

@@ -86,11 +86,6 @@ export default function GraduationPage() {
     }
   }
 
-  const handleGuestStart = () => {
-    setShowAuthModal(true)
-    setShowLoginPrompt(false)
-  }
-
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
@@ -507,14 +502,6 @@ export default function GraduationPage() {
                   className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FCD34D] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#FCD34D] transition-all border-2 border-black"
                 >
                   {t('buttons.loginSignup')}
-                </button>
-
-                <button
-                  onClick={handleGuestStart}
-                  className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>{t('buttons.startAsGuest')}</span>
-                  <span className="text-xs text-slate-400">{t('auth.notSaved')}</span>
                 </button>
               </div>
             </motion.div>

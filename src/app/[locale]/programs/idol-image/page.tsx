@@ -66,11 +66,6 @@ export default function IdolImagePage() {
     }
   }
 
-  const handleGuestStart = () => {
-    setShowAuthModal(true)
-    setShowLoginPrompt(false)
-  }
-
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
@@ -299,7 +294,6 @@ export default function IdolImagePage() {
         isOpen={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onLogin={handleLoginClick}
-        onGuest={handleGuestStart}
       />
 
       {/* 로그인 모달 */}

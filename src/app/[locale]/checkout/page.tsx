@@ -27,7 +27,8 @@ import { InAppBrowserNotice } from "./components/InAppBrowserNotice"
 import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
-import { PRODUCT_PRICING, formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
+import { formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
+import { useProductPricing } from "@/hooks/useProductPricing"
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { detectInAppBrowser } from "@/lib/mobile/inAppBrowser"
 
@@ -72,6 +73,7 @@ function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
+  const { getOption, getPrice } = useProductPricing()
 
   // URL 파라미터에서 시그니처/테스트 상품 확인
   const urlProduct = searchParams.get("product")
@@ -316,8 +318,8 @@ function CheckoutContent() {
   const handleUpdateSize = (itemId: string, newSize: string) => {
     setCheckoutItems(prev => prev.map(item => {
       if (item.id === itemId && item.product_type !== 'figure_diffuser') {
-        const pricing = PRODUCT_PRICING[item.product_type]
-        const newPrice = pricing.find(p => p.size === newSize)?.price || item.price
+        const newOpt = getOption(item.product_type, newSize)
+        const newPrice = newOpt?.price ?? item.price
         return { ...item, size: newSize as CartItem['size'], price: newPrice }
       }
       return item
@@ -337,11 +339,9 @@ function CheckoutContent() {
     setSelectedCoupon(null) // Reset coupon when item removed
   }
 
-  // 가격 계산 - PRODUCT_PRICING에서 가져오기
+  // 가격 계산 — DB 기반 useProductPricing
   const getPriceForSize = (pType: ProductType, size: string): number => {
-    const pricing = PRODUCT_PRICING[pType]
-    const option = pricing.find(p => p.size === size)
-    return option?.price || pricing[0].price
+    return getPrice(pType, size)
   }
 
   // 다중 상품 모드

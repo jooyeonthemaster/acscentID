@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { useSearchParams } from "next/navigation"
 
 import { useGraduationForm } from "./hooks/useGraduationForm"
 import {
@@ -16,8 +17,11 @@ import {
 } from "./components"
 import { GRADUATION_TOTAL_STEPS, GRADUATION_THEME } from "./constants"
 import { Header } from "@/components/layout/Header"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 export function GraduationInputForm() {
+    const t = useTranslations()
+    const searchParams = useSearchParams()
     const {
         currentStep,
         totalSteps,
@@ -33,6 +37,7 @@ export function GraduationInputForm() {
         isCompressing,
         isTransforming,
         isOffline,
+        showAuthGate,
         isStepValid,
         setName,
         setGender,
@@ -164,6 +169,17 @@ export function GraduationInputForm() {
                     </div>
                 </main>
             </div>
+
+            {/* 인증 게이트 — 비로그인 분석 차단 */}
+            <AuthModal
+                isOpen={showAuthGate}
+                onClose={() => {}}
+                closeable={false}
+                showGuestOption={false}
+                title={t('auth.qrLoginTitle')}
+                description={t('auth.qrLoginDescription')}
+                redirectPath={`/input?${searchParams.toString()}`}
+            />
         </div>
     )
 }

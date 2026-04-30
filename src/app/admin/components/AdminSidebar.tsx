@@ -20,6 +20,7 @@ import {
   Package,
   FileText,
   MessageSquare,
+  DollarSign,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -97,6 +98,12 @@ const navItems: NavItem[] = [
     label: '배너 관리',
     icon: ImageIcon,
     description: '히어로 슬라이드 관리',
+  },
+  {
+    href: '/admin/product-pricing',
+    label: '가격 관리',
+    icon: DollarSign,
+    description: '상품별 판매가/정가',
   },
   {
     href: '/admin/product-images',

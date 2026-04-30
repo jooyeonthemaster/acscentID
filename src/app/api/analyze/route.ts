@@ -6,6 +6,7 @@ import { AnalyzeRequest, AnalyzeResponse } from '@/types/gemini';
 import { ImageAnalysisResult } from '@/types/analysis';
 import { perfumes } from '@/data/perfumes';
 import { getApiLocale } from '@/lib/api-locale';
+import { requireAuthenticatedUser } from '@/lib/auth/require-user';
 
 // Mock 데이터 생성 함수 (fallback용)
 function generateMockResult(): ImageAnalysisResult {
@@ -103,7 +104,17 @@ export async function POST(request: NextRequest) {
   console.log('='.repeat(80));
 
   try {
-    // 0. 언어 감지
+    // 0. 인증 — 비로그인 분석 차단 (서버 사이드 강제)
+    const authedUser = await requireAuthenticatedUser();
+    if (!authedUser) {
+      console.warn(`[${requestId}] ❌ 비로그인 분석 시도 차단`);
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 0-1. 언어 감지
     const locale = getApiLocale(request);
 
     // 1. 요청 파싱

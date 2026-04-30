@@ -85,11 +85,6 @@ export default function FigurePage() {
     }
   }
 
-  const handleGuestStart = () => {
-    startTransition("/input?type=figure&mode=online")
-    setShowLoginPrompt(false)
-  }
-
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
@@ -527,20 +522,12 @@ export default function FigurePage() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-3">
+              <div className="p-6">
                 <button
                   onClick={handleLoginClick}
                   className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#22d3ee] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#22d3ee] transition-all border-2 border-black"
                 >
                   {t('buttons.loginSignup')}
-                </button>
-
-                <button
-                  onClick={handleGuestStart}
-                  className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>{t('buttons.startAsGuest')}</span>
-                  <span className="text-xs text-slate-400">{t('auth.notSaved')}</span>
                 </button>
               </div>
             </motion.div>

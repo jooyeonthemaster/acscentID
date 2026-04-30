@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Sparkles, ChevronRight, Droplet, Check } from "lucide-react"
+import { X, Sparkles, ChevronRight, Droplet, Check, ChevronDown } from "lucide-react"
 import { perfumes } from "@/data/perfumes"
 import {
   type ScentIntensity,
@@ -79,7 +79,7 @@ const buildOriginalRecipe = (perfumeId: string, perfumeName: string, characteris
   }
 }
 
-type ModalStep = 'formA' | 'formB' | 'generating' | 'result' | 'confirmed'
+type ModalStep = 'formA' | 'formB' | 'generating' | 'result' | 'confirmed' | 'success'
 
 export function ChemistryFeedbackModal({
   isOpen, onClose, sessionId,
@@ -130,6 +130,13 @@ export function ChemistryFeedbackModal({
       setSelectedB(null)
     }
   }, [isOpen])
+
+  // success 단계 진입 시 2.5초 후 자동으로 모달 닫기
+  useEffect(() => {
+    if (step !== 'success' || !isOpen) return
+    const timer = setTimeout(() => onClose(), 2500)
+    return () => clearTimeout(timer)
+  }, [step, isOpen, onClose])
 
   // A→B 전환 (A 단계에서는 항상 B로 이동, 만족 판정은 B에서 종합)
   const handleNextFromA = useCallback(() => {
@@ -423,7 +430,6 @@ export function ChemistryFeedbackModal({
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400 text-center mt-2">둘 중 하나를 골라주세요. 직접 맡아보고 결정!</p>
                 </div>
 
                 <div className="px-5 space-y-4">
@@ -432,12 +438,13 @@ export function ChemistryFeedbackModal({
                   {/* A 레시피 선택 */}
                   {resultTab === 'A' && !tasteA.satisfied && (
                     <motion.div key="recA" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                      {/* 상단 안내 */}
-                      <div className="bg-violet-50 border-2 border-violet-200 rounded-xl p-3">
-                        <p className="text-[11px] font-bold text-violet-800 mb-1">🧪 테스팅 레시피 만드는 법</p>
-                        <p className="text-[10px] text-slate-600 leading-relaxed">
-                          총 10방울 기준으로 각 향료를 해당 방울 수만큼 섞어서 테스트해봐!
-                          원본 향을 중심으로 2가지 향료가 추가된 구성이야.
+                      {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
+                      <div className="bg-violet-50 border-2 border-violet-300 rounded-xl p-3">
+                        <p className="text-sm font-black text-violet-900 flex items-center gap-1.5">
+                          👇 1안 또는 2안 중 하나를 <span className="underline decoration-violet-500 decoration-2 underline-offset-2">탭해서 선택</span>해주세요
+                        </p>
+                        <p className="text-[10px] text-slate-600 leading-relaxed mt-1.5">
+                          총 10방울 기준 — 각 향료를 해당 방울 수만큼 섞어 직접 맡아보고 결정!
                         </p>
                       </div>
                       <SelectableRecipeCard
@@ -465,12 +472,13 @@ export function ChemistryFeedbackModal({
                   {/* B 레시피 선택 */}
                   {resultTab === 'B' && !tasteB.satisfied && (
                     <motion.div key="recB" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                      {/* 상단 안내 */}
-                      <div className="bg-pink-50 border-2 border-pink-200 rounded-xl p-3">
-                        <p className="text-[11px] font-bold text-pink-800 mb-1">🧪 테스팅 레시피 만드는 법</p>
-                        <p className="text-[10px] text-slate-600 leading-relaxed">
-                          총 10방울 기준으로 각 향료를 해당 방울 수만큼 섞어서 테스트해봐!
-                          원본 향을 중심으로 2가지 향료가 추가된 구성이야.
+                      {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
+                      <div className="bg-pink-50 border-2 border-pink-300 rounded-xl p-3">
+                        <p className="text-sm font-black text-pink-900 flex items-center gap-1.5">
+                          👇 1안 또는 2안 중 하나를 <span className="underline decoration-pink-500 decoration-2 underline-offset-2">탭해서 선택</span>해주세요
+                        </p>
+                        <p className="text-[10px] text-slate-600 leading-relaxed mt-1.5">
+                          총 10방울 기준 — 각 향료를 해당 방울 수만큼 섞어 직접 맡아보고 결정!
                         </p>
                       </div>
                       <SelectableRecipeCard
@@ -577,6 +585,45 @@ export function ChemistryFeedbackModal({
                 )}
               </motion.div>
             )}
+
+            {/* 완료 — 성공 화면 */}
+            {step === 'success' && (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', damping: 18, stiffness: 200 }}
+                className="flex flex-col items-center justify-center text-center py-16 px-5 gap-5"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.1 }}
+                  className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 border-4 border-black shadow-[6px_6px_0_0_black] flex items-center justify-center"
+                >
+                  <Check size={56} className="text-white" strokeWidth={3.5} />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h3 className="text-2xl font-black text-slate-900 mb-2">완료되었습니다!</h3>
+                  <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                    {characterAName}와(과) {characterBName}의<br />
+                    레시피가 확정됐어요 🎉
+                  </p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="text-[11px] text-slate-400"
+                >
+                  잠시 후 자동으로 닫혀요...
+                </motion.div>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
 
@@ -585,25 +632,33 @@ export function ChemistryFeedbackModal({
           {isFormA && (
             <button
               onClick={handleNextFromA}
-              className="w-full py-3.5 bg-gradient-to-r from-violet-500 to-violet-600 text-white font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-gradient-to-r from-violet-500 to-violet-600 text-white font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex flex-col items-center justify-center gap-0.5"
             >
-              {characterBName}의 향으로 <ChevronRight size={16} />
+              <span className="flex items-center gap-1.5">
+                <span className="text-[10px] opacity-80 font-bold">(1/2)</span>
+                <span>{characterAName} 완료 · 다음으로</span>
+                <ChevronRight size={16} />
+              </span>
+              <span className="text-[10px] opacity-70 font-medium">다음 단계: {characterBName}의 향</span>
             </button>
           )}
           {isFormB && (
             <button
               onClick={handleNextFromB}
-              className={`w-full py-3.5 font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex flex-col items-center justify-center gap-0.5 ${
                 tasteA.satisfied && tasteB.satisfied
                   ? 'bg-gradient-to-r from-emerald-400 to-green-400 text-black'
                   : 'bg-gradient-to-r from-yellow-400 to-amber-400 text-black'
               }`}
             >
-              {tasteA.satisfied && tasteB.satisfied ? (
-                <><Check size={16} /> 원본 레시피로 확정</>
-              ) : (
-                <><Sparkles size={16} /> 맞춤 레시피 생성</>
-              )}
+              <span className="flex items-center gap-1.5">
+                <span className="text-[10px] opacity-80 font-bold">(2/2)</span>
+                {tasteA.satisfied && tasteB.satisfied ? (
+                  <><Check size={16} /> <span>원본 레시피로 확정</span></>
+                ) : (
+                  <><Sparkles size={16} /> <span>{characterBName} 완료 · 맞춤 레시피 생성</span></>
+                )}
+              </span>
             </button>
           )}
           {step === 'result' && (() => {
@@ -632,8 +687,19 @@ export function ChemistryFeedbackModal({
             )
           })()}
           {step === 'confirmed' && (
-            <button onClick={onClose} className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] transition-all">
-              완료
+            <button
+              onClick={() => goToStep('success')}
+              className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+            >
+              <Check size={16} /> 완료
+            </button>
+          )}
+          {step === 'success' && (
+            <button
+              onClick={onClose}
+              className="w-full py-3.5 bg-slate-900 text-white font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all"
+            >
+              닫기
             </button>
           )}
         </div>
@@ -683,22 +749,45 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
   originalPerfumeName?: string
   retentionPercentage?: number
 }) {
+  const [chartOpen, setChartOpen] = useState(false)
   const st = accentColor === 'violet'
-    ? { border: 'border-violet-500', bg: 'bg-violet-50', text: 'text-violet-700' }
-    : { border: 'border-pink-500', bg: 'bg-pink-50', text: 'text-pink-700' }
+    ? { border: 'border-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', accent: 'bg-violet-500' }
+    : { border: 'border-pink-500', bg: 'bg-pink-50', text: 'text-pink-700', accent: 'bg-pink-500' }
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
-      className={`w-full text-left border-2 rounded-xl overflow-hidden transition-all cursor-pointer ${
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
+      aria-pressed={selected}
+      className={`relative w-full text-left border-2 rounded-xl overflow-hidden transition-all cursor-pointer ${
         selected
           ? `${st.border} ${st.bg} shadow-[3px_3px_0_0_black] -translate-x-[1px] -translate-y-[1px]`
           : 'border-slate-300 bg-white hover:border-black'
       }`}
     >
-      <div className={`px-4 py-2 border-b ${selected ? 'border-black' : 'border-slate-200'} flex items-center justify-between`}>
-        <span className={`text-xs font-black ${selected ? st.text : 'text-slate-500'}`}>{label}</span>
-        {selected && <Check size={14} className="text-emerald-500" />}
+      {/* 선택 라디오 인디케이터 — 우상단 큰 원 */}
+      <div className="absolute top-3 right-3 z-10">
+        <div
+          className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+            selected
+              ? `${st.accent} border-black shadow-[2px_2px_0_0_black]`
+              : 'bg-white border-slate-300'
+          }`}
+        >
+          {selected ? (
+            <Check size={16} className="text-white" strokeWidth={3} />
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-slate-200" />
+          )}
+        </div>
+      </div>
+
+      <div className={`px-4 py-2 border-b ${selected ? 'border-black' : 'border-slate-200'} flex items-center gap-2 pr-12`}>
+        <span className={`text-base font-black ${selected ? st.text : 'text-slate-700'}`}>{label}</span>
+        {!selected && <span className="text-[10px] text-slate-400 font-bold">탭해서 선택</span>}
+        {selected && <span className={`text-[10px] font-black ${st.text}`}>· 선택됨</span>}
       </div>
 
       {/* 원본 향 표시 */}
@@ -741,10 +830,35 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
           <p className="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-100">{recipe.overallExplanation}</p>
         )}
 
-        {/* 향 밸런스 변화 차트 */}
+        {/* 향 밸런스 변화 차트 — 토글 (기본 접힘) */}
         {recipe.categoryChanges && recipe.categoryChanges.length > 0 && (
-          <div className="pt-2">
-            <CategoryChangeChart categoryChanges={recipe.categoryChanges} compact />
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setChartOpen((v) => !v) }}
+              className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 rounded-md transition-colors"
+            >
+              <span>📊 향 밸런스 변화 보기</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${chartOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {chartOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2">
+                    <CategoryChangeChart categoryChanges={recipe.categoryChanges} compact />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>

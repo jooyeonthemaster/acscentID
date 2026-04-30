@@ -8,7 +8,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
 import { apiFetch } from "@/lib/api-client"
 import type { ImageAnalysisResult } from "@/types/analysis"
-import { PRODUCT_PRICING, formatPrice } from "@/types/cart"
+import { formatPrice } from "@/types/cart"
+import { useProductPricing } from "@/hooks/useProductPricing"
 import { useTranslations } from 'next-intl'
 
 interface ChemistryPurchaseChapterProps {
@@ -27,9 +28,10 @@ export function ChemistryPurchaseChapter({
   const t = useTranslations()
   const [selectedSize, setSelectedSize] = useState<'set_10ml' | 'set_50ml'>('set_10ml')
   const [isAdding, setIsAdding] = useState(false)
+  const { getOptions, getOption } = useProductPricing()
 
-  const pricing = PRODUCT_PRICING.chemistry_set
-  const selectedOption = pricing.find(p => p.size === selectedSize) || pricing[0]
+  const pricing = getOptions('chemistry_set')
+  const selectedOption = getOption('chemistry_set', selectedSize) ?? pricing[0]
 
   const perfumeA = characterA.matchingPerfumes[0]?.persona
   const perfumeB = characterB.matchingPerfumes[0]?.persona

@@ -280,7 +280,7 @@ function BannerFormModal({
 
             {form.image_url ? (
               <div className="relative group">
-                <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border-2 border-slate-200">
+                <div className="relative w-full aspect-[455/420] rounded-xl overflow-hidden border-2 border-slate-200">
                   <img
                     src={form.image_url}
                     alt="배너 미리보기"
@@ -296,7 +296,7 @@ function BannerFormModal({
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 mt-1.5">
-                  히어로 섹션 미리보기 (21:9 비율)
+                  히어로 섹션 미리보기 (실제 홈 표시 비율 ≈ 1:1, 가장자리는 잘릴 수 있음)
                 </p>
               </div>
             ) : (
@@ -308,7 +308,7 @@ function BannerFormModal({
                 }}
                 onDragLeave={() => setDragOver(false)}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative w-full aspect-[21/9] rounded-xl border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+                className={`relative w-full aspect-[455/420] rounded-xl border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
                   dragOver
                     ? 'border-yellow-400 bg-yellow-50'
                     : 'border-slate-300 bg-slate-50 hover:border-yellow-400 hover:bg-yellow-50/50'
@@ -329,7 +329,7 @@ function BannerFormModal({
                         클릭하거나 드래그하여 업로드
                       </p>
                       <p className="text-xs text-slate-400 mt-1">
-                        JPG, PNG, WebP (최대 10MB) / 권장 비율 21:9
+                        JPG, PNG, WebP (최대 10MB) / 권장 1:1 정사각 (예: 1080×1080) · 중요 요소는 중앙에 배치 (양옆/위아래 일부 잘림)
                       </p>
                     </div>
                   </>
@@ -465,7 +465,7 @@ function HeroPreview({ banners }: { banners: Banner[] }) {
 
   if (activeBanners.length === 0) {
     return (
-      <div className="w-full aspect-[21/9] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center">
+      <div className="w-full aspect-[455/420] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center">
         <div className="text-center">
           <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
           <p className="text-sm text-slate-400">활성 배너가 없습니다</p>
@@ -478,7 +478,7 @@ function HeroPreview({ banners }: { banners: Banner[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] bg-slate-900">
+      <div className="relative w-full aspect-[455/420] rounded-xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] bg-slate-900">
         <AnimatePresence mode="wait">
           <motion.img
             key={activeBanners[safeIndex].id}
@@ -572,7 +572,7 @@ function BannerCard({
       }`}
     >
       {/* Image */}
-      <div className="relative aspect-[21/9] bg-slate-100">
+      <div className="relative aspect-[455/420] bg-slate-100">
         <img
           src={banner.image_url}
           alt={banner.title}

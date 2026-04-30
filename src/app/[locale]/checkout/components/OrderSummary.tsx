@@ -4,7 +4,8 @@ import { motion } from "framer-motion"
 import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
-import { FREE_SHIPPING_THRESHOLD, PRODUCT_PRICING, formatPrice } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/types/cart"
+import { useProductPricing } from "@/hooks/useProductPricing"
 
 // [FIX] CRITICAL #1, #2: selectedSize 타입에 set_10ml/set_50ml 추가
 interface OrderSummaryProps {
@@ -37,11 +38,31 @@ export function OrderSummary({
   isRepurchaser,
 }: OrderSummaryProps) {
   const t = useTranslations()
+  const { getOptions, getOption } = useProductPricing()
   const isFigureDiffuser = productType === "figure_diffuser"
   const isGraduation = productType === "graduation"
   const isSignature = productType === "signature"
   // [FIX] CRITICAL #2: chemistry_set 분기 추가
   const isChemistrySet = productType === "chemistry_set"
+
+  // 동적 가격 — DB 기반 (admin 에서 변경 시 즉시 반영)
+  const figureOpt = getOption('figure_diffuser', 'set')
+  const graduationOpt = getOption('graduation', '10ml')
+  const signatureOpt = getOption('signature', '10ml')
+  const imageAnalysis10mlOpt = getOption('image_analysis', '10ml')
+  const imageAnalysis50mlOpt = getOption('image_analysis', '50ml')
+  const personalScent10mlOpt = getOption('personal_scent', '10ml')
+  const personalScent50mlOpt = getOption('personal_scent', '50ml')
+  const chemistryOptions = getOptions('chemistry_set')
+
+  const computeDiscount = (price?: number, original?: number | null): number | null => {
+    if (!price || !original || original <= price) return null
+    return Math.round(((original - price) / original) * 100)
+  }
+
+  // 10ml/50ml 셀렉터에 사용할 옵션 — productType 에 따라 적절한 가격표 사용
+  const tenMlOpt = productType === 'personal_scent' ? personalScent10mlOpt : imageAnalysis10mlOpt
+  const fiftyMlOpt = productType === 'personal_scent' ? personalScent50mlOpt : imageAnalysis50mlOpt
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -156,7 +177,17 @@ export function OrderSummary({
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                <p className="text-xl font-black text-slate-900">48,000{t('currency.suffix')}</p>
+                <div className="flex items-end gap-2">
+                  <p className="text-xl font-black text-slate-900">{formatPrice(figureOpt?.price ?? 48000)}{t('currency.suffix')}</p>
+                  {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
+                    <>
+                      <span className="text-xs text-slate-400 line-through">{formatPrice(figureOpt.original_price)}{t('currency.suffix')}</span>
+                      {computeDiscount(figureOpt.price, figureOpt.original_price) !== null && (
+                        <span className="px-1.5 py-0.5 bg-cyan-500 text-white text-[9px] font-black rounded">{computeDiscount(figureOpt.price, figureOpt.original_price)}% OFF</span>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -178,9 +209,15 @@ export function OrderSummary({
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
                 <div className="flex items-end gap-2">
-                  <p className="text-xl font-black text-slate-900">34,000{t('currency.suffix')}</p>
-                  <span className="text-xs text-slate-400 line-through">49,000{t('currency.suffix')}</span>
-                  <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">31% OFF</span>
+                  <p className="text-xl font-black text-slate-900">{formatPrice(graduationOpt?.price ?? 34000)}{t('currency.suffix')}</p>
+                  {graduationOpt?.original_price && graduationOpt.original_price > graduationOpt.price && (
+                    <>
+                      <span className="text-xs text-slate-400 line-through">{formatPrice(graduationOpt.original_price)}{t('currency.suffix')}</span>
+                      {computeDiscount(graduationOpt.price, graduationOpt.original_price) !== null && (
+                        <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">{computeDiscount(graduationOpt.price, graduationOpt.original_price)}% OFF</span>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -203,9 +240,15 @@ export function OrderSummary({
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
                 <div className="flex items-end gap-2">
-                  <p className="text-xl font-black text-slate-900">34,000{t('currency.suffix')}</p>
-                  <span className="text-xs text-slate-400 line-through">45,000{t('currency.suffix')}</span>
-                  <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[9px] font-black rounded">29% OFF</span>
+                  <p className="text-xl font-black text-slate-900">{formatPrice(signatureOpt?.price ?? 34000)}{t('currency.suffix')}</p>
+                  {signatureOpt?.original_price && signatureOpt.original_price > signatureOpt.price && (
+                    <>
+                      <span className="text-xs text-slate-400 line-through">{formatPrice(signatureOpt.original_price)}{t('currency.suffix')}</span>
+                      {computeDiscount(signatureOpt.price, signatureOpt.original_price) !== null && (
+                        <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[9px] font-black rounded">{computeDiscount(signatureOpt.price, signatureOpt.original_price)}% OFF</span>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -213,7 +256,7 @@ export function OrderSummary({
         ) : isChemistrySet ? (
           /* [FIX] CRITICAL #2: 케미 향수 세트 옵션 (set_10ml / set_50ml) */
           <div className="grid grid-cols-2 gap-3">
-            {PRODUCT_PRICING.chemistry_set.map((option) => (
+            {chemistryOptions.map((option) => (
               <button
                 key={option.size}
                 onClick={() => onSizeChange(option.size as "set_10ml" | "set_50ml")}
@@ -251,7 +294,7 @@ export function OrderSummary({
               )}
               <p className="font-black text-slate-900 text-base">10ml</p>
               <p className="text-[10px] text-slate-500 font-bold">{t('checkout.sprayType')}</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">24,000{t('currency.suffix')}</p>
+              <p className="text-sm font-black text-slate-900 mt-0.5">{formatPrice(tenMlOpt?.price ?? 24000)}{t('currency.suffix')}</p>
             </button>
             <button
               onClick={() => onSizeChange("50ml")}
@@ -268,7 +311,7 @@ export function OrderSummary({
               )}
               <p className="font-black text-slate-900 text-base">50ml</p>
               <p className="text-[10px] text-slate-500 font-bold">{t('checkout.sprayType')}</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">48,000{t('currency.suffix')}</p>
+              <p className="text-sm font-black text-slate-900 mt-0.5">{formatPrice(fiftyMlOpt?.price ?? 48000)}{t('currency.suffix')}</p>
             </button>
           </div>
         )}

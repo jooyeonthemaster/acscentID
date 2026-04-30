@@ -10,6 +10,8 @@ import Image from "next/image"
 import { useTranslations } from 'next-intl'
 import { PopupModal } from "@/components/home/PopupModal"
 import { useBanners, useActiveProducts, useProductImages } from "@/hooks/useAdminContent"
+import { useProductPricing } from "@/hooks/useProductPricing"
+import type { ProductType } from "@/types/cart"
 
 export default function Home() {
   const router = useRouter()
@@ -19,12 +21,32 @@ export default function Home() {
   const slideRef = useRef<HTMLDivElement>(null)
   const { banners, loading: bannersLoading } = useBanners()
   const { isProductActive } = useActiveProducts()
+  const { getOptions } = useProductPricing()
 
   // 각 상품의 DB 이미지 로드 (관리자 업로드 이미지 우선)
   const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
   const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
   const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
   const productImagesLoading = idolLoading || figureLoading || chemistryLoading
+
+  // 가격은 DB 의 가장 저렴한 활성 옵션 (priceRange 표시용)
+  const minPrice = (productType: ProductType) => {
+    const opts = getOptions(productType)
+    if (opts.length === 0) return null
+    return opts.reduce<{ price: number; original_price: number | null }>(
+      (acc, o) => (o.price < acc.price ? { price: o.price, original_price: o.original_price } : acc),
+      { price: opts[0].price, original_price: opts[0].original_price }
+    )
+  }
+  const idolPrice = minPrice('image_analysis')
+  const figurePrice = minPrice('figure_diffuser')
+  const chemistryPrice = minPrice('chemistry_set')
+
+  const computeBadge = (p: { price: number; original_price: number | null } | null, fallback: string) => {
+    if (!p || !p.original_price || p.original_price <= p.price) return fallback
+    const pct = Math.round(((p.original_price - p.price) / p.original_price) * 100)
+    return `${pct}% OFF`
+  }
 
   // 상품 데이터 (번역 키 사용)
   const ALL_PRODUCTS = [
@@ -33,11 +55,11 @@ export default function Home() {
       title: t('products.idolImage'),
       subtitle: t('programs.subtitle.idolImage'),
       image: productImagesLoading ? null : (idolImages[0] || "/images/perfume/KakaoTalk_20260125_225218071.jpg"),
-      price: 24000,
-      originalPrice: 35000,
+      price: idolPrice?.price ?? 24000,
+      originalPrice: idolPrice?.original_price ?? null,
       priceRange: true,
       delivery: t('shipping.estimated'),
-      badge: "31% OFF",
+      badge: computeBadge(idolPrice, "SALE"),
       badgeColor: "bg-[#FF6B9D]",
       href: "/programs/idol-image"
     },
@@ -46,10 +68,10 @@ export default function Home() {
       title: t('products.figureDiffuser'),
       subtitle: t('programs.subtitle.figure'),
       image: productImagesLoading ? null : (figureImages[0] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg"),
-      price: 48000,
-      originalPrice: 68000,
+      price: figurePrice?.price ?? 48000,
+      originalPrice: figurePrice?.original_price ?? null,
       delivery: t('shipping.afterProduction'),
-      badge: "NEW",
+      badge: computeBadge(figurePrice, "NEW"),
       badgeColor: "bg-[#A78BFA]",
       href: "/programs/figure"
     },
@@ -58,8 +80,8 @@ export default function Home() {
       title: t('products.chemistry'),
       subtitle: t('programs.subtitle.chemistry'),
       image: productImagesLoading ? null : (chemistryImages[0] || "/images/chemistry/chemistry-thumbnail.jpg"),
-      price: 38000,
-      originalPrice: 52000,
+      price: chemistryPrice?.price ?? 38000,
+      originalPrice: chemistryPrice?.original_price ?? null,
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: "SEASON 3",
@@ -138,8 +160,8 @@ export default function Home() {
                       src={banners[currentSlide]?.image_url || '/images/hero/1.jpg'}
                       alt={banners[currentSlide]?.title || 'hero background'}
                       fill
-                      className="object-contain"
-                      style={{ objectPosition: 'center 5%' }}
+                      className="object-cover"
+                      style={{ objectPosition: 'center center' }}
                       priority
                     />
                   </div>
@@ -252,6 +274,8 @@ export default function Home() {
           </div>
 
           {/* ===== 상품 둘러보기 섹션 (New) ===== */}
+          {/* TEMP: 잠깐 숨김 처리 (2026-04-30) — 다시 켤 때 이 false → true */}
+          {false && (
           <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[150px] relative z-20 min-h-[60vh] border-2 border-slate-900 border-b-0">
             <div className="flex items-center gap-2 mb-6">
               <Gift size={20} className="text-slate-900" />
@@ -306,6 +330,7 @@ export default function Home() {
               </p>
             </div>
           </section>
+          )}
 
           {/* ===== 콜라보 & 협업 문의 섹션 ===== */}
           <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[100px] relative z-30 min-h-[40vh] border-2 border-slate-900 border-b-0">

@@ -5,7 +5,8 @@ import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getKakaoSession } from '@/lib/auth-session'
 import { updateCartItem, removeFromCart } from '@/lib/supabase/cart'
 import type { UpdateCartItemRequest } from '@/types/cart'
-import { PRODUCT_PRICING, type ProductType } from '@/types/cart'
+import { type ProductType } from '@/types/cart'
+import { getServerOption } from '@/lib/products/pricing'
 
 // 사용자 인증 확인
 async function getUserId(): Promise<string | null> {
@@ -76,12 +77,11 @@ export async function PATCH(
         )
       }
 
-      const pricing = PRODUCT_PRICING[productType]
-      const sizeOption = pricing.find((p) => p.size === body.size)
+      const sizeOption = await getServerOption(productType, body.size)
 
-      if (!sizeOption) {
+      if (!sizeOption || !sizeOption.is_active) {
         return NextResponse.json(
-          { error: '유효하지 않은 사이즈입니다' },
+          { error: !sizeOption ? '유효하지 않은 사이즈입니다' : '판매 중지된 옵션입니다' },
           { status: 400 }
         )
       }

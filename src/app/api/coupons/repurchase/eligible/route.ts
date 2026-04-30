@@ -40,7 +40,7 @@ export async function GET() {
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .in('status', ['paid', 'delivered', 'shipping'])
+      .in('status', ['paid', 'preparing', 'shipping', 'delivered'])
 
     if (error) {
       console.error('Order count error:', error)

@@ -4,12 +4,27 @@ import { useState, useEffect, useCallback } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import { QRCode, PRODUCT_TYPE_LABELS, ProductType } from '@/types/admin'
 
-// QR 코드 이미지 생성 URL (Google Charts API 사용)
+// QR이 인코딩할 베이스 URL — 프로덕션 도메인 고정 (admin이 localhost에서 생성해도 인쇄/스캔 시 정상 작동)
+const QR_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.acscent.co.kr'
+
+const buildQRTargetUrl = (code: string) => `${QR_BASE_URL}/qr/${code}`
+
+// QR 코드 이미지 생성 URL (qrserver.com API 사용)
 const getQRImageUrl = (code: string, size: number = 200) => {
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-  const targetUrl = `${baseUrl}/qr/${code}`
+  const targetUrl = buildQRTargetUrl(code)
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(targetUrl)}`
 }
+
+// QR로 발급 가능한 상품 타입 — admin_products display_order 기준 정렬
+// 'etc'는 커스텀 URL 전용으로 자동 설정되므로 목록에서 제외
+const QR_PRODUCT_TYPES: ProductType[] = [
+  'image_analysis',
+  'figure_diffuser',
+  'graduation',
+  'signature',
+  'personal_scent',
+  'chemistry_set',
+]
 
 // QR 생성 모달
 interface CreateQRModalProps {
@@ -112,9 +127,11 @@ function CreateQRModal({ isOpen, onClose, onSubmit }: CreateQRModalProps) {
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 required
               >
-                <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
-                <option value="figure_diffuser">피규어 화분 디퓨저</option>
-                <option value="graduation">졸업 기념 퍼퓸</option>
+                {QR_PRODUCT_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {PRODUCT_TYPE_LABELS[type]}
+                  </option>
+                ))}
               </select>
             </div>
           ) : (
@@ -245,7 +262,7 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
 
   if (!isOpen || !qr) return null
 
-  const qrUrl = typeof window !== 'undefined' ? `${window.location.origin}/qr/${qr.code}` : ''
+  const qrUrl = buildQRTargetUrl(qr.code)
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
@@ -596,10 +613,12 @@ export default function AdminQRPage() {
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
               <option value="all">전체</option>
-              <option value="image_analysis">AI 이미지 분석 퍼퓸</option>
-              <option value="figure_diffuser">피규어 화분 디퓨저</option>
-              <option value="graduation">졸업 기념 퍼퓸</option>
-              <option value="etc">기타</option>
+              {QR_PRODUCT_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {PRODUCT_TYPE_LABELS[type]}
+                </option>
+              ))}
+              <option value="etc">기타 (커스텀 URL)</option>
             </select>
           </div>
 

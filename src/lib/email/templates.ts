@@ -169,6 +169,66 @@ export function refundCompletedTemplate(data: {
   }
 }
 
+// 발송(=운송장 등록) 알림 템플릿 — 고객 대상
+export function orderShippedTemplate(data: {
+  orderNumber: string
+  recipientName: string
+  perfumeName: string
+  carrierLabel: string
+  trackingNumber: string
+  trackingUrl: string
+  shippedAt: string
+}) {
+  return {
+    subject: `[ACSCENT] 🚚 상품이 발송되었습니다 · ${data.orderNumber}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1a1a1a; margin-bottom: 6px;">🚚 상품이 발송되었습니다</h2>
+        <p style="color: #64748b; margin-top: 0; margin-bottom: 20px;">주문하신 상품이 출고되어 ${data.carrierLabel}을(를) 통해 배송됩니다.</p>
+
+        <table style="width: 100%; border-collapse: collapse; background: #faf5ff; border-radius: 8px;">
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 600; width: 32%;">주문번호</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 700; color: #6b21a8;">${data.orderNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 600;">받는분</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff;">${data.recipientName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 600;">상품</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff;">${data.perfumeName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 600;">택배사</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff;">${data.carrierLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-weight: 600;">운송장 번호</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e9d5ff; font-family: 'Courier New', monospace; font-weight: 700; color: #6b21a8;">${data.trackingNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">발송일시</td>
+            <td style="padding: 12px 16px;">${data.shippedAt}</td>
+          </tr>
+        </table>
+
+        <p style="margin-top: 20px; text-align: center;">
+          <a href="${data.trackingUrl}"
+             target="_blank" rel="noopener noreferrer"
+             style="display: inline-block; padding: 12px 24px; background: #6b21a8; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+            📦 배송 조회하기 →
+          </a>
+        </p>
+
+        <p style="margin-top: 20px; color: #64748b; font-size: 13px; line-height: 1.5; text-align: center;">
+          배송 관련 문의는 ${data.carrierLabel} 또는 고객센터로 연락 주세요.
+        </p>
+      </div>
+    `
+  }
+}
+
 // 주문 취소 요청 알림 템플릿
 export function cancelRequestTemplate(data: {
   orderNumber: string

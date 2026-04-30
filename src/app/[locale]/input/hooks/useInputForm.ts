@@ -60,8 +60,9 @@ export function useInputForm() {
     const isFigureOnline = type === "figure" && isOnline
     const isGraduationOnline = isGraduation && isOnline
 
-    // QR 모드 로그인 게이트: 오프라인(QR)인데 로그인 안 된 상태면 차단
-    const showQrAuthGate = !!isOffline && !isLoggedIn && !authLoading
+    // 인증 게이트: 비로그인 분석 전면 차단 (온라인/오프라인/QR 무관)
+    // [FIX] 비회원 분석 폐지 — 모든 경로에서 로그인 필수
+    const showQrAuthGate = !isLoggedIn && !authLoading
 
     // QR 리다이렉트 무한 루프 방지
     // QR 코드 스캔 → /qr/[code] (서버 리다이렉트) → /input 으로 오면

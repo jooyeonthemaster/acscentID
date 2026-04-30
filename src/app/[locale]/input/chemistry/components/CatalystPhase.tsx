@@ -98,7 +98,7 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
         className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 text-center"
       >
         <p className="text-xs text-violet-600 font-medium">
-          AI가 두 주인공의 이미지와 입력 정보를 분석하여<br />
+          AI가 두 인물의 이미지와 입력 정보를 분석하여<br />
           케미 프로필과 맞춤 향수 세트를 추천합니다!<br />
           <span className="text-violet-400">(약 30~60초 소요)</span>
         </p>

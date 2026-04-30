@@ -49,6 +49,18 @@ export function buildChemistryIndividualPrompt(
 4. **포즈/자세**: 역동적/정적, 자신감/수줍음
 5. **배경/색감**: 전체적인 색조
 
+# ✍️ 분량 규칙 (반드시 준수!)
+- analysis.mood / style / expression / concept: **각 3-4문장, 100~150자 분량.** 한 줄 단답 절대 금지!
+  - 첫 문장: 핵심 한 줄 요약
+  - 두 번째 문장: 구체적 디테일 (의상 색/표정 포인트/포즈/소품 등 실제로 보이는 요소)
+  - 세 번째 문장: 그게 주는 인상/느낌 (감각적 묘사)
+  - 마지막에 짧은 추임새 또는 비유로 마무리
+- matchingPerfumes[0].noteComments.top / middle / base: **각 3-4문장, 80~120자 분량.** 한 줄 단답 금지!
+  - 향의 첫인상 → 캐릭터 이미지와의 연결고리 → 시간이 지나면서의 변화감 순서로
+- matchReason: 3-4문장 (캐릭터 이미지의 구체적 요소 → 향수 노트 → 매칭 근거)
+- usageGuide.situation: 2-3문장으로 풍성하게
+- 한 줄로 끝내는 거 = 게으른 분석. 무조건 풍부하게 묘사할 것!
+
 # 분석 우선순위:
 1️⃣ **1순위: 이미지에서 직접 보이는 요소** (80% 반영)
 2️⃣ **2순위: 캐릭터 이름 기반 배경 지식** (20% 반영)
@@ -86,14 +98,23 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
     "scentCategories": { "citrus": 1-10, "floral": 1-10, "woody": 1-10, "musky": 1-10, "fruity": 1-10, "spicy": 1-10 },
     "dominantColors": ["#HEX1", "#HEX2", "#HEX3", "#HEX4"],
     "personalColor": { "season": "spring|summer|autumn|winter", "tone": "bright|light|mute|deep", "palette": ["#HEX1","#HEX2","#HEX3","#HEX4","#HEX5"], "description": "주접 톤 설명" },
-    "analysis": { "mood": "분위기 (주접톤)", "style": "스타일 (주접톤)", "expression": "표정 분석 (주접톤)", "concept": "콘셉트 (주접톤)" },
+    "analysis": {
+      "mood": "분위기 (주접톤, 반드시 3-4문장 100~150자)",
+      "style": "스타일 (주접톤, 반드시 3-4문장 100~150자)",
+      "expression": "표정 분석 (주접톤, 반드시 3-4문장 100~150자)",
+      "concept": "콘셉트 (주접톤, 반드시 3-4문장 100~150자)"
+    },
     "matchingKeywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
     "matchingPerfumes": [{
       "perfumeId": "AC'SCENT XX",
       "score": 0.85-1.0,
-      "matchReason": "이미지 기반 매칭 이유 (반말, 이모지, 2-3문장)",
-      "noteComments": { "top": "탑노트 코멘트", "middle": "미들노트 코멘트", "base": "베이스노트 코멘트" },
-      "usageGuide": { "situation": "사용 상황", "tips": ["팁1", "팁2", "팁3"] }
+      "matchReason": "이미지 기반 매칭 이유 (반말, 이모지, 3-4문장)",
+      "noteComments": {
+        "top": "탑노트 코멘트 (반말, 이모지, 반드시 3-4문장 80~120자: 향 첫인상→캐릭터 연결→변화감)",
+        "middle": "미들노트 코멘트 (반말, 이모지, 반드시 3-4문장 80~120자)",
+        "base": "베이스노트 코멘트 (반말, 이모지, 반드시 3-4문장 80~120자)"
+      },
+      "usageGuide": { "situation": "사용 상황 (2-3문장)", "tips": ["팁1", "팁2", "팁3"] }
     }],
     "scentRecommendation": { "best_season": "spring|summer|autumn|winter", "best_time": "morning|afternoon|evening|night", "season_reason": "이유", "time_reason": "이유" }
   },

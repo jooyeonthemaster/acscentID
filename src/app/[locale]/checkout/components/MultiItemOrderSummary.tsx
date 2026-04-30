@@ -4,7 +4,8 @@ import { motion } from "framer-motion"
 import { Package, Star, Minus, Plus, Trash2, Check, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { CartItem, ProductType } from "@/types/cart"
-import { PRODUCT_TYPE_BADGES, PRODUCT_PRICING, formatPrice } from "@/types/cart"
+import { PRODUCT_TYPE_BADGES, formatPrice } from "@/types/cart"
+import { useProductPricing } from "@/hooks/useProductPricing"
 
 interface MultiItemOrderSummaryProps {
   items: CartItem[]
@@ -26,6 +27,7 @@ export function MultiItemOrderSummary({
   isRepurchaser,
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
+  const { getOptions } = useProductPricing()
   const renderProductTypeBadge = (productType: ProductType) => {
     const badge = PRODUCT_TYPE_BADGES[productType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', labelShort: productType }
     return (
@@ -137,7 +139,7 @@ export function MultiItemOrderSummary({
                     onChange={(e) => onUpdateSize(item.id, e.target.value)}
                     className="px-2 py-1 bg-white rounded text-xs font-bold border-2 border-slate-900"
                   >
-                    {PRODUCT_PRICING[item.product_type].map(option => (
+                    {getOptions(item.product_type).map(option => (
                       <option key={option.size} value={option.size}>
                         {option.label}
                       </option>

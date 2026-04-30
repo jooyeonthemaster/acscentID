@@ -7,7 +7,8 @@ import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
-import { PRODUCT_TYPE_BADGES, PRODUCT_PRICING, formatPrice, calculateCartTotals } from '@/types/cart'
+import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals } from '@/types/cart'
+import { useProductPricing } from '@/hooks/useProductPricing'
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
@@ -30,6 +31,7 @@ export function CartList({ viewMode }: CartListProps) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
   const [recipeModalTarget, setRecipeModalTarget] = useState<CartItem | null>(null)
   const { freeShippingPromo } = useActivePromotions()
+  const { getOptions, getOption } = useProductPricing()
 
   // 장바구니 로드
   useEffect(() => {
@@ -87,8 +89,8 @@ export function CartList({ viewMode }: CartListProps) {
     if (item.size === newSize) return
     if (item.product_type === 'figure_diffuser') return // 피규어는 사이즈 변경 불가
 
-    const pricing = PRODUCT_PRICING[item.product_type]
-    const newPrice = pricing.find(p => p.size === newSize)?.price || item.price
+    const newOpt = getOption(item.product_type, newSize)
+    const newPrice = newOpt?.price ?? item.price
 
     setUpdatingIds(prev => new Set(prev).add(item.id))
     try {
@@ -379,7 +381,7 @@ export function CartList({ viewMode }: CartListProps) {
                       disabled={updatingIds.has(item.id)}
                       className="text-xs text-slate-600 bg-slate-50 rounded-md px-2 py-1 border-none outline-none disabled:opacity-50"
                     >
-                      {PRODUCT_PRICING[item.product_type].map(option => (
+                      {getOptions(item.product_type).map(option => (
                         <option key={option.size} value={option.size}>
                           {option.label} - {formatPrice(option.price)}{tCurrency('suffix')}
                         </option>

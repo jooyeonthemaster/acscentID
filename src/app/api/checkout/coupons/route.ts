@@ -58,12 +58,12 @@ export async function GET() {
       })
     }
 
-    // 재구매 쿠폰 자격 확인 (paid, delivered, shipping 상태 주문 있는지)
+    // 재구매 쿠폰 자격 확인 (paid 이후 모든 정상 진행 상태 주문 있는지)
     const { count: completedOrderCount } = await serviceClient
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .in('status', ['paid', 'delivered', 'shipping'])
+      .in('status', ['paid', 'preparing', 'shipping', 'delivered'])
 
     const hasCompletedOrder = (completedOrderCount || 0) > 0
 

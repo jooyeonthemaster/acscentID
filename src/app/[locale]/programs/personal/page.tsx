@@ -61,11 +61,6 @@ export default function PersonalPage() {
     }
   }
 
-  const handleGuestStart = () => {
-    router.push("/input?type=personal")
-    setShowLoginPrompt(false)
-  }
-
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
@@ -665,20 +660,12 @@ export default function PersonalPage() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-3">
+              <div className="p-6">
                 <button
                   onClick={handleLoginClick}
                   className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#666] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#666] transition-all border-2 border-black"
                 >
                   로그인 / 회원가입
-                </button>
-
-                <button
-                  onClick={handleGuestStart}
-                  className="w-full h-12 bg-white text-slate-600 rounded-xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-black transition-all flex items-center justify-center gap-2"
-                >
-                  <span>비회원으로 시작하기</span>
-                  <span className="text-xs text-slate-400">(저장 안됨)</span>
                 </button>
               </div>
             </motion.div>
