@@ -226,11 +226,15 @@ export function useChemistryForm() {
       showToast(`분석 오류: ${errorMsg}`, "error")
       setIsSubmitting(false)
     }
-  }, [formData, isSubmitting, showToast])
+  }, [formData, isOffline, isSubmitting, qrCode, showAuthGate, showToast])
 
   // 결과 페이지로 이동
   const navigateToResult = useCallback(() => {
     if (!analysisResult) return
+
+    const saveRunId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}_${Math.random().toString(36).slice(2)}`
 
     // [FIX] CRITICAL #12: 결과와 서비스 메타데이터를 sessionStorage에 저장
     sessionStorage.setItem('chemistry_result', JSON.stringify(analysisResult))
@@ -243,10 +247,11 @@ export function useChemistryForm() {
       qrCode: qrCode || null,
       pin: formData.pin || null,
       targetType: formData.targetType || 'idol',
+      saveRunId,
     }))
 
     router.push('/result?type=chemistry')
-  }, [analysisResult, formData, router])
+  }, [analysisResult, formData, isOffline, qrCode, router])
 
   return {
     phase,

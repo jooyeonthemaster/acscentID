@@ -45,16 +45,15 @@ export async function getCartCount(userId: string): Promise<number> {
   return count || 0
 }
 
-// 장바구니 추가 (단일)
-export async function addToCart(
-  userId: string,
-  item: AddToCartRequest
-): Promise<CartItem> {
-  const supabase = getServiceClient()
-
-  const cartItem = {
+// 케미 행/단품 행 모두에 공통으로 들어갈 row 변환
+// chemistry_set: layering_session_id 필수, analysis_id 는 NULL
+// 그 외:        analysis_id 필수, layering_session_id 는 NULL
+function buildCartRow(userId: string, item: AddToCartRequest) {
+  const isChem = item.product_type === 'chemistry_set'
+  return {
     user_id: userId,
-    analysis_id: item.analysis_id,
+    analysis_id: isChem ? null : (item.analysis_id ?? null),
+    layering_session_id: isChem ? (item.layering_session_id ?? null) : null,
     product_type: item.product_type,
     perfume_name: item.perfume_name,
     perfume_brand: item.perfume_brand || null,
@@ -65,13 +64,24 @@ export async function addToCart(
     image_url: item.image_url || null,
     analysis_data: item.analysis_data || null,
   }
+}
+
+// 장바구니 추가 (단일)
+export async function addToCart(
+  userId: string,
+  item: AddToCartRequest
+): Promise<CartItem> {
+  const supabase = getServiceClient()
+  const row = buildCartRow(userId, item)
+
+  // 케미와 단품은 부분 unique 인덱스가 다르므로 onConflict 컬럼을 분기
+  const onConflict = item.product_type === 'chemistry_set'
+    ? 'user_id,layering_session_id'
+    : 'user_id,analysis_id'
 
   const { data, error } = await supabase
     .from('cart_items')
-    .upsert(cartItem, {
-      onConflict: 'user_id,analysis_id',
-      ignoreDuplicates: false,
-    })
+    .upsert(row, { onConflict, ignoreDuplicates: false })
     .select()
     .single()
 
@@ -84,43 +94,50 @@ export async function addToCart(
 }
 
 // 장바구니 다중 추가
+// 한 번 호출에 케미/단품이 섞여 들어올 수 있어 product_type 별로 분리해 upsert
 export async function addMultipleToCart(
   userId: string,
   items: AddToCartRequest[]
 ): Promise<{ added: number; duplicates: number }> {
   const supabase = getServiceClient()
+  const rows = items.map((item) => buildCartRow(userId, item))
 
-  const cartItems = items.map((item) => ({
-    user_id: userId,
-    analysis_id: item.analysis_id,
-    product_type: item.product_type,
-    perfume_name: item.perfume_name,
-    perfume_brand: item.perfume_brand || null,
-    twitter_name: item.twitter_name || null,
-    size: item.size,
-    price: item.price,
-    quantity: item.quantity || 1,
-    image_url: item.image_url || null,
-    analysis_data: item.analysis_data || null,
-  }))
+  const chemRows = rows.filter((r) => r.product_type === 'chemistry_set')
+  const otherRows = rows.filter((r) => r.product_type !== 'chemistry_set')
 
-  // upsert로 중복 처리 (기존 항목은 수량 증가 대신 그대로 유지)
-  const { data, error } = await supabase
-    .from('cart_items')
-    .upsert(cartItems, {
-      onConflict: 'user_id,analysis_id',
-      ignoreDuplicates: true, // 중복은 무시
-    })
-    .select()
-
-  if (error) {
-    console.error('Error adding multiple items to cart:', error)
-    throw error
+  let addedCount = 0
+  if (chemRows.length > 0) {
+    const { data, error } = await supabase
+      .from('cart_items')
+      .upsert(chemRows, {
+        onConflict: 'user_id,layering_session_id',
+        ignoreDuplicates: true,
+      })
+      .select()
+    if (error) {
+      console.error('Error adding chemistry items to cart:', error)
+      throw error
+    }
+    addedCount += data?.length || 0
+  }
+  if (otherRows.length > 0) {
+    const { data, error } = await supabase
+      .from('cart_items')
+      .upsert(otherRows, {
+        onConflict: 'user_id,analysis_id',
+        ignoreDuplicates: true,
+      })
+      .select()
+    if (error) {
+      console.error('Error adding multiple items to cart:', error)
+      throw error
+    }
+    addedCount += data?.length || 0
   }
 
   return {
-    added: data?.length || 0,
-    duplicates: items.length - (data?.length || 0),
+    added: addedCount,
+    duplicates: items.length - addedCount,
   }
 }
 

@@ -260,7 +260,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     setIsAddingToCart(true)
     try {
       const cartItems = [{
-        analysis_id: chem.characterA.id,
+        layering_session_id: chem.sessionId,
         product_type: 'chemistry_set' as ProductType,
         perfume_name: `${chem.characterA.perfume_name} x ${chem.characterB.perfume_name}`,
         perfume_brand: chem.characterA.perfume_brand || "AC'SCENT",
@@ -316,6 +316,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       character2Name: chem.characterB.twitter_name || chem.characterB.idol_name || 'B',
       image1Preview: chem.characterA.user_image_url || null,
       image2Preview: chem.characterB.user_image_url || null,
+      serviceMode: chem.service_mode || 'online',
+      existingSessionId: chem.sessionId,
+      analysisAId: chem.characterA.id,
+      analysisBId: chem.characterB.id,
     }
     sessionStorage.setItem('chemistry_result', JSON.stringify(chemistryResult))
     sessionStorage.setItem('chemistry_form', JSON.stringify(chemistryForm))
@@ -333,7 +337,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     }
 
     localStorage.setItem('checkoutProductType', 'chemistry_set')
-    localStorage.setItem('checkoutAnalysisId', chem.sessionId)
+    localStorage.setItem('checkoutLayeringSessionId', chem.sessionId)
     router.push('/checkout')
   }
 

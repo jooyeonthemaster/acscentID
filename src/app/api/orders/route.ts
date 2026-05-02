@@ -56,7 +56,8 @@ async function calculateServerShippingFeeWithPromotion(
 
 // 주문 상품 아이템 타입
 interface OrderItem {
-  analysisId?: string
+  analysisId?: string | null
+  layeringSessionId?: string | null
   productType: ProductType
   perfumeName: string
   perfumeBrand?: string
@@ -144,8 +145,9 @@ export async function POST(request: NextRequest) {
       userImage,
       keywords,
       analysisData,
-      productType,  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature)
-      analysisId,   // 분석 ID (분석 결과 연결용)
+      productType,  // 상품 타입 (image_analysis, figure_diffuser, graduation, signature, chemistry_set, …)
+      analysisId,   // 단품 분석 ID
+      layeringSessionId, // 케미 세션 ID (chemistry_set 단일 결제 시)
       // 결제 방법
       paymentMethod,  // 'bank_transfer' | 'card' | 'kakao_pay' | 'naver_pay'
       // 확정된 커스텀 레시피 (재주문 시)
@@ -258,13 +260,17 @@ export async function POST(request: NextRequest) {
       // 첫 번째 상품 정보 (orders 테이블 호환용)
       const firstItem = orderItems[0]
 
+      // 첫 상품 기준 ID 컬럼 분기 (chemistry_set은 layering_session_id 사용)
+      const firstIsChem = firstItem.productType === 'chemistry_set'
+
       // 4a. 주문 생성 (orders 테이블)
       const { data: order, error: orderError } = await serviceClient
         .from('orders')
         .insert({
           order_number: orderNumber,
           user_id: userId,
-          analysis_id: firstItem.analysisId || null,  // 첫 번째 상품의 분석 ID
+          analysis_id: firstIsChem ? null : (firstItem.analysisId || null),
+          layering_session_id: firstIsChem ? (firstItem.layeringSessionId || null) : null,
           // 첫 번째 상품 정보 (기존 필드 호환)
           perfume_name: orderItems.length > 1
             ? `${firstItem.perfumeName} 외 ${orderItems.length - 1}건`
@@ -310,9 +316,12 @@ export async function POST(request: NextRequest) {
       }
 
       // 4b. 주문 상품 생성 (order_items 테이블)
-      const orderItemsData = orderItems.map(item => ({
+      const orderItemsData = orderItems.map(item => {
+        const isChem = item.productType === 'chemistry_set'
+        return {
         order_id: order.id,
-        analysis_id: item.analysisId || null,
+        analysis_id: isChem ? null : (item.analysisId || null),
+        layering_session_id: isChem ? (item.layeringSessionId || null) : null,
         product_type: item.productType,
         perfume_name: item.perfumeName,
         perfume_brand: item.perfumeBrand || '',
@@ -324,7 +333,8 @@ export async function POST(request: NextRequest) {
         image_url: item.imageUrl || null,
         analysis_data: item.analysisData || null,
         created_at: now,
-      }))
+        }
+      })
 
       const { error: itemsError } = await serviceClient
         .from('order_items')
@@ -453,12 +463,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const isChemSingle = (productType || 'image_analysis') === 'chemistry_set'
+
     const { data: order, error: insertError } = await serviceClient
       .from('orders')
       .insert({
         order_number: orderNumber,
         user_id: userId,
-        analysis_id: analysisId || null,  // 분석 ID (분석 결과 연결용)
+        analysis_id: isChemSingle ? null : (analysisId || null),
+        layering_session_id: isChemSingle ? (layeringSessionId || null) : null,
         perfume_name: perfumeName,
         perfume_brand: perfumeBrand,
         size,

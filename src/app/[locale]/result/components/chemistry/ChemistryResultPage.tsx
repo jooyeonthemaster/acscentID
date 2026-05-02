@@ -24,6 +24,10 @@ interface ChemistryFormMeta {
   qrCode?: string | null
   pin?: string | null
   targetType?: 'idol' | 'self'
+  existingSessionId?: string | null
+  analysisAId?: string | null
+  analysisBId?: string | null
+  saveRunId?: string | null
 }
 
 type MainTabType = 'characterA' | 'characterB' | 'chemistry'
@@ -36,6 +40,84 @@ const CHEMISTRY_SECTIONS = [
   { id: 'scent', label: '향', emoji: '\u{1F9EA}' },
   { id: 'dynamic', label: '관계', emoji: '\u{1F4AB}' },
 ] as const
+
+const CHEMISTRY_SAVE_DRAFT_KEY = 'chemistry_save_draft'
+
+interface ChemistrySaveDraft {
+  payloadKey: string
+  analysisAId: string
+  analysisBId: string
+  sessionId: string
+  persisted?: boolean
+}
+
+function createClientUuid() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.floor(Math.random() * 16)
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
+function buildChemistrySavePayloadKey(analysisResult: ChemistryAnalysisResult, meta: ChemistryFormMeta | null) {
+  return JSON.stringify({
+    v: 1,
+    character1Name: meta?.character1Name || 'A',
+    character2Name: meta?.character2Name || 'B',
+    perfumeAId: analysisResult.characterA.matchingPerfumes?.[0]?.perfumeId || '',
+    perfumeBId: analysisResult.characterB.matchingPerfumes?.[0]?.perfumeId || '',
+    chemistryType: analysisResult.chemistry.chemistryType || '',
+    chemistryTitle: analysisResult.chemistry.chemistryTitle || '',
+    serviceMode: meta?.serviceMode || 'online',
+    qrCode: meta?.qrCode || null,
+    pin: meta?.pin || null,
+    targetType: meta?.targetType || 'idol',
+    saveRunId: meta?.saveRunId || null,
+  })
+}
+
+function readChemistrySaveDraft(): ChemistrySaveDraft | null {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const draft = sessionStorage.getItem(CHEMISTRY_SAVE_DRAFT_KEY)
+    return draft ? JSON.parse(draft) : null
+  } catch {
+    return null
+  }
+}
+
+function writeChemistrySaveDraft(draft: ChemistrySaveDraft) {
+  if (typeof window === 'undefined') return
+  sessionStorage.setItem(CHEMISTRY_SAVE_DRAFT_KEY, JSON.stringify(draft))
+}
+
+function getOrCreateChemistrySaveDraft(
+  analysisResult: ChemistryAnalysisResult,
+  meta: ChemistryFormMeta | null,
+): ChemistrySaveDraft {
+  const payloadKey = buildChemistrySavePayloadKey(analysisResult, meta)
+  const existing = readChemistrySaveDraft()
+
+  if (existing?.payloadKey === payloadKey) {
+    return existing
+  }
+
+  const draft: ChemistrySaveDraft = {
+    payloadKey,
+    analysisAId: meta?.analysisAId || createClientUuid(),
+    analysisBId: meta?.analysisBId || createClientUuid(),
+    sessionId: meta?.existingSessionId || createClientUuid(),
+    persisted: Boolean(meta?.existingSessionId),
+  }
+
+  writeChemistrySaveDraft(draft)
+  return draft
+}
 
 // 개별 캐릭터 프로필 헤더
 function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analysis }: {
@@ -103,6 +185,8 @@ export default function ChemistryResultPage() {
   const [isShareSaving, setIsShareSaving] = useState(false)
   const [savedSessionId, setSavedSessionId] = useState<string | null>(null)
   const [feedbackTarget, setFeedbackTarget] = useState<'A' | 'B' | null>(null)
+  const savedSessionIdRef = useRef<string | null>(null)
+  const savePromiseRef = useRef<Promise<string | null> | null>(null)
   const tabContentRef = useRef<HTMLDivElement>(null)
   const chemistrySectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -130,7 +214,12 @@ export default function ChemistryResultPage() {
         setResult(JSON.parse(resultStr))
       }
       if (formStr) {
-        setFormMeta(JSON.parse(formStr))
+        const parsedForm = JSON.parse(formStr) as ChemistryFormMeta
+        setFormMeta(parsedForm)
+        if (parsedForm.existingSessionId) {
+          savedSessionIdRef.current = parsedForm.existingSessionId
+          setSavedSessionId(parsedForm.existingSessionId)
+        }
       }
     } catch (error) {
       console.error('Failed to load chemistry result:', error)
@@ -145,48 +234,86 @@ export default function ChemistryResultPage() {
     meta: ChemistryFormMeta | null,
   ): Promise<string | null> => {
     // 이미 저장된 경우 기존 sessionId 반환
-    if (savedSessionId) return savedSessionId
+    if (meta?.existingSessionId) {
+      savedSessionIdRef.current = meta.existingSessionId
+      setSavedSessionId(meta.existingSessionId)
+      return meta.existingSessionId
+    }
+
+    if (savedSessionIdRef.current) return savedSessionIdRef.current
+    if (savePromiseRef.current) return savePromiseRef.current
+
+    const draft = getOrCreateChemistrySaveDraft(analysisResult, meta)
+
+    if (draft.persisted) {
+      savedSessionIdRef.current = draft.sessionId
+      setSavedSessionId(draft.sessionId)
+      return draft.sessionId
+    }
 
     const userId = user?.id || unifiedUser?.id
     const fingerprint = typeof window !== 'undefined'
       ? localStorage.getItem('user_fingerprint')
       : null
 
-    const saveResponse = await apiFetch('/api/results/chemistry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        analysisResult,
-        character1Name: meta?.character1Name || 'A',
-        character2Name: meta?.character2Name || 'B',
-        character1ImageUrl: meta?.image1Preview || null,
-        character2ImageUrl: meta?.image2Preview || null,
-        userId: userId || null,
-        userFingerprint: fingerprint,
-        serviceMode: meta?.serviceMode || 'online',
-        pin: meta?.pin || null,
-        qrCode: meta?.qrCode || null,
-        targetType: meta?.targetType || 'idol',
-      }),
-    })
-    const saveData = await saveResponse.json()
+    const savePromise = (async () => {
+      const saveResponse = await apiFetch('/api/results/chemistry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          analysisResult,
+          character1Name: meta?.character1Name || 'A',
+          character2Name: meta?.character2Name || 'B',
+          character1ImageUrl: meta?.image1Preview || null,
+          character2ImageUrl: meta?.image2Preview || null,
+          userId: userId || null,
+          userFingerprint: fingerprint,
+          serviceMode: meta?.serviceMode || 'online',
+          pin: meta?.pin || null,
+          qrCode: meta?.qrCode || null,
+          targetType: meta?.targetType || 'idol',
+          analysisAId: draft.analysisAId,
+          analysisBId: draft.analysisBId,
+          sessionId: draft.sessionId,
+        }),
+      })
+      const saveData = await saveResponse.json()
 
-    if (saveData.success && saveData.sessionId) {
-      setSavedSessionId(saveData.sessionId)
-      return saveData.sessionId
+      if (saveData.success && saveData.sessionId) {
+        const nextDraft: ChemistrySaveDraft = {
+          ...draft,
+          analysisAId: saveData.analysisAId || draft.analysisAId,
+          analysisBId: saveData.analysisBId || draft.analysisBId,
+          sessionId: saveData.sessionId,
+          persisted: true,
+        }
+        writeChemistrySaveDraft(nextDraft)
+        savedSessionIdRef.current = saveData.sessionId
+        setSavedSessionId(saveData.sessionId)
+        return saveData.sessionId
+      }
+
+      return null
+    })()
+
+    savePromiseRef.current = savePromise
+
+    try {
+      return await savePromise
+    } finally {
+      savePromiseRef.current = null
     }
-    return null
-  }, [savedSessionId, user, unifiedUser])
+  }, [user?.id, unifiedUser?.id])
 
   // ── 자동 저장: 결과 페이지 로드 시 DB에 바로 저장 ──
   useEffect(() => {
-    if (!result || savedSessionId) return
+    if (!result || savedSessionIdRef.current) return
     if (!user && !unifiedUser) return // 로그인 필요
 
     saveResultToDb(result, formMeta).catch((err) => {
       console.error('[Chemistry AutoSave] Failed:', err)
     })
-  }, [result, formMeta, user, unifiedUser, savedSessionId, saveResultToDb])
+  }, [result, formMeta, user, unifiedUser, saveResultToDb])
 
   const handleShare = useCallback(async () => {
     if (!result) return
@@ -240,7 +367,7 @@ export default function ChemistryResultPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          analysis_id: sessionId,
+          layering_session_id: sessionId,
           product_type: 'chemistry_set',
           perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
           perfume_brand: "AC'SCENT",
@@ -262,7 +389,7 @@ export default function ChemistryResultPage() {
     } finally {
       setIsAdding(false)
     }
-  }, [result, isAdding, user, unifiedUser, formMeta, showToast, saveResultToDb])
+  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, saveResultToDb])
 
   const handleCheckout = useCallback(async () => {
     if (!result || isAdding) return
@@ -290,7 +417,7 @@ export default function ChemistryResultPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          analysis_id: sessionId,
+          layering_session_id: sessionId,
           product_type: 'chemistry_set',
           perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
           perfume_brand: "AC'SCENT",
@@ -303,7 +430,7 @@ export default function ChemistryResultPage() {
 
       // 체크아웃 페이지에 필요한 localStorage 데이터 설정
       localStorage.setItem('checkoutProductType', 'chemistry_set')
-      localStorage.setItem('checkoutAnalysisId', sessionId)
+      localStorage.setItem('checkoutLayeringSessionId', sessionId)
 
       // 체크아웃 이동
       router.push('/checkout')
@@ -312,7 +439,7 @@ export default function ChemistryResultPage() {
       showToast(msg, "error")
       setIsAdding(false)
     }
-  }, [result, isAdding, user, unifiedUser, formMeta, showToast, router, saveResultToDb])
+  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, router, saveResultToDb])
 
   if (loading) {
     return (

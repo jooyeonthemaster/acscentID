@@ -204,7 +204,7 @@ export async function deductInventoryForOrder(
     // 주문 아이템 조회
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
-      .select('*, analysis_id')
+      .select('*, analysis_id, layering_session_id')
       .eq('order_id', orderId)
 
     if (itemsError) {
@@ -228,6 +228,47 @@ export async function deductInventoryForOrder(
           success: false,
           deducted: [],
           errors: ['주문 정보를 찾을 수 없습니다'],
+        }
+      }
+
+      // 단일 주문 처리: chemistry_set 인 경우 layering_session_id 로 두 향수 각각 차감
+      if (order.product_type === 'chemistry_set' && order.layering_session_id) {
+        const { data: session } = await supabase
+          .from('layering_sessions')
+          .select('analysis_a_id, analysis_b_id')
+          .eq('id', order.layering_session_id)
+          .single()
+
+        if (session) {
+          for (const analysisRefId of [session.analysis_a_id, session.analysis_b_id]) {
+            const { data: analysisRef } = await supabase
+              .from('analysis_results')
+              .select('perfume_name, analysis_data')
+              .eq('id', analysisRefId)
+              .single()
+
+            if (analysisRef) {
+              const refRecipe = analysisRef.analysis_data?.finalRecipe || analysisRef.analysis_data?.final_recipe || null
+              const usageItems = calculateFragranceUsage({
+                finalRecipe: refRecipe,
+                perfumeName: analysisRef.perfume_name,
+                productType: 'chemistry_set',
+                size: order.size || 'set_10ml',
+                quantity: 1,
+              })
+              if (usageItems.length > 0) {
+                const result = await deductFromInventory(supabase, usageItems, 'online', 'order', orderId, createdBy)
+                allDeducted.push(...result.deducted)
+                allErrors.push(...result.errors)
+              }
+            }
+          }
+        }
+
+        return {
+          success: allErrors.length === 0,
+          deducted: allDeducted,
+          errors: allErrors,
         }
       }
 
@@ -265,14 +306,15 @@ export async function deductInventoryForOrder(
 
     // 각 주문 아이템 처리
     for (const item of orderItems) {
-      // [FIX] CRITICAL #4, #15: chemistry_set 처리 — layering_sessions에서 2개 향수 조회, 각각 차감
-      if (item.product_type === 'chemistry_set' && item.analysis_id) {
-        // layering_sessions에서 세션 조회
+      // chemistry_set 처리 — layering_session_id 로 직접 조회, 두 캐릭터 향수 각각 차감
+      if (item.product_type === 'chemistry_set') {
+        const sessionId = item.layering_session_id || item.analysis_id // legacy 호환
+        if (!sessionId) continue
+
         const { data: session } = await supabase
           .from('layering_sessions')
           .select('analysis_a_id, analysis_b_id')
-          .or(`analysis_a_id.eq.${item.analysis_id},analysis_b_id.eq.${item.analysis_id},id.eq.${item.analysis_id}`)
-          .limit(1)
+          .eq('id', sessionId)
           .single()
 
         if (session) {

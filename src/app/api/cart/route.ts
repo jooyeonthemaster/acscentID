@@ -81,18 +81,25 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // 케미 vs 단품에 따라 필수 ID 컬럼이 다름
+    const validateItem = (item: AddToCartRequest): string | null => {
+      if (!item.product_type || !item.perfume_name || !item.size || !item.price) {
+        return '필수 항목이 누락되었습니다 (product_type, perfume_name, size, price)'
+      }
+      if (item.product_type === 'chemistry_set') {
+        if (!item.layering_session_id) return '케미 상품은 layering_session_id가 필요합니다'
+      } else {
+        if (!item.analysis_id) return '단품은 analysis_id가 필요합니다'
+      }
+      return null
+    }
+
     // 다중 추가: items 배열이 있는 경우
     if (body.items && Array.isArray(body.items)) {
       const items: AddToCartRequest[] = body.items
-
-      // 유효성 검사
       for (const item of items) {
-        if (!item.analysis_id || !item.product_type || !item.perfume_name || !item.size || !item.price) {
-          return NextResponse.json(
-            { error: '필수 항목이 누락되었습니다 (analysis_id, product_type, perfume_name, size, price)' },
-            { status: 400 }
-          )
-        }
+        const err = validateItem(item)
+        if (err) return NextResponse.json({ error: err }, { status: 400 })
       }
 
       const result = await addMultipleToCart(userId, items)
@@ -108,13 +115,8 @@ export async function POST(request: NextRequest) {
 
     // 단일 추가
     const item: AddToCartRequest = body
-
-    if (!item.analysis_id || !item.product_type || !item.perfume_name || !item.size || !item.price) {
-      return NextResponse.json(
-        { error: '필수 항목이 누락되었습니다' },
-        { status: 400 }
-      )
-    }
+    const err = validateItem(item)
+    if (err) return NextResponse.json({ error: err }, { status: 400 })
 
     const cartItem = await addToCart(userId, item)
     return NextResponse.json({

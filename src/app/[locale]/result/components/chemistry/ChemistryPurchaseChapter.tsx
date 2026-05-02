@@ -71,7 +71,7 @@ export function ChemistryPurchaseChapter({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          analysis_id: saveData.sessionId,
+          layering_session_id: saveData.sessionId,
           product_type: 'chemistry_set',
           perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
           perfume_brand: "AC'SCENT",
@@ -204,7 +204,7 @@ export function ChemistryPurchaseChapter({
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    analysis_id: saveData.sessionId,
+                    layering_session_id: saveData.sessionId,
                     product_type: 'chemistry_set',
                     perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
                     perfume_brand: "AC'SCENT",
@@ -217,7 +217,7 @@ export function ChemistryPurchaseChapter({
 
                 // 체크아웃 페이지에 필요한 localStorage 데이터 설정
                 localStorage.setItem('checkoutProductType', 'chemistry_set')
-                localStorage.setItem('checkoutAnalysisId', saveData.sessionId)
+                localStorage.setItem('checkoutLayeringSessionId', saveData.sessionId)
                 router.push('/checkout')
               } catch (error) {
                 const msg = error instanceof Error ? error.message : '결제 진행에 실패했습니다.'

@@ -273,9 +273,9 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
   const gridStroke = monochrome ? "#d4d4d8" : "#e2e8f0"
   const labelFill = monochrome ? "#27272a" : "#64748b"
   const colorA = monochrome ? "#111827" : "#7c3aed"
-  const colorB = monochrome ? "#71717a" : "#db2777"
+  const colorB = monochrome ? "#ffffff" : "#db2777"
   const fillA = monochrome ? "rgba(17, 24, 39, 0.13)" : "rgba(124, 58, 237, 0.15)"
-  const fillB = monochrome ? "rgba(113, 113, 122, 0.14)" : "rgba(219, 39, 119, 0.15)"
+  const fillB = monochrome ? "rgba(255, 255, 255, 0.55)" : "rgba(219, 39, 119, 0.15)"
 
   const gridCircles = Array.from({ length: 5 }).map((_, i) => (
     <circle key={`grid-${i}`} cx={centerX} cy={centerY} r={(radius * (i + 1)) / 5} fill="none" stroke={gridStroke} strokeWidth="1" />
@@ -311,6 +311,7 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
       {gridCircles}
       {axisLines}
       <path d={createPath(characteristicsA)} fill={fillA} stroke={colorA} strokeWidth={1.5} />
+      {monochrome && <path d={createPath(characteristicsB)} fill="none" stroke="#111827" strokeWidth={3} />}
       <path d={createPath(characteristicsB)} fill={fillB} stroke={colorB} strokeWidth={1.5} />
       {labels}
       {characteristicsA.map((char, i) => {
@@ -319,7 +320,7 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
       })}
       {characteristicsB.map((char, i) => {
         const { x, y } = getCoordinates(char.value, i)
-        return <circle key={`pointB-${i}`} cx={x} cy={y} r={2} fill={colorB} />
+        return <circle key={`pointB-${i}`} cx={x} cy={y} r={2} fill={colorB} stroke={monochrome ? "#111827" : undefined} strokeWidth={monochrome ? 0.8 : undefined} />
       })}
     </svg>
   )
@@ -530,17 +531,16 @@ export function PrintableReport({ analysis, feedback, userProfile, layeringSessi
                 </div>
 
                 {/* 2. Keywords Area (Clearing KEYWORDS pill vertically)
-                    The previous section takes ~145px space. Started at 92px. Ends at ~237px.
-                    KEYWORDS background pill is around 260px.
-                    We add top margin to drop these elements BELOW the KEYWORDS pill.
+                    Self chemistry uses the stark zine-style template, so the keyword
+                    chips sit a little closer to the KEYWORDS title and read larger.
                 */}
-                <div className="mt-[92px] flex justify-center gap-1.5 flex-nowrap px-4 whitespace-nowrap">
+                <div className={`${isSelfChemistry ? 'mt-[66px] gap-2' : 'mt-[66px] gap-2'} flex justify-center flex-nowrap px-4 whitespace-nowrap`}>
                   {styledChemKeywords.map((keyword, idx) => (
                     <span
                       key={idx}
                       className={isSelfChemistry
-                        ? `inline-flex items-center border border-slate-950 px-[8px] py-[3px] text-[9px] font-extrabold ${idx % 2 === 0 ? 'bg-slate-950 text-white' : 'bg-white text-slate-950'}`
-                        : `inline-flex items-center text-[9px] px-[8px] py-[3px] font-extrabold ${keyword.style.bg} ${keyword.style.text} ${keyword.style.shape} ${keyword.style.border}`
+                        ? `inline-flex items-center border border-slate-950 px-[9px] py-[3.5px] text-[10.5px] font-extrabold ${idx % 2 === 0 ? 'bg-slate-950 text-white' : 'bg-white text-slate-950'}`
+                        : `inline-flex items-center text-[10px] px-[9px] py-[3.5px] font-extrabold ${keyword.style.bg} ${keyword.style.text} ${keyword.style.shape} ${keyword.style.border}`
                       }
                       style={{ transform: `rotate(${(idx % 2 === 0 ? -1 : 1)}deg)` }}
                     >
@@ -550,14 +550,14 @@ export function PrintableReport({ analysis, feedback, userProfile, layeringSessi
                 </div>
 
                 {/* Description Text */}
-                <div className="mt-[16px] px-6 text-center flex-shrink-0">
+                <div className={`${isSelfChemistry ? 'mt-[12px]' : 'mt-[12px]'} px-6 text-center flex-shrink-0`}>
                   <p className={`text-[9.5px] leading-[1.5] font-semibold tracking-tight break-keep ${isSelfChemistry ? 'text-slate-700' : 'text-slate-500'}`}>
                     {sessionChem.relationshipDynamic?.dynamicDescription || sessionChem.chemistryStory}
                   </p>
                 </div>
 
                 {/* 3. Best Moment */}
-                <div className={`mt-auto mb-1 mx-2 p-[10px] relative flex-shrink-0 ${isSelfChemistry ? 'rounded-[3px] border-[1.5px] border-slate-950 bg-white shadow-none' : 'bg-[#FFF5F8]/90 border-[1.5px] border-[#FCE7F3] rounded-[10px] shadow-[0_1px_3px_rgba(236,72,153,0.06)]'}`}>
+                <div className={`mt-auto ${isSelfChemistry ? 'mb-[10px] translate-y-[6px]' : 'mb-1'} mx-2 p-[10px] relative flex-shrink-0 ${isSelfChemistry ? 'rounded-[3px] border-[1.5px] border-slate-950 bg-white shadow-none' : 'bg-[#FFF5F8]/90 border-[1.5px] border-[#FCE7F3] rounded-[10px] shadow-[0_1px_3px_rgba(236,72,153,0.06)]'}`}>
                   <span className={`font-black text-[9px] block mb-[6px] tracking-tight ${isSelfChemistry ? 'text-slate-950' : 'text-[#EC4899]'}`}>Best Moment</span>
                   <p className={`text-[8.5px] font-bold leading-[1.4] break-keep ${isSelfChemistry ? 'text-slate-800' : 'text-[#BE185D]'}`}>
                     {sessionChem.relationshipDynamic?.bestMoment}

@@ -7,6 +7,7 @@ export interface CartItem {
   id: string
   user_id: string
   analysis_id: string | null
+  layering_session_id: string | null
   product_type: ProductType
   perfume_name: string
   perfume_brand: string | null
@@ -21,8 +22,11 @@ export interface CartItem {
 }
 
 // 장바구니 추가 요청 타입
+// chemistry_set: layering_session_id 필수, analysis_id 는 비움
+// 그 외:        analysis_id 필수, layering_session_id 는 비움
 export interface AddToCartRequest {
-  analysis_id: string
+  analysis_id?: string | null
+  layering_session_id?: string | null
   product_type: ProductType
   perfume_name: string
   perfume_brand?: string
@@ -46,6 +50,7 @@ export interface OrderItem {
   id: string
   order_id: string
   analysis_id: string | null
+  layering_session_id: string | null
   product_type: ProductType
   perfume_name: string
   perfume_brand: string | null

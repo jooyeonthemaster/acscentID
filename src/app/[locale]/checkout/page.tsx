@@ -120,8 +120,10 @@ function CheckoutContent() {
     setSelectedCoupon(null)
   }, [singleQuantity])
 
-  // 분석 ID (주문과 분석 결과 연결용)
+  // 분석 ID (주문과 분석 결과 연결용) — 단품 단일 결제용
   const [analysisId, setAnalysisId] = useState<string | null>(null)
+  // 케미 세션 ID — 케미 단일 결제용
+  const [layeringSessionId, setLayeringSessionId] = useState<string | null>(null)
 
   // 확정된 레시피 (재주문 시 전달됨)
   const [confirmedRecipe, setConfirmedRecipe] = useState<any>(null)
@@ -236,6 +238,7 @@ function CheckoutContent() {
     const savedUserInfo = localStorage.getItem("userInfo")
     const savedProductType = localStorage.getItem("checkoutProductType")
     const savedAnalysisId = localStorage.getItem("checkoutAnalysisId")
+    const savedLayeringSessionId = localStorage.getItem("checkoutLayeringSessionId")
 
     if (savedResult) {
       try {
@@ -277,10 +280,16 @@ function CheckoutContent() {
       localStorage.removeItem("checkoutProductType")
     }
 
-    // 분석 ID 설정 (주문과 분석 결과 연결용)
+    // 분석 ID 설정 (단품용) - 주문과 분석 결과 연결
     if (savedAnalysisId) {
       setAnalysisId(savedAnalysisId)
       localStorage.removeItem("checkoutAnalysisId")
+    }
+
+    // 케미 세션 ID 설정 (chemistry_set 단일 결제용)
+    if (savedLayeringSessionId) {
+      setLayeringSessionId(savedLayeringSessionId)
+      localStorage.removeItem("checkoutLayeringSessionId")
     }
 
     // 확정된 레시피 로드 (재주문 시 전달됨)
@@ -422,6 +431,7 @@ function CheckoutContent() {
           paymentMethod,
           items: checkoutItems.map(item => ({
             analysisId: item.analysis_id,
+            layeringSessionId: item.layering_session_id,
             productType: item.product_type,
             perfumeName: item.perfume_name,
             perfumeBrand: item.perfume_brand || item.twitter_name,
@@ -445,7 +455,8 @@ function CheckoutContent() {
         orderData = {
           userId,
           paymentMethod,
-          analysisId, // 분석 ID (분석 결과 연결용)
+          analysisId, // 단품용 분석 ID
+          layeringSessionId, // 케미용 세션 ID (chemistry_set 단일 결제 시)
           productType, // 상품 타입 추가 (image_analysis / figure_diffuser)
           perfumeName,
           perfumeBrand: displayIdolName,
