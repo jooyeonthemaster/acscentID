@@ -232,7 +232,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
               케미 분석 정보
             </h3>
             <div className="text-sm text-slate-600 space-y-2">
-              <p>이 분석은 <span className="font-bold text-violet-600">케미 향수 세트</span> 프로그램에서 생성되었습니다.</p>
+              <p>이 분석은 <span className="font-bold text-violet-600">레이어링 퍼퓸 세트</span> 프로그램에서 생성되었습니다.</p>
               <p>레이어링 세션과 연결된 두 캐릭터의 향수가 포함됩니다.</p>
             </div>
           </div>

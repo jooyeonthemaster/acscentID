@@ -22,6 +22,8 @@ interface ChemistryResultSaveRequest {
   emotionKeywords?: string[]
   scentDirection?: number
   message?: string
+  // 분석 대상 타입 (최애/나)
+  targetType?: 'idol' | 'self' | null
 }
 
 export async function POST(request: NextRequest) {
@@ -47,7 +49,10 @@ export async function POST(request: NextRequest) {
       emotionKeywords,
       scentDirection,
       message,
+      targetType,
     } = body
+
+    const resolvedTargetType: 'idol' | 'self' = targetType === 'self' ? 'self' : 'idol'
 
     if (!analysisResult || !character1Name || !character2Name) {
       return NextResponse.json(
@@ -77,6 +82,7 @@ export async function POST(request: NextRequest) {
         pin: pin || null,
         qr_code_id: qrCode || null,
         locale: locale || 'ko',
+        target_type: resolvedTargetType,
       })
       .select('id')
       .single()
@@ -108,6 +114,7 @@ export async function POST(request: NextRequest) {
         pin: pin || null,
         qr_code_id: qrCode || null,
         locale: locale || 'ko',
+        target_type: resolvedTargetType,
       })
       .select('id')
       .single()
@@ -148,6 +155,7 @@ export async function POST(request: NextRequest) {
         pin: pin || null,
         qr_code_id: qrCode || null,
         locale: locale || 'ko',
+        target_type: resolvedTargetType,
       })
       .select('id')
       .single()

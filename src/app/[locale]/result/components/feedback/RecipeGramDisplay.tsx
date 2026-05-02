@@ -26,7 +26,7 @@ interface RecipeGramDisplayProps {
 
 /**
  * 그람 단위 레시피 표시 공통 컴포넌트
- * - 이미지 분석 퍼퓸 & 케미 향수 공통으로 사용
+ * - 이미지 분석 퍼퓸 & 레이어링 퍼퓸 공통으로 사용
  * - 제품 선택(10ml/50ml/5ml) → 방울 수 → 그램 변환 표시
  */
 export function RecipeGramDisplay({

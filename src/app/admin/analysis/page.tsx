@@ -18,7 +18,7 @@ import {
   Download,
 } from 'lucide-react'
 import Image from 'next/image'
-import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode } from '@/types/admin'
+import { AdminAnalysisRecord, SERVICE_MODE_LABELS, ProductType, ServiceMode, TargetType, getTargetTypeLabel } from '@/types/admin'
 import Link from 'next/link'
 
 // 테이블용 짧은 라벨
@@ -29,7 +29,7 @@ const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   personal_scent: '퍼스널',
   graduation: '졸업 퍼퓸',
   signature: '시그니처',
-  chemistry_set: '케미 향수',
+  chemistry_set: '레이어링 퍼퓸',
   etc: '기타',
 }
 
@@ -43,6 +43,7 @@ export default function AnalysisPage() {
   const [filters, setFilters] = useState({
     product_type: 'all' as ProductType | 'all',
     service_mode: 'all' as ServiceMode | 'all',
+    target_type: 'all' as TargetType | 'all',
     search: '',
     date_from: '',
     date_to: '',
@@ -56,7 +57,7 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     fetchAnalyses()
-  }, [pagination.page, filters.product_type, filters.service_mode])
+  }, [pagination.page, filters.product_type, filters.service_mode, filters.target_type])
 
   const fetchAnalyses = async () => {
     setLoading(true)
@@ -68,6 +69,7 @@ export default function AnalysisPage() {
 
       if (filters.product_type !== 'all') params.set('product_type', filters.product_type)
       if (filters.service_mode !== 'all') params.set('service_mode', filters.service_mode)
+      if (filters.target_type !== 'all') params.set('target_type', filters.target_type)
       if (filters.search) params.set('search', filters.search)
       if (filters.date_from) params.set('date_from', filters.date_from)
       if (filters.date_to) params.set('date_to', filters.date_to)
@@ -98,6 +100,7 @@ export default function AnalysisPage() {
     setFilters({
       product_type: 'all',
       service_mode: 'all',
+      target_type: 'all',
       search: '',
       date_from: '',
       date_to: '',
@@ -111,6 +114,7 @@ export default function AnalysisPage() {
       const params = new URLSearchParams({ format: 'csv' })
       if (filters.product_type !== 'all') params.set('product_type', filters.product_type)
       if (filters.service_mode !== 'all') params.set('service_mode', filters.service_mode)
+      if (filters.target_type !== 'all') params.set('target_type', filters.target_type)
       if (filters.search) params.set('search', filters.search)
       if (filters.date_from) params.set('date_from', filters.date_from)
       if (filters.date_to) params.set('date_to', filters.date_to)
@@ -182,7 +186,7 @@ export default function AnalysisPage() {
               <option value="figure_diffuser">피규어 디퓨저</option>
               <option value="personal_scent">퍼스널 센트</option>
               <option value="graduation">졸업 퍼퓸</option>
-              <option value="chemistry_set">케미 향수</option>
+              <option value="chemistry_set">레이어링 퍼퓸</option>
             </select>
 
             {/* 서비스 모드 필터 */}
@@ -194,6 +198,17 @@ export default function AnalysisPage() {
               <option value="all">전체 모드</option>
               <option value="online">온라인</option>
               <option value="offline">오프라인 QR</option>
+            </select>
+
+            {/* 분석 대상 필터 (최애/나) */}
+            <select
+              value={filters.target_type}
+              onChange={(e) => setFilters({ ...filters, target_type: e.target.value as TargetType | 'all' })}
+              className="px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-400"
+            >
+              <option value="all">전체 대상</option>
+              <option value="idol">최애</option>
+              <option value="self">나 / 나와 상대방</option>
             </select>
 
             {/* 상세 필터 토글 */}
@@ -277,12 +292,13 @@ export default function AnalysisPage() {
         {!loading && !error && (
           <>
             <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0] overflow-x-auto">
-              <table className="w-full min-w-[1100px]">
+              <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
                     <th className="w-10 px-3 py-3"></th>
                     <th className="w-[180px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">아이돌명</th>
                     <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">상품 타입</th>
+                    <th className="w-[100px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석 대상</th>
                     <th className="w-[80px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">모드</th>
                     <th className="w-[60px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">PIN</th>
                     <th className="w-[160px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">추천 향수</th>
@@ -335,6 +351,22 @@ export default function AnalysisPage() {
                           <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
                             {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
                           </span>
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          {(() => {
+                            const isSelf = analysis.target_type === 'self'
+                            const label = getTargetTypeLabel(analysis.target_type, analysis.product_type)
+                            return (
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full ${
+                                isSelf
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-rose-100 text-rose-700'
+                              }`}>
+                                <span>{isSelf ? '🪞' : '💖'}</span>
+                                <span>{label}</span>
+                              </span>
+                            )
+                          })()}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
@@ -397,7 +429,7 @@ export default function AnalysisPage() {
                       {/* 확장된 상세 정보 */}
                       {expandedId === analysis.id && (
                         <tr>
-                          <td colSpan={9} className="px-4 py-4 bg-slate-50">
+                          <td colSpan={10} className="px-4 py-4 bg-slate-50">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">키워드:</span>
@@ -420,7 +452,7 @@ export default function AnalysisPage() {
                                 <p className="text-slate-900 mt-1 font-mono text-xs">{analysis.id}</p>
                               </div>
                             </div>
-                            {/* 케미 향수 세션 정보 */}
+                            {/* 레이어링 퍼퓸 세션 정보 */}
                             {analysis.product_type === 'chemistry_set' && (
                               <div className="mt-4 pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-3">

@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
       confirmed_recipe: linkedRecipesMap.get(analysis.id) || null
     }))
 
-    // ── 케미 향수(chemistry_set) 통합 처리 ──
+    // ── 레이어링 퍼퓸(chemistry_set) 통합 처리 ──
     // chemistry_set인 analysis ID들을 추출
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chemistryAnalysisIds = (analysesWithRecipes as any[])
@@ -311,7 +311,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       analyses,
-      chemistryAnalyses,  // 케미 향수 통합 데이터
+      chemistryAnalyses,  // 레이어링 퍼퓸 통합 데이터
       recipes,  // 기존 호환성 유지
       recipeGroups,  // 새로운 그룹핑 데이터
       analysisError: results[0].error?.message || null,

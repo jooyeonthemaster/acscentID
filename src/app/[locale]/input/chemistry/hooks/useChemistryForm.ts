@@ -12,6 +12,7 @@ export type ChemistryPhase = 'summon' | 'deck' | 'catalyst'
 
 export interface ChemistryFormState {
   pin: string
+  targetType: 'idol' | 'self'
   character1Name: string
   character2Name: string
   character1ImageBase64: string | null
@@ -33,6 +34,7 @@ export interface ChemistryFormState {
 
 const INITIAL_FORM_DATA: ChemistryFormState = {
   pin: "",
+  targetType: "idol",
   character1Name: "",
   character2Name: "",
   character1ImageBase64: null,
@@ -207,6 +209,7 @@ export function useChemistryForm() {
           serviceMode: isOffline ? 'offline' : 'online',
           pin: formData.pin || null,
           qrCode: qrCode || null,
+          targetType: formData.targetType || 'idol',
         }),
       })
 
@@ -239,6 +242,7 @@ export function useChemistryForm() {
       serviceMode: isOffline ? 'offline' : 'online',
       qrCode: qrCode || null,
       pin: formData.pin || null,
+      targetType: formData.targetType || 'idol',
     }))
 
     router.push('/result?type=chemistry')

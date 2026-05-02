@@ -10,6 +10,7 @@ import type { FormDataType } from "../types"
 
 const INITIAL_FORM_DATA: FormDataType = {
     pin: "",
+    targetType: "idol",
     name: "",
     gender: "",
     styles: [],
@@ -262,6 +263,7 @@ export function useInputForm() {
                     formData: {
                         name: formData.name,
                         gender: formData.gender,
+                        targetType: formData.targetType,
                         styles: formData.styles,
                         customStyle: formData.customStyle,
                         personalities: formData.personalities,
@@ -350,6 +352,9 @@ export function useInputForm() {
                     localStorage.setItem('productType', 'image_analysis')
                     localStorage.removeItem('programType')
                 }
+
+                // 분석 대상 타입 저장 (인쇄 보고서 배경 분기용)
+                localStorage.setItem('analysisTargetType', formData.targetType || 'idol')
 
                 localStorage.setItem('analysisResult', JSON.stringify(data))
                 // 선업로드된 URL 저장 (작은 문자열이라 용량 문제 없음)

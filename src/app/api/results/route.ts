@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       pin,
       qrCode,
       locale: bodyLocale,
+      targetType,
     } = body as {
       userImageUrl?: string
       analysisData: ImageAnalysisResult
@@ -47,7 +48,10 @@ export async function POST(request: NextRequest) {
       pin?: string | null
       qrCode?: string | null
       locale?: string | null
+      targetType?: 'idol' | 'self' | null
     }
+
+    const resolvedTargetType: 'idol' | 'self' = targetType === 'self' ? 'self' : 'idol'
 
     // Locale 감지 (body에서 먼저, 없으면 헤더에서)
     const locale = bodyLocale || getApiLocale(request)
@@ -85,7 +89,8 @@ export async function POST(request: NextRequest) {
         service_mode: serviceMode || 'online',
         pin: pin || null,
         qr_code_id: qrCode || null,
-        locale: locale || 'ko'
+        locale: locale || 'ko',
+        target_type: resolvedTargetType
       })
       .select('id')
       .single()

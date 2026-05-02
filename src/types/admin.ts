@@ -8,6 +8,22 @@ export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
 
+// 분석 대상 타입 (최애 / 나(또는 나와 상대방))
+export type TargetType = 'idol' | 'self'
+
+// 분석 대상 라벨
+export const TARGET_TYPE_LABELS: Record<TargetType, string> = {
+  idol: '최애',
+  self: '나',
+}
+
+// 케미는 'self'를 '나와 상대방'으로 표시
+export function getTargetTypeLabel(targetType: TargetType | null | undefined, productType?: string): string {
+  const t: TargetType = targetType === 'self' ? 'self' : 'idol'
+  if (t === 'self' && productType === 'chemistry_set') return '나와 상대방'
+  return TARGET_TYPE_LABELS[t]
+}
+
 // 상품 타입 한글 라벨
 // [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 — signature 추가
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
@@ -16,7 +32,7 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념 퍼퓸',
   signature: '시그니처 퍼퓸',
-  chemistry_set: '케미 향수 세트',
+  chemistry_set: '레이어링 퍼퓸 세트',
   etc: '기타',
 }
 
@@ -50,6 +66,7 @@ export interface AdminAnalysisRecord {
   user_fingerprint: string | null
   product_type: ProductType
   service_mode: ServiceMode
+  target_type?: TargetType | null
   qr_code_id: string | null
   analysis_data: ImageAnalysisResult
   twitter_name: string
@@ -62,7 +79,7 @@ export interface AdminAnalysisRecord {
   // 피규어 디퓨저 모델링 데이터
   modeling_image_url: string | null
   modeling_request: string | null
-  // 케미 향수 페어 데이터 (product_type='chemistry_set'일 때 채워짐)
+  // 레이어링 퍼퓸 페어 데이터 (product_type='chemistry_set'일 때 채워짐)
   partner_name?: string | null
   layering_session_id?: string | null
   chemistry_title?: string | null

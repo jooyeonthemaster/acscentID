@@ -255,7 +255,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     router.push('/checkout')
   }
 
-  // 케미 향수 장바구니 담기
+  // 레이어링 퍼퓸 장바구니 담기
   const handleAddChemistryToCart = async (chem: ChemistryAnalysis) => {
     setIsAddingToCart(true)
     try {
@@ -322,7 +322,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     router.push('/result?type=chemistry&from=mypage')
   }
 
-  // 케미 향수 구매 (체크아웃 직행)
+  // 레이어링 퍼퓸 구매 (체크아웃 직행)
   const handleChemistryPurchase = (chem: ChemistryAnalysis, e?: React.MouseEvent) => {
     e?.stopPropagation()
 
@@ -1410,7 +1410,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
           )}
         </AnimatePresence>
 
-        {/* 케미 향수 상세 모달 */}
+        {/* 레이어링 퍼퓸 상세 모달 */}
         <AnimatePresence>
           {chemistryDetailTarget && (
             <motion.div
@@ -1432,7 +1432,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-violet-500 to-pink-500 flex items-center justify-between flex-shrink-0">
                   <h3 className="font-black text-lg text-white flex items-center gap-2">
                     <Heart size={20} className="fill-white" />
-                    케미 향수 상세
+                    레이어링 퍼퓸 상세
                   </h3>
                   <button
                     onClick={() => setChemistryDetailTarget(null)}

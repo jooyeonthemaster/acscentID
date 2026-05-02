@@ -45,17 +45,44 @@ export function SummonPhase({
 
   return (
     <div className="space-y-6">
-      {/* 타이틀 */}
-      <div className="text-center mb-6">
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-black text-slate-900"
-        >
-          두 인물을 소환하세요
-        </motion.h1>
-        <p className="text-sm text-slate-500 mt-1">이미지와 이름을 입력해주세요</p>
-      </div>
+      {/* 분석 대상 선택: 최애 vs 나와 상대방 */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-2"
+      >
+        <label className="block text-xs font-black text-slate-500 uppercase tracking-wider px-1">
+          분석 대상
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { key: "idol", label: "최애", emoji: "💖", desc: "최애 케미 분석" },
+            { key: "self", label: "나와 상대방", emoji: "🪞", desc: "나와 상대방의 케미 분석" },
+          ] as const).map(({ key, label, emoji, desc }) => {
+            const isActive = (formData.targetType ?? "idol") === key
+            return (
+              <motion.button
+                key={key}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
+                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-2xl text-sm font-bold transition-all border-2 border-black ${
+                  isActive
+                    ? "bg-violet-500 text-white shadow-[4px_4px_0_0_black]"
+                    : "bg-white text-slate-500 shadow-[2px_2px_0_0_black] hover:bg-slate-50"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base">{emoji}</span>
+                  <span className="text-base font-black">{label}</span>
+                </div>
+                <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-slate-400"}`}>
+                  {desc}
+                </span>
+              </motion.button>
+            )
+          })}
+        </div>
+      </motion.div>
 
       {/* 오프라인 PIN */}
       {isOffline && (

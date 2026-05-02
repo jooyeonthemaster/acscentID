@@ -149,7 +149,7 @@
     "personal": "퍼스널 센트",
     "leQuack": "SIGNATURE 뿌덕퍼퓸",
     "customDuck": "나만의 오리 꾸미기",
-    "chemistry": "케미 향수 세트"
+    "chemistry": "레이어링 퍼퓸 세트"
   },
   "labels": {
     "traits": {
@@ -233,7 +233,7 @@
       "idolImage": "뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서",
       "figure": "3D 피규어 + 디퓨저(5ml) + 실물 분석보고서",
       "graduation": "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서",
-      "chemistry": "케미 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드"
+      "chemistry": "레이어링 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드"
     },
     "features": {
       "aiAnalysis": "AI 맞춤 분석",
@@ -1909,7 +1909,7 @@
     "privacy": "개인정보처리방침"
   },
   "chemistry": {
-    "title": "케미 향수",
+    "title": "레이어링 퍼퓸",
     "description": "두 인물의 케미를 향기로 담다",
     "summon": {
       "title": "두 인물을 소환하세요",
@@ -1968,7 +1968,7 @@
       "dialogues": "대표 대사",
       "story": "케미 스토리",
       "future": "미래 예측",
-      "purchase": "케미 향수 세트"
+      "purchase": "레이어링 퍼퓸 세트"
     },
     "buttons": {
       "openDeck": "카드 덱 열기",

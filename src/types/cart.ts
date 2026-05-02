@@ -90,8 +90,8 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   chemistry_set: [
-    { size: 'set_10ml', price: 38000, label: '케미 향수 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
-    { size: 'set_50ml', price: 60000, label: '케미 향수 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: 'set_10ml', price: 38000, label: '레이어링 퍼퓸 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: 'set_50ml', price: 60000, label: '레이어링 퍼퓸 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   payment_test: [
     { size: '10ml', price: 1000, label: '결제 테스트 상품', shippingFee: 0 },
@@ -144,8 +144,8 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     border: 'border-amber-300',
   },
   chemistry_set: {
-    label: '케미 향수 세트',
-    labelShort: '케미',
+    label: '레이어링 퍼퓸 세트',
+    labelShort: '레이어링',
     bg: 'bg-violet-100',
     text: 'text-violet-700',
     border: 'border-violet-300',

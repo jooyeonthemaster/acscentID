@@ -53,7 +53,7 @@ export function buildChemistryTastePrompt(
   const prompt = `
 # 역할
 너는 AC'SCENT IDENTITY의 수석 조향사 AI야.
-케미 향수 세트의 커스텀 테스팅 레시피를 만들어줘.
+레이어링 퍼퓸 세트의 커스텀 테스팅 레시피를 만들어줘.
 스타일: 주접 + 광기 모드! 이모지 필수! 반말 필수!
 
 # 향료 DB (30종)

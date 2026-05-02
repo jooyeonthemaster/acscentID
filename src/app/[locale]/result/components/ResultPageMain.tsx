@@ -96,7 +96,9 @@ export default function ResultPageMain() {
     // 졸업 모드
     isGraduationMode,
     // 서비스 모드 (DB 또는 localStorage에서 로드)
-    serviceMode: loadedServiceMode
+    serviceMode: loadedServiceMode,
+    // 분석 대상 타입 (idol: 최애 / self: 나)
+    targetType
   } = useResultData()
 
   // 서비스 모드: DB/localStorage에서 로드된 값 사용, 없으면 기본값 'offline'
@@ -131,7 +133,9 @@ export default function ResultPageMain() {
     modelingRequest,
     productType,
     // 오프라인 모드 인증 번호
-    pin: userInfo?.pin || null
+    pin: userInfo?.pin || null,
+    // 분석 대상 타입 (최애/나)
+    targetType
   })
 
   const handleRestart = () => {

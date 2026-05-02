@@ -34,7 +34,7 @@ export async function DELETE(
     // 2. Service Role로 삭제 (user_id 확인 포함)
     const supabase = createServiceRoleClient()
 
-    // 케미 향수 세션 삭제: ?type=chemistry 인 경우 id를 sessionId로 취급
+    // 레이어링 퍼퓸 세션 삭제: ?type=chemistry 인 경우 id를 sessionId로 취급
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
 

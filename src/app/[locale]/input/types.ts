@@ -1,7 +1,10 @@
 // ===== Input Form 타입 정의 =====
 
+export type AnalysisTargetType = 'idol' | 'self'
+
 export interface FormDataType {
     pin: string
+    targetType: AnalysisTargetType
     name: string
     gender: string
     styles: string[]

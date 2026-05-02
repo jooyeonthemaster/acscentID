@@ -50,7 +50,7 @@ export function newOrderTemplate(data: {
     personal_scent: '퍼스널 센트',
     graduation: '졸업 에디션',
     signature: '시그니처',
-    chemistry_set: '케미 향수 세트',
+    chemistry_set: '레이어링 퍼퓸 세트',
   }
 
   return {

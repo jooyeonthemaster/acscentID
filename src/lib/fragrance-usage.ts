@@ -121,7 +121,7 @@ export const FRAGRANCE_VOLUME_MAP: Record<string, number> = {
   // 디퓨저
   'set': 5,
   'diffuser': 5,
-  // 케미 향수 세트 (2병 기준이므로 개별 향수 용량)
+  // 레이어링 퍼퓸 세트 (2병 기준이므로 개별 향수 용량)
   'set_10ml': 2,
   'set_50ml': 10,
   // 기본값

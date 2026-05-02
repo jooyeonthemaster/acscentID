@@ -66,7 +66,7 @@ const PROGRAM_LABELS: Record<ProgramType, { label: string; icon: React.ReactNode
   idol_image: { label: 'AI 이미지 분석', icon: <Sparkles className="w-4 h-4" />, color: 'bg-yellow-500' },
   figure: { label: '피규어 디퓨저', icon: <Box className="w-4 h-4" />, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: <GraduationCap className="w-4 h-4" />, color: 'bg-amber-500' },
-  chemistry: { label: '케미 향수', icon: <Users className="w-4 h-4" />, color: 'bg-violet-500' },
+  chemistry: { label: '레이어링 퍼퓸', icon: <Users className="w-4 h-4" />, color: 'bg-violet-500' },
 }
 
 // 키워드 클라우드 컴포넌트

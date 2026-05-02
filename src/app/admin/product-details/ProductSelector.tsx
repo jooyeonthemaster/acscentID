@@ -23,7 +23,7 @@ const PRODUCT_LABELS: Record<string, string> = {
   'graduation': '졸업 기념 퍼퓸',
   'le-quack': 'LE QUACK 시그니처',
   'personal': '퍼스널 센트',
-  'chemistry': '케미 향수 세트',
+  'chemistry': '레이어링 퍼퓸 세트',
 }
 
 interface ProductSelectorProps {

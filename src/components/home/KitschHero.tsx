@@ -595,7 +595,7 @@ function ProgramSlide() {
                         </motion.div>
                     </a>
 
-                    {/* 케미 향수 - SEASON 3 */}
+                    {/* 레이어링 퍼퓸 - SEASON 3 */}
                     <a href="/programs/chemistry" className="w-[140px] h-[180px] sm:w-[180px] sm:h-[230px] md:w-auto md:h-auto flex items-center justify-center">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -605,7 +605,7 @@ function ProgramSlide() {
                             className="relative"
                         >
                             <StickerCartridge
-                                title="케미 향수"
+                                title="레이어링 퍼퓸"
                                 subtitle="세트"
                                 color="bg-[#F472B6]"
                                 className="scale-[0.55] sm:scale-[0.75] md:scale-105 origin-center -rotate-1"

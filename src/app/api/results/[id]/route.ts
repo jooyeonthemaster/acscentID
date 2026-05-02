@@ -70,6 +70,8 @@ export async function GET(
         // 피규어 모드 전용 필드
         modelingImageUrl: data.modeling_image_url || null,
         modelingRequest: data.modeling_request || null,
+        // 분석 대상 타입 (최애/나) — 인쇄 보고서 배경 분기용
+        targetType: data.target_type || 'idol',
         // [FIX] CRITICAL #9: 케미 세트 전용 필드
         layeringSession: layeringSession,
       }

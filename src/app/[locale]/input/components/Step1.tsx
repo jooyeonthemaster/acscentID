@@ -118,6 +118,41 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                     )}
                 </AnimatePresence>
 
+                {/* 분석 대상 선택: 최애 vs 나 — 이름 입력 바로 위 */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        분석 대상
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {([
+                            { key: "idol", label: "최애", emoji: "💖", desc: "내 최애 분석" },
+                            { key: "self", label: "나", emoji: "🪞", desc: "나에 대한 분석" },
+                        ] as const).map(({ key, label, emoji, desc }) => {
+                            const isActive = (formData.targetType ?? "idol") === key
+                            return (
+                                <motion.button
+                                    key={key}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
+                                    className={`relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 backdrop-blur-md border-2 ${
+                                        isActive
+                                            ? "bg-yellow-400 border-slate-900 text-slate-900 shadow-[3px_3px_0_0_#0f172a]"
+                                            : "bg-white/80 border-white/60 text-slate-500 shadow-md shadow-slate-900/5 hover:bg-white/90"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-base">{emoji}</span>
+                                        <span className="text-base font-black">{label}</span>
+                                    </div>
+                                    <span className={`text-[10px] font-medium ${isActive ? "text-slate-700" : "text-slate-400"}`}>
+                                        {desc}
+                                    </span>
+                                </motion.button>
+                            )
+                        })}
+                    </div>
+                </div>
+
                 <InputField
                     label={isIdol ? t('input.step1.nameIdolLabel') : t('input.step1.namePersonalLabel')}
                     value={formData.name}

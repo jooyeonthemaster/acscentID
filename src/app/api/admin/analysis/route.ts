@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const productType = searchParams.get('product_type')
     const serviceMode = searchParams.get('service_mode')
+    const targetType = searchParams.get('target_type')
     const search = searchParams.get('search')
     const dateFrom = searchParams.get('date_from')
     const dateTo = searchParams.get('date_to')
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createServerSupabaseClientWithCookies()
 
-    // [FIX] 케미 향수: 세션당 2개 row가 생성되므로, 관리자 목록에서는 analysis_b_id를
+    // [FIX] 레이어링 퍼퓸: 세션당 2개 row가 생성되므로, 관리자 목록에서는 analysis_b_id를
     // 전부 제외해 "세션 1건 = row 1건 (캐릭터 A 기준)"으로 표시
     const { data: bIdRows } = await supabase
       .from('layering_sessions')
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     if (format === 'csv') {
       let csvQuery = supabase
         .from('analysis_results')
-        .select('id, created_at, product_type, service_mode, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id')
+        .select('id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id')
         .order('created_at', { ascending: false })
         .limit(50000)
 
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
       }
       if (productType && productType !== 'all') csvQuery = csvQuery.eq('product_type', productType)
       if (serviceMode && serviceMode !== 'all') csvQuery = csvQuery.eq('service_mode', serviceMode)
+      if (targetType && targetType !== 'all') csvQuery = csvQuery.eq('target_type', targetType)
       if (search) csvQuery = csvQuery.or(`idol_name.ilike.%${search}%,twitter_name.ilike.%${search}%,perfume_name.ilike.%${search}%`)
       if (dateFrom) csvQuery = csvQuery.gte('created_at', dateFrom)
       if (dateTo) csvQuery = csvQuery.lte('created_at', dateTo + 'T23:59:59.999Z')
@@ -85,7 +87,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'CSV 생성 실패' }, { status: 500 })
       }
 
-      // [FIX] 케미 향수: layering_sessions과 JOIN하여 파트너/PIN/QR 보강
+      // [FIX] 레이어링 퍼퓸: layering_sessions과 JOIN하여 파트너/PIN/QR 보강
       const csvChemIds = (csvAnalyses || [])
         .filter((a: any) => a.product_type === 'chemistry_set')
         .map((a: any) => a.id)
@@ -119,12 +121,17 @@ export async function GET(request: NextRequest) {
 
       // [FIX] HIGH: CSV productLabels에 chemistry_set, signature 추가
       const productLabels: Record<string, string> = {
-        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '케미 향수', etc: '기타',
+        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '레이어링 퍼퓸', etc: '기타',
       }
       const modeLabels: Record<string, string> = { online: '온라인', offline: '오프라인 QR' }
 
       const BOM = '\uFEFF'
-      const headers = ['분석ID', '분석일시', '상품 타입', '서비스 모드', '아이돌명', '트위터이름', '케미 파트너', '케미 타이틀', '추천 향수', '향수 브랜드', '키워드', 'QR코드ID', 'PIN']
+      const headers = ['분석ID', '분석일시', '상품 타입', '서비스 모드', '분석 대상', '아이돌명', '트위터이름', '케미 파트너', '케미 타이틀', '추천 향수', '향수 브랜드', '키워드', 'QR코드ID', 'PIN']
+      const targetLabel = (t: string | null | undefined, p: string | null | undefined) => {
+        const tt = t === 'self' ? 'self' : 'idol'
+        if (tt === 'self' && p === 'chemistry_set') return '나와 상대방'
+        return tt === 'self' ? '나' : '최애'
+      }
       const rows = (csvAnalyses || []).map((a: any) => {
         const pair = a.product_type === 'chemistry_set' ? csvPairs[a.id] : null
         return [
@@ -132,6 +139,7 @@ export async function GET(request: NextRequest) {
           new Date(a.created_at).toLocaleString('ko-KR'),
           productLabels[a.product_type] || a.product_type || '',
           modeLabels[a.service_mode] || a.service_mode || '',
+          targetLabel(a.target_type, a.product_type),
           a.idol_name || '',
           a.twitter_name || '',
           pair?.partnerName || '',
@@ -167,7 +175,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // [FIX] 케미 향수: 세션당 2 row 중 analysis_b_id row는 제외 (캐릭터 A만 표시)
+    // [FIX] 레이어링 퍼퓸: 세션당 2 row 중 analysis_b_id row는 제외 (캐릭터 A만 표시)
     if (excludeBIds.length > 0) {
       query = query.not('id', 'in', `(${excludeBIds.join(',')})`)
     }
@@ -179,6 +187,10 @@ export async function GET(request: NextRequest) {
 
     if (serviceMode && serviceMode !== 'all') {
       query = query.eq('service_mode', serviceMode)
+    }
+
+    if (targetType && targetType !== 'all') {
+      query = query.eq('target_type', targetType)
     }
 
     if (search) {
@@ -236,7 +248,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // [FIX] 케미 향수: layering_sessions과 JOIN하여 파트너 이름/PIN/QR 보강
+    // [FIX] 레이어링 퍼퓸: layering_sessions과 JOIN하여 파트너 이름/PIN/QR 보강
     const chemistryIds = (analyses || [])
       .filter(a => a.product_type === 'chemistry_set')
       .map(a => a.id)

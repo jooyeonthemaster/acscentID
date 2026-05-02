@@ -4,7 +4,7 @@ import { getModelWithConfig } from '@/lib/gemini/client'
 const PROGRAM_LABELS: Record<string, string> = {
   idol_image: 'AI 이미지 분석 퍼퓸 (좋아하는 아이돌/캐릭터 사진으로 맞춤 향수 제작)',
   figure: '피규어 화분 디퓨저 (좋아하는 이미지로 3D 피규어 화분 + 디퓨저 제작)',
-  chemistry_set: '케미 향수 세트 (커플/친구 케미 분석 후 향수 2개 제작)',
+  chemistry_set: '레이어링 퍼퓸 세트 (커플/친구 케미 분석 후 향수 2개 제작)',
   graduation: '졸업 기념 퍼퓸 (졸업 사진으로 기념 향수 제작)',
   personal: '퍼스널 센트 (개인 취향 분석 맞춤 향수)',
   'le-quack': 'LE QUACK 시그니처 향수',

@@ -254,7 +254,7 @@ export function OrderSummary({
             </div>
           </div>
         ) : isChemistrySet ? (
-          /* [FIX] CRITICAL #2: 케미 향수 세트 옵션 (set_10ml / set_50ml) */
+          /* [FIX] CRITICAL #2: 레이어링 퍼퓸 세트 옵션 (set_10ml / set_50ml) */
           <div className="grid grid-cols-2 gap-3">
             {chemistryOptions.map((option) => (
               <button
@@ -445,7 +445,7 @@ export function OrderSummary({
               </li>
             </>
           ) : isChemistrySet ? (
-            /* [FIX] CRITICAL #2: 케미 향수 세트 포함 사항 */
+            /* [FIX] CRITICAL #2: 레이어링 퍼퓸 세트 포함 사항 */
             <>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>

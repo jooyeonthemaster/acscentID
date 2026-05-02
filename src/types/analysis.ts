@@ -424,7 +424,7 @@ export interface GraduationAnalysisResult extends ImageAnalysisResult {
 
 
 // ========================================
-// 케미 향수 프로그램 타입
+// 레이어링 퍼퓸 프로그램 타입
 // ========================================
 
 // 케미 유형 (4대 케미향)

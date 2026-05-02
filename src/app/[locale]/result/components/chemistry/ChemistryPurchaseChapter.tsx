@@ -58,6 +58,7 @@ export function ChemistryPurchaseChapter({
           character2Name,
           userId: user?.id || unifiedUser?.id,
           serviceMode: formMeta.serviceMode || 'online',
+          targetType: formMeta.targetType || 'idol',
         }),
       })
 
@@ -193,6 +194,7 @@ export function ChemistryPurchaseChapter({
                     character2Name,
                     userId: user?.id || unifiedUser?.id,
                     serviceMode: formMeta2.serviceMode || 'online',
+                    targetType: formMeta2.targetType || 'idol',
                   }),
                 })
                 const saveData = await saveResponse.json()

@@ -26,6 +26,7 @@ interface UseAutoSaveProps {
   modelingRequest?: string | null  // 모델링 요청사항
   productType?: string | null  // 상품 타입 (figure_diffuser 등)
   pin?: string | null  // 오프라인 모드 인증 번호 (4자리)
+  targetType?: 'idol' | 'self'  // 분석 대상 타입 (최애/나)
 }
 
 interface UseAutoSaveReturn {
@@ -81,7 +82,8 @@ export function useAutoSave({
   modelingImage = null,
   modelingRequest = null,
   productType = null,
-  pin = null
+  pin = null,
+  targetType = 'idol'
 }: UseAutoSaveProps): UseAutoSaveReturn {
   const locale = useLocale()
   const [isSaved, setIsSaved] = useState(false)
@@ -260,6 +262,8 @@ export function useAutoSave({
           // 모든 분석에 productType, serviceMode 저장 (오프라인 태그 표시용)
           productType: productType || 'image_analysis',
           serviceMode,
+          // 분석 대상 타입 (최애/나) — 인쇄 보고서 배경 분기용
+          targetType: targetType || 'idol',
           // 오프라인 모드 인증 번호
           ...(pin && { pin }),
           // QR 코드 ID (QR 스캔 추적용)
@@ -304,7 +308,7 @@ export function useAutoSave({
         setIsSaving(false)
       }
     }
-  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, idolGender, modelingImage, modelingRequest, productType, pin, locale])
+  }, [analysisResult, userImage, twitterName, userId, isSaving, existingResultId, idolName, idolGender, modelingImage, modelingRequest, productType, pin, locale, targetType])
 
   // 컴포넌트 마운트 시 자동 저장
   // authLoading이 완료된 후에만 저장 시작 (타이밍 문제 해결)

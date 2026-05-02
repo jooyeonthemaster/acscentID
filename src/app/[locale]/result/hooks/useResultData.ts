@@ -29,6 +29,8 @@ export const useResultData = () => {
   const [productType, setProductType] = useState<string | null>(null)
   // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
   const [serviceMode, setServiceMode] = useState<'online' | 'offline' | null>(null)
+  // 분석 대상 타입 (idol: 최애 / self: 나)
+  const [targetType, setTargetType] = useState<'idol' | 'self'>('idol')
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -68,6 +70,11 @@ export const useResultData = () => {
             // DB에서 product_type 설정 (graduation, figure_diffuser, image_analysis 등)
             if (dbResult.productType) {
               setProductType(dbResult.productType)
+            }
+
+            // DB에서 target_type 설정 (최애/나)
+            if (dbResult.targetType === 'idol' || dbResult.targetType === 'self') {
+              setTargetType(dbResult.targetType)
             }
 
             // 피규어 모드 전용 데이터 (DB에서)
@@ -153,6 +160,12 @@ export const useResultData = () => {
           setServiceMode(savedServiceMode)
         }
 
+        // localStorage에서 targetType 로드 (최애/나)
+        const savedTargetType = localStorage.getItem('analysisTargetType')
+        if (savedTargetType === 'idol' || savedTargetType === 'self') {
+          setTargetType(savedTargetType)
+        }
+
         if (savedResult) {
           try {
             const parsedResult: ImageAnalysisResult = JSON.parse(savedResult)
@@ -218,6 +231,8 @@ export const useResultData = () => {
     // 졸업 모드
     isGraduationMode: productType === 'graduation',
     // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
-    serviceMode
+    serviceMode,
+    // 분석 대상 타입 (idol: 최애 / self: 나)
+    targetType
   }
 }

@@ -23,6 +23,7 @@ interface ChemistryFormMeta {
   serviceMode?: string
   qrCode?: string | null
   pin?: string | null
+  targetType?: 'idol' | 'self'
 }
 
 type MainTabType = 'characterA' | 'characterB' | 'chemistry'
@@ -165,6 +166,7 @@ export default function ChemistryResultPage() {
         serviceMode: meta?.serviceMode || 'online',
         pin: meta?.pin || null,
         qrCode: meta?.qrCode || null,
+        targetType: meta?.targetType || 'idol',
       }),
     })
     const saveData = await saveResponse.json()

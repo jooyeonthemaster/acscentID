@@ -244,7 +244,7 @@ export default function ChemistryProgramPage() {
           </section>
 
           {/* ============================================
-              케미 향수만의 특별함
+              레이어링 퍼퓸만의 특별함
           ============================================ */}
           <section className="py-12 px-4 bg-white border-y-2 border-black">
             <motion.div
@@ -259,7 +259,7 @@ export default function ChemistryProgramPage() {
                   ✨ SPECIAL
                 </motion.div>
                 <motion.h2 variants={fadeInUp} className="text-xl font-black text-black mb-3 break-keep">
-                  케미 향수만의 특별함
+                  레이어링 퍼퓸만의 특별함
                 </motion.h2>
               </div>
 
