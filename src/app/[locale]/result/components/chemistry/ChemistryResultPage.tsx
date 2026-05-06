@@ -140,9 +140,9 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
   return (
     <div className="px-4 mb-5">
       <div className={`bg-gradient-to-br ${bgGradient} border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] overflow-hidden`}>
-        <div className="flex items-center gap-4 p-5">
+        <div className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
           {/* 이미지 */}
-          <div className={`w-20 h-20 rounded-full border-3 ${borderColor} overflow-hidden flex-shrink-0 ${shadowColor} ring-2 ${ringColor} ring-offset-2`}>
+          <div className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-full border-3 ${borderColor} overflow-hidden flex-shrink-0 ${shadowColor} ring-2 ${ringColor} ring-offset-2`}>
             {imagePreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={imagePreview} alt={name} className="w-full h-full object-cover" />
@@ -157,7 +157,7 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
               <h2 className="text-lg font-black text-slate-900 truncate">{name}</h2>
             </div>
             {mood && (
-              <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{mood}</p>
+              <p className="text-[12px] sm:text-xs text-slate-600 leading-relaxed whitespace-pre-line break-keep">{mood}</p>
             )}
             {perfume?.persona?.name && (
               <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1 bg-white/80 rounded-full border border-slate-200`}>
