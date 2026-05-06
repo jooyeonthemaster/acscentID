@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Sparkles, ChevronRight, Check, ChevronDown } from "lucide-react"
 import { perfumes } from "@/data/perfumes"
@@ -166,11 +167,16 @@ export function ChemistryFeedbackModal({
   const [confirmedProductType, setConfirmedProductType] = useState<ProductType>('perfume_10ml')
   const [isConfirming, setIsConfirming] = useState(false)
   const [draftReady, setDraftReady] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const storageKey = useMemo(() => {
     const identity = [characterAName, characterBName, perfumeAId, perfumeBId].join(':')
     return `chemistry_feedback_draft:${identity}`
   }, [characterAName, characterBName, perfumeAId, perfumeBId])
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const goToStep = useCallback((s: ModalStep) => {
     setStep(s)
@@ -179,13 +185,35 @@ export function ChemistryFeedbackModal({
 
   // 모달 열릴 때 배경 스크롤 잠금
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
+    if (!isOpen) {
+      return
     }
+
+    const scrollY = window.scrollY
+    const { style } = document.body
+    const previous = {
+      position: style.position,
+      top: style.top,
+      left: style.left,
+      right: style.right,
+      width: style.width,
+      overflow: style.overflow,
+    }
+
+    style.position = 'fixed'
+    style.top = `-${scrollY}px`
+    style.left = '0'
+    style.right = '0'
+    style.width = '100%'
+    style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = ''
+      style.position = previous.position
+      style.top = previous.top
+      style.left = previous.left
+      style.right = previous.right
+      style.width = previous.width
+      style.overflow = previous.overflow
+      window.scrollTo(0, scrollY)
     }
   }, [isOpen])
 
@@ -379,7 +407,7 @@ export function ChemistryFeedbackModal({
     }
   }, [buildConfirmedPayload, goToStep, isConfirming, onConfirmRecipes, storageKey])
 
-  if (!isOpen) return null
+  if (!isOpen || !isMounted) return null
 
   const isFormA = step === 'formA'
   const isFormB = step === 'formB'
@@ -400,7 +428,7 @@ export function ChemistryFeedbackModal({
         : result.recipeB1
     : null
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-[9999] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
@@ -918,6 +946,8 @@ export function ChemistryFeedbackModal({
       </motion.div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }
 
 // 질문 래퍼
