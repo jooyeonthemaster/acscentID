@@ -139,7 +139,7 @@ function CustomInputToggle({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="relative w-full p-3 bg-white/90 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 outline-none border-2 border-violet-200 shadow-lg shadow-violet-400/10 focus:border-violet-400 focus:bg-white transition-all"
+            className="relative w-full p-3 bg-white/90 rounded-xl text-base text-slate-800 placeholder:text-slate-400 outline-none border-2 border-violet-200 shadow-lg shadow-violet-400/10 focus:border-violet-400 focus:bg-white transition-all"
             maxLength={50}
           />
         </div>
@@ -385,7 +385,7 @@ function MessageCard({ formData, setFormData }: {
       <textarea
         value={formData.message}
         onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-        className="w-full h-32 px-4 py-3 text-sm border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none resize-none"
+        className="w-full h-32 px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none resize-none"
         placeholder={"예시)\n• 둘이 티격태격하지만 서로 아끼는 사이예요\n• 상쾌하고 시원한 느낌의 향이 좋아요\n• 달달하면서도 묵직한 무드로 해주세요"}
         maxLength={300}
       />

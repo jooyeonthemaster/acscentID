@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useCallback } from "react"
+import React, { useRef } from "react"
 import { motion } from "framer-motion"
 import { useTranslations } from 'next-intl'
 import type { ChemistryProfile, TraitScores, ScentCategoryScores, ImageAnalysisResult } from "@/types/analysis"
@@ -28,11 +28,11 @@ export function ChemistryMeetingChapter({
   const internalRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const sectionRefs = externalRefs || internalRefs
 
-  const setSectionRef = useCallback((id: string) => (el: HTMLDivElement | null) => {
+  const setSectionRef = (id: string) => (el: HTMLDivElement | null) => {
     if (sectionRefs.current) {
       sectionRefs.current[id] = el
     }
-  }, [sectionRefs])
+  }
 
   return (
     <div className="px-4 space-y-5">
@@ -44,13 +44,13 @@ export function ChemistryMeetingChapter({
 
       {/* === 섹션: 얼굴합 === */}
       {chemistry.faceMatch && (
-        <div ref={setSectionRef('face')} className="scroll-mt-[256px]">
+        <div ref={setSectionRef('face')} className="scroll-mt-[190px]">
           <FaceCompatibilitySection faceMatch={chemistry.faceMatch} />
         </div>
       )}
 
       {/* === 섹션: 케미 타입 === */}
-      <div ref={setSectionRef('type')} className="scroll-mt-[256px]">
+      <div ref={setSectionRef('type')} className="scroll-mt-[190px]">
         {/* 케미 타입 대형 카드 (최상단) */}
         <ChemistryTypeCard chemistry={chemistry} />
 
@@ -78,7 +78,7 @@ export function ChemistryMeetingChapter({
       </div>
 
       {/* === 섹션: 특성 비교 === */}
-      <div ref={setSectionRef('traits')} className="scroll-mt-[256px] space-y-5">
+      <div ref={setSectionRef('traits')} className="scroll-mt-[190px] space-y-5">
         {characterA && characterB && (
           <DualRadarChart
             traitsA={characterA.traits}
@@ -100,7 +100,7 @@ export function ChemistryMeetingChapter({
       </div>
 
       {/* === 섹션: 향 분석 === */}
-      <div ref={setSectionRef('scent')} className="scroll-mt-[256px] space-y-5">
+      <div ref={setSectionRef('scent')} className="scroll-mt-[190px] space-y-5">
         {characterA && characterB && (
           <ScentComparisonChart
             categoriesA={characterA.scentCategories}
@@ -111,7 +111,7 @@ export function ChemistryMeetingChapter({
           />
         )}
 
-        <ScentHarmonyDiagram chemistry={chemistry} nameA={character1Name} nameB={character2Name} />
+        <ScentHarmonyDiagram chemistry={chemistry} />
 
         <LayeringInfographic
           guide={chemistry.layeringGuide}
@@ -121,7 +121,7 @@ export function ChemistryMeetingChapter({
       </div>
 
       {/* === 섹션: 관계 다이나믹 === */}
-      <div ref={setSectionRef('dynamic')} className="scroll-mt-[256px] space-y-5">
+      <div ref={setSectionRef('dynamic')} className="scroll-mt-[190px] space-y-5">
         <KeywordBubbleCloud
           keywords={chemistry.relationshipDynamic.chemistryKeywords}
           description={chemistry.relationshipDynamic.dynamicDescription}
@@ -452,8 +452,8 @@ function ColorRow({ label, colors }: { label: string; colors: string[] }) {
 // ========================================
 // 3-5. 향 하모니 도식 (피라미드 + 연결선)
 // ========================================
-function ScentHarmonyDiagram({ chemistry, nameA, nameB }: {
-  chemistry: ChemistryProfile; nameA: string; nameB: string
+function ScentHarmonyDiagram({ chemistry }: {
+  chemistry: ChemistryProfile
 }) {
   return (
     <SectionCard>

@@ -12,6 +12,7 @@ import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useActiveProducts, useProductImages } from '@/hooks/useAdminContent'
+import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
 
 // Programs 드롭업 메뉴 항목 (전체) - 기본 fallback 이미지 포함
 const ALL_PROGRAM_LINKS = [
@@ -143,6 +144,7 @@ function ProgramsSheet({
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const normalizedPathname = stripLocaleFromPathname(pathname)
   const { user, unifiedUser, loading, signOut } = useAuth()
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
@@ -177,12 +179,13 @@ export function MobileBottomNav() {
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
 
-  const isAdminPage = pathname?.startsWith('/admin')
+  const isAdminPage = normalizedPathname.startsWith('/admin')
+  const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
 
-  const isIdolImagePage = pathname === '/programs/idol-image'
-  const isFigurePage = pathname === '/programs/figure'
-  const isGraduationPage = pathname === '/programs/graduation'
-  const isChemistryPage = pathname === '/programs/chemistry'
+  const isIdolImagePage = normalizedPathname === '/programs/idol-image'
+  const isFigurePage = normalizedPathname === '/programs/figure'
+  const isGraduationPage = normalizedPathname === '/programs/graduation'
+  const isChemistryPage = normalizedPathname === '/programs/chemistry'
   const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage || isChemistryPage
 
   useEffect(() => {
@@ -217,11 +220,11 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isAdminPage])
 
-  if (isAdminPage) return null
+  if (isAdminPage || shouldHideForFocusedExperience) return null
 
-  const isHomeActive = pathname === '/'
-  const isProgramsActive = pathname?.startsWith('/programs') || false
-  const isMyPageActive = pathname === '/mypage' || pathname?.startsWith('/mypage') || false
+  const isHomeActive = normalizedPathname === '/'
+  const isProgramsActive = normalizedPathname.startsWith('/programs')
+  const isMyPageActive = normalizedPathname === '/mypage' || normalizedPathname.startsWith('/mypage')
 
   const handleLoginClick = () => {
     setShowAuthModal(true)

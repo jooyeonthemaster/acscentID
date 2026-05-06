@@ -117,6 +117,14 @@
 
 
 @layer utilities {
+  .safe-area-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
   .bg-noise {
     position: relative;
     isolation: isolate;

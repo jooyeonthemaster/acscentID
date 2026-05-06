@@ -8,7 +8,7 @@ import { ChemistryPrologue } from "./ChemistryPrologue"
 import { CharacterScentChapter } from "./CharacterScentChapter"
 import { ChemistryMeetingChapter } from "./ChemistryMeetingChapter"
 import { ChemistryBottomActions } from "./ChemistryBottomActions"
-import { ChemistryFeedbackModal } from "./ChemistryFeedbackModal"
+import { ChemistryFeedbackModal, type ChemistryConfirmedRecipesPayload } from "./ChemistryFeedbackModal"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
@@ -42,6 +42,7 @@ const CHEMISTRY_SECTIONS = [
 ] as const
 
 const CHEMISTRY_SAVE_DRAFT_KEY = 'chemistry_save_draft'
+const CHEMISTRY_CONFIRMED_RECIPE_KEY = 'chemistry_confirmed_recipe'
 
 interface ChemistrySaveDraft {
   payloadKey: string
@@ -441,9 +442,67 @@ export default function ChemistryResultPage() {
     }
   }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, router, saveResultToDb])
 
+  const handleConfirmChemistryRecipes = useCallback(async (payload: ChemistryConfirmedRecipesPayload) => {
+    if (!result) throw new Error('분석 결과를 찾을 수 없습니다.')
+
+    const localSnapshot = {
+      ...payload,
+      savedAt: new Date().toISOString(),
+    }
+
+    try {
+      localStorage.setItem(CHEMISTRY_CONFIRMED_RECIPE_KEY, JSON.stringify(localSnapshot))
+      sessionStorage.setItem(CHEMISTRY_CONFIRMED_RECIPE_KEY, JSON.stringify(localSnapshot))
+    } catch {
+      // Storage can fail in low-storage or private browsing modes.
+    }
+
+    const sessionId = await saveResultToDb(result, formMeta)
+    if (!sessionId) {
+      throw new Error('레시피는 이 기기에 임시 보관했지만 서버 저장에 실패했습니다. 네트워크를 확인한 뒤 다시 완료를 눌러주세요.')
+    }
+
+    const draft = readChemistrySaveDraft()
+    const analysisAId = draft?.analysisAId || formMeta?.analysisAId || null
+    const analysisBId = draft?.analysisBId || formMeta?.analysisBId || null
+
+    const response = await apiFetch('/api/results/chemistry/recipe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        analysisAId,
+        analysisBId,
+        recipeA: payload.recipeA,
+        recipeB: payload.recipeB,
+        selectedA: payload.selectedA,
+        selectedB: payload.selectedB,
+        productType: payload.productType,
+      }),
+    })
+    const data = await response.json()
+
+    if (!data.success) {
+      throw new Error(data.error || '레시피 서버 저장에 실패했습니다.')
+    }
+
+    const persistedSnapshot = {
+      ...localSnapshot,
+      sessionId,
+      analysisAId,
+      analysisBId,
+      serverConfirmedAt: data.confirmedAt || new Date().toISOString(),
+    }
+
+    localStorage.setItem(CHEMISTRY_CONFIRMED_RECIPE_KEY, JSON.stringify(persistedSnapshot))
+    sessionStorage.setItem(CHEMISTRY_CONFIRMED_RECIPE_KEY, JSON.stringify(persistedSnapshot))
+    localStorage.setItem('checkoutProductType', 'chemistry_set')
+    localStorage.setItem('checkoutLayeringSessionId', sessionId)
+  }, [result, formMeta, saveResultToDb])
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FEF9C3] flex items-center justify-center">
+      <div className="min-h-[100svh] bg-[#FEF9C3] flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
           <div className="w-16 h-16 border-4 border-yellow-400 border-t-slate-900 rounded-xl animate-spin mx-auto mb-4" />
           <p className="text-slate-900 font-black">로딩 중...</p>
@@ -454,7 +513,7 @@ export default function ChemistryResultPage() {
 
   if (!result || !formMeta) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-[100svh] bg-[#FAFAFA] flex flex-col items-center justify-center gap-4">
         <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
           <p className="text-slate-500 mb-4">결과를 찾을 수 없습니다.</p>
           <button
@@ -472,7 +531,7 @@ export default function ChemistryResultPage() {
   const { character1Name, character2Name, image1Preview, image2Preview } = formMeta
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-[100svh] bg-[#FAFAFA]">
       {/* 배경 */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
         <div className="absolute inset-0 z-0 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
@@ -485,9 +544,12 @@ export default function ChemistryResultPage() {
 
       <Header showBack backHref="/" />
 
-      {/* 통합 스티키 네비게이션 - 헤더(86px) 바로 아래 */}
-      <div className="fixed top-[86px] left-0 right-0 z-40">
-        <div className="w-full max-w-[455px] mx-auto bg-[#FAFAFA]/95 backdrop-blur-md border-b border-slate-200/60">
+      <div className="relative z-10 w-full max-w-[455px] mx-auto min-h-[100svh] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+        <div className="h-[84px]" />
+
+        {/* 통합 스티키 네비게이션 */}
+        <div className="sticky top-[84px] z-40">
+        <div className="w-full bg-[#FAFAFA]/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
           {/* 메인 탭 */}
           <div className="px-4 pt-2 pb-1.5 space-y-1">
             {/* 두 인물 탭 — 2열 */}
@@ -581,12 +643,8 @@ export default function ChemistryResultPage() {
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[455px] mx-auto pb-32">
-        {/* 헤더(86px) + 스티키 탭(메인~84 + 하위~47 + border 1 = ~132px) 여백 */}
-        <div className="h-[256px]" />
-
         {/* 탭 콘텐츠 */}
-        <div ref={tabContentRef} className="scroll-mt-[256px]">
+        <div ref={tabContentRef} className="scroll-mt-[190px] pt-4">
           <AnimatePresence mode="wait">
             {mainTab === 'characterA' && (
               <motion.div
@@ -677,7 +735,7 @@ export default function ChemistryResultPage() {
         </div>
 
         {/* 하단 액션 바(약 80px) 가림 방지 스페이서 */}
-        <div className="h-[100px]" aria-hidden />
+        <div className="h-[96px]" aria-hidden />
       </div>
 
       {/* 5. 하단 액션 바 */}
@@ -704,6 +762,7 @@ export default function ChemistryResultPage() {
         perfumeBName={characterB.matchingPerfumes?.[0]?.persona?.name || ''}
         perfumeACharacteristics={(characterA.scentCategories ?? {}) as unknown as Record<string, number>}
         perfumeBCharacteristics={(characterB.scentCategories ?? {}) as unknown as Record<string, number>}
+        onConfirmRecipes={handleConfirmChemistryRecipes}
       />
     </div>
   )

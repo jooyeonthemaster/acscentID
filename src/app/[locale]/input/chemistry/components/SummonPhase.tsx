@@ -34,9 +34,12 @@ export function SummonPhase({
   useEffect(() => {
     if (formData.pin.length === 4 && !pinToastShownRef.current) {
       pinToastShownRef.current = true
-      setShowPinToast(true)
-      const timer = setTimeout(() => setShowPinToast(false), 4000)
-      return () => clearTimeout(timer)
+      const showTimer = setTimeout(() => setShowPinToast(true), 0)
+      const hideTimer = setTimeout(() => setShowPinToast(false), 4000)
+      return () => {
+        clearTimeout(showTimer)
+        clearTimeout(hideTimer)
+      }
     }
     if (formData.pin.length < 4) {
       pinToastShownRef.current = false
@@ -44,17 +47,17 @@ export function SummonPhase({
   }, [formData.pin])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 분석 대상 선택: 최애 vs 나와 상대방 */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-2"
+        className="space-y-1.5"
       >
         <label className="block text-xs font-black text-slate-500 uppercase tracking-wider px-1">
           분석 대상
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {([
             { key: "idol", label: "최애", emoji: "💖", desc: "최애 케미 분석" },
             { key: "self", label: "나와 상대방", emoji: "🪞", desc: "나와 상대방의 케미 분석" },
@@ -65,7 +68,7 @@ export function SummonPhase({
                 key={key}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-2xl text-sm font-bold transition-all border-2 border-black ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-sm font-bold transition-all border-2 border-black ${
                   isActive
                     ? "bg-violet-500 text-white shadow-[4px_4px_0_0_black]"
                     : "bg-white text-slate-500 shadow-[2px_2px_0_0_black] hover:bg-slate-50"
@@ -75,7 +78,7 @@ export function SummonPhase({
                   <span className="text-base">{emoji}</span>
                   <span className="text-base font-black">{label}</span>
                 </div>
-                <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-slate-400"}`}>
+                <span className={`text-[9px] font-medium leading-tight ${isActive ? "text-white/80" : "text-slate-400"}`}>
                   {desc}
                 </span>
               </motion.button>
@@ -89,17 +92,17 @@ export function SummonPhase({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-3"
+          className="space-y-2"
         >
-          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]">
-            <label className="block text-sm font-bold text-slate-700 mb-2">인증 번호 (숫자 4자리)</label>
+          <div className="bg-white border-2 border-black rounded-xl p-3 shadow-[3px_3px_0_0_black]">
+            <label className="block text-xs font-black text-slate-700 mb-2">인증 번호 (숫자 4자리)</label>
             <input
               type="tel"
               inputMode="numeric"
               maxLength={4}
               value={formData.pin}
               onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value.replace(/\D/g, '') }))}
-              className="w-full h-12 px-4 text-center text-2xl font-bold tracking-[0.5em] border-2 border-slate-300 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
+              className="w-full h-11 px-4 text-center text-2xl font-bold tracking-[0.5em] border-2 border-slate-300 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
               placeholder="0000"
             />
           </div>
@@ -109,16 +112,16 @@ export function SummonPhase({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-start gap-2.5 bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-xl px-3.5 py-3"
+            className="flex items-start gap-2 bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-xl px-3 py-2.5"
           >
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-rose-400 border-2 border-rose-500 flex items-center justify-center mt-0.5">
-              <KeyRound size={14} className="text-white" />
+            <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-rose-400 border-2 border-rose-500 flex items-center justify-center mt-0.5">
+              <KeyRound size={12} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-rose-700 leading-tight">
+              <p className="text-[11px] font-black text-rose-700 leading-tight">
                 아무 숫자 4자리를 입력하고 기억해주세요!
               </p>
-              <p className="text-[11px] text-rose-600/80 mt-0.5 leading-snug">
+              <p className="text-[10px] text-rose-600/80 mt-0.5 leading-snug">
                 나중에 결과를 확인할 때 이 번호가 필요합니다. 본인만 기억하면 OK!
               </p>
             </div>
@@ -148,7 +151,7 @@ export function SummonPhase({
       </AnimatePresence>
 
       {/* 2열 카드 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {/* 캐릭터 A */}
         <CharacterCard
           icon={<Moon size={16} />}
@@ -187,11 +190,11 @@ export function SummonPhase({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 text-center"
+        className={`${isOffline ? 'bg-white/85 border-slate-200 p-2.5' : 'bg-violet-50 border-violet-200 p-4'} border-2 rounded-2xl text-center`}
       >
-        <p className="text-xs text-violet-600 font-medium">
-          케미를 분석할 두 인물의 이미지를 업로드해주세요.<br />
-          실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!
+        <p className={`${isOffline ? 'text-[11px] text-slate-500' : 'text-xs text-violet-600'} font-medium leading-relaxed`}>
+          케미를 분석할 두 인물의 이미지를 업로드해주세요.
+          {!isOffline && <><br />실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!</>}
         </p>
       </motion.div>
     </div>
@@ -222,16 +225,16 @@ function CharacterCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]`}
+      className={`bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[3px_3px_0_0_black]`}
     >
       {/* 헤더 */}
-      <div className={`${bgColor} px-3 py-2 flex items-center gap-2 border-b-2 border-black`}>
+      <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-black`}>
         {icon}
         <span className="text-xs font-black text-slate-800">{emoji} {label}</span>
       </div>
 
       {/* 이미지 영역 */}
-      <div className="p-3">
+      <div className="p-2.5">
         {/* [FIX] HIGH: div 키보드 접근 가능하도록 role/tabIndex/onKeyDown 추가 */}
         <div
           onClick={!imageBase64 ? onImageClick : undefined}
@@ -239,7 +242,7 @@ function CharacterCard({
           role={!imageBase64 ? "button" : undefined}
           tabIndex={!imageBase64 ? 0 : undefined}
           aria-label={!imageBase64 ? `${label} 이미지 선택` : undefined}
-          className={`relative w-full aspect-square rounded-xl border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
+          className={`relative w-full aspect-[4/3] rounded-xl border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
         >
           {isCompressing ? (
             <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
@@ -267,7 +270,7 @@ function CharacterCard({
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          className={`w-full mt-3 h-10 px-3 text-sm font-bold text-center border-2 border-slate-300 rounded-xl ${focusBorder} focus:ring-2 focus:ring-violet-200 outline-none`}
+          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center border-2 border-slate-300 rounded-xl ${focusBorder} focus:ring-2 focus:ring-violet-200 outline-none`}
           placeholder="이름 입력"
           maxLength={20}
         />

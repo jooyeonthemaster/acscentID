@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { isFocusedExperiencePath } from '@/lib/route-visibility'
 
 const STORAGE_KEY = 'acscent-cookie-consent'
 
@@ -11,15 +12,19 @@ export function CookieConsentBanner() {
   const t = useTranslations('cookieConsent')
   const locale = useLocale()
   const router = useRouter()
+  const pathname = usePathname()
   const [visible, setVisible] = useState(false)
+  const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
 
   useEffect(() => {
+    if (shouldHideForFocusedExperience) return
+
     const consent = localStorage.getItem(STORAGE_KEY)
     if (!consent) {
       const timer = setTimeout(() => setVisible(true), 800)
       return () => clearTimeout(timer)
     }
-  }, [])
+  }, [shouldHideForFocusedExperience])
 
   const handleAccept = () => {
     localStorage.setItem(STORAGE_KEY, 'accepted')
@@ -35,7 +40,7 @@ export function CookieConsentBanner() {
 
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && !shouldHideForFocusedExperience && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

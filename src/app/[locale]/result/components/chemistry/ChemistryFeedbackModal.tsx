@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Sparkles, ChevronRight, Droplet, Check, ChevronDown } from "lucide-react"
+import { X, Sparkles, ChevronRight, Check, ChevronDown } from "lucide-react"
 import { perfumes } from "@/data/perfumes"
 import {
   type ScentIntensity,
@@ -10,7 +10,7 @@ import {
   type GeneratedRecipe,
 } from "@/types/feedback"
 import { apiFetch } from "@/lib/api-client"
-import { CategoryChangeChart, TestingInstructionsBox, OriginalPerfumeCard } from "../feedback/RecipeCategoryChart"
+import { CategoryChangeChart, OriginalPerfumeCard } from "../feedback/RecipeCategoryChart"
 import { RecipeGramDisplay } from "../feedback/RecipeGramDisplay"
 import type { ProductType } from "@/types/feedback"
 
@@ -26,10 +26,23 @@ interface ChemistryFeedbackModalProps {
   perfumeBName: string
   perfumeACharacteristics?: Record<string, number>
   perfumeBCharacteristics?: Record<string, number>
+  onConfirmRecipes?: (payload: ChemistryConfirmedRecipesPayload) => Promise<void> | void
+}
+
+export interface ChemistryConfirmedRecipesPayload {
+  sessionId: string
+  recipeA: GeneratedRecipe
+  recipeB: GeneratedRecipe
+  selectedA: 1 | 2 | null
+  selectedB: 1 | 2 | null
+  productType: ProductType
+  tasteA: SingleTasteState
+  tasteB: SingleTasteState
+  result: ChemistryRecipeResult
 }
 
 // 한 캐릭터의 취향 데이터
-interface SingleTasteState {
+export interface SingleTasteState {
   satisfied: boolean // 만족해서 변경 불필요
   retention: number // 기존 향 유지 비율 0-100
   intensity: ScentIntensity
@@ -81,11 +94,66 @@ const buildOriginalRecipe = (perfumeId: string, perfumeName: string, characteris
 
 type ModalStep = 'formA' | 'formB' | 'generating' | 'result' | 'confirmed' | 'success'
 
+interface ChemistryFeedbackDraft {
+  version: 1
+  updatedAt: number
+  step: Exclude<ModalStep, 'generating' | 'success'>
+  tasteA: SingleTasteState
+  tasteB: SingleTasteState
+  result: ChemistryRecipeResult | null
+  resultTab: 'A' | 'B'
+  selectedA: 1 | 2 | null
+  selectedB: 1 | 2 | null
+  confirmedProductType: ProductType
+}
+
+const FEEDBACK_DRAFT_TTL_MS = 24 * 60 * 60 * 1000
+
+function readFeedbackDraft(storageKey: string): ChemistryFeedbackDraft | null {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const raw = localStorage.getItem(storageKey)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as ChemistryFeedbackDraft
+    if (parsed.version !== 1 || Date.now() - parsed.updatedAt > FEEDBACK_DRAFT_TTL_MS) {
+      localStorage.removeItem(storageKey)
+      return null
+    }
+
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeFeedbackDraft(storageKey: string, draft: ChemistryFeedbackDraft) {
+  if (typeof window === 'undefined') return
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(draft))
+  } catch {
+    // localStorage can fail in private mode or low-storage conditions.
+  }
+}
+
+function clearFeedbackDraft(storageKey: string) {
+  if (typeof window === 'undefined') return
+
+  try {
+    localStorage.removeItem(storageKey)
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
+
 export function ChemistryFeedbackModal({
   isOpen, onClose, sessionId,
   characterAName, characterBName,
   perfumeAId, perfumeAName, perfumeBId, perfumeBName,
   perfumeACharacteristics, perfumeBCharacteristics,
+  onConfirmRecipes,
 }: ChemistryFeedbackModalProps) {
   const [tasteA, setTasteA] = useState<SingleTasteState>(createInitialTaste())
   const [tasteB, setTasteB] = useState<SingleTasteState>(createInitialTaste())
@@ -96,7 +164,13 @@ export function ChemistryFeedbackModal({
   const [selectedA, setSelectedA] = useState<1 | 2 | null>(null)
   const [selectedB, setSelectedB] = useState<1 | 2 | null>(null)
   const [confirmedProductType, setConfirmedProductType] = useState<ProductType>('perfume_10ml')
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [draftReady, setDraftReady] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const storageKey = useMemo(() => {
+    const identity = [characterAName, characterBName, perfumeAId, perfumeBId].join(':')
+    return `chemistry_feedback_draft:${identity}`
+  }, [characterAName, characterBName, perfumeAId, perfumeBId])
 
   const goToStep = useCallback((s: ModalStep) => {
     setStep(s)
@@ -107,18 +181,37 @@ export function ChemistryFeedbackModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      document.body.style.touchAction = 'none'
     } else {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
     }
     return () => {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
     }
   }, [isOpen])
 
   useEffect(() => {
+    if (!isOpen) {
+      setDraftReady(false)
+      return
+    }
+
+    const draft = readFeedbackDraft(storageKey)
+
+    if (draft) {
+      setTasteA(draft.tasteA)
+      setTasteB(draft.tasteB)
+      setStep(draft.step)
+      setResult(draft.result)
+      setResultTab(draft.resultTab)
+      setSelectedA(draft.selectedA)
+      setSelectedB(draft.selectedB)
+      setConfirmedProductType(draft.confirmedProductType)
+      setError(null)
+      setIsConfirming(false)
+      setDraftReady(true)
+      return
+    }
+
     if (isOpen) {
       setTasteA(createInitialTaste())
       setTasteB(createInitialTaste())
@@ -128,8 +221,41 @@ export function ChemistryFeedbackModal({
       setResultTab('A')
       setSelectedA(null)
       setSelectedB(null)
+      setConfirmedProductType('perfume_10ml')
+      setIsConfirming(false)
+      setDraftReady(true)
     }
-  }, [isOpen])
+  }, [isOpen, storageKey])
+
+  useEffect(() => {
+    if (!isOpen || !draftReady) return
+    if (step === 'generating' || step === 'success') return
+
+    writeFeedbackDraft(storageKey, {
+      version: 1,
+      updatedAt: Date.now(),
+      step,
+      tasteA,
+      tasteB,
+      result,
+      resultTab,
+      selectedA,
+      selectedB,
+      confirmedProductType,
+    })
+  }, [
+    isOpen,
+    draftReady,
+    storageKey,
+    step,
+    tasteA,
+    tasteB,
+    result,
+    resultTab,
+    selectedA,
+    selectedB,
+    confirmedProductType,
+  ])
 
   // success 단계 진입 시 2.5초 후 자동으로 모달 닫기
   useEffect(() => {
@@ -199,16 +325,80 @@ export function ChemistryFeedbackModal({
     handleGenerate()
   }, [tasteA.satisfied, tasteB.satisfied, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, goToStep, handleGenerate])
 
+  const buildConfirmedPayload = useCallback((): ChemistryConfirmedRecipesPayload | null => {
+    if (!result) return null
+
+    const recipeA = tasteA.satisfied
+      ? result.recipeA1
+      : selectedA === 1
+        ? result.recipeA1
+        : selectedA === 2
+          ? result.recipeA2
+          : null
+
+    const recipeB = tasteB.satisfied
+      ? result.recipeB1
+      : selectedB === 1
+        ? result.recipeB1
+        : selectedB === 2
+          ? result.recipeB2
+          : null
+
+    if (!recipeA || !recipeB) return null
+
+    return {
+      sessionId,
+      recipeA,
+      recipeB,
+      selectedA,
+      selectedB,
+      productType: confirmedProductType,
+      tasteA,
+      tasteB,
+      result,
+    }
+  }, [result, tasteA, tasteB, selectedA, selectedB, confirmedProductType, sessionId])
+
+  const handleCompleteConfirmed = useCallback(async () => {
+    const payload = buildConfirmedPayload()
+    if (!payload || isConfirming) return
+
+    setIsConfirming(true)
+    setError(null)
+
+    try {
+      if (onConfirmRecipes) {
+        await onConfirmRecipes(payload)
+      }
+      clearFeedbackDraft(storageKey)
+      goToStep('success')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '레시피 저장 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }, [buildConfirmedPayload, goToStep, isConfirming, onConfirmRecipes, storageKey])
+
   if (!isOpen) return null
 
   const isFormA = step === 'formA'
   const isFormB = step === 'formB'
   const currentTaste = isFormA ? tasteA : tasteB
   const setCurrentTaste = isFormA ? setTasteA : setTasteB
-  const currentName = isFormA ? characterAName : characterBName
-  const currentPerfume = isFormA ? perfumeAName : perfumeBName
-  const currentEmoji = isFormA ? '🌙' : '☀️'
-  const accentBg = isFormA ? 'bg-violet-500' : 'bg-pink-500'
+  const confirmedRecipeA = result
+    ? tasteA.satisfied
+      ? result.recipeA1
+      : selectedA === 2
+        ? result.recipeA2
+        : result.recipeA1
+    : null
+  const confirmedRecipeB = result
+    ? tasteB.satisfied
+      ? result.recipeB1
+      : selectedB === 2
+        ? result.recipeB2
+        : result.recipeB1
+    : null
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-end justify-center">
@@ -218,10 +408,10 @@ export function ChemistryFeedbackModal({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25 }}
-        className="relative w-full max-w-[455px] bg-[#FFFDF5] rounded-t-3xl border-t-2 border-x-2 border-black max-h-[88vh] flex flex-col"
+        className="relative w-full max-w-[455px] bg-[#FFFDF5] rounded-t-3xl border-t-2 border-x-2 border-black max-h-[calc(100svh_-_env(safe-area-inset-top)_-_8px)] flex flex-col"
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-black bg-yellow-400 rounded-t-3xl flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-2.5 border-b-2 border-black bg-yellow-400 rounded-t-3xl flex-shrink-0">
           <div>
             <h2 className="text-base font-black text-black">취향 반영하기</h2>
           </div>
@@ -232,35 +422,35 @@ export function ChemistryFeedbackModal({
 
         {/* 진행 표시 — A/B 스텝 인디케이터 */}
         {(isFormA || isFormB) && (
-          <div className="px-5 py-3 border-b-2 border-black bg-[#FFFDF5] flex-shrink-0">
-            <div className="flex gap-3">
+          <div className="px-4 py-2 border-b-2 border-black bg-[#FFFDF5] flex-shrink-0">
+            <div className="flex gap-2">
               <button
                 onClick={() => goToStep('formA')}
-                className={`flex-1 rounded-xl p-3 border-2 transition-all text-left ${isFormA ? 'border-black bg-violet-100 shadow-[3px_3px_0_0_black]' : 'border-slate-200 bg-white opacity-60 hover:opacity-80 cursor-pointer'}`}
+                className={`min-w-0 flex-1 rounded-xl p-2 border-2 transition-all text-left ${isFormA ? 'border-black bg-violet-100 shadow-[2px_2px_0_0_black]' : 'border-slate-200 bg-white opacity-60 hover:opacity-80 cursor-pointer'}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-lg">🌙</span>
+                  <span className="text-base">🌙</span>
                   {!isFormA && <span className="text-xs text-emerald-500 font-black">✓ 완료</span>}
                 </div>
-                <span className={`text-sm font-black block mt-1.5 ${isFormA ? 'text-violet-700' : 'text-slate-400'}`}>{perfumeAId || "AC'SCENT"}</span>
-                <span className={`text-[10px] block mt-0.5 ${isFormA ? 'text-violet-500' : 'text-slate-400'}`}>{perfumeAName} · {characterAName}</span>
+                <span className={`text-xs font-black block mt-1 truncate ${isFormA ? 'text-violet-700' : 'text-slate-400'}`}>{characterAName}</span>
+                <span className={`text-[10px] block mt-0.5 truncate ${isFormA ? 'text-violet-500' : 'text-slate-400'}`}>{perfumeAName || perfumeAId || "AC'SCENT"}</span>
               </button>
               <button
                 onClick={() => goToStep('formB')}
-                className={`flex-1 rounded-xl p-3 border-2 transition-all text-left ${isFormB ? 'border-black bg-pink-100 shadow-[3px_3px_0_0_black]' : 'border-slate-200 bg-white opacity-60 hover:opacity-80 cursor-pointer'}`}
+                className={`min-w-0 flex-1 rounded-xl p-2 border-2 transition-all text-left ${isFormB ? 'border-black bg-pink-100 shadow-[2px_2px_0_0_black]' : 'border-slate-200 bg-white opacity-60 hover:opacity-80 cursor-pointer'}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-lg">☀️</span>
+                  <span className="text-base">☀️</span>
                 </div>
-                <span className={`text-sm font-black block mt-1.5 ${isFormB ? 'text-pink-700' : 'text-slate-400'}`}>{perfumeBId || "AC'SCENT"}</span>
-                <span className={`text-[10px] block mt-0.5 ${isFormB ? 'text-pink-500' : 'text-slate-400'}`}>{perfumeBName} · {characterBName}</span>
+                <span className={`text-xs font-black block mt-1 truncate ${isFormB ? 'text-pink-700' : 'text-slate-400'}`}>{characterBName}</span>
+                <span className={`text-[10px] block mt-0.5 truncate ${isFormB ? 'text-pink-500' : 'text-slate-400'}`}>{perfumeBName || perfumeBId || "AC'SCENT"}</span>
               </button>
             </div>
           </div>
         )}
 
         {/* 콘텐츠 */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
           <AnimatePresence mode="wait">
             {/* 폼 A 또는 B */}
             {(isFormA || isFormB) && (
@@ -269,15 +459,15 @@ export function ChemistryFeedbackModal({
                 initial={{ opacity: 0, x: isFormA ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: isFormA ? -20 : 20 }}
-                className="px-5 py-5 space-y-5"
+                className="px-4 py-4 space-y-4"
               >
                 {/* 만족 여부 — 첫 질문 */}
                 <div>
-                  <p className="text-sm font-black text-slate-800 mb-3">이 향, 어떠셨나요?</p>
+                  <p className="text-sm font-black text-slate-800 mb-2.5">이 향, 어떠셨나요?</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: true }))}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${
                         currentTaste.satisfied
                           ? 'border-black bg-emerald-100 shadow-[3px_3px_0_0_black] -translate-x-[1px] -translate-y-[1px]'
                           : 'border-slate-300 bg-white hover:border-black'
@@ -288,7 +478,7 @@ export function ChemistryFeedbackModal({
                     </button>
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: false }))}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${
                         !currentTaste.satisfied
                           ? 'border-black bg-amber-100 shadow-[3px_3px_0_0_black] -translate-x-[1px] -translate-y-[1px]'
                           : 'border-slate-300 bg-white hover:border-black'
@@ -307,7 +497,7 @@ export function ChemistryFeedbackModal({
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="space-y-5 overflow-hidden"
+                      className="space-y-4 overflow-hidden"
                     >
                       {/* 유지 비율 슬라이더 */}
                       <TasteQuestion number={1} title="기존 향 유지 비율">
@@ -338,7 +528,7 @@ export function ChemistryFeedbackModal({
                           value={currentTaste.feedbackGood}
                           onChange={(e) => setCurrentTaste(prev => ({ ...prev, feedbackGood: e.target.value }))}
                           placeholder="예: 첫 향은 좋았는데 나중에 너무 달아요, 우디한 느낌이 좋았어요..."
-                          className="w-full h-16 px-4 py-3 text-sm border-2 border-black rounded-xl bg-white focus:shadow-[2px_2px_0_0_black] outline-none resize-none transition-all"
+                          className="w-full h-16 px-4 py-3 text-base border-2 border-black rounded-xl bg-white focus:shadow-[2px_2px_0_0_black] outline-none resize-none transition-all"
                           maxLength={200}
                         />
                       </TasteQuestion>
@@ -349,7 +539,7 @@ export function ChemistryFeedbackModal({
                           value={currentTaste.feedbackWish}
                           onChange={(e) => setCurrentTaste(prev => ({ ...prev, feedbackWish: e.target.value }))}
                           placeholder="예: 좀 더 상쾌하게, 여름에 어울리게, 달달하면서 은은하게..."
-                          className="w-full h-16 px-4 py-3 text-sm border-2 border-black rounded-xl bg-white focus:shadow-[2px_2px_0_0_black] outline-none resize-none transition-all"
+                          className="w-full h-16 px-4 py-3 text-base border-2 border-black rounded-xl bg-white focus:shadow-[2px_2px_0_0_black] outline-none resize-none transition-all"
                           maxLength={200}
                         />
                       </TasteQuestion>
@@ -510,19 +700,16 @@ export function ChemistryFeedbackModal({
 
             {/* 최종 확정 — 실제 제조용 그람 단위 안내 */}
             {step === 'confirmed' && result && (
-              <motion.div key="confirmed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-5 py-5 space-y-5">
-                {/* 상단 안내 — 실제 제조용 */}
-                <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 shadow-[3px_3px_0_0_black]">
-                  <p className="text-sm font-black text-slate-900 mb-2">⚖️ 실제 제조 레시피</p>
-                  <p className="text-xs text-slate-700 leading-relaxed">
-                    테스팅이 만족스러웠다면, 아래 정확한 <span className="font-bold text-green-700">그람(g) 단위</span>로 제조해.
-                    원하는 용량(10ml/50ml/5ml)을 선택하면 향료별 무게가 자동으로 계산돼!
+              <motion.div key="confirmed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-4 space-y-4">
+                <div className="bg-green-50 border-2 border-green-500 rounded-xl p-3 shadow-[2px_2px_0_0_black]">
+                  <p className="text-sm font-black text-slate-900">⚖️ 최종 제조 레시피</p>
+                  <p className="text-[11px] text-slate-700 leading-relaxed mt-1">
+                    용량을 고르면 A/B 향료 무게가 바로 계산돼요.
                   </p>
                 </div>
 
-                {/* 공용 용량 선택 탭 */}
                 <div className="bg-white rounded-xl p-3 border-2 border-slate-200">
-                  <p className="text-xs font-bold text-slate-700 mb-2">📏 제조할 용량 선택 (A·B 공통 적용)</p>
+                  <p className="text-xs font-bold text-slate-700 mb-2">제조 용량</p>
                   <div className="grid grid-cols-3 gap-2">
                     {(['perfume_10ml', 'perfume_50ml', 'diffuser_5ml'] as ProductType[]).map((p) => (
                       <button
@@ -543,17 +730,36 @@ export function ChemistryFeedbackModal({
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-2">
+                  {confirmedRecipeA && (tasteA.satisfied || selectedA) && (
+                    <RecipePreviewCard
+                      label={characterAName}
+                      emoji="🌙"
+                      recipe={confirmedRecipeA}
+                      accentColor="violet"
+                    />
+                  )}
+                  {confirmedRecipeB && (tasteB.satisfied || selectedB) && (
+                    <RecipePreviewCard
+                      label={characterBName}
+                      emoji="☀️"
+                      recipe={confirmedRecipeB}
+                      accentColor="pink"
+                    />
+                  )}
+                </div>
+
                 {result.layeringNote && (
-                  <div className="p-4 bg-black rounded-xl border-2 border-black">
+                  <div className="p-3 bg-black rounded-xl border-2 border-black">
                     <span className="text-[9px] font-black text-yellow-400 uppercase tracking-wider block mb-1">Layering Note</span>
                     <p className="text-xs text-white font-bold leading-relaxed">{result.layeringNote}</p>
                   </div>
                 )}
 
                 {/* 확정된 A 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
-                {(tasteA.satisfied || selectedA) && (
+                {confirmedRecipeA && (tasteA.satisfied || selectedA) && (
                   <RecipeGramDisplay
-                    recipe={tasteA.satisfied ? result.recipeA1 : (selectedA === 1 ? result.recipeA1 : result.recipeA2)}
+                    recipe={confirmedRecipeA}
                     perfumeName={perfumeAName}
                     titleLabel={`${characterAName}의 향`}
                     headerEmoji="🌙"
@@ -565,9 +771,9 @@ export function ChemistryFeedbackModal({
                 )}
 
                 {/* 확정된 B 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
-                {(tasteB.satisfied || selectedB) && (
+                {confirmedRecipeB && (tasteB.satisfied || selectedB) && (
                   <RecipeGramDisplay
-                    recipe={tasteB.satisfied ? result.recipeB1 : (selectedB === 1 ? result.recipeB1 : result.recipeB2)}
+                    recipe={confirmedRecipeB}
                     perfumeName={perfumeBName}
                     titleLabel={`${characterBName}의 향`}
                     headerEmoji="☀️"
@@ -628,7 +834,12 @@ export function ChemistryFeedbackModal({
         </div>
 
         {/* 하단 CTA */}
-        <div className="px-5 py-4 border-t-2 border-black bg-white flex-shrink-0">
+        <div className="px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t-2 border-black bg-white flex-shrink-0">
+          {error && (step === 'result' || step === 'confirmed') && (
+            <div className="mb-3 p-3 bg-red-100 border-2 border-red-400 rounded-xl">
+              <p className="text-xs font-bold text-red-700">{error}</p>
+            </div>
+          )}
           {isFormA && (
             <button
               onClick={handleNextFromA}
@@ -688,10 +899,11 @@ export function ChemistryFeedbackModal({
           })()}
           {step === 'confirmed' && (
             <button
-              onClick={() => goToStep('success')}
-              className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+              onClick={handleCompleteConfirmed}
+              disabled={isConfirming}
+              className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-x-0 disabled:translate-y-0"
             >
-              <Check size={16} /> 완료
+              <Check size={16} /> {isConfirming ? '저장 중...' : '완료'}
             </button>
           )}
           {step === 'success' && (
@@ -724,7 +936,39 @@ function TasteQuestion({ number, title, hint, optional, children }: {
     </div>
   )
 }
+function RecipePreviewCard({ label, emoji, recipe, accentColor }: {
+  label: string
+  emoji: string
+  recipe: GeneratedRecipe
+  accentColor: 'violet' | 'pink'
+}) {
+  const theme = accentColor === 'violet'
+    ? 'border-violet-300 bg-violet-50 text-violet-700'
+    : 'border-pink-300 bg-pink-50 text-pink-700'
 
+  return (
+    <div className={`rounded-xl border-2 p-3 ${theme}`}>
+      <div className="flex items-center gap-1.5 mb-2 min-w-0">
+        <span className="text-sm">{emoji}</span>
+        <p className="text-xs font-black truncate">{label}</p>
+      </div>
+      <div className="space-y-1.5">
+        {recipe.granules.slice(0, 3).map((granule) => {
+          const color = getGranuleColor(granule.id)
+          const textClass = isLightColor(color) ? 'text-slate-800' : 'text-white'
+          return (
+            <div key={`${granule.id}-${granule.ratio}`} className="flex items-center gap-1.5 min-w-0">
+              <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black ${textClass}`} style={{ backgroundColor: color }}>
+                {granule.drops}
+              </span>
+              <span className="text-[10px] font-bold text-slate-700 truncate">{granule.name}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 // 향수 색상 헬퍼
 function getGranuleColor(id: string) {
   const p = perfumes.find((pf: { id: string }) => pf.id === id)
@@ -859,84 +1103,6 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// 확정 레시피 섹션 (테스트 향료 제조 안내)
-function ConfirmedRecipeSection({ label, emoji, recipe, accentColor, originalPerfumeId, originalPerfumeName, retentionPercentage }: {
-  label: string
-  emoji: string
-  recipe: GeneratedRecipe
-  accentColor: 'violet' | 'pink'
-  originalPerfumeId?: string
-  originalPerfumeName?: string
-  retentionPercentage?: number
-}) {
-  const st = accentColor === 'violet'
-    ? { header: 'bg-violet-100', text: 'text-violet-700' }
-    : { header: 'bg-pink-100', text: 'text-pink-700' }
-
-  return (
-    <div className="border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_black]">
-      <div className={`px-4 py-3 ${st.header} border-b-2 border-black flex items-center gap-2`}>
-        <span className="text-lg">{emoji}</span>
-        <span className={`text-sm font-black ${st.text}`}>{label}</span>
-      </div>
-      <div className="p-4 bg-white space-y-3">
-        {/* 원본 향 표시 */}
-        {originalPerfumeId && originalPerfumeName && (
-          <OriginalPerfumeCard
-            perfumeId={originalPerfumeId}
-            perfumeName={originalPerfumeName}
-            retentionPercentage={retentionPercentage}
-            label="기반 원본"
-          />
-        )}
-
-        <div className="flex items-center gap-2 mb-1">
-          <Droplet size={14} className="text-amber-500" />
-          <h3 className="text-sm font-bold text-slate-700">레시피 구성</h3>
-        </div>
-        {recipe.granules.map((g, i) => {
-          const bgColor = getGranuleColor(g.id)
-          const txtCls = isLightColor(bgColor) ? 'text-slate-800 border-2 border-slate-200' : 'text-white'
-          return (
-            <div key={i} className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg flex-shrink-0 ${txtCls}`} style={{ backgroundColor: bgColor }}>
-                  <span className="text-3xl leading-none">{g.drops}</span>
-                  <span className="text-[10px] font-bold mt-0.5 opacity-70">방울</span>
-                </div>
-                <div className="flex-1 min-w-0 py-0.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-900 text-sm">{g.name}</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold">{g.ratio}%</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{g.id}</p>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">{g.reason}</p>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-
-        {/* 향 밸런스 변화 차트 */}
-        {recipe.categoryChanges && recipe.categoryChanges.length > 0 && (
-          <CategoryChangeChart categoryChanges={recipe.categoryChanges} />
-        )}
-
-        {/* 테스팅 방법 가이드 */}
-        {recipe.testingInstructions && (
-          <TestingInstructionsBox instructions={recipe.testingInstructions} />
-        )}
-
-        {recipe.fanMessage && (
-          <div className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 rounded-xl p-3 border border-purple-200/50">
-            <p className="text-xs text-slate-700 leading-relaxed text-center font-medium">{recipe.fanMessage}</p>
           </div>
         )}
       </div>
