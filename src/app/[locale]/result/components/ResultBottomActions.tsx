@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Share2, ShoppingCart, MessageSquarePlus, History, CreditCard } from 'lucide-react'
@@ -27,44 +26,6 @@ export function ResultBottomActions({
   serviceMode
 }: ResultBottomActionsProps) {
   const t = useTranslations('bottomActions')
-  const [isNavVisible, setIsNavVisible] = useState(true)
-  const lastScrollY = useRef(0)
-  const ticking = useRef(false)
-
-  // 스크롤 방향 감지 - MobileBottomNav와 동일한 로직
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!ticking.current) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY
-          const scrollDelta = currentScrollY - lastScrollY.current
-
-          // 스크롤 임계값 (10px 이상 움직여야 반응)
-          if (Math.abs(scrollDelta) > 10) {
-            if (scrollDelta > 0 && currentScrollY > 100) {
-              // 아래로 스크롤 - 네비 숨김 (버튼은 하단으로)
-              setIsNavVisible(false)
-            } else if (scrollDelta < 0) {
-              // 위로 스크롤 - 네비 보임 (버튼은 네비 위로)
-              setIsNavVisible(true)
-            }
-            lastScrollY.current = currentScrollY
-          }
-
-          // 페이지 최상단에서는 항상 네비 보임
-          if (currentScrollY < 50) {
-            setIsNavVisible(true)
-          }
-
-          ticking.current = false
-        })
-        ticking.current = true
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   return (
     <motion.div
@@ -72,13 +33,9 @@ export function ResultBottomActions({
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={`
-        fixed left-1/2 -translate-x-1/2 z-50 w-full max-w-[455px] px-4 py-3
+        fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[455px] px-4 py-3
         bg-white border-t-2 border-black safe-area-bottom
-        transition-all duration-300 ease-out
-        ${isNavVisible
-          ? "bottom-16 shadow-none"
-          : "bottom-0 shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]"
-        }
+        shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]
       `}
     >
       {/* 2개 버튼 가로 배치 */}
