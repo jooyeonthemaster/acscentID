@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { perfumes } from '@/data/perfumes'
 import { getLocalizedPerfumeText } from '@/data/perfumes-i18n'
@@ -36,6 +37,8 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
 // [FIX] HIGH: chemistry 미등록
 const PROGRAM_TYPES = ['idol_image', 'figure', 'graduation', 'chemistry'] as const
 type ProgramType = typeof PROGRAM_TYPES[number]
+const JSON_CACHE_TTL_MS = 60_000
+let jsonCache: { expiresAt: number; data: unknown } | null = null
 
 interface CountItem {
   name: string
@@ -69,9 +72,6 @@ const perfumeNameNormalizeMap: Record<string, string> = (() => {
   return map
 })()
 
-// 30종에 포함된 한국어 이름 Set
-const validPerfumeNames = new Set(perfumes.map((p) => p.name))
-
 function normalizePerfumeName(name: string): string | null {
   const normalized = perfumeNameNormalizeMap[name]
   if (normalized) return normalized
@@ -86,6 +86,8 @@ const programTypeMapping: Record<string, ProgramType> = {
   'figure_diffuser': 'figure',
   'figure': 'figure',
   'graduation': 'graduation',
+  'chemistry_set': 'chemistry',
+  'chemistry': 'chemistry',
 }
 
 export async function GET(request: NextRequest) {
@@ -100,7 +102,11 @@ export async function GET(request: NextRequest) {
     const format = searchParams.get('format') // 'json' | 'csv'
     const programFilter = searchParams.get('program') // 특정 프로그램만
 
-    const supabase = await createServerSupabaseClientWithCookies()
+    if (format !== 'csv' && jsonCache && jsonCache.expiresAt > Date.now()) {
+      return NextResponse.json(jsonCache.data)
+    }
+
+    const supabase = createServiceRoleClient()
 
     // 모든 분석 결과 조회 (Supabase 기본 1000행 제한 우회 - 페이지네이션)
     const PAGE_SIZE = 1000
@@ -134,7 +140,6 @@ export async function GET(request: NextRequest) {
     }
 
     const analyses = allAnalyses
-    const error = null
 
     // CSV/엑셀 다운로드 요청인 경우
     if (format === 'csv') {
@@ -323,12 +328,21 @@ export async function GET(request: NextRequest) {
       return entry
     })
 
-    return NextResponse.json({
+    const responseData = {
       byProgram: statsByProgram,
       total: totalStats,
       perfumeDailyTrend,
       top10Perfumes,
-    })
+    }
+
+    if (format !== 'csv') {
+      jsonCache = {
+        expiresAt: Date.now() + JSON_CACHE_TTL_MS,
+        data: responseData,
+      }
+    }
+
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error('Error in datacenter API:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })

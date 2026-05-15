@@ -1,11 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 
 // 관리자 이메일 목록
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
   .map(e => e.trim().toLowerCase())
+const ANALYSIS_LIST_SELECT = 'id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id, modeling_image_url, modeling_request'
+const EXCLUDE_B_IDS_CACHE_TTL_MS = 60_000
+let excludeBIdsCache: { expiresAt: number; ids: string[] } | null = null
+
+interface AnalysisListRow {
+  id: string
+  created_at: string
+  product_type: string | null
+  service_mode: string | null
+  target_type: string | null
+  idol_name: string | null
+  twitter_name: string | null
+  perfume_name: string | null
+  perfume_brand: string | null
+  matching_keywords: string[] | null
+  qr_code_id: string | null
+  pin: string | null
+  user_id: string | null
+  modeling_image_url: string | null
+  modeling_request: string | null
+}
+
+interface UserProfileRow {
+  id: string
+  name: string | null
+  email: string | null
+  provider: string | null
+}
+
+interface FeedbackRow {
+  result_id: string
+  [key: string]: unknown
+}
 
 // 관리자 인증 확인
 async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
@@ -32,6 +66,29 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
   return { isAdmin: false, email: null }
 }
 
+async function getExcludeBIds(supabase: ReturnType<typeof createServiceRoleClient>) {
+  if (excludeBIdsCache && excludeBIdsCache.expiresAt > Date.now()) {
+    return excludeBIdsCache.ids
+  }
+
+  const { data: bIdRows } = await supabase
+    .from('layering_sessions')
+    .select('analysis_b_id')
+    .not('analysis_b_id', 'is', null)
+    .limit(100000)
+
+  const ids = (bIdRows || [])
+    .map((row: { analysis_b_id: string | null }) => row.analysis_b_id)
+    .filter(Boolean) as string[]
+
+  excludeBIdsCache = {
+    expiresAt: Date.now() + EXCLUDE_B_IDS_CACHE_TTL_MS,
+    ids,
+  }
+
+  return ids
+}
+
 export async function GET(request: NextRequest) {
   try {
     // 관리자 권한 확인
@@ -53,16 +110,11 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit
 
-    const supabase = await createServerSupabaseClientWithCookies()
+    const supabase = createServiceRoleClient()
 
     // [FIX] 레이어링 퍼퓸: 세션당 2개 row가 생성되므로, 관리자 목록에서는 analysis_b_id를
     // 전부 제외해 "세션 1건 = row 1건 (캐릭터 A 기준)"으로 표시
-    const { data: bIdRows } = await supabase
-      .from('layering_sessions')
-      .select('analysis_b_id')
-      .not('analysis_b_id', 'is', null)
-      .limit(100000)
-    const excludeBIds = (bIdRows || []).map((r: any) => r.analysis_b_id).filter(Boolean)
+    const excludeBIds = await getExcludeBIds(supabase)
 
     // CSV 내보내기 - 페이지네이션 없이 전체 조회
     if (format === 'csv') {
@@ -88,9 +140,10 @@ export async function GET(request: NextRequest) {
       }
 
       // [FIX] 레이어링 퍼퓸: layering_sessions과 JOIN하여 파트너/PIN/QR 보강
-      const csvChemIds = (csvAnalyses || [])
-        .filter((a: any) => a.product_type === 'chemistry_set')
-        .map((a: any) => a.id)
+      const csvAnalysisRows = (csvAnalyses || []) as AnalysisListRow[]
+      const csvChemIds = csvAnalysisRows
+        .filter((analysis) => analysis.product_type === 'chemistry_set')
+        .map((analysis) => analysis.id)
       const csvPairs: Record<string, { partnerName: string | null; pin: string | null; qrCodeId: string | null; chemistryTitle: string | null }> = {}
 
       if (csvChemIds.length > 0) {
@@ -132,13 +185,13 @@ export async function GET(request: NextRequest) {
         if (tt === 'self' && p === 'chemistry_set') return '나와 상대방'
         return tt === 'self' ? '나' : '최애'
       }
-      const rows = (csvAnalyses || []).map((a: any) => {
+      const rows = csvAnalysisRows.map((a) => {
         const pair = a.product_type === 'chemistry_set' ? csvPairs[a.id] : null
         return [
           a.id,
           new Date(a.created_at).toLocaleString('ko-KR'),
-          productLabels[a.product_type] || a.product_type || '',
-          modeLabels[a.service_mode] || a.service_mode || '',
+          a.product_type ? productLabels[a.product_type] || a.product_type : '',
+          a.service_mode ? modeLabels[a.service_mode] || a.service_mode : '',
           targetLabel(a.target_type, a.product_type),
           a.idol_name || '',
           a.twitter_name || '',
@@ -171,7 +224,7 @@ export async function GET(request: NextRequest) {
     // 기본 쿼리
     let query = supabase
       .from('analysis_results')
-      .select('*', { count: 'exact' })
+      .select(ANALYSIS_LIST_SELECT, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -213,8 +266,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 사용자 정보 조회 (user_id가 있는 경우)
-    const userIds = analyses?.filter(a => a.user_id).map(a => a.user_id) || []
-    let userProfiles: Record<string, any> = {}
+    const analysisRows = (analyses || []) as AnalysisListRow[]
+    const userIds = analysisRows.filter(a => a.user_id).map(a => a.user_id as string)
+    let userProfiles: Record<string, UserProfileRow> = {}
 
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
@@ -226,13 +280,13 @@ export async function GET(request: NextRequest) {
         userProfiles = profiles.reduce((acc, p) => {
           acc[p.id] = p
           return acc
-        }, {} as Record<string, any>)
+        }, {} as Record<string, UserProfileRow>)
       }
     }
 
     // 피드백 정보 조회
-    const analysisIds = analyses?.map(a => a.id) || []
-    let feedbacks: Record<string, any> = {}
+    const analysisIds = analysisRows.map(a => a.id)
+    let feedbacks: Record<string, FeedbackRow> = {}
 
     if (analysisIds.length > 0) {
       const { data: feedbackData } = await supabase
@@ -244,12 +298,12 @@ export async function GET(request: NextRequest) {
         feedbacks = feedbackData.reduce((acc, f) => {
           acc[f.result_id] = f
           return acc
-        }, {} as Record<string, any>)
+        }, {} as Record<string, FeedbackRow>)
       }
     }
 
     // [FIX] 레이어링 퍼퓸: layering_sessions과 JOIN하여 파트너 이름/PIN/QR 보강
-    const chemistryIds = (analyses || [])
+    const chemistryIds = analysisRows
       .filter(a => a.product_type === 'chemistry_set')
       .map(a => a.id)
     const chemistryPairs: Record<string, {
@@ -295,7 +349,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 응답 데이터 구성
-    const enrichedAnalyses = analyses?.map(analysis => {
+    const enrichedAnalyses = analysisRows.map(analysis => {
       const pair = chemistryPairs[analysis.id]
       return {
         ...analysis,

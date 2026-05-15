@@ -43,15 +43,47 @@ export async function GET(
     const { id } = await params
     const supabase = await createServerSupabaseClientWithCookies()
 
-    // 분석 결과 조회
-    const { data: analysis, error } = await supabase
+    // 분석 결과 조회. 케미 주문에서는 orders.analysis_id 대신
+    // layering_session_id만 저장되므로, 세션 ID로 들어온 경우도 지원한다.
+    const { data: directAnalysis } = await supabase
       .from('analysis_results')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (error || !analysis) {
-      return NextResponse.json({ error: '분석 결과를 찾을 수 없습니다' }, { status: 404 })
+    let analysis = directAnalysis
+    let layeringSession = null
+    let partnerAnalysis = null
+
+    if (!analysis) {
+      const { data: session } = await supabase
+        .from('layering_sessions')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (!session) {
+        return NextResponse.json({ error: '분석 결과를 찾을 수 없습니다' }, { status: 404 })
+      }
+
+      layeringSession = session
+      const primaryAnalysisId = session.analysis_a_id || session.analysis_b_id
+
+      if (!primaryAnalysisId) {
+        return NextResponse.json({ error: '케미 분석 결과를 찾을 수 없습니다' }, { status: 404 })
+      }
+
+      const { data: sessionAnalysis } = await supabase
+        .from('analysis_results')
+        .select('*')
+        .eq('id', primaryAnalysisId)
+        .single()
+
+      if (!sessionAnalysis) {
+        return NextResponse.json({ error: '케미 분석 결과를 찾을 수 없습니다' }, { status: 404 })
+      }
+
+      analysis = sessionAnalysis
     }
 
     // 사용자 정보 조회
@@ -70,7 +102,7 @@ export async function GET(
     const { data: feedback } = await supabase
       .from('feedback')
       .select('*')
-      .eq('result_id', id)
+      .eq('result_id', analysis.id)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
@@ -83,21 +115,21 @@ export async function GET(
       .order('created_at', { ascending: false })
 
     // [FIX] HIGH: chemistry_set일 때 layering_sessions 포함
-    let layeringSession = null
-    let partnerAnalysis = null
     if (analysis.product_type === 'chemistry_set') {
-      const { data: session } = await supabase
-        .from('layering_sessions')
-        .select('*')
-        .or(`analysis_a_id.eq.${id},analysis_b_id.eq.${id}`)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+      if (!layeringSession) {
+        const { data: session } = await supabase
+          .from('layering_sessions')
+          .select('*')
+          .or(`analysis_a_id.eq.${analysis.id},analysis_b_id.eq.${analysis.id}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
 
-      layeringSession = session || null
+        layeringSession = session || null
+      }
 
       if (layeringSession) {
-        const partnerId = layeringSession.analysis_a_id === id ? layeringSession.analysis_b_id : layeringSession.analysis_a_id
+        const partnerId = layeringSession.analysis_a_id === analysis.id ? layeringSession.analysis_b_id : layeringSession.analysis_a_id
         if (partnerId) {
           const { data: partnerData } = await supabase
             .from('analysis_results')

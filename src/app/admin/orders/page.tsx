@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import {
   Package,
@@ -32,7 +32,7 @@ import {
 import * as XLSX from 'xlsx'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
+import { ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
 import { RefundModal } from '../components/RefundModal'
 import { getTrackingUrl, isValidTrackingNumber, normalizeTrackingNumber, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS } from '@/lib/shipping/cj'
 
@@ -48,6 +48,7 @@ interface OrderItemData {
   id: string
   order_id: string
   analysis_id: string | null
+  layering_session_id?: string | null
   product_type: string
   perfume_name: string
   perfume_brand: string | null
@@ -58,6 +59,13 @@ interface OrderItemData {
   subtotal: number
   image_url: string | null
   analysis: OrderAnalysis | null
+}
+
+interface ConfirmedRecipeGranule {
+  id: string
+  name: string
+  ratio: number
+  drops?: number
 }
 
 interface Order {
@@ -83,6 +91,7 @@ interface Order {
   updated_at: string
   user_coupon_id?: string
   analysis_id?: string
+  layering_session_id?: string | null
   analysis?: OrderAnalysis | null
   product_type?: string
   payment_method?: string
@@ -103,8 +112,8 @@ interface Order {
   tracking_carrier?: string | null
   shipped_at?: string | null
   confirmed_recipe?: {
-    granules?: Array<{ id: string; name: string; ratio: number }>
-    [key: string]: any
+    granules?: ConfirmedRecipeGranule[]
+    [key: string]: unknown
   } | null
 }
 
@@ -149,6 +158,62 @@ function getProductBadge(type?: string | null) {
 function getPaymentBadge(method?: string) {
   const badge = method ? PAYMENT_METHOD_BADGE[method] : undefined
   return badge ?? { label: '계좌이체', className: 'bg-slate-100 text-slate-600' }
+}
+
+type ReportLinkSource = {
+  analysis_id?: string | null
+  layering_session_id?: string | null
+  product_type?: string | null
+  analysis?: Pick<OrderAnalysis, 'product_type'> | null
+}
+
+function getReportPrintHref(source: ReportLinkSource) {
+  if (source.analysis_id) return `/admin/analysis/${source.analysis_id}/print`
+
+  const productType = source.product_type || source.analysis?.product_type
+  if (productType === 'chemistry_set' && source.layering_session_id) {
+    return `/admin/analysis/${source.layering_session_id}/print`
+  }
+
+  return null
+}
+
+function getOrderReportPrintHref(order: Order) {
+  return getReportPrintHref(order) ?? (
+    order.order_items?.length === 1
+      ? getReportPrintHref(order.order_items[0])
+      : null
+  )
+}
+
+function ReportPrintLink({
+  href,
+  title,
+  className,
+  iconClassName,
+  label,
+  stopPropagation = true,
+}: {
+  href: string | null
+  title: string
+  className: string
+  iconClassName: string
+  label?: string
+  stopPropagation?: boolean
+}) {
+  if (!href) return null
+
+  return (
+    <Link
+      href={href}
+      className={className}
+      title={title}
+      onClick={stopPropagation ? (e) => e.stopPropagation() : undefined}
+    >
+      <Printer className={iconClassName} />
+      {label && <span>{label}</span>}
+    </Link>
+  )
 }
 
 function formatDate(dateStr: string) {
@@ -386,6 +451,7 @@ export default function AdminOrdersPage() {
   const [trackingAutoShipping, setTrackingAutoShipping] = useState(true)
   const [trackingNotifyCustomer, setTrackingNotifyCustomer] = useState(true)
   const [trackingSaving, setTrackingSaving] = useState(false)
+  const initialOrdersFetched = useRef(false)
 
   // 환불 처리 대기 집계 (배너용)
   const [refundPending, setRefundPending] = useState<{
@@ -447,8 +513,10 @@ export default function AdminOrdersPage() {
   }, [statusFilter, influencerFilter, search, dateFrom, dateTo])
 
   useEffect(() => {
+    if (initialOrdersFetched.current) return
+    initialOrdersFetched.current = true
     fetchOrders()
-  }, [])
+  }, [fetchOrders])
 
   // 모달 진입 시 운송장 입력값 / 옵션 동기화
   useEffect(() => {
@@ -459,7 +527,7 @@ export default function AdminOrdersPage() {
       setTrackingAutoShipping(!selectedOrder.tracking_number)
       setTrackingNotifyCustomer(!selectedOrder.tracking_number)
     }
-  }, [selectedOrder?.id])
+  }, [selectedOrder])
 
   // 운송장 저장/해제 핸들러
   const handleTrackingSave = async (clear = false) => {
@@ -1200,16 +1268,12 @@ export default function AdminOrdersPage() {
                                     <Box className="w-5 h-5 text-cyan-600" />
                                   </button>
                                 )}
-                                {order.analysis_id && (
-                                  <Link
-                                    href={`/admin/analysis/${order.analysis_id}/print`}
-                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                    title="보고서 출력"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <Printer className="w-5 h-5 text-slate-600" />
-                                  </Link>
-                                )}
+                                <ReportPrintLink
+                                  href={getOrderReportPrintHref(order)}
+                                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                  title="보고서 출력"
+                                  iconClassName="w-5 h-5 text-slate-600"
+                                />
                               </>
                             )}
                             {/* 다중 상품: 펼쳐서 확인 안내 */}
@@ -1294,16 +1358,12 @@ export default function AdminOrdersPage() {
                                           </div>
                                           {/* 액션 버튼 */}
                                           <div className="flex items-center gap-1">
-                                            {item.analysis_id && (
-                                              <Link
-                                                href={`/admin/analysis/${item.analysis_id}/print`}
-                                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                                title={`${item.perfume_name} 보고서 출력`}
-                                                onClick={(e) => e.stopPropagation()}
-                                              >
-                                                <Printer className="w-4 h-4 text-slate-600" />
-                                              </Link>
-                                            )}
+                                            <ReportPrintLink
+                                              href={getReportPrintHref(item)}
+                                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                              title={`${item.perfume_name} 보고서 출력`}
+                                              iconClassName="w-4 h-4 text-slate-600"
+                                            />
                                             {isFigure && item.analysis?.modeling_image_url && (
                                               <button
                                                 onClick={(e) => {
@@ -1389,7 +1449,7 @@ export default function AdminOrdersPage() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {order.confirmed_recipe.granules.map((g: any, idx: number) => (
+                                      {order.confirmed_recipe.granules.map((g, idx) => (
                                         <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                           <td className="px-3 py-2 font-mono text-xs text-slate-500">{g.id}</td>
                                           <td className="px-3 py-2 font-bold text-slate-900">{g.name}</td>
@@ -1648,15 +1708,12 @@ export default function AdminOrdersPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">
-                                {item.analysis_id && (
-                                  <Link
-                                    href={`/admin/analysis/${item.analysis_id}/print`}
-                                    className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                                    title={`${item.perfume_name} 보고서`}
-                                  >
-                                    <Printer className="w-4 h-4 text-slate-600" />
-                                  </Link>
-                                )}
+                                <ReportPrintLink
+                                  href={getReportPrintHref(item)}
+                                  className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                                  title={`${item.perfume_name} 보고서`}
+                                  iconClassName="w-4 h-4 text-slate-600"
+                                />
                               </div>
                             </div>
                             {/* 피규어: 모델링 이미지 */}
@@ -1728,7 +1785,7 @@ export default function AdminOrdersPage() {
                     </h4>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                       <div className="flex flex-wrap gap-2">
-                        {selectedOrder.confirmed_recipe.granules.map((g: any) => (
+                        {selectedOrder.confirmed_recipe.granules.map((g) => (
                           <span
                             key={g.id}
                             className="text-xs px-2.5 py-1 bg-white border border-green-300 rounded-full text-green-800 font-medium"
@@ -1822,7 +1879,7 @@ export default function AdminOrdersPage() {
                             onChange={(e) => setTrackingAutoShipping(e.target.checked)}
                             className="w-3.5 h-3.5 accent-purple-600"
                           />
-                          저장 시 "배송중"으로 자동 전환
+                          저장 시 &quot;배송중&quot;으로 자동 전환
                         </label>
                         <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
                           <input
@@ -1994,29 +2051,27 @@ export default function AdminOrdersPage() {
                 <div className="border-t pt-4 flex justify-end gap-2 flex-wrap">
                   {/* 다중 상품: 개별 보고서 버튼들 */}
                   {selectedOrder.item_count && selectedOrder.item_count > 1 && selectedOrder.order_items ? (
-                    selectedOrder.order_items
-                      .filter(item => item.analysis_id)
-                      .map((item, idx) => (
-                        <Link
-                          key={item.id}
-                          href={`/admin/analysis/${item.analysis_id}/print`}
-                          className="flex items-center gap-2 px-3 py-2 bg-yellow-400 text-slate-900 text-sm font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-                        >
-                          <Printer className="w-4 h-4" />
-                          {item.perfume_name} 보고서
-                        </Link>
-                      ))
+                    selectedOrder.order_items.map((item) => (
+                      <ReportPrintLink
+                        key={item.id}
+                        href={getReportPrintHref(item)}
+                        className="flex items-center gap-2 px-3 py-2 bg-yellow-400 text-slate-900 text-sm font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        title={`${item.perfume_name} 보고서 출력`}
+                        iconClassName="w-4 h-4"
+                        label={`${item.perfume_name} 보고서`}
+                        stopPropagation={false}
+                      />
+                    ))
                   ) : (
                     /* 단일 상품: 기존 버튼 */
-                    selectedOrder.analysis_id && (
-                      <Link
-                        href={`/admin/analysis/${selectedOrder.analysis_id}/print`}
-                        className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-                      >
-                        <Printer className="w-5 h-5" />
-                        보고서 출력
-                      </Link>
-                    )
+                    <ReportPrintLink
+                      href={getOrderReportPrintHref(selectedOrder)}
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                      title="보고서 출력"
+                      iconClassName="w-5 h-5"
+                      label="보고서 출력"
+                      stopPropagation={false}
+                    />
                   )}
                 </div>
               </div>

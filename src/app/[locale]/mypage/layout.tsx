@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 
@@ -15,20 +15,7 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
   const router = useRouter()
   // 카카오 사용자는 unifiedUser에만 있음
   const currentUser = unifiedUser || user
-
-  // 세션 복원을 위한 지연 체크 상태
-  const [authChecked, setAuthChecked] = useState(false)
-
-  // 로딩 완료 후 세션 복원을 위한 짧은 대기 시간
-  useEffect(() => {
-    if (!loading) {
-      // 세션 쿠키 복원을 위해 약간의 지연 추가
-      const timer = setTimeout(() => {
-        setAuthChecked(true)
-      }, 150)
-      return () => clearTimeout(timer)
-    }
-  }, [loading])
+  const authChecked = !loading
 
   useEffect(() => {
     // authChecked가 true이고 사용자가 없으면 홈으로 리다이렉트

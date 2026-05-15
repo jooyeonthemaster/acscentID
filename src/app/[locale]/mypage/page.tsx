@@ -66,6 +66,8 @@ function MyPageContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [analysesLoaded, setAnalysesLoaded] = useState(false)
+  const [ordersLoaded, setOrdersLoaded] = useState(false)
   const initialTab = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState<'analyses' | 'orders' | 'coupons' | 'cart'>(
     initialTab === 'orders' ? 'orders' : initialTab === 'coupons' ? 'coupons' : initialTab === 'cart' ? 'cart' : 'analyses'
@@ -91,6 +93,7 @@ function MyPageContent() {
 
       if (response.ok) {
         setOrders(data.orders || [])
+        setOrdersLoaded(true)
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)
@@ -122,6 +125,7 @@ function MyPageContent() {
 
       setAnalyses(data.analyses || [])
       setChemistryAnalyses(data.chemistryAnalyses || [])
+      setAnalysesLoaded(true)
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -129,11 +133,16 @@ function MyPageContent() {
     }
   }, [userId])
 
-  // 페이지 로드 시 분석 결과 + 주문 내역 모두 로드
+  // 현재 보고 있는 탭에 필요한 데이터만 로드
   useEffect(() => {
-    fetchData()
-    fetchOrders()
-  }, [fetchData, fetchOrders])
+    if (!userId) return
+    if (activeTab === 'analyses' && !analysesLoaded) {
+      fetchData()
+    }
+    if (activeTab === 'orders' && !ordersLoaded) {
+      fetchOrders()
+    }
+  }, [activeTab, analysesLoaded, fetchData, fetchOrders, ordersLoaded, userId])
 
   // 분석 결과 삭제
   const handleDeleteAnalysis = async (id: string) => {

@@ -1,24 +1,34 @@
 'use client'
 
-import { useMemo } from 'react'
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
+/* eslint-disable @next/next/no-img-element */
+import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile } from '@/types/analysis'
+
+interface PrintableAnalysis {
+  id: string
+  analysis_data: ImageAnalysisResult
+  twitter_name: string
+  perfume_name: string
+  perfume_brand: string
+  matching_keywords: string[]
+  idol_name: string | null
+  idol_gender: string | null
+  product_type?: string | null
+  service_mode: string
+  created_at: string
+  user_image_url?: string | null
+  target_type?: 'idol' | 'self' | null
+  character_name?: string | null
+}
+
+interface PrintableLayeringSession {
+  analysis_a_id?: string | null
+  analysis_b_id?: string | null
+  chemistry_data?: ChemistryProfile | null
+  target_type?: 'idol' | 'self' | null
+}
 
 interface PrintableReportProps {
-  analysis: {
-    id: string
-    analysis_data: ImageAnalysisResult
-    twitter_name: string
-    perfume_name: string
-    perfume_brand: string
-    matching_keywords: string[]
-    idol_name: string | null
-    idol_gender: string | null
-    product_type?: string | null
-    service_mode: string
-    created_at: string
-    user_image_url?: string | null
-    target_type?: 'idol' | 'self' | null
-  }
+  analysis: PrintableAnalysis
   feedback?: {
     perfume_name: string
     retention_percentage: number
@@ -39,8 +49,8 @@ interface PrintableReportProps {
     name: string | null
     email: string | null
   } | null
-  layeringSession?: any
-  partnerAnalysis?: any
+  layeringSession?: PrintableLayeringSession | null
+  partnerAnalysis?: PrintableAnalysis | null
 }
 
 // 특성 컬러 테마 (기존 TraitRadarChart와 동일)
@@ -326,7 +336,7 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
   )
 }
 
-export function PrintableReport({ analysis, feedback, userProfile, layeringSession, partnerAnalysis }: PrintableReportProps) {
+export function PrintableReport({ analysis, layeringSession, partnerAnalysis }: PrintableReportProps) {
   const analysisData = analysis.analysis_data
 
   // [FIX] CRITICAL #17: chemistry_set이면 전용 디자인 렌더링
@@ -396,18 +406,20 @@ export function PrintableReport({ analysis, feedback, userProfile, layeringSessi
                 {/* Image Section */}
                 <div className="flex justify-center items-center gap-4 mb-2 mt-0 px-6">
                   <div className={`w-[125px] h-[145px] overflow-hidden border-[3px] shadow-md bg-slate-100 flex-shrink-0 ${isSelfChemistry ? 'rounded-[4px] border-slate-950 shadow-none' : 'rounded-2xl border-white'}`}>
-                    <img src={charAData.user_image_url || charAInfo?.user_image_url || '/placeholder.jpg'} className="w-full h-full object-cover" />
+                    <img src={charAInfo?.user_image_url || '/placeholder.jpg'} alt={nameA} className="w-full h-full object-cover" />
                   </div>
                   <div className={`text-4xl font-black ${isSelfChemistry ? 'text-slate-950' : 'text-slate-800'}`}>X</div>
                   <div className={`w-[125px] h-[145px] overflow-hidden border-[3px] shadow-md bg-slate-100 flex-shrink-0 ${isSelfChemistry ? 'rounded-[4px] border-slate-950 shadow-none' : 'rounded-2xl border-white'}`}>
-                    <img src={charBData.user_image_url || charBInfo?.user_image_url || '/placeholder.jpg'} className="w-full h-full object-cover" />
+                    <img src={charBInfo?.user_image_url || '/placeholder.jpg'} alt={nameB} className="w-full h-full object-cover" />
                   </div>
                 </div>
 
                 {/* Title */}
                 <div className="px-5 pt-1 pb-1 text-center">
                   <h1 className="text-[13px] font-extrabold text-slate-800 leading-snug mb-1">“{sessionChem.chemistryTitle}”</h1>
-                  <p className="text-[9px] text-slate-500 font-bold italic truncate overflow-hidden whitespace-nowrap">{(sessionChem.traitsSynergy?.synergyOneLiner || sessionChem.chemistryStory?.split(/[.?!]/)[0] + '!')}</p>
+                  <p className="mx-auto max-w-[310px] text-[9px] leading-[1.35] text-slate-500 font-bold italic whitespace-normal break-keep">
+                    {(sessionChem.traitsSynergy?.synergyOneLiner || sessionChem.chemistryStory?.split(/[.?!]/)[0] + '!')}
+                  </p>
                 </div>
 
                 {/* Name & Notes — fixed grid matching the reference layout */}
@@ -590,25 +602,19 @@ export function PrintableReport({ analysis, feedback, userProfile, layeringSessi
   const scentRecommendation = analysisData.scentRecommendation
 
   // 상위 3개 특성
-  const topTraits = useMemo(() =>
-    Object.entries(traits)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 3)
-      .map(([key, value]) => ({
-        key: key as keyof TraitScores,
-        value,
-        label: TRAIT_LABELS[key as keyof TraitScores],
-        icon: TRAIT_ICONS[key as keyof TraitScores],
-        colors: TRAIT_COLORS[key as keyof TraitScores]
-      })),
-    [traits]
-  )
+  const topTraits = Object.entries(traits)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([key, value]) => ({
+      key: key as keyof TraitScores,
+      value,
+      label: TRAIT_LABELS[key as keyof TraitScores],
+      icon: TRAIT_ICONS[key as keyof TraitScores],
+      colors: TRAIT_COLORS[key as keyof TraitScores]
+    }))
 
   // 향 카테고리 정렬
-  const sortedScents = useMemo(() =>
-    Object.entries(scentCategories).sort(([, a], [, b]) => b - a),
-    [scentCategories]
-  )
+  const sortedScents = Object.entries(scentCategories).sort(([, a], [, b]) => b - a)
 
   const isSelfImageReport = analysis.target_type === 'self'
 
@@ -618,12 +624,10 @@ export function PrintableReport({ analysis, feedback, userProfile, layeringSessi
     : ''
 
   // 키워드에 스타일 할당
-  const styledKeywords = useMemo(() => {
-    return (analysis.matching_keywords || []).slice(0, 4).map((keyword, index) => {
-      const styleIndex = Math.floor(seededRandom(index + 100) * KEYWORD_STYLES.length)
-      return { text: keyword, style: KEYWORD_STYLES[styleIndex] }
-    })
-  }, [analysis.matching_keywords])
+  const styledKeywords = (analysis.matching_keywords || []).slice(0, 4).map((keyword, index) => {
+    const styleIndex = Math.floor(seededRandom(index + 100) * KEYWORD_STYLES.length)
+    return { text: keyword, style: KEYWORD_STYLES[styleIndex] }
+  })
 
   return (
     <>

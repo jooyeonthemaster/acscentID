@@ -55,40 +55,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 세션 체크 (카카오 + Supabase 통합)
   const checkSession = useCallback(async () => {
     try {
-      // 1. API를 통해 세션 확인 (카카오 + Supabase 모두)
-      const response = await fetch('/api/auth/session')
-      const data = await response.json()
+      const [serverSessionResult, supabaseSessionResult] = await Promise.allSettled([
+        fetch('/api/auth/session', { cache: 'no-store' }).then((response) => response.json()),
+        supabase.auth.getSession(),
+      ])
 
-      if (data.user) {
-        setUnifiedUser(data.user)
+      const serverSession = serverSessionResult.status === 'fulfilled' ? serverSessionResult.value : null
+      const supabaseSession = supabaseSessionResult.status === 'fulfilled'
+        ? supabaseSessionResult.value.data.session
+        : null
 
-        // 카카오 사용자가 아닌 경우 Supabase Auth 세션도 확인
-        if (data.provider !== 'kakao') {
-          const { data: { session: supabaseSession } } = await supabase.auth.getSession()
-          setSession(supabaseSession)
-          setUser(supabaseSession?.user ?? null)
-        } else {
-          // 카카오 사용자는 Supabase Auth 세션 없음
-          setSession(null)
-          setUser(null)
-        }
+      if (serverSession?.provider === 'kakao' && serverSession.user) {
+        setUnifiedUser(serverSession.user)
+        setSession(null)
+        setUser(null)
+        return
+      }
+
+      setSession(supabaseSession)
+      setUser(supabaseSession?.user ?? null)
+
+      if (supabaseSession?.user) {
+        setUnifiedUser({
+          id: supabaseSession.user.id,
+          email: supabaseSession.user.email ?? null,
+          name: supabaseSession.user.user_metadata?.name || supabaseSession.user.user_metadata?.full_name || null,
+          avatar_url: supabaseSession.user.user_metadata?.avatar_url || supabaseSession.user.user_metadata?.picture || null,
+          provider: supabaseSession.user.app_metadata?.provider || 'google',
+        })
+      } else if (serverSession?.user) {
+        setUnifiedUser(serverSession.user)
       } else {
-        // Supabase Auth 세션만 확인
-        const { data: { session: supabaseSession } } = await supabase.auth.getSession()
-        setSession(supabaseSession)
-        setUser(supabaseSession?.user ?? null)
-
-        if (supabaseSession?.user) {
-          setUnifiedUser({
-            id: supabaseSession.user.id,
-            email: supabaseSession.user.email ?? null,
-            name: supabaseSession.user.user_metadata?.name || supabaseSession.user.user_metadata?.full_name || null,
-            avatar_url: supabaseSession.user.user_metadata?.avatar_url || supabaseSession.user.user_metadata?.picture || null,
-            provider: supabaseSession.user.app_metadata?.provider || 'google',
-          })
-        } else {
-          setUnifiedUser(null)
-        }
+        setUnifiedUser(null)
       }
     } catch (error) {
       console.error('Session check failed:', error)
@@ -170,7 +168,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const pendingRedirect = localStorage.getItem('auth_redirect_after_login')
         if (pendingRedirect) {
           localStorage.removeItem('auth_redirect_after_login')
-          const currentPath = window.location.pathname + window.location.search
           // login_success 제거한 현재 URL과 비교
           const cleanCurrent = new URL(window.location.href)
           cleanCurrent.searchParams.delete('login_success')

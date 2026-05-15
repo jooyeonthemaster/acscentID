@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 
 // 관리자 이메일 목록
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
   .map(e => e.trim().toLowerCase())
+const DASHBOARD_CACHE_TTL_MS = 30_000
+let dashboardCache: { expiresAt: number; data: unknown } | null = null
 
 // 관리자 인증 확인
 async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
@@ -30,35 +33,69 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
   return { isAdmin: false, email: null }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const adminCheck = await isAdmin()
     if (!adminCheck.isAdmin) {
       return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 })
     }
 
-    const supabase = await createServerSupabaseClientWithCookies()
+    if (dashboardCache && dashboardCache.expiresAt > Date.now()) {
+      return NextResponse.json(dashboardCache.data)
+    }
+
+    const supabase = createServiceRoleClient()
 
     // 오늘 날짜 (KST 기준)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const todayISO = today.toISOString()
 
-    // 1. 분석 통계
-    const { count: totalAnalysis } = await supabase
-      .from('analysis_results')
-      .select('*', { count: 'exact', head: true })
+    const [
+      totalAnalysisResult,
+      analysisTodayResult,
+      analysisByProductResult,
+      analysisByModeResult,
+      totalOrdersResult,
+      ordersTodayResult,
+      ordersByStatusResult,
+      revenueResult,
+      totalMembersResult,
+      newMembersTodayResult,
+      totalQRCodesResult,
+      qrScansResult,
+    ] = await Promise.all([
+      supabase.from('analysis_results').select('*', { count: 'exact', head: true }),
+      supabase.from('analysis_results').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
+      supabase.from('analysis_results').select('product_type').limit(50000),
+      supabase.from('analysis_results').select('service_mode').limit(50000),
+      supabase.from('orders').select('*', { count: 'exact', head: true }),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
+      supabase.from('orders').select('status').limit(50000),
+      supabase
+        .from('orders')
+        .select('final_price, created_at')
+        .in('status', ['paid', 'preparing', 'shipping', 'delivered'])
+        .eq('is_influencer', false)
+        .limit(50000),
+      supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('user_profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
+      supabase.from('qr_codes').select('*', { count: 'exact', head: true }),
+      supabase.from('qr_codes').select('scan_count'),
+    ])
 
-    const { count: analysisToday } = await supabase
-      .from('analysis_results')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', todayISO)
-
-    // 상품 타입별 분석 수
-    const { data: analysisByProductData } = await supabase
-      .from('analysis_results')
-      .select('product_type')
-      .limit(50000)
+    const totalAnalysis = totalAnalysisResult.count
+    const analysisToday = analysisTodayResult.count
+    const analysisByProductData = analysisByProductResult.data
+    const analysisByModeData = analysisByModeResult.data
+    const totalOrders = totalOrdersResult.count
+    const ordersToday = ordersTodayResult.count
+    const ordersByStatusData = ordersByStatusResult.data
+    const revenueData = revenueResult.data
+    const totalMembers = totalMembersResult.count
+    const newMembersToday = newMembersTodayResult.count
+    const totalQRCodes = totalQRCodesResult.count
+    const qrScansData = qrScansResult.data
 
     // [FIX] HIGH: analysisByProduct에 chemistry_set, graduation, signature 추가
     const analysisByProduct: Record<string, number> = {
@@ -80,12 +117,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 서비스 모드별 분석 수
-    const { data: analysisByModeData } = await supabase
-      .from('analysis_results')
-      .select('service_mode')
-      .limit(50000)
-
     const analysisByMode = {
       online: 0,
       offline: 0,
@@ -97,22 +128,6 @@ export async function GET(request: NextRequest) {
         analysisByMode[mode as keyof typeof analysisByMode]++
       }
     })
-
-    // 2. 주문 통계
-    const { count: totalOrders } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-
-    const { count: ordersToday } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', todayISO)
-
-    // 상태별 주문 수
-    const { data: ordersByStatusData } = await supabase
-      .from('orders')
-      .select('status')
-      .limit(50000)
 
     const ordersByStatus = {
       awaiting_payment: 0,
@@ -132,14 +147,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 3. 매출 통계 (인플루언서 주문 제외)
-    const { data: revenueData } = await supabase
-      .from('orders')
-      .select('final_price, created_at')
-      .in('status', ['paid', 'preparing', 'shipping', 'delivered'])
-      .eq('is_influencer', false)
-      .limit(50000)
-
     const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.final_price || 0), 0) || 0
 
     const revenueToday = revenueData?.filter(order => {
@@ -147,28 +154,9 @@ export async function GET(request: NextRequest) {
       return orderDate >= today
     }).reduce((sum, order) => sum + (order.final_price || 0), 0) || 0
 
-    // 4. 회원 통계
-    const { count: totalMembers } = await supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact', head: true })
-
-    const { count: newMembersToday } = await supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', todayISO)
-
-    // 5. QR 통계
-    const { count: totalQRCodes } = await supabase
-      .from('qr_codes')
-      .select('*', { count: 'exact', head: true })
-
-    const { data: qrScansData } = await supabase
-      .from('qr_codes')
-      .select('scan_count')
-
     const totalQRScans = qrScansData?.reduce((sum, qr) => sum + (qr.scan_count || 0), 0) || 0
 
-    return NextResponse.json({
+    const responseData = {
       totalAnalysis: totalAnalysis || 0,
       analysisToday: analysisToday || 0,
       analysisByProduct,
@@ -182,7 +170,14 @@ export async function GET(request: NextRequest) {
       newMembersToday: newMembersToday || 0,
       totalQRCodes: totalQRCodes || 0,
       totalQRScans,
-    })
+    }
+
+    dashboardCache = {
+      expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,
+      data: responseData,
+    }
+
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error('Error fetching analytics:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
