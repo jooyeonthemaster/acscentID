@@ -232,7 +232,8 @@
     "includes": {
       "idolImage": "Perfume PPUDUCK (10ml/50ml) + Informe de análisis impreso",
       "figure": "Figura 3D + Difusor (5ml) + Informe de análisis impreso",
-      "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma"
+      "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma",
+      "chemistry": "Set de perfume química (10ml x 2 / 50ml x 2) + Tarjeta de perfil química"
     },
     "features": {
       "aiAnalysis": "Análisis personalizado con IA",
@@ -680,6 +681,10 @@
     "cancelTitle": "¿Deseas cancelar el pedido?",
     "cancelOrderNum": "Número de pedido: {orderNumber}",
     "cancelDesc": "Después de la solicitud de cancelación, un administrador revisará y completará la cancelación.",
+    "cancelReasonLabel": "Motivo de cancelación/reembolso",
+    "cancelReasonPlaceholder": "Ej.: cambié de opinión, necesito editar el pedido, cancelar antes del envío",
+    "cancelReasonHelp": "Este motivo se usará para la revisión administrativa y el reembolso.",
+    "cancelReasonRequired": "Ingresa al menos 2 caracteres.",
     "no": "No",
     "yesCancelIt": "Sí, cancelar",
     "processing": "Procesando",

@@ -22,20 +22,29 @@ export interface ChemistryUserInput {
 export function buildChemistryIndividualPrompt(
   character1Name: string,
   character2Name: string,
-  locale: Locale = 'ko'
+  locale: Locale = 'ko',
+  targetType: 'idol' | 'self' = 'idol'
 ): string {
   const perfumeDatabase = formatPerfumesForPrompt(locale);
+  const isSelfAnalysis = targetType === 'self';
 
   const prompt = `
 # 역할 정의
-당신은 열정적인 캐릭터 향수 분석가입니다!
+${isSelfAnalysis ? `당신은 차분하고 섬세한 개인/관계 향수 분석가입니다!
+**중요: 이번 분석은 사용자가 "나와 상대방"을 대상으로 선택한 분석입니다.**
+두 사람의 이미지가 순서대로 첨부됩니다:
+- 첫 번째 이미지: "${character1Name}" (A)
+- 두 번째 이미지: "${character2Name}" (B)
+
+팬덤/아이돌/최애/캐릭터 분석처럼 쓰지 말고, 사진 속 두 사람의 분위기와 관계 입력을 바탕으로 안정적인 톤으로 분석하세요.
+은근한 주접은 가능하지만, 이상한 밈/덕후 말투/팬덤 호칭은 철저히 금지합니다. 이모지는 필요할 때만 소량 사용하세요 (🌿✨🤍).` : `당신은 열정적인 캐릭터 향수 분석가입니다!
 **중요: 이번에는 두 캐릭터를 동시에 분석합니다!**
 두 캐릭터의 이미지가 순서대로 첨부됩니다:
 - 첫 번째 이미지: "${character1Name}" (캐릭터 A)
 - 두 번째 이미지: "${character2Name}" (캐릭터 B)
 
 "주접스럽고" "드립 작렬"하는 톤으로 분석해주세요!
-**반드시 반말을 사용하고, 이모지를 적극 활용하세요 (🌸💙✨🔥💕🌊🍓⭐️🌈💎🫨😭).**
+**반드시 반말을 사용하고, 이모지를 적극 활용하세요 (🌸💙✨🔥💕🌊🍓⭐️🌈💎🫨😭).**`}
 
 # 🚨 핵심 규칙: 두 캐릭터에게 반드시 다른 향수 매칭!
 
@@ -66,12 +75,17 @@ export function buildChemistryIndividualPrompt(
 2️⃣ **2순위: 캐릭터 이름 기반 배경 지식** (20% 반영)
 
 # 필수 톤 규칙
-✅ 최신 드립: "ㄹㅇ", "실화냐", "개쩐다", "진심", "ㅇㅈ", "갓벽"
+${isSelfAnalysis ? `✅ 차분하고 정적인 관계 분석: 관찰과 해석을 우선
+✅ 호칭: 이름, "A", "B", "이 사람", "두 사람" 사용
+✅ 이모지는 문단당 최대 1개 수준으로 절제
+❌ 금지 표현: "우리 애", "최애", "아이돌", "입덕", "덕질", "팬", "팬덤", "포카", "콘서트"
+❌ 금지 말투: "ㄹㅇ", "ㅇㅈ", "ㄷㄷ", "실화냐", "개쩐다", "갓벽", "짱짱이", "존잘/존예", "심장 저격", "비주얼 테러"
+❌ 팬덤/덕후/커뮤니티 밈 기반 주접 금지` : `✅ 최신 드립: "ㄹㅇ", "실화냐", "개쩐다", "진심", "ㅇㅈ", "갓벽"
 ✅ 주접 표현: "우리 애", "짱짱이", "심장 저격", "비주얼 테러"
 ✅ 이모지 폭격
 ✅ 반말 필수
 ❌ "너", "네가" 같은 2인칭 절대 금지
-❌ 존댓말 절대 금지
+❌ 존댓말 절대 금지`}
 
 # 🎯 캐릭터 인식
 **캐릭터 A**: ${character1Name}
@@ -137,17 +151,22 @@ export function buildChemistryProfilePrompt(
   characterA: ImageAnalysisResult,
   characterB: ImageAnalysisResult,
   userInput: ChemistryUserInput,
-  locale: Locale = 'ko'
+  locale: Locale = 'ko',
+  targetType: 'idol' | 'self' = 'idol'
 ): string {
   const perfumeA = characterA.matchingPerfumes[0];
   const perfumeB = characterB.matchingPerfumes[0];
+  const isSelfAnalysis = targetType === 'self';
 
   const prompt = `
 # 역할 정의
-당신은 "케미 연구원"입니다! 두 캐릭터 사이의 케미(chemistry)를 분석하고,
+${isSelfAnalysis ? `당신은 차분한 "관계 향수 연구원"입니다. 두 사람 사이의 분위기와 관계성을 분석하고,
+두 향수가 만나면 어떤 결이 생기는지 섬세하게 설명하는 전문가입니다.
+
+톤: 정적이고 안정적인 분석. 은근한 주접은 가능하지만 밈/덕후 말투/팬덤 호칭은 금지. 이모지는 소량만 사용.` : `당신은 "케미 연구원"입니다! 두 캐릭터 사이의 케미(chemistry)를 분석하고,
 그들의 향수가 만나면 어떤 마법이 일어나는지 연구하는 전문가입니다.
 
-톤: 주접스럽고 감성적이면서도 디테일한 분석! 반말 필수! 이모지 폭격!
+톤: 주접스럽고 감성적이면서도 디테일한 분석! 반말 필수! 이모지 폭격!`}
 
 # 분석 대상
 
@@ -297,7 +316,7 @@ scentMatch×0.3 + traitMatch×0.3 + emotionMatch×0.2 + visualMatch×0.2
 
 # 작업 지시사항
 
-다음 구조의 JSON을 반환해주세요. 모든 텍스트 필드는 반말 + 이모지 필수!
+다음 구조의 JSON을 반환해주세요. ${isSelfAnalysis ? '모든 텍스트 필드는 차분한 개인/관계 분석 톤으로 작성하고, 팬덤/밈/덕후 표현은 절대 쓰지 마세요.' : '모든 텍스트 필드는 반말 + 이모지 필수!'}
 
 {
   "chemistryScore": {
@@ -374,7 +393,7 @@ scentMatch×0.3 + traitMatch×0.3 + emotionMatch×0.2 + visualMatch×0.2
 - chemistryTitle은 15자 이내의 감각적인 칭호
 - tierLabel, verdict는 "찐케미", "천생연분" 같은 뻔한 라벨 금지! 이 둘만의 구체적 특징을 담은 문장이어야 함
 - 점수가 50~64 구간일 때 절대 부정적 톤 금지! "다름 = 매력"으로 표현
-- 모든 텍스트: 반말, 이모지 필수, 주접 톤!
+- ${isSelfAnalysis ? '모든 텍스트: 차분하고 정적인 관계 분석 톤. "우리 애", "최애", "아이돌", "ㄹㅇ", "개쩐다", "갓벽", "짱짱이", "심장 저격" 같은 표현 금지!' : '모든 텍스트: 반말, 이모지 필수, 주접 톤!'}
 `;
 
   return wrapPromptWithLocale(prompt, locale);

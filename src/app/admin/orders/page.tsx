@@ -91,6 +91,7 @@ interface Order {
   refund_amount?: number
   refunded_at?: string | null
   refund_reason?: string | null
+  cancel_reason?: string | null
   cancellation_id?: string | null
   refunded_by?: string | null
   admin_memo?: string | null
@@ -1483,9 +1484,9 @@ export default function AdminOrdersPage() {
                                     </span>
                                   ) : null}
                                   {/* 환불 사유 — 감사 추적용 */}
-                                  {order.refund_reason && (
+                                  {(order.refund_reason || order.cancel_reason) && (
                                     <span className="text-xs text-slate-500">
-                                      사유: <span className="text-slate-700 font-medium">{order.refund_reason}</span>
+                                      사유: <span className="text-slate-700 font-medium">{order.refund_reason || order.cancel_reason}</span>
                                     </span>
                                   )}
                                 </div>
@@ -2129,6 +2130,8 @@ export default function AdminOrdersPage() {
               receipt_url: refundTarget.receipt_url,
               status: refundTarget.status,
               refunded_at: refundTarget.refunded_at,
+              refund_reason: refundTarget.refund_reason,
+              cancel_reason: refundTarget.cancel_reason,
             }}
             onClose={() => setRefundTarget(null)}
             onSuccess={handleRefundSuccess}

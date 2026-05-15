@@ -14,6 +14,8 @@ export interface RefundModalOrder {
   receipt_url?: string | null
   status?: string
   refunded_at?: string | null
+  refund_reason?: string | null
+  cancel_reason?: string | null
 }
 
 interface RefundModalProps {
@@ -36,7 +38,7 @@ function formatPrice(n: number) {
 export function RefundModal({ order, onClose, onSuccess }: RefundModalProps) {
   const isBank = order.payment_method === 'bank_transfer'
   const isOrphan = order.status === 'cancelled' && !order.refunded_at
-  const [reason, setReason] = useState('')
+  const [reason, setReason] = useState(order.refund_reason || order.cancel_reason || '')
   const [amountInput, setAmountInput] = useState<string>(
     String(order.final_price)
   )

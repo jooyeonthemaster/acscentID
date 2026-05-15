@@ -57,6 +57,7 @@ interface Order {
   refund_amount?: number | null
   refunded_at?: string | null
   refund_reason?: string | null
+  cancel_reason?: string | null
   final_price?: number
   cancel_requested_at?: string | null
   // 배송 운송장
@@ -312,14 +313,15 @@ function OrderCard({
   }
 
   // 주문 취소 핸들러
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = async (reason: string) => {
     if (isCancelling) return
 
     setIsCancelling(true)
     try {
       const response = await fetch(`/api/orders/${order.id}/cancel`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
       })
 
       if (response.ok) {
@@ -663,11 +665,13 @@ function CancelConfirmDialog({
 }: {
   isOpen: boolean
   onClose: () => void
-  onConfirm: () => void
+  onConfirm: (reason: string) => void
   isLoading: boolean
   orderNumber: string
 }) {
   const t = useTranslations('mypage')
+  const [reason, setReason] = useState('')
+  const reasonValid = reason.trim().length >= 2
   if (!isOpen) return null
 
   return (
@@ -704,6 +708,24 @@ function CancelConfirmDialog({
                 {t('cancelDesc')}
               </p>
 
+              <div className="w-full text-left mb-4">
+                <label className="block text-sm font-black text-slate-900 mb-1">
+                  {t('cancelReasonLabel')} <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={4}
+                  maxLength={500}
+                  className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 resize-none"
+                  placeholder={t('cancelReasonPlaceholder')}
+                  disabled={isLoading}
+                />
+                <p className={`mt-1 text-xs ${reasonValid ? 'text-slate-400' : 'text-red-500'}`}>
+                  {reasonValid ? t('cancelReasonHelp') : t('cancelReasonRequired')}
+                </p>
+              </div>
+
               <div className="flex gap-3 w-full">
                 <button
                   onClick={onClose}
@@ -713,8 +735,8 @@ function CancelConfirmDialog({
                   {t('no')}
                 </button>
                 <button
-                  onClick={onConfirm}
-                  disabled={isLoading}
+                  onClick={() => onConfirm(reason.trim())}
+                  disabled={isLoading || !reasonValid}
                   className="flex-1 py-3 rounded-xl font-bold bg-red-500 border-2 border-slate-900 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
                   {isLoading ? (
@@ -878,6 +900,11 @@ function RefundStatusCard({ order }: { order: Order }) {
             {!isBank && (
               <p className="text-slate-600 mt-1 text-[11px]">{methodGuide}</p>
             )}
+            {order.cancel_reason && (
+              <p className="text-slate-500 mt-1 text-[11px]">
+                사유: {order.cancel_reason}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -907,9 +934,9 @@ function RefundStatusCard({ order }: { order: Order }) {
             <p className="text-slate-600 mt-1 leading-relaxed">
               {methodGuide}
             </p>
-            {order.refund_reason && (
+            {(order.refund_reason || order.cancel_reason) && (
               <p className="text-slate-500 mt-1 text-[11px]">
-                사유: {order.refund_reason}
+                사유: {order.refund_reason || order.cancel_reason}
               </p>
             )}
           </div>

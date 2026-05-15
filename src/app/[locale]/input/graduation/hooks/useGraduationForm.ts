@@ -340,6 +340,14 @@ export function useGraduationForm() {
             })
 
             const result = await response.json()
+            if (!response.ok && result.code === 'DAILY_ANALYSIS_LIMIT_EXCEEDED') {
+                showToast(result.error || '오늘 가능한 분석 횟수를 모두 사용했어요. 매일 00:00에 다시 이용할 수 있습니다.', 'error', 5000)
+                setIsSubmitting(false)
+                return
+            }
+            if (!response.ok && !result.fallback) {
+                throw new Error(result.error || '분석 요청에 실패했습니다.')
+            }
 
             // 3. 저장 로직 - 변환된 이미지 우선 저장
             const saveToLocalStorage = (data: unknown) => {
@@ -373,9 +381,11 @@ export function useGraduationForm() {
             if (result.success) {
                 saveToLocalStorage(result.data)
                 showToast('분석 완료! 🎉', 'success', 2000)
-            } else {
+            } else if (result.fallback) {
                 saveToLocalStorage(result.fallback)
                 showToast('분석에 문제가 있어 샘플 결과를 보여드립니다.', 'info', 3000)
+            } else {
+                throw new Error(result.error || '분석 요청에 실패했습니다.')
             }
 
             // 분석 완료 상태로 변경 (문 열림 애니메이션 트리거)

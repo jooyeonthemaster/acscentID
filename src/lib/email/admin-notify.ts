@@ -85,6 +85,7 @@ export function notifyCancelRequest(data: {
   recipientName: string
   perfumeName: string
   finalPrice: number
+  reason: string
 }) {
   sendAdminNotification(cancelRequestTemplate({
     ...data,

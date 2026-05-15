@@ -11,6 +11,7 @@ export interface AnalyzeRequest {
     customPersonality: string;
     charmPoints: string[];
     customCharm: string;
+    targetType?: 'idol' | 'self';
   };
   imageBase64?: string; // base64 data URL
 }

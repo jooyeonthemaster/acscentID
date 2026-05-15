@@ -129,7 +129,7 @@ function getHardcodedSchema(): string {
   pg_provider (varchar), pg_tx_id (varchar),
   paid_at (timestamptz), receipt_url (text),
   refund_amount (int), refunded_at (timestamptz), refund_reason (text),
-  cancel_requested_at (timestamptz),
+  cancel_reason (text), cancel_requested_at (timestamptz),
   tracking_number (text), tracking_carrier (text), shipped_at (timestamptz),
   user_image_url (text), keywords (text[]), analysis_data (jsonb),
   analysis_id (uuid), user_coupon_id (uuid),

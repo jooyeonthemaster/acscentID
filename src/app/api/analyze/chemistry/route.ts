@@ -5,6 +5,8 @@ import { parseChemistryIndividualResponse, parseChemistryProfileResponse } from 
 import { ImageAnalysisResult, ChemistryProfile, ChemistryAnalysisResult } from '@/types/analysis';
 import { getApiLocale } from '@/lib/api-locale';
 import { requireAuthenticatedUser } from '@/lib/auth/require-user';
+import { consumeDailyAnalysisLimit, dailyAnalysisLimitExceededResponse } from '@/lib/analysis/daily-limit';
+import { sanitizeSelfAnalysisTone } from '@/lib/gemini/self-tone';
 
 interface ChemistryAnalyzeRequest {
   character1Name: string;
@@ -23,6 +25,7 @@ interface ChemistryAnalyzeRequest {
   customArchetype2?: string;
   customScene?: string;
   customEmotion?: string;
+  targetType?: 'idol' | 'self';
 }
 
 interface ChemistryAnalyzeResponse {
@@ -65,7 +68,9 @@ export async function POST(request: NextRequest) {
       relationTropes, character1Archetypes, character2Archetypes,
       scenes, emotionKeywords, scentDirection, message,
       customTrope, customArchetype1, customArchetype2, customScene, customEmotion,
+      targetType,
     } = body;
+    const resolvedTargetType: 'idol' | 'self' = targetType === 'self' ? 'self' : 'idol';
 
     console.log(`[${requestId}] 📊 입력 데이터:`);
     console.log(`  - 캐릭터 A: ${character1Name}`);
@@ -84,11 +89,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const usage = await consumeDailyAnalysisLimit({
+      userId: authedUser.id,
+      provider: authedUser.provider,
+      productType: 'chemistry_set',
+      endpoint: '/api/analyze/chemistry',
+      targetType: resolvedTargetType,
+    });
+    if (!usage.allowed) {
+      console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
+      return dailyAnalysisLimitExceededResponse(usage);
+    }
+    console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
+
     // ===== Phase 1: 개별 분석 =====
     console.log(`[${requestId}] 🔄 Phase 1: 개별 분석 시작`);
     const phase1Start = Date.now();
 
-    const individualPrompt = buildChemistryIndividualPrompt(character1Name, character2Name, locale);
+    const individualPrompt = buildChemistryIndividualPrompt(character1Name, character2Name, locale, resolvedTargetType);
     const individualModel = getModelWithConfig({ maxOutputTokens: 12288, temperature: 0.7 });
 
     // 이미지 parts 구성
@@ -187,7 +205,7 @@ export async function POST(request: NextRequest) {
       message,
     };
 
-    const profilePrompt = buildChemistryProfilePrompt(characterA, characterB, userInput, locale);
+    const profilePrompt = buildChemistryProfilePrompt(characterA, characterB, userInput, locale, resolvedTargetType);
     const profileModel = getModelWithConfig({ maxOutputTokens: 6144, temperature: 0.8 });
 
     let chemistry: ChemistryProfile;
@@ -231,10 +249,13 @@ export async function POST(request: NextRequest) {
       characterB,
       chemistry,
     };
+    const responseData = resolvedTargetType === 'self'
+      ? sanitizeSelfAnalysisTone(result)
+      : result;
 
     return NextResponse.json<ChemistryAnalyzeResponse>({
       success: true,
-      data: result,
+      data: responseData,
     });
 
   } catch (error: unknown) {

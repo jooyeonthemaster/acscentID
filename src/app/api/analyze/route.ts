@@ -7,6 +7,10 @@ import { ImageAnalysisResult } from '@/types/analysis';
 import { perfumes } from '@/data/perfumes';
 import { getApiLocale } from '@/lib/api-locale';
 import { requireAuthenticatedUser } from '@/lib/auth/require-user';
+import { consumeDailyAnalysisLimit, dailyAnalysisLimitExceededResponse } from '@/lib/analysis/daily-limit';
+import { sanitizeSelfAnalysisTone } from '@/lib/gemini/self-tone';
+
+type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
 
 // Mock 데이터 생성 함수 (fallback용)
 function generateMockResult(): ImageAnalysisResult {
@@ -120,14 +124,19 @@ export async function POST(request: NextRequest) {
     // 1. 요청 파싱
     const body: AnalyzeRequest & {
       programType?: string;
+      productType?: string;
       figureData?: FigureDataInput;
       graduationData?: GraduationFormInput;
     } = await request.json();
-    const { formData, imageBase64, programType, figureData, graduationData } = body;
+    const { formData, imageBase64, programType, productType, figureData, graduationData } = body;
 
     // 프로그램 모드 여부
     const isFigureMode = programType === 'figure';
     const isGraduationMode = programType === 'graduation';
+    const resolvedTargetType: 'idol' | 'self' = formData?.targetType === 'self' ? 'self' : 'idol';
+    const resolvedProductType = productType || (
+      isGraduationMode ? 'graduation' : isFigureMode ? 'figure_diffuser' : 'image_analysis'
+    );
 
     // 📊 입력 데이터 로깅
     console.log(`\n[${requestId}] 📊 입력 데이터:`);
@@ -189,6 +198,19 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
+    const usage = await consumeDailyAnalysisLimit({
+      userId: authedUser.id,
+      provider: authedUser.provider,
+      productType: resolvedProductType,
+      endpoint: '/api/analyze',
+      targetType: resolvedTargetType,
+    });
+    if (!usage.allowed) {
+      console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
+      return dailyAnalysisLimitExceededResponse(usage);
+    }
+    console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
+
     // 3. 프롬프트 생성 (모드별 분기 + 언어)
     let prompt: string;
     if (isGraduationMode && graduationData) {
@@ -207,7 +229,7 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] ✅ Gemini 모델 초기화 완료`);
 
     // 5. 요청 parts 구성
-    const parts: any[] = [{ text: prompt }];
+    const parts: GeminiPart[] = [{ text: prompt }];
 
     // 이미지 포함 (있을 경우)
     if (imageBase64) {
@@ -284,16 +306,19 @@ export async function POST(request: NextRequest) {
     // 8. 응답 파싱 및 검증
     console.log(`[${requestId}] 🔄 응답 파싱 중...`);
     const parsedData = parseGeminiResponse(responseText, locale);
+    const responseData = resolvedTargetType === 'self'
+      ? sanitizeSelfAnalysisTone(parsedData)
+      : parsedData;
     console.log(`[${requestId}] ✅ 응답 파싱 완료`);
 
     // 파싱 결과 요약 로깅
     console.log(`\n[${requestId}] 📋 파싱 결과 요약:`);
-    console.log(`  - traits.sexy: ${parsedData.traits.sexy}`);
-    console.log(`  - traits.cute: ${parsedData.traits.cute}`);
-    console.log(`  - traits.charisma: ${parsedData.traits.charisma}`);
-    console.log(`  - traits.darkness: ${parsedData.traits.darkness}`);
-    console.log(`  - 추천 향수: ${parsedData.matchingPerfumes[0]?.persona?.id || 'N/A'}`);
-    console.log(`  - 매칭 점수: ${parsedData.matchingPerfumes[0]?.score || 'N/A'}`);
+    console.log(`  - traits.sexy: ${responseData.traits.sexy}`);
+    console.log(`  - traits.cute: ${responseData.traits.cute}`);
+    console.log(`  - traits.charisma: ${responseData.traits.charisma}`);
+    console.log(`  - traits.darkness: ${responseData.traits.darkness}`);
+    console.log(`  - 추천 향수: ${responseData.matchingPerfumes[0]?.persona?.id || 'N/A'}`);
+    console.log(`  - 매칭 점수: ${responseData.matchingPerfumes[0]?.score || 'N/A'}`);
 
     const totalDuration = Date.now() - startTime;
     console.log(`\n[${requestId}] ✅ 분석 완료 (총 ${totalDuration}ms)`);
@@ -302,17 +327,20 @@ export async function POST(request: NextRequest) {
     // 9. 성공 응답
     return NextResponse.json<AnalyzeResponse>({
       success: true,
-      data: parsedData,
+      data: responseData,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const totalDuration = Date.now() - startTime;
+    const errorName = error instanceof Error ? error.name : 'Unknown';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
 
     // 상세 에러 로깅
     console.error(`\n[${requestId}] ❌ 오류 발생 (${totalDuration}ms 경과)`);
-    console.error(`[${requestId}] 에러 타입: ${error.name || 'Unknown'}`);
-    console.error(`[${requestId}] 에러 메시지: ${error.message}`);
-    if (error.stack) {
-      console.error(`[${requestId}] 스택 트레이스:\n${error.stack}`);
+    console.error(`[${requestId}] 에러 타입: ${errorName}`);
+    console.error(`[${requestId}] 에러 메시지: ${errorMessage}`);
+    if (errorStack) {
+      console.error(`[${requestId}] 스택 트레이스:\n${errorStack}`);
     }
     console.error('='.repeat(80) + '\n');
 
@@ -320,7 +348,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json<AnalyzeResponse>(
       {
         success: false,
-        error: error.message || 'Unknown error occurred',
+        error: errorMessage || 'Unknown error occurred',
         fallback: generateMockResult(),
       },
       { status: 500 }

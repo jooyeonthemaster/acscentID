@@ -14,6 +14,15 @@ export async function PATCH(
 ) {
   try {
     const { id: orderId } = await params
+    const body = await request.json().catch(() => ({}))
+    const reason = typeof body.reason === 'string' ? body.reason.trim() : ''
+
+    if (reason.length < 2) {
+      return NextResponse.json(
+        { error: '취소/환불 사유를 2자 이상 입력해 주세요.' },
+        { status: 400 }
+      )
+    }
 
     // 1. 사용자 인증 확인
     const kakaoSession = await getKakaoSession()
@@ -64,6 +73,8 @@ export async function PATCH(
       .update({
         status: 'cancel_requested',
         cancel_requested_at: new Date().toISOString(),
+        cancel_reason: reason,
+        refund_reason: reason,
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
@@ -84,6 +95,7 @@ export async function PATCH(
       recipientName: order.recipient_name,
       perfumeName: order.perfume_name,
       finalPrice: order.final_price,
+      reason,
     })
 
     // 온라인 결제 주문의 경우 관리자가 환불 처리 필요

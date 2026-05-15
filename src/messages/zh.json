@@ -232,7 +232,8 @@
     "includes": {
       "idolImage": "鸭子香水(10ml/50ml) + 实物分析报告",
       "figure": "3D手办 + 香薰器(5ml) + 实物分析报告",
-      "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告"
+      "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告",
+      "chemistry": "化学香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡"
     },
     "features": {
       "aiAnalysis": "AI定制分析",
@@ -619,6 +620,10 @@
     "cancelTitle": "确定要取消订单吗？",
     "cancelOrderNum": "订单号：{orderNumber}",
     "cancelDesc": "提交取消申请后，经管理员确认后将完成取消。",
+    "cancelReasonLabel": "取消/退款原因",
+    "cancelReasonPlaceholder": "例如：改变主意、需要修改订单信息、发货前取消等",
+    "cancelReasonHelp": "填写的原因将用于管理员审核和退款处理。",
+    "cancelReasonRequired": "请输入至少2个字符的取消/退款原因。",
     "no": "否",
     "yesCancelIt": "是的，取消订单",
     "processing": "处理中",

@@ -232,7 +232,8 @@
     "includes": {
       "idolImage": "ップドゥックパフューム(10ml/50ml) + 分析レポート",
       "figure": "3Dフィギュア + ディフューザー(5ml) + 分析レポート",
-      "graduation": "ップドゥックパフューム(10ml) + 学帽パフュームキーリング + 卒業証書風分析レポート"
+      "graduation": "ップドゥックパフューム(10ml) + 学帽パフュームキーリング + 卒業証書風分析レポート",
+      "chemistry": "ケミ香水セット(10ml x 2 / 50ml x 2) + ケミプロフィールカード"
     },
     "features": {
       "aiAnalysis": "AIカスタム分析",
@@ -680,6 +681,10 @@
     "cancelTitle": "注文をキャンセルしますか？",
     "cancelOrderNum": "注文番号: {orderNumber}",
     "cancelDesc": "キャンセル申請後、管理者の確認を経てキャンセルが完了します。",
+    "cancelReasonLabel": "キャンセル/返金理由",
+    "cancelReasonPlaceholder": "例：単純な心変わり、注文情報の変更、発送前キャンセル希望など",
+    "cancelReasonHelp": "入力した理由は管理者確認と返金処理に使用されます。",
+    "cancelReasonRequired": "キャンセル/返金理由を2文字以上入力してください。",
     "no": "いいえ",
     "yesCancelIt": "はい、キャンセルします",
     "processing": "処理中",

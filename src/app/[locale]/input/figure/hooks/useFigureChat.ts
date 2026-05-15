@@ -354,6 +354,14 @@ export function useFigureChat(userName?: string) {
       });
 
       const result = await response.json();
+      if (!response.ok && result.code === 'DAILY_ANALYSIS_LIMIT_EXCEEDED') {
+        addAiMessage(result.error || '오늘 가능한 분석 횟수를 모두 사용했어요. 매일 00:00에 다시 이용할 수 있습니다.');
+        setState((prev) => ({ ...prev, isSubmitting: false, currentPhase: 'complete' }));
+        return;
+      }
+      if (!response.ok && !result.fallback) {
+        throw new Error(result.error || t('analysisFailed'));
+      }
 
       if (result.success || result.fallback) {
         const analysisData = result.data || result.fallback;

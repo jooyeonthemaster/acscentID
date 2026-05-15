@@ -235,8 +235,15 @@ export function cancelRequestTemplate(data: {
   recipientName: string
   perfumeName: string
   finalPrice: number
+  reason: string
   requestedAt: string
 }) {
+  const reason = data.reason
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+
   return {
     subject: `[ACSCENT] ⚠️ 주문 취소 요청: ${data.orderNumber}`,
     html: `
@@ -258,6 +265,10 @@ export function cancelRequestTemplate(data: {
           <tr>
             <td style="padding: 12px 16px; border-bottom: 1px solid #fecaca; font-weight: 600;">결제금액</td>
             <td style="padding: 12px 16px; border-bottom: 1px solid #fecaca;">${data.finalPrice.toLocaleString()}원</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #fecaca; font-weight: 600;">취소 사유</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #fecaca; white-space: pre-wrap;">${reason}</td>
           </tr>
           <tr>
             <td style="padding: 12px 16px; font-weight: 600;">요청일시</td>
