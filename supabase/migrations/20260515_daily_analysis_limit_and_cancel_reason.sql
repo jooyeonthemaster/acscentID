@@ -86,7 +86,7 @@ BEGIN
     RETURN;
   END IF;
 
-  INSERT INTO analysis_daily_usage (
+  INSERT INTO analysis_daily_usage AS adu (
     usage_date,
     user_id,
     provider,
@@ -104,15 +104,15 @@ BEGIN
     NOW(),
     NOW()
   )
-  ON CONFLICT (usage_date, user_id)
+  ON CONFLICT ON CONSTRAINT analysis_daily_usage_unique_user_day
   DO UPDATE SET
-    used_count = analysis_daily_usage.used_count + 1,
-    provider = COALESCE(EXCLUDED.provider, analysis_daily_usage.provider),
+    used_count = adu.used_count + 1,
+    provider = COALESCE(EXCLUDED.provider, adu.provider),
     max_count = v_limit,
     last_used_at = NOW(),
     updated_at = NOW()
-  WHERE analysis_daily_usage.used_count < v_limit
-  RETURNING id, used_count
+  WHERE adu.used_count < v_limit
+  RETURNING adu.id, adu.used_count
     INTO v_daily_usage_id, v_used_count;
 
   IF v_daily_usage_id IS NULL THEN

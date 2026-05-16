@@ -10,7 +10,7 @@ export function parseChemistryIndividualResponse(
   locale: Locale = 'ko'
 ): { characterA: ImageAnalysisResult; characterB: ImageAnalysisResult } {
   try {
-    let parsed = JSON.parse(responseText);
+    let parsed = JSON.parse(extractJsonPayload(responseText));
     if (Array.isArray(parsed)) {
       parsed = parsed[0];
     }
@@ -50,7 +50,7 @@ export function parseChemistryProfileResponse(
   responseText: string
 ): ChemistryProfile {
   try {
-    let parsed = JSON.parse(responseText);
+    let parsed = JSON.parse(extractJsonPayload(responseText));
     if (Array.isArray(parsed)) {
       parsed = parsed[0];
     }
@@ -148,6 +148,65 @@ export function parseChemistryProfileResponse(
 // ============================================
 // 검증 함수들
 // ============================================
+
+function extractJsonPayload(responseText: string): string {
+  const trimmed = responseText.trim().replace(/^\uFEFF/, '');
+
+  const fencedJson = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fencedJson?.[1]) {
+    return extractBalancedJson(fencedJson[1].trim());
+  }
+
+  return extractBalancedJson(trimmed);
+}
+
+function extractBalancedJson(text: string): string {
+  const source = text.trim();
+  const start = source.search(/[\[{]/);
+  if (start === -1) {
+    throw new Error('No JSON object or array found in response');
+  }
+
+  const opening = source[start];
+  const closing = opening === '{' ? '}' : ']';
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < source.length; index += 1) {
+    const char = source[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === opening) {
+      depth += 1;
+    } else if (char === closing) {
+      depth -= 1;
+      if (depth === 0) {
+        return source.slice(start, index + 1);
+      }
+    }
+  }
+
+  throw new Error('JSON response was not balanced');
+}
 
 const VALID_CHEMISTRY_TYPES: ChemistryType[] = ['milddang', 'slowburn', 'dalddal', 'storm'];
 
