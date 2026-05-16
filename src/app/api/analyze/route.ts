@@ -200,6 +200,7 @@ export async function POST(request: NextRequest) {
 
     const usage = await consumeDailyAnalysisLimit({
       userId: authedUser.id,
+      email: authedUser.email,
       provider: authedUser.provider,
       productType: resolvedProductType,
       endpoint: '/api/analyze',

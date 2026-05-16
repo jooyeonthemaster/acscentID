@@ -15,10 +15,43 @@ export interface DailyAnalysisLimitResult {
 
 interface ConsumeDailyAnalysisLimitArgs {
   userId: string
+  email?: string | null
   provider?: string | null
   productType: string
   endpoint: string
   targetType?: 'idol' | 'self' | null
+}
+
+const UNLIMITED_USAGE_VALUE = 999
+
+function parseAllowList(raw: string | undefined) {
+  if (!raw) return new Set<string>()
+  return new Set(
+    raw
+      .split(',')
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => entry.length > 0)
+  )
+}
+
+function isUnlimitedAccount(email: string | null | undefined, userId: string) {
+  const allowedEmails = parseAllowList(process.env.UNLIMITED_ANALYSIS_EMAILS)
+  const allowedUserIds = parseAllowList(process.env.UNLIMITED_ANALYSIS_USER_IDS)
+
+  if (email && allowedEmails.has(email.trim().toLowerCase())) return true
+  if (userId && allowedUserIds.has(userId.trim().toLowerCase())) return true
+  return false
+}
+
+function unlimitedResult(usageDate: string): DailyAnalysisLimitResult {
+  return {
+    allowed: true,
+    usedCount: 0,
+    remainingCount: UNLIMITED_USAGE_VALUE,
+    dailyLimit: UNLIMITED_USAGE_VALUE,
+    usageDate,
+    resetAt: getKoreaResetAt(usageDate),
+  }
 }
 
 interface DailyUsageRow {
@@ -88,6 +121,7 @@ function toLimitResult(allowed: boolean, usedCount: number, usageDate: string): 
 
 export async function consumeDailyAnalysisLimit({
   userId,
+  email,
   provider,
   productType,
   endpoint,
@@ -97,6 +131,11 @@ export async function consumeDailyAnalysisLimit({
 
   if (!userId.trim()) {
     return toLimitResult(false, 0, getKoreaUsageDate())
+  }
+
+  if (isUnlimitedAccount(email, userId)) {
+    console.log('[DailyAnalysisLimit] unlimited account bypass:', email ?? userId)
+    return unlimitedResult(getKoreaUsageDate())
   }
 
   const usageDate = getKoreaUsageDate()

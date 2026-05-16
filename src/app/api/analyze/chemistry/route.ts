@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
 
     const usage = await consumeDailyAnalysisLimit({
       userId: authedUser.id,
+      email: authedUser.email,
       provider: authedUser.provider,
       productType: 'chemistry_set',
       endpoint: '/api/analyze/chemistry',
