@@ -1,7 +1,21 @@
 import { formatPerfumesForPrompt } from './perfume-formatter';
 import { wrapPromptWithLocale } from './locale-prompt-wrapper';
 import type { Locale } from '@/i18n/config';
-import type { ImageAnalysisResult } from '@/types/analysis';
+import {
+  RELATION_TROPES,
+  ARCHETYPE_OPTIONS,
+  SCENE_OPTIONS,
+  EMOTION_KEYWORDS,
+  type ImageAnalysisResult,
+} from '@/types/analysis';
+
+type LabelOption = { id: string; label: string };
+
+function mapIdsToLabels(ids: string[] | undefined, options: readonly LabelOption[]): string {
+  if (!ids?.length) return '';
+  const labelById = new Map(options.map((o) => [o.id, o.label]));
+  return ids.map((id) => labelById.get(id) ?? id).join(', ');
+}
 
 export interface ChemistryUserInput {
   character1Name: string;
@@ -196,12 +210,17 @@ ${isSelfAnalysis ? `당신은 차분한 "관계 향수 연구원"입니다. 두 
 
 # 사용자 입력
 
-- 관계 트로프 (복수): ${userInput.relationTropes.join(', ')}
-- ${userInput.character1Name} 성격 유형 (복수): ${userInput.character1Archetypes.join(', ')}
-- ${userInput.character2Name} 성격 유형 (복수): ${userInput.character2Archetypes.join(', ')}
-- 장소/분위기 (복수): ${userInput.scenes.join(', ')}
-- 감정 키워드: ${userInput.emotionKeywords.join(', ')}
+- 관계 트로프 (복수): ${mapIdsToLabels(userInput.relationTropes, RELATION_TROPES)}
+- ${userInput.character1Name} 성격 유형 (복수): ${mapIdsToLabels(userInput.character1Archetypes, ARCHETYPE_OPTIONS)}
+- ${userInput.character2Name} 성격 유형 (복수): ${mapIdsToLabels(userInput.character2Archetypes, ARCHETYPE_OPTIONS)}
+- 장소/분위기 (복수): ${mapIdsToLabels(userInput.scenes, SCENE_OPTIONS)}
+- 감정 키워드: ${mapIdsToLabels(userInput.emotionKeywords, EMOTION_KEYWORDS)}
 ${userInput.message ? `- 추가 메시지: ${userInput.message}` : ''}
+
+# ❗출력 언어 규칙 (반드시 준수)
+- 모든 텍스트는 한국어로만 작성. 영어 단어, 코드명, 슬러그(예: fate_encounter, library, bittersweet, playful, rebel 등)는 절대 노출 금지.
+- 사용자에게 보여줄 모든 description/narrative/intro/title 류 문장에서 영어 식별자를 괄호로 병기하지 말 것.
+- 향수 이름·노트명 등 고유명사가 영어인 경우에만 영어 표기 허용.
 
 # 4대 케미향 판정 기준
 

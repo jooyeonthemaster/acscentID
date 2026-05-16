@@ -1,6 +1,56 @@
-import { ImageAnalysisResult, ChemistryProfile, ChemistryType } from '@/types/analysis';
+import {
+  ImageAnalysisResult,
+  ChemistryProfile,
+  ChemistryType,
+  RELATION_TROPES,
+  ARCHETYPE_OPTIONS,
+  SCENE_OPTIONS,
+  EMOTION_KEYWORDS,
+} from '@/types/analysis';
 import { parseGeminiResponse } from './response-parser';
 import type { Locale } from '@/i18n/config';
+
+const SLUG_TO_LABEL: Record<string, string> = Object.fromEntries(
+  [...RELATION_TROPES, ...ARCHETYPE_OPTIONS, ...SCENE_OPTIONS, ...EMOTION_KEYWORDS].map(
+    (o) => [o.id, o.label]
+  )
+);
+
+const PROTECTED_KEYS = new Set([
+  'chemistryType',
+  'tierLabel',
+  'best_season',
+  'best_time',
+  'blendedPalette',
+  'perfumeId',
+  'verdict',
+]);
+
+function sanitizeText(text: string): string {
+  if (!text) return text;
+  let out = text.replace(/([가-힣]+)\s*\(([A-Za-z][A-Za-z0-9_]*)\)/g, (match, ko, slug) => {
+    return SLUG_TO_LABEL[slug.toLowerCase()] ? ko : match;
+  });
+  for (const [slug, label] of Object.entries(SLUG_TO_LABEL)) {
+    const re = new RegExp(`\\b${slug}\\b`, 'gi');
+    out = out.replace(re, label);
+  }
+  return out;
+}
+
+function sanitizeDeep<T>(value: T, key?: string): T {
+  if (key && PROTECTED_KEYS.has(key)) return value;
+  if (typeof value === 'string') return sanitizeText(value) as unknown as T;
+  if (Array.isArray(value)) return value.map((v) => sanitizeDeep(v)) as unknown as T;
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(value as Record<string, unknown>)) {
+      out[k] = sanitizeDeep((value as Record<string, unknown>)[k], k);
+    }
+    return out as unknown as T;
+  }
+  return value;
+}
 
 /**
  * Phase 1 응답 파싱: 두 캐릭터 개별 분석 결과
@@ -137,7 +187,7 @@ export function parseChemistryProfileResponse(
       chemistryStory: parsed.chemistryStory || '',
     };
 
-    return profile;
+    return sanitizeDeep(profile);
   } catch (error) {
     console.error('Chemistry profile response parsing error:', error);
     console.error('Response text:', responseText.substring(0, 500));
