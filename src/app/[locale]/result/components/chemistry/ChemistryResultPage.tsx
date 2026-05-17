@@ -754,6 +754,7 @@ export default function ChemistryResultPage() {
         isOpen={feedbackTarget !== null}
         onClose={() => setFeedbackTarget(null)}
         sessionId={savedSessionId || ''}
+        draftScopeKey={formMeta?.existingSessionId || formMeta?.saveRunId || savedSessionId || undefined}
         characterAName={character1Name}
         characterBName={character2Name}
         perfumeAId={characterA.matchingPerfumes?.[0]?.perfumeId || ''}

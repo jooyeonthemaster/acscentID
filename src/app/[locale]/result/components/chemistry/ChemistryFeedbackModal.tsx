@@ -19,6 +19,7 @@ interface ChemistryFeedbackModalProps {
   isOpen: boolean
   onClose: () => void
   sessionId: string
+  draftScopeKey?: string
   characterAName: string
   characterBName: string
   perfumeAId: string
@@ -149,8 +150,20 @@ function clearFeedbackDraft(storageKey: string) {
   }
 }
 
+function resolveVisibleResultTab(
+  tasteA: SingleTasteState,
+  tasteB: SingleTasteState,
+  preferred: 'A' | 'B' = 'A'
+): 'A' | 'B' {
+  if (preferred === 'A' && !tasteA.satisfied) return 'A'
+  if (preferred === 'B' && !tasteB.satisfied) return 'B'
+  if (!tasteA.satisfied) return 'A'
+  if (!tasteB.satisfied) return 'B'
+  return 'A'
+}
+
 export function ChemistryFeedbackModal({
-  isOpen, onClose, sessionId,
+  isOpen, onClose, sessionId, draftScopeKey,
   characterAName, characterBName,
   perfumeAId, perfumeAName, perfumeBId, perfumeBName,
   perfumeACharacteristics, perfumeBCharacteristics,
@@ -170,9 +183,10 @@ export function ChemistryFeedbackModal({
   const [isMounted, setIsMounted] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const storageKey = useMemo(() => {
-    const identity = [characterAName, characterBName, perfumeAId, perfumeBId].join(':')
+    const scope = draftScopeKey || sessionId || 'unsaved'
+    const identity = [scope, characterAName, characterBName, perfumeAId, perfumeBId].join(':')
     return `chemistry_feedback_draft:${identity}`
-  }, [characterAName, characterBName, perfumeAId, perfumeBId])
+  }, [draftScopeKey, sessionId, characterAName, characterBName, perfumeAId, perfumeBId])
 
   useEffect(() => {
     setIsMounted(true)
@@ -226,18 +240,22 @@ export function ChemistryFeedbackModal({
     const draft = readFeedbackDraft(storageKey)
 
     if (draft) {
-      setTasteA(draft.tasteA)
-      setTasteB(draft.tasteB)
-      setStep(draft.step)
-      setResult(draft.result)
-      setResultTab(draft.resultTab)
-      setSelectedA(draft.selectedA)
-      setSelectedB(draft.selectedB)
-      setConfirmedProductType(draft.confirmedProductType)
-      setError(null)
-      setIsConfirming(false)
-      setDraftReady(true)
-      return
+      if (draft.step === 'confirmed') {
+        clearFeedbackDraft(storageKey)
+      } else {
+        setTasteA(draft.tasteA)
+        setTasteB(draft.tasteB)
+        setStep(draft.step)
+        setResult(draft.result)
+        setResultTab(resolveVisibleResultTab(draft.tasteA, draft.tasteB, draft.resultTab))
+        setSelectedA(draft.selectedA)
+        setSelectedB(draft.selectedB)
+        setConfirmedProductType(draft.confirmedProductType)
+        setError(null)
+        setIsConfirming(false)
+        setDraftReady(true)
+        return
+      }
     }
 
     if (isOpen) {
@@ -254,6 +272,39 @@ export function ChemistryFeedbackModal({
       setDraftReady(true)
     }
   }, [isOpen, storageKey])
+
+  const applySatisfiedOriginalRecipes = useCallback((nextResult: ChemistryRecipeResult): ChemistryRecipeResult => {
+    let patchedResult = nextResult
+
+    if (tasteA.satisfied) {
+      const originalA = buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics)
+      patchedResult = {
+        ...patchedResult,
+        recipeA1: originalA,
+        recipeA2: originalA,
+      }
+    }
+
+    if (tasteB.satisfied) {
+      const originalB = buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics)
+      patchedResult = {
+        ...patchedResult,
+        recipeB1: originalB,
+        recipeB2: originalB,
+      }
+    }
+
+    return patchedResult
+  }, [
+    tasteA.satisfied,
+    tasteB.satisfied,
+    perfumeAId,
+    perfumeAName,
+    perfumeACharacteristics,
+    perfumeBId,
+    perfumeBName,
+    perfumeBCharacteristics,
+  ])
 
   useEffect(() => {
     if (!isOpen || !draftReady) return
@@ -324,13 +375,17 @@ export function ChemistryFeedbackModal({
         }),
       })
       const data = await response.json()
-      if (data.success && data.result) { setResult(data.result); setStep('result') }
+      if (data.success && data.result) {
+        setResult(applySatisfiedOriginalRecipes(data.result))
+        setResultTab(resolveVisibleResultTab(tasteA, tasteB))
+        setStep('result')
+      }
       else throw new Error(data.error || '레시피 생성 실패')
     } catch (err) {
       setError(err instanceof Error ? err.message : '오류 발생')
       setStep('formB')
     }
-  }, [sessionId, tasteA, tasteB, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName])
+  }, [sessionId, tasteA, tasteB, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, applySatisfiedOriginalRecipes])
 
   const handleNextFromB = useCallback(() => {
     if (tasteA.satisfied && tasteB.satisfied) {
@@ -357,7 +412,7 @@ export function ChemistryFeedbackModal({
     if (!result) return null
 
     const recipeA = tasteA.satisfied
-      ? result.recipeA1
+      ? buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics)
       : selectedA === 1
         ? result.recipeA1
         : selectedA === 2
@@ -365,7 +420,7 @@ export function ChemistryFeedbackModal({
           : null
 
     const recipeB = tasteB.satisfied
-      ? result.recipeB1
+      ? buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics)
       : selectedB === 1
         ? result.recipeB1
         : selectedB === 2
@@ -385,7 +440,7 @@ export function ChemistryFeedbackModal({
       tasteB,
       result,
     }
-  }, [result, tasteA, tasteB, selectedA, selectedB, confirmedProductType, sessionId])
+  }, [result, tasteA, tasteB, selectedA, selectedB, confirmedProductType, sessionId, perfumeAId, perfumeAName, perfumeACharacteristics, perfumeBId, perfumeBName, perfumeBCharacteristics])
 
   const handleCompleteConfirmed = useCallback(async () => {
     const payload = buildConfirmedPayload()
@@ -415,14 +470,14 @@ export function ChemistryFeedbackModal({
   const setCurrentTaste = isFormA ? setTasteA : setTasteB
   const confirmedRecipeA = result
     ? tasteA.satisfied
-      ? result.recipeA1
+      ? buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics)
       : selectedA === 2
         ? result.recipeA2
         : result.recipeA1
     : null
   const confirmedRecipeB = result
     ? tasteB.satisfied
-      ? result.recipeB1
+      ? buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics)
       : selectedB === 2
         ? result.recipeB2
         : result.recipeB1
