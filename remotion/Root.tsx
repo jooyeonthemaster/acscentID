@@ -1,6 +1,7 @@
 import React from 'react';
 import { Composition } from 'remotion';
 import { AnalysisPreview } from './compositions/AnalysisPreview';
+import { DeployStatus } from './compositions/DeployStatus';
 
 const defaultProps = {
   colors: ['#C084FC', '#F9A8D4', '#1E293B'],
@@ -23,6 +24,14 @@ export const RemotionRoot: React.FC = () => {
         width={400}
         height={500}
         defaultProps={defaultProps}
+      />
+      <Composition
+        id="DeployStatus"
+        component={DeployStatus}
+        durationInFrames={600}
+        fps={30}
+        width={1920}
+        height={1080}
       />
     </>
   );

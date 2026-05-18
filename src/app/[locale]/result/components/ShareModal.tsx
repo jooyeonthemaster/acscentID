@@ -4,10 +4,13 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, Image, Download, Loader2, Check, ArrowLeft } from 'lucide-react'
+import { X, Link2, Image as ImageIcon, Download, Loader2, Check, ArrowLeft } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { ShareCardNew } from './ShareCardNew'
+
+const SHARE_CARD_WIDTH = 430
+const SHARE_CARD_HEIGHT = 932
 
 interface ShareModalProps {
   isOpen: boolean
@@ -101,8 +104,8 @@ export function ShareModal({
       await waitForAssets(cardRef.current)
 
       const dataUrl = await domToPng(cardRef.current, {
-        width: 430,
-        height: 932,
+        width: SHARE_CARD_WIDTH,
+        height: SHARE_CARD_HEIGHT,
         scale: 2,
         backgroundColor: 'transparent'
       })
@@ -187,8 +190,8 @@ export function ShareModal({
       await waitForAssets(previewCardRef.current)
 
       const dataUrl = await domToPng(previewCardRef.current, {
-        width: 430,
-        height: 932,
+        width: SHARE_CARD_WIDTH,
+        height: SHARE_CARD_HEIGHT,
         scale: 2,
         backgroundColor: 'transparent'
       })
@@ -254,7 +257,18 @@ export function ShareModal({
             </div>
 
             {/* 공유 카드 프리뷰 (숨김 처리) */}
-            <div className="absolute -left-[9999px] -top-[9999px]">
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: SHARE_CARD_WIDTH,
+                height: SHARE_CARD_HEIGHT,
+                pointerEvents: 'none',
+                zIndex: -1
+              }}
+            >
               <ShareCardNew
                 ref={cardRef}
                 userImage={userImage}
@@ -314,7 +328,7 @@ export function ShareModal({
                   {isGenerating ? (
                     <Loader2 size={22} className="text-white animate-spin" />
                   ) : (
-                    <Image size={22} className="text-white" />
+                    <ImageIcon size={22} className="text-white" />
                   )}
                 </div>
                 <div className="text-left">

@@ -88,7 +88,6 @@ export function useInputForm() {
 
         window.addEventListener('popstate', handlePopState)
         return () => window.removeEventListener('popstate', handlePopState)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [qrCode])
 
     // 히어로 섹션에서 업로드된 이미지 불러오기
@@ -274,6 +273,8 @@ export function useInputForm() {
                         ...(isOffline && { pin: formData.pin })
                     },
                     imageBase64: imagePreview,
+                    serviceMode: isOffline ? 'offline' : 'online',
+                    qrCode: qrCode || null,
                     // 피규어 온라인 모드 전용 데이터
                     ...(isFigureOnline && {
                         modelingImageBase64: modelingImagePreview,
@@ -412,7 +413,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type, showQrAuthGate])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type, showQrAuthGate, qrCode])
 
     // 문 열린 후 결과 페이지로 이동
     // QR/오프라인에서 온 경우 replace 사용 → 뒤로가기 시 input 페이지로 돌아가지 않음

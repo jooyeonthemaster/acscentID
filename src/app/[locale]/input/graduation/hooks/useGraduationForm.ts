@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
@@ -335,7 +335,9 @@ export function useGraduationForm() {
                         futurePersonality: formData.futurePersonality,
                         futureWish: formData.futureWish
                     },
-                    imageBase64: finalImageBase64
+                    imageBase64: finalImageBase64,
+                    serviceMode: isOffline ? 'offline' : 'online',
+                    qrCode: qrCode || null
                 })
             })
 
@@ -395,7 +397,7 @@ export function useGraduationForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, isOffline, showAuthGate])
+    }, [formData, imagePreview, isStepValid, isSubmitting, showToast, isOffline, showAuthGate, qrCode])
 
     // 문 열린 후 결과 페이지로 이동
     const navigateToResult = useCallback(() => {

@@ -127,8 +127,10 @@ export async function POST(request: NextRequest) {
       productType?: string;
       figureData?: FigureDataInput;
       graduationData?: GraduationFormInput;
+      serviceMode?: string;
+      qrCode?: string | null;
     } = await request.json();
-    const { formData, imageBase64, programType, productType, figureData, graduationData } = body;
+    const { formData, imageBase64, programType, productType, figureData, graduationData, serviceMode } = body;
 
     // 프로그램 모드 여부
     const isFigureMode = programType === 'figure';
@@ -137,6 +139,7 @@ export async function POST(request: NextRequest) {
     const resolvedProductType = productType || (
       isGraduationMode ? 'graduation' : isFigureMode ? 'figure_diffuser' : 'image_analysis'
     );
+    const isOfflineServiceMode = serviceMode === 'offline';
 
     // 📊 입력 데이터 로깅
     console.log(`\n[${requestId}] 📊 입력 데이터:`);
@@ -198,19 +201,23 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[${requestId}] ✅ API 키 확인 완료`);
 
-    const usage = await consumeDailyAnalysisLimit({
-      userId: authedUser.id,
-      email: authedUser.email,
-      provider: authedUser.provider,
-      productType: resolvedProductType,
-      endpoint: '/api/analyze',
-      targetType: resolvedTargetType,
-    });
-    if (!usage.allowed) {
-      console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
-      return dailyAnalysisLimitExceededResponse(usage);
+    if (isOfflineServiceMode) {
+      console.log(`[${requestId}] Offline QR analysis - daily limit bypassed`);
+    } else {
+      const usage = await consumeDailyAnalysisLimit({
+        userId: authedUser.id,
+        email: authedUser.email,
+        provider: authedUser.provider,
+        productType: resolvedProductType,
+        endpoint: '/api/analyze',
+        targetType: resolvedTargetType,
+      });
+      if (!usage.allowed) {
+        console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
+        return dailyAnalysisLimitExceededResponse(usage);
+      }
+      console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
     }
-    console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
 
     // 3. 프롬프트 생성 (모드별 분기 + 언어)
     let prompt: string;

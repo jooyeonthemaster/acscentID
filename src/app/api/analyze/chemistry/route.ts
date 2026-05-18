@@ -26,6 +26,8 @@ interface ChemistryAnalyzeRequest {
   customScene?: string;
   customEmotion?: string;
   targetType?: 'idol' | 'self';
+  serviceMode?: string;
+  qrCode?: string | null;
 }
 
 interface ChemistryAnalyzeResponse {
@@ -68,9 +70,10 @@ export async function POST(request: NextRequest) {
       relationTropes, character1Archetypes, character2Archetypes,
       scenes, emotionKeywords, scentDirection, message,
       customTrope, customArchetype1, customArchetype2, customScene, customEmotion,
-      targetType,
+      targetType, serviceMode,
     } = body;
     const resolvedTargetType: 'idol' | 'self' = targetType === 'self' ? 'self' : 'idol';
+    const isOfflineServiceMode = serviceMode === 'offline';
 
     console.log(`[${requestId}] 📊 입력 데이터:`);
     console.log(`  - 캐릭터 A: ${character1Name}`);
@@ -89,19 +92,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const usage = await consumeDailyAnalysisLimit({
-      userId: authedUser.id,
-      email: authedUser.email,
-      provider: authedUser.provider,
-      productType: 'chemistry_set',
-      endpoint: '/api/analyze/chemistry',
-      targetType: resolvedTargetType,
-    });
-    if (!usage.allowed) {
-      console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
-      return dailyAnalysisLimitExceededResponse(usage);
+    if (isOfflineServiceMode) {
+      console.log(`[${requestId}] Offline QR chemistry analysis - daily limit bypassed`);
+    } else {
+      const usage = await consumeDailyAnalysisLimit({
+        userId: authedUser.id,
+        email: authedUser.email,
+        provider: authedUser.provider,
+        productType: 'chemistry_set',
+        endpoint: '/api/analyze/chemistry',
+        targetType: resolvedTargetType,
+      });
+      if (!usage.allowed) {
+        console.warn(`[${requestId}] Daily analysis limit exceeded`, usage);
+        return dailyAnalysisLimitExceededResponse(usage);
+      }
+      console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
     }
-    console.log(`[${requestId}] Daily analysis usage consumed: ${usage.usedCount}/${usage.dailyLimit}`);
 
     // ===== Phase 1: 개별 분석 =====
     console.log(`[${requestId}] 🔄 Phase 1: 개별 분석 시작`);

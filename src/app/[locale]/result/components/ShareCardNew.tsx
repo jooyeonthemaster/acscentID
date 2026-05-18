@@ -3,6 +3,18 @@
 import { forwardRef, useMemo } from 'react'
 import { ImageAnalysisResult, TraitScores, ScentCategoryScores, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
 
+const SHARE_CARD_FONT =
+    'var(--font-jua), "Jua", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'
+
+const CATEGORY_DISPLAY_NAMES: Record<keyof ScentCategoryScores, string> = {
+    citrus: '시트러스',
+    floral: '플로럴',
+    woody: '우디',
+    musky: '머스크',
+    fruity: '프루티',
+    spicy: '스파이시'
+}
+
 interface ShareCardProps {
     userImage?: string
     twitterName: string
@@ -63,20 +75,24 @@ const calculateMarkerPoints = (traits: TraitScores, center: number = 60, maxRadi
 // 한글 라벨 (순서: 귀여움, 섹시함, 럭셔리, 순수함, 자유로움, 카리스마, 다크함, 우아함, 청량함, 독특함)
 const TRAIT_KO_LABELS = ['귀여움', '섹시함', '럭셔리', '순수함', '자유로움', '카리스마', '다크함', '우아함', '청량함', '독특함']
 
-// 텍스트 줄바꿈 함수 (20자 기준)
-const formatDescription = (text: string) => {
+// 텍스트를 공유 카드의 작은 영역 안에 들어가도록 첫 문장 중심으로 압축합니다.
+const formatDescription = (text: string, maxLength: number = 42) => {
     if (!text) return '';
-    const firstSentence = text.split(/[.!?]/)[0] + (text.match(/[.!?]/)?.[0] || '');
+    const firstSentence = text.split(/[.!?。！？]/)[0] + (text.match(/[.!?。！？]/)?.[0] || '');
+    const normalized = firstSentence.replace(/\s+/g, ' ').trim();
 
-    const lines = [];
-    for (let i = 0; i < firstSentence.length; i += 20) {
-        lines.push(firstSentence.slice(i, i + 20));
-    }
-    return lines.join('\n');
+    if (normalized.length <= maxLength) return normalized;
+    return `${normalized.slice(0, maxLength).trim()}...`;
+}
+
+const formatKeyword = (keyword: string) => {
+    const normalized = keyword.replace(/\s+/g, '').trim()
+    if (normalized.length <= 5) return normalized
+    return `${normalized.slice(0, 4)}...`
 }
 
 export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
-    function ShareCardNew({ userImage, twitterName, userName, perfumeName, perfumeBrand, analysisData }, ref) {
+    function ShareCardNew({ userImage, twitterName, userName, perfumeBrand, analysisData }, ref) {
         const { traits, matchingPerfumes, scentCategories, personalColor } = analysisData
         const persona = matchingPerfumes?.[0]?.persona
 
@@ -92,9 +108,6 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
             { type: 'BASE', name: persona?.subScent2?.name || 'Base Note' }
         ]
 
-        // ID Number
-        const idNumber = String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')
-
         // Scent Categories (Left Column, below Notes)
         // Order: Citrus, Floral, Woody, Musky, Fruity, Spicy
         const scentOrder: (keyof ScentCategoryScores)[] = ['citrus', 'floral', 'woody', 'musky', 'fruity', 'spicy']
@@ -107,11 +120,12 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     height: 932,
                     position: 'relative',
                     overflow: 'hidden',
-                    fontFamily: 'var(--font-jua), "Jua", sans-serif',
+                    fontFamily: SHARE_CARD_FONT,
                     backgroundColor: '#FFF' // 기본 배경색
                 }}
             >
                 {/* Background Image */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src="/images/shareback/backimage.png"
                     alt="background"
@@ -174,6 +188,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     }}
                 >
                     {userImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={userImage}
                             alt="분석 이미지"
@@ -282,6 +297,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     }}>
                         {scentOrder.map((catKey) => {
                             const info = CATEGORY_INFO[catKey]
+                            const categoryName = CATEGORY_DISPLAY_NAMES[catKey]
                             const score = scentCategories?.[catKey] || 0
                             // New Design: 10 dots max usually, but snippet shows 8 dots specifically?
                             // Snippet: 8 dots. "Main" one has crown.
@@ -313,16 +329,45 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                     boxShadow: `0 0 0 0.5px #fff, 0 0 0 1.5px ${styles.ringColor}`,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 3
+                                    gap: 3,
+                                    height: 15,
+                                    boxSizing: 'border-box',
+                                    overflow: 'hidden'
                                 }}>
                                     {/* Icon & Name */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 28 }}>
-                                        <span style={{ fontSize: 8 }}>{info.icon}</span>
-                                        <span style={{ fontSize: 8, fontWeight: 'bold', color: styles.textColor }}>{info.name}</span>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 2,
+                                            flex: '0 0 50px',
+                                            width: 50,
+                                            minWidth: 0,
+                                            overflow: 'hidden',
+                                            lineHeight: 1
+                                        }}
+                                    >
+                                        <span style={{ fontSize: 8, lineHeight: 1, flex: '0 0 auto' }}>{info.icon}</span>
+                                        <span
+                                            style={{
+                                                display: 'block',
+                                                minWidth: 0,
+                                                overflow: 'hidden',
+                                                textOverflow: 'clip',
+                                                whiteSpace: 'nowrap',
+                                                wordBreak: 'keep-all',
+                                                fontSize: 7.5,
+                                                fontWeight: 'bold',
+                                                color: styles.textColor,
+                                                lineHeight: 1
+                                            }}
+                                        >
+                                            {categoryName}
+                                        </span>
                                     </div>
 
                                     {/* Dots */}
-                                    <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <div style={{ flex: '0 0 38px', width: 38, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
                                         {dots.map((status, dIdx) => (
                                             <div
                                                 key={dIdx}
@@ -410,39 +455,81 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                 <div
                     style={{
                         position: 'absolute',
-                        top: 550, // Moved up from 555
-                        right: 40,
-                        width: 155,
+                        top: 550,
+                        left: 204,
+                        width: 140,
+                        height: 215,
                         zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 10
+                        overflow: 'hidden',
+                        fontFamily: SHARE_CARD_FONT
                     }}
                 >
                     {/* COLOR TYPE LABEL REMOVED */}
 
                     {/* Personal Color Info */}
                     {personalColor && (
-                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', marginTop: 5 }}>
+                        <div style={{ width: '100%' }}>
                             {/* Title */}
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 10, fontWeight: 900, color: '#1e293b', transform: 'translate(29px, -5px)', textAlign: 'left' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '68px minmax(0, 1fr)',
+                                    alignItems: 'center',
+                                    minHeight: 25,
+                                    width: '100%'
+                                }}
+                            >
+                                <div />
+                                <div
+                                    style={{
+                                        fontSize: 9,
+                                        fontWeight: 900,
+                                        color: '#1e293b',
+                                        lineHeight: 1.1,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        textAlign: 'left'
+                                    }}
+                                >
                                     {SEASON_LABELS[personalColor.season]} {TONE_LABELS[personalColor.tone]}
                                 </div>
-                                <div style={{ fontSize: 9, color: '#64748b', marginTop: 3, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.3, textAlign: 'left', transform: 'translateX(-35px)' }}>
-                                    {formatDescription(personalColor.description)}
-                                </div>
+                            </div>
+                            <div
+                                style={{
+                                    width: '100%',
+                                    height: 31,
+                                    padding: '0 8px',
+                                    boxSizing: 'border-box',
+                                    fontSize: 7.5,
+                                    color: '#64748b',
+                                    lineHeight: 1.35,
+                                    textAlign: 'center',
+                                    wordBreak: 'keep-all',
+                                    overflow: 'hidden',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical'
+                                }}
+                            >
+                                {formatDescription(personalColor.description, 48)}
                             </div>
 
                             {/* Palette Swatches */}
-                            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', transform: 'translateX(-40px)' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    gap: 7,
+                                    justifyContent: 'center',
+                                    marginTop: 8
+                                }}
+                            >
                                 {personalColor.palette.slice(0, 4).map((color, idx) => (
                                     <div
                                         key={idx}
                                         style={{
-                                            width: 20,
-                                            height: 20,
+                                            width: 22,
+                                            height: 22,
                                             borderRadius: 6,
                                             backgroundColor: color,
                                             border: '1px solid rgba(0,0,0,0.1)',
@@ -457,15 +544,14 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     {/* Radar Chart */}
                     <div
                         style={{
-                            width: 130,
-                            height: 130,
-                            position: 'relative',
-                            // 살짝 왼쪽으로 이동 요청 반영 + 추가 이동 35px (기존 -30px에서 늘림)
-                            transform: 'translate(-40px, -20px)',
-                            marginTop: 10
+                            width: 112,
+                            height: 112,
+                            position: 'absolute',
+                            top: 77,
+                            left: 14
                         }}
                     >
-                        <svg width="130" height="130" viewBox="0 0 120 120">
+                        <svg width="112" height="112" viewBox="0 0 120 120">
                             <defs>
                                 <linearGradient id="shareChartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stopColor="#F472B6" />
@@ -501,7 +587,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                             {/* Labels */}
                             {TRAIT_KO_LABELS.map((label, i) => {
                                 const angle = -Math.PI / 2 + i * (Math.PI * 2) / 10
-                                const labelRadius = 45 // 라벨 위치 살짝 안쪽으로
+                                const labelRadius = 42 // 라벨 위치 살짝 안쪽으로
                                 const x = 60 + labelRadius * Math.cos(angle)
                                 const y = 60 + labelRadius * Math.sin(angle)
                                 return (
@@ -514,7 +600,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                         fontSize="6" // 폰트 사이즈 조금 작게
                                         fontWeight="700"
                                         fill="#64748b"
-                                        style={{ fontFamily: 'var(--font-jua), "Jua", sans-serif' }}
+                                        style={{ fontFamily: SHARE_CARD_FONT }}
                                     >
                                         {label}
                                     </text>
@@ -523,20 +609,41 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         </svg>
                     </div>
 
-                    {/* Keywords (Bottom Right, under Radar Chart) - 각 키워드 독립 배치 */}
-                    {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
-                        <span key={idx} style={{
+                    {/* Keywords (Bottom Right, under Radar Chart) - 가로 키워드 칩 배치 */}
+                    <div
+                        style={{
                             position: 'absolute',
-                            fontSize: '8px',
-                            fontWeight: 'bold',
-                            color: '#334155',
-                            whiteSpace: 'nowrap',
-                            top: 192,
-                            left: idx === 0 ? -9 : idx === 1 ? 25 : 60
-                        }}>
-                            {keyword}
-                        </span>
-                    ))}
+                            top: 193,
+                            left: 5,
+                            right: 5,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 3,
+                            overflow: 'hidden'
+                        }}
+                    >
+                        {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
+                            <span key={idx} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flex: '0 0 42px',
+                                width: 42,
+                                height: 12,
+                                minWidth: 0,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                fontSize: '6.5px',
+                                fontWeight: 'bold',
+                                color: '#334155',
+                                lineHeight: 1,
+                                whiteSpace: 'nowrap',
+                                textAlign: 'center'
+                            }}>
+                                {formatKeyword(String(keyword))}
+                            </span>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Footer Icon/Logo - if needed, using background image's bottom area */}
