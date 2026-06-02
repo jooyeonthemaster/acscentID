@@ -44,10 +44,10 @@ export function ResultBottomActions({
         <button
           onClick={onShare}
           disabled={isShareSaving}
-          className="flex-1 py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+          aria-label={isShareSaving ? t('saving') : t('share')}
+          className="shrink-0 aspect-square p-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center disabled:opacity-70"
         >
           <Share2 size={16} />
-          <span>{isShareSaving ? t('saving') : t('share')}</span>
         </button>
 
         {/* 장바구니 담기 + 바로 구매 버튼 (online 모드) */}
@@ -61,13 +61,21 @@ export function ResultBottomActions({
               <ShoppingCart size={16} />
               <span>{isAddingToCart ? t('adding') : t('addToCart')}</span>
             </button>
-            <button
+            <motion.button
               onClick={onCheckout}
-              className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+              animate={{
+                boxShadow: [
+                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(251,146,60,0.3)",
+                  "3px 3px 0 0 #000, 0 0 28px 8px rgba(251,146,60,1)",
+                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(251,146,60,0.3)",
+                ],
+              }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black hover:translate-x-[1px] hover:translate-y-[1px] transition-transform flex items-center justify-center gap-2"
             >
               <CreditCard size={16} />
               <span>{t('buy')}</span>
-            </button>
+            </motion.button>
           </>
         )}
 

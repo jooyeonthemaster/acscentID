@@ -146,6 +146,42 @@ export function useProductImages(productSlug: string) {
   return { images, imageUrls, loading }
 }
 
+export function useProductThumbnailMap() {
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchThumbnails = async () => {
+      const { data, error } = await supabase
+        .from('admin_product_images')
+        .select('product_slug, image_url, display_order')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('[useProductThumbnailMap] Supabase error:', error)
+        setThumbnails({})
+        setLoading(false)
+        return
+      }
+
+      const nextThumbnails: Record<string, string> = {}
+      for (const image of data || []) {
+        if (!nextThumbnails[image.product_slug]) {
+          nextThumbnails[image.product_slug] = image.image_url
+        }
+      }
+
+      setThumbnails(nextThumbnails)
+      setLoading(false)
+    }
+
+    fetchThumbnails()
+  }, [])
+
+  return { thumbnails, loading }
+}
+
 // ============================================================
 // 상품 활성화 상태 훅
 // ============================================================
@@ -198,4 +234,9 @@ export function useActiveProducts() {
   const isProductActive = (slug: string) => activeSlugs.has(slug)
 
   return { products, activeProducts, isProductActive, loading }
+}
+
+export function useProductDisplayName(productSlug: string, fallbackName: string) {
+  const { products } = useActiveProducts()
+  return products.find((product) => product.slug === productSlug)?.name || fallbackName
 }

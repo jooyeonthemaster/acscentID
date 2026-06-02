@@ -31,6 +31,10 @@ import { formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIP
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { detectInAppBrowser } from "@/lib/mobile/inAppBrowser"
+import { getScentById, TODAY_SCENTS } from "@/lib/today-scent/scents"
+
+// "오늘의 향" 시그니처 퍼퓸 결제 시 주문 요약에 쓰는 대표 이미지
+const TODAY_SCENT_BOTTLE_IMAGE = "/images/perfume/LE QUACK.avif"
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -73,32 +77,48 @@ function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
-  const { getOption, getPrice } = useProductPricing()
+  const { getOption, getPrice, getOptions, getDefaultSize, loading: pricingLoading } = useProductPricing()
 
   // URL 파라미터에서 시그니처/테스트 상품 확인
   const urlProduct = searchParams.get("product")
   const urlType = searchParams.get("type")
   const isSignatureProduct = urlProduct === "le-quack" && urlType === "signature"
   const isPaymentTest = urlProduct === "payment-test" && urlType === "payment_test"
+  // "오늘의 향" 시그니처 상품 (분석 없이 바로 구매 — le-quack 패턴 재사용)
+  const isTodayScent = urlProduct === "today-scent" && urlType === "signature"
 
   // 다중 상품 모드
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
   const [isMultiItemMode, setIsMultiItemMode] = useState(false)
+
+  // 뒤로가기 목적지 — 상품 진입 경로별로 분기.
+  // (분석에서 온 상품만 /result. 카탈로그 상품은 해당 상품 페이지/홈으로 복귀)
+  const backHref = useMemo(() => {
+    if (isMultiItemMode) return "/mypage"
+    if (isTodayScent) {
+      const scent = searchParams.get("scent")
+      return scent ? `/programs/today-scent?scent=${scent}` : "/programs/today-scent"
+    }
+    if (isSignatureProduct) return "/programs/le-quack"
+    if (isPaymentTest) return "/"
+    return "/result"
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMultiItemMode, isTodayScent, isSignatureProduct, isPaymentTest, searchParams])
 
   // 단일 상품 모드 (기존 호환)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [idolName, setIdolName] = useState<string | null>(null)
   const [productType, setProductType] = useState<ProductType>("image_analysis")
-  // [FIX] CRITICAL #1: selectedSize 타입에 set_10ml/set_50ml 추가
-  const [selectedSize, setSelectedSize] = useState<"10ml" | "50ml" | "set" | "set_10ml" | "set_50ml">("10ml")
+  // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적 — selectedSize 는 임의 옵션 코드 허용
+  const [selectedSize, setSelectedSize] = useState<string>("10ml")
   const [singleQuantity, setSingleQuantity] = useState(1)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer")
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card")
   const [isRepurchaser, setIsRepurchaser] = useState<boolean | undefined>(undefined)
 
   // 재구매 자격 확인
@@ -215,6 +235,30 @@ function CheckoutContent() {
       return
     }
 
+    // 0-3. 오늘의 향 상품 - URL 파라미터로 처리 (분석 결과 없음)
+    // 가격/용량은 AI 이미지 분석 퍼퓸(image_analysis)과 동일하게 10ml/50ml 제공
+    if (isTodayScent) {
+      const scent = (searchParams.get("scent") ? getScentById(searchParams.get("scent")!) : undefined) || TODAY_SCENTS[0]
+      const sizeParam = searchParams.get("size")
+      // 오늘의 향은 AI 분석이 없는 카탈로그 상품 → 전용 타입 사용.
+      // (image_analysis 로 보내면 orders_product_ref_check 가 analysis_id 를 요구해 INSERT 가 거부됨)
+      setProductType("today_scent")
+      setSelectedSize(sizeParam === "50ml" ? "50ml" : "10ml")
+      setUserImage(TODAY_SCENT_BOTTLE_IMAGE)
+      setIdolName("AC'SCENT")
+      setAnalysisResult({
+        matchingPerfumes: [{
+          perfumeId: scent.id,
+          persona: {
+            name: `${scent.name} · 오늘의 향`,
+            recommendation: scent.vibe,
+          }
+        }],
+        matchingKeywords: scent.keywords,
+      })
+      return
+    }
+
     // 1. 다중 상품 모드 확인 (장바구니에서 온 경우)
     const savedCheckoutItems = localStorage.getItem("checkoutItems")
     if (savedCheckoutItems) {
@@ -305,7 +349,20 @@ function CheckoutContent() {
       localStorage.removeItem("checkoutRecipe")
       localStorage.removeItem("checkoutRecipePerfumeName")
     }
-  }, [authLoading, userId, router, userName, isSignatureProduct, isPaymentTest, searchParams])
+  }, [authLoading, userId, router, userName, isSignatureProduct, isPaymentTest, isTodayScent, searchParams])
+
+  // 선택 옵션 정합성 보정 — DB 옵션이 로드된 뒤 selectedSize 가 유효하지 않으면
+  // (관리자에서 삭제/순서변경 등) 해당 상품의 기본 옵션으로 자동 보정.
+  // 보정하지 않으면 결제 시 서버 가격 검증(unknown_size)에서 거부됨.
+  useEffect(() => {
+    if (isMultiItemMode || pricingLoading) return
+    const activeOptions = getOptions(productType)
+    if (activeOptions.length === 0) return
+    if (!activeOptions.some((opt) => opt.size === selectedSize)) {
+      setSelectedSize(getDefaultSize(productType))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productType, pricingLoading, isMultiItemMode, selectedSize])
 
   // 단일 상품 정보
   const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || t('result.customPerfume')
@@ -636,7 +693,7 @@ function CheckoutContent() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-200/10 rounded-full blur-3xl" />
       </div>
 
-      <Header title={t('checkout.title')} showBack={true} backHref={isMultiItemMode ? "/mypage" : "/result"} />
+      <Header title={t('checkout.title')} showBack={true} backHref={backHref} />
 
       <main className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">

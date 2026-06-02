@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -16,12 +16,14 @@ import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList }
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useTranslations } from 'next-intl'
-import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -51,6 +53,7 @@ export default function GraduationPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
+  const productName = useProductDisplayName('graduation', t('products.graduation'))
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -80,9 +83,32 @@ export default function GraduationPage() {
     "/images/jollduck/KakaoTalk_20260130_201156204_01.jpg",
     "/images/jollduck/KakaoTalk_20260130_201156204_02.jpg",
   ]
+  const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('graduation')
   const { startTransition } = useTransition()
+  const pageSubtitle = t('programs.graduation.subtitle')
+  const pageInfoTitle = '졸업 패키지 구성'
+  const pageInfoBody = `${t('programs.graduation.compPerfume')} / ${t('programs.graduation.compKeyring')} / ${t('programs.graduation.compReport')}`
+  const pageCtaLabel = t('buttons.analyzeNow')
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(detail?.custom_html, {
+      badge: t('programs.graduation.limitedBadge'),
+      subtitle: pageSubtitle,
+      infoTitle: pageInfoTitle,
+      infoBody: pageInfoBody,
+      ctaLabel: pageCtaLabel,
+    }),
+    [detail?.custom_html, t, pageSubtitle, pageInfoTitle, pageInfoBody, pageCtaLabel],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   const handleStartClick = () => {
     if (loading) return
@@ -102,6 +128,7 @@ export default function GraduationPage() {
     <InactiveProductGuard productSlug="graduation">
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
+      <ProgramAdminBridge productSlug="graduation" />
 
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
@@ -117,18 +144,27 @@ export default function GraduationPage() {
             {/* 메인 이미지 */}
             <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
               <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-black animate-pulse">
-                  {t('programs.graduation.limitedBadge')}
+                <span
+                  className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-black animate-pulse"
+                  data-admin-page-position-field="badge"
+                  style={pagePositionStyle('badge')}
+                >
+                  <span data-admin-page-field="badge">{pageContent.badge}</span>
                 </span>
               </div>
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50">
+              <div
+                className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50"
+                data-admin-product-image="true"
+                data-admin-page-position-field="productImage"
+                style={pagePositionStyle('productImage')}
+              >
                 <motion.img
-                  key={selectedImage}
+                  key={currentImage}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  src={productImages[selectedImage]}
-                  alt={t('products.graduation')}
+                  src={currentImage}
+                  alt={productName}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -165,7 +201,7 @@ export default function GraduationPage() {
               <ChevronRight size={12} />
               <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
               <ChevronRight size={12} />
-              <span className="text-black font-bold">{t('products.graduation')}</span>
+              <span className="text-black font-bold">{productName}</span>
             </div>
 
             {/* 타이틀 */}
@@ -182,11 +218,25 @@ export default function GraduationPage() {
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500">
-                  {t('products.graduation')}
+                  <span
+                    className="inline-block"
+                    data-admin-editable="product_name"
+                    data-admin-page-position-field="productName"
+                    style={pagePositionStyle('productName')}
+                  >
+                    {productName}
+                  </span>
                 </span>
               </h1>
               <p className="text-sm text-slate-600 font-medium">
-                {t('programs.graduation.subtitle')}
+                <span
+                  className="inline-block"
+                  data-admin-page-field="subtitle"
+                  data-admin-page-position-field="subtitle"
+                  style={pagePositionStyle('subtitle')}
+                >
+                  {pageContent.subtitle}
+                </span>
               </p>
             </div>
 
@@ -200,7 +250,11 @@ export default function GraduationPage() {
             </div>
 
             {/* 가격 + 구성품 안내 */}
-            <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
+            <div
+              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
+              data-admin-page-position-field="infoCard"
+              style={pagePositionStyle('infoCard')}
+            >
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
                 <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? 34000)}</span>
@@ -216,6 +270,15 @@ export default function GraduationPage() {
 
               {/* 구성품 안내 */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Star size={14} className="fill-amber-400 text-amber-400" />
+                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
+                    {pageContent.infoTitle}
+                  </span>
+                </div>
+                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
+                  {pageContent.infoBody}
+                </p>
                 <div className="space-y-1 mb-1.5">
                   <div className="flex items-center gap-2">
                     <Star size={14} className="fill-amber-400 text-amber-400" />
@@ -238,8 +301,10 @@ export default function GraduationPage() {
               onClick={handleStartClick}
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              data-admin-page-position-field="ctaButton"
+              style={pagePositionStyle('ctaButton')}
             >
-              {t('buttons.analyzeNow')}
+              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
             </button>
 
             <p className="text-center text-xs text-red-500 font-bold mt-2">
@@ -252,7 +317,7 @@ export default function GraduationPage() {
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <>
+        <div data-admin-editable="detail_html">
           {/* ============================================
               Feature Bar - 검은 배경
           ============================================ */}
@@ -400,7 +465,7 @@ export default function GraduationPage() {
           </motion.div>
         </motion.div>
       </section>
-        </>
+        </div>
       )}
 
       {/* ============================================
@@ -534,7 +599,7 @@ export default function GraduationPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         programType="graduation"
-        programName={t('products.graduation')}
+        programName={productName}
         currentUserId={currentUserId}
         onWriteReview={() => {
           setShowReviewModal(false)
@@ -547,7 +612,7 @@ export default function GraduationPage() {
         isOpen={showReviewWriteModal}
         onClose={() => setShowReviewWriteModal(false)}
         programType="graduation"
-        programName={t('products.graduation')}
+        programName={productName}
         userId={currentUserId || ''}
         onSuccess={() => {
           // 리뷰 통계 새로고침

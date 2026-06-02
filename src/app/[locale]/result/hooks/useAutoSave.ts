@@ -260,7 +260,9 @@ export function useAutoSave({
             modelingRequest,
           }),
           // 모든 분석에 productType, serviceMode 저장 (오프라인 태그 표시용)
-          productType: productType || 'image_analysis',
+          // image_analysis_paper(시향지)는 주문 단계의 SKU 구분일 뿐, 분석 자체는 이미지 분석이므로
+          // analysis_results 에는 image_analysis 로 저장 (analysis_results CHECK 제약에 paper 미포함).
+          productType: (productType === 'image_analysis_paper' ? 'image_analysis' : productType) || 'image_analysis',
           serviceMode,
           // 분석 대상 타입 (최애/나) — 인쇄 보고서 배경 분기용
           targetType: targetType || 'idol',

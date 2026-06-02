@@ -9,7 +9,8 @@ import { Header } from "@/components/layout/Header"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
 import { PopupModal } from "@/components/home/PopupModal"
-import { useBanners, useActiveProducts, useProductImages } from "@/hooks/useAdminContent"
+import { TodayScentDraw } from "@/components/home/TodayScentDraw"
+import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/useAdminContent"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import type { ProductType } from "@/types/cart"
 
@@ -23,11 +24,8 @@ export default function Home() {
   const { isProductActive } = useActiveProducts()
   const { getOptions } = useProductPricing()
 
-  // 각 상품의 DB 이미지 로드 (관리자 업로드 이미지 우선)
-  const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
-  const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
-  const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
-  const productImagesLoading = idolLoading || figureLoading || chemistryLoading
+  // 상품관리 이미지의 첫 번째 사진이 메인 썸네일입니다.
+  const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
 
   // 가격은 DB 의 가장 저렴한 활성 옵션 (priceRange 표시용)
   const minPrice = (productType: ProductType) => {
@@ -40,6 +38,8 @@ export default function Home() {
   }
   const idolPrice = minPrice('image_analysis')
   const figurePrice = minPrice('figure_diffuser')
+  const graduationPrice = minPrice('graduation')
+  const personalPrice = minPrice('personal_scent')
   const chemistryPrice = minPrice('chemistry_set')
   const leQuackPrice = minPrice('signature')
 
@@ -55,7 +55,7 @@ export default function Home() {
       id: "idol-image",
       title: t('products.idolImage'),
       subtitle: t('programs.subtitle.idolImage'),
-      image: productImagesLoading ? null : (idolImages[0] || "/images/perfume/KakaoTalk_20260125_225218071.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["idol-image"] || "/images/perfume/KakaoTalk_20260125_225218071.jpg"),
       price: idolPrice?.price ?? 24000,
       originalPrice: idolPrice?.original_price ?? null,
       priceRange: true,
@@ -68,7 +68,7 @@ export default function Home() {
       id: "figure",
       title: t('products.figureDiffuser'),
       subtitle: t('programs.subtitle.figure'),
-      image: productImagesLoading ? null : (figureImages[0] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["figure"] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg"),
       price: figurePrice?.price ?? 48000,
       originalPrice: figurePrice?.original_price ?? null,
       delivery: t('shipping.afterProduction'),
@@ -77,10 +77,35 @@ export default function Home() {
       href: "/programs/figure"
     },
     {
+      id: "graduation",
+      title: t('products.graduation'),
+      subtitle: t('programs.subtitle.graduation'),
+      image: thumbnailsLoading ? null : (thumbnails["graduation"] || "/images/jollduck/KakaoTalk_20260130_201156204.jpg"),
+      price: graduationPrice?.price ?? 34000,
+      originalPrice: graduationPrice?.original_price ?? null,
+      delivery: t('shipping.estimated'),
+      badge: computeBadge(graduationPrice, "LIMITED"),
+      badgeColor: "bg-[#EF4444]",
+      href: "/programs/graduation"
+    },
+    {
+      id: "personal",
+      title: t('products.personal'),
+      subtitle: t('programs.subtitle.personal'),
+      image: thumbnailsLoading ? null : (thumbnails["personal"] || "/제목 없는 디자인 (4)/1.png"),
+      price: personalPrice?.price ?? 24000,
+      originalPrice: personalPrice?.original_price ?? null,
+      priceRange: true,
+      delivery: t('shipping.estimated'),
+      badge: computeBadge(personalPrice, "SIGNATURE"),
+      badgeColor: "bg-[#111827]",
+      href: "/programs/personal"
+    },
+    {
       id: "chemistry",
       title: t('products.chemistry'),
       subtitle: t('programs.subtitle.chemistry'),
-      image: productImagesLoading ? null : (chemistryImages[0] || "/images/chemistry/chemistry-thumbnail.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["chemistry"] || "/images/chemistry/chemistry-thumbnail.jpg"),
       price: chemistryPrice?.price ?? 38000,
       originalPrice: chemistryPrice?.original_price ?? null,
       priceRange: true,
@@ -88,6 +113,18 @@ export default function Home() {
       badge: "SEASON 3",
       badgeColor: "bg-[#F472B6]",
       href: "/programs/chemistry"
+    },
+    {
+      id: "le-quack",
+      title: t('products.leQuack'),
+      subtitle: t('home.signaturePerfumDesc'),
+      image: thumbnailsLoading ? null : (thumbnails["le-quack"] || "/images/perfume/LE QUACK.avif"),
+      price: leQuackPrice?.price ?? 34000,
+      originalPrice: leQuackPrice?.original_price ?? null,
+      delivery: t('shipping.estimated'),
+      badge: computeBadge(leQuackPrice, "SIGNATURE"),
+      badgeColor: "bg-[#F59E0B]",
+      href: "/programs/le-quack"
     },
   ]
 
@@ -172,15 +209,17 @@ export default function Home() {
               {/* 좌우 네비게이션 버튼 */}
               <button
                 onClick={prevSlide}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 border-2 border-slate-900 flex items-center justify-center shadow-[2px_2px_0px_#000] hover:bg-white transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                aria-label="이전 배너"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
-                <ChevronLeft size={20} className="text-slate-900" />
+                <ChevronLeft size={24} className="text-white drop-shadow" />
               </button>
               <button
                 onClick={nextSlide}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 border-2 border-slate-900 flex items-center justify-center shadow-[2px_2px_0px_#000] hover:bg-white transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                aria-label="다음 배너"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
-                <ChevronRight size={20} className="text-slate-900" />
+                <ChevronRight size={24} className="text-white drop-shadow" />
               </button>
 
               <div className="absolute bottom-32 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
@@ -203,7 +242,7 @@ export default function Home() {
           {/* Wrapper for Sticky Control */}
           <div className="relative">
             {/* ===== 프로그램 둘러보기 섹션 ===== */}
-            <section id="programs-section" className="bg-white px-4 pt-8 pb-[180px] rounded-t-[32px] -mt-[100px] md:-mt-[60px] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
+            <section id="programs-section" className="bg-white px-4 pt-8 pb-32 rounded-t-[32px] -mt-[100px] md:-mt-[60px] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
               {/* 섹션 타이틀 */}
               <div className="flex items-center gap-2 mb-6">
                 <Search size={20} className="text-slate-900" />
@@ -270,9 +309,12 @@ export default function Home() {
               </div>
 
             </section>
-            {/* Sticky Track Spacer */}
-            <div className="h-[150px] w-full" />
+            {/* Sticky Track Spacer (상품 섹션 숨김 동안 축소) */}
+            <div className="h-0 w-full" />
           </div>
+
+          {/* ===== 오늘의 향 뽑기 섹션 ===== */}
+          <TodayScentDraw />
 
           {/* ===== 상품 둘러보기 섹션 (New) ===== */}
           {/* TEMP: 잠깐 숨김 처리 (2026-04-30) — 다시 켤 때 이 false → true */}
@@ -290,7 +332,7 @@ export default function Home() {
                   <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
                     <div className="relative w-full h-full grayscale-[0.3]">
                       <Image
-                        src="/images/perfume/LE QUACK.avif"
+                        src={thumbnails["le-quack"] || "/images/perfume/LE QUACK.avif"}
                         alt={t('products.leQuack')}
                         fill
                         className="object-cover blur-sm"

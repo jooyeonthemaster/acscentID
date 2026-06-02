@@ -11,14 +11,17 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
-import { useActiveProducts, useProductImages } from '@/hooks/useAdminContent'
+import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
 
 // Programs 드롭업 메뉴 항목 (전체) - 기본 fallback 이미지 포함
 const ALL_PROGRAM_LINKS = [
   { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
   { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const, fallbackImage: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
+  { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const, descKey: 'programs.subtitle.graduation' as const, fallbackImage: '/images/jollduck/KakaoTalk_20260130_201156204.jpg' },
+  { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const, fallbackImage: '/제목 없는 디자인 (4)/1.png' },
   { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
+  { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const, fallbackImage: '/images/perfume/LE QUACK.avif' },
 ]
 
 // NavItem 컴포넌트
@@ -76,7 +79,7 @@ function ProgramsSheet({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 z-40"
+        className="fixed inset-0 bg-black/60 z-[55]"
         onClick={onClose}
       />
 
@@ -86,7 +89,7 @@ function ProgramsSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 bg-white border-t-2 border-black rounded-t-3xl shadow-[0_-8px_0px_0px_rgba(250,204,21,1)]"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-[60] bg-white border-t-2 border-black rounded-t-3xl shadow-[0_-8px_0px_0px_rgba(250,204,21,1)]"
       >
         {/* 핸들 바 */}
         <div className="flex justify-center pt-3 pb-2">
@@ -151,24 +154,15 @@ export function MobileBottomNav() {
   const t = useTranslations()
   const { isProductActive } = useActiveProducts()
 
-  // DB 대표 이미지 로드
-  const { imageUrls: idolImages, loading: idolLoading } = useProductImages('idol-image')
-  const { imageUrls: figureImages, loading: figureLoading } = useProductImages('figure')
-  const { imageUrls: chemistryImages, loading: chemistryLoading } = useProductImages('chemistry')
-  const imagesLoading = idolLoading || figureLoading || chemistryLoading
-
-  const dynamicImageMap: Record<string, string | undefined> = {
-    'idol-image': idolImages[0],
-    'figure': figureImages[0],
-    'chemistry': chemistryImages[0],
-  }
+  // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
+  const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
 
   // 활성 상품만 필터링 + DB 이미지 연동
   const PROGRAM_LINKS = ALL_PROGRAM_LINKS
     .filter((link) => isProductActive(link.slug))
     .map((link) => ({
       ...link,
-      image: imagesLoading ? link.fallbackImage : (dynamicImageMap[link.slug] || link.fallbackImage),
+      image: thumbnailsLoading ? link.fallbackImage : (thumbnails[link.slug] || link.fallbackImage),
     }))
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)
@@ -181,6 +175,8 @@ export function MobileBottomNav() {
 
   const isAdminPage = normalizedPathname.startsWith('/admin')
   const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
+  // 자체 하단 고정 구매바를 가진 페이지 — 전역 네비와 겹쳐 스크롤 시 깜빡이는 문제 방지
+  const hasOwnBottomBar = normalizedPathname === '/programs/today-scent'
 
   const isIdolImagePage = normalizedPathname === '/programs/idol-image'
   const isFigurePage = normalizedPathname === '/programs/figure'
@@ -220,7 +216,7 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isAdminPage])
 
-  if (isAdminPage || shouldHideForFocusedExperience) return null
+  if (isAdminPage || shouldHideForFocusedExperience || hasOwnBottomBar) return null
 
   const isHomeActive = normalizedPathname === '/'
   const isProgramsActive = normalizedPathname.startsWith('/programs')
@@ -293,7 +289,7 @@ export function MobileBottomNav() {
           <NavItem
             href="/"
             icon={Home}
-            label="Home"
+            label={t('nav.home')}
             isActive={isHomeActive}
           />
 
@@ -319,7 +315,7 @@ export function MobileBottomNav() {
             <span className={cn(
               "text-[10px] tracking-wide",
               isProgramsActive ? "font-black" : "font-bold"
-            )}>Programs</span>
+            )}>{t('nav.programs')}</span>
           </button>
 
           {currentUser ? (
@@ -341,7 +337,7 @@ export function MobileBottomNav() {
               <span className={cn(
                 "text-[10px] tracking-wide",
                 isMyPageActive ? "font-black" : "font-bold"
-              )}>My</span>
+              )}>{t('nav.my')}</span>
             </Link>
           ) : (
             <button
@@ -364,17 +360,19 @@ export function MobileBottomNav() {
             </div>
             <span className="text-[10px] font-bold tracking-wide">{t('nav.menu')}</span>
           </button>
-
-          <AnimatePresence>
-            {showProgramsMenu && (
-              <ProgramsSheet
-                onClose={() => setShowProgramsMenu(false)}
-                programLinks={PROGRAM_LINKS}
-              />
-            )}
-          </AnimatePresence>
         </div>
       </nav>
+
+      {/* 프로그램 선택 드로어: nav(z-40)의 스택 컨텍스트 밖에서 렌더링해야
+          CTA 버튼(z-50)에 가려지지 않습니다. */}
+      <AnimatePresence>
+        {showProgramsMenu && (
+          <ProgramsSheet
+            onClose={() => setShowProgramsMenu(false)}
+            programLinks={PROGRAM_LINKS}
+          />
+        )}
+      </AnimatePresence>
 
       <MobileMenuSheet
         isOpen={isMenuOpen}

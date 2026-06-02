@@ -1,23 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { type CSSProperties, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Sparkles, User, Star, CheckCircle2, X, AlertTriangle,
-  ChevronRight, ChevronDown, Package, Truck, Gift, Shield,
-  FileText, Droplets, Clock, Heart
+  ChevronRight, ChevronDown, Package, Truck, Gift,
+  FileText, Droplets
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
-import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -50,6 +52,7 @@ export default function PersonalPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const productName = useProductDisplayName('personal', '퍼스널 센트')
 
   const isLoggedIn = !!(user || unifiedUser)
   const { isCustomMode, detail } = useProductDetail('personal')
@@ -60,6 +63,25 @@ export default function PersonalPage() {
     "/제목 없는 디자인 (4)/2.png",
     "/제목 없는 디자인 (4)/3.png",
   ]
+  const currentImage = productImages[selectedImage] || productImages[0] || ''
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(detail?.custom_html, {
+      badge: 'SIGNATURE',
+      subtitle: 'AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 퍼퓸',
+      infoTitle: '맞춤 퍼퓸 10ml (스프레이 타입)',
+      infoBody: '제작 후 2~3일 배송 (배송비 3,000원) / 퍼스널리티 리포트 무료 증정',
+      ctaLabel: '퍼스널리티 분석 시작하기',
+    }),
+    [detail?.custom_html],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   const handleStartClick = () => {
     if (loading) return
@@ -99,6 +121,7 @@ export default function PersonalPage() {
     <InactiveProductGuard productSlug="personal">
     <main className="relative min-h-screen bg-[#FAFAFA] font-sans">
       <Header />
+      <ProgramAdminBridge productSlug="personal" />
 
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
@@ -116,21 +139,30 @@ export default function PersonalPage() {
               {/* 메인 이미지 */}
               <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black] mb-4">
                 <div className="absolute top-4 left-4 z-10 flex gap-2">
-                  <span className="px-3 py-1 bg-black text-white text-xs font-black rounded-full border-2 border-black">
-                    SIGNATURE
+                  <span
+                    className="px-3 py-1 bg-black text-white text-xs font-black rounded-full border-2 border-black"
+                    data-admin-page-position-field="badge"
+                    style={pagePositionStyle('badge')}
+                  >
+                    <span data-admin-page-field="badge">{pageContent.badge}</span>
                   </span>
                   <span className="px-3 py-1 bg-white text-black text-xs font-black rounded-full border-2 border-black">
                     PREMIUM
                   </span>
                 </div>
-                <div className="aspect-square flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-gray-100">
+                <div
+                  className="aspect-square flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-gray-100"
+                  data-admin-product-image="true"
+                  data-admin-page-position-field="productImage"
+                  style={pagePositionStyle('productImage')}
+                >
                   <motion.img
-                    key={selectedImage}
+                    key={currentImage}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}
-                    src={productImages[selectedImage]}
-                    alt="제품 이미지"
+                    src={currentImage}
+                    alt={productName}
                     className="w-[85%] h-[85%] object-contain"
                   />
                 </div>
@@ -166,7 +198,7 @@ export default function PersonalPage() {
                 <ChevronRight size={14} />
                 <Link href="/" className="hover:text-black">프로그램</Link>
                 <ChevronRight size={14} />
-                <span className="text-black font-bold">퍼스널 센트</span>
+                <span className="text-black font-bold">{productName}</span>
               </div>
 
               {/* 타이틀 */}
@@ -178,13 +210,27 @@ export default function PersonalPage() {
                   <span className="text-sm font-bold text-slate-600 ml-1">4.9 (2,847)</span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-black text-black leading-tight mb-3">
-                  퍼스널 센트<br />
+                  <span
+                    className="inline-block"
+                    data-admin-editable="product_name"
+                    data-admin-page-position-field="productName"
+                    style={pagePositionStyle('productName')}
+                  >
+                    {productName}
+                  </span><br />
                   <span className="text-slate-500">
                     나를 위한 시그니처 향
                   </span>
                 </h1>
                 <p className="text-slate-600 font-medium">
-                  AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 퍼퓸
+                  <span
+                    className="inline-block"
+                    data-admin-page-field="subtitle"
+                    data-admin-page-position-field="subtitle"
+                    style={pagePositionStyle('subtitle')}
+                  >
+                    {pageContent.subtitle}
+                  </span>
                 </p>
               </div>
 
@@ -198,7 +244,11 @@ export default function PersonalPage() {
               </div>
 
               {/* 가격 */}
-              <div className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black] mb-6">
+              <div
+                className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black] mb-6"
+                data-admin-page-position-field="infoCard"
+                style={pagePositionStyle('infoCard')}
+              >
                 <div className="flex items-end gap-3 mb-4">
                   <span className="text-4xl font-black text-black">{formatPrice(personal10?.price ?? 24000)}원</span>
                   {personal10?.original_price && personal10.original_price > personal10.price && (
@@ -210,10 +260,13 @@ export default function PersonalPage() {
                     </>
                   )}
                 </div>
+                <p className="mb-3 text-sm font-medium leading-relaxed text-slate-600" data-admin-page-field="infoBody">
+                  {pageContent.infoBody}
+                </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Droplets size={16} className="text-black" />
-                    <span>맞춤 퍼퓸 10ml (스프레이 타입)</span>
+                    <span data-admin-page-field="infoTitle">{pageContent.infoTitle}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Truck size={16} className="text-black" />
@@ -246,9 +299,11 @@ export default function PersonalPage() {
                 onClick={handleStartClick}
                 disabled={loading}
                 className="w-full py-5 bg-black text-white font-black text-xl rounded-xl border-2 border-black shadow-[6px_6px_0_0_#666] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0_0_#666] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                data-admin-page-position-field="ctaButton"
+                style={pagePositionStyle('ctaButton')}
               >
                 <User size={24} />
-                퍼스널리티 분석 시작하기
+                <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
               </button>
 
               <p className="text-center text-sm text-slate-500 mt-3">
@@ -262,7 +317,7 @@ export default function PersonalPage() {
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <>
+        <div data-admin-editable="detail_html">
           {/* ============================================
               구성품 배너
           ============================================ */}
@@ -478,7 +533,7 @@ export default function PersonalPage() {
           </motion.div>
         </motion.div>
       </section>
-        </>
+        </div>
       )}
 
       {/* ============================================
@@ -513,7 +568,7 @@ export default function PersonalPage() {
                     <Star key={i} size={16} className="fill-black text-black" />
                   ))}
                 </div>
-                <p className="text-slate-700 mb-4 leading-relaxed">"{review.text}"</p>
+                <p className="text-slate-700 mb-4 leading-relaxed">&quot;{review.text}&quot;</p>
                 <div className="flex items-center justify-between">
                   <p className="font-black text-black">{review.name}</p>
                   <div className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">

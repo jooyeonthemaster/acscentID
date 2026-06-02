@@ -18,11 +18,32 @@ export function useProductDetail(productSlug: string) {
     if (!productSlug) return
 
     const fetchDetail = async () => {
+      setLoading(true)
+      const isAdminPreview =
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('adminPreview') === '1'
+
+      if (isAdminPreview) {
+        try {
+          const res = await fetch(`/api/admin/products/${productSlug}/preview-detail`, {
+            cache: 'no-store',
+          })
+          if (res.ok) {
+            const json = await res.json()
+            setDetail(json.detail as ProductDetail)
+            setLoading(false)
+            return
+          }
+        } catch (error) {
+          console.error('[useProductDetail] admin preview error:', error)
+        }
+      }
+
       const { data, error } = await supabase
         .from('admin_product_details')
         .select('slug, published_detail_mode, published_html, published_at')
         .eq('slug', productSlug)
-        .single()
+        .maybeSingle()
 
       if (error && error.code !== 'PGRST116') {
         // PGRST116 = "Row not found" — 해당 slug의 상세 설정이 없으면 default 모드 사용

@@ -64,6 +64,8 @@ function MyPageContent() {
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [chemistryAnalyses, setChemistryAnalyses] = useState<ChemistryAnalysis[]>([])
   const [orders, setOrders] = useState<Order[]>([])
+  const [cartCount, setCartCount] = useState(0)
+  const [couponCount, setCouponCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [analysesLoaded, setAnalysesLoaded] = useState(false)
@@ -81,6 +83,31 @@ function MyPageContent() {
       setActiveTab(tab)
     }
   }, [searchParams])
+
+  // 탭 뱃지용 장바구니/쿠폰 개수 조회
+  useEffect(() => {
+    let cancelled = false
+    const fetchTabCounts = async () => {
+      try {
+        const [cartRes, couponRes] = await Promise.all([
+          fetch('/api/cart'),
+          fetch('/api/coupons/my'),
+        ])
+        if (!cancelled && cartRes.ok) {
+          const data = await cartRes.json()
+          setCartCount((data.items || []).length)
+        }
+        if (!cancelled && couponRes.ok) {
+          const data = await couponRes.json()
+          setCouponCount((data.coupons || []).filter((c: { is_used?: boolean }) => c.is_used).length)
+        }
+      } catch (error) {
+        console.error('Failed to fetch tab counts:', error)
+      }
+    }
+    fetchTabCounts()
+    return () => { cancelled = true }
+  }, [])
 
   // 주문 내역 조회
   const fetchOrders = useCallback(async () => {
@@ -211,6 +238,7 @@ function MyPageContent() {
             >
               <ShoppingCart size={18} />
               <span>{t('cart.tab')}</span>
+              <span className="text-[10px] opacity-70">{t('itemCount', { count: cartCount })}</span>
             </button>
             <button
               onClick={() => setActiveTab('orders')}
@@ -234,6 +262,7 @@ function MyPageContent() {
             >
               <Ticket size={18} />
               <span>{t('coupons')}</span>
+              <span className="text-[10px] opacity-70">{t('itemCount', { count: couponCount })}</span>
             </button>
           </div>
         </div>

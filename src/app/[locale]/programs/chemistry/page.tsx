@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import {
   ChevronRight, Sparkles, Palette, FileCheck,
-  Heart, Camera, Layers, FlaskConical
+  Heart, Camera, FlaskConical
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
@@ -15,6 +15,7 @@ import { useTranslations } from 'next-intl'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { ProgramImageGallery } from "@/components/programs/ProgramImageGallery"
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
@@ -22,6 +23,8 @@ import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
+import { useProductDisplayName } from '@/hooks/useAdminContent'
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -52,6 +55,7 @@ export default function ChemistryProgramPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()
+  const productName = useProductDisplayName('chemistry', t('products.chemistry'))
 
   // 리뷰 통계 (히어로 ReviewTrigger용)
   const [reviewStats, setReviewStats] = useState<ReviewStatsType | null>(null)
@@ -64,6 +68,28 @@ export default function ChemistryProgramPage() {
 
   const { isCustomMode, detail } = useProductDetail('chemistry')
   const { startTransition } = useTransition()
+  const pageSubtitle = t('programs.subtitle.chemistry')
+  const pageInfoTitle = t('programs.includes.chemistry')
+  const pageInfoBody = `10ml x 2 / 50ml x 2 용량 선택 가능 / ${t('shipping.estimated')}`
+  const pageCtaLabel = t('buttons.analyzeNow')
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(detail?.custom_html, {
+      badge: 'NEW',
+      subtitle: pageSubtitle,
+      infoTitle: pageInfoTitle,
+      infoBody: pageInfoBody,
+      ctaLabel: pageCtaLabel,
+    }),
+    [detail?.custom_html, pageSubtitle, pageInfoTitle, pageInfoBody, pageCtaLabel],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   const handleStartClick = () => {
     if (loading) return
@@ -83,6 +109,7 @@ export default function ChemistryProgramPage() {
     <InactiveProductGuard productSlug="chemistry">
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
+      <ProgramAdminBridge productSlug="chemistry" />
 
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
@@ -96,7 +123,8 @@ export default function ChemistryProgramPage() {
               "/images/perfume/KakaoTalk_20260125_225218071.jpg",
               "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
             ]}
-            badge="NEW"
+            badge={pageContent.badge}
+            pagePositionStyle={pagePositionStyle}
           />
 
           {/* 제품 정보 */}
@@ -111,7 +139,7 @@ export default function ChemistryProgramPage() {
               <ChevronRight size={12} />
               <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
               <ChevronRight size={12} />
-              <span className="text-black font-bold">{t('products.chemistry')}</span>
+              <span className="text-black font-bold">{productName}</span>
             </div>
 
             {/* 타이틀 */}
@@ -127,16 +155,34 @@ export default function ChemistryProgramPage() {
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-pink-500 to-rose-500">
-                  {t('products.chemistry')}
+                  <span
+                    className="inline-block"
+                    data-admin-editable="product_name"
+                    data-admin-page-position-field="productName"
+                    style={pagePositionStyle('productName')}
+                  >
+                    {productName}
+                  </span>
                 </span>
               </h1>
               <p className="text-sm text-slate-600 font-medium">
-                {t('programs.subtitle.chemistry')}
+                <span
+                  className="inline-block"
+                  data-admin-page-field="subtitle"
+                  data-admin-page-position-field="subtitle"
+                  style={pagePositionStyle('subtitle')}
+                >
+                  {pageContent.subtitle}
+                </span>
               </p>
             </div>
 
             {/* 가격 + 구성품 안내 */}
-            <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
+            <div
+              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
+              data-admin-page-position-field="infoCard"
+              style={pagePositionStyle('infoCard')}
+            >
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
                 <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(chemMin ?? 38000)}~</span>
@@ -150,8 +196,13 @@ export default function ChemistryProgramPage() {
               <div className="bg-violet-50 border border-violet-200 rounded-lg p-2.5">
                 <div className="flex items-center gap-2 mb-1.5">
                   <FlaskConical size={14} className="text-violet-500" />
-                  <span className="font-bold text-xs text-black">{t('programs.includes.chemistry')}</span>
+                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
+                    {pageContent.infoTitle}
+                  </span>
                 </div>
+                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
+                  {pageContent.infoBody}
+                </p>
                 <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
                   <li className="list-disc">10ml x 2 / 50ml x 2 용량 선택 가능</li>
                   <li className="list-disc">{t('shipping.estimated')}</li>
@@ -164,8 +215,10 @@ export default function ChemistryProgramPage() {
               onClick={handleStartClick}
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              data-admin-page-position-field="ctaButton"
+              style={pagePositionStyle('ctaButton')}
             >
-              {t('buttons.analyzeNow')}
+              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
             </button>
 
             <p className="text-center text-xs text-slate-500 mt-2">
@@ -178,7 +231,7 @@ export default function ChemistryProgramPage() {
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <>
+        <div data-admin-editable="detail_html">
           {/* ============================================
               Feature Bar - 검은 배경
           ============================================ */}
@@ -281,7 +334,7 @@ export default function ChemistryProgramPage() {
               </motion.div>
             </motion.div>
           </section>
-        </>
+        </div>
       )}
 
       {/* ============================================
@@ -289,7 +342,7 @@ export default function ChemistryProgramPage() {
       ============================================ */}
       <ProgramReviewSection
         programType="chemistry_set"
-        programName={t('products.chemistry')}
+        programName={productName}
         currentUserId={currentUserId}
         isLoggedIn={isLoggedIn}
         onLoginRequired={() => setShowLoginPrompt(true)}

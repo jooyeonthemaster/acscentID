@@ -144,6 +144,7 @@ const PAYMENT_METHOD_BADGE: Record<string, { label: string; className: string }>
 // [FIX] HIGH: chemistry_set 뱃지 추가
 const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> = {
   image_analysis: { label: '이미지분석', className: 'bg-blue-100 text-blue-700' },
+  image_analysis_paper: { label: '시향지', className: 'bg-yellow-100 text-yellow-800' },
   figure_diffuser: { label: '피규어', className: 'bg-cyan-100 text-cyan-700' },
   graduation: { label: '졸업', className: 'bg-purple-100 text-purple-700' },
   signature: { label: '시그니처', className: 'bg-pink-100 text-pink-700' },
@@ -153,6 +154,15 @@ const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> =
 
 function getProductBadge(type?: string | null) {
   return type ? PRODUCT_TYPE_BADGE[type] : null
+}
+
+// 용량/타입 라벨 — 시향지는 size('set'/'scent_paper') 대신 '시향지'로 표기
+//  - image_analysis_paper: 단독 시향지 상품 (size='set')
+//  - image_analysis / chemistry_set: 결제 단계에서 선택한 시향지 애드온 (size='scent_paper')
+function formatSizeLabel(productType: string | null | undefined, size: string): string {
+  if (productType === 'image_analysis_paper') return '시향지'
+  if (size === 'scent_paper') return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
+  return size
 }
 
 function getPaymentBadge(method?: string) {
@@ -796,9 +806,14 @@ export default function AdminOrdersPage() {
         // 전체 주소 조합
         const fullAddress = `[${order.zip_code}] ${order.address}${order.address_detail ? ' ' + order.address_detail : ''}`
 
-        // 내품명 결정 (피규어 디퓨저면 "디퓨저", 그 외는 "향수")
+        // 내품명 결정 — 출고 시 실제 동봉물 기준
+        //  피규어 디퓨저 → "디퓨저", 시향지(단독 상품/애드온) → "시향지", 그 외 → "향수"
         const productType = order.product_type || order.analysis?.product_type
-        const itemName = productType === 'figure_diffuser' ? '디퓨저' : '향수'
+        const itemName = productType === 'figure_diffuser'
+          ? '디퓨저'
+          : (productType === 'image_analysis_paper' || order.size === 'scent_paper')
+            ? '시향지'
+            : '향수'
 
         return {
           '받는분주소(전체, 분할)': fullAddress,
@@ -1124,7 +1139,7 @@ export default function AdminOrdersPage() {
                         <td className="px-4 py-3">
                           <div className="text-slate-900">{order.perfume_name}</div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-sm text-slate-500">{order.size}</span>
+                            <span className="text-sm text-slate-500">{formatSizeLabel(order.product_type || order.analysis?.product_type, order.size)}</span>
                             {/* 상품 타입 뱃지 */}
                             {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
                               <span className="px-1.5 py-0.5 text-[10px] font-medium bg-cyan-100 text-cyan-700 rounded">피규어</span>
@@ -1351,7 +1366,7 @@ export default function AdminOrdersPage() {
                                                 )}
                                               </div>
                                               <p className="text-xs text-slate-500 mt-0.5">
-                                                {item.size} · {item.quantity}개 · {formatPrice(item.unit_price)}
+                                                {formatSizeLabel(item.product_type, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}
                                                 {item.quantity > 1 && ` = ${formatPrice(item.subtotal)}`}
                                               </p>
                                             </div>
@@ -1436,7 +1451,7 @@ export default function AdminOrdersPage() {
                                 <div className="flex items-center gap-2 mb-3">
                                   <span className="text-base">🧪</span>
                                   <span className="text-sm font-bold text-slate-900">커스텀 조향 레시피</span>
-                                  <span className="text-xs text-slate-400">({order.size} 기준)</span>
+                                  <span className="text-xs text-slate-400">({formatSizeLabel(order.product_type || order.analysis?.product_type, order.size)} 기준)</span>
                                 </div>
                                 <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                                   <table className="w-full text-sm">
@@ -1704,7 +1719,7 @@ export default function AdminOrdersPage() {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500">{item.size} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
+                                  <p className="text-xs text-slate-500">{formatSizeLabel(item.product_type, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">
@@ -1743,7 +1758,7 @@ export default function AdminOrdersPage() {
                       <div>
                         <label className="text-sm text-slate-500">용량/타입</label>
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-900">{selectedOrder.size}</span>
+                          <span className="text-slate-900">{formatSizeLabel(selectedOrder.product_type || selectedOrder.analysis?.product_type, selectedOrder.size)}</span>
                           {(() => {
                             const badge = getProductBadge(selectedOrder.product_type || selectedOrder.analysis?.product_type)
                             return badge ? <span className={`px-2 py-0.5 text-xs rounded-full ${badge.className}`}>{badge.label}</span> : null

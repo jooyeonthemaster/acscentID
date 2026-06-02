@@ -125,10 +125,10 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                         {([
-                            { key: "idol", label: "최애", emoji: "💖", desc: "내 최애 분석" },
                             { key: "self", label: "나", emoji: "🪞", desc: "나에 대한 분석" },
+                            { key: "idol", label: "최애", emoji: "💖", desc: "내 최애 분석" },
                         ] as const).map(({ key, label, emoji, desc }) => {
-                            const isActive = (formData.targetType ?? "idol") === key
+                            const isActive = (formData.targetType ?? "self") === key
                             return (
                                 <motion.button
                                     key={key}

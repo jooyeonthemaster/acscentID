@@ -25,7 +25,10 @@ export function AnalysisPreviewPlayer({
   className = '',
 }: AnalysisPreviewPlayerProps) {
   return (
-    <div className={`relative rounded-2xl overflow-hidden border-2 border-black shadow-[4px_4px_0_0_black] ${className}`}>
+    <div
+      data-admin-lock-region="analysis-preview-animation"
+      className={`relative rounded-2xl overflow-hidden border-2 border-black shadow-[4px_4px_0_0_black] ${className}`}
+    >
       <Player
         component={AnalysisPreview}
         inputProps={{

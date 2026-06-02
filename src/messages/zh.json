@@ -566,6 +566,7 @@
     "freeShippingOverInfo": "满50,000韩元免运费",
     "includeAnalysisPerfume": "AI定制分析香水（{size}）",
     "includeAnalysisCard": "分析结果卡片",
+    "includeScentPaper": "试香纸（可先闻香）",
     "setProduct": "套装商品",
     "orderNameMulti": "{name} 等{count}件",
     "eventLabel": "活动",
@@ -610,6 +611,8 @@
     "analysisDetail": "分析详情",
     "recipe": "配方",
     "repurchase": "再次购买",
+    "buyAsPerfume": "购买为香水",
+    "buyAsPerfumeHint": "可用与此试香纸相同的香味购买正式香水(10ml/50ml)",
     "discontinuedShort": "已停售",
     "productDiscontinued": "该商品目前已停售,无法再次购买。",
     "productDiscontinuedTitle": "该商品已停售",
@@ -711,6 +714,7 @@
       "selectedItems": "已选商品 {count}件",
       "allItems": "全部商品 {count}件",
       "goCheckout": "去下单 →",
+      "selectPrompt": "请选择要订购的商品",
       "perfumeAnalysisInfo": "香水分析信息",
       "analysisResult": "分析结果",
       "customRecipe": "定制调香配方",
@@ -1779,5 +1783,28 @@
       "addedToCart": "已加入购物车！",
       "addFailed": "加入购物车失败。"
     }
+  },
+  "todayScent": {
+    "title": "今日香气",
+    "subtitle": "每天一次，抽取今天最适合你的香气",
+    "drawButton": "抽取今日香气",
+    "drawHint": "每天仅一次！",
+    "drawingText": "正在挑选香气...",
+    "todayLabel": "今日香气",
+    "notesTop": "前调",
+    "notesMid": "中调",
+    "notesBase": "后调",
+    "shareButton": "分享给朋友",
+    "sharing": "正在生成图片...",
+    "shareHint": "朋友会是什么香气？分享一起抽吧",
+    "makeButton": "用这款香气定制专属香水",
+    "comeback": "明天又有新的香气等着你 🌙",
+    "alreadyToday": "今天已经抽过了",
+    "savedToast": "已保存！",
+    "shareText": "我的今日香气是「{name}」🎀 你也来抽吧！",
+    "cardFooter": "你的今日香气是？ · AC'SCENT",
+    "sharedBanner": "朋友和你分享了「{name}」！",
+    "sharedBannerSub": "你也来抽今日香气吧 🎁",
+    "viewSharedScent": "查看「{name}」"
   }
 }

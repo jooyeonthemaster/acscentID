@@ -13,6 +13,7 @@ import {
   clearCart,
 } from '@/lib/supabase/cart'
 import type { AddToCartRequest } from '@/types/cart'
+import { ANALYSIS_OPTIONAL_PRODUCT_TYPES } from '@/types/cart'
 
 // 사용자 인증 확인
 async function getUserId(): Promise<string | null> {
@@ -88,7 +89,8 @@ export async function POST(request: NextRequest) {
       }
       if (item.product_type === 'chemistry_set') {
         if (!item.layering_session_id) return '케미 상품은 layering_session_id가 필요합니다'
-      } else {
+      } else if (!ANALYSIS_OPTIONAL_PRODUCT_TYPES.includes(item.product_type)) {
+        // AI 분석 없이 판매되는 카탈로그 상품(오늘의 향 등)은 analysis_id 불필요
         if (!item.analysis_id) return '단품은 analysis_id가 필요합니다'
       }
       return null

@@ -4,17 +4,17 @@ import { motion } from "framer-motion"
 import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
-import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 
-// [FIX] CRITICAL #1, #2: selectedSize 타입에 set_10ml/set_50ml 추가
+// 가격 옵션은 admin_product_pricing(DB) 기반이라 동적. selectedSize 는 임의 옵션 코드 허용.
 interface OrderSummaryProps {
   perfumeName: string
   perfumeBrand: string
   userImage: string | null
   productType?: ProductType
-  selectedSize: "10ml" | "50ml" | "set" | "set_10ml" | "set_50ml"
-  onSizeChange: (size: "10ml" | "50ml" | "set" | "set_10ml" | "set_50ml") => void
+  selectedSize: string
+  onSizeChange: (size: string) => void
   price: number
   keywords: string[]
   isFreeShippingPromo?: boolean
@@ -38,31 +38,22 @@ export function OrderSummary({
   isRepurchaser,
 }: OrderSummaryProps) {
   const t = useTranslations()
-  const { getOptions, getOption } = useProductPricing()
+  const { getOptions } = useProductPricing()
   const isFigureDiffuser = productType === "figure_diffuser"
   const isGraduation = productType === "graduation"
   const isSignature = productType === "signature"
   // [FIX] CRITICAL #2: chemistry_set 분기 추가
   const isChemistrySet = productType === "chemistry_set"
+  // 시향지 애드온 선택 시 — 포함 사항을 시향지 전용으로 표기 (퍼퓸/세트 구성 안내가 맞지 않으므로)
+  const isScentPaper = isScentPaperSize(selectedSize)
 
-  // 동적 가격 — DB 기반 (admin 에서 변경 시 즉시 반영)
-  const figureOpt = getOption('figure_diffuser', 'set')
-  const graduationOpt = getOption('graduation', '10ml')
-  const signatureOpt = getOption('signature', '10ml')
-  const imageAnalysis10mlOpt = getOption('image_analysis', '10ml')
-  const imageAnalysis50mlOpt = getOption('image_analysis', '50ml')
-  const personalScent10mlOpt = getOption('personal_scent', '10ml')
-  const personalScent50mlOpt = getOption('personal_scent', '50ml')
-  const chemistryOptions = getOptions('chemistry_set')
+  // 동적 가격 옵션 — DB(admin_product_pricing) 기반. 추가/삭제/순서변경 즉시 반영.
+  const options = getOptions(productType)
 
   const computeDiscount = (price?: number, original?: number | null): number | null => {
     if (!price || !original || original <= price) return null
     return Math.round(((original - price) / original) * 100)
   }
-
-  // 10ml/50ml 셀렉터에 사용할 옵션 — productType 에 따라 적절한 가격표 사용
-  const tenMlOpt = productType === 'personal_scent' ? personalScent10mlOpt : imageAnalysis10mlOpt
-  const fiftyMlOpt = productType === 'personal_scent' ? personalScent50mlOpt : imageAnalysis50mlOpt
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -160,159 +151,90 @@ export function OrderSummary({
           )}
         </p>
 
-        {isFigureDiffuser ? (
-          /* 피규어 디퓨저 세트 (단일 옵션) */
-          <div className="grid grid-cols-1 gap-3">
-            <div className="relative p-4 rounded-xl border-2 border-slate-900 bg-gradient-to-br from-cyan-50 to-amber-50 shadow-[3px_3px_0px_#000]">
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-cyan-400 rounded-full border-2 border-slate-900 flex items-center justify-center">
-                <Check size={12} className="text-white" strokeWidth={3} />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl border-2 border-slate-900 flex items-center justify-center">
-                  <span className="text-2xl">🎨</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-slate-900 text-lg">{t('checkout.figureSetTitle')}</p>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{t('checkout.figureSetDesc')}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                <div className="flex items-end gap-2">
-                  <p className="text-xl font-black text-slate-900">{formatPrice(figureOpt?.price ?? 48000)}{t('currency.suffix')}</p>
-                  {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
-                    <>
-                      <span className="text-xs text-slate-400 line-through">{formatPrice(figureOpt.original_price)}{t('currency.suffix')}</span>
-                      {computeDiscount(figureOpt.price, figureOpt.original_price) !== null && (
-                        <span className="px-1.5 py-0.5 bg-cyan-500 text-white text-[9px] font-black rounded">{computeDiscount(figureOpt.price, figureOpt.original_price)}% OFF</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+        {/* 가격 옵션 — DB(admin_product_pricing) 기반 동적 렌더링 */}
+        {options.length === 0 ? (
+          <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 text-center text-sm font-bold text-slate-400">
+            {t('checkout.sizeSelection')}
           </div>
-        ) : isGraduation ? (
-          /* 졸업 퍼퓸 (10ml 단일 옵션) - 에메랄드 테마 */
-          <div className="grid grid-cols-1 gap-3">
-            <div className="relative p-4 rounded-xl border-2 border-slate-900 bg-gradient-to-br from-emerald-50 to-amber-50 shadow-[3px_3px_0px_#000]">
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
-                <Check size={12} className="text-white" strokeWidth={3} />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl border-2 border-slate-900 flex items-center justify-center">
-                  <span className="text-2xl">🎓</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-slate-900 text-lg">{t('checkout.graduationPerfumeTitle')}</p>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{t('checkout.graduationPerfumeDesc')}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                <div className="flex items-end gap-2">
-                  <p className="text-xl font-black text-slate-900">{formatPrice(graduationOpt?.price ?? 34000)}{t('currency.suffix')}</p>
-                  {graduationOpt?.original_price && graduationOpt.original_price > graduationOpt.price && (
-                    <>
-                      <span className="text-xs text-slate-400 line-through">{formatPrice(graduationOpt.original_price)}{t('currency.suffix')}</span>
-                      {computeDiscount(graduationOpt.price, graduationOpt.original_price) !== null && (
-                        <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">{computeDiscount(graduationOpt.price, graduationOpt.original_price)}% OFF</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : isSignature ? (
-          /* 시그니처 뿌덕퍼퓸 (10ml 단일 옵션) - 앰버 테마 */
-          <div className="grid grid-cols-1 gap-3">
-            <div className="relative p-4 rounded-xl border-2 border-slate-900 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-[3px_3px_0px_#000]">
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
-                <Check size={12} className="text-white" strokeWidth={3} />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl border-2 border-slate-900 flex items-center justify-center">
-                  <span className="text-2xl">🦆</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-slate-900 text-lg">{t('checkout.signaturePerfumeTitle')}</p>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{t('checkout.signaturePerfumeDesc')}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                <div className="flex items-end gap-2">
-                  <p className="text-xl font-black text-slate-900">{formatPrice(signatureOpt?.price ?? 34000)}{t('currency.suffix')}</p>
-                  {signatureOpt?.original_price && signatureOpt.original_price > signatureOpt.price && (
-                    <>
-                      <span className="text-xs text-slate-400 line-through">{formatPrice(signatureOpt.original_price)}{t('currency.suffix')}</span>
-                      {computeDiscount(signatureOpt.price, signatureOpt.original_price) !== null && (
-                        <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[9px] font-black rounded">{computeDiscount(signatureOpt.price, signatureOpt.original_price)}% OFF</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : isChemistrySet ? (
-          /* [FIX] CRITICAL #2: 레이어링 퍼퓸 세트 옵션 (set_10ml / set_50ml) */
-          <div className="grid grid-cols-2 gap-3">
-            {chemistryOptions.map((option) => (
-              <button
-                key={option.size}
-                onClick={() => onSizeChange(option.size as "set_10ml" | "set_50ml")}
-                className={`relative p-3 rounded-xl border-2 transition-all ${
-                  selectedSize === option.size
-                    ? "border-violet-500 bg-violet-50 shadow-[2px_2px_0px_#8b5cf6]"
-                    : "border-slate-300 bg-white hover:border-violet-300 hover:shadow-[2px_2px_0px_#ddd]"
-                }`}
-              >
-                {selectedSize === option.size && (
-                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-violet-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
-                    <Check size={10} className="text-white" strokeWidth={3} />
+        ) : options.length === 1 ? (
+          /* 단일 옵션 — 카드형 (항상 선택됨) */
+          (() => {
+            const option = options[0]
+            const discount = computeDiscount(option.price, option.original_price)
+            return (
+              <div className="grid grid-cols-1 gap-3">
+                <div className="relative p-4 rounded-xl border-2 border-slate-900 bg-gradient-to-br from-[#FEF9C3] to-amber-50 shadow-[3px_3px_0px_#000]">
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#F472B6] rounded-full border-2 border-slate-900 flex items-center justify-center">
+                    <Check size={12} className="text-white" strokeWidth={3} />
                   </div>
-                )}
-                <p className="font-black text-slate-900 text-base">{option.label}</p>
-                <p className="text-sm font-black text-violet-600 mt-0.5">{formatPrice(option.price)}{t('currency.suffix')}</p>
-              </button>
-            ))}
-          </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {option.image_url && (
+                        <img
+                          src={option.image_url}
+                          alt={option.label}
+                          className="w-12 h-12 rounded-xl border-2 border-slate-900 object-cover bg-white"
+                        />
+                      )}
+                      <p className="font-black text-slate-900 text-lg truncate">{option.label}</p>
+                    </div>
+                    <div className="flex items-end gap-2 shrink-0">
+                      <p className="text-xl font-black text-slate-900">{formatPrice(option.price)}{t('currency.suffix')}</p>
+                      {option.original_price && option.original_price > option.price && (
+                        <>
+                          <span className="text-xs text-slate-400 line-through">{formatPrice(option.original_price)}{t('currency.suffix')}</span>
+                          {discount !== null && (
+                            <span className="px-1.5 py-0.5 bg-rose-500 text-white text-[9px] font-black rounded">{discount}% OFF</span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()
         ) : (
-          /* 향수 옵션 (10ml / 50ml) */
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => onSizeChange("10ml")}
-              className={`relative p-3 rounded-xl border-2 transition-all ${
-                selectedSize === "10ml"
-                  ? "border-slate-900 bg-[#FEF9C3] shadow-[2px_2px_0px_#000]"
-                  : "border-slate-300 bg-white hover:border-slate-900 hover:shadow-[2px_2px_0px_#000]"
-              }`}
-            >
-              {selectedSize === "10ml" && (
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#F472B6] rounded-full border-2 border-slate-900 flex items-center justify-center">
-                  <Check size={10} className="text-white" strokeWidth={3} />
-                </div>
-              )}
-              <p className="font-black text-slate-900 text-base">10ml</p>
-              <p className="text-[10px] text-slate-500 font-bold">{t('checkout.sprayType')}</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">{formatPrice(tenMlOpt?.price ?? 24000)}{t('currency.suffix')}</p>
-            </button>
-            <button
-              onClick={() => onSizeChange("50ml")}
-              className={`relative p-3 rounded-xl border-2 transition-all ${
-                selectedSize === "50ml"
-                  ? "border-slate-900 bg-[#FEF9C3] shadow-[2px_2px_0px_#000]"
-                  : "border-slate-300 bg-white hover:border-slate-900 hover:shadow-[2px_2px_0px_#000]"
-              }`}
-            >
-              {selectedSize === "50ml" && (
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#F472B6] rounded-full border-2 border-slate-900 flex items-center justify-center">
-                  <Check size={10} className="text-white" strokeWidth={3} />
-                </div>
-              )}
-              <p className="font-black text-slate-900 text-base">50ml</p>
-              <p className="text-[10px] text-slate-500 font-bold">{t('checkout.sprayType')}</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">{formatPrice(fiftyMlOpt?.price ?? 48000)}{t('currency.suffix')}</p>
-            </button>
+          /* 다중 옵션 — 버튼 그리드 */
+          <div className={`grid gap-3 ${options.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {options.map((option) => {
+              const discount = computeDiscount(option.price, option.original_price)
+              const selected = selectedSize === option.size
+              return (
+                <button
+                  key={option.size}
+                  onClick={() => onSizeChange(option.size)}
+                  className={`relative p-3 rounded-xl border-2 transition-all text-left ${
+                    selected
+                      ? "border-slate-900 bg-[#FEF9C3] shadow-[2px_2px_0px_#000]"
+                      : "border-slate-300 bg-white hover:border-slate-900 hover:shadow-[2px_2px_0px_#000]"
+                  }`}
+                >
+                  {selected && (
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#F472B6] rounded-full border-2 border-slate-900 flex items-center justify-center">
+                      <Check size={10} className="text-white" strokeWidth={3} />
+                    </div>
+                  )}
+                  {option.image_url && (
+                    <img
+                      src={option.image_url}
+                      alt={option.label}
+                      className="w-full aspect-square rounded-lg border border-slate-200 object-cover bg-white mb-2"
+                    />
+                  )}
+                  <p className="font-black text-slate-900 text-base">{option.label}</p>
+                  <div className="mt-0.5 flex flex-wrap items-end gap-1.5">
+                    <p className="text-sm font-black text-slate-900">{formatPrice(option.price)}{t('currency.suffix')}</p>
+                    {option.original_price && option.original_price > option.price && (
+                      <span className="text-[10px] text-slate-400 line-through">{formatPrice(option.original_price)}{t('currency.suffix')}</span>
+                    )}
+                  </div>
+                  {discount !== null && (
+                    <span className="mt-1 inline-block px-1.5 py-0.5 bg-rose-500 text-white text-[9px] font-black rounded">{discount}% OFF</span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
@@ -375,10 +297,24 @@ export function OrderSummary({
 
       {/* 포함 사항 */}
       {/* [FIX] CRITICAL #2: chemistry_set 포함 사항 색상 분기 */}
-      <div className={`${isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : isChemistrySet ? 'bg-violet-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
+      <div className={`${isScentPaper ? 'bg-yellow-100' : isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : isChemistrySet ? 'bg-violet-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
         <p className="text-sm font-black text-slate-900 mb-3">{t('checkout.included')}</p>
         <ul className="space-y-2 text-sm text-slate-800 font-bold">
-          {isFigureDiffuser ? (
+          {isScentPaper ? (
+            /* 시향지 애드온 포함 사항 — 퍼퓸 구성 대신 시향지만 안내 */
+            <>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {t('checkout.includeScentPaper')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+              </li>
+            </>
+          ) : isFigureDiffuser ? (
             /* 피규어 디퓨저 세트 포함 사항 */
             <>
               <li className="flex items-center gap-2">

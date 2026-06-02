@@ -566,6 +566,7 @@
     "freeShippingOverInfo": "Free shipping over 50,000 KRW",
     "includeAnalysisPerfume": "AI custom analysis perfume ({size})",
     "includeAnalysisCard": "Analysis result card",
+    "includeScentPaper": "Scent paper (try the fragrance first)",
     "setProduct": "Set Product",
     "orderNameMulti": "{name} and {count} more",
     "eventLabel": "Event",
@@ -609,6 +610,8 @@
     "analysisDetail": "Analysis Details",
     "recipe": "Recipe",
     "repurchase": "Reorder",
+    "buyAsPerfume": "Buy as perfume",
+    "buyAsPerfumeHint": "Order the full perfume (10ml/50ml) with the same scent as this sample paper",
     "discontinuedShort": "Discontinued",
     "productDiscontinued": "This product is no longer available for reorder.",
     "productDiscontinuedTitle": "Product Discontinued",
@@ -710,6 +713,7 @@
       "selectedItems": "{count} selected item(s)",
       "allItems": "{count} total item(s)",
       "goCheckout": "Place Order \u2192",
+      "selectPrompt": "Select items to order",
       "perfumeAnalysisInfo": "Perfume Analysis Info",
       "analysisResult": "Analysis Result",
       "customRecipe": "Custom Scent Recipe",
@@ -1984,5 +1988,28 @@
       "addedToCart": "Added to cart!",
       "addFailed": "Failed to add to cart."
     }
+  },
+  "todayScent": {
+    "title": "Today's Scent",
+    "subtitle": "Once a day — draw the scent that fits today's you",
+    "drawButton": "Draw today's scent",
+    "drawHint": "Once a day only!",
+    "drawingText": "Picking your scent...",
+    "todayLabel": "TODAY'S SCENT",
+    "notesTop": "Top",
+    "notesMid": "Mid",
+    "notesBase": "Base",
+    "shareButton": "Share with friends",
+    "sharing": "Creating image...",
+    "shareHint": "What's your friend's scent? Share and draw together",
+    "makeButton": "Make my own perfume with this scent",
+    "comeback": "A new scent awaits you tomorrow 🌙",
+    "alreadyToday": "You've already drawn today",
+    "savedToast": "Saved!",
+    "shareText": "My scent of the day is '{name}' 🎀 Draw yours too!",
+    "cardFooter": "What's your scent today? · AC'SCENT",
+    "sharedBanner": "A friend shared '{name}' with you!",
+    "sharedBannerSub": "Draw your own scent of the day 🎁",
+    "viewSharedScent": "See '{name}'"
   }
 }

@@ -12,9 +12,15 @@ interface InactiveProductGuardProps {
 export function InactiveProductGuard({ productSlug, children }: InactiveProductGuardProps) {
   const { isProductActive, loading } = useActiveProducts()
   const router = useRouter()
+  const isAdminPreview =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('adminPreview') === '1'
 
   // 로딩 중에는 children 렌더 (깜빡임 방지)
   if (loading) return <>{children}</>
+
+  // 관리자 상품 편집 미리보기에서는 비활성 상품도 그대로 편집 가능해야 합니다.
+  if (isAdminPreview) return <>{children}</>
 
   // 비활성 상품이면 안내 메시지 표시
   if (!isProductActive(productSlug)) {

@@ -46,6 +46,7 @@ export function newOrderTemplate(data: {
   // [FIX] HIGH: chemistry_set 라벨 추가
   const productTypeLabel: Record<string, string> = {
     image_analysis: '이미지 분석 향수',
+    image_analysis_paper: 'AI 이미지 분석 시향지',
     figure_diffuser: '피규어 디퓨저',
     personal_scent: '퍼스널 센트',
     graduation: '졸업 에디션',

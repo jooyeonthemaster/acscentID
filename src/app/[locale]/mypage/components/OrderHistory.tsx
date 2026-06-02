@@ -23,13 +23,15 @@ import {
   Headphones,
   Loader2,
   PackageCheck,
-  ExternalLink
+  ExternalLink,
+  Sparkles
 } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { RecipeModal } from './RecipeModal'
 import { getTrackingUrl, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS, type CarrierId } from '@/lib/shipping/cj'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
+import { isScentPaperSize } from '@/types/cart'
 
 interface Order {
   id: string
@@ -49,7 +51,7 @@ interface Order {
   user_image_url?: string
   keywords?: string[]
   analysis_data?: ImageAnalysisResult
-  product_type?: 'image_analysis' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test'
+  product_type?: 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent'
   payment_method?: string
   payment_id?: string | null
   analysis_id?: string  // 분석 결과 ID (레시피 연결용)
@@ -245,6 +247,12 @@ function OrderCard({
     : tStatus(statusKeys.labelKey)
   // 시그니처 상품인지 확인 (키워드에 "시그니처" 포함 여부)
   const isSignatureProduct = order.keywords?.some(k => k.includes('시그니처')) ?? false
+  // 시향지(샘플) 상품 — "향수로 구매하기" 업셀 노출 대상
+  const isPaperSample = order.product_type === 'image_analysis_paper'
+  // size 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
+  const sizeLabel = isScentPaperSize(order.size)
+    ? (order.product_type === 'chemistry_set' ? '시향지 2매' : '시향지')
+    : order.size
 
   // 상품 활성화 상태 — 비활성이면 재구매/분석상세보기 차단
   const { isProductActive, loading: productsLoading } = useActiveProducts()
@@ -312,6 +320,45 @@ function OrderCard({
     }
   }
 
+  // 시향지(샘플) → 정식 향수(image_analysis)로 구매. 향은 시향지의 분석 결과 그대로 사용.
+  const [isLoadingBuyPerfume, setIsLoadingBuyPerfume] = useState(false)
+  const handleBuyAsPerfume = async () => {
+    if (isLoadingBuyPerfume) return
+    // 분석 연결이 없으면 향을 특정할 수 없어 진행 불가 (버튼도 이 경우 비노출)
+    if (!order.analysis_id) return
+    setIsLoadingBuyPerfume(true)
+    try {
+      if (order.analysis_data) {
+        localStorage.setItem('analysisResult', JSON.stringify(order.analysis_data))
+      }
+      if (order.user_image_url) {
+        localStorage.setItem('userImage', order.user_image_url)
+      }
+      // 시향지가 아니라 정식 향수로 결제되도록 product_type 강제 전환
+      localStorage.setItem('checkoutProductType', 'image_analysis')
+      localStorage.setItem('checkoutAnalysisId', order.analysis_id)
+
+      // 확정된 레시피가 있으면 함께 전달 (시향지 시점에 조정한 향 유지)
+      try {
+        const response = await fetch(`/api/feedback?resultId=${order.analysis_id}&limit=1`)
+        const data = await response.json()
+        if (data.success && data.feedbacks?.length > 0) {
+          const latestFeedback = data.feedbacks[0]
+          if (latestFeedback.generatedRecipe) {
+            localStorage.setItem('checkoutRecipe', JSON.stringify(latestFeedback.generatedRecipe))
+            localStorage.setItem('checkoutRecipePerfumeName', latestFeedback.perfumeName || order.perfume_name)
+          }
+        }
+      } catch (e) {
+        console.error('레시피 조회 실패:', e)
+      }
+
+      router.push('/checkout')
+    } finally {
+      setIsLoadingBuyPerfume(false)
+    }
+  }
+
   // 주문 취소 핸들러
   const handleCancelOrder = async (reason: string) => {
     if (isCancelling) return
@@ -376,7 +423,7 @@ function OrderCard({
                   </span>
                 </div>
                 <h4 className="font-bold text-slate-900 truncate">{order.perfume_name}</h4>
-                <p className="text-sm text-slate-500">{order.size} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
+                <p className="text-sm text-slate-500">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
               </div>
             </div>
 
@@ -401,6 +448,17 @@ function OrderCard({
               )}
             </div>
           </div>
+          {/* 시향지 → 향수로 구매하기 */}
+          {isPaperSample && order.analysis_id && (
+            <button
+              onClick={handleBuyAsPerfume}
+              disabled={isLoadingBuyPerfume}
+              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-black border-2 border-slate-900 bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] text-slate-900 hover:shadow-[2px_2px_0px_#000] transition-all disabled:opacity-50"
+            >
+              {isLoadingBuyPerfume ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+              {t('buyAsPerfume')}
+            </button>
+          )}
           {/* 운송장 — shipping/delivered 상태에서 표시 */}
           {order.tracking_number && (order.status === 'shipping' || order.status === 'delivered') && (
             <div className="mt-3">
@@ -496,7 +554,7 @@ function OrderCard({
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[#F472B6] font-bold mb-0.5">{order.perfume_brand}</p>
               <h4 className="font-black text-lg text-slate-900 leading-tight mb-1">{order.perfume_name}</h4>
-              <p className="text-sm text-slate-500 font-bold">{order.size}</p>
+              <p className="text-sm text-slate-500 font-bold">{sizeLabel}</p>
               <p className="font-black text-lg text-slate-900 mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
             </div>
           </div>
@@ -626,6 +684,25 @@ function OrderCard({
               {order.status === 'cancel_requested' ? t('cancelling') : order.status === 'cancelled' ? t('cancelled') : t('cancelOrder')}
             </button>
           </div>
+
+          {/* 시향지 → 향수로 구매하기 (시향지 주문 + 분석 연결 있는 경우만) */}
+          {isPaperSample && order.analysis_id && (
+            <div className="pt-1">
+              <button
+                onClick={handleBuyAsPerfume}
+                disabled={isLoadingBuyPerfume}
+                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-black border-2 border-slate-900 bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] text-slate-900 shadow-[3px_3px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#000] transition-all disabled:opacity-50"
+              >
+                {isLoadingBuyPerfume ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Sparkles size={16} />
+                )}
+                {t('buyAsPerfume')}
+              </button>
+              <p className="text-[11px] text-slate-500 text-center mt-1.5">{t('buyAsPerfumeHint')}</p>
+            </div>
+          )}
 
           {/* 주문일시 */}
           <p className="text-xs text-slate-400 text-right pt-1 border-t border-slate-100">

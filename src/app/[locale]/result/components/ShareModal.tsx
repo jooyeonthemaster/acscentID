@@ -11,11 +11,12 @@ interface ShareModalProps {
   onClose: () => void
   userImage?: string
   twitterName: string
-  userName: string
-  userGender: string
+  // 결과 페이지 전용 메타 (다른 곳에서 재사용 시 생략 가능 — 본문에서 사용하지 않음)
+  userName?: string
+  userGender?: string
   perfumeName: string
-  perfumeBrand: string
-  analysisData: ImageAnalysisResult
+  perfumeBrand?: string
+  analysisData?: ImageAnalysisResult
   shareUrl?: string
 }
 

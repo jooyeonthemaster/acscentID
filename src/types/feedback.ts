@@ -358,7 +358,7 @@ export const PRODUCT_TYPES: ProductTypeInfo[] = [
     totalVolumeMl: 10,
     fragranceVolumeMl: 2,
     icon: '🧴',
-    description: '휴대용 미니 사이즈',
+    description: '휴대용 미니 용량',
   },
   {
     id: 'perfume_50ml',
@@ -366,7 +366,7 @@ export const PRODUCT_TYPES: ProductTypeInfo[] = [
     totalVolumeMl: 50,
     fragranceVolumeMl: 10,
     icon: '🍾',
-    description: '풀사이즈 정품',
+    description: '정품 풀용량',
   },
   {
     id: 'diffuser_5ml',

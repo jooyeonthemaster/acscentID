@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -16,12 +16,14 @@ import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList }
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useTranslations } from 'next-intl'
-import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -51,6 +53,7 @@ export default function FigurePage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
+  const productName = useProductDisplayName('figure', t('products.figureDiffuser'))
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -79,9 +82,32 @@ export default function FigurePage() {
     "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
     "/images/diffuser/KakaoTalk_20260125_225229624_01.jpg",
   ]
+  const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('figure')
   const { startTransition } = useTransition()
+  const pageSubtitle = t('programs.subtitle.figure')
+  const pageInfoTitle = t('programs.includes.figure')
+  const pageInfoBody = `${t('programs.figure.sachetsIncluded')} / ${t('shipping.afterProduction')}`
+  const pageCtaLabel = t('buttons.analyzeNow')
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(detail?.custom_html, {
+      badge: 'NEW',
+      subtitle: pageSubtitle,
+      infoTitle: pageInfoTitle,
+      infoBody: pageInfoBody,
+      ctaLabel: pageCtaLabel,
+    }),
+    [detail?.custom_html, pageSubtitle, pageInfoTitle, pageInfoBody, pageCtaLabel],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   const handleStartClick = () => {
     if (loading) return
@@ -107,6 +133,7 @@ export default function FigurePage() {
     <InactiveProductGuard productSlug="figure">
     <main className="relative min-h-screen bg-[#F0FDFF] font-sans">
       <Header />
+      <ProgramAdminBridge productSlug="figure" />
 
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
@@ -122,20 +149,29 @@ export default function FigurePage() {
             {/* 메인 이미지 */}
             <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
               <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span className="px-2 py-0.5 bg-cyan-400 text-black text-[10px] font-black rounded-full border-2 border-black">
-                  NEW
+                <span
+                  className="px-2 py-0.5 bg-cyan-400 text-black text-[10px] font-black rounded-full border-2 border-black"
+                  data-admin-page-position-field="badge"
+                  style={pagePositionStyle('badge')}
+                >
+                  <span data-admin-page-field="badge">{pageContent.badge}</span>
                 </span>
                 <span className="px-2 py-0.5 bg-purple-400 text-white text-[10px] font-black rounded-full border-2 border-black">
                   DIY KIT
                 </span>
               </div>
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50">
+              <div
+                className="aspect-square flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50"
+                data-admin-product-image="true"
+                data-admin-page-position-field="productImage"
+                style={pagePositionStyle('productImage')}
+              >
                 <motion.img
-                  key={selectedImage}
+                  key={currentImage}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  src={productImages[selectedImage]}
+                  src={currentImage}
                   alt={t('programs.productImage')}
                   className="w-full h-full object-cover"
                 />
@@ -171,7 +207,7 @@ export default function FigurePage() {
               <ChevronRight size={12} />
               <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
               <ChevronRight size={12} />
-              <span className="text-black font-bold">{t('products.figureDiffuser')}</span>
+              <span className="text-black font-bold">{productName}</span>
             </div>
 
             {/* 타이틀 */}
@@ -185,16 +221,34 @@ export default function FigurePage() {
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500">
-                  {t('products.figureDiffuser')}
+                  <span
+                    className="inline-block"
+                    data-admin-editable="product_name"
+                    data-admin-page-position-field="productName"
+                    style={pagePositionStyle('productName')}
+                  >
+                    {productName}
+                  </span>
                 </span>
               </h1>
               <p className="text-sm text-slate-600 font-medium">
-                {t('programs.subtitle.figure')}
+                <span
+                  className="inline-block"
+                  data-admin-page-field="subtitle"
+                  data-admin-page-position-field="subtitle"
+                  style={pagePositionStyle('subtitle')}
+                >
+                  {pageContent.subtitle}
+                </span>
               </p>
             </div>
 
             {/* 가격 + 구성품 안내 */}
-            <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
+            <div
+              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
+              data-admin-page-position-field="infoCard"
+              style={pagePositionStyle('infoCard')}
+            >
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
                 <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
@@ -212,8 +266,13 @@ export default function FigurePage() {
               <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2.5">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Star size={14} className="fill-cyan-400 text-cyan-400" />
-                  <span className="font-bold text-xs text-black">{t('programs.includes.figure')}</span>
+                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
+                    {pageContent.infoTitle}
+                  </span>
                 </div>
+                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
+                  {pageContent.infoBody}
+                </p>
                 <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
                   <li className="list-disc">{t('programs.figure.sachetsIncluded')}</li>
                   <li className="list-disc">{t('shipping.afterProduction')}</li>
@@ -226,8 +285,10 @@ export default function FigurePage() {
               onClick={handleStartClick}
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              data-admin-page-position-field="ctaButton"
+              style={pagePositionStyle('ctaButton')}
             >
-              {t('buttons.analyzeNow')}
+              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
             </button>
 
             <p className="text-center text-xs text-slate-500 mt-2">
@@ -240,7 +301,7 @@ export default function FigurePage() {
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <>
+        <div data-admin-editable="detail_html">
           {/* ============================================
               구성품 배너
           ============================================ */}
@@ -425,7 +486,7 @@ export default function FigurePage() {
           </motion.div>
         </motion.div>
       </section>
-        </>
+        </div>
       )}
 
       {/* ============================================
@@ -560,7 +621,7 @@ export default function FigurePage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         programType="figure"
-        programName={t('products.figureDiffuser')}
+        programName={productName}
         currentUserId={currentUserId}
         onWriteReview={() => {
           setShowReviewModal(false)
@@ -573,7 +634,7 @@ export default function FigurePage() {
         isOpen={showReviewWriteModal}
         onClose={() => setShowReviewWriteModal(false)}
         programType="figure"
-        programName={t('products.figureDiffuser')}
+        programName={productName}
         userId={currentUserId || ''}
         onSuccess={() => {
           // 리뷰 통계 새로고침

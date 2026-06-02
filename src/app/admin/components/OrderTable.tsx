@@ -16,6 +16,14 @@ import {
   Loader2,
   PackageCheck
 } from 'lucide-react'
+import { isScentPaperSize } from '@/types/cart'
+
+// 사이즈 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
+function formatSizeLabel(productType: string | null | undefined, size: string): string {
+  if (productType === 'image_analysis_paper') return '시향지'
+  if (isScentPaperSize(size)) return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
+  return size
+}
 
 interface Order {
   id: string
@@ -24,6 +32,7 @@ interface Order {
   perfume_name: string
   perfume_brand: string
   size: string
+  product_type?: string
   price: number
   recipient_name: string
   phone: string
@@ -140,7 +149,7 @@ function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (or
         <td className="px-4 py-3">
           <div>
             <p className="font-medium text-slate-900">{order.perfume_name}</p>
-            <p className="text-xs text-slate-500">{order.size}</p>
+            <p className="text-xs text-slate-500">{formatSizeLabel(order.product_type, order.size)}</p>
           </div>
         </td>
         <td className="px-4 py-3">

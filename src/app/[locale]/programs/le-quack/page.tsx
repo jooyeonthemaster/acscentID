@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  Star, X, AlertTriangle,
-  Gift, ChevronRight, ShoppingCart,
+  Star, X,
+  ChevronRight, ShoppingCart,
   Sparkles, Heart, Package
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -15,12 +15,14 @@ import { AuthModal } from "@/components/auth/AuthModal"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
-import { useProductImages } from '@/hooks/useAdminContent'
+import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
+import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -51,6 +53,7 @@ export default function LeQuackPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
+  const productName = useProductDisplayName('le-quack', '시그니처 뿌덕퍼퓸')
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -78,8 +81,27 @@ export default function LeQuackPage() {
   const productImages = dynamicImages.length > 0 ? dynamicImages : [
     "/images/perfume/LE QUACK.avif",
   ]
+  const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('le-quack')
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(detail?.custom_html, {
+      badge: 'SIGNATURE',
+      subtitle: "AC'SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링",
+      infoTitle: '뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링',
+      infoBody: '주문 후 2~3일 내 배송 / 귀여운 오리 퍼퓸키링 포함 / 프리미엄 패키지 / 5만원 이상 무료배송',
+      ctaLabel: '지금 바로 구매하기',
+    }),
+    [detail?.custom_html],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   // 바로 구매하기 - 주문 폼으로 이동
   const handlePurchaseClick = () => {
@@ -106,6 +128,7 @@ export default function LeQuackPage() {
     <InactiveProductGuard productSlug="le-quack">
     <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
+      <ProgramAdminBridge productSlug="le-quack" />
 
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
@@ -121,18 +144,27 @@ export default function LeQuackPage() {
             {/* 메인 이미지 */}
             <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
               <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-black rounded-full border-2 border-black">
-                  SIGNATURE
+                <span
+                  className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-black rounded-full border-2 border-black"
+                  data-admin-page-position-field="badge"
+                  style={pagePositionStyle('badge')}
+                >
+                  <span data-admin-page-field="badge">{pageContent.badge}</span>
                 </span>
               </div>
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50">
+              <div
+                className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50"
+                data-admin-product-image="true"
+                data-admin-page-position-field="productImage"
+                style={pagePositionStyle('productImage')}
+              >
                 <motion.img
-                  key={selectedImage}
+                  key={currentImage}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  src={productImages[selectedImage]}
-                  alt="SIGNATURE 뿌덕퍼퓸"
+                  src={currentImage}
+                  alt={productName}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -169,7 +201,7 @@ export default function LeQuackPage() {
               <ChevronRight size={12} />
               <Link href="/" className="hover:text-black">시그니처</Link>
               <ChevronRight size={12} />
-              <span className="text-black font-bold">시그니처 뿌덕퍼퓸</span>
+              <span className="text-black font-bold">{productName}</span>
             </div>
 
             {/* 타이틀 */}
@@ -186,11 +218,25 @@ export default function LeQuackPage() {
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500">
-                  시그니처 뿌덕퍼퓸
+                  <span
+                    className="inline-block"
+                    data-admin-editable="product_name"
+                    data-admin-page-position-field="productName"
+                    style={pagePositionStyle('productName')}
+                  >
+                    {productName}
+                  </span>
                 </span>
               </h1>
               <p className="text-sm text-slate-600 font-medium">
-                AC&apos;SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링
+                <span
+                  className="inline-block"
+                  data-admin-page-field="subtitle"
+                  data-admin-page-position-field="subtitle"
+                  style={pagePositionStyle('subtitle')}
+                >
+                  {pageContent.subtitle}
+                </span>
               </p>
             </div>
 
@@ -204,7 +250,11 @@ export default function LeQuackPage() {
             </div>
 
             {/* 가격 + 구성품 안내 */}
-            <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
+            <div
+              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
+              data-admin-page-position-field="infoCard"
+              style={pagePositionStyle('infoCard')}
+            >
               {/* 가격 */}
               <div className="flex items-end gap-2 mb-3">
                 <span className="text-xl font-black text-black">{formatPrice(sigOpt?.price ?? 34000)}원</span>
@@ -222,8 +272,13 @@ export default function LeQuackPage() {
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-xs text-black">뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링</span>
+                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
+                    {pageContent.infoTitle}
+                  </span>
                 </div>
+                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
+                  {pageContent.infoBody}
+                </p>
                 <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
                   <li className="list-disc">주문 후 2~3일 내 배송</li>
                   <li className="list-disc">귀여운 오리 퍼퓸키링 포함</li>
@@ -238,9 +293,11 @@ export default function LeQuackPage() {
               onClick={handlePurchaseClick}
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              data-admin-page-position-field="ctaButton"
+              style={pagePositionStyle('ctaButton')}
             >
               <ShoppingCart size={20} />
-              지금 바로 구매하기
+              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
             </button>
 
             <p className="text-center text-xs text-amber-600 font-bold mt-2">
@@ -253,7 +310,7 @@ export default function LeQuackPage() {
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <>
+        <div data-admin-editable="detail_html">
           {/* ============================================
               Feature Bar - 검은 배경
           ============================================ */}
@@ -339,7 +396,7 @@ export default function LeQuackPage() {
               </div>
             </motion.div>
           </section>
-        </>
+        </div>
       )}
 
       {/* ============================================
@@ -500,7 +557,7 @@ export default function LeQuackPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         programType="le-quack"
-        programName="시그니처 뿌덕퍼퓸"
+        programName={productName}
         currentUserId={currentUserId}
         onWriteReview={() => {
           setShowReviewModal(false)
@@ -513,7 +570,7 @@ export default function LeQuackPage() {
         isOpen={showReviewWriteModal}
         onClose={() => setShowReviewWriteModal(false)}
         programType="le-quack"
-        programName="시그니처 뿌덕퍼퓸"
+        programName={productName}
         userId={currentUserId || ''}
         onSuccess={() => {
           // 리뷰 통계 새로고침

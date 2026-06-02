@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { User, ChevronLeft, Star } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { User, ChevronLeft, Star, ShoppingCart } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
@@ -18,12 +19,29 @@ interface HeaderProps {
   hideLogo?: boolean
 }
 
-export function Header({ title, showBack, backHref = "/", hideLogo = false }: HeaderProps) {
+// title / hideLogo 은 하위호환을 위해 props 에 유지하되, 중앙 로고는 항상 표시한다.
+export function Header({ showBack, backHref = "/" }: HeaderProps) {
   const { user, unifiedUser, loading, signOut } = useAuth()
   const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
   const t = useTranslations()
+  const router = useRouter()
+
+  // 장바구니 개수 조회 (로그인 시)
+  useEffect(() => {
+    if (!currentUser) {
+      setCartCount(0)
+      return
+    }
+    let cancelled = false
+    fetch('/api/cart?count=true')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (!cancelled && data) setCartCount(data.count || 0) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [currentUser])
 
   return (
     <>
@@ -64,38 +82,23 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
             ) : null}
           </div>
 
-          {/* Center: Title or Logo */}
+          {/* Center: 항상 홈으로 가는 로고 버튼 */}
           <div className="flex-[2] flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              {title ? (
-                <motion.span
-                  key={title}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="text-xs font-black tracking-[0.2em] text-slate-800 uppercase block truncate px-2"
-                >
-                  {title}
-                </motion.span>
-              ) : !hideLogo ? (
-                <Link href="/">
-                  <motion.div
-                    key="logo"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="flex flex-col items-center"
-                  >
-                    <span className="text-base font-black tracking-tighter text-slate-900">
-                      AC&apos;SCENT
-                    </span>
-                    <span className="text-[7px] font-bold tracking-[0.25em] text-slate-500 -mt-1">
-                      IDENTITY
-                    </span>
-                  </motion.div>
-                </Link>
-              ) : null}
-            </AnimatePresence>
+            <Link href="/" aria-label={t('nav.home')}>
+              <motion.div
+                key="logo"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center"
+              >
+                <span className="text-base font-black tracking-tighter text-slate-900">
+                  AC&apos;SCENT
+                </span>
+                <span className="text-[7px] font-bold tracking-[0.25em] text-slate-500 -mt-1">
+                  IDENTITY
+                </span>
+              </motion.div>
+            </Link>
           </div>
 
           {/* Right: Language + Login + Hamburger Menu */}
@@ -125,24 +128,18 @@ export function Header({ title, showBack, backHref = "/", hideLogo = false }: He
               </button>
             ) : null}
 
-            {/* Hamburger Menu Button */}
+            {/* Cart Button */}
             <button
-              onClick={() => setIsOpen(true)}
-              className="w-9 h-9 rounded-full border-2 border-black flex flex-col items-center justify-center gap-0.5 bg-white hover:bg-yellow-400 transition-all active:scale-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
-              aria-label={t('nav.openMenu')}
+              onClick={() => router.push('/mypage?tab=cart')}
+              className="relative w-9 h-9 rounded-full border-2 border-black flex items-center justify-center bg-white hover:bg-yellow-400 transition-all active:scale-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
+              aria-label={t('nav.cart')}
             >
-              <motion.span
-                animate={isOpen ? { rotate: 45, y: 4, width: "16px" } : { rotate: 0, y: 0, width: "16px" }}
-                className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
-              />
-              <motion.span
-                animate={isOpen ? { opacity: 0, x: 10 } : { opacity: 1, x: 0 }}
-                className="h-[2px] w-[16px] bg-black rounded-full transition-all duration-300"
-              />
-              <motion.span
-                animate={isOpen ? { rotate: -45, y: -4, width: "16px" } : { rotate: 0, y: 0, width: "16px" }}
-                className="h-[2px] bg-black rounded-full origin-center transition-all duration-300"
-              />
+              <ShoppingCart size={16} className="text-black" strokeWidth={2.5} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-white text-white text-[10px] font-black leading-none">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </button>
 
             {/* Mobile Menu Sheet */}

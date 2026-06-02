@@ -285,6 +285,30 @@
   animation-delay: 1s;
 }
 
+/* 구매 버튼 글로우 — box-shadow(neobrutalist 오프셋·hover)와 충돌하지 않도록 filter 사용 */
+@keyframes buyGlow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(252, 211, 77, 0.55)) drop-shadow(0 0 6px rgba(252, 211, 77, 0.35));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 8px rgba(252, 211, 77, 0.95)) drop-shadow(0 0 18px rgba(251, 191, 36, 0.7));
+  }
+}
+
+.animate-buy-glow {
+  animation: buyGlow 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-buy-glow {
+    animation: none;
+    filter: drop-shadow(0 0 6px rgba(252, 211, 77, 0.6));
+  }
+}
+
 /* Blob 회전 애니메이션 - GPU 가속 */
 @keyframes blob-rotate {
   from {

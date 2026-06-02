@@ -1,6 +1,19 @@
 // 장바구니 및 주문 상품 관련 타입 정의
 
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test'
+export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent'
+
+// 시향지 애드온 옵션 — image_analysis(아이돌 이미지) / chemistry_set(케미) 결제 단계에서
+// 10ml 대신 선택할 수 있는 4,000원 저가 옵션. size 코드는 상품 공통으로 'scent_paper'.
+export const SCENT_PAPER_SIZE = 'scent_paper'
+export const SCENT_PAPER_PRICE = 4000
+// size 코드가 시향지 옵션인지 판정 (관리자 주문/체크아웃 라벨링용)
+export function isScentPaperSize(size: string): boolean {
+  return size === SCENT_PAPER_SIZE
+}
+
+// AI 분석 없이 판매되는 카탈로그 상품 — analysis_id / layering_session_id 가 필요 없다.
+// (DB 의 *_product_ref_check 제약 면제 목록과 일치시켜야 함)
+export const ANALYSIS_OPTIONAL_PRODUCT_TYPES: readonly ProductType[] = ['signature', 'payment_test', 'today_scent']
 
 // DB cart_items 테이블 타입
 export interface CartItem {
@@ -12,7 +25,7 @@ export interface CartItem {
   perfume_name: string
   perfume_brand: string | null
   twitter_name: string | null
-  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
   price: number
   quantity: number
   image_url: string | null
@@ -31,7 +44,7 @@ export interface AddToCartRequest {
   perfume_name: string
   perfume_brand?: string
   twitter_name?: string
-  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
   price: number
   quantity?: number
   image_url?: string
@@ -40,7 +53,7 @@ export interface AddToCartRequest {
 
 // 장바구니 수정 요청 타입
 export interface UpdateCartItemRequest {
-  size?: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml'
+  size?: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
   price?: number
   quantity?: number
 }
@@ -80,6 +93,10 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   image_analysis: [
     { size: '10ml', price: 24000, label: '10ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '50ml 퍼퓸', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지', shippingFee: DEFAULT_SHIPPING_FEE },
+  ],
+  image_analysis_paper: [
+    { size: 'set', price: 4000, label: 'AI 이미지 분석 시향지', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   figure_diffuser: [
     { size: 'set', price: 48000, label: '피규어+디퓨저 세트', shippingFee: DEFAULT_SHIPPING_FEE },
@@ -97,9 +114,15 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   chemistry_set: [
     { size: 'set_10ml', price: 38000, label: '레이어링 퍼퓸 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: 'set_50ml', price: 60000, label: '레이어링 퍼퓸 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지 2매', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   payment_test: [
     { size: '10ml', price: 1000, label: '결제 테스트 상품', shippingFee: 0 },
+  ],
+  // 오늘의 향 — AI 분석 없이 판매되는 카탈로그 상품. 가격/용량은 image_analysis와 동일.
+  today_scent: [
+    { size: '10ml', price: 24000, label: '오늘의 향 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '오늘의 향 50ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
 }
 
@@ -119,6 +142,13 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     bg: 'bg-purple-100',
     text: 'text-purple-700',
     border: 'border-purple-300',
+  },
+  image_analysis_paper: {
+    label: 'AI 이미지 분석 시향지',
+    labelShort: '시향지',
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    border: 'border-yellow-300',
   },
   figure_diffuser: {
     label: '피규어 디퓨저',
@@ -162,6 +192,13 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     text: 'text-red-700',
     border: 'border-red-300',
   },
+  today_scent: {
+    label: '오늘의 향',
+    labelShort: '오늘의 향',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    border: 'border-amber-300',
+  },
 }
 
 // 가격 관련 유틸리티 함수
@@ -179,6 +216,7 @@ export function getShippingFee(productType: ProductType, size: string): number {
 
 export function getDefaultSize(productType: ProductType): string {
   if (productType === 'figure_diffuser') return 'set'
+  if (productType === 'image_analysis_paper') return 'set'
   if (productType === 'chemistry_set') return 'set_10ml'
   return '10ml'
 }
@@ -187,6 +225,8 @@ export function getDefaultPrice(productType: ProductType): number {
   switch (productType) {
     case 'payment_test':
       return 1000
+    case 'image_analysis_paper':
+      return 4000
     case 'figure_diffuser':
       return 48000
     case 'graduation':

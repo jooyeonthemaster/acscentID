@@ -18,9 +18,7 @@ import {
   Megaphone,
   ImageIcon,
   Package,
-  FileText,
   MessageSquare,
-  DollarSign,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -100,22 +98,10 @@ const navItems: NavItem[] = [
     description: '히어로 슬라이드 관리',
   },
   {
-    href: '/admin/product-pricing',
-    label: '가격 관리',
-    icon: DollarSign,
-    description: '상품별 판매가/정가',
-  },
-  {
-    href: '/admin/product-images',
-    label: '상품 이미지',
+    href: '/admin/products',
+    label: '상품 관리',
     icon: Package,
-    description: '상품별 이미지 관리',
-  },
-  {
-    href: '/admin/product-details',
-    label: '상세페이지',
-    icon: FileText,
-    description: '상품 상세페이지 편집',
+    description: '상품 페이지 · 가격 · 노출',
   },
   {
     href: '/admin/reviews',

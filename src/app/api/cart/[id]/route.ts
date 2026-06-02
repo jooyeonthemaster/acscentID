@@ -69,10 +69,10 @@ export async function PATCH(
     if (body.size && body.product_type) {
       const productType = body.product_type as ProductType
 
-      // 피규어 디퓨저는 사이즈 변경 불가
+      // 피규어 디퓨저는 옵션 변경 불가
       if (productType === 'figure_diffuser') {
         return NextResponse.json(
-          { error: '피규어 디퓨저는 사이즈 변경이 불가합니다' },
+          { error: '피규어 디퓨저는 옵션 변경이 불가합니다' },
           { status: 400 }
         )
       }
@@ -81,7 +81,7 @@ export async function PATCH(
 
       if (!sizeOption || !sizeOption.is_active) {
         return NextResponse.json(
-          { error: !sizeOption ? '유효하지 않은 사이즈입니다' : '판매 중지된 옵션입니다' },
+          { error: !sizeOption ? '유효하지 않은 옵션입니다' : '판매 중지된 옵션입니다' },
           { status: 400 }
         )
       }

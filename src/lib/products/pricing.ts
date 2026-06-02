@@ -24,6 +24,7 @@ export interface PricingRow {
   label: string
   sort_order: number
   is_active: boolean
+  image_url: string | null
   updated_at: string
   updated_by: string | null
 }
@@ -55,6 +56,7 @@ function buildFallbackMap(): PricingMap {
       label: opt.label,
       sort_order: i,
       is_active: true,
+      image_url: null,
       updated_at: new Date(0).toISOString(),
       updated_by: 'fallback:constant',
     }))

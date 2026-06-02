@@ -593,6 +593,7 @@
     "freeShippingOverInfo": "Envío gratis en pedidos de +50,000 KRW",
     "includeAnalysisPerfume": "Perfume personalizado con análisis IA ({size})",
     "includeAnalysisCard": "Tarjeta de resultados del análisis",
+    "includeScentPaper": "Tira de prueba (prueba la fragancia primero)",
     "setProduct": "Producto en set",
     "orderNameMulti": "{name} y {count} más",
     "eventLabel": "Evento",
@@ -650,6 +651,7 @@
       "selectedItems": "{count} producto(s) seleccionado(s)",
       "allItems": "Total de {count} producto(s)",
       "goCheckout": "Realizar pedido →",
+      "selectPrompt": "Selecciona los productos a pedir",
       "perfumeAnalysisInfo": "Información de análisis del perfume",
       "analysisResult": "Resultado del análisis",
       "customRecipe": "Receta de perfume personalizada",
@@ -671,6 +673,8 @@
     "analysisDetail": "Detalle del análisis",
     "recipe": "Receta",
     "repurchase": "Recomprar",
+    "buyAsPerfume": "Comprar como perfume",
+    "buyAsPerfumeHint": "Compra el perfume completo (10ml/50ml) con el mismo aroma que esta tira de muestra",
     "discontinuedShort": "Descontinuado",
     "productDiscontinued": "Este producto ya no está disponible para volver a comprar.",
     "productDiscontinuedTitle": "Producto descontinuado",
@@ -1964,5 +1968,28 @@
       "addedToCart": "¡Agregado al carrito!",
       "addFailed": "Error al agregar al carrito."
     }
+  },
+  "todayScent": {
+    "title": "Aroma del día",
+    "subtitle": "Una vez al día: descubre el aroma que va contigo hoy",
+    "drawButton": "Sacar el aroma de hoy",
+    "drawHint": "¡Solo una vez al día!",
+    "drawingText": "Eligiendo tu aroma...",
+    "todayLabel": "AROMA DEL DÍA",
+    "notesTop": "Salida",
+    "notesMid": "Corazón",
+    "notesBase": "Fondo",
+    "shareButton": "Compartir con amigos",
+    "sharing": "Creando imagen...",
+    "shareHint": "¿Cuál es el aroma de tu amigo? Comparte y descúbranlo juntos",
+    "makeButton": "Crea tu propio perfume con este aroma",
+    "comeback": "Mañana te espera un nuevo aroma 🌙",
+    "alreadyToday": "Ya lo sacaste hoy",
+    "savedToast": "¡Guardado!",
+    "shareText": "Mi aroma de hoy es '{name}' 🎀 ¡Saca el tuyo!",
+    "cardFooter": "¿Cuál es tu aroma de hoy? · AC'SCENT",
+    "sharedBanner": "¡Un amigo compartió '{name}' contigo!",
+    "sharedBannerSub": "Saca tu propio aroma del día 🎁",
+    "viewSharedScent": "Ver '{name}'"
   }
 }

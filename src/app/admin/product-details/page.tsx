@@ -102,6 +102,7 @@ const uploadDetailImage = async (file: File, productSlug: string): Promise<strin
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ProductDetailsPage() {
+  const [requestedSlug, setRequestedSlug] = useState('')
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string>('')
   const [detailData, setDetailData] = useState<Record<string, ProductDetail>>({})
@@ -127,6 +128,10 @@ export default function ProductDetailsPage() {
   }
 
   const isCustomMode = currentDetail.detail_mode === 'custom'
+  const selectedProductLabel =
+    products.find((product) => product.slug === selectedSlug)?.name ||
+    PRODUCT_LABELS[selectedSlug] ||
+    selectedSlug
 
   // ─── TipTap Editor ────────────────────────────────────────────────────────
 
@@ -246,9 +251,13 @@ export default function ProductDetailsPage() {
 
     if (data && data.length > 0) {
       setProducts(data)
-      setSelectedSlug((prev) => prev || data[0].slug)
+      setSelectedSlug((prev) => {
+        if (requestedSlug && data.some((product) => product.slug === requestedSlug)) return requestedSlug
+        if (prev && data.some((product) => product.slug === prev)) return prev
+        return data[0].slug
+      })
     }
-  }, [])
+  }, [requestedSlug])
 
   const fetchDetailForSlug = useCallback(async (slug: string) => {
     const { data, error } = await supabase
@@ -271,6 +280,11 @@ export default function ProductDetailsPage() {
   }, [])
 
   // ─── Initial Load ─────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const product = new URLSearchParams(window.location.search).get('product')
+    if (product) setRequestedSlug(product)
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -736,7 +750,7 @@ export default function ProductDetailsPage() {
 
                   <div style={{ height: 'calc(100vh - 160px)' }}>
                     <PhonePreview
-                      productLabel={PRODUCT_LABELS[selectedSlug] || selectedSlug}
+                      productLabel={selectedProductLabel}
                       previewHtml={previewHtml}
                     />
                   </div>

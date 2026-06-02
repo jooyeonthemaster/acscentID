@@ -16,6 +16,7 @@ export interface PricingRow {
   label: string
   sort_order: number
   is_active: boolean
+  image_url: string | null
 }
 
 export type PricingMap = Record<ProductType, PricingRow[]>
@@ -35,6 +36,7 @@ function buildFallbackMap(): PricingMap {
       label: opt.label,
       sort_order: i,
       is_active: true,
+      image_url: null,
     }))
   }
   return out
@@ -139,6 +141,7 @@ export function useProductPricing(): UseProductPricingResult {
     const list = getOptions(productType)
     if (list.length > 0) return list[0].size
     if (productType === 'figure_diffuser') return 'set'
+    if (productType === 'image_analysis_paper') return 'set'
     if (productType === 'chemistry_set') return 'set_10ml'
     return '10ml'
   }

@@ -10,7 +10,7 @@ import type { FormDataType } from "../types"
 
 const INITIAL_FORM_DATA: FormDataType = {
     pin: "",
-    targetType: "idol",
+    targetType: "self",
     name: "",
     gender: "",
     styles: [],
@@ -30,6 +30,7 @@ export function useInputForm() {
     const router = useRouter()
     const { showToast } = useToast()
     const type = searchParams.get("type")
+    const product = searchParams.get("product") // "sample" → 시향지(image_analysis_paper). idol_image 분석 흐름 재사용
     const mode = searchParams.get("mode") // "online" | "qr" | null
     const serviceMode = searchParams.get("service_mode") // QR 리다이렉트에서 사용: "online" | "offline"
     const qrCode = searchParams.get("qr_code") // QR 코드 ID
@@ -356,6 +357,10 @@ export function useInputForm() {
                 } else if (isGraduation) {
                     localStorage.setItem('productType', 'graduation')
                     localStorage.setItem('programType', 'graduation')
+                } else if (product === 'sample') {
+                    // AI 이미지 분석 시향지 — idol_image 분석을 그대로 쓰되 상품만 시향지로
+                    localStorage.setItem('productType', 'image_analysis_paper')
+                    localStorage.removeItem('programType')
                 } else {
                     // 일반 분석 (idol_image 등): 이전 값 초기화
                     localStorage.setItem('productType', 'image_analysis')

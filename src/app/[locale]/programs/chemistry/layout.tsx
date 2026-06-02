@@ -29,7 +29,10 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ])
 
 export default async function ChemistryLayout({ children }: { children: React.ReactNode }) {
-  const opt = await getServerOption('chemistry_set', 'set_10ml')
+  const opt = await getServerOption('chemistry_set', 'set_10ml').catch((error) => {
+    console.warn('[chemistry/layout] pricing lookup failed; using metadata fallback:', error)
+    return null
+  })
   const productJsonLd = productSchema({
     name: '레이어링 퍼퓸 세트',
     description: '두 인물의 케미를 향기로 담는 맞춤 향수 세트. 레이어링 퍼퓸 세트 + 케미 프로필 카드 포함.',

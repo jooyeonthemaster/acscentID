@@ -593,6 +593,7 @@
     "freeShippingOverInfo": "5万ウォン以上で送料無料",
     "includeAnalysisPerfume": "AIカスタム分析香水（{size}）",
     "includeAnalysisCard": "分析結果カード",
+    "includeScentPaper": "ムエット（試香紙・香りを先に試せます）",
     "setProduct": "セット商品",
     "orderNameMulti": "{name} 他{count}件",
     "eventLabel": "イベント",
@@ -650,6 +651,7 @@
       "selectedItems": "選択商品 {count}個",
       "allItems": "全商品 {count}個",
       "goCheckout": "注文する →",
+      "selectPrompt": "注文する商品を選択してください",
       "perfumeAnalysisInfo": "香水分析情報",
       "analysisResult": "分析結果",
       "customRecipe": "カスタム調香レシピ",
@@ -671,6 +673,8 @@
     "analysisDetail": "分析詳細",
     "recipe": "レシピ",
     "repurchase": "再購入",
+    "buyAsPerfume": "香水として購入",
+    "buyAsPerfumeHint": "この試香紙と同じ香りで本格的な香水(10ml/50ml)を購入できます",
     "discontinuedShort": "販売終了",
     "productDiscontinued": "この商品は現在販売が中止されており、再購入できません。",
     "productDiscontinuedTitle": "販売が終了した商品です",
@@ -2012,5 +2016,28 @@
       "addedToCart": "カートに追加されました！",
       "addFailed": "カートへの追加に失敗しました。"
     }
+  },
+  "todayScent": {
+    "title": "今日の香り",
+    "subtitle": "1日1回、今日のあなたに似合う香りを引いてみて",
+    "drawButton": "今日の香りを引く",
+    "drawHint": "1日1回だけ！",
+    "drawingText": "香りを選んでいます...",
+    "todayLabel": "今日の香り",
+    "notesTop": "トップ",
+    "notesMid": "ミドル",
+    "notesBase": "ベース",
+    "shareButton": "友達にシェア",
+    "sharing": "画像を作成中...",
+    "shareHint": "友達の香りは？シェアして一緒に引こう",
+    "makeButton": "この香りで自分だけの香水を作る",
+    "comeback": "明日また新しい香りが届きます 🌙",
+    "alreadyToday": "今日はもう引きました",
+    "savedToast": "保存しました！",
+    "shareText": "私の今日の香りは「{name}」🎀 あなたも引いてみて！",
+    "cardFooter": "あなたの今日の香りは？ · AC'SCENT",
+    "sharedBanner": "友達が「{name}」をシェアしました！",
+    "sharedBannerSub": "あなたも今日の香りを引いてみて 🎁",
+    "viewSharedScent": "「{name}」を見る"
   }
 }

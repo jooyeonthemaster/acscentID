@@ -81,11 +81,12 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
     accentBg: "#EFF6FF",
   },
   {
-    method: "kakao_pay",
-    label: "payment.kakaoPay",
-    icon: <KakaoIcon active={false} />,
-    accentColor: "#3C1E1E",
-    accentBg: "#FFFDE7",
+    method: "bank_transfer",
+    label: "payment.bankTransferShort",
+    sublabel: "payment.bankTransferSublabel",
+    icon: <BankIcon active={false} />,
+    accentColor: "#475569",
+    accentBg: "#F1F5F9",
   },
   {
     method: "naver_pay",
@@ -95,12 +96,11 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
     accentBg: "#ECFDF5",
   },
   {
-    method: "bank_transfer",
-    label: "payment.bankTransferShort",
-    sublabel: "payment.bankTransferSublabel",
-    icon: <BankIcon active={false} />,
-    accentColor: "#475569",
-    accentBg: "#F1F5F9",
+    method: "kakao_pay",
+    label: "payment.kakaoPay",
+    icon: <KakaoIcon active={false} />,
+    accentColor: "#3C1E1E",
+    accentBg: "#FFFDE7",
   },
 ]
 

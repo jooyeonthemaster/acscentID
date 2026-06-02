@@ -20,7 +20,6 @@ import {
   Loader2,
   AlertCircle,
   Check,
-  GripVertical,
   Power,
 } from 'lucide-react'
 
@@ -35,6 +34,13 @@ interface ProductImage {
   alt_text: string | null
   created_at: string
   updated_at: string
+}
+
+interface AdminProduct {
+  slug: string
+  name: string
+  is_active: boolean
+  display_order: number
 }
 
 type ImageType = 'gallery' | 'thumbnail' | 'hero'
@@ -57,7 +63,14 @@ const PRODUCT_LABELS: Record<string, string> = {
   'chemistry': '레이어링 퍼퓸 세트',
 }
 
-const PRODUCT_SLUGS = Object.keys(PRODUCT_LABELS)
+const FALLBACK_PRODUCTS: AdminProduct[] = Object.entries(PRODUCT_LABELS).map(
+  ([slug, name], display_order) => ({
+    slug,
+    name,
+    is_active: true,
+    display_order,
+  })
+)
 
 const IMAGE_TYPE_LABELS: Record<ImageType, string> = {
   gallery: '갤러리',
@@ -99,7 +112,12 @@ const uploadImage = async (file: File, productSlug: string): Promise<string> => 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProductImagesPage() {
-  const [selectedSlug, setSelectedSlug] = useState<string>(PRODUCT_SLUGS[0])
+  const [requestedSlug] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('product') || ''
+  })
+  const [products, setProducts] = useState<AdminProduct[]>(FALLBACK_PRODUCTS)
+  const [selectedSlug, setSelectedSlug] = useState<string>(FALLBACK_PRODUCTS[0].slug)
   const [images, setImages] = useState<ProductImage[]>([])
   const [allCounts, setAllCounts] = useState<Record<string, number>>({})
   const [productStatus, setProductStatus] = useState<Record<string, boolean>>({})
@@ -112,6 +130,45 @@ export default function ProductImagesPage() {
 
   // ─── Data Fetching ──────────────────────────────────────────────────────────
 
+  const getProductLabel = useCallback((slug: string) => {
+    return products.find((product) => product.slug === slug)?.name || PRODUCT_LABELS[slug] || slug
+  }, [products])
+
+  // ─── Toast ──────────────────────────────────────────────────────────────────
+
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }, [])
+
+  const fetchProducts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('admin_products')
+      .select('slug, name, is_active, display_order')
+      .order('display_order', { ascending: true })
+      .order('slug', { ascending: true })
+
+    const nextProducts = !error && data && data.length > 0
+      ? data as AdminProduct[]
+      : FALLBACK_PRODUCTS
+
+    if (error) {
+      console.error('Failed to fetch products:', error)
+    }
+
+    setProducts(nextProducts)
+    const status: Record<string, boolean> = {}
+    nextProducts.forEach((product) => {
+      status[product.slug] = product.is_active
+    })
+    setProductStatus(status)
+    setSelectedSlug((prev) => {
+      if (requestedSlug && nextProducts.some((product) => product.slug === requestedSlug)) return requestedSlug
+      if (prev && nextProducts.some((product) => product.slug === prev)) return prev
+      return nextProducts[0]?.slug || ''
+    })
+  }, [requestedSlug])
+
   const fetchAllCounts = useCallback(async () => {
     const { data, error } = await supabase
       .from('admin_product_images')
@@ -123,30 +180,10 @@ export default function ProductImagesPage() {
     }
 
     const counts: Record<string, number> = {}
-    PRODUCT_SLUGS.forEach((slug) => {
-      counts[slug] = 0
-    })
     data?.forEach((row) => {
       counts[row.product_slug] = (counts[row.product_slug] || 0) + 1
     })
     setAllCounts(counts)
-  }, [])
-
-  const fetchProductStatus = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('admin_products')
-      .select('slug, is_active')
-
-    if (error) {
-      console.error('Failed to fetch product status:', error)
-      return
-    }
-
-    const status: Record<string, boolean> = {}
-    data?.forEach((row) => {
-      status[row.slug] = row.is_active
-    })
-    setProductStatus(status)
   }, [])
 
   const handleToggleProduct = async (slug: string) => {
@@ -163,7 +200,7 @@ export default function ProductImagesPage() {
     } else {
       setProductStatus((prev) => ({ ...prev, [slug]: newStatus }))
       showToast(
-        `${PRODUCT_LABELS[slug]} ${newStatus ? '활성화' : '비활성화'} 완료`,
+        `${getProductLabel(slug)} ${newStatus ? '활성화' : '비활성화'} 완료`,
         'success'
       )
     }
@@ -171,6 +208,7 @@ export default function ProductImagesPage() {
   }
 
   const fetchImages = useCallback(async () => {
+    if (!selectedSlug) return
     setLoading(true)
     const { data, error } = await supabase
       .from('admin_product_images')
@@ -185,23 +223,22 @@ export default function ProductImagesPage() {
       setImages(data || [])
     }
     setLoading(false)
-  }, [selectedSlug])
+  }, [selectedSlug, showToast])
 
   useEffect(() => {
-    fetchAllCounts()
-    fetchProductStatus()
-  }, [fetchAllCounts, fetchProductStatus])
+    const timer = window.setTimeout(() => {
+      fetchProducts()
+      fetchAllCounts()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [fetchProducts, fetchAllCounts])
 
   useEffect(() => {
-    fetchImages()
+    const timer = window.setTimeout(() => {
+      fetchImages()
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [fetchImages])
-
-  // ─── Toast ──────────────────────────────────────────────────────────────────
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
-  }
 
   // ─── Reorder ────────────────────────────────────────────────────────────────
 
@@ -300,10 +337,11 @@ export default function ProductImagesPage() {
             <h2 className="text-sm font-semibold text-slate-700">상품 선택</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {PRODUCT_SLUGS.map((slug) => {
+            {products.map((product) => {
+              const slug = product.slug
               const isSelected = slug === selectedSlug
               const count = allCounts[slug] ?? 0
-              const isActive = productStatus[slug] ?? true
+              const isActive = productStatus[slug] ?? product.is_active
               return (
                 <div
                   key={slug}
@@ -321,7 +359,7 @@ export default function ProductImagesPage() {
                   >
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-bold ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
-                        {PRODUCT_LABELS[slug]}
+                        {product.name}
                       </span>
                       {isActive ? (
                         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">
@@ -382,7 +420,7 @@ export default function ProductImagesPage() {
             <div className="flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-slate-600" />
               <h2 className="text-sm font-semibold text-slate-700">
-                {PRODUCT_LABELS[selectedSlug]} 이미지
+                {getProductLabel(selectedSlug)} 이미지
               </h2>
               <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">
                 {images.length}장
@@ -399,7 +437,7 @@ export default function ProductImagesPage() {
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <ImageIcon className="w-12 h-12 mb-3 opacity-50" />
               <p className="text-sm font-medium">등록된 이미지가 없습니다</p>
-              <p className="text-xs mt-1">상단의 "이미지 추가" 버튼을 눌러 이미지를 등록하세요</p>
+              <p className="text-xs mt-1">상단의 이미지 추가 버튼을 눌러 이미지를 등록하세요</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6">
@@ -418,7 +456,7 @@ export default function ProductImagesPage() {
                     <div className="relative aspect-square bg-slate-100">
                       <Image
                         src={img.image_url}
-                        alt={img.alt_text || `${PRODUCT_LABELS[img.product_slug]} 이미지`}
+                        alt={img.alt_text || `${getProductLabel(img.product_slug)} 이미지`}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -509,7 +547,11 @@ export default function ProductImagesPage() {
               <Eye className="w-5 h-5 text-slate-600" />
               <h2 className="text-sm font-semibold text-slate-700">상품 페이지 미리보기</h2>
             </div>
-            <GalleryPreview images={images} productSlug={selectedSlug} />
+            <GalleryPreview
+              key={selectedSlug}
+              images={images}
+              productLabel={getProductLabel(selectedSlug)}
+            />
           </div>
         )}
       </div>
@@ -520,6 +562,7 @@ export default function ProductImagesPage() {
           <ImageModal
             modal={modal}
             productSlug={selectedSlug}
+            productLabel={getProductLabel(selectedSlug)}
             nextOrder={(images.length > 0 ? Math.max(...images.map((i) => i.display_order)) : 0) + 1}
             onClose={() => setModal({ open: false, mode: 'add', image: null })}
             onSuccess={async () => {
@@ -612,12 +655,14 @@ export default function ProductImagesPage() {
 
 // ─── Gallery Preview Component ────────────────────────────────────────────────
 
-function GalleryPreview({ images, productSlug }: { images: ProductImage[]; productSlug: string }) {
+function GalleryPreview({
+  images,
+  productLabel,
+}: {
+  images: ProductImage[]
+  productLabel: string
+}) {
   const [selectedIdx, setSelectedIdx] = useState(0)
-
-  useEffect(() => {
-    setSelectedIdx(0)
-  }, [productSlug])
 
   const mainImage = images[selectedIdx] || images[0]
 
@@ -629,7 +674,7 @@ function GalleryPreview({ images, productSlug }: { images: ProductImage[]; produ
           {mainImage && (
             <Image
               src={mainImage.image_url}
-              alt={mainImage.alt_text || PRODUCT_LABELS[productSlug]}
+              alt={mainImage.alt_text || productLabel}
               fill
               className="object-cover"
               sizes="400px"
@@ -672,6 +717,7 @@ function GalleryPreview({ images, productSlug }: { images: ProductImage[]; produ
 function ImageModal({
   modal,
   productSlug,
+  productLabel,
   nextOrder,
   onClose,
   onSuccess,
@@ -679,6 +725,7 @@ function ImageModal({
 }: {
   modal: ModalState
   productSlug: string
+  productLabel: string
   nextOrder: number
   onClose: () => void
   onSuccess: () => void
@@ -783,9 +830,9 @@ function ImageModal({
       }
 
       onSuccess()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Save error:', err)
-      showToast(err?.message || '저장에 실패했습니다.', 'error')
+      showToast(err instanceof Error ? err.message : '저장에 실패했습니다.', 'error')
     } finally {
       setSaving(false)
     }
@@ -823,7 +870,7 @@ function ImageModal({
           {/* Product Info */}
           <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg">
             <Package className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-700">{PRODUCT_LABELS[productSlug]}</span>
+            <span className="text-sm font-medium text-slate-700">{productLabel}</span>
             <span className="text-xs text-slate-400 font-mono">({productSlug})</span>
           </div>
 

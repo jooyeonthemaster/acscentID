@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare, Beaker, X, Droplets } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare, Beaker, X, Droplets, Clock } from 'lucide-react'
+import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
 import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals } from '@/types/cart'
@@ -23,6 +23,7 @@ export function CartList({ viewMode }: CartListProps) {
   const router = useRouter()
   const t = useTranslations('mypage.cart')
   const tCurrency = useTranslations('currency')
+  const locale = useLocale()
   const tButtons = useTranslations('buttons')
   const { getLocalizedName } = useLocalizedPerfumes()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -194,11 +195,9 @@ export function CartList({ viewMode }: CartListProps) {
     })
   }
 
-  // 결제하기
+  // 결제하기 — 선택한 상품만 주문
   const handleCheckout = () => {
-    const itemsToCheckout = selectedIds.size > 0
-      ? cartItems.filter(item => selectedIds.has(item.id))
-      : cartItems
+    const itemsToCheckout = cartItems.filter(item => selectedIds.has(item.id))
 
     if (itemsToCheckout.length === 0) {
       alert(t('noCheckoutItems'))
@@ -208,6 +207,18 @@ export function CartList({ viewMode }: CartListProps) {
     // 체크아웃 페이지에서 사용할 데이터 저장
     localStorage.setItem('checkoutItems', JSON.stringify(itemsToCheckout))
     router.push('/checkout')
+  }
+
+  // 장바구니에 담은 시각 — 현재 로케일로 포맷 (번역 불필요)
+  const formatAddedAt = (iso: string): string => {
+    try {
+      return new Date(iso).toLocaleString(locale, {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      })
+    } catch {
+      return ''
+    }
   }
 
   // 상품 타입 뱃지
@@ -220,8 +231,9 @@ export function CartList({ viewMode }: CartListProps) {
     )
   }
 
-  // 가격 계산
-  const selectedItems = selectedIds.size > 0 ? cartItems.filter(i => selectedIds.has(i.id)) : cartItems
+  // 가격 계산 — 선택한 상품만 합산 (선택 0개면 0원)
+  const selectedItems = cartItems.filter(i => selectedIds.has(i.id))
+  const hasSelection = selectedItems.length > 0
   const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const shippingResult = calculateShippingWithPromotion(subtotal, undefined, freeShippingPromo)
   const totals = {
@@ -356,6 +368,14 @@ export function CartList({ viewMode }: CartListProps) {
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-slate-900 truncate mb-1">{item.perfume_name}</h3>
 
+                {/* 장바구니에 담은 시각 (모든 상품 공통) */}
+                {item.created_at && (
+                  <p className="flex items-center gap-1 text-[11px] text-slate-400 mb-1">
+                    <Clock size={11} className="flex-shrink-0" />
+                    {formatAddedAt(item.created_at)}
+                  </p>
+                )}
+
                 {/* 레시피 버튼 */}
                 {item.analysis_id && (
                   <button
@@ -457,9 +477,9 @@ export function CartList({ viewMode }: CartListProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-3 border-t-2 border-black/20">
           <div>
             <p className="text-sm font-bold">
-              {selectedIds.size > 0
+              {hasSelection
                 ? t('selectedItems', { count: selectedIds.size })
-                : t('allItems', { count: cartItems.length })
+                : t('selectPrompt')
               }
             </p>
             <p className="text-2xl font-black">
@@ -468,7 +488,8 @@ export function CartList({ viewMode }: CartListProps) {
           </div>
           <button
             onClick={handleCheckout}
-            className="w-full sm:w-auto px-8 py-4 bg-black text-white font-black rounded-xl border-2 border-black shadow-[4px_4px_0_0_white] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+            disabled={!hasSelection}
+            className="w-full sm:w-auto px-8 py-4 bg-black text-white font-black rounded-xl border-2 border-black shadow-[4px_4px_0_0_white] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-[4px_4px_0_0_white] disabled:hover:translate-x-0 disabled:hover:translate-y-0"
           >
             {t('goCheckout')}
           </button>

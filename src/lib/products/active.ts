@@ -8,6 +8,7 @@
 // 매핑 안 된 타입(payment_test 등)은 활성으로 간주(차단 안 함).
 export const PRODUCT_TYPE_TO_SLUG: Record<string, string> = {
   image_analysis: 'idol-image',
+  image_analysis_paper: 'sample',
   figure_diffuser: 'figure',
   graduation: 'graduation',
   signature: 'le-quack',

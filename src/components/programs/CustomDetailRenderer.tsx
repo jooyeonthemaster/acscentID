@@ -22,6 +22,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
       <div className="w-full max-w-[455px] mx-auto">
         <div
           className="custom-detail-content"
+          data-admin-editable="detail_html"
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
       </div>
@@ -33,6 +34,10 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
           line-height: 1.7;
           word-break: break-word;
           overflow-wrap: break-word;
+        }
+
+        .custom-detail-content [data-ac-page-config="1"] {
+          display: none !important;
         }
 
         /* Headings */

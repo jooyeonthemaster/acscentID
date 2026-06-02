@@ -21,6 +21,7 @@ import Link from "next/link"
 import { useTranslations } from 'next-intl'
 
 import { Header } from "@/components/layout/Header"
+import { isScentPaperSize } from "@/types/cart"
 
 // 계좌 정보
 const BANK_INFO = {
@@ -334,7 +335,7 @@ function OrderCompleteContent() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
                   <span className="text-slate-500 font-bold">{t('checkoutComplete.volume')}</span>
-                  <span className="font-bold text-slate-900">{orderInfo.size}</span>
+                  <span className="font-bold text-slate-900">{isScentPaperSize(orderInfo.size) ? '시향지' : orderInfo.size}</span>
                 </div>
                 <div className="border-t-2 border-slate-900 pt-4 mt-4 flex justify-between items-center">
                   <span className="font-black text-slate-900">{t('checkoutComplete.paymentAmount')}</span>
