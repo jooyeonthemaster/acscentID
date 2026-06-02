@@ -22,7 +22,7 @@ import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/Progr
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
-import { formatPrice } from "@/types/cart"
+import { formatPrice, isScentPaperSize } from "@/types/cart"
 import { useProductDisplayName } from '@/hooks/useAdminContent'
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
@@ -48,10 +48,13 @@ export default function ChemistryProgramPage() {
   const { getOption, getOptions } = useProductPricing()
   const chemSet10 = getOption('chemistry_set', 'set_10ml')
   const chemSet50 = getOption('chemistry_set', 'set_50ml')
-  const chemMin = getOptions('chemistry_set').reduce<number | null>(
-    (acc, o) => (acc === null || o.price < acc ? o.price : acc),
-    null,
-  )
+  // 시향지(저가 애드온)는 세트 최소가가 아니므로 제외한다.
+  const chemMin = getOptions('chemistry_set')
+    .filter((o) => !isScentPaperSize(o.size))
+    .reduce<number | null>(
+      (acc, o) => (acc === null || o.price < acc ? o.price : acc),
+      null,
+    )
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()

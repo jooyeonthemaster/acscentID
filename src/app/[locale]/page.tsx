@@ -12,7 +12,7 @@ import { PopupModal } from "@/components/home/PopupModal"
 import { TodayScentDraw } from "@/components/home/TodayScentDraw"
 import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/useAdminContent"
 import { useProductPricing } from "@/hooks/useProductPricing"
-import type { ProductType } from "@/types/cart"
+import { isScentPaperSize, type ProductType } from "@/types/cart"
 
 export default function Home() {
   const router = useRouter()
@@ -28,8 +28,9 @@ export default function Home() {
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
 
   // 가격은 DB 의 가장 저렴한 활성 옵션 (priceRange 표시용)
+  // 시향지(저가 애드온)는 본 상품 최소가가 아니므로 제외한다.
   const minPrice = (productType: ProductType) => {
-    const opts = getOptions(productType)
+    const opts = getOptions(productType).filter((o) => !isScentPaperSize(o.size))
     if (opts.length === 0) return null
     return opts.reduce<{ price: number; original_price: number | null }>(
       (acc, o) => (o.price < acc.price ? { price: o.price, original_price: o.original_price } : acc),
