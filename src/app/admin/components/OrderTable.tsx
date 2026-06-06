@@ -17,11 +17,18 @@ import {
   PackageCheck
 } from 'lucide-react'
 import { isScentPaperSize } from '@/types/cart'
+import { getEffectiveProductType } from '@/lib/products/store-products'
+
+function getDisplayProductType(productType?: string | null, analysisData?: unknown): string {
+  return getEffectiveProductType(productType, analysisData)
+}
 
 // 사이즈 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
 function formatSizeLabel(productType: string | null | undefined, size: string): string {
   if (productType === 'image_analysis_paper') return '시향지'
   if (isScentPaperSize(size)) return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
+  if (productType === 'store_product' && size === '50ml') return '50ml 향수'
+  if (productType === 'store_product' && size === '10ml') return '10ml 향수'
   return size
 }
 
@@ -33,6 +40,7 @@ interface Order {
   perfume_brand: string
   size: string
   product_type?: string
+  analysis_data?: unknown
   price: number
   recipient_name: string
   phone: string
@@ -118,6 +126,7 @@ function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (or
   const [updating, setUpdating] = useState(false)
   const status = statusConfig[order.status] || statusConfig.pending
   const StatusIcon = status.icon
+  const displayProductType = getDisplayProductType(order.product_type, order.analysis_data)
 
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === order.status) return
@@ -149,7 +158,7 @@ function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (or
         <td className="px-4 py-3">
           <div>
             <p className="font-medium text-slate-900">{order.perfume_name}</p>
-            <p className="text-xs text-slate-500">{formatSizeLabel(order.product_type, order.size)}</p>
+            <p className="text-xs text-slate-500">{formatSizeLabel(displayProductType, order.size)}</p>
           </div>
         </td>
         <td className="px-4 py-3">

@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -15,6 +15,8 @@ import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { TODAY_SCENTS, getScentById, type TodayScent } from "@/lib/today-scent/scents"
 import { getDrawnToday } from "@/lib/today-scent/draw"
+import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
+import { emitCartChanged } from "@/lib/cart-events"
 
 // 오늘의 향 장바구니/주문 썸네일 (전용 보틀 이미지가 없어 시그니처 보틀로 대체)
 const TODAY_SCENT_BOTTLE_IMAGE = "/images/perfume/LE QUACK.avif"
@@ -66,6 +68,11 @@ function TodayScentProductContent() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
+  useEffect(() => {
+    setMobileOverlayOpen('today-scent-purchase-prompt', showLoginPrompt)
+    return () => setMobileOverlayOpen('today-scent-purchase-prompt', false)
+  }, [showLoginPrompt])
+
   const checkoutUrl = useMemo(
     () => `/checkout?product=today-scent&type=signature&scent=${scent.id}&size=${selectedSize}`,
     [scent.id, selectedSize]
@@ -115,6 +122,7 @@ function TodayScentProductContent() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "장바구니 추가에 실패했습니다")
+      emitCartChanged()
       alert("장바구니에 담았어요 🛒")
     } catch (e) {
       alert(e instanceof Error ? e.message : "장바구니 추가에 실패했습니다")
@@ -375,30 +383,32 @@ function TodayScentProductContent() {
       </section>
 
       {/* 하단 고정 구매 바 */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-black p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-        <div className="max-w-[455px] mx-auto flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <div className="text-base font-black text-black leading-none">{formatPrice(price)}원</div>
-            <div className="text-[10px] text-slate-500 font-bold mt-0.5">{scent.name} · {selectedSize}</div>
+      {!showLoginPrompt && !showAuthModal && (
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-[455px] bg-white border-t-2 border-black px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+          <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
+            <div className="min-w-0">
+              <div className="text-[15px] font-black text-black leading-tight truncate">{formatPrice(price)}원</div>
+              <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{scent.name} · {selectedSize}</div>
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={loading || addingToCart}
+              aria-label="장바구니 담기"
+              className="flex-shrink-0 w-12 h-12 bg-white text-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center disabled:opacity-50"
+            >
+              <ShoppingCart size={20} />
+            </button>
+            <button
+              onClick={handlePurchaseClick}
+              disabled={loading}
+              className="animate-buy-glow h-12 min-w-0 px-3 bg-[#FCD34D] text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap"
+            >
+              바로 구매하기
+            </button>
           </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={loading || addingToCart}
-            aria-label="장바구니 담기"
-            className="flex-shrink-0 w-12 h-12 bg-white text-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center disabled:opacity-50"
-          >
-            <ShoppingCart size={20} />
-          </button>
-          <button
-            onClick={handlePurchaseClick}
-            disabled={loading}
-            className="animate-buy-glow flex-1 py-3 bg-[#FCD34D] text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            바로 구매하기
-          </button>
         </div>
-      </div>
-      <div className="h-24" />
+      )}
+      <div className="h-28" />
 
       {/* 로그인 안내 모달 */}
       <AnimatePresence>
@@ -409,14 +419,14 @@ function TodayScentProductContent() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[90] max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
             >
               <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
                 <button

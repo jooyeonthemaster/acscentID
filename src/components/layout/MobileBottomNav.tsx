@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Sparkles, User, Menu, X, ChevronRight } from 'lucide-react'
+import { Home, Sparkles, User, Menu, X, ChevronRight, ShoppingBag } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTransition } from '@/contexts/TransitionContext'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
+import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
 
 // Programs 드롭업 메뉴 항목 (전체) - 기본 fallback 이미지 포함
 const ALL_PROGRAM_LINKS = [
@@ -22,6 +23,7 @@ const ALL_PROGRAM_LINKS = [
   { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const, fallbackImage: '/제목 없는 디자인 (4)/1.png' },
   { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
   { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const, fallbackImage: '/images/perfume/LE QUACK.avif' },
+  { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const, descKey: 'todayScent.subtitle' as const, fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
 ]
 
 // NavItem 컴포넌트
@@ -152,14 +154,14 @@ export function MobileBottomNav() {
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
   const t = useTranslations()
-  const { isProductActive } = useActiveProducts()
+  const { isProductVisible } = useActiveProducts()
 
   // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
 
-  // 활성 상품만 필터링 + DB 이미지 연동
+  // 노출 상품만 필터링 + DB 이미지 연동 (행 없으면 기본 노출)
   const PROGRAM_LINKS = ALL_PROGRAM_LINKS
-    .filter((link) => isProductActive(link.slug))
+    .filter((link) => isProductVisible(link.slug))
     .map((link) => ({
       ...link,
       image: thumbnailsLoading ? link.fallbackImage : (thumbnails[link.slug] || link.fallbackImage),
@@ -169,6 +171,7 @@ export function MobileBottomNav() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
+  const [hasMobileOverlay, setHasMobileOverlay] = useState(false)
 
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
@@ -176,7 +179,7 @@ export function MobileBottomNav() {
   const isAdminPage = normalizedPathname.startsWith('/admin')
   const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
   // 자체 하단 고정 구매바를 가진 페이지 — 전역 네비와 겹쳐 스크롤 시 깜빡이는 문제 방지
-  const hasOwnBottomBar = normalizedPathname === '/programs/today-scent'
+  const hasOwnBottomBar = normalizedPathname === '/programs/today-scent' || normalizedPathname.startsWith('/products/')
 
   const isIdolImagePage = normalizedPathname === '/programs/idol-image'
   const isFigurePage = normalizedPathname === '/programs/figure'
@@ -216,10 +219,15 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isAdminPage])
 
+  useEffect(() => {
+    return subscribeMobileOverlayChange(setHasMobileOverlay)
+  }, [])
+
   if (isAdminPage || shouldHideForFocusedExperience || hasOwnBottomBar) return null
 
   const isHomeActive = normalizedPathname === '/'
   const isProgramsActive = normalizedPathname.startsWith('/programs')
+  const isProductsActive = normalizedPathname.startsWith('/products')
   const isMyPageActive = normalizedPathname === '/mypage' || normalizedPathname.startsWith('/mypage')
 
   const handleLoginClick = () => {
@@ -256,10 +264,12 @@ export function MobileBottomNav() {
     }
   }
 
+  const shouldHideBars = hasMobileOverlay || showAuthModal || isMenuOpen
+
   return (
     <>
       {/* 프로그램 상세 페이지: CTA 버튼 */}
-      {isProgramDetailPage && (
+      {isProgramDetailPage && !shouldHideBars && (
         <div
           className={cn(
             "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t-2 border-black safe-area-bottom",
@@ -278,90 +288,99 @@ export function MobileBottomNav() {
       )}
 
       {/* 하단 네비게이션 바 (4탭) */}
-      <nav
-        className={cn(
-          "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(250,204,21,1)] safe-area-bottom",
-          "transition-transform duration-300 ease-out",
-          isVisible ? "translate-y-0" : "translate-y-full"
-        )}
-      >
-        <div className="flex items-center justify-around h-16 px-2 relative">
-          <NavItem
-            href="/"
-            icon={Home}
-            label={t('nav.home')}
-            isActive={isHomeActive}
-          />
+      {!shouldHideBars && (
+        <nav
+          className={cn(
+            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(250,204,21,1)] safe-area-bottom",
+            "transition-transform duration-300 ease-out",
+            isVisible ? "translate-y-0" : "translate-y-full"
+          )}
+        >
+          <div className="flex items-center justify-around h-16 px-2 relative">
+            <NavItem
+              href="/"
+              icon={Home}
+              label={t('nav.home')}
+              isActive={isHomeActive}
+            />
 
-          <button
-            onClick={() => setShowProgramsMenu(!showProgramsMenu)}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all relative",
-              isProgramsActive || showProgramsMenu
-                ? "text-yellow-600"
-                : "text-slate-600 hover:text-slate-900"
-            )}
-          >
-            <div className={cn(
-              "p-1.5 rounded-xl transition-all",
-              (isProgramsActive || showProgramsMenu) && "bg-yellow-100"
-            )}>
-              {showProgramsMenu ? (
-                <X size={20} strokeWidth={2.5} />
-              ) : (
-                <Sparkles size={20} strokeWidth={isProgramsActive ? 2.5 : 2} />
-              )}
-            </div>
-            <span className={cn(
-              "text-[10px] tracking-wide",
-              isProgramsActive ? "font-black" : "font-bold"
-            )}>{t('nav.programs')}</span>
-          </button>
-
-          {currentUser ? (
-            <Link
-              href="/mypage"
+            <button
+              onClick={() => setShowProgramsMenu(!showProgramsMenu)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
-                isMyPageActive
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all relative",
+                isProgramsActive || showProgramsMenu
                   ? "text-yellow-600"
                   : "text-slate-600 hover:text-slate-900"
               )}
             >
               <div className={cn(
                 "p-1.5 rounded-xl transition-all",
-                isMyPageActive && "bg-yellow-100"
+                (isProgramsActive || showProgramsMenu) && "bg-yellow-100"
               )}>
-                <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
+                {showProgramsMenu ? (
+                  <X size={20} strokeWidth={2.5} />
+                ) : (
+                  <Sparkles size={20} strokeWidth={isProgramsActive ? 2.5 : 2} />
+                )}
               </div>
               <span className={cn(
                 "text-[10px] tracking-wide",
-                isMyPageActive ? "font-black" : "font-bold"
-              )}>{t('nav.my')}</span>
-            </Link>
-          ) : (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-slate-600 hover:text-slate-900"
-            >
-              <div className="p-1.5 rounded-xl transition-all">
-                <User size={20} strokeWidth={2} />
-              </div>
-              <span className="text-[10px] tracking-wide font-bold">{t('nav.login')}</span>
+                isProgramsActive ? "font-black" : "font-bold"
+              )}>{t('nav.programs')}</span>
             </button>
-          )}
 
-          <button
-            onClick={() => setIsMenuOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-slate-600 hover:text-slate-900 transition-all"
-          >
-            <div className="p-1.5 rounded-xl">
-              <Menu size={20} strokeWidth={2} />
-            </div>
-            <span className="text-[10px] font-bold tracking-wide">{t('nav.menu')}</span>
-          </button>
-        </div>
-      </nav>
+            <NavItem
+              href="/products"
+              icon={ShoppingBag}
+              label={t('nav.products')}
+              isActive={isProductsActive}
+            />
+
+            {currentUser ? (
+              <Link
+                href="/mypage"
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
+                  isMyPageActive
+                    ? "text-yellow-600"
+                    : "text-slate-600 hover:text-slate-900"
+                )}
+              >
+                <div className={cn(
+                  "p-1.5 rounded-xl transition-all",
+                  isMyPageActive && "bg-yellow-100"
+                )}>
+                  <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
+                </div>
+                <span className={cn(
+                  "text-[10px] tracking-wide",
+                  isMyPageActive ? "font-black" : "font-bold"
+                )}>{t('nav.my')}</span>
+              </Link>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-slate-600 hover:text-slate-900"
+              >
+                <div className="p-1.5 rounded-xl transition-all">
+                  <User size={20} strokeWidth={2} />
+                </div>
+                <span className="text-[10px] tracking-wide font-bold">{t('nav.login')}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-slate-600 hover:text-slate-900 transition-all"
+            >
+              <div className="p-1.5 rounded-xl">
+                <Menu size={20} strokeWidth={2} />
+              </div>
+              <span className="text-[10px] font-bold tracking-wide">{t('nav.menu')}</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* 프로그램 선택 드로어: nav(z-40)의 스택 컨텍스트 밖에서 렌더링해야
           CTA 버튼(z-50)에 가려지지 않습니다. */}

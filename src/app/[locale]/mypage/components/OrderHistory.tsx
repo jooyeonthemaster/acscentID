@@ -32,6 +32,7 @@ import { getTrackingUrl, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS, type CarrierI
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
 import { isScentPaperSize } from '@/types/cart'
+import { getEffectiveProductType } from '@/lib/products/store-products'
 
 interface Order {
   id: string
@@ -50,8 +51,8 @@ interface Order {
   // 새로 추가된 필드
   user_image_url?: string
   keywords?: string[]
-  analysis_data?: ImageAnalysisResult
-  product_type?: 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent'
+  analysis_data?: (ImageAnalysisResult & { storeProduct?: Record<string, unknown> }) | null
+  product_type?: 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product'
   payment_method?: string
   payment_id?: string | null
   analysis_id?: string  // 분석 결과 ID (레시피 연결용)
@@ -71,6 +72,7 @@ interface Order {
 interface OrderHistoryProps {
   orders: Order[]
   loading: boolean
+  error?: string | null
   viewMode: 'grid' | 'list'
   onOrderUpdate?: () => void
 }
@@ -238,25 +240,31 @@ function OrderCard({
   const status = statusConfig[order.status] || statusConfig.pending
   const StatusIcon = status.icon
   const statusKeys = STATUS_KEYS[order.status] || STATUS_KEYS.pending
+  const displayProductType = getEffectiveProductType(order.product_type, order.analysis_data) as NonNullable<Order['product_type']>
 
-  const hasAnalysisData = !!order.analysis_data
+  const isCatalogProduct = ['signature', 'today_scent', 'store_product', 'payment_test'].includes(displayProductType)
+  const hasAnalysisData = !!order.analysis_data && !isCatalogProduct
   const canCancel = order.status !== 'cancel_requested' && order.status !== 'cancelled'
   const paymentBadge = getPaymentMethodBadge(order.payment_method, tPayment)
   const statusLabel = order.status === 'paid' && order.payment_method && order.payment_method !== 'bank_transfer'
     ? t('paymentComplete')
     : tStatus(statusKeys.labelKey)
   // 시그니처 상품인지 확인 (키워드에 "시그니처" 포함 여부)
-  const isSignatureProduct = order.keywords?.some(k => k.includes('시그니처')) ?? false
+  const isSignatureProduct = isCatalogProduct || (order.keywords?.some(k => k.includes('시그니처')) ?? false)
   // 시향지(샘플) 상품 — "향수로 구매하기" 업셀 노출 대상
-  const isPaperSample = order.product_type === 'image_analysis_paper'
+  const isPaperSample = displayProductType === 'image_analysis_paper'
   // size 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
   const sizeLabel = isScentPaperSize(order.size)
-    ? (order.product_type === 'chemistry_set' ? '시향지 2매' : '시향지')
+    ? (displayProductType === 'chemistry_set' ? '시향지 2매' : '시향지')
+    : displayProductType === 'store_product' && order.size === '50ml'
+      ? '50ml 향수'
+      : displayProductType === 'store_product' && order.size === '10ml'
+        ? '10ml 향수'
     : order.size
 
   // 상품 활성화 상태 — 비활성이면 재구매/분석상세보기 차단
   const { isProductActive, loading: productsLoading } = useActiveProducts()
-  const isProductDiscontinued = isProductTypeDiscontinued(order.product_type, isProductActive, productsLoading)
+  const isProductDiscontinued = isProductTypeDiscontinued(displayProductType, isProductActive, productsLoading)
 
   // 분석 상세보기 핸들러
   const handleViewAnalysis = () => {
@@ -288,8 +296,8 @@ function OrderCard({
         localStorage.setItem('userImage', order.user_image_url)
       }
       // productType 저장 (졸업 퍼퓸, 피규어 디퓨저 등)
-      if (order.product_type) {
-        localStorage.setItem('checkoutProductType', order.product_type)
+      if (displayProductType) {
+        localStorage.setItem('checkoutProductType', displayProductType)
       }
       // 분석 ID 저장 (주문과 분석 결과 연결용)
       if (order.analysis_id) {
@@ -889,13 +897,37 @@ function CustomerServiceBanner() {
   )
 }
 
-export function OrderHistory({ orders, loading, viewMode, onOrderUpdate }: OrderHistoryProps) {
+export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }: OrderHistoryProps) {
   const t = useTranslations('mypage')
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-12 h-12 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin mb-4" />
         <p className="font-bold text-slate-600">{t('loadingOrders')}</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>
+        <CustomerServiceBanner />
+        <div className="text-center py-20">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
+            <AlertTriangle size={32} className="text-red-500" />
+          </div>
+          <h3 className="text-xl font-black text-slate-900 mb-2">{t('ordersLoadFailed')}</h3>
+          <p className="text-sm text-slate-500 font-bold mb-5">{error}</p>
+          {onOrderUpdate && (
+            <button
+              onClick={onOrderUpdate}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-black text-white rounded-xl border-2 border-black font-black shadow-[3px_3px_0_0_#FCD34D] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_#FCD34D] transition-all"
+            >
+              <RefreshCw size={16} />
+              {t('retry')}
+            </button>
+          )}
+        </div>
       </div>
     )
   }

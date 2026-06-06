@@ -1158,6 +1158,7 @@ export function VisualDetailEditor({
             { type: 'button' as const, icon: MousePointerClick },
             { type: 'freebox' as const, icon: Box },
             { type: 'divider' as const, icon: Minus },
+            { type: 'spacer' as const, icon: MoveDown },
           ].map((item) => {
             const Icon = item.icon
             return (

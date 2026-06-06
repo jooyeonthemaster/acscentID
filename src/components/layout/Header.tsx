@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { User, ChevronLeft, Star, ShoppingCart } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -10,6 +10,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { MobileMenuSheet } from './MobileMenuSheet'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { cn } from '@/lib/utils'
+import { onCartChanged } from '@/lib/cart-events'
 import { useTranslations } from 'next-intl'
 
 interface HeaderProps {
@@ -17,10 +18,11 @@ interface HeaderProps {
   showBack?: boolean
   backHref?: string
   hideLogo?: boolean
+  compact?: boolean
 }
 
 // title / hideLogo 은 하위호환을 위해 props 에 유지하되, 중앙 로고는 항상 표시한다.
-export function Header({ showBack, backHref = "/" }: HeaderProps) {
+export function Header({ showBack, backHref = "/", compact = false }: HeaderProps) {
   const { user, unifiedUser, loading, signOut } = useAuth()
   const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -28,20 +30,29 @@ export function Header({ showBack, backHref = "/" }: HeaderProps) {
   const [cartCount, setCartCount] = useState(0)
   const t = useTranslations()
   const router = useRouter()
+  const pathname = usePathname()
 
   // 장바구니 개수 조회 (로그인 시)
-  useEffect(() => {
+  const refreshCartCount = useCallback(() => {
     if (!currentUser) {
       setCartCount(0)
       return
     }
-    let cancelled = false
     fetch('/api/cart?count=true')
       .then(res => (res.ok ? res.json() : null))
-      .then(data => { if (!cancelled && data) setCartCount(data.count || 0) })
+      .then(data => { if (data) setCartCount(data.count || 0) })
       .catch(() => {})
-    return () => { cancelled = true }
   }, [currentUser])
+
+  // 로그인 변경 + 페이지 이동 시 갱신 (담은 뒤 장바구니로 이동하는 흐름까지 커버)
+  useEffect(() => {
+    refreshCartCount()
+  }, [refreshCartCount, pathname])
+
+  // 담기/삭제 등 장바구니 변경 이벤트 시 즉시 개수 갱신
+  useEffect(() => {
+    return onCartChanged(refreshCartCount)
+  }, [refreshCartCount])
 
   return (
     <>
@@ -51,16 +62,17 @@ export function Header({ showBack, backHref = "/" }: HeaderProps) {
           "bg-white border-b-2 border-black shadow-md"
         )}
       >
-        {/* Marquee Bar (Top) */}
-        <div className="w-full bg-yellow-400 border-b-2 border-black py-1 overflow-hidden flex items-center h-7">
-          <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[9px] tracking-[0.15em] uppercase text-black">
-            {Array(8).fill(t('header.marquee')).map((text, i) => (
-              <span key={i} className="flex items-center gap-2">
-                {text} <Star size={8} fill="black" />
-              </span>
-            ))}
+        {!compact && (
+          <div className="w-full bg-yellow-400 border-b-2 border-black py-1 overflow-hidden flex items-center h-7">
+            <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[9px] tracking-[0.15em] uppercase text-black">
+              {Array(8).fill(t('header.marquee')).map((text, i) => (
+                <span key={i} className="flex items-center gap-2">
+                  {text} <Star size={8} fill="black" />
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Header Bar */}
         <div className="w-full px-4 h-14 flex items-center justify-between">
@@ -108,7 +120,11 @@ export function Header({ showBack, backHref = "/" }: HeaderProps) {
 
             {!loading && currentUser ? (
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full border-2 border-black bg-white overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <Link
+                  href="/mypage"
+                  aria-label={t('nav.myPage')}
+                  className="w-7 h-7 rounded-full border-2 border-black bg-white overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:scale-90 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                >
                   {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
                     <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -116,7 +132,7 @@ export function Header({ showBack, backHref = "/" }: HeaderProps) {
                       <User size={12} className="text-white" />
                     </div>
                   )}
-                </div>
+                </Link>
               </div>
             ) : !loading && !currentUser ? (
               <button

@@ -15,6 +15,14 @@ import {
 import type { AddToCartRequest } from '@/types/cart'
 import { ANALYSIS_OPTIONAL_PRODUCT_TYPES } from '@/types/cart'
 
+function getErrorMessage(error: unknown): string | null {
+  if (error instanceof Error) return error.message
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String(error.message)
+  }
+  return null
+}
+
 // 사용자 인증 확인
 async function getUserId(): Promise<string | null> {
   // 1. Kakao 커스텀 세션 확인
@@ -138,7 +146,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: '장바구니에 추가하는데 실패했습니다' },
+      {
+        error: '장바구니에 추가하는데 실패했습니다',
+        ...(process.env.NODE_ENV === 'development' ? { details: getErrorMessage(error) } : {}),
+      },
       { status: 500 }
     )
   }

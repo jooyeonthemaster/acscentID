@@ -75,6 +75,7 @@ export function GraduationInputForm() {
             <Header
                 showBack={currentStep > 1}
                 backHref="back"
+                compact
             />
 
             {/* 455px 고정 너비 컨테이너 */}
@@ -97,8 +98,8 @@ export function GraduationInputForm() {
                     <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-white/50" />
                 </div>
 
-                {/* 헤더 높이만큼 여백 */}
-                <div className="h-24 flex-shrink-0" />
+                {/* compact 헤더 높이만큼 여백 */}
+                <div className="h-14 flex-shrink-0" />
 
                 {/* 프로그레스 바 */}
                 <GraduationProgressBar currentStep={currentStep} totalSteps={totalSteps} />

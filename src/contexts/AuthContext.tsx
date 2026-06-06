@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import { signInWithGoogle, signInWithKakao, linkFingerprintData } from '@/lib/supabase/auth'
@@ -23,6 +23,7 @@ interface AuthContextType {
   signInWithKakao: (redirectTo?: string) => Promise<void>
   signOut: () => Promise<void>
   linkFingerprintData: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [unifiedUser, setUnifiedUser] = useState<UnifiedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const initialSessionCheckedRef = useRef(false)
 
   // Fingerprint 데이터 연동 (내부 함수)
   const linkFingerprintDataInternal = useCallback(async (userId: string) => {
@@ -96,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(supabaseSession?.user ?? null)
       setUnifiedUser(null)
     } finally {
+      initialSessionCheckedRef.current = true
       setLoading(false)
     }
   }, [])
@@ -118,9 +121,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
             avatar_url: currentSession.user.user_metadata?.avatar_url || currentSession.user.user_metadata?.picture || null,
             provider: currentSession.user.app_metadata?.provider || 'google',
           })
+          setLoading(false)
+        } else if (event === 'SIGNED_OUT') {
+          setUnifiedUser(null)
+          setLoading(false)
+        } else if (event !== 'INITIAL_SESSION' || initialSessionCheckedRef.current) {
+          setUnifiedUser(null)
+          setLoading(false)
         }
-
-        setLoading(false)
 
         // 로그인 성공 시 fingerprint 데이터 연동 + 리다이렉트 복구
         if (event === 'SIGNED_IN' && currentSession?.user) {
@@ -242,7 +250,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithGoogle: handleSignInWithGoogle,
     signInWithKakao: handleSignInWithKakao,
     signOut: handleSignOut,
-    linkFingerprintData: handleLinkFingerprintData
+    linkFingerprintData: handleLinkFingerprintData,
+    refreshUser: checkSession,
   }
 
   return (

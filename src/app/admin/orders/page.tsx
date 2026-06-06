@@ -35,6 +35,7 @@ import Link from 'next/link'
 import { ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
 import { RefundModal } from '../components/RefundModal'
 import { getTrackingUrl, isValidTrackingNumber, normalizeTrackingNumber, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS } from '@/lib/shipping/cj'
+import { getEffectiveProductType } from '@/lib/products/store-products'
 
 interface OrderAnalysis {
   id: string
@@ -58,6 +59,7 @@ interface OrderItemData {
   quantity: number
   subtotal: number
   image_url: string | null
+  analysis_data?: unknown
   analysis: OrderAnalysis | null
 }
 
@@ -115,6 +117,7 @@ interface Order {
     granules?: ConfirmedRecipeGranule[]
     [key: string]: unknown
   } | null
+  analysis_data?: unknown
 }
 
 interface Pagination {
@@ -150,10 +153,21 @@ const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> =
   signature: { label: '시그니처', className: 'bg-pink-100 text-pink-700' },
   chemistry_set: { label: '케미', className: 'bg-violet-100 text-violet-700' },
   personal_scent: { label: '퍼스널', className: 'bg-emerald-100 text-emerald-700' },
+  today_scent: { label: '오늘의 향', className: 'bg-amber-100 text-amber-700' },
+  store_product: { label: '상품', className: 'bg-lime-100 text-lime-700' },
+  payment_test: { label: '테스트', className: 'bg-red-100 text-red-700' },
 }
 
 function getProductBadge(type?: string | null) {
   return type ? PRODUCT_TYPE_BADGE[type] : null
+}
+
+function getDisplayProductType(source: {
+  product_type?: string | null
+  analysis_data?: unknown
+  analysis?: Pick<OrderAnalysis, 'product_type'> | null
+}) {
+  return getEffectiveProductType(source.product_type || source.analysis?.product_type, source.analysis_data)
 }
 
 // 용량/타입 라벨 — 시향지는 size('set'/'scent_paper') 대신 '시향지'로 표기
@@ -162,7 +176,66 @@ function getProductBadge(type?: string | null) {
 function formatSizeLabel(productType: string | null | undefined, size: string): string {
   if (productType === 'image_analysis_paper') return '시향지'
   if (size === 'scent_paper') return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
+  if (productType === 'store_product' && size === '50ml') return '50ml 향수'
+  if (productType === 'store_product' && size === '10ml') return '10ml 향수'
   return size
+}
+
+type StoreOrderSummarySource = {
+  id?: string
+  product_type?: string | null
+  analysis_data?: unknown
+  analysis?: Pick<OrderAnalysis, 'product_type'> | null
+  perfume_name: string
+  size: string
+  quantity?: number
+  unit_price?: number
+  subtotal?: number
+  price?: number
+  item_count?: number
+}
+
+function getStoreProductMeta(analysisData: unknown) {
+  if (!analysisData || typeof analysisData !== 'object' || !('storeProduct' in analysisData)) return null
+  const storeProduct = (analysisData as { storeProduct?: unknown }).storeProduct
+  if (!storeProduct || typeof storeProduct !== 'object') return null
+  return storeProduct as {
+    title?: string
+    size?: string
+    scentName?: string
+    perfumeId?: string
+    scentId?: string
+  }
+}
+
+function getStoreOrderSummary(source: StoreOrderSummarySource) {
+  const productType = getDisplayProductType(source)
+  if (productType !== 'store_product') return null
+
+  const meta = getStoreProductMeta(source.analysis_data)
+  const scentName = meta?.scentName || source.perfume_name.split('·')[0]?.trim() || source.perfume_name
+  const productLabel = meta?.title || formatSizeLabel(productType, meta?.size || source.size)
+  const quantity = source.quantity || source.item_count || 1
+  const unitPrice = source.unit_price || (quantity > 0 ? Math.round((source.price || 0) / quantity) : 0)
+  const subtotal = source.subtotal || source.price || unitPrice * quantity
+
+  return {
+    scentName,
+    productLabel,
+    perfumeId: meta?.perfumeId,
+    quantity,
+    unitPrice,
+    subtotal,
+  }
+}
+
+function getStoreOrderSummaries(order: Order) {
+  const sources: StoreOrderSummarySource[] = order.order_items && order.order_items.length > 0
+    ? order.order_items
+    : [order]
+  return sources
+    .map(getStoreOrderSummary)
+    .filter((item): item is NonNullable<ReturnType<typeof getStoreOrderSummary>> => Boolean(item))
 }
 
 function getPaymentBadge(method?: string) {
@@ -174,13 +247,14 @@ type ReportLinkSource = {
   analysis_id?: string | null
   layering_session_id?: string | null
   product_type?: string | null
+  analysis_data?: unknown
   analysis?: Pick<OrderAnalysis, 'product_type'> | null
 }
 
 function getReportPrintHref(source: ReportLinkSource) {
   if (source.analysis_id) return `/admin/analysis/${source.analysis_id}/print`
 
-  const productType = source.product_type || source.analysis?.product_type
+  const productType = getDisplayProductType(source)
   if (productType === 'chemistry_set' && source.layering_session_id) {
     return `/admin/analysis/${source.layering_session_id}/print`
   }
@@ -808,7 +882,7 @@ export default function AdminOrdersPage() {
 
         // 내품명 결정 — 출고 시 실제 동봉물 기준
         //  피규어 디퓨저 → "디퓨저", 시향지(단독 상품/애드온) → "시향지", 그 외 → "향수"
-        const productType = order.product_type || order.analysis?.product_type
+        const productType = getDisplayProductType(order)
         const itemName = productType === 'figure_diffuser'
           ? '디퓨저'
           : (productType === 'image_analysis_paper' || order.size === 'scent_paper')
@@ -1139,21 +1213,40 @@ export default function AdminOrdersPage() {
                         <td className="px-4 py-3">
                           <div className="text-slate-900">{order.perfume_name}</div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-sm text-slate-500">{formatSizeLabel(order.product_type || order.analysis?.product_type, order.size)}</span>
-                            {/* 상품 타입 뱃지 */}
-                            {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-cyan-100 text-cyan-700 rounded">피규어</span>
-                            )}
-                            {(order.product_type === 'graduation' || order.analysis?.product_type === 'graduation') && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded">졸업</span>
-                            )}
-                            {(order.product_type === 'signature' || order.analysis?.product_type === 'signature') && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-pink-100 text-pink-700 rounded">시그니처</span>
-                            )}
+                            <span className="text-sm text-slate-500">{formatSizeLabel(getDisplayProductType(order), order.size)}</span>
+                            {(() => {
+                              const badge = getProductBadge(getDisplayProductType(order))
+                              return badge ? (
+                                <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.className}`}>
+                                  {badge.label}
+                                </span>
+                              ) : null
+                            })()}
                             {order.confirmed_recipe && (
                               <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded">커스텀레시피</span>
                             )}
                           </div>
+                          {(() => {
+                            const summaries = getStoreOrderSummaries(order)
+                            if (summaries.length === 0) return null
+                            return (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {summaries.slice(0, 4).map((item, idx) => (
+                                  <span
+                                    key={`${item.scentName}-${idx}`}
+                                    className="rounded-full border border-lime-200 bg-lime-50 px-2 py-0.5 text-[11px] font-bold text-lime-800"
+                                  >
+                                    {item.scentName} {item.quantity}개
+                                  </span>
+                                ))}
+                                {summaries.length > 4 && (
+                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500">
+                                    +{summaries.length - 4}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })()}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{formatPrice(order.final_price || order.price)}</div>
@@ -1271,7 +1364,7 @@ export default function AdminOrdersPage() {
                             {/* 단일 상품: 기존 버튼 유지 */}
                             {(!order.item_count || order.item_count <= 1) && (
                               <>
-                                {(order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                                {getDisplayProductType(order) === 'figure_diffuser' && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
@@ -1346,8 +1439,10 @@ export default function AdminOrdersPage() {
                                 </div>
                                 <div className="space-y-3">
                                   {order.order_items.map((item, idx) => {
-                                    const badge = getProductBadge(item.product_type)
-                                    const isFigure = item.product_type === 'figure_diffuser'
+                                    const itemProductType = getDisplayProductType(item)
+                                    const badge = getProductBadge(itemProductType)
+                                    const isFigure = itemProductType === 'figure_diffuser'
+                                    const storeSummary = getStoreOrderSummary(item)
                                     return (
                                       <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4">
                                         {/* 상품 기본 정보 */}
@@ -1366,9 +1461,27 @@ export default function AdminOrdersPage() {
                                                 )}
                                               </div>
                                               <p className="text-xs text-slate-500 mt-0.5">
-                                                {formatSizeLabel(item.product_type, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}
+                                                {formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}
                                                 {item.quantity > 1 && ` = ${formatPrice(item.subtotal)}`}
                                               </p>
+                                              {storeSummary && (
+                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                  <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-black text-lime-800">
+                                                    향: {storeSummary.scentName}
+                                                  </span>
+                                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                                    상품: {storeSummary.productLabel}
+                                                  </span>
+                                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-black text-amber-800">
+                                                    수량: {storeSummary.quantity}개
+                                                  </span>
+                                                  {storeSummary.perfumeId && (
+                                                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-slate-400 ring-1 ring-slate-200">
+                                                      {storeSummary.perfumeId}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              )}
                                             </div>
                                           </div>
                                           {/* 액션 버튼 */}
@@ -1451,7 +1564,7 @@ export default function AdminOrdersPage() {
                                 <div className="flex items-center gap-2 mb-3">
                                   <span className="text-base">🧪</span>
                                   <span className="text-sm font-bold text-slate-900">커스텀 조향 레시피</span>
-                                  <span className="text-xs text-slate-400">({formatSizeLabel(order.product_type || order.analysis?.product_type, order.size)} 기준)</span>
+                                  <span className="text-xs text-slate-400">({formatSizeLabel(getDisplayProductType(order), order.size)} 기준)</span>
                                 </div>
                                 <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                                   <table className="w-full text-sm">
@@ -1579,7 +1692,7 @@ export default function AdminOrdersPage() {
                               </div>
                             )}
                             {/* 모델링 이미지 (단일 상품 피규어 디퓨저) - 다중 상품은 위 개별 목록에서 표시 */}
-                            {(!order.item_count || order.item_count <= 1) && (order.product_type === 'figure_diffuser' || order.analysis?.product_type === 'figure_diffuser') && (
+                            {(!order.item_count || order.item_count <= 1) && getDisplayProductType(order) === 'figure_diffuser' && (
                               <div className="mt-4 pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-3">
                                   <ImageIcon className="w-5 h-5 text-cyan-600" />
@@ -1701,8 +1814,10 @@ export default function AdminOrdersPage() {
                   {selectedOrder.item_count && selectedOrder.item_count > 1 && selectedOrder.order_items && selectedOrder.order_items.length > 0 ? (
                     <div className="space-y-3 mb-4">
                       {selectedOrder.order_items.map((item, idx) => {
-                        const badge = getProductBadge(item.product_type)
-                        const isFigure = item.product_type === 'figure_diffuser'
+                        const itemProductType = getDisplayProductType(item)
+                        const badge = getProductBadge(itemProductType)
+                        const isFigure = itemProductType === 'figure_diffuser'
+                        const storeSummary = getStoreOrderSummary(item)
                         return (
                           <div key={item.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
                             <div className="flex items-center justify-between">
@@ -1719,7 +1834,25 @@ export default function AdminOrdersPage() {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500">{formatSizeLabel(item.product_type, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
+                                  <p className="text-xs text-slate-500">{formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
+                                  {storeSummary && (
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                      <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-black text-lime-800">
+                                        향: {storeSummary.scentName}
+                                      </span>
+                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                        상품: {storeSummary.productLabel}
+                                      </span>
+                                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-black text-amber-800">
+                                        수량: {storeSummary.quantity}개
+                                      </span>
+                                      {storeSummary.perfumeId && (
+                                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-slate-400 ring-1 ring-slate-200">
+                                          {storeSummary.perfumeId}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">
@@ -1750,22 +1883,53 @@ export default function AdminOrdersPage() {
                     </div>
                   ) : (
                     /* 단일 상품: 기존 표시 */
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="text-sm text-slate-500">상품명</label>
-                        <p className="text-slate-900">{selectedOrder.perfume_name}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-slate-500">용량/타입</label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-900">{formatSizeLabel(selectedOrder.product_type || selectedOrder.analysis?.product_type, selectedOrder.size)}</span>
-                          {(() => {
-                            const badge = getProductBadge(selectedOrder.product_type || selectedOrder.analysis?.product_type)
-                            return badge ? <span className={`px-2 py-0.5 text-xs rounded-full ${badge.className}`}>{badge.label}</span> : null
-                          })()}
+                    <>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="text-sm text-slate-500">상품명</label>
+                          <p className="text-slate-900">{selectedOrder.perfume_name}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-500">용량/타입</label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-900">{formatSizeLabel(getDisplayProductType(selectedOrder), selectedOrder.size)}</span>
+                            {(() => {
+                              const badge = getProductBadge(getDisplayProductType(selectedOrder))
+                              return badge ? <span className={`px-2 py-0.5 text-xs rounded-full ${badge.className}`}>{badge.label}</span> : null
+                            })()}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                      {(() => {
+                        const summaries = getStoreOrderSummaries(selectedOrder)
+                        if (summaries.length === 0) return null
+                        return (
+                          <div className="mb-4 rounded-xl border border-lime-200 bg-lime-50 p-3">
+                            <div className="mb-2 flex items-center gap-2">
+                              <Package className="h-4 w-4 text-lime-700" />
+                              <span className="text-sm font-black text-lime-900">상품 향/수량</span>
+                            </div>
+                            <div className="space-y-2">
+                              {summaries.map((item, idx) => (
+                                <div key={`${item.scentName}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-lime-100">
+                                  <div>
+                                    <p className="text-sm font-black text-slate-900">{item.scentName}</p>
+                                    <p className="text-xs font-bold text-slate-500">
+                                      {item.productLabel}
+                                      {item.perfumeId && ` · ${item.perfumeId}`}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-black text-slate-900">{item.quantity}개</p>
+                                    <p className="text-xs font-bold text-slate-500">{formatPrice(item.subtotal)}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </>
                   )}
 
                   {/* 금액 정보 (공통) */}
@@ -1984,7 +2148,7 @@ export default function AdminOrdersPage() {
                 </div>
 
                 {/* 모델링 이미지 (단일 상품 피규어 디퓨저) - 다중 상품은 위 상품 목록에서 표시 */}
-                {(!selectedOrder.item_count || selectedOrder.item_count <= 1) && (selectedOrder.product_type === 'figure_diffuser' || selectedOrder.analysis?.product_type === 'figure_diffuser') && (
+                {(!selectedOrder.item_count || selectedOrder.item_count <= 1) && getDisplayProductType(selectedOrder) === 'figure_diffuser' && (
                   <div className="border-t pt-4">
                     <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-cyan-600" />

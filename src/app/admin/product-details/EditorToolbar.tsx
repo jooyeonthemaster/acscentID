@@ -454,6 +454,12 @@ export default function EditorToolbar({ editor, onImageUpload, uploading }: Edit
         >
           <Minus className="w-4 h-4" />
         </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().insertContent({ type: 'spacer', attrs: { height: 40 } }).run()}
+          title="여백 추가"
+        >
+          <Maximize2 className="w-4 h-4" />
+        </ToolbarButton>
 
       </div>
 

@@ -106,6 +106,12 @@ function dividerBlock(id: string, label: string) {
   `
 }
 
+function spacerBlock(id: string, height = 32) {
+  return `
+    <div data-ac-block="spacer" data-ac-block-id="${id}" data-height="${height}" style="height: ${height}px;"></div>
+  `
+}
+
 export function buildDefaultProductDetailTemplate({ slug, name }: ProductDetailTemplateInput) {
   const productName = name.trim() || '새 상품'
 
@@ -122,12 +128,14 @@ export function buildDefaultProductDetailTemplate({ slug, name }: ProductDetailT
       '상품의 콘셉트, 추천 대상, 사용 장면을 설명해주세요.\n관리자는 이 문장을 클릭해서 실제 판매 문구로 바꿀 수 있습니다.',
     )}
     ${imageBlock(blockId(slug, 'main-image'), '대표 이미지, 구성품 이미지, 사용 예시 등을 넣어주세요.')}
+    ${spacerBlock(blockId(slug, 'spacer-after-image'), 32)}
     ${featuresBlock(blockId(slug, 'features'), '구성 및 특징', [
       '가장 중요한 상품 특징을 입력하세요.',
       '구성품, 용량, 옵션 등 구매 전에 알아야 할 정보를 입력하세요.',
       '배송, 제작 기간, 이용 방법처럼 고객 문의가 많은 내용을 입력하세요.',
     ])}
     ${dividerBlock(blockId(slug, 'process-divider'), 'PROCESS')}
+    ${spacerBlock(blockId(slug, 'spacer-before-process'), 24)}
     ${headingBlock(blockId(slug, 'process-heading'), '어떻게 진행되나요?')}
     ${featuresBlock(blockId(slug, 'process'), '진행 방식', [
       '1단계: 고객이 선택하거나 입력해야 하는 내용을 적어주세요.',

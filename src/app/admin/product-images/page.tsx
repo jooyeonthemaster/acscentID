@@ -316,8 +316,8 @@ export default function ProductImagesPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminHeader
-        title="상품 이미지 관리"
-        subtitle="각 상품의 갤러리/썸네일/히어로 이미지를 관리합니다"
+        title="프로그램 이미지 관리"
+        subtitle="각 프로그램의 갤러리/썸네일/히어로 이미지를 관리합니다"
         actions={
           <button
             onClick={() => setModal({ open: true, mode: 'add', image: null })}
@@ -334,7 +334,7 @@ export default function ProductImagesPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Package className="w-5 h-5 text-slate-600" />
-            <h2 className="text-sm font-semibold text-slate-700">상품 선택</h2>
+            <h2 className="text-sm font-semibold text-slate-700">프로그램 선택</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {products.map((product) => {
@@ -545,7 +545,7 @@ export default function ProductImagesPage() {
           <div className="bg-white rounded-xl border border-slate-200">
             <div className="flex items-center gap-2 px-6 py-4 border-b border-slate-100">
               <Eye className="w-5 h-5 text-slate-600" />
-              <h2 className="text-sm font-semibold text-slate-700">상품 페이지 미리보기</h2>
+              <h2 className="text-sm font-semibold text-slate-700">프로그램 페이지 미리보기</h2>
             </div>
             <GalleryPreview
               key={selectedSlug}

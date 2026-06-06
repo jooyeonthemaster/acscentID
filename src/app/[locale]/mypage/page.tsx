@@ -8,9 +8,11 @@ import { SavedAnalysisList } from './components/SavedAnalysisList'
 import { OrderHistory } from './components/OrderHistory'
 import { CouponList } from './components/CouponList'
 import { Sparkles, ShoppingBag, Ticket, ShoppingCart } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { CartList } from './components/CartList'
+import { ProfileCard } from './components/ProfileCard'
+import { DefaultAddressCard } from './components/DefaultAddressCard'
 
 interface RecipeGranule {
   id: string
@@ -36,6 +38,7 @@ interface AnalysisResult {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ChemistryAnalysis = any
+type MyPageTab = 'analyses' | 'orders' | 'coupons' | 'cart'
 
 interface Order {
   id: string
@@ -60,6 +63,8 @@ function MyPageContent() {
   const t = useTranslations('mypage')
   const { user, unifiedUser } = useAuth()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const userId = unifiedUser?.id || user?.id
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
   const [chemistryAnalyses, setChemistryAnalyses] = useState<ChemistryAnalysis[]>([])
@@ -68,10 +73,11 @@ function MyPageContent() {
   const [couponCount, setCouponCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [ordersError, setOrdersError] = useState<string | null>(null)
   const [analysesLoaded, setAnalysesLoaded] = useState(false)
   const [ordersLoaded, setOrdersLoaded] = useState(false)
   const initialTab = searchParams.get('tab')
-  const [activeTab, setActiveTab] = useState<'analyses' | 'orders' | 'coupons' | 'cart'>(
+  const [activeTab, setActiveTab] = useState<MyPageTab>(
     initialTab === 'orders' ? 'orders' : initialTab === 'coupons' ? 'coupons' : initialTab === 'cart' ? 'cart' : 'analyses'
   )
   const viewMode = 'grid' as const
@@ -83,6 +89,20 @@ function MyPageContent() {
       setActiveTab(tab)
     }
   }, [searchParams])
+
+  const handleTabChange = useCallback((tab: MyPageTab) => {
+    setActiveTab(tab)
+
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'analyses') {
+      params.delete('tab')
+    } else {
+      params.set('tab', tab)
+    }
+
+    const query = params.toString()
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+  }, [pathname, router, searchParams])
 
   // 탭 뱃지용 장바구니/쿠폰 개수 조회
   useEffect(() => {
@@ -110,24 +130,33 @@ function MyPageContent() {
   }, [])
 
   // 주문 내역 조회
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (signal?: AbortSignal) => {
     if (!userId) return
 
     setOrdersLoading(true)
+    setOrdersError(null)
     try {
-      const response = await fetch('/api/orders')
+      const response = await fetch('/api/orders', { signal })
       const data = await response.json()
 
       if (response.ok) {
         setOrders(data.orders || [])
         setOrdersLoaded(true)
+      } else {
+        setOrdersError(data.error || t('ordersLoadFailed'))
+        setOrdersLoaded(true)
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
       console.error('Failed to fetch orders:', error)
+      setOrdersError(t('ordersLoadFailed'))
+      setOrdersLoaded(true)
     } finally {
-      setOrdersLoading(false)
+      if (!signal?.aborted) {
+        setOrdersLoading(false)
+      }
     }
-  }, [userId])
+  }, [t, userId])
 
   // API를 통해 데이터 조회
   const fetchData = useCallback(async () => {
@@ -167,7 +196,9 @@ function MyPageContent() {
       fetchData()
     }
     if (activeTab === 'orders' && !ordersLoaded) {
-      fetchOrders()
+      const controller = new AbortController()
+      fetchOrders(controller.signal)
+      return () => controller.abort()
     }
   }, [activeTab, analysesLoaded, fetchData, fetchOrders, ordersLoaded, userId])
 
@@ -213,11 +244,17 @@ function MyPageContent() {
     <div className="min-h-screen bg-[#FFF8E7]">
       {/* 메인 레이아웃 */}
       <div className="px-4 py-4">
+        {/* 회원정보 카드 */}
+        <ProfileCard />
+
+        {/* 기본 배송지 카드 */}
+        <DefaultAddressCard />
+
         {/* 탭 네비게이션 */}
         <div className="bg-white border-2 border-black rounded-2xl p-2 mb-4 shadow-[4px_4px_0_0_black]">
           <div className="grid grid-cols-4 gap-1">
             <button
-              onClick={() => setActiveTab('analyses')}
+              onClick={() => handleTabChange('analyses')}
               className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'analyses'
                   ? 'bg-black text-white'
@@ -229,7 +266,7 @@ function MyPageContent() {
               <span className="text-[10px] opacity-70">{t('itemCount', { count: analyses.length + chemistryAnalyses.length })}</span>
             </button>
             <button
-              onClick={() => setActiveTab('cart')}
+              onClick={() => handleTabChange('cart')}
               className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'cart'
                   ? 'bg-black text-white'
@@ -241,7 +278,7 @@ function MyPageContent() {
               <span className="text-[10px] opacity-70">{t('itemCount', { count: cartCount })}</span>
             </button>
             <button
-              onClick={() => setActiveTab('orders')}
+              onClick={() => handleTabChange('orders')}
               className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'orders'
                   ? 'bg-black text-white'
@@ -253,7 +290,7 @@ function MyPageContent() {
               <span className="text-[10px] opacity-70">{t('itemCount', { count: orders.length })}</span>
             </button>
             <button
-              onClick={() => setActiveTab('coupons')}
+              onClick={() => handleTabChange('coupons')}
               className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
                 activeTab === 'coupons'
                   ? 'bg-black text-white'
@@ -291,8 +328,9 @@ function MyPageContent() {
             <OrderHistory
               orders={orders}
               loading={ordersLoading}
+              error={ordersError}
               viewMode={viewMode}
-              onOrderUpdate={fetchOrders}
+              onOrderUpdate={() => fetchOrders()}
             />
           )}
           {activeTab === 'coupons' && (

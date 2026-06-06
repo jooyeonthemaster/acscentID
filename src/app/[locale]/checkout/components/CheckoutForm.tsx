@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { User, MapPin, Search, Phone, Home, MessageSquare } from "lucide-react"
+import { User, MapPin, Search, Phone, Home, MessageSquare, Star, Check, Loader2 } from "lucide-react"
 
 import { useTranslations } from 'next-intl'
 import { useAuth } from "@/contexts/AuthContext"
+import { splitPhone, joinPhone } from "@/lib/user/address"
 
 // 다음 주소 검색 타입
 declare global {
@@ -43,12 +44,82 @@ interface CheckoutFormProps {
 
 export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
   const t = useTranslations()
-  const { user: _user, unifiedUser: _unifiedUser } = useAuth()
-  void _user
-  void _unifiedUser
+  const { user, unifiedUser } = useAuth()
+  const userId = unifiedUser?.id || user?.id || null
   const phone2Ref = useRef<HTMLInputElement>(null)
   const phone3Ref = useRef<HTMLInputElement>(null)
   const [postcodeLoading, setPostcodeLoading] = useState(false)
+  const [manualAddressMode, setManualAddressMode] = useState(false)
+  const [postcodeNotice, setPostcodeNotice] = useState("")
+  const [savingDefault, setSavingDefault] = useState(false)
+  const [savedDefault, setSavedDefault] = useState(false)
+  const [defaultNotice, setDefaultNotice] = useState("")
+
+  // 저장된 기본 배송지 자동 불러오기 (빈 칸만 채움, 1회)
+  const prefilledRef = useRef(false)
+  useEffect(() => {
+    if (prefilledRef.current || !userId) return
+    prefilledRef.current = true
+    let cancelled = false
+    fetch("/api/user/address")
+      .then((r) => (r.ok ? r.json() : { address: null }))
+      .then(({ address }) => {
+        if (cancelled || !address) return
+        const [p1, p2, p3] = splitPhone(address.phone)
+        setFormData((prev) => {
+          const hasPhone = !!(prev.phone2 || prev.phone3)
+          return {
+            ...prev,
+            name: prev.name || address.name || "",
+            phone1: hasPhone ? prev.phone1 : p1 || prev.phone1,
+            phone2: hasPhone ? prev.phone2 : p2,
+            phone3: hasPhone ? prev.phone3 : p3,
+            zipCode: prev.zipCode || address.zipCode || "",
+            address: prev.address || address.address || "",
+            addressDetail: prev.addressDetail || address.addressDetail || "",
+          }
+        })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [userId, setFormData])
+
+  // 현재 입력한 주소를 기본 배송지로 저장
+  const handleSaveDefault = async () => {
+    const payload = {
+      name: formData.name.trim(),
+      phone: joinPhone(formData.phone1, formData.phone2, formData.phone3),
+      zipCode: formData.zipCode.trim(),
+      address: formData.address.trim(),
+      addressDetail: formData.addressDetail.trim(),
+    }
+    if (!payload.name || !payload.zipCode || !payload.address || !formData.phone2 || !formData.phone3) {
+      setDefaultNotice(t('checkout.defaultAddressIncomplete'))
+      return
+    }
+    setSavingDefault(true)
+    setDefaultNotice("")
+    try {
+      const res = await fetch("/api/user/address", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) {
+        setSavedDefault(true)
+        setTimeout(() => setSavedDefault(false), 2500)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setDefaultNotice(data.error || t('checkout.defaultAddressSaveFailed'))
+      }
+    } catch {
+      setDefaultNotice(t('checkout.defaultAddressSaveFailed'))
+    } finally {
+      setSavingDefault(false)
+    }
+  }
 
   const handleChange = (field: keyof CheckoutFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -110,19 +181,27 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
       const ready = await waitForDaumPostcode()
       setPostcodeLoading(false)
       if (!ready) {
-        alert(t('checkout.addressLoadError'))
+        setManualAddressMode(true)
+        setPostcodeNotice(t('checkout.addressManualFallback'))
         return
       }
     }
-    new window.daum!.Postcode({
-      oncomplete: (data: DaumPostcodeData) => {
-        setFormData((prev) => ({
-          ...prev,
-          zipCode: data.zonecode,
-          address: data.roadAddress || data.jibunAddress,
-        }))
-      },
-    }).open()
+    try {
+      new window.daum!.Postcode({
+        oncomplete: (data: DaumPostcodeData) => {
+          setManualAddressMode(false)
+          setPostcodeNotice("")
+          setFormData((prev) => ({
+            ...prev,
+            zipCode: data.zonecode,
+            address: data.roadAddress || data.jibunAddress,
+          }))
+        },
+      }).open()
+    } catch {
+      setManualAddressMode(true)
+      setPostcodeNotice(t('checkout.addressManualFallback'))
+    }
   }
 
   // 스크립트가 준비되면 버튼을 정상 상태로
@@ -230,10 +309,16 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             <input
               type="text"
               value={formData.zipCode}
-              readOnly
-              onClick={openAddressSearch}
-              placeholder={t('checkout.zipcode')}
-              className="flex-1 min-w-0 px-3 py-3 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 cursor-pointer font-medium text-sm"
+              readOnly={!manualAddressMode}
+              onChange={(e) => handleChange("zipCode", e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+              onClick={manualAddressMode ? undefined : openAddressSearch}
+              inputMode="numeric"
+              placeholder={manualAddressMode ? t('checkout.manualZipcodePlaceholder') : t('checkout.zipcode')}
+              className={`flex-1 min-w-0 px-3 py-3 rounded-xl border-2 text-slate-900 placeholder:text-slate-400 font-medium text-sm ${
+                manualAddressMode
+                  ? "border-slate-900 bg-white"
+                  : "border-slate-300 bg-slate-100 cursor-pointer"
+              }`}
             />
             <button
               type="button"
@@ -248,11 +333,31 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
           <input
             type="text"
             value={formData.address}
-            readOnly
-            onClick={openAddressSearch}
-            placeholder={t('checkout.addressSearchPlaceholder')}
-            className="w-full px-3 py-3 rounded-xl border-2 border-slate-300 bg-slate-100 text-slate-900 placeholder:text-slate-400 mb-2 cursor-pointer font-medium text-sm"
+            readOnly={!manualAddressMode}
+            onChange={(e) => handleChange("address", e.target.value)}
+            onClick={manualAddressMode ? undefined : openAddressSearch}
+            placeholder={manualAddressMode ? t('checkout.manualAddressPlaceholder') : t('checkout.addressSearchPlaceholder')}
+            className={`w-full px-3 py-3 rounded-xl border-2 text-slate-900 placeholder:text-slate-400 mb-2 font-medium text-sm ${
+              manualAddressMode
+                ? "border-slate-900 bg-white"
+                : "border-slate-300 bg-slate-100 cursor-pointer"
+            }`}
           />
+          <div className="mb-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 flex items-start justify-between gap-3">
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              {postcodeNotice || t('checkout.manualAddressHint')}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setManualAddressMode((prev) => !prev)
+                setPostcodeNotice("")
+              }}
+              className="shrink-0 text-[11px] font-black text-slate-900 underline underline-offset-2"
+            >
+              {manualAddressMode ? t('checkout.useAddressSearch') : t('checkout.enterAddressManually')}
+            </button>
+          </div>
           <input
             type="text"
             value={formData.addressDetail}
@@ -262,6 +367,34 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             enterKeyHint="done"
             className="w-full px-3 py-3 rounded-xl border-2 border-slate-900 focus:border-[#F472B6] focus:ring-0 outline-none transition-all text-slate-900 placeholder:text-slate-400 bg-white hover:bg-slate-50 font-medium text-sm"
           />
+
+          {/* 기본 배송지로 저장 (로그인 시) */}
+          {userId && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={handleSaveDefault}
+                disabled={savingDefault || savedDefault}
+                className={`w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border-2 font-bold text-sm transition-colors ${
+                  savedDefault
+                    ? "border-green-500 bg-green-50 text-green-700"
+                    : "border-slate-900 bg-white text-slate-900 hover:bg-[#FEF9C3]"
+                } disabled:opacity-70`}
+              >
+                {savingDefault ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : savedDefault ? (
+                  <Check size={15} />
+                ) : (
+                  <Star size={15} />
+                )}
+                {savedDefault ? t('checkout.savedAsDefault') : t('checkout.saveAsDefaultAddress')}
+              </button>
+              {defaultNotice && (
+                <p className="mt-1 text-[11px] text-[#F472B6] font-bold">{defaultNotice}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 배송 메모 */}

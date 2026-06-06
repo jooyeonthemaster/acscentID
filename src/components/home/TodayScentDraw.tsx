@@ -89,7 +89,7 @@ export function TodayScentDraw() {
     : undefined
 
   return (
-    <section ref={sectionRef} className="bg-white px-4 pt-10 pb-32 rounded-t-[32px] -mt-[100px] relative z-20 border-2 border-slate-900 border-b-0 scroll-mt-[100px]">
+    <section ref={sectionRef} className="bg-white px-4 pt-10 pb-[clamp(132px,18svh,180px)] rounded-t-[32px] -mt-[clamp(84px,12svh,112px)] relative z-20 border-2 border-slate-900 border-b-0 scroll-mt-[100px]">
       {/* 섹션 타이틀 */}
       <div className="flex items-center gap-2 mb-1">
         <Sparkles size={20} className="text-slate-900" />

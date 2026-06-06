@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Link2, X } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
+import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -29,6 +30,11 @@ export function ShareModal({
 }: ShareModalProps) {
   const t = useTranslations('share')
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    setMobileOverlayOpen('share-modal', isOpen)
+    return () => setMobileOverlayOpen('share-modal', false)
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return
@@ -86,7 +92,7 @@ export function ShareModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
           />
 
           <motion.div
@@ -95,7 +101,7 @@ export function ShareModal({
             exit={{ opacity: 0, y: 100, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="
-              fixed inset-x-4 bottom-4 z-50
+              fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90]
               max-w-[400px] mx-auto
               bg-white rounded-3xl shadow-2xl
               overflow-hidden

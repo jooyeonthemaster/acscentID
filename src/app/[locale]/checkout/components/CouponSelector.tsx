@@ -11,6 +11,7 @@ interface CouponSelectorProps {
   onSelectCoupon: (coupon: CheckoutCoupon | null) => void
   productPrice: number
   cheapestItemPrice?: number
+  enabled?: boolean
 }
 
 const COUPON_COLORS: Record<string, string> = {
@@ -20,7 +21,7 @@ const COUPON_COLORS: Record<string, string> = {
   welcome: '#D9F99D',
 }
 
-export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice }: CouponSelectorProps) {
+export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, enabled = true }: CouponSelectorProps) {
   const t = useTranslations()
   const [isOpen, setIsOpen] = useState(false)
   const [coupons, setCoupons] = useState<CheckoutCoupon[]>([])
@@ -28,8 +29,10 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice }:
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!enabled) return
     fetchAllCoupons()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled])
 
   const fetchAllCoupons = async () => {
     setIsLoading(true)
@@ -134,7 +137,7 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice }:
       ) : (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          disabled={isLoading || coupons.length === 0}
+          disabled={!enabled || isLoading || coupons.length === 0}
           className="w-full bg-white border-2 border-slate-300 hover:border-slate-900 rounded-xl p-3 flex items-center justify-between transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <div className="flex items-center gap-2">

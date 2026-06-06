@@ -1,530 +1,416 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
-import { motion, AnimatePresence } from 'framer-motion'
+import { PRODUCT_PRICING, formatPrice } from '@/types/cart'
+import type { PricingRow } from '@/components/admin/EditPricingModal'
+import { STORE_PRODUCT_TYPE, type StoreProduct } from '@/lib/products/store-products'
 import {
   AlertTriangle,
   Check,
   Edit3,
-  Eye,
-  EyeOff,
-  GripVertical,
+  ExternalLink,
   Loader2,
-  Package,
   Plus,
   RefreshCw,
-  X,
+  Save,
+  ShoppingBag,
+  Tag,
 } from 'lucide-react'
 
-interface AdminProduct {
-  slug: string
-  name: string
-  is_active: boolean
-  display_order: number
-  updated_at: string | null
-}
-
-interface ProductFormData {
-  slug: string
-  name: string
-  is_active: boolean
-  display_order: string
-}
-
-const DEFAULT_FORM: ProductFormData = {
+const STORE_DEFAULT_OPTIONS = PRODUCT_PRICING.store_product
+const INITIAL_FORM = {
   slug: '',
-  name: '',
-  is_active: false,
-  display_order: '0',
+  title: '',
+  shortLabel: '',
+  size: '',
+  badge: '상품',
+  description: '',
+  price: '24000',
+  imageUrl: '',
+  included: '선택 향 상품\n주문 후 2~3일 내 배송',
+}
+
+function optionLabel(size: string): string {
+  return STORE_DEFAULT_OPTIONS.find((option) => option.size === size)?.label || size
 }
 
 function slugify(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^a-z0-9가-힣\s-]/g, '')
+    .replace(/[가-힣]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
 
-function formatDate(value: string | null): string {
-  if (!value) return '-'
-  return new Date(value).toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function ProductCreateModal({
-  nextOrder,
-  onClose,
-  onSave,
-}: {
-  nextOrder: number
-  onClose: () => void
-  onSave: (form: ProductFormData) => Promise<void>
-}) {
-  const [form, setForm] = useState<ProductFormData>({ ...DEFAULT_FORM, display_order: String(nextOrder) })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  const updateName = (name: string) => {
-    setForm((prev) => ({
-      ...prev,
-      name,
-      slug: prev.slug ? prev.slug : slugify(name),
-    }))
-  }
-
-  const handleSubmit = async () => {
-    setError('')
-    if (!form.name.trim()) {
-      setError('상품명을 입력해주세요.')
-      return
-    }
-    if (!form.slug.trim()) {
-      setError('slug를 입력해주세요.')
-      return
-    }
-
-    setSaving(true)
-    try {
-      await onSave(form)
-      onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '상품 추가에 실패했습니다.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        className="w-full max-w-lg rounded-2xl border-2 border-slate-900 bg-white shadow-[6px_6px_0px_#0f172a]"
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">새 상품 추가</h2>
-            <p className="mt-0.5 text-xs text-slate-500">
-              추가 후 기본 상세 템플릿이 생성되고 상품 관리 페이지로 이동합니다.
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="space-y-5 px-6 py-5">
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">상품명</label>
-            <input
-              value={form.name}
-              onChange={(event) => updateName(event.target.value)}
-              placeholder="예: 여름 한정 퍼퓸"
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-900 outline-none transition-colors focus:border-slate-900"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">slug</label>
-            <input
-              value={form.slug}
-              onChange={(event) => setForm({ ...form, slug: slugify(event.target.value) })}
-              placeholder="summer-perfume"
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 font-mono text-sm text-slate-900 outline-none transition-colors focus:border-slate-900"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700">정렬 순서</label>
-              <input
-                type="number"
-                min={0}
-                value={form.display_order}
-                onChange={(event) => setForm({ ...form, display_order: event.target.value })}
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-900 outline-none transition-colors focus:border-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700">노출 상태</label>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, is_active: !form.is_active })}
-                className={`flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold transition-colors ${
-                  form.is_active
-                    ? 'border-green-200 bg-green-50 text-green-700'
-                    : 'border-slate-200 bg-slate-50 text-slate-500'
-                }`}
-              >
-                {form.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                {form.is_active ? '활성' : '비활성'}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-              <AlertTriangle className="h-4 w-4" />
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">
-          <button
-            onClick={onClose}
-            className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            추가
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
 export default function AdminProductsPage() {
-  const router = useRouter()
-  const [products, setProducts] = useState<AdminProduct[]>([])
+  const [products, setProducts] = useState<StoreProduct[]>([])
+  const [pricingRows, setPricingRows] = useState<PricingRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [form, setForm] = useState(INITIAL_FORM)
   const [toast, setToast] = useState('')
-  const [draggingSlug, setDraggingSlug] = useState<string | null>(null)
-  const [savingOrder, setSavingOrder] = useState(false)
-  const productsRef = useRef<AdminProduct[]>([])
-  const originalProductsRef = useRef<AdminProduct[] | null>(null)
-  const hasReorderedRef = useRef(false)
-
-  productsRef.current = products
+  const [storeTableUnavailable, setStoreTableUnavailable] = useState(false)
 
   const showToast = useCallback((message: string) => {
     setToast(message)
-    setTimeout(() => setToast(''), 2500)
+    window.setTimeout(() => setToast(''), 2500)
   }, [])
 
   const fetchProducts = useCallback(async () => {
+    const res = await fetch('/api/admin/store-products', { cache: 'no-store' })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(json.error || '상품 목록 조회 실패')
+    setProducts((json.products ?? []) as StoreProduct[])
+    setStoreTableUnavailable(json.unavailable === true)
+  }, [])
+
+  const fetchPricing = useCallback(async () => {
+    const res = await fetch('/api/admin/product-pricing', { cache: 'no-store' })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(json.error || '상품 가격 조회 실패')
+    setPricingRows(((json.pricing ?? []) as PricingRow[]).filter((row) => row.product_type === STORE_PRODUCT_TYPE))
+  }, [])
+
+  const refreshAll = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/products', { cache: 'no-store' })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error || '상품 목록 조회 실패')
-      setProducts((json.products ?? []) as AdminProduct[])
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '상품 목록 조회 실패')
+      await Promise.all([fetchProducts(), fetchPricing()])
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '상품 정보를 불러오지 못했습니다')
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [fetchPricing, fetchProducts, showToast])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      fetchProducts()
-    }, 0)
-    return () => window.clearTimeout(timer)
-  }, [fetchProducts])
+    refreshAll()
+  }, [refreshAll])
 
-  const nextOrder = useMemo(() => {
-    if (products.length === 0) return 0
-    return Math.max(...products.map((product) => product.display_order)) + 1
-  }, [products])
+  const rowsBySize = useMemo(() => {
+    return new Map(pricingRows.map((row) => [row.size, row]))
+  }, [pricingRows])
 
-  const goToProduct = (slug: string) => {
-    router.push(`/admin/products/${slug}`)
-  }
+  const missingOptions = useMemo(() => {
+    return products.filter((product) => !rowsBySize.has(product.size))
+  }, [products, rowsBySize])
 
-  const moveProduct = useCallback((dragSlug: string, targetSlug: string) => {
-    if (dragSlug === targetSlug) return
+  const activeCount = products.filter((product) => product.isActive ?? true).length
 
-    setProducts((current) => {
-      const fromIndex = current.findIndex((product) => product.slug === dragSlug)
-      const toIndex = current.findIndex((product) => product.slug === targetSlug)
-      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return current
-
-      const next = [...current]
-      const [moved] = next.splice(fromIndex, 1)
-      next.splice(toIndex, 0, moved)
-      hasReorderedRef.current = true
-
-      return next.map((product, index) => ({
-        ...product,
-        display_order: index,
-      }))
-    })
-  }, [])
-
-  const persistProductOrder = useCallback(async () => {
-    if (!hasReorderedRef.current) {
-      setDraggingSlug(null)
-      originalProductsRef.current = null
-      return
-    }
-
-    const orderedProducts = productsRef.current.map((product, index) => ({
-      ...product,
-      display_order: index,
-    }))
-    const originalProducts = originalProductsRef.current
-    const originalOrderMap = new Map(originalProducts?.map((product) => [product.slug, product.display_order]) ?? [])
-    const changedProducts = orderedProducts.filter((product) => originalOrderMap.get(product.slug) !== product.display_order)
-
-    setProducts(orderedProducts)
-    setDraggingSlug(null)
-
-    if (changedProducts.length === 0) {
-      hasReorderedRef.current = false
-      originalProductsRef.current = null
-      return
-    }
-
-    setSavingOrder(true)
+  const handleSeedDefaults = async () => {
+    if (missingOptions.length === 0) return
+    setSyncing(true)
     try {
-      await Promise.all(changedProducts.map(async (product) => {
-        const res = await fetch('/api/admin/products', {
-          method: 'PATCH',
+      for (const product of missingOptions) {
+        const res = await fetch('/api/admin/product-pricing', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slug: product.slug,
-            display_order: product.display_order,
+            product_type: STORE_PRODUCT_TYPE,
+            size: product.size,
+            label: product.title,
+            price: product.fallbackPrice,
+            original_price: null,
+            is_active: product.isActive ?? true,
           }),
         })
-        const json = await res.json().catch(() => ({}))
-        if (!res.ok) throw new Error(json.error || '상품 순서 저장 실패')
-      }))
-      showToast('상품 순서가 저장되었습니다')
+        if (!res.ok && res.status !== 409) {
+          const json = await res.json().catch(() => ({}))
+          throw new Error(json.error || `${product.title} 등록 실패`)
+        }
+      }
+      showToast('상품 가격이 체크아웃에 연동되었습니다')
+      await fetchPricing()
     } catch (error) {
-      if (originalProducts) setProducts(originalProducts)
-      showToast(error instanceof Error ? error.message : '상품 순서 저장 실패')
+      showToast(error instanceof Error ? error.message : '가격 연동 실패')
     } finally {
-      setSavingOrder(false)
-      hasReorderedRef.current = false
-      originalProductsRef.current = null
+      setSyncing(false)
     }
-  }, [showToast])
+  }
 
-  const handleDragStart = (event: DragEvent<HTMLButtonElement>, slug: string) => {
-    if (savingOrder) {
-      event.preventDefault()
+  const updateForm = (key: keyof typeof INITIAL_FORM, value: string) => {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === 'title' && !current.slug ? { slug: slugify(value) } : {}),
+      ...(key === 'title' && !current.shortLabel ? { shortLabel: value } : {}),
+      ...(key === 'slug' && !current.size ? { size: value } : {}),
+    }))
+  }
+
+  const handleCreateProduct = async () => {
+    const title = form.title.trim()
+    const slug = form.slug.trim()
+    const size = form.size.trim()
+    const price = Number(form.price)
+
+    if (!title || !slug || !size) {
+      showToast('상품명, slug, 옵션 코드는 필수입니다')
+      return
+    }
+    if (!Number.isInteger(price) || price < 0) {
+      showToast('가격은 0 이상의 정수여야 합니다')
       return
     }
 
-    originalProductsRef.current = productsRef.current
-    hasReorderedRef.current = false
-    setDraggingSlug(slug)
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', slug)
-  }
-
-  const handleDragOver = (event: DragEvent<HTMLDivElement>, targetSlug: string) => {
-    const dragSlug = draggingSlug || event.dataTransfer.getData('text/plain')
-    if (!dragSlug) return
-
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    moveProduct(dragSlug, targetSlug)
-  }
-
-  const handleDragEnd = () => {
-    persistProductOrder()
-  }
-
-  const handleCreate = async (form: ProductFormData) => {
-    const res = await fetch('/api/admin/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        slug: form.slug,
-        name: form.name.trim(),
-        is_active: form.is_active,
-        display_order: Number(form.display_order),
-      }),
-    })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(json.error || '상품 추가 실패')
-    const slug = json.product?.slug || form.slug
-    router.push(`/admin/products/${slug}`)
+    setCreating(true)
+    try {
+      const res = await fetch('/api/admin/store-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          title,
+          short_label: form.shortLabel.trim() || title,
+          size,
+          badge: form.badge.trim() || '상품',
+          description: form.description.trim(),
+          fallback_price: price,
+          image_url: form.imageUrl.trim() || null,
+          included: form.included,
+          is_active: true,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || '상품 추가 실패')
+      setAddOpen(false)
+      setForm(INITIAL_FORM)
+      await refreshAll()
+      showToast('상품이 추가되었습니다')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '상품 추가 실패')
+    } finally {
+      setCreating(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminHeader
         title="상품 관리"
-        subtitle="상품을 선택하면 기본정보, 이미지, 상세페이지 관리 화면으로 이동합니다"
+        subtitle="상품 자체와 가격, 판매 상세페이지를 관리합니다"
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <button
-              onClick={fetchProducts}
-              disabled={savingOrder}
-              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={refreshAll}
+              disabled={loading || syncing}
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${savingOrder ? 'animate-spin' : ''}`} />
-              {savingOrder ? '순서 저장 중' : '새로고침'}
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              새로고침
             </button>
             <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+              onClick={() => setAddOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white hover:bg-slate-800"
             >
               <Plus className="h-4 w-4" />
               상품 추가
             </button>
-          </div>
+          </>
         }
       />
 
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto max-w-7xl space-y-6 p-6">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-bold text-slate-500">등록 상품</p>
+            <p className="mt-2 text-2xl font-black text-slate-900">{products.length}개</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-bold text-slate-500">판매 가능</p>
+            <p className="mt-2 text-2xl font-black text-emerald-600">{activeCount}개</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-bold text-slate-500">체크아웃 가격 연동</p>
+            <p className="mt-2 text-2xl font-black text-slate-900">{pricingRows.length}개</p>
+          </div>
+        </div>
+
+        {storeTableUnavailable && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <p className="text-sm font-black text-amber-900">Supabase 상품 테이블 없이 임시 저장 모드로 작동 중입니다.</p>
+              <p className="mt-1 text-xs font-medium text-amber-800">
+                지금 수정한 상품 정보는 로컬 저장소에 보관되고 체크아웃 가격에도 연동됩니다.
+                운영 DB에 영구 반영하려면 `20260607_admin_store_products.sql` 마이그레이션을 나중에 적용해주세요.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {missingOptions.length > 0 && (
+          <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-black text-amber-900">일부 상품의 체크아웃 가격이 아직 연동되지 않았습니다.</p>
+                <p className="mt-1 text-xs font-medium text-amber-800">
+                  미등록 상품: {missingOptions.map((product) => product.title).join(', ')}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleSeedDefaults}
+              disabled={syncing}
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Tag className="h-4 w-4" />}
+              가격 연동 등록
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-12">
             <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
           </div>
-        ) : products.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-            <Package className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-sm font-semibold text-slate-500">등록된 상품이 없습니다</p>
-          </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <div className="grid grid-cols-12 gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs font-bold uppercase text-slate-500">
-              <div className="col-span-1 text-center">이동</div>
-              <div className="col-span-3">상품</div>
-              <div className="col-span-3">slug</div>
-              <div className="col-span-1 text-center">순서</div>
-              <div className="col-span-2 text-center">상태</div>
-              <div className="col-span-1">수정일</div>
-              <div className="col-span-1 text-right">관리</div>
-            </div>
+          <div className="grid grid-cols-3 gap-4">
+            {products.map((product) => {
+              const row = rowsBySize.get(product.size)
+              const price = row?.price ?? product.fallbackPrice
+              const label = row?.label ?? optionLabel(product.size)
+              const isActive = product.isActive ?? true
 
-            <div className="divide-y divide-slate-100">
-              {products.map((product) => (
-                <div
-                  key={product.slug}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => goToProduct(product.slug)}
-                  onDragOver={(event) => handleDragOver(event, product.slug)}
-                  onDrop={(event) => {
-                    event.preventDefault()
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      goToProduct(product.slug)
-                    }
-                  }}
-                  className={`grid cursor-pointer grid-cols-12 items-center gap-4 px-5 py-4 transition-colors hover:bg-yellow-50 ${
-                    product.is_active ? '' : 'opacity-70'
-                  } ${
-                    draggingSlug === product.slug ? 'bg-yellow-100 opacity-90 shadow-[inset_4px_0_0_#facc15]' : ''
-                  }`}
-                >
-                  <div className="col-span-1 flex justify-center">
-                    <button
-                      type="button"
-                      draggable={!savingOrder}
-                      onClick={(event) => event.stopPropagation()}
-                      onDragStart={(event) => handleDragStart(event, product.slug)}
-                      onDragEnd={handleDragEnd}
-                      className="flex h-9 w-9 cursor-grab items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
-                      disabled={savingOrder}
-                      title="드래그해서 순서 변경"
-                      aria-label={`${product.name} 순서 변경`}
-                    >
-                      <GripVertical className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  <div className="col-span-3 flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-100 text-yellow-700">
-                      <Package className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate font-bold text-slate-900">{product.name}</div>
-                      <p className="mt-0.5 text-xs text-slate-400">클릭해서 관리</p>
+              return (
+                <section key={product.slug} className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-100 text-lime-700">
+                        <ShoppingBag className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-base font-black text-slate-900">{product.title}</h2>
+                          <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-bold text-lime-700">
+                            {product.badge}
+                          </span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {isActive ? '판매' : '중지'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm leading-relaxed text-slate-500">{product.description}</p>
+                        <p className="mt-1 font-mono text-[11px] text-slate-400">{product.slug}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="col-span-3 truncate font-mono text-xs text-slate-500">
-                    {product.slug}
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <p className="text-xs font-bold text-slate-400">옵션 코드</p>
+                      <p className="mt-1 text-sm font-black text-slate-900">{label}</p>
+                      <p className="mt-0.5 font-mono text-[11px] text-slate-400">{product.size}</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <p className="text-xs font-bold text-slate-400">판매가</p>
+                      <p className="mt-1 font-mono text-sm font-black text-slate-900">₩{formatPrice(price)}</p>
+                    </div>
                   </div>
-                  <div className="col-span-1 text-center font-mono text-sm text-slate-700">
-                    {product.display_order}
-                  </div>
-                  <div className="col-span-2 text-center">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                        product.is_active
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-slate-200 text-slate-600'
-                      }`}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <Link
+                      href={`/products/${product.slug}`}
+                      target="_blank"
+                      className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
                     >
-                      {product.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                      {product.is_active ? '활성' : '비활성'}
-                    </span>
-                  </div>
-                  <div className="col-span-1 text-xs text-slate-500">
-                    {formatDate(product.updated_at)}
-                  </div>
-                  <div className="col-span-1 text-right">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        goToProduct(product.slug)
-                      }}
-                      className="rounded-lg p-2 text-slate-700 transition-colors hover:bg-yellow-100"
-                      title="관리"
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      구매 페이지
+                    </Link>
+                    <Link
+                      href={`/admin/products/${product.slug}?kind=store`}
+                      className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"
                     >
-                      <Edit3 className="h-4 w-4" />
-                    </button>
+                      <Edit3 className="h-3.5 w-3.5" />
+                      상품/가격 편집
+                    </Link>
                   </div>
-                </div>
-              ))}
-            </div>
+                </section>
+              )
+            })}
           </div>
         )}
+
       </div>
 
-      <AnimatePresence>
-        {modalOpen && (
-          <ProductCreateModal
-            nextOrder={nextOrder}
-            onClose={() => setModalOpen(false)}
-            onSave={handleCreate}
-          />
-        )}
-      </AnimatePresence>
+      {addOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 p-5">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">상품 추가</h2>
+                <p className="mt-1 text-xs font-medium text-slate-500">상품 생성 시 체크아웃 가격과 상세페이지 초안이 함께 만들어집니다.</p>
+              </div>
+              <button
+                onClick={() => setAddOpen(false)}
+                className="rounded-lg px-3 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100"
+              >
+                닫기
+              </button>
+            </div>
+            <div className="grid max-h-[72vh] grid-cols-2 gap-4 overflow-y-auto p-5">
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">상품명</span>
+                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm font-bold outline-none focus:border-slate-900" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">slug</span>
+                <input value={form.slug} onChange={(event) => updateForm('slug', event.target.value)} placeholder="ex. room-spray" className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">옵션/사이즈 코드</span>
+                <input value={form.size} onChange={(event) => updateForm('size', event.target.value)} placeholder="ex. room_spray_100ml" className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">판매가</span>
+                <input value={form.price} onChange={(event) => updateForm('price', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">짧은 라벨</span>
+                <input value={form.shortLabel} onChange={(event) => updateForm('shortLabel', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">뱃지</span>
+                <input value={form.badge} onChange={(event) => updateForm('badge', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="col-span-2 block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">설명</span>
+                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} rows={3} className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="col-span-2 block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">대표 이미지 URL</span>
+                <input value={form.imageUrl} onChange={(event) => updateForm('imageUrl', event.target.value)} placeholder="/images/..." className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
+              </label>
+              <label className="col-span-2 block">
+                <span className="mb-1 block text-xs font-bold text-slate-500">구성 안내</span>
+                <textarea value={form.included} onChange={(event) => updateForm('included', event.target.value)} rows={4} className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
+              </label>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-200 p-5">
+              <button onClick={() => setAddOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">취소</button>
+              <button onClick={handleCreateProduct} disabled={creating} className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50">
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                상품 추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 30, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: 30, x: '-50%' }}
-            className="fixed bottom-6 left-1/2 z-[60] flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-xl"
-          >
-            <Check className="h-4 w-4 text-yellow-400" />
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-[90] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-xl">
+          <Check className="h-4 w-4 text-yellow-400" />
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

@@ -27,6 +27,7 @@ import { Highlight } from '@tiptap/extension-highlight'
 import { Underline } from '@tiptap/extension-underline'
 import { Link } from '@tiptap/extension-link'
 import { Placeholder } from '@tiptap/extension-placeholder'
+import { Node, mergeAttributes } from '@tiptap/core'
 import EditorToolbar from './EditorToolbar'
 import PhonePreview from './PhonePreview'
 import EditorStyles from './EditorStyles'
@@ -63,6 +64,42 @@ interface ProductDetail {
 
 type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'error'
 type PublishStatus = 'in_sync' | 'pending' | 'publishing' | 'error'
+
+const Spacer = Node.create({
+  name: 'spacer',
+  group: 'block',
+  atom: true,
+
+  addAttributes() {
+    return {
+      height: {
+        default: 40,
+        parseHTML: (element) => {
+          const attrHeight = Number(element.getAttribute('data-height'))
+          if (Number.isFinite(attrHeight) && attrHeight > 0) return attrHeight
+          const styleHeight = Number.parseInt(element.style.height || '', 10)
+          return Number.isFinite(styleHeight) && styleHeight > 0 ? styleHeight : 40
+        },
+      },
+    }
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-ac-block="spacer"]' }]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const height = Number(HTMLAttributes.height) || 40
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-ac-block': 'spacer',
+        'data-height': String(height),
+        style: `height: ${height}px;`,
+      }),
+    ]
+  },
+})
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -180,6 +217,7 @@ export default function ProductDetailsPage() {
           target: '_blank',
         },
       }),
+      Spacer,
       Placeholder.configure({
         placeholder: '상세페이지 콘텐츠를 작성하세요...',
       }),
@@ -538,7 +576,7 @@ export default function ProductDetailsPage() {
   if (loading) {
     return (
       <div className="flex-1 flex flex-col">
-        <AdminHeader title="상세페이지 관리" subtitle="상품별 상세페이지를 편집합니다" />
+        <AdminHeader title="프로그램 상세페이지 관리" subtitle="프로그램별 상세페이지를 편집합니다" />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
         </div>
@@ -549,7 +587,7 @@ export default function ProductDetailsPage() {
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-slate-50">
       <AdminHeader
-        title="상세페이지 관리"
+        title="프로그램 상세페이지 관리"
         subtitle="저장은 임시 저장(Draft), 배포 버튼을 눌러야 고객 화면에 반영됩니다"
         actions={
           <div className="flex items-center gap-3 flex-wrap">

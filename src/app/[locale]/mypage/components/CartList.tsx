@@ -14,6 +14,8 @@ import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
+import { getEffectiveProductType } from '@/lib/products/store-products'
+import { emitCartChanged } from '@/lib/cart-events'
 
 interface CartListProps {
   viewMode: 'grid' | 'list'
@@ -88,9 +90,10 @@ export function CartList({ viewMode }: CartListProps) {
   // 사이즈 변경
   const updateSize = async (item: CartItem, newSize: string) => {
     if (item.size === newSize) return
-    if (item.product_type === 'figure_diffuser') return // 피규어는 사이즈 변경 불가
+    const effectiveProductType = getEffectiveProductType(item.product_type, item.analysis_data)
+    if (effectiveProductType === 'figure_diffuser' || effectiveProductType === 'store_product') return // 고정 구성 상품은 옵션 변경 불가
 
-    const newOpt = getOption(item.product_type, newSize)
+    const newOpt = getOption(effectiveProductType, newSize)
     const newPrice = newOpt?.price ?? item.price
 
     setUpdatingIds(prev => new Set(prev).add(item.id))
@@ -100,7 +103,7 @@ export function CartList({ viewMode }: CartListProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           size: newSize,
-          product_type: item.product_type,
+          product_type: effectiveProductType,
         }),
       })
 
@@ -127,6 +130,7 @@ export function CartList({ viewMode }: CartListProps) {
       const response = await fetch(`/api/cart/${id}`, { method: 'DELETE' })
       if (response.ok) {
         setCartItems(prev => prev.filter(i => i.id !== id))
+        emitCartChanged()
         setSelectedIds(prev => {
           const next = new Set(prev)
           next.delete(id)
@@ -164,6 +168,7 @@ export function CartList({ viewMode }: CartListProps) {
       if (response.ok) {
         const data = await response.json()
         setCartItems(prev => prev.filter(i => !selectedIds.has(i.id)))
+        emitCartChanged()
         setSelectedIds(new Set())
         alert(t('deletedItems', { count: data.deleted }))
       }
@@ -310,7 +315,10 @@ export function CartList({ viewMode }: CartListProps) {
 
       {/* 장바구니 아이템 목록 */}
       <div className="space-y-3">
-        {cartItems.map((item, index) => (
+        {cartItems.map((item, index) => {
+          const effectiveProductType = getEffectiveProductType(item.product_type, item.analysis_data)
+
+          return (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, y: 20 }}
@@ -336,7 +344,7 @@ export function CartList({ viewMode }: CartListProps) {
                     <div className="w-5 h-5 bg-slate-100 rounded-md border border-slate-300" />
                   )}
                 </button>
-                {renderProductTypeBadge(item.product_type)}
+                {renderProductTypeBadge(effectiveProductType)}
               </div>
               <button
                 onClick={() => removeItem(item.id)}
@@ -392,8 +400,10 @@ export function CartList({ viewMode }: CartListProps) {
 
                 {/* 옵션 선택 */}
                 <div className="text-sm text-slate-500">
-                  {item.product_type === 'figure_diffuser' ? (
-                    <span className="text-xs">{t('setProduct')}</span>
+                  {effectiveProductType === 'figure_diffuser' || effectiveProductType === 'store_product' ? (
+                    <span className="text-xs">
+                      {effectiveProductType === 'figure_diffuser' ? t('setProduct') : item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`}
+                    </span>
                   ) : (
                     <select
                       value={item.size}
@@ -401,7 +411,7 @@ export function CartList({ viewMode }: CartListProps) {
                       disabled={updatingIds.has(item.id)}
                       className="text-xs text-slate-600 bg-slate-50 rounded-md px-2 py-1 border-none outline-none disabled:opacity-50"
                     >
-                      {getOptions(item.product_type).map(option => (
+                      {getOptions(effectiveProductType).map(option => (
                         <option key={option.size} value={option.size}>
                           {option.label} - {formatPrice(option.price)}{tCurrency('suffix')}
                         </option>
@@ -436,7 +446,8 @@ export function CartList({ viewMode }: CartListProps) {
               </span>
             </div>
           </motion.div>
-        ))}
+          )
+        })}
       </div>
 
       {/* 하단 결제 정보 */}

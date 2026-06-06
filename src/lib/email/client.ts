@@ -19,4 +19,5 @@ export function getAdminEmails(): string[] {
 }
 
 // 발신 이메일 주소
-export const FROM_EMAIL = 'ACSCENT <onboarding@resend.dev>'
+// 운영에서는 Resend에서 인증한 도메인의 주소를 RESEND_FROM_EMAIL에 설정한다.
+export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ACSCENT <no-reply@acscent.co.kr>'

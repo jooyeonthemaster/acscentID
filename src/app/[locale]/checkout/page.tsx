@@ -29,12 +29,23 @@ import { CheckoutCoupon } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import { formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
+import { useActiveProducts } from "@/hooks/useAdminContent"
 import { detectInAppBrowser } from "@/lib/mobile/inAppBrowser"
 import { getScentById, TODAY_SCENTS } from "@/lib/today-scent/scents"
+import {
+  STORE_PRODUCT_IMAGE,
+  STORE_PRODUCT_TYPE,
+  getEffectiveProductType,
+  getStoreProductBySize,
+  getStoreProductBySlug,
+  getStoreProductName,
+} from "@/lib/products/store-products"
 
 // "오늘의 향" 시그니처 퍼퓸 결제 시 주문 요약에 쓰는 대표 이미지
 const TODAY_SCENT_BOTTLE_IMAGE = "/images/perfume/LE QUACK.avif"
+const PERSISTED_CART_ITEM_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface AnalysisResult {
   matchingPerfumes?: Array<{
@@ -45,6 +56,7 @@ interface AnalysisResult {
     }
   }>
   matchingKeywords?: string[]
+  storeProduct?: Record<string, unknown>
 }
 
 // 계좌 정보
@@ -78,6 +90,12 @@ function CheckoutContent() {
   const searchParams = useSearchParams()
   const { user, unifiedUser, loading: authLoading } = useAuth()
   const { getOption, getPrice, getOptions, getDefaultSize, loading: pricingLoading } = useProductPricing()
+  const {
+    getProductBySlug: getDynamicStoreProductBySlug,
+    getProductBySize: getDynamicStoreProductBySize,
+    loading: storeProductsLoading,
+  } = useStoreProducts()
+  const { isProductActive, loading: productsLoading } = useActiveProducts()
 
   // URL 파라미터에서 시그니처/테스트 상품 확인
   const urlProduct = searchParams.get("product")
@@ -86,6 +104,8 @@ function CheckoutContent() {
   const isPaymentTest = urlProduct === "payment-test" && urlType === "payment_test"
   // "오늘의 향" 시그니처 상품 (분석 없이 바로 구매 — le-quack 패턴 재사용)
   const isTodayScent = urlProduct === "today-scent" && urlType === "signature"
+  const isStoreProduct = urlProduct === "store" && urlType === STORE_PRODUCT_TYPE
+  const isStoreMultiCheckout = urlProduct === "store-multi" && urlType === STORE_PRODUCT_TYPE
 
   // 다중 상품 모드
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
@@ -94,6 +114,10 @@ function CheckoutContent() {
   // 뒤로가기 목적지 — 상품 진입 경로별로 분기.
   // (분석에서 온 상품만 /result. 카탈로그 상품은 해당 상품 페이지/홈으로 복귀)
   const backHref = useMemo(() => {
+    if (isStoreProduct || isStoreMultiCheckout) {
+      const item = searchParams.get("item")
+      return item ? `/products/${item}` : "/products"
+    }
     if (isMultiItemMode) return "/mypage"
     if (isTodayScent) {
       const scent = searchParams.get("scent")
@@ -103,7 +127,7 @@ function CheckoutContent() {
     if (isPaymentTest) return "/"
     return "/result"
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMultiItemMode, isTodayScent, isSignatureProduct, isPaymentTest, searchParams])
+  }, [isMultiItemMode, isTodayScent, isStoreProduct, isStoreMultiCheckout, isSignatureProduct, isPaymentTest, searchParams])
 
   // 단일 상품 모드 (기존 호환)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
@@ -121,13 +145,22 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card")
   const [isRepurchaser, setIsRepurchaser] = useState<boolean | undefined>(undefined)
 
+  const userId = user?.id || unifiedUser?.id
+  const userName = unifiedUser?.name || user?.user_metadata?.full_name || ""
+  const userEmail = user?.email || unifiedUser?.email || undefined
+
+  // 비회원 구매 URL로 들어온 경우 주문 API가 사용할 임시 세션을 미리 생성한다.
+  const [guestSessionCreated, setGuestSessionCreated] = useState(false)
+
   // 재구매 자격 확인
   useEffect(() => {
+    if (authLoading) return
+    if (!userId && !guestSessionCreated) return
     fetch('/api/coupons/repurchase/eligible')
       .then(r => r.json())
       .then(d => { if (d.success) setIsRepurchaser(d.isEligible) })
       .catch(() => {})
-  }, [])
+  }, [authLoading, userId, guestSessionCreated])
 
   // PortOne 결제 Hook
   const { initiatePayment } = usePortonePayment()
@@ -161,15 +194,36 @@ function CheckoutContent() {
     memo: "",
   })
 
-  const userId = user?.id || unifiedUser?.id
-  const userName = unifiedUser?.name || user?.user_metadata?.full_name || ""
-  const userEmail = user?.email || unifiedUser?.email || undefined
-
   // 인앱브라우저 감지 (결제 시도 차단용)
   const [isInApp, setIsInApp] = useState(false)
   useEffect(() => {
     setIsInApp(detectInAppBrowser().isInApp)
   }, [])
+
+  useEffect(() => {
+    const isGuestCheckout = searchParams.get("guest") === "true"
+    if (authLoading || userId || !isGuestCheckout || guestSessionCreated) return
+
+    let cancelled = false
+    fetch("/api/auth/guest-login", { method: "POST" })
+      .then((res) => {
+        if (!res.ok) throw new Error("guest_login_failed")
+        if (!cancelled) setGuestSessionCreated(true)
+      })
+      .catch((error) => {
+        console.error("[Checkout] guest session creation failed:", error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, userId, searchParams, guestSessionCreated])
+
+  useEffect(() => {
+    if (!productsLoading && isSignatureProduct && !isProductActive('le-quack')) {
+      router.replace('/programs/le-quack')
+    }
+  }, [isProductActive, isSignatureProduct, productsLoading, router])
 
   // 현재 locale (PortOne redirectUrl에 전달)
   const routeParams = useParams<{ locale?: string }>()
@@ -236,7 +290,7 @@ function CheckoutContent() {
     }
 
     // 0-3. 오늘의 향 상품 - URL 파라미터로 처리 (분석 결과 없음)
-    // 가격/용량은 AI 이미지 분석 퍼퓸(image_analysis)과 동일하게 10ml/50ml 제공
+    // 가격/용량은 AI 이미지 분석 향수(image_analysis)와 동일하게 10ml/50ml 제공
     if (isTodayScent) {
       const scent = (searchParams.get("scent") ? getScentById(searchParams.get("scent")!) : undefined) || TODAY_SCENTS[0]
       const sizeParam = searchParams.get("size")
@@ -259,13 +313,53 @@ function CheckoutContent() {
       return
     }
 
+    // 0-4. 상품 섹션 일반 상품 - 향 선택 후 바로 구매
+    if (isStoreProduct) {
+      if (storeProductsLoading) return
+      const product =
+        getDynamicStoreProductBySlug(searchParams.get("item")) ||
+        getDynamicStoreProductBySize(searchParams.get("size")) ||
+        getStoreProductBySlug(searchParams.get("item")) ||
+        getStoreProductBySize(searchParams.get("size")) ||
+        getStoreProductBySlug("perfume-50ml")!
+      const scent = (searchParams.get("scent") ? getScentById(searchParams.get("scent")!) : undefined) || TODAY_SCENTS[0]
+      setProductType(STORE_PRODUCT_TYPE)
+      setSelectedSize(product.size)
+      setUserImage(product.image || STORE_PRODUCT_IMAGE)
+      setIdolName("AC'SCENT")
+      setAnalysisResult({
+        matchingPerfumes: [{
+          perfumeId: scent.id,
+          persona: {
+            name: getStoreProductName(product, scent),
+            recommendation: scent.vibe,
+          }
+        }],
+        matchingKeywords: [product.shortLabel, ...scent.keywords],
+        storeProduct: {
+          slug: product.slug,
+          title: product.title,
+          size: product.size,
+          scentId: scent.id,
+          scentName: scent.name,
+          perfumeId: scent.perfumeId,
+          notes: scent.notes,
+        },
+      })
+      return
+    }
+
     // 1. 다중 상품 모드 확인 (장바구니에서 온 경우)
     const savedCheckoutItems = localStorage.getItem("checkoutItems")
     if (savedCheckoutItems) {
       try {
         const items = JSON.parse(savedCheckoutItems)
         if (Array.isArray(items) && items.length > 0) {
-          setCheckoutItems(items)
+          const normalizedItems = items.map((item: CartItem) => ({
+            ...item,
+            product_type: getEffectiveProductType(item.product_type, item.analysis_data),
+          }))
+          setCheckoutItems(normalizedItems)
           setIsMultiItemMode(true)
           // 사용 후 삭제
           localStorage.removeItem("checkoutItems")
@@ -349,7 +443,21 @@ function CheckoutContent() {
       localStorage.removeItem("checkoutRecipe")
       localStorage.removeItem("checkoutRecipePerfumeName")
     }
-  }, [authLoading, userId, router, userName, isSignatureProduct, isPaymentTest, isTodayScent, searchParams])
+  }, [
+    authLoading,
+    userId,
+    router,
+    userName,
+    isSignatureProduct,
+    isPaymentTest,
+    isTodayScent,
+    isStoreProduct,
+    isStoreMultiCheckout,
+    searchParams,
+    storeProductsLoading,
+    getDynamicStoreProductBySlug,
+    getDynamicStoreProductBySize,
+  ])
 
   // 선택 옵션 정합성 보정 — DB 옵션이 로드된 뒤 selectedSize 가 유효하지 않으면
   // (관리자에서 삭제/순서변경 등) 해당 상품의 기본 옵션으로 자동 보정.
@@ -383,8 +491,9 @@ function CheckoutContent() {
   // 다중 상품: 사이즈 변경
   const handleUpdateSize = (itemId: string, newSize: string) => {
     setCheckoutItems(prev => prev.map(item => {
-      if (item.id === itemId && item.product_type !== 'figure_diffuser') {
-        const newOpt = getOption(item.product_type, newSize)
+      const effectiveProductType = getEffectiveProductType(item.product_type, item.analysis_data)
+      if (item.id === itemId && effectiveProductType !== 'figure_diffuser' && effectiveProductType !== 'store_product') {
+        const newOpt = getOption(effectiveProductType, newSize)
         const newPrice = newOpt?.price ?? item.price
         return { ...item, size: newSize as CartItem['size'], price: newPrice }
       }
@@ -637,12 +746,16 @@ function CheckoutContent() {
 
       // 다중 상품 모드: 장바구니에서 주문한 상품 삭제
       if (isMultiItemMode) {
-        const cartItemIds = checkoutItems.map(item => item.id)
-        await fetch("/api/cart", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids: cartItemIds }),
-        })
+        const cartItemIds = checkoutItems
+          .map(item => item.id)
+          .filter(id => PERSISTED_CART_ITEM_ID_PATTERN.test(id))
+        if (cartItemIds.length > 0) {
+          await fetch("/api/cart", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: cartItemIds }),
+          })
+        }
       }
 
       // 주문 완료 페이지에서 사용할 정보 저장
@@ -789,6 +902,7 @@ function CheckoutContent() {
               selectedCoupon={selectedCoupon}
               onSelectCoupon={setSelectedCoupon}
               productPrice={productPrice}
+              enabled={!!userId || guestSessionCreated}
               cheapestItemPrice={
                 isMultiItemMode
                   ? Math.min(...checkoutItems.map(i => i.price))

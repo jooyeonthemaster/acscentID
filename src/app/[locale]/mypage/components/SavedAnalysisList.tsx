@@ -15,6 +15,7 @@ import { perfumes } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
+import { emitCartChanged } from '@/lib/cart-events'
 
 // 향수 ID로 색상 가져오기
 const getPerfumeColor = (id: string): string => {
@@ -182,6 +183,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       const data = await response.json()
 
       if (response.ok) {
+        emitCartChanged()
         setCartResultModal({
           type: 'success',
           added: data.added,
@@ -281,6 +283,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       const data = await response.json()
 
       if (response.ok) {
+        emitCartChanged()
         setCartResultModal({
           type: 'success',
           added: data.added,

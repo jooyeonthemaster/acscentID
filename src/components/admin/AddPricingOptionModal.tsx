@@ -65,7 +65,7 @@ export function AddPricingOptionModal({
   const validation = useMemo(() => {
     if (!size.trim()) return '옵션 코드를 입력하세요 (예: 30ml)'
     if (existingSizes.includes(size.trim())) return `"${size.trim()}" 옵션이 이미 존재합니다`
-    if (!label.trim()) return '라벨을 입력하세요 (예: 30ml 퍼퓸)'
+    if (!label.trim()) return '라벨을 입력하세요 (예: 30ml 향수)'
     if (!Number.isFinite(numericPrice) || numericPrice < 0) return '판매가는 0 이상의 숫자여야 합니다'
     if (numericOriginal !== null) {
       if (!Number.isFinite(numericOriginal) || numericOriginal < 0) {
@@ -145,7 +145,7 @@ export function AddPricingOptionModal({
               <input
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder="30ml 퍼퓸"
+                placeholder="30ml 향수"
                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-slate-900 focus:border-yellow-400 focus:ring-0 focus:outline-none"
               />
               <p className="text-xs text-slate-400 mt-1">고객 노출 문구</p>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, Fragment, useMemo } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import {
   Search,
@@ -25,11 +25,15 @@ import Link from 'next/link'
 // [FIX] HIGH: signature 추가 (admin.ts ProductType 통합)
 const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   image_analysis: '최애 이미지',
+  image_analysis_paper: '시향지',
   figure_diffuser: '피규어',
   personal_scent: '퍼스널',
   graduation: '졸업 퍼퓸',
   signature: '시그니처',
   chemistry_set: '레이어링 퍼퓸',
+  payment_test: '테스트',
+  today_scent: '오늘의 향',
+  store_product: '상품',
   etc: '기타',
 }
 
@@ -51,9 +55,14 @@ export default function AnalysisPage() {
   const [showFilters, setShowFilters] = useState(false)
 
   const [csvLoading, setCsvLoading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   // 확장된 행 상태
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const visibleIds = useMemo(() => analyses.map((analysis) => analysis.id), [analyses])
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds])
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIdSet.has(id))
 
   useEffect(() => {
     fetchAnalyses()
@@ -136,6 +145,47 @@ export default function AnalysisPage() {
     } finally {
       setCsvLoading(false)
     }
+  }
+
+  const toggleSelectedId = (id: string) => {
+    setSelectedIds((prev) => (
+      prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : [...prev, id]
+    ))
+  }
+
+  const toggleCurrentPageSelection = () => {
+    if (visibleIds.length === 0) return
+
+    setSelectedIds((prev) => {
+      const visibleIdSet = new Set(visibleIds)
+
+      if (allVisibleSelected) {
+        return prev.filter((id) => !visibleIdSet.has(id))
+      }
+
+      const nextIds = new Set(prev)
+      visibleIds.forEach((id) => nextIds.add(id))
+      return Array.from(nextIds)
+    })
+  }
+
+  const openSelectedPrintPage = () => {
+    if (selectedIds.length === 0) {
+      alert('인쇄할 분석 건을 선택해주세요.')
+      return
+    }
+
+    const params = new URLSearchParams({ ids: selectedIds.join(',') })
+    const printUrl = `/admin/analysis/bulk-print?${params.toString()}`
+    const link = document.createElement('a')
+    link.href = printUrl
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const formatDate = (dateStr: string) => {
@@ -242,6 +292,30 @@ export default function AnalysisPage() {
               )}
               {csvLoading ? '다운로드 중...' : 'CSV 다운로드'}
             </button>
+
+            {/* 선택 인쇄 */}
+            <button
+              onClick={openSelectedPrintPage}
+              disabled={selectedIds.length === 0}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-[2px_2px_0px_#cbd5e1] transition-all"
+            >
+              <Printer className="w-4 h-4" />
+              선택 인쇄
+              {selectedIds.length > 0 && (
+                <span className="rounded-full bg-yellow-400 px-2 py-0.5 text-xs font-black text-slate-900">
+                  {selectedIds.length}
+                </span>
+              )}
+            </button>
+
+            {selectedIds.length > 0 && (
+              <button
+                onClick={() => setSelectedIds([])}
+                className="px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+              >
+                선택 해제
+              </button>
+            )}
           </div>
 
           {/* 상세 필터 */}
@@ -295,6 +369,16 @@ export default function AnalysisPage() {
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
+                    <th className="w-10 px-3 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleCurrentPageSelection}
+                        disabled={analyses.length === 0}
+                        aria-label="현재 페이지 전체 선택"
+                        className="h-4 w-4 rounded border-slate-300 text-yellow-400 focus:ring-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
+                      />
+                    </th>
                     <th className="w-10 px-3 py-3"></th>
                     <th className="w-[180px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">아이돌명</th>
                     <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">상품 타입</th>
@@ -308,12 +392,24 @@ export default function AnalysisPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {analyses.map((analysis) => (
+                  {analyses.map((analysis) => {
+                    const isSelected = selectedIdSet.has(analysis.id)
+
+                    return (
                     <Fragment key={analysis.id}>
                       <tr
-                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        className={`${isSelected ? 'bg-yellow-50/70' : 'hover:bg-slate-50'} transition-colors cursor-pointer`}
                         onClick={() => setExpandedId(expandedId === analysis.id ? null : analysis.id)}
                       >
+                        <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectedId(analysis.id)}
+                            aria-label={`${analysis.idol_name || analysis.twitter_name || analysis.id} 선택`}
+                            className="h-4 w-4 rounded border-slate-300 text-yellow-400 focus:ring-yellow-400"
+                          />
+                        </td>
                         <td className="px-3 py-3">
                           <ChevronRight
                             className={`w-5 h-5 text-slate-400 transition-transform ${
@@ -429,7 +525,7 @@ export default function AnalysisPage() {
                       {/* 확장된 상세 정보 */}
                       {expandedId === analysis.id && (
                         <tr>
-                          <td colSpan={10} className="px-4 py-4 bg-slate-50">
+                          <td colSpan={11} className="px-4 py-4 bg-slate-50">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">키워드:</span>
@@ -531,7 +627,8 @@ export default function AnalysisPage() {
                         </tr>
                       )}
                     </Fragment>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
 

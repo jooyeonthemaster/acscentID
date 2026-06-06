@@ -3,9 +3,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sparkles } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -35,6 +36,11 @@ export function AuthModal({
 
   const displayTitle = title || t('loginTitle')
   const displayDescription = description || t('loginDescription')
+
+  useEffect(() => {
+    setMobileOverlayOpen('auth-modal', isOpen)
+    return () => setMobileOverlayOpen('auth-modal', false)
+  }, [isOpen])
 
   const handleGoogleLogin = async () => {
     try {

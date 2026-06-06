@@ -1,5 +1,12 @@
 export type ProductPageTextField = 'badge' | 'imagePlaceholder' | 'subtitle' | 'infoTitle' | 'infoBody' | 'ctaLabel'
-export type ProductPagePositionField = ProductPageTextField | 'productImage' | 'productName' | 'infoCard' | 'ctaButton'
+export type ProductPagePositionField =
+  | ProductPageTextField
+  | 'productImage'
+  | 'productName'
+  | 'infoCard'
+  | 'ctaButton'
+  | 'price'
+  | 'included'
 
 export interface ProductPagePosition {
   x: number
@@ -38,6 +45,8 @@ const POSITION_FIELDS: ProductPagePositionField[] = [
   'productName',
   'infoCard',
   'ctaButton',
+  'price',
+  'included',
 ]
 
 function escapeHtml(value: string) {

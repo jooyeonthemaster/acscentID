@@ -1,13 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import NextImage from 'next/image'
 import { AdminHeader } from '../../components/AdminHeader'
 import { supabase } from '@/lib/supabase/client'
 import { AnimatePresence, motion } from 'framer-motion'
 import { VisualDetailEditor } from './VisualDetailEditor'
 import { ProductPricingPanel } from '@/components/admin/ProductPricingPanel'
+import { STORE_PRODUCT_TYPE, type StoreProduct } from '@/lib/products/store-products'
+import type { ProductType } from '@/types/cart'
 import {
   extractProductPageContent,
   mergeProductPageContentConfig,
@@ -42,6 +44,8 @@ interface AdminProduct {
   display_order: number
   updated_at: string | null
 }
+
+type EditorKind = 'program' | 'store'
 
 interface ProductImage {
   id: string
@@ -88,6 +92,16 @@ const PAGE_EDITOR_TO_PREVIEW_POSITION: Partial<Record<PageEditorField, ProductPa
   infoBody: 'infoCard',
   ctaLabel: 'ctaButton',
 }
+
+type BasicPreviewField =
+  | 'productName'
+  | 'productImage'
+  | 'badge'
+  | 'subtitle'
+  | 'price'
+  | 'included'
+
+type ProductImageUploadMode = 'add' | 'replaceSelected' | 'replaceRepresentative'
 
 interface AdminPreviewMessage {
   source?: string
@@ -173,8 +187,10 @@ async function uploadProductImage(file: File, productSlug: string): Promise<stri
 
 export default function AdminProductEditPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const params = useParams<{ slug: string }>()
   const slug = params.slug
+  const requestedKind = searchParams.get('kind')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewDetailImageInputRef = useRef<HTMLInputElement>(null)
   const previewIframeRef = useRef<HTMLIFrameElement>(null)
@@ -189,10 +205,12 @@ export default function AdminProductEditPage() {
   const previewToolbarPlacedRef = useRef(false)
   const defaultDetailImportedRef = useRef(false)
   const pendingPreviewImageBlockIdRef = useRef<string | null>(null)
-  const pendingProductPreviewImageUploadRef = useRef(false)
+  const productImageUploadModeRef = useRef<ProductImageUploadMode>('add')
   const skipNextPreviewPushRef = useRef(false)
 
   const [product, setProduct] = useState<AdminProduct | null>(null)
+  const [storeProduct, setStoreProduct] = useState<StoreProduct | null>(null)
+  const [editorKind, setEditorKind] = useState<EditorKind>(requestedKind === 'store' ? 'store' : 'program')
   const [images, setImages] = useState<ProductImage[]>([])
   const [versions, setVersions] = useState<DetailVersion[]>([])
   const [detailHtml, setDetailHtml] = useState('')
@@ -207,6 +225,13 @@ export default function AdminProductEditPage() {
   const [draftState, setDraftState] = useState<DraftState>('idle')
   const [nameDraft, setNameDraft] = useState('')
   const [orderDraft, setOrderDraft] = useState('0')
+  const [storeShortLabelDraft, setStoreShortLabelDraft] = useState('')
+  const [storeSizeDraft, setStoreSizeDraft] = useState('')
+  const [storeBadgeDraft, setStoreBadgeDraft] = useState('')
+  const [storeDescriptionDraft, setStoreDescriptionDraft] = useState('')
+  const [storePriceDraft, setStorePriceDraft] = useState('0')
+  const [storeImageUrlDraft, setStoreImageUrlDraft] = useState('')
+  const [storeIncludedDraft, setStoreIncludedDraft] = useState('')
   const [previewRevision, setPreviewRevision] = useState(0)
   const [previewZoom, setPreviewZoom] = useState(100)
   const [previewToolbarPosition, setPreviewToolbarPosition] = useState({ x: 12, y: 12 })
@@ -221,7 +246,9 @@ export default function AdminProductEditPage() {
     nonce: number
   } | null>(null)
 
-  const programPath = `/programs/${slug}`
+  const isStoreEditor = editorKind === 'store'
+  const productTypeForPricing = useMemo<ProductType[]>(() => [STORE_PRODUCT_TYPE], [])
+  const programPath = isStoreEditor ? `/products/${slug}` : `/programs/${slug}`
   const previewSrc = useMemo(() => {
     const query = new URLSearchParams({
       adminPreview: '1',
@@ -428,10 +455,23 @@ export default function AdminProductEditPage() {
     })
   }, [postToPreview])
 
+  const focusPreviewPosition = useCallback((field: BasicPreviewField) => {
+    postToPreview({
+      type: 'page:focus',
+      pagePositionField: field,
+      scroll: true,
+    })
+  }, [postToPreview])
+
   const pageFieldWorkbenchProps = (field: PageEditorField) => ({
     className: pageFieldClassName(field),
     onClick: () => focusPreviewPageField(field),
     onFocusCapture: () => focusPreviewPageField(field),
+  })
+
+  const previewFocusProps = (field: BasicPreviewField) => ({
+    onClick: () => focusPreviewPosition(field),
+    onFocusCapture: () => focusPreviewPosition(field),
   })
 
   const pushDetailPreview = useCallback((html: string) => {
@@ -441,15 +481,58 @@ export default function AdminProductEditPage() {
   }, [postToPreview])
 
   const fetchProduct = useCallback(async () => {
+    const loadStoreProduct = async () => {
+      const storeRes = await fetch('/api/admin/store-products', { cache: 'no-store' })
+      const storeJson = await storeRes.json().catch(() => ({}))
+      if (!storeRes.ok) throw new Error(storeJson.error || '상품 조회 실패')
+      const storeProducts = (storeJson.products ?? []) as StoreProduct[]
+      const foundStore = storeProducts.find((item) => item.slug === slug) || null
+      if (!foundStore) return null
+
+      setEditorKind('store')
+      setStoreProduct(foundStore)
+      setProduct({
+        slug: foundStore.slug,
+        name: foundStore.title,
+        is_active: foundStore.isActive ?? true,
+        display_order: foundStore.displayOrder ?? 0,
+        updated_at: null,
+      })
+      setNameDraft(foundStore.title)
+      setOrderDraft(String(foundStore.displayOrder ?? 0))
+      setStoreShortLabelDraft(foundStore.shortLabel)
+      setStoreSizeDraft(foundStore.size)
+      setStoreBadgeDraft(foundStore.badge)
+      setStoreDescriptionDraft(foundStore.description)
+      setStorePriceDraft(String(foundStore.fallbackPrice))
+      setStoreImageUrlDraft(foundStore.image)
+      setStoreIncludedDraft(foundStore.included.join('\n'))
+      return foundStore
+    }
+
+    if (requestedKind === 'store') {
+      const foundStore = await loadStoreProduct()
+      if (!foundStore) setProduct(null)
+      return
+    }
+
     const res = await fetch('/api/admin/products', { cache: 'no-store' })
     const json = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(json.error || '상품 조회 실패')
+    if (!res.ok) throw new Error(json.error || '프로그램 조회 실패')
     const products = (json.products ?? []) as AdminProduct[]
     const found = products.find((item) => item.slug === slug) || null
+
+    if (!found) {
+      await loadStoreProduct()
+      return
+    }
+
+    setEditorKind('program')
+    setStoreProduct(null)
     setProduct(found)
-    setNameDraft(found?.name || '')
-    setOrderDraft(String(found?.display_order ?? 0))
-  }, [slug])
+    setNameDraft(found.name)
+    setOrderDraft(String(found.display_order ?? 0))
+  }, [requestedKind, slug])
 
   const fetchImages = useCallback(async () => {
     const { data, error } = await supabase
@@ -465,6 +548,7 @@ export default function AdminProductEditPage() {
       if (prev && nextImages.some((image) => image.id === prev)) return prev
       return nextImages[0]?.id || null
     })
+    return nextImages
   }, [slug])
 
   const fetchDetail = useCallback(async () => {
@@ -487,7 +571,7 @@ export default function AdminProductEditPage() {
     try {
       await Promise.all([fetchProduct(), fetchImages(), fetchDetail(), fetchVersions()])
     } catch (error) {
-      showToast(error instanceof Error ? error.message : '상품 정보를 불러오지 못했습니다')
+      showToast(error instanceof Error ? error.message : '프로그램 정보를 불러오지 못했습니다')
     } finally {
       setLoading(false)
     }
@@ -511,20 +595,40 @@ export default function AdminProductEditPage() {
   ) => {
     setSavingBasic(true)
     try {
-      const res = await fetch('/api/admin/products', {
+      const res = await fetch(isStoreEditor ? '/api/admin/store-products' : '/api/admin/products', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug,
-          ...updates,
+          ...(isStoreEditor
+            ? {
+                ...(updates.name !== undefined ? { title: updates.name } : {}),
+                ...(updates.is_active !== undefined ? { is_active: updates.is_active } : {}),
+                ...(updates.display_order !== undefined ? { display_order: updates.display_order } : {}),
+              }
+            : updates),
         }),
       })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error || '상품 저장 실패')
-      const nextProduct = json.product as AdminProduct
-      setProduct(nextProduct)
-      setNameDraft(nextProduct.name)
-      setOrderDraft(String(nextProduct.display_order))
+      if (!res.ok) throw new Error(json.error || '프로그램 저장 실패')
+      if (isStoreEditor) {
+        const nextStoreProduct = json.product as StoreProduct
+        setStoreProduct(nextStoreProduct)
+        setProduct({
+          slug: nextStoreProduct.slug,
+          name: nextStoreProduct.title,
+          is_active: nextStoreProduct.isActive ?? true,
+          display_order: nextStoreProduct.displayOrder ?? 0,
+          updated_at: null,
+        })
+        setNameDraft(nextStoreProduct.title)
+        setOrderDraft(String(nextStoreProduct.displayOrder ?? 0))
+      } else {
+        const nextProduct = json.product as AdminProduct
+        setProduct(nextProduct)
+        setNameDraft(nextProduct.name)
+        setOrderDraft(String(nextProduct.display_order))
+      }
       bumpPreview()
       showToast(toastMessage)
     } catch (error) {
@@ -532,14 +636,101 @@ export default function AdminProductEditPage() {
     } finally {
       setSavingBasic(false)
     }
-  }, [bumpPreview, showToast, slug])
+  }, [bumpPreview, isStoreEditor, showToast, slug])
+
+  const saveStoreProductInfo = useCallback(async () => {
+    if (!storeProduct) return
+    const title = nameDraft.trim()
+    const displayOrder = Number(orderDraft)
+    const fallbackPrice = Number(storePriceDraft)
+    if (!title) {
+      showToast('상품명은 비워둘 수 없습니다')
+      return
+    }
+    if (!Number.isInteger(displayOrder) || displayOrder < 0) {
+      showToast('정렬 순서는 0 이상의 정수여야 합니다')
+      return
+    }
+    if (!storeSizeDraft.trim()) {
+      showToast('옵션/사이즈 코드는 비워둘 수 없습니다')
+      return
+    }
+    if (!Number.isInteger(fallbackPrice) || fallbackPrice < 0) {
+      showToast('가격은 0 이상의 정수여야 합니다')
+      return
+    }
+
+    setSavingBasic(true)
+    try {
+      const res = await fetch('/api/admin/store-products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          title,
+          short_label: storeShortLabelDraft.trim() || title,
+          size: storeSizeDraft.trim(),
+          badge: storeBadgeDraft.trim() || '상품',
+          description: storeDescriptionDraft.trim(),
+          fallback_price: fallbackPrice,
+          image_url: storeImageUrlDraft.trim() || null,
+          included: storeIncludedDraft,
+          display_order: displayOrder,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || '상품 저장 실패')
+      const nextStoreProduct = json.product as StoreProduct
+      setStoreProduct(nextStoreProduct)
+      setProduct({
+        slug: nextStoreProduct.slug,
+        name: nextStoreProduct.title,
+        is_active: nextStoreProduct.isActive ?? true,
+        display_order: nextStoreProduct.displayOrder ?? 0,
+        updated_at: null,
+      })
+      setNameDraft(nextStoreProduct.title)
+      setOrderDraft(String(nextStoreProduct.displayOrder ?? 0))
+      setStoreShortLabelDraft(nextStoreProduct.shortLabel)
+      setStoreSizeDraft(nextStoreProduct.size)
+      setStoreBadgeDraft(nextStoreProduct.badge)
+      setStoreDescriptionDraft(nextStoreProduct.description)
+      setStorePriceDraft(String(nextStoreProduct.fallbackPrice))
+      setStoreImageUrlDraft(nextStoreProduct.image)
+      setStoreIncludedDraft(nextStoreProduct.included.join('\n'))
+      bumpPreview()
+      showToast('상품 기본정보가 저장되었습니다')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '상품 저장 실패')
+    } finally {
+      setSavingBasic(false)
+    }
+  }, [
+    bumpPreview,
+    nameDraft,
+    orderDraft,
+    showToast,
+    slug,
+    storeBadgeDraft,
+    storeDescriptionDraft,
+    storeImageUrlDraft,
+    storeIncludedDraft,
+    storePriceDraft,
+    storeProduct,
+    storeShortLabelDraft,
+    storeSizeDraft,
+  ])
 
   const saveBasicInfo = () => {
     if (!product) return
+    if (isStoreEditor) {
+      saveStoreProductInfo()
+      return
+    }
     const trimmedName = nameDraft.trim()
     const displayOrder = Number(orderDraft)
     if (!trimmedName) {
-      showToast('상품명은 비워둘 수 없습니다')
+      showToast('프로그램명은 비워둘 수 없습니다')
       return
     }
     if (!Number.isInteger(displayOrder) || displayOrder < 0) {
@@ -601,6 +792,28 @@ export default function AdminProductEditPage() {
     }
   }, [bumpPreview, showToast, slug])
 
+  const syncStoreRepresentativeImage = useCallback(async (imageUrl: string | null) => {
+    if (!isStoreEditor || !product) return
+    setStoreImageUrlDraft(imageUrl || '')
+    setStoreProduct((current) => current ? { ...current, image: imageUrl || current.image } : current)
+
+    try {
+      const res = await fetch('/api/admin/store-products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: product.slug, image_url: imageUrl }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (res.ok && json.product) {
+        const nextStoreProduct = json.product as StoreProduct
+        setStoreProduct(nextStoreProduct)
+        setStoreImageUrlDraft(nextStoreProduct.image)
+      }
+    } catch (error) {
+      console.error('[AdminProductEditPage] representative image sync failed:', error)
+    }
+  }, [isStoreEditor, product])
+
   const handleImageUpload = useCallback(async (file: File, replaceImage?: ProductImage) => {
     if (!product) return
     if (!file.type.startsWith('image/')) {
@@ -640,7 +853,8 @@ export default function AdminProductEditPage() {
           })
         if (error) throw error
       }
-      await fetchImages()
+      const nextImages = await fetchImages()
+      await syncStoreRepresentativeImage(nextImages[0]?.image_url || null)
       bumpPreview()
       showToast(replaceImage ? '이미지가 교체되었습니다' : '이미지가 추가되었습니다')
     } catch (error) {
@@ -648,7 +862,7 @@ export default function AdminProductEditPage() {
     } finally {
       setUploading(false)
     }
-  }, [bumpPreview, fetchImages, images, product, showToast])
+  }, [bumpPreview, fetchImages, images, product, showToast, syncStoreRepresentativeImage])
 
   const handleDetailImageUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -747,14 +961,14 @@ export default function AdminProductEditPage() {
       }
 
       if (message.type === 'product:image-upload-request') {
-        pendingProductPreviewImageUploadRef.current = true
+        productImageUploadModeRef.current = 'replaceRepresentative'
         scrollEditorSectionIntoView('image')
         fileInputRef.current?.click()
         return
       }
 
       if (message.type === 'product:image-upload-file' && isUploadFile(message.file)) {
-        pendingProductPreviewImageUploadRef.current = false
+        productImageUploadModeRef.current = 'add'
         scrollEditorSectionIntoView('image')
         handleImageUpload(message.file, images[0])
         return
@@ -800,7 +1014,7 @@ export default function AdminProductEditPage() {
       if (message.field === 'product_name' && message.commit) {
         const nextName = message.text?.trim() || ''
         if (nextName && nextName !== product?.name) {
-          updateProduct({ name: nextName }, '상품명이 저장되었습니다')
+          updateProduct({ name: nextName }, isStoreEditor ? '상품명이 저장되었습니다' : '프로그램명이 저장되었습니다')
         }
         return
       }
@@ -815,7 +1029,7 @@ export default function AdminProductEditPage() {
 
     window.addEventListener('message', handlePreviewMessage)
     return () => window.removeEventListener('message', handlePreviewMessage)
-  }, [detailHtml, handleImageUpload, handlePreviewDetailImageUpload, images, product?.name, pushDetailPreview, scrollEditorSectionIntoView, slug, updateProduct])
+  }, [detailHtml, handleImageUpload, handlePreviewDetailImageUpload, images, isStoreEditor, product?.name, pushDetailPreview, scrollEditorSectionIntoView, slug, updateProduct])
 
   const handleDetailChange = useCallback((html: string) => {
     defaultDetailImportedRef.current = false
@@ -841,7 +1055,8 @@ export default function AdminProductEditPage() {
       showToast('이미지 삭제에 실패했습니다')
       return
     }
-    await fetchImages()
+    const nextImages = await fetchImages()
+    await syncStoreRepresentativeImage(nextImages[0]?.image_url || null)
     bumpPreview()
     showToast('이미지가 삭제되었습니다')
   }
@@ -953,7 +1168,7 @@ export default function AdminProductEditPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <AdminHeader title="상품 관리" subtitle="상품 정보를 불러오는 중입니다" />
+        <AdminHeader title={requestedKind === 'store' ? '상품 편집' : '프로그램 편집'} subtitle="정보를 불러오는 중입니다" />
         <div className="flex items-center justify-center p-20">
           <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
         </div>
@@ -964,13 +1179,13 @@ export default function AdminProductEditPage() {
   if (!product) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <AdminHeader title="상품 관리" subtitle="상품을 찾을 수 없습니다" />
+        <AdminHeader title={requestedKind === 'store' ? '상품 편집' : '프로그램 편집'} subtitle="대상을 찾을 수 없습니다" />
         <div className="p-6">
           <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
             <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-sm font-semibold text-slate-500">상품을 찾을 수 없습니다</p>
+            <p className="text-sm font-semibold text-slate-500">대상을 찾을 수 없습니다</p>
             <button
-              onClick={() => router.push('/admin/products')}
+              onClick={() => router.push(requestedKind === 'store' ? '/admin/products' : '/admin/programs')}
               className="mt-5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
             >
               목록으로 돌아가기
@@ -995,15 +1210,20 @@ export default function AdminProductEditPage() {
         }}
       />
       <AdminHeader
-        title={product.name}
-        subtitle={`${programPath} 실제 화면을 그대로 불러온 미리보기입니다`}
+        title={isStoreEditor ? '상품 편집' : '프로그램 편집'}
+        subtitle={`${product.name} · ${programPath} 실제 화면을 그대로 불러온 미리보기입니다`}
+        breadcrumbs={[
+          { href: '/admin', label: '관리자' },
+          { href: isStoreEditor ? '/admin/products' : '/admin/programs', label: isStoreEditor ? '상품 관리' : '프로그램 관리' },
+          { href: `/admin/products/${slug}${isStoreEditor ? '?kind=store' : ''}`, label: product.name },
+        ]}
         actions={
           <button
-            onClick={() => router.push('/admin/products')}
+            onClick={() => router.push(isStoreEditor ? '/admin/products' : '/admin/programs')}
             className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             <ArrowLeft className="h-4 w-4" />
-            상품 목록
+            {isStoreEditor ? '상품 목록' : '프로그램 목록'}
           </button>
         }
       />
@@ -1038,7 +1258,7 @@ export default function AdminProductEditPage() {
                     top: 12,
                   }}
             >
-              <div className="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-200 bg-white/95 px-2 text-slate-900 shadow-[0_8px_22px_rgba(15,23,42,0.16)] backdrop-blur">
+              <div className="inline-flex w-9 flex-col items-center gap-1 rounded-xl border border-slate-200 bg-white/95 px-1.5 py-2 text-slate-900 shadow-[0_8px_22px_rgba(15,23,42,0.16)] backdrop-blur">
                 <button
                   type="button"
                   onPointerDown={handlePreviewToolbarDragStart}
@@ -1047,7 +1267,7 @@ export default function AdminProductEditPage() {
                 >
                   <GripVertical className="h-4 w-4" />
                 </button>
-                <div className="mx-0.5 h-5 w-px bg-slate-200" />
+                <div className="my-0.5 h-px w-5 bg-slate-200" />
                 <button
                   type="button"
                   onClick={() => zoomPreview(-10)}
@@ -1060,7 +1280,7 @@ export default function AdminProductEditPage() {
                 <button
                   type="button"
                   onClick={() => setPreviewZoom(100)}
-                  className="min-w-14 rounded-lg px-1.5 py-1 text-center text-sm font-black tabular-nums text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  className="w-full rounded-lg px-0.5 py-1 text-center text-[11px] font-black leading-none tabular-nums text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                   aria-label="미리보기 100%로 보기"
                 >
                   {previewZoom}%
@@ -1110,7 +1330,12 @@ export default function AdminProductEditPage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900">기본정보</h2>
               <button
-                onClick={() => updateProduct({ is_active: !product.is_active }, product.is_active ? '상품이 비활성화되었습니다' : '상품이 활성화되었습니다')}
+                onClick={() => updateProduct(
+                  { is_active: !product.is_active },
+                  product.is_active
+                    ? isStoreEditor ? '상품 판매가 중지되었습니다' : '프로그램이 비활성화되었습니다'
+                    : isStoreEditor ? '상품 판매가 시작되었습니다' : '프로그램이 활성화되었습니다',
+                )}
                 disabled={savingBasic}
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
                   product.is_active
@@ -1123,8 +1348,8 @@ export default function AdminProductEditPage() {
               </button>
             </div>
             <div className="space-y-3">
-              <label className="block">
-                <span className="mb-1 block text-xs font-bold text-slate-500">상품명</span>
+              <label className="block" {...previewFocusProps('productName')}>
+                <span className="mb-1 block text-xs font-bold text-slate-500">{isStoreEditor ? '상품명' : '프로그램명'}</span>
                 <input
                   value={nameDraft}
                   onChange={(event) => setNameDraft(event.target.value)}
@@ -1145,13 +1370,79 @@ export default function AdminProductEditPage() {
                   className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm font-mono outline-none focus:border-slate-900"
                 />
               </label>
+              {isStoreEditor && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-bold text-slate-500">짧은 라벨</span>
+                      <input
+                        value={storeShortLabelDraft}
+                        onChange={(event) => setStoreShortLabelDraft(event.target.value)}
+                        className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm font-bold outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <label className="block" {...previewFocusProps('badge')}>
+                      <span className="mb-1 block text-xs font-bold text-slate-500">뱃지</span>
+                      <input
+                        value={storeBadgeDraft}
+                        onChange={(event) => setStoreBadgeDraft(event.target.value)}
+                        className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm font-bold outline-none focus:border-slate-900"
+                      />
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block" {...previewFocusProps('productName')}>
+                      <span className="mb-1 block text-xs font-bold text-slate-500">옵션/사이즈 코드</span>
+                      <input
+                        value={storeSizeDraft}
+                        onChange={(event) => setStoreSizeDraft(event.target.value)}
+                        className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <label className="block" {...previewFocusProps('price')}>
+                      <span className="mb-1 block text-xs font-bold text-slate-500">기준 판매가</span>
+                      <input
+                        value={storePriceDraft}
+                        onChange={(event) => setStorePriceDraft(event.target.value)}
+                        className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                  </div>
+                  <label className="block" {...previewFocusProps('subtitle')}>
+                    <span className="mb-1 block text-xs font-bold text-slate-500">설명</span>
+                    <textarea
+                      value={storeDescriptionDraft}
+                      onChange={(event) => setStoreDescriptionDraft(event.target.value)}
+                      rows={3}
+                      className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-slate-900"
+                    />
+                  </label>
+                  <label className="block" {...previewFocusProps('productImage')}>
+                    <span className="mb-1 block text-xs font-bold text-slate-500">대표 이미지 URL</span>
+                    <input
+                      value={storeImageUrlDraft}
+                      onChange={(event) => setStoreImageUrlDraft(event.target.value)}
+                      className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900"
+                    />
+                  </label>
+                  <label className="block" {...previewFocusProps('included')}>
+                    <span className="mb-1 block text-xs font-bold text-slate-500">구성 안내</span>
+                    <textarea
+                      value={storeIncludedDraft}
+                      onChange={(event) => setStoreIncludedDraft(event.target.value)}
+                      rows={4}
+                      className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-slate-900"
+                    />
+                  </label>
+                </>
+              )}
               <button
                 onClick={saveBasicInfo}
                 disabled={savingBasic}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-2.5 text-sm font-bold text-white disabled:opacity-50"
               >
                 {savingBasic ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                기본정보 저장
+                {isStoreEditor ? '상품정보 저장' : '기본정보 저장'}
               </button>
             </div>
           </section>
@@ -1163,7 +1454,7 @@ export default function AdminProductEditPage() {
             </div>
             <div className="space-y-3">
               <label {...pageFieldWorkbenchProps('productName')}>
-                <span className="mb-1 block text-xs font-bold text-slate-500">상품명</span>
+                <span className="mb-1 block text-xs font-bold text-slate-500">{isStoreEditor ? '상품명' : '프로그램명'}</span>
                 <input
                   value={nameDraft}
                   onChange={(event) => {
@@ -1258,13 +1549,26 @@ export default function AdminProductEditPage() {
             </div>
           </section>
 
-          <ProductPricingPanel slug={slug} onToast={showToast} />
+          <ProductPricingPanel
+            slug={isStoreEditor ? undefined : slug}
+            productTypes={isStoreEditor ? productTypeForPricing : undefined}
+            title={isStoreEditor ? '상품 가격 옵션' : '연결 상품'}
+            selectFromStoreProducts={!isStoreEditor}
+            onToast={showToast}
+          />
 
-          <section ref={imageSectionRef} className={editorSectionClassName('image')}>
+          <section
+            ref={imageSectionRef}
+            className={editorSectionClassName('image')}
+            {...previewFocusProps('productImage')}
+          >
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900">이미지</h2>
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  productImageUploadModeRef.current = 'add'
+                  fileInputRef.current?.click()
+                }}
                 disabled={uploading}
                 className="flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-2 text-xs font-black text-black ring-2 ring-black disabled:opacity-50"
               >
@@ -1280,20 +1584,26 @@ export default function AdminProductEditPage() {
               onChange={(event) => {
                 const file = event.target.files?.[0]
                 if (file) {
-                  const replaceTarget = pendingProductPreviewImageUploadRef.current
+                  const uploadMode = productImageUploadModeRef.current
+                  const replaceTarget = uploadMode === 'replaceRepresentative'
                     ? images[0]
-                    : selectedImage || undefined
-                  pendingProductPreviewImageUploadRef.current = false
+                    : uploadMode === 'replaceSelected'
+                      ? selectedImage || images[0]
+                      : undefined
+                  productImageUploadModeRef.current = 'add'
                   handleImageUpload(file, replaceTarget)
                 } else {
-                  pendingProductPreviewImageUploadRef.current = false
+                  productImageUploadModeRef.current = 'add'
                 }
                 event.currentTarget.value = ''
               }}
             />
             {images.length === 0 ? (
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  productImageUploadModeRef.current = 'add'
+                  fileInputRef.current?.click()
+                }}
                 className="flex h-32 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-slate-400"
               >
                 <ImageIcon className="mb-2 h-8 w-8" />
@@ -1302,7 +1612,7 @@ export default function AdminProductEditPage() {
             ) : (
               <div className="space-y-3">
                 <div className="grid grid-cols-4 gap-2">
-                  {images.map((image) => (
+                  {images.map((image, index) => (
                     <button
                       key={image.id}
                       onClick={() => setSelectedImageId(image.id)}
@@ -1318,12 +1628,20 @@ export default function AdminProductEditPage() {
                         sizes="80px"
                         unoptimized
                       />
+                      {index === 0 && (
+                        <span className="absolute left-1 top-1 rounded bg-yellow-400 px-1.5 py-0.5 text-[10px] font-black text-black ring-1 ring-black">
+                          대표
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      productImageUploadModeRef.current = 'replaceSelected'
+                      fileInputRef.current?.click()
+                    }}
                     disabled={uploading}
                     className="flex items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 disabled:opacity-50"
                   >

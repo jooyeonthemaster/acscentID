@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift } from "lucide-react"
+import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift, ShoppingBag } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
 import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize } from "@/types/cart"
@@ -42,6 +42,7 @@ export function OrderSummary({
   const isFigureDiffuser = productType === "figure_diffuser"
   const isGraduation = productType === "graduation"
   const isSignature = productType === "signature"
+  const isStoreProduct = productType === "store_product"
   // [FIX] CRITICAL #2: chemistry_set 분기 추가
   const isChemistrySet = productType === "chemistry_set"
   // 시향지 애드온 선택 시 — 포함 사항을 시향지 전용으로 표기 (퍼퓸/세트 구성 안내가 맞지 않으므로)
@@ -138,6 +139,11 @@ export function OrderSummary({
               <Bird size={14} className="text-amber-500" />
               {t('checkout.signaturePerfumeLabel')}
             </>
+          ) : isStoreProduct ? (
+            <>
+              <ShoppingBag size={14} className="text-lime-500" />
+              상품 선택
+            </>
           ) : isChemistrySet ? (
             <>
               <Heart size={14} className="text-violet-500" />
@@ -196,7 +202,7 @@ export function OrderSummary({
           })()
         ) : (
           /* 다중 옵션 — 버튼 그리드 */
-          <div className={`grid gap-3 ${options.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`grid items-stretch gap-3 ${options.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {options.map((option) => {
               const discount = computeDiscount(option.price, option.original_price)
               const selected = selectedSize === option.size
@@ -204,7 +210,7 @@ export function OrderSummary({
                 <button
                   key={option.size}
                   onClick={() => onSizeChange(option.size)}
-                  className={`relative p-3 rounded-xl border-2 transition-all text-left ${
+                  className={`relative flex h-full min-h-[172px] flex-col rounded-xl border-2 p-2.5 text-left transition-all ${
                     selected
                       ? "border-slate-900 bg-[#FEF9C3] shadow-[2px_2px_0px_#000]"
                       : "border-slate-300 bg-white hover:border-slate-900 hover:shadow-[2px_2px_0px_#000]"
@@ -215,23 +221,43 @@ export function OrderSummary({
                       <Check size={10} className="text-white" strokeWidth={3} />
                     </div>
                   )}
-                  {option.image_url && (
-                    <img
-                      src={option.image_url}
-                      alt={option.label}
-                      className="w-full aspect-square rounded-lg border border-slate-200 object-cover bg-white mb-2"
-                    />
-                  )}
-                  <p className="font-black text-slate-900 text-base">{option.label}</p>
-                  <div className="mt-0.5 flex flex-wrap items-end gap-1.5">
-                    <p className="text-sm font-black text-slate-900">{formatPrice(option.price)}{t('currency.suffix')}</p>
-                    {option.original_price && option.original_price > option.price && (
-                      <span className="text-[10px] text-slate-400 line-through">{formatPrice(option.original_price)}{t('currency.suffix')}</span>
+                  <div className="mb-2 aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    {option.image_url ? (
+                      <img
+                        src={option.image_url}
+                        alt={option.label}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-50">
+                        <Package size={20} className="text-slate-300" />
+                      </div>
                     )}
                   </div>
-                  {discount !== null && (
-                    <span className="mt-1 inline-block px-1.5 py-0.5 bg-rose-500 text-white text-[9px] font-black rounded">{discount}% OFF</span>
-                  )}
+                  <div className="flex flex-1 flex-col">
+                    <div>
+                      <p className="text-[15px] font-black leading-tight text-slate-900">{option.label}</p>
+                      <p className="mt-0.5 text-sm font-black leading-tight text-slate-900">
+                        {formatPrice(option.price)}{t('currency.suffix')}
+                      </p>
+                      {option.original_price && option.original_price > option.price ? (
+                        <span className="mt-1 block text-[10px] leading-none text-slate-400 line-through">
+                          {formatPrice(option.original_price)}{t('currency.suffix')}
+                        </span>
+                      ) : (
+                        <span aria-hidden className="mt-1 block h-[10px]" />
+                      )}
+                    </div>
+                    <div className="mt-1">
+                      {discount !== null ? (
+                        <span className="inline-block rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-black text-white">
+                          {discount}% OFF
+                        </span>
+                      ) : (
+                        <span aria-hidden className="inline-block h-[18px]" />
+                      )}
+                    </div>
+                  </div>
                 </button>
               )
             })}
@@ -297,7 +323,7 @@ export function OrderSummary({
 
       {/* 포함 사항 */}
       {/* [FIX] CRITICAL #2: chemistry_set 포함 사항 색상 분기 */}
-      <div className={`${isScentPaper ? 'bg-yellow-100' : isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : isChemistrySet ? 'bg-violet-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
+      <div className={`${isScentPaper ? 'bg-yellow-100' : isFigureDiffuser ? 'bg-cyan-100' : isGraduation ? 'bg-emerald-100' : isSignature ? 'bg-amber-100' : isStoreProduct ? 'bg-lime-100' : isChemistrySet ? 'bg-violet-100' : 'bg-[#E9D5FF]'} border-2 border-slate-900 rounded-xl p-4`}>
         <p className="text-sm font-black text-slate-900 mb-3">{t('checkout.included')}</p>
         <ul className="space-y-2 text-sm text-slate-800 font-bold">
           {isScentPaper ? (
@@ -377,7 +403,27 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : t('checkout.freeShippingOverInfo')}
+                : t('checkout.freeShippingOverInfo')}
+              </li>
+            </>
+          ) : isStoreProduct ? (
+            /* 상품 섹션 일반 상품 포함 사항 */
+            <>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {isScentPaper ? '선택한 향 시향지' : `${selectedSize} 향수 (스프레이 타입)`}
+              </li>
+              {!isScentPaper && (
+                <li className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                  프리미엄 패키지
+                </li>
+              )}
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
+                {isFreeShippingPromo
+                  ? <span className="text-pink-600 font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
               </li>
             </>
           ) : isChemistrySet ? (

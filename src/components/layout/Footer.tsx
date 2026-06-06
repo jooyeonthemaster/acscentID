@@ -2,14 +2,29 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Instagram, Twitter } from 'lucide-react'
+import { Instagram, Twitter, Copy, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import { isFocusedExperiencePath } from '@/lib/route-visibility'
+
+// 입금계좌 (복사용 — 숫자만)
+const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
 
 export function Footer() {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   const t = useTranslations()
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyAccount = async () => {
+    try {
+      await navigator.clipboard.writeText(DEPOSIT_ACCOUNT_NUMBER)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // 클립보드 접근 불가 시 무시
+    }
+  }
 
   // 관리자 페이지에서는 숨김
   if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname)) return null
@@ -108,6 +123,27 @@ export function Footer() {
             <Link href="/refund-policy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
               {t('footer.cancelRefundExchange')}
             </Link>
+          </div>
+        </div>
+
+        {/* Deposit Account */}
+        <div className="border-t border-slate-700 pt-4 mb-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm md:text-base font-bold text-white">
+              {t('footer.depositAccount')}
+            </p>
+            <button
+              onClick={handleCopyAccount}
+              title={copied ? t('footer.copied') : t('footer.copyAccount')}
+              aria-label={copied ? t('footer.copied') : t('footer.copyAccount')}
+              className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-colors shrink-0 ${
+                copied
+                  ? 'border-green-400 text-green-400'
+                  : 'border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black'
+              }`}
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
           </div>
         </div>
 

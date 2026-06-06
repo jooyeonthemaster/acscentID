@@ -16,10 +16,11 @@ const pathTitles: Record<string, string> = {
   '/admin/coupons': '쿠폰 관리',
   '/admin/popups': '팝업 관리',
   '/admin/banners': '배너 관리',
+  '/admin/programs': '프로그램 관리',
   '/admin/products': '상품 관리',
   '/admin/product-pricing': '가격 관리',
-  '/admin/product-images': '상품 이미지 관리',
-  '/admin/product-details': '상세페이지 관리',
+  '/admin/product-images': '프로그램 이미지 관리',
+  '/admin/product-details': '프로그램 상세페이지 관리',
   '/admin/reviews': '리뷰 관리',
 }
 
@@ -27,9 +28,10 @@ interface AdminHeaderProps {
   title?: string
   subtitle?: string
   actions?: React.ReactNode
+  breadcrumbs?: { href: string; label: string }[]
 }
 
-export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
+export function AdminHeader({ title, subtitle, actions, breadcrumbs: customBreadcrumbs }: AdminHeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -48,7 +50,7 @@ export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
     return breadcrumbs
   }
 
-  const breadcrumbs = getBreadcrumbs()
+  const breadcrumbs = customBreadcrumbs ?? getBreadcrumbs()
   const pageTitle = title || pathTitles[pathname] || '관리자'
 
   return (

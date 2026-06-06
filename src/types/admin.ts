@@ -3,7 +3,7 @@
 import { ImageAnalysisResult } from './analysis'
 
 // 상품 타입 — [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 해소, signature 추가
-export type ProductType = 'image_analysis' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'etc'
+export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product' | 'etc'
 
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
@@ -28,11 +28,15 @@ export function getTargetTypeLabel(targetType: TargetType | null | undefined, pr
 // [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 — signature 추가
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   image_analysis: 'AI 이미지 분석 퍼퓸',
+  image_analysis_paper: 'AI 이미지 분석 시향지',
   figure_diffuser: '피규어 화분 디퓨저',
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념 퍼퓸',
   signature: '시그니처 퍼퓸',
   chemistry_set: '레이어링 퍼퓸 세트',
+  payment_test: '결제 테스트',
+  today_scent: '오늘의 향',
+  store_product: '상품',
   etc: '기타',
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -12,20 +12,30 @@ import { PopupModal } from "@/components/home/PopupModal"
 import { TodayScentDraw } from "@/components/home/TodayScentDraw"
 import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/useAdminContent"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { isScentPaperSize, type ProductType } from "@/types/cart"
+import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
 
 export default function Home() {
   const router = useRouter()
   const t = useTranslations()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
   const slideRef = useRef<HTMLDivElement>(null)
   const { banners, loading: bannersLoading } = useBanners()
-  const { isProductActive } = useActiveProducts()
+  const { isProductActive, isProductVisible } = useActiveProducts()
+  // 오늘의 향 섹션: admin_products 행이 없으면 기본 노출, 있으면 is_active 따름
+  const showTodayScent = isProductVisible('today-scent')
   const { getOptions } = useProductPricing()
+  const { products: storeProducts } = useStoreProducts()
 
   // 상품관리 이미지의 첫 번째 사진이 메인 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   // 가격은 DB 의 가장 저렴한 활성 옵션 (priceRange 표시용)
   // 시향지(저가 애드온)는 본 상품 최소가가 아니므로 제외한다.
@@ -43,6 +53,7 @@ export default function Home() {
   const personalPrice = minPrice('personal_scent')
   const chemistryPrice = minPrice('chemistry_set')
   const leQuackPrice = minPrice('signature')
+  const storeProductPrice = (size: string, fallback: number) => getOptions(STORE_PRODUCT_TYPE).find((o) => o.size === size)?.price ?? fallback
 
   const computeBadge = (p: { price: number; original_price: number | null } | null, fallback: string) => {
     if (!p || !p.original_price || p.original_price <= p.price) return fallback
@@ -131,6 +142,10 @@ export default function Home() {
 
   // 활성화된 상품만 필터링
   const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductActive(p.id))
+  const visibleStoreProducts = storeProducts
+    .filter((product) => product.isActive !== false)
+    .slice()
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
 
   const handleCardClick = (href: string) => {
     router.push(href)
@@ -195,14 +210,20 @@ export default function Home() {
                 >
                   {/* 슬라이드 배경 이미지 (동적 배너) */}
                   <div className="absolute inset-0">
-                    <Image
-                      src={banners[currentSlide]?.image_url || '/images/hero/1.jpg'}
-                      alt={banners[currentSlide]?.title || 'hero background'}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center center' }}
-                      priority
-                    />
+                    {isHydrated ? (
+                      <Image
+                        src={banners[currentSlide]?.image_url || '/images/hero/1.jpg'}
+                        alt={banners[currentSlide]?.title || 'hero background'}
+                        fill
+                        sizes="(max-width: 455px) 100vw, 455px"
+                        className="object-cover"
+                        style={{ objectPosition: 'center center' }}
+                        priority
+                        data-pin-nopin="true"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-slate-200" aria-hidden />
+                    )}
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -243,7 +264,7 @@ export default function Home() {
           {/* Wrapper for Sticky Control */}
           <div className="relative">
             {/* ===== 프로그램 둘러보기 섹션 ===== */}
-            <section id="programs-section" className="bg-white px-4 pt-8 pb-32 rounded-t-[32px] -mt-[100px] md:-mt-[60px] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
+            <section id="programs-section" className="bg-white px-4 pt-8 pb-[clamp(132px,19svh,180px)] rounded-t-[32px] -mt-[clamp(64px,12svh,104px)] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
               {/* 섹션 타이틀 */}
               <div className="flex items-center gap-2 mb-6">
                 <Search size={20} className="text-slate-900" />
@@ -269,7 +290,9 @@ export default function Home() {
                             src={product.image}
                             alt={product.title}
                             fill
+                            sizes="(max-width: 455px) 50vw, 220px"
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            data-pin-nopin="true"
                           />
                         ) : (
                           <div className="w-full h-full animate-pulse bg-gradient-to-br from-yellow-100 to-amber-100" />
@@ -315,77 +338,69 @@ export default function Home() {
           </div>
 
           {/* ===== 오늘의 향 뽑기 섹션 ===== */}
-          <TodayScentDraw />
+          {showTodayScent && <TodayScentDraw />}
 
-          {/* ===== 상품 둘러보기 섹션 (New) ===== */}
-          {/* TEMP: 잠깐 숨김 처리 (2026-04-30) — 다시 켤 때 이 false → true */}
-          {false && (
-          <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[150px] relative z-20 min-h-[60vh] border-2 border-slate-900 border-b-0">
+          {/* ===== 상품 둘러보기 섹션 ===== */}
+          <section className="bg-white px-4 pt-12 pb-[clamp(132px,18svh,180px)] rounded-t-[32px] -mt-[clamp(92px,14svh,128px)] relative z-20 min-h-[60vh] border-2 border-slate-900 border-b-0">
             <div className="flex items-center gap-2 mb-6">
               <Gift size={20} className="text-slate-900" />
               <h2 className="text-lg font-black text-slate-900">{t('home.browseProducts')}</h2>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Product Card 1 - LE QUACK Signature (Coming Soon) */}
-              <div className="relative group cursor-default">
-                <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000]">
-                  <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
-                    <div className="relative w-full h-full grayscale-[0.3]">
+              {visibleStoreProducts.map((product, index) => (
+                <motion.div
+                  key={product.slug}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08 }}
+                  onClick={() => handleCardClick(`/products/${product.slug}`)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                    <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
                       <Image
-                        src={thumbnails["le-quack"] || "/images/perfume/LE QUACK.avif"}
-                        alt={t('products.leQuack')}
+                        src={product.image}
+                        alt={product.title}
                         fill
-                        className="object-cover blur-sm"
+                        sizes="(max-width: 455px) 50vw, 220px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-pin-nopin="true"
                       />
-                      {/* Coming Soon Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20">
-                        <span className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg transform -rotate-12 border-2 border-white">
-                          {t('home.comingSoon')}
-                        </span>
+                      <div className="absolute top-2 left-2 px-2 py-0.5 bg-lime-600 text-white text-[8px] font-black rounded-full z-10">
+                        {product.badge}
                       </div>
-                    </div>
-
-                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500/50 text-white text-[8px] font-black rounded-full z-10">
-                      SIGNATURE
                     </div>
                   </div>
-                </div>
-                <div className="mt-2 px-1 opacity-50">
-                  <h3 className="font-bold text-slate-900 text-sm truncate">
-                    {t('products.leQuack')}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {t('home.signaturePerfumDesc')}
-                  </p>
-                  {(() => {
-                    const lqPrice: number = leQuackPrice?.price ?? 34000
-                    const lqOrig: number = leQuackPrice?.original_price ?? 0
-                    return (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-sm font-bold text-slate-900">{t('currency.symbol')}{lqPrice.toLocaleString()}</span>
-                        {lqOrig > lqPrice && (
-                          <span className="text-[10px] text-slate-400 line-through">{t('currency.symbol')}{lqOrig.toLocaleString()}</span>
-                        )}
-                      </div>
-                    )
-                  })()}
-                </div>
-              </div>
-
-              {/* Product Card 2 - Custom Duck Case (Disabled) */}
+                  <div className="mt-3 px-1">
+                    <h3 className="font-bold text-slate-900 text-sm truncate">
+                      {product.title}
+                    </h3>
+                    <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
+                      {product.description}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="text-sm font-bold text-slate-900">
+                        {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-[9px] font-medium mt-1 text-emerald-600">
+                      향 선택 후 바로 구매
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
             <div className="mt-12 text-center">
-              <p className="text-sm text-slate-400 font-light underline underline-offset-4 decoration-wavy decoration-yellow-400">
-                {t('home.moreProducts')}
-              </p>
+              <Link href="/products" className="inline-flex items-center gap-2 text-sm font-black text-slate-900 underline underline-offset-4 decoration-wavy decoration-yellow-400">
+                전체 상품 보기 <ChevronRight size={14} />
+              </Link>
             </div>
           </section>
-          )}
 
           {/* ===== 콜라보 & 협업 문의 섹션 ===== */}
-          <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[100px] relative z-30 min-h-[40vh] border-2 border-slate-900 border-b-0">
+          <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[clamp(84px,12svh,112px)] relative z-30 min-h-[40vh] border-2 border-slate-900 border-b-0">
             <div className="flex items-center gap-2 mb-6">
               <Handshake size={20} className="text-slate-900" />
               <h2 className="text-lg font-black text-slate-900">{t('home.collaboration')}</h2>

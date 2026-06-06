@@ -84,6 +84,7 @@ function InputForm() {
             <Header
                 showBack={currentStep > 1}
                 backHref="back"
+                compact
             />
 
             {/* 455px 고정 너비 컨테이너 */}
@@ -100,8 +101,8 @@ function InputForm() {
                     <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-white/70" />
                 </div>
 
-                {/* 헤더 높이만큼 여백 (fixed 헤더: marquee 32px + main 64px = 96px) */}
-                <div className="h-24 flex-shrink-0" />
+                {/* compact 헤더 높이만큼 여백 */}
+                <div className="h-14 flex-shrink-0" />
 
                 {/* 프로그레스 바 */}
                 <ProgressBar currentStep={currentStep} />

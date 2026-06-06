@@ -726,6 +726,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
     const editorFieldForPagePosition = (field: ProductPagePositionField): string | null => {
       switch (field) {
         case 'productImage':
+        case 'price':
+        case 'included':
           return null
         case 'productName':
           return 'productName'
@@ -806,20 +808,35 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         }
       })
 
+      // 인라인(형제) 핸들은 대상의 transform 을 공유하지 않으므로 동일 값을 직접 맞춰준다.
+      const syncMoveHandleTransform = (element: HTMLElement, transformValue: string) => {
+        const sibling = element.nextElementSibling
+        if (
+          sibling instanceof HTMLElement &&
+          sibling.classList.contains('admin-page-move-handle') &&
+          sibling.dataset.adminInlineHandle === 'true'
+        ) {
+          sibling.style.transform = transformValue
+        }
+      }
+
       document.querySelectorAll<HTMLElement>('[data-admin-page-position-field]').forEach((element) => {
         const field = element.dataset.adminPagePositionField as ProductPagePositionField | undefined
         if (!field) return
         const position = content.positions[field]
         if (position) {
+          const transformValue = `translate(${position.x}px, ${position.y}px)`
           element.dataset.adminPageMoveX = String(position.x)
           element.dataset.adminPageMoveY = String(position.y)
-          element.style.transform = `translate(${position.x}px, ${position.y}px)`
+          element.style.transform = transformValue
+          syncMoveHandleTransform(element, transformValue)
           return
         }
 
         element.dataset.adminPageMoveX = '0'
         element.dataset.adminPageMoveY = '0'
         element.style.transform = ''
+        syncMoveHandleTransform(element, '')
       })
 
       const detailTarget = findDetailTarget()
@@ -841,10 +858,18 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
       const previousPosition = target.style.position
       const previousTransform = target.style.transform
       const previousTouchAction = target.style.touchAction
-      const shouldSetPosition = window.getComputedStyle(target).position === 'static'
-      const isInlineTarget = target.matches(
-        '[data-admin-page-editable="true"], [data-admin-field-editable="true"], span, strong, em, mark',
-      )
+      const previousDisplay = target.style.display
+      const computedStyle = window.getComputedStyle(target)
+      const computedDisplay = computedStyle.display
+      const shouldSetPosition = computedStyle.position === 'static'
+      // 핸들 배치는 "편집 가능 여부"가 아니라 "실제 display"로 판단해야 한다.
+      // 인라인 계열만 핸들을 형제(sibling)로 두고, 블록/flex/absolute 등은 대상 안에 넣어
+      // 대상의 transform 을 핸들이 함께 받도록(같이 움직이도록) 한다.
+      const isInlineTarget =
+        computedDisplay === 'inline' ||
+        computedDisplay === 'inline-block' ||
+        computedDisplay === 'inline-flex' ||
+        computedDisplay === 'inline-grid'
       const currentTranslate = readTranslate(target)
 
       target.dataset.adminPageMoveBound = 'true'
@@ -853,6 +878,10 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
       target.style.touchAction = 'none'
       if (shouldSetPosition && !isInlineTarget) {
         target.style.position = 'relative'
+      }
+      // 순수 인라인 요소는 transform 이 적용되지 않으므로 inline-block 으로 승격한다.
+      if (computedDisplay === 'inline') {
+        target.style.display = 'inline-block'
       }
 
       const handle = document.createElement('span')
@@ -871,6 +900,21 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         target.insertAdjacentElement('afterend', handle)
       } else {
         target.appendChild(handle)
+      }
+
+      // 인라인 핸들은 대상의 형제라 대상 transform 을 공유하지 않는다.
+      // 동일한 translate 를 핸들에도 적용해 항상 대상과 함께 움직이게 한다.
+      const applyTranslate = (x: number, y: number) => {
+        target.dataset.adminPageMoveX = String(x)
+        target.dataset.adminPageMoveY = String(y)
+        target.style.transform = `translate(${x}px, ${y}px)`
+        if (isInlineTarget) {
+          handle.style.transform = `translate(${x}px, ${y}px)`
+        }
+      }
+
+      if (isInlineTarget && (currentTranslate.x || currentTranslate.y)) {
+        handle.style.transform = `translate(${currentTranslate.x}px, ${currentTranslate.y}px)`
       }
 
       const moveTarget = (startEvent: PointerEvent) => {
@@ -894,9 +938,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
 
           const nextX = snapToGrid(startX + deltaX)
           const nextY = snapToGrid(startY + deltaY)
-          target.dataset.adminPageMoveX = String(nextX)
-          target.dataset.adminPageMoveY = String(nextY)
-          target.style.transform = `translate(${nextX}px, ${nextY}px)`
+          applyTranslate(nextX, nextY)
         }
 
         const stopMove = () => {
@@ -929,9 +971,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         event.stopPropagation()
         const nextX = snapToGrid(Number(target.dataset.adminPageMoveX || 0) + delta[0])
         const nextY = snapToGrid(Number(target.dataset.adminPageMoveY || 0) + delta[1])
-        target.dataset.adminPageMoveX = String(nextX)
-        target.dataset.adminPageMoveY = String(nextY)
-        target.style.transform = `translate(${nextX}px, ${nextY}px)`
+        applyTranslate(nextX, nextY)
         syncPageContentConfig()
         sendFullDetailUpdate()
       }
@@ -950,6 +990,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         }
         target.style.transform = previousTransform
         target.style.touchAction = previousTouchAction
+        target.style.display = previousDisplay
       })
     }
 

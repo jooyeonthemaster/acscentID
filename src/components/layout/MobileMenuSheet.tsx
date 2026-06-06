@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
+import { useStoreProducts } from '@/hooks/useStoreProducts'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -14,8 +15,9 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from '@/lib/utils'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { stripLocaleFromPathname } from '@/lib/route-visibility'
 
 // Unified User Type
 interface UnifiedUser {
@@ -120,10 +122,12 @@ export function MobileMenuSheet({
   onLoginClick
 }: MobileMenuSheetProps) {
   const pathname = usePathname()
+  const normalizedPathname = stripLocaleFromPathname(pathname)
   const currentUser = unifiedUser || user
   const t = useTranslations()
 
-  const isProgramsActive = pathname?.startsWith('/programs') || false
+  const isProgramsActive = normalizedPathname.startsWith('/programs')
+  const isProductsActive = normalizedPathname.startsWith('/products')
 
   const handleClose = () => onOpenChange(false)
 
@@ -136,6 +140,12 @@ export function MobileMenuSheet({
 
   // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
+  const { products: storeProducts, refresh: refreshStoreProducts } = useStoreProducts()
+
+  useEffect(() => {
+    if (!isOpen) return
+    void refreshStoreProducts()
+  }, [isOpen, refreshStoreProducts])
 
   // Navigation Links with translated labels (활성 상품만 + DB 이미지 연동)
   const programLinks = [
@@ -150,6 +160,15 @@ export function MobileMenuSheet({
     .map((link) => ({
       ...link,
       image: thumbnailsLoading ? link.fallbackImage : (thumbnails[link.slug] || link.fallbackImage),
+    }))
+
+  const productLinks = storeProducts
+    .filter((product) => product.isActive !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+    .map((product) => ({
+      href: `/products/${product.slug}`,
+      label: product.title,
+      image: product.image,
     }))
 
   return (
@@ -196,12 +215,18 @@ export function MobileMenuSheet({
                   onClick={handleClose}
                   className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                  Home
+                  {t('nav.home')}
                 </Link>
                 <MobileSection
-                  title="Programs"
+                  title={t('nav.programs')}
                   links={programLinks}
                   isActive={isProgramsActive}
+                  onLinkClick={handleClose}
+                />
+                <MobileSection
+                  title={t('nav.products')}
+                  links={productLinks}
+                  isActive={isProductsActive}
                   onLinkClick={handleClose}
                 />
                 <Link
@@ -256,12 +281,18 @@ export function MobileMenuSheet({
                   onClick={handleClose}
                   className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 font-bold text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                  Home
+                  {t('nav.home')}
                 </Link>
                 <MobileSection
-                  title="Programs"
+                  title={t('nav.programs')}
                   links={programLinks}
                   isActive={isProgramsActive}
+                  onLinkClick={handleClose}
+                />
+                <MobileSection
+                  title={t('nav.products')}
+                  links={productLinks}
+                  isActive={isProductsActive}
                   onLinkClick={handleClose}
                 />
                 <Link

@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { isFocusedExperiencePath } from '@/lib/route-visibility'
+import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
 
 const STORAGE_KEY = 'acscent-cookie-consent'
 
@@ -14,17 +15,38 @@ export function CookieConsentBanner() {
   const router = useRouter()
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
+  const [popupOpen, setPopupOpen] = useState(false)
+  const [mobileOverlayOpen, setMobileOverlayOpen] = useState(false)
   const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
 
   useEffect(() => {
     if (shouldHideForFocusedExperience) return
 
-    const consent = localStorage.getItem(STORAGE_KEY)
-    if (!consent) {
-      const timer = setTimeout(() => setVisible(true), 800)
-      return () => clearTimeout(timer)
+    const syncPopupState = () => {
+      setPopupOpen(document.body.dataset.acscentPopupOpen === 'true')
+    }
+
+    syncPopupState()
+    window.addEventListener('acscent-popup-visibility-change', syncPopupState)
+
+    return () => {
+      window.removeEventListener('acscent-popup-visibility-change', syncPopupState)
     }
   }, [shouldHideForFocusedExperience])
+
+  useEffect(() => {
+    return subscribeMobileOverlayChange(setMobileOverlayOpen)
+  }, [])
+
+  useEffect(() => {
+    if (shouldHideForFocusedExperience || popupOpen || mobileOverlayOpen) return
+
+    const consent = localStorage.getItem(STORAGE_KEY)
+    if (!consent) {
+      const timer = setTimeout(() => setVisible(true), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [mobileOverlayOpen, popupOpen, shouldHideForFocusedExperience])
 
   const handleAccept = () => {
     localStorage.setItem(STORAGE_KEY, 'accepted')
@@ -40,7 +62,7 @@ export function CookieConsentBanner() {
 
   return (
     <AnimatePresence>
-      {visible && !shouldHideForFocusedExperience && (
+      {visible && !shouldHideForFocusedExperience && !popupOpen && !mobileOverlayOpen && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

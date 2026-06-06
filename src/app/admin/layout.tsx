@@ -1,5 +1,5 @@
 import { AdminGuard } from './components/AdminGuard'
-import { AdminSidebar } from './components/AdminSidebar'
+import { AdminShell } from './components/AdminShell'
 
 export const metadata = {
   title: "AC'SCENT Admin",
@@ -14,13 +14,7 @@ export default function AdminLayout({
 }) {
   return (
     <AdminGuard>
-      {/* fixed position으로 부모의 455px 제한을 벗어남 */}
-      <div className="fixed inset-0 min-h-screen bg-slate-50 overflow-auto z-[9999]">
-        <AdminSidebar />
-        <main className="ml-64 min-h-screen transition-all duration-300">
-          {children}
-        </main>
-      </div>
+      <AdminShell>{children}</AdminShell>
     </AdminGuard>
   )
 }

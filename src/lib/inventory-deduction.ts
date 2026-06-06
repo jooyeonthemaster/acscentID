@@ -424,7 +424,7 @@ export async function deductInventoryForAnalysis(
     finalRecipe,
     perfumeName: analysisData.perfumeName || null,
     productType: analysisData.productType || 'image_analysis',
-    size: '10ml', // 오프라인은 기본 10ml 퍼퓸
+    size: '10ml', // 오프라인은 기본 10ml 향수
     quantity: 1,
   })
 

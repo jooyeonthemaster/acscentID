@@ -69,10 +69,10 @@ export async function PATCH(
     if (body.size && body.product_type) {
       const productType = body.product_type as ProductType
 
-      // 피규어 디퓨저는 옵션 변경 불가
-      if (productType === 'figure_diffuser') {
+      // 고정 구성 상품은 옵션 변경 불가
+      if (productType === 'figure_diffuser' || productType === 'store_product') {
         return NextResponse.json(
-          { error: '피규어 디퓨저는 옵션 변경이 불가합니다' },
+          { error: '이 상품은 옵션 변경이 불가합니다' },
           { status: 400 }
         )
       }

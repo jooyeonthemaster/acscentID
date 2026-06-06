@@ -28,6 +28,7 @@ import {
   type CarrierId,
 } from '@/lib/shipping/cj'
 import { notifyCustomerShipped } from '@/lib/email/customer-notify'
+import { addUserNotification } from '@/lib/user/notifications.server'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
@@ -192,6 +193,14 @@ export async function PATCH(
           shippedAt: nowISO,
         })
         emailSent = !!customerEmail
+
+        // 인앱 알림함에도 적재
+        await addUserNotification(existingOrder.user_id, {
+          type: 'shipping',
+          title: '🚚 상품이 발송되었어요',
+          body: `주문 ${existingOrder.order_number}이(가) 발송되었습니다. 배송 조회를 확인해보세요.`,
+          link: '/mypage?tab=orders',
+        })
       } catch (notifyErr) {
         console.error('[Admin Tracking] notify failed:', notifyErr)
         // 이메일 실패가 운송장 저장을 막지 않음

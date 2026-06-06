@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    /\.(png|jpg|jpeg|svg|gif|ico|webp|woff|woff2|ttf|eot)$/.test(pathname)
+    /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin)$/.test(pathname)
 
   // i18n 미들웨어 적용 또는 기본 응답
   const response = shouldSkipIntl
@@ -80,6 +80,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // next-intl + 기존 매처 통합
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.webp$|.*\\.avif$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin)$).*)',
   ],
 }

@@ -76,6 +76,14 @@ function rowsToMap(rows: PricingRow[]): PricingMap {
   for (const key of Object.keys(out) as ProductType[]) {
     out[key]!.sort((a, b) => a.sort_order - b.sort_order)
   }
+  // DB에 아직 신규 product_type 시드가 적용되지 않은 환경에서는
+  // 해당 타입만 상수 가격표로 보완한다.
+  const fallback = buildFallbackMap()
+  for (const key of Object.keys(fallback) as ProductType[]) {
+    if (!out[key]) {
+      out[key] = fallback[key]
+    }
+  }
   return out as PricingMap
 }
 

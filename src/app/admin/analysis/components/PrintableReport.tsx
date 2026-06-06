@@ -51,6 +51,8 @@ interface PrintableReportProps {
   } | null
   layeringSession?: PrintableLayeringSession | null
   partnerAnalysis?: PrintableAnalysis | null
+  rootId?: string
+  standalonePrintStyles?: boolean
 }
 
 // 특성 컬러 테마 (기존 TraitRadarChart와 동일)
@@ -336,7 +338,13 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
   )
 }
 
-export function PrintableReport({ analysis, layeringSession, partnerAnalysis }: PrintableReportProps) {
+export function PrintableReport({
+  analysis,
+  layeringSession,
+  partnerAnalysis,
+  rootId = 'printable-report',
+  standalonePrintStyles = true,
+}: PrintableReportProps) {
   const analysisData = analysis.analysis_data
 
   // [FIX] CRITICAL #17: chemistry_set이면 전용 디자인 렌더링
@@ -381,16 +389,18 @@ export function PrintableReport({ analysis, layeringSession, partnerAnalysis }: 
 
         return (
           <>
-            <style jsx global>{`
-              @media print {
-                @page { size: A4 landscape; margin: 0; }
-                body * { visibility: hidden; }
-                #printable-report, #printable-report * { visibility: visible; }
-                #printable-report { position: fixed !important; left: 0 !important; top: 0 !important; margin: 0 !important; background: white !important; }
-                body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-              }
-            `}</style>
-            <div id="printable-report" className="w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            {standalonePrintStyles && (
+              <style jsx global>{`
+                @media print {
+                  @page { size: A4 landscape; margin: 0; }
+                  body * { visibility: hidden; }
+                  .printable-report-root, .printable-report-root * { visibility: visible; }
+                  .printable-report-root { position: fixed !important; left: 0 !important; top: 0 !important; margin: 0 !important; background: white !important; }
+                  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+                }
+              `}</style>
+            )}
+            <div id={rootId} className="printable-report-root w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               <img
                 src={(() => {
                   // 케미(2) × 최애/나 — 1-1/1-2은 이미지, 2-1/2-2는 케미
@@ -584,7 +594,7 @@ export function PrintableReport({ analysis, layeringSession, partnerAnalysis }: 
 
     // Default basic rendering if something is missing
     return (
-      <div className="max-w-4xl mx-auto p-8 bg-white print:p-4" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+      <div id={rootId} className="printable-report-root max-w-4xl mx-auto p-8 bg-white print:p-4" style={{ fontFamily: 'Pretendard, sans-serif' }}>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-black text-slate-900">AC&apos;SCENT ANALYSIS REPORT</h1>
         </div>
@@ -632,44 +642,46 @@ export function PrintableReport({ analysis, layeringSession, partnerAnalysis }: 
   return (
     <>
       {/* 프린트 스타일 */}
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 0;
-          }
+      {standalonePrintStyles && (
+        <style jsx global>{`
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 0;
+            }
 
-          /* 모든 요소 숨기기 */
-          body * {
-            visibility: hidden;
-          }
+            /* 모든 요소 숨기기 */
+            body * {
+              visibility: hidden;
+            }
 
-          /* 보고서 컨테이너와 그 자식들만 보이기 */
-          #printable-report,
-          #printable-report * {
-            visibility: visible;
-          }
+            /* 보고서 컨테이너와 그 자식들만 보이기 */
+            .printable-report-root,
+            .printable-report-root * {
+              visibility: visible;
+            }
 
-          /* 보고서를 좌상단에 고정 (레이아웃 유지) */
-          #printable-report {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            margin: 0 !important;
-            background: white !important;
-          }
+            /* 보고서를 좌상단에 고정 (레이아웃 유지) */
+            .printable-report-root {
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              margin: 0 !important;
+              background: white !important;
+            }
 
-          /* 컬러 정확하게 출력 */
-          body {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
+            /* 컬러 정확하게 출력 */
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
           }
-        }
-      `}</style>
+        `}</style>
+      )}
 
       {/* 보고서 컨테이너 */}
-      <div id="printable-report" className="w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden">
+      <div id={rootId} className="printable-report-root w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden">
         {/* 배경 SVG — public/background 폴더의 최신 배경 사용 */}
         <img
           src={isSelfImageReport ? '/background/1-2.svg' : '/background/1-1.svg'}

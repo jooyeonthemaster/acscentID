@@ -1,5 +1,6 @@
 {
   "nav": {
+    "products": "商品",
     "home": "ホーム",
     "programs": "プログラム",
     "my": "MY",
@@ -68,6 +69,9 @@
     "marquee": "AC'SCENT IDENTITY • AIイメージ分析であなただけの香りをおすすめ •"
   },
   "footer": {
+    "copyAccount": "コピー",
+    "copied": "コピーしました",
+    "depositAccount": "振込口座: ウリ銀行 1005-204-549279 (株)ネアンデル",
     "tagline": "自分だけの香りを見つける一番楽しいサービス",
     "programs": "プログラム",
     "support": "カスタマーサポート",
@@ -507,6 +511,16 @@
     "genderOther": "その他"
   },
   "checkout": {
+    "saveAsDefaultAddress": "基本配送先として保存",
+    "savedAsDefault": "保存しました",
+    "defaultAddressIncomplete": "受取人・連絡先・郵便番号・住所をすべて入力してください。",
+    "defaultAddressSaveFailed": "基本配送先の保存に失敗しました",
+    "addressManualFallback": "住所検索画面が開かない場合は、郵便番号と住所を直接入力してください。",
+    "manualAddressHint": "モバイルで住所検索が開かない場合は、直接入力に切り替えられます。",
+    "enterAddressManually": "直接入力",
+    "useAddressSearch": "住所検索を使う",
+    "manualZipcodePlaceholder": "郵便番号を入力",
+    "manualAddressPlaceholder": "住所を入力",
     "title": "注文する",
     "orderItems": "{count}点の商品を注文",
     "signatureOrder": "ORDER YOUR SIGNATURE SCENT",
@@ -629,6 +643,28 @@
     "goHome": "ホームに戻る"
   },
   "mypage": {
+    "notificationsTitle": "お知らせ",
+    "notificationsEmpty": "お知らせはありません",
+    "notificationsClear": "すべて削除",
+    "notificationsClearConfirm": "すべてのお知らせを削除しますか？",
+    "defaultAddressTitle": "基本配送先",
+    "defaultAddressEmpty": "登録された基本配送先がありません",
+    "defaultAddressAdd": "基本配送先を登録",
+    "defaultAddressDelete": "削除",
+    "defaultAddressDeleteConfirm": "基本配送先を削除しますか？",
+    "defaultAddressRequired": "受取人・連絡先・郵便番号・住所をすべて入力してください。",
+    "editButton": "編集",
+    "profileEditTitle": "会員情報の編集",
+    "profileNameLabel": "名前（ニックネーム）",
+    "profileNamePlaceholder": "名前を入力してください",
+    "profileEmailLabel": "メールアドレス",
+    "profileEmailReadonly": "メールアドレスは変更できません",
+    "profileSave": "保存",
+    "profileCancel": "キャンセル",
+    "profileNameRequired": "名前を入力してください",
+    "profileSaveFailed": "保存に失敗しました",
+    "ordersLoadFailed": "注文履歴を読み込めませんでした",
+    "retry": "再試行",
     "analysis": "分析",
     "cart": {
       "tab": "カート",
@@ -1001,6 +1037,8 @@
     "discountPercent": "{percent}%割引"
   },
   "faq": {
+    "searchPlaceholder": "質問を検索",
+    "noResults": "検索結果がありません。別のキーワードをお試しください。",
     "badge": "よくある質問",
     "title": "FAQ",
     "subtitle": "ご不明な点はございますか？以下から回答をお探しください。",

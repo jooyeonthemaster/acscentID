@@ -1,5 +1,6 @@
 {
   "nav": {
+    "products": "商品",
     "home": "首页",
     "programs": "项目",
     "my": "MY",
@@ -68,6 +69,9 @@
     "marquee": "AC'SCENT IDENTITY • 通过AI图像分析推荐专属于你的香气 •"
   },
   "footer": {
+    "copyAccount": "复制",
+    "copied": "已复制",
+    "depositAccount": "汇款账户: 友利银行 1005-204-549279 NEANDER Co.,LTD",
     "tagline": "寻找专属香气的最愉快服务",
     "programs": "项目",
     "support": "客户支持",
@@ -480,6 +484,16 @@
     "genderOther": "其他"
   },
   "checkout": {
+    "saveAsDefaultAddress": "保存为默认收货地址",
+    "savedAsDefault": "已保存",
+    "defaultAddressIncomplete": "请输入收件人、联系电话、邮编和地址。",
+    "defaultAddressSaveFailed": "保存默认地址失败",
+    "addressManualFallback": "如果地址搜索窗口未打开，请手动输入邮编和地址。",
+    "manualAddressHint": "如果移动端无法打开地址搜索，可以切换为手动输入。",
+    "enterAddressManually": "手动输入",
+    "useAddressSearch": "使用地址搜索",
+    "manualZipcodePlaceholder": "手动输入邮编",
+    "manualAddressPlaceholder": "手动输入地址",
     "title": "下单",
     "orderItems": "订购{count}件商品",
     "signatureOrder": "ORDER YOUR SIGNATURE SCENT",
@@ -602,6 +616,28 @@
     "goHome": "返回首页"
   },
   "mypage": {
+    "notificationsTitle": "通知",
+    "notificationsEmpty": "暂无通知",
+    "notificationsClear": "全部删除",
+    "notificationsClearConfirm": "要删除所有通知吗？",
+    "defaultAddressTitle": "默认收货地址",
+    "defaultAddressEmpty": "尚未设置默认收货地址",
+    "defaultAddressAdd": "添加默认地址",
+    "defaultAddressDelete": "删除",
+    "defaultAddressDeleteConfirm": "要删除默认收货地址吗？",
+    "defaultAddressRequired": "请输入收件人、联系电话、邮编和地址。",
+    "editButton": "编辑",
+    "profileEditTitle": "编辑会员信息",
+    "profileNameLabel": "姓名（昵称）",
+    "profileNamePlaceholder": "请输入姓名",
+    "profileEmailLabel": "邮箱",
+    "profileEmailReadonly": "邮箱无法修改",
+    "profileSave": "保存",
+    "profileCancel": "取消",
+    "profileNameRequired": "请输入姓名",
+    "profileSaveFailed": "保存失败",
+    "ordersLoadFailed": "无法加载订单记录",
+    "retry": "重试",
     "analysis": "分析",
     "coupons": "优惠券",
     "loading": "加载中...",
@@ -974,6 +1010,8 @@
     }
   },
   "faq": {
+    "searchPlaceholder": "搜索问题",
+    "noResults": "没有搜索结果，请尝试其他关键词。",
     "badge": "常见问题",
     "title": "FAQ",
     "subtitle": "有什么疑问吗？在下方寻找答案吧。",

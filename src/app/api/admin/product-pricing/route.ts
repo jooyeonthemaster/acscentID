@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
 interface PatchBody {
   product_type: ProductType
   size: string
+  label?: string
   price?: number
   original_price?: number | null
   is_active?: boolean
@@ -159,6 +160,11 @@ export async function PATCH(request: NextRequest) {
 
   // 부분 업데이트 페이로드 구성
   const updates: Record<string, unknown> = { updated_by: admin.email }
+  if (body.label !== undefined) {
+    const label = typeof body.label === 'string' ? body.label.trim() : ''
+    if (!label) return NextResponse.json({ error: 'label 은 비워둘 수 없습니다' }, { status: 400 })
+    updates.label = label
+  }
   if (typeof body.price === 'number') {
     if (body.price < 0 || !Number.isFinite(body.price) || !Number.isInteger(body.price)) {
       return NextResponse.json({ error: 'price 는 0 이상의 정수여야 합니다' }, { status: 400 })

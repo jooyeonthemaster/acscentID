@@ -1,5 +1,6 @@
 {
   "nav": {
+    "products": "Products",
     "home": "Home",
     "programs": "Programs",
     "my": "MY",
@@ -68,6 +69,9 @@
     "marquee": "AC'SCENT IDENTITY • Discover your signature scent with AI image analysis •"
   },
   "footer": {
+    "copyAccount": "Copy",
+    "copied": "Copied",
+    "depositAccount": "Deposit Account: Woori Bank 1005-204-549279 NEANDER Co.,LTD",
     "tagline": "The most enjoyable way to find your signature scent",
     "programs": "Programs",
     "support": "Support",
@@ -480,6 +484,16 @@
     "genderOther": "Other"
   },
   "checkout": {
+    "saveAsDefaultAddress": "Save as default address",
+    "savedAsDefault": "Saved",
+    "defaultAddressIncomplete": "Please enter recipient, phone, zip code and address.",
+    "defaultAddressSaveFailed": "Failed to save default address",
+    "addressManualFallback": "If the address search window does not open, enter your zip code and address manually.",
+    "manualAddressHint": "If address search does not open on mobile, you can switch to manual entry.",
+    "enterAddressManually": "Enter manually",
+    "useAddressSearch": "Use search",
+    "manualZipcodePlaceholder": "Enter zip code",
+    "manualAddressPlaceholder": "Enter address",
     "title": "Place Order",
     "orderItems": "Ordering {count} item(s)",
     "signatureOrder": "ORDER YOUR SIGNATURE SCENT",
@@ -601,6 +615,28 @@
     "goHome": "Back to Home"
   },
   "mypage": {
+    "notificationsTitle": "Notifications",
+    "notificationsEmpty": "No notifications yet",
+    "notificationsClear": "Clear all",
+    "notificationsClearConfirm": "Delete all notifications?",
+    "defaultAddressTitle": "Default Address",
+    "defaultAddressEmpty": "No default address saved",
+    "defaultAddressAdd": "Add default address",
+    "defaultAddressDelete": "Delete",
+    "defaultAddressDeleteConfirm": "Delete the default address?",
+    "defaultAddressRequired": "Please enter recipient, phone, zip code and address.",
+    "editButton": "Edit",
+    "profileEditTitle": "Edit Profile",
+    "profileNameLabel": "Name (Nickname)",
+    "profileNamePlaceholder": "Enter your name",
+    "profileEmailLabel": "Email",
+    "profileEmailReadonly": "Email cannot be changed",
+    "profileSave": "Save",
+    "profileCancel": "Cancel",
+    "profileNameRequired": "Please enter your name",
+    "profileSaveFailed": "Failed to save",
+    "ordersLoadFailed": "Could not load order history",
+    "retry": "Try again",
     "analysis": "Analysis",
     "coupons": "Coupons",
     "loading": "Loading...",
@@ -973,6 +1009,8 @@
     }
   },
   "faq": {
+    "searchPlaceholder": "Search your question",
+    "noResults": "No results found. Try another keyword.",
     "badge": "FAQ",
     "title": "FAQ",
     "subtitle": "Have a question? Find answers below.",

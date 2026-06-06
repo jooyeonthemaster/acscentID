@@ -1,7 +1,18 @@
 // 장바구니 관련 Supabase 유틸리티 함수
 
 import { createClient } from '@supabase/supabase-js'
-import type { CartItem, AddToCartRequest, UpdateCartItemRequest } from '@/types/cart'
+import {
+  ANALYSIS_OPTIONAL_PRODUCT_TYPES,
+  type CartItem,
+  type AddToCartRequest,
+  type UpdateCartItemRequest,
+} from '@/types/cart'
+import {
+  STORE_PRODUCT_DB_COMPAT_TYPE,
+  STORE_PRODUCT_TYPE,
+  isStoreProductConstraintError,
+  withStoreProductCompatAnalysisData,
+} from '@/lib/products/store-products'
 
 // Service role client (서버 사이드에서만 사용)
 const getServiceClient = () => {
@@ -45,9 +56,14 @@ export async function getCartCount(userId: string): Promise<number> {
   return count || 0
 }
 
+function isAnalysisOptionalProduct(productType: AddToCartRequest['product_type']): boolean {
+  return ANALYSIS_OPTIONAL_PRODUCT_TYPES.includes(productType)
+}
+
 // 케미 행/단품 행 모두에 공통으로 들어갈 row 변환
 // chemistry_set: layering_session_id 필수, analysis_id 는 NULL
-// 그 외:        analysis_id 필수, layering_session_id 는 NULL
+// 카탈로그 상품: analysis_id / layering_session_id 둘 다 NULL 허용
+// 그 외: analysis_id 필수, layering_session_id 는 NULL
 function buildCartRow(userId: string, item: AddToCartRequest) {
   const isChem = item.product_type === 'chemistry_set'
   return {
@@ -66,6 +82,17 @@ function buildCartRow(userId: string, item: AddToCartRequest) {
   }
 }
 
+type CartInsertRow = ReturnType<typeof buildCartRow>
+
+function toStoreProductCompatRow(row: CartInsertRow): CartInsertRow {
+  if (row.product_type !== STORE_PRODUCT_TYPE) return row
+  return {
+    ...row,
+    product_type: STORE_PRODUCT_DB_COMPAT_TYPE,
+    analysis_data: withStoreProductCompatAnalysisData(row.analysis_data),
+  }
+}
+
 // 장바구니 추가 (단일)
 export async function addToCart(
   userId: string,
@@ -73,6 +100,31 @@ export async function addToCart(
 ): Promise<CartItem> {
   const supabase = getServiceClient()
   const row = buildCartRow(userId, item)
+
+  if (isAnalysisOptionalProduct(item.product_type)) {
+    let { data, error } = await supabase
+      .from('cart_items')
+      .insert(row)
+      .select()
+      .single()
+
+    if (error && row.product_type === STORE_PRODUCT_TYPE && isStoreProductConstraintError(error)) {
+      const retry = await supabase
+        .from('cart_items')
+        .insert(toStoreProductCompatRow(row))
+        .select()
+        .single()
+      data = retry.data
+      error = retry.error
+    }
+
+    if (error) {
+      console.error('Error adding catalog item to cart:', error)
+      throw error
+    }
+
+    return data
+  }
 
   // 케미와 단품은 부분 unique 인덱스가 다르므로 onConflict 컬럼을 분기
   const onConflict = item.product_type === 'chemistry_set'
@@ -94,7 +146,7 @@ export async function addToCart(
 }
 
 // 장바구니 다중 추가
-// 한 번 호출에 케미/단품이 섞여 들어올 수 있어 product_type 별로 분리해 upsert
+// 한 번 호출에 케미/분석 단품/카탈로그 상품이 섞여 들어올 수 있어 product_type 별로 분리
 export async function addMultipleToCart(
   userId: string,
   items: AddToCartRequest[]
@@ -103,9 +155,37 @@ export async function addMultipleToCart(
   const rows = items.map((item) => buildCartRow(userId, item))
 
   const chemRows = rows.filter((r) => r.product_type === 'chemistry_set')
-  const otherRows = rows.filter((r) => r.product_type !== 'chemistry_set')
+  const catalogRows = rows.filter((r) => isAnalysisOptionalProduct(r.product_type))
+  const otherRows = rows.filter((r) => (
+    r.product_type !== 'chemistry_set' && !isAnalysisOptionalProduct(r.product_type)
+  ))
 
   let addedCount = 0
+  if (catalogRows.length > 0) {
+    let { data, error } = await supabase
+      .from('cart_items')
+      .insert(catalogRows)
+      .select()
+
+    if (
+      error &&
+      catalogRows.some((row) => row.product_type === STORE_PRODUCT_TYPE) &&
+      isStoreProductConstraintError(error)
+    ) {
+      const retry = await supabase
+        .from('cart_items')
+        .insert(catalogRows.map(toStoreProductCompatRow))
+        .select()
+      data = retry.data
+      error = retry.error
+    }
+
+    if (error) {
+      console.error('Error adding catalog items to cart:', error)
+      throw error
+    }
+    addedCount += data?.length || 0
+  }
   if (chemRows.length > 0) {
     const { data, error } = await supabase
       .from('cart_items')

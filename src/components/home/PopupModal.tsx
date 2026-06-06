@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
 
 interface PopupData {
   id: string
@@ -30,6 +31,25 @@ export function PopupModal() {
   useEffect(() => {
     fetchActivePopups()
   }, [])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    if (isVisible) {
+      document.body.dataset.acscentPopupOpen = 'true'
+    } else {
+      delete document.body.dataset.acscentPopupOpen
+    }
+
+    window.dispatchEvent(new Event('acscent-popup-visibility-change'))
+    setMobileOverlayOpen('home-popup', isVisible)
+
+    return () => {
+      delete document.body.dataset.acscentPopupOpen
+      window.dispatchEvent(new Event('acscent-popup-visibility-change'))
+      setMobileOverlayOpen('home-popup', false)
+    }
+  }, [isVisible])
 
   const fetchActivePopups = async () => {
     const now = new Date().toISOString()
@@ -129,7 +149,7 @@ export function PopupModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
         >
           {/* Backdrop */}
           <div

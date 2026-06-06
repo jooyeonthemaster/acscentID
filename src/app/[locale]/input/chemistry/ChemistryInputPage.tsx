@@ -63,7 +63,7 @@ function ChemistryInputFormInner() {
       />
 
       {/* 헤더 */}
-      <Header showBack backHref="back" />
+      <Header showBack backHref="back" compact />
 
       {/* 455px 고정 너비 컨테이너 */}
       <div className="relative w-full max-w-[455px] mx-auto min-h-[100svh] flex flex-col">
@@ -79,8 +79,8 @@ function ChemistryInputFormInner() {
           <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-white/70" />
         </div>
 
-        {/* 헤더 높이 여백 */}
-        <div className="h-[84px] flex-shrink-0" />
+        {/* compact 헤더 높이 여백 */}
+        <div className="h-14 flex-shrink-0" />
 
         {/* 프로그레스 */}
         <ChemistryProgress phase={phase} currentCard={currentCard} totalCards={TOTAL_CARDS} />

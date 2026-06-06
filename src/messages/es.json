@@ -1,5 +1,6 @@
 {
   "nav": {
+    "products": "Productos",
     "home": "Inicio",
     "programs": "Programas",
     "my": "MI",
@@ -68,6 +69,9 @@
     "marquee": "AC'SCENT IDENTITY • Tu fragancia personalizada con análisis de imagen IA •"
   },
   "footer": {
+    "copyAccount": "Copiar",
+    "copied": "Copiado",
+    "depositAccount": "Cuenta de depósito: Woori Bank 1005-204-549279 NEANDER Co.,LTD",
     "tagline": "El servicio más divertido para encontrar tu fragancia",
     "programs": "Programas",
     "support": "Atención al cliente",
@@ -507,6 +511,16 @@
     "genderOther": "Otro"
   },
   "checkout": {
+    "saveAsDefaultAddress": "Guardar como dirección predeterminada",
+    "savedAsDefault": "Guardado",
+    "defaultAddressIncomplete": "Ingresa destinatario, teléfono, código postal y dirección.",
+    "defaultAddressSaveFailed": "No se pudo guardar la dirección predeterminada",
+    "addressManualFallback": "Si la búsqueda de dirección no se abre, ingresa el código postal y la dirección manualmente.",
+    "manualAddressHint": "Si la búsqueda no se abre en móvil, puedes cambiar a entrada manual.",
+    "enterAddressManually": "Ingresar manualmente",
+    "useAddressSearch": "Usar búsqueda",
+    "manualZipcodePlaceholder": "Ingresa código postal",
+    "manualAddressPlaceholder": "Ingresa dirección",
     "title": "Realizar pedido",
     "orderItems": "Pedido de {count} producto(s)",
     "signatureOrder": "ORDER YOUR SIGNATURE SCENT",
@@ -629,6 +643,28 @@
     "goHome": "Volver al inicio"
   },
   "mypage": {
+    "notificationsTitle": "Notificaciones",
+    "notificationsEmpty": "No hay notificaciones",
+    "notificationsClear": "Borrar todo",
+    "notificationsClearConfirm": "¿Eliminar todas las notificaciones?",
+    "defaultAddressTitle": "Dirección predeterminada",
+    "defaultAddressEmpty": "No hay dirección predeterminada guardada",
+    "defaultAddressAdd": "Agregar dirección",
+    "defaultAddressDelete": "Eliminar",
+    "defaultAddressDeleteConfirm": "¿Eliminar la dirección predeterminada?",
+    "defaultAddressRequired": "Ingresa destinatario, teléfono, código postal y dirección.",
+    "editButton": "Editar",
+    "profileEditTitle": "Editar perfil",
+    "profileNameLabel": "Nombre (apodo)",
+    "profileNamePlaceholder": "Ingresa tu nombre",
+    "profileEmailLabel": "Correo",
+    "profileEmailReadonly": "El correo no se puede cambiar",
+    "profileSave": "Guardar",
+    "profileCancel": "Cancelar",
+    "profileNameRequired": "Ingresa tu nombre",
+    "profileSaveFailed": "No se pudo guardar",
+    "ordersLoadFailed": "No se pudo cargar el historial de pedidos",
+    "retry": "Reintentar",
     "analysis": "Análisis",
     "cart": {
       "tab": "Carrito",
@@ -1001,6 +1037,8 @@
     "discountPercent": "{percent}% de descuento"
   },
   "faq": {
+    "searchPlaceholder": "Busca tu pregunta",
+    "noResults": "No se encontraron resultados. Prueba otra palabra.",
     "badge": "Preguntas frecuentes",
     "title": "FAQ",
     "subtitle": "¿Tienes alguna pregunta? Encuentra las respuestas a continuación.",

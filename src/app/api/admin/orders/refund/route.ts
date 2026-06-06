@@ -7,6 +7,7 @@ import {
   getPortOnePayment,
 } from '@/lib/portone/verify'
 import { notifyCustomerRefundCompleted } from '@/lib/email/customer-notify'
+import { addUserNotification } from '@/lib/user/notifications.server'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
@@ -385,6 +386,14 @@ export async function POST(request: NextRequest) {
         paymentMethod: order.payment_method || 'card',
         reason,
         refundedAt: cancelledAtISO,
+      })
+
+      // 인앱 알림함에도 적재
+      await addUserNotification(order.user_id, {
+        type: 'refund',
+        title: '💸 환불이 완료되었어요',
+        body: `주문 ${order.order_number}의 환불(${refundAmount.toLocaleString()}원)이 완료되었습니다.`,
+        link: '/mypage?tab=orders',
       })
     } catch (notifyErr) {
       console.warn('[Admin Refund] customer notify skipped:', notifyErr)

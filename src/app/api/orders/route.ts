@@ -6,6 +6,13 @@ import type { ProductType } from '@/types/cart'
 import { FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
 import { validateServerPrice } from '@/lib/products/pricing'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
+import {
+  STORE_PRODUCT_DB_COMPAT_TYPE,
+  STORE_PRODUCT_TYPE,
+  getEffectiveProductType,
+  isStoreProductConstraintError,
+  withStoreProductCompatAnalysisData,
+} from '@/lib/products/store-products'
 
 function calculateServerShippingFee(subtotal: number, productType?: string): number {
   if (productType === 'payment_test') return 0
@@ -67,6 +74,15 @@ interface OrderItem {
   quantity: number
   imageUrl?: string
   analysisData?: object
+}
+
+function toStoreProductCompatPayload<T extends { product_type?: ProductType | string | null; analysis_data?: unknown }>(payload: T): T {
+  if (payload.product_type !== STORE_PRODUCT_TYPE) return payload
+  return {
+    ...payload,
+    product_type: STORE_PRODUCT_DB_COMPAT_TYPE,
+    analysis_data: withStoreProductCompatAnalysisData(payload.analysis_data),
+  } as T
 }
 
 // 주문 번호 생성 함수
@@ -180,7 +196,10 @@ export async function POST(request: NextRequest) {
 
     // ===== 다중 상품 주문 =====
     if (isMultiItemMode) {
-      const orderItems: OrderItem[] = items
+      const orderItems: OrderItem[] = items.map((item: OrderItem) => ({
+        ...item,
+        productType: getEffectiveProductType(item.productType, item.analysisData),
+      }))
 
       // 서버사이드 가격 검증: 각 상품의 단가를 DB 가격표와 대조
       for (const item of orderItems) {
@@ -263,49 +282,65 @@ export async function POST(request: NextRequest) {
       // 첫 상품 기준 ID 컬럼 분기 (chemistry_set은 layering_session_id 사용)
       const firstIsChem = firstItem.productType === 'chemistry_set'
 
+      const orderPayload = {
+        order_number: orderNumber,
+        user_id: userId,
+        analysis_id: firstIsChem ? null : (firstItem.analysisId || null),
+        layering_session_id: firstIsChem ? (firstItem.layeringSessionId || null) : null,
+        // 첫 번째 상품 정보 (기존 필드 호환)
+        perfume_name: orderItems.length > 1
+          ? `${firstItem.perfumeName} 외 ${orderItems.length - 1}건`
+          : firstItem.perfumeName,
+        perfume_brand: firstItem.perfumeBrand || '',
+        size: orderItems.length > 1 ? 'mixed' : firstItem.size,
+        price: calculatedSubtotal,
+        product_type: firstItem.productType || 'image_analysis',  // 첫 번째 상품의 타입
+        // 다중 상품 정보
+        item_count: itemCount,
+        subtotal: calculatedSubtotal,
+        // 배송/결제 정보
+        shipping_fee: shippingFee || 0,
+        user_coupon_id: userCouponId || null,
+        discount_amount: validatedMultiDiscount || 0,
+        original_price: originalPrice || (calculatedSubtotal + (shippingFee || 0)),
+        final_price: finalPrice || totalPrice || calculatedSubtotal,
+        // 배송 정보
+        recipient_name: recipientName,
+        phone,
+        zip_code: zipCode,
+        address,
+        address_detail: addressDetail || '',
+        memo: memo || '',
+        // 첫 번째 상품 이미지 (기존 필드 호환)
+        user_image_url: firstItem.imageUrl || null,
+        keywords: [],
+        analysis_data: firstItem.analysisData || null,
+        payment_method: paymentMethod || 'card',
+        status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+        created_at: now,
+        updated_at: now,
+      }
+
       // 4a. 주문 생성 (orders 테이블)
-      const { data: order, error: orderError } = await serviceClient
+      let { data: order, error: orderError } = await serviceClient
         .from('orders')
-        .insert({
-          order_number: orderNumber,
-          user_id: userId,
-          analysis_id: firstIsChem ? null : (firstItem.analysisId || null),
-          layering_session_id: firstIsChem ? (firstItem.layeringSessionId || null) : null,
-          // 첫 번째 상품 정보 (기존 필드 호환)
-          perfume_name: orderItems.length > 1
-            ? `${firstItem.perfumeName} 외 ${orderItems.length - 1}건`
-            : firstItem.perfumeName,
-          perfume_brand: firstItem.perfumeBrand || '',
-          size: orderItems.length > 1 ? 'mixed' : firstItem.size,
-          price: calculatedSubtotal,
-          product_type: firstItem.productType || 'image_analysis',  // 첫 번째 상품의 타입
-          // 다중 상품 정보
-          item_count: itemCount,
-          subtotal: calculatedSubtotal,
-          // 배송/결제 정보
-          shipping_fee: shippingFee || 0,
-          user_coupon_id: userCouponId || null,
-          discount_amount: validatedMultiDiscount || 0,
-          original_price: originalPrice || (calculatedSubtotal + (shippingFee || 0)),
-          final_price: finalPrice || totalPrice || calculatedSubtotal,
-          // 배송 정보
-          recipient_name: recipientName,
-          phone,
-          zip_code: zipCode,
-          address,
-          address_detail: addressDetail || '',
-          memo: memo || '',
-          // 첫 번째 상품 이미지 (기존 필드 호환)
-          user_image_url: firstItem.imageUrl || null,
-          keywords: [],
-          analysis_data: null,
-          payment_method: paymentMethod || 'card',
-          status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
-          created_at: now,
-          updated_at: now,
-        })
+        .insert(orderPayload)
         .select()
         .single()
+
+      if (
+        orderError &&
+        firstItem.productType === STORE_PRODUCT_TYPE &&
+        isStoreProductConstraintError(orderError)
+      ) {
+        const retry = await serviceClient
+          .from('orders')
+          .insert(toStoreProductCompatPayload(orderPayload))
+          .select()
+          .single()
+        order = retry.data
+        orderError = retry.error
+      }
 
       if (orderError) {
         console.error('Order creation failed:', orderError)
@@ -319,26 +354,37 @@ export async function POST(request: NextRequest) {
       const orderItemsData = orderItems.map(item => {
         const isChem = item.productType === 'chemistry_set'
         return {
-        order_id: order.id,
-        analysis_id: isChem ? null : (item.analysisId || null),
-        layering_session_id: isChem ? (item.layeringSessionId || null) : null,
-        product_type: item.productType,
-        perfume_name: item.perfumeName,
-        perfume_brand: item.perfumeBrand || '',
-        twitter_name: item.twitterName || item.perfumeBrand || '',
-        size: item.size,
-        unit_price: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.unitPrice * item.quantity,
-        image_url: item.imageUrl || null,
-        analysis_data: item.analysisData || null,
-        created_at: now,
+          order_id: order.id,
+          analysis_id: isChem ? null : (item.analysisId || null),
+          layering_session_id: isChem ? (item.layeringSessionId || null) : null,
+          product_type: item.productType,
+          perfume_name: item.perfumeName,
+          perfume_brand: item.perfumeBrand || '',
+          twitter_name: item.twitterName || item.perfumeBrand || '',
+          size: item.size,
+          unit_price: item.unitPrice,
+          quantity: item.quantity,
+          subtotal: item.unitPrice * item.quantity,
+          image_url: item.imageUrl || null,
+          analysis_data: item.analysisData || null,
+          created_at: now,
         }
       })
 
-      const { error: itemsError } = await serviceClient
+      let { error: itemsError } = await serviceClient
         .from('order_items')
         .insert(orderItemsData)
+
+      if (
+        itemsError &&
+        orderItemsData.some((item) => item.product_type === STORE_PRODUCT_TYPE) &&
+        isStoreProductConstraintError(itemsError)
+      ) {
+        const retry = await serviceClient
+          .from('order_items')
+          .insert(orderItemsData.map(toStoreProductCompatPayload))
+        itemsError = retry.error
+      }
 
       if (itemsError) {
         console.error('Order items creation failed:', itemsError)
@@ -393,7 +439,7 @@ export async function POST(request: NextRequest) {
     // ===== 단일 상품 주문 (기존 호환) =====
 
     // 서버사이드 가격 검증 (DB 기반)
-    const resolvedProductType: ProductType = productType || 'image_analysis'
+    const resolvedProductType: ProductType = getEffectiveProductType(productType || 'image_analysis', analysisData)
     const priceCheck = await validateServerPrice(resolvedProductType, size, price)
     if (!priceCheck.valid) {
       console.error('[Orders API] Price mismatch - client:', price, 'expected:', priceCheck.expectedPrice, 'productType:', resolvedProductType, 'size:', size, 'reason:', priceCheck.reason)
@@ -463,44 +509,60 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isChemSingle = (productType || 'image_analysis') === 'chemistry_set'
+    const isChemSingle = resolvedProductType === 'chemistry_set'
 
-    const { data: order, error: insertError } = await serviceClient
+    const singleOrderPayload = {
+      order_number: orderNumber,
+      user_id: userId,
+      analysis_id: isChemSingle ? null : (analysisId || null),
+      layering_session_id: isChemSingle ? (layeringSessionId || null) : null,
+      perfume_name: perfumeName,
+      perfume_brand: perfumeBrand,
+      size,
+      price: singleSubtotal, // 단가×수량 총액
+      shipping_fee: shippingFee || 0,
+      user_coupon_id: userCouponId || null,
+      discount_amount: validatedSingleDiscount || 0,
+      original_price: singleSubtotal + (expectedShippingFee || 0),
+      final_price: clientFinalPrice,
+      subtotal: singleSubtotal,
+      recipient_name: recipientName,
+      phone,
+      zip_code: zipCode,
+      address,
+      address_detail: addressDetail || '',
+      memo: memo || '',
+      user_image_url: userImage,
+      keywords: keywords || [],
+      analysis_data: analysisData || null,
+      confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
+      product_type: resolvedProductType,  // 상품 타입
+      payment_method: paymentMethod || 'card',
+      status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+      item_count: singleItemCount,
+      created_at: now,
+      updated_at: now,
+    }
+
+    let { data: order, error: insertError } = await serviceClient
       .from('orders')
-      .insert({
-        order_number: orderNumber,
-        user_id: userId,
-        analysis_id: isChemSingle ? null : (analysisId || null),
-        layering_session_id: isChemSingle ? (layeringSessionId || null) : null,
-        perfume_name: perfumeName,
-        perfume_brand: perfumeBrand,
-        size,
-        price: singleSubtotal, // 단가×수량 총액
-        shipping_fee: shippingFee || 0,
-        user_coupon_id: userCouponId || null,
-        discount_amount: validatedSingleDiscount || 0,
-        original_price: singleSubtotal + (expectedShippingFee || 0),
-        final_price: clientFinalPrice,
-        subtotal: singleSubtotal,
-        recipient_name: recipientName,
-        phone,
-        zip_code: zipCode,
-        address,
-        address_detail: addressDetail || '',
-        memo: memo || '',
-        user_image_url: userImage,
-        keywords: keywords || [],
-        analysis_data: analysisData || null,
-        confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
-        product_type: productType || 'image_analysis',  // 상품 타입
-        payment_method: paymentMethod || 'card',
-        status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
-        item_count: singleItemCount,
-        created_at: now,
-        updated_at: now,
-      })
+      .insert(singleOrderPayload)
       .select()
       .single()
+
+    if (
+      insertError &&
+      resolvedProductType === STORE_PRODUCT_TYPE &&
+      isStoreProductConstraintError(insertError)
+    ) {
+      const retry = await serviceClient
+        .from('orders')
+        .insert(toStoreProductCompatPayload(singleOrderPayload))
+        .select()
+        .single()
+      order = retry.data
+      insertError = retry.error
+    }
 
     if (insertError) {
       console.error('Order creation failed:', insertError)
@@ -535,7 +597,7 @@ export async function POST(request: NextRequest) {
         recipientName,
         perfumeName: perfumeName || '',
         finalPrice: finalPrice || totalPrice || price,
-        productType: productType || 'image_analysis',
+        productType: resolvedProductType,
       })
     }
 

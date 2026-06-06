@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { CartItem, ProductType } from "@/types/cart"
 import { PRODUCT_TYPE_BADGES, formatPrice } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { getEffectiveProductType } from "@/lib/products/store-products"
 
 interface MultiItemOrderSummaryProps {
   items: CartItem[]
@@ -15,6 +16,17 @@ interface MultiItemOrderSummaryProps {
   isFreeShippingPromo?: boolean
   promoName?: string
   isRepurchaser?: boolean
+}
+
+function getStoreProductMeta(analysisData: CartItem['analysis_data']) {
+  if (!analysisData || typeof analysisData !== 'object' || !('storeProduct' in analysisData)) return null
+  const storeProduct = (analysisData as { storeProduct?: unknown }).storeProduct
+  if (!storeProduct || typeof storeProduct !== 'object') return null
+  return storeProduct as {
+    title?: string
+    scentName?: string
+    perfumeId?: string
+  }
 }
 
 export function MultiItemOrderSummary({
@@ -84,7 +96,13 @@ export function MultiItemOrderSummary({
 
       {/* 상품 목록 */}
       <div className="space-y-4">
-        {items.map((item, index) => (
+        {items.map((item, index) => {
+          const effectiveProductType = getEffectiveProductType(item.product_type, item.analysis_data)
+          const storeMeta = effectiveProductType === 'store_product'
+            ? getStoreProductMeta(item.analysis_data)
+            : null
+
+          return (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, x: -10 }}
@@ -112,9 +130,17 @@ export function MultiItemOrderSummary({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    {renderProductTypeBadge(item.product_type)}
+                    {renderProductTypeBadge(effectiveProductType)}
                   </div>
-                  <p className="font-black text-sm truncate text-slate-900">{item.perfume_name}</p>
+                  <p className="font-black text-sm truncate text-slate-900">
+                    {storeMeta?.scentName || item.perfume_name}
+                  </p>
+                  {storeMeta && (
+                    <p className="text-xs font-bold text-lime-700">
+                      {storeMeta.title || (item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`)}
+                      {storeMeta.perfumeId && ` · ${storeMeta.perfumeId}`}
+                    </p>
+                  )}
                   {item.twitter_name && (
                     <p className="text-xs text-purple-600">@{item.twitter_name}</p>
                   )}
@@ -129,9 +155,11 @@ export function MultiItemOrderSummary({
 
               {/* 사이즈 선택 */}
               <div className="mt-2 flex items-center gap-2">
-                {item.product_type === 'figure_diffuser' ? (
+                {effectiveProductType === 'figure_diffuser' || effectiveProductType === 'store_product' ? (
                   <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded text-xs font-bold border border-cyan-300">
-                    {t('checkout.setProduct')}
+                    {effectiveProductType === 'figure_diffuser'
+                      ? t('checkout.setProduct')
+                      : item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`}
                   </span>
                 ) : (
                   <select
@@ -139,7 +167,7 @@ export function MultiItemOrderSummary({
                     onChange={(e) => onUpdateSize(item.id, e.target.value)}
                     className="px-2 py-1 bg-white rounded text-xs font-bold border-2 border-slate-900"
                   >
-                    {getOptions(item.product_type).map(option => (
+                    {getOptions(effectiveProductType).map(option => (
                       <option key={option.size} value={option.size}>
                         {option.label}
                       </option>
@@ -173,7 +201,8 @@ export function MultiItemOrderSummary({
               </div>
             </div>
           </motion.div>
-        ))}
+          )
+        })}
       </div>
 
       {/* 안내 */}

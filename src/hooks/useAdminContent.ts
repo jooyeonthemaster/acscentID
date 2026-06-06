@@ -230,10 +230,13 @@ export function useActiveProducts() {
 
   const activeProducts = products.filter((p) => p.is_active)
   const activeSlugs = new Set(activeProducts.map((p) => p.slug))
+  const knownSlugs = new Set(products.map((p) => p.slug))
 
   const isProductActive = (slug: string) => activeSlugs.has(slug)
+  // admin_products 행이 없으면 기본 노출(true), 있으면 is_active 따름 (오늘의 향 등 기본 노출 프로그램용)
+  const isProductVisible = (slug: string) => (knownSlugs.has(slug) ? activeSlugs.has(slug) : true)
 
-  return { products, activeProducts, isProductActive, loading }
+  return { products, activeProducts, isProductActive, isProductVisible, loading }
 }
 
 export function useProductDisplayName(productSlug: string, fallbackName: string) {

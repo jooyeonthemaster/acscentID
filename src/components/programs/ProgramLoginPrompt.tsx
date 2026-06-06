@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, AlertTriangle } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 
 interface ProgramLoginPromptProps {
   isOpen: boolean
@@ -16,6 +18,11 @@ export function ProgramLoginPrompt({
   onLogin,
 }: ProgramLoginPromptProps) {
   const t = useTranslations()
+
+  useEffect(() => {
+    setMobileOverlayOpen('program-login-prompt', isOpen)
+    return () => setMobileOverlayOpen('program-login-prompt', false)
+  }, [isOpen])
 
   return (
     <AnimatePresence>
