@@ -56,15 +56,17 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
   const [defaultNotice, setDefaultNotice] = useState("")
 
   // 저장된 기본 배송지 자동 불러오기 (빈 칸만 채움, 1회)
+  // 가드(prefilledRef)는 fetch 시작 전이 아니라 "성공적으로 채운 뒤"에 설정한다.
+  // (Strict Mode 이중 실행 시 첫 fetch가 취소돼도 재실행에서 다시 불러올 수 있도록)
   const prefilledRef = useRef(false)
   useEffect(() => {
     if (prefilledRef.current || !userId) return
-    prefilledRef.current = true
-    let cancelled = false
+    let active = true
     fetch("/api/user/address")
       .then((r) => (r.ok ? r.json() : { address: null }))
       .then(({ address }) => {
-        if (cancelled || !address) return
+        if (!active || !address || prefilledRef.current) return
+        prefilledRef.current = true
         const [p1, p2, p3] = splitPhone(address.phone)
         setFormData((prev) => {
           const hasPhone = !!(prev.phone2 || prev.phone3)
@@ -82,7 +84,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
       })
       .catch(() => {})
     return () => {
-      cancelled = true
+      active = false
     }
   }, [userId, setFormData])
 

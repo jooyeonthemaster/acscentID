@@ -14,7 +14,7 @@ export const metadata: Metadata = createMetadata({
     type: 'website',
     images: [
       {
-        url: '/images/jollduck/KakaoTalk_20260130_201156204.jpg',
+        url: '/images/product-placeholder.svg',
         width: 800,
         height: 800,
         alt: '졸업 기념 퍼퓸 - AC\'SCENT IDENTITY',
@@ -35,7 +35,7 @@ export default async function GraduationLayout({ children }: { children: React.R
     description: '졸업의 추억을 향기로 남기세요. 뿌덕퍼퓸 + 학사모 퍼퓸 키링 + 졸업장st 분석보고서 포함.',
     price: opt?.price ?? 34000,
     originalPrice: opt?.original_price ?? 49000,
-    image: '/images/jollduck/KakaoTalk_20260130_201156204.jpg',
+    image: '/images/product-placeholder.svg',
     path: '/programs/graduation',
     availability: opt?.is_active === false ? 'SoldOut' : 'LimitedAvailability',
     validThrough: '2026-02-28',

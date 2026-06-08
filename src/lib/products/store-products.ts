@@ -1,9 +1,10 @@
 import { SCENT_PAPER_SIZE, type ProductType } from '@/types/cart'
 import type { TodayScent } from '@/lib/today-scent/scents'
+import { PRODUCT_IMAGE_PLACEHOLDER } from './images'
 
 export const STORE_PRODUCT_TYPE: ProductType = 'store_product'
 export const STORE_PRODUCT_DB_COMPAT_TYPE: ProductType = 'today_scent'
-export const STORE_PRODUCT_IMAGE = '/images/perfume/KakaoTalk_20260125_225218071.jpg'
+export const STORE_PRODUCT_IMAGE = PRODUCT_IMAGE_PLACEHOLDER
 
 export interface StoreProduct {
   slug: string
@@ -149,7 +150,8 @@ export function buildStoreCheckoutUrl(product: StoreProduct, scent: TodayScent):
   return `/checkout?product=store&type=${STORE_PRODUCT_TYPE}&item=${product.slug}&scent=${scent.id}&size=${product.size}`
 }
 
-export function buildStoreAnalysisData(product: StoreProduct, scent: TodayScent) {
+export function buildStoreAnalysisData(product: StoreProduct, scent: TodayScent, requestNote?: string) {
+  const note = requestNote?.trim()
   return {
     matchingPerfumes: [{
       perfumeId: scent.id,
@@ -167,6 +169,8 @@ export function buildStoreAnalysisData(product: StoreProduct, scent: TodayScent)
       scentName: scent.name,
       perfumeId: scent.perfumeId,
       notes: scent.notes,
+      // 사용자가 향 선택 단계에서 남긴 선택사항 "특정 향료 요청" 메모 (있을 때만 저장)
+      ...(note ? { requestNote: note } : {}),
     },
   }
 }

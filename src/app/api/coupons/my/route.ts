@@ -42,6 +42,8 @@ export async function GET() {
           code,
           type,
           discount_percent,
+          discount_type,
+          discount_amount,
           title,
           description,
           valid_until

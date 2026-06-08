@@ -10,6 +10,8 @@ const DEFAULT_COUPONS: AvailableCoupon[] = [
     id: 'welcome',
     type: 'welcome',
     discount_percent: 15,
+    discount_type: 'percent',
+    discount_amount: 0,
     title: '웰컴 쿠폰',
     description: '처음 방문해주셔서 감사합니다',
     isClaimed: false,
@@ -18,6 +20,8 @@ const DEFAULT_COUPONS: AvailableCoupon[] = [
     id: 'birthday',
     type: 'birthday',
     discount_percent: 20,
+    discount_type: 'percent',
+    discount_amount: 0,
     title: '생일 축하',
     description: '생일 달 고객님께 드리는 특별 할인',
     isClaimed: false,
@@ -26,6 +30,8 @@ const DEFAULT_COUPONS: AvailableCoupon[] = [
     id: 'referral',
     type: 'referral',
     discount_percent: 10,
+    discount_type: 'percent',
+    discount_amount: 0,
     title: '친구 추천',
     description: '친구를 추천해주셔서 감사합니다',
     isClaimed: false,
@@ -34,6 +40,8 @@ const DEFAULT_COUPONS: AvailableCoupon[] = [
     id: 'repurchase',
     type: 'repurchase',
     discount_percent: 10,
+    discount_type: 'percent',
+    discount_amount: 0,
     title: '재구매 감사',
     description: '다시 찾아주셔서 감사합니다',
     isClaimed: false,
@@ -67,11 +75,26 @@ export async function GET(request: NextRequest) {
       .from('coupons')
       .select('*')
       .eq('is_active', true)
+      .neq('type', 'offline')
+      .not('code', 'like', 'OFF%')
       .or('valid_until.is.null,valid_until.gt.now()')
 
     // DB 테이블이 없거나 에러 시 기본 쿠폰 반환
     if (couponsError || !coupons || coupons.length === 0) {
       console.log('Using default coupons (DB not available or empty)')
+      return NextResponse.json({ coupons: DEFAULT_COUPONS, isLoggedIn: !!userId })
+    }
+
+    const publicCoupons = coupons.filter((coupon) => {
+      const code = String(coupon.code || '')
+      const isLegacyOfflineCoupon =
+        code.startsWith('OFF') ||
+        (coupon.type === 'welcome' && /^[A-Z0-9]{8}$/.test(code) && coupon.title !== '웰컴 쿠폰')
+
+      return !isLegacyOfflineCoupon
+    })
+
+    if (publicCoupons.length === 0) {
       return NextResponse.json({ coupons: DEFAULT_COUPONS, isLoggedIn: !!userId })
     }
 
@@ -89,10 +112,12 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. 쿠폰 목록에 claimed 상태 추가
-    const availableCoupons: AvailableCoupon[] = coupons.map((coupon) => ({
+    const availableCoupons: AvailableCoupon[] = publicCoupons.map((coupon) => ({
       id: coupon.id,
       type: coupon.type,
       discount_percent: coupon.discount_percent,
+      discount_type: coupon.discount_type || 'percent',
+      discount_amount: coupon.discount_amount || 0,
       title: coupon.title,
       description: coupon.description,
       isClaimed: claimedCouponIds.includes(coupon.id),

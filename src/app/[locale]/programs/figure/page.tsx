@@ -2,10 +2,9 @@
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
 import {
-  Sparkles, Star, X, AlertTriangle,
-  Truck, ChevronRight, ShoppingCart,
+  Sparkles, X, AlertTriangle,
+  Truck, ShoppingCart,
   Box, Droplets, Gem, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -21,6 +20,7 @@ import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
@@ -77,11 +77,8 @@ export default function FigurePage() {
     loadReviewStats()
   }, [])
 
-  const { imageUrls: dynamicImages } = useProductImages('figure')
-  const productImages = dynamicImages.length > 0 ? dynamicImages : [
-    "/images/diffuser/KakaoTalk_20260125_225229624.jpg",
-    "/images/diffuser/KakaoTalk_20260125_225229624_01.jpg",
-  ]
+  const { imageUrls: dynamicImages, loading: imagesLoading } = useProductImages('figure')
+  const productImages = imagesLoading ? [] : dynamicImages
   const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('figure')
@@ -138,165 +135,57 @@ export default function FigurePage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-28 pb-10 px-4">
-        <div className="w-full">
-          {/* 이미지 갤러리 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5"
-          >
-            {/* 메인 이미지 */}
-            <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
-              <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span
-                  className="px-2 py-0.5 bg-cyan-400 text-black text-[10px] font-black rounded-full border-2 border-black"
-                  data-admin-page-position-field="badge"
-                  style={pagePositionStyle('badge')}
-                >
-                  <span data-admin-page-field="badge">{pageContent.badge}</span>
-                </span>
-                <span className="px-2 py-0.5 bg-purple-400 text-white text-[10px] font-black rounded-full border-2 border-black">
-                  DIY KIT
-                </span>
-              </div>
-              <div
-                className="aspect-square flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50"
-                data-admin-product-image="true"
-                data-admin-page-position-field="productImage"
-                style={pagePositionStyle('productImage')}
-              >
-                <motion.img
-                  key={currentImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  src={currentImage}
-                  alt={t('programs.productImage')}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* 썸네일 */}
-            <div className="flex gap-2 justify-center">
-              {productImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${selectedImage === idx
-                    ? 'border-black shadow-[2px_2px_0_0_black] scale-105'
-                    : 'border-slate-300 hover:border-slate-500'
-                    }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* 제품 정보 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {/* 브레드크럼 */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbHome')}</Link>
-              <ChevronRight size={12} />
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
-              <ChevronRight size={12} />
-              <span className="text-black font-bold">{productName}</span>
-            </div>
-
-            {/* 타이틀 */}
-            <div className="mb-4">
-              <div className="mb-2">
-                <ReviewTrigger
-                  averageRating={reviewStats?.average_rating || 4.8}
-                  totalCount={reviewStats?.total_count || 0}
-                  onClick={() => setShowReviewModal(true)}
-                />
-              </div>
-              <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500">
-                  <span
-                    className="inline-block"
-                    data-admin-editable="product_name"
-                    data-admin-page-position-field="productName"
-                    style={pagePositionStyle('productName')}
-                  >
-                    {productName}
-                  </span>
-                </span>
-              </h1>
-              <p className="text-sm text-slate-600 font-medium">
-                <span
-                  className="inline-block"
-                  data-admin-page-field="subtitle"
-                  data-admin-page-position-field="subtitle"
-                  style={pagePositionStyle('subtitle')}
-                >
-                  {pageContent.subtitle}
-                </span>
-              </p>
-            </div>
-
-            {/* 가격 + 구성품 안내 */}
-            <div
-              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
-              data-admin-page-position-field="infoCard"
-              style={pagePositionStyle('infoCard')}
-            >
-              {/* 가격 */}
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
-                {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
-                  <>
-                    <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
-                    {figureDiscount !== null && (
-                      <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{figureDiscount}% OFF</span>
-                    )}
-                  </>
+      <UnifiedDetailHero
+        productSlug="figure"
+        title={productName}
+        imageAlt={t('programs.productImage')}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('programs.breadcrumbHome'), href: '/' },
+          { label: t('programs.breadcrumbPrograms'), href: '/' },
+          { label: productName },
+        ]}
+        images={{
+          urls: productImages,
+          loading: imagesLoading,
+          selectedIndex: selectedImage,
+          onSelect: setSelectedImage,
+        }}
+        secondaryBadges={
+          <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-black bg-[#FCD34D] px-5 text-sm font-black text-black shadow-[2px_2px_0_0_black]">
+            DIY KIT
+          </span>
+        }
+        meta={
+          <ReviewTrigger
+            averageRating={reviewStats?.average_rating || 4.8}
+            totalCount={reviewStats?.total_count || 0}
+            onClick={() => setShowReviewModal(true)}
+          />
+        }
+        price={
+          <div className="flex items-end gap-2">
+            <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
+            {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
+              <>
+                <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
+                {figureDiscount !== null && (
+                  <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{figureDiscount}% OFF</span>
                 )}
-              </div>
-
-              {/* 구성품 안내 */}
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={14} className="fill-cyan-400 text-cyan-400" />
-                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
-                    {pageContent.infoTitle}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
-                  {pageContent.infoBody}
-                </p>
-                <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
-                  <li className="list-disc">{t('programs.figure.sachetsIncluded')}</li>
-                  <li className="list-disc">{t('shipping.afterProduction')}</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA 버튼 */}
-            <button
-              onClick={handleStartClick}
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              data-admin-page-position-field="ctaButton"
-              style={pagePositionStyle('ctaButton')}
-            >
-              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-            </button>
-
-            <p className="text-center text-xs text-slate-500 mt-2">
-              {t('programs.figure.hint')}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+              </>
+            )}
+          </div>
+        }
+        infoIcon={<Sparkles size={14} className="text-slate-900" />}
+        infoItems={[t('programs.figure.sachetsIncluded'), t('shipping.afterProduction')]}
+        cta={{
+          onClick: handleStartClick,
+          disabled: loading,
+          label: pageContent.ctaLabel,
+          hint: t('programs.figure.hint'),
+        }}
+      />
 
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
@@ -450,7 +339,11 @@ export default function FigurePage() {
             <div className="flex flex-col items-center mb-5">
               <div className="relative">
                 <div className="w-40 h-40 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0_0_black] flex items-center justify-center overflow-hidden">
-                  <img src="/images/diffuser/KakaoTalk_20260125_225229624.jpg" alt={t('programs.productImage')} className="w-[80%] h-[80%] object-contain" />
+                  {currentImage ? (
+                    <img src={currentImage} alt={t('programs.productImage')} className="w-[80%] h-[80%] object-contain" />
+                  ) : (
+                    <div className="h-full w-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" />
+                  )}
                 </div>
                 <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-cyan-400 text-black font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] text-[10px]">
                   {t('programs.figure.badge3d')}
@@ -599,7 +492,7 @@ export default function FigurePage() {
               <div className="p-6">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#22d3ee] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#22d3ee] transition-all border-2 border-black"
+                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#cbd5e1] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#cbd5e1] transition-all border-2 border-black"
                 >
                   {t('buttons.loginSignup')}
                 </button>

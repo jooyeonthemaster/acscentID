@@ -2,9 +2,8 @@
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
 import {
-  Star, Gift, Zap, ChevronRight,
+  Star, Gift, Zap,
   FileText, Camera, Sparkles, Palette, FileCheck,
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -17,9 +16,9 @@ import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
-import { ProgramImageGallery } from "@/components/programs/ProgramImageGallery"
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
@@ -113,123 +112,48 @@ export default function IdolImagePage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-28 pb-10 px-4">
-        <div className="w-full">
-          {/* 이미지 갤러리 (공유 컴포넌트) */}
-          <ProgramImageGallery
-            productSlug="idol-image"
-            fallbackImages={[
-              "/images/perfume/KakaoTalk_20260125_225218071.jpg",
-              "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
-            ]}
-            badge={pageContent.badge}
-            pagePositionStyle={pagePositionStyle}
+      <UnifiedDetailHero
+        productSlug="idol-image"
+        title={productName}
+        imageAlt={t('programs.productImage')}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('programs.breadcrumbHome'), href: '/' },
+          { label: t('programs.breadcrumbPrograms'), href: '/' },
+          { label: productName },
+        ]}
+        meta={
+          <ReviewTrigger
+            averageRating={reviewStats?.average_rating || 4.9}
+            totalCount={reviewStats?.total_count || 0}
+            onClick={() => {
+              document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })
+            }}
           />
-
-          {/* 제품 정보 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {/* 브레드크럼 */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbHome')}</Link>
-              <ChevronRight size={12} />
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
-              <ChevronRight size={12} />
-              <span className="text-black font-bold">{productName}</span>
-            </div>
-
-            {/* 타이틀 */}
-            <div className="mb-4">
-              <div className="mb-2">
-                <ReviewTrigger
-                  averageRating={reviewStats?.average_rating || 4.9}
-                  totalCount={reviewStats?.total_count || 0}
-                  onClick={() => {
-                    document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                />
-              </div>
-              <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500">
-                  <span
-                    className="inline-block"
-                    data-admin-editable="product_name"
-                    data-admin-page-position-field="productName"
-                    style={pagePositionStyle('productName')}
-                  >
-                    {productName}
-                  </span>
-                </span>
-              </h1>
-              <p className="text-sm text-slate-600 font-medium">
-                <span
-                  className="inline-block"
-                  data-admin-page-field="subtitle"
-                  data-admin-page-position-field="subtitle"
-                  style={pagePositionStyle('subtitle')}
-                >
-                  {pageContent.subtitle}
-                </span>
-              </p>
-            </div>
-
-            {/* 가격 + 구성품 안내 */}
-            <div
-              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
-              data-admin-page-position-field="infoCard"
-              style={pagePositionStyle('infoCard')}
-            >
-              {/* 가격 */}
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(idolOpt?.price ?? 24000)}~</span>
-                {idolOpt?.original_price && idolOpt.original_price > idolOpt.price && (
-                  <>
-                    <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(idolOpt.original_price)}</span>
-                    {idolDiscount !== null && (
-                      <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{idolDiscount}% OFF</span>
-                    )}
-                  </>
+        }
+        price={
+          <div className="flex items-end gap-2">
+            <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(idolOpt?.price ?? 24000)}~</span>
+            {idolOpt?.original_price && idolOpt.original_price > idolOpt.price && (
+              <>
+                <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(idolOpt.original_price)}</span>
+                {idolDiscount !== null && (
+                  <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{idolDiscount}% OFF</span>
                 )}
-              </div>
-
-              {/* 구성품 안내 */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
-                    {pageContent.infoTitle}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
-                  {pageContent.infoBody}
-                </p>
-                <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
-                  <li className="list-disc">{t('programs.sizeSelectable')}</li>
-                  <li className="list-disc">{t('shipping.estimated')}</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA 버튼 */}
-            <button
-              onClick={handleStartClick}
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              data-admin-page-position-field="ctaButton"
-              style={pagePositionStyle('ctaButton')}
-            >
-              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-            </button>
-
-            <p className="text-center text-xs text-slate-500 mt-2">
-              {t('programs.hint')}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+              </>
+            )}
+          </div>
+        }
+        infoIcon={<Star size={14} className="fill-slate-900 text-slate-900" />}
+        infoItems={[t('programs.sizeSelectable'), t('shipping.estimated')]}
+        cta={{
+          onClick: handleStartClick,
+          disabled: loading,
+          label: pageContent.ctaLabel,
+          hint: t('programs.hint'),
+        }}
+      />
 
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
@@ -327,12 +251,16 @@ export default function IdolImagePage() {
                 <div className="w-full">
                   <AnalysisPreviewPlayer
                     colors={['#C084FC', '#F9A8D4', '#1E293B']}
-                    keywords={['시크', '달콤', '카리스마']}
+                    keywords={[
+                      t('programs.detail.idolImage.previewKeyword1'),
+                      t('programs.detail.idolImage.previewKeyword2'),
+                      t('programs.detail.idolImage.previewKeyword3'),
+                    ]}
                     moodScore={87}
-                    perfumeName={"AC'SCENT 27\n스모키 블랜드 우드"}
-                    topNotes="베르가못, 블랙커런트"
-                    middleNotes="다마스크 로즈, 피오니"
-                    baseNotes="머스크, 샌달우드"
+                    perfumeName={`AC'SCENT 27\n${t('programs.detail.idolImage.previewPerfumeName')}`}
+                    topNotes={t('programs.detail.idolImage.previewTopNotes')}
+                    middleNotes={t('programs.detail.idolImage.previewMiddleNotes')}
+                    baseNotes={t('programs.detail.idolImage.previewBaseNotes')}
                   />
                   <p className="text-center text-xs text-slate-500 mt-3">
                     {t('programs.previewCaption')}

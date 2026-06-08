@@ -27,7 +27,124 @@ interface AdminProduct {
   name: string
   is_active: boolean
   display_order: number
+  badge_text: string | null
+  badge_color: string | null
   updated_at: string | null
+}
+
+// 메인 페이지 프로그램 카드 뱃지 색상 팔레트 (홈 카드 기본값과 동일 계열)
+const BADGE_COLORS: { name: string; value: string }[] = [
+  { name: '핑크', value: '#FF6B9D' },
+  { name: '로즈', value: '#F472B6' },
+  { name: '퍼플', value: '#A78BFA' },
+  { name: '레드', value: '#EF4444' },
+  { name: '앰버', value: '#F59E0B' },
+  { name: '에메랄드', value: '#10B981' },
+  { name: '블루', value: '#3B82F6' },
+  { name: '블랙', value: '#111827' },
+]
+const DEFAULT_BADGE_COLOR = BADGE_COLORS[0].value
+
+// 프로그램별 메인 카드 뱃지 편집기. registry 행이 있는 프로그램에만 노출된다.
+function BadgeEditor({
+  initialText,
+  initialColor,
+  busy,
+  onSave,
+}: {
+  initialText: string
+  initialColor: string
+  busy: boolean
+  onSave: (text: string, color: string) => void
+}) {
+  const [text, setText] = useState(initialText)
+  const [color, setColor] = useState(initialColor || DEFAULT_BADGE_COLOR)
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        <span className="flex items-center gap-1.5">
+          <Tag className="h-3.5 w-3.5 text-slate-400" />
+          메인 카드 뱃지
+        </span>
+        {open ? (
+          <ChevronUp className="h-4 w-4 text-slate-400" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-slate-400" />
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-3">
+      <p className="text-[11px] leading-relaxed text-slate-400">
+        비워두면 자동(할인 시 “N% OFF”) 또는 기본 뱃지가 표시됩니다.
+      </p>
+
+      <div className="mt-3 flex items-center gap-3">
+        <span
+          className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-black text-white"
+          style={{ backgroundColor: color }}
+        >
+          {text.trim() || '미리보기'}
+        </span>
+        <input
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          maxLength={24}
+          placeholder="예: SEASON 3"
+          className="min-w-0 flex-1 rounded-lg border-2 border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
+        />
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {BADGE_COLORS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setColor(option.value)}
+            aria-label={option.name}
+            title={option.name}
+            className={`h-6 w-6 rounded-full border-2 transition ${
+              color.toUpperCase() === option.value.toUpperCase() ? 'border-slate-900 ring-2 ring-slate-300' : 'border-white shadow'
+            }`}
+            style={{ backgroundColor: option.value }}
+          />
+        ))}
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={() => onSave(text, color)}
+          disabled={busy}
+          className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+          뱃지 저장
+        </button>
+        {(text.trim() || initialText) && (
+          <button
+            type="button"
+            onClick={() => {
+              setText('')
+              onSave('', color)
+            }}
+            disabled={busy}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          >
+            기본값으로
+          </button>
+        )}
+      </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const KIND_BADGE: Record<AdminProgramDefinition['kind'], { label: string; className: string }> = {
@@ -136,6 +253,31 @@ export default function AdminProgramsPage() {
       await fetchProducts()
     } catch (error) {
       showToast(error instanceof Error ? error.message : '노출 설정 실패')
+    } finally {
+      setBusySlug(null)
+    }
+  }
+
+  // 메인 카드 뱃지 저장. registry 행이 있을 때만 호출된다(PATCH).
+  const handleSaveBadge = async (program: AdminProgramDefinition, text: string, color: string) => {
+    setBusySlug(program.slug)
+    try {
+      const trimmed = text.trim()
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: program.slug,
+          badge_text: trimmed || null,
+          badge_color: trimmed ? color : null,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || '뱃지 저장 실패')
+      showToast(trimmed ? '뱃지가 저장되었습니다' : '뱃지를 기본값으로 되돌렸습니다')
+      await fetchProducts()
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '뱃지 저장 실패')
     } finally {
       setBusySlug(null)
     }
@@ -326,6 +468,16 @@ export default function AdminProgramsPage() {
                       </Link>
                     )}
                   </div>
+
+                  {registry && (
+                    <BadgeEditor
+                      key={`${registry.slug}-${registry.updated_at ?? ''}`}
+                      initialText={registry.badge_text ?? ''}
+                      initialColor={registry.badge_color ?? DEFAULT_BADGE_COLOR}
+                      busy={busySlug === program.slug}
+                      onSave={(text, color) => handleSaveBadge(program, text, color)}
+                    />
+                  )}
 
                   {program.productTypes.length > 0 && (
                     <div className="mt-4 border-t border-slate-100 pt-4">

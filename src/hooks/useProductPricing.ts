@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import {
   PRODUCT_PRICING,
@@ -178,15 +178,16 @@ export function useProductPricing(): UseProductPricingResult {
     }
   }, [])
 
-  const getOptions = (productType: ProductType): PricingRow[] => {
+  // pricingMap 이 바뀔 때만 새로 생성 — 매 렌더 새 함수면 이걸 deps 로 쓰는 effect 가 무한 루프에 빠진다.
+  const getOptions = useCallback((productType: ProductType): PricingRow[] => {
     const list = pricingMap[productType] ?? []
     return list.filter((r) => r.is_active)
-  }
+  }, [pricingMap])
 
-  const getOption = (productType: ProductType, size: string): PricingRow | null => {
+  const getOption = useCallback((productType: ProductType, size: string): PricingRow | null => {
     const list = pricingMap[productType] ?? []
     return list.find((r) => r.size === size) ?? null
-  }
+  }, [pricingMap])
 
   const getPrice = (productType: ProductType, size: string): number => {
     const opt = getOption(productType, size)

@@ -13,6 +13,7 @@ import { TodayScentDraw } from "@/components/home/TodayScentDraw"
 import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/useAdminContent"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
+import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { isScentPaperSize, type ProductType } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
 
@@ -24,11 +25,12 @@ export default function Home() {
   const [isHydrated, setIsHydrated] = useState(false)
   const slideRef = useRef<HTMLDivElement>(null)
   const { banners, loading: bannersLoading } = useBanners()
-  const { isProductActive, isProductVisible } = useActiveProducts()
+  const { isProductActive, isProductVisible, getProductBadge } = useActiveProducts()
   // 오늘의 향 섹션: admin_products 행이 없으면 기본 노출, 있으면 is_active 따름
   const showTodayScent = isProductVisible('today-scent')
   const { getOptions } = useProductPricing()
   const { products: storeProducts } = useStoreProducts()
+  const storeText = useStoreProductText()
 
   // 상품관리 이미지의 첫 번째 사진이 메인 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
@@ -67,7 +69,7 @@ export default function Home() {
       id: "idol-image",
       title: t('products.idolImage'),
       subtitle: t('programs.subtitle.idolImage'),
-      image: thumbnailsLoading ? null : (thumbnails["idol-image"] || "/images/perfume/KakaoTalk_20260125_225218071.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["idol-image"] || null),
       price: idolPrice?.price ?? 24000,
       originalPrice: idolPrice?.original_price ?? null,
       priceRange: true,
@@ -80,7 +82,7 @@ export default function Home() {
       id: "figure",
       title: t('products.figureDiffuser'),
       subtitle: t('programs.subtitle.figure'),
-      image: thumbnailsLoading ? null : (thumbnails["figure"] || "/images/diffuser/KakaoTalk_20260125_225229624.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["figure"] || null),
       price: figurePrice?.price ?? 48000,
       originalPrice: figurePrice?.original_price ?? null,
       delivery: t('shipping.afterProduction'),
@@ -92,7 +94,7 @@ export default function Home() {
       id: "graduation",
       title: t('products.graduation'),
       subtitle: t('programs.subtitle.graduation'),
-      image: thumbnailsLoading ? null : (thumbnails["graduation"] || "/images/jollduck/KakaoTalk_20260130_201156204.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["graduation"] || null),
       price: graduationPrice?.price ?? 34000,
       originalPrice: graduationPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
@@ -104,7 +106,7 @@ export default function Home() {
       id: "personal",
       title: t('products.personal'),
       subtitle: t('programs.subtitle.personal'),
-      image: thumbnailsLoading ? null : (thumbnails["personal"] || "/제목 없는 디자인 (4)/1.png"),
+      image: thumbnailsLoading ? null : (thumbnails["personal"] || null),
       price: personalPrice?.price ?? 24000,
       originalPrice: personalPrice?.original_price ?? null,
       priceRange: true,
@@ -117,7 +119,7 @@ export default function Home() {
       id: "chemistry",
       title: t('products.chemistry'),
       subtitle: t('programs.subtitle.chemistry'),
-      image: thumbnailsLoading ? null : (thumbnails["chemistry"] || "/images/chemistry/chemistry-thumbnail.jpg"),
+      image: thumbnailsLoading ? null : (thumbnails["chemistry"] || null),
       price: chemistryPrice?.price ?? 38000,
       originalPrice: chemistryPrice?.original_price ?? null,
       priceRange: true,
@@ -130,7 +132,7 @@ export default function Home() {
       id: "le-quack",
       title: t('products.leQuack'),
       subtitle: t('home.signaturePerfumDesc'),
-      image: thumbnailsLoading ? null : (thumbnails["le-quack"] || "/images/perfume/LE QUACK.avif"),
+      image: thumbnailsLoading ? null : (thumbnails["le-quack"] || null),
       price: leQuackPrice?.price ?? 34000,
       originalPrice: leQuackPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
@@ -140,8 +142,17 @@ export default function Home() {
     },
   ]
 
-  // 활성화된 상품만 필터링
-  const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductActive(p.id))
+  // 활성화된 상품만 필터링 + 관리자 뱃지 오버라이드 적용
+  // badge_text 가 있으면 자동 계산("X% OFF")/기본 뱃지를 덮어쓰고, badge_color 가 있으면 인라인 색상으로 표시한다.
+  const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductActive(p.id)).map((p) => {
+    const override = getProductBadge(p.id)
+    return {
+      ...p,
+      badge: override.text || p.badge,
+      badgeColor: override.color ? '' : p.badgeColor,
+      badgeStyle: override.color ? { backgroundColor: override.color } : undefined,
+    }
+  })
   const visibleStoreProducts = storeProducts
     .filter((product) => product.isActive !== false)
     .slice()
@@ -153,6 +164,7 @@ export default function Home() {
 
   // 히어로 슬라이드 (동적 배너)
   const heroSlideCount = banners.length || 1
+  const currentBanner = banners[currentSlide]
 
   // 슬라이드 네비게이션
   const nextSlide = () => {
@@ -203,17 +215,17 @@ export default function Home() {
                   onDragEnd={handleDragEnd}
                   className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
                   onClick={() => {
-                    if (!isDragging && banners[currentSlide]?.link_url) {
-                      router.push(banners[currentSlide].link_url!)
+                    if (!isDragging && currentBanner?.link_url) {
+                      router.push(currentBanner.link_url)
                     }
                   }}
                 >
                   {/* 슬라이드 배경 이미지 (동적 배너) */}
                   <div className="absolute inset-0">
-                    {isHydrated ? (
+                    {isHydrated && currentBanner?.image_url ? (
                       <Image
-                        src={banners[currentSlide]?.image_url || '/images/hero/1.jpg'}
-                        alt={banners[currentSlide]?.title || 'hero background'}
+                        src={currentBanner.image_url}
+                        alt={currentBanner.title || 'hero background'}
                         fill
                         sizes="(max-width: 455px) 100vw, 455px"
                         className="object-cover"
@@ -222,7 +234,7 @@ export default function Home() {
                         data-pin-nopin="true"
                       />
                     ) : (
-                      <div className="w-full h-full bg-slate-200" aria-hidden />
+                      <div className="w-full h-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden />
                     )}
                   </div>
                 </motion.div>
@@ -299,7 +311,10 @@ export default function Home() {
                         )}
                         {/* 뱃지 */}
                         {product.badge && (
-                          <div className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full`}>
+                          <div
+                            className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full`}
+                            style={product.badgeStyle}
+                          >
                             {product.badge}
                           </div>
                         )}
@@ -374,10 +389,10 @@ export default function Home() {
                   </div>
                   <div className="mt-3 px-1">
                     <h3 className="font-bold text-slate-900 text-sm truncate">
-                      {product.title}
+                      {storeText(product).title}
                     </h3>
                     <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
-                      {product.description}
+                      {storeText(product).description}
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="text-sm font-bold text-slate-900">
@@ -385,7 +400,7 @@ export default function Home() {
                       </span>
                     </div>
                     <p className="text-[9px] font-medium mt-1 text-emerald-600">
-                      향 선택 후 바로 구매
+                      {t('store.selectAndBuy')}
                     </p>
                   </div>
                 </motion.div>
@@ -394,7 +409,7 @@ export default function Home() {
 
             <div className="mt-12 text-center">
               <Link href="/products" className="inline-flex items-center gap-2 text-sm font-black text-slate-900 underline underline-offset-4 decoration-wavy decoration-yellow-400">
-                전체 상품 보기 <ChevronRight size={14} />
+                {t('store.viewAll')} <ChevronRight size={14} />
               </Link>
             </div>
           </section>

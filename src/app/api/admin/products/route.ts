@@ -15,12 +15,34 @@ interface ProductPayload {
   name?: string
   is_active?: boolean
   display_order?: number
+  badge_text?: string | null
+  badge_color?: string | null
 }
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const BADGE_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
+const BADGE_TEXT_MAX = 24
 
 function normalizeText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+// 뱃지 문구: 비어 있으면 null(기본 동작), 길이 제한 검증.
+function normalizeBadgeText(value: unknown): { value: string | null } | { error: string } {
+  if (value === null) return { value: null }
+  const text = normalizeText(value)
+  if (!text) return { value: null }
+  if (text.length > BADGE_TEXT_MAX) return { error: `뱃지 문구는 ${BADGE_TEXT_MAX}자 이하여야 합니다` }
+  return { value: text }
+}
+
+// 뱃지 색상: 비어 있으면 null(기본 색상), 그 외에는 #RRGGBB 형식만 허용.
+function normalizeBadgeColor(value: unknown): { value: string | null } | { error: string } {
+  if (value === null) return { value: null }
+  const color = normalizeText(value)
+  if (!color) return { value: null }
+  if (!BADGE_COLOR_PATTERN.test(color)) return { error: '뱃지 색상은 #RRGGBB 형식이어야 합니다' }
+  return { value: color.toUpperCase() }
 }
 
 function normalizeOrder(value: unknown): number | null {
@@ -48,7 +70,7 @@ export async function GET() {
   const client = createServiceRoleClient()
   const { data, error } = await client
     .from('admin_products')
-    .select('slug, name, is_active, display_order, updated_at')
+    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
     .order('display_order', { ascending: true })
     .order('slug', { ascending: true })
 
@@ -83,6 +105,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'is_active는 boolean이어야 합니다' }, { status: 400 })
   }
 
+  const badgeText = normalizeBadgeText(body.badge_text)
+  if ('error' in badgeText) return NextResponse.json({ error: badgeText.error }, { status: 400 })
+  const badgeColor = normalizeBadgeColor(body.badge_color)
+  if ('error' in badgeColor) return NextResponse.json({ error: badgeColor.error }, { status: 400 })
+
   const client = createServiceRoleClient()
   const now = new Date().toISOString()
   let displayOrder = normalizeOrder(body.display_order)
@@ -107,9 +134,11 @@ export async function POST(request: NextRequest) {
       name,
       is_active: body.is_active ?? false,
       display_order: displayOrder,
+      badge_text: badgeText.value,
+      badge_color: badgeColor.value,
       updated_at: now,
     })
-    .select('slug, name, is_active, display_order, updated_at')
+    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
     .single()
 
   if (error) {
@@ -182,6 +211,17 @@ export async function PATCH(request: NextRequest) {
     }
     updates.display_order = displayOrder
   }
+  // badge_text/badge_color: null 또는 빈 문자열을 보내면 기본값(자동 % OFF / 기본 색상)으로 되돌린다.
+  if (body.badge_text !== undefined) {
+    const badgeText = normalizeBadgeText(body.badge_text)
+    if ('error' in badgeText) return NextResponse.json({ error: badgeText.error }, { status: 400 })
+    updates.badge_text = badgeText.value
+  }
+  if (body.badge_color !== undefined) {
+    const badgeColor = normalizeBadgeColor(body.badge_color)
+    if ('error' in badgeColor) return NextResponse.json({ error: badgeColor.error }, { status: 400 })
+    updates.badge_color = badgeColor.value
+  }
 
   if (Object.keys(updates).length === 1) {
     return NextResponse.json({ error: '수정할 항목이 없습니다' }, { status: 400 })
@@ -192,7 +232,7 @@ export async function PATCH(request: NextRequest) {
     .from('admin_products')
     .update(updates)
     .eq('slug', slug)
-    .select('slug, name, is_active, display_order, updated_at')
+    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
     .single()
 
   if (error) {

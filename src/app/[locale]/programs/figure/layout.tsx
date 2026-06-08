@@ -14,7 +14,7 @@ export const metadata: Metadata = createMetadata({
     type: 'website',
     images: [
       {
-        url: '/images/diffuser/KakaoTalk_20260125_225229624.jpg',
+        url: '/images/product-placeholder.svg',
         width: 800,
         height: 800,
         alt: '피규어 화분 디퓨저 - AC\'SCENT IDENTITY',
@@ -35,7 +35,7 @@ export default async function FigureLayout({ children }: { children: React.React
     description: '좋아하는 이미지로 제작되는 나만의 3D 피규어 디퓨저. 피규어 + 디퓨저 + 분석보고서 + 샤쉐스톤 + AI 맞춤 향 에센스 포함.',
     price: opt?.price ?? 48000,
     originalPrice: opt?.original_price ?? 68000,
-    image: '/images/diffuser/KakaoTalk_20260125_225229624.jpg',
+    image: '/images/product-placeholder.svg',
     path: '/programs/figure',
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-FIGURE',

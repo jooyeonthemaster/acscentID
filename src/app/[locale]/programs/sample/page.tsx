@@ -2,9 +2,9 @@
 
 import { type CSSProperties, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import {
-  Star, ChevronRight, Camera, FileText, Zap, Gift,
+  Star, Camera, FileText, Zap, Gift,
   Sparkles, Palette, FileCheck,
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -15,8 +15,8 @@ import { useProductDetail } from "@/hooks/useProductDetail"
 import { InactiveProductGuard } from "@/components/programs/InactiveProductGuard"
 import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer"
 import { ProgramAdminBridge } from "@/components/programs/ProgramAdminBridge"
-import { ProgramImageGallery } from "@/components/programs/ProgramImageGallery"
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { useProductDisplayName } from "@/hooks/useAdminContent"
@@ -40,6 +40,7 @@ const staggerContainer = {
 }
 
 export default function SamplePaperPage() {
+  const t = useTranslations()
   const { user, unifiedUser, loading } = useAuth()
   const { getOption } = useProductPricing()
   const paperOpt = getOption("image_analysis_paper", "set")
@@ -51,18 +52,18 @@ export default function SamplePaperPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
-  const productName = useProductDisplayName("sample", "AI 이미지 분석 시향지")
+  const productName = useProductDisplayName("sample", t("programs.detail.sample.productName"))
   const { isCustomMode, detail } = useProductDetail("sample")
   const { startTransition } = useTransition()
   const pageContent = useMemo(
     () => extractProductPageContentWithFallback(detail?.custom_html, {
       badge: "SAMPLE",
-      subtitle: "내 이미지를 AI로 분석해 추천 향을 시향지로 먼저 받아보세요. 마음에 들면 정식 향수로 바로 구매할 수 있어요.",
-      infoTitle: "구성품",
-      infoBody: "AI 이미지 분석 + 추천 향 시향지 / 분석 결과 리포트 제공 / 주문 후 2~3일 내 배송",
-      ctaLabel: "이미지 분석 시작하기",
+      subtitle: t("programs.detail.sample.heroSubtitle"),
+      infoTitle: t("programs.detail.sample.infoTitle"),
+      infoBody: t("programs.detail.sample.infoBody"),
+      ctaLabel: t("programs.detail.sample.ctaLabel"),
     }),
-    [detail?.custom_html],
+    [detail?.custom_html, t],
   )
   const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
     const position = pageContent.positions[field]
@@ -96,110 +97,43 @@ export default function SamplePaperPage() {
         <ProgramAdminBridge productSlug="sample" />
 
         {/* HERO */}
-        <section className="pt-28 pb-10 px-4">
-          <div className="w-full">
-            <ProgramImageGallery
-              productSlug="sample"
-              fallbackImages={[
-                "/images/perfume/KakaoTalk_20260125_225218071.jpg",
-                "/images/perfume/KakaoTalk_20260125_225218071_01.jpg",
-              ]}
-              badge={pageContent.badge}
-              pagePositionStyle={pagePositionStyle}
-            />
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              {/* 브레드크럼 */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-                <Link href="/" className="hover:text-black">홈</Link>
-                <ChevronRight size={12} />
-                <Link href="/" className="hover:text-black">프로그램</Link>
-                <ChevronRight size={12} />
-                <span className="text-black font-bold">{productName}</span>
-              </div>
-
-              {/* 타이틀 */}
-              <div className="mb-4">
-                <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500">
-                    <span
-                      className="inline-block"
-                      data-admin-editable="product_name"
-                      data-admin-page-position-field="productName"
-                      style={pagePositionStyle("productName")}
-                    >
-                      {productName}
-                    </span>
-                  </span>
-                </h1>
-                <p className="text-sm text-slate-600 font-medium break-keep">
-                  <span
-                    className="inline-block"
-                    data-admin-page-field="subtitle"
-                    data-admin-page-position-field="subtitle"
-                    style={pagePositionStyle("subtitle")}
-                  >
-                    {pageContent.subtitle}
-                  </span>
-                </p>
-              </div>
-
-              {/* 가격 + 구성품 */}
-              <div
-                className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
-                data-admin-page-position-field="infoCard"
-                style={pagePositionStyle("infoCard")}
-              >
-                <div className="flex items-end gap-2 mb-3">
-                  <span className="text-xl font-black text-black">{formatPrice(paperPrice)}원</span>
-                  {paperOpt?.original_price && paperOpt.original_price > paperPrice && (
-                    <>
-                      <span className="text-xs text-slate-400 line-through">{formatPrice(paperOpt.original_price)}원</span>
-                      {paperDiscount !== null && (
-                        <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{paperDiscount}% OFF</span>
-                      )}
-                    </>
+        <UnifiedDetailHero
+          productSlug="sample"
+          title={productName}
+          imageAlt={productName}
+          pageContent={pageContent}
+          pagePositionStyle={pagePositionStyle}
+          breadcrumbs={[
+            { label: t("programs.breadcrumbHome"), href: "/" },
+            { label: t("programs.breadcrumbPrograms"), href: "/" },
+            { label: productName },
+          ]}
+          price={
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-black text-black">{t("currency.symbol")}{formatPrice(paperPrice)}</span>
+              {paperOpt?.original_price && paperOpt.original_price > paperPrice && (
+                <>
+                  <span className="text-xs text-slate-400 line-through">{t("currency.symbol")}{formatPrice(paperOpt.original_price)}</span>
+                  {paperDiscount !== null && (
+                    <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{paperDiscount}% OFF</span>
                   )}
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
-                      {pageContent.infoTitle}
-                    </span>
-                  </div>
-                  <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
-                    {pageContent.infoBody}
-                  </p>
-                  <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
-                    <li className="list-disc">AI 이미지 분석 + 추천 향 시향지</li>
-                    <li className="list-disc">분석 결과 리포트 제공</li>
-                    <li className="list-disc">주문 후 2~3일 내 배송</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* CTA */}
-              <button
-                onClick={handleStartClick}
-                disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                data-admin-page-position-field="ctaButton"
-                style={pagePositionStyle("ctaButton")}
-              >
-                <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-              </button>
-              <p className="text-center text-xs text-slate-500 mt-2">
-                ✨ 시향지로 향을 먼저 확인하고, 마음에 들면 향수로!
-              </p>
-            </motion.div>
-          </div>
-        </section>
+                </>
+              )}
+            </div>
+          }
+          infoIcon={<Star size={14} className="fill-slate-900 text-slate-900" />}
+          infoItems={[
+            t("programs.detail.sample.infoItem1"),
+            t("programs.detail.sample.infoItem2"),
+            t("shipping.estimated"),
+          ]}
+          cta={{
+            onClick: handleStartClick,
+            disabled: loading,
+            label: pageContent.ctaLabel,
+            hint: t("programs.detail.sample.ctaHint"),
+          }}
+        />
 
         {isCustomMode ? (
           <CustomDetailRenderer html={detail?.custom_html ?? ""} />
@@ -211,15 +145,15 @@ export default function SamplePaperPage() {
                 <div className="flex flex-wrap items-center justify-center gap-4 text-white">
                   <div className="flex items-center gap-1.5">
                     <Sparkles size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">AI 이미지 분석</span>
+                    <span className="font-bold text-xs">{t("programs.detail.sample.featureAnalysis")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Palette size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">추천 향 시향</span>
+                    <span className="font-bold text-xs">{t("programs.detail.sample.featureScent")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <FileCheck size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">분석 리포트</span>
+                    <span className="font-bold text-xs">{t("programs.detail.sample.featureReport")}</span>
                   </div>
                 </div>
               </div>
@@ -239,16 +173,16 @@ export default function SamplePaperPage() {
                     HOW IT WORKS
                   </motion.div>
                   <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
-                    이렇게 진행돼요
+                    {t("programs.detail.sample.howItWorksTitle")}
                   </motion.h2>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { step: "01", title: "이미지 업로드", desc: "분석할 사진을 올려요", icon: Camera, color: "bg-yellow-400" },
-                    { step: "02", title: "AI 분석", desc: "이미지로 향을 추천", icon: FileText, color: "bg-orange-400" },
-                    { step: "03", title: "시향지 수령", desc: "추천 향을 시향지로", icon: Zap, color: "bg-pink-400" },
-                    { step: "04", title: "향수로 구매", desc: "마음에 들면 정식 향수로", icon: Gift, color: "bg-purple-400" },
+                    { step: "01", title: t("programs.detail.sample.step1Title"), desc: t("programs.detail.sample.step1Desc"), icon: Camera, color: "bg-yellow-400" },
+                    { step: "02", title: t("programs.detail.sample.step2Title"), desc: t("programs.detail.sample.step2Desc"), icon: FileText, color: "bg-orange-400" },
+                    { step: "03", title: t("programs.detail.sample.step3Title"), desc: t("programs.detail.sample.step3Desc"), icon: Zap, color: "bg-pink-400" },
+                    { step: "04", title: t("programs.detail.sample.step4Title"), desc: t("programs.detail.sample.step4Desc"), icon: Gift, color: "bg-purple-400" },
                   ].map((item, idx) => (
                     <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
                       <div className={`w-14 h-14 ${item.color} border-2 border-black rounded-xl shadow-[3px_3px_0_0_black] flex items-center justify-center mb-2`}>

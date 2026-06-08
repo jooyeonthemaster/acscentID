@@ -2,12 +2,13 @@
 
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
-import { Share2, ShoppingCart, MessageSquarePlus, History, CreditCard } from 'lucide-react'
+import { Share2, ShoppingCart, MessageSquarePlus, History, CreditCard, Ticket } from 'lucide-react'
 
 interface ResultBottomActionsProps {
   onShare: () => void
   onAddToCart: () => void
   onCheckout: () => void
+  onScentPaperCheckout?: () => void
   onFeedback?: () => void
   onFeedbackHistory?: () => void
   isShareSaving?: boolean
@@ -19,6 +20,7 @@ export function ResultBottomActions({
   onShare,
   onAddToCart,
   onCheckout,
+  onScentPaperCheckout,
   onFeedback,
   onFeedbackHistory,
   isShareSaving = false,
@@ -38,6 +40,16 @@ export function ResultBottomActions({
         shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]
       `}
     >
+      {serviceMode === 'online' && onScentPaperCheckout && (
+        <button
+          onClick={onScentPaperCheckout}
+          className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-white px-4 py-3 text-sm font-black text-slate-900 shadow-[3px_3px_0_0_#FACC15] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#FACC15]"
+        >
+          <Ticket size={16} className="text-amber-500" />
+          <span>{t('scentPaperCta')}</span>
+        </button>
+      )}
+
       {/* 2개 버튼 가로 배치 */}
       <div className="flex gap-2">
         {/* 결과 공유하기 버튼 */}

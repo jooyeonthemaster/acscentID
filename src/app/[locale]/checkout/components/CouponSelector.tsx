@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tag, ChevronDown, X, Check, Ticket, AlertCircle, Loader2, Gift } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { CheckoutCoupon } from '@/types/coupon'
+import { CheckoutCoupon, calculateCouponDiscount, getCouponDiscountLabel } from '@/types/coupon'
 
 interface CouponSelectorProps {
   selectedCoupon: CheckoutCoupon | null
@@ -73,7 +73,13 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
   }
 
   const discountAmount = selectedCoupon
-    ? Math.floor(productPrice * (selectedCoupon.discount_percent / 100))
+    ? calculateCouponDiscount(productPrice, selectedCoupon)
+    : 0
+  const selectedCouponFaceValue = selectedCoupon?.discount_type === 'fixed_amount'
+    ? Number(selectedCoupon.discount_amount || 0)
+    : 0
+  const selectedCouponUnusedAmount = selectedCouponFaceValue > discountAmount
+    ? selectedCouponFaceValue - discountAmount
     : 0
 
   const isRepurchase = (coupon: CheckoutCoupon) => coupon.type === 'repurchase'
@@ -95,45 +101,55 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
 
       {/* 선택된 쿠폰 또는 선택 버튼 */}
       {selectedCoupon ? (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`bg-white rounded-xl p-3 flex items-center justify-between ${
-            isRepurchase(selectedCoupon)
-              ? 'border-2 border-pink-500 ring-2 ring-pink-300'
-              : 'border-2 border-slate-900'
-          }`}
-          style={{ backgroundColor: COUPON_COLORS[selectedCoupon.type] || '#BAE6FD' }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg border-2 border-slate-900 flex items-center justify-center">
-              {isRepurchase(selectedCoupon) ? (
-                <Gift size={20} className="text-pink-500" />
-              ) : (
-                <Ticket size={20} className="text-slate-900" />
-              )}
-            </div>
-            <div>
-              <p className="font-black text-slate-900 flex items-center gap-1.5">
-                {selectedCoupon.title}
-                {isRepurchase(selectedCoupon) && (
-                  <span className="bg-yellow-200 text-yellow-800 font-black text-[10px] rounded-full px-1.5 py-0.5">
-                    무제한 사용
-                  </span>
-                )}
-              </p>
-              <p className="text-sm font-bold text-slate-700">
-                {t('coupon.discountPercent', { percent: selectedCoupon.discount_percent })}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleRemove}
-            className="w-8 h-8 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors"
+        <div className="space-y-2">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`bg-white rounded-xl p-3 flex items-center justify-between ${
+              isRepurchase(selectedCoupon)
+                ? 'border-2 border-pink-500 ring-2 ring-pink-300'
+                : 'border-2 border-slate-900'
+            }`}
+            style={{ backgroundColor: COUPON_COLORS[selectedCoupon.type] || '#BAE6FD' }}
           >
-            <X size={16} className="text-slate-700" />
-          </button>
-        </motion.div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-lg border-2 border-slate-900 flex items-center justify-center">
+                {isRepurchase(selectedCoupon) ? (
+                  <Gift size={20} className="text-pink-500" />
+                ) : (
+                  <Ticket size={20} className="text-slate-900" />
+                )}
+              </div>
+              <div>
+                <p className="font-black text-slate-900 flex items-center gap-1.5">
+                  {selectedCoupon.title}
+                  {isRepurchase(selectedCoupon) && (
+                    <span className="bg-yellow-200 text-yellow-800 font-black text-[10px] rounded-full px-1.5 py-0.5">
+                      무제한 사용
+                    </span>
+                  )}
+                </p>
+                <p className="text-sm font-bold text-slate-700">
+                  {getCouponDiscountLabel(selectedCoupon)} 할인권
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRemove}
+              className="w-8 h-8 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors"
+            >
+              <X size={16} className="text-slate-700" />
+            </button>
+          </motion.div>
+          {selectedCouponUnusedAmount > 0 && (
+            <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>
+                이 주문에서는 {discountAmount.toLocaleString()}원만 할인되고, 남은 {selectedCouponUnusedAmount.toLocaleString()}원은 사용 후 소멸됩니다.
+              </span>
+            </div>
+          )}
+        </div>
       ) : (
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -184,7 +200,13 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
                 <div className="divide-y-2 divide-slate-100">
                   {eligibleCoupons.map((coupon) => {
                     const repurchase = isRepurchase(coupon)
-                    const couponDiscount = Math.floor(productPrice * (coupon.discount_percent / 100))
+                    const couponDiscount = calculateCouponDiscount(productPrice, coupon)
+                    const couponFaceValue = coupon.discount_type === 'fixed_amount'
+                      ? Number(coupon.discount_amount || 0)
+                      : 0
+                    const couponUnusedAmount = couponFaceValue > couponDiscount
+                      ? couponFaceValue - couponDiscount
+                      : 0
 
                     return (
                       <button
@@ -209,8 +231,8 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
                           {repurchase ? (
                             <Gift size={20} className="text-pink-600" />
                           ) : (
-                            <span className="font-black text-slate-900">
-                              {coupon.discount_percent === 100 ? 'FREE' : `${coupon.discount_percent}%`}
+                            <span className="text-[10px] font-black text-slate-900">
+                              {coupon.discount_percent === 100 && coupon.discount_type !== 'fixed_amount' ? 'FREE' : getCouponDiscountLabel(coupon)}
                             </span>
                           )}
                         </div>
@@ -226,6 +248,11 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
                           <p className="text-xs text-[#F472B6] font-bold">
                             -{couponDiscount.toLocaleString()}{t('currency.suffix')} {t('coupon.discount')}
                           </p>
+                          {couponUnusedAmount > 0 && (
+                            <p className="mt-1 text-[11px] font-bold leading-snug text-amber-700">
+                              남은 {couponUnusedAmount.toLocaleString()}원은 사용 후 소멸
+                            </p>
+                          )}
                         </div>
                         <Check size={16} className="text-green-500 opacity-0 group-hover:opacity-100" />
                       </button>
@@ -249,8 +276,8 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
                         className="w-12 h-12 rounded-lg border-2 border-slate-300 flex items-center justify-center flex-shrink-0 grayscale"
                         style={{ backgroundColor: COUPON_COLORS[coupon.type] || '#BAE6FD' }}
                       >
-                        <span className="font-black text-slate-500">
-                          {coupon.discount_percent}%
+                        <span className="text-[10px] font-black text-slate-500">
+                          {getCouponDiscountLabel(coupon)}
                         </span>
                       </div>
                       <div className="flex-1">

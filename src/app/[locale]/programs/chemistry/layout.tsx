@@ -14,7 +14,7 @@ export const metadata: Metadata = createMetadata({
     type: 'website',
     images: [
       {
-        url: '/images/perfume/KakaoTalk_20260125_225218071.jpg',
+        url: '/images/product-placeholder.svg',
         width: 800,
         height: 800,
         alt: '레이어링 퍼퓸 세트 - AC\'SCENT IDENTITY',
@@ -38,7 +38,7 @@ export default async function ChemistryLayout({ children }: { children: React.Re
     description: '두 인물의 케미를 향기로 담는 맞춤 향수 세트. 레이어링 퍼퓸 세트 + 케미 프로필 카드 포함.',
     price: opt?.price ?? 38000,
     originalPrice: opt?.original_price ?? 38000,
-    image: '/images/perfume/KakaoTalk_20260125_225218071.jpg',
+    image: '/images/product-placeholder.svg',
     path: '/programs/chemistry',
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-CHEMISTRY-SET',

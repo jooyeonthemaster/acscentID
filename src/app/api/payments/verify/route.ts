@@ -5,6 +5,7 @@ import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getPortOnePayment, cancelPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
+import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 
 /**
  * 결제 검증 API
@@ -138,7 +139,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 8. 재고 차감 (실패해도 결제 검증 결과에 영향 없음)
+    // 8. 결제 완료 시점에 쿠폰 사용 확정
+    const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, updatedOrder, now)
+    if (!couponUsageResult.success) {
+      console.error('[Payments Verify] Coupon usage finalization failed:', couponUsageResult)
+    }
+
+    // 9. 재고 차감 (실패해도 결제 검증 결과에 영향 없음)
     try {
       console.log('[Payments Verify] Deducting inventory for order:', orderId)
       const deductionResult = await deductInventoryForOrder(serviceClient, orderId)
@@ -164,6 +171,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       order: updatedOrder,
+      couponUsage: couponUsageResult,
     })
 
   } catch (error) {

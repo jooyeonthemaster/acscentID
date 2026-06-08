@@ -1490,7 +1490,7 @@ export default function AdminProductEditPage() {
               <div className="space-y-3 border-t border-slate-200 pt-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black text-slate-900">정보 박스</h3>
-                  <span className="text-[10px] font-bold text-slate-400">흰색 안내 카드</span>
+                  <span className="text-[10px] font-bold text-slate-400">상단 안내 카드</span>
                 </div>
                 <label {...pageFieldWorkbenchProps('infoTitle')}>
                   <span className="mb-1 block text-xs font-bold text-slate-500">제목</span>
@@ -1523,8 +1523,8 @@ export default function AdminProductEditPage() {
 
               <div className="space-y-3 border-t border-slate-200 pt-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black text-slate-900">하단 버튼</h3>
-                  <span className="text-[10px] font-bold text-slate-400">노란 CTA</span>
+                  <h3 className="text-xs font-black text-slate-900">CTA 버튼</h3>
+                  <span className="text-[10px] font-bold text-slate-400">상단 주요 버튼</span>
                 </div>
                 <label {...pageFieldWorkbenchProps('ctaLabel')}>
                   <span className="mb-1 block text-xs font-bold text-slate-500">버튼 문구</span>

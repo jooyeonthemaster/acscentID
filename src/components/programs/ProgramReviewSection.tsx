@@ -88,7 +88,7 @@ export function ProgramReviewSection({
               className="w-full py-3 bg-yellow-400 text-black text-sm font-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
             >
               <PenLine size={16} />
-              리뷰 작성하기
+              {t('review.writeButton')}
             </button>
           </div>
 

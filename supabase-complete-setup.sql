@@ -156,7 +156,10 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   kakao_id TEXT UNIQUE,
 
   -- Fingerprint 연동
-  fingerprint TEXT
+  fingerprint TEXT,
+
+  -- 앱 설정/알림/기본 배송지
+  preferences JSONB DEFAULT '{}'
 );
 
 -- 인덱스

@@ -5,6 +5,7 @@ import { Gift, X } from 'lucide-react'
 import { useCoupon } from '@/contexts/CouponContext'
 import { useCouponPolicy } from '@/hooks/useCouponPolicy'
 import { useState } from 'react'
+import { getCouponDiscountLabel } from '@/types/coupon'
 
 export function CouponToast() {
   const { isToastVisible, openDrawer, availableCoupons } = useCoupon()
@@ -72,7 +73,7 @@ export function CouponToast() {
                     className="w-16 h-10 bg-gradient-to-br from-[#F472B6] to-[#EC4899] rounded-lg border-2 border-slate-900 flex items-center justify-center"
                   >
                     <span className="text-xs font-black text-white">
-                      {coupon.discount_percent}%
+                      {getCouponDiscountLabel(coupon)}
                     </span>
                   </motion.div>
                 ))}

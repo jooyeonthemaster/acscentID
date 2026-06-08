@@ -1,39 +1,35 @@
 "use client"
 
 import { type CSSProperties, useState } from "react"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { useProductImages } from "@/hooks/useAdminContent"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 import type { ProductPagePositionField } from "@/lib/products/page-content"
 
 interface ProgramImageGalleryProps {
   productSlug: string
-  fallbackImages: string[]
   badge?: string
   badgeClassName?: string
-  imageSurfaceClassName?: string
   pagePositionStyle?: (field: ProductPagePositionField) => CSSProperties | undefined
 }
 
-export function ProgramImageGallery({
-  productSlug,
-  fallbackImages,
-  badge = "BEST",
-  badgeClassName = "bg-yellow-400 text-black",
-  imageSurfaceClassName = "bg-gradient-to-br from-yellow-50 to-amber-50",
-  pagePositionStyle,
-}: ProgramImageGalleryProps) {
+export function ProgramImageGallery(props: ProgramImageGalleryProps) {
+  const {
+    productSlug,
+    badge = "BEST",
+    badgeClassName = "bg-black text-white",
+    pagePositionStyle,
+  } = props
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
 
   const { imageUrls: dynamicImages, loading } = useProductImages(productSlug)
-  // loading 중에는 fallback을 보여주지 않음 (플리커 방지)
-  const productImages = loading
-    ? []
-    : dynamicImages.length > 0
-      ? dynamicImages
-      : fallbackImages
+  // loading/empty 중에는 오래된 하드코딩 이미지를 보여주지 않음 (플리커 방지)
+  const productImages = loading ? [] : dynamicImages
   const currentImage = productImages[selectedImage] || productImages[0] || ""
+  const thumbnailImages = loading ? [] : productImages
 
   return (
     <motion.div
@@ -41,57 +37,73 @@ export function ProgramImageGallery({
       animate={{ opacity: 1, y: 0 }}
       className="mb-5"
     >
-      {/* 메인 이미지 */}
-      <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
+      <div className="overflow-hidden rounded-[28px] border-[3px] border-black bg-white shadow-[6px_6px_0_0_black]">
         <div
-          className="absolute top-3 left-3 z-10 flex gap-2"
-          data-admin-page-position-field="badge"
-          style={pagePositionStyle?.("badge")}
-        >
-          <span className={`px-2 py-0.5 text-[10px] font-black rounded-full border-2 border-black ${badgeClassName}`}>
-            <span data-admin-page-field="badge">{badge}</span>
-          </span>
-        </div>
-        <div
-          className={`aspect-square flex items-center justify-center ${imageSurfaceClassName}`}
+          className="relative aspect-square bg-white"
           data-admin-product-image="true"
           data-admin-page-position-field="productImage"
           style={pagePositionStyle?.("productImage")}
         >
           {loading || productImages.length === 0 ? (
-            <div className="w-full h-full animate-pulse bg-gradient-to-br from-yellow-100 to-amber-100" />
+            <div className="h-full w-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" />
           ) : (
-            <motion.img
-              key={currentImage}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
+            <Image
               src={currentImage}
               alt={t('programs.productImage')}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(max-width: 455px) 100vw, 455px"
+              priority
+              className="object-contain p-10 transition-transform duration-300 sm:p-12"
+              data-pin-nopin="true"
             />
           )}
+          <div
+            className="absolute left-3 top-3 z-10 flex gap-2"
+            data-admin-page-position-field="badge"
+            style={pagePositionStyle?.("badge")}
+          >
+            <span className={cn("inline-flex min-h-11 items-center rounded-full border-[3px] border-black px-5 text-sm font-black shadow-[2px_2px_0_0_black]", badgeClassName)}>
+              <span data-admin-page-field="badge">{badge}</span>
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* 썸네일 */}
-      {!loading && productImages.length > 1 && (
-        <div className="flex gap-2 justify-center">
-          {productImages.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedImage(idx)}
-              className={`w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${
-                selectedImage === idx
-                  ? 'border-black shadow-[2px_2px_0_0_black] scale-105'
-                  : 'border-slate-300 hover:border-slate-500'
-              }`}
-            >
-              <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-            </button>
-          ))}
-        </div>
-      )}
+        {(loading || thumbnailImages.length > 0) && (
+          <div className="flex gap-2 overflow-x-auto border-t-2 border-black bg-white p-3">
+            {loading ? (
+              <div className="h-14 w-14 shrink-0 animate-pulse rounded-xl border-2 border-slate-200 bg-slate-100" />
+            ) : thumbnailImages.map((img, idx) => {
+              const selected = selectedImage === idx
+              return (
+                <button
+                  key={`${img}-${idx}`}
+                  type="button"
+                  onClick={() => setSelectedImage(idx)}
+                  className={cn(
+                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-all",
+                    selected ? "border-black shadow-[2px_2px_0_0_black]" : "border-slate-200 opacity-80 hover:border-slate-500 hover:opacity-100",
+                  )}
+                  aria-label={`${t('programs.productImage')} 이미지 ${idx + 1} 보기`}
+                >
+                  <Image
+                    src={img}
+                    alt=""
+                    fill
+                    sizes="56px"
+                    className="object-contain p-1"
+                    data-pin-nopin="true"
+                  />
+                  {idx === 0 && (
+                    <span className="absolute left-1 top-1 rounded bg-[#FCD34D] px-1 text-[9px] font-black text-black ring-1 ring-black">
+                      대표
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </motion.div>
   )
 }

@@ -58,6 +58,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const couponCode = String(coupon.code || '')
+    const isLegacyOfflineCoupon =
+      couponCode.startsWith('OFF') ||
+      (coupon.type === 'welcome' && /^[A-Z0-9]{8}$/.test(couponCode) && coupon.title !== '웰컴 쿠폰')
+
+    if (coupon.type === 'offline' || isLegacyOfflineCoupon) {
+      return NextResponse.json(
+        { success: false, error: '실물 쿠폰은 QR 스캔 또는 쿠폰 코드 입력으로만 등록할 수 있습니다' },
+        { status: 400 }
+      )
+    }
+
     // 4. 유효기간 확인
     if (coupon.valid_until && new Date(coupon.valid_until) < new Date()) {
       return NextResponse.json(

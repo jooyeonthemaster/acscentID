@@ -4,6 +4,7 @@ import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
+import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com').split(',').map(e => e.trim().toLowerCase())
@@ -261,7 +262,7 @@ export async function PATCH(request: NextRequest) {
     // 기존 주문 상태 조회 (재고 차감 및 스탬프 중복 방지)
     const { data: existingOrder } = await serviceClient
       .from('orders')
-      .select('status, user_id, item_count')
+      .select('id, status, user_id, item_count, user_coupon_id')
       .eq('id', orderId)
       .single()
 
@@ -295,7 +296,13 @@ export async function PATCH(request: NextRequest) {
     // (기존 상태가 pending이고 새 상태가 paid인 경우에만 - 중복 차감 방지)
     let inventoryDeduction = null
     let repurchaseCouponResult = null
+    let couponUsageResult = null
     if (previousStatus === 'pending' && status === 'paid') {
+      couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order)
+      if (!couponUsageResult.success) {
+        console.error('[Admin Orders] Coupon usage finalization failed:', couponUsageResult)
+      }
+
       console.log(`[Admin Orders] Deducting inventory for order: ${orderId}`)
       const deductionResult = await deductInventoryForOrder(
         serviceClient,
@@ -326,6 +333,7 @@ export async function PATCH(request: NextRequest) {
       order,
       inventoryDeduction,
       repurchaseCouponResult,
+      couponUsageResult,
     })
 
   } catch (error) {

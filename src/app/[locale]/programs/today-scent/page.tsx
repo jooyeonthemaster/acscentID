@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -17,9 +18,7 @@ import { TODAY_SCENTS, getScentById, type TodayScent } from "@/lib/today-scent/s
 import { getDrawnToday } from "@/lib/today-scent/draw"
 import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { emitCartChanged } from "@/lib/cart-events"
-
-// 오늘의 향 장바구니/주문 썸네일 (전용 보틀 이미지가 없어 시그니처 보틀로 대체)
-const TODAY_SCENT_BOTTLE_IMAGE = "/images/perfume/LE QUACK.avif"
+import { STORE_PRODUCT_IMAGE } from "@/lib/products/store-products"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -36,6 +35,7 @@ const staggerContainer = {
 }
 
 function TodayScentProductContent() {
+  const t = useTranslations()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
@@ -58,6 +58,7 @@ function TodayScentProductContent() {
   const opt10 = getOption("today_scent", "10ml")
   const opt50 = getOption("today_scent", "50ml")
   const currentOpt = selectedSize === "10ml" ? opt10 : opt50
+  const currentImage = currentOpt?.image_url || STORE_PRODUCT_IMAGE
   const price = currentOpt?.price ?? (selectedSize === "10ml" ? 24000 : 48000)
   const originalPrice = currentOpt?.original_price ?? null
   const discount = (price && originalPrice && originalPrice > price)
@@ -106,26 +107,26 @@ function TodayScentProductContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_type: "today_scent",
-          perfume_name: `${scent.name} · 오늘의 향`,
+          perfume_name: `${scent.name} · ${t('programs.detail.todayScent.todayScentLabel')}`,
           perfume_brand: "AC'SCENT",
           size: selectedSize,
           price,
-          image_url: TODAY_SCENT_BOTTLE_IMAGE,
+          image_url: currentImage,
           analysis_data: {
             matchingPerfumes: [{
               perfumeId: scent.id,
-              persona: { name: `${scent.name} · 오늘의 향`, recommendation: scent.vibe },
+              persona: { name: `${scent.name} · ${t('programs.detail.todayScent.todayScentLabel')}`, recommendation: scent.vibe },
             }],
             matchingKeywords: scent.keywords,
           },
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "장바구니 추가에 실패했습니다")
+      if (!res.ok) throw new Error(data.error || t('programs.detail.todayScent.cartAddFailed'))
       emitCartChanged()
-      alert("장바구니에 담았어요 🛒")
+      alert(t('programs.detail.todayScent.cartAddSuccess'))
     } catch (e) {
-      alert(e instanceof Error ? e.message : "장바구니 추가에 실패했습니다")
+      alert(e instanceof Error ? e.message : t('programs.detail.todayScent.cartAddFailed'))
     } finally {
       setAddingToCart(false)
     }
@@ -154,7 +155,7 @@ function TodayScentProductContent() {
           >
             <div className="absolute top-3 left-3 z-10 flex gap-2">
               <span className="px-2 py-0.5 bg-black text-white text-[10px] font-black rounded-full border-2 border-black">
-                오늘의 향
+                {t('programs.detail.todayScent.todayScentLabel')}
               </span>
               <span className="px-2 py-0.5 bg-white text-black text-[10px] font-black rounded-full border-2 border-black">
                 SIGNATURE
@@ -170,9 +171,9 @@ function TodayScentProductContent() {
                 style={{ backgroundColor: "rgba(255,255,255,0.55)" }}
               >
                 {[
-                  { k: "탑", v: scent.notes.top },
-                  { k: "미들", v: scent.notes.mid },
-                  { k: "베이스", v: scent.notes.base },
+                  { k: t('programs.detail.todayScent.noteTop'), v: scent.notes.top },
+                  { k: t('programs.detail.todayScent.noteMid'), v: scent.notes.mid },
+                  { k: t('programs.detail.todayScent.noteBase'), v: scent.notes.base },
                 ].map((n) => (
                   <div key={n.k} className="flex-1">
                     <div className="text-[10px] font-bold opacity-60">{n.k}</div>
@@ -191,9 +192,9 @@ function TodayScentProductContent() {
           >
             {/* 브레드크럼 */}
             <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <Link href="/" className="hover:text-black">홈</Link>
+              <Link href="/" className="hover:text-black">{t('programs.breadcrumbHome')}</Link>
               <ChevronRight size={12} />
-              <span className="hover:text-black">오늘의 향</span>
+              <span className="hover:text-black">{t('programs.detail.todayScent.todayScentLabel')}</span>
               <ChevronRight size={12} />
               <span className="text-black font-bold">{scent.name}</span>
             </div>
@@ -210,10 +211,10 @@ function TodayScentProductContent() {
               </div>
               <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
                 {scent.name}
-                <span className="text-slate-500"> · 나만의 시그니처 퍼퓸</span>
+                <span className="text-slate-500"> · {t('programs.detail.todayScent.titleSuffix')}</span>
               </h1>
               <p className="text-sm text-slate-600 font-medium">
-                오늘 뽑은 향을 그대로 담은 AC&apos;SCENT 시그니처 퍼퓸
+                {t('programs.detail.todayScent.subtitle')}
               </p>
             </div>
 
@@ -231,7 +232,7 @@ function TodayScentProductContent() {
 
             {/* 용량 선택 */}
             <div className="mb-4">
-              <p className="text-sm font-bold text-slate-700 mb-2">📦 용량 선택</p>
+              <p className="text-sm font-bold text-slate-700 mb-2">📦 {t('programs.detail.todayScent.selectSize')}</p>
               <div className="flex gap-3">
                 {([
                   { size: "10ml" as const, opt: opt10, fallback: 24000 },
@@ -250,7 +251,7 @@ function TodayScentProductContent() {
                       }`}
                     >
                       <p className={`text-lg ${active ? "font-black text-black" : "font-bold text-slate-600"}`}>{size}</p>
-                      <p className={`text-sm ${active ? "text-slate-600" : "text-slate-400"}`}>{formatPrice(p)}원</p>
+                      <p className={`text-sm ${active ? "text-slate-600" : "text-slate-400"}`}>{t('programs.detail.todayScent.priceWon', { price: formatPrice(p) })}</p>
                     </button>
                   )
                 })}
@@ -260,10 +261,10 @@ function TodayScentProductContent() {
             {/* 가격 + 구성품 */}
             <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4">
               <div className="flex items-end gap-2 mb-3">
-                <span className="text-2xl font-black text-black">{formatPrice(price)}원</span>
+                <span className="text-2xl font-black text-black">{t('programs.detail.todayScent.priceWon', { price: formatPrice(price) })}</span>
                 {originalPrice && originalPrice > price && (
                   <>
-                    <span className="text-sm text-slate-400 line-through">{formatPrice(originalPrice)}원</span>
+                    <span className="text-sm text-slate-400 line-through">{t('programs.detail.todayScent.priceWon', { price: formatPrice(originalPrice) })}</span>
                     {discount !== null && (
                       <span className="px-1.5 py-0.5 bg-black text-white text-[10px] font-bold rounded">{discount}% OFF</span>
                     )}
@@ -274,11 +275,11 @@ function TodayScentProductContent() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
                   <Droplets size={16} className="text-black" />
-                  <span>{scent.name} 퍼퓸 {selectedSize} (스프레이 타입)</span>
+                  <span>{t('programs.detail.todayScent.perfumeItem', { name: scent.name, size: selectedSize })}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Truck size={16} className="text-black" />
-                  <span>주문 후 2~3일 내 배송 (배송비 3,000원)</span>
+                  <span>{t('programs.detail.todayScent.shippingItem')}</span>
                 </div>
               </div>
             </div>
@@ -287,10 +288,10 @@ function TodayScentProductContent() {
             <button
               onClick={handlePurchaseClick}
               disabled={loading}
-              className="animate-buy-glow w-full py-3.5 bg-[#FCD34D] text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-black py-3.5 text-base font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#cbd5e1] disabled:opacity-50"
             >
               <ShoppingCart size={20} />
-              이 향으로 바로 구매하기
+              {t('programs.detail.todayScent.buyNowWithScent')}
             </button>
             <button
               onClick={handleAddToCart}
@@ -298,10 +299,10 @@ function TodayScentProductContent() {
               className="w-full mt-2 py-3 bg-white text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <ShoppingCart size={20} />
-              {addingToCart ? "담는 중..." : "장바구니 담기"}
+              {addingToCart ? t('programs.detail.todayScent.addingToCart') : t('programs.detail.todayScent.addToCart')}
             </button>
             <p className="text-center text-xs text-slate-500 mt-2">
-              ✨ 오늘 뽑은 향 그대로, 세상에 하나뿐인 시그니처
+              ✨ {t('programs.detail.todayScent.ctaCaption')}
             </p>
           </motion.div>
         </div>
@@ -313,11 +314,11 @@ function TodayScentProductContent() {
           <div className="flex flex-wrap items-center justify-center gap-4 text-white">
             <div className="flex items-center gap-1.5">
               <Sparkles size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">오늘의 시그니처 향</span>
+              <span className="font-bold text-xs">{t('programs.detail.todayScent.featureSignature')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Package size={14} className="text-amber-400" />
-              <span className="font-bold text-xs">빠른 배송</span>
+              <span className="font-bold text-xs">{t('programs.detail.todayScent.featureFastShipping')}</span>
             </div>
           </div>
         </div>
@@ -337,7 +338,7 @@ function TodayScentProductContent() {
               ✨ ABOUT
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
-              {scent.name}는<br />어떤 향인가요?
+              {t('programs.detail.todayScent.aboutHeadingLine1', { name: scent.name })}<br />{t('programs.detail.todayScent.aboutHeadingLine2')}
             </motion.h2>
           </div>
 
@@ -353,12 +354,12 @@ function TodayScentProductContent() {
             </motion.div>
 
             <motion.div variants={fadeInUp} className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
-              <h3 className="font-black text-slate-900 mb-3">🌿 향 노트</h3>
+              <h3 className="font-black text-slate-900 mb-3">🌿 {t('programs.detail.todayScent.scentNotesTitle')}</h3>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { k: "탑 노트", v: scent.notes.top },
-                  { k: "미들 노트", v: scent.notes.mid },
-                  { k: "베이스 노트", v: scent.notes.base },
+                  { k: t('programs.detail.todayScent.topNote'), v: scent.notes.top },
+                  { k: t('programs.detail.todayScent.midNote'), v: scent.notes.mid },
+                  { k: t('programs.detail.todayScent.baseNote'), v: scent.notes.base },
                 ].map((n) => (
                   <div key={n.k} className="bg-white border-2 border-black rounded-xl p-3 text-center shadow-[2px_2px_0_0_black]">
                     <div className="text-[10px] font-bold text-slate-400">{n.k}</div>
@@ -375,7 +376,7 @@ function TodayScentProductContent() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-white text-slate-700 rounded-xl border-2 border-slate-300 hover:border-black font-bold text-sm transition-all"
               >
                 <Share2 size={16} />
-                내일 또 다른 향 뽑으러 가기
+                {t('programs.detail.todayScent.drawAgainTomorrow')}
               </Link>
             </motion.div>
           </div>
@@ -387,13 +388,13 @@ function TodayScentProductContent() {
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-[455px] bg-white border-t-2 border-black px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
           <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
             <div className="min-w-0">
-              <div className="text-[15px] font-black text-black leading-tight truncate">{formatPrice(price)}원</div>
+              <div className="text-[15px] font-black text-black leading-tight truncate">{t('programs.detail.todayScent.priceWon', { price: formatPrice(price) })}</div>
               <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{scent.name} · {selectedSize}</div>
             </div>
             <button
               onClick={handleAddToCart}
               disabled={loading || addingToCart}
-              aria-label="장바구니 담기"
+              aria-label={t('programs.detail.todayScent.addToCart')}
               className="flex-shrink-0 w-12 h-12 bg-white text-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center disabled:opacity-50"
             >
               <ShoppingCart size={20} />
@@ -401,9 +402,9 @@ function TodayScentProductContent() {
             <button
               onClick={handlePurchaseClick}
               disabled={loading}
-              className="animate-buy-glow h-12 min-w-0 px-3 bg-[#FCD34D] text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap"
+              className="flex h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border-2 border-black bg-black px-3 text-sm font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#cbd5e1] disabled:opacity-50"
             >
-              바로 구매하기
+              {t('programs.detail.todayScent.buyNow')}
             </button>
           </div>
         </div>
@@ -438,40 +439,40 @@ function TodayScentProductContent() {
                 <div className="w-16 h-16 mx-auto mb-4 bg-amber-400 rounded-2xl flex items-center justify-center shadow-lg border-2 border-black shadow-[4px_4px_0_0_black]">
                   <span className="text-3xl">🦆</span>
                 </div>
-                <h2 className="text-xl font-black text-slate-900 mb-2">로그인하고 구매하기</h2>
+                <h2 className="text-xl font-black text-slate-900 mb-2">{t('programs.detail.todayScent.loginModalTitle')}</h2>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  로그인하면 주문 내역을<br />
-                  <span className="font-bold text-amber-600">마이페이지에서 확인</span>할 수 있어요!
+                  {t('programs.detail.todayScent.loginModalDescLine1')}<br />
+                  <span className="font-bold text-amber-600">{t('programs.detail.todayScent.loginModalDescHighlight')}</span>{t('programs.detail.todayScent.loginModalDescLine2')}
                 </p>
               </div>
               <div className="px-6 py-4 bg-slate-50 border-y-2 border-black">
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">로그인하면 주문 내역이 저장돼요</span>
+                    <span className="text-slate-600">{t('programs.detail.todayScent.loginBenefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">배송 조회를 편하게 할 수 있어요</span>
+                    <span className="text-slate-600">{t('programs.detail.todayScent.loginBenefit2')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">비회원도 구매는 가능해요</span>
+                    <span className="text-slate-600">{t('programs.detail.todayScent.loginBenefit3')}</span>
                   </div>
                 </div>
               </div>
               <div className="p-6 space-y-3">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FCD34D] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#FCD34D] transition-all border-2 border-black"
+                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#cbd5e1] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#cbd5e1] transition-all border-2 border-black"
                 >
-                  로그인 / 회원가입
+                  {t('programs.detail.todayScent.loginSignup')}
                 </button>
                 <button
                   onClick={handleGuestPurchase}
                   className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
                 >
-                  <span>비회원으로 구매하기</span>
+                  <span>{t('programs.detail.todayScent.guestPurchase')}</span>
                 </button>
               </div>
             </motion.div>

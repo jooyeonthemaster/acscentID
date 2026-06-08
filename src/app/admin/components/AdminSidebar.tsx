@@ -112,6 +112,12 @@ const navGroups: NavGroup[] = [
         description: '배송비 무료 & 이벤트',
       },
       {
+        href: '/admin/coupons',
+        label: '쿠폰 발급',
+        icon: QrCode,
+        description: '실물 QR 쿠폰 출력',
+      },
+      {
         href: '/admin/reviews',
         label: '리뷰 관리',
         icon: MessageSquare,

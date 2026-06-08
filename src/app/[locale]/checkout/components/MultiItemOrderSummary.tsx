@@ -26,6 +26,7 @@ function getStoreProductMeta(analysisData: CartItem['analysis_data']) {
     title?: string
     scentName?: string
     perfumeId?: string
+    requestNote?: string
   }
 }
 
@@ -139,6 +140,12 @@ export function MultiItemOrderSummary({
                     <p className="text-xs font-bold text-lime-700">
                       {storeMeta.title || (item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`)}
                       {storeMeta.perfumeId && ` · ${storeMeta.perfumeId}`}
+                    </p>
+                  )}
+                  {storeMeta?.requestNote && (
+                    <p className="mt-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 break-words whitespace-pre-wrap">
+                      <span className="font-black text-amber-700">특정 향료 요청 </span>
+                      {storeMeta.requestNote}
                     </p>
                   )}
                   {item.twitter_name && (

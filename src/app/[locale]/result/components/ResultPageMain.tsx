@@ -30,7 +30,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { GraduationTab } from './graduation'
 
 import { useProductPricing } from '@/hooks/useProductPricing'
-import type { ProductType } from '@/types/cart'
+import { SCENT_PAPER_SIZE, type ProductType } from '@/types/cart'
 
 // 애니메이션 variants
 const fadeInUp = {
@@ -103,6 +103,8 @@ export default function ResultPageMain() {
 
   // 서비스 모드: DB/localStorage에서 로드된 값 사용, 없으면 기본값 'offline'
   const serviceMode = loadedServiceMode || 'offline'
+  const checkoutProductType: ProductType = isFigureMode ? 'figure_diffuser' : ((productType as ProductType) || 'image_analysis')
+  const canBuyScentPaper = serviceMode === 'online' && checkoutProductType === 'image_analysis' && !isGraduationMode
 
   // 졸업 모드일 때 기본 탭을 'perfume'으로 설정 (추천 향수 먼저 표시)
   useEffect(() => {
@@ -147,10 +149,7 @@ export default function ResultPageMain() {
 
   // 바로 구매하기 - productType, analysisId 정보 저장 후 결제 페이지로 이동
   const handleCheckout = useCallback(() => {
-    // isFigureMode면 무조건 figure_diffuser (DB에 productType이 잘못 저장된 경우 대비)
-    // 그 외에는 productType 사용 (기본값 image_analysis)
-    const currentProductType = isFigureMode ? 'figure_diffuser' : (productType || 'image_analysis')
-    localStorage.setItem('checkoutProductType', currentProductType)
+    localStorage.setItem('checkoutProductType', checkoutProductType)
 
     // 분석 ID 저장 (주문과 분석 결과 연결용)
     const analysisIdToSave = savedResultId || existingResultId
@@ -159,7 +158,22 @@ export default function ResultPageMain() {
     }
 
     router.push('/checkout')
-  }, [isFigureMode, productType, savedResultId, existingResultId, router])
+  }, [checkoutProductType, savedResultId, existingResultId, router])
+
+  // 시향지로 먼저 받아보기 - 같은 분석 결과를 시향지 옵션으로 결제
+  const handleScentPaperCheckout = useCallback(() => {
+    if (!canBuyScentPaper) return
+
+    localStorage.setItem('checkoutProductType', 'image_analysis')
+    localStorage.setItem('checkoutSelectedSize', SCENT_PAPER_SIZE)
+
+    const analysisIdToSave = savedResultId || existingResultId
+    if (analysisIdToSave) {
+      localStorage.setItem('checkoutAnalysisId', analysisIdToSave)
+    }
+
+    router.push('/checkout')
+  }, [canBuyScentPaper, savedResultId, existingResultId, router])
 
   // 장바구니 담기
   const handleAddToCart = useCallback(async () => {
@@ -501,6 +515,7 @@ export default function ResultPageMain() {
           onShare={handleShare}
           onAddToCart={handleAddToCart}
           onCheckout={handleCheckout}
+          onScentPaperCheckout={canBuyScentPaper ? handleScentPaperCheckout : undefined}
           onFeedback={() => setIsFeedbackModalOpen(true)}
           onFeedbackHistory={() => setIsFeedbackHistoryOpen(true)}
           isShareSaving={isSaving}

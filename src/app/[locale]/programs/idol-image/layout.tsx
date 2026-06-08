@@ -14,7 +14,7 @@ export const metadata: Metadata = createMetadata({
     type: 'website',
     images: [
       {
-        url: '/images/perfume/KakaoTalk_20260125_225218071.jpg',
+        url: '/images/product-placeholder.svg',
         width: 800,
         height: 800,
         alt: 'AI 이미지 분석 퍼퓸 - AC\'SCENT IDENTITY',
@@ -35,7 +35,7 @@ export default async function IdolImageLayout({ children }: { children: React.Re
     description: '좋아하는 이미지로 추출하는 나만의 맞춤 퍼퓸. 뿌덕퍼퓸 + 실물 분석보고서 포함.',
     price: opt?.price ?? 24000,
     originalPrice: opt?.original_price ?? 35000,
-    image: '/images/perfume/KakaoTalk_20260125_225218071.jpg',
+    image: '/images/product-placeholder.svg',
     path: '/programs/idol-image',
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-IDOL-IMAGE',

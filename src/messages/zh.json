@@ -230,8 +230,8 @@
       "idolImage": "用喜欢的图像提取专属于你的香水",
       "figure": "用喜欢的图像制作专属于你的花盆手办香薰器",
       "graduation": "将毕业的回忆化为香气，特别的毕业纪念香水",
-      "personal": "表达自我的专属签名香"
-      ,"chemistry": "将两个角色的化学反应融入香氛"
+      "personal": "表达自我的专属签名香",
+      "chemistry": "将两个角色的化学反应融入香氛"
     },
     "includes": {
       "idolImage": "鸭子香水(10ml/50ml) + 实物分析报告",
@@ -337,7 +337,242 @@
       "customRecommendation": "定制香水推荐",
       "customRecommendationDesc": "从30款香水中为您推荐\n最适合的香水",
       "reviewsTitle": "真实评价"
-    }
+    },
+    "detail": {
+      "todayScent": {
+        "todayScentLabel": "今日香气",
+        "noteTop": "前调",
+        "noteMid": "中调",
+        "noteBase": "后调",
+        "titleSuffix": "专属于你的签名香水",
+        "subtitle": "原汁原味呈现今日抽取香气的AC'SCENT签名香水",
+        "selectSize": "选择容量",
+        "priceWon": "{price}韩元",
+        "perfumeItem": "{name} 香水 {size}（喷雾型）",
+        "shippingItem": "下单后2-3天内发货（运费3,000韩元）",
+        "buyNowWithScent": "用这款香气立即购买",
+        "addToCart": "加入购物车",
+        "addingToCart": "添加中...",
+        "ctaCaption": "原汁原味的今日香气，世上独一无二的签名之作",
+        "featureSignature": "今日签名香",
+        "featureFastShipping": "快速配送",
+        "aboutHeadingLine1": "{name}",
+        "aboutHeadingLine2": "是怎样的香气？",
+        "scentNotesTitle": "香调",
+        "topNote": "前调",
+        "midNote": "中调",
+        "baseNote": "后调",
+        "drawAgainTomorrow": "明天再去抽取另一款香气",
+        "buyNow": "立即购买",
+        "loginModalTitle": "登录后购买",
+        "loginModalDescLine1": "登录后即可在",
+        "loginModalDescHighlight": "我的页面查看订单",
+        "loginModalDescLine2": "记录！",
+        "loginBenefit1": "登录后订单记录会被保存",
+        "loginBenefit2": "可轻松查询物流",
+        "loginBenefit3": "非会员也可购买",
+        "loginSignup": "登录 / 注册",
+        "guestPurchase": "以非会员身份购买",
+        "cartAddSuccess": "已加入购物车 🛒",
+        "cartAddFailed": "加入购物车失败"
+      },
+      "chemistry": {
+        "info": {
+          "volumeOptions": "10ml x 2 / 50ml x 2 容量可选"
+        },
+        "price": {
+          "setBasis": "(套装价)",
+          "setLine": "10ml x 2 套装 {p10} / 50ml x 2 套装 {p50}"
+        },
+        "featureBar": {
+          "aiAnalysis": "AI契合分析",
+          "layeringSet": "叠香套装",
+          "profileCard": "契合档案卡"
+        },
+        "process": {
+          "step1Title": "输入信息",
+          "step1Desc": "上传图片并填写名字",
+          "step2Title": "设定关系",
+          "step2Desc": "选择主题与原型",
+          "step3Title": "AI契合分析",
+          "step3Desc": "分析每个角色的香水",
+          "step4Title": "香水套装",
+          "step4Desc": "专属契合套装完成"
+        },
+        "special": {
+          "heading": "叠香香水的独特之处",
+          "card1Title": "10项契合分析",
+          "card1Desc": "香气契合、叠香指南、色彩契合、特质协同、关系动态、假设情境、代表台词、季节/时间、名字契合，乃至未来预测！",
+          "card2Title": "四大契合香",
+          "card2Desc": "在拉锯契合、慢热契合、甜蜜契合、风暴契合中，获取AI判定的契合类型与专属动态称号吧！",
+          "card3Title": "叠香套装",
+          "card3Desc": "两位角色将分别匹配不同的香水，并以可一同叠香的套装形式提供。"
+        }
+      },
+      "graduation": {
+        "packageInfoTitle": "毕业礼包内容"
+      },
+      "idolImage": {
+        "previewKeyword1": "时尚",
+        "previewKeyword2": "甜美",
+        "previewKeyword3": "魅力",
+        "previewPerfumeName": "烟熏混合木质",
+        "previewTopNotes": "佛手柑、黑加仑",
+        "previewMiddleNotes": "大马士革玫瑰、牡丹",
+        "previewBaseNotes": "麝香、檀香"
+      },
+      "leQuack": {
+        "productNameFallback": "招牌噗嘟鸭香水",
+        "heroSubtitle": "AC'SCENT 招牌香水 + 可爱小鸭香水钥匙扣",
+        "heroInfoTitle": "噗嘟鸭香水(10ml) + 噗嘟鸭香水钥匙扣",
+        "heroInfoBody": "下单后2~3天内发货 / 含可爱小鸭香水钥匙扣 / 高级包装 / 满5万韩元免运费",
+        "ctaLabel": "立即购买",
+        "breadcrumbSignature": "招牌系列",
+        "signaturePerfumeLabel": "AC'SCENT 招牌香水",
+        "infoDelivery": "下单后2~3天内发货",
+        "infoKeyringIncluded": "含可爱小鸭香水钥匙扣",
+        "infoPremiumPackage": "高级包装",
+        "infoFreeShipping": "满5万韩元免运费",
+        "ctaHint": "AC'SCENT 招牌香水 + 可爱小鸭香水钥匙扣！",
+        "featureKeyring": "香水钥匙扣",
+        "featureSignatureScent": "招牌香调",
+        "featureFastDelivery": "快速配送",
+        "featureGiftRecommend": "送礼推荐",
+        "featuresHeadingLine1": "招牌噗嘟鸭香水的",
+        "featuresHeadingLine2": "独特之处",
+        "cardKeyringTitle": "可爱小鸭香水钥匙扣",
+        "cardKeyringBodyLine1": "AC'SCENT 的吉祥物噗嘟鸭变身钥匙扣！",
+        "cardKeyringBodyLine2": "挂在包包或钥匙上，随时随地展现可爱",
+        "cardScentTitle": "AC'SCENT 招牌香调",
+        "cardScentBodyLine1": "以代表品牌的招牌香调，",
+        "cardScentBodyLine2": "带来温暖舒适的感受",
+        "cardGiftTitle": "适合送礼的组合",
+        "cardGiftBodyLine1": "香水与钥匙扣一同呈现，正适合",
+        "cardGiftBodyLine2": "送给珍视的人",
+        "reviewsHeading": "真实购买评价",
+        "viewAllReviews": "查看全部评价 →",
+        "loginModalTitle": "登录后购买",
+        "loginModalDescPrefix": "登录后即可",
+        "loginModalDescHighlight": "在我的页面查看订单记录",
+        "loginModalDescSuffix": "！",
+        "loginBenefitSaveOrders": "登录后订单记录会被保存",
+        "loginBenefitTrackDelivery": "可轻松查询配送进度",
+        "loginBenefitGuestAllowed": "非会员也可购买",
+        "loginSignupButton": "登录 / 注册",
+        "guestPurchaseButton": "以游客身份购买"
+      },
+      "personal": {
+        "productName": "专属香氛",
+        "heroSubtitle": "由AI分析、契合你独特个性的专属签名香水",
+        "heroInfoTitle": "定制香水 10ml（喷雾型）",
+        "heroInfoBody": "制作后2~3天发货（运费3,000韩元）／免费赠送个性报告",
+        "heroCtaLabel": "开始个性分析",
+        "ctaHint": "只需输入描述你的关键词，就这么简单！",
+        "infoShipping": "制作后2~3天发货（运费{fee}）",
+        "infoReportFree": "免费赠送个性报告",
+        "include1Name": "个性报告",
+        "include1Desc": "AI分析结果",
+        "include2Name": "TOP 3推荐",
+        "include2Desc": "定制香水推荐",
+        "include3Name": "签名香水 10ml",
+        "include3Desc": "喷雾型",
+        "include4Name": "高级包装",
+        "include4Desc": "礼品盒",
+        "packageTitle": "套装内容",
+        "targetTitle": "特别推荐给这样的你！",
+        "target1Title": "香水入门者",
+        "target1Desc": "最适合刚开始接触的你！",
+        "target2Title": "寻找特别礼物的人",
+        "target2Desc": "世上独一无二的定制香水礼物",
+        "target3Title": "想要专属形象的人",
+        "target3Desc": "专业的签名香气",
+        "target4Title": "想了解自己喜好的人",
+        "target4Desc": "由AI分析的个性",
+        "processTitle": "如何进行？",
+        "process1Title": "输入信息",
+        "process1Desc": "输入描述你的关键词",
+        "process2Title": "AI分析",
+        "process2Desc": "个性综合分析",
+        "process3Title": "香水推荐",
+        "process3Desc": "TOP 3签名香气推荐",
+        "process4Title": "产品配送",
+        "process4Desc": "定制香水制作与配送",
+        "resultTitle": "你将获得这样的结果！",
+        "resultProfileTitle": "个性档案",
+        "resultProfile1": "形象分析",
+        "resultProfile2": "性格类型",
+        "resultProfile3": "偏好风格",
+        "resultProfile4": "适合的香调",
+        "resultTopTitle": "TOP 3香水推荐",
+        "resultTop1": "签名麝香",
+        "resultTop2": "木质琥珀",
+        "resultTop3": "柑橘清新",
+        "finishedProductAlt": "成品",
+        "resultSignatureTitle": "我的专属签名",
+        "resultSignatureDesc": "世上独一无二的定制香水",
+        "reviewsTitle": "真实使用评价",
+        "review1Name": "香水新手",
+        "review1Text": "第一次用香水，没想到和我的风格这么搭，太惊喜了！",
+        "review2Name": "上班族A",
+        "review2Text": "上班前喷一下，一整天心情都好。淡淡的很喜欢。",
+        "review3Name": "送礼达人",
+        "review3Text": "送给女朋友，她说真的太适合她了，感动得不行哈哈",
+        "purchaseVerified": "购买认证",
+        "faqTitle": "常见问题",
+        "faq1Q": "需要输入哪些信息？",
+        "faq1A": "只需输入描述自己的关键词、偏好风格、喜欢的氛围等即可。无需照片，仅凭文字也足够！",
+        "faq2Q": "香水是什么类型的？",
+        "faq2A": "以10ml喷雾型提供。便于携带，散发淡雅，非常适合日常使用。",
+        "faq3Q": "分析需要多长时间？",
+        "faq3A": "AI分析即时完成。确认结果后，满意即可下单。",
+        "faq4Q": "可以退款吗？",
+        "faq4A": "由于是定制产品，制作开始后难以退款。请充分确认分析结果后再下单。",
+        "finalCtaTitleLine1": "找到属于你的",
+        "finalCtaTitleLine2": "专属签名香气",
+        "finalCtaDescLine1": "由AI分析、基于个性的定制香水。",
+        "finalCtaDescLine2": "只有当你满意分析结果时才付款！",
+        "finalCtaButton": "立即开始",
+        "finalCtaTime": "分析所需时间：约2分钟",
+        "loginPromptTitle": "等一下！",
+        "loginPromptBodyLine1": "如果不登录，分析结果",
+        "loginPromptBodyLine2": "将不会被保存！",
+        "loginBenefit1": "登录后分析结果会自动保存",
+        "loginBenefit2": "可在我的页面随时再次查看",
+        "loginBenefit3": "非会员离开页面后结果会消失",
+        "loginButton": "登录 / 注册"
+      },
+      "sample": {
+        "productName": "AI图像分析试香纸",
+        "heroSubtitle": "让AI分析你的图像，先用试香纸收到推荐的香味。喜欢的话，可以立即购买正装香水。",
+        "infoTitle": "套装内容",
+        "infoBody": "AI图像分析＋推荐香味试香纸／附赠分析结果报告／下单后2~3天内发货",
+        "ctaLabel": "开始图像分析",
+        "ctaHint": "先用试香纸确认香味，喜欢就入手香水！",
+        "infoItem1": "AI图像分析＋推荐香味试香纸",
+        "infoItem2": "附赠分析结果报告",
+        "featureAnalysis": "AI图像分析",
+        "featureScent": "推荐香味试闻",
+        "featureReport": "分析报告",
+        "howItWorksTitle": "流程是这样的",
+        "step1Title": "上传图像",
+        "step1Desc": "上传要分析的照片",
+        "step2Title": "AI分析",
+        "step2Desc": "根据图像推荐香味",
+        "step3Title": "收到试香纸",
+        "step3Desc": "用试香纸呈现推荐香味",
+        "step4Title": "购买香水",
+        "step4Desc": "喜欢就升级为正装香水"
+      },
+      "generic": {
+        "notFoundTitle": "未找到商品",
+        "notRegistered": "该页面未注册在管理员商品列表中。",
+        "backHome": "返回首页",
+        "prepareTitle": "请准备详情页",
+        "prepareDesc": "在管理员商品管理界面修改基本模板并发布后，将显示在此区域。"
+      }
+    },
+    "representative": "主图",
+    "thumbnailAria": "查看 {alt} 图片 {index}"
   },
   "input": {
     "step1": {
@@ -408,9 +643,36 @@
       "descIdol": "请上传分析对象的图片，将用于香水推荐。",
       "descPersonal": "请上传您的图片，将用于香水推荐。"
     },
-    "styles": ["可爱", "性感", "时尚", "优雅", "活泼", "清爽", "复古", "休闲"],
-    "personalities": ["开朗", "沉稳", "幽默", "腼腆", "自信", "体贴", "热情", "温柔"],
-    "charmPoints": ["笑眼", "嗓音", "手", "气质", "眼神", "微笑", "说话方式", "手势"],
+    "styles": [
+      "可爱",
+      "性感",
+      "时尚",
+      "优雅",
+      "活泼",
+      "清爽",
+      "复古",
+      "休闲"
+    ],
+    "personalities": [
+      "开朗",
+      "沉稳",
+      "幽默",
+      "腼腆",
+      "自信",
+      "体贴",
+      "热情",
+      "温柔"
+    ],
+    "charmPoints": [
+      "笑眼",
+      "嗓音",
+      "手",
+      "气质",
+      "眼神",
+      "微笑",
+      "说话方式",
+      "手势"
+    ],
     "genders": {
       "male": "男性",
       "female": "女性",
@@ -585,7 +847,6 @@
     "orderNameMulti": "{name} 等{count}件",
     "eventLabel": "活动",
     "promoFreeShipping": "{promoName} - 免运费",
-    "quantitySelection": "数量选择",
     "repurchaseBannerTitle": "欢迎回购顾客！🎉",
     "repurchaseBannerSubtitle": "请在下方选择并使用10%折扣券",
     "firstPurchasePromoTitle": "首购后每次下单都享10%折扣！💝",
@@ -925,7 +1186,8 @@
     "totalReview": "全部评价",
     "totalReviews": "共{count}条评价",
     "reviewRange": "{total}条评价中第{start}-{end}条",
-    "star": "{rating}分"
+    "star": "{rating}分",
+    "writeButton": "撰写评价"
   },
   "coupon": {
     "unlimitedUse": "无限使用",
@@ -1046,6 +1308,7 @@
     "saving": "保存中...",
     "addToCart": "加入",
     "adding": "添加中...",
+    "scentPaperCta": "还在犹豫的话，先用试香纸体验吧！",
     "buy": "购买",
     "feedback": "反馈"
   },
@@ -1352,17 +1615,142 @@
     "downloadError": "下载时发生错误。"
   },
   "graduationInput": {
-    "progressLabels": { "step1": "基本信息", "step2": "校园时光", "step3": "此刻感受", "step4": "未来", "step5": "上传照片" },
-    "nav": { "analyzing": "分析中...", "startAnalysis": "开始分析", "next": "下一步" },
-    "step1": { "title": "基本信息", "description": "请介绍一下毕业生 🎓", "pinLabel": "验证码（4位数字）", "nameLabel": "姓名（或昵称）", "namePlaceholder": "例：张同学", "genderLabel": "性别", "graduationTypeLabel": "毕业类型" },
-    "step2": { "title": "校园时光", "description": "你是怎样的学生呢？🕰️", "keywordLabel": "描述你校园生活的关键词", "maxItems": "最多3个", "pastKeywords": { "active": "活泼", "quiet": "安静", "diligent": "勤奋", "shy": "害羞", "bright": "开朗", "passionate": "热情", "curious": "好奇", "warm": "温暖", "artistic": "文艺", "athletic": "运动" } },
-    "step3": { "title": "此刻的心情", "description": "毕业时你的感受是什么？🎓", "selectLabel": "选择最符合的情感", "feelings": { "excited": "激动", "nostalgic": "怀念", "proud": "自豪", "anxious": "紧张", "grateful": "感恩", "hopeful": "充满希望", "bittersweet": "百感交集", "determined": "坚定" } },
-    "step4": { "title": "未来的自己", "description": "毕业后你想成为怎样的人？🌈", "keywordLabel": "描述未来的关键词", "maxItems": "最多3个", "futureKeywords": { "career": "努力拼搏", "travel": "环游世界", "confident": "自信满满", "warm_hearted": "温暖善良", "free": "自由自在", "challenging": "勇于挑战", "stable": "安定从容", "creative": "充满创意", "influential": "有影响力", "happy": "幸福快乐" } },
-    "step5": { "title": "上传照片", "description": "用于毕业香水分析的照片 📸", "guideTitle": "什么样的照片最合适？", "guideItem1": "毕业照或近照", "guideItem2": "正面且能看清面部", "guideItem3": "光线良好的照片", "processing": "正在处理图片...", "uploadButton": "上传照片", "uploadHint": "点击选择", "uploadedAlt": "已上传的图片", "uploadComplete": "上传完成", "selectOther": "选择其他照片" },
-    "step6": { "title": "毕业照风格", "description": "想让AI将照片转换为毕业照风格吗？✨（可选）", "original": "原图", "transformComplete": "转换完成", "afterTransform": "转换后", "transforming": "转换中...", "originalAlt": "原始图片", "transformedAlt": "转换后的图片", "preview": "预览", "aiTransformTitle": "AI图片转换", "aiTransformDesc": "将你的照片转换为毕业照风格。使用原图分析结果也一样！", "transformButton": "转换为毕业照风格", "startWithOriginal": "使用原图开始", "startAnalysis": "开始香水分析！" },
-    "analyzing": { "title": "正在调配毕业香水", "quotes": ["教室里的粉笔灰，回忆的第一抹香...", "捕捉操场上的青草香...", "毕业证书的墨香，新起点的芬芳...", "调和春风中飘来的樱花香...", "图书馆里翻动书页的气息...", "青春的汗水，捕捉热情的香味...", "将与朋友们的欢笑化为芬芳...", "像初恋一般怦然心动的香味...", "食堂的回忆，温暖的午餐香气...", "回味毕业花束的芬芳...", "捕捉上学路上清晨的空气...", "设计梦想成真的气息...", "将老师温暖的话语化为香气...", "将毕业纪念册的回忆编织成香氛...", "庆祝新起点的充满希望的芬芳...", "连接过去与未来的专属香水..."] },
-    "types": { "elementary": "小学", "middle": "初中", "high": "高中", "university": "大学", "graduate": "研究生院", "other": "其他" },
-    "genders": { "Male": "男", "Female": "女", "Other": "其他" }
+    "progressLabels": {
+      "step1": "基本信息",
+      "step2": "校园时光",
+      "step3": "此刻感受",
+      "step4": "未来",
+      "step5": "上传照片"
+    },
+    "nav": {
+      "analyzing": "分析中...",
+      "startAnalysis": "开始分析",
+      "next": "下一步"
+    },
+    "step1": {
+      "title": "基本信息",
+      "description": "请介绍一下毕业生 🎓",
+      "pinLabel": "验证码（4位数字）",
+      "nameLabel": "姓名（或昵称）",
+      "namePlaceholder": "例：张同学",
+      "genderLabel": "性别",
+      "graduationTypeLabel": "毕业类型"
+    },
+    "step2": {
+      "title": "校园时光",
+      "description": "你是怎样的学生呢？🕰️",
+      "keywordLabel": "描述你校园生活的关键词",
+      "maxItems": "最多3个",
+      "pastKeywords": {
+        "active": "活泼",
+        "quiet": "安静",
+        "diligent": "勤奋",
+        "shy": "害羞",
+        "bright": "开朗",
+        "passionate": "热情",
+        "curious": "好奇",
+        "warm": "温暖",
+        "artistic": "文艺",
+        "athletic": "运动"
+      }
+    },
+    "step3": {
+      "title": "此刻的心情",
+      "description": "毕业时你的感受是什么？🎓",
+      "selectLabel": "选择最符合的情感",
+      "feelings": {
+        "excited": "激动",
+        "nostalgic": "怀念",
+        "proud": "自豪",
+        "anxious": "紧张",
+        "grateful": "感恩",
+        "hopeful": "充满希望",
+        "bittersweet": "百感交集",
+        "determined": "坚定"
+      }
+    },
+    "step4": {
+      "title": "未来的自己",
+      "description": "毕业后你想成为怎样的人？🌈",
+      "keywordLabel": "描述未来的关键词",
+      "maxItems": "最多3个",
+      "futureKeywords": {
+        "career": "努力拼搏",
+        "travel": "环游世界",
+        "confident": "自信满满",
+        "warm_hearted": "温暖善良",
+        "free": "自由自在",
+        "challenging": "勇于挑战",
+        "stable": "安定从容",
+        "creative": "充满创意",
+        "influential": "有影响力",
+        "happy": "幸福快乐"
+      }
+    },
+    "step5": {
+      "title": "上传照片",
+      "description": "用于毕业香水分析的照片 📸",
+      "guideTitle": "什么样的照片最合适？",
+      "guideItem1": "毕业照或近照",
+      "guideItem2": "正面且能看清面部",
+      "guideItem3": "光线良好的照片",
+      "processing": "正在处理图片...",
+      "uploadButton": "上传照片",
+      "uploadHint": "点击选择",
+      "uploadedAlt": "已上传的图片",
+      "uploadComplete": "上传完成",
+      "selectOther": "选择其他照片"
+    },
+    "step6": {
+      "title": "毕业照风格",
+      "description": "想让AI将照片转换为毕业照风格吗？✨（可选）",
+      "original": "原图",
+      "transformComplete": "转换完成",
+      "afterTransform": "转换后",
+      "transforming": "转换中...",
+      "originalAlt": "原始图片",
+      "transformedAlt": "转换后的图片",
+      "preview": "预览",
+      "aiTransformTitle": "AI图片转换",
+      "aiTransformDesc": "将你的照片转换为毕业照风格。使用原图分析结果也一样！",
+      "transformButton": "转换为毕业照风格",
+      "startWithOriginal": "使用原图开始",
+      "startAnalysis": "开始香水分析！"
+    },
+    "analyzing": {
+      "title": "正在调配毕业香水",
+      "quotes": [
+        "教室里的粉笔灰，回忆的第一抹香...",
+        "捕捉操场上的青草香...",
+        "毕业证书的墨香，新起点的芬芳...",
+        "调和春风中飘来的樱花香...",
+        "图书馆里翻动书页的气息...",
+        "青春的汗水，捕捉热情的香味...",
+        "将与朋友们的欢笑化为芬芳...",
+        "像初恋一般怦然心动的香味...",
+        "食堂的回忆，温暖的午餐香气...",
+        "回味毕业花束的芬芳...",
+        "捕捉上学路上清晨的空气...",
+        "设计梦想成真的气息...",
+        "将老师温暖的话语化为香气...",
+        "将毕业纪念册的回忆编织成香氛...",
+        "庆祝新起点的充满希望的芬芳...",
+        "连接过去与未来的专属香水..."
+      ]
+    },
+    "types": {
+      "elementary": "小学",
+      "middle": "初中",
+      "high": "高中",
+      "university": "大学",
+      "graduate": "研究生院",
+      "other": "其他"
+    },
+    "genders": {
+      "Male": "男",
+      "Female": "女",
+      "Other": "其他"
+    }
   },
   "figureChat": {
     "title": "手办香薰器",
@@ -1389,7 +1777,12 @@
     "memoryUploadDesc": "我们会将那一刻的情感化为香氛",
     "figureUploadDesc": "我们会根据这张图片制作手办",
     "dragAndDrop": "点击或拖拽上传",
-    "notice": { "title": "手办制作指南", "monoColor": "手办以单色打印，作为DIY涂色套装提供！", "complexDetail": "由于3D打印的限制，复杂的细节可能难以还原。", "simplePoseTip": "姿势简单、轮廓清晰的图片效果最好！" },
+    "notice": {
+      "title": "手办制作指南",
+      "monoColor": "手办以单色打印，作为DIY涂色套装提供！",
+      "complexDetail": "由于3D打印的限制，复杂的细节可能难以还原。",
+      "simplePoseTip": "姿势简单、轮廓清晰的图片效果最好！"
+    },
     "scenarios": {
       "greeting": "你好！我是帮助制作手办香薰器的AI助手 💕\n\n我会帮你将与喜欢的人的特别时刻，永远珍藏为香氛和手办！\n\n首先，能告诉我你和喜欢的人之间的一段珍贵回忆吗？",
       "greetingPlaceholder": "自由分享那段回忆吧...",
@@ -1405,11 +1798,39 @@
       "figureRequestPlaceholder": "例：特定姿势、配饰、服装细节等",
       "complete": "所有信息都收到了！🎉\n\n我将为你打造一个珍藏美好回忆的手办香薰器。\n\n我们开始分析吧？"
     },
-    "quickReplies": { "happy": "无比幸福", "moved": "感动的泪水", "excited": "心跳加速的激动", "peaceful": "平静安心", "springDay": "温暖的春日", "summerNight": "热情的夏夜", "autumnSunset": "秋日黄昏", "winterCold": "寒冷的冬日", "warmTone": "暖色调", "coolTone": "冷色调", "pastelTone": "柔和色调", "vividTone": "鲜明色调" },
+    "quickReplies": {
+      "happy": "无比幸福",
+      "moved": "感动的泪水",
+      "excited": "心跳加速的激动",
+      "peaceful": "平静安心",
+      "springDay": "温暖的春日",
+      "summerNight": "热情的夏夜",
+      "autumnSunset": "秋日黄昏",
+      "winterCold": "寒冷的冬日",
+      "warmTone": "暖色调",
+      "coolTone": "冷色调",
+      "pastelTone": "柔和色调",
+      "vividTone": "鲜明色调"
+    },
     "empathy": {
-      "memory": ["哇...那一定是非常特别的时刻！💕", "我能感受到那个时刻有多珍贵 ✨", "光是听着就觉得好温暖 🥹", "多么美好的回忆！我理解你想永远珍藏它 💫"],
-      "memoryImage": ["哇...这个瞬间一定非常特别！💕", "我能感受到这个场景中{{emotion}}的情感 ✨", "多么美好的时刻！化为香氛会更加特别 🌸", "我能感受到这张图片中温暖的情感 🥹"],
-      "figureImage": ["哇！好棒的偶像！😍", "这做成手办一定超可爱！🎨", "这张图片非常适合制作手办！💪", "选得好！我会尽力还原的 ✨"]
+      "memory": [
+        "哇...那一定是非常特别的时刻！💕",
+        "我能感受到那个时刻有多珍贵 ✨",
+        "光是听着就觉得好温暖 🥹",
+        "多么美好的回忆！我理解你想永远珍藏它 💫"
+      ],
+      "memoryImage": [
+        "哇...这个瞬间一定非常特别！💕",
+        "我能感受到这个场景中{{emotion}}的情感 ✨",
+        "多么美好的时刻！化为香氛会更加特别 🌸",
+        "我能感受到这张图片中温暖的情感 🥹"
+      ],
+      "figureImage": [
+        "哇！好棒的偶像！😍",
+        "这做成手办一定超可爱！🎨",
+        "这张图片非常适合制作手办！💪",
+        "选得好！我会尽力还原的 ✨"
+      ]
     }
   },
   "metadata": {
@@ -1844,5 +2265,90 @@
     "sharedBanner": "朋友和你分享了「{name}」！",
     "sharedBannerSub": "你也来抽今日香气吧 🎁",
     "viewSharedScent": "查看「{name}」"
+  },
+  "store": {
+    "selectAndBuy": "选择香味后立即购买",
+    "viewAll": "查看全部商品",
+    "items": {
+      "perfume-50ml": {
+        "title": "50ml 香水",
+        "shortLabel": "50ml",
+        "description": "可尽情使用喜爱的AC'SCENT香氛的正装容量香水。",
+        "included": [
+          "所选香味 50ml喷雾香水",
+          "高级包装",
+          "下单后2〜3日内配送"
+        ]
+      },
+      "perfume-10ml": {
+        "title": "10ml 香水",
+        "shortLabel": "10ml",
+        "description": "便于随身携带的迷你尺寸香水。",
+        "included": [
+          "所选香味 10ml喷雾香水",
+          "便携包装",
+          "下单后2〜3日内配送"
+        ]
+      },
+      "scent-paper": {
+        "title": "试香纸",
+        "shortLabel": "试香纸",
+        "description": "购买香水前可先确认心仪香味的试香商品。",
+        "included": [
+          "所选香味试香纸",
+          "香味笔记卡",
+          "下单后2〜3日内配送"
+        ]
+      }
+    },
+    "list": {
+      "heroTitle": "无需分析即可直接挑选的\nAC'SCENT商品",
+      "heroDesc": "选择想要的商品，挑选喜欢的香味后，即可直接前往购物车或结算。",
+      "scentSelectable": "香味可选商品",
+      "orderInfoTitle": "商品订购说明",
+      "orderInfoDesc": "商品订购不包含AI分析报告。由于是选择香味后直接下单的方式，在后台订单管理中也会单独显示为“商品”。"
+    },
+    "detail": {
+      "notFoundTitle": "未找到商品",
+      "notFoundDesc": "请从商品列表中重新选择。",
+      "backToProducts": "返回商品列表",
+      "infoTitle": "商品信息",
+      "infoBodyFallback": "选择心仪的香味后即可立即下单。",
+      "ctaLabel": "选择香味",
+      "selectScent": "香味选择",
+      "metaTag": "商品",
+      "metaSub": "无需分析直接购买",
+      "tryPaperFirst": "先用试香纸体验",
+      "tryPaperHintSelected": "将把所选香味原样加入试香纸商品。",
+      "tryPaperHintDefault": "初次体验可先轻松确认香味。",
+      "tryPaperFirstBottom": "初次体验先用试香纸",
+      "composition": "套装内容",
+      "scentSelectDesc": "在AC'SCENT的30种香味中选择心仪的香味，并调整各香味的数量。",
+      "scentsCount": "{count}种香味",
+      "searchPlaceholder": "搜索香味名称、香调、关键词",
+      "selected": "已选择",
+      "select": "选择",
+      "quantity": "数量",
+      "selectedScents": "已选香味",
+      "countSummary": "{count}种 · {qty}个",
+      "delete": "删除",
+      "totalAmount": "商品总金额",
+      "noScentSelected": "尚未选择香味",
+      "notSelectedShort": "未选香味 · {label}",
+      "summaryShort": "{count}种 · {qty}个 · {label}",
+      "addToCartAria": "加入购物车",
+      "buyNow": "立即购买",
+      "decreaseQtyAria": "减少{name}数量",
+      "increaseQtyAria": "增加{name}数量",
+      "loginTitle": "登录后购买",
+      "loginDesc": "登录后可在“我的页面”查看订单记录和配送状态。",
+      "benefit1": "购物车需登录后使用",
+      "benefit2": "非会员也可直接购买",
+      "loginButton": "登录 / 注册",
+      "guestButton": "以游客身份购买",
+      "selectScentAlert": "请选择香味！",
+      "addedToast": "已将{count}种香味加入购物车",
+      "addFailed": "加入购物车失败"
+    }
   }
 }

@@ -1,32 +1,34 @@
 "use client"
 
-import { Suspense, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react"
-import Image from "next/image"
+import { Suspense, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   Check,
-  ChevronRight,
   Droplets,
   Loader2,
   Minus,
   Package,
+  PenLine,
   Plus,
   Search,
   ShoppingBag,
   ShoppingCart,
   X,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer"
 import { ProgramAdminBridge } from "@/components/programs/ProgramAdminBridge"
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useAuth } from "@/contexts/AuthContext"
 import { useProductPricing, type PricingRow } from "@/hooks/useProductPricing"
 import { useProductDetail } from "@/hooks/useProductDetail"
 import { useProductImages } from "@/hooks/useAdminContent"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
+import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { formatPrice, type AddToCartRequest, type CartItem } from "@/types/cart"
 import { TODAY_SCENTS, getScentById, type TodayScent } from "@/lib/today-scent/scents"
 import {
@@ -36,32 +38,53 @@ import {
   getStoreProductName,
   type StoreProduct,
 } from "@/lib/products/store-products"
+import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { emitCartChanged } from "@/lib/cart-events"
 
 type SelectedScentQuantities = Record<string, number>
 
 const MAX_SCENT_QUANTITY = 10
+const SCENT_PAPER_PRODUCT_SLUG = "scent-paper"
 
 function decodeSlug(value: string | string[] | undefined) {
   const raw = Array.isArray(value) ? value[0] : value
   return decodeURIComponent(raw || "")
 }
 
+function parseSelectedScentQuantities(scentParam: string | null, scentsParam: string | null): SelectedScentQuantities {
+  const quantities: SelectedScentQuantities = {}
+
+  scentsParam?.split(",").forEach((entry) => {
+    const [rawScentId, rawQuantity] = entry.split(":")
+    const scentId = rawScentId?.trim()
+    if (!scentId || !getScentById(scentId)) return
+
+    const parsedQuantity = Number.parseInt(rawQuantity || "1", 10)
+    quantities[scentId] = Math.max(1, Math.min(MAX_SCENT_QUANTITY, Number.isFinite(parsedQuantity) ? parsedQuantity : 1))
+  })
+
+  if (Object.keys(quantities).length > 0) return quantities
+
+  const scent = scentParam ? getScentById(scentParam) : null
+  return scent ? { [scent.id]: 1 } : {}
+}
+
 function ProductNotFound() {
+  const t = useTranslations()
   return (
     <main className="min-h-screen bg-[#FFFDF5] font-sans">
       <Header />
       <section className="flex min-h-screen items-center justify-center px-4 pt-24">
         <div className="w-full max-w-sm rounded-2xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0_0_black]">
           <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-          <h1 className="text-xl font-black text-slate-900">상품을 찾을 수 없습니다</h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">상품 목록에서 다시 선택해주세요.</p>
+          <h1 className="text-xl font-black text-slate-900">{t('store.detail.notFoundTitle')}</h1>
+          <p className="mt-2 text-sm font-medium text-slate-500">{t('store.detail.notFoundDesc')}</p>
           <Link
             href="/products"
-            className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-yellow-400 px-5 text-sm font-black text-black ring-2 ring-black"
+            className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-black px-5 text-sm font-black text-white ring-2 ring-black"
           >
-            상품으로 돌아가기
+            {t('store.detail.backToProducts')}
           </Link>
         </div>
       </section>
@@ -81,11 +104,11 @@ function ProductsDetailContent() {
   const { getOption } = useProductPricing()
   const isLoggedIn = !!(user || unifiedUser)
   const scentParam = searchParams.get("scent")
+  const scentsParam = searchParams.get("scents")
 
   const initialScentQuantities = useMemo<SelectedScentQuantities>(() => {
-    const scent = scentParam ? getScentById(scentParam) : null
-    return scent ? { [scent.id]: 1 } : {}
-  }, [scentParam])
+    return parseSelectedScentQuantities(scentParam, scentsParam)
+  }, [scentParam, scentsParam])
 
   const [selectedQuantities, setSelectedQuantities] = useState<SelectedScentQuantities>(initialScentQuantities)
   const [query, setQuery] = useState("")
@@ -105,7 +128,7 @@ function ProductsDetailContent() {
   if (productsLoading && !product) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FFFDF5]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-lime-400" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-slate-300" />
       </div>
     )
   }
@@ -116,6 +139,7 @@ function ProductsDetailContent() {
     <ProductDetailInner
       product={product}
       detailHtml={isCustomMode ? detail?.custom_html ?? "" : ""}
+      pageConfigHtml={detail?.custom_html ?? ""}
       selectedQuantities={selectedQuantities}
       setSelectedQuantities={setSelectedQuantities}
       query={query}
@@ -137,6 +161,7 @@ function ProductsDetailContent() {
 function ProductDetailInner({
   product,
   detailHtml,
+  pageConfigHtml,
   selectedQuantities,
   setSelectedQuantities,
   query,
@@ -154,6 +179,7 @@ function ProductDetailInner({
 }: {
   product: StoreProduct
   detailHtml: string
+  pageConfigHtml: string
   selectedQuantities: SelectedScentQuantities
   setSelectedQuantities: Dispatch<SetStateAction<SelectedScentQuantities>>
   query: string
@@ -169,6 +195,9 @@ function ProductDetailInner({
   router: ReturnType<typeof useRouter>
   priceOption: PricingRow | null
 }) {
+  const t = useTranslations()
+  const storeText = useStoreProductText()
+  const localized = storeText(product)
   const price = priceOption?.price ?? product.fallbackPrice
   const originalPrice = priceOption?.original_price ?? null
   const discount = originalPrice && originalPrice > price
@@ -176,16 +205,41 @@ function ProductDetailInner({
     : null
   const purchasePath = `/checkout?product=store-multi&type=${STORE_PRODUCT_TYPE}&item=${product.slug}`
   const [authRedirectPath, setAuthRedirectPath] = useState<string | undefined>(undefined)
-  const { imageUrls } = useProductImages(product.slug)
+  const scentSectionRef = useRef<HTMLElement>(null)
+  const { imageUrls, loading: imagesLoading } = useProductImages(product.slug)
   const productImages = useMemo(() => {
-    return Array.from(new Set([product.image, ...imageUrls].filter(Boolean)))
+    const savedImages = imageUrls.filter(Boolean)
+    const representativeImages = product.image && product.image !== STORE_PRODUCT_IMAGE ? [product.image] : []
+    const fallbackImages = savedImages.length > 0 ? [] : [product.image].filter(Boolean)
+    return Array.from(new Set([...representativeImages, ...savedImages, ...fallbackImages]))
   }, [product.image, imageUrls])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const selectedProductImage = productImages[selectedImageIndex] || product.image || STORE_PRODUCT_IMAGE
+  const [fragranceRequestNote, setFragranceRequestNote] = useState("")
 
   useEffect(() => {
     setSelectedImageIndex(0)
   }, [product.slug, productImages[0], productImages.length])
+
+  const localizedDescription = localized.description
+  const localizedIncluded = localized.included.join("\n")
+  const pageContent = useMemo(
+    () => extractProductPageContentWithFallback(pageConfigHtml, {
+      badge: product.badge,
+      subtitle: localizedDescription,
+      infoTitle: t('store.detail.infoTitle'),
+      infoBody: localizedIncluded.length > 0 ? localizedIncluded : t('store.detail.infoBodyFallback'),
+      ctaLabel: t('store.detail.ctaLabel'),
+    }),
+    [pageConfigHtml, product.badge, localizedDescription, localizedIncluded, t],
+  )
+  const pagePositionStyle = (field: ProductPagePositionField) => {
+    const position = pageContent.positions[field]
+    if (!position || (!position.x && !position.y)) return undefined
+
+    return {
+      transform: `translate(${position.x}px, ${position.y}px)`,
+    }
+  }
 
   const filteredScents = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -215,6 +269,7 @@ function ProductDetailInner({
   const selectedScentCount = selectedItems.length
   const selectedTotalQuantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0)
   const selectedTotalPrice = price * selectedTotalQuantity
+  const canTryScentPaperFirst = product.slug !== SCENT_PAPER_PRODUCT_SLUG
 
   const setScentQuantity = (scentId: string, quantity: number) => {
     setSelectedQuantities((prev) => {
@@ -229,13 +284,41 @@ function ProductDetailInner({
     })
   }
 
+  const trimmedRequestNote = fragranceRequestNote.trim()
+
+  // 향 미선택이어도 "특정 향료 요청"에 내용이 있으면 진행 가능. 둘 다 없을 때만 막는다.
   const requireSelectedItems = () => {
     if (selectedItems.length > 0) return selectedItems
-    alert("향을 선택해주세요!")
+    if (trimmedRequestNote) return [] // 요청 메모만으로 구매 진행
+    alert(t('store.detail.selectScentAlert'))
     return null
   }
 
+  // 향 미선택 + 요청 메모만 있는 경우의 메타데이터 (특정 향료 요청 전용 항목)
+  const buildRequestOnlyAnalysisData = () => ({
+    matchingKeywords: [product.shortLabel],
+    storeProduct: {
+      slug: product.slug,
+      title: product.title,
+      size: product.size,
+      scentName: '특정 향료 요청',
+      requestNote: trimmedRequestNote,
+    },
+  })
+
   const buildCartPayloads = (items: typeof selectedItems): AddToCartRequest[] => {
+    if (items.length === 0) {
+      return [{
+        product_type: STORE_PRODUCT_TYPE,
+        perfume_name: `${product.title} (특정 향료 요청)`,
+        perfume_brand: "AC'SCENT",
+        size: product.size as AddToCartRequest["size"],
+        price,
+        quantity: 1,
+        image_url: product.image || STORE_PRODUCT_IMAGE,
+        analysis_data: buildRequestOnlyAnalysisData(),
+      }]
+    }
     return items.map(({ scent, quantity }) => ({
       product_type: STORE_PRODUCT_TYPE,
       perfume_name: getStoreProductName(product, scent),
@@ -244,12 +327,31 @@ function ProductDetailInner({
       price,
       quantity,
       image_url: product.image || STORE_PRODUCT_IMAGE,
-      analysis_data: buildStoreAnalysisData(product, scent),
+      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote),
     }))
   }
 
   const buildCheckoutItems = (items: typeof selectedItems): CartItem[] => {
     const now = new Date().toISOString()
+    if (items.length === 0) {
+      return [{
+        id: `direct-store-${product.slug}-request`,
+        user_id: "",
+        analysis_id: null,
+        layering_session_id: null,
+        product_type: STORE_PRODUCT_TYPE,
+        perfume_name: `${product.title} (특정 향료 요청)`,
+        perfume_brand: "AC'SCENT",
+        twitter_name: null,
+        size: product.size as CartItem["size"],
+        price,
+        quantity: 1,
+        image_url: product.image || STORE_PRODUCT_IMAGE,
+        analysis_data: buildRequestOnlyAnalysisData(),
+        created_at: now,
+        updated_at: now,
+      }]
+    }
     return items.map(({ scent, quantity }) => ({
       id: `direct-store-${product.slug}-${scent.id}`,
       user_id: "",
@@ -263,7 +365,7 @@ function ProductDetailInner({
       price,
       quantity,
       image_url: product.image || STORE_PRODUCT_IMAGE,
-      analysis_data: buildStoreAnalysisData(product, scent),
+      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote),
       created_at: now,
       updated_at: now,
     }))
@@ -314,11 +416,15 @@ function ProductDetailInner({
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.details || data.error || "장바구니 추가에 실패했습니다")
+      if (!res.ok) throw new Error(data.details || data.error || t('store.detail.addFailed'))
       emitCartChanged()
-      alert(`${selectedScentCount}가지 향을 장바구니에 담았어요`)
+      if (selectedScentCount === 0 && trimmedRequestNote) {
+        alert(`"${trimmedRequestNote}" 요청이 장바구니에 담겼습니다`)
+      } else {
+        alert(t('store.detail.addedToast', { count: selectedScentCount }))
+      }
     } catch (error) {
-      alert(error instanceof Error ? error.message : "장바구니 추가에 실패했습니다")
+      alert(error instanceof Error ? error.message : t('store.detail.addFailed'))
     } finally {
       setAddingToCart(false)
     }
@@ -329,134 +435,102 @@ function ProductDetailInner({
     setShowAuthModal(true)
   }
 
+  const scrollToScentSelection = () => {
+    scentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
+  const handleTryScentPaperFirst = () => {
+    const params = new URLSearchParams()
+
+    if (selectedItems.length === 1 && selectedItems[0].quantity === 1) {
+      params.set("scent", selectedItems[0].scent.id)
+    } else if (selectedItems.length > 0) {
+      params.set("scents", selectedItems.map(({ scent, quantity }) => `${scent.id}:${quantity}`).join(","))
+    }
+
+    const queryString = params.toString()
+    router.push(`/products/${SCENT_PAPER_PRODUCT_SLUG}${queryString ? `?${queryString}` : ""}`)
+  }
+
   return (
-    <main className="relative min-h-screen bg-[#FFFDF5] pb-28 font-sans">
+    <main className="relative min-h-screen bg-[#FFFDF5] pb-40 font-sans">
       <Header showBack backHref="/products" />
       <ProgramAdminBridge productSlug={product.slug} />
 
-      <section className="px-4 pb-8 pt-28">
-        <div className="mx-auto w-full max-w-[455px]">
-          <div className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">
-            <Link href="/" className="hover:text-black">홈</Link>
-            <ChevronRight size={12} />
-            <Link href="/products" className="hover:text-black">상품</Link>
-            <ChevronRight size={12} />
-            <span className="font-bold text-black">{product.title}</span>
+      <UnifiedDetailHero
+        productSlug={product.slug}
+        title={localized.title}
+        imageAlt={localized.title}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('nav.home'), href: "/" },
+          { label: t('nav.products'), href: "/products" },
+          { label: localized.title },
+        ]}
+        images={{
+          urls: productImages,
+          loading: imagesLoading,
+          selectedIndex: selectedImageIndex,
+          onSelect: setSelectedImageIndex,
+        }}
+        secondaryBadges={
+          <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-black bg-[#FCD34D] px-5 text-sm font-black text-black shadow-[2px_2px_0_0_black]">
+            {t('store.detail.selectScent')}
+          </span>
+        }
+        meta={
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700 ring-1 ring-slate-300">{t('store.detail.metaTag')}</span>
+            <span className="text-xs font-bold text-slate-500">{t('store.detail.metaSub')}</span>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 overflow-hidden rounded-2xl border-2 border-black bg-white shadow-[4px_4px_0_0_black]"
+        }
+        price={
+          <div
+            className="flex items-end gap-2"
+            data-admin-page-position-field="price"
+            style={pagePositionStyle("price")}
           >
-            <div
-              className="relative aspect-square bg-yellow-50"
-              data-admin-product-image="true"
-              data-admin-page-position-field="productImage"
-            >
-              <Image
-                src={selectedProductImage}
-                alt={product.title}
-                fill
-                sizes="(max-width: 455px) 100vw, 455px"
-                priority
-                className="object-cover"
-                data-pin-nopin="true"
-              />
-              <div className="absolute left-3 top-3 flex gap-2">
-                <span
-                  className="rounded-full border-2 border-black bg-black px-3 py-1 text-[10px] font-black text-white"
-                  data-admin-page-position-field="badge"
-                >
-                  {product.badge}
-                </span>
-                <span className="rounded-full border-2 border-black bg-[#FCD34D] px-3 py-1 text-[10px] font-black text-black">
-                  향 선택
-                </span>
-              </div>
-            </div>
-            {productImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto border-t-2 border-black bg-white p-3">
-                {productImages.map((image, index) => {
-                  const selected = index === selectedImageIndex
-                  return (
-                    <button
-                      key={`${image}-${index}`}
-                      type="button"
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-all ${
-                        selected
-                          ? "border-black shadow-[2px_2px_0_0_black]"
-                          : "border-slate-200 opacity-80 hover:border-slate-500 hover:opacity-100"
-                      }`}
-                      aria-label={`${product.title} 이미지 ${index + 1} 보기`}
-                    >
-                      <Image
-                        src={image}
-                        alt={`${product.title} 이미지 ${index + 1}`}
-                        fill
-                        sizes="56px"
-                        className="object-cover"
-                        data-pin-nopin="true"
-                      />
-                      {index === 0 && (
-                        <span className="absolute left-1 top-1 rounded bg-yellow-400 px-1 text-[9px] font-black text-black ring-1 ring-black">
-                          대표
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
+            <span className="text-2xl font-black text-black">{formatPrice(price)}{t('currency.suffix')}</span>
+            {originalPrice && originalPrice > price && (
+              <>
+                <span className="text-sm font-bold text-slate-400 line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
+                {discount !== null && (
+                  <span className="rounded bg-black px-1.5 py-0.5 text-[10px] font-black text-white">{discount}% OFF</span>
+                )}
+              </>
             )}
-          </motion.div>
+          </div>
+        }
+        infoIcon={<Droplets size={14} className="text-slate-900" />}
+        cta={{
+          onClick: scrollToScentSelection,
+          label: pageContent.ctaLabel,
+        }}
+        secondaryCta={canTryScentPaperFirst ? {
+          onClick: handleTryScentPaperFirst,
+          label: t('store.detail.tryPaperFirst'),
+          hint: selectedItems.length > 0
+            ? t('store.detail.tryPaperHintSelected')
+            : t('store.detail.tryPaperHintDefault'),
+        } : undefined}
+      />
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mb-5"
-          >
-            <div className="mb-2 flex items-center gap-2">
-              <span className="rounded-full bg-lime-100 px-2.5 py-1 text-[11px] font-black text-lime-700 ring-1 ring-lime-300">상품</span>
-              <span className="text-xs font-bold text-slate-500">분석 없이 바로 구매</span>
-            </div>
-            <h1 className="text-2xl font-black leading-tight text-black">
-              <span data-admin-editable="product_name" data-admin-page-position-field="productName">
-                {product.title}
-              </span>
-            </h1>
-            <p
-              className="mt-2 text-sm font-medium leading-relaxed text-slate-600"
-              data-admin-page-position-field="subtitle"
-            >
-              {product.description}
-            </p>
-            <div className="mt-4 flex items-end gap-2" data-admin-page-position-field="price">
-              <span className="text-2xl font-black text-black">{formatPrice(price)}원</span>
-              {originalPrice && originalPrice > price && (
-                <>
-                  <span className="text-sm font-bold text-slate-400 line-through">{formatPrice(originalPrice)}원</span>
-                  {discount !== null && (
-                    <span className="rounded bg-black px-1.5 py-0.5 text-[10px] font-black text-white">{discount}% OFF</span>
-                  )}
-                </>
-              )}
-            </div>
-          </motion.div>
-
+      <section className="px-4 pb-8">
+        <div className="mx-auto w-full max-w-[455px]">
           <section
             className="mb-5 rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]"
             data-admin-page-position-field="included"
+            style={pagePositionStyle("included")}
           >
             <div className="mb-3 flex items-center gap-2">
-              <Package size={16} className="text-lime-600" />
-              <h2 className="text-sm font-black text-slate-900">구성</h2>
+              <Package size={16} className="text-slate-900" />
+              <h2 className="text-sm font-black text-slate-900">{t('store.detail.composition')}</h2>
             </div>
             <ul className="space-y-2">
-              {product.included.map((item) => (
+              {localized.included.map((item) => (
                 <li key={item} className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-black bg-[#FCD34D] text-[10px]">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-black bg-black text-[10px] text-white">
                     <Check size={12} />
                   </span>
                   {item}
@@ -465,17 +539,17 @@ function ProductDetailInner({
             </ul>
           </section>
 
-          <section className="mb-5 rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]">
+          <section ref={scentSectionRef} id="scent-selector" className="mb-5 scroll-mt-24 rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="mb-1 flex items-center gap-2">
                   <Droplets size={16} className="text-[#F472B6]" />
-                  <h2 className="text-sm font-black text-slate-900">향 선택</h2>
+                  <h2 className="text-sm font-black text-slate-900">{t('store.detail.selectScent')}</h2>
                 </div>
-                <p className="text-xs font-medium text-slate-500">AC&apos;SCENT 30가지 향 중 원하는 향을 고르고, 향별 수량을 조절해주세요.</p>
+                <p className="text-xs font-medium text-slate-500">{t('store.detail.scentSelectDesc')}</p>
               </div>
               <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2.5 py-1 text-center text-[11px] font-black text-slate-600">
-                {TODAY_SCENTS.length} scents
+                {t('store.detail.scentsCount', { count: TODAY_SCENTS.length })}
               </span>
             </div>
 
@@ -484,7 +558,7 @@ function ProductDetailInner({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="향 이름, 노트, 키워드 검색"
+                placeholder={t('store.detail.searchPlaceholder')}
                 className="h-11 w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-bold outline-none transition-colors focus:border-black focus:bg-white"
               />
             </div>
@@ -507,7 +581,7 @@ function ProductDetailInner({
                     }}
                     className={`w-full cursor-pointer select-none rounded-xl border-2 p-3 text-left transition-all ${
                       active
-                        ? "border-black bg-[#FEF3C7] shadow-[2px_2px_0_0_black]"
+                        ? "border-black bg-slate-100 shadow-[2px_2px_0_0_black]"
                         : "border-slate-200 bg-white hover:border-slate-400"
                     }`}
                   >
@@ -532,11 +606,11 @@ function ProductDetailInner({
                             }}
                             className={`min-h-8 shrink-0 rounded-full border-2 px-3 text-[11px] font-black transition-colors ${
                               active
-                                ? "border-black bg-[#F472B6] text-white"
+                                ? "border-black bg-black text-white"
                                 : "border-slate-300 bg-white text-slate-700"
                             }`}
                           >
-                            {active ? "선택됨" : "선택"}
+                            {active ? t('store.detail.selected') : t('store.detail.select')}
                           </button>
                         </div>
                         <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">{scent.vibe}</p>
@@ -552,13 +626,13 @@ function ProductDetailInner({
                             className="mt-3 flex items-center justify-between rounded-xl border-2 border-black bg-white px-2 py-2"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <span className="text-xs font-black text-slate-700">수량</span>
+                            <span className="text-xs font-black text-slate-700">{t('store.detail.quantity')}</span>
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => setScentQuantity(scent.id, quantity - 1)}
                                 className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-700 transition-colors hover:border-black"
-                                aria-label={`${scent.name} 수량 줄이기`}
+                                aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                               >
                                 <Minus size={14} />
                               </button>
@@ -568,7 +642,7 @@ function ProductDetailInner({
                                 onClick={() => setScentQuantity(scent.id, quantity + 1)}
                                 disabled={quantity >= MAX_SCENT_QUANTITY}
                                 className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-700 transition-colors hover:border-black disabled:opacity-40"
-                                aria-label={`${scent.name} 수량 늘리기`}
+                                aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                               >
                                 <Plus size={14} />
                               </button>
@@ -583,15 +657,35 @@ function ProductDetailInner({
             </div>
           </section>
 
+          {/* 특정 향료 요청 (선택) — 향 선택 단계의 주관식 입력. 비워도 구매 가능. */}
+          <section className="rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]">
+            <div className="mb-2 flex items-center gap-2">
+              <PenLine size={16} className="text-[#F472B6]" />
+              <h2 className="text-sm font-black text-slate-900">특정 향료 요청</h2>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">선택</span>
+            </div>
+            <textarea
+              value={fragranceRequestNote}
+              onChange={(event) => setFragranceRequestNote(event.target.value)}
+              maxLength={200}
+              rows={2}
+              placeholder="예: 하현상 시그니처 향으로 주세요!"
+              className="w-full resize-none rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-black"
+            />
+            <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+              원하는 향이 따로 있으면 적어주세요. 작성하지 않아도 구매할 수 있어요.
+            </p>
+          </section>
+
           {selectedItems.length > 0 ? (
             <section className="rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Droplets size={16} className="text-[#F472B6]" />
-                  <h2 className="text-sm font-black text-slate-900">선택한 향</h2>
+                  <h2 className="text-sm font-black text-slate-900">{t('store.detail.selectedScents')}</h2>
                 </div>
                 <span className="rounded-full bg-lime-100 px-2.5 py-1 text-[11px] font-black text-lime-700">
-                  {selectedScentCount}종 · {selectedTotalQuantity}개
+                  {t('store.detail.countSummary', { count: selectedScentCount, qty: selectedTotalQuantity })}
                 </span>
               </div>
               <div className="space-y-2">
@@ -607,17 +701,17 @@ function ProductDetailInner({
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-black text-slate-900">{scent.name}</p>
                         <p className="text-[11px] font-bold text-slate-500">
-                          {product.shortLabel} · {formatPrice(price)}원 × {quantity}
+                          {localized.shortLabel} · {formatPrice(price)}{t('currency.suffix')} × {quantity}
                         </p>
                       </div>
-                      <span className="text-sm font-black text-black">{formatPrice(price * quantity)}원</span>
+                      <span className="text-sm font-black text-black">{formatPrice(price * quantity)}{t('currency.suffix')}</span>
                     </div>
                     <div className="mt-3 flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity - 1)}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-700 transition-colors hover:border-black"
-                        aria-label={`${scent.name} 선택 수량 줄이기`}
+                        aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                       >
                         <Minus size={14} />
                       </button>
@@ -627,7 +721,7 @@ function ProductDetailInner({
                         onClick={() => setScentQuantity(scent.id, quantity + 1)}
                         disabled={quantity >= MAX_SCENT_QUANTITY}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-700 transition-colors hover:border-black disabled:opacity-40"
-                        aria-label={`${scent.name} 선택 수량 늘리기`}
+                        aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                       >
                         <Plus size={14} />
                       </button>
@@ -636,15 +730,15 @@ function ProductDetailInner({
                         onClick={() => setScentQuantity(scent.id, 0)}
                         className="ml-1 min-h-8 rounded-lg bg-slate-100 px-3 text-xs font-black text-slate-500 transition-colors hover:bg-slate-200"
                       >
-                        삭제
+                        {t('store.detail.delete')}
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-between rounded-xl bg-black px-3 py-2 text-white">
-                <span className="text-xs font-black opacity-70">총 상품 금액</span>
-                <span className="text-base font-black">{formatPrice(selectedTotalPrice)}원</span>
+                <span className="text-xs font-black opacity-70">{t('store.detail.totalAmount')}</span>
+                <span className="text-base font-black">{formatPrice(selectedTotalPrice)}{t('currency.suffix')}</span>
               </div>
             </section>
           ) : (
@@ -654,8 +748,8 @@ function ProductDetailInner({
                   <Droplets size={22} />
                 </span>
                 <div>
-                  <p className="text-xs font-black text-slate-400">선택한 향</p>
-                  <h2 className="text-lg font-black text-slate-900">아직 선택한 향이 없습니다</h2>
+                  <p className="text-xs font-black text-slate-400">{t('store.detail.selectedScents')}</p>
+                  <h2 className="text-lg font-black text-slate-900">{t('store.detail.noScentSelected')}</h2>
                 </div>
               </div>
             </section>
@@ -669,21 +763,32 @@ function ProductDetailInner({
 
       {!showLoginPrompt && !showAuthModal && (
         <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[455px] -translate-x-1/2 border-t-2 border-black bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_20px_rgba(0,0,0,0.12)]">
+          {canTryScentPaperFirst && (
+            <button
+              type="button"
+              onClick={handleTryScentPaperFirst}
+              className="mb-2 flex h-10 w-full items-center justify-center rounded-xl border-2 border-black bg-white text-xs font-black text-black shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black]"
+            >
+              {t('store.detail.tryPaperFirstBottom')}
+            </button>
+          )}
           <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
             <div className="min-w-0">
               <div className="truncate text-[15px] font-black leading-tight text-black">
-                {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}원
+                {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}{t('currency.suffix')}
               </div>
               <div className="mt-0.5 truncate text-[10px] font-bold text-slate-500">
                 {selectedTotalQuantity > 0
-                  ? `${selectedScentCount}종 · ${selectedTotalQuantity}개 · ${product.shortLabel}`
-                  : `향 미선택 · ${product.shortLabel}`}
+                  ? t('store.detail.summaryShort', { count: selectedScentCount, qty: selectedTotalQuantity, label: localized.shortLabel })
+                  : trimmedRequestNote
+                    ? `특정 향료 요청 · ${localized.shortLabel}`
+                    : t('store.detail.notSelectedShort', { label: localized.shortLabel })}
               </div>
             </div>
             <button
               onClick={handleAddToCart}
               disabled={loading || addingToCart}
-              aria-label="장바구니 담기"
+              aria-label={t('store.detail.addToCartAria')}
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-black bg-white text-black shadow-[3px_3px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] disabled:opacity-50"
             >
               {addingToCart ? <Loader2 size={20} className="animate-spin" /> : <ShoppingCart size={20} />}
@@ -691,13 +796,14 @@ function ProductDetailInner({
             <button
               onClick={handlePurchaseClick}
               disabled={loading}
-              className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FCD34D] px-3 text-sm font-black text-black shadow-[3px_3px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] disabled:opacity-50"
+              className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-xl border-2 border-black bg-black px-3 text-sm font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#cbd5e1] disabled:opacity-50"
             >
-              바로 구매
+              {t('store.detail.buyNow')}
             </button>
           </div>
         </div>
       )}
+      <div className="h-28" />
 
       <AnimatePresence>
         {showLoginPrompt && (
@@ -723,38 +829,38 @@ function ProductDetailInner({
                 >
                   <X size={20} className="text-slate-400" />
                 </button>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-black bg-[#FCD34D] shadow-[4px_4px_0_0_black]">
-                  <ShoppingBag size={28} className="text-black" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-black bg-black shadow-[4px_4px_0_0_#cbd5e1]">
+                  <ShoppingBag size={28} className="text-white" />
                 </div>
-                <h2 className="mb-2 text-xl font-black text-slate-900">로그인하고 구매하기</h2>
+                <h2 className="mb-2 text-xl font-black text-slate-900">{t('store.detail.loginTitle')}</h2>
                 <p className="text-sm leading-relaxed text-slate-600">
-                  로그인하면 주문 내역과 배송 상태를 마이페이지에서 확인할 수 있어요.
+                  {t('store.detail.loginDesc')}
                 </p>
               </div>
               <div className="border-y-2 border-black bg-slate-50 px-6 py-4">
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="font-bold text-green-500">✓</span>
-                    <span className="text-slate-600">장바구니는 로그인 후 이용 가능해요</span>
+                    <span className="text-slate-600">{t('store.detail.benefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="font-bold text-green-500">✓</span>
-                    <span className="text-slate-600">비회원도 바로 구매는 가능해요</span>
+                    <span className="text-slate-600">{t('store.detail.benefit2')}</span>
                   </div>
                 </div>
               </div>
               <div className="space-y-3 p-6">
                 <button
                   onClick={handleLoginClick}
-                  className="h-14 w-full rounded-2xl border-2 border-black bg-black text-lg font-bold text-white shadow-[4px_4px_0_0_#FCD34D] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#FCD34D]"
+                  className="h-14 w-full rounded-2xl border-2 border-black bg-black text-lg font-bold text-white shadow-[4px_4px_0_0_#cbd5e1] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#cbd5e1]"
                 >
-                  로그인 / 회원가입
+                  {t('store.detail.loginButton')}
                 </button>
                 <button
                   onClick={handleGuestPurchase}
                   className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white font-semibold text-slate-600 transition-all hover:border-slate-400 hover:bg-slate-50"
                 >
-                  비회원으로 구매하기
+                  {t('store.detail.guestButton')}
                 </button>
               </div>
             </motion.div>

@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
+import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 
 /**
  * 포트원 웹훅 처리 API
@@ -80,6 +81,11 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('[Payments Webhook] Order updated to paid:', order.id)
+
+        const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order, now)
+        if (!couponUsageResult.success) {
+          console.error('[Payments Webhook] Coupon usage finalization failed:', couponUsageResult)
+        }
 
         // 재고 차감 (실패해도 웹훅 응답에 영향 없음)
         try {

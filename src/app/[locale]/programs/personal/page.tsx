@@ -2,11 +2,11 @@
 
 import { type CSSProperties, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   Sparkles, User, Star, CheckCircle2, X, AlertTriangle,
-  ChevronRight, ChevronDown, Package, Truck, Gift,
+  ChevronDown, Package, Truck,
   FileText, Droplets
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -19,6 +19,7 @@ import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
@@ -39,6 +40,7 @@ const staggerContainer = {
 }
 
 export default function PersonalPage() {
+  const t = useTranslations()
   const { getOption } = useProductPricing()
   const personal10 = getOption('personal_scent', '10ml')
   const personal50 = getOption('personal_scent', '50ml')
@@ -52,27 +54,23 @@ export default function PersonalPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const productName = useProductDisplayName('personal', '퍼스널 센트')
+  const productName = useProductDisplayName('personal', t('programs.detail.personal.productName'))
 
   const isLoggedIn = !!(user || unifiedUser)
   const { isCustomMode, detail } = useProductDetail('personal')
 
-  const { imageUrls: dynamicImages } = useProductImages('personal')
-  const productImages = dynamicImages.length > 0 ? dynamicImages : [
-    "/제목 없는 디자인 (4)/1.png",
-    "/제목 없는 디자인 (4)/2.png",
-    "/제목 없는 디자인 (4)/3.png",
-  ]
+  const { imageUrls: dynamicImages, loading: imagesLoading } = useProductImages('personal')
+  const productImages = imagesLoading ? [] : dynamicImages
   const currentImage = productImages[selectedImage] || productImages[0] || ''
   const pageContent = useMemo(
     () => extractProductPageContentWithFallback(detail?.custom_html, {
       badge: 'SIGNATURE',
-      subtitle: 'AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 퍼퓸',
-      infoTitle: '맞춤 퍼퓸 10ml (스프레이 타입)',
-      infoBody: '제작 후 2~3일 배송 (배송비 3,000원) / 퍼스널리티 리포트 무료 증정',
-      ctaLabel: '퍼스널리티 분석 시작하기',
+      subtitle: t('programs.detail.personal.heroSubtitle'),
+      infoTitle: t('programs.detail.personal.heroInfoTitle'),
+      infoBody: t('programs.detail.personal.heroInfoBody'),
+      ctaLabel: t('programs.detail.personal.heroCtaLabel'),
     }),
-    [detail?.custom_html],
+    [detail?.custom_html, t],
   )
   const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
     const position = pageContent.positions[field]
@@ -98,23 +96,23 @@ export default function PersonalPage() {
   }
 
   const reviews = [
-    { name: "퍼퓸초보", rating: 5, text: "처음 써보는 퍼퓸인데 제 스타일이랑 너무 잘 맞아서 놀랐어요!" },
-    { name: "직장인A", rating: 5, text: "출근할 때 뿌리니까 하루종일 기분 좋아요. 은은해서 좋음" },
-    { name: "선물러", rating: 5, text: "여자친구한테 선물했는데 진짜 본인한테 딱 맞는다고 감동받음ㅋㅋ" },
+    { name: t('programs.detail.personal.review1Name'), rating: 5, text: t('programs.detail.personal.review1Text') },
+    { name: t('programs.detail.personal.review2Name'), rating: 5, text: t('programs.detail.personal.review2Text') },
+    { name: t('programs.detail.personal.review3Name'), rating: 5, text: t('programs.detail.personal.review3Text') },
   ]
 
   const faqs = [
-    { q: "어떤 정보를 입력해야 하나요?", a: "본인을 표현하는 키워드, 선호 스타일, 좋아하는 분위기 등을 입력해주시면 됩니다. 사진 없이 텍스트만으로도 충분해요!" },
-    { q: "퍼퓸는 어떤 타입인가요?", a: "10ml 스프레이 타입으로 제공됩니다. 휴대하기 좋고 은은하게 발향되어 일상에서 사용하기 좋아요." },
-    { q: "분석은 얼마나 걸리나요?", a: "AI 분석은 즉시 완료됩니다. 결과를 확인하신 후 마음에 드시면 주문하시면 돼요." },
-    { q: "환불이 가능한가요?", a: "맞춤 제작 상품 특성상 제작 시작 후에는 환불이 어렵습니다. 분석 결과를 충분히 확인 후 주문해주세요." },
+    { q: t('programs.detail.personal.faq1Q'), a: t('programs.detail.personal.faq1A') },
+    { q: t('programs.detail.personal.faq2Q'), a: t('programs.detail.personal.faq2A') },
+    { q: t('programs.detail.personal.faq3Q'), a: t('programs.detail.personal.faq3A') },
+    { q: t('programs.detail.personal.faq4Q'), a: t('programs.detail.personal.faq4A') },
   ]
 
   const productIncludes = [
-    { icon: FileText, name: "퍼스널리티 리포트", desc: "AI 분석 결과" },
-    { icon: Star, name: "TOP 3 추천", desc: "맞춤 퍼퓸 추천" },
-    { icon: Droplets, name: "시그니처 퍼퓸 10ml", desc: "스프레이 타입" },
-    { icon: Package, name: "프리미엄 패키징", desc: "선물용 박스" },
+    { icon: FileText, name: t('programs.detail.personal.include1Name'), desc: t('programs.detail.personal.include1Desc') },
+    { icon: Star, name: t('programs.detail.personal.include2Name'), desc: t('programs.detail.personal.include2Desc') },
+    { icon: Droplets, name: t('programs.detail.personal.include3Name'), desc: t('programs.detail.personal.include3Desc') },
+    { icon: Package, name: t('programs.detail.personal.include4Name'), desc: t('programs.detail.personal.include4Desc') },
   ]
 
   return (
@@ -126,193 +124,67 @@ export default function PersonalPage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-32 pb-12 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-
-            {/* 왼쪽: 이미지 갤러리 */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex-1 lg:max-w-[55%]"
-            >
-              {/* 메인 이미지 */}
-              <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black] mb-4">
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
-                  <span
-                    className="px-3 py-1 bg-black text-white text-xs font-black rounded-full border-2 border-black"
-                    data-admin-page-position-field="badge"
-                    style={pagePositionStyle('badge')}
-                  >
-                    <span data-admin-page-field="badge">{pageContent.badge}</span>
-                  </span>
-                  <span className="px-3 py-1 bg-white text-black text-xs font-black rounded-full border-2 border-black">
-                    PREMIUM
-                  </span>
-                </div>
-                <div
-                  className="aspect-square flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-gray-100"
-                  data-admin-product-image="true"
-                  data-admin-page-position-field="productImage"
-                  style={pagePositionStyle('productImage')}
-                >
-                  <motion.img
-                    key={currentImage}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    src={currentImage}
-                    alt={productName}
-                    className="w-[85%] h-[85%] object-contain"
-                  />
-                </div>
-              </div>
-
-              {/* 썸네일 */}
-              <div className="flex gap-3 justify-center">
-                {productImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`w-20 h-20 rounded-xl border-2 overflow-hidden transition-all ${
-                      selectedImage === idx
-                        ? 'border-black shadow-[3px_3px_0_0_black] scale-105'
-                        : 'border-slate-300 hover:border-black'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* 오른쪽: 제품 정보 */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex-1"
-            >
-              {/* 브레드크럼 */}
-              <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-                <Link href="/" className="hover:text-black">홈</Link>
-                <ChevronRight size={14} />
-                <Link href="/" className="hover:text-black">프로그램</Link>
-                <ChevronRight size={14} />
-                <span className="text-black font-bold">{productName}</span>
-              </div>
-
-              {/* 타이틀 */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  {[1,2,3,4,5].map((i) => (
-                    <Star key={i} className="w-5 h-5 fill-black text-black" />
-                  ))}
-                  <span className="text-sm font-bold text-slate-600 ml-1">4.9 (2,847)</span>
-                </div>
-                <h1 className="text-3xl md:text-4xl font-black text-black leading-tight mb-3">
-                  <span
-                    className="inline-block"
-                    data-admin-editable="product_name"
-                    data-admin-page-position-field="productName"
-                    style={pagePositionStyle('productName')}
-                  >
-                    {productName}
-                  </span><br />
-                  <span className="text-slate-500">
-                    나를 위한 시그니처 향
-                  </span>
-                </h1>
-                <p className="text-slate-600 font-medium">
-                  <span
-                    className="inline-block"
-                    data-admin-page-field="subtitle"
-                    data-admin-page-position-field="subtitle"
-                    style={pagePositionStyle('subtitle')}
-                  >
-                    {pageContent.subtitle}
-                  </span>
-                </p>
-              </div>
-
-              {/* 태그 */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["#퍼스널리티", "#시그니처향", "#AI분석", "#맞춤퍼퓸", "#입문추천"].map((tag) => (
-                  <span key={tag} className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-bold rounded-full border border-slate-300">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* 가격 */}
-              <div
-                className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black] mb-6"
-                data-admin-page-position-field="infoCard"
-                style={pagePositionStyle('infoCard')}
-              >
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-4xl font-black text-black">{formatPrice(personal10?.price ?? 24000)}원</span>
-                  {personal10?.original_price && personal10.original_price > personal10.price && (
-                    <>
-                      <span className="text-lg text-slate-400 line-through">{formatPrice(personal10.original_price)}원</span>
-                      {personalDiscount !== null && (
-                        <span className="px-2 py-1 bg-black text-white text-xs font-bold rounded-lg">{personalDiscount}% OFF</span>
-                      )}
-                    </>
-                  )}
-                </div>
-                <p className="mb-3 text-sm font-medium leading-relaxed text-slate-600" data-admin-page-field="infoBody">
-                  {pageContent.infoBody}
-                </p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Droplets size={16} className="text-black" />
-                    <span data-admin-page-field="infoTitle">{pageContent.infoTitle}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Truck size={16} className="text-black" />
-                    <span>제작 후 2~3일 배송 (배송비 3,000원)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Gift size={16} className="text-black" />
-                    <span className="font-bold">🎁 퍼스널리티 리포트 무료 증정!</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 용량 선택 */}
-              <div className="mb-6">
-                <p className="text-sm font-bold text-slate-700 mb-3">📦 용량 선택</p>
-                <div className="flex gap-3">
-                  <button className="flex-1 p-4 rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] bg-white text-center">
-                    <p className="text-lg font-black">10ml</p>
-                    <p className="text-sm text-slate-500">{formatPrice(personal10?.price ?? 24000)}원</p>
-                  </button>
-                  <button className="flex-1 p-4 rounded-xl border-2 border-slate-200 hover:border-black bg-white/50 text-center transition-all">
-                    <p className="text-lg font-bold text-slate-600">50ml</p>
-                    <p className="text-sm text-slate-400">{formatPrice(personal50?.price ?? 48000)}원</p>
-                  </button>
-                </div>
-              </div>
-
-              {/* CTA 버튼 */}
-              <button
-                onClick={handleStartClick}
-                disabled={loading}
-                className="w-full py-5 bg-black text-white font-black text-xl rounded-xl border-2 border-black shadow-[6px_6px_0_0_#666] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0_0_#666] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                data-admin-page-position-field="ctaButton"
-                style={pagePositionStyle('ctaButton')}
-              >
-                <User size={24} />
-                <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-              </button>
-
-              <p className="text-center text-sm text-slate-500 mt-3">
-                ✨ 나를 표현하는 키워드만 입력하면 끝!
-              </p>
-            </motion.div>
+      <UnifiedDetailHero
+        productSlug="personal"
+        title={productName}
+        imageAlt={productName}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('programs.breadcrumbHome'), href: "/" },
+          { label: t('programs.breadcrumbPrograms'), href: "/" },
+          { label: productName },
+        ]}
+        images={{
+          urls: productImages,
+          loading: imagesLoading,
+          selectedIndex: selectedImage,
+          onSelect: setSelectedImage,
+        }}
+        secondaryBadges={
+          <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-black bg-[#FCD34D] px-5 text-sm font-black text-black shadow-[2px_2px_0_0_black]">
+            PREMIUM
+          </span>
+        }
+        meta={
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} className="h-4 w-4 fill-black text-black" />
+            ))}
+            <span className="ml-1 text-xs font-bold text-slate-600">4.9 (2,847)</span>
           </div>
-        </div>
-      </section>
+        }
+        price={
+          <>
+            <div className="flex items-end gap-3">
+              <span className="text-2xl font-black text-black">{t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)}</span>
+              {personal10?.original_price && personal10.original_price > personal10.price && (
+                <>
+                  <span className="text-sm text-slate-400 line-through">{t('currency.symbol')}{formatPrice(personal10.original_price)}</span>
+                  {personalDiscount !== null && (
+                    <span className="rounded bg-black px-1.5 py-0.5 text-[10px] font-bold text-white">{personalDiscount}% OFF</span>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="mt-1 text-xs text-slate-500">
+              10ml {t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)} / 50ml {t('currency.symbol')}{formatPrice(personal50?.price ?? 48000)}
+            </div>
+          </>
+        }
+        infoIcon={<Droplets size={14} className="text-slate-900" />}
+        infoItems={[
+          pageContent.infoTitle,
+          t('programs.detail.personal.infoShipping', { fee: `${t('currency.symbol')}${formatPrice(3000)}` }),
+          t('programs.detail.personal.infoReportFree'),
+        ]}
+        cta={{
+          onClick: handleStartClick,
+          disabled: loading,
+          label: pageContent.ctaLabel,
+          hint: t('programs.detail.personal.ctaHint'),
+        }}
+      />
 
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
@@ -350,7 +222,7 @@ export default function PersonalPage() {
               📦 PACKAGE
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              패키지 구성품
+              {t('programs.detail.personal.packageTitle')}
             </motion.h2>
           </div>
 
@@ -388,16 +260,16 @@ export default function PersonalPage() {
               🎯 TARGET
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              이런 분들께 추천해요!
+              {t('programs.detail.personal.targetTitle')}
             </motion.h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { emoji: "🌱", title: "퍼퓸 입문자", desc: "처음 시작하는 분께 가장 추천!" },
-              { emoji: "🎁", title: "특별한 선물을 찾는 분", desc: "세상에 하나뿐인 맞춤 퍼퓸 선물" },
-              { emoji: "💼", title: "나만의 이미지를 원하는 분", desc: "프로페셔널한 시그니처 향" },
-              { emoji: "🔍", title: "내 취향을 알고 싶은 분", desc: "AI가 분석하는 퍼스널리티" },
+              { emoji: "🌱", title: t('programs.detail.personal.target1Title'), desc: t('programs.detail.personal.target1Desc') },
+              { emoji: "🎁", title: t('programs.detail.personal.target2Title'), desc: t('programs.detail.personal.target2Desc') },
+              { emoji: "💼", title: t('programs.detail.personal.target3Title'), desc: t('programs.detail.personal.target3Desc') },
+              { emoji: "🔍", title: t('programs.detail.personal.target4Title'), desc: t('programs.detail.personal.target4Desc') },
             ].map((item, idx) => (
               <motion.div
                 key={idx}
@@ -429,7 +301,7 @@ export default function PersonalPage() {
               📋 PROCESS
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              어떻게 진행되나요?
+              {t('programs.detail.personal.processTitle')}
             </motion.h2>
           </div>
 
@@ -439,10 +311,10 @@ export default function PersonalPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
               {[
-                { step: "01", title: "정보 입력", desc: "나를 표현하는 키워드 입력", icon: User },
-                { step: "02", title: "AI 분석", desc: "퍼스널리티 종합 분석", icon: Sparkles },
-                { step: "03", title: "퍼퓸 추천", desc: "TOP 3 시그니처 향 추천", icon: Star },
-                { step: "04", title: "제품 배송", desc: "맞춤 퍼퓸 제작 & 배송", icon: Truck },
+                { step: "01", title: t('programs.detail.personal.process1Title'), desc: t('programs.detail.personal.process1Desc'), icon: User },
+                { step: "02", title: t('programs.detail.personal.process2Title'), desc: t('programs.detail.personal.process2Desc'), icon: Sparkles },
+                { step: "03", title: t('programs.detail.personal.process3Title'), desc: t('programs.detail.personal.process3Desc'), icon: Star },
+                { step: "04", title: t('programs.detail.personal.process4Title'), desc: t('programs.detail.personal.process4Desc'), icon: Truck },
               ].map((item, idx) => (
                 <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
                   <div className="w-20 h-20 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_black] flex items-center justify-center mb-4">
@@ -474,7 +346,7 @@ export default function PersonalPage() {
               📊 RESULT PREVIEW
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black mb-4">
-              이런 결과를 받아요!
+              {t('programs.detail.personal.resultTitle')}
             </motion.h2>
           </div>
 
@@ -486,10 +358,10 @@ export default function PersonalPage() {
                 <div className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black]">
                   <h4 className="font-black text-lg mb-4 flex items-center gap-2">
                     <FileText size={20} className="text-black" />
-                    퍼스널리티 프로파일
+                    {t('programs.detail.personal.resultProfileTitle')}
                   </h4>
                   <div className="space-y-3">
-                    {["이미지 분석", "성격 유형", "선호 스타일", "어울리는 향조"].map((item, idx) => (
+                    {[t('programs.detail.personal.resultProfile1'), t('programs.detail.personal.resultProfile2'), t('programs.detail.personal.resultProfile3'), t('programs.detail.personal.resultProfile4')].map((item, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
                         <CheckCircle2 size={16} className="text-black" />
                         <span className="text-sm">{item}</span>
@@ -501,13 +373,13 @@ export default function PersonalPage() {
                 <div className="bg-white border-2 border-black rounded-xl p-5 shadow-[4px_4px_0_0_black]">
                   <h4 className="font-black text-lg mb-3 flex items-center gap-2">
                     <Star size={20} className="text-black" />
-                    TOP 3 퍼퓸 추천
+                    {t('programs.detail.personal.resultTopTitle')}
                   </h4>
                   <div className="space-y-2">
-                    {["1위: 시그니처 머스크", "2위: 우디 앰버", "3위: 시트러스 프레시"].map((item, idx) => (
+                    {[t('programs.detail.personal.resultTop1'), t('programs.detail.personal.resultTop2'), t('programs.detail.personal.resultTop3')].map((item, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg text-sm">
                         <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold">{idx + 1}</span>
-                        <span>{item.split(": ")[1]}</span>
+                        <span>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -518,15 +390,19 @@ export default function PersonalPage() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="w-64 h-64 bg-white border-2 border-black rounded-2xl shadow-[6px_6px_0_0_black] flex items-center justify-center overflow-hidden">
-                    <img src="/제목 없는 디자인 (4)/1.png" alt="완성품" className="w-[80%] h-[80%] object-contain" />
+                    {currentImage ? (
+                      <img src={currentImage} alt={t('programs.detail.personal.finishedProductAlt')} className="w-[80%] h-[80%] object-contain" />
+                    ) : (
+                      <div className="h-full w-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" />
+                    )}
                   </div>
                   <div className="absolute -top-3 -right-3 px-4 py-2 bg-black text-white font-black rounded-full border-2 border-black text-sm">
                     YOUR SCENT ✨
                   </div>
                 </div>
                 <div className="mt-6 text-center">
-                  <h3 className="text-2xl font-black text-black mb-2">나만의 시그니처</h3>
-                  <p className="text-slate-600">세상에 하나뿐인 맞춤 퍼퓸</p>
+                  <h3 className="text-2xl font-black text-black mb-2">{t('programs.detail.personal.resultSignatureTitle')}</h3>
+                  <p className="text-slate-600">{t('programs.detail.personal.resultSignatureDesc')}</p>
                 </div>
               </div>
             </div>
@@ -552,7 +428,7 @@ export default function PersonalPage() {
               💬 REAL REVIEWS
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              실제 사용 후기
+              {t('programs.detail.personal.reviewsTitle')}
             </motion.h2>
           </div>
 
@@ -572,7 +448,7 @@ export default function PersonalPage() {
                 <div className="flex items-center justify-between">
                   <p className="font-black text-black">{review.name}</p>
                   <div className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
-                    구매인증
+                    {t('programs.detail.personal.purchaseVerified')}
                   </div>
                 </div>
               </motion.div>
@@ -597,7 +473,7 @@ export default function PersonalPage() {
               ❓ FAQ
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-black">
-              자주 묻는 질문
+              {t('programs.detail.personal.faqTitle')}
             </motion.h2>
           </div>
 
@@ -650,12 +526,12 @@ export default function PersonalPage() {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
-            당신만의<br />
-            <span className="text-slate-400">시그니처 향을 찾아보세요</span>
+            {t('programs.detail.personal.finalCtaTitleLine1')}<br />
+            <span className="text-slate-400">{t('programs.detail.personal.finalCtaTitleLine2')}</span>
           </h2>
           <p className="text-slate-500 mb-8 text-lg">
-            AI가 분석하는 퍼스널리티 기반 맞춤 퍼퓸.<br />
-            결제는 분석 결과가 마음에 드실 때만!
+            {t('programs.detail.personal.finalCtaDescLine1')}<br />
+            {t('programs.detail.personal.finalCtaDescLine2')}
           </p>
 
           <button
@@ -664,11 +540,11 @@ export default function PersonalPage() {
             className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-white text-black font-black text-xl rounded-xl border-2 border-black shadow-[8px_8px_0_0_#666] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0_0_#666] transition-all disabled:opacity-50"
           >
             <Sparkles size={28} />
-            지금 바로 시작하기
+            {t('programs.detail.personal.finalCtaButton')}
           </button>
 
           <p className="text-slate-600 mt-6 text-sm">
-            분석 소요시간: 약 2분 ⚡
+            {t('programs.detail.personal.finalCtaTime')} ⚡
           </p>
         </motion.div>
       </section>
@@ -706,10 +582,10 @@ export default function PersonalPage() {
                   <AlertTriangle size={28} className="text-white" />
                 </div>
 
-                <h2 className="text-xl font-black text-slate-900 mb-2">잠깐! 🤔</h2>
+                <h2 className="text-xl font-black text-slate-900 mb-2">{t('programs.detail.personal.loginPromptTitle')} 🤔</h2>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  로그인하지 않으면 분석 결과가<br />
-                  <span className="font-bold text-red-500">저장되지 않아요!</span>
+                  {t('programs.detail.personal.loginPromptBodyLine1')}<br />
+                  <span className="font-bold text-red-500">{t('programs.detail.personal.loginPromptBodyLine2')}</span>
                 </p>
               </div>
 
@@ -717,15 +593,15 @@ export default function PersonalPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">로그인하면 분석 결과가 자동 저장돼요</span>
+                    <span className="text-slate-600">{t('programs.detail.personal.loginBenefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">마이페이지에서 언제든 다시 볼 수 있어요</span>
+                    <span className="text-slate-600">{t('programs.detail.personal.loginBenefit2')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">비회원은 페이지를 나가면 결과가 사라져요</span>
+                    <span className="text-slate-600">{t('programs.detail.personal.loginBenefit3')}</span>
                   </div>
                 </div>
               </div>
@@ -735,7 +611,7 @@ export default function PersonalPage() {
                   onClick={handleLoginClick}
                   className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_#666] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#666] transition-all border-2 border-black"
                 >
-                  로그인 / 회원가입
+                  {t('programs.detail.personal.loginButton')}
                 </button>
               </div>
             </motion.div>

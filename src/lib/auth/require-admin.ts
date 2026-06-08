@@ -1,6 +1,10 @@
 import { requireAuthenticatedUser, type AuthenticatedUser } from '@/lib/auth/require-user'
 
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'nadr110619@gmail.com')
+const ADMIN_EMAILS = (
+  process.env.ADMIN_EMAILS ||
+  process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+  'nadr110619@gmail.com'
+)
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)

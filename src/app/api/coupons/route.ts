@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
       code: uc.coupon?.code,
       type: uc.coupon?.type,
       discount_percent: uc.coupon?.discount_percent,
+      discount_type: uc.coupon?.discount_type || 'percent',
+      discount_amount: uc.coupon?.discount_amount || 0,
       title: uc.coupon?.title,
       description: uc.coupon?.description,
       validUntil: uc.coupon?.valid_until,

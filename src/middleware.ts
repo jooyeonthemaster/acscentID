@@ -17,6 +17,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/auth') ||
+    pathname.startsWith('/c/') ||
+    pathname === '/coupon/claim' ||
+    pathname === '/coupon/register' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
     /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin)$/.test(pathname)

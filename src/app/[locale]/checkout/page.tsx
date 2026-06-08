@@ -25,7 +25,7 @@ import { CouponSelector } from "./components/CouponSelector"
 import { PaymentMethodSelector } from "./components/PaymentMethodSelector"
 import { InAppBrowserNotice } from "./components/InAppBrowserNotice"
 import { usePortonePayment } from "./hooks/usePortonePayment"
-import { CheckoutCoupon } from "@/types/coupon"
+import { CheckoutCoupon, calculateCouponDiscount } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import { formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
@@ -43,8 +43,6 @@ import {
   getStoreProductName,
 } from "@/lib/products/store-products"
 
-// "오늘의 향" 시그니처 퍼퓸 결제 시 주문 요약에 쓰는 대표 이미지
-const TODAY_SCENT_BOTTLE_IMAGE = "/images/perfume/LE QUACK.avif"
 const PERSISTED_CART_ITEM_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface AnalysisResult {
@@ -273,7 +271,7 @@ function CheckoutContent() {
     if (isSignatureProduct) {
       setProductType("signature")
       setSelectedSize("10ml")
-      setUserImage("/images/perfume/LE QUACK.avif")
+      setUserImage(getOption("signature", "10ml")?.image_url || STORE_PRODUCT_IMAGE)
       setIdolName("AC'SCENT")
       // 시그니처 상품은 분석 결과가 없으므로 빈 객체 설정
       setAnalysisResult({
@@ -294,11 +292,12 @@ function CheckoutContent() {
     if (isTodayScent) {
       const scent = (searchParams.get("scent") ? getScentById(searchParams.get("scent")!) : undefined) || TODAY_SCENTS[0]
       const sizeParam = searchParams.get("size")
+      const size = sizeParam === "50ml" ? "50ml" : "10ml"
       // 오늘의 향은 AI 분석이 없는 카탈로그 상품 → 전용 타입 사용.
       // (image_analysis 로 보내면 orders_product_ref_check 가 analysis_id 를 요구해 INSERT 가 거부됨)
       setProductType("today_scent")
-      setSelectedSize(sizeParam === "50ml" ? "50ml" : "10ml")
-      setUserImage(TODAY_SCENT_BOTTLE_IMAGE)
+      setSelectedSize(size)
+      setUserImage(getOption("today_scent", size)?.image_url || STORE_PRODUCT_IMAGE)
       setIdolName("AC'SCENT")
       setAnalysisResult({
         matchingPerfumes: [{
@@ -375,6 +374,7 @@ function CheckoutContent() {
     const savedImage = localStorage.getItem("userImage")
     const savedUserInfo = localStorage.getItem("userInfo")
     const savedProductType = localStorage.getItem("checkoutProductType")
+    const savedSelectedSize = localStorage.getItem("checkoutSelectedSize")
     const savedAnalysisId = localStorage.getItem("checkoutAnalysisId")
     const savedLayeringSessionId = localStorage.getItem("checkoutLayeringSessionId")
 
@@ -418,6 +418,11 @@ function CheckoutContent() {
       localStorage.removeItem("checkoutProductType")
     }
 
+    if (savedSelectedSize) {
+      setSelectedSize(savedSelectedSize)
+      localStorage.removeItem("checkoutSelectedSize")
+    }
+
     // 분석 ID 설정 (단품용) - 주문과 분석 결과 연결
     if (savedAnalysisId) {
       setAnalysisId(savedAnalysisId)
@@ -457,6 +462,7 @@ function CheckoutContent() {
     storeProductsLoading,
     getDynamicStoreProductBySlug,
     getDynamicStoreProductBySize,
+    getOption,
   ])
 
   // 선택 옵션 정합성 보정 — DB 옵션이 로드된 뒤 selectedSize 가 유효하지 않으면
@@ -520,13 +526,21 @@ function CheckoutContent() {
   }
 
   // 다중 상품 모드
-  const multiTotals = isMultiItemMode ? calculateCartTotals(checkoutItems, selectedCoupon?.discount_percent, selectedCoupon?.type) : null
+  const multiTotals = isMultiItemMode
+    ? calculateCartTotals(
+      checkoutItems,
+      selectedCoupon?.discount_percent,
+      selectedCoupon?.type,
+      selectedCoupon?.discount_type,
+      selectedCoupon?.discount_amount
+    )
+    : null
 
   // 단일 상품 모드
   const singleUnitPrice = getPriceForSize(productType, selectedSize)
   const singleProductPrice = singleUnitPrice * singleQuantity
   const singleDiscountAmount = selectedCoupon
-    ? Math.floor(singleProductPrice * (selectedCoupon.discount_percent / 100))
+    ? calculateCouponDiscount(singleProductPrice, selectedCoupon)
     : 0
 
   // 최종 가격 (프로모션 적용)
@@ -535,6 +549,12 @@ function CheckoutContent() {
   const shippingResult = calculateShippingWithPromotion(subtotalForShipping, isMultiItemMode ? undefined : productType, freeShippingPromo)
   const shippingFee = shippingResult.finalFee
   const discountAmount = isMultiItemMode ? multiTotals!.discount : singleDiscountAmount
+  const fixedCouponFaceValue = selectedCoupon?.discount_type === 'fixed_amount'
+    ? Number(selectedCoupon.discount_amount || 0)
+    : 0
+  const couponUnusedAmount = fixedCouponFaceValue > discountAmount
+    ? fixedCouponFaceValue - discountAmount
+    : 0
   const totalPrice = productPrice + shippingFee - discountAmount
 
   // 계좌번호 복사
@@ -656,23 +676,53 @@ function CheckoutContent() {
 
       console.log("[Checkout] Response status:", response.status, response.statusText)
 
-      const result = await response.json()
+      const responseText = await response.text()
+      let result: {
+        success?: boolean
+        orderId?: string
+        orderNumber?: string
+        itemCount?: number
+        discountApplied?: boolean
+        error?: string
+        message?: string
+        details?: string
+      } = {}
+      try {
+        result = responseText ? JSON.parse(responseText) : {}
+      } catch {
+        result = {
+          error: responseText || `${t('checkout.orderCreateFailed')} (${response.status})`,
+        }
+      }
 
       if (!response.ok) {
+        const orderErrorMessage =
+          result.error ||
+          result.message ||
+          result.details ||
+          `${t('checkout.orderCreateFailed')} (${response.status})`
         console.error("[Checkout] 주문 생성 에러:", {
           status: response.status,
           statusText: response.statusText,
           result,
+          responseText,
           orderData
         })
-        throw new Error(result.error || `${t('checkout.orderCreateFailed')} (${response.status})`)
+        throw new Error(orderErrorMessage)
       }
 
+      const createdOrderId = result.orderId
+      if (!createdOrderId) {
+        throw new Error("주문 생성 응답에 주문 ID가 없습니다.")
+      }
+
+      const isZeroAmountOrder = totalPrice <= 0
+
       // 온라인 결제 (카드, 카카오페이, 네이버페이)
-      if (paymentMethod !== "bank_transfer") {
+      if (paymentMethod !== "bank_transfer" && !isZeroAmountOrder) {
         // 온라인 결제 선택 시점 인앱 재검증 — 배너를 무시하고 버튼을 누른 경우 방어
         if (detectInAppBrowser().isInApp) {
-          await fetch(`/api/orders/${result.orderId}/payment-failed`, {
+          await fetch(`/api/orders/${createdOrderId}/payment-failed`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ reason: "인앱 브라우저 결제 차단" }),
@@ -702,7 +752,7 @@ function CheckoutContent() {
         } catch {}
 
         const paymentResult = await initiatePayment({
-          orderId: result.orderId,
+          orderId: createdOrderId,
           orderName,
           totalAmount: totalPrice,
           paymentMethod,
@@ -720,7 +770,7 @@ function CheckoutContent() {
         if (!paymentResult.success) {
           // 결제 미완료 주문 즉시 삭제 (결제가 안 됐으므로 주문 자체를 제거)
           try {
-            await fetch(`/api/orders/${result.orderId}/payment-failed`, {
+            await fetch(`/api/orders/${createdOrderId}/payment-failed`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ reason: paymentResult.cancelled ? "사용자 결제 취소" : "결제 실패" }),
@@ -779,8 +829,9 @@ function CheckoutContent() {
       localStorage.setItem("lastOrderPerfumeName", savedPerfumeName)
       localStorage.setItem("lastOrderSize", savedSize)
 
-      // 주문 완료 페이지로 이동 (결제 방법 정보 포함)
-      router.push(`/checkout/complete?orderId=${result.orderId}&paymentMethod=${paymentMethod}`)
+      // 주문 완료 페이지로 이동 (0원 주문은 입금 안내가 뜨지 않도록 free로 표시)
+      const completePaymentMethod = isZeroAmountOrder ? "free" : paymentMethod
+      router.push(`/checkout/complete?orderId=${createdOrderId}&paymentMethod=${completePaymentMethod}`)
     } catch (error) {
       console.error("Order submission error:", error)
       alert(error instanceof Error ? error.message : t('checkout.orderError'))
@@ -1029,12 +1080,22 @@ function CheckoutContent() {
                     </div>
                   )}
                   {discountAmount > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500 font-bold">{t('checkout.couponDiscount')}</span>
-                      <span className="font-black text-[#F472B6]">
-                        -{formatPrice(discountAmount)}{t('currency.suffix')}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-bold">{t('checkout.couponDiscount')}</span>
+                        <span className="font-black text-[#F472B6]">
+                          -{formatPrice(discountAmount)}{t('currency.suffix')}
+                        </span>
+                      </div>
+                      {couponUnusedAmount > 0 && (
+                        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
+                          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                          <span>
+                            정액 쿠폰 잔액 {formatPrice(couponUnusedAmount)}{t('currency.suffix')}은 이 주문에서 사용되지 않고 소멸됩니다.
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
                   <div className="border-t-2 border-slate-900 pt-4 mt-4 flex justify-between items-center">
                     <span className="font-black text-slate-900 text-lg">{t('checkout.totalPayment')}</span>

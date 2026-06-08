@@ -6,6 +6,8 @@ import { Instagram, Twitter, Copy, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { isFocusedExperiencePath } from '@/lib/route-visibility'
+import { ADMIN_PROGRAMS } from '@/lib/admin/catalog'
+import { useActiveProducts } from '@/hooks/useAdminContent'
 
 // 입금계좌 (복사용 — 숫자만)
 const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
@@ -15,6 +17,19 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
   const t = useTranslations()
   const [copied, setCopied] = useState(false)
+  const { products, isProductVisible } = useActiveProducts()
+
+  // 노출(활성) 중인 프로그램만 admin_products 표시순서대로 자동 노출
+  const productBySlug = new Map(products.map((p) => [p.slug, p]))
+  const visiblePrograms = ADMIN_PROGRAMS
+    .filter((program) => isProductVisible(program.slug))
+    .map((program) => ({
+      slug: program.slug,
+      href: program.publicHref,
+      name: productBySlug.get(program.slug)?.name ?? program.name,
+      order: productBySlug.get(program.slug)?.display_order ?? Number.MAX_SAFE_INTEGER,
+    }))
+    .sort((a, b) => a.order - b.order)
 
   const handleCopyAccount = async () => {
     try {
@@ -26,7 +41,7 @@ export function Footer() {
     }
   }
 
-  // 관리자 페이지에서는 숨김
+  // 관리자 페이지, 집중 경험 경로에서는 숨김
   if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname)) return null
 
   return (
@@ -55,22 +70,16 @@ export function Footer() {
               {t('footer.programs')}
             </h3>
             <ul className="space-y-1.5">
-              <li>
-                <Link
-                  href="/programs/idol-image"
-                  className="text-xs text-slate-300 hover:text-white inline-block transition-all"
-                >
-                  {t('footer.aiImageAnalysis')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/programs/figure"
-                  className="text-xs text-slate-300 hover:text-white inline-block transition-all"
-                >
-                  {t('footer.figureDiffuser')}
-                </Link>
-              </li>
+              {visiblePrograms.map((program) => (
+                <li key={program.slug}>
+                  <Link
+                    href={program.href}
+                    className="text-xs text-slate-300 hover:text-white inline-block transition-all"
+                  >
+                    {program.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

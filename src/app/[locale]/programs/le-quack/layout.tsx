@@ -14,7 +14,7 @@ export const metadata: Metadata = createMetadata({
     type: 'website',
     images: [
       {
-        url: '/images/perfume/LE QUACK.avif',
+        url: '/images/product-placeholder.svg',
         width: 800,
         height: 800,
         alt: '시그니처 뿌덕퍼퓸 LE QUACK',
@@ -35,7 +35,7 @@ export default async function LeQuackLayout({ children }: { children: React.Reac
     description: "AC'SCENT IDENTITY 시그니처 향수. 오리 캐릭터 키링 포함.",
     price: opt?.price ?? 34000,
     originalPrice: opt?.original_price ?? 45000,
-    image: '/images/perfume/LE QUACK.avif',
+    image: '/images/product-placeholder.svg',
     path: '/programs/le-quack',
     availability: opt?.is_active === false ? 'SoldOut' : 'PreOrder',
     sku: 'ACSCENT-LEQUACK',

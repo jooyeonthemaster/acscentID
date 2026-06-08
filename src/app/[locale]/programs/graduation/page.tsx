@@ -2,9 +2,8 @@
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
 import {
-  Star, X, AlertTriangle,
+  X, AlertTriangle,
   Gift, ChevronRight,
   FileText, Camera, Sparkles, GraduationCap, Clock
 } from "lucide-react"
@@ -21,6 +20,7 @@ import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
@@ -77,18 +77,14 @@ export default function GraduationPage() {
     loadReviewStats()
   }, [])
 
-  const { imageUrls: dynamicImages } = useProductImages('graduation')
-  const productImages = dynamicImages.length > 0 ? dynamicImages : [
-    "/images/jollduck/KakaoTalk_20260130_201156204.jpg",
-    "/images/jollduck/KakaoTalk_20260130_201156204_01.jpg",
-    "/images/jollduck/KakaoTalk_20260130_201156204_02.jpg",
-  ]
+  const { imageUrls: dynamicImages, loading: imagesLoading } = useProductImages('graduation')
+  const productImages = imagesLoading ? [] : dynamicImages
   const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('graduation')
   const { startTransition } = useTransition()
   const pageSubtitle = t('programs.graduation.subtitle')
-  const pageInfoTitle = '졸업 패키지 구성'
+  const pageInfoTitle = t('programs.detail.graduation.packageInfoTitle')
   const pageInfoBody = `${t('programs.graduation.compPerfume')} / ${t('programs.graduation.compKeyring')} / ${t('programs.graduation.compReport')}`
   const pageCtaLabel = t('buttons.analyzeNow')
   const pageContent = useMemo(
@@ -133,186 +129,67 @@ export default function GraduationPage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-28 pb-10 px-4">
-        <div className="w-full">
-          {/* 이미지 갤러리 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5"
-          >
-            {/* 메인 이미지 */}
-            <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
-              <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span
-                  className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-black animate-pulse"
-                  data-admin-page-position-field="badge"
-                  style={pagePositionStyle('badge')}
-                >
-                  <span data-admin-page-field="badge">{pageContent.badge}</span>
-                </span>
-              </div>
-              <div
-                className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50"
-                data-admin-product-image="true"
-                data-admin-page-position-field="productImage"
-                style={pagePositionStyle('productImage')}
-              >
-                <motion.img
-                  key={currentImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  src={currentImage}
-                  alt={productName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      <UnifiedDetailHero
+        productSlug="graduation"
+        title={productName}
+        imageAlt={productName}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('programs.breadcrumbHome'), href: '/' },
+          { label: t('programs.breadcrumbPrograms'), href: '/' },
+          { label: productName },
+        ]}
+        images={{
+          urls: productImages,
+          loading: imagesLoading,
+          selectedIndex: selectedImage,
+          onSelect: setSelectedImage,
+        }}
+        badgeClassName="bg-red-500 text-white"
+        meta={
+          <div className="flex flex-wrap items-center gap-2">
+            <ReviewTrigger
+              averageRating={reviewStats?.average_rating || 4.9}
+              totalCount={reviewStats?.total_count || 0}
+              onClick={() => setShowReviewModal(true)}
+            />
+            <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
+              {t('programs.graduation.deadline')}
+            </span>
+          </div>
+        }
+        price={
+          <>
+            <div className="mb-3 rounded-xl border-2 border-black bg-red-500 p-3 text-center text-sm font-black text-white shadow-[2px_2px_0_0_black]">
+              {t('programs.graduation.limitedBanner')}
             </div>
-
-            {/* 썸네일 */}
-            {productImages.length > 1 && (
-              <div className="flex gap-2 justify-center">
-                {productImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${selectedImage === idx
-                      ? 'border-black shadow-[2px_2px_0_0_black] scale-105'
-                      : 'border-slate-300 hover:border-slate-500'
-                      }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* 제품 정보 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {/* 브레드크럼 */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbHome')}</Link>
-              <ChevronRight size={12} />
-              <Link href="/" className="hover:text-black">{t('programs.breadcrumbPrograms')}</Link>
-              <ChevronRight size={12} />
-              <span className="text-black font-bold">{productName}</span>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? 34000)}</span>
+              {gradOpt?.original_price && gradOpt.original_price > gradOpt.price && (
+                <>
+                  <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(gradOpt.original_price)}</span>
+                  {gradDiscount !== null && (
+                    <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{gradDiscount}% OFF</span>
+                  )}
+                </>
+              )}
             </div>
-
-            {/* 타이틀 */}
-            <div className="mb-4">
-              <div className="mb-2 flex items-center gap-2">
-                <ReviewTrigger
-                  averageRating={reviewStats?.average_rating || 4.9}
-                  totalCount={reviewStats?.total_count || 0}
-                  onClick={() => setShowReviewModal(true)}
-                />
-                <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full">
-                  {t('programs.graduation.deadline')}
-                </span>
-              </div>
-              <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500">
-                  <span
-                    className="inline-block"
-                    data-admin-editable="product_name"
-                    data-admin-page-position-field="productName"
-                    style={pagePositionStyle('productName')}
-                  >
-                    {productName}
-                  </span>
-                </span>
-              </h1>
-              <p className="text-sm text-slate-600 font-medium">
-                <span
-                  className="inline-block"
-                  data-admin-page-field="subtitle"
-                  data-admin-page-position-field="subtitle"
-                  style={pagePositionStyle('subtitle')}
-                >
-                  {pageContent.subtitle}
-                </span>
-              </p>
-            </div>
-
-            {/* 기간 한정 배너 */}
-            <div className="bg-red-500 border-2 border-black rounded-xl p-3 mb-3 shadow-[3px_3px_0_0_black]">
-              <div className="flex items-center justify-center gap-2 text-white">
-                <span className="text-lg">🎓</span>
-                <span className="font-black text-sm">{t('programs.graduation.limitedBanner')}</span>
-                <span className="text-lg">⏰</span>
-              </div>
-            </div>
-
-            {/* 가격 + 구성품 안내 */}
-            <div
-              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
-              data-admin-page-position-field="infoCard"
-              style={pagePositionStyle('infoCard')}
-            >
-              {/* 가격 */}
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? 34000)}</span>
-                {gradOpt?.original_price && gradOpt.original_price > gradOpt.price && (
-                  <>
-                    <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(gradOpt.original_price)}</span>
-                    {gradDiscount !== null && (
-                      <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">{gradDiscount}% OFF</span>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* 구성품 안내 */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
-                    {pageContent.infoTitle}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
-                  {pageContent.infoBody}
-                </p>
-                <div className="space-y-1 mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-xs text-black">{t('programs.graduation.compPerfume')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-xs text-black">{t('programs.graduation.compKeyring')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-xs text-black">{t('programs.graduation.compReport')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* CTA 버튼 */}
-            <button
-              onClick={handleStartClick}
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              data-admin-page-position-field="ctaButton"
-              style={pagePositionStyle('ctaButton')}
-            >
-              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-            </button>
-
-            <p className="text-center text-xs text-red-500 font-bold mt-2">
-              {t('programs.graduation.urgentText')}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+          </>
+        }
+        infoIcon={<GraduationCap size={14} className="text-slate-900" />}
+        infoItems={[
+          t('programs.graduation.compPerfume'),
+          t('programs.graduation.compKeyring'),
+          t('programs.graduation.compReport'),
+        ]}
+        cta={{
+          onClick: handleStartClick,
+          disabled: loading,
+          label: pageContent.ctaLabel,
+          hint: t('programs.graduation.urgentText'),
+        }}
+      />
 
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
@@ -577,7 +454,7 @@ export default function GraduationPage() {
               <div className="p-6 space-y-3">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FCD34D] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#FCD34D] transition-all border-2 border-black"
+                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#cbd5e1] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#cbd5e1] transition-all border-2 border-black"
                 >
                   {t('buttons.loginSignup')}
                 </button>

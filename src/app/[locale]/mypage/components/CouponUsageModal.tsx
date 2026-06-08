@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingCart, Copy, Check, Gift, Cake, Users, ShoppingBag, ArrowRight, Sparkles, LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import { getCouponDiscountLabel, type CouponDiscountType } from '@/types/coupon'
 
 interface CouponUsageModalProps {
   isOpen: boolean
@@ -12,6 +13,8 @@ interface CouponUsageModalProps {
     code: string
     type: string
     discount_percent: number
+    discount_type?: CouponDiscountType | string | null
+    discount_amount?: number | null
     title: string
     description: string
   } | null
@@ -102,7 +105,7 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
                   </div>
                   <div className="text-white">
                     <h2 className="text-lg font-black">{coupon.title}</h2>
-                    <p className="text-sm opacity-90 font-bold">{coupon.discount_percent}{t('discountSuffix')}</p>
+                    <p className="text-sm opacity-90 font-bold">{getCouponDiscountLabel(coupon)} 할인권</p>
                   </div>
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { useStoreProducts } from '@/hooks/useStoreProducts'
+import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -149,17 +150,17 @@ export function MobileMenuSheet({
 
   // Navigation Links with translated labels (활성 상품만 + DB 이미지 연동)
   const programLinks = [
-    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis'), fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser'), fallbackImage: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-    { slug: 'graduation', href: '/programs/graduation', label: t('products.graduation'), fallbackImage: '/images/jollduck/KakaoTalk_20260130_201156204.jpg' },
-    { slug: 'personal', href: '/programs/personal', label: t('products.personal'), fallbackImage: '/제목 없는 디자인 (4)/1.png' },
-    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry'), fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
-    { slug: 'le-quack', href: '/programs/le-quack', label: t('products.leQuack'), fallbackImage: '/images/perfume/LE QUACK.avif' },
+    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis') },
+    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser') },
+    { slug: 'graduation', href: '/programs/graduation', label: t('products.graduation') },
+    { slug: 'personal', href: '/programs/personal', label: t('products.personal') },
+    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry') },
+    { slug: 'le-quack', href: '/programs/le-quack', label: t('products.leQuack') },
   ]
     .filter((link) => isProductActive(link.slug))
     .map((link) => ({
       ...link,
-      image: thumbnailsLoading ? link.fallbackImage : (thumbnails[link.slug] || link.fallbackImage),
+      image: thumbnailsLoading ? PRODUCT_IMAGE_PLACEHOLDER : (thumbnails[link.slug] || PRODUCT_IMAGE_PLACEHOLDER),
     }))
 
   const productLinks = storeProducts

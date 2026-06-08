@@ -195,9 +195,10 @@ export function usePortonePayment() {
           redirectUrl: redirectUrl.toString(),
           // WebView/앱카드 복귀 scheme
           appScheme: APP_SCHEME,
-          // PC는 팝업, 모바일은 리디렉션으로 명시
+          // KCP/일부 PG는 PC POPUP을 지원하지 않아 IFRAME을 사용한다.
+          // 모바일은 앱카드 전환과 복귀를 위해 리디렉션으로 유지한다.
           windowType: {
-            pc: "POPUP",
+            pc: "IFRAME",
             mobile: "REDIRECTION",
           },
           // 주문 식별자 — verify 단계에서 교차검증 가능
@@ -232,6 +233,7 @@ export function usePortonePayment() {
             payMethod,
             totalAmount: params.totalAmount,
             isMobile: isMobileDevice(),
+            windowType: requestParams.windowType,
             redirectUrl: requestParams.redirectUrl,
             channelKey: channelKey.substring(0, 15) + "...",
           })

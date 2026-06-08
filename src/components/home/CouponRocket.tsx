@@ -16,6 +16,7 @@ const COUPON_STYLES: Record<CouponType, { bg: string, label: string, discount: s
   referral: { bg: '#BAE6FD', label: '친구 초대', discount: '10%' },
   repurchase: { bg: '#FEF08A', label: '재구매', discount: '10%' },
   welcome: { bg: '#BBF7D0', label: '웰컴 쿠폰', discount: '15%' },
+  offline: { bg: '#FDE047', label: '오프라인', discount: '쿠폰' },
 }
 
 // 로켓 불꽃 SVG

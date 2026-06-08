@@ -4,7 +4,7 @@ import { getKakaoSession } from '@/lib/auth-session'
 export interface AuthenticatedUser {
   id: string
   email: string | null
-  provider: 'kakao' | 'supabase'
+  provider: string
 }
 
 /**
@@ -25,10 +25,14 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser | nu
   const supabase = await createServerSupabaseClientWithCookies()
   const { data: { user } } = await supabase.auth.getUser()
   if (user?.id) {
+    const provider = typeof user.app_metadata?.provider === 'string'
+      ? user.app_metadata.provider
+      : 'supabase'
+
     return {
       id: user.id,
       email: user.email ?? null,
-      provider: 'supabase',
+      provider,
     }
   }
 

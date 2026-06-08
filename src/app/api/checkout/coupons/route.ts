@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
-import { CheckoutCoupon } from '@/types/coupon'
+import { CheckoutCoupon, calculateCouponDiscount } from '@/types/coupon'
 
 /**
  * 결제 페이지에서 사용 가능한 쿠폰 목록 조회
@@ -102,6 +102,8 @@ export async function GET() {
         userCouponId: uc.id,
         type: coupon.type,
         discount_percent: coupon.discount_percent,
+        discount_type: coupon.discount_type || 'percent',
+        discount_amount: coupon.discount_amount || 0,
         title: coupon.title,
         isEligible,
         ineligibleReason,
@@ -112,7 +114,7 @@ export async function GET() {
     checkoutCoupons.sort((a, b) => {
       if (a.isEligible && !b.isEligible) return -1
       if (!a.isEligible && b.isEligible) return 1
-      return b.discount_percent - a.discount_percent
+      return calculateCouponDiscount(100000, b) - calculateCouponDiscount(100000, a)
     })
 
     return NextResponse.json({

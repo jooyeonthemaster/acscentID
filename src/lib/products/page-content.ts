@@ -126,6 +126,12 @@ export function extractProductPageContent(html: string | null | undefined): Prod
   return parseConfig(match?.[1]) || getDefaultProductPageContent()
 }
 
+// 다국어 처리되는 서술형 텍스트. 관리자 비주얼 에디터는 위치 저장 시 "현재 화면에 렌더된 언어"의
+// 텍스트를 page-config 스냅샷으로 함께 저장한다. 그 단일 언어 스냅샷이 로케일별 t() 번역을 덮어쓰지
+// 않도록, 이 필드들은 호출자가 넘긴 (로케일라이즈된) fallback 을 항상 우선한다.
+// badge/imagePlaceholder 는 레이아웃성 값이라 기존처럼 page-config 값이 있으면 그대로 사용한다.
+const LOCALIZED_TEXT_FIELDS: ProductPageTextField[] = ['subtitle', 'infoTitle', 'infoBody', 'ctaLabel']
+
 export function extractProductPageContentWithFallback(
   html: string | null | undefined,
   fallback: Partial<ProductPageContent>,
@@ -139,7 +145,11 @@ export function extractProductPageContentWithFallback(
   }
 
   TEXT_FIELDS.forEach((field) => {
-    if (extracted[field] === defaults[field]) {
+    const callerProvided = typeof fallback[field] === 'string'
+    if (LOCALIZED_TEXT_FIELDS.includes(field) && callerProvided) {
+      // 로케일라이즈된 fallback 을 항상 사용 (page-config 의 단일 언어 스냅샷 무시)
+      merged[field] = normalizedFallback[field]
+    } else if (extracted[field] === defaults[field]) {
       merged[field] = normalizedFallback[field]
     }
   })

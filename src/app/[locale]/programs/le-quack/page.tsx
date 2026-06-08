@@ -1,12 +1,12 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Star, X,
-  ChevronRight, ShoppingCart,
+  ShoppingCart,
   Sparkles, Heart, Package
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -20,6 +20,7 @@ import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
+import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
@@ -42,6 +43,7 @@ const staggerContainer = {
 }
 
 export default function LeQuackPage() {
+  const t = useTranslations()
   const { getOption } = useProductPricing()
   const sigOpt = getOption('signature', '10ml')
   const sigDiscount = (sigOpt?.price && sigOpt.original_price && sigOpt.original_price > sigOpt.price)
@@ -53,7 +55,7 @@ export default function LeQuackPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
-  const productName = useProductDisplayName('le-quack', '시그니처 뿌덕퍼퓸')
+  const productName = useProductDisplayName('le-quack', t('programs.detail.leQuack.productNameFallback'))
 
   // 리뷰 관련 상태
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -77,22 +79,24 @@ export default function LeQuackPage() {
     loadReviewStats()
   }, [])
 
-  const { imageUrls: dynamicImages } = useProductImages('le-quack')
-  const productImages = dynamicImages.length > 0 ? dynamicImages : [
-    "/images/perfume/LE QUACK.avif",
-  ]
+  const { imageUrls: dynamicImages, loading: imagesLoading } = useProductImages('le-quack')
+  const productImages = imagesLoading ? [] : dynamicImages
   const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('le-quack')
+  const pageSubtitle = t('programs.detail.leQuack.heroSubtitle')
+  const pageInfoTitle = t('programs.detail.leQuack.heroInfoTitle')
+  const pageInfoBody = t('programs.detail.leQuack.heroInfoBody')
+  const pageCtaLabel = t('programs.detail.leQuack.ctaLabel')
   const pageContent = useMemo(
     () => extractProductPageContentWithFallback(detail?.custom_html, {
       badge: 'SIGNATURE',
-      subtitle: "AC'SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링",
-      infoTitle: '뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링',
-      infoBody: '주문 후 2~3일 내 배송 / 귀여운 오리 퍼퓸키링 포함 / 프리미엄 패키지 / 5만원 이상 무료배송',
-      ctaLabel: '지금 바로 구매하기',
+      subtitle: pageSubtitle,
+      infoTitle: pageInfoTitle,
+      infoBody: pageInfoBody,
+      ctaLabel: pageCtaLabel,
     }),
-    [detail?.custom_html],
+    [detail?.custom_html, pageSubtitle, pageInfoTitle, pageInfoBody, pageCtaLabel],
   )
   const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
     const position = pageContent.positions[field]
@@ -133,179 +137,67 @@ export default function LeQuackPage() {
       {/* ============================================
           HERO SECTION - 제품 갤러리 + 정보
       ============================================ */}
-      <section className="pt-28 pb-10 px-4">
-        <div className="w-full">
-          {/* 이미지 갤러리 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5"
-          >
-            {/* 메인 이미지 */}
-            <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black] mb-3">
-              <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span
-                  className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-black rounded-full border-2 border-black"
-                  data-admin-page-position-field="badge"
-                  style={pagePositionStyle('badge')}
-                >
-                  <span data-admin-page-field="badge">{pageContent.badge}</span>
-                </span>
-              </div>
-              <div
-                className="aspect-square flex items-center justify-center bg-gradient-to-br from-amber-50 to-yellow-50"
-                data-admin-product-image="true"
-                data-admin-page-position-field="productImage"
-                style={pagePositionStyle('productImage')}
-              >
-                <motion.img
-                  key={currentImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  src={currentImage}
-                  alt={productName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      <UnifiedDetailHero
+        productSlug="le-quack"
+        title={productName}
+        imageAlt={productName}
+        pageContent={pageContent}
+        pagePositionStyle={pagePositionStyle}
+        breadcrumbs={[
+          { label: t('programs.breadcrumbHome'), href: "/" },
+          { label: t('programs.detail.leQuack.breadcrumbSignature'), href: "/" },
+          { label: productName },
+        ]}
+        images={{
+          urls: productImages,
+          loading: imagesLoading,
+          selectedIndex: selectedImage,
+          onSelect: setSelectedImage,
+        }}
+        meta={
+          <div className="flex flex-wrap items-center gap-2">
+            <ReviewTrigger
+              averageRating={reviewStats?.average_rating || 4.9}
+              totalCount={reviewStats?.total_count || 0}
+              onClick={() => setShowReviewModal(true)}
+            />
+            <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-black text-white">
+              SIGNATURE
+            </span>
+          </div>
+        }
+        price={
+          <>
+            <div className="mb-3 rounded-xl border-2 border-black bg-black p-3 text-center text-sm font-black text-white shadow-[2px_2px_0_0_#cbd5e1]">
+              {t('programs.detail.leQuack.signaturePerfumeLabel')}
             </div>
-
-            {/* 썸네일 */}
-            {productImages.length > 1 && (
-              <div className="flex gap-2 justify-center">
-                {productImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${selectedImage === idx
-                      ? 'border-black shadow-[2px_2px_0_0_black] scale-105'
-                      : 'border-slate-300 hover:border-slate-500'
-                      }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain bg-white p-1" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* 제품 정보 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {/* 브레드크럼 */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <Link href="/" className="hover:text-black">홈</Link>
-              <ChevronRight size={12} />
-              <Link href="/" className="hover:text-black">시그니처</Link>
-              <ChevronRight size={12} />
-              <span className="text-black font-bold">{productName}</span>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
+              {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
+                <>
+                  <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>
+                  {sigDiscount !== null && (
+                    <span className="rounded bg-black px-1.5 py-0.5 text-[10px] font-bold text-white">{sigDiscount}% OFF</span>
+                  )}
+                </>
+              )}
             </div>
-
-            {/* 타이틀 */}
-            <div className="mb-4">
-              <div className="mb-2 flex items-center gap-2">
-                <ReviewTrigger
-                  averageRating={reviewStats?.average_rating || 4.9}
-                  totalCount={reviewStats?.total_count || 0}
-                  onClick={() => setShowReviewModal(true)}
-                />
-                <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-black rounded-full">
-                  SIGNATURE
-                </span>
-              </div>
-              <h1 className="text-xl font-black text-black leading-tight mb-1.5 break-keep">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500">
-                  <span
-                    className="inline-block"
-                    data-admin-editable="product_name"
-                    data-admin-page-position-field="productName"
-                    style={pagePositionStyle('productName')}
-                  >
-                    {productName}
-                  </span>
-                </span>
-              </h1>
-              <p className="text-sm text-slate-600 font-medium">
-                <span
-                  className="inline-block"
-                  data-admin-page-field="subtitle"
-                  data-admin-page-position-field="subtitle"
-                  style={pagePositionStyle('subtitle')}
-                >
-                  {pageContent.subtitle}
-                </span>
-              </p>
-            </div>
-
-            {/* 시그니처 배너 */}
-            <div className="bg-amber-500 border-2 border-black rounded-xl p-3 mb-3 shadow-[3px_3px_0_0_black]">
-              <div className="flex items-center justify-center gap-2 text-white">
-                <span className="text-lg">🦆</span>
-                <span className="font-black text-sm">AC&apos;SCENT 시그니처 퍼퓸</span>
-                <span className="text-lg">✨</span>
-              </div>
-            </div>
-
-            {/* 가격 + 구성품 안내 */}
-            <div
-              className="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0_0_black] mb-4"
-              data-admin-page-position-field="infoCard"
-              style={pagePositionStyle('infoCard')}
-            >
-              {/* 가격 */}
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-xl font-black text-black">{formatPrice(sigOpt?.price ?? 34000)}원</span>
-                {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
-                  <>
-                    <span className="text-xs text-slate-400 line-through">{formatPrice(sigOpt.original_price)}원</span>
-                    {sigDiscount !== null && (
-                      <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded">{sigDiscount}% OFF</span>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* 구성품 안내 */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
-                    {pageContent.infoTitle}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-[11px] text-slate-600" data-admin-page-field="infoBody">
-                  {pageContent.infoBody}
-                </p>
-                <ul className="space-y-0.5 text-[11px] text-slate-600 pl-5">
-                  <li className="list-disc">주문 후 2~3일 내 배송</li>
-                  <li className="list-disc">귀여운 오리 퍼퓸키링 포함</li>
-                  <li className="list-disc">프리미엄 패키지</li>
-                  <li className="list-disc">5만원 이상 무료배송</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA 버튼 - 바로 구매하기 */}
-            <button
-              onClick={handlePurchaseClick}
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              data-admin-page-position-field="ctaButton"
-              style={pagePositionStyle('ctaButton')}
-            >
-              <ShoppingCart size={20} />
-              <span data-admin-page-field="ctaLabel">{pageContent.ctaLabel}</span>
-            </button>
-
-            <p className="text-center text-xs text-amber-600 font-bold mt-2">
-              🦆 AC&apos;SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링!
-            </p>
-          </motion.div>
-        </div>
-      </section>
+          </>
+        }
+        infoIcon={<Star size={14} className="fill-slate-900 text-slate-900" />}
+        infoItems={[
+          t('programs.detail.leQuack.infoDelivery'),
+          t('programs.detail.leQuack.infoKeyringIncluded'),
+          t('programs.detail.leQuack.infoPremiumPackage'),
+          t('programs.detail.leQuack.infoFreeShipping'),
+        ]}
+        cta={{
+          onClick: handlePurchaseClick,
+          disabled: loading,
+          label: pageContent.ctaLabel,
+          hint: t('programs.detail.leQuack.ctaHint'),
+        }}
+      />
 
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
@@ -319,19 +211,19 @@ export default function LeQuackPage() {
               <div className="flex flex-wrap items-center justify-center gap-4 text-white">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">🦆</span>
-                  <span className="font-bold text-xs">퍼퓸키링</span>
+                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureKeyring')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Sparkles size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">시그니처 향</span>
+                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureSignatureScent')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Package size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">빠른 배송</span>
+                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureFastDelivery')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Heart size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">선물 추천</span>
+                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureGiftRecommend')}</span>
                 </div>
               </div>
             </div>
@@ -353,9 +245,9 @@ export default function LeQuackPage() {
                   ✨ FEATURES
                 </motion.div>
                 <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
-                  시그니처 뿌덕퍼퓸의
+                  {t('programs.detail.leQuack.featuresHeadingLine1')}
                   <br />
-                  특별함
+                  {t('programs.detail.leQuack.featuresHeadingLine2')}
                 </motion.h2>
               </div>
 
@@ -365,8 +257,8 @@ export default function LeQuackPage() {
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🦆</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">귀여운 오리 퍼퓸키링</h3>
-                      <p className="text-slate-600 text-sm">AC&apos;SCENT의 마스코트 뿌덕이가 키링으로!<br />가방이나 열쇠에 달아 어디서든 귀여움을 뽐내세요</p>
+                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardKeyringTitle')}</h3>
+                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardKeyringBodyLine1')}<br />{t('programs.detail.leQuack.cardKeyringBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -376,8 +268,8 @@ export default function LeQuackPage() {
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">✨</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">AC&apos;SCENT 시그니처 향</h3>
-                      <p className="text-slate-600 text-sm">브랜드를 대표하는 시그니처 향으로,<br />따뜻하고 편안한 느낌을 선사합니다</p>
+                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardScentTitle')}</h3>
+                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardScentBodyLine1')}<br />{t('programs.detail.leQuack.cardScentBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -387,8 +279,8 @@ export default function LeQuackPage() {
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🎁</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">선물하기 좋은 구성</h3>
-                      <p className="text-slate-600 text-sm">퍼퓸과 키링이 함께 들어있어 소중한<br />사람에게 선물하기 딱 좋아요</p>
+                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardGiftTitle')}</h3>
+                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardGiftBodyLine1')}<br />{t('programs.detail.leQuack.cardGiftBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -415,14 +307,14 @@ export default function LeQuackPage() {
               💬 REAL REVIEWS
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black mb-2 break-keep">
-              실제 구매 후기
+              {t('programs.detail.leQuack.reviewsHeading')}
             </motion.h2>
             <motion.button
               variants={fadeInUp}
               onClick={() => setShowReviewModal(true)}
               className="text-xs text-slate-500 hover:text-black transition-colors underline underline-offset-4"
             >
-              전체 리뷰 보기 →
+              {t('programs.detail.leQuack.viewAllReviews')}
             </motion.button>
           </div>
 
@@ -457,10 +349,10 @@ export default function LeQuackPage() {
           <button
             onClick={handlePurchaseClick}
             disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-black py-3 text-base font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#cbd5e1] disabled:opacity-50"
           >
             <ShoppingCart size={18} />
-            지금 바로 구매하기
+            {t('programs.detail.leQuack.ctaLabel')}
           </button>
         </div>
       </div>
@@ -501,10 +393,10 @@ export default function LeQuackPage() {
                   <span className="text-3xl">🦆</span>
                 </div>
 
-                <h2 className="text-xl font-black text-slate-900 mb-2">로그인하고 구매하기</h2>
+                <h2 className="text-xl font-black text-slate-900 mb-2">{t('programs.detail.leQuack.loginModalTitle')}</h2>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  로그인하면 주문 내역을<br />
-                  <span className="font-bold text-amber-600">마이페이지에서 확인</span>할 수 있어요!
+                  {t('programs.detail.leQuack.loginModalDescPrefix')}<br />
+                  <span className="font-bold text-amber-600">{t('programs.detail.leQuack.loginModalDescHighlight')}</span>{t('programs.detail.leQuack.loginModalDescSuffix')}
                 </p>
               </div>
 
@@ -512,15 +404,15 @@ export default function LeQuackPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">로그인하면 주문 내역이 저장돼요</span>
+                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitSaveOrders')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">배송 조회를 편하게 할 수 있어요</span>
+                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitTrackDelivery')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">비회원도 구매는 가능해요</span>
+                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitGuestAllowed')}</span>
                   </div>
                 </div>
               </div>
@@ -528,16 +420,16 @@ export default function LeQuackPage() {
               <div className="p-6 space-y-3">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#FCD34D] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#FCD34D] transition-all border-2 border-black"
+                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#cbd5e1] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#cbd5e1] transition-all border-2 border-black"
                 >
-                  로그인 / 회원가입
+                  {t('programs.detail.leQuack.loginSignupButton')}
                 </button>
 
                 <button
                   onClick={handleGuestPurchase}
                   className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
                 >
-                  <span>비회원으로 구매하기</span>
+                  <span>{t('programs.detail.leQuack.guestPurchaseButton')}</span>
                 </button>
               </div>
             </motion.div>

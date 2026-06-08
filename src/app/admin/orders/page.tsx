@@ -205,6 +205,7 @@ function getStoreProductMeta(analysisData: unknown) {
     scentName?: string
     perfumeId?: string
     scentId?: string
+    requestNote?: string
   }
 }
 
@@ -226,6 +227,7 @@ function getStoreOrderSummary(source: StoreOrderSummarySource) {
     quantity,
     unitPrice,
     subtotal,
+    requestNote: meta?.requestNote?.trim() || undefined,
   }
 }
 
@@ -1229,22 +1231,31 @@ export default function AdminOrdersPage() {
                           {(() => {
                             const summaries = getStoreOrderSummaries(order)
                             if (summaries.length === 0) return null
+                            const requestNote = summaries.map((item) => item.requestNote).find(Boolean)
                             return (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {summaries.slice(0, 4).map((item, idx) => (
-                                  <span
-                                    key={`${item.scentName}-${idx}`}
-                                    className="rounded-full border border-lime-200 bg-lime-50 px-2 py-0.5 text-[11px] font-bold text-lime-800"
-                                  >
-                                    {item.scentName} {item.quantity}개
-                                  </span>
-                                ))}
-                                {summaries.length > 4 && (
-                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500">
-                                    +{summaries.length - 4}
-                                  </span>
+                              <>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {summaries.slice(0, 4).map((item, idx) => (
+                                    <span
+                                      key={`${item.scentName}-${idx}`}
+                                      className="rounded-full border border-lime-200 bg-lime-50 px-2 py-0.5 text-[11px] font-bold text-lime-800"
+                                    >
+                                      {item.scentName} {item.quantity}개
+                                    </span>
+                                  ))}
+                                  {summaries.length > 4 && (
+                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500">
+                                      +{summaries.length - 4}
+                                    </span>
+                                  )}
+                                </div>
+                                {requestNote && (
+                                  <div className="mt-1.5 flex items-start gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1">
+                                    <span className="shrink-0 text-[10px] font-black text-amber-700">특정 향료 요청</span>
+                                    <span className="text-[11px] font-medium text-amber-900 break-words">{requestNote}</span>
+                                  </div>
                                 )}
-                              </div>
+                              </>
                             )
                           })()}
                         </td>
@@ -1478,6 +1489,12 @@ export default function AdminOrdersPage() {
                                                   {storeSummary.perfumeId && (
                                                     <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-slate-400 ring-1 ring-slate-200">
                                                       {storeSummary.perfumeId}
+                                                    </span>
+                                                  )}
+                                                  {storeSummary.requestNote && (
+                                                    <span className="w-full rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 break-words whitespace-pre-wrap">
+                                                      <span className="font-black text-amber-700">특정 향료 요청 </span>
+                                                      {storeSummary.requestNote}
                                                     </span>
                                                   )}
                                                 </div>
@@ -1851,6 +1868,12 @@ export default function AdminOrdersPage() {
                                           {storeSummary.perfumeId}
                                         </span>
                                       )}
+                                      {storeSummary.requestNote && (
+                                        <span className="w-full rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 break-words whitespace-pre-wrap">
+                                          <span className="font-black text-amber-700">특정 향료 요청 </span>
+                                          {storeSummary.requestNote}
+                                        </span>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -1923,6 +1946,12 @@ export default function AdminOrdersPage() {
                                     <p className="text-sm font-black text-slate-900">{item.quantity}개</p>
                                     <p className="text-xs font-bold text-slate-500">{formatPrice(item.subtotal)}</p>
                                   </div>
+                                  {item.requestNote && (
+                                    <p className="w-full rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900 break-words whitespace-pre-wrap">
+                                      <span className="font-black text-amber-700">특정 향료 요청 </span>
+                                      {item.requestNote}
+                                    </p>
+                                  )}
                                 </div>
                               ))}
                             </div>

@@ -11,11 +11,12 @@ import { AuthModal } from "@/components/auth/AuthModal"
 import { apiFetch } from "@/lib/api-client"
 import { compressImage } from "@/lib/image/compressor"
 import { HeroAnalysisModal, type HeroAnalysisData } from "./HeroAnalysisModal"
+import { PRODUCT_IMAGE_PLACEHOLDER } from "@/lib/products/images"
 
 // --- Slide Data (2개: Experience + Programs) ---
 const SLIDES = [
-    { id: "experience", bg: "bg-[#FEFCE2]", image: "/images/hero/1.jpg" },
-    { id: "programs", bg: "bg-[#FEFCE2]", image: "/images/hero/2.jpg" }
+    { id: "experience", bg: "bg-[#FEFCE2]", image: PRODUCT_IMAGE_PLACEHOLDER },
+    { id: "programs", bg: "bg-[#FEFCE2]", image: PRODUCT_IMAGE_PLACEHOLDER }
 ]
 
 export function KitschHero() {

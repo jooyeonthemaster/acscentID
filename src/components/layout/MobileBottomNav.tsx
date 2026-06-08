@@ -14,16 +14,17 @@ import { useTranslations } from 'next-intl'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
 import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
+import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
 
-// Programs 드롭업 메뉴 항목 (전체) - 기본 fallback 이미지 포함
+// Programs 드롭업 메뉴 항목 (전체)
 const ALL_PROGRAM_LINKS = [
-  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const, fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
-  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const, fallbackImage: '/images/diffuser/KakaoTalk_20260125_225229624.jpg' },
-  { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const, descKey: 'programs.subtitle.graduation' as const, fallbackImage: '/images/jollduck/KakaoTalk_20260130_201156204.jpg' },
-  { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const, fallbackImage: '/제목 없는 디자인 (4)/1.png' },
-  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const, fallbackImage: '/images/chemistry/chemistry-thumbnail.jpg' },
-  { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const, fallbackImage: '/images/perfume/LE QUACK.avif' },
-  { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const, descKey: 'todayScent.subtitle' as const, fallbackImage: '/images/perfume/KakaoTalk_20260125_225218071.jpg' },
+  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const },
+  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const },
+  { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const, descKey: 'programs.subtitle.graduation' as const },
+  { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const },
+  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const },
+  { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const },
+  { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const, descKey: 'todayScent.subtitle' as const },
 ]
 
 // NavItem 컴포넌트
@@ -164,7 +165,7 @@ export function MobileBottomNav() {
     .filter((link) => isProductVisible(link.slug))
     .map((link) => ({
       ...link,
-      image: thumbnailsLoading ? link.fallbackImage : (thumbnails[link.slug] || link.fallbackImage),
+      image: thumbnailsLoading ? PRODUCT_IMAGE_PLACEHOLDER : (thumbnails[link.slug] || PRODUCT_IMAGE_PLACEHOLDER),
     }))
 
   const [showProgramsMenu, setShowProgramsMenu] = useState(false)

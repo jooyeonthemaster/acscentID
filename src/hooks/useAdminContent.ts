@@ -31,29 +31,7 @@ export function useBanners() {
         console.error('[useBanners] Supabase error:', error)
       }
 
-      if (!error && data && data.length > 0) {
-        setBanners(data)
-      } else {
-        // fallback: 기존 하드코딩 배너 (DB 비어있거나 에러 시)
-        setBanners([
-          {
-            id: 'fallback-1',
-            title: 'AI 이미지 분석 퍼퓸',
-            image_url: '/images/hero/1.jpg',
-            link_url: '/programs/idol-image',
-            is_active: true,
-            display_order: 0,
-          },
-          {
-            id: 'fallback-2',
-            title: '피규어 화분 디퓨저',
-            image_url: '/images/hero/2.jpg',
-            link_url: '/programs/figure',
-            is_active: true,
-            display_order: 1,
-          },
-        ])
-      }
+      setBanners(!error && data ? data : [])
       setLoading(false)
     }
 
@@ -75,29 +53,6 @@ interface ProductImage {
   alt_text: string | null
 }
 
-// 기본 하드코딩 이미지 (DB에 데이터가 없을 때 폴백)
-const FALLBACK_IMAGES: Record<string, string[]> = {
-  'idol-image': [
-    '/images/perfume/KakaoTalk_20260125_225218071.jpg',
-    '/images/perfume/KakaoTalk_20260125_225218071_01.jpg',
-  ],
-  figure: [
-    '/images/diffuser/KakaoTalk_20260125_225229624.jpg',
-    '/images/diffuser/KakaoTalk_20260125_225229624_01.jpg',
-  ],
-  graduation: [
-    '/images/jollduck/KakaoTalk_20260130_201156204.jpg',
-    '/images/jollduck/KakaoTalk_20260130_201156204_01.jpg',
-    '/images/jollduck/KakaoTalk_20260130_201156204_02.jpg',
-  ],
-  'le-quack': ['/images/perfume/LE QUACK.avif'],
-  personal: [
-    '/제목 없는 디자인 (4)/1.png',
-    '/제목 없는 디자인 (4)/2.png',
-    '/제목 없는 디자인 (4)/3.png',
-  ],
-}
-
 export function useProductImages(productSlug: string) {
   const [images, setImages] = useState<ProductImage[]>([])
   const [loading, setLoading] = useState(true)
@@ -116,31 +71,16 @@ export function useProductImages(productSlug: string) {
         console.error('[useProductImages] Supabase error:', error)
       }
 
-      if (!error && data && data.length > 0) {
-        setImages(data)
-      } else {
-        // fallback (DB 비어있거나 에러 시)
-        const fallback = FALLBACK_IMAGES[productSlug] || []
-        setImages(
-          fallback.map((url, i) => ({
-            id: `fallback-${i}`,
-            product_slug: productSlug,
-            image_url: url,
-            image_type: 'gallery',
-            display_order: i,
-            alt_text: null,
-          }))
-        )
-      }
+      setImages(!error && data ? data : [])
       setLoading(false)
     }
 
     fetchImages()
   }, [productSlug])
 
-  // gallery 이미지 URL 배열 (편의 함수)
-  const imageUrls = images
-    .filter((img) => img.image_type === 'gallery')
+  // gallery가 있으면 gallery를 우선 사용하고, 없으면 관리자에 등록된 대표/썸네일 이미지를 사용한다.
+  const galleryImages = images.filter((img) => img.image_type === 'gallery')
+  const imageUrls = (galleryImages.length > 0 ? galleryImages : images)
     .map((img) => img.image_url)
 
   return { images, imageUrls, loading }
@@ -190,6 +130,13 @@ export interface AdminProduct {
   name: string
   is_active: boolean
   display_order: number
+  badge_text?: string | null
+  badge_color?: string | null
+}
+
+export interface ProductBadgeOverride {
+  text: string | null
+  color: string | null
 }
 
 // 기본 상품 목록 (DB 조회 실패 시 폴백)
@@ -236,7 +183,16 @@ export function useActiveProducts() {
   // admin_products 행이 없으면 기본 노출(true), 있으면 is_active 따름 (오늘의 향 등 기본 노출 프로그램용)
   const isProductVisible = (slug: string) => (knownSlugs.has(slug) ? activeSlugs.has(slug) : true)
 
-  return { products, activeProducts, isProductActive, isProductVisible, loading }
+  // 관리자에서 지정한 뱃지 문구/색상. 미설정이면 null → 메인 페이지 기본 동작 유지
+  const getProductBadge = (slug: string): ProductBadgeOverride => {
+    const product = products.find((p) => p.slug === slug)
+    return {
+      text: product?.badge_text?.trim() || null,
+      color: product?.badge_color?.trim() || null,
+    }
+  }
+
+  return { products, activeProducts, isProductActive, isProductVisible, getProductBadge, loading }
 }
 
 export function useProductDisplayName(productSlug: string, fallbackName: string) {

@@ -5,7 +5,6 @@ import { normalizeAddress, isFilledAddress } from '@/lib/user/address'
 
 /**
  * 기본 배송지 — user_profiles.preferences.shipping_address 에 저장.
- * 별도 테이블/마이그레이션 없이 기존 preferences(JSONB)를 활용한다.
  */
 
 // GET /api/user/address - 저장된 기본 배송지 조회
@@ -61,12 +60,16 @@ export async function PUT(request: NextRequest) {
   const prefs = (existing?.preferences ?? {}) as Record<string, unknown>
   prefs.shipping_address = address
 
+  const profile = {
+    id: authUser.id,
+    preferences: prefs,
+    updated_at: new Date().toISOString(),
+    ...(authUser.email ? { email: authUser.email } : {}),
+    provider: authUser.provider,
+  }
+
   const { error } = await service.from('user_profiles').upsert(
-    {
-      id: authUser.id,
-      preferences: prefs,
-      updated_at: new Date().toISOString(),
-    },
+    profile,
     { onConflict: 'id' },
   )
 

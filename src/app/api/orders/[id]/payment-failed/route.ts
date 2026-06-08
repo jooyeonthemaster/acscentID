@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
+import { releaseCouponUsageForOrder } from '@/lib/coupons/order-coupon-usage'
 
 /**
  * POST /api/orders/[id]/payment-failed
@@ -32,6 +33,11 @@ export async function POST(
       return NextResponse.json({ error: '삭제할 수 없는 주문 상태입니다' }, { status: 400 })
     }
 
+    const couponReleaseResult = await releaseCouponUsageForOrder(serviceClient, orderId)
+    if (!couponReleaseResult.success) {
+      console.error('[Payment Failed] Coupon release failed:', couponReleaseResult)
+    }
+
     // order_items 먼저 삭제 (FK 제약)
     await serviceClient
       .from('order_items')
@@ -51,7 +57,7 @@ export async function POST(
 
     console.log(`[Payment Failed] Order ${order.order_number} deleted - reason: ${reason}`)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, couponRelease: couponReleaseResult })
   } catch (error) {
     console.error('[Payment Failed] Error:', error)
     return NextResponse.json({ error: '서버 오류' }, { status: 500 })

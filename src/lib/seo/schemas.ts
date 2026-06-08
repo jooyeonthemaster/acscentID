@@ -58,7 +58,7 @@ export function localBusinessSchema() {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: "AC'SCENT IDENTITY",
-    image: `${baseUrl}/images/hero/1.jpg`,
+    image: `${baseUrl}/images/product-placeholder.svg`,
     '@id': `${baseUrl}/#localbusiness`,
     url: baseUrl,
     telephone: '+82-2-336-3368',

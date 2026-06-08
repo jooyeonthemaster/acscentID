@@ -6,6 +6,9 @@ import type { ProductType } from '@/types/cart'
 import { FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
 import { validateServerPrice } from '@/lib/products/pricing'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
+import { deductInventoryForOrder } from '@/lib/inventory-deduction'
+import { calculateCouponDiscount } from '@/types/coupon'
+import { markCouponUsedForPaidOrder, releaseCouponUsageForOrder } from '@/lib/coupons/order-coupon-usage'
 import {
   STORE_PRODUCT_DB_COMPAT_TYPE,
   STORE_PRODUCT_TYPE,
@@ -83,6 +86,40 @@ function toStoreProductCompatPayload<T extends { product_type?: ProductType | st
     product_type: STORE_PRODUCT_DB_COMPAT_TYPE,
     analysis_data: withStoreProductCompatAnalysisData(payload.analysis_data),
   } as T
+}
+
+async function isCouponStillUsed(
+  serviceClient: ReturnType<typeof createServiceRoleClient>,
+  userCouponData: { is_used?: boolean | null; used_order_id?: string | null },
+  now: string
+): Promise<boolean> {
+  if (!userCouponData.is_used) return false
+
+  const usedOrderId = userCouponData.used_order_id
+  if (!usedOrderId) return true
+
+  const { data: usedOrder, error } = await serviceClient
+    .from('orders')
+    .select('id, status')
+    .eq('id', usedOrderId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('[Orders API] Coupon used order lookup failed:', error)
+    return true
+  }
+
+  if (usedOrder && usedOrder.status !== 'awaiting_payment') {
+    return true
+  }
+
+  const releaseResult = await releaseCouponUsageForOrder(serviceClient, usedOrderId, now)
+  if (!releaseResult.success) {
+    console.error('[Orders API] Premature coupon usage release failed:', releaseResult)
+    return true
+  }
+
+  return false
 }
 
 // 주문 번호 생성 함수
@@ -236,11 +273,15 @@ export async function POST(request: NextRequest) {
       // Validate coupon discount server-side (multi-item)
       let validatedMultiDiscount = 0
       if (userCouponId) {
-        const { data: userCouponData } = await serviceClient
+        const { data: userCouponData, error: userCouponError } = await serviceClient
           .from('user_coupons')
-          .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
+          .select('id, user_id, is_used, used_order_id, coupon:coupons(*)')
           .eq('id', userCouponId)
           .single()
+
+        if (userCouponError) {
+          console.error('[Orders API] Multi-item coupon lookup failed:', userCouponError)
+        }
 
         if (!userCouponData) {
           return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
@@ -248,13 +289,12 @@ export async function POST(request: NextRequest) {
         if (userCouponData.user_id !== userId) {
           return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
         }
-        if (userCouponData.is_used) {
+        if (await isCouponStillUsed(serviceClient, userCouponData, now)) {
           return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
         }
 
         const coupon = userCouponData.coupon as any
-        const couponPercent = coupon?.discount_percent || 0
-        validatedMultiDiscount = Math.floor(calculatedSubtotal * (couponPercent / 100))
+        validatedMultiDiscount = calculateCouponDiscount(calculatedSubtotal, coupon)
       }
 
       // Check client discount matches server-validated discount (allow minor rounding)
@@ -267,7 +307,7 @@ export async function POST(request: NextRequest) {
       }
 
       const expectedMultiFinalPrice = calculatedSubtotal + expectedMultiShippingFee - validatedMultiDiscount
-      const clientMultiFinalPrice = finalPrice || totalPrice || calculatedSubtotal
+      const clientMultiFinalPrice = Number(finalPrice ?? totalPrice ?? calculatedSubtotal)
       if (Math.abs(clientMultiFinalPrice - expectedMultiFinalPrice) > 1) {
         console.error('[Orders API] Multi-item final price mismatch - client:', clientMultiFinalPrice, 'expected:', expectedMultiFinalPrice)
         return NextResponse.json(
@@ -281,6 +321,8 @@ export async function POST(request: NextRequest) {
 
       // 첫 상품 기준 ID 컬럼 분기 (chemistry_set은 layering_session_id 사용)
       const firstIsChem = firstItem.productType === 'chemistry_set'
+      const effectivePaymentMethod = paymentMethod || 'card'
+      const isZeroAmountOrder = expectedMultiFinalPrice <= 0 && clientMultiFinalPrice <= 0
 
       const orderPayload = {
         order_number: orderNumber,
@@ -299,11 +341,11 @@ export async function POST(request: NextRequest) {
         item_count: itemCount,
         subtotal: calculatedSubtotal,
         // 배송/결제 정보
-        shipping_fee: shippingFee || 0,
+        shipping_fee: clientMultiShippingFee,
         user_coupon_id: userCouponId || null,
         discount_amount: validatedMultiDiscount || 0,
-        original_price: originalPrice || (calculatedSubtotal + (shippingFee || 0)),
-        final_price: finalPrice || totalPrice || calculatedSubtotal,
+        original_price: originalPrice ?? (calculatedSubtotal + expectedMultiShippingFee),
+        final_price: clientMultiFinalPrice,
         // 배송 정보
         recipient_name: recipientName,
         phone,
@@ -315,8 +357,13 @@ export async function POST(request: NextRequest) {
         user_image_url: firstItem.imageUrl || null,
         keywords: [],
         analysis_data: firstItem.analysisData || null,
-        payment_method: paymentMethod || 'card',
-        status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+        payment_method: effectivePaymentMethod,
+        status: isZeroAmountOrder
+          ? 'paid'
+          : effectivePaymentMethod !== 'bank_transfer'
+            ? 'awaiting_payment'
+            : 'pending',
+        ...(isZeroAmountOrder ? { paid_at: now } : {}),
         created_at: now,
         updated_at: now,
       }
@@ -396,32 +443,32 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 5. 쿠폰 사용 처리
-      if (userCouponId) {
-        const { error: couponUpdateError } = await serviceClient
-          .from('user_coupons')
-          .update({
-            is_used: true,
-            used_at: now,
-            used_order_id: order.id,
-          })
-          .eq('id', userCouponId)
+      if (isZeroAmountOrder) {
+        const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order, now)
+        if (!couponUsageResult.success) {
+          console.error('[Orders API] Zero-amount coupon usage finalization failed:', couponUsageResult)
+        }
 
-        if (couponUpdateError) {
-          console.error('Coupon update failed:', couponUpdateError)
+        try {
+          const deductionResult = await deductInventoryForOrder(serviceClient, order.id)
+          if (!deductionResult.success) {
+            console.warn('[Orders API] Zero-amount inventory deduction had errors:', deductionResult.errors)
+          }
+        } catch (deductionError) {
+          console.error('[Orders API] Zero-amount inventory deduction failed:', deductionError)
         }
       }
 
       // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
       // 주문 생성 시점에는 결제가 아직 완료되지 않았으므로 발급 금지.
 
-      // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
-      if (paymentMethod === 'bank_transfer') {
+      // 관리자 이메일 알림 발송 - 무통장입금 또는 0원 주문은 주문 생성 시 발송
+      if (effectivePaymentMethod === 'bank_transfer' || isZeroAmountOrder) {
         notifyNewOrder({
           orderNumber: order.order_number,
           recipientName,
           perfumeName: firstItem.perfumeName,
-          finalPrice: finalPrice || totalPrice || calculatedSubtotal,
+          finalPrice: clientMultiFinalPrice,
           productType: firstItem.productType || 'image_analysis',
           itemCount: orderItems.length,
         })
@@ -468,11 +515,15 @@ export async function POST(request: NextRequest) {
     const singleItemCount = body.quantity || 1
     const singleSubtotal = price * singleItemCount // 단가 × 수량 = 총 상품금액
     if (userCouponId) {
-      const { data: userCouponData } = await serviceClient
+      const { data: userCouponData, error: userCouponError } = await serviceClient
         .from('user_coupons')
-        .select('id, user_id, is_used, coupon:coupons(type, discount_percent)')
+        .select('id, user_id, is_used, used_order_id, coupon:coupons(*)')
         .eq('id', userCouponId)
         .single()
+
+      if (userCouponError) {
+        console.error('[Orders API] Single-item coupon lookup failed:', userCouponError)
+      }
 
       if (!userCouponData) {
         return NextResponse.json({ error: '유효하지 않은 쿠폰입니다' }, { status: 400 })
@@ -480,13 +531,12 @@ export async function POST(request: NextRequest) {
       if (userCouponData.user_id !== userId) {
         return NextResponse.json({ error: '본인의 쿠폰만 사용 가능합니다' }, { status: 400 })
       }
-      if (userCouponData.is_used) {
+      if (await isCouponStillUsed(serviceClient, userCouponData, now)) {
         return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 400 })
       }
 
       const coupon = userCouponData.coupon as any
-      const couponPercent = coupon?.discount_percent || 0
-      validatedSingleDiscount = Math.floor(singleSubtotal * (couponPercent / 100))
+      validatedSingleDiscount = calculateCouponDiscount(singleSubtotal, coupon)
     }
 
     // Check client discount matches server-validated discount (allow minor rounding)
@@ -500,7 +550,7 @@ export async function POST(request: NextRequest) {
 
     // 최종 결제금액 검증 (단가×수량 기준)
     const expectedFinalPrice = singleSubtotal + expectedShippingFee - validatedSingleDiscount
-    const clientFinalPrice = finalPrice || totalPrice || price
+    const clientFinalPrice = Number(finalPrice ?? totalPrice ?? price)
     if (Math.abs(clientFinalPrice - expectedFinalPrice) > 1) {
       console.error('[Orders API] Final price mismatch - client:', clientFinalPrice, 'expected:', expectedFinalPrice)
       return NextResponse.json(
@@ -510,6 +560,8 @@ export async function POST(request: NextRequest) {
     }
 
     const isChemSingle = resolvedProductType === 'chemistry_set'
+    const effectivePaymentMethod = paymentMethod || 'card'
+    const isZeroAmountOrder = expectedFinalPrice <= 0 && clientFinalPrice <= 0
 
     const singleOrderPayload = {
       order_number: orderNumber,
@@ -520,7 +572,7 @@ export async function POST(request: NextRequest) {
       perfume_brand: perfumeBrand,
       size,
       price: singleSubtotal, // 단가×수량 총액
-      shipping_fee: shippingFee || 0,
+      shipping_fee: clientShippingFee,
       user_coupon_id: userCouponId || null,
       discount_amount: validatedSingleDiscount || 0,
       original_price: singleSubtotal + (expectedShippingFee || 0),
@@ -537,9 +589,14 @@ export async function POST(request: NextRequest) {
       analysis_data: analysisData || null,
       confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
       product_type: resolvedProductType,  // 상품 타입
-      payment_method: paymentMethod || 'card',
-      status: (paymentMethod || 'card') !== 'bank_transfer' ? 'awaiting_payment' : 'pending',
+      payment_method: effectivePaymentMethod,
+      status: isZeroAmountOrder
+        ? 'paid'
+        : effectivePaymentMethod !== 'bank_transfer'
+          ? 'awaiting_payment'
+          : 'pending',
       item_count: singleItemCount,
+      ...(isZeroAmountOrder ? { paid_at: now } : {}),
       created_at: now,
       updated_at: now,
     }
@@ -572,31 +629,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 쿠폰 사용 처리
-    if (userCouponId) {
-      const { error: couponUpdateError } = await serviceClient
-        .from('user_coupons')
-        .update({
-          is_used: true,
-          used_at: now,
-          used_order_id: order.id,
-        })
-        .eq('id', userCouponId)
+    if (isZeroAmountOrder) {
+      const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order, now)
+      if (!couponUsageResult.success) {
+        console.error('[Orders API] Zero-amount coupon usage finalization failed:', couponUsageResult)
+      }
 
-      if (couponUpdateError) {
-        console.error('Coupon update failed:', couponUpdateError)
+      try {
+        const deductionResult = await deductInventoryForOrder(serviceClient, order.id)
+        if (!deductionResult.success) {
+          console.warn('[Orders API] Zero-amount inventory deduction had errors:', deductionResult.errors)
+        }
+      } catch (deductionError) {
+        console.error('[Orders API] Zero-amount inventory deduction failed:', deductionError)
       }
     }
 
     // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
 
-    // 관리자 이메일 알림 발송 - 무통장입금만 주문 생성 시 발송 (카드결제는 결제 완료 후 발송)
-    if (paymentMethod === 'bank_transfer') {
+    // 관리자 이메일 알림 발송 - 무통장입금 또는 0원 주문은 주문 생성 시 발송
+    if (effectivePaymentMethod === 'bank_transfer' || isZeroAmountOrder) {
       notifyNewOrder({
         orderNumber: order.order_number,
         recipientName,
         perfumeName: perfumeName || '',
-        finalPrice: finalPrice || totalPrice || price,
+        finalPrice: clientFinalPrice,
         productType: resolvedProductType,
       })
     }

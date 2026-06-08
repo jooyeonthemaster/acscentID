@@ -6,6 +6,7 @@ import { useCoupon } from '@/contexts/CouponContext'
 import { StickerTicket } from '@/components/home/Stickers'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCouponDiscountLabel } from '@/types/coupon'
 
 const TICKET_COLORS: Record<string, string> = {
   birthday: '#FBCFE8',
@@ -115,7 +116,7 @@ export function CouponDrawer() {
                   >
                     <StickerTicket
                       title={coupon.title}
-                      discount={`${coupon.discount_percent}%`}
+                      discount={getCouponDiscountLabel(coupon)}
                       color={TICKET_COLORS[coupon.type] || '#BAE6FD'}
                       className={`w-full ${isClaimed ? 'opacity-60' : ''}`}
                     />
