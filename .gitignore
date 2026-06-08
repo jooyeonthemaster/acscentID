@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+/.data/
 
 # debug
 npm-debug.log*
@@ -42,3 +43,6 @@ next-env.d.ts
 
 .vercel
 nul
+
+# tsc output
+tsc-result.txt
