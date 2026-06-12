@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { AdminHeader } from '../components/AdminHeader'
 import { AdminMemberRecord } from '@/types/admin'
 import * as XLSX from 'xlsx'
@@ -189,6 +190,7 @@ function MemberDetailModal({
 // 인사이트 대시보드
 // ========================
 function InsightsDashboard({ data }: { data: InsightsData }) {
+  const [expandedChannel, setExpandedChannel] = useState<string | null>(null)
   const formatCurrency = (n: number) => n.toLocaleString('ko-KR') + '원'
   const formatHours = (h: number) => {
     if (h < 1) return '1시간 미만'
@@ -309,32 +311,55 @@ function InsightsDashboard({ data }: { data: InsightsData }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50">
-                <th className="px-4 py-2 text-left font-medium text-slate-700">채널</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">가입</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">분석</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">분석 전환율</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">구매</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">구매 전환율</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">매출</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-700">인당 매출</th>
+                <th className="px-2 md:px-4 py-2 text-left font-medium text-slate-700">채널</th>
+                <th className="px-2 md:px-4 py-2 text-right font-medium text-slate-700">가입</th>
+                <th className="hidden md:table-cell px-4 py-2 text-right font-medium text-slate-700">분석</th>
+                <th className="hidden md:table-cell px-4 py-2 text-right font-medium text-slate-700">분석 전환율</th>
+                <th className="hidden md:table-cell px-4 py-2 text-right font-medium text-slate-700">구매</th>
+                <th className="hidden md:table-cell px-4 py-2 text-right font-medium text-slate-700">구매 전환율</th>
+                <th className="px-2 md:px-4 py-2 text-right font-medium text-slate-700">매출</th>
+                <th className="hidden md:table-cell px-4 py-2 text-right font-medium text-slate-700">인당 매출</th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(data.channelStats).sort(([, a], [, b]) => b.total - a.total).map(([ch, stats]) => (
-                <tr key={ch} className="border-t border-slate-100">
-                  <td className="px-4 py-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${PROVIDER_COLORS[ch] || 'bg-slate-100'}`}>
-                      {PROVIDER_LABELS[ch] || ch}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-right font-medium">{stats.total}</td>
-                  <td className="px-4 py-2 text-right">{stats.analyzed}</td>
-                  <td className="px-4 py-2 text-right font-medium text-blue-600">{stats.total > 0 ? Math.round((stats.analyzed / stats.total) * 100) : 0}%</td>
-                  <td className="px-4 py-2 text-right">{stats.ordered}</td>
-                  <td className="px-4 py-2 text-right font-medium text-green-600">{stats.total > 0 ? Math.round((stats.ordered / stats.total) * 100) : 0}%</td>
-                  <td className="px-4 py-2 text-right">{formatCurrency(stats.revenue)}</td>
-                  <td className="px-4 py-2 text-right text-slate-600">{stats.ordered > 0 ? formatCurrency(Math.round(stats.revenue / stats.ordered)) : '-'}</td>
-                </tr>
+                <Fragment key={ch}>
+                  <tr
+                    className="border-t border-slate-100 cursor-pointer md:cursor-default"
+                    onClick={() => setExpandedChannel(prev => (prev === ch ? null : ch))}
+                  >
+                    <td className="px-2 md:px-4 py-2">
+                      <span className="flex items-center gap-1">
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${PROVIDER_COLORS[ch] || 'bg-slate-100'}`}>
+                          {PROVIDER_LABELS[ch] || ch}
+                        </span>
+                        <span className="md:hidden text-slate-400">
+                          {expandedChannel === ch ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="px-2 md:px-4 py-2 text-right font-medium">{stats.total}</td>
+                    <td className="hidden md:table-cell px-4 py-2 text-right">{stats.analyzed}</td>
+                    <td className="hidden md:table-cell px-4 py-2 text-right font-medium text-blue-600">{stats.total > 0 ? Math.round((stats.analyzed / stats.total) * 100) : 0}%</td>
+                    <td className="hidden md:table-cell px-4 py-2 text-right">{stats.ordered}</td>
+                    <td className="hidden md:table-cell px-4 py-2 text-right font-medium text-green-600">{stats.total > 0 ? Math.round((stats.ordered / stats.total) * 100) : 0}%</td>
+                    <td className="px-2 md:px-4 py-2 text-right">{formatCurrency(stats.revenue)}</td>
+                    <td className="hidden md:table-cell px-4 py-2 text-right text-slate-600">{stats.ordered > 0 ? formatCurrency(Math.round(stats.revenue / stats.ordered)) : '-'}</td>
+                  </tr>
+                  {expandedChannel === ch && (
+                    <tr className="md:hidden border-t border-slate-100 bg-slate-50">
+                      <td colSpan={8} className="px-2 py-3">
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex justify-between"><span className="text-slate-500">분석</span><span className="font-medium">{stats.analyzed}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">분석 전환율</span><span className="font-medium text-blue-600">{stats.total > 0 ? Math.round((stats.analyzed / stats.total) * 100) : 0}%</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">구매</span><span className="font-medium">{stats.ordered}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">구매 전환율</span><span className="font-medium text-green-600">{stats.total > 0 ? Math.round((stats.ordered / stats.total) * 100) : 0}%</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">인당 매출</span><span className="font-medium text-slate-600">{stats.ordered > 0 ? formatCurrency(Math.round(stats.revenue / stats.ordered)) : '-'}</span></div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -357,27 +382,29 @@ function InsightsDashboard({ data }: { data: InsightsData }) {
                 <p className="text-xs text-slate-600">직접 가입</p>
               </div>
             </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50">
-                  <th className="px-3 py-1.5 text-left text-xs font-medium text-slate-600">지표</th>
-                  <th className="px-3 py-1.5 text-right text-xs font-medium text-purple-600">추천</th>
-                  <th className="px-3 py-1.5 text-right text-xs font-medium text-slate-600">직접</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-slate-100">
-                  <td className="px-3 py-1.5">분석 전환율</td>
-                  <td className="px-3 py-1.5 text-right font-medium text-purple-600">{data.referralEffect.referredAnalysisRate}%</td>
-                  <td className="px-3 py-1.5 text-right">{data.referralEffect.directAnalysisRate}%</td>
-                </tr>
-                <tr className="border-t border-slate-100">
-                  <td className="px-3 py-1.5">구매 전환율</td>
-                  <td className="px-3 py-1.5 text-right font-medium text-purple-600">{data.referralEffect.referredOrderRate}%</td>
-                  <td className="px-3 py-1.5 text-right">{data.referralEffect.directOrderRate}%</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50">
+                    <th className="px-3 py-1.5 text-left text-xs font-medium text-slate-600">지표</th>
+                    <th className="px-3 py-1.5 text-right text-xs font-medium text-purple-600">추천</th>
+                    <th className="px-3 py-1.5 text-right text-xs font-medium text-slate-600">직접</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-100">
+                    <td className="px-3 py-1.5">분석 전환율</td>
+                    <td className="px-3 py-1.5 text-right font-medium text-purple-600">{data.referralEffect.referredAnalysisRate}%</td>
+                    <td className="px-3 py-1.5 text-right">{data.referralEffect.directAnalysisRate}%</td>
+                  </tr>
+                  <tr className="border-t border-slate-100">
+                    <td className="px-3 py-1.5">구매 전환율</td>
+                    <td className="px-3 py-1.5 text-right font-medium text-purple-600">{data.referralEffect.referredOrderRate}%</td>
+                    <td className="px-3 py-1.5 text-right">{data.referralEffect.directOrderRate}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             {data.topReferrers.length > 0 && (
               <>
                 <p className="text-xs font-medium text-slate-700 mt-3">Top 추천인</p>
@@ -501,6 +528,9 @@ export default function AdminMembersPage() {
   // 모달
   const [selectedMember, setSelectedMember] = useState<AdminMemberRecord | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+
+  // 모바일 행 확장
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null)
 
   // 인사이트
   const [insights, setInsights] = useState<InsightsData | null>(null)
@@ -819,16 +849,16 @@ export default function AdminMembersPage() {
               <table className="w-full">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-600">회원</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-600">가입 방법</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-600">추천 코드</th>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-slate-600">피추천</th>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-slate-600">분석</th>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-slate-600">주문</th>
-                    <th className="px-3 py-3 text-right text-xs font-medium text-slate-600">결제금액</th>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-slate-600">리뷰</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-600">가입일</th>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-slate-600">상세</th>
+                    <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-slate-600">회원</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-left text-xs font-medium text-slate-600">가입 방법</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-left text-xs font-medium text-slate-600">추천 코드</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-center text-xs font-medium text-slate-600">피추천</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-center text-xs font-medium text-slate-600">분석</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-center text-xs font-medium text-slate-600">주문</th>
+                    <th className="px-2 md:px-3 py-3 text-right text-xs font-medium text-slate-600">결제금액</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-center text-xs font-medium text-slate-600">리뷰</th>
+                    <th className="hidden md:table-cell px-3 py-3 text-left text-xs font-medium text-slate-600">가입일</th>
+                    <th className="px-2 md:px-3 py-3 text-center text-xs font-medium text-slate-600">상세</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -847,61 +877,94 @@ export default function AdminMembersPage() {
                     </tr>
                   ) : (
                     members.map((member) => (
-                      <tr key={member.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-slate-900 text-sm">{member.name || '(이름 없음)'}</p>
-                          <p className="text-xs text-slate-500">{member.email}</p>
-                        </td>
-                        <td className="px-3 py-3">
-                          <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${PROVIDER_COLORS[member.provider] || 'bg-slate-100'}`}>
-                            {PROVIDER_LABELS[member.provider] || member.provider}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3">
-                          {member.referral_code ? (
-                            <span className="font-mono text-xs text-purple-600">{member.referral_code}</span>
-                          ) : (
-                            <span className="text-slate-300">-</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className={`text-sm font-medium ${member.referred_count > 0 ? 'text-purple-600' : 'text-slate-300'}`}>
-                            {member.referred_count}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className={`text-sm font-medium ${member.analysis_count > 0 ? 'text-blue-600' : 'text-slate-300'}`}>
-                            {member.analysis_count}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className={`text-sm font-medium ${member.order_count > 0 ? 'text-green-600' : 'text-slate-300'}`}>
-                            {member.order_count}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-right">
-                          <span className={`text-sm ${member.order_total > 0 ? 'font-medium text-slate-900' : 'text-slate-300'}`}>
-                            {member.order_total > 0 ? `${formatCurrency(member.order_total)}원` : '-'}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className={`text-sm ${member.review_count > 0 ? 'text-amber-600 font-medium' : 'text-slate-300'}`}>
-                            {member.review_count}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-sm text-slate-600">{formatDate(member.created_at)}</td>
-                        <td className="px-3 py-3 text-center">
-                          <button
-                            onClick={() => { setSelectedMember(member); setIsDetailOpen(true) }}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
+                      <Fragment key={member.id}>
+                        <tr
+                          className="border-t border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer md:cursor-default"
+                          onClick={() => setExpandedMemberId(prev => (prev === member.id ? null : member.id))}
+                        >
+                          <td className="px-2 md:px-4 py-3">
+                            <p className="font-medium text-slate-900 text-sm">{member.name || '(이름 없음)'}</p>
+                            <p className="text-xs text-slate-500">{member.email}</p>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3">
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${PROVIDER_COLORS[member.provider] || 'bg-slate-100'}`}>
+                              {PROVIDER_LABELS[member.provider] || member.provider}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3">
+                            {member.referral_code ? (
+                              <span className="font-mono text-xs text-purple-600">{member.referral_code}</span>
+                            ) : (
+                              <span className="text-slate-300">-</span>
+                            )}
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3 text-center">
+                            <span className={`text-sm font-medium ${member.referred_count > 0 ? 'text-purple-600' : 'text-slate-300'}`}>
+                              {member.referred_count}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3 text-center">
+                            <span className={`text-sm font-medium ${member.analysis_count > 0 ? 'text-blue-600' : 'text-slate-300'}`}>
+                              {member.analysis_count}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3 text-center">
+                            <span className={`text-sm font-medium ${member.order_count > 0 ? 'text-green-600' : 'text-slate-300'}`}>
+                              {member.order_count}
+                            </span>
+                          </td>
+                          <td className="px-2 md:px-3 py-3 text-right">
+                            <span className={`text-sm ${member.order_total > 0 ? 'font-medium text-slate-900' : 'text-slate-300'}`}>
+                              {member.order_total > 0 ? `${formatCurrency(member.order_total)}원` : '-'}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3 text-center">
+                            <span className={`text-sm ${member.review_count > 0 ? 'text-amber-600 font-medium' : 'text-slate-300'}`}>
+                              {member.review_count}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-3 py-3 text-sm text-slate-600">{formatDate(member.created_at)}</td>
+                          <td className="px-2 md:px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-0.5">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedMember(member); setIsDetailOpen(true) }}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </button>
+                              <span className="md:hidden text-slate-400">
+                                {expandedMemberId === member.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        {expandedMemberId === member.id && (
+                          <tr className="md:hidden border-t border-slate-100 bg-slate-50">
+                            <td colSpan={10} className="px-2 py-3">
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">가입 방법</span>
+                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${PROVIDER_COLORS[member.provider] || 'bg-slate-100'}`}>
+                                    {PROVIDER_LABELS[member.provider] || member.provider}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">추천 코드</span>
+                                  <span className="font-mono text-purple-600">{member.referral_code || '-'}</span>
+                                </div>
+                                <div className="flex justify-between"><span className="text-slate-500">피추천</span><span className="font-medium">{member.referred_count}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">분석</span><span className="font-medium">{member.analysis_count}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">주문</span><span className="font-medium">{member.order_count}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">리뷰</span><span className="font-medium">{member.review_count}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">가입일</span><span className="font-medium">{formatDate(member.created_at)}</span></div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     ))
                   )}
                 </tbody>

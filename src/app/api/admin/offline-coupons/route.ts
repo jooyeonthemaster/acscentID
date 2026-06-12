@@ -8,6 +8,8 @@ export const runtime = 'nodejs'
 
 const MAX_ISSUE_QUANTITY = 100
 const MAX_DELETE_QUANTITY = 200
+// 발급 현황 목록에 한 번에 불러올 최대 행 수. 통계 카드는 별도 count 쿼리로 정확히 집계한다.
+const RECENT_LIST_LIMIT = 1000
 const DEFAULT_SITE_URL = 'https://www.acscent.co.kr'
 const READABLE_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const READABLE_CODE_LENGTH = 8
@@ -42,6 +44,61 @@ interface LegacyOfflineCouponRow {
     claimed_at: string | null
     is_used: boolean | null
   }>
+}
+
+interface CouponStats {
+  total: number
+  active: number
+  claimed: number
+  used: number
+  voided: number
+}
+
+function emptyStats(): CouponStats {
+  return { total: 0, active: 0, claimed: 0, used: 0, voided: 0 }
+}
+
+/**
+ * 발급 현황 통계는 목록 한도(RECENT_LIST_LIMIT)와 무관하게 전체를 정확히 집계해야 하므로
+ * 상태별 head count 쿼리로 따로 계산한다.
+ */
+async function fetchOfflineCouponStats(
+  serviceClient: ReturnType<typeof createServiceRoleClient>
+): Promise<{ stats: CouponStats | null; error: { code?: string; message?: string } | null }> {
+  const countByStatus = async (status?: string): Promise<number> => {
+    let query = serviceClient
+      .from('offline_coupon_codes')
+      .select('id', { count: 'exact', head: true })
+    if (status) query = query.eq('status', status)
+    const { count, error } = await query
+    if (error) throw error
+    return count || 0
+  }
+
+  try {
+    const [total, active, claimed, used, voided] = await Promise.all([
+      countByStatus(),
+      countByStatus('active'),
+      countByStatus('claimed'),
+      countByStatus('used'),
+      countByStatus('void'),
+    ])
+    return { stats: { total, active, claimed, used, voided }, error: null }
+  } catch (error) {
+    return { stats: null, error: error as { code?: string; message?: string } }
+  }
+}
+
+function computeStatsFromRows(rows: Array<{ status: string }>): CouponStats {
+  const stats = emptyStats()
+  for (const row of rows) {
+    stats.total += 1
+    if (row.status === 'active') stats.active += 1
+    else if (row.status === 'claimed') stats.claimed += 1
+    else if (row.status === 'used') stats.used += 1
+    else if (row.status === 'void') stats.voided += 1
+  }
+  return stats
 }
 
 function isOfflineCodeTableMissing(error: { code?: string; message?: string } | null | undefined): boolean {
@@ -217,17 +274,18 @@ async function fetchLegacyOfflineCoupons(serviceClient: ReturnType<typeof create
     `)
     .in('type', ['welcome', 'offline'])
     .order('created_at', { ascending: false })
-    .limit(160)
+    .limit(RECENT_LIST_LIMIT)
 
   if (error) {
     return { data: null, error }
   }
 
+  const adminRows = ((data || []) as LegacyOfflineCouponRow[])
+    .filter((row) => row.code.startsWith('OFF') || /^[A-Z0-9]{8}$/.test(row.code))
+    .map(toLegacyAdminRow)
+
   return {
-    data: ((data || []) as LegacyOfflineCouponRow[])
-      .filter((row) => row.code.startsWith('OFF') || /^[A-Z0-9]{8}$/.test(row.code))
-      .slice(0, 80)
-      .map(toLegacyAdminRow),
+    data: adminRows,
     error: null,
   }
 }
@@ -336,7 +394,7 @@ export async function GET() {
         )
       `)
       .order('created_at', { ascending: false })
-      .limit(80)
+      .limit(RECENT_LIST_LIMIT)
 
     if (isOfflineCodeTableMissing(error)) {
       const legacyResult = await fetchLegacyOfflineCoupons(serviceClient)
@@ -347,8 +405,10 @@ export async function GET() {
         )
       }
 
+      const legacyRows = legacyResult.data || []
       return NextResponse.json({
-        coupons: legacyResult.data || [],
+        coupons: legacyRows,
+        stats: computeStatsFromRows(legacyRows),
         storageMode: 'coupons',
       })
     }
@@ -360,7 +420,13 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json({ coupons: data || [] })
+    // 통계 카드는 목록 한도와 무관하게 전체를 정확히 집계 (count 쿼리)
+    const { stats, error: statsError } = await fetchOfflineCouponStats(serviceClient)
+
+    return NextResponse.json({
+      coupons: data || [],
+      stats: statsError ? computeStatsFromRows(data || []) : stats,
+    })
   } catch (error) {
     console.error('Admin offline coupons GET error:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })

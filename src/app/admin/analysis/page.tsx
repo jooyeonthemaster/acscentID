@@ -366,10 +366,10 @@ export default function AnalysisPage() {
         {!loading && !error && (
           <>
             <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0] overflow-x-auto">
-              <table className="w-full min-w-[1200px]">
+              <table className="w-full md:min-w-[1200px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
-                    <th className="w-10 px-3 py-3 text-center">
+                    <th className="w-10 px-2 md:px-3 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={allVisibleSelected}
@@ -379,16 +379,16 @@ export default function AnalysisPage() {
                         className="h-4 w-4 rounded border-slate-300 text-yellow-400 focus:ring-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
                       />
                     </th>
-                    <th className="w-10 px-3 py-3"></th>
-                    <th className="w-[180px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">아이돌명</th>
-                    <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">상품 타입</th>
-                    <th className="w-[100px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석 대상</th>
-                    <th className="w-[80px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">모드</th>
-                    <th className="w-[60px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">PIN</th>
-                    <th className="w-[160px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">추천 향수</th>
-                    <th className="w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">사용자</th>
-                    <th className="w-[130px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석일</th>
-                    <th className="w-[70px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">액션</th>
+                    <th className="w-10 px-2 md:px-3 py-3"></th>
+                    <th className="w-[180px] px-2 md:px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">아이돌명</th>
+                    <th className="hidden md:table-cell w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">상품 타입</th>
+                    <th className="hidden md:table-cell w-[100px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석 대상</th>
+                    <th className="hidden md:table-cell w-[80px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">모드</th>
+                    <th className="hidden md:table-cell w-[60px] px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">PIN</th>
+                    <th className="hidden md:table-cell w-[160px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">추천 향수</th>
+                    <th className="hidden md:table-cell w-[90px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">사용자</th>
+                    <th className="hidden md:table-cell w-[130px] px-3 py-3 text-left text-sm font-medium text-slate-600 whitespace-nowrap">분석일</th>
+                    <th className="w-[70px] px-2 md:px-3 py-3 text-center text-sm font-medium text-slate-600 whitespace-nowrap">액션</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -401,7 +401,7 @@ export default function AnalysisPage() {
                         className={`${isSelected ? 'bg-yellow-50/70' : 'hover:bg-slate-50'} transition-colors cursor-pointer`}
                         onClick={() => setExpandedId(expandedId === analysis.id ? null : analysis.id)}
                       >
-                        <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-2 md:px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -410,14 +410,14 @@ export default function AnalysisPage() {
                             className="h-4 w-4 rounded border-slate-300 text-yellow-400 focus:ring-yellow-400"
                           />
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2 md:px-3 py-3">
                           <ChevronRight
                             className={`w-5 h-5 text-slate-400 transition-transform ${
                               expandedId === analysis.id ? 'rotate-90' : ''
                             }`}
                           />
                         </td>
-                        <td className="px-3 py-3 max-w-[240px]">
+                        <td className="px-2 md:px-3 py-3 max-w-[240px]">
                           {analysis.product_type === 'chemistry_set' && analysis.partner_name ? (
                             <>
                               <div
@@ -443,12 +443,12 @@ export default function AnalysisPage() {
                             </>
                           )}
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
                           <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
                             {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
                           </span>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
                           {(() => {
                             const isSelf = analysis.target_type === 'self'
                             const label = getTargetTypeLabel(analysis.target_type, analysis.product_type)
@@ -464,7 +464,7 @@ export default function AnalysisPage() {
                             )
                           })()}
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
                           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
                             analysis.service_mode === 'offline'
                               ? 'bg-purple-100 text-purple-700'
@@ -473,7 +473,7 @@ export default function AnalysisPage() {
                             {SERVICE_MODE_LABELS[analysis.service_mode as ServiceMode] || '온라인'}
                           </span>
                         </td>
-                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 text-center whitespace-nowrap">
                           {analysis.service_mode === 'offline' && analysis.pin ? (
                             <span className="inline-block px-2 py-1 text-sm font-mono font-bold bg-slate-100 text-slate-800 rounded tracking-wider">
                               {analysis.pin}
@@ -482,7 +482,7 @@ export default function AnalysisPage() {
                             <span className="text-slate-300">-</span>
                           )}
                         </td>
-                        <td className="px-3 py-3 max-w-[160px]">
+                        <td className="hidden md:table-cell px-3 py-3 max-w-[160px]">
                           <div className="font-medium text-slate-900 truncate" title={analysis.perfume_name}>
                             {analysis.perfume_name}
                           </div>
@@ -490,7 +490,7 @@ export default function AnalysisPage() {
                             {analysis.perfume_brand}
                           </div>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
                             <span className="text-sm text-slate-600 truncate max-w-[70px]" title={analysis.user_profile?.name || analysis.user_profile?.email || '익명'}>
@@ -498,10 +498,10 @@ export default function AnalysisPage() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-sm text-slate-600 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-3 text-sm text-slate-600 whitespace-nowrap">
                           {formatDate(analysis.created_at)}
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2 md:px-3 py-3">
                           <div className="flex items-center justify-center gap-1">
                             <Link
                               href={`/admin/analysis/${analysis.id}`}
@@ -526,6 +526,52 @@ export default function AnalysisPage() {
                       {expandedId === analysis.id && (
                         <tr>
                           <td colSpan={11} className="px-4 py-4 bg-slate-50">
+                            {/* 모바일 전용: 숨겨진 컬럼 정보 */}
+                            <div className="md:hidden mb-4 pb-4 border-b border-slate-200 space-y-1.5 text-xs">
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">상품 타입</span>
+                                <span className="text-slate-900 font-medium">
+                                  {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">분석 대상</span>
+                                <span className="text-slate-900 font-medium">
+                                  {getTargetTypeLabel(analysis.target_type, analysis.product_type)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">모드</span>
+                                <span className="text-slate-900 font-medium">
+                                  {SERVICE_MODE_LABELS[analysis.service_mode as ServiceMode] || '온라인'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">PIN</span>
+                                <span className="text-slate-900 font-mono font-medium">
+                                  {analysis.service_mode === 'offline' && analysis.pin ? analysis.pin : '-'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">추천 향수</span>
+                                <span className="text-slate-900 font-medium text-right">
+                                  {analysis.perfume_name}
+                                  {analysis.perfume_brand && (
+                                    <span className="block text-slate-500 font-normal">{analysis.perfume_brand}</span>
+                                  )}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">사용자</span>
+                                <span className="text-slate-900 font-medium truncate max-w-[60%]">
+                                  {analysis.user_profile?.name || analysis.user_profile?.email || '익명'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">분석일</span>
+                                <span className="text-slate-900 font-medium">{formatDate(analysis.created_at)}</span>
+                              </div>
+                            </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">키워드:</span>

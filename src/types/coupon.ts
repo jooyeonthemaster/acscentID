@@ -75,6 +75,37 @@ export interface CheckoutCoupon {
   ineligibleReason?: string
 }
 
+// 개인 쿠폰(user_coupons)에 고정 저장되는 할인 스냅샷.
+// discount_type 이 채워져 있으면 발급/잠금 당시 값으로 고정된 것으로 본다.
+export interface UserCouponDiscountSnapshot {
+  discount_type?: CouponDiscountType | string | null
+  discount_percent?: number | null
+  discount_amount?: number | null
+}
+
+/**
+ * 개인 쿠폰의 실제 적용 할인값을 결정한다.
+ * 스냅샷(snapshot.discount_type != null)이 있으면 그 값을, 없으면 템플릿(coupons) 값을 따른다.
+ * 관리자가 "신규 발급분부터만" 할인을 바꾸면 기존 보유분은 스냅샷으로 잠겨 기존 할인을 유지한다.
+ */
+export function resolveEffectiveDiscount(
+  snapshot: UserCouponDiscountSnapshot | null | undefined,
+  template: CouponDiscountFields | null | undefined
+): CouponDiscountFields {
+  if (snapshot && snapshot.discount_type != null) {
+    return {
+      discount_type: snapshot.discount_type,
+      discount_percent: snapshot.discount_percent ?? 0,
+      discount_amount: snapshot.discount_amount ?? 0,
+    }
+  }
+  return {
+    discount_type: template?.discount_type ?? null,
+    discount_percent: template?.discount_percent ?? null,
+    discount_amount: template?.discount_amount ?? null,
+  }
+}
+
 export function getCouponDiscountType(coupon: CouponDiscountFields | null | undefined): CouponDiscountType {
   return coupon?.discount_type === 'fixed_amount' ? 'fixed_amount' : 'percent'
 }

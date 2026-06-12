@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       alternates: { canonical: url },
+      robots: { index: false, follow: false },
       openGraph: {
         title,
         description,
@@ -56,6 +57,7 @@ function getDefaultMetadata(): Metadata {
   return {
     title: '향기 분석 결과',
     description: 'AI가 분석한 당신만의 시그니처 향기. 이미지에서 추출된 맞춤 퍼퓸 레시피를 확인하세요.',
+    robots: { index: false, follow: false },
     openGraph: {
       title: "AC'SCENT IDENTITY - 향기 분석 결과",
       description: 'AI가 분석한 당신만의 시그니처 향기',

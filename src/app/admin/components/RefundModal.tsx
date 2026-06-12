@@ -16,6 +16,9 @@ export interface RefundModalOrder {
   refunded_at?: string | null
   refund_reason?: string | null
   cancel_reason?: string | null
+  refund_bank_name?: string | null
+  refund_account_number?: string | null
+  refund_account_holder?: string | null
 }
 
 interface RefundModalProps {
@@ -229,6 +232,30 @@ export function RefundModal({ order, onClose, onSuccess }: RefundModalProps) {
               <p className="text-xs text-slate-500 mt-1">
                 최대 {formatPrice(order.final_price)}
               </p>
+            </div>
+          )}
+
+          {/* 계좌이체: 고객이 입력한 환불 계좌 */}
+          {isBank && order.refund_account_number && (
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 text-sm">
+              <p className="font-black text-amber-900 mb-2">환불 계좌 (고객 입력)</p>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-amber-700">은행</span>
+                  <span className="font-bold text-slate-900">{order.refund_bank_name || '-'}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-amber-700 flex-shrink-0">계좌번호</span>
+                  <span className="font-bold text-slate-900 font-mono select-all text-right break-all">
+                    {order.refund_account_number}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-amber-700">예금주</span>
+                  <span className="font-bold text-slate-900">{order.refund_account_holder || '-'}</span>
+                </div>
+              </div>
+              <p className="text-xs text-amber-700 mt-2">위 계좌로 송금 후 아래에 송금 완료 일시를 기록하세요.</p>
             </div>
           )}
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import { QRCode, PRODUCT_TYPE_LABELS, ProductType } from '@/types/admin'
 
@@ -477,6 +477,9 @@ export default function AdminQRPage() {
   const [selectedQR, setSelectedQR] = useState<QRCode | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
+  // 모바일 확장 행 상태
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
   const fetchQRCodes = useCallback(async () => {
     try {
       setLoading(true)
@@ -684,15 +687,15 @@ export default function AdminQRPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">QR 코드</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">상품 타입</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">이름 / 위치</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">스캔</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">분석</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">전환율</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">상태</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">생성일</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">상세</th>
+                <th className="px-2 md:px-4 py-3 text-left text-sm font-medium text-slate-700">QR 코드</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-700">상품 타입</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-700">이름 / 위치</th>
+                <th className="hidden md:table-cell px-4 py-3 text-center text-sm font-medium text-slate-700">스캔</th>
+                <th className="hidden md:table-cell px-4 py-3 text-center text-sm font-medium text-slate-700">분석</th>
+                <th className="hidden md:table-cell px-4 py-3 text-center text-sm font-medium text-slate-700">전환율</th>
+                <th className="px-2 md:px-4 py-3 text-center text-sm font-medium text-slate-700">상태</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-700">생성일</th>
+                <th className="px-2 md:px-4 py-3 text-center text-sm font-medium text-slate-700">상세</th>
               </tr>
             </thead>
             <tbody>
@@ -718,58 +721,102 @@ export default function AdminQRPage() {
                     : 0
 
                   return (
-                    <tr key={qr.id} className="border-t border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={getQRImageUrl(qr.code, 40)}
-                            alt={qr.code}
-                            className="w-10 h-10 rounded-lg border border-slate-200"
-                          />
-                          <span className="font-mono font-bold text-purple-600">{qr.code}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm">{PRODUCT_TYPE_LABELS[qr.product_type]}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="font-medium text-slate-900">{qr.name || '-'}</p>
-                          <p className="text-sm text-slate-500">{qr.location || '-'}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="font-medium text-blue-600">{qr.scan_count}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="font-medium text-green-600">{qr.analysis_count}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`font-medium ${conversionRate >= 50 ? 'text-green-600' : conversionRate >= 20 ? 'text-yellow-600' : 'text-slate-500'}`}>
-                          {conversionRate}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${qr.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                          {qr.is_active ? '활성' : '비활성'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
-                        {formatDate(qr.created_at)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => { setSelectedQR(qr); setIsDetailOpen(true); }}
-                          className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                          title="상세 보기"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
+                    <Fragment key={qr.id}>
+                      <tr
+                        className="border-t border-slate-100 hover:bg-slate-50"
+                        onClick={() => setExpandedId(expandedId === qr.id ? null : qr.id)}
+                      >
+                        <td className="px-2 md:px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={getQRImageUrl(qr.code, 40)}
+                              alt={qr.code}
+                              className="w-10 h-10 rounded-lg border border-slate-200"
+                            />
+                            <span className="font-mono font-bold text-purple-600">{qr.code}</span>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3">
+                          <span className="text-sm">{PRODUCT_TYPE_LABELS[qr.product_type]}</span>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3">
+                          <div>
+                            <p className="font-medium text-slate-900">{qr.name || '-'}</p>
+                            <p className="text-sm text-slate-500">{qr.location || '-'}</p>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center">
+                          <span className="font-medium text-blue-600">{qr.scan_count}</span>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center">
+                          <span className="font-medium text-green-600">{qr.analysis_count}</span>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center">
+                          <span className={`font-medium ${conversionRate >= 50 ? 'text-green-600' : conversionRate >= 20 ? 'text-yellow-600' : 'text-slate-500'}`}>
+                            {conversionRate}%
+                          </span>
+                        </td>
+                        <td className="px-2 md:px-4 py-3 text-center">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${qr.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                            {qr.is_active ? '활성' : '비활성'}
+                          </span>
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3 text-sm text-slate-600">
+                          {formatDate(qr.created_at)}
+                        </td>
+                        <td className="px-2 md:px-4 py-3 text-center">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedQR(qr); setIsDetailOpen(true); }}
+                            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                            title="상세 보기"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                      {/* 모바일 전용: 확장된 상세 정보 */}
+                      {expandedId === qr.id && (
+                        <tr className="md:hidden">
+                          <td colSpan={9} className="px-3 py-3 bg-slate-50 border-t border-slate-100">
+                            <div className="space-y-1.5 text-xs">
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">상품 타입</span>
+                                <span className="text-slate-900 font-medium">{PRODUCT_TYPE_LABELS[qr.product_type]}</span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">이름</span>
+                                <span className="text-slate-900 font-medium">{qr.name || '-'}</span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">위치</span>
+                                <span className="text-slate-900 font-medium">{qr.location || '-'}</span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">스캔</span>
+                                <span className="font-medium text-blue-600">{qr.scan_count}</span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">분석</span>
+                                <span className="font-medium text-green-600">{qr.analysis_count}</span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">전환율</span>
+                                <span className={`font-medium ${conversionRate >= 50 ? 'text-green-600' : conversionRate >= 20 ? 'text-yellow-600' : 'text-slate-500'}`}>
+                                  {conversionRate}%
+                                </span>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <span className="text-slate-500">생성일</span>
+                                <span className="text-slate-900 font-medium">{formatDate(qr.created_at)}</span>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })
               )}

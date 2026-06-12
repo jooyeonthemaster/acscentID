@@ -6,13 +6,25 @@ import { routing } from '@/i18n/routing'
 // next-intl 미들웨어 생성
 const intlMiddleware = createMiddleware(routing)
 
+const PUBLIC_METADATA_PATHS = new Set([
+  '/robots.txt',
+  '/sitemap.xml',
+  '/manifest.webmanifest',
+  '/opengraph-image',
+  '/icon',
+  '/apple-icon',
+])
+
+const PUBLIC_FILE_PATTERN =
+  /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest)$/
+
 /**
  * Middleware - 다국어 라우팅 + 쿠키 정리 및 세션 관리
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // API, admin, auth, _next, 정적 파일은 i18n 미들웨어 제외
+  // API, admin, auth, _next, 정적 파일 및 SEO 메타 파일은 i18n 미들웨어 제외
   const shouldSkipIntl =
     pathname.startsWith('/api/') ||
     pathname.startsWith('/admin') ||
@@ -22,7 +34,8 @@ export function middleware(request: NextRequest) {
     pathname === '/coupon/register' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin)$/.test(pathname)
+    PUBLIC_METADATA_PATHS.has(pathname) ||
+    PUBLIC_FILE_PATTERN.test(pathname)
 
   // i18n 미들웨어 적용 또는 기본 응답
   const response = shouldSkipIntl
@@ -83,6 +96,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // next-intl + 기존 매처 통합
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|icon|apple-icon|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest)$).*)',
   ],
 }

@@ -24,6 +24,14 @@ export async function PATCH(
       )
     }
 
+    // 환불 계좌 정보 (계좌이체 결제 취소 시 고객이 입력)
+    const refundAccount = body.refundAccount && typeof body.refundAccount === 'object'
+      ? body.refundAccount
+      : {}
+    const refundBankName = typeof refundAccount.bankName === 'string' ? refundAccount.bankName.trim() : ''
+    const refundAccountNumber = typeof refundAccount.accountNumber === 'string' ? refundAccount.accountNumber.trim() : ''
+    const refundAccountHolder = typeof refundAccount.accountHolder === 'string' ? refundAccount.accountHolder.trim() : ''
+
     // 1. 사용자 인증 확인
     const kakaoSession = await getKakaoSession()
     let userId: string | null = null
@@ -67,6 +75,19 @@ export async function PATCH(
       )
     }
 
+    // 3-1. 계좌이체 결제는 입금 완료(pending 이외) 상태에서 환불 계좌 정보 필수
+    //      입금 전(pending)에는 환불할 금액이 없으므로 계좌 입력을 요구하지 않는다.
+    const isBankTransfer = order.payment_method === 'bank_transfer'
+    const needsRefundAccount = isBankTransfer && order.status !== 'pending'
+    if (needsRefundAccount) {
+      if (!refundBankName || !refundAccountNumber || !refundAccountHolder) {
+        return NextResponse.json(
+          { error: '환불받으실 은행, 계좌번호, 예금주를 모두 입력해 주세요.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // 4. 주문 상태를 취소 요청으로 변경
     const { data: updatedOrder, error: updateError } = await serviceClient
       .from('orders')
@@ -75,6 +96,12 @@ export async function PATCH(
         cancel_requested_at: new Date().toISOString(),
         cancel_reason: reason,
         refund_reason: reason,
+        // 입금 완료된 계좌이체 주문에 한해 고객이 입력한 환불 계좌 저장
+        ...(needsRefundAccount && {
+          refund_bank_name: refundBankName,
+          refund_account_number: refundAccountNumber,
+          refund_account_holder: refundAccountHolder,
+        }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)

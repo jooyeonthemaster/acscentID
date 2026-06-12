@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { getCouponDiscountType, resolveEffectiveDiscount } from '@/types/coupon'
+import { getUserCouponSnapshots } from '@/lib/coupons/user-coupon-discount'
 
 /**
  * 사용자 쿠폰 목록 조회 API
@@ -60,7 +62,28 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json({ coupons: userCoupons || [] })
+    // 개인 쿠폰에 고정된 할인값(스냅샷)이 있으면 표시 할인값을 그 값으로 덮어쓴다.
+    const rows = userCoupons || []
+    const snapshotMap = await getUserCouponSnapshots(
+      serviceClient,
+      rows.map((row) => row.id)
+    )
+    const coupons = rows.map((row) => {
+      const template = Array.isArray(row.coupon) ? row.coupon[0] : row.coupon
+      if (!template) return row
+      const effective = resolveEffectiveDiscount(snapshotMap.get(row.id), template)
+      return {
+        ...row,
+        coupon: {
+          ...template,
+          discount_type: getCouponDiscountType(effective),
+          discount_percent: effective.discount_percent ?? 0,
+          discount_amount: effective.discount_amount ?? 0,
+        },
+      }
+    })
+
+    return NextResponse.json({ coupons })
 
   } catch (error) {
     console.error('Coupons API error:', error)

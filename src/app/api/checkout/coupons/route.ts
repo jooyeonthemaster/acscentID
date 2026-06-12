@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
-import { CheckoutCoupon, calculateCouponDiscount } from '@/types/coupon'
+import { CheckoutCoupon, calculateCouponDiscount, getCouponDiscountType, resolveEffectiveDiscount } from '@/types/coupon'
+import { getUserCouponSnapshots } from '@/lib/coupons/user-coupon-discount'
 
 /**
  * 결제 페이지에서 사용 가능한 쿠폰 목록 조회
@@ -67,16 +68,25 @@ export async function GET() {
 
     const hasCompletedOrder = (completedOrderCount || 0) > 0
 
+    // 개인 쿠폰에 고정된 할인값(스냅샷) 조회 — 있으면 템플릿 대신 그 값을 적용
+    const snapshotMap = await getUserCouponSnapshots(
+      serviceClient,
+      (userCoupons || []).map((uc) => uc.id)
+    )
+
     // 쿠폰 목록을 CheckoutCoupon 형태로 변환
     const checkoutCoupons: CheckoutCoupon[] = (userCoupons || []).map((uc) => {
       const coupon = uc.coupon as any
+      const effective = resolveEffectiveDiscount(snapshotMap.get(uc.id), coupon)
 
       // 유효기간 확인
       const isExpired = coupon.valid_until && new Date(coupon.valid_until) < new Date()
 
       // 재구매 쿠폰 자격 확인
+      // 관리자가 재구매 할인을 비활성화(is_active=false)하면 발급된 쿠폰도 사용 불가
       const isRepurchaseCoupon = coupon.type === 'repurchase'
-      const repurchaseEligible = !isRepurchaseCoupon || hasCompletedOrder
+      const isRepurchaseDisabled = isRepurchaseCoupon && coupon.is_active === false
+      const repurchaseEligible = !isRepurchaseCoupon || (hasCompletedOrder && !isRepurchaseDisabled)
 
       // 생일 쿠폰은 현재 월만 사용 가능
       const isBirthdayCoupon = coupon.type === 'birthday'
@@ -91,6 +101,8 @@ export async function GET() {
       let ineligibleReason: string | undefined
       if (isExpired) {
         ineligibleReason = '유효기간이 만료되었어요'
+      } else if (isRepurchaseDisabled) {
+        ineligibleReason = '현재 재구매 할인이 중단되었어요'
       } else if (!repurchaseEligible) {
         ineligibleReason = '첫 주문 완료 후 사용할 수 있어요'
       } else if (!birthdayEligible) {
@@ -101,9 +113,9 @@ export async function GET() {
         id: coupon.id,
         userCouponId: uc.id,
         type: coupon.type,
-        discount_percent: coupon.discount_percent,
-        discount_type: coupon.discount_type || 'percent',
-        discount_amount: coupon.discount_amount || 0,
+        discount_percent: effective.discount_percent ?? 0,
+        discount_type: getCouponDiscountType(effective),
+        discount_amount: effective.discount_amount ?? 0,
         title: coupon.title,
         isEligible,
         ineligibleReason,

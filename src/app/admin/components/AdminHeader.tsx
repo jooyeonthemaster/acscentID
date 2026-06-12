@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 const pathTitles: Record<string, string> = {
   '/admin': '관리자',
   '/admin/dashboard': '대시보드',
+  '/admin/cost-analysis': '원가 분석',
   '/admin/analysis': '분석 관리',
   '/admin/orders': '주문 관리',
   '/admin/members': '회원 관리',
@@ -54,10 +55,10 @@ export function AdminHeader({ title, subtitle, actions, breadcrumbs: customBread
   const pageTitle = title || pathTitles[pathname] || '관리자'
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-      <div className="px-6 py-4">
+    <header className="bg-white border-b border-slate-200 sticky top-14 lg:top-0 z-20">
+      <div className="px-4 lg:px-6 py-3 lg:py-4">
         {/* 브레드크럼 */}
-        <nav className="flex items-center gap-1 text-sm text-slate-500 mb-2">
+        <nav className="flex items-center gap-1 text-sm text-slate-500 mb-2 overflow-x-auto whitespace-nowrap">
           <Link href="/admin" className="hover:text-slate-900 transition-colors">
             <Home className="w-4 h-4" />
           </Link>
@@ -76,14 +77,14 @@ export function AdminHeader({ title, subtitle, actions, breadcrumbs: customBread
         </nav>
 
         {/* 제목 및 액션 */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{pageTitle}</h1>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-900 truncate">{pageTitle}</h1>
             {subtitle && (
               <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => router.refresh()}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors"

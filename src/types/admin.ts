@@ -191,6 +191,11 @@ export interface AdminOrderRecord {
   refund_amount?: number
   refunded_at?: string | null
   refund_reason?: string | null
+  cancel_reason?: string | null
+  // 계좌이체 환불 계좌 (고객이 취소 요청 시 입력)
+  refund_bank_name?: string | null
+  refund_account_number?: string | null
+  refund_account_holder?: string | null
   // 인플루언서 주문 여부
   is_influencer?: boolean
   // 배송 운송장

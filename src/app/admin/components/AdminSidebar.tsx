@@ -12,9 +12,11 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  X,
   Database,
   BarChart3,
   Bot,
+  Calculator,
   Megaphone,
   ImageIcon,
   Package,
@@ -52,6 +54,12 @@ const navGroups: NavGroup[] = [
         label: '방문자 분석',
         icon: BarChart3,
         description: '트래픽 & 유입 경로',
+      },
+      {
+        href: '/admin/cost-analysis',
+        label: '원가 분석',
+        icon: Calculator,
+        description: '일별 · 월별 운영비',
       },
       {
         href: '/admin/datacenter',
@@ -164,16 +172,19 @@ const navGroups: NavGroup[] = [
 interface AdminSidebarProps {
   collapsed: boolean
   onToggle: () => void
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
+export function AdminSidebar({ collapsed, onToggle, mobileOpen = false, onMobileClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const { unifiedUser, signOut } = useAuth()
   const [hovered, setHovered] = useState(false)
   const activeItemRef = useRef<HTMLLIElement>(null)
 
   // 접힌 상태에서 호버하면 임시로 펼쳐 보임(오버레이). 펼침 시각 상태는 expanded로 통일.
-  const expanded = !collapsed || hovered
+  // 모바일 드로어가 열린 경우에는 항상 펼친 상태로 보여준다.
+  const expanded = !collapsed || hovered || mobileOpen
   // 호버로 임시로 열렸을 때만 본문 위로 떠 있는 느낌의 그림자
   const overlayHovered = collapsed && hovered
 
@@ -190,29 +201,48 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   }
 
   return (
-    <aside
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`
-        fixed left-0 top-0 h-screen bg-slate-900 text-white
-        transition-all duration-300 ease-in-out z-40 flex flex-col
-        ${expanded ? 'w-64' : 'w-16'}
-        ${overlayHovered ? 'shadow-2xl shadow-black/40' : ''}
-      `}
-    >
+    <>
+      {/* 모바일 드로어 배경 오버레이 */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={onMobileClose}
+          aria-hidden
+        />
+      )}
+
+      <aside
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className={`
+          fixed left-0 top-0 h-screen bg-slate-900 text-white
+          transition-all duration-300 ease-in-out z-50 flex flex-col
+          ${expanded ? 'w-64' : 'w-16'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+          ${overlayHovered || mobileOpen ? 'shadow-2xl shadow-black/40' : ''}
+        `}
+      >
       {/* 로고 영역 */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
         {expanded && (
-          <Link href="/admin" className="flex items-center gap-2">
+          <Link href="/admin" onClick={onMobileClose} className="flex items-center gap-2">
             <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
               <span className="text-slate-900 font-bold text-sm">AC</span>
             </div>
             <span className="font-bold text-sm">ADMIN</span>
           </Link>
         )}
+        {/* 모바일: 닫기 버튼 / 데스크톱: 접기 토글 */}
+        <button
+          onClick={onMobileClose}
+          className="lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors"
+          aria-label="메뉴 닫기"
+        >
+          <X className="w-5 h-5" />
+        </button>
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+          className="hidden lg:block p-2 hover:bg-slate-800 rounded-lg transition-colors"
         >
           {expanded ? (
             <ChevronLeft className="w-4 h-4" />
@@ -243,6 +273,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
                     <li key={item.href} ref={isActive ? activeItemRef : undefined}>
                       <Link
                         href={item.href}
+                        onClick={onMobileClose}
                         className={`
                           flex items-center gap-3 px-3 py-3 rounded-lg transition-all
                           ${isActive
@@ -292,6 +323,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           {expanded && <span className="text-sm">로그아웃</span>}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }

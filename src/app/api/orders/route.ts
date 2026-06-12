@@ -7,8 +7,9 @@ import { FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from '@/types/cart'
 import { validateServerPrice } from '@/lib/products/pricing'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
-import { calculateCouponDiscount } from '@/types/coupon'
+import { calculateCouponDiscount, resolveEffectiveDiscount } from '@/types/coupon'
 import { markCouponUsedForPaidOrder, releaseCouponUsageForOrder } from '@/lib/coupons/order-coupon-usage'
+import { getUserCouponSnapshot } from '@/lib/coupons/user-coupon-discount'
 import {
   STORE_PRODUCT_DB_COMPAT_TYPE,
   STORE_PRODUCT_TYPE,
@@ -294,7 +295,14 @@ export async function POST(request: NextRequest) {
         }
 
         const coupon = userCouponData.coupon as any
-        validatedMultiDiscount = calculateCouponDiscount(calculatedSubtotal, coupon)
+        // 관리자가 비활성화한 쿠폰(예: 중단된 재구매 할인)은 보유 중이어도 사용 불가
+        if (coupon?.is_active === false) {
+          return NextResponse.json({ error: '현재 사용할 수 없는 쿠폰입니다' }, { status: 400 })
+        }
+        // 개인 쿠폰에 고정된 할인값(스냅샷)이 있으면 그 값을, 없으면 템플릿 값을 사용
+        const multiSnapshot = await getUserCouponSnapshot(serviceClient, userCouponId)
+        const effectiveMultiCoupon = resolveEffectiveDiscount(multiSnapshot, coupon)
+        validatedMultiDiscount = calculateCouponDiscount(calculatedSubtotal, effectiveMultiCoupon)
       }
 
       // Check client discount matches server-validated discount (allow minor rounding)
@@ -536,7 +544,14 @@ export async function POST(request: NextRequest) {
       }
 
       const coupon = userCouponData.coupon as any
-      validatedSingleDiscount = calculateCouponDiscount(singleSubtotal, coupon)
+      // 관리자가 비활성화한 쿠폰(예: 중단된 재구매 할인)은 보유 중이어도 사용 불가
+      if (coupon?.is_active === false) {
+        return NextResponse.json({ error: '현재 사용할 수 없는 쿠폰입니다' }, { status: 400 })
+      }
+      // 개인 쿠폰에 고정된 할인값(스냅샷)이 있으면 그 값을, 없으면 템플릿 값을 사용
+      const singleSnapshot = await getUserCouponSnapshot(serviceClient, userCouponId)
+      const effectiveSingleCoupon = resolveEffectiveDiscount(singleSnapshot, coupon)
+      validatedSingleDiscount = calculateCouponDiscount(singleSubtotal, effectiveSingleCoupon)
     }
 
     // Check client discount matches server-validated discount (allow minor rounding)

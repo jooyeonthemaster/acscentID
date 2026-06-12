@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { getCouponDiscountLabel, getCouponDiscountType, type CouponDiscountType } from '@/types/coupon'
 import { AdminHeader } from '../components/AdminHeader'
+import { RepurchaseCouponSettings } from './RepurchaseCouponSettings'
 
 interface IssueForm {
   title: string
@@ -184,19 +185,29 @@ export default function AdminCouponsPage() {
   const [issuing, setIssuing] = useState(false)
   const [loadingRecent, setLoadingRecent] = useState(true)
   const [recentCoupons, setRecentCoupons] = useState<RecentCouponRow[]>([])
+  const [serverStats, setServerStats] = useState<{ total: number; active: number; claimed: number; used: number; voided: number } | null>(null)
   const [printCoupons, setPrintCoupons] = useState<PrintableCoupon[]>([])
-  const [batchName, setBatchName] = useState('')
+  const [, setBatchName] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [selectedGroupKey, setSelectedGroupKey] = useState<string | null>(null)
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
 
   const batchStats = useMemo(() => {
+    // 서버가 전체 기준으로 정확히 집계한 통계가 있으면 우선 사용 (목록 한도와 무관하게 정확)
+    if (serverStats) {
+      return {
+        active: serverStats.active,
+        claimed: serverStats.claimed + serverStats.used,
+        total: serverStats.total,
+        voided: serverStats.voided,
+      }
+    }
     const claimed = recentCoupons.filter((coupon) => coupon.status === 'claimed' || coupon.status === 'used').length
     const active = recentCoupons.filter((coupon) => coupon.status === 'active').length
     const voided = recentCoupons.filter((coupon) => coupon.status === 'void').length
     return { active, claimed, total: recentCoupons.length, voided }
-  }, [recentCoupons])
+  }, [recentCoupons, serverStats])
 
   const couponGroups = useMemo<CouponGroup[]>(() => {
     const groups = new Map<string, RecentCouponRow[]>()
@@ -244,7 +255,7 @@ export default function AdminCouponsPage() {
   }, [recentCoupons])
 
   const selectedGroup = useMemo(() => {
-    return couponGroups.find((group) => group.key === selectedGroupKey) || couponGroups[0] || null
+    return couponGroups.find((group) => group.key === selectedGroupKey) || null
   }, [couponGroups, selectedGroupKey])
 
   const printPages = useMemo(() => chunkArray(printCoupons, COUPONS_PER_PRINT_PAGE), [printCoupons])
@@ -260,6 +271,7 @@ export default function AdminCouponsPage() {
         throw new Error(data.error || '쿠폰 내역을 불러오지 못했습니다')
       }
       setRecentCoupons(data.coupons || [])
+      setServerStats(data.stats || null)
     } catch (err) {
       setError(err instanceof Error ? err.message : '쿠폰 내역을 불러오지 못했습니다')
     } finally {
@@ -277,8 +289,8 @@ export default function AdminCouponsPage() {
       return
     }
 
-    if (!selectedGroupKey || !couponGroups.some((group) => group.key === selectedGroupKey)) {
-      setSelectedGroupKey(couponGroups[0].key)
+    if (selectedGroupKey && !couponGroups.some((group) => group.key === selectedGroupKey)) {
+      setSelectedGroupKey(null)
     }
   }, [couponGroups, selectedGroupKey])
 
@@ -342,11 +354,11 @@ export default function AdminCouponsPage() {
     }
   }
 
-  const handlePrintSelectedGroup = async () => {
-    if (!selectedGroup) return
+  const handlePrintSelectedGroup = async (group = selectedGroup) => {
+    if (!group) return
 
     const printable = (await Promise.all(
-      selectedGroup.rows
+      group.rows
         .filter((row) => row.status === 'active')
         .map(toPrintableCoupon)
     )).filter((coupon): coupon is PrintableCoupon => coupon !== null)
@@ -358,7 +370,7 @@ export default function AdminCouponsPage() {
 
     setError('')
     setPrintCoupons(printable)
-    setBatchName(`${selectedGroup.title} 묶음`)
+    setBatchName(`${group.title} 묶음`)
     requestAnimationFrame(() => window.print())
   }
 
@@ -570,9 +582,22 @@ export default function AdminCouponsPage() {
         />
       </div>
 
-      <main className="coupon-admin-main p-6 space-y-6">
-        <div className="admin-no-print grid gap-6 xl:grid-cols-[420px_1fr]">
-          <section className="rounded-2xl border-2 border-slate-900 bg-white p-5 shadow-[4px_4px_0_#0f172a]">
+      <main className="coupon-admin-main space-y-6 overflow-x-hidden p-4 sm:p-6">
+        <RepurchaseCouponSettings />
+
+        <section className="admin-no-print min-w-0 rounded-2xl border-2 border-slate-900 bg-white p-3 shadow-[4px_4px_0_#0f172a] sm:p-5">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-slate-900 bg-yellow-300">
+              <QrCode className="h-5 w-5 text-slate-950" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-slate-950">실물 쿠폰</h2>
+              <p className="text-sm font-semibold text-slate-500">오프라인 고객용 QR 코드 쿠폰 발급 · 관리</p>
+            </div>
+          </div>
+
+          <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+          <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-slate-900 bg-yellow-300">
                 <Ticket className="h-5 w-5 text-slate-950" />
@@ -703,9 +728,9 @@ export default function AdminCouponsPage() {
             </form>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div>
+          <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
                 <h2 className="text-lg font-black text-slate-950">발급 현황</h2>
                 <p className="text-sm font-semibold text-slate-500">최근 발급된 실물 쿠폰 기준</p>
               </div>
@@ -715,22 +740,22 @@ export default function AdminCouponsPage() {
               </div>
             </div>
 
-            <div className="mb-5 grid grid-cols-4 gap-3">
-              <div className="rounded-xl bg-slate-950 p-4 text-white">
+            <div className="mb-5 grid grid-cols-[repeat(auto-fit,minmax(118px,1fr))] gap-2 sm:gap-3">
+              <div className="rounded-xl bg-slate-950 p-3 sm:p-4 text-white">
                 <div className="text-xs font-bold text-slate-300">전체</div>
-                <div className="mt-1 text-2xl font-black">{batchStats.total}</div>
+                <div className="mt-1 text-xl sm:text-2xl font-black">{batchStats.total}</div>
               </div>
-              <div className="rounded-xl bg-emerald-50 p-4 text-emerald-900">
+              <div className="rounded-xl bg-emerald-50 p-3 sm:p-4 text-emerald-900">
                 <div className="text-xs font-bold text-emerald-600">등록 가능</div>
-                <div className="mt-1 text-2xl font-black">{batchStats.active}</div>
+                <div className="mt-1 text-xl sm:text-2xl font-black">{batchStats.active}</div>
               </div>
-              <div className="rounded-xl bg-blue-50 p-4 text-blue-900">
+              <div className="rounded-xl bg-blue-50 p-3 sm:p-4 text-blue-900">
                 <div className="text-xs font-bold text-blue-600">등록 완료</div>
-                <div className="mt-1 text-2xl font-black">{batchStats.claimed}</div>
+                <div className="mt-1 text-xl sm:text-2xl font-black">{batchStats.claimed}</div>
               </div>
-              <div className="rounded-xl bg-red-50 p-4 text-red-900">
+              <div className="rounded-xl bg-red-50 p-3 sm:p-4 text-red-900">
                 <div className="text-xs font-bold text-red-600">삭제됨</div>
-                <div className="mt-1 text-2xl font-black">{batchStats.voided}</div>
+                <div className="mt-1 text-xl sm:text-2xl font-black">{batchStats.voided}</div>
               </div>
             </div>
 
@@ -743,20 +768,23 @@ export default function AdminCouponsPage() {
                 발급된 실물 쿠폰 묶음이 없습니다
               </div>
             ) : (
-              <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.9fr)_minmax(420px,1.1fr)]">
-                <div className="max-h-[520px] space-y-3 overflow-y-auto pr-1">
-                  {couponGroups.map((group) => {
-                    const selected = selectedGroup?.key === group.key
-                    return (
+              <div className="max-h-[760px] min-w-0 space-y-3 overflow-y-auto pr-1">
+                {couponGroups.map((group) => {
+                  const selected = selectedGroupKey === group.key
+                  return (
+                    <article
+                      key={group.key}
+                      className={`overflow-hidden rounded-xl border-2 transition ${
+                        selected
+                          ? 'border-slate-950 bg-yellow-50 shadow-[3px_3px_0_#000]'
+                          : 'border-slate-200 bg-white'
+                      }`}
+                    >
                       <button
-                        key={group.key}
                         type="button"
-                        onClick={() => setSelectedGroupKey(group.key)}
-                        className={`w-full rounded-xl border-2 p-4 text-left transition ${
-                          selected
-                            ? 'border-slate-950 bg-yellow-50 shadow-[3px_3px_0_#000]'
-                            : 'border-slate-200 bg-white hover:border-slate-400'
-                        }`}
+                        aria-expanded={selected}
+                        onClick={() => setSelectedGroupKey((current) => current === group.key ? null : group.key)}
+                        className="w-full p-4 text-left transition hover:bg-slate-50"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -786,118 +814,101 @@ export default function AdminCouponsPage() {
                           </div>
                         </div>
                       </button>
-                    )
-                  })}
-                </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200">
-                  <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-100 px-4 py-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <PackageCheck className="h-4 w-4 text-slate-600" />
-                        <h3 className="truncate text-sm font-black text-slate-900">
-                          {selectedGroup?.title || '쿠폰 묶음'}
-                        </h3>
-                      </div>
-                      <p className="mt-1 truncate text-xs font-bold text-slate-500">
-                        {selectedGroup?.description || '선택한 묶음의 개별 쿠폰 코드'}
-                      </p>
-                    </div>
-                    <div className="flex flex-shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handlePrintSelectedGroup}
-                        disabled={!selectedGroup || selectedGroup.active === 0}
-                        className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-xs font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <Printer className="h-4 w-4" />
-                        묶음 인쇄
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => selectedGroup && handleDeleteCoupons(selectedGroup.rows, selectedGroup.title)}
-                        disabled={!selectedGroup || selectedGroup.active === 0 || deletingIds.size > 0}
-                        className="inline-flex items-center gap-2 rounded-lg border-2 border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        {deletingIds.size > 0 && selectedGroup?.rows.some((row) => deletingIds.has(row.id))
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Trash2 className="h-4 w-4" />
-                        }
-                        묶음 삭제
-                      </button>
-                    </div>
-                  </div>
+                      {selected && (
+                        <div className="border-t-2 border-slate-200 bg-white">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-100 px-3 py-3 sm:px-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <PackageCheck className="h-4 w-4 text-slate-600" />
+                                <h3 className="truncate text-sm font-black text-slate-900">{group.title}</h3>
+                              </div>
+                              <p className="mt-1 truncate text-xs font-bold text-slate-500">
+                                {group.description || '선택한 묶음의 개별 쿠폰 코드'}
+                              </p>
+                            </div>
+                            <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void handlePrintSelectedGroup(group)}
+                                disabled={group.active === 0}
+                                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-white px-2.5 py-2 text-xs font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
+                              >
+                                <Printer className="h-4 w-4" />
+                                <span className="hidden sm:inline">묶음 인쇄</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCoupons(group.rows, group.title)}
+                                disabled={group.active === 0 || deletingIds.size > 0}
+                                className="inline-flex items-center gap-2 rounded-lg border-2 border-red-200 bg-white px-2.5 py-2 text-xs font-black text-red-700 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
+                              >
+                                {deletingIds.size > 0 && group.rows.some((row) => deletingIds.has(row.id))
+                                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                                  : <Trash2 className="h-4 w-4" />
+                                }
+                                <span className="hidden sm:inline">묶음 삭제</span>
+                              </button>
+                            </div>
+                          </div>
 
-                  <div className="grid grid-cols-[1fr_90px_90px_52px] bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-400">
-                    <span>코드</span>
-                    <span>상태</span>
-                    <span>만료</span>
-                    <span>관리</span>
-                  </div>
-                  <div className="max-h-[430px] overflow-y-auto">
-                    {(selectedGroup?.rows || []).map((row) => {
-                      const coupon = getRecentCoupon(row)
-                      const deleting = deletingIds.has(row.id)
-                      return (
-                        <div
-                          key={row.id}
-                          className="grid grid-cols-[1fr_90px_90px_52px] items-center border-t border-slate-100 px-4 py-3 text-sm"
-                        >
-                          <span className="min-w-0 truncate font-mono text-xs font-black text-slate-700">{row.serial_number}</span>
-                          <span className={`w-fit rounded-full border px-2 py-1 text-xs font-black ${getStatusClass(row.status)}`}>
-                            {getStatusLabel(row.status)}
-                          </span>
-                          <span className="text-xs font-bold text-slate-500">{formatDate(row.expires_at || coupon?.valid_until || null)}</span>
-                          {row.status === 'active' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCoupons([row], row.serial_number)}
-                              disabled={deleting}
-                              aria-label="쿠폰 삭제"
-                              title="쿠폰 삭제"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                            </button>
-                          ) : (
-                            <span className="text-xs font-bold text-slate-300">-</span>
-                          )}
+                          <div className="flex items-center gap-2 bg-white px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-400 sm:px-4">
+                            <span className="flex-1">코드 · 만료</span>
+                            <span className="w-16 text-center">상태</span>
+                            <span className="w-8 text-right">관리</span>
+                          </div>
+                          <div className="max-h-[430px] overflow-y-auto">
+                            {group.rows.map((row) => {
+                              const coupon = getRecentCoupon(row)
+                              const deleting = deletingIds.has(row.id)
+                              return (
+                                <div
+                                  key={row.id}
+                                  className="flex items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-sm sm:px-4"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="truncate font-mono text-xs font-black text-slate-700">{row.serial_number}</div>
+                                    <div className="mt-0.5 text-[10px] font-bold text-slate-400">
+                                      만료 {formatDate(row.expires_at || coupon?.valid_until || null)}
+                                    </div>
+                                  </div>
+                                  <span className={`w-16 flex-shrink-0 rounded-full border px-1.5 py-1 text-center text-[11px] font-black ${getStatusClass(row.status)}`}>
+                                    {getStatusLabel(row.status)}
+                                  </span>
+                                  <div className="flex w-8 flex-shrink-0 justify-end">
+                                    {row.status === 'active' ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteCoupons([row], row.serial_number)}
+                                        disabled={deleting}
+                                        aria-label="쿠폰 삭제"
+                                        title="쿠폰 삭제"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                      >
+                                        {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                      </button>
+                                    ) : (
+                                      <span className="text-xs font-bold text-slate-300">-</span>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
-                      )
-                    })}
-                  </div>
-                </div>
+                      )}
+                    </article>
+                  )
+                })}
               </div>
             )}
           </section>
-        </div>
-
-        <section className="offline-print-root rounded-2xl border border-slate-200 bg-white">
-          <div className="admin-no-print flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
-            <div>
-              <h2 className="text-lg font-black text-slate-950">A4 출력 미리보기</h2>
-              <p className="text-sm font-semibold text-slate-500">
-                {batchName || '쿠폰을 발급하면 이 영역에 인쇄 카드가 생성됩니다'}
-              </p>
-            </div>
-            <button
-              onClick={handlePrint}
-              disabled={printCoupons.length === 0}
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2 text-sm font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Printer className="h-4 w-4" />
-              인쇄
-            </button>
           </div>
+        </section>
 
-          {printCoupons.length === 0 ? (
-            <div className="admin-no-print flex min-h-[260px] flex-col items-center justify-center gap-3 px-5 py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50">
-                <QrCode className="h-8 w-8 text-slate-300" />
-              </div>
-              <p className="font-bold text-slate-400">발급 후 A4 인쇄 미리보기가 표시됩니다</p>
-            </div>
-          ) : (
+        {/* 인쇄 전용 영역 — 화면에는 표시하지 않고, "A4 인쇄"/"묶음 인쇄" 시에만 A4 카드가 출력됩니다 */}
+        <section className="offline-print-root hidden print:block">
+          {printCoupons.length > 0 && (
             <div className="offline-coupon-sheet-wrap">
               {printPages.map((pageCoupons, pageIndex) => (
                 <div key={`print-page-${pageIndex}`} className="offline-coupon-page">

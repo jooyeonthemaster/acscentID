@@ -103,6 +103,9 @@ interface Order {
   refunded_at?: string | null
   refund_reason?: string | null
   cancel_reason?: string | null
+  refund_bank_name?: string | null
+  refund_account_number?: string | null
+  refund_account_holder?: string | null
   cancellation_id?: string | null
   refunded_by?: string | null
   admin_memo?: string | null
@@ -395,7 +398,7 @@ function TrackingInlineEditor({
 
   return (
     <div
-      className="md:col-span-4 mt-2 pt-3 border-t border-slate-200"
+      className="sm:col-span-2 md:col-span-4 mt-2 pt-3 border-t border-slate-200"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-2 mb-2">
@@ -1136,11 +1139,11 @@ export default function AdminOrdersPage() {
         {/* 주문 목록 */}
         {!loading && !error && (
           <>
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
-              <table className="w-full">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-x-auto shadow-[3px_3px_0px_#e2e8f0]">
+              <table className="w-full md:min-w-[720px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
-                    <th className="w-10 px-4 py-3">
+                    <th className="w-10 px-2 md:px-4 py-3">
                       <input
                         type="checkbox"
                         checked={orders.length > 0 && selectedIds.size === orders.length}
@@ -1148,15 +1151,15 @@ export default function AdminOrdersPage() {
                         className="w-4 h-4 rounded border-slate-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
                       />
                     </th>
-                    <th className="w-10 px-4 py-3"></th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문번호</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문자</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">상품</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">금액</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">상태</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-600">인플루언서</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">주문일</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-600">액션</th>
+                    <th className="w-10 px-2 md:px-4 py-3"></th>
+                    <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-600">주문번호</th>
+                    <th className="px-2 md:px-4 py-3 text-left text-sm font-medium text-slate-600">주문자</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-600">상품</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-600">금액</th>
+                    <th className="px-2 md:px-4 py-3 text-left text-sm font-medium text-slate-600">상태</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center text-sm font-medium text-slate-600">인플루언서</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium text-slate-600">주문일</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center text-sm font-medium text-slate-600">액션</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1166,7 +1169,7 @@ export default function AdminOrdersPage() {
                         className={`hover:bg-slate-50 transition-colors cursor-pointer ${selectedIds.has(order.id) ? 'bg-yellow-50' : ''}`}
                         onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                       >
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-2 md:px-4 py-3" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={selectedIds.has(order.id)}
@@ -1174,14 +1177,14 @@ export default function AdminOrdersPage() {
                             className="w-4 h-4 rounded border-slate-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-2 md:px-4 py-3">
                           <ChevronRight
                             className={`w-5 h-5 text-slate-400 transition-transform ${
                               expandedId === order.id ? 'rotate-90' : ''
                             }`}
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="hidden md:table-cell px-4 py-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono text-sm text-slate-900">{order.order_number}</span>
                             <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
@@ -1208,11 +1211,11 @@ export default function AdminOrdersPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-2 md:px-4 py-3">
                           <div className="font-medium text-slate-900">{order.recipient_name}</div>
                           <div className="text-sm text-slate-500">{order.phone}</div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="hidden md:table-cell px-4 py-3">
                           <div className="text-slate-900">{order.perfume_name}</div>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-sm text-slate-500">{formatSizeLabel(getDisplayProductType(order), order.size)}</span>
@@ -1259,13 +1262,13 @@ export default function AdminOrdersPage() {
                             )
                           })()}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="hidden md:table-cell px-4 py-3">
                           <div className="font-medium text-slate-900">{formatPrice(order.final_price || order.price)}</div>
                           {order.discount_amount > 0 && (
                             <div className="text-xs text-emerald-600">-{formatPrice(order.discount_amount)}</div>
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-2 md:px-4 py-3">
                           <select
                             value={order.status}
                             onChange={(e) => {
@@ -1287,7 +1290,7 @@ export default function AdminOrdersPage() {
                             )}
                           </select>
                         </td>
-                        <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="hidden md:table-cell px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleInfluencerToggle(order.id, !order.is_influencer)}
                             className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
@@ -1301,10 +1304,10 @@ export default function AdminOrdersPage() {
                             {order.is_influencer ? '인플루언서' : '-'}
                           </button>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="hidden md:table-cell px-4 py-3 text-sm text-slate-600">
                           {formatDate(order.created_at)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="hidden md:table-cell px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
                             {/* 환불 버튼 — 상태에 따라 맥락화 */}
                             {(() => {
@@ -1407,8 +1410,104 @@ export default function AdminOrdersPage() {
                       {/* 확장된 상세 정보 */}
                       {expandedId === order.id && (
                         <tr>
-                          <td colSpan={9} className="px-4 py-4 bg-slate-50">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <td colSpan={10} className="px-4 py-4 bg-slate-50">
+                            {/* 모바일 전용 요약 — md 미만에서 숨겨진 컬럼 정보 표시 */}
+                            <div className="md:hidden mb-4 pb-4 border-b border-slate-200 space-y-2 text-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-slate-500 shrink-0">주문번호</span>
+                                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                  <span className="font-mono text-slate-900 break-all">{order.order_number}</span>
+                                  {order.refunded_at ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                      환불완료
+                                    </span>
+                                  ) : order.status === 'cancelled' && order.payment_id ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-600 text-white border border-red-700 animate-pulse">
+                                      ⚠️ 환불 누락
+                                    </span>
+                                  ) : null}
+                                  {order.tracking_number && (
+                                    <span
+                                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700"
+                                      title={`운송장: ${order.tracking_number}`}
+                                    >
+                                      <Truck size={10} /> 운송장
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-slate-500 shrink-0">상품</span>
+                                <span className="text-slate-900 text-right">
+                                  {order.perfume_name}
+                                  <span className="ml-1 text-xs text-slate-500">{formatSizeLabel(getDisplayProductType(order), order.size)}</span>
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-slate-500 shrink-0">금액</span>
+                                <span className="font-medium text-slate-900">
+                                  {formatPrice(order.final_price || order.price)}
+                                  {order.discount_amount > 0 && (
+                                    <span className="ml-1 text-xs text-emerald-600">(-{formatPrice(order.discount_amount)})</span>
+                                  )}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-slate-500 shrink-0">결제수단</span>
+                                <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getPaymentBadge(order.payment_method).className}`}>
+                                  {getPaymentBadge(order.payment_method).label}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-slate-500 shrink-0">주문일</span>
+                                <span className="text-slate-600">{formatDate(order.created_at)}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3" onClick={(e) => e.stopPropagation()}>
+                                <span className="text-slate-500 shrink-0">인플루언서</span>
+                                <button
+                                  onClick={() => handleInfluencerToggle(order.id, !order.is_influencer)}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                                    order.is_influencer
+                                      ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                      : 'bg-slate-50 text-slate-400 border border-slate-200 hover:border-slate-300'
+                                  }`}
+                                  title={order.is_influencer ? '인플루언서 해제' : '인플루언서로 설정'}
+                                >
+                                  <UserCheck size={12} />
+                                  {order.is_influencer ? '인플루언서' : '-'}
+                                </button>
+                              </div>
+                              {/* 액션 — 테이블 액션 컬럼이 모바일에서 숨겨지므로 여기서 제공 (환불 버튼은 아래 결제 정보 섹션에 존재) */}
+                              <div className="flex items-center justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => setSelectedOrder(order)}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  상세 보기
+                                </button>
+                                {(!order.item_count || order.item_count <= 1) && (
+                                  <>
+                                    {getDisplayProductType(order) === 'figure_diffuser' && (
+                                      <button
+                                        onClick={() => setModelingOrder(order)}
+                                        className="p-2 bg-white border border-slate-200 hover:bg-cyan-100 rounded-lg transition-colors"
+                                        title="모델링 이미지 보기"
+                                      >
+                                        <Box className="w-4 h-4 text-cyan-600" />
+                                      </button>
+                                    )}
+                                    <ReportPrintLink
+                                      href={getOrderReportPrintHref(order)}
+                                      className="p-2 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors"
+                                      title="보고서 출력"
+                                      iconClassName="w-4 h-4 text-slate-600"
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-slate-500">배송지:</span>
                                 <p className="text-slate-900 mt-1">
@@ -1583,7 +1682,7 @@ export default function AdminOrdersPage() {
                                   <span className="text-sm font-bold text-slate-900">커스텀 조향 레시피</span>
                                   <span className="text-xs text-slate-400">({formatSizeLabel(getDisplayProductType(order), order.size)} 기준)</span>
                                 </div>
-                                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                                <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
                                   <table className="w-full text-sm">
                                     <thead>
                                       <tr className="bg-slate-100 text-slate-600">
@@ -1661,6 +1760,33 @@ export default function AdminOrdersPage() {
                                 </div>
                               )}
                             </div>
+                            {/* 계좌이체 환불 계좌 — 고객이 취소 요청 시 입력한 송금 대상 */}
+                            {order.payment_method === 'bank_transfer' && order.refund_account_number && (
+                              <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <CreditCard className="w-4 h-4 text-amber-700" />
+                                    <span className="font-black text-amber-900 text-sm">환불 계좌 (고객 입력)</span>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                                    <div>
+                                      <span className="text-amber-700 text-xs">은행</span>
+                                      <p className="font-bold text-slate-900">{order.refund_bank_name || '-'}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-amber-700 text-xs">계좌번호</span>
+                                      <p className="font-bold text-slate-900 font-mono select-all break-all">
+                                        {order.refund_account_number}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-amber-700 text-xs">예금주</span>
+                                      <p className="font-bold text-slate-900">{order.refund_account_holder || '-'}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {/* 결제 정보 및 환불 */}
                             {(order.payment_id || order.payment_method === 'bank_transfer') && (
                               <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -2395,6 +2521,9 @@ export default function AdminOrdersPage() {
               refunded_at: refundTarget.refunded_at,
               refund_reason: refundTarget.refund_reason,
               cancel_reason: refundTarget.cancel_reason,
+              refund_bank_name: refundTarget.refund_bank_name,
+              refund_account_number: refundTarget.refund_account_number,
+              refund_account_holder: refundTarget.refund_account_holder,
             }}
             onClose={() => setRefundTarget(null)}
             onSuccess={handleRefundSuccess}

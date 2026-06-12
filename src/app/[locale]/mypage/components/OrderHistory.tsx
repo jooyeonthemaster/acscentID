@@ -34,6 +34,12 @@ import { isProductTypeDiscontinued } from '@/lib/products/active'
 import { isScentPaperSize } from '@/types/cart'
 import { getEffectiveProductType } from '@/lib/products/store-products'
 
+interface RefundAccountInput {
+  bankName: string
+  accountNumber: string
+  accountHolder: string
+}
+
 interface Order {
   id: string
   order_number: string
@@ -61,6 +67,10 @@ interface Order {
   refunded_at?: string | null
   refund_reason?: string | null
   cancel_reason?: string | null
+  // 계좌이체 환불 계좌 (고객이 취소 요청 시 입력)
+  refund_bank_name?: string | null
+  refund_account_number?: string | null
+  refund_account_holder?: string | null
   final_price?: number
   cancel_requested_at?: string | null
   // 배송 운송장
@@ -368,7 +378,7 @@ function OrderCard({
   }
 
   // 주문 취소 핸들러
-  const handleCancelOrder = async (reason: string) => {
+  const handleCancelOrder = async (reason: string, refundAccount?: RefundAccountInput) => {
     if (isCancelling) return
 
     setIsCancelling(true)
@@ -376,7 +386,7 @@ function OrderCard({
       const response = await fetch(`/api/orders/${order.id}/cancel`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({ reason, ...(refundAccount && { refundAccount }) })
       })
 
       if (response.ok) {
@@ -510,6 +520,7 @@ function OrderCard({
           onConfirm={handleCancelOrder}
           isLoading={isCancelling}
           orderNumber={order.order_number}
+          isBankTransfer={order.payment_method === 'bank_transfer' && order.status !== 'pending'}
         />
       </>
     )
@@ -735,6 +746,7 @@ function OrderCard({
         onConfirm={handleCancelOrder}
         isLoading={isCancelling}
         orderNumber={order.order_number}
+        isBankTransfer={order.payment_method === 'bank_transfer' && order.status !== 'pending'}
       />
     </>
   )
@@ -746,17 +758,41 @@ function CancelConfirmDialog({
   onClose,
   onConfirm,
   isLoading,
-  orderNumber
+  orderNumber,
+  isBankTransfer = false,
 }: {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (reason: string) => void
+  onConfirm: (reason: string, refundAccount?: RefundAccountInput) => void
   isLoading: boolean
   orderNumber: string
+  isBankTransfer?: boolean
 }) {
   const t = useTranslations('mypage')
   const [reason, setReason] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountHolder, setAccountHolder] = useState('')
   const reasonValid = reason.trim().length >= 2
+  const accountValid =
+    !isBankTransfer ||
+    (bankName.trim().length > 0 &&
+      accountNumber.trim().length > 0 &&
+      accountHolder.trim().length > 0)
+  const canSubmit = reasonValid && accountValid
+
+  const handleConfirm = () => {
+    if (isBankTransfer) {
+      onConfirm(reason.trim(), {
+        bankName: bankName.trim(),
+        accountNumber: accountNumber.trim(),
+        accountHolder: accountHolder.trim(),
+      })
+    } else {
+      onConfirm(reason.trim())
+    }
+  }
+
   if (!isOpen) return null
 
   return (
@@ -777,7 +813,7 @@ function CancelConfirmDialog({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#000] z-50 p-6"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#000] z-50 p-6"
           >
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 border-2 border-red-300">
@@ -811,6 +847,46 @@ function CancelConfirmDialog({
                 </p>
               </div>
 
+              {/* 계좌이체: 환불받을 계좌 입력 */}
+              {isBankTransfer && (
+                <div className="w-full text-left mb-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-3 space-y-2">
+                  <p className="text-sm font-black text-slate-900">
+                    환불받을 계좌 <span className="text-red-500">*</span>
+                  </p>
+                  <p className="text-xs text-amber-800 mb-1">
+                    계좌이체(무통장입금)로 결제하셨습니다. 입력하신 계좌로 환불해 드립니다.
+                  </p>
+                  <input
+                    type="text"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    disabled={isLoading}
+                    placeholder="은행명 (예: 국민은행)"
+                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    disabled={isLoading}
+                    placeholder="계좌번호 (- 없이 숫자만)"
+                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  />
+                  <input
+                    type="text"
+                    value={accountHolder}
+                    onChange={(e) => setAccountHolder(e.target.value)}
+                    disabled={isLoading}
+                    placeholder="예금주"
+                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  />
+                  {!accountValid && (
+                    <p className="text-xs text-red-500">은행, 계좌번호, 예금주를 모두 입력해 주세요.</p>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-3 w-full">
                 <button
                   onClick={onClose}
@@ -820,8 +896,8 @@ function CancelConfirmDialog({
                   {t('no')}
                 </button>
                 <button
-                  onClick={() => onConfirm(reason.trim())}
-                  disabled={isLoading || !reasonValid}
+                  onClick={handleConfirm}
+                  disabled={isLoading || !canSubmit}
                   className="flex-1 py-3 rounded-xl font-bold bg-red-500 border-2 border-slate-900 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
                   {isLoading ? (
@@ -1008,6 +1084,11 @@ function RefundStatusCard({ order }: { order: Order }) {
             </p>
             {!isBank && (
               <p className="text-slate-600 mt-1 text-[11px]">{methodGuide}</p>
+            )}
+            {isBank && order.refund_account_number && (
+              <p className="text-amber-800 mt-1 text-[11px]">
+                환불 계좌: {order.refund_bank_name} {order.refund_account_number} ({order.refund_account_holder})
+              </p>
             )}
             {order.cancel_reason && (
               <p className="text-slate-500 mt-1 text-[11px]">
