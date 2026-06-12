@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
   BarChart3,
@@ -9,6 +9,7 @@ import {
   CalendarDays,
   CreditCard,
   Download,
+  Lock,
   Loader2,
   Package,
   RefreshCw,
@@ -403,7 +404,70 @@ function UsagePill({ label, value }: { label: string; value: string }) {
   )
 }
 
+function CostAnalysisPasswordGate({
+  password,
+  error,
+  submitting,
+  onPasswordChange,
+  onSubmit,
+}: {
+  password: string
+  error: string | null
+  submitting: boolean
+  onPasswordChange: (value: string) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+}) {
+  return (
+    <div>
+      <AdminHeader title="원가 분석" subtitle="비밀번호 확인 후 접근할 수 있습니다" />
+      <div className="flex min-h-[70vh] items-center justify-center p-4">
+        <form
+          onSubmit={onSubmit}
+          className="w-full max-w-md rounded-xl border-2 border-slate-200 bg-white p-6 shadow-[3px_3px_0px_#e2e8f0]"
+        >
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-slate-900 text-white">
+            <Lock className="h-7 w-7" />
+          </div>
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-black text-slate-900">원가 분석 잠금</h2>
+            <p className="mt-2 text-sm text-slate-500">비밀번호를 입력해 주세요.</p>
+          </div>
+          <label className="block">
+            <span className="mb-1 block text-xs font-bold text-slate-500">비밀번호</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => onPasswordChange(event.target.value)}
+              autoComplete="current-password"
+              autoFocus
+              className="h-12 w-full rounded-lg border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 outline-none transition-colors focus:border-slate-900"
+            />
+          </label>
+          {error && (
+            <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-600">
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={submitting || !password.trim()}
+            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-black text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+            잠금 해제
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function CostAnalysisPage() {
+  const [accessChecking, setAccessChecking] = useState(true)
+  const [accessGranted, setAccessGranted] = useState(false)
+  const [accessPassword, setAccessPassword] = useState('')
+  const [accessError, setAccessError] = useState<string | null>(null)
+  const [accessSubmitting, setAccessSubmitting] = useState(false)
   const [period, setPeriod] = useState('30d')
   const [customStart, setCustomStart] = useState(() => getKoreaDateInputValue())
   const [customEnd, setCustomEnd] = useState(() => getKoreaDateInputValue())
@@ -417,7 +481,62 @@ export default function CostAnalysisPage() {
   const appliedCustomStart = appliedCustomRange?.start
   const appliedCustomEnd = appliedCustomRange?.end
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function checkAccess() {
+      try {
+        const response = await fetch('/api/admin/cost-analysis/access')
+        const result = await response.json().catch(() => null)
+        if (!cancelled) {
+          setAccessGranted(Boolean(response.ok && result?.unlocked))
+        }
+      } catch {
+        if (!cancelled) setAccessGranted(false)
+      } finally {
+        if (!cancelled) setAccessChecking(false)
+      }
+    }
+
+    checkAccess()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const handleAccessSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      setAccessSubmitting(true)
+      setAccessError(null)
+
+      try {
+        const response = await fetch('/api/admin/cost-analysis/access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: accessPassword }),
+        })
+        const result = await response.json().catch(() => null)
+
+        if (!response.ok || !result?.unlocked) {
+          throw new Error(result?.error || '비밀번호가 올바르지 않습니다')
+        }
+
+        setAccessGranted(true)
+        setAccessPassword('')
+      } catch (err) {
+        setAccessError(err instanceof Error ? err.message : '비밀번호 확인 중 오류가 발생했습니다')
+      } finally {
+        setAccessSubmitting(false)
+      }
+    },
+    [accessPassword]
+  )
+
   const fetchData = useCallback(async () => {
+    if (!accessGranted) return
+
     setLoading(true)
     setError(null)
     try {
@@ -438,7 +557,7 @@ export default function CostAnalysisPage() {
     } finally {
       setLoading(false)
     }
-  }, [appliedCustomEnd, appliedCustomStart, period])
+  }, [accessGranted, appliedCustomEnd, appliedCustomStart, period])
 
   useEffect(() => {
     try {
@@ -562,6 +681,29 @@ export default function CostAnalysisPage() {
     link.download = `acscent-cost-analysis-${data?.range.start}-${data?.range.end}.csv`
     link.click()
     URL.revokeObjectURL(url)
+  }
+
+  if (accessChecking) {
+    return (
+      <div>
+        <AdminHeader title="원가 분석" subtitle="접근 권한 확인 중" />
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!accessGranted) {
+    return (
+      <CostAnalysisPasswordGate
+        password={accessPassword}
+        error={accessError}
+        submitting={accessSubmitting}
+        onPasswordChange={setAccessPassword}
+        onSubmit={handleAccessSubmit}
+      />
+    )
   }
 
   if (loading && !data) {

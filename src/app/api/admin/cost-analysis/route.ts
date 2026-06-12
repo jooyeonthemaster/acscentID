@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
+import { hasCostAnalysisAccess } from '@/lib/admin/cost-analysis-access'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 
 const PAGE_SIZE = 1000
@@ -235,6 +236,10 @@ export async function GET(request: NextRequest) {
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 })
+    }
+
+    if (!hasCostAnalysisAccess(request)) {
+      return NextResponse.json({ error: '원가 분석 비밀번호 확인이 필요합니다' }, { status: 403 })
     }
 
     const range = resolveRange(request)
