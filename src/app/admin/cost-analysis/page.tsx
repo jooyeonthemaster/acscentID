@@ -18,8 +18,10 @@ import {
   SlidersHorizontal,
   TrendingUp,
   Truck,
+  WalletCards,
 } from 'lucide-react'
 import { AdminHeader } from '../components/AdminHeader'
+import { FinanceOperationsPanel } from './FinanceOperationsPanel'
 
 const AVG_DAYS_PER_MONTH = 30.4375
 const SETTINGS_KEY = 'acscent_cost_analysis_assumptions_v2'
@@ -109,6 +111,8 @@ interface CustomRange {
   start: string
   end: string
 }
+
+type WorkspaceTab = 'finance' | 'site_cost'
 
 const DEFAULT_ASSUMPTIONS: CostAssumptions = {
   fixedMonthly: {
@@ -296,6 +300,70 @@ function PeriodSelector({ period, onChange }: { period: string; onChange: (perio
   )
 }
 
+function WorkspaceSwitch({
+  active,
+  onChange,
+}: {
+  active: WorkspaceTab
+  onChange: (tab: WorkspaceTab) => void
+}) {
+  const tabs: Array<{
+    value: WorkspaceTab
+    label: string
+    detail: string
+    icon: React.ComponentType<{ className?: string }>
+  }> = [
+    {
+      value: 'finance',
+      label: '통합 월 손익',
+      detail: '매출·비용·순이익',
+      icon: WalletCards,
+    },
+    {
+      value: 'site_cost',
+      label: '웹 운영비',
+      detail: 'AI·서버·PG 추정',
+      icon: Server,
+    },
+  ]
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="grid min-w-[560px] grid-cols-2 gap-3 sm:min-w-0">
+        {tabs.map(({ value, label, detail, icon: Icon }) => {
+          const selected = active === value
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onChange(value)}
+              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
+                selected
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-[3px_3px_0px_#cbd5e1]'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                selected ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-500'
+              }`}>
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-black">{label}</span>
+                <span className={`mt-0.5 block text-xs font-bold ${
+                  selected ? 'text-slate-200' : 'text-slate-400'
+                }`}>
+                  {detail}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function DateRangeSelector({
   start,
   end,
@@ -468,6 +536,7 @@ export default function CostAnalysisPage() {
   const [accessPassword, setAccessPassword] = useState('')
   const [accessError, setAccessError] = useState<string | null>(null)
   const [accessSubmitting, setAccessSubmitting] = useState(false)
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceTab>('finance')
   const [period, setPeriod] = useState('30d')
   const [customStart, setCustomStart] = useState(() => getKoreaDateInputValue())
   const [customEnd, setCustomEnd] = useState(() => getKoreaDateInputValue())
@@ -576,8 +645,8 @@ export default function CostAnalysisPage() {
   }, [assumptions, settingsLoaded])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (activeWorkspace === 'site_cost') fetchData()
+  }, [activeWorkspace, fetchData])
 
   const fixedMonthly = useMemo(() => sumFixedMonthly(assumptions), [assumptions])
 
@@ -706,66 +775,43 @@ export default function CostAnalysisPage() {
     )
   }
 
-  if (loading && !data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-      </div>
-    )
-  }
-
-  if (error && !data) {
-    return (
-      <div>
-        <AdminHeader title="원가 분석" subtitle="일별 · 월별 운영비 추정" />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <p className="text-slate-600">{error}</p>
-            <button
-              type="button"
-              onClick={fetchData}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white"
-            >
-              <RefreshCw className="w-4 h-4" />
-              다시 시도
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div>
       <AdminHeader
         title="원가 분석"
-        subtitle="실제 사용량과 운영 단가 가정을 결합해 일별/월별 비용을 추정합니다"
+        subtitle="월별 손익과 웹 운영비를 분리해서 관리합니다"
         actions={
-          <>
-            <button
-              type="button"
-              onClick={downloadCsv}
-              disabled={!computed}
-              className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:border-slate-300 disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              CSV
-            </button>
-            <button
-              type="button"
-              onClick={fetchData}
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              새로고침
-            </button>
-          </>
+          activeWorkspace === 'site_cost' ? (
+            <>
+              <button
+                type="button"
+                onClick={downloadCsv}
+                disabled={!computed}
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:border-slate-300 disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                CSV
+              </button>
+              <button
+                type="button"
+                onClick={fetchData}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                새로고침
+              </button>
+            </>
+          ) : null
         }
       />
 
       <div className="p-4 lg:p-6 space-y-6">
-        <div className="space-y-3">
+        <WorkspaceSwitch active={activeWorkspace} onChange={setActiveWorkspace} />
+
+        {activeWorkspace === 'finance' && <FinanceOperationsPanel accessGranted={accessGranted} />}
+
+        {activeWorkspace === 'site_cost' && (
+          <div className="space-y-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <PeriodSelector period={period} onChange={handlePeriodChange} />
             {data && (
@@ -783,9 +829,33 @@ export default function CostAnalysisPage() {
             onEndChange={setCustomEnd}
             onApply={applyCustomRange}
           />
-        </div>
+          </div>
+        )}
 
-        {computed && data && (
+        {activeWorkspace === 'site_cost' && loading && !data && (
+          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-[3px_3px_0px_#e2e8f0]">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          </section>
+        )}
+
+        {activeWorkspace === 'site_cost' && error && !data && (
+          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="text-center">
+              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+              <p className="text-slate-600">{error}</p>
+              <button
+                type="button"
+                onClick={fetchData}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white"
+              >
+                <RefreshCw className="h-4 w-4" />
+                다시 시도
+              </button>
+            </div>
+          </section>
+        )}
+
+        {activeWorkspace === 'site_cost' && computed && data && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               <StatCard

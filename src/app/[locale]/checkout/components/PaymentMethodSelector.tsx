@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { useTranslations } from 'next-intl'
 import type { PaymentMethod } from "@/types/cart"
+import { isEasyPayChannelConfigured } from "@/lib/portone/config"
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod
@@ -69,9 +70,6 @@ function NaverIcon({ active }: { active: boolean }) {
   )
 }
 
-// 카카오페이/네이버페이는 PG사 심사 완료 전까지 비활성화 (심사 담당자는 pg_review 모드로 우회)
-const DISABLED_METHODS: Set<PaymentMethod> = new Set<PaymentMethod>(['kakao_pay', 'naver_pay'])
-
 const PAYMENT_OPTIONS: PaymentOption[] = [
   {
     method: "card",
@@ -131,15 +129,25 @@ export function PaymentMethodSelector({
   const isPgReviewParam = searchParams.get("pg_review") === "true"
 
   // PG 심사 모드 쿠키 확인 (심사 담당자 로그인 시 자동 설정)
-  const [isPgReviewCookie, setIsPgReviewCookie] = useState(false)
-  useEffect(() => {
-    setIsPgReviewCookie(document.cookie.includes('pg_review_mode=true'))
-  }, [])
+  const [isPgReviewCookie] = useState(() =>
+    typeof document !== "undefined" && document.cookie.includes('pg_review_mode=true')
+  )
 
   const isPgReview = isPgReviewParam || isPgReviewCookie
 
+  const configuredDisabledMethods = new Set<PaymentMethod>(
+    PAYMENT_OPTIONS
+      .filter((option) => {
+        if (option.method === "kakao_pay" || option.method === "naver_pay") {
+          return !isEasyPayChannelConfigured(option.method)
+        }
+        return false
+      })
+      .map((option) => option.method)
+  )
+
   // PG 심사 모드: 모든 결제수단 활성화
-  const disabledMethods = isPgReview ? new Set<PaymentMethod>() : DISABLED_METHODS
+  const disabledMethods = isPgReview ? new Set<PaymentMethod>() : configuredDisabledMethods
 
   return (
     <div className="space-y-3 max-w-sm">
@@ -162,7 +170,7 @@ export function PaymentMethodSelector({
                   ? "border-slate-100 bg-slate-50/50 cursor-not-allowed opacity-50"
                   : isSelected
                     ? "border-slate-800 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] cursor-pointer"
-                    : "border-slate-200 bg-white hover:border-slate-300 cursor-pointer",
+                    : "border-slate-300 bg-slate-50 shadow-sm hover:border-slate-400 hover:bg-white cursor-pointer",
               ].join(" ")}
               style={isSelected ? { backgroundColor: option.accentBg } : undefined}
               disabled={isDisabled}
@@ -183,7 +191,7 @@ export function PaymentMethodSelector({
                     "absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center transition-all",
                     isSelected
                       ? "bg-slate-800"
-                      : "border-2 border-slate-200 bg-white",
+                      : "border-2 border-slate-400 bg-white",
                   ].join(" ")}
                 >
                   {isSelected && (
@@ -201,9 +209,9 @@ export function PaymentMethodSelector({
 
               {/* 아이콘 */}
               <div className="w-12 h-12 flex items-center justify-center">
-                {isSelected
-                  ? <ActiveIcon method={option.method} />
-                  : <InactiveIcon method={option.method} />
+                {isDisabled
+                  ? <InactiveIcon method={option.method} />
+                  : <ActiveIcon method={option.method} />
                 }
               </div>
 
@@ -216,18 +224,13 @@ export function PaymentMethodSelector({
                       ? "font-semibold text-slate-300"
                       : isSelected
                         ? "font-extrabold text-slate-900"
-                        : "font-semibold text-slate-400",
+                        : "font-bold text-slate-700",
                   ].join(" ")}
                 >
                   {t(option.label)}
                 </span>
                 {option.sublabel && (
-                  <span
-                    className={[
-                      "text-[10px] font-medium",
-                      isSelected ? "text-slate-500" : "text-slate-300",
-                    ].join(" ")}
-                  >
+                  <span className="text-[10px] font-medium text-slate-500">
                     {t(option.sublabel)}
                   </span>
                 )}

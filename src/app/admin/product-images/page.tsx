@@ -336,7 +336,7 @@ export default function ProductImagesPage() {
             <Package className="w-5 h-5 text-slate-600" />
             <h2 className="text-sm font-semibold text-slate-700">프로그램 선택</h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="grid grid-cols-1 gap-3 sm:flex sm:overflow-x-auto sm:pb-2 sm:scrollbar-hide">
             {products.map((product) => {
               const slug = product.slug
               const isSelected = slug === selectedSlug
@@ -345,7 +345,7 @@ export default function ProductImagesPage() {
               return (
                 <div
                   key={slug}
-                  className={`flex-shrink-0 rounded-xl border-2 transition-all min-w-[180px] ${
+                  className={`w-full min-w-0 rounded-xl border-2 transition-all sm:w-auto sm:min-w-[180px] sm:flex-shrink-0 ${
                     isSelected
                       ? 'border-yellow-400 bg-yellow-50 shadow-sm'
                       : isActive
@@ -357,8 +357,8 @@ export default function ProductImagesPage() {
                     onClick={() => setSelectedSlug(slug)}
                     className="w-full px-4 pt-3 pb-2 text-left"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className={`min-w-0 text-sm font-bold ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
                         {product.name}
                       </span>
                       {isActive ? (
@@ -373,8 +373,8 @@ export default function ProductImagesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-slate-400 font-mono">{slug}</span>
+                    <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="break-all font-mono text-xs text-slate-400">{slug}</span>
                       <span
                         className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                           isSelected

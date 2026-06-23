@@ -12,7 +12,8 @@ import {
   Copy,
   Check,
   Building2,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from "lucide-react"
 
 import { useTranslations } from 'next-intl'
@@ -1030,6 +1031,10 @@ function CheckoutContent() {
                     <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
                       <Truck size={14} className="flex-shrink-0" />
                       {t('checkout.depositAfterShipping')}
+                    </p>
+                    <p className="text-sm text-slate-600 font-bold flex items-start gap-2">
+                      <Clock size={14} className="flex-shrink-0 mt-0.5" />
+                      <span>{t('checkout.manualDepositNotice')}</span>
                     </p>
                   </div>
                 </div>

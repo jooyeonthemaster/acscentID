@@ -5,6 +5,26 @@ import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 
+function getOrderIdFromPaymentCustomData(customData: unknown): string | null {
+  if (!customData) return null
+
+  if (typeof customData === 'string') {
+    try {
+      const parsed = JSON.parse(customData) as { orderId?: unknown }
+      return typeof parsed.orderId === 'string' ? parsed.orderId : null
+    } catch {
+      return null
+    }
+  }
+
+  if (typeof customData === 'object' && 'orderId' in customData) {
+    const orderId = (customData as { orderId?: unknown }).orderId
+    return typeof orderId === 'string' ? orderId : null
+  }
+
+  return null
+}
+
 /**
  * 포트원 웹훅 처리 API
  * POST /api/payments/webhook
@@ -41,15 +61,48 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true })
         }
 
-        // payment_id로 주문 조회
-        const { data: order, error: fetchError } = await serviceClient
+        // payment_id로 주문 조회. 구버전 흐름이나 네트워크 중단으로 payment_id 저장 전
+        // 웹훅이 도착한 경우에는 customData.orderId로 한 번 더 복구한다.
+        let { data: order, error: fetchError } = await serviceClient
           .from('orders')
           .select('*')
           .eq('payment_id', data.paymentId)
-          .single()
+          .maybeSingle()
+
+        if (!order) {
+          const orderIdFromCustomData = getOrderIdFromPaymentCustomData(payment.customData)
+          if (orderIdFromCustomData) {
+            const fallback = await serviceClient
+              .from('orders')
+              .select('*')
+              .eq('id', orderIdFromCustomData)
+              .maybeSingle()
+            order = fallback.data
+            fetchError = fallback.error
+          }
+        }
 
         if (fetchError || !order) {
           console.warn('[Payments Webhook] Order not found for paymentId:', data.paymentId)
+          return NextResponse.json({ success: true })
+        }
+
+        if (order.payment_id && order.payment_id !== data.paymentId) {
+          console.warn('[Payments Webhook] Order is bound to another paymentId:', {
+            orderId: order.id,
+            orderPaymentId: order.payment_id,
+            webhookPaymentId: data.paymentId,
+          })
+          return NextResponse.json({ success: true })
+        }
+
+        if (Number(payment.amount?.total) !== Number(order.final_price)) {
+          console.error('[Payments Webhook] Amount mismatch:', {
+            paymentId: data.paymentId,
+            paid: payment.amount?.total,
+            expected: order.final_price,
+            orderId: order.id,
+          })
           return NextResponse.json({ success: true })
         }
 
@@ -67,6 +120,7 @@ export async function POST(request: NextRequest) {
           .from('orders')
           .update({
             status: 'paid',
+            payment_id: data.paymentId,
             pg_provider: payment.channel?.pgProvider || null,
             pg_tx_id: payment.pgTxId || null,
             paid_at: payment.paidAt || now,

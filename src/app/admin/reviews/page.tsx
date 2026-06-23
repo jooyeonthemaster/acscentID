@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import { supabase } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,16 +9,11 @@ import {
   Plus,
   Edit,
   Trash2,
-  Upload,
   X,
   Loader2,
   Check,
   Sparkles,
-  Image as ImageIcon,
   MessageSquare,
-  Filter,
-  ChevronDown,
-  Eye,
   Camera,
   ThumbsUp,
 } from 'lucide-react'
@@ -74,7 +69,16 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<AdminReview[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProgram, setSelectedProgram] = useState<string>('idol_image')
-  const [stats, setStats] = useState({ total: 0, avgRating: 0, adminCount: 0, photoCount: 0 })
+  const stats = useMemo(() => {
+    if (reviews.length === 0) {
+      return { total: 0, avgRating: 0, adminCount: 0, photoCount: 0 }
+    }
+    const total = reviews.length
+    const avgRating = Math.round((reviews.reduce((sum, review) => sum + review.rating, 0) / total) * 10) / 10
+    const adminCount = reviews.filter((review) => review.is_admin_review).length
+    const photoCount = reviews.filter((review) => review.review_images?.length > 0).length
+    return { total, avgRating, adminCount, photoCount }
+  }, [reviews])
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false)
@@ -106,21 +110,11 @@ export default function AdminReviewsPage() {
   }, [selectedProgram])
 
   useEffect(() => {
-    fetchReviews()
+    const timer = window.setTimeout(() => {
+      void fetchReviews()
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [fetchReviews])
-
-  // ── Stats Calculation ──
-  useEffect(() => {
-    if (reviews.length === 0) {
-      setStats({ total: 0, avgRating: 0, adminCount: 0, photoCount: 0 })
-      return
-    }
-    const total = reviews.length
-    const avgRating = Math.round((reviews.reduce((s, r) => s + r.rating, 0) / total) * 10) / 10
-    const adminCount = reviews.filter((r) => r.is_admin_review).length
-    const photoCount = reviews.filter((r) => r.review_images?.length > 0).length
-    setStats({ total, avgRating, adminCount, photoCount })
-  }, [reviews])
 
   // ── Delete Review ──
   const handleDelete = async (review: AdminReview) => {
@@ -168,7 +162,7 @@ export default function AdminReviewsPage() {
         title="리뷰 관리"
         subtitle="상품별 리뷰를 관리하고 AI로 리뷰를 생성하세요"
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowAiModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
@@ -187,14 +181,14 @@ export default function AdminReviewsPage() {
         }
       />
 
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 p-4 sm:p-6">
         {/* ─── Program Filter Tabs ─── */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:overflow-x-auto sm:pb-2">
           {PROGRAM_TYPES.map((p) => (
             <button
               key={p.value}
               onClick={() => setSelectedProgram(p.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all border-2 ${
+              className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
                 selectedProgram === p.value
                   ? 'bg-slate-900 text-white border-slate-900'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
@@ -206,7 +200,7 @@ export default function AdminReviewsPage() {
         </div>
 
         {/* ─── Stats Cards ─── */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <div className="text-sm text-slate-500 mb-1">전체 리뷰</div>
             <div className="text-2xl font-bold text-slate-900">{stats.total}개</div>
@@ -230,8 +224,8 @@ export default function AdminReviewsPage() {
 
         {/* ─── Review List ─── */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-            <h3 className="font-bold text-slate-900">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6">
+            <h3 className="min-w-0 font-bold text-slate-900">
               {PROGRAM_LABELS[selectedProgram]} 리뷰 목록
             </h3>
             <span className="text-sm text-slate-500">{stats.total}개</span>
@@ -251,11 +245,11 @@ export default function AdminReviewsPage() {
           ) : (
             <div className="divide-y divide-slate-100">
               {reviews.map((review) => (
-                <div key={review.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start gap-4">
+                <div key={review.id} className="px-4 py-4 transition-colors hover:bg-slate-50 sm:px-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
                     {/* Left: Review Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="mb-1 flex min-w-0 flex-wrap items-center gap-2">
                         {/* Stars */}
                         <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
@@ -272,7 +266,7 @@ export default function AdminReviewsPage() {
                         {review.idol_name && (
                           <>
                             <span className="text-slate-300">|</span>
-                            <span className="text-sm text-slate-500">{review.idol_name}</span>
+                            <span className="min-w-0 break-words text-sm text-slate-500">{review.idol_name}</span>
                           </>
                         )}
                         {/* Badges */}
@@ -305,7 +299,7 @@ export default function AdminReviewsPage() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-3 text-xs text-slate-400">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
                         <span>{new Date(review.created_at).toLocaleDateString('ko-KR')}</span>
                         {review.helpful_count > 0 && (
                           <span className="flex items-center gap-1">
@@ -323,7 +317,7 @@ export default function AdminReviewsPage() {
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex flex-shrink-0 items-center justify-end gap-1">
                       <button
                         onClick={() => { setEditingReview(review); setShowAddModal(true) }}
                         className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -412,7 +406,7 @@ function ReviewFormModal({
   })
 
   const [newImages, setNewImages] = useState<File[]>([])
-  const [existingImages, setExistingImages] = useState(review?.review_images || [])
+  const [existingImages] = useState(review?.review_images || [])
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 

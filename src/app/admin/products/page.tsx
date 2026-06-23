@@ -216,8 +216,8 @@ export default function AdminProductsPage() {
         }
       />
 
-      <div className="mx-auto max-w-7xl space-y-6 p-6">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-bold text-slate-500">등록 상품</p>
             <p className="mt-2 text-2xl font-black text-slate-900">{products.length}개</p>
@@ -246,7 +246,7 @@ export default function AdminProductsPage() {
         )}
 
         {missingOptions.length > 0 && (
-          <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex flex-col items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:justify-between">
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
               <div>
@@ -272,7 +272,7 @@ export default function AdminProductsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => {
               const row = rowsBySize.get(product.size)
               const price = row?.price ?? product.fallbackPrice
@@ -280,13 +280,13 @@ export default function AdminProductsPage() {
               const isActive = product.isActive ?? true
 
               return (
-                <section key={product.slug} className="rounded-2xl border border-slate-200 bg-white p-5">
+                <section key={product.slug} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex gap-3">
+                    <div className="flex min-w-0 gap-3">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-100 text-lime-700">
                         <ShoppingBag className="h-5 w-5" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="text-base font-black text-slate-900">{product.title}</h2>
                           <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-bold text-lime-700">
@@ -299,16 +299,16 @@ export default function AdminProductsPage() {
                           </span>
                         </div>
                         <p className="mt-1 text-sm leading-relaxed text-slate-500">{product.description}</p>
-                        <p className="mt-1 font-mono text-[11px] text-slate-400">{product.slug}</p>
+                        <p className="mt-1 break-all font-mono text-[11px] text-slate-400">{product.slug}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="rounded-xl bg-slate-50 p-3">
                       <p className="text-xs font-bold text-slate-400">옵션 코드</p>
                       <p className="mt-1 text-sm font-black text-slate-900">{label}</p>
-                      <p className="mt-0.5 font-mono text-[11px] text-slate-400">{product.size}</p>
+                      <p className="mt-0.5 break-all font-mono text-[11px] text-slate-400">{product.size}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 p-3">
                       <p className="text-xs font-bold text-slate-400">판매가</p>
@@ -356,7 +356,7 @@ export default function AdminProductsPage() {
                 닫기
               </button>
             </div>
-            <div className="grid max-h-[72vh] grid-cols-2 gap-4 overflow-y-auto p-5">
+            <div className="grid max-h-[72vh] grid-cols-1 gap-4 overflow-y-auto p-4 sm:grid-cols-2 sm:p-5">
               <label className="block">
                 <span className="mb-1 block text-xs font-bold text-slate-500">상품명</span>
                 <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm font-bold outline-none focus:border-slate-900" />
@@ -381,20 +381,20 @@ export default function AdminProductsPage() {
                 <span className="mb-1 block text-xs font-bold text-slate-500">뱃지</span>
                 <input value={form.badge} onChange={(event) => updateForm('badge', event.target.value)} className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
               </label>
-              <label className="col-span-2 block">
+              <label className="block sm:col-span-2">
                 <span className="mb-1 block text-xs font-bold text-slate-500">설명</span>
                 <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} rows={3} className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
               </label>
-              <label className="col-span-2 block">
+              <label className="block sm:col-span-2">
                 <span className="mb-1 block text-xs font-bold text-slate-500">대표 이미지 URL</span>
                 <input value={form.imageUrl} onChange={(event) => updateForm('imageUrl', event.target.value)} placeholder="/images/..." className="w-full rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
               </label>
-              <label className="col-span-2 block">
+              <label className="block sm:col-span-2">
                 <span className="mb-1 block text-xs font-bold text-slate-500">구성 안내</span>
                 <textarea value={form.included} onChange={(event) => updateForm('included', event.target.value)} rows={4} className="w-full resize-none rounded-lg border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900" />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 p-5">
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 p-4 sm:flex-row sm:justify-end sm:p-5">
               <button onClick={() => setAddOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">취소</button>
               <button onClick={handleCreateProduct} disabled={creating} className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50">
                 {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

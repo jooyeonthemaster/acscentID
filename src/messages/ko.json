@@ -141,7 +141,7 @@
     "accountNum": "1005-204-549279",
     "sameNameWarning": "주문자와 입금자명이 동일해야 합니다.",
     "preparing": "준비중",
-    "cardAndEasyPaySoon": "간편결제 기능은 준비중입니다.",
+    "cardAndEasyPaySoon": "카카오페이·네이버페이는 포트원 채널 설정 후 활성화됩니다.",
     "selectPaymentLabel": "결제 수단 선택: {label}",
     "selectPaymentLabelPreparing": "결제 수단 선택: {label} (준비중)",
     "bankTransferSublabel": "무통장입금"
@@ -1118,6 +1118,7 @@
     "accountLabel": "계좌번호",
     "accountHolder": "예금주",
     "depositAfterShipping": "입금 확인 후 2~3일 내 배송됩니다.",
+    "manualDepositNotice": "계좌이체의 경우 입금 확인이 수동으로 이루어지고 있어 입금 완료 확인까지 1~2시간 정도 소요될 수 있는 점 양해 부탁드립니다.",
     "sameNameWarning": "주문자와 입금자명이 동일해야 합니다.",
     "itemCount": "({count}개)",
     "orderCreateFailed": "주문 생성 실패",

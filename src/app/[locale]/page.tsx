@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronRight, ChevronLeft, Search, Gift, Handshake } from "lucide-react"
+import { ChevronRight, ChevronLeft, Search, Gift, Handshake, MapPin } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
@@ -16,6 +16,8 @@ import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { isScentPaperSize, type ProductType } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
+
+const VISIT_RESERVATION_URL = "https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
 
 export default function Home() {
   const router = useRouter()
@@ -277,6 +279,29 @@ export default function Home() {
           <div className="relative">
             {/* ===== 프로그램 둘러보기 섹션 ===== */}
             <section id="programs-section" className="bg-white px-4 pt-8 pb-[clamp(132px,19svh,180px)] rounded-t-[32px] -mt-[clamp(64px,12svh,104px)] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
+              <Link
+                href={VISIT_RESERVATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t('nav.visitReservation')}
+                className="group mb-7 flex min-h-[76px] items-center gap-3 rounded-2xl border-2 border-slate-900 bg-[#FCD34D] px-4 py-3 shadow-[4px_4px_0px_#000] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#000] active:scale-[0.99]"
+              >
+                <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full border-2 border-slate-900 bg-white">
+                  <MapPin size={21} className="text-slate-950" strokeWidth={2.6} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[10px] font-black uppercase leading-none tracking-[0.16em] text-slate-700">
+                    AC&apos;SCENT ID
+                  </span>
+                  <span className="mt-1 block text-base font-black leading-tight text-slate-950">
+                    {t('nav.visitReservation')}
+                  </span>
+                </span>
+                <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-white/80 transition-transform group-hover:translate-x-0.5">
+                  <ChevronRight size={18} className="text-slate-950" strokeWidth={2.8} />
+                </span>
+              </Link>
+
               {/* 섹션 타이틀 */}
               <div className="flex items-center gap-2 mb-6">
                 <Search size={20} className="text-slate-900" />

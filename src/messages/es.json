@@ -141,7 +141,7 @@
     "sameNameWarning": "El nombre del depositante debe coincidir con el del comprador.",
     "bankTransferShort": "Transferencia bancaria",
     "preparing": "En preparación",
-    "cardAndEasyPaySoon": "Tarjeta y pago rápido estarán disponibles pronto",
+    "cardAndEasyPaySoon": "Kakao Pay y Naver Pay se activan tras configurar el canal de PortOne",
     "selectPaymentLabel": "Seleccionar método de pago: {label}",
     "selectPaymentLabelPreparing": "Seleccionar método de pago: {label} (en preparación)",
     "bankTransferSublabel": "Depósito directo"
@@ -800,6 +800,7 @@
     "accountLabel": "Número de cuenta",
     "accountHolder": "Titular de la cuenta",
     "depositAfterShipping": "Se enviará en 2~3 días después de confirmar el depósito.",
+    "manualDepositNotice": "En el caso de transferencia bancaria, la confirmación del depósito se realiza manualmente, por lo que puede tardar entre 1 y 2 horas en verificarse. Gracias por su comprensión.",
     "sameNameWarning": "El nombre del depositante debe coincidir con el del comprador.",
     "itemCount": "({count} uds.)",
     "orderCreateFailed": "Error al crear el pedido",

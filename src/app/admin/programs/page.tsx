@@ -324,8 +324,8 @@ export default function AdminProgramsPage() {
         }
       />
 
-      <div className="mx-auto max-w-7xl space-y-6 p-6">
-        <div className="grid grid-cols-4 gap-4">
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-bold text-slate-500">관리 대상</p>
             <p className="mt-2 text-2xl font-black text-slate-900">{ADMIN_PROGRAMS.length}개</p>
@@ -351,7 +351,7 @@ export default function AdminProgramsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 items-start gap-4">
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             {ADMIN_PROGRAMS.map((program) => {
               const registry = productBySlug.get(program.slug)
               const kindBadge = KIND_BADGE[program.kind]
@@ -364,15 +364,15 @@ export default function AdminProgramsPage() {
                   : true
 
               return (
-                <section key={program.slug} className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <div className="flex items-start justify-between gap-4">
+                <section key={program.slug} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 gap-3">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-100 text-yellow-700">
                         <ProgramIcon kind={program.kind} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="truncate text-base font-black text-slate-900">{registry?.name || program.name}</h2>
+                          <h2 className="min-w-0 text-base font-black text-slate-900">{registry?.name || program.name}</h2>
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${kindBadge.className}`}>
                             {kindBadge.label}
                           </span>
@@ -381,7 +381,7 @@ export default function AdminProgramsPage() {
                       </div>
                     </div>
                     {isRegistered && (
-                      <div className="flex shrink-0 flex-col items-end gap-1">
+                      <div className="flex shrink-0 items-center justify-between gap-3 sm:flex-col sm:items-end sm:gap-1">
                         <span className={`text-[10px] font-bold ${isActive ? 'text-green-600' : 'text-slate-400'}`}>
                           {isActive ? '메인 노출' : '미노출'}
                         </span>
@@ -412,10 +412,10 @@ export default function AdminProgramsPage() {
                     ))}
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-500">
+                  <div className="mt-4 grid grid-cols-1 gap-3 text-xs text-slate-500 sm:grid-cols-2">
                     <div className="rounded-lg bg-slate-50 p-3">
                       <p className="font-bold text-slate-400">slug</p>
-                      <p className="mt-1 font-mono text-slate-700">{program.slug}</p>
+                      <p className="mt-1 break-all font-mono text-slate-700">{program.slug}</p>
                     </div>
                     <div className="rounded-lg bg-slate-50 p-3">
                       <p className="font-bold text-slate-400">수정일</p>

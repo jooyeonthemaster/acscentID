@@ -141,7 +141,7 @@
     "sameNameWarning": "汇款人姓名必须与订购人一致。",
     "bankTransferShort": "银行转账",
     "preparing": "准备中",
-    "cardAndEasyPaySoon": "银行卡及便捷支付即将上线",
+    "cardAndEasyPaySoon": "Kakao Pay 和 Naver Pay 将在完成 PortOne 渠道设置后启用",
     "selectPaymentLabel": "选择支付方式：{label}",
     "selectPaymentLabelPreparing": "选择支付方式：{label}（准备中）",
     "bankTransferSublabel": "汇款"
@@ -800,6 +800,7 @@
     "accountLabel": "账号",
     "accountHolder": "户名",
     "depositAfterShipping": "确认汇款后2~3天内发货。",
+    "manualDepositNotice": "银行转账的入账确认为人工处理，确认到账可能需要1~2小时左右，敬请谅解。",
     "sameNameWarning": "汇款人姓名必须与订购人一致。",
     "itemCount": "（{count}件）",
     "orderCreateFailed": "订单创建失败",

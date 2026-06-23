@@ -141,7 +141,7 @@
     "sameNameWarning": "The depositor name must match the orderer's name.",
     "bankTransferShort": "Bank Transfer",
     "preparing": "Coming Soon",
-    "cardAndEasyPaySoon": "Card and easy payment coming soon",
+    "cardAndEasyPaySoon": "Kakao Pay and Naver Pay activate after PortOne channel setup.",
     "selectPaymentLabel": "Select payment method: {label}",
     "selectPaymentLabelPreparing": "Select payment method: {label} (Coming Soon)",
     "bankTransferSublabel": "Direct Deposit"
@@ -800,6 +800,7 @@
     "accountLabel": "Account Number",
     "accountHolder": "Account Holder",
     "depositAfterShipping": "Shipped within 2-3 days after payment confirmation.",
+    "manualDepositNotice": "For bank transfers, deposit confirmation is processed manually, so it may take about 1-2 hours to verify your payment. Thank you for your understanding.",
     "sameNameWarning": "The depositor name must match the orderer's name.",
     "itemCount": "({count} item(s))",
     "orderCreateFailed": "Failed to create order",

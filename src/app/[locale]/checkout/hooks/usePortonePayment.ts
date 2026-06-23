@@ -1,7 +1,13 @@
 import { useCallback, useRef } from "react"
 import type { PaymentMethod } from "@/types/cart"
-import type { PaymentPayMethod } from "@portone/browser-sdk/v2"
+import type {
+  EasyPayProvider,
+  PaymentPayMethod,
+  PaymentRequest,
+  WindowTypes,
+} from "@portone/browser-sdk/v2"
 import { detectInAppBrowser, isMobileDevice } from "@/lib/mobile/inAppBrowser"
+import { getChannelKey, isEasyPayChannelConfigured } from "@/lib/portone/config"
 
 interface PaymentParams {
   orderId: string
@@ -32,28 +38,24 @@ const PAY_METHOD_MAP: Record<string, PaymentPayMethod> = {
   naver_pay: "EASY_PAY",
 }
 
+const EASY_PAY_PROVIDER_MAP: Partial<Record<PaymentMethod, EasyPayProvider>> = {
+  kakao_pay: "KAKAOPAY",
+  naver_pay: "NAVERPAY",
+}
+
 // iOS ISP/앱카드 결제 후 원래 앱으로 복귀하기 위한 URL scheme.
 // 별도 네이티브 앱이 없으므로 Safari 복귀용으로만 쓰이지만,
 // PortOne/KCP가 WebView 검출 시 이 값을 요구할 수 있어 안전하게 설정한다.
 const APP_SCHEME = "acscent://payment/return"
 
-function getChannelKeyForMethod(method: PaymentMethod): string {
+function getWindowTypeForMethod(method: PaymentMethod): WindowTypes {
   switch (method) {
-    case "kakao_pay":
-      return (
-        process.env.NEXT_PUBLIC_PORTONE_KAKAOPAY_CHANNEL_KEY ||
-        process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ||
-        ""
-      )
     case "naver_pay":
-      return (
-        process.env.NEXT_PUBLIC_PORTONE_NAVERPAY_CHANNEL_KEY ||
-        process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ||
-        ""
-      )
+      return { pc: "POPUP", mobile: "REDIRECTION" }
+    case "kakao_pay":
     case "card":
     default:
-      return process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || ""
+      return { pc: "IFRAME", mobile: "REDIRECTION" }
   }
 }
 
@@ -140,8 +142,19 @@ export function usePortonePayment() {
           }
         }
 
+        if (
+          (params.paymentMethod === "kakao_pay" || params.paymentMethod === "naver_pay") &&
+          !isEasyPayChannelConfigured(params.paymentMethod)
+        ) {
+          return {
+            success: false,
+            error: "간편결제 채널 설정이 필요합니다. 포트원 콘솔에서 채널 키를 연결해 주세요.",
+            errorCode: "EASY_PAY_CHANNEL_MISSING",
+          }
+        }
+
         const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID
-        const channelKey = getChannelKeyForMethod(params.paymentMethod)
+        const channelKey = getChannelKey(params.paymentMethod)
         if (!storeId || !channelKey) {
           return {
             success: false,
@@ -170,21 +183,15 @@ export function usePortonePayment() {
         redirectUrl.searchParams.set("orderId", params.orderId)
         redirectUrl.searchParams.set("paymentMethod", params.paymentMethod)
 
-        const easyPayProvider =
-          params.paymentMethod === "kakao_pay"
-            ? "KAKAOPAY"
-            : params.paymentMethod === "naver_pay"
-              ? "NAVERPAY"
-              : undefined
+        const easyPayProvider = EASY_PAY_PROVIDER_MAP[params.paymentMethod]
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const requestParams: any = {
+        const requestParams: PaymentRequest = {
           storeId,
           channelKey,
           paymentId,
           orderName,
           totalAmount: params.totalAmount,
-          currency: "CURRENCY_KRW",
+          currency: "KRW",
           payMethod,
           customer: {
             fullName: params.customerName,
@@ -195,18 +202,32 @@ export function usePortonePayment() {
           redirectUrl: redirectUrl.toString(),
           // WebView/앱카드 복귀 scheme
           appScheme: APP_SCHEME,
-          // KCP/일부 PG는 PC POPUP을 지원하지 않아 IFRAME을 사용한다.
-          // 모바일은 앱카드 전환과 복귀를 위해 리디렉션으로 유지한다.
-          windowType: {
-            pc: "IFRAME",
-            mobile: "REDIRECTION",
-          },
+          windowType: getWindowTypeForMethod(params.paymentMethod),
           // 주문 식별자 — verify 단계에서 교차검증 가능
-          customData: JSON.stringify({ orderId: params.orderId }),
+          customData: { orderId: params.orderId },
         }
 
         if (easyPayProvider) {
           requestParams.easyPay = { easyPayProvider }
+        }
+
+        const prepareResponse = await fetch("/api/payments/prepare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentId,
+            orderId: params.orderId,
+            totalAmount: params.totalAmount,
+            paymentMethod: params.paymentMethod,
+          }),
+        })
+
+        if (!prepareResponse.ok) {
+          const prepareResult = await prepareResponse.json().catch(() => ({}))
+          return {
+            success: false,
+            error: prepareResult.error || "결제 준비에 실패했습니다.",
+          }
         }
 
         // 모바일은 아래 호출이 페이지 이탈로 resolve되지 않는다.

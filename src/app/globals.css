@@ -407,6 +407,18 @@
   background: #ca8a04;
 }
 
+.admin-shell {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.admin-shell::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.admin-shell::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* Retain utility class just in case specific override is needed, but map it to same styles - commented out to avoid empty rule lint */
 /* .custom-scrollbar {} */
 

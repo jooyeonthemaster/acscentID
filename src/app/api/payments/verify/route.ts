@@ -7,6 +7,26 @@ import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 
+function getOrderIdFromPaymentCustomData(customData: unknown): string | null {
+  if (!customData) return null
+
+  if (typeof customData === 'string') {
+    try {
+      const parsed = JSON.parse(customData) as { orderId?: unknown }
+      return typeof parsed.orderId === 'string' ? parsed.orderId : null
+    } catch {
+      return null
+    }
+  }
+
+  if (typeof customData === 'object' && 'orderId' in customData) {
+    const orderId = (customData as { orderId?: unknown }).orderId
+    return typeof orderId === 'string' ? orderId : null
+  }
+
+  return null
+}
+
 /**
  * 결제 검증 API
  * POST /api/payments/verify
@@ -66,6 +86,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (order.payment_id && order.payment_id !== paymentId) {
+      console.error('[Payments Verify] Payment ID mismatch:', {
+        orderPaymentId: order.payment_id,
+        requestPaymentId: paymentId,
+        orderId,
+      })
+      return NextResponse.json(
+        { error: '주문에 등록된 결제 ID와 요청 결제 ID가 일치하지 않습니다' },
+        { status: 400 }
+      )
+    }
+
     // 4. 포트원에서 결제 정보 조회
     let payment
     try {
@@ -88,6 +120,19 @@ export async function POST(request: NextRequest) {
       console.error('[Payments Verify] Payment not paid:', payment.status)
       return NextResponse.json(
         { error: `결제가 완료되지 않았습니다 (상태: ${payment.status})` },
+        { status: 400 }
+      )
+    }
+
+    const customDataOrderId = getOrderIdFromPaymentCustomData(payment.customData)
+    if (customDataOrderId && customDataOrderId !== orderId) {
+      console.error('[Payments Verify] Custom data order mismatch:', {
+        customDataOrderId,
+        orderId,
+        paymentId,
+      })
+      return NextResponse.json(
+        { error: '결제 정보의 주문 ID가 일치하지 않습니다' },
         { status: 400 }
       )
     }

@@ -1061,11 +1061,11 @@ function RefundStatusCard({ order }: { order: Order }) {
       case 'card':
         return '신용/체크카드는 카드사 정책에 따라 영업일 기준 3~7일 내에 승인 취소 또는 환급이 반영됩니다.'
       case 'kakao_pay':
-        return '카카오페이는 영업일 기준 1~3일 내에 잔액 또는 결제 수단으로 환불됩니다.'
+        return '카카오페이는 영업일 기준 3~5일 내에 잔액 또는 결제 수단으로 환불됩니다.'
       case 'naver_pay':
-        return '네이버페이는 영업일 기준 1~3일 내에 잔액 또는 결제 수단으로 환불됩니다.'
+        return '네이버페이는 영업일 기준 3~5일 내에 잔액 또는 결제 수단으로 환불됩니다.'
       case 'bank_transfer':
-        return '계좌이체는 입금자명 확인 후 지정 계좌로 영업일 기준 1~3일 내에 송금됩니다.'
+        return '계좌이체는 입금자명 확인 후 지정 계좌로 영업일 기준 3~5일 내에 송금됩니다.'
       default:
         return '결제 수단으로 환불 처리되었습니다.'
     }
@@ -1080,7 +1080,7 @@ function RefundStatusCard({ order }: { order: Order }) {
           <div className="flex-1 min-w-0 text-xs">
             <p className="font-bold text-amber-900">환불 처리 중</p>
             <p className="text-amber-800 mt-1 leading-relaxed">
-              취소 요청이 접수되어 관리자가 검토·처리 중입니다. {isBank ? '입금하신 계좌로 영업일 기준 1~3일 내 환불됩니다.' : '포트원을 통해 자동 환불되며, 결제 수단별 반영 기간은 아래와 같습니다.'}
+              취소 요청이 접수되어 관리자가 검토·처리 중입니다. {isBank ? '입금하신 계좌로 영업일 기준 3~5일 내 환불됩니다.' : '포트원을 통해 자동 환불되며, 결제 수단별 반영 기간은 아래와 같습니다.'}
             </p>
             {!isBank && (
               <p className="text-slate-600 mt-1 text-[11px]">{methodGuide}</p>
@@ -1161,7 +1161,7 @@ function RefundStatusCard({ order }: { order: Order }) {
           <div className="flex-1 min-w-0 text-xs">
             <p className="font-bold text-amber-900">환불 준비 중</p>
             <p className="text-amber-800 mt-1 leading-relaxed">
-              입금하신 계좌로 수동 송금 준비 중입니다. 영업일 기준 1~3일 내 완료됩니다.
+              입금하신 계좌로 수동 송금 준비 중입니다. 영업일 기준 3~5일 내 완료됩니다.
             </p>
           </div>
         </div>

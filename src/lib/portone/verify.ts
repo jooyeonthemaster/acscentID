@@ -22,12 +22,17 @@ export interface PortOnePaymentResponse {
   receiptUrl?: string
   pgTxId?: string
   orderName?: string
-  customData?: string
+  customData?: string | Record<string, unknown>
 }
 
 export interface PortOneCancelResponse {
   cancellationId: string
   cancelledAt: string
+  raw?: unknown
+}
+
+export interface PortOnePreRegisterResponse {
+  success: true
 }
 
 /**
@@ -50,6 +55,44 @@ export async function getPortOnePayment(paymentId: string): Promise<PortOnePayme
   }
 
   return response.json()
+}
+
+/**
+ * 포트원 결제 정보 사전 등록
+ * 브라우저 결제창 호출 전에 결제 예정 금액을 포트원에 등록해 금액 위변조를 방어합니다.
+ */
+export async function preRegisterPortOnePayment(
+  paymentId: string,
+  totalAmount: number
+): Promise<PortOnePreRegisterResponse> {
+  const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID
+  const apiSecret = process.env.PORTONE_API_SECRET
+
+  if (!storeId || !apiSecret) {
+    throw new Error('PortOne server environment is not configured')
+  }
+
+  const response = await fetch(
+    `${PORTONE_API_BASE}/payments/${encodeURIComponent(paymentId)}/pre-register`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `PortOne ${apiSecret}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        storeId,
+        totalAmount,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: response.statusText }))
+    throw new Error(`PortOne pre-register error: ${error.message || response.statusText}`)
+  }
+
+  return { success: true }
 }
 
 /**
@@ -85,5 +128,12 @@ export async function cancelPortOnePayment(
     throw new Error(`PortOne cancel error: ${error.message || response.statusText}`)
   }
 
-  return response.json()
+  const result = await response.json()
+  const cancellation = result?.cancellation || result
+
+  return {
+    cancellationId: cancellation?.id || cancellation?.cancellationId || '',
+    cancelledAt: cancellation?.cancelledAt || cancellation?.cancelled_at || new Date().toISOString(),
+    raw: result,
+  }
 }

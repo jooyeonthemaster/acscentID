@@ -141,7 +141,7 @@
     "sameNameWarning": "注文者と振込名義が同一である必要があります。",
     "bankTransferShort": "口座振込",
     "preparing": "準備中",
-    "cardAndEasyPaySoon": "カード及び簡単決済は近日中にご利用可能です",
+    "cardAndEasyPaySoon": "Kakao Pay・Naver PayはPortOneチャネル設定後に有効化されます",
     "selectPaymentLabel": "お支払い方法選択: {label}",
     "selectPaymentLabelPreparing": "お支払い方法選択: {label} (準備中)",
     "bankTransferSublabel": "銀行振込"
@@ -800,6 +800,7 @@
     "accountLabel": "口座番号",
     "accountHolder": "口座名義",
     "depositAfterShipping": "入金確認後2〜3日以内に発送されます。",
+    "manualDepositNotice": "口座振込の場合、入金確認は手動で行っているため、入金完了の確認まで1〜2時間ほどお時間をいただく場合がございます。ご了承ください。",
     "sameNameWarning": "注文者と振込名義が同一である必要があります。",
     "itemCount": "({count}個)",
     "orderCreateFailed": "注文作成に失敗しました",

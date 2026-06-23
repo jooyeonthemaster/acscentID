@@ -45,7 +45,7 @@ export default function ProductSelector({
         <Package className="w-5 h-5 text-slate-600" />
         <h2 className="text-sm font-semibold text-slate-700">상품 선택</h2>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="grid grid-cols-1 gap-3 sm:flex sm:overflow-x-auto sm:pb-2 sm:scrollbar-hide">
         {products.map((product) => {
           const isSelected = product.slug === selectedSlug
           const detail = detailData[product.slug]
@@ -54,7 +54,7 @@ export default function ProductSelector({
             <button
               key={product.slug}
               onClick={() => onSelect(product.slug)}
-              className={`flex-shrink-0 rounded-xl border-2 transition-all min-w-[180px] text-left px-4 py-3 ${
+              className={`w-full min-w-0 rounded-xl border-2 px-4 py-3 text-left transition-all sm:w-auto sm:min-w-[180px] sm:flex-shrink-0 ${
                 isSelected
                   ? 'border-yellow-400 bg-yellow-50 shadow-sm'
                   : product.is_active
@@ -62,8 +62,8 @@ export default function ProductSelector({
                     : 'border-slate-200 bg-slate-50 opacity-60'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className={`min-w-0 text-sm font-bold ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
                   {PRODUCT_LABELS[product.slug] || product.name}
                 </span>
                 {product.is_active ? (
@@ -78,8 +78,8 @@ export default function ProductSelector({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-slate-400 font-mono">{product.slug}</span>
+              <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                <span className="break-all font-mono text-xs text-slate-400">{product.slug}</span>
                 <span
                   className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                     mode === 'custom'
