@@ -470,7 +470,7 @@ export async function POST(request: NextRequest) {
       // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
       // 주문 생성 시점에는 결제가 아직 완료되지 않았으므로 발급 금지.
 
-      // 관리자 이메일 알림 발송 - 무통장입금 또는 0원 주문은 주문 생성 시 발송
+      // 관리자 알림 발송 (이메일 + 노션) - 무통장입금 또는 0원 주문은 주문 생성 시 발송
       if (effectivePaymentMethod === 'bank_transfer' || isZeroAmountOrder) {
         notifyNewOrder({
           orderNumber: order.order_number,
@@ -479,6 +479,9 @@ export async function POST(request: NextRequest) {
           finalPrice: clientMultiFinalPrice,
           productType: firstItem.productType || 'image_analysis',
           itemCount: orderItems.length,
+          paymentMethod: effectivePaymentMethod,
+          status: isZeroAmountOrder ? 'paid' : 'awaiting_payment',
+          orderId: order.id,
         })
       }
 
@@ -662,7 +665,7 @@ export async function POST(request: NextRequest) {
 
     // 재구매 10% 쿠폰은 결제 웹훅(payments/webhook) 또는 관리자 무통장 확정 시점에 발급.
 
-    // 관리자 이메일 알림 발송 - 무통장입금 또는 0원 주문은 주문 생성 시 발송
+    // 관리자 알림 발송 (이메일 + 노션) - 무통장입금 또는 0원 주문은 주문 생성 시 발송
     if (effectivePaymentMethod === 'bank_transfer' || isZeroAmountOrder) {
       notifyNewOrder({
         orderNumber: order.order_number,
@@ -670,6 +673,9 @@ export async function POST(request: NextRequest) {
         perfumeName: perfumeName || '',
         finalPrice: clientFinalPrice,
         productType: resolvedProductType,
+        paymentMethod: effectivePaymentMethod,
+        status: isZeroAmountOrder ? 'paid' : 'awaiting_payment',
+        orderId: order.id,
       })
     }
 

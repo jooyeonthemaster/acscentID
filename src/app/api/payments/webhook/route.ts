@@ -4,6 +4,7 @@ import { getPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
+import { notifyNewOrder } from '@/lib/email/admin-notify'
 
 function getOrderIdFromPaymentCustomData(customData: unknown): string | null {
   if (!customData) return null
@@ -135,6 +136,20 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('[Payments Webhook] Order updated to paid:', order.id)
+
+        // 관리자 알림 (이메일 + 노션) — 고객이 결제 직후 창을 닫아 verify가 호출되지 않은 경우 등.
+        // 위에서 pending/awaiting_payment 상태만 통과하므로 주문당 1회만 발송된다.
+        notifyNewOrder({
+          orderNumber: order.order_number,
+          recipientName: order.recipient_name || order.customer_name || '',
+          perfumeName: order.perfume_name || '',
+          finalPrice: order.final_price,
+          productType: order.product_type || 'image_analysis',
+          itemCount: order.item_count || 1,
+          paymentMethod: order.payment_method,
+          status: 'paid',
+          orderId: order.id,
+        })
 
         const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order, now)
         if (!couponUsageResult.success) {

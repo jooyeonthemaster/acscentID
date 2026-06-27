@@ -203,15 +203,22 @@ export async function POST(request: NextRequest) {
 
     console.log('[Payments Verify] Payment verified successfully:', orderId)
 
-    // 결제 완료 후 관리자 이메일 알림 발송 (fire-and-forget)
-    notifyNewOrder({
-      orderNumber: order.order_number,
-      recipientName: order.recipient_name || order.customer_name || '',
-      perfumeName: order.perfume_name || '',
-      finalPrice: order.final_price,
-      productType: order.product_type || 'image_analysis',
-      itemCount: order.item_count || 1,
-    })
+    // 결제 완료 후 관리자 알림 발송 (이메일 + 노션, fire-and-forget)
+    // order.status는 업데이트 직전 조회값이므로, 이번 호출로 '처음 결제완료된' 경우에만 발송한다.
+    // (이미 paid면 웹훅과의 중복 발송 방지)
+    if (order.status !== 'paid') {
+      notifyNewOrder({
+        orderNumber: order.order_number,
+        recipientName: order.recipient_name || order.customer_name || '',
+        perfumeName: order.perfume_name || '',
+        finalPrice: order.final_price,
+        productType: order.product_type || 'image_analysis',
+        itemCount: order.item_count || 1,
+        paymentMethod: order.payment_method,
+        status: 'paid',
+        orderId: order.id,
+      })
+    }
 
     return NextResponse.json({
       success: true,

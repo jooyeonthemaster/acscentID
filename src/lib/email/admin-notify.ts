@@ -1,5 +1,6 @@
 import { getResendClient, getAdminEmails, FROM_EMAIL } from './client'
 import { newMemberTemplate, newOrderTemplate, cancelRequestTemplate } from './templates'
+import { createOrderInNotion } from '../notion/admin-notify'
 
 // 비동기 알림 전송 (실패해도 메인 로직에 영향 없음)
 async function sendAdminNotification(
@@ -73,11 +74,22 @@ export function notifyNewOrder(data: {
   finalPrice: number
   productType: string
   itemCount?: number
+  // 노션 전용 추가 필드 (선택) — 이메일 템플릿에는 영향 없음
+  paymentMethod?: string
+  status?: string
+  orderId?: string
 }) {
+  // 1) 이메일 알림 (Resend) — 기존 동작 유지
   sendAdminNotification(newOrderTemplate({
     ...data,
     createdAt: getKoreanTime()
   })).catch(console.error)
+
+  // 2) 노션 알림 (DB 행 추가 + 모바일 푸시) — fire-and-forget
+  createOrderInNotion({
+    ...data,
+    createdAtIso: new Date().toISOString(),
+  }).catch(console.error)
 }
 
 export function notifyCancelRequest(data: {
