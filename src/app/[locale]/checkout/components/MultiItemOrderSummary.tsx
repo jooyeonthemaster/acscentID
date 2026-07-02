@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { CartItem, ProductType } from "@/types/cart"
 import { PRODUCT_TYPE_BADGES, formatPrice } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { getEffectiveProductType } from "@/lib/products/store-products"
 
 interface MultiItemOrderSummaryProps {
@@ -23,7 +24,9 @@ function getStoreProductMeta(analysisData: CartItem['analysis_data']) {
   const storeProduct = (analysisData as { storeProduct?: unknown }).storeProduct
   if (!storeProduct || typeof storeProduct !== 'object') return null
   return storeProduct as {
+    slug?: string
     title?: string
+    size?: string
     scentName?: string
     perfumeId?: string
     requestNote?: string
@@ -41,6 +44,22 @@ export function MultiItemOrderSummary({
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
   const { getOptions } = useProductPricing()
+  const storeText = useStoreProductText()
+  const getStoreProductTitle = (slug: string | undefined, title: string | undefined, size: string) => {
+    if (slug) {
+      return storeText({
+        slug,
+        title: title || size,
+        shortLabel: title || size,
+        description: '',
+        included: [],
+      }).title
+    }
+    if (size === 'scent_paper') return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : '시향지'
+    if (size === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : '50ml 향수'
+    if (size === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : '10ml 향수'
+    return title || size
+  }
   const renderProductTypeBadge = (productType: ProductType) => {
     const badge = PRODUCT_TYPE_BADGES[productType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', labelShort: productType }
     return (
@@ -102,6 +121,12 @@ export function MultiItemOrderSummary({
           const storeMeta = effectiveProductType === 'store_product'
             ? getStoreProductMeta(item.analysis_data)
             : null
+          const storeProductTitle = storeMeta
+            ? getStoreProductTitle(storeMeta.slug, storeMeta.title, storeMeta.size || item.size)
+            : null
+          const imageAlt = storeMeta && storeProductTitle
+            ? `${storeMeta.scentName || item.perfume_name} · ${storeProductTitle}`
+            : item.perfume_name
 
           return (
           <motion.div
@@ -116,7 +141,7 @@ export function MultiItemOrderSummary({
               {item.image_url ? (
                 <img
                   src={item.image_url}
-                  alt={item.perfume_name}
+                  alt={imageAlt}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -138,13 +163,13 @@ export function MultiItemOrderSummary({
                   </p>
                   {storeMeta && (
                     <p className="text-xs font-bold text-lime-700">
-                      {storeMeta.title || (item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`)}
+                      {storeProductTitle || getStoreProductTitle(undefined, undefined, item.size)}
                       {storeMeta.perfumeId && ` · ${storeMeta.perfumeId}`}
                     </p>
                   )}
                   {storeMeta?.requestNote && (
                     <p className="mt-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 break-words whitespace-pre-wrap">
-                      <span className="font-black text-amber-700">특정 향료 요청 </span>
+                      <span className="font-black text-amber-700">{t('store.detail.requestOnlyLabel')} </span>
                       {storeMeta.requestNote}
                     </p>
                   )}
@@ -166,7 +191,7 @@ export function MultiItemOrderSummary({
                   <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded text-xs font-bold border border-cyan-300">
                     {effectiveProductType === 'figure_diffuser'
                       ? t('checkout.setProduct')
-                      : item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`}
+                      : storeProductTitle || getStoreProductTitle(undefined, undefined, item.size)}
                   </span>
                 ) : (
                   <select

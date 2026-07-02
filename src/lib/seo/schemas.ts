@@ -25,6 +25,57 @@ const HOME_LABELS: Record<string, string> = {
   es: 'Inicio',
 }
 
+const LEGAL_NAMES: Record<string, string> = {
+  ko: '주식회사 네안더',
+  en: 'Neander Inc.',
+  ja: '株式会社ネアンダー',
+  zh: 'NEANDER 株式会社',
+  es: 'Neander Inc.',
+}
+
+const LOCAL_BUSINESS_ADDRESSES: Record<string, {
+  streetAddress: string
+  addressLocality: string
+  addressRegion: string
+  paymentAccepted: string
+}> = {
+  ko: {
+    streetAddress: '와우산로 112-1 1층',
+    addressLocality: '마포구',
+    addressRegion: '서울특별시',
+    paymentAccepted: '계좌이체',
+  },
+  en: {
+    streetAddress: '1F, 112-1 Wausan-ro',
+    addressLocality: 'Mapo-gu',
+    addressRegion: 'Seoul',
+    paymentAccepted: 'Bank transfer',
+  },
+  ja: {
+    streetAddress: 'ワウサンロ 112-1 1階',
+    addressLocality: '麻浦区',
+    addressRegion: 'ソウル特別市',
+    paymentAccepted: '銀行振込',
+  },
+  zh: {
+    streetAddress: '卧牛山路112-1 1楼',
+    addressLocality: '麻浦区',
+    addressRegion: '首尔特别市',
+    paymentAccepted: '银行转账',
+  },
+  es: {
+    streetAddress: '1F, 112-1 Wausan-ro',
+    addressLocality: 'Mapo-gu',
+    addressRegion: 'Seúl',
+    paymentAccepted: 'Transferencia bancaria',
+  },
+}
+
+function resolvePathLocale(path: string): Locale {
+  const locale = path.match(/^\/(en|ja|zh|es)(?:\/|$)/)?.[1]
+  return (locale || 'ko') as Locale
+}
+
 // --- Organization ---
 export function organizationSchema(locale: Locale = 'ko') {
   const baseUrl = getBaseUrl()
@@ -32,7 +83,7 @@ export function organizationSchema(locale: Locale = 'ko') {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: "AC'SCENT IDENTITY",
-    legalName: '주식회사 네안더',
+    legalName: LEGAL_NAMES[locale] || LEGAL_NAMES.ko,
     url: baseUrl,
     logo: `${baseUrl}/icon.png`,
     description: DESCRIPTIONS[locale] || DESCRIPTIONS.ko,
@@ -52,8 +103,9 @@ export function organizationSchema(locale: Locale = 'ko') {
 }
 
 // --- LocalBusiness ---
-export function localBusinessSchema() {
+export function localBusinessSchema(locale: Locale = 'ko') {
   const baseUrl = getBaseUrl()
+  const address = LOCAL_BUSINESS_ADDRESSES[locale] || LOCAL_BUSINESS_ADDRESSES.ko
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -65,9 +117,9 @@ export function localBusinessSchema() {
     email: 'neander@neander.co.kr',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '와우산로 112-1 1층',
-      addressLocality: '마포구',
-      addressRegion: '서울특별시',
+      streetAddress: address.streetAddress,
+      addressLocality: address.addressLocality,
+      addressRegion: address.addressRegion,
       postalCode: '04066',
       addressCountry: 'KR',
     },
@@ -78,7 +130,7 @@ export function localBusinessSchema() {
     },
     priceRange: '₩₩',
     currenciesAccepted: 'KRW',
-    paymentAccepted: '계좌이체',
+    paymentAccepted: address.paymentAccepted,
   }
 }
 
@@ -120,6 +172,7 @@ interface ProductSchemaInput {
 
 export function productSchema(product: ProductSchemaInput) {
   const baseUrl = getBaseUrl()
+  const locale = resolvePathLocale(product.path)
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -138,7 +191,7 @@ export function productSchema(product: ProductSchemaInput) {
       availability: `https://schema.org/${product.availability || 'InStock'}`,
       seller: {
         '@type': 'Organization',
-        name: '주식회사 네안더',
+        name: LEGAL_NAMES[locale] || LEGAL_NAMES.ko,
       },
       priceValidUntil: product.validThrough || '2026-12-31',
       ...(product.originalPrice > product.price && {

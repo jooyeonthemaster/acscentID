@@ -158,6 +158,7 @@ export async function GET(request: NextRequest) {
       idol_name: string | null
       product_type?: string
       service_mode?: string
+      locale?: string | null
       confirmed_recipe: { granules: Array<{ id: string; name: string; ratio: number }> } | null
     }
 
@@ -169,6 +170,7 @@ export async function GET(request: NextRequest) {
       chemistryType: string | null
       chemistryTitle: string | null
       service_mode: string
+      locale: string | null
       created_at: string
     }
 
@@ -209,6 +211,7 @@ export async function GET(request: NextRequest) {
               chemistryType: session.chemistry_type || null,
               chemistryTitle: session.chemistry_title || null,
               service_mode: session.service_mode || 'online',
+              locale: session.locale || charA.locale || charB.locale || null,
               created_at: session.created_at,
             })
             // 통합된 ID를 기록하여 일반 목록에서 제거

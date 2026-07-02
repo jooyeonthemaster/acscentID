@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Instagram, Twitter, Copy, Check } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { isFocusedExperiencePath } from '@/lib/route-visibility'
 import { ADMIN_PROGRAMS } from '@/lib/admin/catalog'
@@ -12,10 +12,22 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 // 입금계좌 (복사용 — 숫자만)
 const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
 
+const PROGRAM_NAME_KEYS: Record<string, string> = {
+  'idol-image': 'products.idolImage',
+  figure: 'products.figureDiffuser',
+  graduation: 'products.graduation',
+  personal: 'products.personal',
+  'le-quack': 'products.leQuack',
+  chemistry: 'products.chemistry',
+  sample: 'programs.detail.sample.productName',
+  'today-scent': 'todayScent.title',
+}
+
 export function Footer() {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   const t = useTranslations()
+  const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const { products, isProductVisible } = useActiveProducts()
 
@@ -26,7 +38,9 @@ export function Footer() {
     .map((program) => ({
       slug: program.slug,
       href: program.publicHref,
-      name: productBySlug.get(program.slug)?.name ?? program.name,
+      name: locale === 'ko'
+        ? productBySlug.get(program.slug)?.name ?? program.name
+        : getTranslatedProgramName(program.slug, program.name, t),
       order: productBySlug.get(program.slug)?.display_order ?? Number.MAX_SAFE_INTEGER,
     }))
     .sort((a, b) => a.order - b.order)
@@ -184,4 +198,13 @@ export function Footer() {
       </div>
     </footer>
   )
+}
+
+function getTranslatedProgramName(
+  slug: string,
+  fallback: string,
+  t: ReturnType<typeof useTranslations>
+) {
+  const key = PROGRAM_NAME_KEYS[slug]
+  return key && t.has(key) ? t(key) : fallback
 }

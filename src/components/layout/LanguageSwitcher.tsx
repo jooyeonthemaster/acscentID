@@ -7,6 +7,12 @@ import { locales, localeNames, localeFlags, type Locale } from '@/i18n/config'
 import { Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  flushLocaleSwitchStateSnapshots,
+  notifyLocaleSwitchStart,
+  restoreLocaleFormDomSnapshot,
+  saveLocaleFormDomSnapshot,
+} from '@/hooks/useLocaleSwitchState'
 
 export function LanguageSwitcher() {
   const locale = useLocale() as Locale
@@ -14,6 +20,25 @@ export function LanguageSwitcher() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const scopeKey = `${pathname}${window.location.search}`
+    let attempts = 0
+    let timeoutId: number | undefined
+
+    const tryRestore = () => {
+      attempts += 1
+      const restored = restoreLocaleFormDomSnapshot(scopeKey)
+      if (restored || attempts >= 20) return
+      timeoutId = window.setTimeout(tryRestore, 100)
+    }
+
+    timeoutId = window.setTimeout(tryRestore, 0)
+
+    return () => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+    }
+  }, [locale, pathname])
 
   // 외부 클릭 시 닫기
   useEffect(() => {
@@ -26,8 +51,12 @@ export function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLocaleChange = (newLocale: Locale) => {
+  const handleLocaleChange = async (newLocale: Locale) => {
     const search = window.location.search
+    const scopeKey = `${pathname}${search}`
+    await flushLocaleSwitchStateSnapshots()
+    saveLocaleFormDomSnapshot(scopeKey)
+    notifyLocaleSwitchStart(newLocale)
     router.replace(pathname + search, { locale: newLocale })
     setIsOpen(false)
   }

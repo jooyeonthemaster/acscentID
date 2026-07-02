@@ -185,6 +185,7 @@ function ChemistryProgress({ phase, currentCard, totalCards }: {
   currentCard: number
   totalCards: number
 }) {
+  const t = useTranslations('chemistry')
   let progress = 0
   if (phase === 'summon') progress = 10
   else if (phase === 'deck') progress = 20 + (currentCard / totalCards) * 60
@@ -201,9 +202,9 @@ function ChemistryProgress({ phase, currentCard, totalCards }: {
         />
       </div>
       <div className="flex justify-between mt-1 text-[10px] font-bold text-slate-400">
-        <span className={phase === 'summon' ? 'text-violet-500' : ''}>소환</span>
-        <span className={phase === 'deck' ? 'text-violet-500' : ''}>카드 덱</span>
-        <span className={phase === 'catalyst' ? 'text-violet-500' : ''}>촉매</span>
+        <span className={phase === 'summon' ? 'text-violet-500' : ''}>{t('progress.summon')}</span>
+        <span className={phase === 'deck' ? 'text-violet-500' : ''}>{t('progress.deck')}</span>
+        <span className={phase === 'catalyst' ? 'text-violet-500' : ''}>{t('progress.catalyst')}</span>
       </div>
     </div>
   )
@@ -223,6 +224,8 @@ function ChemistryNavButtons({
   onCardPrev: () => void
   onComplete: () => void
 }) {
+  const t = useTranslations('chemistry.buttons')
+
   if (phase === 'summon') {
     return (
       <div>
@@ -233,10 +236,10 @@ function ChemistryNavButtons({
           className={`w-full h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all border-2 border-black shadow-[4px_4px_0_0_black] ${
             isSummonValid
               ? "bg-violet-500 text-white hover:bg-violet-600"
-              : "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300 shadow-none"
+            : "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300 shadow-none"
           }`}
         >
-          <span>분석하기</span>
+          <span>{t('analyze')}</span>
           <ArrowRight size={18} />
         </motion.button>
       </div>
@@ -261,10 +264,10 @@ function ChemistryNavButtons({
           className={`flex-1 h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all border-2 border-black shadow-[4px_4px_0_0_black] ${
             isCardValid
               ? "bg-violet-500 text-white hover:bg-violet-600"
-              : "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300 shadow-none"
+            : "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300 shadow-none"
           }`}
         >
-          <span>다음 카드</span>
+          <span>{t('nextCard')}</span>
           <ArrowRight size={18} />
         </motion.button>
       </div>
@@ -286,7 +289,7 @@ function ChemistryNavButtons({
         disabled={isSubmitting}
         className="flex-1 h-14 rounded-2xl font-black text-base flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-pink-500 text-white border-2 border-black shadow-[4px_4px_0_0_black] hover:shadow-[2px_2px_0_0_black] transition-all"
       >
-        <span>케미 분석 시작하기</span>
+        <span>{t('startAnalysis')}</span>
         <ArrowRight size={18} />
       </motion.button>
     </div>

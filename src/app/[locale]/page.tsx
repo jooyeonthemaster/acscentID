@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useState, useRef, useSyncExternalStore } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -18,13 +18,20 @@ import { isScentPaperSize, type ProductType } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
 
 const VISIT_RESERVATION_URL = "https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
+const subscribeToHydration = () => () => {}
+const getHydratedSnapshot = () => true
+const getServerHydrationSnapshot = () => false
 
 export default function Home() {
   const router = useRouter()
   const t = useTranslations()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot,
+  )
   const slideRef = useRef<HTMLDivElement>(null)
   const { banners, loading: bannersLoading } = useBanners()
   const { isProductActive, isProductVisible, getProductBadge } = useActiveProducts()
@@ -36,10 +43,6 @@ export default function Home() {
 
   // 상품관리 이미지의 첫 번째 사진이 메인 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
-
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
 
   // 가격은 DB 의 가장 저렴한 활성 옵션 (priceRange 표시용)
   // 시향지(저가 애드온)는 본 상품 최소가가 아니므로 제외한다.
@@ -245,14 +248,14 @@ export default function Home() {
               {/* 좌우 네비게이션 버튼 */}
               <button
                 onClick={prevSlide}
-                aria-label="이전 배너"
+                aria-label={t('home.prevBanner')}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
                 <ChevronLeft size={24} className="text-white drop-shadow" />
               </button>
               <button
                 onClick={nextSlide}
-                aria-label="다음 배너"
+                aria-label={t('home.nextBanner')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
                 <ChevronRight size={24} className="text-white drop-shadow" />
@@ -388,48 +391,51 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {visibleStoreProducts.map((product, index) => (
-                <motion.div
-                  key={product.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08 }}
-                  onClick={() => handleCardClick(`/products/${product.slug}`)}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                    <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        fill
-                        sizes="(max-width: 455px) 50vw, 220px"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        data-pin-nopin="true"
-                      />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 bg-lime-600 text-white text-[8px] font-black rounded-full z-10">
-                        {product.badge}
+              {visibleStoreProducts.map((product, index) => {
+                const localized = storeText(product)
+                return (
+                  <motion.div
+                    key={product.slug}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.08 }}
+                    onClick={() => handleCardClick(`/products/${product.slug}`)}
+                    className="group cursor-pointer"
+                  >
+                    <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                      <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
+                        <Image
+                          src={product.image}
+                          alt={localized.title}
+                          fill
+                          sizes="(max-width: 455px) 50vw, 220px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          data-pin-nopin="true"
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-lime-600 text-white text-[8px] font-black rounded-full z-10">
+                          {product.badge}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-3 px-1">
-                    <h3 className="font-bold text-slate-900 text-sm truncate">
-                      {storeText(product).title}
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
-                      {storeText(product).description}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-sm font-bold text-slate-900">
-                        {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
-                      </span>
+                    <div className="mt-3 px-1">
+                      <h3 className="font-bold text-slate-900 text-sm truncate">
+                        {localized.title}
+                      </h3>
+                      <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
+                        {localized.description}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-sm font-bold text-slate-900">
+                          {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-[9px] font-medium mt-1 text-emerald-600">
+                        {t('store.selectAndBuy')}
+                      </p>
                     </div>
-                    <p className="text-[9px] font-medium mt-1 text-emerald-600">
-                      {t('store.selectAndBuy')}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                )
+              })}
             </div>
 
             <div className="mt-12 text-center">

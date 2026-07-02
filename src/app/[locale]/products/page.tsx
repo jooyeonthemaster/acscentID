@@ -52,6 +52,7 @@ export default function ProductsPage() {
               const option = getOption(STORE_PRODUCT_TYPE, product.size)
               const price = option?.price ?? product.fallbackPrice
               const originalPrice = option?.original_price ?? null
+              const localized = storeText(product)
 
               return (
                 <motion.div
@@ -67,7 +68,7 @@ export default function ProductsPage() {
                     <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-black bg-yellow-50">
                       <Image
                         src={product.image}
-                        alt={product.title}
+                        alt={localized.title}
                         fill
                         sizes="112px"
                         priority={index === 0}
@@ -84,9 +85,9 @@ export default function ProductsPage() {
                         {product.size === "scent_paper" ? <Sparkles size={13} /> : <Droplets size={13} />}
                         <span>{t('store.list.scentSelectable')}</span>
                       </div>
-                      <h2 className="text-lg font-black leading-tight text-slate-900">{storeText(product).title}</h2>
+                      <h2 className="text-lg font-black leading-tight text-slate-900">{localized.title}</h2>
                       <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">
-                        {storeText(product).description}
+                        {localized.description}
                       </p>
                       <div className="mt-3 flex items-end gap-2">
                         <span className="text-base font-black text-black">{formatPrice(price)}{t('currency.suffix')}</span>

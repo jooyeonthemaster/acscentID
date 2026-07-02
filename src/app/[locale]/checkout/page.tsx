@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense, useMemo } from "react"
+import { useState, useEffect, Suspense, useMemo, useCallback } from "react"
 import { useRouter, useSearchParams, useParams } from "next/navigation"
 import { motion } from "framer-motion"
 import {
@@ -11,7 +11,6 @@ import {
   Sparkles,
   Copy,
   Check,
-  Building2,
   AlertCircle,
   Clock
 } from "lucide-react"
@@ -28,11 +27,13 @@ import { InAppBrowserNotice } from "./components/InAppBrowserNotice"
 import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon, calculateCouponDiscount } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
-import { formatPrice, calculateCartTotals, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_FEE } from "@/types/cart"
+import { formatPrice, calculateCartTotals, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
+import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { useActiveProducts } from "@/hooks/useAdminContent"
+import { useLocaleSwitchState } from "@/hooks/useLocaleSwitchState"
 import { detectInAppBrowser } from "@/lib/mobile/inAppBrowser"
 import { getScentById, TODAY_SCENTS } from "@/lib/today-scent/scents"
 import {
@@ -58,12 +59,53 @@ interface AnalysisResult {
   storeProduct?: Record<string, unknown>
 }
 
+interface ConfirmedRecipeGranule {
+  id: string
+  name: string
+  ratio: number
+}
+
+interface ConfirmedRecipe {
+  granules?: ConfirmedRecipeGranule[]
+  [key: string]: unknown
+}
+
+interface CheckoutLocaleSnapshot {
+  checkoutItems: CartItem[]
+  isMultiItemMode: boolean
+  analysisResult: AnalysisResult | null
+  userImage: string | null
+  idolName: string | null
+  productType: ProductType
+  selectedSize: string
+  singleQuantity: number
+  privacyAgreed: boolean
+  selectedCoupon: CheckoutCoupon | null
+  paymentMethod: PaymentMethod
+  analysisId: string | null
+  layeringSessionId: string | null
+  confirmedRecipe: ConfirmedRecipe | null
+  confirmedRecipePerfumeName: string | null
+  formData: CheckoutFormData
+}
+
 // 계좌 정보
 const BANK_INFO = {
   bank: "우리",
   account: "1005-204-549279",
   accountRaw: "1005204549279",
   holder: "(주)네안데르"
+}
+
+const EMPTY_CHECKOUT_FORM_DATA: CheckoutFormData = {
+  name: "",
+  phone1: "010",
+  phone2: "",
+  phone3: "",
+  zipCode: "",
+  address: "",
+  addressDetail: "",
+  memo: "",
 }
 
 // 로딩 컴포넌트
@@ -94,6 +136,7 @@ function CheckoutContent() {
     getProductBySize: getDynamicStoreProductBySize,
     loading: storeProductsLoading,
   } = useStoreProducts()
+  const storeText = useStoreProductText()
   const { isProductActive, loading: productsLoading } = useActiveProducts()
 
   // URL 파라미터에서 시그니처/테스트 상품 확인
@@ -125,7 +168,6 @@ function CheckoutContent() {
     if (isSignatureProduct) return "/programs/le-quack"
     if (isPaymentTest) return "/"
     return "/result"
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMultiItemMode, isTodayScent, isStoreProduct, isStoreMultiCheckout, isSignatureProduct, isPaymentTest, searchParams])
 
   // 단일 상품 모드 (기존 호환)
@@ -178,19 +220,74 @@ function CheckoutContent() {
   const [layeringSessionId, setLayeringSessionId] = useState<string | null>(null)
 
   // 확정된 레시피 (재주문 시 전달됨)
-  const [confirmedRecipe, setConfirmedRecipe] = useState<any>(null)
+  const [confirmedRecipe, setConfirmedRecipe] = useState<ConfirmedRecipe | null>(null)
   const [confirmedRecipePerfumeName, setConfirmedRecipePerfumeName] = useState<string | null>(null)
 
   // 폼 데이터 상태
-  const [formData, setFormData] = useState<CheckoutFormData>({
-    name: "",
-    phone1: "010",
-    phone2: "",
-    phone3: "",
-    zipCode: "",
-    address: "",
-    addressDetail: "",
-    memo: "",
+  const [formData, setFormData] = useState<CheckoutFormData>(EMPTY_CHECKOUT_FORM_DATA)
+
+  const captureLocaleState = useCallback((): CheckoutLocaleSnapshot => ({
+    checkoutItems,
+    isMultiItemMode,
+    analysisResult,
+    userImage,
+    idolName,
+    productType,
+    selectedSize,
+    singleQuantity,
+    privacyAgreed,
+    selectedCoupon,
+    paymentMethod,
+    analysisId,
+    layeringSessionId,
+    confirmedRecipe,
+    confirmedRecipePerfumeName,
+    formData,
+  }), [
+    analysisId,
+    analysisResult,
+    checkoutItems,
+    confirmedRecipe,
+    confirmedRecipePerfumeName,
+    formData,
+    idolName,
+    isMultiItemMode,
+    layeringSessionId,
+    paymentMethod,
+    privacyAgreed,
+    productType,
+    selectedCoupon,
+    selectedSize,
+    singleQuantity,
+    userImage,
+  ])
+
+  const restoreLocaleState = useCallback((snapshot: CheckoutLocaleSnapshot) => {
+    setCheckoutItems(snapshot.checkoutItems ?? [])
+    setIsMultiItemMode(snapshot.isMultiItemMode ?? false)
+    setAnalysisResult(snapshot.analysisResult ?? null)
+    setUserImage(snapshot.userImage ?? null)
+    setIdolName(snapshot.idolName ?? null)
+    setProductType(snapshot.productType ?? "image_analysis")
+    setSelectedSize(snapshot.selectedSize ?? "10ml")
+    setSingleQuantity(snapshot.singleQuantity ?? 1)
+    setPrivacyAgreed(snapshot.privacyAgreed ?? false)
+    setSelectedCoupon(snapshot.selectedCoupon ?? null)
+    setPaymentMethod(snapshot.paymentMethod ?? "card")
+    setAnalysisId(snapshot.analysisId ?? null)
+    setLayeringSessionId(snapshot.layeringSessionId ?? null)
+    setConfirmedRecipe(snapshot.confirmedRecipe ?? null)
+    setConfirmedRecipePerfumeName(snapshot.confirmedRecipePerfumeName ?? null)
+    setFormData({
+      ...EMPTY_CHECKOUT_FORM_DATA,
+      ...snapshot.formData,
+    })
+  }, [])
+
+  useLocaleSwitchState({
+    storageKey: `checkout:${searchParams.toString()}`,
+    capture: captureLocaleState,
+    restore: restoreLocaleState,
   })
 
   // 인앱브라우저 감지 (결제 시도 차단용)
@@ -245,8 +342,8 @@ function CheckoutContent() {
     }
 
     // 사용자 이름 초기화
-    if (userName && !formData.name) {
-      setFormData(prev => ({ ...prev, name: userName }))
+    if (userName) {
+      setFormData(prev => prev.name ? prev : { ...prev, name: userName })
     }
 
     // 0-1. 결제 테스트 상품 (1,000원) - URL 파라미터로 처리
@@ -323,6 +420,7 @@ function CheckoutContent() {
         getStoreProductBySize(searchParams.get("size")) ||
         getStoreProductBySlug("perfume-50ml")!
       const scent = (searchParams.get("scent") ? getScentById(searchParams.get("scent")!) : undefined) || TODAY_SCENTS[0]
+      const localized = storeText(product)
       setProductType(STORE_PRODUCT_TYPE)
       setSelectedSize(product.size)
       setUserImage(product.image || STORE_PRODUCT_IMAGE)
@@ -331,14 +429,14 @@ function CheckoutContent() {
         matchingPerfumes: [{
           perfumeId: scent.id,
           persona: {
-            name: getStoreProductName(product, scent),
+            name: getStoreProductName(product, scent, localized.title),
             recommendation: scent.vibe,
           }
         }],
-        matchingKeywords: [product.shortLabel, ...scent.keywords],
+        matchingKeywords: [localized.shortLabel, ...scent.keywords],
         storeProduct: {
           slug: product.slug,
-          title: product.title,
+          title: localized.title,
           size: product.size,
           scentId: scent.id,
           scentName: scent.name,
@@ -441,7 +539,7 @@ function CheckoutContent() {
     const savedRecipePerfumeName = localStorage.getItem("checkoutRecipePerfumeName")
     if (savedRecipe) {
       try {
-        setConfirmedRecipe(JSON.parse(savedRecipe))
+        setConfirmedRecipe(JSON.parse(savedRecipe) as ConfirmedRecipe)
         setConfirmedRecipePerfumeName(savedRecipePerfumeName)
       } catch (e) {
         console.error("Failed to parse checkout recipe:", e)
@@ -464,6 +562,7 @@ function CheckoutContent() {
     getDynamicStoreProductBySlug,
     getDynamicStoreProductBySize,
     getOption,
+    storeText,
   ])
 
   // 선택 옵션 정합성 보정 — DB 옵션이 로드된 뒤 selectedSize 가 유효하지 않으면
@@ -564,7 +663,7 @@ function CheckoutContent() {
       await navigator.clipboard.writeText(BANK_INFO.accountRaw)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch {
       const textArea = document.createElement("textarea")
       textArea.value = BANK_INFO.accountRaw
       document.body.appendChild(textArea)
@@ -925,7 +1024,7 @@ function CheckoutContent() {
                         {t('checkout.recipeBased', { name: confirmedRecipePerfumeName || perfumeName })}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {confirmedRecipe.granules?.map((g: any) => (
+                        {confirmedRecipe.granules?.map((g) => (
                           <span key={g.id} className="text-[10px] px-2.5 py-1 bg-white border-[1.5px] border-slate-900 rounded-full text-slate-800 font-bold shadow-[1px_1px_0px_#FBBF24]">
                             {g.name} {g.ratio}%
                           </span>

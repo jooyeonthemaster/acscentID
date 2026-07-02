@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslations } from "next-intl"
 
 interface ChemistryAnalyzingOverlayProps {
   isVisible: boolean
@@ -13,32 +14,29 @@ interface ChemistryAnalyzingOverlayProps {
   onDoorOpened?: () => void
 }
 
-const CHEMISTRY_QUOTES = [
-  "두 향이 만나는 순간을 조합하는 중...",
-  "케미의 화학 반응을 분석하고 있어요...",
-  "향수 분자가 서로를 찾아가는 중...",
-  "탑노트가 인사를 나누고 있어요...",
-  "미들노트에서 대화가 시작되었어요...",
-  "베이스노트가 서로의 온기를 느끼는 중...",
-  "두 향의 시너지를 계산하고 있어요...",
-  "케미 지수가 급상승하고 있어요!",
-  "향수병에 두 사람의 이야기를 담는 중...",
-  "레이어링 비율을 조율하고 있어요...",
-  "두 세계가 하나의 향기로 엮이는 중...",
-  "이 조합은 처음 보는 케미인데요?!",
-]
-
 export function ChemistryAnalyzingOverlay({
   isVisible, character1Name, character2Name,
   image1Preview, image2Preview,
   isComplete = false, onDoorOpened,
 }: ChemistryAnalyzingOverlayProps) {
+  const t = useTranslations('chemistry.analyzing')
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
   const [doorState, setDoorState] = useState<'closed' | 'opening'>('closed')
   const [mergePhase, setMergePhase] = useState(0) // 0: 떨어짐, 1: 접근, 2: 합체
+  const [particles] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      background: i % 2 === 0 ? '#c4b5fd' : '#f9a8d4',
+      duration: 3 + Math.random() * 2,
+      delay: Math.random() * 2,
+    }))
+  )
 
   const [shuffledQuotes] = useState(() => {
-    const shuffled = [...CHEMISTRY_QUOTES]
+    const rawQuotes = t.raw('quotes') as string[]
+    const shuffled = [...rawQuotes]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
@@ -64,7 +62,8 @@ export function ChemistryAnalyzingOverlay({
 
   useEffect(() => {
     if (isComplete && doorState === 'closed') {
-      setDoorState('opening')
+      const openTimer = setTimeout(() => setDoorState('opening'), 0)
+      return () => clearTimeout(openTimer)
     }
   }, [isComplete, doorState])
 
@@ -126,14 +125,14 @@ export function ChemistryAnalyzingOverlay({
 
       {/* 파티클 */}
       <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {particles.map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             className="absolute w-1.5 h-1.5 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: i % 2 === 0 ? '#c4b5fd' : '#f9a8d4',
+              left: particle.left,
+              top: particle.top,
+              background: particle.background,
             }}
             animate={{
               y: [0, -30, 0],
@@ -141,9 +140,9 @@ export function ChemistryAnalyzingOverlay({
               scale: [0.5, 1.5, 0.5],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: particle.delay,
             }}
           />
         ))}
@@ -254,7 +253,7 @@ export function ChemistryAnalyzingOverlay({
           transition={{ delay: 0.3 }}
           className="text-lg font-black text-slate-800 text-center mb-6 drop-shadow-sm"
         >
-          두 향의 케미를 분석하고 있어요
+          {t('title')}
         </motion.p>
 
         {/* 프로그레스 바 */}

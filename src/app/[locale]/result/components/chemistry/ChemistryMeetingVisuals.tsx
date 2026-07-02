@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { motion } from "framer-motion"
+import { useTranslations } from "next-intl"
 import type { ChemistryProfile } from "@/types/analysis"
 
 // ========================================
@@ -31,9 +32,10 @@ export function SectionHeader({ emoji, title }: { emoji: string; title: string }
 }
 
 // ========================================
-// 3-7. "만약에" 시나리오 카드 캐러셀
+// 3-7. "What if" scenario card carousel
 // ========================================
 export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; content: string }[] }) {
+  const t = useTranslations()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeIdx, setActiveIdx] = useState(0)
 
@@ -48,7 +50,7 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔮" title="만약에..." />
+      <SectionHeader emoji="🔮" title={t('chemistry.result.scenarios')} />
       <div className="pb-4">
         <div
           ref={scrollRef}
@@ -95,9 +97,10 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
 export function DialogueBubbles({ dialogues, nameA, nameB }: {
   dialogues: ChemistryProfile['dialogues']; nameA: string; nameB: string
 }) {
+  const t = useTranslations()
   return (
     <SectionCard>
-      <SectionHeader emoji="💬" title="대표 대사" />
+      <SectionHeader emoji="💬" title={t('chemistry.result.dialogues')} />
       <div className="p-4 space-y-3">
         {/* A 말풍선 (왼쪽) */}
         <motion.div
@@ -146,6 +149,7 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
 // 3-9. 이름 케미 (숫자 피라미드)
 // ========================================
 export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: string }) {
+  const t = useTranslations()
   // 이름 획수 계산 (간단히 유니코드 코드포인트 기반)
   const getStrokes = (name: string): number[] => {
     return name.split('').map(ch => {
@@ -187,11 +191,11 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔢" title="이름 케미" />
+      <SectionHeader emoji="🔢" title={t('chemistry.result.nameChemistry')} />
       <div className="p-4">
         <div className="text-center mb-3">
           <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-            재미로 보는 이름 궁합
+            {t('chemistry.result.nameChemistrySubtitle')}
           </span>
         </div>
 
@@ -243,7 +247,13 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
             <span className="text-lg font-black">{finalNumber}%</span>
           </div>
           <p className="text-[10px] text-slate-400 mt-2">
-            {finalNumber >= 80 ? '완벽한 케미!' : finalNumber >= 60 ? '좋은 케미!' : finalNumber >= 40 ? '밀당 케미!' : '반전 매력 케미!'}
+            {finalNumber >= 80
+              ? t('chemistry.result.nameChemistryLevels.perfect')
+              : finalNumber >= 60
+                ? t('chemistry.result.nameChemistryLevels.good')
+                : finalNumber >= 40
+                  ? t('chemistry.result.nameChemistryLevels.pushPull')
+                  : t('chemistry.result.nameChemistryLevels.twist')}
           </p>
         </motion.div>
       </div>
@@ -257,6 +267,8 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
 export function LayeringInfographic({ guide, nameA, nameB }: {
   guide: ChemistryProfile['layeringGuide']; nameA: string; nameB: string
 }) {
+  const t = useTranslations()
+  const tLabels = useTranslations('labels')
   // 비율 파싱 — "3:7" → 30:70으로 정규화
   const ratioMatch = guide.ratio.match(/(\d+)\s*:\s*(\d+)/)
   let ratioA = ratioMatch ? parseInt(ratioMatch[1]) : 6
@@ -267,20 +279,18 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
   const percentA = Math.round(ratioA / total * 100)
   const percentB = 100 - percentA
 
-  // 계절 한글 매핑
-  const seasonMap: Record<string, string> = { spring: '봄 🌸', summer: '여름 ☀️', autumn: '가을 🍂', winter: '겨울 ❄️' }
-  const timeMap: Record<string, string> = { morning: '오전', afternoon: '오후', evening: '저녁', night: '밤' }
-  const seasonLabel = seasonMap[guide.seasonTime.best_season] || guide.seasonTime.best_season
-  const timeLabel = timeMap[guide.seasonTime.best_time] || guide.seasonTime.best_time
+  const seasonIcons: Record<string, string> = { spring: '🌸', summer: '☀️', autumn: '🍂', winter: '❄️' }
+  const seasonLabel = `${tLabels(`seasons.${guide.seasonTime.best_season}`)} ${seasonIcons[guide.seasonTime.best_season] || ''}`.trim()
+  const timeLabel = tLabels(`times.${guide.seasonTime.best_time}`)
 
   return (
     <SectionCard>
-      <SectionHeader emoji="✨" title="레이어링 가이드" />
+      <SectionHeader emoji="✨" title={t('chemistry.result.layeringGuide')} />
       <div className="p-4 space-y-5">
 
         {/* 뿌리는 순서 */}
         <div>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">뿌리는 순서</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">{t('chemistry.result.sprayOrder')}</span>
           <div className="flex items-center justify-center gap-3">
             <div className="flex flex-col items-center gap-1">
               <div className="w-12 h-12 rounded-full bg-violet-100 border-2 border-violet-300 flex items-center justify-center">
@@ -306,7 +316,7 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
 
         {/* 비율 — 가로 바 형태 */}
         <div>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">비율</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">{t('chemistry.result.ratio')}</span>
           <div className="flex h-8 rounded-full overflow-hidden border-2 border-slate-900 shadow-[2px_2px_0_0_black]">
             <div className="bg-violet-400 flex items-center justify-center" style={{ width: `${percentA}%` }}>
               <span className="text-[10px] font-black text-white">{percentA}%</span>
@@ -323,22 +333,22 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
 
         {/* 레이어링 팁 */}
         <div className="bg-gradient-to-br from-violet-50 to-pink-50 rounded-xl p-3 border border-violet-200">
-          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-1.5">레이어링 팁</span>
+          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-1.5">{t('chemistry.result.layeringTip')}</span>
           <p className="text-xs text-slate-700 leading-relaxed font-medium">{guide.method}</p>
         </div>
 
         {/* 추천 상황/계절/시간 */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">계절</span>
+            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.season')}</span>
             <span className="text-xs font-black text-amber-700">{seasonLabel}</span>
           </div>
           <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">시간대</span>
+            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.time')}</span>
             <span className="text-xs font-black text-indigo-700">{timeLabel}</span>
           </div>
           <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">상황</span>
+            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.situation')}</span>
             <span className="text-[10px] font-black text-rose-700 leading-tight block">{guide.situation}</span>
           </div>
         </div>
@@ -359,16 +369,17 @@ export function FutureTimeline({ predictions, futureVision }: {
   predictions?: { timeLabel: string; prediction: string }[]
   futureVision: string
 }) {
+  const t = useTranslations()
   const milestones = predictions && predictions.length > 0
     ? predictions
-    : generateDefaultPredictions(futureVision)
+    : generateDefaultPredictions(futureVision, t)
 
   const dotColors = ['bg-violet-500', 'bg-fuchsia-400', 'bg-pink-400', 'bg-rose-400', 'bg-amber-500']
   const emojis = ['🌱', '🌿', '🌸', '🌳', '✨']
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔮" title="미래 예측" />
+      <SectionHeader emoji="🔮" title={t('chemistry.result.future')} />
       <div className="p-4">
         <div className="space-y-0">
           {milestones.map((m, i) => (
@@ -402,14 +413,20 @@ export function FutureTimeline({ predictions, futureVision }: {
   )
 }
 
-function generateDefaultPredictions(futureVision: string): { timeLabel: string; prediction: string }[] {
+function generateDefaultPredictions(futureVision: string, t: (key: string) => string): { timeLabel: string; prediction: string }[] {
   // 문장을 더 안전하게 분리 — 빈 문장 방지
   const sentences = futureVision
     .split(/(?<=[.!?~])\s+/)
     .map(s => s.trim())
     .filter(s => s.length > 5)
 
-  const labels = ['처음 만난 날', '일주일 후', '한 달 후', '일 년 후', '영원히']
+  const labels = [
+    t('chemistry.result.timeline.firstDay'),
+    t('chemistry.result.timeline.oneWeek'),
+    t('chemistry.result.timeline.oneMonth'),
+    t('chemistry.result.timeline.oneYear'),
+    t('chemistry.result.timeline.forever'),
+  ]
 
   if (sentences.length >= 4) {
     return labels.slice(0, sentences.length).map((label, i) => ({
@@ -420,9 +437,9 @@ function generateDefaultPredictions(futureVision: string): { timeLabel: string; 
 
   // 문장이 부족하면 전체를 하나로 + 보충 멘트
   return [
-    { timeLabel: '처음 만난 날', prediction: sentences[0] || futureVision },
-    { timeLabel: '한 달 후', prediction: sentences[1] || '서로의 향기에 점점 익숙해지는 중...' },
-    { timeLabel: '일 년 후', prediction: sentences[2] || '이제 이 향기 없인 살 수 없는 사이가 됐어!' },
-    { timeLabel: '영원히', prediction: sentences[3] || '두 향기가 하나의 전설이 되는 순간 ✨' },
+    { timeLabel: t('chemistry.result.timeline.firstDay'), prediction: sentences[0] || futureVision },
+    { timeLabel: t('chemistry.result.timeline.oneMonth'), prediction: sentences[1] || t('chemistry.result.timeline.monthFallback') },
+    { timeLabel: t('chemistry.result.timeline.oneYear'), prediction: sentences[2] || t('chemistry.result.timeline.yearFallback') },
+    { timeLabel: t('chemistry.result.timeline.forever'), prediction: sentences[3] || t('chemistry.result.timeline.foreverFallback') },
   ]
 }

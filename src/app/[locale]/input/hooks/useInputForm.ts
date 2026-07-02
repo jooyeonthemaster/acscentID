@@ -2,10 +2,12 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { compressImage, base64ToBlob } from "@/lib/image/compressor"
 import { apiFetch } from "@/lib/api-client"
+import { dataUrlToFile, useLocaleSwitchState } from "@/hooks/useLocaleSwitchState"
 import type { FormDataType } from "../types"
 
 const INITIAL_FORM_DATA: FormDataType = {
@@ -25,7 +27,21 @@ const INITIAL_FORM_DATA: FormDataType = {
     modelingRequest: ""
 }
 
+type PersistedInputFormData = Omit<FormDataType, "image" | "modelingImage"> & {
+    image?: null
+    modelingImage?: null
+}
+
+interface InputLocaleSnapshot {
+    currentStep: number
+    formData: PersistedInputFormData
+    imagePreview: string | null
+    modelingImagePreview: string | null
+    showImageGuide: boolean
+}
+
 export function useInputForm() {
+    const locale = useLocale()
     const searchParams = useSearchParams()
     const router = useRouter()
     const { showToast } = useToast()
@@ -73,6 +89,40 @@ export function useInputForm() {
     useEffect(() => {
         currentStepRef.current = currentStep
     }, [currentStep])
+
+    const captureLocaleState = useCallback((): InputLocaleSnapshot => ({
+        currentStep,
+        formData: {
+            ...formData,
+            image: null,
+            modelingImage: null,
+        },
+        imagePreview,
+        modelingImagePreview,
+        showImageGuide,
+    }), [currentStep, formData, imagePreview, modelingImagePreview, showImageGuide])
+
+    const restoreLocaleState = useCallback((snapshot: InputLocaleSnapshot) => {
+        const restoredImage = dataUrlToFile(snapshot.imagePreview, 'restored-image.jpg')
+        const restoredModelingImage = dataUrlToFile(snapshot.modelingImagePreview, 'restored-modeling-image.jpg')
+
+        setCurrentStep(snapshot.currentStep ?? 1)
+        setFormData({
+            ...INITIAL_FORM_DATA,
+            ...snapshot.formData,
+            image: restoredImage,
+            modelingImage: restoredModelingImage,
+        })
+        setImagePreview(snapshot.imagePreview ?? null)
+        setModelingImagePreview(snapshot.modelingImagePreview ?? null)
+        setShowImageGuide(snapshot.showImageGuide ?? !snapshot.imagePreview)
+    }, [])
+
+    useLocaleSwitchState({
+        storageKey: `input-form:${type ?? ''}:${product ?? ''}:${mode ?? ''}:${serviceMode ?? ''}:${qrCode ?? ''}`,
+        capture: captureLocaleState,
+        restore: restoreLocaleState,
+    })
 
     useEffect(() => {
         if (!qrCode || typeof window === 'undefined') return
@@ -274,6 +324,7 @@ export function useInputForm() {
                         ...(isOffline && { pin: formData.pin })
                     },
                     imageBase64: imagePreview,
+                    locale,
                     serviceMode: isOffline ? 'offline' : 'online',
                     qrCode: qrCode || null,
                     // 피규어 온라인 모드 전용 데이터
@@ -371,6 +422,8 @@ export function useInputForm() {
                 localStorage.setItem('analysisTargetType', formData.targetType || 'idol')
 
                 localStorage.setItem('analysisResult', JSON.stringify(data))
+                localStorage.setItem('analysisResultLocale', locale)
+                localStorage.setItem(`analysisResult:${locale}`, JSON.stringify(data))
                 // 선업로드된 URL 저장 (작은 문자열이라 용량 문제 없음)
                 if (userImageUploadedUrl) {
                     localStorage.setItem('userImage', userImageUploadedUrl)
@@ -418,7 +471,7 @@ export function useInputForm() {
             showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error', 3000)
             setIsSubmitting(false)
         }
-    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type, showQrAuthGate, qrCode])
+    }, [formData, imagePreview, modelingImagePreview, isFigureOnline, isStepValid, isSubmitting, showToast, isOffline, isGraduation, type, product, showQrAuthGate, qrCode, locale])
 
     // 문 열린 후 결과 페이지로 이동
     // QR/오프라인에서 온 경우 replace 사용 → 뒤로가기 시 input 페이지로 돌아가지 않음

@@ -3,11 +3,13 @@
 import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle, Shirt, Palette, Sparkles, BookOpen, Clock, Tag, Droplets, FlaskConical } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ImageAnalysisResult } from "@/types/analysis"
-import { CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from "@/types/analysis"
+import { CATEGORY_INFO } from "@/types/analysis"
 import TraitRadarChart from "@/components/chart/TraitRadarChart"
 import KeywordCloud from "@/components/chart/KeywordCloud"
 import { ScentRecommendationCard } from "../ScentRecommendationCard"
+import { useLocalizedPerfumes } from "@/hooks/useLocalizedPerfumes"
 
 type SubTabType = 'perfume' | 'analysis'
 
@@ -35,17 +37,32 @@ const categoryColors: Record<string, { bar: string; bg: string; border: string; 
 }
 
 export function CharacterScentChapter({
-  characterName, emoji, analysis, accentColor, activeSubTab,
+  analysis, activeSubTab,
 }: CharacterScentChapterProps) {
+  const t = useTranslations()
+  const tLabels = useTranslations('labels')
+  const { localizedPerfumes, getLocalizedName, getLocalizedKeywords } = useLocalizedPerfumes()
   const [internalSubTab, setInternalSubTab] = useState<SubTabType>('perfume')
   const subTab = activeSubTab || internalSubTab
   const perfume = analysis.matchingPerfumes[0]
   const persona = perfume?.persona
-  const isViolet = accentColor === 'violet'
-  const activeBg = isViolet ? 'bg-violet-500' : 'bg-pink-500'
+  const perfumeId = perfume?.perfumeId || persona?.id || ''
+  const localizedPerfume = perfumeId
+    ? localizedPerfumes.find((item) => item.id === perfumeId)
+    : undefined
+  const perfumeDisplayName = perfumeId
+    ? getLocalizedName(perfumeId, persona?.name)
+    : persona?.name || ''
+  const perfumeKeywords = perfumeId
+    ? getLocalizedKeywords(perfumeId)
+    : persona?.keywords || []
+  const mainScentName = localizedPerfume?.mainScent?.name || persona?.mainScent?.name || t('perfume.defaultTopNote')
+  const middleScentName = localizedPerfume?.subScent1?.name || persona?.subScent1?.name || t('perfume.defaultMiddleNote')
+  const baseScentName = localizedPerfume?.subScent2?.name || persona?.subScent2?.name || t('perfume.defaultBaseNote')
 
   const primaryColor = persona?.primaryColor || '#FBBF24'
   const secondaryColor = persona?.secondaryColor || '#F59E0B'
+  const getCategoryLabel = (category: string) => tLabels(`categories.${category}`)
 
   return (
     <div className="px-4 space-y-5">
@@ -63,7 +80,7 @@ export function CharacterScentChapter({
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-sm">💎</span>
-                <span className="font-bold text-xs">퍼퓸 추천</span>
+                <span className="font-bold text-xs">{t('tabs.perfumeRecommend')}</span>
               </span>
             </button>
             <button
@@ -76,7 +93,7 @@ export function CharacterScentChapter({
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-sm">🔍</span>
-                <span className="font-bold text-xs">분석 결과</span>
+                <span className="font-bold text-xs">{t('tabs.analysisResult')}</span>
               </span>
             </button>
           </div>
@@ -111,21 +128,21 @@ export function CharacterScentChapter({
                     {/* 추천 향수 뱃지 */}
                     <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-400 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#000] mb-2">
                       <span className="text-xs">💎</span>
-                      <span className="text-[10px] font-black text-slate-900">추천 향수</span>
+                      <span className="text-[10px] font-black text-slate-900">{t('result.recommendedPerfume')}</span>
                     </div>
                     <h2 className="text-2xl font-black leading-tight text-slate-900">
-                      {persona.id || '맞춤 향수'}
+                      {persona.id || t('result.customPerfumeAlt')}
                     </h2>
                     <p className="text-sm mt-1 text-slate-600 mb-3">
-                      {persona.name || ''}
+                      {perfumeDisplayName}
                     </p>
 
                     {/* 매칭 점수 */}
 
                     {/* 키워드 - 키치 스타일 */}
-                    {persona.keywords && (
+                    {perfumeKeywords.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
-                        {persona.keywords.slice(0, 5).map((keyword, i) => (
+                        {perfumeKeywords.slice(0, 5).map((keyword, i) => (
                           <span
                             key={i}
                             className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-amber-50 border-2 border-amber-300 text-amber-700"
@@ -148,8 +165,8 @@ export function CharacterScentChapter({
                     <Droplets size={10} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold text-slate-900">향 노트</h3>
-                    <p className="text-[9px] text-slate-400">탑 → 미들 → 베이스</p>
+                    <h3 className="text-xs font-bold text-slate-900">{t('perfume.noteTitle')}</h3>
+                    <p className="text-[9px] text-slate-400">{t('perfume.noteSubtitle')}</p>
                   </div>
                 </div>
 
@@ -158,9 +175,9 @@ export function CharacterScentChapter({
                     {/* 탑노트 */}
                     <MobileNoteCard
                       type="TOP"
-                      name={persona.mainScent?.name || '탑 노트'}
-                      description={persona.mainScent?.fanComment || '첫 인상을 결정하는 향'}
-                      time="0~30분"
+                      name={mainScentName}
+                      description={persona.mainScent?.fanComment || t('perfume.defaultTopDesc')}
+                      time={t('perfume.topTime')}
                       bgColor="bg-gradient-to-r from-amber-50 to-yellow-50"
                       accentColor="bg-amber-400"
                       textColor="text-amber-800"
@@ -170,9 +187,9 @@ export function CharacterScentChapter({
                     {/* 미들노트 */}
                     <MobileNoteCard
                       type="HEART"
-                      name={persona.subScent1?.name || '미들 노트'}
-                      description={persona.subScent1?.fanComment || '향의 중심을 잡아주는 향'}
-                      time="30분~2시간"
+                      name={middleScentName}
+                      description={persona.subScent1?.fanComment || t('perfume.defaultMiddleDesc')}
+                      time={t('perfume.middleTime')}
                       bgColor="bg-gradient-to-r from-pink-50 to-rose-50"
                       accentColor="bg-pink-400"
                       textColor="text-pink-800"
@@ -182,9 +199,9 @@ export function CharacterScentChapter({
                     {/* 베이스노트 */}
                     <MobileNoteCard
                       type="BASE"
-                      name={persona.subScent2?.name || '베이스 노트'}
-                      description={persona.subScent2?.fanComment || '잔향으로 남는 깊은 향'}
-                      time="2시간~"
+                      name={baseScentName}
+                      description={persona.subScent2?.fanComment || t('perfume.defaultBaseDesc')}
+                      time={t('perfume.baseTime')}
                       bgColor="bg-gradient-to-r from-slate-100 to-slate-200"
                       accentColor="bg-slate-600"
                       textColor="text-slate-700"
@@ -203,8 +220,8 @@ export function CharacterScentChapter({
                     <FlaskConical size={10} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold text-slate-900">향 프로필</h3>
-                    <p className="text-[9px] text-slate-400">카테고리별 구성 비율</p>
+                    <h3 className="text-xs font-bold text-slate-900">{t('perfume.profileTitle')}</h3>
+                    <p className="text-[9px] text-slate-400">{t('perfume.profileSubtitle')}</p>
                   </div>
                 </div>
 
@@ -243,7 +260,7 @@ export function CharacterScentChapter({
                               {/* 아이콘 + 이름 */}
                               <div className="flex items-center gap-1 min-w-[56px]">
                                 <span className="text-sm">{info.icon}</span>
-                                <span className={`text-[10px] font-bold ${colors.text}`}>{info.name}</span>
+                                <span className={`text-[10px] font-bold ${colors.text}`}>{getCategoryLabel(category)}</span>
                               </div>
 
                               {/* 동그라미 점 10개 */}
@@ -285,7 +302,7 @@ export function CharacterScentChapter({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <Sparkles size={12} className="text-yellow-500" />
-                        <span className="text-[10px] font-bold text-slate-500">메인 계열</span>
+                        <span className="text-[10px] font-bold text-slate-500">{t('perfume.mainCategory')}</span>
                       </div>
                       {(() => {
                         const mainCategory = Object.entries(persona.categories).sort(([, a], [, b]) => b - a)[0]
@@ -293,7 +310,7 @@ export function CharacterScentChapter({
                           <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-amber-100 px-2.5 py-1 rounded-full border-2 border-slate-900">
                             <span className="text-sm">{CATEGORY_INFO[mainCategory[0]]?.icon || '⚪'}</span>
                             <span className="text-xs font-black text-slate-800">
-                              {CATEGORY_INFO[mainCategory[0]]?.name || mainCategory[0]}
+                              {getCategoryLabel(mainCategory[0])}
                             </span>
                           </div>
                         )
@@ -310,8 +327,8 @@ export function CharacterScentChapter({
                 <div className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                   <SectionHeader
                     icon={<Sparkles size={14} />}
-                    title="향수 스토리"
-                    subtitle="전문가 평가"
+                    title={t('perfume.perfumeStory')}
+                    subtitle={t('perfume.expertReview')}
                   />
                   <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
                     <p className="text-slate-700 text-sm leading-relaxed italic font-medium">
@@ -328,8 +345,8 @@ export function CharacterScentChapter({
                 <div className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                   <SectionHeader
                     icon={<Clock size={14} />}
-                    title="사용 추천"
-                    subtitle="상황별 추천"
+                    title={t('perfume.usageRecommend')}
+                    subtitle={t('perfume.usageRecommendSubtitle')}
                   />
                   <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
                     <p className="text-slate-700 text-sm leading-relaxed font-medium">
@@ -350,8 +367,8 @@ export function CharacterScentChapter({
               <div className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                 <SectionHeader
                   icon={<BookOpen size={14} />}
-                  title="사용 가이드"
-                  subtitle="이렇게 사용해 보세요"
+                  title={t('perfume.usageGuide')}
+                  subtitle={t('perfume.usageGuideSubtitle')}
                 />
                 <div className="bg-[#FEF9C3] rounded-xl p-4 space-y-3 border-2 border-slate-200">
                   {persona?.usageGuide?.tips && persona.usageGuide.tips.length > 0 ? (
@@ -360,9 +377,9 @@ export function CharacterScentChapter({
                     ))
                   ) : (
                     <>
-                      <GuideItem text="손목 안쪽이나 목 뒤에 가볍게 뿌려주세요" />
-                      <GuideItem text="향이 은은하게 퍼지면서 자연스러운 분위기를 연출해요" />
-                      <GuideItem text="옷감에 직접 뿌리지 말고 피부에 뿌려야 본연의 향을 느낄 수 있어요" />
+                      <GuideItem text={t('perfume.defaultGuide1')} />
+                      <GuideItem text={t('perfume.defaultGuide2')} />
+                      <GuideItem text={t('perfume.defaultGuide3')} />
                     </>
                   )}
                 </div>
@@ -385,8 +402,8 @@ export function CharacterScentChapter({
               <motion.div variants={fadeIn}>
                 <SectionHeader
                   icon={<MessageCircle size={14} />}
-                  title="이미지 분위기"
-                  subtitle="AI의 첫인상"
+                  title={t('analysis.imageMood')}
+                  subtitle={t('analysis.aiFirstImpression')}
                 />
                 <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 overflow-hidden border-2 border-amber-200">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-300/20 rounded-full blur-2xl" />
@@ -411,8 +428,8 @@ export function CharacterScentChapter({
             <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
               <SectionHeader
                 icon={<Sparkles size={14} />}
-                title="특성 점수"
-                subtitle="향수 매칭의 핵심 지표"
+                title={t('analysis.traitScore')}
+                subtitle={t('analysis.perfumeMatchKey')}
               />
               {analysis.traits && (
                 <TraitRadarChart traits={analysis.traits} />
@@ -424,8 +441,8 @@ export function CharacterScentChapter({
               <motion.div variants={fadeIn}>
                 <SectionHeader
                   icon={<Shirt size={14} />}
-                  title="스타일 분석"
-                  subtitle="패션과 표현"
+                  title={t('analysis.styleAnalysis')}
+                  subtitle={t('analysis.fashionExpression')}
                 />
                 <div className="space-y-3">
                   {analysis.analysis.style && (
@@ -461,8 +478,8 @@ export function CharacterScentChapter({
               <motion.div variants={fadeIn} className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                 <SectionHeader
                   icon={<Tag size={14} />}
-                  title="매칭 키워드"
-                  subtitle="나를 표현하는 단어들"
+                  title={t('analysis.matchingKeywords')}
+                  subtitle={t('analysis.expressionWords')}
                 />
                 <KeywordCloud keywords={analysis.matchingKeywords} />
               </motion.div>
@@ -473,8 +490,8 @@ export function CharacterScentChapter({
               <motion.div variants={fadeIn}>
                 <SectionHeader
                   icon={<Palette size={14} />}
-                  title="퍼스널 컬러"
-                  subtitle="이미지 컬러 분석"
+                  title={t('analysis.colorType')}
+                  subtitle={t('analysis.imageColorAnalysis')}
                 />
                 <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-200">
                   <div className="flex items-start gap-3 mb-4">
@@ -487,7 +504,7 @@ export function CharacterScentChapter({
                     <div>
                       <div className="inline-flex px-3 py-1 bg-yellow-400 rounded-lg border-2 border-slate-900 mb-2">
                         <span className="text-xs font-black text-slate-900">
-                          {SEASON_LABELS[analysis.personalColor.season]} {TONE_LABELS[analysis.personalColor.tone]}
+                          {tLabels(`seasons.${analysis.personalColor.season}`)} {tLabels(`tones.${analysis.personalColor.tone}`)}
                         </span>
                       </div>
                       <p className="text-slate-600 text-sm leading-relaxed font-medium">

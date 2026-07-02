@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Star, ThumbsUp, CheckCircle2, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import type { Review } from "@/lib/supabase/reviews"
 
 interface ReviewCardProps {
@@ -12,6 +13,8 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
+  const t = useTranslations()
+  const locale = useLocale()
   const [isLiking, setIsLiking] = useState(false)
   const [localLiked, setLocalLiked] = useState(review.has_liked || false)
   const [localCount, setLocalCount] = useState(review.helpful_count)
@@ -39,7 +42,14 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('ko-KR', {
+    const dateLocale = {
+      ko: 'ko-KR',
+      en: 'en-US',
+      ja: 'ja-JP',
+      zh: 'zh-CN',
+      es: 'es-ES',
+    }[locale] || locale
+    return date.toLocaleDateString(dateLocale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -47,7 +57,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
   }
 
   // admin_name이 있으면 우선 사용 (관리자 삽입 리뷰)
-  const displayName = review.admin_name || review.user_profile?.name || '익명'
+  const displayName = review.admin_name || review.user_profile?.name || t('review.anonymous')
   const maskedName = displayName.length <= 1
     ? displayName
     : displayName.length === 2
@@ -92,7 +102,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
             {review.is_verified && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full">
                 <CheckCircle2 size={10} />
-                구매인증
+                {t('review.verified')}
               </span>
             )}
           </div>
@@ -108,7 +118,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
         {/* 리뷰 내용 */}
         {review.content && (
           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-            "{review.content}"
+            &ldquo;{review.content}&rdquo;
           </p>
         )}
 
@@ -126,7 +136,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
               >
                 <img
                   src={img.image_url}
-                  alt={`리뷰 이미지 ${idx + 1}`}
+                  alt={t('review.reviewImageAlt', { index: idx + 1 })}
                   className="w-full h-full object-cover"
                 />
               </button>
@@ -152,12 +162,12 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
           >
             <ThumbsUp size={12} className={localLiked ? 'fill-current' : ''} />
             <span className="text-xs md:text-sm font-medium">
-              도움돼요 {localCount > 0 && localCount}
+              {t('review.helpful')} {localCount > 0 && localCount}
             </span>
           </button>
 
           {!currentUserId && (
-            <span className="text-[10px] md:text-xs text-slate-400">로그인 후 좋아요</span>
+            <span className="text-[10px] md:text-xs text-slate-400">{t('review.loginToLike')}</span>
           )}
         </div>
       </motion.div>

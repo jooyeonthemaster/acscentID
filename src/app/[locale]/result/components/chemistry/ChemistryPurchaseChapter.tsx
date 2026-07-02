@@ -10,6 +10,7 @@ import { apiFetch } from "@/lib/api-client"
 import type { ImageAnalysisResult } from "@/types/analysis"
 import { formatPrice } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useLocalizedPerfumes } from "@/hooks/useLocalizedPerfumes"
 import { useTranslations } from 'next-intl'
 
 interface ChemistryPurchaseChapterProps {
@@ -26,6 +27,7 @@ export function ChemistryPurchaseChapter({
   const { user, unifiedUser } = useAuth()
   const { showToast } = useToast()
   const t = useTranslations()
+  const { getLocalizedName } = useLocalizedPerfumes()
   const [selectedSize, setSelectedSize] = useState<'set_10ml' | 'set_50ml'>('set_10ml')
   const [isAdding, setIsAdding] = useState(false)
   const { getOptions, getOption } = useProductPricing()
@@ -35,16 +37,20 @@ export function ChemistryPurchaseChapter({
 
   const perfumeA = characterA.matchingPerfumes[0]?.persona
   const perfumeB = characterB.matchingPerfumes[0]?.persona
+  const perfumeAId = characterA.matchingPerfumes[0]?.perfumeId
+  const perfumeBId = characterB.matchingPerfumes[0]?.perfumeId
+  const perfumeAName = perfumeAId ? getLocalizedName(perfumeAId, perfumeA?.name) : perfumeA?.name
+  const perfumeBName = perfumeBId ? getLocalizedName(perfumeBId, perfumeB?.name) : perfumeB?.name
 
   const handleAddToCart = async () => {
     if (!user && !unifiedUser) {
-      showToast(t('chemistry.buttons.loginRequired') || "로그인이 필요합니다.", "error")
+      showToast(t('chemistry.buttons.loginRequired'), "error")
       return
     }
     setIsAdding(true)
     try {
       const resultStr = sessionStorage.getItem('chemistry_result')
-      if (!resultStr) throw new Error(t('chemistry.buttons.noResult') || '분석 결과를 찾을 수 없습니다.')
+      if (!resultStr) throw new Error(t('chemistry.buttons.noResult'))
 
       const formStr = sessionStorage.getItem('chemistry_form')
       const formMeta = formStr ? JSON.parse(formStr) : {}
@@ -64,7 +70,7 @@ export function ChemistryPurchaseChapter({
 
       const saveData = await saveResponse.json()
       if (!saveData.success) {
-        throw new Error(saveData.error || '결과 저장 실패')
+        throw new Error(saveData.error || t('chemistry.errors.saveFailed'))
       }
 
       const cartResponse = await apiFetch('/api/cart', {
@@ -73,7 +79,7 @@ export function ChemistryPurchaseChapter({
         body: JSON.stringify({
           layering_session_id: saveData.sessionId,
           product_type: 'chemistry_set',
-          perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
+          perfume_name: `${perfumeAName || t('chemistry.fallback.perfumeA')} x ${perfumeBName || t('chemistry.fallback.perfumeB')}`,
           perfume_brand: "AC'SCENT",
           twitter_name: `${character1Name} x ${character2Name}`,
           size: selectedSize,
@@ -83,12 +89,12 @@ export function ChemistryPurchaseChapter({
       })
       const cartData = await cartResponse.json()
       if (cartData.success) {
-        showToast(t('chemistry.buttons.addedToCart') || "장바구니에 추가되었습니다!", "success")
+        showToast(t('chemistry.buttons.addedToCart'), "success")
       } else {
         throw new Error(cartData.error)
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : (t('chemistry.buttons.addFailed') || '장바구니 추가에 실패했습니다.')
+      const msg = error instanceof Error ? error.message : t('chemistry.buttons.addFailed')
       showToast(msg, "error")
     } finally {
       setIsAdding(false)
@@ -115,7 +121,7 @@ export function ChemistryPurchaseChapter({
                 className="w-14 h-14 rounded-full border-2 border-violet-300 mx-auto shadow-[2px_2px_0_0_#8b5cf6]"
                 style={{ background: perfumeA ? `linear-gradient(135deg, ${perfumeA.primaryColor}, ${perfumeA.secondaryColor})` : '#ddd' }}
               />
-              <span className="text-xs font-bold text-slate-800 mt-1.5 block">{perfumeA?.name || '향수 A'}</span>
+              <span className="text-xs font-bold text-slate-800 mt-1.5 block">{perfumeAName || t('chemistry.fallback.perfumeA')}</span>
               <span className="text-[10px] text-violet-500 font-bold">{character1Name}</span>
             </div>
             <div className="text-center">
@@ -129,7 +135,7 @@ export function ChemistryPurchaseChapter({
                 className="w-14 h-14 rounded-full border-2 border-pink-300 mx-auto shadow-[2px_2px_0_0_#ec4899]"
                 style={{ background: perfumeB ? `linear-gradient(135deg, ${perfumeB.primaryColor}, ${perfumeB.secondaryColor})` : '#ddd' }}
               />
-              <span className="text-xs font-bold text-slate-800 mt-1.5 block">{perfumeB?.name || '향수 B'}</span>
+              <span className="text-xs font-bold text-slate-800 mt-1.5 block">{perfumeBName || t('chemistry.fallback.perfumeB')}</span>
               <span className="text-[10px] text-pink-500 font-bold">{character2Name}</span>
             </div>
           </div>
@@ -167,20 +173,20 @@ export function ChemistryPurchaseChapter({
             className="w-full h-14 rounded-2xl font-black text-base flex items-center justify-center gap-2 bg-slate-900 text-white border-2 border-black shadow-[4px_4px_0_0_black] hover:shadow-[2px_2px_0_0_black] transition-all disabled:opacity-50"
           >
             <ShoppingCart size={18} />
-            <span>{isAdding ? (t('buttons.loading') || '추가 중...') : (t('chemistry.buttons.addToCart') || '장바구니 담기')}</span>
+            <span>{isAdding ? t('chemistry.buttons.addingToCart') : t('chemistry.buttons.addToCart')}</span>
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={async () => {
               if (!user && !unifiedUser) {
-                showToast(t('chemistry.buttons.loginRequired') || "로그인이 필요합니다.", "error")
+                showToast(t('chemistry.buttons.loginRequired'), "error")
                 return
               }
               setIsAdding(true)
               try {
                 const resultStr = sessionStorage.getItem('chemistry_result')
-                if (!resultStr) throw new Error('분석 결과를 찾을 수 없습니다.')
+                if (!resultStr) throw new Error(t('chemistry.buttons.noResult'))
 
                 const formStr2 = sessionStorage.getItem('chemistry_form')
                 const formMeta2 = formStr2 ? JSON.parse(formStr2) : {}
@@ -198,7 +204,7 @@ export function ChemistryPurchaseChapter({
                   }),
                 })
                 const saveData = await saveResponse.json()
-                if (!saveData.success) throw new Error(saveData.error || '결과 저장 실패')
+                if (!saveData.success) throw new Error(saveData.error || t('chemistry.errors.saveFailed'))
 
                 await apiFetch('/api/cart', {
                   method: 'POST',
@@ -206,7 +212,7 @@ export function ChemistryPurchaseChapter({
                   body: JSON.stringify({
                     layering_session_id: saveData.sessionId,
                     product_type: 'chemistry_set',
-                    perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
+                    perfume_name: `${perfumeAName || t('chemistry.fallback.perfumeA')} x ${perfumeBName || t('chemistry.fallback.perfumeB')}`,
                     perfume_brand: "AC'SCENT",
                     twitter_name: `${character1Name} x ${character2Name}`,
                     size: selectedSize,
@@ -220,7 +226,7 @@ export function ChemistryPurchaseChapter({
                 localStorage.setItem('checkoutLayeringSessionId', saveData.sessionId)
                 router.push('/checkout')
               } catch (error) {
-                const msg = error instanceof Error ? error.message : '결제 진행에 실패했습니다.'
+                const msg = error instanceof Error ? error.message : t('chemistry.errors.checkoutFailed')
                 showToast(msg, "error")
                 setIsAdding(false)
               }
@@ -229,7 +235,7 @@ export function ChemistryPurchaseChapter({
             className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-violet-600 text-white border-2 border-violet-700 hover:bg-violet-700 transition-all disabled:opacity-50"
           >
             <CreditCard size={16} />
-            <span>{t('checkout.orderProduct') || '바로 구매'}</span>
+            <span>{t('checkout.orderProduct')}</span>
           </motion.button>
         </div>
       </div>

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Star, Loader2, PenLine } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { ReviewStats } from "./ReviewStats"
 import { ReviewList } from "./ReviewList"
 import { getReviewStats, checkPurchase } from "@/lib/supabase/reviews"
@@ -25,26 +26,14 @@ export function ReviewModal({
   currentUserId,
   onWriteReview
 }: ReviewModalProps) {
+  const t = useTranslations()
   const [stats, setStats] = useState<ReviewStatsType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [ratingFilter, setRatingFilter] = useState<number | null>(null)
   const [canWriteReview, setCanWriteReview] = useState(false)
   const [hasReviewed, setHasReviewed] = useState(false)
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-      loadData()
-    } else {
-      document.body.style.overflow = ''
-    }
-
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true)
     try {
       const [statsData, purchaseData] = await Promise.all([
@@ -63,7 +52,20 @@ export function ReviewModal({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentUserId, programType])
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      loadData()
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen, loadData])
 
   if (!isOpen) return null
 
@@ -92,7 +94,7 @@ export function ReviewModal({
               <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 border-b-2 border-black bg-white rounded-t-3xl md:rounded-t-3xl">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-lg md:text-xl font-black text-black">리뷰</h2>
+	                    <h2 className="text-lg md:text-xl font-black text-black">{t('review.totalReview')}</h2>
                     <p className="text-xs md:text-sm text-slate-500 truncate">{programName}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -103,10 +105,10 @@ export function ReviewModal({
                           if (canWriteReview) {
                             onWriteReview?.()
                           } else if (hasReviewed) {
-                            alert('이미 리뷰를 작성했어요!')
-                          } else {
-                            alert('상품 구매 후 리뷰를 작성할 수 있어요!')
-                          }
+	                            alert(t('review.alreadyReviewedAlert'))
+	                          } else {
+	                            alert(t('review.purchaseRequiredAlert'))
+	                          }
                         }}
                         className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-xl font-bold text-xs md:text-sm border-2 border-black transition-all ${
                           canWriteReview
@@ -115,7 +117,7 @@ export function ReviewModal({
                         }`}
                       >
                         <PenLine size={14} />
-                        <span className="hidden sm:inline">리뷰쓰기</span>
+	                        <span className="hidden sm:inline">{t('review.writeButton')}</span>
                       </button>
                     )}
 
@@ -174,6 +176,7 @@ interface ReviewTriggerProps {
 }
 
 export function ReviewTrigger({ averageRating, totalCount, onClick }: ReviewTriggerProps) {
+  const t = useTranslations()
   return (
     <button
       onClick={onClick}
@@ -195,7 +198,7 @@ export function ReviewTrigger({ averageRating, totalCount, onClick }: ReviewTrig
         {averageRating.toFixed(1)} ({totalCount.toLocaleString()})
       </span>
       <span className="text-xs text-slate-400 group-hover:text-slate-600">
-        클릭하여 리뷰 보기 →
+        {t('review.viewReviews')}
       </span>
     </button>
   )

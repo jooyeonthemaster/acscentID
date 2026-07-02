@@ -142,28 +142,34 @@ export function mapStoreProductRow(row: StoreProductRow): StoreProduct {
   }
 }
 
-export function getStoreProductName(product: StoreProduct, scent: TodayScent): string {
-  return `${scent.name} · ${product.title}`
+export function getStoreProductName(product: StoreProduct, scent: TodayScent, productTitle = product.title): string {
+  return `${scent.name} · ${productTitle}`
 }
 
 export function buildStoreCheckoutUrl(product: StoreProduct, scent: TodayScent): string {
   return `/checkout?product=store&type=${STORE_PRODUCT_TYPE}&item=${product.slug}&scent=${scent.id}&size=${product.size}`
 }
 
-export function buildStoreAnalysisData(product: StoreProduct, scent: TodayScent, requestNote?: string) {
+export function buildStoreAnalysisData(
+  product: StoreProduct,
+  scent: TodayScent,
+  requestNote?: string,
+  productTitle = product.title,
+  productShortLabel = product.shortLabel,
+) {
   const note = requestNote?.trim()
   return {
     matchingPerfumes: [{
       perfumeId: scent.id,
       persona: {
-        name: getStoreProductName(product, scent),
+        name: getStoreProductName(product, scent, productTitle),
         recommendation: scent.vibe,
       },
     }],
-    matchingKeywords: [product.shortLabel, ...scent.keywords],
+    matchingKeywords: [productShortLabel, ...scent.keywords],
     storeProduct: {
       slug: product.slug,
-      title: product.title,
+      title: productTitle,
       size: product.size,
       scentId: scent.id,
       scentName: scent.name,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, Camera, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { ReviewCard } from "./ReviewCard"
 import { getReviews, toggleReviewLike } from "@/lib/supabase/reviews"
 import type { Review, ReviewFilter } from "@/lib/supabase/reviews"
@@ -15,10 +16,10 @@ interface ReviewListProps {
 }
 
 const SORT_OPTIONS = [
-  { value: 'latest', label: '최신순' },
-  { value: 'rating_high', label: '별점 높은순' },
-  { value: 'rating_low', label: '별점 낮은순' },
-  { value: 'helpful', label: '도움순' },
+  { value: 'latest', labelKey: 'review.sortLatest' },
+  { value: 'rating_high', labelKey: 'review.sortHighRating' },
+  { value: 'rating_low', labelKey: 'review.sortLowRating' },
+  { value: 'helpful', labelKey: 'review.sortHelpful' },
 ] as const
 
 const REVIEWS_PER_PAGE = 5
@@ -29,6 +30,7 @@ export function ReviewList({
   ratingFilter,
   onRatingFilterChange
 }: ReviewListProps) {
+  const t = useTranslations()
   const [reviews, setReviews] = useState<Review[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
@@ -106,7 +108,7 @@ export function ReviewList({
             onClick={() => setShowSortDropdown(!showSortDropdown)}
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white border-2 border-black rounded-xl font-bold text-xs md:text-sm shadow-[2px_2px_0_0_black] hover:shadow-[3px_3px_0_0_black] transition-all"
           >
-            {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+            {t(SORT_OPTIONS.find(o => o.value === sortBy)?.labelKey || 'review.sortLatest')}
             <ChevronDown size={14} className={`transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
           </button>
 
@@ -125,7 +127,7 @@ export function ReviewList({
                   className="fixed left-4 right-4 bottom-4 md:absolute md:bottom-auto md:top-full md:left-0 md:right-auto md:mt-2 w-auto md:w-40 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_black] overflow-hidden z-50"
                 >
                   <div className="p-2 border-b border-slate-200 md:hidden">
-                    <p className="text-xs font-bold text-slate-500 text-center">정렬 방식</p>
+                    <p className="text-xs font-bold text-slate-500 text-center">{t('review.sortLabel')}</p>
                   </div>
                   {SORT_OPTIONS.map((option) => (
                     <button
@@ -140,7 +142,7 @@ export function ReviewList({
                           : 'hover:bg-slate-50'
                       }`}
                     >
-                      {option.label}
+	                      {t(option.labelKey)}
                     </button>
                   ))}
                 </motion.div>
@@ -159,14 +161,14 @@ export function ReviewList({
           }`}
         >
           <Camera size={14} />
-          <span className="hidden sm:inline">사진리뷰만</span>
-          <span className="sm:hidden">사진</span>
+          <span className="hidden sm:inline">{t('review.photoReviewOnly')}</span>
+          <span className="sm:hidden">{t('review.photo')}</span>
         </button>
 
         {/* 별점 필터 표시 */}
         {ratingFilter && (
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-xl font-bold text-xs md:text-sm">
-            {ratingFilter}점
+            {t('review.star', { rating: ratingFilter })}
             <button
               onClick={() => onRatingFilterChange?.(null)}
               className="text-yellow-600 hover:text-black"
@@ -182,7 +184,7 @@ export function ReviewList({
             onClick={handleClearFilters}
             className="px-2 py-1.5 text-xs md:text-sm text-slate-500 hover:text-black transition-colors"
           >
-            초기화
+            {t('review.reset')}
           </button>
         )}
       </div>
@@ -194,8 +196,8 @@ export function ReviewList({
         </div>
       ) : reviews.length === 0 ? (
         <div className="text-center py-8 md:py-12">
-          <p className="text-slate-500">아직 리뷰가 없어요</p>
-          <p className="text-xs md:text-sm text-slate-400 mt-1">첫 번째 리뷰를 작성해보세요!</p>
+          <p className="text-slate-500">{t('review.noReviews')}</p>
+          <p className="text-xs md:text-sm text-slate-400 mt-1">{t('review.writeFirst')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -276,7 +278,11 @@ export function ReviewList({
       {/* 페이지 정보 */}
       {totalPages > 1 && !isLoading && (
         <p className="text-center text-xs text-slate-500 mt-3">
-          {totalCount}개 리뷰 중 {(page - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(page * REVIEWS_PER_PAGE, totalCount)}번째
+          {t('review.reviewRange', {
+            total: totalCount,
+            start: (page - 1) * REVIEWS_PER_PAGE + 1,
+            end: Math.min(page * REVIEWS_PER_PAGE, totalCount),
+          })}
         </p>
       )}
     </div>

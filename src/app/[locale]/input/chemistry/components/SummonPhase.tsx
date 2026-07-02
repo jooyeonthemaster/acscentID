@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Camera, X, Loader2, Moon, Sun, KeyRound } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ChemistryFormState } from "../hooks/useChemistryForm"
 
 interface SummonPhaseProps {
@@ -24,6 +25,7 @@ export function SummonPhase({
   isCompressing1, isCompressing2,
   isOffline,
 }: SummonPhaseProps) {
+  const t = useTranslations('chemistry')
   const input1Ref = useRef<HTMLInputElement>(null)
   const input2Ref = useRef<HTMLInputElement>(null)
 
@@ -55,12 +57,12 @@ export function SummonPhase({
         className="space-y-1.5"
       >
         <label className="block text-xs font-black text-slate-500 uppercase tracking-wider px-1">
-          분석 대상
+          {t('target.label')}
         </label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { key: "idol", label: "최애", emoji: "💖", desc: "최애 케미 분석" },
-            { key: "self", label: "나와 상대방", emoji: "🪞", desc: "나와 상대방의 케미 분석" },
+            { key: "idol", label: t('target.idol'), emoji: "💖", desc: t('target.idolDesc') },
+            { key: "self", label: t('target.self'), emoji: "🪞", desc: t('target.selfDesc') },
           ] as const).map(({ key, label, emoji, desc }) => {
             const isActive = (formData.targetType ?? "idol") === key
             return (
@@ -95,7 +97,7 @@ export function SummonPhase({
           className="space-y-2"
         >
           <div className="bg-white border-2 border-black rounded-xl p-3 shadow-[3px_3px_0_0_black]">
-            <label className="block text-xs font-black text-slate-700 mb-2">인증 번호 (숫자 4자리)</label>
+            <label className="block text-xs font-black text-slate-700 mb-2">{t('pin.label')}</label>
             <input
               type="tel"
               inputMode="numeric"
@@ -119,10 +121,10 @@ export function SummonPhase({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-black text-rose-700 leading-tight">
-                아무 숫자 4자리를 입력하고 기억해주세요!
+                {t('pin.helpTitle')}
               </p>
               <p className="text-[10px] text-rose-600/80 mt-0.5 leading-snug">
-                나중에 결과를 확인할 때 이 번호가 필요합니다. 본인만 기억하면 OK!
+                {t('pin.helpDesc')}
               </p>
             </div>
           </motion.div>
@@ -141,10 +143,10 @@ export function SummonPhase({
           >
             <div className="bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl p-4 shadow-2xl shadow-rose-500/30 border-2 border-rose-400">
               <div className="text-center">
-                <p className="text-white/80 text-xs font-medium">입력하신 번호는</p>
+                <p className="text-white/80 text-xs font-medium">{t('pin.toastLabel')}</p>
                 <p className="text-white text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
               </div>
-              <p className="text-white/70 text-[11px] mt-2 text-center">이 번호를 꼭 기억해주세요! 📝</p>
+              <p className="text-white/70 text-[11px] mt-2 text-center">{t('pin.toastHelp')}</p>
             </div>
           </motion.div>
         )}
@@ -155,7 +157,7 @@ export function SummonPhase({
         {/* 캐릭터 A */}
         <CharacterCard
           icon={<Moon size={16} />}
-          label="인물 A"
+          label={t('summon.characterA')}
           emoji="🌙"
           name={formData.character1Name}
           imageBase64={formData.character1ImageBase64}
@@ -169,7 +171,7 @@ export function SummonPhase({
         {/* 캐릭터 B */}
         <CharacterCard
           icon={<Sun size={16} />}
-          label="인물 B"
+          label={t('summon.characterB')}
           emoji="☀️"
           name={formData.character2Name}
           imageBase64={formData.character2ImageBase64}
@@ -182,8 +184,8 @@ export function SummonPhase({
       </div>
 
       {/* [FIX] HIGH: file input에 라벨 추가 */}
-      <input ref={input1Ref} type="file" accept="image/*" className="hidden" onChange={handleImage1Upload} aria-label="인물 A 이미지 업로드" id="chemistry-image-1" />
-      <input ref={input2Ref} type="file" accept="image/*" className="hidden" onChange={handleImage2Upload} aria-label="인물 B 이미지 업로드" id="chemistry-image-2" />
+      <input ref={input1Ref} type="file" accept="image/*" className="hidden" onChange={handleImage1Upload} aria-label={t('summon.uploadAria', { character: t('summon.characterA') })} id="chemistry-image-1" />
+      <input ref={input2Ref} type="file" accept="image/*" className="hidden" onChange={handleImage2Upload} aria-label={t('summon.uploadAria', { character: t('summon.characterB') })} id="chemistry-image-2" />
 
       {/* 안내 문구 */}
       <motion.div
@@ -193,8 +195,8 @@ export function SummonPhase({
         className={`${isOffline ? 'bg-white/85 border-slate-200 p-2.5' : 'bg-violet-50 border-violet-200 p-4'} border-2 rounded-2xl text-center`}
       >
         <p className={`${isOffline ? 'text-[11px] text-slate-500' : 'text-xs text-violet-600'} font-medium leading-relaxed`}>
-          케미를 분석할 두 인물의 이미지를 업로드해주세요.
-          {!isOffline && <><br />실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!</>}
+          {t('summon.imageGuideMain')}
+          {!isOffline && <><br />{t('summon.imageGuideSub')}</>}
         </p>
       </motion.div>
     </div>
@@ -217,6 +219,7 @@ function CharacterCard({
   onRemoveImage: () => void
   accentColor: 'violet' | 'pink'
 }) {
+  const t = useTranslations('chemistry.summon')
   const borderColor = accentColor === 'violet' ? 'border-violet-400' : 'border-pink-400'
   const bgColor = accentColor === 'violet' ? 'bg-violet-50' : 'bg-pink-50'
   const focusBorder = accentColor === 'violet' ? 'focus:border-violet-500' : 'focus:border-pink-500'
@@ -241,7 +244,7 @@ function CharacterCard({
           onKeyDown={!imageBase64 ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onImageClick(); } } : undefined}
           role={!imageBase64 ? "button" : undefined}
           tabIndex={!imageBase64 ? 0 : undefined}
-          aria-label={!imageBase64 ? `${label} 이미지 선택` : undefined}
+          aria-label={!imageBase64 ? t('selectImageAria', { character: label }) : undefined}
           className={`relative w-full aspect-[4/3] rounded-xl border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
         >
           {isCompressing ? (
@@ -260,7 +263,7 @@ function CharacterCard({
           ) : (
             <div className="text-center">
               <Camera className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-              <span className="text-[10px] text-slate-400 font-medium">이미지 업로드</span>
+              <span className="text-[10px] text-slate-400 font-medium">{t('uploadImage')}</span>
             </div>
           )}
         </div>
@@ -271,7 +274,7 @@ function CharacterCard({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           className={`w-full mt-3 h-10 px-3 text-base font-bold text-center border-2 border-slate-300 rounded-xl ${focusBorder} focus:ring-2 focus:ring-violet-200 outline-none`}
-          placeholder="이름 입력"
+          placeholder={t('namePlaceholder')}
           maxLength={20}
         />
       </div>

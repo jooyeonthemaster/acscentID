@@ -30,7 +30,7 @@ import { useProductImages } from "@/hooks/useAdminContent"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { formatPrice, type AddToCartRequest, type CartItem } from "@/types/cart"
-import { TODAY_SCENTS, getScentById, type TodayScent } from "@/lib/today-scent/scents"
+import { TODAY_SCENTS, getScentById } from "@/lib/today-scent/scents"
 import {
   STORE_PRODUCT_IMAGE,
   STORE_PRODUCT_TYPE,
@@ -198,6 +198,7 @@ function ProductDetailInner({
   const t = useTranslations()
   const storeText = useStoreProductText()
   const localized = storeText(product)
+  const requestOnlyLabel = t('store.detail.requestOnlyLabel')
   const price = priceOption?.price ?? product.fallbackPrice
   const originalPrice = priceOption?.original_price ?? null
   const discount = originalPrice && originalPrice > price
@@ -215,10 +216,11 @@ function ProductDetailInner({
   }, [product.image, imageUrls])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [fragranceRequestNote, setFragranceRequestNote] = useState("")
+  const firstProductImage = productImages[0]
 
   useEffect(() => {
     setSelectedImageIndex(0)
-  }, [product.slug, productImages[0], productImages.length])
+  }, [product.slug, firstProductImage, productImages.length])
 
   const localizedDescription = localized.description
   const localizedIncluded = localized.included.join("\n")
@@ -296,12 +298,12 @@ function ProductDetailInner({
 
   // 향 미선택 + 요청 메모만 있는 경우의 메타데이터 (특정 향료 요청 전용 항목)
   const buildRequestOnlyAnalysisData = () => ({
-    matchingKeywords: [product.shortLabel],
+    matchingKeywords: [localized.shortLabel],
     storeProduct: {
       slug: product.slug,
-      title: product.title,
+      title: localized.title,
       size: product.size,
-      scentName: '특정 향료 요청',
+      scentName: requestOnlyLabel,
       requestNote: trimmedRequestNote,
     },
   })
@@ -310,7 +312,7 @@ function ProductDetailInner({
     if (items.length === 0) {
       return [{
         product_type: STORE_PRODUCT_TYPE,
-        perfume_name: `${product.title} (특정 향료 요청)`,
+        perfume_name: `${localized.title} (${requestOnlyLabel})`,
         perfume_brand: "AC'SCENT",
         size: product.size as AddToCartRequest["size"],
         price,
@@ -321,13 +323,13 @@ function ProductDetailInner({
     }
     return items.map(({ scent, quantity }) => ({
       product_type: STORE_PRODUCT_TYPE,
-      perfume_name: getStoreProductName(product, scent),
+      perfume_name: getStoreProductName(product, scent, localized.title),
       perfume_brand: "AC'SCENT",
       size: product.size as AddToCartRequest["size"],
       price,
       quantity,
       image_url: product.image || STORE_PRODUCT_IMAGE,
-      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote),
+      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote, localized.title, localized.shortLabel),
     }))
   }
 
@@ -340,7 +342,7 @@ function ProductDetailInner({
         analysis_id: null,
         layering_session_id: null,
         product_type: STORE_PRODUCT_TYPE,
-        perfume_name: `${product.title} (특정 향료 요청)`,
+        perfume_name: `${localized.title} (${requestOnlyLabel})`,
         perfume_brand: "AC'SCENT",
         twitter_name: null,
         size: product.size as CartItem["size"],
@@ -358,14 +360,14 @@ function ProductDetailInner({
       analysis_id: null,
       layering_session_id: null,
       product_type: STORE_PRODUCT_TYPE,
-      perfume_name: getStoreProductName(product, scent),
+      perfume_name: getStoreProductName(product, scent, localized.title),
       perfume_brand: "AC'SCENT",
       twitter_name: null,
       size: product.size as CartItem["size"],
       price,
       quantity,
       image_url: product.image || STORE_PRODUCT_IMAGE,
-      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote),
+      analysis_data: buildStoreAnalysisData(product, scent, fragranceRequestNote, localized.title, localized.shortLabel),
       created_at: now,
       updated_at: now,
     }))
@@ -419,7 +421,7 @@ function ProductDetailInner({
       if (!res.ok) throw new Error(data.details || data.error || t('store.detail.addFailed'))
       emitCartChanged()
       if (selectedScentCount === 0 && trimmedRequestNote) {
-        alert(`"${trimmedRequestNote}" 요청이 장바구니에 담겼습니다`)
+        alert(t('store.detail.requestAddedToast', { note: trimmedRequestNote }))
       } else {
         alert(t('store.detail.addedToast', { count: selectedScentCount }))
       }

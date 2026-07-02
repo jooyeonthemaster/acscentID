@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import type { StoreProduct } from '@/lib/products/store-products'
 
@@ -20,7 +21,7 @@ type StoreProductLike = Pick<StoreProduct, 'slug' | 'title' | 'shortLabel' | 'de
 export function useStoreProductText() {
   const t = useTranslations()
 
-  return (product: StoreProductLike): LocalizedStoreText => {
+  return useCallback((product: StoreProductLike): LocalizedStoreText => {
     const base = `store.items.${product.slug}`
     const includedRaw = t.has(`${base}.included`) ? t.raw(`${base}.included`) : null
     return {
@@ -29,5 +30,5 @@ export function useStoreProductText() {
       description: t.has(`${base}.description`) ? t(`${base}.description`) : product.description,
       included: Array.isArray(includedRaw) ? (includedRaw as string[]) : product.included,
     }
-  }
+  }, [t])
 }

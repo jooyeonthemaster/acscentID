@@ -3,7 +3,10 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { RELATION_TROPES, ARCHETYPE_OPTIONS, SCENE_OPTIONS, EMOTION_KEYWORDS } from "@/types/analysis"
+import { getChemistryOptionLabel } from "@/lib/gemini/chemistry-labels"
+import type { Locale } from "@/i18n/config"
 import type { ChemistryFormState } from "../hooks/useChemistryForm"
 
 interface CardDeckProps {
@@ -19,9 +22,10 @@ export function CardDeck({
   currentCard, formData, setFormData, toggleEmotion,
   character1Name, character2Name,
 }: CardDeckProps) {
+  const t = useTranslations('chemistry')
   return (
     <div className="space-y-4">
-      <div className="flex justify-center gap-1.5 mb-2" role="progressbar" aria-valuenow={currentCard + 1} aria-valuemin={1} aria-valuemax={6} aria-label={`카드 ${currentCard + 1} / 6`}>
+      <div className="flex justify-center gap-1.5 mb-2" role="progressbar" aria-valuenow={currentCard + 1} aria-valuemin={1} aria-valuemax={6} aria-label={t('deck.cardProgress', { current: currentCard + 1, total: 6 })}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
@@ -107,7 +111,7 @@ function CardWrapper({ children }: { children: React.ReactNode }) {
 
 // 직접 입력 토글 컴포넌트
 function CustomInputToggle({
-  isOpen, onToggle, value, onChange, placeholder = "직접 입력해주세요",
+  isOpen, onToggle, value, onChange, placeholder,
 }: {
   isOpen: boolean
   onToggle: () => void
@@ -115,6 +119,7 @@ function CustomInputToggle({
   onChange: (v: string) => void
   placeholder?: string
 }) {
+  const t = useTranslations('chemistry.deck')
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -129,7 +134,7 @@ function CustomInputToggle({
           className="w-full py-2.5 px-4 text-xs font-bold text-slate-500 bg-white/80 rounded-xl border-2 border-dashed border-slate-300 hover:border-violet-400 hover:text-violet-600 transition-all flex items-center justify-center gap-1"
         >
           <ChevronDown size={14} />
-          <span>+ 직접 입력하기</span>
+          <span>{t('customInput')}</span>
         </button>
       ) : (
         <div className="relative">
@@ -138,7 +143,7 @@ function CustomInputToggle({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={placeholder || t('customPlaceholder')}
             className="relative w-full p-3 bg-white/90 rounded-xl text-base text-slate-800 placeholder:text-slate-400 outline-none border-2 border-violet-200 shadow-lg shadow-violet-400/10 focus:border-violet-400 focus:bg-white transition-all"
             maxLength={50}
           />
@@ -153,6 +158,8 @@ function TropeCard({ formData, setFormData }: {
   formData: ChemistryFormState
   setFormData: React.Dispatch<React.SetStateAction<ChemistryFormState>>
 }) {
+  const locale = useLocale() as Locale
+  const t = useTranslations('chemistry.deck')
   const [showCustom, setShowCustom] = useState(!!formData.customTrope)
 
   const toggleTrope = (id: string) => {
@@ -165,8 +172,8 @@ function TropeCard({ formData, setFormData }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">이 둘의 관계는?</h2>
-        <p className="text-xs text-slate-500 mt-1">해당하는 관계를 모두 골라주세요</p>
+        <h2 className="text-lg font-black text-slate-900">{t('tropeTitle')}</h2>
+        <p className="text-xs text-slate-500 mt-1">{t('tropeSubtitle')}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {RELATION_TROPES.map((trope) => {
@@ -184,7 +191,7 @@ function TropeCard({ formData, setFormData }: {
               }`}
             >
               <span className="text-xl block mb-1">{trope.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{trope.label}</span>
+              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(trope.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -194,7 +201,7 @@ function TropeCard({ formData, setFormData }: {
         onToggle={() => setShowCustom(true)}
         value={formData.customTrope}
         onChange={(v) => setFormData(prev => ({ ...prev, customTrope: v }))}
-        placeholder="예: 오랜 파트너, 라이벌이자 동료..."
+        placeholder={t('customTropePlaceholder')}
       />
     </div>
   )
@@ -210,6 +217,8 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
   onToggle: (v: string) => void
   onCustomChange: (v: string) => void
 }) {
+  const locale = useLocale() as Locale
+  const t = useTranslations('chemistry.deck')
   const [showCustom, setShowCustom] = useState(!!customValue)
 
   return (
@@ -234,8 +243,8 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               <span className="text-sm">{emoji}</span>
               <span className="text-sm font-black text-slate-900">{label}</span>
             </div>
-            <h2 className="text-sm font-black text-slate-900">이 인물은 어떤 성격인가요?</h2>
-            <p className="text-[11px] text-slate-600 mt-0.5">해당하는 성격을 모두 골라주세요</p>
+            <h2 className="text-sm font-black text-slate-900">{t('archetypeQuestion', { name: label })}</h2>
+            <p className="text-[11px] text-slate-600 mt-0.5">{t('archetypeSubtitle')}</p>
           </div>
         </div>
       </div>
@@ -254,7 +263,7 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               }`}
             >
               <span className="text-xl block mb-1">{arch.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{arch.label}</span>
+              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(arch.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -264,7 +273,7 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
         onToggle={() => setShowCustom(true)}
         value={customValue}
         onChange={onCustomChange}
-        placeholder="예: 겉은 차갑지만 속은 따뜻한 타입..."
+        placeholder={t('customArchetypePlaceholder')}
       />
     </div>
   )
@@ -275,6 +284,8 @@ function SceneCard({ formData, setFormData }: {
   formData: ChemistryFormState
   setFormData: React.Dispatch<React.SetStateAction<ChemistryFormState>>
 }) {
+  const locale = useLocale() as Locale
+  const t = useTranslations('chemistry.deck')
   const [showCustom, setShowCustom] = useState(!!formData.customScene)
 
   const toggleScene = (id: string) => {
@@ -287,8 +298,8 @@ function SceneCard({ formData, setFormData }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">이 둘이 만나는 장소는?</h2>
-        <p className="text-xs text-slate-500 mt-1">어울리는 장면을 모두 골라주세요</p>
+        <h2 className="text-lg font-black text-slate-900">{t('sceneTitle')}</h2>
+        <p className="text-xs text-slate-500 mt-1">{t('sceneSubtitle')}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {SCENE_OPTIONS.map((scene) => {
@@ -305,7 +316,7 @@ function SceneCard({ formData, setFormData }: {
               }`}
             >
               <span className="text-2xl block mb-2">{scene.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{scene.label}</span>
+              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(scene.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -315,7 +326,7 @@ function SceneCard({ formData, setFormData }: {
         onToggle={() => setShowCustom(true)}
         value={formData.customScene}
         onChange={(v) => setFormData(prev => ({ ...prev, customScene: v }))}
-        placeholder="예: 눈 내리는 놀이공원, 새벽 편의점..."
+        placeholder={t('customScenePlaceholder')}
       />
     </div>
   )
@@ -327,13 +338,15 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
   setFormData: React.Dispatch<React.SetStateAction<ChemistryFormState>>
   toggleEmotion: (keyword: string) => void
 }) {
+  const locale = useLocale() as Locale
+  const t = useTranslations('chemistry.deck')
   const [showCustom, setShowCustom] = useState(!!formData.customEmotion)
 
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">이 둘 사이의 감정은?</h2>
-        <p className="text-xs text-slate-500 mt-1">2~3개를 선택해주세요</p>
+        <h2 className="text-lg font-black text-slate-900">{t('emotionTitle')}</h2>
+        <p className="text-xs text-slate-500 mt-1">{t('emotionSubtitle')}</p>
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         {EMOTION_KEYWORDS.map((emotion) => {
@@ -351,20 +364,20 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
               }`}
             >
               <span className="text-base mr-1">{emotion.emoji}</span>
-              <span className="text-xs font-bold text-slate-800">{emotion.label}</span>
+              <span className="text-xs font-bold text-slate-800">{getChemistryOptionLabel(emotion.id, locale)}</span>
             </motion.button>
           )
         })}
       </div>
       <div className="mt-4 text-center text-xs text-violet-500 font-medium">
-        {formData.emotionKeywords.length}/3 선택됨
+        {t('selectedCount', { count: formData.emotionKeywords.length, max: 3 })}
       </div>
       <CustomInputToggle
         isOpen={showCustom}
         onToggle={() => setShowCustom(true)}
         value={formData.customEmotion}
         onChange={(v) => setFormData(prev => ({ ...prev, customEmotion: v }))}
-        placeholder="예: 묘한 긴장감, 서로를 향한 질투심..."
+        placeholder={t('customEmotionPlaceholder')}
       />
     </div>
   )
@@ -375,18 +388,19 @@ function MessageCard({ formData, setFormData }: {
   formData: ChemistryFormState
   setFormData: React.Dispatch<React.SetStateAction<ChemistryFormState>>
 }) {
+  const t = useTranslations('chemistry.deck')
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">마지막으로 한마디!</h2>
-        <p className="text-xs text-slate-500 mt-1">둘의 관계, 원하는 향 무드 등 자유롭게 적어주세요</p>
+        <h2 className="text-lg font-black text-slate-900">{t('messageTitle')}</h2>
+        <p className="text-xs text-slate-500 mt-1">{t('messageSubtitle')}</p>
       </div>
 
       <textarea
         value={formData.message}
         onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
         className="w-full h-32 px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none resize-none"
-        placeholder={"예시)\n• 둘이 티격태격하지만 서로 아끼는 사이예요\n• 상쾌하고 시원한 느낌의 향이 좋아요\n• 달달하면서도 묵직한 무드로 해주세요"}
+        placeholder={t('messagePlaceholder')}
         maxLength={300}
       />
 
@@ -396,7 +410,7 @@ function MessageCard({ formData, setFormData }: {
 
       <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl p-3">
         <p className="text-[11px] text-violet-500 leading-relaxed text-center">
-          비워두셔도 괜찮아요! AI가 이미지와 설정을 바탕으로 분석합니다
+          {t('messageHint')}
         </p>
       </div>
     </div>

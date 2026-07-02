@@ -2,10 +2,12 @@
 
 import { useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { compressImage } from "@/lib/image/compressor"
 import { apiFetch } from "@/lib/api-client"
+import { useLocaleSwitchState } from "@/hooks/useLocaleSwitchState"
 import type { ChemistryAnalysisResult } from "@/types/analysis"
 
 export type ChemistryPhase = 'summon' | 'deck' | 'catalyst'
@@ -53,9 +55,16 @@ const INITIAL_FORM_DATA: ChemistryFormState = {
   customEmotion: "",
 }
 
+interface ChemistryLocaleSnapshot {
+  phase: ChemistryPhase
+  currentCard: number
+  formData: ChemistryFormState
+}
+
 export function useChemistryForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const locale = useLocale()
   const { showToast } = useToast()
   const mode = searchParams.get("mode")
   const serviceMode = searchParams.get("service_mode")
@@ -80,6 +89,27 @@ export function useChemistryForm() {
   const isOnline = !isOffline
 
   const TOTAL_CARDS = 6
+
+  const captureLocaleState = useCallback((): ChemistryLocaleSnapshot => ({
+    phase,
+    currentCard,
+    formData,
+  }), [currentCard, formData, phase])
+
+  const restoreLocaleState = useCallback((snapshot: ChemistryLocaleSnapshot) => {
+    setPhase(snapshot.phase || 'summon')
+    setCurrentCard(snapshot.currentCard ?? 0)
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      ...snapshot.formData,
+    })
+  }, [])
+
+  useLocaleSwitchState({
+    storageKey: `chemistry-input:${mode ?? ''}:${serviceMode ?? ''}:${qrCode ?? ''}`,
+    capture: captureLocaleState,
+    restore: restoreLocaleState,
+  })
 
   // 이미지 업로드 핸들러
   const handleImage1Upload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,6 +240,7 @@ export function useChemistryForm() {
           pin: formData.pin || null,
           qrCode: qrCode || null,
           targetType: formData.targetType || 'idol',
+          locale,
         }),
       })
 
@@ -226,7 +257,7 @@ export function useChemistryForm() {
       showToast(`분석 오류: ${errorMsg}`, "error")
       setIsSubmitting(false)
     }
-  }, [formData, isOffline, isSubmitting, qrCode, showAuthGate, showToast])
+  }, [formData, isOffline, isSubmitting, locale, qrCode, showAuthGate, showToast])
 
   // 결과 페이지로 이동
   const navigateToResult = useCallback(() => {
@@ -248,10 +279,11 @@ export function useChemistryForm() {
       pin: formData.pin || null,
       targetType: formData.targetType || 'idol',
       saveRunId,
+      resultLocale: locale,
     }))
 
     router.push('/result?type=chemistry')
-  }, [analysisResult, formData, isOffline, qrCode, router])
+  }, [analysisResult, formData, isOffline, locale, qrCode, router])
 
   return {
     phase,

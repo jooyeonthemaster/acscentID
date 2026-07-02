@@ -221,7 +221,9 @@
     "signaturePerfumDesc": "シグネチャーパフューム + アヒルキーリング",
     "customDuckDesc": "自分だけの3Dアヒルをカスタマイズ",
     "limitedSale": "⏰ {date}まで限定販売",
-    "limitedBadge": "~{date} 限定"
+    "limitedBadge": "~{date} 限定",
+    "prevBanner": "前のバナー",
+    "nextBanner": "次のバナー"
   },
   "programs": {
     "breadcrumbHome": "ホーム",
@@ -851,7 +853,8 @@
     "repurchaseBannerTitle": "再購入ありがとうございます！🎉",
     "repurchaseBannerSubtitle": "下の10%割引クーポンを選択して適用してください",
     "firstPurchasePromoTitle": "次回以降、ずっと10%オフ！💝",
-    "firstPurchasePromoSubtitle": "再購入クーポンが自動発行され、回数制限なく使えます"
+    "firstPurchasePromoSubtitle": "再購入クーポンが自動発行され、回数制限なく使えます",
+    "storeProductPerfumeIncluded": "{product}（スプレータイプ）"
   },
   "checkoutComplete": {
     "title": "注文完了",
@@ -1188,7 +1191,31 @@
     "totalReviews": "全{count}件のレビュー",
     "reviewRange": "{total}件のレビュー中 {start}-{end}番目",
     "star": "{rating}点",
-    "writeButton": "レビューを書く"
+    "writeButton": "レビューを書く",
+    "sortLabel": "並び替え",
+    "viewReviews": "レビューを見る →",
+    "alreadyReviewedAlert": "すでにレビューを投稿しています！",
+    "purchaseRequiredAlert": "商品購入後にレビューを書くことができます。",
+    "reviewImageAlt": "レビュー画像 {index}",
+    "writeTitle": "レビューを書く",
+    "writeCompleteTitle": "レビュー投稿完了！",
+    "writeCompleteDesc": "貴重なレビューありがとうございます",
+    "ratingQuestion": "パフュームはいかがでしたか？",
+    "contentLabel": "レビュー（任意）",
+    "contentPlaceholder": "この香りはいかがでしたか？率直な感想をお寄せください！",
+    "imageAttachLabel": "写真を追加（任意、最大{count}枚）",
+    "submitLoading": "レビューを投稿中...",
+    "submitButton": "レビューを投稿",
+    "imageLimitError": "画像は最大{count}枚まで添付できます",
+    "imageTypeError": "画像ファイルのみアップロードできます",
+    "imageSizeError": "画像は10MB以下にしてください",
+    "ratingRequiredError": "評価を選択してください",
+    "submitError": "レビューの投稿に失敗しました。もう一度お試しください。",
+    "ratingLabel1": "いまいち",
+    "ratingLabel2": "普通",
+    "ratingLabel3": "なかなか良い",
+    "ratingLabel4": "良い",
+    "ratingLabel5": "最高！"
   },
   "coupon": {
     "unlimitedUse": "無制限使用",
@@ -1324,6 +1351,8 @@
     "expressionWords": "あなたを表す言葉",
     "colorType": "カラータイプ",
     "imageColorAnalysis": "イメージカラー分析",
+    "topTraitMessage": "{trait}の魅力がいちばん際立っています！",
+    "scoreUnit": "点",
     "style": "スタイル",
     "expression": "表現と演出",
     "concept": "コンセプト"
@@ -2222,6 +2251,25 @@
   "chemistry": {
     "title": "ケミ香水",
     "description": "二人のキャラクターのケミを香りに込めて",
+    "progress": {
+      "summon": "召喚",
+      "deck": "カードデッキ",
+      "catalyst": "触媒"
+    },
+    "target": {
+      "label": "分析対象",
+      "idol": "推し",
+      "idolDesc": "推しのケミ分析",
+      "self": "自分と相手",
+      "selfDesc": "自分と相手のケミ分析"
+    },
+    "pin": {
+      "label": "認証番号（数字4桁）",
+      "helpTitle": "好きな4桁の数字を入力して覚えておいてください！",
+      "helpDesc": "あとで結果を確認するときに必要です。自分だけが覚えていればOK！",
+      "toastLabel": "入力した番号は",
+      "toastHelp": "この番号を必ず覚えておいてください！ 📝"
+    },
     "summon": {
       "title": "二人のキャラクターを召喚しよう",
       "subtitle": "画像とお名前を入力してください",
@@ -2229,31 +2277,51 @@
       "characterB": "キャラクター B",
       "pinLabel": "認証番号（4桁）",
       "uploadImage": "画像アップロード",
+      "uploadAria": "{character}の画像をアップロード",
+      "selectImageAria": "{character}の画像を選択",
       "namePlaceholder": "名前入力",
+      "imageGuideMain": "ケミを分析する二人の画像をアップロードしてください。",
+      "imageGuideSub": "写真、イラスト、ゲームキャラクター、アイドルすべてOK！",
       "imageGuide": "ケミを分析する二人のキャラクター画像をアップロードしてください。写真、イラスト、ゲームキャラクターすべてOK！"
     },
     "deck": {
+      "cardProgress": "カード {current} / {total}",
       "tropeTitle": "二人の関係は？",
-      "tropeSubtitle": "関係トロープを選択してください",
+      "tropeSubtitle": "当てはまる関係をすべて選んでください",
       "archetypeTitle": "のアーキタイプ",
+      "archetypeQuestion": "{name}はどんな性格ですか？",
       "archetypeSubtitle": "性格タイプを選択してください",
       "sceneTitle": "二人が出会う場所は？",
-      "sceneSubtitle": "シーン・雰囲気を選択してください",
+      "sceneSubtitle": "似合うシーンをすべて選んでください",
       "emotionTitle": "二人の間の感情は？",
       "emotionSubtitle": "2〜3個を選択してください",
       "scentTitle": "香りの方向は？",
       "scentSubtitle": "ケミの香り方向を設定してください",
       "fresh": "爽やか/軽め",
       "deep": "重厚/深い",
-      "messagePlaceholder": "二人のケミについて自由にお書きください..."
+      "customInput": "+ 直接入力",
+      "customPlaceholder": "直接入力してください",
+      "customTropePlaceholder": "例：長年のパートナー、ライバルであり仲間...",
+      "customArchetypePlaceholder": "例：外は冷たいけど中は温かいタイプ...",
+      "customScenePlaceholder": "例：雪の遊園地、深夜のコンビニ...",
+      "selectedCount": "{count}/{max} 選択済み",
+      "customEmotionPlaceholder": "例：微妙な緊張感、お互いへの嫉妬...",
+      "messageTitle": "最後に一言！",
+      "messageSubtitle": "二人の関係や希望する香りのムードを自由に書いてください",
+      "messagePlaceholder": "例）\n• けんかしながらもお互いを大切にしている\n• 爽やかでクールな香りが好き\n• 甘いけど重みのあるムードにしてほしい",
+      "messageHint": "空欄でも大丈夫です。AIが画像と設定をもとに分析します。"
     },
     "catalyst": {
       "ready": "触媒準備完了",
       "title": "ケミ分析を開始しますか？",
       "subtitle": "入力内容をご確認ください",
-      "guide": "AIが二人のキャラクターの画像と入力情報を分析し、ケミプロフィールとカスタム香水セットを提案します！"
+      "guide": "AIが二人のキャラクターの画像と入力情報を分析し、ケミプロフィールとカスタム香水セットを提案します！",
+      "guideLine1": "AIが二人の画像と入力情報を分析し、",
+      "guideLine2": "ケミプロフィールとカスタム香水セットを提案します！",
+      "duration": "（約30〜60秒）"
     },
     "analyzing": {
+      "title": "二つの香りのケミを分析しています",
       "quotes": [
         "二つの香りが出会う瞬間を調合中...",
         "ケミの化学反応を分析しています...",
@@ -2279,17 +2347,183 @@
       "dialogues": "代表セリフ",
       "story": "ケミストーリー",
       "future": "未来予測",
-      "purchase": "ケミ香水セット"
+      "purchase": "ケミ香水セット",
+      "analysisTab": "ケミ分析",
+      "faceMatch": "顔相性",
+      "chemistryType": "ケミタイプ",
+      "traits": "特徴",
+      "scent": "香り",
+      "dynamic": "関係",
+      "traitsRadar": "特徴レーダー比較",
+      "scentProfileComparison": "香りプロフィール比較",
+      "scentHarmonyDiagram": "香りのハーモニー",
+      "nameChemistry": "名前ケミ",
+      "nameChemistrySubtitle": "お楽しみ名前相性",
+      "sprayOrder": "つける順番",
+      "ratio": "比率",
+      "layeringTip": "レイヤリングのコツ",
+      "season": "季節",
+      "time": "時間帯",
+      "situation": "シーン",
+      "chemistryScore": "ケミスコア",
+      "sharedStrengths": "共通の強み",
+      "complementaryTraits": "補い合う特徴",
+      "summaryLabel": "まとめ",
+      "overallHarmony": "全体のハーモニー",
+      "bestMoment": "ベストモーメント",
+      "firstImpression": "第一印象",
+      "mood": "ムード",
+      "trail": "余韻",
+      "faceCriteria": {
+        "atmosphere": "雰囲気の調和",
+        "contrast": "寒暖バランス",
+        "colorHarmony": "色の調和",
+        "styleMatch": "スタイル相性"
+      },
+      "nameChemistryLevels": {
+        "perfect": "完璧なケミ！",
+        "good": "いいケミ！",
+        "pushPull": "駆け引きケミ！",
+        "twist": "ギャップ魅力ケミ！"
+      },
+      "timeline": {
+        "firstDay": "初めて会った日",
+        "oneWeek": "1週間後",
+        "oneMonth": "1か月後",
+        "oneYear": "1年後",
+        "forever": "永遠に",
+        "monthFallback": "お互いの香りに少しずつなじんでいる途中...",
+        "yearFallback": "もうこの香りなしではいられない関係に！",
+        "foreverFallback": "ふたつの香りがひとつの伝説になる瞬間 ✨"
+      }
     },
     "buttons": {
+      "analyze": "分析する",
       "openDeck": "カードデッキを開く",
       "nextCard": "次のカード",
       "startAnalysis": "ケミ分析を開始する",
       "addToCart": "カートに追加",
+      "addingToCart": "追加中...",
+      "buy": "購入",
       "loginRequired": "ログインが必要です。",
       "noResult": "分析結果が見つかりません。",
       "addedToCart": "カートに追加されました！",
       "addFailed": "カートへの追加に失敗しました。"
+    },
+    "typeLabels": {
+      "milddang": "駆け引きケミ",
+      "slowburn": "スローバーンケミ",
+      "dalddal": "甘いケミ",
+      "storm": "嵐のケミ"
+    },
+    "tiers": {
+      "soulmate": "運命の相性",
+      "realDeal": "本物のケミ",
+      "subtle": "ほのかなケミ",
+      "mysterious": "不思議な引力",
+      "soulmateDesc": "宇宙が認めた出会い",
+      "realDealDesc": "同じ世界線で確定",
+      "subtleDesc": "さりげなくよく合う関係",
+      "mysteriousDesc": "違うからこそ惹かれる魅力"
+    },
+    "share": {
+      "title": "{nameA} x {nameB} ケミ分析",
+      "copied": "共有リンクをコピーしました！",
+      "createFailed": "共有リンクの作成に失敗しました。",
+      "failed": "共有に失敗しました。"
+    },
+    "errors": {
+      "priceLoadFailed": "価格情報を読み込めませんでした。更新してもう一度お試しください。",
+      "saveFailed": "結果の保存に失敗しました。",
+      "checkoutFailed": "決済へ進めませんでした。",
+      "recipeLocalSaveFailed": "レシピはこの端末に一時保存されましたが、サーバー保存に失敗しました。ネットワークを確認してもう一度完了を押してください。",
+      "recipeServerSaveFailed": "レシピのサーバー保存に失敗しました。"
+    },
+    "fallback": {
+      "perfumeA": "香水A",
+      "perfumeB": "香水B",
+      "punchline": "このふたりのケミ、本物？！"
+    },
+    "feedback": {
+      "applyTaste": "好みを反映する",
+      "history": "フィードバック履歴"
+    },
+    "feedbackModal": {
+      "originalReason": "元の香りそのままが一番よかったという選択！",
+      "originalFanComment": "この香り自体が正解です。",
+      "originalExplanation": "変更せず元の香りをそのまま使うレシピです。",
+      "originalMaintained": "元の香りを維持",
+      "originalStep1": "元の香水をそのまま使います。",
+      "originalStep2": "追加ブレンドなしの単一香りで製造されます。",
+      "originalStep3": "容量(10ml/50ml/5ml)を選ぶと正確な原料量が計算されます。",
+      "originalCaution": "ブレンドせず元の原料だけを使う構成です。",
+      "originalFanMessage": "元の完成度を信じる選択、完璧です！",
+      "freeTextGoodPrefix": "よかった点",
+      "freeTextWishPrefix": "希望する変更",
+      "recipeGenerateFailed": "レシピ生成に失敗しました。",
+      "genericError": "エラーが発生しました。",
+      "recipeSaveFailed": "レシピ保存中にエラーが発生しました。",
+      "originalLayeringNote": "{nameA}の{perfumeA}と{nameB}の{perfumeB} — どちらも元の香りそのままが正解という選択です。",
+      "originalPairExplanation": "それぞれ元の香りの完成度に満足した構成です。重ねてもそれぞれの個性がそのまま生きます。",
+      "title": "好みを反映する",
+      "completedShort": "完了",
+      "question": "この香りはいかがでしたか？",
+      "satisfied": "満足！このままで好き",
+      "wantChange": "少し変えてみたい",
+      "retentionTitle": "元の香りの維持率",
+      "newCompletely": "まったく新しく",
+      "keepAlmost": "ほぼ維持",
+      "retentionSummary": "元の香りを{percent}%維持",
+      "feedbackGoodTitle": "この香りの好きな点・苦手な点は？",
+      "feedbackGoodPlaceholder": "例：最初の香りは好きだけど後半が甘すぎる、ウッディ感が好き...",
+      "feedbackWishTitle": "香りをこう変えたい",
+      "feedbackWishPlaceholder": "例：もっと爽やかに、夏らしく、甘いけど控えめに...",
+      "intensityTitle": "希望する香りの存在感",
+      "intensity": {
+        "subtle": "ほのかに",
+        "subtleSub": "ふわっと香る",
+        "moderate": "ほどよく",
+        "moderateSub": "自然な印象",
+        "bold": "しっかり",
+        "boldSub": "印象的に"
+      },
+      "generatingTitle": "好みを分析しています...",
+      "generatingSubtitle": "各香水ごとに2つの代案を準備中",
+      "selectOptionTitle": "案1または案2をタップして選んでください",
+      "selectOptionHint": "合計10滴基準 — 各原料を滴数どおりに混ぜて、香りを試してから決めましょう。",
+      "option1": "案1",
+      "option2": "案2",
+      "finalRecipeTitle": "最終製造レシピ",
+      "finalRecipeDesc": "容量を選ぶとA/B原料の重さがすぐに計算されます。",
+      "productSize": "製造容量",
+      "productPerfume10": "香水 10ml",
+      "productPerfume50": "香水 50ml",
+      "productDiffuser5": "ディフューザー 5ml",
+      "scentTitle": "{name}の香り",
+      "successTitle": "完了しました！",
+      "successDesc": "{nameA}と{nameB}のレシピが確定しました 🎉",
+      "autoClose": "まもなく自動で閉じます...",
+      "completeNext": "{name}完了 · 次へ",
+      "nextStepScent": "次のステップ：{name}の香り",
+      "confirmOriginal": "元のレシピで確定",
+      "generateCustom": "{name}完了 · カスタムレシピ生成",
+      "selectScentForName": "{name}の香りを選ぶ",
+      "confirmRecipe": "レシピ確定",
+      "saving": "保存中...",
+      "done": "完了",
+      "close": "閉じる",
+      "tapToSelect": "タップして選択",
+      "selected": "選択済み",
+      "baseOriginal": "元のベース",
+      "drops": "滴",
+      "original": "元の香り",
+      "viewBalanceChange": "香りバランスの変化を見る"
+    },
+    "summary": {
+      "relationship": "関係",
+      "scene": "場所",
+      "emotion": "感情",
+      "message": "メッセージ"
     }
   },
   "todayScent": {
@@ -2397,6 +2631,8 @@
       "guestButton": "ゲストとして購入",
       "selectScentAlert": "香りを選択してください！",
       "addedToast": "{count}種の香りをカートに入れました",
+      "requestOnlyLabel": "特定香料リクエスト",
+      "requestAddedToast": "「{note}」のリクエストをカートに追加しました",
       "addFailed": "カートへの追加に失敗しました"
     }
   }

@@ -1,42 +1,57 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { createMetadata } from '@/lib/seo/metadata'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productSchema, breadcrumbSchema } from '@/lib/seo/schemas'
 import { getServerOption } from '@/lib/products/pricing'
+import { getLocalizedProgramPath, getProgramSeo, resolveProgramLocale } from '@/lib/programs/program-seo'
 
-export const metadata: Metadata = createMetadata({
-  title: '피규어 화분 디퓨저',
-  description:
-    '좋아하는 이미지로 제작되는 나만의 3D 피규어 디퓨저. AI 맞춤 향 에센스와 샤쉐스톤 포함. 소중한 추억을 화분에 담아드립니다.',
-  path: '/programs/figure',
-  keywords: ['피규어 디퓨저', '3D 피규어', '커스텀 피규어', 'AI 디퓨저', '화분 디퓨저', '맞춤 굿즈'],
-  openGraph: {
-    type: 'website',
-    images: [
-      {
-        url: '/images/product-placeholder.svg',
-        width: 800,
-        height: 800,
-        alt: '피규어 화분 디퓨저 - AC\'SCENT IDENTITY',
-      },
-    ],
-  },
-})
+interface ProgramLayoutProps {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
 
-const breadcrumbJsonLd = breadcrumbSchema([
-  { name: '프로그램', path: '/programs/figure' },
-  { name: '피규어 화분 디퓨저', path: '/programs/figure' },
-])
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('figure', locale)
+  const path = getLocalizedProgramPath('figure', locale)
 
-export default async function FigureLayout({ children }: { children: React.ReactNode }) {
+  return createMetadata({
+    title: seo.title,
+    description: seo.description,
+    path,
+    keywords: seo.keywords,
+    locale,
+    openGraph: {
+      type: 'website',
+      images: [
+        {
+          url: '/images/product-placeholder.svg',
+          width: 800,
+          height: 800,
+          alt: `${seo.title} - AC'SCENT IDENTITY`,
+        },
+      ],
+    },
+  })
+}
+
+export default async function FigureLayout({ children, params }: ProgramLayoutProps) {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('figure', locale)
+  const path = getLocalizedProgramPath('figure', locale)
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: seo.programLabel, path },
+    { name: seo.title, path },
+  ], locale)
+
   const opt = await getServerOption('figure_diffuser', 'set')
   const productJsonLd = productSchema({
-    name: '피규어 화분 디퓨저',
-    description: '좋아하는 이미지로 제작되는 나만의 3D 피규어 디퓨저. 피규어 + 디퓨저 + 분석보고서 + 샤쉐스톤 + AI 맞춤 향 에센스 포함.',
+    name: seo.title,
+    description: seo.productDescription,
     price: opt?.price ?? 48000,
     originalPrice: opt?.original_price ?? 68000,
     image: '/images/product-placeholder.svg',
-    path: '/programs/figure',
+    path,
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-FIGURE',
     ratingValue: 4.9,

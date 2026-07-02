@@ -4,7 +4,7 @@ import React, { useRef } from "react"
 import { motion } from "framer-motion"
 import { useTranslations } from 'next-intl'
 import type { ChemistryProfile, TraitScores, ScentCategoryScores, ImageAnalysisResult } from "@/types/analysis"
-import { TRAIT_LABELS, CATEGORY_INFO, CHEMISTRY_TYPE_COLORS, CHEMISTRY_TYPE_LABELS, CHEMISTRY_TYPE_ICONS } from "@/types/analysis"
+import { CATEGORY_INFO, CHEMISTRY_TYPE_COLORS, CHEMISTRY_TYPE_ICONS } from "@/types/analysis"
 import {
   SectionCard, SectionHeader,
   NameChemistryPyramid,
@@ -58,7 +58,7 @@ export function ChemistryMeetingChapter({
         {chemistry.chemistryStory && (
           <div className="mt-5">
             <SectionCard>
-              <SectionHeader emoji={String.fromCodePoint(0x1F4D6)} title="케미 스토리" />
+              <SectionHeader emoji={String.fromCodePoint(0x1F4D6)} title={t('chemistry.result.story')} />
               <div className="p-4">
                 <div className="relative bg-gradient-to-br from-violet-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-violet-200">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-violet-300/20 rounded-full blur-2xl" />
@@ -140,8 +140,9 @@ export function ChemistryMeetingChapter({
 // 3-1. 케미 타입 대형 카드
 // ========================================
 function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
+  const t = useTranslations()
   const typeColor = CHEMISTRY_TYPE_COLORS[chemistry.chemistryType]
-  const typeLabel = CHEMISTRY_TYPE_LABELS[chemistry.chemistryType]
+  const typeLabel = t(`chemistry.typeLabels.${chemistry.chemistryType}`)
   const typeIcon = CHEMISTRY_TYPE_ICONS[chemistry.chemistryType]
 
   return (
@@ -169,7 +170,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
       <div className="p-5 space-y-4">
         {/* 공유 강점 */}
         <div className="border-l-4 border-violet-400 pl-3">
-          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-2">Shared Strengths</span>
+          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-2">{t('chemistry.result.sharedStrengths')}</span>
           <div className="space-y-2">
             {chemistry.traitsSynergy.sharedStrengths.slice(0, 2).map((s, i) => (
               <div key={i} className="flex items-start gap-2">
@@ -186,7 +187,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
         {/* 보완 특성 */}
         {chemistry.traitsSynergy.complementaryTraits.length > 0 && (
           <div className="border-l-4 border-pink-400 pl-3">
-            <span className="text-[10px] font-black text-pink-500 uppercase tracking-wider block mb-2">Complementary</span>
+            <span className="text-[10px] font-black text-pink-500 uppercase tracking-wider block mb-2">{t('chemistry.result.complementaryTraits')}</span>
             <div className="space-y-2">
               {chemistry.traitsSynergy.complementaryTraits.slice(0, 2).map((ct, i) => (
                 <div key={i} className="flex items-start gap-2">
@@ -203,7 +204,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
           <>
             <div className="border-t border-slate-100" />
             <div className="bg-gradient-to-r from-violet-50/80 to-pink-50/80 rounded-xl p-3 border border-violet-100">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">Summary</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">{t('chemistry.result.summaryLabel')}</span>
               <p className="text-[11px] text-slate-600 leading-relaxed">{chemistry.traitsSynergy.dynamicTension}</p>
             </div>
           </>
@@ -219,6 +220,8 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
 function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
   traitsA: TraitScores; traitsB: TraitScores; nameA: string; nameB: string; synergyComment?: string
 }) {
+  const t = useTranslations()
+  const tLabels = useTranslations('labels')
   const cx = 130, cy = 130, r = 90, max = 10
   const entriesA = Object.entries(traitsA) as [keyof TraitScores, number][]
   const entriesB = Object.entries(traitsB) as [keyof TraitScores, number][]
@@ -238,7 +241,7 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
 
   return (
     <SectionCard>
-      <SectionHeader emoji="📊" title="특성 레이더 비교" />
+      <SectionHeader emoji="📊" title={t('chemistry.result.traitsRadar')} />
       <div className="p-4">
         {/* 범례 */}
         <div className="flex justify-center gap-4 mb-3">
@@ -302,7 +305,7 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
               const { x, y } = getXY(max * 1.2, i)
               return (
                 <text key={key} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700" fill="#64748b">
-                  {TRAIT_LABELS[key as keyof TraitScores]}
+                  {tLabels(`traits.${key}`)}
                 </text>
               )
             })}
@@ -326,11 +329,13 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
 function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyComment }: {
   categoriesA: ScentCategoryScores; categoriesB: ScentCategoryScores; nameA: string; nameB: string; harmonyComment?: string
 }) {
+  const t = useTranslations()
+  const tLabels = useTranslations('labels')
   const keys = Object.keys(categoriesA) as (keyof ScentCategoryScores)[]
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🌺" title="향 프로필 비교" />
+      <SectionHeader emoji="🌺" title={t('chemistry.result.scentProfileComparison')} />
       <div className="p-4">
         {/* 범례 */}
         <div className="flex justify-between mb-3 px-2">
@@ -360,7 +365,7 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
                 {/* 중앙 라벨 */}
                 <div className="w-14 text-center flex-shrink-0">
                   <span className="text-[10px]">{info.icon}</span>
-                  <span className="text-[9px] font-bold text-slate-600 block">{info.name}</span>
+                  <span className="text-[9px] font-bold text-slate-600 block">{tLabels(`categories.${key}`)}</span>
                 </div>
                 {/* B 바 (왼쪽 정렬) */}
                 <div className="flex-1 flex justify-start">
@@ -403,10 +408,11 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
   const paletteA = characterA?.personalColor?.palette?.slice(0, 4) || []
   const paletteB = characterB?.personalColor?.palette?.slice(0, 4) || []
   const blended = chemistry.colorChemistry.blendedPalette.slice(0, 4)
+  const t = useTranslations()
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🎨" title="색채 케미" />
+      <SectionHeader emoji="🎨" title={t('chemistry.result.colorChemistry')} />
       <div className="p-4 space-y-4">
         {/* A의 컬러 */}
         <ColorRow label={`🌙 ${nameA}`} colors={paletteA} />
@@ -455,15 +461,16 @@ function ColorRow({ label, colors }: { label: string; colors: string[] }) {
 function ScentHarmonyDiagram({ chemistry }: {
   chemistry: ChemistryProfile
 }) {
+  const t = useTranslations()
   return (
     <SectionCard>
-      <SectionHeader emoji="🧪" title="향 하모니" />
+      <SectionHeader emoji="🧪" title={t('chemistry.result.scentHarmonyDiagram')} />
       <div className="p-5">
         {/* 3단 피라미드 시각화 - 개선된 버전 */}
         <div className="space-y-3">
           <HarmonyLevel
             level="TOP"
-            levelLabel="첫 인상"
+            levelLabel={t('chemistry.result.firstImpression')}
             content={chemistry.scentHarmony.topNoteInteraction}
             gradient="from-violet-400 to-pink-400"
             bg="bg-gradient-to-r from-violet-50 to-pink-50"
@@ -472,7 +479,7 @@ function ScentHarmonyDiagram({ chemistry }: {
           />
           <HarmonyLevel
             level="MIDDLE"
-            levelLabel="분위기"
+            levelLabel={t('chemistry.result.mood')}
             content={chemistry.scentHarmony.middleNoteInteraction}
             gradient="from-violet-300 to-pink-300"
             bg="bg-gradient-to-r from-violet-50/60 to-pink-50/60"
@@ -481,7 +488,7 @@ function ScentHarmonyDiagram({ chemistry }: {
           />
           <HarmonyLevel
             level="BASE"
-            levelLabel="여운"
+            levelLabel={t('chemistry.result.trail')}
             content={chemistry.scentHarmony.baseNoteInteraction}
             gradient="from-slate-300 to-violet-300"
             bg="bg-gradient-to-r from-slate-50 to-violet-50"
@@ -497,7 +504,7 @@ function ScentHarmonyDiagram({ chemistry }: {
           viewport={{ once: true }}
           className="mt-5 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-xl border-2 border-violet-200"
         >
-          <span className="text-[9px] font-black text-violet-400 uppercase tracking-wider block mb-1.5">Overall Harmony</span>
+          <span className="text-[9px] font-black text-violet-400 uppercase tracking-wider block mb-1.5">{t('chemistry.result.overallHarmony')}</span>
           <p className="text-xs font-medium text-violet-700 leading-relaxed">{chemistry.scentHarmony.overallHarmony}</p>
         </motion.div>
       </div>
@@ -533,6 +540,7 @@ function HarmonyLevel({ level, levelLabel, content, gradient, bg, border, delay 
 function KeywordBubbleCloud({ keywords, description, bestMoment }: {
   keywords: string[]; description: string; bestMoment: string
 }) {
+  const t = useTranslations()
   const sizes = [
     { size: 'text-base px-4 py-2', scale: 1.2 },
     { size: 'text-sm px-3.5 py-1.5', scale: 1.1 },
@@ -550,7 +558,7 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
 
   return (
     <SectionCard>
-      <SectionHeader emoji="💫" title="관계 다이나믹" />
+      <SectionHeader emoji="💫" title={t('chemistry.result.relationship')} />
       <div className="p-5">
         {/* 키워드 버블 */}
         <div className="flex flex-wrap justify-center gap-2.5 items-center">
@@ -580,7 +588,7 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
         {/* Best Moment */}
         {bestMoment && (
           <div className="mt-3 p-3 bg-pink-50 rounded-xl border border-pink-200">
-            <span className="text-[10px] font-black text-pink-500 block mb-1">Best Moment</span>
+            <span className="text-[10px] font-black text-pink-500 block mb-1">{t('chemistry.result.bestMoment')}</span>
             <p className="text-xs text-pink-700 leading-relaxed">{bestMoment}</p>
           </div>
         )}
@@ -593,14 +601,15 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
 // 얼굴합 (비주얼 궁합) 섹션
 // ========================================
 function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/analysis').FaceMatch }) {
+  const t = useTranslations()
   const score = faceMatch.score
 
   // 티어 판정 (최소 50%)
   const getTier = (s: number) => {
-    if (s >= 90) return { label: '천생연분', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' }
-    if (s >= 75) return { label: '찐이다 찐', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' }
-    if (s >= 65) return { label: '은근 케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200' }
-    return { label: '묘한 끌림', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' }
+    if (s >= 90) return { labelKey: 'soulmate', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' }
+    if (s >= 75) return { labelKey: 'realDeal', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' }
+    if (s >= 65) return { labelKey: 'subtle', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200' }
+    return { labelKey: 'mysterious', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' }
   }
 
   // 개별 바 색상 — 각 척도 자체 점수 기반
@@ -613,15 +622,15 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
   const tier = getTier(score)
 
   const criteria = [
-    { label: '분위기 조화', emoji: '🌐', score: faceMatch.atmosphere, desc: faceMatch.atmosphereDesc },
-    { label: '냉온 밸런스', emoji: '❄️🔥', score: faceMatch.contrast, desc: faceMatch.contrastDesc },
-    { label: '색감 조화', emoji: '🎨', score: faceMatch.colorHarmony, desc: faceMatch.colorHarmonyDesc },
-    { label: '스타일 호환', emoji: '👔', score: faceMatch.styleMatch, desc: faceMatch.styleMatchDesc },
+    { label: t('chemistry.result.faceCriteria.atmosphere'), emoji: '🌐', score: faceMatch.atmosphere, desc: faceMatch.atmosphereDesc },
+    { label: t('chemistry.result.faceCriteria.contrast'), emoji: '❄️🔥', score: faceMatch.contrast, desc: faceMatch.contrastDesc },
+    { label: t('chemistry.result.faceCriteria.colorHarmony'), emoji: '🎨', score: faceMatch.colorHarmony, desc: faceMatch.colorHarmonyDesc },
+    { label: t('chemistry.result.faceCriteria.styleMatch'), emoji: '👔', score: faceMatch.styleMatch, desc: faceMatch.styleMatchDesc },
   ]
 
   return (
     <SectionCard>
-      <SectionHeader emoji={String.fromCodePoint(0x1F4F8)} title="얼굴합" />
+      <SectionHeader emoji={String.fromCodePoint(0x1F4F8)} title={t('chemistry.result.faceMatch')} />
       <div className="p-5">
         {/* 큰 점수 + 라벨 + 티어 뱃지 */}
         <div className="text-center mb-6">
@@ -639,7 +648,7 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             <div className="mt-3">
               <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 ${tier.bg} ${tier.border} border-2 rounded-full`}>
                 <span className="text-lg">{tier.emoji}</span>
-                <span className={`text-sm font-black ${tier.color}`}>{tier.label}</span>
+                <span className={`text-sm font-black ${tier.color}`}>{t(`chemistry.tiers.${tier.labelKey}`)}</span>
               </span>
             </div>
           </motion.div>
@@ -697,4 +706,3 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
     </SectionCard>
   )
 }
-

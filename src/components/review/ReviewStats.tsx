@@ -1,6 +1,7 @@
 "use client"
 
 import { Star } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 
 interface ReviewStatsProps {
@@ -10,6 +11,7 @@ interface ReviewStatsProps {
 }
 
 export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewStatsProps) {
+  const t = useTranslations()
   const { average_rating, total_count, rating_distribution } = stats
 
   const maxCount = Math.max(...Object.values(rating_distribution), 1)
@@ -35,7 +37,7 @@ export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewSta
           <span className="text-slate-400 text-sm font-medium">/ 5.0</span>
         </div>
         <p className="text-xs text-slate-500 mt-0.5">
-          총 {total_count.toLocaleString()}개의 리뷰
+          {t('review.totalReviews', { count: total_count })}
         </p>
       </div>
 
@@ -57,7 +59,7 @@ export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewSta
                   : 'hover:bg-slate-50'
               }`}
             >
-              <span className="text-xs font-bold text-slate-600 w-6 flex-shrink-0">{rating}점</span>
+              <span className="text-xs font-bold text-slate-600 w-6 flex-shrink-0">{t('review.star', { rating })}</span>
               <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-yellow-400 rounded-full transition-all duration-500"

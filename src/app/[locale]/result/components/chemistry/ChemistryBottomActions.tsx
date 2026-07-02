@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ShoppingCart, CreditCard, MessageSquarePlus, History } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ChemistryBottomActionsProps {
   onShare?: () => void
@@ -29,6 +30,7 @@ export function ChemistryBottomActions({
   onFeedbackHistory,
   isOffline = false,
 }: ChemistryBottomActionsProps) {
+  const t = useTranslations()
   const handleFeedback = onFeedback || onFeedbackA
 
   return (
@@ -48,7 +50,7 @@ export function ChemistryBottomActions({
               className="flex-1 py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
             >
               <MessageSquarePlus size={18} />
-              <span>취향 반영하기</span>
+              <span>{t('chemistry.feedback.applyTaste')}</span>
             </button>
           )}
 
@@ -56,7 +58,7 @@ export function ChemistryBottomActions({
           {onFeedbackHistory && (
             <button
               onClick={onFeedbackHistory}
-              aria-label="피드백 히스토리"
+              aria-label={t('chemistry.feedback.history')}
               className="px-4 bg-white text-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center"
             >
               <History size={18} />
@@ -72,14 +74,14 @@ export function ChemistryBottomActions({
             className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
           >
             <ShoppingCart size={16} />
-            <span>{isAddingToCart ? '추가 중...' : '담기'}</span>
+            <span>{isAddingToCart ? t('chemistry.buttons.addingToCart') : t('bottomActions.addToCart')}</span>
           </button>
           <button
             onClick={onCheckout}
             className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
           >
             <CreditCard size={16} />
-            <span>구매</span>
+            <span>{t('bottomActions.buy')}</span>
           </button>
         </div>
       )}

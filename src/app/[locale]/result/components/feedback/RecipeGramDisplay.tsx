@@ -16,18 +16,16 @@ import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 interface RecipeGramDisplayProps {
   recipe: GeneratedRecipe
   perfumeName: string
-  titleLabel?: string  // 헤더 라벨 (예: "힙토리의 향")
-  headerEmoji?: string  // 헤더 이모지
-  headerColor?: 'green' | 'violet' | 'pink'  // 테마 색상
-  showProductSelector?: boolean  // 제품 선택 탭 표시 여부 (케미처럼 공유하는 경우 false)
-  externalSelectedProduct?: ProductType  // 외부에서 제품 선택 제어 시
-  onProductChange?: (product: ProductType) => void  // 외부 제어 시 콜백
+  titleLabel?: string
+  headerEmoji?: string
+  headerColor?: 'green' | 'violet' | 'pink'
+  showProductSelector?: boolean
+  externalSelectedProduct?: ProductType
+  onProductChange?: (product: ProductType) => void
 }
 
 /**
- * 그람 단위 레시피 표시 공통 컴포넌트
- * - 이미지 분석 퍼퓸 & 레이어링 퍼퓸 공통으로 사용
- * - 제품 선택(10ml/50ml/5ml) → 방울 수 → 그램 변환 표시
+ * Shared gram-based recipe display for image analysis and chemistry perfumes.
  */
 export function RecipeGramDisplay({
   recipe,
@@ -81,11 +79,16 @@ export function RecipeGramDisplay({
     }),
     [granuleAmounts]
   )
+  const getProductLabel = (productType: ProductType) => {
+    if (productType === 'perfume_10ml') return t('productPerfume10Label')
+    if (productType === 'perfume_50ml') return t('productPerfume50Label')
+    return t('productDiffuser5Label')
+  }
 
   const handleCopyRecipe = async () => {
-    const recipeText = `[${perfumeName} - ${productInfo.label}]
+    const recipeText = `[${perfumeName} - ${getProductLabel(productInfo.id)}]
 
-총 향료량: ${totalAmount.ml.toFixed(2)}g
+${t('totalIngredient')}: ${totalAmount.ml.toFixed(2)}g
 
 ${granuleAmounts
   .map((g) => `- ${getLocalizedName(g.id, g.name)} (${g.id}): ${g.amountMl.toFixed(2)}g (${g.ratio}%)`)
@@ -98,7 +101,7 @@ AC'SCENT IDENTITY`
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('복사 실패:', err)
+      console.error('Copy failed:', err)
     }
   }
 

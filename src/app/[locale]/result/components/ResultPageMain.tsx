@@ -30,7 +30,9 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { GraduationTab } from './graduation'
 
 import { useProductPricing } from '@/hooks/useProductPricing'
+import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { SCENT_PAPER_SIZE, type ProductType } from '@/types/cart'
+import type { GraduationAnalysisResult } from '@/types/analysis'
 
 // 애니메이션 variants
 const fadeInUp = {
@@ -40,7 +42,7 @@ const fadeInUp = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1] as any
+      ease: [0.22, 1, 0.36, 1] as const
     }
   }
 }
@@ -62,6 +64,7 @@ export default function ResultPageMain() {
   const t = useTranslations()
   const { user, unifiedUser, loading: authLoading } = useAuth()
   const { getOption, getDefaultPrice, getDefaultSize } = useProductPricing()
+  const { getLocalizedName } = useLocalizedPerfumes()
 
   // 뒤로가기 경로 결정 (마이페이지에서 왔으면 마이페이지로)
   const fromPage = searchParams.get('from')
@@ -105,6 +108,10 @@ export default function ResultPageMain() {
   const serviceMode = loadedServiceMode || 'offline'
   const checkoutProductType: ProductType = isFigureMode ? 'figure_diffuser' : ((productType as ProductType) || 'image_analysis')
   const canBuyScentPaper = serviceMode === 'online' && checkoutProductType === 'image_analysis' && !isGraduationMode
+  const topPerfume = displayedAnalysis?.matchingPerfumes?.[0]
+  const topPerfumeName = topPerfume?.perfumeId
+    ? getLocalizedName(topPerfume.perfumeId, topPerfume.persona?.name)
+    : topPerfume?.persona?.name
 
   // 졸업 모드일 때 기본 탭을 'perfume'으로 설정 (추천 향수 먼저 표시)
   useEffect(() => {
@@ -189,7 +196,9 @@ export default function ResultPageMain() {
 
     try {
       const topPerfume = displayedAnalysis.matchingPerfumes?.[0]
-      const perfumeName = topPerfume?.persona?.name || t('result.recommendedPerfume')
+      const perfumeName = topPerfume?.perfumeId
+        ? getLocalizedName(topPerfume.perfumeId, topPerfume.persona?.name)
+        : topPerfume?.persona?.name || t('result.recommendedPerfume')
       const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
       const analysisId = savedResultId || existingResultId || `temp-${Date.now()}`
 
@@ -246,7 +255,7 @@ export default function ResultPageMain() {
     } finally {
       setIsAddingToCart(false)
     }
-  }, [displayedAnalysis, isAddingToCart, user, unifiedUser, savedResultId, existingResultId, isFigureMode, productType, twitterName, userImage, router, setShowLoginPrompt])
+  }, [displayedAnalysis, isAddingToCart, user, unifiedUser, savedResultId, existingResultId, isFigureMode, productType, twitterName, userImage, router, setShowLoginPrompt, getLocalizedName, t])
 
   // 결과 저장 및 공유 URL 생성
   const handleShare = useCallback(async () => {
@@ -271,7 +280,9 @@ export default function ResultPageMain() {
     try {
       // 향수 정보 추출
       const topPerfume = displayedAnalysis.matchingPerfumes?.[0]
-      const perfumeName = topPerfume?.persona?.name || t('result.recommendedPerfume')
+      const perfumeName = topPerfume?.perfumeId
+        ? getLocalizedName(topPerfume.perfumeId, topPerfume.persona?.name)
+        : topPerfume?.persona?.name || t('result.recommendedPerfume')
       const perfumeBrand = topPerfume?.persona?.recommendation || 'AC\'SCENT'
 
       // fingerprint 가져오기
@@ -310,7 +321,7 @@ export default function ResultPageMain() {
     } finally {
       setIsSaving(false)
     }
-  }, [displayedAnalysis, userImage, twitterName, shareUrl, savedResultId])
+  }, [displayedAnalysis, userImage, twitterName, shareUrl, savedResultId, getLocalizedName, t])
 
   // 로딩 상태 - 키치 스타일
   if (loading) {
@@ -486,7 +497,7 @@ export default function ResultPageMain() {
                       )}
                       {/* 졸업 모드 전용 탭 */}
                       {activeTab === 'graduation' && isGraduationMode && (
-                        <GraduationTab key="graduation" displayedAnalysis={displayedAnalysis as any} userName={userInfo?.name} />
+                        <GraduationTab key="graduation" displayedAnalysis={displayedAnalysis as GraduationAnalysisResult} userName={userInfo?.name} />
                       )}
                     </AnimatePresence>
                   </div>
@@ -533,7 +544,7 @@ export default function ResultPageMain() {
           twitterName={twitterName}
           userName={userInfo?.name || t('result.anonymous')}
           userGender={userInfo?.gender || 'Unknown'}
-          perfumeName={displayedAnalysis.matchingPerfumes?.[0]?.persona?.name || t('result.recommendedPerfume')}
+          perfumeName={topPerfumeName || t('result.recommendedPerfume')}
           perfumeBrand={displayedAnalysis.matchingPerfumes?.[0]?.persona?.recommendation || 'AC\'SCENT'}
           analysisData={displayedAnalysis}
           shareUrl={shareUrl}
@@ -546,7 +557,7 @@ export default function ResultPageMain() {
           isOpen={isFeedbackModalOpen}
           onClose={() => setIsFeedbackModalOpen(false)}
           perfumeId={displayedAnalysis.matchingPerfumes[0].perfumeId || 'AC\'SCENT 01'}
-          perfumeName={displayedAnalysis.matchingPerfumes[0].persona?.name || t('result.recommendedPerfume')}
+          perfumeName={topPerfumeName || t('result.recommendedPerfume')}
           perfumeCharacteristics={displayedAnalysis.matchingPerfumes[0].persona?.categories || { citrus: 5, floral: 5, woody: 5, musky: 5, fruity: 5, spicy: 5 }}
           perfumeCategory={
             displayedAnalysis.matchingPerfumes[0].persona?.categories

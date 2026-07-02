@@ -6,11 +6,18 @@ import { AnalyzeRequest, AnalyzeResponse } from '@/types/gemini';
 import { ImageAnalysisResult } from '@/types/analysis';
 import { perfumes } from '@/data/perfumes';
 import { getApiLocale } from '@/lib/api-locale';
+import { locales, type Locale } from '@/i18n/config';
 import { requireAuthenticatedUser } from '@/lib/auth/require-user';
 import { consumeDailyAnalysisLimit, dailyAnalysisLimitExceededResponse } from '@/lib/analysis/daily-limit';
 import { sanitizeSelfAnalysisTone } from '@/lib/gemini/self-tone';
 
 type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+
+function normalizeLocale(value: unknown): Locale | null {
+  return typeof value === 'string' && locales.includes(value as Locale)
+    ? value as Locale
+    : null;
+}
 
 // Mock 데이터 생성 함수 (fallback용)
 function generateMockResult(): ImageAnalysisResult {
@@ -118,9 +125,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 0-1. 언어 감지
-    const locale = getApiLocale(request);
-
     // 1. 요청 파싱
     const body: AnalyzeRequest & {
       programType?: string;
@@ -129,8 +133,10 @@ export async function POST(request: NextRequest) {
       graduationData?: GraduationFormInput;
       serviceMode?: string;
       qrCode?: string | null;
+      locale?: string;
     } = await request.json();
     const { formData, imageBase64, programType, productType, figureData, graduationData, serviceMode } = body;
+    const locale = normalizeLocale(body.locale) || getApiLocale(request);
 
     // 프로그램 모드 여부
     const isFigureMode = programType === 'figure';

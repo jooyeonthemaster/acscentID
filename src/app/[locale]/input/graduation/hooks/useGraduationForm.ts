@@ -6,8 +6,21 @@ import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { compressImage } from "@/lib/image/compressor"
 import { apiFetch } from "@/lib/api-client"
+import { dataUrlToFile, useLocaleSwitchState } from "@/hooks/useLocaleSwitchState"
 import type { GraduationFormDataType, GraduationType } from "@/types/analysis"
 import { INITIAL_GRADUATION_FORM_DATA, GRADUATION_TOTAL_STEPS } from "../constants"
+
+type PersistedGraduationFormData = Omit<GraduationFormDataType, "image"> & {
+    image?: null
+}
+
+interface GraduationLocaleSnapshot {
+    currentStep: number
+    formData: PersistedGraduationFormData
+    imagePreview: string | null
+    transformedImagePreview: string | null
+    showImageGuide: boolean
+}
 
 export function useGraduationForm() {
     const searchParams = useSearchParams()
@@ -40,6 +53,43 @@ export function useGraduationForm() {
     const isOnline = mode === "online" || (serviceMode === "online" && mode !== "qr")
     const isOffline = mode === "qr" || serviceMode === "offline" || (!isOnline && !!qrCode)
     const totalSteps = GRADUATION_TOTAL_STEPS
+
+    const captureLocaleState = useCallback((): GraduationLocaleSnapshot => ({
+        currentStep,
+        formData: {
+            ...formData,
+            image: null,
+            imagePreview,
+            transformedImageUrl: transformedImagePreview ?? formData.transformedImageUrl,
+        },
+        imagePreview,
+        transformedImagePreview,
+        showImageGuide,
+    }), [currentStep, formData, imagePreview, showImageGuide, transformedImagePreview])
+
+    const restoreLocaleState = useCallback((snapshot: GraduationLocaleSnapshot) => {
+        const restoredImage = dataUrlToFile(snapshot.imagePreview, 'restored-graduation-image.jpg')
+        const restoredStep = Math.min(Math.max(snapshot.currentStep ?? 1, 1), totalSteps)
+        const restoredTransformedImage = snapshot.transformedImagePreview ?? snapshot.formData.transformedImageUrl ?? null
+
+        setCurrentStep(restoredStep)
+        setFormData({
+            ...(INITIAL_GRADUATION_FORM_DATA as unknown as GraduationFormDataType),
+            ...snapshot.formData,
+            image: restoredImage,
+            imagePreview: snapshot.imagePreview,
+            transformedImageUrl: restoredTransformedImage ?? undefined,
+        })
+        setImagePreview(snapshot.imagePreview ?? null)
+        setTransformedImagePreview(restoredTransformedImage)
+        setShowImageGuide(snapshot.showImageGuide ?? !snapshot.imagePreview)
+    }, [totalSteps])
+
+    useLocaleSwitchState({
+        storageKey: `graduation-input:${mode ?? ''}:${serviceMode ?? ''}:${qrCode ?? ''}`,
+        capture: captureLocaleState,
+        restore: restoreLocaleState,
+    })
 
     // 스텝 유효성 검사 (5단계: 기본정보 → 학창시절 → 지금감정 → 앞으로 → 이미지)
     const isStepValid = useCallback((step: number): boolean => {

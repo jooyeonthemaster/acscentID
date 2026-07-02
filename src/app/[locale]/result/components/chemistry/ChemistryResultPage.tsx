@@ -14,6 +14,9 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
 import { apiFetch } from "@/lib/api-client"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useLocale, useTranslations } from "next-intl"
+import { useLocalizedPerfumes } from "@/hooks/useLocalizedPerfumes"
+import type { Locale } from "@/i18n/config"
 
 interface ChemistryFormMeta {
   character1Name: string
@@ -28,17 +31,18 @@ interface ChemistryFormMeta {
   analysisAId?: string | null
   analysisBId?: string | null
   saveRunId?: string | null
+  resultLocale?: string | null
 }
 
 type MainTabType = 'characterA' | 'characterB' | 'chemistry'
 type CharSubTabType = 'perfume' | 'analysis'
 
 const CHEMISTRY_SECTIONS = [
-  { id: 'face', label: '얼굴합', emoji: '\u{1F4F8}' },
-  { id: 'type', label: '케미 타입', emoji: '\u{1F36F}' },
-  { id: 'traits', label: '특성', emoji: '\u{1F4CA}' },
-  { id: 'scent', label: '향', emoji: '\u{1F9EA}' },
-  { id: 'dynamic', label: '관계', emoji: '\u{1F4AB}' },
+  { id: 'face', labelKey: 'chemistry.result.faceMatch', emoji: '\u{1F4F8}' },
+  { id: 'type', labelKey: 'chemistry.result.chemistryType', emoji: '\u{1F36F}' },
+  { id: 'traits', labelKey: 'chemistry.result.traits', emoji: '\u{1F4CA}' },
+  { id: 'scent', labelKey: 'chemistry.result.scent', emoji: '\u{1F9EA}' },
+  { id: 'dynamic', labelKey: 'chemistry.result.dynamic', emoji: '\u{1F4AB}' },
 ] as const
 
 const CHEMISTRY_SAVE_DRAFT_KEY = 'chemistry_save_draft'
@@ -92,6 +96,41 @@ function readChemistrySaveDraft(): ChemistrySaveDraft | null {
   }
 }
 
+const ENGLISH_LEAKAGE_PATTERN =
+  /\b(?:this|that|with|your|their|before|after|under|because|apply|spray|layer|scent|vibes|gorgeous|dreamy|fresh|deep|light|musk|velvet|bouquet|wrists|perfect|walking|romantic|energy)\b/i
+
+function collectDisplayStrings(value: unknown, bucket: string[] = []): string[] {
+  if (typeof value === 'string') {
+    bucket.push(value)
+    return bucket
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectDisplayStrings(item, bucket))
+    return bucket
+  }
+
+  if (value && typeof value === 'object') {
+    Object.values(value).forEach((item) => collectDisplayStrings(item, bucket))
+  }
+
+  return bucket
+}
+
+function hasLikelyEnglishLeakage(analysisResult: ChemistryAnalysisResult | null, locale: Locale) {
+  if (!analysisResult || locale === 'en') return false
+
+  const samples = collectDisplayStrings(analysisResult).filter((text) => {
+    const trimmed = text.trim()
+    if (trimmed.length < 24) return false
+    if (/^AC'SCENT\s*\d+/i.test(trimmed)) return false
+    if (/^#[A-Za-z0-9_ -]+$/.test(trimmed)) return false
+    return true
+  })
+
+  return samples.filter((text) => ENGLISH_LEAKAGE_PATTERN.test(text)).length >= 2
+}
+
 function writeChemistrySaveDraft(draft: ChemistrySaveDraft) {
   if (typeof window === 'undefined') return
   sessionStorage.setItem(CHEMISTRY_SAVE_DRAFT_KEY, JSON.stringify(draft))
@@ -128,6 +167,7 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
   accentColor: 'violet' | 'pink'
   analysis: ImageAnalysisResult
 }) {
+  const { getLocalizedName } = useLocalizedPerfumes()
   const isViolet = accentColor === 'violet'
   const borderColor = isViolet ? 'border-violet-400' : 'border-pink-400'
   const shadowColor = isViolet ? 'shadow-[3px_3px_0_0_#8b5cf6]' : 'shadow-[3px_3px_0_0_#ec4899]'
@@ -135,6 +175,9 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
   const bgGradient = isViolet ? 'from-violet-50 to-violet-100/50' : 'from-pink-50 to-pink-100/50'
   const textColor = isViolet ? 'text-violet-600' : 'text-pink-600'
   const perfume = analysis.matchingPerfumes?.[0]
+  const localizedPerfumeName = perfume?.perfumeId
+    ? getLocalizedName(perfume.perfumeId, perfume.persona?.name)
+    : perfume?.persona?.name
   const mood = analysis.analysis?.mood || ''
 
   return (
@@ -159,10 +202,10 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
             {mood && (
               <p className="text-[12px] sm:text-xs text-slate-600 leading-relaxed whitespace-pre-line break-keep">{mood}</p>
             )}
-            {perfume?.persona?.name && (
+            {localizedPerfumeName && (
               <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1 bg-white/80 rounded-full border border-slate-200`}>
                 <span className="text-[10px]">{String.fromCodePoint(0x1F48E)}</span>
-                <span className={`text-[11px] font-bold ${textColor} truncate max-w-[140px]`}>{perfume.persona.name}</span>
+                <span className={`text-[11px] font-bold ${textColor} truncate max-w-[140px]`}>{localizedPerfumeName}</span>
               </div>
             )}
           </div>
@@ -174,9 +217,12 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
 
 export default function ChemistryResultPage() {
   const router = useRouter()
+  const locale = useLocale() as Locale
   const { user, unifiedUser } = useAuth()
   const { showToast } = useToast()
   const { getOptions } = useProductPricing()
+  const { getLocalizedName } = useLocalizedPerfumes()
+  const t = useTranslations()
   const [result, setResult] = useState<ChemistryAnalysisResult | null>(null)
   const [formMeta, setFormMeta] = useState<ChemistryFormMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -184,12 +230,22 @@ export default function ChemistryResultPage() {
   const [charSubTab, setCharSubTab] = useState<CharSubTabType>('perfume')
   const [isAdding, setIsAdding] = useState(false)
   const [isShareSaving, setIsShareSaving] = useState(false)
+  const [isTranslatingLocale, setIsTranslatingLocale] = useState(false)
   const [savedSessionId, setSavedSessionId] = useState<string | null>(null)
   const [feedbackTarget, setFeedbackTarget] = useState<'A' | 'B' | null>(null)
   const savedSessionIdRef = useRef<string | null>(null)
   const savePromiseRef = useRef<Promise<string | null> | null>(null)
+  const localeTranslationRef = useRef<string | null>(null)
   const tabContentRef = useRef<HTMLDivElement>(null)
   const chemistrySectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const hasResultLocaleMismatch = Boolean(
+    result &&
+    formMeta &&
+    (
+      (formMeta.resultLocale ? formMeta.resultLocale !== locale : true) ||
+      hasLikelyEnglishLeakage(result, locale)
+    )
+  )
 
   const handleTabChange = useCallback((tab: MainTabType) => {
     setMainTab(tab)
@@ -228,6 +284,71 @@ export default function ChemistryResultPage() {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    if (!result || !formMeta || loading || !hasResultLocaleMismatch) return
+
+    const sourceLocale = formMeta.resultLocale || null
+    const requestKey = [
+      sourceLocale || 'unknown',
+      locale,
+      formMeta.saveRunId || formMeta.existingSessionId || result.chemistry.chemistryType || 'session',
+    ].join(':')
+
+    if (localeTranslationRef.current === requestKey) return
+    localeTranslationRef.current = requestKey
+
+    let cancelled = false
+    setIsTranslatingLocale(true)
+
+    const translateResult = async () => {
+      try {
+        const response = await apiFetch('/api/translate/chemistry-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            result,
+            sourceLocale,
+            targetLocale: locale,
+            characterNames: [formMeta.character1Name, formMeta.character2Name].filter(Boolean),
+          }),
+        })
+        const data = await response.json()
+
+        if (!response.ok || !data.success || !data.data) {
+          throw new Error(data.error || 'Failed to translate chemistry result')
+        }
+
+        if (cancelled) return
+
+        const nextResult = data.data as ChemistryAnalysisResult
+        const nextFormMeta: ChemistryFormMeta = {
+          ...formMeta,
+          resultLocale: locale,
+        }
+
+        setResult(nextResult)
+        setFormMeta(nextFormMeta)
+
+        try {
+          sessionStorage.setItem('chemistry_result', JSON.stringify(nextResult))
+          sessionStorage.setItem('chemistry_form', JSON.stringify(nextFormMeta))
+        } catch (storageError) {
+          console.warn('[Chemistry Locale] Failed to persist translated result:', storageError)
+        }
+      } catch (error) {
+        console.warn('[Chemistry Locale] Failed to translate result:', error)
+      } finally {
+        if (!cancelled) setIsTranslatingLocale(false)
+      }
+    }
+
+    void translateResult()
+
+    return () => {
+      cancelled = true
+    }
+  }, [formMeta, hasResultLocaleMismatch, loading, locale, result])
 
   // ── 공통: DB에 결과 저장 (중복 방지) ──
   const saveResultToDb = useCallback(async (
@@ -310,11 +431,12 @@ export default function ChemistryResultPage() {
   useEffect(() => {
     if (!result || savedSessionIdRef.current) return
     if (!user && !unifiedUser) return // 로그인 필요
+    if (hasResultLocaleMismatch || isTranslatingLocale) return
 
     saveResultToDb(result, formMeta).catch((err) => {
       console.error('[Chemistry AutoSave] Failed:', err)
     })
-  }, [result, formMeta, user, unifiedUser, saveResultToDb])
+  }, [result, formMeta, user, unifiedUser, hasResultLocaleMismatch, isTranslatingLocale, saveResultToDb])
 
   const handleShare = useCallback(async () => {
     if (!result) return
@@ -326,43 +448,50 @@ export default function ChemistryResultPage() {
         const shareUrl = `${window.location.origin}/result/${sessionId}`
         if (typeof navigator.share !== 'undefined') {
           await navigator.share({
-            title: `${formMeta?.character1Name} x ${formMeta?.character2Name} 케미 분석`,
+            title: t('chemistry.share.title', {
+              nameA: formMeta?.character1Name || 'A',
+              nameB: formMeta?.character2Name || 'B',
+            }),
             url: shareUrl,
           })
         } else {
           await navigator.clipboard.writeText(shareUrl)
-          showToast("공유 링크가 복사되었습니다!", "success")
+          showToast(t('chemistry.share.copied'), "success")
         }
       } else {
-        showToast("공유 링크 생성에 실패했습니다.", "error")
+        showToast(t('chemistry.share.createFailed'), "error")
       }
     } catch (error) {
       console.error('Share error:', error)
-      showToast("공유에 실패했습니다.", "error")
+      showToast(t('chemistry.share.failed'), "error")
     } finally {
       setIsShareSaving(false)
     }
-  }, [result, formMeta, showToast, saveResultToDb])
+  }, [result, formMeta, showToast, saveResultToDb, t])
 
   const handleAddToCart = useCallback(async () => {
     if (!result || isAdding) return
     if (!user && !unifiedUser) {
-      showToast("로그인이 필요합니다.", "error")
+      showToast(t('chemistry.buttons.loginRequired'), "error")
       return
     }
     setIsAdding(true)
     try {
       const perfumeA = result.characterA.matchingPerfumes[0]?.persona
       const perfumeB = result.characterB.matchingPerfumes[0]?.persona
+      const perfumeAId = result.characterA.matchingPerfumes[0]?.perfumeId
+      const perfumeBId = result.characterB.matchingPerfumes[0]?.perfumeId
+      const perfumeAName = perfumeAId ? getLocalizedName(perfumeAId, perfumeA?.name) : perfumeA?.name
+      const perfumeBName = perfumeBId ? getLocalizedName(perfumeBId, perfumeB?.name) : perfumeB?.name
       const chemistryOptions = getOptions('chemistry_set')
       const selectedOption = chemistryOptions[0]
       if (!selectedOption) {
-        showToast("가격 정보 로드 실패. 새로고침 후 다시 시도해주세요.", "error")
+        showToast(t('chemistry.errors.priceLoadFailed'), "error")
         return
       }
 
       const sessionId = await saveResultToDb(result, formMeta)
-      if (!sessionId) throw new Error('결과 저장 실패')
+      if (!sessionId) throw new Error(t('chemistry.errors.saveFailed'))
 
       const cartResponse = await apiFetch('/api/cart', {
         method: 'POST',
@@ -370,7 +499,7 @@ export default function ChemistryResultPage() {
         body: JSON.stringify({
           layering_session_id: sessionId,
           product_type: 'chemistry_set',
-          perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
+          perfume_name: `${perfumeAName || t('chemistry.fallback.perfumeA')} x ${perfumeBName || t('chemistry.fallback.perfumeB')}`,
           perfume_brand: "AC'SCENT",
           twitter_name: `${formMeta?.character1Name || 'A'} x ${formMeta?.character2Name || 'B'}`,
           size: selectedOption.size,
@@ -380,22 +509,22 @@ export default function ChemistryResultPage() {
       })
       const cartData = await cartResponse.json()
       if (cartData.success) {
-        showToast("장바구니에 추가되었습니다!", "success")
+        showToast(t('chemistry.buttons.addedToCart'), "success")
       } else {
         throw new Error(cartData.error)
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : '장바구니 추가에 실패했습니다.'
+      const msg = error instanceof Error ? error.message : t('chemistry.buttons.addFailed')
       showToast(msg, "error")
     } finally {
       setIsAdding(false)
     }
-  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, saveResultToDb])
+  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, getLocalizedName, saveResultToDb, t])
 
   const handleCheckout = useCallback(async () => {
     if (!result || isAdding) return
     if (!user && !unifiedUser) {
-      showToast("로그인이 필요합니다.", "error")
+      showToast(t('chemistry.buttons.loginRequired'), "error")
       return
     }
 
@@ -403,15 +532,19 @@ export default function ChemistryResultPage() {
     try {
       const perfumeA = result.characterA.matchingPerfumes[0]?.persona
       const perfumeB = result.characterB.matchingPerfumes[0]?.persona
+      const perfumeAId = result.characterA.matchingPerfumes[0]?.perfumeId
+      const perfumeBId = result.characterB.matchingPerfumes[0]?.perfumeId
+      const perfumeAName = perfumeAId ? getLocalizedName(perfumeAId, perfumeA?.name) : perfumeA?.name
+      const perfumeBName = perfumeBId ? getLocalizedName(perfumeBId, perfumeB?.name) : perfumeB?.name
       const chemistryOptions = getOptions('chemistry_set')
       const selectedOption = chemistryOptions[0]
       if (!selectedOption) {
-        showToast("가격 정보 로드 실패. 새로고침 후 다시 시도해주세요.", "error")
+        showToast(t('chemistry.errors.priceLoadFailed'), "error")
         return
       }
 
       const sessionId = await saveResultToDb(result, formMeta)
-      if (!sessionId) throw new Error('결과 저장 실패')
+      if (!sessionId) throw new Error(t('chemistry.errors.saveFailed'))
 
       // 장바구니 추가
       await apiFetch('/api/cart', {
@@ -420,7 +553,7 @@ export default function ChemistryResultPage() {
         body: JSON.stringify({
           layering_session_id: sessionId,
           product_type: 'chemistry_set',
-          perfume_name: `${perfumeA?.name || '향수 A'} x ${perfumeB?.name || '향수 B'}`,
+          perfume_name: `${perfumeAName || t('chemistry.fallback.perfumeA')} x ${perfumeBName || t('chemistry.fallback.perfumeB')}`,
           perfume_brand: "AC'SCENT",
           twitter_name: `${formMeta?.character1Name || 'A'} x ${formMeta?.character2Name || 'B'}`,
           size: selectedOption.size,
@@ -436,14 +569,14 @@ export default function ChemistryResultPage() {
       // 체크아웃 이동
       router.push('/checkout')
     } catch (error) {
-      const msg = error instanceof Error ? error.message : '결제 진행에 실패했습니다.'
+      const msg = error instanceof Error ? error.message : t('chemistry.errors.checkoutFailed')
       showToast(msg, "error")
       setIsAdding(false)
     }
-  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, router, saveResultToDb])
+  }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, getLocalizedName, router, saveResultToDb, t])
 
   const handleConfirmChemistryRecipes = useCallback(async (payload: ChemistryConfirmedRecipesPayload) => {
-    if (!result) throw new Error('분석 결과를 찾을 수 없습니다.')
+    if (!result) throw new Error(t('chemistry.buttons.noResult'))
 
     const localSnapshot = {
       ...payload,
@@ -459,7 +592,7 @@ export default function ChemistryResultPage() {
 
     const sessionId = await saveResultToDb(result, formMeta)
     if (!sessionId) {
-      throw new Error('레시피는 이 기기에 임시 보관했지만 서버 저장에 실패했습니다. 네트워크를 확인한 뒤 다시 완료를 눌러주세요.')
+      throw new Error(t('chemistry.errors.recipeLocalSaveFailed'))
     }
 
     const draft = readChemistrySaveDraft()
@@ -483,7 +616,7 @@ export default function ChemistryResultPage() {
     const data = await response.json()
 
     if (!data.success) {
-      throw new Error(data.error || '레시피 서버 저장에 실패했습니다.')
+      throw new Error(data.error || t('chemistry.errors.recipeServerSaveFailed'))
     }
 
     const persistedSnapshot = {
@@ -498,14 +631,14 @@ export default function ChemistryResultPage() {
     sessionStorage.setItem(CHEMISTRY_CONFIRMED_RECIPE_KEY, JSON.stringify(persistedSnapshot))
     localStorage.setItem('checkoutProductType', 'chemistry_set')
     localStorage.setItem('checkoutLayeringSessionId', sessionId)
-  }, [result, formMeta, saveResultToDb])
+  }, [result, formMeta, saveResultToDb, t])
 
-  if (loading) {
+  if (loading || isTranslatingLocale) {
     return (
       <div className="min-h-[100svh] bg-[#FEF9C3] flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
           <div className="w-16 h-16 border-4 border-yellow-400 border-t-slate-900 rounded-xl animate-spin mx-auto mb-4" />
-          <p className="text-slate-900 font-black">로딩 중...</p>
+          <p className="text-slate-900 font-black">{t('result.loading')}</p>
         </div>
       </div>
     )
@@ -515,12 +648,12 @@ export default function ChemistryResultPage() {
     return (
       <div className="min-h-[100svh] bg-[#FAFAFA] flex flex-col items-center justify-center gap-4">
         <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
-          <p className="text-slate-500 mb-4">결과를 찾을 수 없습니다.</p>
+          <p className="text-slate-500 mb-4">{t('chemistry.buttons.noResult')}</p>
           <button
             onClick={() => router.push('/')}
             className="px-6 py-3 bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all"
           >
-            홈으로
+            {t('buttons.goHome')}
           </button>
         </div>
       </div>
@@ -529,6 +662,14 @@ export default function ChemistryResultPage() {
 
   const { characterA, characterB, chemistry } = result
   const { character1Name, character2Name, image1Preview, image2Preview } = formMeta
+  const characterAPerfume = characterA.matchingPerfumes?.[0]
+  const characterBPerfume = characterB.matchingPerfumes?.[0]
+  const characterAPerfumeName = characterAPerfume?.perfumeId
+    ? getLocalizedName(characterAPerfume.perfumeId, characterAPerfume.persona?.name)
+    : characterAPerfume?.persona?.name || ''
+  const characterBPerfumeName = characterBPerfume?.perfumeId
+    ? getLocalizedName(characterBPerfume.perfumeId, characterBPerfume.persona?.name)
+    : characterBPerfume?.persona?.name || ''
 
   return (
     <div className="min-h-[100svh] bg-[#FAFAFA]">
@@ -588,7 +729,7 @@ export default function ChemistryResultPage() {
                 }`}
               >
                 <span className="text-xs">{String.fromCodePoint(0x26A1)}</span>
-                <span>케미 분석</span>
+                <span>{t('chemistry.result.analysisTab')}</span>
               </button>
             </div>
           </div>
@@ -606,7 +747,7 @@ export default function ChemistryResultPage() {
                   }`}
                 >
                   <span>{String.fromCodePoint(0x1F48E)}</span>
-                  <span>퍼퓸 추천</span>
+                  <span>{t('tabs.perfumeRecommend')}</span>
                 </button>
                 <button
                   onClick={() => setCharSubTab('analysis')}
@@ -617,7 +758,7 @@ export default function ChemistryResultPage() {
                   }`}
                 >
                   <span>{String.fromCodePoint(0x1F50D)}</span>
-                  <span>분석 결과</span>
+                  <span>{t('tabs.analysisResult')}</span>
                 </button>
               </div>
             </div>
@@ -634,7 +775,7 @@ export default function ChemistryResultPage() {
                     className="flex items-center gap-0.5 px-2.5 py-1 bg-white/80 border border-slate-200 rounded-md text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all active:scale-95 whitespace-nowrap"
                   >
                     <span>{section.emoji}</span>
-                    <span>{section.label}</span>
+                    <span>{t(section.labelKey)}</span>
                   </button>
                 ))}
               </div>
@@ -757,10 +898,10 @@ export default function ChemistryResultPage() {
         draftScopeKey={formMeta?.existingSessionId || formMeta?.saveRunId || savedSessionId || undefined}
         characterAName={character1Name}
         characterBName={character2Name}
-        perfumeAId={characterA.matchingPerfumes?.[0]?.perfumeId || ''}
-        perfumeAName={characterA.matchingPerfumes?.[0]?.persona?.name || ''}
-        perfumeBId={characterB.matchingPerfumes?.[0]?.perfumeId || ''}
-        perfumeBName={characterB.matchingPerfumes?.[0]?.persona?.name || ''}
+        perfumeAId={characterAPerfume?.perfumeId || ''}
+        perfumeAName={characterAPerfumeName}
+        perfumeBId={characterBPerfume?.perfumeId || ''}
+        perfumeBName={characterBPerfumeName}
         perfumeACharacteristics={(characterA.scentCategories ?? {}) as unknown as Record<string, number>}
         perfumeBCharacteristics={(characterB.scentCategories ?? {}) as unknown as Record<string, number>}
         onConfirmRecipes={handleConfirmChemistryRecipes}

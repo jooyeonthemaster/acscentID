@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Star, Camera, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { createReview } from "@/lib/supabase/reviews"
 import type { CreateReviewInput } from "@/lib/supabase/reviews"
 
@@ -32,6 +33,7 @@ export function ReviewWriteModal({
   idolName,
   onSuccess
 }: ReviewWriteModalProps) {
+  const t = useTranslations()
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [content, setContent] = useState("")
@@ -46,17 +48,17 @@ export function ReviewWriteModal({
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length + images.length > MAX_IMAGES) {
-      setError(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있어요`)
+      setError(t('review.imageLimitError', { count: MAX_IMAGES }))
       return
     }
 
     const validFiles = files.filter(file => {
       if (!file.type.startsWith('image/')) {
-        setError('이미지 파일만 업로드할 수 있어요')
+        setError(t('review.imageTypeError'))
         return false
       }
       if (file.size > 10 * 1024 * 1024) {
-        setError('10MB 이하의 이미지만 업로드할 수 있어요')
+        setError(t('review.imageSizeError'))
         return false
       }
       return true
@@ -86,7 +88,7 @@ export function ReviewWriteModal({
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      setError('별점을 선택해주세요')
+      setError(t('review.ratingRequiredError'))
       return
     }
 
@@ -114,7 +116,7 @@ export function ReviewWriteModal({
       }, 1500)
     } catch (err) {
       console.error('Failed to submit review:', err)
-      setError('리뷰 작성에 실패했어요. 다시 시도해주세요.')
+      setError(t('review.submitError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -136,7 +138,14 @@ export function ReviewWriteModal({
     }
   }
 
-  const ratingLabels = ['', '별로예요', '그냥 그래요', '괜찮아요', '좋아요', '최고예요!']
+  const ratingLabels = [
+    '',
+    t('review.ratingLabel1'),
+    t('review.ratingLabel2'),
+    t('review.ratingLabel3'),
+    t('review.ratingLabel4'),
+    t('review.ratingLabel5'),
+  ]
 
   if (!isOpen) return null
 
@@ -165,7 +174,7 @@ export function ReviewWriteModal({
               <div className="px-6 py-4 border-b-2 border-black bg-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-black">리뷰 작성</h2>
+	                    <h2 className="text-xl font-black text-black">{t('review.writeTitle')}</h2>
                     <p className="text-sm text-slate-500">{programName}</p>
                   </div>
                   <button
@@ -188,8 +197,8 @@ export function ReviewWriteModal({
                   >
                     <CheckCircle size={40} className="text-white" />
                   </motion.div>
-                  <h3 className="text-xl font-black text-black mb-2">리뷰 작성 완료!</h3>
-                  <p className="text-slate-600">소중한 리뷰 감사합니다</p>
+	                  <h3 className="text-xl font-black text-black mb-2">{t('review.writeCompleteTitle')}</h3>
+	                  <p className="text-slate-600">{t('review.writeCompleteDesc')}</p>
                 </div>
               ) : (
                 <div className="p-6 space-y-6">
@@ -204,7 +213,7 @@ export function ReviewWriteModal({
 
                   {/* 별점 선택 */}
                   <div className="text-center">
-                    <p className="text-sm font-bold text-slate-700 mb-3">퍼퓸이 어떠셨나요?</p>
+	                    <p className="text-sm font-bold text-slate-700 mb-3">{t('review.ratingQuestion')}</p>
                     <div className="flex items-center justify-center gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -233,12 +242,12 @@ export function ReviewWriteModal({
                   {/* 리뷰 내용 */}
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
-                      리뷰 작성 (선택)
+	                      {t('review.contentLabel')}
                     </label>
                     <textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
-                      placeholder="이 향기가 어떠셨나요? 솔직한 후기를 남겨주세요!"
+	                      placeholder={t('review.contentPlaceholder')}
                       className="w-full h-28 px-4 py-3 bg-white border-2 border-black rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
                     />
                     <p className="text-xs text-slate-400 text-right mt-1">
@@ -249,7 +258,7 @@ export function ReviewWriteModal({
                   {/* 이미지 첨부 */}
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
-                      사진 첨부 (선택, 최대 {MAX_IMAGES}장)
+	                      {t('review.imageAttachLabel', { count: MAX_IMAGES })}
                     </label>
 
                     <div className="flex flex-wrap gap-3">
@@ -312,10 +321,10 @@ export function ReviewWriteModal({
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        리뷰 등록 중...
+	                        {t('review.submitLoading')}
                       </>
                     ) : (
-                      '리뷰 등록하기'
+	                      t('review.submitButton')
                     )}
                   </button>
                 </div>

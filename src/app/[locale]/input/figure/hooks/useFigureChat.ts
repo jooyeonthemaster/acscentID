@@ -6,9 +6,9 @@ import { useTranslations } from 'next-intl';
 import { v4 as uuidv4 } from 'uuid';
 import Compressor from 'compressorjs';
 import { apiFetch } from '@/lib/api-client';
+import { dataUrlToFile, useLocaleSwitchState } from '@/hooks/useLocaleSwitchState';
 import type {
   FigureChatMessage,
-  FigureChatPhase,
   FigureChatData,
   FigureChatState,
   QuickReply,
@@ -43,6 +43,24 @@ const initialState: FigureChatState = {
   progress: 0,
 };
 
+type PersistedFigureChatMessage = Omit<FigureChatMessage, 'timestamp'> & {
+  timestamp: string | Date;
+};
+
+type PersistedFigureChatData = Omit<FigureChatData, 'memoryImage' | 'figureImage'> & {
+  memoryImage?: null;
+  figureImage?: null;
+};
+
+interface PersistedFigureChatState extends Omit<FigureChatState, 'messages' | 'collectedData'> {
+  messages: PersistedFigureChatMessage[];
+  collectedData: PersistedFigureChatData;
+}
+
+interface FigureChatLocaleSnapshot {
+  state: PersistedFigureChatState;
+}
+
 // 이미지 압축
 function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -70,6 +88,7 @@ export function useFigureChat(userName?: string) {
   const router = useRouter();
   const t = useTranslations('figureChat');
   const isInitialized = useRef(false);
+  const skipInitialGreeting = useRef(false);
   const [state, setState] = useState<FigureChatState>({
     ...initialState,
     collectedData: {
@@ -80,6 +99,53 @@ export function useFigureChat(userName?: string) {
 
   // Resolve default user name from translations (cannot call hooks conditionally)
   const defaultUserName = t('defaultUserName');
+
+  const captureLocaleState = useCallback((): FigureChatLocaleSnapshot => ({
+    state: {
+      ...state,
+      isAiTyping: false,
+      isSubmitting: false,
+      collectedData: {
+        ...state.collectedData,
+        memoryImage: null,
+        figureImage: null,
+      },
+    },
+  }), [state]);
+
+  const restoreLocaleState = useCallback((snapshot: FigureChatLocaleSnapshot) => {
+    const collectedData = snapshot.state.collectedData;
+    const memoryImage = dataUrlToFile(collectedData.memoryImagePreview, 'restored-memory-image.jpg');
+    const figureImage = dataUrlToFile(collectedData.figureImagePreview, 'restored-figure-image.jpg');
+
+    skipInitialGreeting.current = snapshot.state.messages.length > 0;
+    isInitialized.current = true;
+
+    setState({
+      ...initialState,
+      ...snapshot.state,
+      messages: snapshot.state.messages.map((message) => ({
+        ...message,
+        timestamp: new Date(message.timestamp),
+      })),
+      collectedData: {
+        ...initialChatData,
+        ...collectedData,
+        userName: collectedData.userName || userName || defaultUserName,
+        memoryImage,
+        figureImage,
+      },
+      isAiTyping: false,
+      isSubmitting: false,
+    });
+  }, [defaultUserName, userName]);
+
+  useLocaleSwitchState({
+    storageKey: `figure-chat:${userName ?? ''}`,
+    capture: captureLocaleState,
+    restore: restoreLocaleState,
+  });
+
   useEffect(() => {
     if (!userName) {
       setState((prev) => ({
@@ -272,7 +338,6 @@ export function useFigureChat(userName?: string) {
 
   // 빠른 응답 선택
   const selectQuickReply = useCallback((reply: QuickReply) => {
-    const displayText = reply.emoji ? `${reply.emoji} ${reply.label}` : reply.label;
     sendMessage(reply.value);
   }, [sendMessage]);
 
@@ -401,10 +466,13 @@ export function useFigureChat(userName?: string) {
     isInitialized.current = true;
 
     startAiTyping();
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      if (skipInitialGreeting.current) return;
       addAiMessage(scenarioMessages['greeting'] || CHAT_SCENARIOS[0].aiMessage);
     }, 800);
-  }, []);
+
+    return () => clearTimeout(timeoutId);
+  }, [addAiMessage, scenarioMessages, startAiTyping]);
 
   return {
     ...state,

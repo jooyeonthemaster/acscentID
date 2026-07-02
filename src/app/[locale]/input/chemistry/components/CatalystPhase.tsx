@@ -2,7 +2,10 @@
 
 import { motion } from "framer-motion"
 import { Sparkles } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { RELATION_TROPES, ARCHETYPE_OPTIONS, SCENE_OPTIONS, EMOTION_KEYWORDS } from "@/types/analysis"
+import { getChemistryOptionLabel } from "@/lib/gemini/chemistry-labels"
+import type { Locale } from "@/i18n/config"
 import type { ChemistryFormState } from "../hooks/useChemistryForm"
 
 interface CatalystPhaseProps {
@@ -13,6 +16,8 @@ interface CatalystPhaseProps {
 }
 
 export function CatalystPhase({ formData, character1Name, character2Name }: CatalystPhaseProps) {
+  const locale = useLocale() as Locale
+  const t = useTranslations('chemistry')
   const tropes = formData.relationTropes.map(id => RELATION_TROPES.find(t => t.id === id)).filter(Boolean)
   const archs1 = formData.character1Archetypes.map(id => ARCHETYPE_OPTIONS.find(a => a.id === id)).filter(Boolean)
   const archs2 = formData.character2Archetypes.map(id => ARCHETYPE_OPTIONS.find(a => a.id === id)).filter(Boolean)
@@ -29,12 +34,12 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
           className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-pink-500 text-white rounded-full border-2 border-black shadow-[3px_3px_0_0_black]"
         >
           <Sparkles size={16} />
-          <span className="text-sm font-black">촉매 준비 완료</span>
+          <span className="text-sm font-black">{t('catalyst.ready')}</span>
         </motion.div>
         <h2 className="text-xl font-black text-slate-900 mt-4">
-          케미 분석을 시작할까요?
+          {t('catalyst.title')}
         </h2>
-        <p className="text-sm text-slate-500 mt-1">입력한 내용을 확인해주세요</p>
+        <p className="text-sm text-slate-500 mt-1">{t('catalyst.subtitle')}</p>
       </div>
 
       {/* 요약 카드 */}
@@ -55,7 +60,7 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
                 </div>
               )}
               <span className="text-xs font-bold text-slate-800 block">{character1Name}</span>
-              <span className="text-[10px] text-violet-500">{archs1.length > 0 ? archs1.map(a => `${a!.emoji} ${a!.label}`).join(', ') : formData.customArchetype1 || ''}</span>
+              <span className="text-[10px] text-violet-500">{archs1.length > 0 ? archs1.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype1 || ''}</span>
             </div>
 
             {/* VS */}
@@ -70,22 +75,22 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
                 </div>
               )}
               <span className="text-xs font-bold text-slate-800 block">{character2Name}</span>
-              <span className="text-[10px] text-pink-500">{archs2.length > 0 ? archs2.map(a => `${a!.emoji} ${a!.label}`).join(', ') : formData.customArchetype2 || ''}</span>
+              <span className="text-[10px] text-pink-500">{archs2.length > 0 ? archs2.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype2 || ''}</span>
             </div>
           </div>
         </div>
 
         {/* 설정 요약 */}
         <div className="p-4 space-y-3">
-          <SummaryRow label="관계" value={tropes.map(t => `${t!.emoji} ${t!.label}`).join(', ')} customValue={formData.customTrope} />
-          <SummaryRow label="장소" value={selectedScenes.map(s => `${s!.emoji} ${s!.label}`).join(', ')} customValue={formData.customScene} />
+          <SummaryRow label={t('summary.relationship')} value={tropes.map(trope => `${trope!.emoji} ${getChemistryOptionLabel(trope!.id, locale)}`).join(', ')} customValue={formData.customTrope} />
+          <SummaryRow label={t('summary.scene')} value={selectedScenes.map(scene => `${scene!.emoji} ${getChemistryOptionLabel(scene!.id, locale)}`).join(', ')} customValue={formData.customScene} />
           <SummaryRow
-            label="감정"
-            value={emotions.map(e => e ? `${e.emoji} ${e.label}` : '').join(', ')}
+            label={t('summary.emotion')}
+            value={emotions.map(e => e ? `${e.emoji} ${getChemistryOptionLabel(e.id, locale)}` : '').join(', ')}
             customValue={formData.customEmotion}
           />
           {formData.message && (
-            <SummaryRow label="메시지" value={formData.message} />
+            <SummaryRow label={t('summary.message')} value={formData.message} />
           )}
         </div>
       </motion.div>
@@ -98,9 +103,9 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
         className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 text-center"
       >
         <p className="text-xs text-violet-600 font-medium">
-          AI가 두 인물의 이미지와 입력 정보를 분석하여<br />
-          케미 프로필과 맞춤 향수 세트를 추천합니다!<br />
-          <span className="text-violet-400">(약 30~60초 소요)</span>
+          {t('catalyst.guideLine1')}<br />
+          {t('catalyst.guideLine2')}<br />
+          <span className="text-violet-400">{t('catalyst.duration')}</span>
         </p>
       </motion.div>
     </div>

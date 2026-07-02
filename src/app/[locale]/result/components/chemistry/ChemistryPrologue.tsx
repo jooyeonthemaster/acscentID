@@ -1,14 +1,15 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { CHEMISTRY_TYPE_LABELS, CHEMISTRY_TYPE_COLORS, type ChemistryProfile } from "@/types/analysis"
+import { useTranslations } from "next-intl"
+import { CHEMISTRY_TYPE_COLORS, type ChemistryProfile } from "@/types/analysis"
 
 // 케미합 티어 시스템 (최소 50%)
 function getScoreTier(score: number) {
-  if (score >= 90) return { tier: '천생연분', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200', barColor: 'from-rose-400 to-pink-500', desc: '우주가 허락한 만남' }
-  if (score >= 75) return { tier: '찐케미', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', barColor: 'from-orange-400 to-amber-500', desc: '같은 세계관 확정' }
-  if (score >= 65) return { tier: '은근케미', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', barColor: 'from-violet-400 to-purple-500', desc: '은근히 잘 어울리는 사이' }
-  return { tier: '묘한 끌림', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', barColor: 'from-cyan-400 to-blue-500', desc: '다르기에 끌리는 의외의 매력' }
+  if (score >= 90) return { tierKey: 'soulmate', descKey: 'soulmateDesc', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200', barColor: 'from-rose-400 to-pink-500' }
+  if (score >= 75) return { tierKey: 'realDeal', descKey: 'realDealDesc', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', barColor: 'from-orange-400 to-amber-500' }
+  if (score >= 65) return { tierKey: 'subtle', descKey: 'subtleDesc', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', barColor: 'from-violet-400 to-purple-500' }
+  return { tierKey: 'mysterious', descKey: 'mysteriousDesc', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', barColor: 'from-cyan-400 to-blue-500' }
 }
 
 interface ChemistryPrologueProps {
@@ -22,14 +23,15 @@ interface ChemistryPrologueProps {
 export function ChemistryPrologue({
   chemistry, character1Name, character2Name, image1Preview, image2Preview,
 }: ChemistryPrologueProps) {
+  const t = useTranslations()
   const typeColor = CHEMISTRY_TYPE_COLORS[chemistry.chemistryType]
-  const typeLabel = CHEMISTRY_TYPE_LABELS[chemistry.chemistryType]
+  const typeLabel = t(`chemistry.typeLabels.${chemistry.chemistryType}`)
   const score = chemistry.chemistryScore?.overall ?? chemistry.faceMatch?.score ?? 75
   const tier = getScoreTier(score)
 
   const punchline = chemistry.traitsSynergy?.synergyOneLiner
     || chemistry.chemistryStory?.split('.')[0]
-    || '이 둘의 케미, 실화냐?!'
+    || t('chemistry.fallback.punchline')
 
   const keywords = chemistry.relationshipDynamic?.chemistryKeywords || []
 
@@ -106,7 +108,7 @@ export function ChemistryPrologue({
             transition={{ delay: 0.5, type: "spring", bounce: 0.4 }}
           >
             <div className="flex items-baseline justify-center gap-1">
-              <span className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">케미합</span>
+              <span className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">{t('chemistry.result.chemistryScore')}</span>
             </div>
             <div className="flex items-baseline justify-center gap-0 mt-1">
               <span className={`text-8xl font-black ${tier.color} tabular-nums leading-none drop-shadow-sm`}>
@@ -125,10 +127,10 @@ export function ChemistryPrologue({
           >
             <span className={`inline-flex items-center gap-1.5 px-5 py-2 ${tier.bg} ${tier.border} border-2 rounded-full`}>
               <span className="text-lg">{tier.emoji}</span>
-              <span className={`text-base font-black ${tier.color}`}>{tier.tier}</span>
+              <span className={`text-base font-black ${tier.color}`}>{t(`chemistry.tiers.${tier.tierKey}`)}</span>
             </span>
             <p className="text-xs text-slate-500 mt-2 font-bold">
-              {chemistry.chemistryScore?.tierLabel || tier.desc}
+              {chemistry.chemistryScore?.tierLabel || t(`chemistry.tiers.${tier.descKey}`)}
             </p>
           </motion.div>
 

@@ -221,7 +221,9 @@
     "signaturePerfumDesc": "Signature Perfume + Duck Keyring",
     "customDuckDesc": "Customize your own 3D duck",
     "limitedSale": "⏰ Limited sale until {date}",
-    "limitedBadge": "~{date} Limited"
+    "limitedBadge": "~{date} Limited",
+    "prevBanner": "Previous banner",
+    "nextBanner": "Next banner"
   },
   "programs": {
     "breadcrumbHome": "Home",
@@ -851,7 +853,8 @@
     "repurchaseBannerTitle": "Welcome back, valued customer! 🎉",
     "repurchaseBannerSubtitle": "Select your 10% discount coupon below",
     "firstPurchasePromoTitle": "Get 10% off on every future order! 💝",
-    "firstPurchasePromoSubtitle": "A repurchase coupon is auto-issued with no usage limit"
+    "firstPurchasePromoSubtitle": "A repurchase coupon is auto-issued with no usage limit",
+    "storeProductPerfumeIncluded": "{product} (spray type)"
   },
   "checkoutComplete": {
     "title": "Order Complete",
@@ -1188,7 +1191,31 @@
     "totalReviews": "{count} review(s) total",
     "reviewRange": "Showing {start}–{end} of {total} reviews",
     "star": "{rating} stars",
-    "writeButton": "Write a Review"
+    "writeButton": "Write a Review",
+    "sortLabel": "Sort by",
+    "viewReviews": "View reviews →",
+    "alreadyReviewedAlert": "You've already written a review!",
+    "purchaseRequiredAlert": "You can write a review after purchasing this product.",
+    "reviewImageAlt": "Review image {index}",
+    "writeTitle": "Write a Review",
+    "writeCompleteTitle": "Review submitted!",
+    "writeCompleteDesc": "Thank you for your valuable review",
+    "ratingQuestion": "How was the perfume?",
+    "contentLabel": "Review (optional)",
+    "contentPlaceholder": "How did this scent feel? Share your honest review!",
+    "imageAttachLabel": "Add photos (optional, up to {count})",
+    "submitLoading": "Submitting review...",
+    "submitButton": "Submit Review",
+    "imageLimitError": "You can attach up to {count} images",
+    "imageTypeError": "Only image files can be uploaded",
+    "imageSizeError": "Images must be 10MB or smaller",
+    "ratingRequiredError": "Please select a rating",
+    "submitError": "Failed to submit your review. Please try again.",
+    "ratingLabel1": "Not great",
+    "ratingLabel2": "So-so",
+    "ratingLabel3": "Pretty good",
+    "ratingLabel4": "Good",
+    "ratingLabel5": "Excellent!"
   },
   "coupon": {
     "unlimitedUse": "Unlimited use",
@@ -1405,6 +1432,8 @@
     "expressionWords": "Words That Describe You",
     "colorType": "Color Type",
     "imageColorAnalysis": "Image Color Analysis",
+    "topTraitMessage": "This {trait} charm really stands out!",
+    "scoreUnit": "pts",
     "style": "Style",
     "expression": "Expression & Styling",
     "concept": "Concept"
@@ -2222,6 +2251,25 @@
   "chemistry": {
     "title": "Chemistry Perfume",
     "description": "Capturing the chemistry of two characters in scent",
+    "progress": {
+      "summon": "Summon",
+      "deck": "Card Deck",
+      "catalyst": "Catalyst"
+    },
+    "target": {
+      "label": "Analysis Target",
+      "idol": "Favorite",
+      "idolDesc": "Analyze favorite chemistry",
+      "self": "Me & Someone",
+      "selfDesc": "Analyze our chemistry"
+    },
+    "pin": {
+      "label": "PIN (4 digits)",
+      "helpTitle": "Enter any 4 digits and remember them!",
+      "helpDesc": "You'll need this number to check the result later. Only you need to remember it.",
+      "toastLabel": "Your number is",
+      "toastHelp": "Please remember this number! 📝"
+    },
     "summon": {
       "title": "Summon Two Characters",
       "subtitle": "Upload images and enter names",
@@ -2229,31 +2277,51 @@
       "characterB": "Character B",
       "pinLabel": "PIN (4 digits)",
       "uploadImage": "Upload Image",
+      "uploadAria": "Upload image for {character}",
+      "selectImageAria": "Select image for {character}",
       "namePlaceholder": "Enter name",
+      "imageGuideMain": "Upload images of the two people you want to analyze.",
+      "imageGuideSub": "Photos, illustrations, game characters, and idols all work!",
       "imageGuide": "Upload images of two characters to analyze their chemistry. Photos, illustrations, and game characters all work!"
     },
     "deck": {
+      "cardProgress": "Card {current} / {total}",
       "tropeTitle": "What's their relationship?",
-      "tropeSubtitle": "Select a relationship trope",
+      "tropeSubtitle": "Select every relationship that fits",
       "archetypeTitle": "'s Archetype",
+      "archetypeQuestion": "What kind of personality is {name}?",
       "archetypeSubtitle": "Select a personality type",
       "sceneTitle": "Where do they meet?",
-      "sceneSubtitle": "Select a scene/atmosphere",
+      "sceneSubtitle": "Select every fitting scene",
       "emotionTitle": "What emotions between them?",
       "emotionSubtitle": "Select 2-3 emotions",
       "scentTitle": "Scent direction?",
       "scentSubtitle": "Set the chemistry scent direction",
       "fresh": "Fresh/Light",
       "deep": "Deep/Heavy",
-      "messagePlaceholder": "Feel free to write about their chemistry..."
+      "customInput": "+ Enter manually",
+      "customPlaceholder": "Type your own answer",
+      "customTropePlaceholder": "e.g. longtime partners, rivals and teammates...",
+      "customArchetypePlaceholder": "e.g. cold outside but warm inside...",
+      "customScenePlaceholder": "e.g. snowy amusement park, late-night convenience store...",
+      "selectedCount": "{count}/{max} selected",
+      "customEmotionPlaceholder": "e.g. subtle tension, jealousy toward each other...",
+      "messageTitle": "One last note!",
+      "messageSubtitle": "Write anything about their relationship or the scent mood you want",
+      "messagePlaceholder": "Examples)\n• They bicker but care deeply about each other\n• I want something fresh and cool\n• Please make it sweet but grounded",
+      "messageHint": "You can leave this blank. AI will analyze based on the images and settings."
     },
     "catalyst": {
       "ready": "Catalyst Ready",
       "title": "Start chemistry analysis?",
       "subtitle": "Please confirm your inputs",
-      "guide": "AI will analyze both characters' images and input to recommend a chemistry profile and custom perfume set!"
+      "guide": "AI will analyze both characters' images and input to recommend a chemistry profile and custom perfume set!",
+      "guideLine1": "AI will analyze both images and your inputs",
+      "guideLine2": "to recommend a chemistry profile and custom perfume set.",
+      "duration": "(About 30-60 seconds)"
     },
     "analyzing": {
+      "title": "Analyzing the chemistry of two scents",
       "quotes": [
         "Blending the moment two scents meet...",
         "Analyzing the chemical reaction of their chemistry...",
@@ -2279,17 +2347,183 @@
       "dialogues": "Signature Lines",
       "story": "Chemistry Story",
       "future": "Future Vision",
-      "purchase": "Chemistry Perfume Set"
+      "purchase": "Chemistry Perfume Set",
+      "analysisTab": "Chemistry Analysis",
+      "faceMatch": "Face Match",
+      "chemistryType": "Chemistry Type",
+      "traits": "Traits",
+      "scent": "Scent",
+      "dynamic": "Dynamic",
+      "traitsRadar": "Trait Radar Comparison",
+      "scentProfileComparison": "Scent Profile Comparison",
+      "scentHarmonyDiagram": "Scent Harmony",
+      "nameChemistry": "Name Chemistry",
+      "nameChemistrySubtitle": "Just-for-fun name match",
+      "sprayOrder": "Spray Order",
+      "ratio": "Ratio",
+      "layeringTip": "Layering Tip",
+      "season": "Season",
+      "time": "Time",
+      "situation": "Situation",
+      "chemistryScore": "Chemistry Score",
+      "sharedStrengths": "Shared Strengths",
+      "complementaryTraits": "Complementary",
+      "summaryLabel": "Summary",
+      "overallHarmony": "Overall Harmony",
+      "bestMoment": "Best Moment",
+      "firstImpression": "First Impression",
+      "mood": "Mood",
+      "trail": "Trail",
+      "faceCriteria": {
+        "atmosphere": "Mood Harmony",
+        "contrast": "Warm-Cool Balance",
+        "colorHarmony": "Color Harmony",
+        "styleMatch": "Style Match"
+      },
+      "nameChemistryLevels": {
+        "perfect": "Perfect chemistry!",
+        "good": "Great chemistry!",
+        "pushPull": "Push-pull chemistry!",
+        "twist": "Unexpected charm chemistry!"
+      },
+      "timeline": {
+        "firstDay": "First Meeting",
+        "oneWeek": "One Week Later",
+        "oneMonth": "One Month Later",
+        "oneYear": "One Year Later",
+        "forever": "Forever",
+        "monthFallback": "Their scents are becoming more familiar to each other...",
+        "yearFallback": "Now they cannot live without this scent!",
+        "foreverFallback": "The moment two scents become one legend ✨"
+      }
     },
     "buttons": {
+      "analyze": "Analyze",
       "openDeck": "Open Card Deck",
       "nextCard": "Next Card",
       "startAnalysis": "Start Chemistry Analysis",
       "addToCart": "Add to Cart",
+      "addingToCart": "Adding...",
+      "buy": "Buy",
       "loginRequired": "Login is required.",
       "noResult": "Analysis result not found.",
       "addedToCart": "Added to cart!",
       "addFailed": "Failed to add to cart."
+    },
+    "typeLabels": {
+      "milddang": "Push-Pull Chemistry",
+      "slowburn": "Slow-Burn Chemistry",
+      "dalddal": "Sweet Chemistry",
+      "storm": "Storm Chemistry"
+    },
+    "tiers": {
+      "soulmate": "Soulmates",
+      "realDeal": "The Real Deal",
+      "subtle": "Subtle Chemistry",
+      "mysterious": "Mysterious Pull",
+      "soulmateDesc": "A meeting approved by the universe",
+      "realDealDesc": "Definitely the same universe",
+      "subtleDesc": "A pair that quietly fits together",
+      "mysteriousDesc": "Different, and that is the charm"
+    },
+    "share": {
+      "title": "{nameA} x {nameB} Chemistry Analysis",
+      "copied": "Share link copied!",
+      "createFailed": "Failed to create share link.",
+      "failed": "Failed to share."
+    },
+    "errors": {
+      "priceLoadFailed": "Failed to load price information. Please refresh and try again.",
+      "saveFailed": "Failed to save the result.",
+      "checkoutFailed": "Failed to proceed to checkout.",
+      "recipeLocalSaveFailed": "The recipe was temporarily saved on this device, but server save failed. Please check your network and tap complete again.",
+      "recipeServerSaveFailed": "Failed to save the recipe to the server."
+    },
+    "fallback": {
+      "perfumeA": "Perfume A",
+      "perfumeB": "Perfume B",
+      "punchline": "Is this chemistry for real?!"
+    },
+    "feedback": {
+      "applyTaste": "Apply Preferences",
+      "history": "Feedback History"
+    },
+    "feedbackModal": {
+      "originalReason": "You chose the original exactly as it is!",
+      "originalFanComment": "This scent itself is the answer.",
+      "originalExplanation": "A recipe that uses the original scent without changes.",
+      "originalMaintained": "Original kept",
+      "originalStep1": "Use the original perfume as is.",
+      "originalStep2": "It is made as a single scent without extra blending.",
+      "originalStep3": "Choose the size (10ml/50ml/5ml) and the exact ingredient amount will be calculated.",
+      "originalCaution": "This composition uses only the original ingredient without blending.",
+      "originalFanMessage": "Trusting the original finish is a perfect choice!",
+      "freeTextGoodPrefix": "Liked points",
+      "freeTextWishPrefix": "Wanted changes",
+      "recipeGenerateFailed": "Failed to generate recipe.",
+      "genericError": "An error occurred.",
+      "recipeSaveFailed": "An error occurred while saving the recipe.",
+      "originalLayeringNote": "{nameA}'s {perfumeA} and {nameB}'s {perfumeB} — both original scents were chosen as the answer.",
+      "originalPairExplanation": "Both original scents were satisfying as they were. When layered, each scent keeps its own personality.",
+      "title": "Apply Preferences",
+      "completedShort": "Done",
+      "question": "How was this scent?",
+      "satisfied": "Satisfied! Keep it as is",
+      "wantChange": "I want to adjust it",
+      "retentionTitle": "Original Scent Retention",
+      "newCompletely": "Completely new",
+      "keepAlmost": "Mostly keep",
+      "retentionSummary": "Keep {percent}% of the original scent",
+      "feedbackGoodTitle": "What did you like or dislike about this scent?",
+      "feedbackGoodPlaceholder": "e.g. I liked the opening, but it became too sweet later. I liked the woody feel...",
+      "feedbackWishTitle": "I want the scent to change like this",
+      "feedbackWishPlaceholder": "e.g. Fresher, more summer-friendly, sweet but subtle...",
+      "intensityTitle": "Desired Scent Presence",
+      "intensity": {
+        "subtle": "Subtle",
+        "subtleSub": "Softly passing by",
+        "moderate": "Moderate",
+        "moderateSub": "Natural",
+        "bold": "Bold",
+        "boldSub": "Clear impression"
+      },
+      "generatingTitle": "Analyzing your preferences...",
+      "generatingSubtitle": "Preparing 2 alternatives for each perfume",
+      "selectOptionTitle": "Tap either Option 1 or Option 2 to choose",
+      "selectOptionHint": "Based on 10 drops total — mix each ingredient by the drop count and decide after smelling it.",
+      "option1": "Option 1",
+      "option2": "Option 2",
+      "finalRecipeTitle": "Final Production Recipe",
+      "finalRecipeDesc": "Choose a size and the A/B ingredient weights are calculated instantly.",
+      "productSize": "Production Size",
+      "productPerfume10": "Perfume 10ml",
+      "productPerfume50": "Perfume 50ml",
+      "productDiffuser5": "Diffuser 5ml",
+      "scentTitle": "{name}'s scent",
+      "successTitle": "Completed!",
+      "successDesc": "{nameA} and {nameB}'s recipes have been confirmed 🎉",
+      "autoClose": "This will close automatically soon...",
+      "completeNext": "{name} done · Next",
+      "nextStepScent": "Next step: {name}'s scent",
+      "confirmOriginal": "Confirm original recipe",
+      "generateCustom": "{name} done · Generate custom recipe",
+      "selectScentForName": "Choose {name}'s scent",
+      "confirmRecipe": "Confirm Recipe",
+      "saving": "Saving...",
+      "done": "Done",
+      "close": "Close",
+      "tapToSelect": "Tap to select",
+      "selected": "Selected",
+      "baseOriginal": "Base Original",
+      "drops": "drops",
+      "original": "Original",
+      "viewBalanceChange": "View scent balance change"
+    },
+    "summary": {
+      "relationship": "Relationship",
+      "scene": "Scene",
+      "emotion": "Emotion",
+      "message": "Message"
     }
   },
   "todayScent": {
@@ -2397,6 +2631,8 @@
       "guestButton": "Buy as guest",
       "selectScentAlert": "Please select a scent!",
       "addedToast": "Added {count} scents to your cart",
+      "requestOnlyLabel": "Specific fragrance request",
+      "requestAddedToast": "\"{note}\" request has been added to your cart",
       "addFailed": "Failed to add to cart"
     }
   }

@@ -7,6 +7,7 @@ import { getApiLocale } from '@/lib/api-locale';
 import { requireAuthenticatedUser } from '@/lib/auth/require-user';
 import { consumeDailyAnalysisLimit, dailyAnalysisLimitExceededResponse } from '@/lib/analysis/daily-limit';
 import { sanitizeSelfAnalysisTone } from '@/lib/gemini/self-tone';
+import { locales, type Locale } from '@/i18n/config';
 
 interface ChemistryAnalyzeRequest {
   character1Name: string;
@@ -28,6 +29,7 @@ interface ChemistryAnalyzeRequest {
   targetType?: 'idol' | 'self';
   serviceMode?: string;
   qrCode?: string | null;
+  locale?: string;
 }
 
 interface ChemistryAnalyzeResponse {
@@ -38,6 +40,12 @@ interface ChemistryAnalyzeResponse {
     characterB?: ImageAnalysisResult;
   };
   error?: string;
+}
+
+function normalizeRequestLocale(value: unknown): Locale | null {
+  return typeof value === 'string' && locales.includes(value as Locale)
+    ? value as Locale
+    : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -59,11 +67,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 0-1. 언어 감지
-    const locale = getApiLocale(request);
-
     // 1. 요청 파싱
     const body: ChemistryAnalyzeRequest = await request.json();
+    const locale = normalizeRequestLocale(body.locale) || getApiLocale(request);
     const {
       character1Name, character2Name,
       character1ImageBase64, character2ImageBase64,
@@ -230,7 +236,7 @@ export async function POST(request: NextRequest) {
       const phase2Text = phase2Result.response.text();
       console.log(`[${requestId}] Phase 2 응답 길이: ${phase2Text.length}`);
 
-      chemistry = parseChemistryProfileResponse(phase2Text);
+      chemistry = parseChemistryProfileResponse(phase2Text, locale);
 
       console.log(`[${requestId}] Phase 2 완료 (${Date.now() - phase2Start}ms)`);
       console.log(`  - 케미 타입: ${chemistry.chemistryType}`);

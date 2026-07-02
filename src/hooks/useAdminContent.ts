@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLocale } from 'next-intl'
 import { supabase } from '@/lib/supabase/client'
+import type { Locale } from '@/i18n/config'
 
 // ============================================================
 // 배너 (히어로 슬라이드) 훅
@@ -196,6 +198,9 @@ export function useActiveProducts() {
 }
 
 export function useProductDisplayName(productSlug: string, fallbackName: string) {
+  const locale = useLocale() as Locale
   const { products } = useActiveProducts()
-  return products.find((product) => product.slug === productSlug)?.name || fallbackName
+  const adminName = products.find((product) => product.slug === productSlug)?.name
+
+  return locale === 'ko' ? adminName || fallbackName : fallbackName
 }

@@ -1,42 +1,57 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { createMetadata } from '@/lib/seo/metadata'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productSchema, breadcrumbSchema } from '@/lib/seo/schemas'
 import { getServerOption } from '@/lib/products/pricing'
+import { getLocalizedProgramPath, getProgramSeo, resolveProgramLocale } from '@/lib/programs/program-seo'
 
-export const metadata: Metadata = createMetadata({
-  title: 'AI 이미지 분석 퍼퓸',
-  description:
-    '좋아하는 이미지로 추출하는 나만의 퍼퓸. AI가 이미지의 색감, 분위기, 감정을 분석하여 맞춤 퍼퓸 레시피를 만들어드립니다. 뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서 포함.',
-  path: '/programs/idol-image',
-  keywords: ['아이돌 향수', '이미지 분석 향수', '뿌덕퍼퓸', 'AI 향수 추천', '덕후 향수', '최애 향수'],
-  openGraph: {
-    type: 'website',
-    images: [
-      {
-        url: '/images/product-placeholder.svg',
-        width: 800,
-        height: 800,
-        alt: 'AI 이미지 분석 퍼퓸 - AC\'SCENT IDENTITY',
-      },
-    ],
-  },
-})
+interface ProgramLayoutProps {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
 
-const breadcrumbJsonLd = breadcrumbSchema([
-  { name: '프로그램', path: '/programs/idol-image' },
-  { name: 'AI 이미지 분석 퍼퓸', path: '/programs/idol-image' },
-])
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('idol-image', locale)
+  const path = getLocalizedProgramPath('idol-image', locale)
 
-export default async function IdolImageLayout({ children }: { children: React.ReactNode }) {
+  return createMetadata({
+    title: seo.title,
+    description: seo.description,
+    path,
+    keywords: seo.keywords,
+    locale,
+    openGraph: {
+      type: 'website',
+      images: [
+        {
+          url: '/images/product-placeholder.svg',
+          width: 800,
+          height: 800,
+          alt: `${seo.title} - AC'SCENT IDENTITY`,
+        },
+      ],
+    },
+  })
+}
+
+export default async function IdolImageLayout({ children, params }: ProgramLayoutProps) {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('idol-image', locale)
+  const path = getLocalizedProgramPath('idol-image', locale)
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: seo.programLabel, path },
+    { name: seo.title, path },
+  ], locale)
+
   const opt = await getServerOption('image_analysis', '10ml')
   const productJsonLd = productSchema({
-    name: 'AI 이미지 분석 퍼퓸',
-    description: '좋아하는 이미지로 추출하는 나만의 맞춤 퍼퓸. 뿌덕퍼퓸 + 실물 분석보고서 포함.',
+    name: seo.title,
+    description: seo.productDescription,
     price: opt?.price ?? 24000,
     originalPrice: opt?.original_price ?? 35000,
     image: '/images/product-placeholder.svg',
-    path: '/programs/idol-image',
+    path,
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-IDOL-IMAGE',
     ratingValue: 4.8,

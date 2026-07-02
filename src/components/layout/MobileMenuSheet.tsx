@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { useStoreProducts } from '@/hooks/useStoreProducts'
+import { useStoreProductText } from '@/hooks/useStoreProductText'
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
 import { Button } from '@/components/ui/button'
 import {
@@ -142,6 +143,7 @@ export function MobileMenuSheet({
   // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
   const { products: storeProducts, refresh: refreshStoreProducts } = useStoreProducts()
+  const storeText = useStoreProductText()
 
   useEffect(() => {
     if (!isOpen) return
@@ -166,11 +168,14 @@ export function MobileMenuSheet({
   const productLinks = storeProducts
     .filter((product) => product.isActive !== false)
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-    .map((product) => ({
-      href: `/products/${product.slug}`,
-      label: product.title,
-      image: product.image,
-    }))
+    .map((product) => {
+      const localized = storeText(product)
+      return {
+        href: `/products/${product.slug}`,
+        label: localized.title,
+        image: product.image,
+      }
+    })
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

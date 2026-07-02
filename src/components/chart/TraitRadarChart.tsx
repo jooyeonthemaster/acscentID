@@ -101,61 +101,8 @@ const TRAIT_COLORS: Record<string, {
   }
 }
 
-// AI 주접 멘트
-const AI_MESSAGES: Record<string, string[]> = {
-  sexy: [
-    "이 섹시함은 뭐죠? 화면이 녹아내려요!",
-    "농염한 매력에 심장이 두근두근!",
-    "치명적인 섹시함은 처음 봐요!"
-  ],
-  cute: [
-    "이 귀여움 뭐야? 심장이 녹아요!",
-    "이런 큐트함은 반칙이야!",
-    "천사가 따로 없어요!"
-  ],
-  charisma: [
-    "이 카리스마! 완전 압도적인데요!",
-    "강력한 카리스마는 처음 봐요!",
-    "진짜 레전드급 포스!"
-  ],
-  darkness: [
-    "이 다크한 매력... 너무 신비로워요!",
-    "깊고 어두운 눈빛에 빠져버렸어요!",
-    "미스테리어스한 분위기... 매혹적!"
-  ],
-  freshness: [
-    "이 상큼함! 완전 프레시해요!",
-    "청량한 매력에 기분까지 상쾌!",
-    "프레시한 에너지에 힐링받아요!"
-  ],
-  elegance: [
-    "이 우아함! 완전 고급스러워요!",
-    "엘레간트한 매력... 품격 있어요!",
-    "세련된 분위기에 매료됐어요!"
-  ],
-  freedom: [
-    "자유로운 에너지! 너무 멋져요!",
-    "자유분방한 매력... 시원해요!",
-    "무구속한 분위기에 해방감!"
-  ],
-  luxury: [
-    "이 럭셔리함! 완전 고급져요!",
-    "사치스러운 매력... 프리미엄!",
-    "고급스러운 분위기에 압도!"
-  ],
-  purity: [
-    "이 순수함! 완전 천사 같아요!",
-    "청순한 매력... 맑고 깨끗해요!",
-    "순결한 분위기에 마음이 정화!"
-  ],
-  uniqueness: [
-    "이 독특함! 완전 개성 넘쳐요!",
-    "유니크한 매력... 진짜 특별해요!",
-    "오리지널한 개성... 너무 멋져요!"
-  ]
-}
-
 export default function TraitRadarChart({ traits, showAnimation = true }: TraitRadarChartProps) {
+  const t = useTranslations('analysis')
   const tLabels = useTranslations('labels')
   const centerX = 140
   const centerY = 140
@@ -242,10 +189,8 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
     )
   })
 
-  const getAiMessage = (trait: string, value: number) => {
-    const messages = AI_MESSAGES[trait] || ["정말 멋진 매력이에요! ✨"]
-    const messageIndex = Math.min(Math.floor(value / 4), messages.length - 1)
-    return messages[messageIndex]
+  const getAiMessage = (trait: string) => {
+    return t('topTraitMessage', { trait: tLabels(`traits.${trait}`) })
   }
 
   // 가장 높은 특성의 컬러 테마
@@ -287,12 +232,12 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
               </motion.div>
               <div className="flex-1">
                 <p className="text-white text-sm font-black leading-relaxed drop-shadow-sm">
-                  &quot;{getAiMessage(highestTrait.key, highestTrait.value)}&quot;
+                  &quot;{getAiMessage(highestTrait.key)}&quot;
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="text-white/80 text-[10px] font-bold">@acscent_ai</span>
                   <span className="px-2 py-0.5 bg-white/20 rounded-full text-white text-[10px] font-black">
-                    {highestTrait.label} {highestTrait.value}점
+                    {highestTrait.label} {highestTrait.value}{t('scoreUnit')}
                   </span>
                 </div>
               </div>

@@ -2,50 +2,52 @@ import {
   ImageAnalysisResult,
   ChemistryProfile,
   ChemistryType,
-  RELATION_TROPES,
-  ARCHETYPE_OPTIONS,
-  SCENE_OPTIONS,
-  EMOTION_KEYWORDS,
 } from '@/types/analysis';
 import { parseGeminiResponse } from './response-parser';
+import { getChemistryOptionLabel, getChemistrySlugLabels } from './chemistry-labels';
 import type { Locale } from '@/i18n/config';
-
-const SLUG_TO_LABEL: Record<string, string> = Object.fromEntries(
-  [...RELATION_TROPES, ...ARCHETYPE_OPTIONS, ...SCENE_OPTIONS, ...EMOTION_KEYWORDS].map(
-    (o) => [o.id, o.label]
-  )
-);
 
 const PROTECTED_KEYS = new Set([
   'chemistryType',
-  'tierLabel',
   'best_season',
   'best_time',
   'blendedPalette',
   'perfumeId',
-  'verdict',
 ]);
 
-function sanitizeText(text: string): string {
+function sanitizeText(text: string, locale: Locale): string {
   if (!text) return text;
+  const slugLabels = getChemistrySlugLabels(locale);
+
   let out = text.replace(/([가-힣]+)\s*\(([A-Za-z][A-Za-z0-9_]*)\)/g, (match, ko, slug) => {
-    return SLUG_TO_LABEL[slug.toLowerCase()] ? ko : match;
+    const normalizedSlug = slug.toLowerCase();
+    if (!getChemistryOptionLabel(normalizedSlug, locale)) return match;
+    return locale === 'ko' ? ko : getChemistryOptionLabel(normalizedSlug, locale) || match;
   });
-  for (const [slug, label] of Object.entries(SLUG_TO_LABEL)) {
-    const re = new RegExp(`\\b${slug}\\b`, 'gi');
+  for (const [slug, label] of Object.entries(slugLabels)) {
+    const isTechnicalSlug = slug.includes('_');
+    const escapedSlug = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    if (locale !== 'ko' && !isTechnicalSlug) {
+      const exactSlug = new RegExp(`^\\s*${escapedSlug}\\s*$`, 'i');
+      out = out.replace(exactSlug, label);
+      continue;
+    }
+
+    const re = new RegExp(`\\b${escapedSlug}\\b`, 'gi');
     out = out.replace(re, label);
   }
   return out;
 }
 
-function sanitizeDeep<T>(value: T, key?: string): T {
+function sanitizeDeep<T>(value: T, locale: Locale, key?: string): T {
   if (key && PROTECTED_KEYS.has(key)) return value;
-  if (typeof value === 'string') return sanitizeText(value) as unknown as T;
-  if (Array.isArray(value)) return value.map((v) => sanitizeDeep(v)) as unknown as T;
+  if (typeof value === 'string') return sanitizeText(value, locale) as unknown as T;
+  if (Array.isArray(value)) return value.map((v) => sanitizeDeep(v, locale)) as unknown as T;
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(value as Record<string, unknown>)) {
-      out[k] = sanitizeDeep((value as Record<string, unknown>)[k], k);
+      out[k] = sanitizeDeep((value as Record<string, unknown>)[k], locale, k);
     }
     return out as unknown as T;
   }
@@ -97,7 +99,8 @@ export function parseChemistryIndividualResponse(
  * Phase 2 응답 파싱: 케미 프로필
  */
 export function parseChemistryProfileResponse(
-  responseText: string
+  responseText: string,
+  locale: Locale = 'ko'
 ): ChemistryProfile {
   try {
     let parsed = JSON.parse(extractJsonPayload(responseText));
@@ -187,7 +190,7 @@ export function parseChemistryProfileResponse(
       chemistryStory: parsed.chemistryStory || '',
     };
 
-    return sanitizeDeep(profile);
+    return sanitizeDeep(profile, locale);
   } catch (error) {
     console.error('Chemistry profile response parsing error:', error);
     console.error('Response text:', responseText.substring(0, 500));
@@ -305,22 +308,6 @@ function validateRelationshipDynamic(dynamic: unknown): void {
 function validateLayeringGuide(guide: unknown): void {
   if (!guide || typeof guide !== 'object') {
     throw new Error('layeringGuide is required');
-  }
-}
-
-function validateScenarios(scenarios: unknown): void {
-  if (!Array.isArray(scenarios) || scenarios.length === 0) {
-    throw new Error('scenarios must be a non-empty array');
-  }
-}
-
-function validateDialogues(dialogues: unknown): void {
-  if (!dialogues || typeof dialogues !== 'object') {
-    throw new Error('dialogues is required');
-  }
-  const d = dialogues as Record<string, unknown>;
-  if (!d.aToB || !d.bToA) {
-    throw new Error('dialogues.aToB and dialogues.bToA are required');
   }
 }
 

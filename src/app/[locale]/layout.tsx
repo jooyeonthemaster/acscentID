@@ -54,6 +54,14 @@ export async function generateMetadata({
     es: "es_ES",
   };
 
+  const creators: Record<string, string> = {
+    ko: "주식회사 네안더",
+    en: "Neander Inc.",
+    ja: "株式会社ネアンダー",
+    zh: "NEANDER 株式会社",
+    es: "Neander Inc.",
+  };
+
   return {
     metadataBase: new URL(BASE_URL),
     title: {
@@ -62,7 +70,7 @@ export async function generateMetadata({
     },
     description: descriptions[locale] || descriptions.ko,
     authors: [{ name: "AC'SCENT IDENTITY", url: BASE_URL }],
-    creator: "주식회사 네안더",
+    creator: creators[locale] || creators.ko,
     publisher: "AC'SCENT IDENTITY",
     openGraph: {
       type: "website",

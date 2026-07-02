@@ -2,19 +2,19 @@
 
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Minus, TestTube2, AlertTriangle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { CategoryChange, GeneratedRecipe } from '@/types/feedback'
 
-// ─── 카테고리 이름 매핑 (다국어) ────────────────────────────────────
+// Maps saved category values to stable category keys.
 const CATEGORY_KEY_MAP: Record<string, string> = {
   citrus: 'citrus', floral: 'floral', woody: 'woody',
   musky: 'musky', fruity: 'fruity', spicy: 'spicy',
-  시트러스: 'citrus', 플로럴: 'floral', 우디: 'woody',
-  머스크: 'musky', 프루티: 'fruity', 스파이시: 'spicy',
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  citrus: '시트러스', floral: '플로럴', woody: '우디',
-  musky: '머스크', fruity: '프루티', spicy: '스파이시',
+  '\uC2DC\uD2B8\uB7EC\uC2A4': 'citrus',
+  '\uD50C\uB85C\uB7F4': 'floral',
+  '\uC6B0\uB514': 'woody',
+  '\uBA38\uC2A4\uD06C': 'musky',
+  '\uD504\uB8E8\uD2F0': 'fruity',
+  '\uC2A4\uD30C\uC774\uC2DC': 'spicy',
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; bar: string }> = {
@@ -35,10 +35,13 @@ interface CategoryChangeChartProps {
 
 export function CategoryChangeChart({
   categoryChanges,
-  title = '향 밸런스 변화',
+  title,
   compact = false,
 }: CategoryChangeChartProps) {
+  const t = useTranslations('feedback')
+  const tLabels = useTranslations('labels')
   if (!categoryChanges || categoryChanges.length === 0) return null
+  const displayTitle = title ?? t('balanceChange')
 
   const renderChangeIcon = (change: CategoryChange['change']) => {
     if (change === 'increased') return <TrendingUp size={12} className="text-green-600" />
@@ -56,15 +59,15 @@ export function CategoryChangeChart({
   return (
     <div className={`bg-slate-50 rounded-xl ${compact ? 'p-3' : 'p-4'} space-y-3 border border-slate-200`}>
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-slate-700">{title}</h4>
+        <h4 className="text-xs font-bold text-slate-700">{displayTitle}</h4>
         <div className="flex items-center gap-2 text-[9px] text-slate-500">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-            기존
+            {t('existing')}
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-            변경
+            {t('changed')}
           </span>
         </div>
       </div>
@@ -72,7 +75,7 @@ export function CategoryChangeChart({
       <div className="space-y-2">
         {categoryChanges.map((change, index) => {
           const categoryKey = CATEGORY_KEY_MAP[change.category] || CATEGORY_KEY_MAP[change.category.toLowerCase()] || 'citrus'
-          const categoryName = CATEGORY_LABELS[categoryKey] || change.category
+          const categoryName = tLabels(`categories.${categoryKey}`)
           const colors = CATEGORY_COLORS[categoryKey] || { bg: 'bg-slate-100', bar: 'bg-slate-400' }
           const originalScore = Math.round(Math.max(0, Math.min(10, change.originalScore || 0)) * 10) / 10
           const newScore = Math.round(Math.max(0, Math.min(10, change.newScore || 0)) * 10) / 10
@@ -130,13 +133,14 @@ export function TestingInstructionsBox({
   instructions,
   compact = false,
 }: TestingInstructionsBoxProps) {
+  const t = useTranslations('feedback')
   if (!instructions) return null
 
   return (
     <div className={compact ? 'space-y-2' : 'space-y-2.5'}>
       <div className="flex items-center gap-2">
         <TestTube2 size={13} className="text-purple-500" />
-        <h4 className="text-xs font-bold text-slate-700">테스팅 방법</h4>
+        <h4 className="text-xs font-bold text-slate-700">{t('testMethod')}</h4>
       </div>
 
       <div className="bg-purple-50 rounded-xl p-3 space-y-2 border border-purple-100">
@@ -174,14 +178,16 @@ export function OriginalPerfumeCard({
   perfumeId,
   perfumeName,
   retentionPercentage,
-  label = '원본 향',
+  label,
 }: OriginalPerfumeCardProps) {
+  const t = useTranslations('feedback')
+  const displayLabel = label ?? t('existing')
   return (
     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-[9px] font-black text-amber-700 uppercase tracking-wider flex-shrink-0">
-            {label}
+            {displayLabel}
           </span>
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-xs font-black text-slate-900 truncate">{perfumeName}</span>
@@ -190,7 +196,7 @@ export function OriginalPerfumeCard({
         </div>
         {typeof retentionPercentage === 'number' && (
           <div className="flex-shrink-0 flex items-center gap-1">
-            <span className="text-[9px] text-amber-700 font-bold">유지</span>
+            <span className="text-[9px] text-amber-700 font-bold">{t('prefMaintain')}</span>
             <span className="text-sm font-black text-amber-700">{retentionPercentage}%</span>
           </div>
         )}

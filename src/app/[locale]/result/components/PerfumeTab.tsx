@@ -4,7 +4,8 @@ import React from 'react'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Sparkles, Clock, BookOpen, Search } from 'lucide-react'
-import { ImageAnalysisResult } from '@/types/analysis'
+import { ImageAnalysisResult, PerfumePersona } from '@/types/analysis'
+import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { PerfumeNotes } from './PerfumeNotes'
 import { PerfumeProfile } from './PerfumeProfile'
 import { ScentRecommendationCard } from './ScentRecommendationCard'
@@ -21,6 +22,31 @@ const fadeIn = {
 
 export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabProps) {
   const t = useTranslations()
+  const { localizedPerfumes, getLocalizedName, getLocalizedKeywords } = useLocalizedPerfumes()
+
+  const localizePersona = (persona: PerfumePersona | undefined, perfumeId?: string): PerfumePersona | undefined => {
+    if (!persona) return persona
+    const localizedPerfume = localizedPerfumes.find((perfume) => perfume.id === perfumeId)
+    if (!perfumeId && !localizedPerfume) return persona
+
+    return {
+      ...persona,
+      name: perfumeId ? getLocalizedName(perfumeId, persona.name) : persona.name,
+      description: localizedPerfume?.description || persona.description,
+      keywords: perfumeId ? getLocalizedKeywords(perfumeId) : persona.keywords,
+      mood: localizedPerfume?.mood || persona.mood,
+      personality: localizedPerfume?.personality || persona.personality,
+      mainScent: persona.mainScent
+        ? { ...persona.mainScent, name: localizedPerfume?.mainScent?.name || persona.mainScent.name }
+        : persona.mainScent,
+      subScent1: persona.subScent1
+        ? { ...persona.subScent1, name: localizedPerfume?.subScent1?.name || persona.subScent1.name }
+        : persona.subScent1,
+      subScent2: persona.subScent2
+        ? { ...persona.subScent2, name: localizedPerfume?.subScent2?.name || persona.subScent2.name }
+        : persona.subScent2,
+    }
+  }
 
   // PC: 2컬럼 그리드 레이아웃으로 확장
   if (isDesktop) {
@@ -35,8 +61,9 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
       >
         {displayedAnalysis.matchingPerfumes && displayedAnalysis.matchingPerfumes.length > 0 ? (
           displayedAnalysis.matchingPerfumes.map((match, index) => {
-            const primaryColor = match.persona?.primaryColor || '#FBBF24';
-            const secondaryColor = match.persona?.secondaryColor || '#F59E0B';
+            const persona = localizePersona(match.persona, match.perfumeId);
+            const primaryColor = persona?.primaryColor || '#FBBF24';
+            const secondaryColor = persona?.secondaryColor || '#F59E0B';
 
             return (
               <motion.div key={index} variants={fadeIn} className="space-y-6">
@@ -60,16 +87,16 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                       <span className="text-xs font-black text-slate-900">{t('result.recommendedPerfume')}</span>
                     </div>
                     <h2 className="text-3xl font-black leading-tight text-slate-900 mb-2">
-                      {match.persona?.id || t('result.customPerfumeAlt')}
+                      {persona?.id || t('result.customPerfumeAlt')}
                     </h2>
                     <p className="text-base text-slate-600 mb-4">
-                      {match.persona?.name || ''}
+                      {persona?.name || ''}
                     </p>
 
                     {/* 키워드 - 키치 스타일 */}
-                    {match.persona?.keywords && (
+                    {persona?.keywords && (
                       <div className="flex flex-wrap gap-2">
-                        {match.persona.keywords.slice(0, 6).map((keyword, i) => (
+                        {persona.keywords.slice(0, 6).map((keyword, i) => (
                           <span
                             key={i}
                             className="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 border-2 border-amber-300 text-amber-700"
@@ -84,12 +111,12 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
 
                 {/* 세로 배치: 향 노트 */}
                 <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                  <PerfumeNotes persona={match.persona} isDesktop={true} />
+                  <PerfumeNotes persona={persona} isDesktop={true} />
                 </div>
 
                 {/* 세로 배치: 향수 프로필 */}
                 <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                  <PerfumeProfile persona={match.persona} isDesktop={true} />
+                  <PerfumeProfile persona={persona} isDesktop={true} />
                 </div>
 
                 {/* 향수 스토리 */}
@@ -109,7 +136,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                 )}
 
                 {/* 사용 추천 */}
-                {match.persona?.recommendation && (
+                {persona?.recommendation && (
                   <div className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
                     <SectionHeader
                       icon={<Clock size={14} />}
@@ -118,7 +145,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     />
                     <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
                       <p className="text-slate-700 text-sm leading-relaxed font-medium">
-                        {match.persona.recommendation}
+                        {persona.recommendation}
                       </p>
                     </div>
                     {/* 추천 계절/시간대 */}
@@ -137,8 +164,8 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     subtitle={t('perfume.usageGuideSubtitle')}
                   />
                   <div className="bg-[#FEF9C3] rounded-xl p-4 space-y-3 border-2 border-slate-200">
-                    {match.persona?.usageGuide?.tips && match.persona.usageGuide.tips.length > 0 ? (
-                      match.persona.usageGuide.tips.map((tip, i) => (
+                    {persona?.usageGuide?.tips && persona.usageGuide.tips.length > 0 ? (
+                      persona.usageGuide.tips.map((tip, i) => (
                         <GuideItem key={i} text={tip} />
                       ))
                     ) : (
@@ -181,8 +208,9 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
     >
       {displayedAnalysis.matchingPerfumes && displayedAnalysis.matchingPerfumes.length > 0 ? (
         displayedAnalysis.matchingPerfumes.map((match, index) => {
-          const primaryColor = match.persona?.primaryColor || '#FBBF24';
-          const secondaryColor = match.persona?.secondaryColor || '#F59E0B';
+          const persona = localizePersona(match.persona, match.perfumeId);
+          const primaryColor = persona?.primaryColor || '#FBBF24';
+          const secondaryColor = persona?.secondaryColor || '#F59E0B';
 
           return (
             <motion.div key={index} variants={fadeIn} className="space-y-5">
@@ -205,16 +233,16 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     <span className="text-[10px] font-black text-slate-900">{t('result.recommendedPerfume')}</span>
                   </div>
                   <h2 className="text-2xl font-black leading-tight text-slate-900">
-                    {match.persona?.id || t('result.customPerfumeAlt')}
+                    {persona?.id || t('result.customPerfumeAlt')}
                   </h2>
                   <p className="text-sm mt-1 text-slate-600 mb-3">
-                    {match.persona?.name || ''}
+                    {persona?.name || ''}
                   </p>
 
                   {/* 키워드 - 키치 스타일 */}
-                  {match.persona?.keywords && (
+                  {persona?.keywords && (
                     <div className="flex flex-wrap gap-1.5">
-                      {match.persona.keywords.slice(0, 5).map((keyword, i) => (
+                      {persona.keywords.slice(0, 5).map((keyword, i) => (
                         <span
                           key={i}
                           className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-amber-50 border-2 border-amber-300 text-amber-700"
@@ -228,10 +256,10 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
               </div>
 
               {/* 향 노트 */}
-              <PerfumeNotes persona={match.persona} />
+              <PerfumeNotes persona={persona} />
 
               {/* 향수 프로필 */}
-              <PerfumeProfile persona={match.persona} />
+              <PerfumeProfile persona={persona} />
 
               {/* 향수 스토리 */}
               {match.matchReason && (
@@ -250,7 +278,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
               )}
 
               {/* 사용 추천 */}
-              {match.persona?.recommendation && (
+              {persona?.recommendation && (
                 <div className="bg-white rounded-2xl p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
                   <SectionHeader
                     icon={<Clock size={14} />}
@@ -259,7 +287,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                   />
                   <div className="relative bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 overflow-hidden border-2 border-amber-200">
                     <p className="text-slate-700 text-sm leading-relaxed font-medium">
-                      {match.persona.recommendation}
+                      {persona.recommendation}
                     </p>
                   </div>
                   {/* 추천 계절/시간대 */}
@@ -278,9 +306,9 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                   subtitle={t('perfume.usageGuideSubtitle')}
                 />
                 <div className="bg-[#FEF9C3] rounded-xl p-4 space-y-3 border-2 border-slate-200">
-                  {match.persona?.usageGuide?.tips && match.persona.usageGuide.tips.length > 0 ? (
+                  {persona?.usageGuide?.tips && persona.usageGuide.tips.length > 0 ? (
                     // AI 생성 주접 가이드가 있으면 표시
-                    match.persona.usageGuide.tips.map((tip, i) => (
+                    persona.usageGuide.tips.map((tip, i) => (
                       <GuideItem key={i} text={tip} />
                     ))
                   ) : (

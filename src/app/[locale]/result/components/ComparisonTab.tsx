@@ -32,16 +32,44 @@ function parseReflectionDetails(text: string): ParsedReflection {
     final: ''
   }
 
-  // 【ㅇㅈ 포인트】, 【숨은 매력 발견】, 【갭 분석】, 【최종 향수 매칭】으로 분리
-  const agreeMatch = text.match(/【ㅇㅈ 포인트】([\s\S]*?)(?=【|$)/)
-  const hiddenMatch = text.match(/【숨은 매력 발견】([\s\S]*?)(?=【|$)/)
-  const gapMatch = text.match(/【갭 분석】([\s\S]*?)(?=【|$)/)
-  const finalMatch = text.match(/【최종 향수 매칭】([\s\S]*?)(?=【|$)/)
+  const bracketSections = Array.from(text.matchAll(/(?:【([^】]+)】|\[([^\]]+)\])([\s\S]*?)(?=(?:【[^】]+】|\[[^\]]+\])|$)/g))
+    .map((match) => ({
+      label: (match[1] || match[2] || '').trim().toLowerCase(),
+      content: (match[3] || '').trim(),
+    }))
+    .filter((section) => section.label && section.content)
 
-  if (agreeMatch) sections.agree = agreeMatch[1].trim()
-  if (hiddenMatch) sections.hidden = hiddenMatch[1].trim()
-  if (gapMatch) sections.gap = gapMatch[1].trim()
-  if (finalMatch) sections.final = finalMatch[1].trim()
+  const pick = (labels: string[]) => (
+    bracketSections.find((section) => labels.some((label) => section.label.includes(label)))?.content || ''
+  )
+
+  sections.agree = pick([
+    'ㅇㅈ', '일치', '공감', 'agree', 'agreement', 'match point',
+    '一致', '共感', '同意', 'punto de acuerdo', 'coincidencia',
+  ])
+  sections.hidden = pick([
+    '숨은', '차이', 'hidden', 'charm', 'difference',
+    '隠れ', '魅力', '隐藏', '差异', 'encanto oculto',
+  ])
+  sections.gap = pick([
+    '갭', '대조', 'gap', 'contrast',
+    'ギャップ', '差距', '对比', 'brecha', 'contraste',
+  ])
+  sections.final = pick([
+    '최종', '향수', 'final', 'perfume match', 'scent match',
+    '最終', '香水', '最终', '匹配', 'match final',
+  ])
+
+  if (!sections.agree && !sections.hidden && !sections.gap && !sections.final) {
+    if (bracketSections.length >= 4) {
+      sections.agree = bracketSections[0].content
+      sections.hidden = bracketSections[1].content
+      sections.gap = bracketSections[2].content
+      sections.final = bracketSections[3].content
+    } else {
+      sections.final = text.trim()
+    }
+  }
 
   return sections
 }

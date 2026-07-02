@@ -47,6 +47,12 @@ export function OrderSummary({
   const isChemistrySet = productType === "chemistry_set"
   // 시향지 애드온 선택 시 — 포함 사항을 시향지 전용으로 표기 (퍼퓸/세트 구성 안내가 맞지 않으므로)
   const isScentPaper = isScentPaperSize(selectedSize)
+  const getStoreProductTitle = () => {
+    if (isScentPaper) return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : '시향지'
+    if (selectedSize === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : '50ml 향수'
+    if (selectedSize === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : '10ml 향수'
+    return selectedSize
+  }
 
   // 동적 가격 옵션 — DB(admin_product_pricing) 기반. 추가/삭제/순서변경 즉시 반영.
   const options = getOptions(productType)
@@ -142,7 +148,7 @@ export function OrderSummary({
           ) : isStoreProduct ? (
             <>
               <ShoppingBag size={14} className="text-lime-500" />
-              상품 선택
+              {t('checkout.productSelection')}
             </>
           ) : isChemistrySet ? (
             <>
@@ -411,12 +417,12 @@ export function OrderSummary({
             <>
               <li className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                {isScentPaper ? '선택한 향 시향지' : `${selectedSize} 향수 (스프레이 타입)`}
+                {isScentPaper ? getStoreProductTitle() : t('checkout.storeProductPerfumeIncluded', { product: getStoreProductTitle() })}
               </li>
               {!isScentPaper && (
                 <li className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full bg-white border border-slate-900 flex items-center justify-center text-[10px]">✓</span>
-                  프리미엄 패키지
+                  {t('checkout.includePremiumPackage')}
                 </li>
               )}
               <li className="flex items-center gap-2">

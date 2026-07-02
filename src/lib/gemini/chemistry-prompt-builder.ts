@@ -1,5 +1,6 @@
 import { formatPerfumesForPrompt } from './perfume-formatter';
 import { wrapPromptWithLocale } from './locale-prompt-wrapper';
+import { formatChemistryOptionLabels } from './chemistry-labels';
 import type { Locale } from '@/i18n/config';
 import {
   RELATION_TROPES,
@@ -8,14 +9,6 @@ import {
   EMOTION_KEYWORDS,
   type ImageAnalysisResult,
 } from '@/types/analysis';
-
-type LabelOption = { id: string; label: string };
-
-function mapIdsToLabels(ids: string[] | undefined, options: readonly LabelOption[]): string {
-  if (!ids?.length) return '';
-  const labelById = new Map(options.map((o) => [o.id, o.label]));
-  return ids.map((id) => labelById.get(id) ?? id).join(', ');
-}
 
 export interface ChemistryUserInput {
   character1Name: string;
@@ -27,6 +20,31 @@ export interface ChemistryUserInput {
   emotionKeywords: string[];
   scentDirection: number;
   message: string;
+}
+
+const OUTPUT_LANGUAGE_NAMES: Record<Locale, string> = {
+  ko: '한국어',
+  en: 'English',
+  ja: '日本語',
+  zh: '简体中文',
+  es: 'español',
+}
+
+function buildChemistryOutputLanguageRule(locale: Locale): string {
+  if (locale === 'ko') {
+    return `# ❗출력 언어 규칙 (반드시 준수)
+- 모든 텍스트는 한국어로만 작성. 영어 단어, 코드명, 슬러그(예: fate_encounter, library, bittersweet, playful, rebel 등)는 절대 노출 금지.
+- 사용자에게 보여줄 모든 description/narrative/intro/title 류 문장에서 영어 식별자를 괄호로 병기하지 말 것.
+- 향수 이름·노트명 등 고유명사가 영어인 경우에만 영어 표기 허용.`
+  }
+
+  const languageName = OUTPUT_LANGUAGE_NAMES[locale]
+  return `# ❗Output language rule (must follow)
+- Write every user-facing text value only in ${languageName}. Do not output Korean.
+- The prompt examples and structural notes may contain Korean; treat them as format guidance only and translate the actual content into ${languageName}.
+- Never expose code names or slugs such as fate_encounter, library, bittersweet, playful, or rebel in user-facing text.
+- Do not write Korean labels in parentheses next to translated text.
+- Perfume names, note names, and perfume IDs may keep their official spelling when needed.`
 }
 
 /**
@@ -210,17 +228,14 @@ ${isSelfAnalysis ? `당신은 차분한 "관계 향수 연구원"입니다. 두 
 
 # 사용자 입력
 
-- 관계 트로프 (복수): ${mapIdsToLabels(userInput.relationTropes, RELATION_TROPES)}
-- ${userInput.character1Name} 성격 유형 (복수): ${mapIdsToLabels(userInput.character1Archetypes, ARCHETYPE_OPTIONS)}
-- ${userInput.character2Name} 성격 유형 (복수): ${mapIdsToLabels(userInput.character2Archetypes, ARCHETYPE_OPTIONS)}
-- 장소/분위기 (복수): ${mapIdsToLabels(userInput.scenes, SCENE_OPTIONS)}
-- 감정 키워드: ${mapIdsToLabels(userInput.emotionKeywords, EMOTION_KEYWORDS)}
+- 관계 트로프 (복수): ${formatChemistryOptionLabels(userInput.relationTropes, RELATION_TROPES, locale)}
+- ${userInput.character1Name} 성격 유형 (복수): ${formatChemistryOptionLabels(userInput.character1Archetypes, ARCHETYPE_OPTIONS, locale)}
+- ${userInput.character2Name} 성격 유형 (복수): ${formatChemistryOptionLabels(userInput.character2Archetypes, ARCHETYPE_OPTIONS, locale)}
+- 장소/분위기 (복수): ${formatChemistryOptionLabels(userInput.scenes, SCENE_OPTIONS, locale)}
+- 감정 키워드: ${formatChemistryOptionLabels(userInput.emotionKeywords, EMOTION_KEYWORDS, locale)}
 ${userInput.message ? `- 추가 메시지: ${userInput.message}` : ''}
 
-# ❗출력 언어 규칙 (반드시 준수)
-- 모든 텍스트는 한국어로만 작성. 영어 단어, 코드명, 슬러그(예: fate_encounter, library, bittersweet, playful, rebel 등)는 절대 노출 금지.
-- 사용자에게 보여줄 모든 description/narrative/intro/title 류 문장에서 영어 식별자를 괄호로 병기하지 말 것.
-- 향수 이름·노트명 등 고유명사가 영어인 경우에만 영어 표기 허용.
+${buildChemistryOutputLanguageRule(locale)}
 
 # 4대 케미향 판정 기준
 

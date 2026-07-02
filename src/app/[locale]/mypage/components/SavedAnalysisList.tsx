@@ -62,6 +62,7 @@ interface Analysis {
 // 분석 데이터 타입 (레시피 모달에서 사용)
 interface AnalysisData {
   matchingPerfumes?: Array<{
+    perfumeId?: string
     matchScore?: number
     score?: number
     persona?: PerfumePersona
@@ -77,6 +78,7 @@ interface ChemistryAnalysis {
   chemistryType: string | null
   chemistryTitle: string | null
   service_mode?: 'online' | 'offline'
+  locale?: string | null
   created_at: string
 }
 
@@ -101,6 +103,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   const isAnalysisDiscontinued = (productType: string | null | undefined) =>
     isProductTypeDiscontinued(productType, isProductActive, productsLoading)
   const isChemistryDiscontinued = isAnalysisDiscontinued('chemistry_set')
+  const getAnalysisPerfumeId = (analysis: Analysis | null | undefined) => {
+    const topMatch = analysis?.analysis_data?.matchingPerfumes?.[0]
+    return topMatch?.perfumeId || topMatch?.persona?.id || ''
+  }
+  const getAnalysisPerfumeName = (analysis: Analysis | null | undefined) => {
+    if (!analysis) return ''
+    const topMatch = analysis.analysis_data?.matchingPerfumes?.[0]
+    const perfumeId = getAnalysisPerfumeId(analysis)
+    return perfumeId
+      ? getLocalizedName(perfumeId, topMatch?.persona?.name || analysis.perfume_name)
+      : topMatch?.persona?.name || analysis.perfume_name
+  }
+  const getChemistryPerfumePairName = (chem: ChemistryAnalysis) =>
+    `${getAnalysisPerfumeName(chem.characterA)} x ${getAnalysisPerfumeName(chem.characterB)}`
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
@@ -164,7 +180,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       const cartItems = selectedAnalyses.map(a => ({
         analysis_id: a.id,
         product_type: a.product_type || 'image_analysis',
-        perfume_name: a.perfume_name,
+        perfume_name: getAnalysisPerfumeName(a),
         perfume_brand: a.perfume_brand || undefined,
         twitter_name: a.twitter_name || undefined,
         size: getDefaultSize(a.product_type || 'image_analysis'),
@@ -231,9 +247,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     // 분석 결과를 localStorage에 저장 (checkout 페이지에서 사용)
     const analysisResult = {
       matchingPerfumes: [{
-        perfumeId: analysis.id,
+        perfumeId: getAnalysisPerfumeId(analysis) || analysis.id,
         persona: {
-          name: analysis.perfume_name,
+          name: getAnalysisPerfumeName(analysis),
           recommendation: analysis.perfume_brand
         }
       }],
@@ -251,7 +267,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     // 확정된 레시피 저장 (checkout 페이지에서 레시피 배지 표시용)
     if (analysis.confirmed_recipe) {
       localStorage.setItem('checkoutRecipe', JSON.stringify(analysis.confirmed_recipe))
-      localStorage.setItem('checkoutRecipePerfumeName', analysis.perfume_name || '')
+      localStorage.setItem('checkoutRecipePerfumeName', getAnalysisPerfumeName(analysis) || '')
     }
 
     router.push('/checkout')
@@ -264,7 +280,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       const cartItems = [{
         layering_session_id: chem.sessionId,
         product_type: 'chemistry_set' as ProductType,
-        perfume_name: `${chem.characterA.perfume_name} x ${chem.characterB.perfume_name}`,
+        perfume_name: getChemistryPerfumePairName(chem),
         perfume_brand: chem.characterA.perfume_brand || "AC'SCENT",
         twitter_name: `${chem.characterA.idol_name || chem.characterA.twitter_name} x ${chem.characterB.idol_name || chem.characterB.twitter_name}`,
         size: getDefaultSize('chemistry_set'),
@@ -323,6 +339,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
       existingSessionId: chem.sessionId,
       analysisAId: chem.characterA.id,
       analysisBId: chem.characterB.id,
+      resultLocale: chem.locale || null,
     }
     sessionStorage.setItem('chemistry_result', JSON.stringify(chemistryResult))
     sessionStorage.setItem('chemistry_form', JSON.stringify(chemistryForm))
@@ -532,7 +549,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                               {chem.characterA.idol_name || chem.characterA.twitter_name} x {chem.characterB.idol_name || chem.characterB.twitter_name}
                             </h3>
                             <p className="text-[9px] sm:text-[11px] text-slate-500 truncate mt-0.5">
-                              {chem.characterA.perfume_name} x {chem.characterB.perfume_name}
+                              {getChemistryPerfumePairName(chem)}
                             </p>
                             {chem.chemistryTitle && (
                               <p className="text-[8px] sm:text-[10px] text-violet-600 font-bold truncate mt-0.5">{chem.chemistryTitle}</p>
@@ -658,7 +675,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         {analysis.idol_name || analysis.twitter_name}
                       </h3>
                       <p className="text-[9px] sm:text-[11px] text-slate-500 truncate mt-0.5">
-                        {analysis.perfume_name}
+                        {getAnalysisPerfumeName(analysis)}
                       </p>
                     </div>
                     {/* 삭제 버튼 */}
@@ -863,7 +880,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-600 truncate">{analysis.perfume_name}</p>
+                  <p className="text-sm text-slate-600 truncate">{getAnalysisPerfumeName(analysis)}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-xs text-slate-500 flex items-center gap-1">
                       <Calendar size={12} />
@@ -1009,7 +1026,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   {/* 정보 */}
                   <div className="p-5 border-t-2 border-black">
                     <h2 className="font-black text-xl">{selectedImage.idol_name || selectedImage.twitter_name}</h2>
-                    <p className="text-slate-600 text-sm mt-1">{selectedImage.perfume_name}</p>
+                    <p className="text-slate-600 text-sm mt-1">{getAnalysisPerfumeName(selectedImage)}</p>
 
                     {/* 확정 레시피 */}
                     {selectedImage.confirmed_recipe?.granules && (
@@ -1212,7 +1229,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         )}
                         <div>
                           <p className="text-xs text-slate-500">{recipeModalTarget.idol_name || recipeModalTarget.twitter_name}</p>
-                          <h2 className="text-xl font-black leading-tight text-slate-900">{modalPersona?.name || recipeModalTarget.perfume_name}</h2>
+                          <h2 className="text-xl font-black leading-tight text-slate-900">{getAnalysisPerfumeName(recipeModalTarget) || modalPersona?.name || recipeModalTarget.perfume_name}</h2>
                         </div>
                       </div>
                     )
@@ -1525,7 +1542,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                               {chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
                             </p>
                             <p className="text-sm font-black text-slate-900 truncate">
-                              {personaA?.name || chemistryDetailTarget.characterA.perfume_name}
+                              {getAnalysisPerfumeName(chemistryDetailTarget.characterA) || personaA?.name || chemistryDetailTarget.characterA.perfume_name}
                             </p>
                           </div>
                         </div>
@@ -1569,7 +1586,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                               {chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
                             </p>
                             <p className="text-sm font-black text-slate-900 truncate">
-                              {personaB?.name || chemistryDetailTarget.characterB.perfume_name}
+                              {getAnalysisPerfumeName(chemistryDetailTarget.characterB) || personaB?.name || chemistryDetailTarget.characterB.perfume_name}
                             </p>
                           </div>
                         </div>

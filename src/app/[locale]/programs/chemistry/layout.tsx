@@ -1,45 +1,60 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { createMetadata } from '@/lib/seo/metadata'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productSchema, breadcrumbSchema } from '@/lib/seo/schemas'
 import { getServerOption } from '@/lib/products/pricing'
+import { getLocalizedProgramPath, getProgramSeo, resolveProgramLocale } from '@/lib/programs/program-seo'
 
-export const metadata: Metadata = createMetadata({
-  title: '레이어링 퍼퓸 세트',
-  description:
-    '두 인물의 케미를 향기로 담는 맞춤 향수 세트. AI가 두 인물의 이미지와 관계를 분석하여 케미 프로필과 맞춤 향수 세트를 추천합니다. 레이어링 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드.',
-  path: '/programs/chemistry',
-  keywords: ['레이어링 퍼퓸', '커플 향수', '캐릭터 향수', 'AI 케미 분석', '레이어링 향수', '향수 세트'],
-  openGraph: {
-    type: 'website',
-    images: [
-      {
-        url: '/images/product-placeholder.svg',
-        width: 800,
-        height: 800,
-        alt: '레이어링 퍼퓸 세트 - AC\'SCENT IDENTITY',
-      },
-    ],
-  },
-})
+interface ProgramLayoutProps {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
 
-const breadcrumbJsonLd = breadcrumbSchema([
-  { name: '프로그램', path: '/programs/chemistry' },
-  { name: '레이어링 퍼퓸 세트', path: '/programs/chemistry' },
-])
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('chemistry', locale)
+  const path = getLocalizedProgramPath('chemistry', locale)
 
-export default async function ChemistryLayout({ children }: { children: React.ReactNode }) {
+  return createMetadata({
+    title: seo.title,
+    description: seo.description,
+    path,
+    keywords: seo.keywords,
+    locale,
+    openGraph: {
+      type: 'website',
+      images: [
+        {
+          url: '/images/product-placeholder.svg',
+          width: 800,
+          height: 800,
+          alt: `${seo.title} - AC'SCENT IDENTITY`,
+        },
+      ],
+    },
+  })
+}
+
+export default async function ChemistryLayout({ children, params }: ProgramLayoutProps) {
+  const locale = resolveProgramLocale((await params).locale)
+  const seo = getProgramSeo('chemistry', locale)
+  const path = getLocalizedProgramPath('chemistry', locale)
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: seo.programLabel, path },
+    { name: seo.title, path },
+  ], locale)
+
   const opt = await getServerOption('chemistry_set', 'set_10ml').catch((error) => {
     console.warn('[chemistry/layout] pricing lookup failed; using metadata fallback:', error)
     return null
   })
   const productJsonLd = productSchema({
-    name: '레이어링 퍼퓸 세트',
-    description: '두 인물의 케미를 향기로 담는 맞춤 향수 세트. 레이어링 퍼퓸 세트 + 케미 프로필 카드 포함.',
+    name: seo.title,
+    description: seo.productDescription,
     price: opt?.price ?? 38000,
     originalPrice: opt?.original_price ?? 38000,
     image: '/images/product-placeholder.svg',
-    path: '/programs/chemistry',
+    path,
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',
     sku: 'ACSCENT-CHEMISTRY-SET',
   })
