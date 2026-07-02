@@ -29,9 +29,12 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
     useEffect(() => {
         if (formData.pin.length === 4 && !pinToastShownRef.current) {
             pinToastShownRef.current = true
-            setShowPinToast(true)
-            const timer = setTimeout(() => setShowPinToast(false), 4000)
-            return () => clearTimeout(timer)
+            const showTimer = setTimeout(() => setShowPinToast(true), 0)
+            const hideTimer = setTimeout(() => setShowPinToast(false), 4000)
+            return () => {
+                clearTimeout(showTimer)
+                clearTimeout(hideTimer)
+            }
         }
         if (formData.pin.length < 4) {
             pinToastShownRef.current = false
@@ -121,12 +124,12 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                 {/* 분석 대상 선택: 최애 vs 나 — 이름 입력 바로 위 */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        분석 대상
+                        {t('input.step1.analysisTarget')}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                         {([
-                            { key: "self", label: "나", emoji: "🪞", desc: "나에 대한 분석" },
-                            { key: "idol", label: "최애", emoji: "💖", desc: "내 최애 분석" },
+                            { key: "self", label: t('input.step1.targetSelf'), emoji: "🪞", desc: t('input.step1.targetSelfDesc') },
+                            { key: "idol", label: t('input.step1.targetIdol'), emoji: "💖", desc: t('input.step1.targetIdolDesc') },
                         ] as const).map(({ key, label, emoji, desc }) => {
                             const isActive = (formData.targetType ?? "self") === key
                             return (

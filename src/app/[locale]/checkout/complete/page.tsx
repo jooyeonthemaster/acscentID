@@ -62,6 +62,13 @@ function OrderCompleteContent() {
     size: string
     perfumeName: string
   } | null>(null)
+  const getOrderSizeLabel = (size: string) => {
+    if (isScentPaperSize(size)) return t('checkout.optionScentPaper')
+    if (size === 'set_10ml') return t('checkout.optionChemistrySet10')
+    if (size === 'set_50ml') return t('checkout.optionChemistrySet50')
+    if (size === 'set') return t('checkout.setProduct')
+    return size
+  }
 
   // 결제 검증 + 주문 정보 로드
   useEffect(() => {
@@ -335,7 +342,7 @@ function OrderCompleteContent() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
                   <span className="text-slate-500 font-bold">{t('checkoutComplete.volume')}</span>
-                  <span className="font-bold text-slate-900">{isScentPaperSize(orderInfo.size) ? '시향지' : orderInfo.size}</span>
+                  <span className="font-bold text-slate-900">{getOrderSizeLabel(orderInfo.size)}</span>
                 </div>
                 <div className="border-t-2 border-slate-900 pt-4 mt-4 flex justify-between items-center">
                   <span className="font-black text-slate-900">{t('checkoutComplete.paymentAmount')}</span>

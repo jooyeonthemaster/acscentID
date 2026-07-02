@@ -47,10 +47,34 @@ export function OrderSummary({
   const isChemistrySet = productType === "chemistry_set"
   // 시향지 애드온 선택 시 — 포함 사항을 시향지 전용으로 표기 (퍼퓸/세트 구성 안내가 맞지 않으므로)
   const isScentPaper = isScentPaperSize(selectedSize)
+  const getOptionLabel = (option: { size: string; label: string; product_type?: ProductType }) => {
+    const optionProductType = option.product_type || productType
+
+    if (isScentPaperSize(option.size)) {
+      return optionProductType === 'chemistry_set'
+        ? t('checkout.optionScentPaperTwo')
+        : t('checkout.optionScentPaper')
+    }
+    if (option.size === '10ml') {
+      if (optionProductType === 'graduation') return t('checkout.optionGraduation10')
+      if (optionProductType === 'signature') return t('checkout.optionSignature10')
+      if (optionProductType === 'payment_test') return t('checkout.optionPaymentTest')
+      return t('checkout.optionPerfume10')
+    }
+    if (option.size === '50ml') return t('checkout.optionPerfume50')
+    if (option.size === 'set') {
+      if (optionProductType === 'image_analysis_paper') return t('checkout.optionImageAnalysisPaper')
+      if (optionProductType === 'figure_diffuser') return t('checkout.optionFigureSet')
+      return t('checkout.setProduct')
+    }
+    if (option.size === 'set_10ml') return t('checkout.optionChemistrySet10')
+    if (option.size === 'set_50ml') return t('checkout.optionChemistrySet50')
+    return option.label
+  }
   const getStoreProductTitle = () => {
-    if (isScentPaper) return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : '시향지'
-    if (selectedSize === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : '50ml 향수'
-    if (selectedSize === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : '10ml 향수'
+    if (isScentPaper) return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : t('checkout.optionScentPaper')
+    if (selectedSize === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : t('checkout.optionPerfume50')
+    if (selectedSize === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : t('checkout.optionPerfume10')
     return selectedSize
   }
 
@@ -172,6 +196,7 @@ export function OrderSummary({
           /* 단일 옵션 — 카드형 (항상 선택됨) */
           (() => {
             const option = options[0]
+            const optionLabel = getOptionLabel(option)
             const discount = computeDiscount(option.price, option.original_price)
             return (
               <div className="grid grid-cols-1 gap-3">
@@ -184,11 +209,11 @@ export function OrderSummary({
                       {option.image_url && (
                         <img
                           src={option.image_url}
-                          alt={option.label}
+                          alt={optionLabel}
                           className="w-12 h-12 rounded-xl border-2 border-slate-900 object-cover bg-white"
                         />
                       )}
-                      <p className="font-black text-slate-900 text-lg truncate">{option.label}</p>
+                      <p className="font-black text-slate-900 text-lg truncate">{optionLabel}</p>
                     </div>
                     <div className="flex items-end gap-2 shrink-0">
                       <p className="text-xl font-black text-slate-900">{formatPrice(option.price)}{t('currency.suffix')}</p>
@@ -212,6 +237,7 @@ export function OrderSummary({
             {options.map((option) => {
               const discount = computeDiscount(option.price, option.original_price)
               const selected = selectedSize === option.size
+              const optionLabel = getOptionLabel(option)
               return (
                 <button
                   key={option.size}
@@ -231,7 +257,7 @@ export function OrderSummary({
                     {option.image_url ? (
                       <img
                         src={option.image_url}
-                        alt={option.label}
+                        alt={optionLabel}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -242,7 +268,7 @@ export function OrderSummary({
                   </div>
                   <div className="flex flex-1 flex-col">
                     <div>
-                      <p className="text-[15px] font-black leading-tight text-slate-900">{option.label}</p>
+                      <p className="text-[15px] font-black leading-tight text-slate-900">{optionLabel}</p>
                       <p className="mt-0.5 text-sm font-black leading-tight text-slate-900">
                         {formatPrice(option.price)}{t('currency.suffix')}
                       </p>

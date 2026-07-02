@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { Package, Star, Minus, Plus, Trash2, Check, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { CartItem, ProductType } from "@/types/cart"
-import { PRODUCT_TYPE_BADGES, formatPrice } from "@/types/cart"
+import { PRODUCT_TYPE_BADGES, formatPrice, isScentPaperSize } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { getEffectiveProductType } from "@/lib/products/store-products"
@@ -45,6 +45,30 @@ export function MultiItemOrderSummary({
   const t = useTranslations()
   const { getOptions } = useProductPricing()
   const storeText = useStoreProductText()
+  const getOptionLabel = (productType: ProductType, option: { size: string; label: string; product_type?: ProductType }) => {
+    const optionProductType = option.product_type || productType
+
+    if (isScentPaperSize(option.size)) {
+      return optionProductType === 'chemistry_set'
+        ? t('checkout.optionScentPaperTwo')
+        : t('checkout.optionScentPaper')
+    }
+    if (option.size === '10ml') {
+      if (optionProductType === 'graduation') return t('checkout.optionGraduation10')
+      if (optionProductType === 'signature') return t('checkout.optionSignature10')
+      if (optionProductType === 'payment_test') return t('checkout.optionPaymentTest')
+      return t('checkout.optionPerfume10')
+    }
+    if (option.size === '50ml') return t('checkout.optionPerfume50')
+    if (option.size === 'set') {
+      if (optionProductType === 'image_analysis_paper') return t('checkout.optionImageAnalysisPaper')
+      if (optionProductType === 'figure_diffuser') return t('checkout.optionFigureSet')
+      return t('checkout.setProduct')
+    }
+    if (option.size === 'set_10ml') return t('checkout.optionChemistrySet10')
+    if (option.size === 'set_50ml') return t('checkout.optionChemistrySet50')
+    return option.label
+  }
   const getStoreProductTitle = (slug: string | undefined, title: string | undefined, size: string) => {
     if (slug) {
       return storeText({
@@ -55,9 +79,9 @@ export function MultiItemOrderSummary({
         included: [],
       }).title
     }
-    if (size === 'scent_paper') return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : '시향지'
-    if (size === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : '50ml 향수'
-    if (size === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : '10ml 향수'
+    if (size === 'scent_paper') return t.has('store.items.scent-paper.title') ? t('store.items.scent-paper.title') : t('checkout.optionScentPaper')
+    if (size === '50ml') return t.has('store.items.perfume-50ml.title') ? t('store.items.perfume-50ml.title') : t('checkout.optionPerfume50')
+    if (size === '10ml') return t.has('store.items.perfume-10ml.title') ? t('store.items.perfume-10ml.title') : t('checkout.optionPerfume10')
     return title || size
   }
   const renderProductTypeBadge = (productType: ProductType) => {
@@ -201,7 +225,7 @@ export function MultiItemOrderSummary({
                   >
                     {getOptions(effectiveProductType).map(option => (
                       <option key={option.size} value={option.size}>
-                        {option.label}
+                        {getOptionLabel(effectiveProductType, option)}
                       </option>
                     ))}
                   </select>

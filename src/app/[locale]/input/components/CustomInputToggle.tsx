@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useTranslations } from "next-intl"
 
 interface CustomInputToggleProps {
     isOpen: boolean
@@ -15,8 +16,10 @@ export function CustomInputToggle({
     onToggle,
     value,
     onChange,
-    placeholder = "직접 입력해주세요"
+    placeholder
 }: CustomInputToggleProps) {
+    const t = useTranslations()
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -38,7 +41,7 @@ export function CustomInputToggle({
                         transition-all duration-200
                     "
                 >
-                    + 직접 입력하기
+                    {t('input.customInput')}
                 </button>
             ) : (
                 <div className="relative">
@@ -48,7 +51,7 @@ export function CustomInputToggle({
                         type="text"
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder={placeholder}
+                        placeholder={placeholder || t('input.customPlaceholder')}
                         className="
                             relative w-full p-3
                             bg-white/90 backdrop-blur-md rounded-xl
