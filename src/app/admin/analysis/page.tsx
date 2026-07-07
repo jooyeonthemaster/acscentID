@@ -34,6 +34,7 @@ const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   payment_test: '테스트',
   today_scent: '오늘의 향',
   store_product: '상품',
+  saju_perfume: '사주',
   etc: '기타',
 }
 
@@ -231,12 +232,18 @@ export default function AnalysisPage() {
               className="px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-400"
             >
               {/* [FIX] HIGH: chemistry_set 옵션 추가 */}
+              {/* [ADD] saju_perfume + 누락 타입(image_analysis_paper/signature/today_scent/store_product) 옵션 추가 */}
               <option value="all">전체 상품</option>
               <option value="image_analysis">최애 이미지 분석</option>
+              <option value="image_analysis_paper">시향지</option>
               <option value="figure_diffuser">피규어 디퓨저</option>
               <option value="personal_scent">퍼스널 센트</option>
               <option value="graduation">졸업 퍼퓸</option>
+              <option value="signature">시그니처</option>
               <option value="chemistry_set">레이어링 퍼퓸</option>
+              <option value="saju_perfume">사주 분석 퍼퓸</option>
+              <option value="today_scent">오늘의 향</option>
+              <option value="store_product">상품</option>
             </select>
 
             {/* 서비스 모드 필터 */}

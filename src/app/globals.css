@@ -8,6 +8,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
   --font-jua: var(--font-jua);
+  --font-serif-kr: var(--font-noto-serif-kr), "Noto Serif KR", serif;
 
 
   --color-sidebar-ring: var(--sidebar-ring);
@@ -481,4 +482,127 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* === SAJU DESIGN TOKENS — 자정의 조향소 === */
+:root {
+  /* 지면 */
+  --saju-ink: #0C0E16;          /* 먹색 자정 — 기본 배경 */
+  --saju-ink-soft: #12141D;     /* 융기면(카드/바) on dark */
+  --saju-ink-line: #262A38;     /* on-dark 헤어라인 */
+  --saju-hanji: #F5EFE2;        /* 한지 크림 — 카드/보고서 지면 */
+  --saju-hanji-deep: #EDE5D2;   /* 한지 음영 */
+  --saju-hanji-line: #D8CFBB;   /* on-cream 헤어라인 */
+
+  /* 잉크(텍스트) */
+  --saju-text-on-dark: #E9E2D0;       /* 본문 on dark (≈15.5:1) */
+  --saju-text-on-dark-muted: #A69F8D; /* 보조 on dark (≈7.0:1) */
+  --saju-text-on-cream: #1A1610;      /* 먹 — 본문 on cream (≈15.7:1) */
+  --saju-text-on-cream-muted: #5C564A;/* 보조 on cream (≈7.3:1) */
+  --saju-blue-ink: #2C3E50;           /* 청묵 — 부제 on cream (≈9.6:1) */
+
+  /* 주사(辰砂) */
+  --saju-cinnabar: #C0392B;        /* 낙관/강조 면 */
+  --saju-cinnabar-deep: #A93226;   /* 텍스트 on cream (≈5.8:1 AA) */
+  --saju-cinnabar-bright: #E2604E; /* 텍스트 on dark (≈5.5:1 AA) */
+
+  /* 금박 */
+  --saju-gold: #C9A227;        /* 기본 금 — on dark 텍스트 가능 (≈8.0:1) */
+  --saju-gold-bright: #E8C766; /* 하이라이트 금 */
+  --saju-gold-pale: #F2DA8A;   /* 샤인 정점 */
+  --saju-gold-deep: #8A6D1F;   /* 금 음영(장식 전용) */
+  --saju-gold-text-cream: #7A5C14; /* on-cream 금 텍스트 대체 (≈5.2:1 AA) */
+
+  /* 오행 — 면(fill)용 원색 */
+  --saju-wood: #3E7C4F;
+  --saju-fire: #C0392B;
+  --saju-earth: #C9A227;
+  --saju-metal: #B8B8B0;
+  --saju-water: #2C3E60;
+
+  /* 오행 — on-dark 텍스트/라벨 변형 (모두 ≥4.5:1) */
+  --saju-wood-text: #6FAE80;
+  --saju-fire-text: #E2604E;
+  --saju-earth-text: #DDB84A;
+  --saju-metal-text: #C9C9C0;
+  --saju-water-text: #7C96C4;
+
+  /* 오행 — on-cream 텍스트 변형 (모두 ≥4.5:1) */
+  --saju-wood-text-cream: #2F6340;
+  --saju-fire-text-cream: #A93226;
+  --saju-earth-text-cream: #7A5C14;
+  --saju-metal-text-cream: #63635B;
+  --saju-water-text-cream: #2C3E60;
+}
+
+/* 한지 질감 — 크림 지면 위. 2겹 turbulence(섬유+반점) */
+.saju-hanji {
+  background-color: var(--saju-hanji);
+}
+/* absolute/fixed 유틸리티와 결합 시 position을 덮어쓰지 않도록 :where 가드 (비레이어 규칙이 유틸리티를 이기는 문제 방지) */
+.saju-hanji:where(:not(.absolute):not(.fixed):not(.sticky)) {
+  position: relative;
+}
+.saju-hanji::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.28' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23h)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  border-radius: inherit;
+}
+/* baseFrequency 0.012 0.28 = 가로로 긴 섬유결. 반점은 아래 레이어 */
+.saju-hanji::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.35'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* 먹지 질감 — 다크 배경 위 은은한 입자 (기존 .bg-noise의 정적·저비용 버전) */
+.saju-ink-grain:where(:not(.absolute):not(.fixed):not(.sticky)) {
+  position: relative;
+}
+.saju-ink-grain::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+/* 주의: 기존 .bg-noise(0.2s 무한 이동)는 사주 월드에서 쓰지 않는다 — 정적 그레인만 */
+
+/* 금박 샤인 텍스트 */
+.saju-gold-foil {
+  background-image: linear-gradient(105deg,
+    #8A6D1F 0%, #C9A227 22%, #F2DA8A 50%, #E8C766 62%, #C9A227 80%, #8A6D1F 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: saju-foil-slide 7s ease-in-out infinite;
+}
+@keyframes saju-foil-slide {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saju-gold-foil { animation: none; background-position: 30% 50%; }
+}
+
+/* 금 파티클 부유 (부모: position relative + overflow hidden) */
+@keyframes saju-dust-rise {
+  0%   { transform: translateY(12px); opacity: 0; }
+  12%  { opacity: var(--dust-peak, 0.55); }
+  85%  { opacity: var(--dust-peak, 0.55); }
+  100% { transform: translateY(-72px); opacity: 0; }
+}
+@keyframes saju-dust-sway {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(var(--dust-sway, 10px)); }
 }

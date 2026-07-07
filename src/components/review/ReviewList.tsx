@@ -9,7 +9,7 @@ import { getReviews, toggleReviewLike } from "@/lib/supabase/reviews"
 import type { Review, ReviewFilter } from "@/lib/supabase/reviews"
 
 interface ReviewListProps {
-  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
   currentUserId?: string
   ratingFilter?: number | null
   onRatingFilterChange?: (rating: number | null) => void

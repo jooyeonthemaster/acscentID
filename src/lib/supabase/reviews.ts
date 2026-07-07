@@ -14,7 +14,7 @@ export interface Review {
   created_at: string
   updated_at: string
   user_id: string | null
-  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
   order_id: string | null
   rating: number
   content: string | null
@@ -52,7 +52,7 @@ export interface ReviewStats {
 }
 
 export interface ReviewFilter {
-  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
   sort_by?: 'latest' | 'rating_high' | 'rating_low' | 'helpful'
   rating?: number | null
   photo_only?: boolean
@@ -61,7 +61,7 @@ export interface ReviewFilter {
 }
 
 export interface CreateReviewInput {
-  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  program_type: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
   order_id?: string
   rating: number
   content?: string
@@ -186,7 +186,7 @@ export async function getReviews(
 /**
  * 리뷰 통계 조회
  */
-export async function getReviewStats(programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'): Promise<ReviewStats> {
+export async function getReviewStats(programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'): Promise<ReviewStats> {
   const { data, error } = await supabase
     .from('reviews')
     .select('rating, review_images(id)')
@@ -437,7 +437,7 @@ export async function toggleReviewLike(userId: string, reviewId: string): Promis
  */
 export async function checkPurchase(
   userId: string,
-  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
 ): Promise<{ canReview: boolean; hasReviewed: boolean; orderId?: string }> {
   // 구매 내역 확인
   const { data: orders } = await supabase

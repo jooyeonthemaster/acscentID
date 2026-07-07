@@ -153,7 +153,8 @@
     "personal": "Personal Scent",
     "leQuack": "SIGNATURE PPUDUCK Perfume",
     "customDuck": "Custom Duck Builder",
-    "chemistry": "Chemistry Perfume Set"
+    "chemistry": "Chemistry Perfume Set",
+    "saju": "Saju (Four Pillars) Perfume"
   },
   "labels": {
     "traits": {
@@ -233,13 +234,15 @@
       "figure": "Your custom figure planter diffuser made from your favorite image",
       "graduation": "A special graduation perfume capturing your memories in scent",
       "personal": "Your signature scent that expresses who you are",
-      "chemistry": "A set that captures two characters' chemistry in scent"
+      "chemistry": "A set that captures two characters' chemistry in scent",
+      "saju": "A destiny scent read from your date and hour of birth"
     },
     "includes": {
       "idolImage": "PPUDUCK Perfume (10ml/50ml) + printed analysis report",
       "figure": "3D Figure + Diffuser (5ml) + printed analysis report",
       "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report",
-      "chemistry": "Chemistry Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card"
+      "chemistry": "Chemistry Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card",
+      "saju": "Saju custom perfume (10ml/50ml) + printed 命式 chart report"
     },
     "features": {
       "aiAnalysis": "AI Custom Analysis",
@@ -2652,6 +2655,395 @@
       "requestOnlyLabel": "Specific fragrance request",
       "requestAddedToast": "\"{note}\" request has been added to your cart",
       "addFailed": "Failed to add to cart"
+    }
+  },
+  "saju": {
+    "common": {
+      "programName": "The Midnight Atelier",
+      "elements": {
+        "wood": "Wood (木)",
+        "fire": "Fire (火)",
+        "earth": "Earth (土)",
+        "metal": "Metal (金)",
+        "water": "Water (水)"
+      },
+      "yinYang": {
+        "yang": "Yang (陽)",
+        "yin": "Yin (陰)"
+      }
+    },
+    "landing": {
+      "featureBar": {
+        "item1": "Precise 萬歲曆 almanac calculation",
+        "item2": "Scent logic rooted in 五行",
+        "item3": "Printed 命式 chart report"
+      },
+      "process": {
+        "title": "From Eight Characters (八字) to a Scent",
+        "sub": "The midnight atelier works in four steps.",
+        "step1": {
+          "title": "Inquiry",
+          "desc": "We ask for your birth hour"
+        },
+        "step2": {
+          "title": "Almanac",
+          "desc": "Your eight characters are drawn"
+        },
+        "step3": {
+          "title": "Reading",
+          "desc": "The flow of your energy is read"
+        },
+        "step4": {
+          "title": "Blending",
+          "desc": "The lacking energy is filled with scent"
+        }
+      },
+      "elements": {
+        "kicker": "The Five Elements (五行) and Their Scents",
+        "title": "Each of the five energies has a scent of its own",
+        "desc": "The manseryeok (萬歲曆) finds the energy you lack — your Yongsin (用神) — and we translate it into the language of scent. Your result explains exactly why this fragrance was chosen.",
+        "sense": {
+          "wood": "New buds and forest air — it awakens the energy of growth.",
+          "fire": "Warmth and spreading light — it rekindles what has gone cold.",
+          "earth": "The steadiness of soil and a sweet weight — it grounds a wavering heart.",
+          "metal": "A cool gleam and cutting clarity — it clears away the clutter.",
+          "water": "Deep water and seeping stillness — it fills what has run dry."
+        },
+        "noteFamily": {
+          "wood": "Green · Herbal",
+          "fire": "Spicy · Amber",
+          "earth": "Woody · Sweet",
+          "metal": "Citrus · Clean",
+          "water": "Musk · Deep"
+        }
+      },
+      "modes": {
+        "kicker": "My Fate (八字), My Bias's Fate",
+        "title": "Whose eight characters shall we read?",
+        "self": {
+          "title": "My Saju (四柱)",
+          "desc": "Read the flow of the energy you were born with, and receive a scent prescribed to fill what is missing in your chart (命式)."
+        },
+        "idol": {
+          "title": "My Bias's Saju (四柱)",
+          "desc": "Why they shine the way they do — their chart (命式) knew it first. Keep the energy your bias was born with in a single bottle of scent."
+        }
+      },
+      "compat": {
+        "title": "Compatibility (宮合) — Where Two Charts Meet",
+        "desc": "Place their birth time beside yours, and the harmonies (合) and clashes (沖) come into view. We prescribe one scent to rest between the two of you."
+      },
+      "special": {
+        "heading": "Why You Can Trust This Program",
+        "card1": {
+          "title": "No photos, no questionnaires",
+          "desc": "The eight characters of your birth date and hour are the entire dataset. We read pure 命理 data and nothing else."
+        },
+        "card2": {
+          "title": "The AI does not do the math",
+          "desc": "Verified code calculates the 萬歲曆 almanac chart; the AI handles only interpretation and blending."
+        },
+        "card3": {
+          "title": "The scent is the prescription",
+          "desc": "Your lacking energy (用神) is filled with one of 30 scents — and we give you the reasoning for why this one."
+        }
+      },
+      "trust": {
+        "q1": "What if I don't know my birth time?",
+        "a1": "We proceed with a three-pillar (三柱) reading, leaving out the hour pillar (時柱). Six characters are enough to read the broad flow of your energy.",
+        "q2": "Is the calculation accurate?",
+        "a2": "Our code calculates precisely on a manseryeok (萬歲曆) that reflects exact solar-term boundaries; the AI only interprets. For births after 11 p.m. — the Ja hour (子時) — the day pillar may differ by school, and we note this in your result."
+      },
+      "cta": "Find the scent of my destiny",
+      "price": "Same price for 10ml / 50ml",
+      "info1": "AI Saju (四柱) reading report + personalized perfume",
+      "info2": "Ships within 3–5 days of your order"
+    },
+    "input": {
+      "gate": {
+        "title": "Whose eight characters shall we read?",
+        "sub": "From the eight characters of a birth date and hour, we read the flow of energy — and prescribe it as a scent.",
+        "self": "My Saju",
+        "selfDesc": "Read the energy I was born with",
+        "idol": "My favorite's Saju",
+        "idolDesc": "Read the energy they were born with",
+        "nameLabel": "Name",
+        "nameLabelIdol": "Your favorite's name",
+        "namePlaceholder": "Your name, or what you go by",
+        "namePlaceholderIdol": "Name or stage name",
+        "genderLabel": "Gender",
+        "genderMale": "Male",
+        "genderFemale": "Female",
+        "genderOther": "Other",
+        "genderHelper": "In classical Saju, a man's chart is called 乾命 and a woman's chart is called 坤命.",
+        "genderHelperIdol": "Please choose based on your favorite's public profile.",
+        "pin": {
+          "label": "Four-digit passcode",
+          "helpTitle": "Choose four digits and remember them",
+          "helpDesc": "You will need this number to revisit your result. Only you need to know it.",
+          "toastLabel": "Your number is",
+          "toastHelp": "Please remember this number."
+        }
+      },
+      "purpose": {
+        "title": "What would you most like to know?",
+        "sub": "One question, answered in depth.",
+        "subIdol": "What are you curious about in your favorite's chart?",
+        "options": {
+          "general": {
+            "label": "Overall",
+            "desc": "Innate temperament and the whole flow",
+            "descIdol": "Innate temperament and the whole flow"
+          },
+          "overall": {
+            "label": "Overall",
+            "desc": "Innate temperament and the whole flow",
+            "descIdol": "Innate temperament and the whole flow"
+          },
+          "love": {
+            "label": "Love",
+            "desc": "Where love arrives, and where it stays",
+            "descIdol": "If you wonder how your favorite loves"
+          },
+          "wealth": {
+            "label": "Wealth",
+            "desc": "The grain along which money gathers and scatters",
+            "descIdol": "Is a gift for wealth something one is born with?"
+          },
+          "career": {
+            "label": "Work & Path",
+            "desc": "The direction your work and path extend",
+            "descIdol": "Does this path suit your favorite's chart?"
+          },
+          "compatibility": {
+            "label": "Compatibility",
+            "desc": "How two energies meet · partner details required",
+            "descIdol": "You and your favorite — how two energies meet · partner details required"
+          }
+        }
+      },
+      "birth": {
+        "title": "Tell us the moment you were born",
+        "titleIdol": "Tell us the moment your favorite was born",
+        "sub": "Your birth date and hour are all this reading needs. No photos, no personality quizzes.",
+        "subIdol": "A publicly known birth date is enough. No photos, no personality quizzes.",
+        "calendarSolar": "Solar",
+        "calendarLunar": "Lunar",
+        "leapMonth": "Born in a leap month",
+        "leapHelper": "Lunar dates are converted precisely with the 萬歲曆 almanac. If it was a leap month, please mark it.",
+        "yearSuffix": "Year",
+        "monthSuffix": "Month",
+        "daySuffix": "Day",
+        "errors": {
+          "yearRange": "We can only calculate years between 1930 and 2035.",
+          "invalidDate": "That date is not on the calendar. Please check again.",
+          "futureDate": "That day has not yet come."
+        },
+        "timeLabel": "Hour of birth",
+        "timeSub": "Chosen by traditional hour (時辰)",
+        "exactTimeLink": "Enter the exact time instead",
+        "exactTimeMatch": "{time} — this falls within the {hanja}時 hour.",
+        "timeUnknown": "I do not know the time",
+        "timeUnknownHelper": "Without the hour, we read three pillars (三柱). The depth remains — only the hour's seat of later years and children is left open.",
+        "branches": {
+          "0": {
+            "animal": "Rat"
+          },
+          "1": {
+            "animal": "Ox"
+          },
+          "2": {
+            "animal": "Tiger"
+          },
+          "3": {
+            "animal": "Rabbit"
+          },
+          "4": {
+            "animal": "Dragon"
+          },
+          "5": {
+            "animal": "Snake"
+          },
+          "6": {
+            "animal": "Horse"
+          },
+          "7": {
+            "animal": "Goat"
+          },
+          "8": {
+            "animal": "Monkey"
+          },
+          "9": {
+            "animal": "Rooster"
+          },
+          "10": {
+            "animal": "Dog"
+          },
+          "11": {
+            "animal": "Pig"
+          }
+        }
+      },
+      "partner": {
+        "title": "Who is the other person?",
+        "sub": "We lay the two charts side by side and read the harmonies (合) and clashes (沖).",
+        "relationLabel": "Your relationship",
+        "relations": {
+          "lover": "Lovers",
+          "lovers": "Lovers",
+          "crush": "Crush · unspoken",
+          "spouse": "Married",
+          "married": "Married",
+          "friend": "Friends",
+          "friends": "Friends",
+          "colleague": "Colleagues · partners",
+          "colleagues": "Colleagues · partners",
+          "family": "Family",
+          "bias": "My favorite"
+        },
+        "nameLabel": "Their name",
+        "namePlaceholder": "Their name, or how you call them",
+        "timeLabel": "Their hour of birth",
+        "idolCompatBanner": "For compatibility between you and your favorite, enter your own details in the partner fields."
+      },
+      "wish": {
+        "title": "Is something weighing on your heart?",
+        "titleIdol": "Is there something you wish for your favorite?",
+        "sub": "One sentence is enough. We hold it in mind as we read the chart.",
+        "subIdol": "One sentence is enough. We hold it in mind as we choose the scent.",
+        "placeholder": "e.g. I have been debating a career change for three years",
+        "placeholderIdol": "e.g. I only hope they stay healthy this year",
+        "skip": "You may skip this"
+      },
+      "seal": {
+        "title": "Sealing your Saju letter (單子)",
+        "sub": "Please check that everything below is correct. Once sealed, the almanac opens.",
+        "rows": {
+          "target": "Subject",
+          "name": "Name",
+          "gender": "Gender",
+          "birth": "Birth",
+          "purpose": "Question",
+          "partner": "Partner",
+          "wish": "Note"
+        },
+        "edit": "Edit",
+        "genderDisplay": {
+          "male": "乾命 · male chart",
+          "female": "坤命 · female chart",
+          "other": "Other"
+        },
+        "timeUnknownDisplay": "Hour (時) unknown",
+        "leapDisplay": "Leap month (閏月)",
+        "submit": "Seal and open the chart"
+      },
+      "nav": {
+        "prev": "Back",
+        "toPurpose": "Next — to the question",
+        "toBirth": "Next — to the birth hour",
+        "toPartner": "Next — to the other person",
+        "toWish": "Next — one last question",
+        "toSeal": "Next — to the seal"
+      },
+      "authGate": {
+        "onlineTitle": "Login Required",
+        "onlineDescription": "Please log in to start your Saju perfume analysis. Your results will be saved automatically!"
+      }
+    },
+    "analyzing": {
+      "headline": "Drawing {name}'s eight characters",
+      "headlineIdol": "Drawing {name}'s eight characters",
+      "headlineLate": "Reading the chart, choosing the scent",
+      "subLate": "About 30 seconds — the almanac is already calculated",
+      "quotes": [
+        "Saju is not a fixed fate — it is a map of the temperament you were born with.",
+        "Eight characters hold the temperature of the season you were born in.",
+        "Easing what overflows and filling what lacks — perfumery and 命理 work the same way.",
+        "The year pillar is the root, the month the stem, the day yourself, the hour the fruit.",
+        "The Day Master (日干) is your center — the other seven characters turn around it.",
+        "For the one whose water has run dry, a scent of the sea; for the one whose fire has gone out, a scent of high noon.",
+        "To find the 用神 is to find the thirstiest place in a chart.",
+        "Born on the same day, a different hour (時) becomes a different scent.",
+        "Scent outlasts memory, and energy moves where scent leads."
+      ],
+      "knots": {
+        "calc": "Almanac",
+        "read": "Reading",
+        "blend": "Blending (調香)"
+      },
+      "eta": "About 30 sec"
+    },
+    "result": {
+      "loading": "Unrolling the scroll",
+      "dataMissing": "We couldn't find your Saju (四柱) reading. Please have your eight characters read again.",
+      "s0": {
+        "headline": "The moment you were born,\neight characters were written in the sky",
+        "headlineIdol": "The moment they were born,\neight characters were written in the sky",
+        "headlineNoHour": "The moment you were born,\nsix characters were written in the sky",
+        "headlineNoHourIdol": "The moment they were born,\nsix characters were written in the sky",
+        "scrollCue": "Scroll down"
+      },
+      "s1": {
+        "kicker": "一章 · 命式",
+        "headline": "Where the eight characters sit",
+        "pillarLabels": {
+          "year": "Year",
+          "month": "Month",
+          "day": "Day",
+          "hour": "Hour"
+        },
+        "jasiNotice": "For those born in the midnight 子時 hour, the day pillar (日柱) may differ by school. This chart follows the midnight boundary."
+      },
+      "s2": {
+        "kicker": "二章 · 日干",
+        "headline": "Your center character",
+        "headlineIdol": "Their center character",
+        "compatNote": "The two centers meet in 四章"
+      },
+      "s3": {
+        "kicker": "三章 · 五行",
+        "headline": "The flow of energy",
+        "dominantChip": "Overflowing · {element}",
+        "lackingChip": "Lacking · {element}",
+        "legendMine": "My chart (命式)"
+      },
+      "s4": {
+        "kicker": "四章 · 所望",
+        "timingLabel": "Counsel on timing (時)",
+        "compat": {
+          "kicker": "四章 · 合",
+          "scoreSuffix": "/100",
+          "harmonyTitle": "Threads that harmonize",
+          "frictionTitle": "Threads that clash",
+          "perfumeBasisNote": "The scent is prescribed by the 用神 of {name}, the owner of this letter."
+        }
+      },
+      "s5": {
+        "kicker": "五章 · 用神",
+        "headline": "The energy you need",
+        "headlineIdol": "The energy they need",
+        "transition": "This energy can become a scent."
+      },
+      "s6": {
+        "kicker": "終章 · 香",
+        "whyTitle": "Why this scent",
+        "noteTiers": {
+          "top": "Surface energy",
+          "middle": "Center energy",
+          "base": "Root energy"
+        }
+      },
+      "s7": {
+        "kicker": "處方 · Ritual",
+        "headline": "How to wear it",
+        "rows": {
+          "time": "When to wear it",
+          "season": "Season & hour",
+          "flow": "This year's flow"
+        },
+        "closing": "The Midnight Atelier — one scent, chosen from your eight characters",
+        "closingIdol": "The Midnight Atelier — one scent, chosen from their eight characters"
+      }
     }
   }
 }

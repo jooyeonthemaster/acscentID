@@ -149,6 +149,7 @@ const FALLBACK_PRODUCTS: AdminProduct[] = [
   { slug: 'le-quack', name: 'LE QUACK 시그니처', is_active: false, display_order: 3 },
   { slug: 'personal', name: '퍼스널 센트', is_active: false, display_order: 4 },
   { slug: 'chemistry', name: '레이어링 퍼퓸 세트', is_active: true, display_order: 5 },
+  { slug: 'saju', name: '사주 분석 퍼퓸', is_active: false, display_order: 6 },
 ]
 
 export function useActiveProducts() {

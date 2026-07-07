@@ -11,7 +11,7 @@ import { GeneratedRecipe, RecipeGranule } from '@/types/feedback'
 // ============================================
 
 // [FIX] HIGH: ProgramType에 chemistry 미등록, CRITICAL #14: 케미 세트 사이즈 인식
-export type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry'
+export type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry' | 'saju'
 
 export interface FragranceUsageItem {
   id: string
@@ -139,6 +139,9 @@ export const PROGRAM_TYPE_MAP: Record<string, ProgramType> = {
   'chemistry_set': 'chemistry',
   'chemistry': 'chemistry',
   'personal_scent': 'idol_image',
+  // [ADD] 사주 분석 퍼퓸 (10ml/50ml 표준 사이즈라 FRAGRANCE_VOLUME_MAP은 기존 매핑 사용)
+  'saju_perfume': 'saju',
+  'saju': 'saju',
 }
 
 // 카테고리 메타데이터

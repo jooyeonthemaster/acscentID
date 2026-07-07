@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type SafetySetting } from "@google/generative-ai";
 
 // Gemini API 클라이언트 초기화
 export function initializeGemini() {
@@ -30,9 +30,11 @@ export function getModel() {
 }
 
 // 동적 maxOutputTokens 설정 모델 가져오기
+// safetySettings는 선택 — 미지정 시 기존 동작(SDK 기본값) 그대로. (사주 등 운세성 콘텐츠 라우트에서만 명시적으로 완화)
 export function getModelWithConfig(options: {
   maxOutputTokens?: number;
   temperature?: number;
+  safetySettings?: SafetySetting[];
 }) {
   const genAI = initializeGemini();
 
@@ -44,6 +46,7 @@ export function getModelWithConfig(options: {
       maxOutputTokens: options.maxOutputTokens ?? 8192,
       responseMimeType: "application/json",
     },
+    ...(options.safetySettings ? { safetySettings: options.safetySettings } : {}),
   });
 }
 

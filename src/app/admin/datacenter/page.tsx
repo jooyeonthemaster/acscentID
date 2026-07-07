@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Wand2,
   Package,
+  Moon,
 } from 'lucide-react'
 import FragranceUsageSection from './components/FragranceUsageSection'
 import FeedbackPatternsSection from './components/FeedbackPatternsSection'
@@ -38,7 +39,8 @@ const TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
 
 // 프로그램 타입 정의
 // [FIX] HIGH: chemistry 추가
-type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry' | 'all'
+// [ADD] saju 추가
+type ProgramType = 'idol_image' | 'figure' | 'graduation' | 'chemistry' | 'saju' | 'all'
 
 interface CountItem {
   name: string
@@ -67,6 +69,7 @@ const PROGRAM_LABELS: Record<ProgramType, { label: string; icon: React.ReactNode
   figure: { label: '피규어 디퓨저', icon: <Box className="w-4 h-4" />, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: <GraduationCap className="w-4 h-4" />, color: 'bg-amber-500' },
   chemistry: { label: '레이어링 퍼퓸', icon: <Users className="w-4 h-4" />, color: 'bg-violet-500' },
+  saju: { label: '사주 분석 퍼퓸', icon: <Moon className="w-4 h-4" />, color: 'bg-red-700' },
 }
 
 // 키워드 클라우드 컴포넌트
@@ -599,7 +602,7 @@ function OverviewSection({
           {/* 프로그램별 요약 */}
           {data && (
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {(['idol_image', 'figure', 'graduation'] as const).map((programType) => {
+              {(['idol_image', 'figure', 'graduation', 'chemistry', 'saju'] as const).map((programType) => {
                 const { label, icon, color } = PROGRAM_LABELS[programType]
                 const stats = data.byProgram[programType]
                 const topName = stats?.nameCounts[0]

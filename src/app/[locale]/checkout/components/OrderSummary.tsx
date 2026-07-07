@@ -59,9 +59,14 @@ export function OrderSummary({
       if (optionProductType === 'graduation') return t('checkout.optionGraduation10')
       if (optionProductType === 'signature') return t('checkout.optionSignature10')
       if (optionProductType === 'payment_test') return t('checkout.optionPaymentTest')
+      // 사주 분석 퍼퓸 — 전용 라벨 키가 있으면 사용
+      if (optionProductType === 'saju_perfume' && t.has('checkout.optionSaju10')) return t('checkout.optionSaju10')
       return t('checkout.optionPerfume10')
     }
-    if (option.size === '50ml') return t('checkout.optionPerfume50')
+    if (option.size === '50ml') {
+      if (optionProductType === 'saju_perfume' && t.has('checkout.optionSaju50')) return t('checkout.optionSaju50')
+      return t('checkout.optionPerfume50')
+    }
     if (option.size === 'set') {
       if (optionProductType === 'image_analysis_paper') return t('checkout.optionImageAnalysisPaper')
       if (optionProductType === 'figure_diffuser') return t('checkout.optionFigureSet')

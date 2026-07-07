@@ -24,6 +24,7 @@ const QR_PRODUCT_TYPES: ProductType[] = [
   'signature',
   'personal_scent',
   'chemistry_set',
+  'saju_perfume',
 ]
 
 // QR 생성 모달

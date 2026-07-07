@@ -12,6 +12,8 @@ import {
   Download,
   Globe,
   Store,
+  Users,
+  Moon,
 } from 'lucide-react'
 
 interface FragranceItem {
@@ -81,10 +83,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   spicy: 'from-orange-500 to-red-500',
 }
 
+// [ADD] chemistry/saju 프로그램 카드 추가
 const PROGRAM_INFO = {
   idol_image: { label: 'AI 이미지 분석', icon: Sparkles, color: 'bg-yellow-500' },
   figure: { label: '피규어 디퓨저', icon: Box, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: GraduationCap, color: 'bg-amber-500' },
+  chemistry: { label: '레이어링 퍼퓸', icon: Users, color: 'bg-violet-500' },
+  saju: { label: '사주 분석 퍼퓸', icon: Moon, color: 'bg-red-700' },
 }
 
 const VIEW_MODE_INFO = {

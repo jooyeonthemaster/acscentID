@@ -18,6 +18,8 @@ const PRODUCT_TYPE_LABELS: Record<string, string> = {
   figure_diffuser: '피규어 디퓨저',
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념',
+  chemistry_set: '레이어링 퍼퓸',
+  saju_perfume: '사주 분석 퍼퓸',
   etc: '기타',
 }
 

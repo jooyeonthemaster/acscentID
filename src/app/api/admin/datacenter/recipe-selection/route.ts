@@ -143,11 +143,13 @@ export async function GET(request: NextRequest) {
     }
 
     // [FIX] HIGH: chemistry 추가
+    // [ADD] saju 추가
     const byProgram: Record<ProgramType, ProgramBreakdown> = {
       idol_image: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
       figure: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
       graduation: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
       chemistry: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
+      saju: { userDirect: 0, aiRecommended: 0, original: 0, total: 0 },
     }
 
     // 월별 트렌드 집계

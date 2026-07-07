@@ -12,6 +12,7 @@ import { Step1, Step2, Step3, Step4, Step5, AnalyzingOverlay } from "./component
 import { TOTAL_STEPS } from "./constants"
 import { GraduationInputForm } from "./graduation/GraduationInputForm"
 import ChemistryInputPage from "./chemistry/ChemistryInputPage"
+import SajuInputPage from "./saju/SajuInputPage"
 
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
@@ -25,6 +26,7 @@ const INPUT_TYPE_TO_SLUG: Record<string, string> = {
   personal: 'personal',
   le_quack: 'le-quack',
   chemistry: 'chemistry',
+  saju: 'saju',
 }
 
 // ===== 메인 폼 컴포넌트 =====
@@ -274,6 +276,15 @@ function InputPageContent() {
         return (
             <InactiveProductGuard productSlug={productSlug}>
                 <ChemistryInputPage />
+            </InactiveProductGuard>
+        )
+    }
+
+    // 사주 분석 퍼퓸 — 「자정의 조향소」 문진 위저드
+    if (type === "saju") {
+        return (
+            <InactiveProductGuard productSlug={productSlug}>
+                <SajuInputPage />
             </InactiveProductGuard>
         )
     }

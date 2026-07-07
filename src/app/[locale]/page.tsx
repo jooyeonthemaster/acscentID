@@ -59,6 +59,7 @@ export default function Home() {
   const graduationPrice = minPrice('graduation')
   const personalPrice = minPrice('personal_scent')
   const chemistryPrice = minPrice('chemistry_set')
+  const sajuPrice = minPrice('saju_perfume')
   const leQuackPrice = minPrice('signature')
   const storeProductPrice = (size: string, fallback: number) => getOptions(STORE_PRODUCT_TYPE).find((o) => o.size === size)?.price ?? fallback
 
@@ -132,6 +133,19 @@ export default function Home() {
       badge: "SEASON 3",
       badgeColor: "bg-[#F472B6]",
       href: "/programs/chemistry"
+    },
+    {
+      id: "saju",
+      title: t('products.saju'),
+      subtitle: t('programs.subtitle.saju'),
+      image: thumbnailsLoading ? null : (thumbnails["saju"] || null),
+      price: sajuPrice?.price ?? 48000,
+      originalPrice: sajuPrice?.original_price ?? null,
+      priceRange: true,
+      delivery: t('shipping.estimated'),
+      badge: computeBadge(sajuPrice, "NEW"),
+      badgeColor: "bg-[#0C0E16]",
+      href: "/programs/saju"
     },
     {
       id: "le-quack",

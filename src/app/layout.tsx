@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Jua, Kirang_Haerang } from "next/font/google";
+import { Outfit, Jua, Kirang_Haerang, Noto_Serif_KR } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
@@ -25,6 +25,14 @@ const kirangHaerang = Kirang_Haerang({
   subsets: ["latin"],
   variable: "--font-kirang",
   weight: "400",
+});
+
+// 사주 분석 퍼퓸 「자정의 조향소」 전용 세리프 (UI-SPEC §1.2)
+const notoSerifKR = Noto_Serif_KR({
+  subsets: ["latin"],           // 한글 서브셋은 next/font가 unicode-range 분할로 자동 처리
+  variable: "--font-noto-serif-kr",
+  weight: ["400", "600", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -60,7 +68,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${outfit.variable} ${jua.variable} ${kirangHaerang.variable} antialiased bg-[#FAFAFA] min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
+        className={`${outfit.variable} ${jua.variable} ${kirangHaerang.variable} ${notoSerifKR.variable} antialiased bg-[#FAFAFA] min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
       >
         <AuthProvider>
           <ClarityProvider>

@@ -177,22 +177,22 @@ function getLocaleReminder(locale: Locale): string {
     en: `# 🚨 FINAL CHECK BEFORE OUTPUT:
 1. Scan every text value in your JSON — if ANY Korean characters (가-힣) exist, REWRITE that value in English.
 2. The examples above were in Korean — you must NOT copy them. Write original English text.
-3. Fields to double-check: matchReason, noteComments (top/middle/base), usageGuide (situation/tips), analysis (mood/style/expression/concept), comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory.
+3. Fields to double-check: matchReason, noteComments (top/middle/base), usageGuide (situation/tips), analysis (mood/style/expression/concept), comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory, sajuAnalysis (dayMasterReading, pillarsReading, elementFlow, purposeReading, compatibilityReading, scentDestiny, yearlyFlow — Hanja characters like 丙火 may stay, Korean Hangul may not).
 4. EVERY SINGLE TEXT VALUE must be 100% English. Zero exceptions.`,
     ja: `# 🚨 出力前の最終チェック:
 1. JSONのすべてのテキスト値をスキャン — 韓国語の文字（가-힣）が1つでもあれば、その値を日本語で書き直してください。
 2. 上記の例は韓国語でした — コピーしないでください。オリジナルの日本語テキストを書いてください。
-3. 確認必須フィールド: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory
+3. 確認必須フィールド: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory, sajuAnalysis (dayMasterReading, pillarsReading, elementFlow, purposeReading, compatibilityReading, scentDestiny, yearlyFlow — 丙火のような漢字は残してよいが、ハングルは禁止)
 4. すべてのテキスト値は100%日本語でなければなりません。例外なし。`,
     zh: `# 🚨 输出前最终检查:
 1. 扫描JSON中的每个文本值 — 如果存在任何韩文字符（가-힣），用中文重写该值。
 2. 上面的示例是韩语的 — 不要复制它们。写原创的中文文本。
-3. 必须检查的字段: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory
+3. 必须检查的字段: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory, sajuAnalysis (dayMasterReading, pillarsReading, elementFlow, purposeReading, compatibilityReading, scentDestiny, yearlyFlow — 汉字如丙火可保留，韩文谚文禁止)
 4. 每个文本值必须是100%简体中文。零例外。`,
     es: `# 🚨 VERIFICACIÓN FINAL ANTES DE LA SALIDA:
 1. Escanea cada valor de texto en tu JSON — si CUALQUIER carácter coreano (가-힣) existe, REESCRIBE ese valor en español.
 2. Los ejemplos anteriores estaban en coreano — NO debes copiarlos. Escribe texto original en español.
-3. Campos a verificar: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory
+3. Campos a verificar: matchReason, noteComments, usageGuide, analysis, comparisonAnalysis, matchingKeywords, personalColor.description, season_reason, time_reason, chemistryTitle, chemistryScore.tierLabel, traitsSynergy, scentHarmony, relationshipDynamic, layeringGuide, colorChemistry.description, faceMatch, chemistryStory, sajuAnalysis (dayMasterReading, pillarsReading, elementFlow, purposeReading, compatibilityReading, scentDestiny, yearlyFlow — los caracteres Hanja como 丙火 pueden quedarse, el Hangul coreano no)
 4. CADA VALOR DE TEXTO debe ser 100% español. Cero excepciones.`,
   }
 

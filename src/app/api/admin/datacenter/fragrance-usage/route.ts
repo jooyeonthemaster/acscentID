@@ -61,12 +61,14 @@ interface UsageDataItem {
 }
 
 // [FIX] HIGH: chemistry 프로그램 추가
+// [ADD] saju 프로그램 추가
 function createEmptyProgramUsage(): Record<ProgramType, ProgramUsage> {
   return {
     idol_image: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
     figure: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
     graduation: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
     chemistry: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
+    saju: { totalMl: 0, totalG: 0, totalItems: 0, topFragrances: [] },
   }
 }
 
@@ -91,7 +93,7 @@ function aggregateByProgram(usageData: UsageDataItem[]): Record<ProgramType, Pro
   }
 
   // 프로그램별 상위 향료
-  for (const progType of ['idol_image', 'figure', 'graduation'] as ProgramType[]) {
+  for (const progType of ['idol_image', 'figure', 'graduation', 'chemistry', 'saju'] as ProgramType[]) {
     const programData = usageData.filter((d) => d.programType === progType)
     byProgram[progType].topFragrances = aggregateFragranceUsage(programData).slice(0, 5)
     byProgram[progType].totalMl = Math.round(byProgram[progType].totalMl * 100) / 100

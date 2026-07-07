@@ -105,6 +105,7 @@ export async function GET() {
       graduation: 0,
       signature: 0,
       chemistry_set: 0,
+      saju_perfume: 0,
     }
 
     // [FIX] HIGH: 동적 키 처리

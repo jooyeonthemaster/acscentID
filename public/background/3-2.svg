@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 842.25 595.499986">
+  <!--
+    사주 분석 퍼퓸 인쇄 배경 3-2 (나 self — 먹 단색 젠) · UI-SPEC §7.1
+    장식 전용: 텍스트 라벨/값은 전부 HTML 절대 배치 (§7.0 의도적 이탈 — SVG에 글자 금지)
+  -->
+  <defs>
+    <!-- 한지 질감 2겹: 섬유결 + 반점 (§1.3 파라미터 재사용) -->
+    <filter id="s32-fiber" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.28" numOctaves="2" seed="7" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <filter id="s32-spots" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <!-- 직각 이중 꺾쇠 코너 오너먼트 — 좌상단 기준(0,0이 모서리) -->
+    <g id="s32-chev" fill="none" stroke="#1A1610">
+      <path d="M0,26 L0,0 L26,0" stroke-width="1.2"/>
+      <path d="M6,26 L6,6 L26,6" stroke-width="0.7"/>
+    </g>
+  </defs>
+
+  <!-- 1. 한지 지면 -->
+  <rect width="842.25" height="595.5" fill="#F5EFE2"/>
+  <rect width="842.25" height="595.5" filter="url(#s32-fiber)" opacity="0.05" style="mix-blend-mode:multiply"/>
+  <rect width="842.25" height="595.5" filter="url(#s32-spots)" opacity="0.04" style="mix-blend-mode:multiply"/>
+
+  <!-- 2. 접힘선 x=421 -->
+  <line x1="421" y1="0" x2="421" y2="595.5" stroke="#1A1610" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.15"/>
+
+  <!-- 3. 외곽 프레임 — 단일 먹 괘선 (inset 14) -->
+  <rect x="14" y="14" width="814.25" height="567.5" fill="none" stroke="#1A1610" stroke-width="1"/>
+
+  <!-- 4. 코너 오너먼트 4곳 (직각 이중 꺾쇠) -->
+  <use xlink:href="#s32-chev" href="#s32-chev" transform="translate(22,22)"/>
+  <use xlink:href="#s32-chev" href="#s32-chev" transform="translate(820.25,22) scale(-1,1)"/>
+  <use xlink:href="#s32-chev" href="#s32-chev" transform="translate(22,573.5) scale(1,-1)"/>
+  <use xlink:href="#s32-chev" href="#s32-chev" transform="translate(820.25,573.5) scale(-1,-1)"/>
+
+  <!-- 5. 우측 패널 섹션 헤어라인 (x 462→790) -->
+  <g stroke="#1A1610" stroke-width="0.5" opacity="0.5">
+    <line x1="462" y1="74" x2="790" y2="74"/>
+    <line x1="462" y1="316" x2="790" y2="316"/>
+    <line x1="462" y1="448" x2="790" y2="448"/>
+  </g>
+
+  <!-- 6. 좌측 명식 그리드 프레임 + 일주 브래킷 (일주 열 좌표 고정) -->
+  <rect x="78" y="142" width="272" height="180" fill="none" stroke="#1A1610" stroke-width="0.75"/>
+  <g fill="none" stroke="#1A1610" stroke-width="1.2">
+    <path d="M148,166 L148,158 L156,158"/>
+    <path d="M202,158 L210,158 L210,166"/>
+    <path d="M148,312 L148,320 L156,320"/>
+    <path d="M202,320 L210,320 L210,312"/>
+  </g>
+
+  <!-- 8. 우하단 먹 붓획 1획 (§2.4 갈필 path 변주, 길이 120, opacity 0.12) -->
+  <path
+    transform="translate(670,556) scale(0.6)"
+    d="M2,6 C30,2.8 62,3.2 100,2.6 C140,2.0 172,4.2 198,4.6 C172,5.6 150,5.4 132,5.8 L128,5.4 L124,6.1 C104,6.6 60,6.4 30,6.8 Z"
+    fill="#1A1610" opacity="0.12"/>
+</svg>

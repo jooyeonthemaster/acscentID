@@ -3,7 +3,7 @@
 import { ImageAnalysisResult } from './analysis'
 
 // 상품 타입 — [FIX] HIGH: admin.ts/cart.ts ProductType 불일치 해소, signature 추가
-export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product' | 'etc'
+export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product' | 'saju_perfume' | 'etc'
 
 // 서비스 모드
 export type ServiceMode = 'online' | 'offline'
@@ -37,6 +37,7 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   payment_test: '결제 테스트',
   today_scent: '오늘의 향',
   store_product: '상품',
+  saju_perfume: '사주 분석 퍼퓸',
   etc: '기타',
 }
 

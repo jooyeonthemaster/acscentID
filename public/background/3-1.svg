@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 842.25 595.499986">
+  <!--
+    사주 분석 퍼퓸 인쇄 배경 3-1 (최애 idol — 금박 + 오행 컬러) · UI-SPEC §7.1
+    장식 전용: 텍스트 라벨/값은 전부 HTML 절대 배치 (§7.0 의도적 이탈 — SVG에 글자 금지)
+  -->
+  <defs>
+    <!-- 한지 질감 2겹: 섬유결 + 반점 (§1.3 파라미터 재사용) -->
+    <filter id="s31-fiber" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.28" numOctaves="2" seed="7" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <filter id="s31-spots" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <!-- 운문(구름문) 코너 오너먼트 3획 — 좌상단 기준(0,0이 모서리) -->
+    <g id="s31-cloud" fill="none" stroke="#C9A227" stroke-linecap="round">
+      <path d="M2,30 C2,14 14,2 30,2" stroke-width="1.2"/>
+      <path d="M7,30 C7,18 18,7 30,7" stroke-width="0.8"/>
+      <path d="M13,30 C13,23 23,13 30,13 C26,16 24,19 24,23" stroke-width="0.8"/>
+    </g>
+  </defs>
+
+  <!-- 1. 한지 지면 -->
+  <rect width="842.25" height="595.5" fill="#F5EFE2"/>
+  <rect width="842.25" height="595.5" filter="url(#s31-fiber)" opacity="0.05" style="mix-blend-mode:multiply"/>
+  <rect width="842.25" height="595.5" filter="url(#s31-spots)" opacity="0.04" style="mix-blend-mode:multiply"/>
+
+  <!-- 2. 접힘선 x=421 -->
+  <line x1="421" y1="0" x2="421" y2="595.5" stroke="#1A1610" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.15"/>
+
+  <!-- 7a. 좌측 패널 오행 고리 워터마크 — 중심(210,250) 지름 300, 금 opacity 0.06 -->
+  <g opacity="0.06" fill="none" stroke="#C9A227">
+    <circle cx="210" cy="250" r="150" stroke-width="1.5"/>
+    <circle cx="210" cy="250" r="110" stroke-width="0.75"/>
+    <!-- 오행 노드 5개: 12시 방향부터 시계방향 (상생 순) -->
+    <circle cx="210" cy="140" r="26" stroke-width="1.5"/>
+    <circle cx="314.6" cy="216" r="26" stroke-width="1.5"/>
+    <circle cx="274.7" cy="339" r="26" stroke-width="1.5"/>
+    <circle cx="145.3" cy="339" r="26" stroke-width="1.5"/>
+    <circle cx="105.4" cy="216" r="26" stroke-width="1.5"/>
+    <!-- 상극 오각성 연결선 -->
+    <path d="M210,140 L274.7,339 L105.4,216 L314.6,216 L145.3,339 Z" stroke-width="0.75"/>
+  </g>
+
+  <!-- 7b. 우측 향수명 영역 뒤 운문 flourish (462~790, 76~126) 금 opacity 0.08 -->
+  <g opacity="0.08" fill="none" stroke="#C9A227" stroke-linecap="round">
+    <path d="M470,112 C520,84 580,84 620,104 C660,124 720,120 782,92" stroke-width="1.2"/>
+    <path d="M470,120 C530,96 600,98 640,112 C680,126 730,122 782,102" stroke-width="0.8"/>
+    <path d="M634,92 C644,83 660,82 670,89 C662,93 655,96 651,103" stroke-width="0.8"/>
+  </g>
+
+  <!-- 3. 외곽 프레임 — 이중 금 괘선 (outer inset 12 / inner inset 19) -->
+  <rect x="12" y="12" width="818.25" height="571.5" fill="none" stroke="#C9A227" stroke-width="1.5"/>
+  <rect x="19" y="19" width="804.25" height="557.5" fill="none" stroke="#C9A227" stroke-width="0.5" opacity="0.6"/>
+
+  <!-- 4. 코너 오너먼트 4곳 (40×40 영역) -->
+  <use xlink:href="#s31-cloud" href="#s31-cloud" transform="translate(24,24)"/>
+  <use xlink:href="#s31-cloud" href="#s31-cloud" transform="translate(818.25,24) scale(-1,1)"/>
+  <use xlink:href="#s31-cloud" href="#s31-cloud" transform="translate(24,571.5) scale(1,-1)"/>
+  <use xlink:href="#s31-cloud" href="#s31-cloud" transform="translate(818.25,571.5) scale(-1,-1)"/>
+
+  <!-- 5. 우측 패널 섹션 헤어라인 (x 462→790) -->
+  <g stroke="#C9A227" stroke-width="0.75">
+    <line x1="462" y1="74" x2="790" y2="74"/>
+    <line x1="462" y1="316" x2="790" y2="316"/>
+    <line x1="462" y1="448" x2="790" y2="448"/>
+  </g>
+
+  <!-- 6. 좌측 명식 그리드 프레임 + 일주 브래킷 (일주 열 좌표 고정) -->
+  <rect x="78" y="142" width="272" height="180" fill="none" stroke="#C9A227" stroke-width="0.75"/>
+  <g fill="none" stroke="#C9A227" stroke-width="1.2">
+    <path d="M148,166 L148,158 L156,158"/>
+    <path d="M202,158 L210,158 L210,166"/>
+    <path d="M148,312 L148,320 L156,320"/>
+    <path d="M202,320 L210,320 L210,312"/>
+  </g>
+</svg>

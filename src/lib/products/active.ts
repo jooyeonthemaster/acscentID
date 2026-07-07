@@ -14,6 +14,7 @@ export const PRODUCT_TYPE_TO_SLUG: Record<string, string> = {
   signature: 'le-quack',
   personal_scent: 'personal',
   chemistry_set: 'chemistry',
+  saju_perfume: 'saju',
 }
 
 /**

@@ -153,7 +153,8 @@
     "personal": "Aroma Personal",
     "leQuack": "SIGNATURE Perfume PPUDUCK",
     "customDuck": "Constructor de Pato Personalizado",
-    "chemistry": "Set de Perfume Química"
+    "chemistry": "Set de Perfume Química",
+    "saju": "Perfume de Saju (Cuatro Pilares)"
   },
   "labels": {
     "traits": {
@@ -233,13 +234,15 @@
       "figure": "Tu difusor con figura 3D hecho a partir de tu imagen favorita",
       "graduation": "Convierte el recuerdo de tu graduación en fragancia, un perfume conmemorativo especial",
       "personal": "Tu fragancia signature que te representa",
-      "chemistry": "Un set que captura la química de dos personajes en fragancia"
+      "chemistry": "Un set que captura la química de dos personajes en fragancia",
+      "saju": "Un aroma del destino leído en tu fecha y hora de nacimiento"
     },
     "includes": {
       "idolImage": "Perfume PPUDUCK (10ml/50ml) + Informe de análisis impreso",
       "figure": "Figura 3D + Difusor (5ml) + Informe de análisis impreso",
       "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma",
-      "chemistry": "Set de perfume química (10ml x 2 / 50ml x 2) + Tarjeta de perfil química"
+      "chemistry": "Set de perfume química (10ml x 2 / 50ml x 2) + Tarjeta de perfil química",
+      "saju": "Perfume personalizado Saju (10ml/50ml) + informe impreso de la carta 命式"
     },
     "features": {
       "aiAnalysis": "Análisis personalizado con IA",
@@ -2652,6 +2655,395 @@
       "requestOnlyLabel": "Solicitud de ingrediente específico",
       "requestAddedToast": "La solicitud \"{note}\" se añadió a tu carrito",
       "addFailed": "No se pudo añadir al carrito"
+    }
+  },
+  "saju": {
+    "common": {
+      "programName": "El Atelier de Medianoche",
+      "elements": {
+        "wood": "Madera (木)",
+        "fire": "Fuego (火)",
+        "earth": "Tierra (土)",
+        "metal": "Metal (金)",
+        "water": "Agua (水)"
+      },
+      "yinYang": {
+        "yang": "Yang (陽)",
+        "yin": "Yin (陰)"
+      }
+    },
+    "landing": {
+      "featureBar": {
+        "item1": "Cálculo preciso del almanaque 萬歲曆",
+        "item2": "Lógica de perfumería basada en 五行",
+        "item3": "Informe impreso de la carta 命式"
+      },
+      "process": {
+        "title": "De los ocho caracteres (八字) a un aroma",
+        "sub": "El taller de medianoche trabaja en cuatro pasos.",
+        "step1": {
+          "title": "Consulta",
+          "desc": "Le preguntamos su hora de nacimiento"
+        },
+        "step2": {
+          "title": "Almanaque",
+          "desc": "Se extraen sus ocho caracteres"
+        },
+        "step3": {
+          "title": "Lectura",
+          "desc": "Se lee el flujo de su energía"
+        },
+        "step4": {
+          "title": "Perfumería",
+          "desc": "La energía que falta se completa con aroma"
+        }
+      },
+      "elements": {
+        "kicker": "Los Cinco Elementos (五行) y sus aromas",
+        "title": "Cada una de las cinco energías tiene su propio aroma",
+        "desc": "El calendario Manseryeok (萬歲曆) encuentra la energía que te falta — tu Yongsin (用神) — y la traducimos al lenguaje del aroma. El resultado incluye la razón exacta de por qué este perfume.",
+        "sense": {
+          "wood": "Brotes nuevos y aire de bosque — despierta la energía que crece.",
+          "fire": "Calidez y luz que se expande — templa lo que se ha enfriado.",
+          "earth": "La estabilidad de la tierra y un peso dulce — afirma un corazón que vacila.",
+          "metal": "Un brillo frío y una claridad que corta — despeja el desorden.",
+          "water": "Agua profunda y una calma que impregna — colma lo que se ha secado."
+        },
+        "noteFamily": {
+          "wood": "Verde · Herbal",
+          "fire": "Especiado · Ámbar",
+          "earth": "Amaderado · Dulce",
+          "metal": "Cítrico · Limpio",
+          "water": "Almizcle · Profundo"
+        }
+      },
+      "modes": {
+        "kicker": "Mi destino (八字), el de mi bias",
+        "title": "¿De quién leemos los ocho caracteres?",
+        "self": {
+          "title": "Mi Saju (四柱)",
+          "desc": "Lee el flujo de la energía con la que naciste y recibe un aroma recetado para llenar el vacío de tu carta (命式)."
+        },
+        "idol": {
+          "title": "El Saju (四柱) de mi bias",
+          "desc": "Por qué esa persona brilla así — su carta (命式) lo sabía primero. Guarda la energía innata de tu bias en un frasco de perfume."
+        }
+      },
+      "compat": {
+        "title": "Compatibilidad (宮合) — donde se encuentran dos cartas",
+        "desc": "Coloca su hora de nacimiento junto a la tuya y se revelan las armonías (合) y los choques (沖). Recetamos un aroma que habite entre los dos."
+      },
+      "special": {
+        "heading": "Por qué confiar en este programa",
+        "card1": {
+          "title": "Sin fotos ni cuestionarios",
+          "desc": "Los ocho caracteres de su fecha y hora de nacimiento son todos los datos. Leemos únicamente datos puros de 命理."
+        },
+        "card2": {
+          "title": "La IA no hace los cálculos",
+          "desc": "Un código verificado calcula la carta del almanaque 萬歲曆; la IA solo se ocupa de interpretar y perfumar."
+        },
+        "card3": {
+          "title": "El aroma es la receta",
+          "desc": "La energía que le falta (用神) se completa con uno de 30 aromas — y le damos el porqué de esa elección."
+        }
+      },
+      "trust": {
+        "q1": "¿Y si no sé mi hora de nacimiento?",
+        "a1": "Procedemos con un análisis de tres pilares (三柱), omitiendo el pilar de la hora (時柱). Seis caracteres bastan para leer el gran flujo de la energía.",
+        "q2": "¿Es preciso el cálculo?",
+        "a2": "El código calcula con precisión sobre un calendario Manseryeok (萬歲曆) que refleja los límites exactos de los términos solares; la IA solo interpreta. Para nacimientos después de las 23:00 — la hora Ja (子時) — el pilar del día puede variar según la escuela, y lo indicamos en el resultado."
+      },
+      "cta": "Encontrar el aroma de mi destino",
+      "price": "Mismo precio 10ml / 50ml",
+      "info1": "Informe de lectura Saju (四柱) por IA + perfume personalizado",
+      "info2": "Envío en 3–5 días tras el pedido"
+    },
+    "input": {
+      "gate": {
+        "title": "¿De quién leemos los ocho caracteres?",
+        "sub": "Con los ocho caracteres de una fecha y hora de nacimiento leemos la energía — y la recetamos como aroma.",
+        "self": "Mi Saju",
+        "selfDesc": "Leer la energía con la que nací",
+        "idol": "El Saju de mi favorito",
+        "idolDesc": "Leer la energía con la que nació esa persona",
+        "nameLabel": "Nombre",
+        "nameLabelIdol": "Nombre de su favorito",
+        "namePlaceholder": "Su nombre, o cómo le llaman",
+        "namePlaceholderIdol": "Nombre o nombre artístico",
+        "genderLabel": "Género",
+        "genderMale": "Masculino",
+        "genderFemale": "Femenino",
+        "genderOther": "Otro",
+        "genderHelper": "En la tradición del 命理, la carta de un hombre se llama 乾命 y la de una mujer, 坤命.",
+        "genderHelperIdol": "Elija según el perfil público de su favorito.",
+        "pin": {
+          "label": "Código de cuatro dígitos",
+          "helpTitle": "Elija cuatro dígitos y recuérdelos",
+          "helpDesc": "Necesitará este número para volver a ver su resultado. Basta con que usted lo recuerde.",
+          "toastLabel": "Su número es",
+          "toastHelp": "Recuerde bien este número."
+        }
+      },
+      "purpose": {
+        "title": "¿Qué es lo que más desea saber?",
+        "sub": "Una pregunta, respondida en profundidad.",
+        "subIdol": "¿Qué le intriga de la carta de su favorito?",
+        "options": {
+          "general": {
+            "label": "General",
+            "desc": "Temperamento innato y el flujo del conjunto",
+            "descIdol": "Temperamento innato y el flujo del conjunto"
+          },
+          "overall": {
+            "label": "General",
+            "desc": "Temperamento innato y el flujo del conjunto",
+            "descIdol": "Temperamento innato y el flujo del conjunto"
+          },
+          "love": {
+            "label": "Amor",
+            "desc": "Donde el amor llega y permanece",
+            "descIdol": "Si le intriga cómo ama su favorito"
+          },
+          "wealth": {
+            "label": "Riqueza",
+            "desc": "La veta por la que el dinero se reúne y se dispersa",
+            "descIdol": "¿La fortuna se trae de nacimiento?"
+          },
+          "career": {
+            "label": "Trabajo y camino",
+            "desc": "La dirección en que se extienden su trabajo y su camino",
+            "descIdol": "¿Este camino encaja con la carta de su favorito?"
+          },
+          "compatibility": {
+            "label": "Compatibilidad",
+            "desc": "Cómo se encuentran dos energías · se requieren datos de la otra persona",
+            "descIdol": "Usted y su favorito: cómo se encuentran dos energías · se requieren datos de la otra persona"
+          }
+        }
+      },
+      "birth": {
+        "title": "Díganos el momento en que nació",
+        "titleIdol": "Díganos el momento en que nació su favorito",
+        "sub": "Su fecha y hora de nacimiento son todo lo que esta lectura necesita. Sin fotos ni tests de personalidad.",
+        "subIdol": "Basta con la fecha de nacimiento pública. Sin fotos ni tests de personalidad.",
+        "calendarSolar": "Solar",
+        "calendarLunar": "Lunar",
+        "leapMonth": "Nací en mes intercalar",
+        "leapHelper": "Las fechas lunares se convierten con precisión mediante el almanaque 萬歲曆. Si fue mes intercalar, márquelo.",
+        "yearSuffix": "Año",
+        "monthSuffix": "Mes",
+        "daySuffix": "Día",
+        "errors": {
+          "yearRange": "Solo podemos calcular años entre 1930 y 2035.",
+          "invalidDate": "Esa fecha no existe en el calendario. Compruébela de nuevo.",
+          "futureDate": "Ese día aún no ha llegado."
+        },
+        "timeLabel": "Hora de nacimiento",
+        "timeSub": "Se elige por hora tradicional (時辰)",
+        "exactTimeLink": "Introducir la hora exacta",
+        "exactTimeMatch": "{time} — corresponde a la hora {hanja}時.",
+        "timeUnknown": "No sé la hora",
+        "timeUnknownHelper": "Sin la hora, leemos tres pilares (三柱). La profundidad se mantiene; solo queda en blanco el lugar de los últimos años y de los hijos que guarda la hora.",
+        "branches": {
+          "0": {
+            "animal": "Rata"
+          },
+          "1": {
+            "animal": "Buey"
+          },
+          "2": {
+            "animal": "Tigre"
+          },
+          "3": {
+            "animal": "Conejo"
+          },
+          "4": {
+            "animal": "Dragón"
+          },
+          "5": {
+            "animal": "Serpiente"
+          },
+          "6": {
+            "animal": "Caballo"
+          },
+          "7": {
+            "animal": "Cabra"
+          },
+          "8": {
+            "animal": "Mono"
+          },
+          "9": {
+            "animal": "Gallo"
+          },
+          "10": {
+            "animal": "Perro"
+          },
+          "11": {
+            "animal": "Cerdo"
+          }
+        }
+      },
+      "partner": {
+        "title": "¿Quién es la otra persona?",
+        "sub": "Extendemos las dos cartas lado a lado y leemos las armonías (合) y los choques (沖).",
+        "relationLabel": "Su relación",
+        "relations": {
+          "lover": "Pareja",
+          "lovers": "Pareja",
+          "crush": "Atracción · amor no declarado",
+          "spouse": "Matrimonio",
+          "married": "Matrimonio",
+          "friend": "Amistad",
+          "friends": "Amistad",
+          "colleague": "Colegas · socios",
+          "colleagues": "Colegas · socios",
+          "family": "Familia",
+          "bias": "Mi favorito"
+        },
+        "nameLabel": "Nombre de la otra persona",
+        "namePlaceholder": "Su nombre, o cómo le llama",
+        "timeLabel": "Hora de nacimiento de la otra persona",
+        "idolCompatBanner": "Si es la compatibilidad entre usted y su favorito, escriba sus propios datos en los campos de la otra persona."
+      },
+      "wish": {
+        "title": "¿Hay algo que le pese en el corazón?",
+        "titleIdol": "¿Hay algo que desee para su favorito?",
+        "sub": "Una frase basta. La tendremos presente al leer la carta.",
+        "subIdol": "Una frase basta. La tendremos presente al elegir el aroma.",
+        "placeholder": "p. ej. Llevo tres años dudando si cambiar de trabajo",
+        "placeholderIdol": "p. ej. Este año solo deseo que se mantenga sano en sus actividades",
+        "skip": "Puede omitirlo"
+      },
+      "seal": {
+        "title": "Sellamos su carta Saju (單子)",
+        "sub": "Compruebe que todo lo siguiente sea correcto. Tras el sello, se abre el almanaque.",
+        "rows": {
+          "target": "Sujeto",
+          "name": "Nombre",
+          "gender": "Género",
+          "birth": "Nacimiento",
+          "purpose": "Pregunta",
+          "partner": "La otra persona",
+          "wish": "Nota"
+        },
+        "edit": "Corregir",
+        "genderDisplay": {
+          "male": "乾命 · carta masculina",
+          "female": "坤命 · carta femenina",
+          "other": "Otro"
+        },
+        "timeUnknownDisplay": "Hora (時) desconocida",
+        "leapDisplay": "Mes intercalar (閏月)",
+        "submit": "Sellar y abrir la lectura"
+      },
+      "nav": {
+        "prev": "Atrás",
+        "toPurpose": "Siguiente — la pregunta",
+        "toBirth": "Siguiente — el nacimiento",
+        "toPartner": "Siguiente — la otra persona",
+        "toWish": "Siguiente — última pregunta",
+        "toSeal": "Siguiente — el sello"
+      },
+      "authGate": {
+        "onlineTitle": "Se requiere iniciar sesión",
+        "onlineDescription": "Inicia sesión para comenzar tu análisis de perfume Saju. ¡Los resultados se guardarán automáticamente!"
+      }
+    },
+    "analyzing": {
+      "headline": "Extrayendo los ocho caracteres de {name}",
+      "headlineIdol": "Extrayendo los ocho caracteres de {name}",
+      "headlineLate": "Leyendo la carta, eligiendo el aroma",
+      "subLate": "Unos 30 segundos — el almanaque ya está calculado",
+      "quotes": [
+        "El Saju no es un destino fijado: es el mapa del temperamento con el que se nace.",
+        "En ocho caracteres vive la temperatura de la estación en que usted nació.",
+        "Aliviar lo que sobra y llenar lo que falta: la perfumería y el 命理 obran igual.",
+        "El pilar del año es la raíz; el del mes, el tronco; el del día, uno mismo; el de la hora, el fruto.",
+        "El 日干, el señor del día, es su centro: los otros siete caracteres giran a su alrededor.",
+        "Para quien se le secó el agua, un aroma de mar; para quien se le apagó el fuego, un aroma de mediodía.",
+        "Hallar el 用神 es hallar el lugar más sediento de la carta.",
+        "Nacidos el mismo día, una hora (時) distinta se vuelve un aroma distinto.",
+        "El aroma dura más que la memoria, y la energía se mueve tras el aroma."
+      ],
+      "knots": {
+        "calc": "Almanaque",
+        "read": "Lectura",
+        "blend": "Mezcla (調香)"
+      },
+      "eta": "Unos 30 s"
+    },
+    "result": {
+      "loading": "Desplegando el pergamino",
+      "dataMissing": "No se encontró el resultado de tu Saju (四柱). Vuelve a realizar la lectura de los ocho caracteres.",
+      "s0": {
+        "headline": "En el momento en que usted nació,\nocho caracteres quedaron escritos en el cielo",
+        "headlineIdol": "En el momento en que esa persona nació,\nocho caracteres quedaron escritos en el cielo",
+        "headlineNoHour": "En el momento en que usted nació,\nseis caracteres quedaron escritos en el cielo",
+        "headlineNoHourIdol": "En el momento en que esa persona nació,\nseis caracteres quedaron escritos en el cielo",
+        "scrollCue": "Deslice hacia abajo"
+      },
+      "s1": {
+        "kicker": "一章 · 命式",
+        "headline": "El lugar de cada carácter",
+        "pillarLabels": {
+          "year": "Pilar del año",
+          "month": "Pilar del mes",
+          "day": "Pilar del día",
+          "hour": "Pilar de la hora"
+        },
+        "jasiNotice": "Para quien nace en la hora de medianoche 子時, el pilar del día (日柱) puede variar según la escuela. Esta carta sigue el límite de la medianoche."
+      },
+      "s2": {
+        "kicker": "二章 · 日干",
+        "headline": "Su carácter central",
+        "headlineIdol": "El carácter central de esa persona",
+        "compatNote": "Los dos centros se encuentran en 四章"
+      },
+      "s3": {
+        "kicker": "三章 · 五行",
+        "headline": "El flujo de la energía",
+        "dominantChip": "Energía que sobra · {element}",
+        "lackingChip": "Energía que falta · {element}",
+        "legendMine": "Mi carta (命式)"
+      },
+      "s4": {
+        "kicker": "四章 · 所望",
+        "timingLabel": "Consejo del momento (時)",
+        "compat": {
+          "kicker": "四章 · 合",
+          "scoreSuffix": "/100",
+          "harmonyTitle": "Donde armonizan",
+          "frictionTitle": "Donde chocan",
+          "perfumeBasisNote": "El aroma se receta según el 用神 de {name}, a cuyo nombre está esta carta."
+        }
+      },
+      "s5": {
+        "kicker": "五章 · 用神",
+        "headline": "La energía que usted necesita",
+        "headlineIdol": "La energía que esa persona necesita",
+        "transition": "Esta energía puede volverse aroma."
+      },
+      "s6": {
+        "kicker": "終章 · 香",
+        "whyTitle": "Por qué este aroma",
+        "noteTiers": {
+          "top": "Energía visible",
+          "middle": "Energía central",
+          "base": "Energía raíz"
+        }
+      },
+      "s7": {
+        "kicker": "處方 · Ritual",
+        "headline": "Cómo llevar el aroma",
+        "rows": {
+          "time": "Cuándo aplicarlo",
+          "season": "Estación y hora afines",
+          "flow": "El flujo de este año"
+        },
+        "closing": "El Atelier de Medianoche — un solo aroma, elegido de sus ocho caracteres",
+        "closingIdol": "El Atelier de Medianoche — un solo aroma, elegido de los ocho caracteres de esa persona"
+      }
     }
   }
 }

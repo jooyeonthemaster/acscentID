@@ -19,6 +19,7 @@ const PROGRAM_NAME_KEYS: Record<string, string> = {
   personal: 'products.personal',
   'le-quack': 'products.leQuack',
   chemistry: 'products.chemistry',
+  saju: 'products.saju',
   sample: 'programs.detail.sample.productName',
   'today-scent': 'todayScent.title',
 }

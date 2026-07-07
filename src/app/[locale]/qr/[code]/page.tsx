@@ -46,6 +46,7 @@ export default async function QRRedirectPage({ params }: PageProps) {
     personal_scent: 'personal',
     signature: 'le-quack',
     chemistry_set: 'chemistry',
+    saju_perfume: 'saju',
   }
   const productSlug = productTypeToSlug[qrCode.product_type] || 'idol-image'
   const { data: product } = await supabase
@@ -81,6 +82,8 @@ export default async function QRRedirectPage({ params }: PageProps) {
       redirect(`/programs/le-quack?mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'chemistry_set':
       redirect(`/input?type=chemistry&mode=${modeParam}&qr_code=${qrCodeId}`)
+    case 'saju_perfume':
+      redirect(`/input?type=saju&mode=${modeParam}&qr_code=${qrCodeId}`)
     default:
       redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
   }

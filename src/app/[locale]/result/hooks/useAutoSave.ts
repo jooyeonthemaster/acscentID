@@ -131,6 +131,14 @@ export function useAutoSave({
       const perfumeName = topPerfume?.persona?.name || '추천 향수'
       const perfumeBrand = topPerfume?.persona?.recommendation || "AC'SCENT"
 
+      // 사주 결과 감지 — 호출부가 productType을 빠뜨려도 saju_perfume으로 저장
+      // (기본값 image_analysis 오저장 방지. 사주는 사진이 없으므로 userImage도 없음)
+      const sajuLike = analysisResult as typeof analysisResult & {
+        sajuChart?: unknown
+        sajuAnalysis?: unknown
+      }
+      const isSajuResult = Boolean(sajuLike.sajuChart && sajuLike.sajuAnalysis)
+
       let imageUrl: string | null = null
       let modelingImageUrl: string | null = null
 
@@ -262,7 +270,10 @@ export function useAutoSave({
           // 모든 분석에 productType, serviceMode 저장 (오프라인 태그 표시용)
           // image_analysis_paper(시향지)는 주문 단계의 SKU 구분일 뿐, 분석 자체는 이미지 분석이므로
           // analysis_results 에는 image_analysis 로 저장 (analysis_results CHECK 제약에 paper 미포함).
-          productType: (productType === 'image_analysis_paper' ? 'image_analysis' : productType) || 'image_analysis',
+          // 사주(sajuChart+sajuAnalysis 보유) 결과는 항상 saju_perfume 으로 저장.
+          productType: isSajuResult
+            ? 'saju_perfume'
+            : (productType === 'image_analysis_paper' ? 'image_analysis' : productType) || 'image_analysis',
           serviceMode,
           // 분석 대상 타입 (최애/나) — 인쇄 보고서 배경 분기용
           targetType: targetType || 'idol',

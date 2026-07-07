@@ -35,7 +35,8 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
 
 // 프로그램 타입 정의
 // [FIX] HIGH: chemistry 미등록
-const PROGRAM_TYPES = ['idol_image', 'figure', 'graduation', 'chemistry'] as const
+// [ADD] saju 프로그램 추가
+const PROGRAM_TYPES = ['idol_image', 'figure', 'graduation', 'chemistry', 'saju'] as const
 type ProgramType = typeof PROGRAM_TYPES[number]
 const JSON_CACHE_TTL_MS = 60_000
 let jsonCache: { expiresAt: number; data: unknown } | null = null
@@ -88,6 +89,8 @@ const programTypeMapping: Record<string, ProgramType> = {
   'graduation': 'graduation',
   'chemistry_set': 'chemistry',
   'chemistry': 'chemistry',
+  'saju_perfume': 'saju',
+  'saju': 'saju',
 }
 
 export async function GET(request: NextRequest) {
@@ -369,6 +372,8 @@ function generateCSV(analyses: Array<Record<string, unknown>>, programFilter: st
     figure: '피규어 디퓨저',
     personal_scent: '퍼스널 센트',
     graduation: '졸업 퍼퓸',
+    chemistry_set: '레이어링 퍼퓸',
+    saju_perfume: '사주 분석 퍼퓸',
     etc: '기타',
   }
 
@@ -398,7 +403,9 @@ function generateCSV(analyses: Array<Record<string, unknown>>, programFilter: st
     const rawType = (analysis.product_type as string) || 'idol_image'
     const programType = programTypeMapping[rawType] || 'idol_image'
     const programLabel = programType === 'idol_image' ? 'AI이미지분석' :
-                         programType === 'figure' ? '피규어디퓨저' : '졸업퍼퓸'
+                         programType === 'figure' ? '피규어디퓨저' :
+                         programType === 'chemistry' ? '레이어링퍼퓸' :
+                         programType === 'saju' ? '사주분석퍼퓸' : '졸업퍼퓸'
 
     const keywords = analysis.matching_keywords as string[] | null
     const keywordsStr = keywords ? keywords.join(', ') : ''

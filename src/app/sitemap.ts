@@ -37,6 +37,11 @@ const STATIC_PAGES: StaticSitemapPage[] = [
     priority: 0.9,
   },
   {
+    path: '/programs/saju',
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  },
+  {
     path: '/programs/le-quack',
     changeFrequency: 'weekly',
     priority: 0.8,

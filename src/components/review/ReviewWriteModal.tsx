@@ -10,7 +10,7 @@ import type { CreateReviewInput } from "@/lib/supabase/reviews"
 interface ReviewWriteModalProps {
   isOpen: boolean
   onClose: () => void
-  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+  programType: 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
   programName: string
   userId: string
   orderId?: string

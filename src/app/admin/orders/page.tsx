@@ -158,6 +158,7 @@ const PRODUCT_TYPE_BADGE: Record<string, { label: string; className: string }> =
   personal_scent: { label: '퍼스널', className: 'bg-emerald-100 text-emerald-700' },
   today_scent: { label: '오늘의 향', className: 'bg-amber-100 text-amber-700' },
   store_product: { label: '상품', className: 'bg-lime-100 text-lime-700' },
+  saju_perfume: { label: '사주', className: 'bg-stone-100 text-stone-700' },
   payment_test: { label: '테스트', className: 'bg-red-100 text-red-700' },
 }
 

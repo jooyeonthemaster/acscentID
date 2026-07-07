@@ -153,6 +153,15 @@ function CheckoutContent() {
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([])
   const [isMultiItemMode, setIsMultiItemMode] = useState(false)
 
+  // 단일 상품 모드 (기존 호환)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [userImage, setUserImage] = useState<string | null>(null)
+  const [idolName, setIdolName] = useState<string | null>(null)
+  const [productType, setProductType] = useState<ProductType>("image_analysis")
+  // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적 — selectedSize 는 임의 옵션 코드 허용
+  const [selectedSize, setSelectedSize] = useState<string>("10ml")
+  const [singleQuantity, setSingleQuantity] = useState(1)
+
   // 뒤로가기 목적지 — 상품 진입 경로별로 분기.
   // (분석에서 온 상품만 /result. 카탈로그 상품은 해당 상품 페이지/홈으로 복귀)
   const backHref = useMemo(() => {
@@ -167,17 +176,10 @@ function CheckoutContent() {
     }
     if (isSignatureProduct) return "/programs/le-quack"
     if (isPaymentTest) return "/"
+    // 사주 분석 퍼퓸은 전용 결과 라우팅(?type=saju)으로 복귀
+    if (productType === "saju_perfume") return "/result?type=saju"
     return "/result"
-  }, [isMultiItemMode, isTodayScent, isStoreProduct, isStoreMultiCheckout, isSignatureProduct, isPaymentTest, searchParams])
-
-  // 단일 상품 모드 (기존 호환)
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
-  const [userImage, setUserImage] = useState<string | null>(null)
-  const [idolName, setIdolName] = useState<string | null>(null)
-  const [productType, setProductType] = useState<ProductType>("image_analysis")
-  // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적 — selectedSize 는 임의 옵션 코드 허용
-  const [selectedSize, setSelectedSize] = useState<string>("10ml")
-  const [singleQuantity, setSingleQuantity] = useState(1)
+  }, [isMultiItemMode, isTodayScent, isStoreProduct, isStoreMultiCheckout, isSignatureProduct, isPaymentTest, productType, searchParams])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)

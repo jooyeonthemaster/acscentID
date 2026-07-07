@@ -1,7 +1,9 @@
 'use client'
 
 /* eslint-disable @next/next/no-img-element */
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile } from '@/types/analysis'
+import type { CSSProperties } from 'react'
+import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO } from '@/types/analysis'
+import { sajuClip } from '@/components/saju/text'
 
 interface PrintableAnalysis {
   id: string
@@ -338,6 +340,477 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
   )
 }
 
+// ============================================================
+// 사주 분석 퍼퓸 (saju_perfume) 인쇄 보고서 — UI-SPEC §7
+// 캔버스 842×595 / 배경 3-1(idol·금박+오행 컬러) · 3-2(self·먹 단색 젠)
+// 배경 SVG는 장식 전용, 모든 라벨·값은 HTML 절대 배치(§7.0 의도적 이탈)
+// 폰트: Noto Serif KR 단일 (전역 next/font variable — 좌표 안정성)
+// ============================================================
+
+// 오행 행 순서 (§7.2 L12 — 木火土金水)
+const SAJU_PRINT_ELEMENT_ORDER: SajuElement[] = ['목', '화', '토', '금', '수']
+
+// 용신 오행명 한 줄 에피셋 (CONTENT.md §3 감각 번역 어휘 — 인쇄 전용 한국어, §7.2 L15)
+const SAJU_YONGSIN_EPITHET: Record<SajuElement, string> = {
+  목: '틔워주는 새순',
+  화: '지펴주는 온기',
+  토: '다져주는 무게',
+  금: '벼려주는 광택',
+  수: '스며드는 고요',
+}
+
+// CATEGORY_INFO 계열색(Tailwind 클래스)의 인쇄용 hex 등가 — §7.3 R9 (3-1 전용)
+const SAJU_PRINT_CATEGORY_HEX: Record<string, string> = {
+  citrus: '#FACC15', // yellow-400
+  floral: '#F472B6', // pink-400
+  woody: '#D97706',  // amber-600
+  musky: '#C084FC',  // purple-400
+  fruity: '#F87171', // red-400
+  spicy: '#FB923C',  // orange-400
+}
+
+// §7.3 R11 — 계절 칩 (선택 시 3-1 계절색: 봄 wood/여름 fire/가을 earth/겨울 water)
+const SAJU_SEASON_CHIPS = [
+  { key: 'spring', label: '봄', color: '#3E7C4F' },
+  { key: 'summer', label: '여름', color: '#C0392B' },
+  { key: 'autumn', label: '가을', color: '#C9A227' },
+  { key: 'winter', label: '겨울', color: '#2C3E60' },
+] as const
+
+// §7.3 R13 — 시간 칩 (선택 시 3-1 금 단일색)
+const SAJU_TIME_CHIPS = [
+  { key: 'morning', label: '아침' },
+  { key: 'afternoon', label: '낮' },
+  { key: 'evening', label: '저녁' },
+  { key: 'night', label: '밤' },
+] as const
+
+// 인쇄용 GanjiTile 정적 재현 (§7.2 L9/L10) — 크림 면은 배경 SVG에 맡긴다
+function SajuPrintTile({ left, top, hanja, reading, barColor, unknown = false, isSelf }: {
+  left: number; top: number; hanja: string; reading: string; barColor: string; unknown?: boolean; isSelf: boolean
+}) {
+  return (
+    <div className="absolute" style={{ left, top, width: 54, height: 70, border: '1px solid #C8BFA9' }}>
+      {/* 상단 오행 바 (3-2: 먹 2px / 3-1: 오행색 3px) */}
+      <div style={{ height: isSelf ? 2 : 3, width: '100%', backgroundColor: barColor }} />
+      <div className="flex flex-col items-center justify-center" style={{ height: isSelf ? 66 : 65 }}>
+        <span style={{ fontSize: 30, fontWeight: 900, lineHeight: 1, color: '#1A1610', opacity: unknown ? 0.15 : 1 }}>{hanja}</span>
+        <span style={{ fontSize: 7.5, lineHeight: 1, color: unknown ? '#8B8578' : '#5C564A', marginTop: 4 }}>{reading}</span>
+      </div>
+    </div>
+  )
+}
+
+// 낙관(도장) 인라인 재현 (§7.2 L1/L13 — SealStamp 정적 버전)
+function SajuPrintSeal({ left, top, size, chars, isSelf }: {
+  left: number; top: number; size: number; chars: string; isSelf: boolean
+}) {
+  const charSize = chars.length === 1 ? Math.round(size * 0.56) : Math.round(size * 0.4)
+  return (
+    <div
+      className="absolute flex flex-col items-center justify-center"
+      style={{
+        left, top, width: size, height: size,
+        borderRadius: '18%',
+        transform: 'rotate(-3deg)',
+        background: isSelf
+          ? '#1A1610'
+          : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 60%), #B03325',
+        boxShadow: 'inset 0 0 6px rgba(0,0,0,0.25)',
+      }}
+    >
+      {chars.split('').map((c, i) => (
+        <span key={i} style={{ fontSize: charSize, fontWeight: 900, color: '#F5EFE2', lineHeight: 1.05 }}>{c}</span>
+      ))}
+    </div>
+  )
+}
+
+function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
+  analysis: PrintableAnalysis; rootId: string; standalonePrintStyles: boolean
+}) {
+  const data = analysis.analysis_data as unknown as Partial<SajuAnalysisResult> | null
+  const chart = data?.sajuChart
+  const saju = data?.sajuAnalysis
+  const isSelfSaju = analysis.target_type === 'self' // self → 3-2(먹 젠) / idol → 3-1(금박+컬러)
+
+  // §7.4 — 라벨 금색은 3-1 전용, 3-2는 전부 먹/보조색으로 통일
+  const labelColor = isSelfSaju ? '#5C564A' : '#7A5C14'
+  const accent = isSelfSaju ? '#1A1610' : '#C0392B'
+  const labelStyle: CSSProperties = { fontSize: 7.5, fontWeight: 600, letterSpacing: '0.14em', color: labelColor, lineHeight: 1.2 }
+
+  // L5/L7 — 이름·생시
+  const displayName = (analysis.idol_name || analysis.twitter_name || '').slice(0, 10)
+  const bd = chart?.birthDisplay
+  const birthLine1 = bd ? `${bd.solarDate.replace(/-/g, '.')} (${bd.calendar === 'lunar' ? '음력' : '양력'})` : ''
+  const genderRaw = (analysis.idol_gender || '').toLowerCase()
+  const genderLabel = genderRaw.startsWith('m') || genderRaw.includes('남')
+    ? '건명'
+    : genderRaw.startsWith('f') || genderRaw.includes('여') ? '곤명' : ''
+  const sijinLabel = chart ? (chart.isThreePillar || !bd?.sijin ? '시(時) 미상' : bd.sijin) : ''
+  const birthLine2 = [sijinLabel, genderLabel].filter(Boolean).join(' · ')
+
+  // L8~L10 — 명식 열 (좌→우: 時 日 月 年, 스냅숏만 렌더 — 재계산 금지)
+  const pillarColumns = chart ? [
+    { header: '時柱', pillar: chart.pillars.hour, unknown: !chart.pillars.hour },
+    { header: '日柱', pillar: chart.pillars.day, unknown: false },
+    { header: '月柱', pillar: chart.pillars.month, unknown: false },
+    { header: '年柱', pillar: chart.pillars.year, unknown: false },
+  ] : []
+
+  const yongsinElement = chart?.yongsin?.element
+  const yongsinInfo = yongsinElement ? SAJU_ELEMENT_INFO[yongsinElement] : null
+  const yongsinReason = sajuClip(saju?.elementFlow?.yongsinNarrative || '', 60)
+
+  // R3~R7 — 향
+  const matching = data?.matchingPerfumes?.[0]
+  const persona = matching?.persona
+  const perfumeName = sajuClip(persona?.name || analysis.perfume_name || '', 24)
+  const rawPerfumeId = matching?.perfumeId || persona?.id || ''
+  const brandLine = rawPerfumeId ? (/ac.?scent/i.test(rawPerfumeId) ? rawPerfumeId : `AC'SCENT ${rawPerfumeId}`) : ''
+  const noteRows = [
+    { chip: '겉기운 TOP', name: persona?.mainScent?.name, meaning: saju?.scentDestiny?.topMeaning, top: 144 },
+    { chip: '중심기운 MIDDLE', name: persona?.subScent1?.name, meaning: saju?.scentDestiny?.middleMeaning, top: 200 },
+    { chip: '뿌리기운 BASE', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 256 },
+  ]
+
+  // R9 — 6계열 점수 내림차순 (기존 문법)
+  const sortedScents = Object.entries(data?.scentCategories || {})
+    .sort(([, a], [, b]) => (b as number) - (a as number))
+    .slice(0, 6)
+  const scentRecommendation = data?.scentRecommendation
+  const timingAdvice = sajuClip(saju?.purposeReading?.timingAdvice || '', 80)
+  const reportDate = (analysis.created_at || '').slice(0, 10).replace(/-/g, '.')
+
+  return (
+    <>
+      {standalonePrintStyles && (
+        <style jsx global>{`
+          @media print {
+            @page { size: A4 landscape; margin: 0; }
+            body * { visibility: hidden; }
+            .printable-report-root, .printable-report-root * { visibility: visible; }
+            .printable-report-root { position: fixed !important; left: 0 !important; top: 0 !important; margin: 0 !important; background: white !important; }
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+          }
+        `}</style>
+      )}
+      <div
+        id={rootId}
+        className="printable-report-root w-[842px] h-[595px] relative mx-auto bg-white overflow-hidden"
+        style={{ fontFamily: "var(--font-noto-serif-kr, 'Noto Serif KR'), serif" }}
+      >
+        {/* 배경 — 장식 전용 SVG (3-1 최애 / 3-2 나) */}
+        <img
+          src={isSelfSaju ? '/background/3-2.svg' : '/background/3-1.svg'}
+          alt=""
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+        />
+
+        {/* ===== 좌측 패널 — 命式 (§7.2) ===== */}
+
+        {/* L1 프로그램 낙관 */}
+        <SajuPrintSeal left={36} top={36} size={44} chars="命香" isSelf={isSelfSaju} />
+
+        {/* L2 타이틀 */}
+        <div className="absolute" style={{ left: 92, top: 40, width: 240, height: 18, fontSize: 13, fontWeight: 900, letterSpacing: '0.35em', color: '#1A1610', lineHeight: 1.2 }}>
+          四柱命式
+        </div>
+
+        {/* L3 서브타이틀 */}
+        <div className="absolute" style={{ left: 92, top: 60, width: 240, height: 12, fontSize: 8.5, color: '#5C564A', lineHeight: 1.2 }}>
+          자정의 조향소 · 사주 분석 보고서
+        </div>
+
+        {/* L4 이름 라벨 */}
+        <div className="absolute" style={{ left: 36, top: 94, width: 60, height: 10, ...labelStyle }}>이름</div>
+
+        {/* L5 이름 값 — 10자 truncate */}
+        <div className="absolute" style={{ left: 36, top: 106, width: 150, height: 20, fontSize: 14, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+          {displayName || '-'}
+        </div>
+
+        {/* L6 생시 라벨 */}
+        <div className="absolute" style={{ left: 196, top: 94, width: 140, height: 10, ...labelStyle }}>생시</div>
+
+        {/* L7 생시 값 — 2줄, 각 줄 truncate */}
+        {(birthLine1 || birthLine2) && (
+          <div className="absolute" style={{ left: 196, top: 106, width: 170, height: 30 }}>
+            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{birthLine1}</div>
+            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{birthLine2}</div>
+          </div>
+        )}
+
+        {/* L8 열 헤더 + L9/L10 간지 타일 (좌→우 時柱 日柱 月柱 年柱) */}
+        {pillarColumns.map((col, i) => {
+          const left = 84 + 68 * i
+          const ganBar = col.unknown ? '#8B8578' : isSelfSaju ? '#1A1610' : (col.pillar ? SAJU_ELEMENT_INFO[col.pillar.ganElement].color : '#8B8578')
+          const jiBar = col.unknown ? '#8B8578' : isSelfSaju ? '#1A1610' : (col.pillar ? SAJU_ELEMENT_INFO[col.pillar.jiElement].color : '#8B8578')
+          return (
+            <div key={col.header}>
+              <div className="absolute text-center" style={{ left, top: 148, width: 54, height: 12, fontSize: 9, fontWeight: 600, color: '#5C564A', lineHeight: 1.2 }}>
+                {col.header}
+              </div>
+              <SajuPrintTile
+                left={left}
+                top={164}
+                hanja={col.unknown || !col.pillar ? '時' : col.pillar.ganHanja}
+                reading={col.unknown || !col.pillar ? '미상' : `${col.pillar.gan}${col.pillar.ganElement}`}
+                barColor={ganBar}
+                unknown={col.unknown}
+                isSelf={isSelfSaju}
+              />
+              <SajuPrintTile
+                left={left}
+                top={244}
+                hanja={col.unknown || !col.pillar ? '時' : col.pillar.jiHanja}
+                reading={col.unknown || !col.pillar ? '미상' : col.pillar.ji}
+                barColor={jiBar}
+                unknown={col.unknown}
+                isSelf={isSelfSaju}
+              />
+            </div>
+          )
+        })}
+
+        {/* L11 오행 분포 라벨 */}
+        <div className="absolute" style={{ left: 52, top: 330, width: 120, height: 10, ...labelStyle }}>五行 분포</div>
+
+        {/* L12 오행 행 ×5 — 8칸 도트 미터 */}
+        {chart && SAJU_PRINT_ELEMENT_ORDER.map((el, j) => {
+          const info = SAJU_ELEMENT_INFO[el]
+          const count = Math.max(0, Math.min(8, chart.elementCount?.[el] ?? 0))
+          return (
+            <div key={el} className="absolute flex items-center" style={{ left: 52, top: 344 + 21 * j, width: 300, height: 16 }}>
+              <span style={{ width: 52, fontSize: 10, fontWeight: 600, color: isSelfSaju ? '#1A1610' : info.onCream, flexShrink: 0 }}>
+                {info.hanja} {el}
+              </span>
+              <div className="flex items-center" style={{ gap: 4 }}>
+                {Array.from({ length: 8 }).map((_, d) => (
+                  d < count ? (
+                    isSelfSaju
+                      ? <div key={d} style={{ width: 8, height: 8, backgroundColor: '#1A1610' }} />
+                      : <div key={d} style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: info.color }} />
+                  ) : (
+                    isSelfSaju
+                      ? <div key={d} style={{ width: 8, height: 8, border: '1px solid #C8BFA9' }} />
+                      : <div key={d} style={{ width: 10, height: 10, borderRadius: '50%', border: '1px solid #C8BFA9' }} />
+                  )
+                ))}
+              </div>
+              <span style={{ marginLeft: 'auto', fontSize: 9, color: '#5C564A' }}>{count}</span>
+            </div>
+          )
+        })}
+
+        {/* L13 용신 낙관 */}
+        {yongsinInfo && (
+          <SajuPrintSeal left={52} top={466} size={72} chars={yongsinInfo.hanja} isSelf={isSelfSaju} />
+        )}
+
+        {/* L14 용신 라벨 */}
+        <div className="absolute" style={{ left: 140, top: 470, width: 224, height: 10, ...labelStyle }}>용신(用神) — 필요한 기운</div>
+
+        {/* L15 용신 오행명 — 1줄 truncate */}
+        {yongsinElement && yongsinInfo && (
+          <div className="absolute" style={{ left: 140, top: 483, width: 224, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+            {yongsinElement}({yongsinInfo.hanja}) — {SAJU_YONGSIN_EPITHET[yongsinElement]}
+          </div>
+        )}
+
+        {/* L16 용신 근거 — 2줄 클램프(60자 slice) */}
+        {yongsinReason && (
+          <div
+            className="absolute"
+            style={{ left: 140, top: 504, width: 224, height: 32, fontSize: 8.5, lineHeight: 1.4, color: '#5C564A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+          >
+            {yongsinReason}
+          </div>
+        )}
+
+        {/* L17 푸터 */}
+        <div className="absolute" style={{ left: 52, top: 552, width: 300, height: 12, fontSize: 7, color: '#8B8578', letterSpacing: '0.1em', lineHeight: 1.2 }}>
+          MIDNIGHT ATELIER{reportDate ? ` · ${reportDate}` : ''}
+        </div>
+
+        {/* ===== 우측 패널 — SCENT PROFILE (§7.3) ===== */}
+
+        {/* R1 헤더 */}
+        <div className="absolute" style={{ left: 462, top: 40, width: 220, height: 14, fontSize: 11, fontWeight: 900, letterSpacing: '0.4em', color: isSelfSaju ? '#1A1610' : '#7A5C14', lineHeight: 1.2 }}>
+          SCENT PROFILE
+        </div>
+
+        {/* R2 서브 */}
+        <div className="absolute" style={{ left: 462, top: 58, width: 220, height: 12, fontSize: 8.5, color: '#5C564A', lineHeight: 1.2 }}>
+          처방된 운명의 향
+        </div>
+
+        {/* R3 향수명 — 2줄 클램프(24자 slice). lineHeight 20px = 2줄이 슬롯 40px에 정합(§7.3 h:40와 1.25 행간의 충돌 조정) */}
+        {perfumeName && (
+          <div
+            className="absolute"
+            style={{ left: 462, top: 82, width: 328, height: 40, fontSize: 19, fontWeight: 900, lineHeight: '20px', color: '#1A1610', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+          >
+            {perfumeName}
+          </div>
+        )}
+
+        {/* R4 브랜드 라인 */}
+        {brandLine && (
+          <div className="absolute" style={{ left: 462, top: 124, width: 328, height: 12, fontSize: 8, letterSpacing: '0.15em', color: '#5C564A', lineHeight: 1.2 }}>
+            {brandLine}
+          </div>
+        )}
+
+        {/* R5~R7 노트 3단 (겉기운/중심기운/뿌리기운) */}
+        {noteRows.map((row) => (
+          <div key={row.chip}>
+            <div
+              className="absolute flex items-center justify-center"
+              style={{
+                left: 462, top: row.top, width: 78, height: 18, borderRadius: 2,
+                fontSize: 7.5, fontWeight: 900, letterSpacing: '0.04em', lineHeight: 1,
+                ...(isSelfSaju
+                  ? { border: '1px solid #1A1610', color: '#1A1610' }
+                  : { backgroundColor: '#C0392B', color: '#F5EFE2' }),
+              }}
+            >
+              {row.chip}
+            </div>
+            {row.name && (
+              <div className="absolute flex items-center" style={{ left: 550, top: row.top, width: 240, height: 18, fontSize: 12.5, fontWeight: 700, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {sajuClip(row.name, 14)}
+              </div>
+            )}
+            {row.meaning && (
+              <div
+                className="absolute"
+                style={{ left: 462, top: row.top + 22, width: 328, height: 26, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+              >
+                {sajuClip(row.meaning, 55)}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* R8 향 차트 라벨 */}
+        <div className="absolute" style={{ left: 462, top: 326, width: 150, height: 10, ...labelStyle }}>향의 여섯 결</div>
+
+        {/* R9 카테고리 행 ×6 — 10도트 미터, 1위 표식 首/★ */}
+        {sortedScents.map(([key, rawValue], k) => {
+          const value = Math.max(0, Math.min(10, Number(rawValue)))
+          const catColor = SAJU_PRINT_CATEGORY_HEX[key] || '#8B8578'
+          const isTop = k === 0
+          return (
+            <div key={key} className="absolute flex items-center" style={{ left: 462, top: 342 + 18 * k, width: 328, height: 14 }}>
+              <span style={{ width: 64, fontSize: 10, fontWeight: 700, color: '#1A1610', flexShrink: 0 }}>
+                {CATEGORY_INFO[key]?.name || key}
+              </span>
+              <div className="flex items-center" style={{ gap: 3 }}>
+                {Array.from({ length: 10 }).map((_, i) => (
+                  i < value ? (
+                    isSelfSaju
+                      ? <div key={i} style={{ width: 8, height: 8, backgroundColor: '#1A1610' }} />
+                      : <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: catColor }} />
+                  ) : (
+                    isSelfSaju
+                      ? <div key={i} style={{ width: 8, height: 8, border: '1px solid #C8BFA9' }} />
+                      : <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#C8BFA9', transform: 'scale(0.6)' }} />
+                  )
+                ))}
+              </div>
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  marginLeft: 8, width: 16, height: 16, flexShrink: 0,
+                  ...(isSelfSaju
+                    ? { backgroundColor: '#1A1610' }
+                    : { backgroundColor: catColor, borderRadius: '50%' }),
+                }}
+              >
+                <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{value}</span>
+              </div>
+              {isTop && (
+                <div
+                  className="flex items-center justify-center"
+                  style={{
+                    marginLeft: 4, width: 12, height: 12, flexShrink: 0,
+                    ...(isSelfSaju
+                      ? { backgroundColor: '#1A1610' }
+                      : { backgroundColor: '#B03325', borderRadius: '18%', transform: 'rotate(-3deg)' }),
+                  }}
+                >
+                  <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{isSelfSaju ? '★' : '首'}</span>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* R10 SEASON 라벨 */}
+        <div className="absolute" style={{ left: 462, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.3em' }}>BEST SEASON</div>
+
+        {/* R11 SEASON 칩 ×4 */}
+        <div className="absolute flex" style={{ left: 462, top: 470, width: 150, height: 36, gap: 6 }}>
+          {SAJU_SEASON_CHIPS.map((chip) => {
+            const selected = scentRecommendation?.best_season === chip.key
+            return (
+              <div
+                key={chip.key}
+                className="flex items-center justify-center"
+                style={{
+                  width: 26, height: 34, borderRadius: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
+                  ...(selected
+                    ? { backgroundColor: isSelfSaju ? '#1A1610' : chip.color, color: '#F5EFE2' }
+                    : { border: '1px solid #C8BFA9', color: '#8B8578' }),
+                }}
+              >
+                {chip.label}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* R12 TIME 라벨 */}
+        <div className="absolute" style={{ left: 640, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.3em' }}>BEST TIME</div>
+
+        {/* R13 TIME 칩 ×4 */}
+        <div className="absolute flex" style={{ left: 640, top: 470, width: 150, height: 36, gap: 6 }}>
+          {SAJU_TIME_CHIPS.map((chip) => {
+            const selected = scentRecommendation?.best_time === chip.key
+            return (
+              <div
+                key={chip.key}
+                className="flex items-center justify-center"
+                style={{
+                  width: 26, height: 34, borderRadius: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
+                  ...(selected
+                    ? { backgroundColor: isSelfSaju ? '#1A1610' : '#C9A227', color: '#F5EFE2' }
+                    : { border: '1px solid #C8BFA9', color: '#8B8578' }),
+                }}
+              >
+                {chip.label}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* R14 처방 한 줄 — 2줄 클램프(80자 slice) */}
+        {timingAdvice && (
+          <div className="absolute flex" style={{ left: 462, top: 520, width: 328, height: 40 }}>
+            <div style={{ width: 2.5, backgroundColor: accent, flexShrink: 0 }} />
+            <p
+              style={{ paddingLeft: 8, fontSize: 9, lineHeight: 1.5, color: '#1A1610', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all', margin: 0 }}
+            >
+              {timingAdvice}
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
 export function PrintableReport({
   analysis,
   layeringSession,
@@ -346,6 +819,14 @@ export function PrintableReport({
   standalonePrintStyles = true,
 }: PrintableReportProps) {
   const analysisData = analysis.analysis_data
+
+  // 사주 분석 퍼퓸 — chemistry/traits 폴백보다 먼저 분기한다
+  // (saju 결과가 '데이터가 충분하지 않습니다' 카드나 기본 이미지 보고서로 떨어지지 않도록)
+  if (analysis.product_type === 'saju_perfume') {
+    return (
+      <SajuPrintReport analysis={analysis} rootId={rootId} standalonePrintStyles={standalonePrintStyles} />
+    )
+  }
 
   // [FIX] CRITICAL #17: chemistry_set이면 전용 디자인 렌더링
   if (analysis.product_type === 'chemistry_set' || !analysisData?.traits) {

@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## 2026-07-08 - [FIX] 사주 로딩 오버레이 레이아웃 붕괴 (CSS 레이어 충돌)
+
+**Root cause**: globals.css의 비레이어 커스텀 클래스 `.saju-ink-grain`/`.saju-hanji`의 `position: relative`가 Tailwind v4 레이어드 유틸리티 `.absolute`를 덮어씀 → 오버레이 캔버스(`absolute inset-0`)가 콘텐츠 높이(372px)로 접혀 상단 띠만 남고, 제목·8패 타일 충돌 + 뒷페이지/네비 노출 (모바일·PC 공통).
+
+**Changes**:
+- globals.css: 두 클래스의 position 선언에 `:where(:not(.absolute):not(.fixed):not(.sticky))` 가드 — absolute/fixed/sticky 유틸리티와 결합 시 양보 (영향권 전수 확인: 오버레이 캔버스 + GanjiTile 면 2곳, 둘 다 스크린샷 검증)
+- SajuAnalyzingOverlay: 표시 중 body 스크롤 잠금 추가 (뒷페이지 스크롤·스크롤바 갭 방지)
+- dev 하네스 추가: /[locale]/dev/saju-overlay (프로덕션 404, 전역 네비 숨김)
+
+**Verification**: 하네스에서 모바일(390×844)·PC(1440×900)·도킹 단계·족자 완료 전환 스크린샷 검증, tsc 클린
+
+---
+
+## 2026-07-07 - [ADD] 사주 분석 퍼퓸 프로그램 전체 구현 (운명의 조향)
+
+**Scope**: 신규 분석 프로그램 1종 완전 추가 — slug `saju`, product_type `saju_perfume`
+
+**Changes**:
+- 통합 레이어(47파일): 타입 유니온·PRODUCT_PRICING/BADGES·ADMIN_PROGRAMS·PROGRAM_SEO(5로케일)·네비/홈카드/사이트맵·QR 리다이렉트·관리자(분석/주문/통계/비용/리뷰)·커머스(장바구니/주문/재고/체크아웃/마이페이지)
+- AI 백엔드: `/api/analyze/saju`(인증+일일한도+교정 재시도+사주 전용 mock), `/api/saju/chart`(오버레이용 경량 계산), `saju-prompt-builder.ts`(18섹션 — 일간 아키타입 계절 변주 강제·오행→향 3단 논법·금지 클리셰·궁합 점수 절제), 번역 파이프라인에서 계산 명식 물리 격리
+- UI: 입력 위저드 6페이즈(입문→소망→생시→상대→심원→봉인, 12지시 격자·양음력/윤달·삼주), 로딩 의식(만세력→8패 플립→족자 전환), 결과 9장 스크롤 서사(별 응집→명식표→일간→오행 고리→목적/궁합→용신 점화→향 리빌→처방전), 랜딩(問曆解香), 공유 컴포넌트 10종(src/components/saju/), Noto Serif KR 탑재
+- 인쇄 보고서: PrintableReport `saju_perfume` 분기 + 배경 SVG 2종(3-1 금박/3-2 먹 젠) — 라벨 HTML 렌더 방식(신규 관례), 최장 텍스트 픽스처(scripts/fixtures/saju-sample.json)로 검수
+- i18n: saju 네임스페이스 228키 × 5로케일 (한자 병기 전 로케일 유지)
+- DB 마이그레이션(20260707_saju_program.sql): product_type CHECK 5종 확장 + admin_products(is_active=false 다크 런칭)/pricing(10·50ml ₩48,000) 시드 — **라이브 적용·검증 완료** (라이브 제약 드리프트 발견으로 라이브 정의 기준 재작성; ref check 3종은 기본 분기가 saju를 커버해 무변경)
+- dev 하네스: /[locale]/dev/saju-print (프로덕션 404)
+- 부수 수정: MobileBottomNav AuthModal redirectPath의 chemistry 누락 버그 수정, GoldDust hydration mismatch 수정
+
+**Verification**:
+- 엔진 자체검증 93/93 · tsc 0 errors · next build 통과 · Playwright QA 2라운드(major 3건 발견·수정·재확인) · DB e2e 저장→재조회→정리 통과
+- 미검증 잔여: 실제 Gemini 제출 e2e(로딩 오버레이 실동작 포함), ja/zh/es 로케일 화면, reduced-motion 폴백
+
+**Impact**:
+- is_active=false 시드로 공개 노출 없음 — 관리자에서 활성화 전까지 다크 상태
+
+---
+
+## 2026-07-07 - [ADD] 사주 프로그램 결정론적 계산 엔진 (src/lib/saju/)
+
+**Changed Files**:
+- src/lib/saju/types.ts (신규, 201 lines) — SajuChart·Pillar·Element 등 전 타입
+- src/lib/saju/calendar.ts (신규, 205 lines) — JDN·60갑자 일진·년두/월두(오호둔)/시두(오서둔)·지장간·십성·합충형해파 테이블
+- src/lib/saju/solar-terms.ts (신규, 86 lines) — 12절 절입 시각 KST (manseryeok KASI 데이터 래핑)
+- src/lib/saju/lunar.ts (신규, 30 lines) — 음력(윤달)↔양력 변환
+- src/lib/saju/chart.ts (신규, 399 lines) — computeSajuChart / computePairRelations (원국·오행분포·신강약·용신·궁합)
+- src/lib/saju/scent-map.ts (신규, 171 lines) — 오행→향 매핑 SSOT (30종 전수, 목8·화6·토4·금8·수4)
+- src/lib/saju/index.ts / README.md / __selftest__.ts (신규)
+- package.json — dependencies: +manseryeok@2.0.0(MIT), devDependencies: +korean-lunar-calendar@0.4.0(교차검증용)
+
+**Changes**:
+- DESIGN.md §3 사주 계산 엔진 구현: AI는 계산하지 않고 이 엔진이 계산한 명식을 해석만 함
+- 진태양시(서울 126.978°E+균시차)·서머타임(1948~51/1955~60/1987~88)·UTC+8:30 시대(1954~61) 자동 보정, splitJasi 일 경계
+- 용신 = 오행 결핍 1차 + 조후 타이브레이크 (reason enum: lacking/season_cold/season_hot)
+- 자체 검증 93 어서션 전부 PASS (KASI 절기 앵커·독립 Meeus 천문 교차검증 최대 5분 편차·korean-lunar-calendar 무작위 300일 교차·1995-08-15 전체 사주 앵커)
+
+**Reason**:
+- 사주 향수 프로그램(운명의 조향) Phase A 기반 모듈 — 계산 정확성이 제품 신뢰도의 뿌리
+
+**Impact**:
+- 신규 모듈 추가만 있음 (기존 코드 무변경, npx tsc --noEmit 0 errors)
+
+---
+
 ## 2026-01-12 03:30 - [UPDATE] 마이페이지 기본 탭 변경 및 삭제 버튼 개선
 
 **Changed Files**:

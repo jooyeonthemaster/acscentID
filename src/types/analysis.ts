@@ -630,3 +630,191 @@ export const EMOTION_KEYWORDS = [
   { id: 'bittersweet', label: '아련함', emoji: '🥀' },
 ] as const;
 
+
+// ============================================================
+// 사주 분석 퍼퓸 (saju_perfume) — 타입 계약 SSOT
+// 규칙: 명식(chart)은 코드가 계산해 analysis_data에 스냅샷으로 저장한다.
+// AI는 해석(sajuAnalysis)만 생성한다. DB 재열람/인쇄는 이 스냅샷만으로 자립한다.
+// ============================================================
+
+export type SajuElement = '목' | '화' | '토' | '금' | '수';
+
+export type SajuPurpose = 'general' | 'love' | 'wealth' | 'career' | 'compatibility';
+
+export const SAJU_PURPOSES = [
+  { id: 'general', label: '종합운', hanja: '總', description: '내 명식 전체의 흐름' },
+  { id: 'love', label: '연애운', hanja: '戀', description: '사랑에 빠지는 방식과 인연의 결' },
+  { id: 'wealth', label: '재물운', hanja: '財', description: '돈이 들어오는 경로와 새는 구멍' },
+  { id: 'career', label: '직업운', hanja: '業', description: '일하는 방식의 결과 방향' },
+  { id: 'compatibility', label: '궁합', hanja: '緣', description: '두 명식이 만나는 자리' },
+] as const;
+
+export const SAJU_RELATION_OPTIONS = [
+  { id: 'lover', label: '연인' },
+  { id: 'crush', label: '썸 · 짝사랑' },
+  { id: 'spouse', label: '부부' },
+  { id: 'friend', label: '친구' },
+  { id: 'colleague', label: '동료' },
+  { id: 'bias', label: '최애' },
+] as const;
+
+// 출생 입력 (양력/음력, 시간 모름 허용)
+export interface SajuBirthInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number | null;   // 0-23, null = 시간 모름(삼주)
+  minute: number | null;
+  calendar: 'solar' | 'lunar';
+  isLeapMonth?: boolean;  // 음력 윤달
+}
+
+// 기둥 하나의 스냅샷 (UI/인쇄 자립 렌더용)
+export interface SajuPillarSnapshot {
+  gan: string;        // '병'
+  ji: string;         // '오'
+  ganHanja: string;   // '丙'
+  jiHanja: string;    // '午'
+  ganElement: SajuElement;
+  jiElement: SajuElement;
+  jiAnimal: string;   // '말'
+}
+
+export type SajuYongsinReason = 'lacking' | 'season_cold' | 'season_hot';
+
+// 계산된 명식 스냅샷 — src/lib/saju가 생성, analysis_data에 저장
+export interface SajuChartSnapshot {
+  pillars: {
+    year: SajuPillarSnapshot;
+    month: SajuPillarSnapshot;
+    day: SajuPillarSnapshot;
+    hour: SajuPillarSnapshot | null;  // null = 삼주 분석
+  };
+  elementCount: Record<SajuElement, number>;
+  dayMaster: {
+    gan: string;
+    hanja: string;
+    element: SajuElement;
+    yinYang: '양' | '음';
+    strength: '신강' | '신약' | '중화';
+  };
+  yongsin: {
+    element: SajuElement;
+    reason: SajuYongsinReason;
+    lackingElements: SajuElement[];
+  };
+  isThreePillar: boolean;  // 시간 모름
+  isJasiBirth: boolean;    // 야자시 출생 — 유파별 일주 차이 고지용
+  birthDisplay: {
+    solarDate: string;     // 'YYYY-MM-DD' (음력 입력 시 변환된 양력)
+    time: string | null;   // 'HH:mm'
+    calendar: 'solar' | 'lunar';
+    sijin: string | null;  // '오시(午時)'
+  };
+}
+
+// 궁합 관계선 (합/충/형/해/파 — 코드가 계산)
+export interface SajuPairRelation {
+  kind: '합' | '충' | '형' | '해' | '파';
+  hanja: string;          // '合' | '沖' ...
+  aGlyph: string;         // 내 쪽 글자 (한자)
+  bGlyph: string;         // 상대 쪽 글자 (한자)
+  position: string;       // '일지-일지' 등
+  label: string;          // '자축합' 등
+}
+
+export interface SajuCompatibilitySnapshot {
+  partnerName: string;
+  partnerGender: string;
+  relation: (typeof SAJU_RELATION_OPTIONS)[number]['id'];
+  partnerChart: SajuChartSnapshot;
+  relations: SajuPairRelation[];
+  complementScore: number;  // 0-100, 오행 상호보완 코드 계산치
+}
+
+// AI 해석 블록 (Gemini 생성)
+export interface SajuAnalysis {
+  dayMasterReading: {
+    archetypeTitle: string;   // '한낮의 태양'
+    hanja: string;            // '丙火'
+    natureMetaphor: string;   // 여는 은유 1-2문장
+    narrative: string;        // 본 서사 (8-12문장)
+  };
+  pillarsReading: {
+    year: { title: string; meaning: string };
+    month: { title: string; meaning: string };
+    day: { title: string; meaning: string };
+    hour: { title: string; meaning: string } | null;
+  };
+  elementFlow: {
+    dominantNarrative: string;
+    lackingNarrative: string;
+    yongsinNarrative: string;   // 용신 판정 근거를 풀어낸 서사 — 향 연결의 다리
+  };
+  purposeReading: {
+    purpose: SajuPurpose;
+    title: string;              // 15자 이내
+    narrative: string;          // 10-14문장, 명식 글자 인용 필수
+    keyInsights: string[];      // 정확히 3개
+    timingAdvice: string;
+  };
+  compatibilityReading?: {
+    score: number;              // 50-99
+    title: string;              // 두 일간의 자연물 관계 (예: '태양과 바다')
+    dynamicNarrative: string;
+    harmonyPoints: string[];    // 2-3개, 합 인용
+    frictionPoints: string[];   // 1-2개, 충 인용 — 부정 금지, '흔들어 깨우는 자리'
+    adviceNarrative: string;
+    sharedScentNarrative: string;  // 두 사람 사이에 놓이는 향
+  };
+  scentDestiny: {
+    whyNarrative: string;       // 3단 논법: 명식 진단→용신→감각 번역 (6-9문장)
+    elementBridge: string;      // '금(金)의 기운 — 서늘하게 벼려주는' 한 줄
+    topMeaning: string;         // 탑 = 겉으로 드러나는 기운
+    middleMeaning: string;      // 미들 = 중심 기운
+    baseMeaning: string;        // 베이스 = 뿌리 기운
+    ritualGuide: string;        // 처방: 뿌리는 시간/상황 (사주 논리로)
+    wearingMoment: string;      // 한 장면 묘사
+  };
+  yearlyFlow: {
+    yearTitle: string;          // '2026 병오년'
+    narrative: string;          // 3-4문장
+  };
+}
+
+// 최종 결과 = 유니버설 코어 + 사주 확장
+export interface SajuAnalysisResult extends ImageAnalysisResult {
+  sajuChart: SajuChartSnapshot;
+  sajuAnalysis: SajuAnalysis;
+  sajuPurpose: SajuPurpose;
+  sajuCompatibility?: SajuCompatibilitySnapshot;
+}
+
+// /api/analyze/saju 요청 계약
+export interface SajuAnalyzeRequest {
+  name: string;
+  gender: string;
+  targetType: 'idol' | 'self';  // idol = 최애의 사주, self = 나의 사주
+  purpose: SajuPurpose;
+  birth: SajuBirthInput;
+  partner?: {
+    name: string;
+    gender: string;
+    relation: (typeof SAJU_RELATION_OPTIONS)[number]['id'];
+    birth: SajuBirthInput;
+  };
+  wish?: string;         // 心願 — 고민 한 줄 (선택)
+  locale?: string;
+  serviceMode?: 'online' | 'offline';
+  pin?: string;
+  qrCode?: string;
+}
+
+// 오행 표시 상수 (UI/인쇄 공용)
+export const SAJU_ELEMENT_INFO: Record<SajuElement, { hanja: string; color: string; onDark: string; onCream: string; noteFamily: string }> = {
+  목: { hanja: '木', color: '#3E7C4F', onDark: '#7FBF8E', onCream: '#2E6B3E', noteFamily: '그린 · 허브' },
+  화: { hanja: '火', color: '#C0392B', onDark: '#E2604E', onCream: '#A93226', noteFamily: '스파이시 · 앰버' },
+  토: { hanja: '土', color: '#C9A227', onDark: '#E8C766', onCream: '#7A5C14', noteFamily: '우디 · 스위트' },
+  금: { hanja: '金', color: '#B8B8B0', onDark: '#D6D6CE', onCream: '#6E6E66', noteFamily: '시트러스 · 클린' },
+  수: { hanja: '水', color: '#2C3E60', onDark: '#8FA8CC', onCream: '#2C3E60', noteFamily: '머스크 · 딥' },
+};

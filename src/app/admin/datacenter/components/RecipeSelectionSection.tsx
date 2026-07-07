@@ -9,6 +9,8 @@ import {
   Box,
   GraduationCap,
   TrendingUp,
+  Users,
+  Moon,
 } from 'lucide-react'
 
 interface SelectionBreakdown {
@@ -42,14 +44,19 @@ interface RecipeSelectionData {
     idol_image: ProgramBreakdown
     figure: ProgramBreakdown
     graduation: ProgramBreakdown
+    chemistry: ProgramBreakdown
+    saju: ProgramBreakdown
   }
   trend: MonthlyTrend[]
 }
 
+// [FIX] API가 반환하는 chemistry 키 누락 시 info.icon 런타임 크래시 — chemistry/saju 추가
 const PROGRAM_INFO = {
   idol_image: { label: 'AI 이미지 분석', icon: Sparkles, color: 'bg-yellow-500' },
   figure: { label: '피규어 디퓨저', icon: Box, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: GraduationCap, color: 'bg-amber-500' },
+  chemistry: { label: '레이어링 퍼퓸', icon: Users, color: 'bg-violet-500' },
+  saju: { label: '사주 분석 퍼퓸', icon: Moon, color: 'bg-red-700' },
 }
 
 export default function RecipeSelectionSection() {

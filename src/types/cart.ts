@@ -1,6 +1,6 @@
 // 장바구니 및 주문 상품 관련 타입 정의
 
-export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product'
+export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'personal_scent' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product' | 'saju_perfume'
 
 // 시향지 애드온 옵션 — image_analysis(아이돌 이미지) / chemistry_set(케미) 결제 단계에서
 // 10ml 대신 선택할 수 있는 4,000원 저가 옵션. size 코드는 상품 공통으로 'scent_paper'.
@@ -136,6 +136,11 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: '10ml', price: 24000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
+  // 사주 분석 퍼퓸 — 생년월일시 기반 분석 프로그램. DB admin_product_pricing이 우선, 코드는 폴백.
+  saju_perfume: [
+    { size: '10ml', price: 48000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+  ],
 }
 
 // 상품 타입 뱃지 스타일
@@ -218,6 +223,13 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     text: 'text-lime-700',
     border: 'border-lime-300',
   },
+  saju_perfume: {
+    label: '사주 분석 퍼퓸',
+    labelShort: '사주',
+    bg: 'bg-[#0C0E16]',
+    text: 'text-[#C9A227]',
+    border: 'border-[#C9A227]',
+  },
 }
 
 // 가격 관련 유틸리티 함수
@@ -253,6 +265,8 @@ export function getDefaultPrice(productType: ProductType): number {
       return 34000
     case 'chemistry_set':
       return 38000
+    case 'saju_perfume':
+      return 48000
     default:
       return 24000
   }

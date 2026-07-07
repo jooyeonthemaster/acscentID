@@ -23,6 +23,7 @@ const ALL_PROGRAM_LINKS = [
   { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const, descKey: 'programs.subtitle.graduation' as const },
   { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const },
   { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const },
+  { slug: 'saju', href: '/programs/saju', labelKey: 'products.saju' as const, descKey: 'programs.subtitle.saju' as const },
   { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const },
   { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const, descKey: 'todayScent.subtitle' as const },
 ]
@@ -186,7 +187,8 @@ export function MobileBottomNav() {
   const isFigurePage = normalizedPathname === '/programs/figure'
   const isGraduationPage = normalizedPathname === '/programs/graduation'
   const isChemistryPage = normalizedPathname === '/programs/chemistry'
-  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage || isChemistryPage
+  const isSajuPage = normalizedPathname === '/programs/saju'
+  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage || isChemistryPage || isSajuPage
 
   useEffect(() => {
     if (isAdminPage) return
@@ -259,6 +261,12 @@ export function MobileBottomNav() {
     } else if (isChemistryPage) {
       if (currentUser) {
         startTransition('/input?type=chemistry&mode=online')
+      } else {
+        setShowAuthModal(true)
+      }
+    } else if (isSajuPage) {
+      if (currentUser) {
+        startTransition('/input?type=saju&mode=online')
       } else {
         setShowAuthModal(true)
       }
@@ -411,7 +419,10 @@ export function MobileBottomNav() {
           isIdolImagePage ? '/input?type=idol_image&mode=online' :
             isFigurePage ? '/input?type=figure&mode=online' :
               isGraduationPage ? '/input?type=graduation&mode=online' :
-                '/mypage'
+                // [FIX] chemistry가 누락되어 로그인 후 /mypage로 이동하던 버그 수정
+                isChemistryPage ? '/input?type=chemistry&mode=online' :
+                  isSajuPage ? '/input?type=saju&mode=online' :
+                    '/mypage'
         }
       />
     </>

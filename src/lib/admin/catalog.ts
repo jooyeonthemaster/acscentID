@@ -85,6 +85,16 @@ export const ADMIN_PROGRAMS: AdminProgramDefinition[] = [
     registryManaged: true,
   },
   {
+    slug: 'saju',
+    name: '사주 분석 퍼퓸',
+    description: '생년월일시 기반 사주 분석으로 부족한 기운을 채우는 향을 추천합니다.',
+    publicHref: '/programs/saju',
+    inputHref: '/input?type=saju&mode=online',
+    productTypes: ['saju_perfume'],
+    kind: 'analysis',
+    registryManaged: true,
+  },
+  {
     slug: 'le-quack',
     name: 'LE QUACK 시그니처',
     description: '분석 없이 바로 구매하는 시그니처 프로그램형 상품입니다.',

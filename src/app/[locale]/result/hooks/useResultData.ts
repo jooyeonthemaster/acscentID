@@ -449,6 +449,8 @@ export const useResultData = () => {
     isFigureOnlineMode: productType === 'figure_diffuser' && hasFigureData,
     // 졸업 모드
     isGraduationMode: productType === 'graduation',
+    // 사주 모드 (analysis_data 전체가 그대로 로드되므로 sajuChart/sajuAnalysis는 analysisResult에 동승)
+    isSajuMode: productType === 'saju_perfume' || programType === 'saju',
     // 서비스 모드 (online: 구매 버튼 / offline: 피드백 버튼)
     serviceMode,
     // 분석 대상 타입 (idol: 최애 / self: 나)

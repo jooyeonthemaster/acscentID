@@ -7,7 +7,7 @@ import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useTranslations } from "next-intl"
 
-type ProgramType = 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set'
+type ProgramType = 'idol_image' | 'personal' | 'figure' | 'graduation' | 'le-quack' | 'chemistry_set' | 'saju_perfume'
 
 interface ProgramReviewSectionProps {
   programType: ProgramType

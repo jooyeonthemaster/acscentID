@@ -21,6 +21,7 @@ interface UsageBase {
   savedAnalyses: number
   standardAnalysisCalls: number
   chemistryAnalysisCalls: number
+  sajuAnalysisCalls: number
   graduationImageCalls: number
   feedbackRecipeCalls: number
   adminAiCalls: number
@@ -50,6 +51,7 @@ function emptyUsageBase(): UsageBase {
     savedAnalyses: 0,
     standardAnalysisCalls: 0,
     chemistryAnalysisCalls: 0,
+    sajuAnalysisCalls: 0,
     graduationImageCalls: 0,
     feedbackRecipeCalls: 0,
     adminAiCalls: 0,
@@ -206,6 +208,7 @@ function addUsage(target: UsageBase, source: UsageBase) {
   target.savedAnalyses += source.savedAnalyses
   target.standardAnalysisCalls += source.standardAnalysisCalls
   target.chemistryAnalysisCalls += source.chemistryAnalysisCalls
+  target.sajuAnalysisCalls += source.sajuAnalysisCalls
   target.graduationImageCalls += source.graduationImageCalls
   target.feedbackRecipeCalls += source.feedbackRecipeCalls
   target.adminAiCalls += source.adminAiCalls
@@ -222,12 +225,13 @@ function addMonthly(month: MonthlyUsage, day: DailyUsage) {
   addUsage(month, day)
 }
 
-function normalizeAnalysisCalls(day: DailyUsage, usageByDate: Map<string, { standard: number; chemistry: number }>, resultByDate: Map<string, { standard: number; chemistryRows: number; graduation: number }>) {
-  const usage = usageByDate.get(day.date) || { standard: 0, chemistry: 0 }
-  const results = resultByDate.get(day.date) || { standard: 0, chemistryRows: 0, graduation: 0 }
+function normalizeAnalysisCalls(day: DailyUsage, usageByDate: Map<string, { standard: number; chemistry: number; saju: number }>, resultByDate: Map<string, { standard: number; chemistryRows: number; graduation: number; saju: number }>) {
+  const usage = usageByDate.get(day.date) || { standard: 0, chemistry: 0, saju: 0 }
+  const results = resultByDate.get(day.date) || { standard: 0, chemistryRows: 0, graduation: 0, saju: 0 }
 
   day.standardAnalysisCalls = usage.standard > 0 ? usage.standard : results.standard
   day.chemistryAnalysisCalls = usage.chemistry > 0 ? usage.chemistry : Math.ceil(results.chemistryRows / 2)
+  day.sajuAnalysisCalls = usage.saju > 0 ? usage.saju : results.saju
   day.graduationImageCalls = results.graduation
 }
 
@@ -307,25 +311,30 @@ export async function GET(request: NextRequest) {
       getBucket(dailyMap, row.created_at).events += 1
     })
 
-    const usageByDate = new Map<string, { standard: number; chemistry: number }>()
+    // [ADD] saju 분류 버킷 — chemistry와 동일한 방식 (product_type 또는 endpoint 기준)
+    const usageByDate = new Map<string, { standard: number; chemistry: number; saju: number }>()
     usageEvents.forEach((row) => {
       const day = getBucket(dailyMap, row.created_at)
       const key = day.date
-      const current = usageByDate.get(key) || { standard: 0, chemistry: 0 }
+      const current = usageByDate.get(key) || { standard: 0, chemistry: 0, saju: 0 }
       const isChemistry = row.product_type === 'chemistry_set' || row.endpoint?.includes('chemistry')
+      const isSaju = row.product_type === 'saju_perfume' || row.endpoint?.includes('saju')
       if (isChemistry) current.chemistry += 1
+      else if (isSaju) current.saju += 1
       else current.standard += 1
       usageByDate.set(key, current)
       day.analysisAttempts += 1
     })
 
-    const resultByDate = new Map<string, { standard: number; chemistryRows: number; graduation: number }>()
+    const resultByDate = new Map<string, { standard: number; chemistryRows: number; graduation: number; saju: number }>()
     savedAnalyses.forEach((row) => {
       const day = getBucket(dailyMap, row.created_at)
       const key = day.date
-      const current = resultByDate.get(key) || { standard: 0, chemistryRows: 0, graduation: 0 }
+      const current = resultByDate.get(key) || { standard: 0, chemistryRows: 0, graduation: 0, saju: 0 }
       if (row.product_type === 'chemistry_set') {
         current.chemistryRows += 1
+      } else if (row.product_type === 'saju_perfume') {
+        current.saju += 1
       } else {
         current.standard += 1
       }

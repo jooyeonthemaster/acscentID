@@ -58,7 +58,7 @@ interface Order {
   user_image_url?: string
   keywords?: string[]
   analysis_data?: (ImageAnalysisResult & { storeProduct?: Record<string, unknown> }) | null
-  product_type?: 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product'
+  product_type?: 'image_analysis' | 'image_analysis_paper' | 'figure_diffuser' | 'graduation' | 'signature' | 'chemistry_set' | 'payment_test' | 'today_scent' | 'store_product' | 'saju_perfume'
   payment_method?: string
   payment_id?: string | null
   analysis_id?: string  // 분석 결과 ID (레시피 연결용)

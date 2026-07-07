@@ -157,6 +157,7 @@ export function MobileMenuSheet({
     { slug: 'graduation', href: '/programs/graduation', label: t('products.graduation') },
     { slug: 'personal', href: '/programs/personal', label: t('products.personal') },
     { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry') },
+    { slug: 'saju', href: '/programs/saju', label: t('products.saju') },
     { slug: 'le-quack', href: '/programs/le-quack', label: t('products.leQuack') },
   ]
     .filter((link) => isProductActive(link.slug))

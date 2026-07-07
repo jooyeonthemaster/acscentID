@@ -153,7 +153,8 @@
     "personal": "个人香氛",
     "leQuack": "SIGNATURE 鸭子香水",
     "customDuck": "定制小鸭",
-    "chemistry": "化学香水套装"
+    "chemistry": "化学香水套装",
+    "saju": "四柱八字香水"
   },
   "labels": {
     "traits": {
@@ -233,13 +234,15 @@
       "figure": "用喜欢的图像制作专属于你的花盆手办香薰器",
       "graduation": "将毕业的回忆化为香气，特别的毕业纪念香水",
       "personal": "表达自我的专属签名香",
-      "chemistry": "将两个角色的化学反应融入香氛"
+      "chemistry": "将两个角色的化学反应融入香氛",
+      "saju": "用出生年月日时读出的命运之香"
     },
     "includes": {
       "idolImage": "鸭子香水(10ml/50ml) + 实物分析报告",
       "figure": "3D手办 + 香薰器(5ml) + 实物分析报告",
       "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告",
-      "chemistry": "化学香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡"
+      "chemistry": "化学香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡",
+      "saju": "四柱定制香水(10ml/50ml) + 命式分析报告"
     },
     "features": {
       "aiAnalysis": "AI定制分析",
@@ -2652,6 +2655,395 @@
       "requestOnlyLabel": "指定香料请求",
       "requestAddedToast": "“{note}”请求已加入购物车",
       "addFailed": "加入购物车失败"
+    }
+  },
+  "saju": {
+    "common": {
+      "programName": "子夜调香所",
+      "elements": {
+        "wood": "木",
+        "fire": "火",
+        "earth": "土",
+        "metal": "金",
+        "water": "水"
+      },
+      "yinYang": {
+        "yang": "阳",
+        "yin": "阴"
+      }
+    },
+    "landing": {
+      "featureBar": {
+        "item1": "萬歲曆精密推算",
+        "item2": "以五行为本的调香逻辑",
+        "item3": "命式印刷报告"
+      },
+      "process": {
+        "title": "从八字到香气",
+        "sub": "午夜调香所以四个步骤运作。",
+        "step1": {
+          "title": "问诊",
+          "desc": "先请教您的生辰"
+        },
+        "step2": {
+          "title": "萬歲曆",
+          "desc": "排出八个字"
+        },
+        "step3": {
+          "title": "解读",
+          "desc": "读出气的流向"
+        },
+        "step4": {
+          "title": "调香",
+          "desc": "以香补足欠缺之气"
+        }
+      },
+      "elements": {
+        "kicker": "五行与香气的对应",
+        "title": "五种气运，各有其香",
+        "desc": "万年历找出你所欠缺的气——用神(用神)，并将其译成香气的语言。结果中亦附上为何是这款香的依据。",
+        "sense": {
+          "wood": "新芽与林间空气——唤醒生长之气。",
+          "fire": "温暖与蔓延的光——温热已冷却的角落。",
+          "earth": "泥土的安稳与甘甜的分量——安定摇摆的心。",
+          "metal": "清冷的光泽与利落的澄澈——涤除纷杂。",
+          "water": "深水与浸润的宁静——润泽干涸之处。"
+        },
+        "noteFamily": {
+          "wood": "绿叶 · 草本",
+          "fire": "辛香 · 琥珀",
+          "earth": "木质 · 甜香",
+          "metal": "柑橘 · 清爽",
+          "water": "麝香 · 深邃"
+        }
+      },
+      "modes": {
+        "kicker": "我的八字，本命的八字",
+        "title": "为谁读这八个字？",
+        "self": {
+          "title": "我的四柱",
+          "desc": "读出你与生俱来的气运流向，为命式中空缺之处开一剂香方。"
+        },
+        "idol": {
+          "title": "本命的四柱",
+          "desc": "那个人为何如此耀眼，命式早已知晓。把本命与生俱来的气，收进一瓶香里。"
+        }
+      },
+      "compat": {
+        "title": "合盘(宮合)——两张命式相遇之处",
+        "desc": "将对方的生辰并列摆放，便能读出合(合)与冲(沖)。我们将为两人之间调配一款专属之香。"
+      },
+      "special": {
+        "heading": "这个项目值得信赖的理由",
+        "card1": {
+          "title": "没有照片，也没有问卷",
+          "desc": "出生年月日时的八个字就是全部数据。只以纯粹的命理数据来解读。"
+        },
+        "card2": {
+          "title": "AI不做计算",
+          "desc": "萬歲曆的推算由经过验证的代码完成，AI只负责解读与调香。"
+        },
+        "card3": {
+          "title": "香即是处方",
+          "desc": "以30款香气中的一款，补足您欠缺的气(用神)，并告诉您为何是这一款。"
+        }
+      },
+      "trust": {
+        "q1": "不知道出生时间怎么办？",
+        "a1": "将省略时柱(時柱)，以三柱(三柱)进行分析。仅凭六个字，也足以读出气运的大势。",
+        "q2": "计算准确吗？",
+        "a2": "代码基于精确到节气交界时刻的万年历进行计算，AI只负责解读。晚上11点之后的子时(子時)出生，日柱可能因流派而异，结果中会一并说明。"
+      },
+      "cta": "寻找我八字的香",
+      "price": "10ml / 50ml 同价",
+      "info1": "AI四柱分析报告 + 定制香水",
+      "info2": "下单后3~5天内发货"
+    },
+    "input": {
+      "gate": {
+        "title": "要为哪一位读八字?",
+        "sub": "以出生年月日时的八个字读气，以香为方。",
+        "self": "我的四柱",
+        "selfDesc": "读我与生俱来的气",
+        "idol": "最爱的四柱",
+        "idolDesc": "读那个人与生俱来的气",
+        "nameLabel": "姓名",
+        "nameLabelIdol": "最爱的名字",
+        "namePlaceholder": "真实姓名或称呼",
+        "namePlaceholderIdol": "名字或艺名",
+        "genderLabel": "性别",
+        "genderMale": "男性",
+        "genderFemale": "女性",
+        "genderOther": "其他",
+        "genderHelper": "命理之中，男性的命式称为乾命，女性的命式称为坤命。",
+        "genderHelperIdol": "请依据最爱公开的资料选择。",
+        "pin": {
+          "label": "认证号码 四位数",
+          "helpTitle": "请定下四位数字并牢记",
+          "helpDesc": "再次查看结果时需要这个号码。只需您本人记得即可。",
+          "toastLabel": "您输入的号码是",
+          "toastHelp": "请务必记住这个号码。"
+        }
+      },
+      "purpose": {
+        "title": "您最想知道什么?",
+        "sub": "一个问题，深入作答。",
+        "subIdol": "关于最爱的八字，您想知道什么?",
+        "options": {
+          "general": {
+            "label": "综合",
+            "desc": "与生俱来的气质与整体流向",
+            "descIdol": "与生俱来的气质与整体流向"
+          },
+          "overall": {
+            "label": "综合",
+            "desc": "与生俱来的气质与整体流向",
+            "descIdol": "与生俱来的气质与整体流向"
+          },
+          "love": {
+            "label": "恋爱",
+            "desc": "缘分来临与停留之处",
+            "descIdol": "想知道最爱的恋爱气质"
+          },
+          "wealth": {
+            "label": "财富",
+            "desc": "财气聚散的纹理",
+            "descIdol": "财运是天生的吗"
+          },
+          "career": {
+            "label": "事业·前程",
+            "desc": "工作与前程延展的方向",
+            "descIdol": "这条路合最爱的八字吗"
+          },
+          "compatibility": {
+            "label": "合盘",
+            "desc": "两股气相遇的方式 · 需要对方的信息",
+            "descIdol": "我与最爱，两股气相遇的方式 · 需要对方的信息"
+          }
+        }
+      },
+      "birth": {
+        "title": "请告诉我们您出生的那一刻",
+        "titleIdol": "请告诉我们最爱出生的那一刻",
+        "sub": "出生年月日与时辰，就是这次分析的全部。不需要照片，也不需要性格问卷。",
+        "subIdol": "公开的出生日期就足够了。不需要照片，也不需要性格问卷。",
+        "calendarSolar": "公历",
+        "calendarLunar": "农历",
+        "leapMonth": "生于闰月",
+        "leapHelper": "农历日期将以萬歲曆精确换算。若是闰月，请务必勾选。",
+        "yearSuffix": "年",
+        "monthSuffix": "月",
+        "daySuffix": "日",
+        "errors": {
+          "yearRange": "只能推算1930年至2035年之间的年份。",
+          "invalidDate": "日历上没有这一天。请再确认一次。",
+          "futureDate": "这一天尚未到来。"
+        },
+        "timeLabel": "出生时辰",
+        "timeSub": "以时辰(時辰)选择",
+        "exactTimeLink": "改为输入准确时刻",
+        "exactTimeMatch": "{time} — 属于{hanja}時。",
+        "timeUnknown": "不知道出生时间",
+        "timeUnknownHelper": "无时辰，则以三柱解读。深度不减，只是时柱所藏的晚年与子女之位暂且留白。",
+        "branches": {
+          "0": {
+            "animal": "鼠"
+          },
+          "1": {
+            "animal": "牛"
+          },
+          "2": {
+            "animal": "虎"
+          },
+          "3": {
+            "animal": "兔"
+          },
+          "4": {
+            "animal": "龙"
+          },
+          "5": {
+            "animal": "蛇"
+          },
+          "6": {
+            "animal": "马"
+          },
+          "7": {
+            "animal": "羊"
+          },
+          "8": {
+            "animal": "猴"
+          },
+          "9": {
+            "animal": "鸡"
+          },
+          "10": {
+            "animal": "狗"
+          },
+          "11": {
+            "animal": "猪"
+          }
+        }
+      },
+      "partner": {
+        "title": "对方是怎样的人?",
+        "sub": "将两张命式并列展开，读其中的合(合)与冲(沖)。",
+        "relationLabel": "两位的关系",
+        "relations": {
+          "lover": "恋人",
+          "lovers": "恋人",
+          "crush": "暧昧 · 单恋",
+          "spouse": "夫妻",
+          "married": "夫妻",
+          "friend": "朋友",
+          "friends": "朋友",
+          "colleague": "同事 · 伙伴",
+          "colleagues": "同事 · 伙伴",
+          "family": "家人",
+          "bias": "最爱"
+        },
+        "nameLabel": "对方的名字",
+        "namePlaceholder": "名字或称呼",
+        "timeLabel": "对方的出生时辰",
+        "idolCompatBanner": "若是我与最爱的合盘，请在对方一栏填入您自己的信息。"
+      },
+      "wish": {
+        "title": "有什么放不下的心事吗?",
+        "titleIdol": "有什么想为最爱许下的心愿吗?",
+        "sub": "一句话就够了。读八字时，我们会一并斟酌。",
+        "subIdol": "一句话就够了。选香时，我们会一并斟酌。",
+        "placeholder": "例) 要不要换工作，已经犹豫三年了",
+        "placeholderIdol": "例) 希望今年一定健健康康地活动",
+        "skip": "跳过也可以"
+      },
+      "seal": {
+        "title": "封印四柱单子(單子)",
+        "sub": "请确认以下内容无误。封印之后，展开萬歲曆。",
+        "rows": {
+          "target": "对象",
+          "name": "姓名",
+          "gender": "性别",
+          "birth": "生辰",
+          "purpose": "所望",
+          "partner": "对方",
+          "wish": "心愿"
+        },
+        "edit": "修改",
+        "genderDisplay": {
+          "male": "乾命",
+          "female": "坤命",
+          "other": "其他"
+        },
+        "timeUnknownDisplay": "时辰不详",
+        "leapDisplay": "闰月(閏月)",
+        "submit": "封印，开启八字"
+      },
+      "nav": {
+        "prev": "上一步",
+        "toPurpose": "下一步 — 所望",
+        "toBirth": "下一步 — 生辰",
+        "toPartner": "下一步 — 对方",
+        "toWish": "下一步 — 最后一问",
+        "toSeal": "下一步 — 封印"
+      },
+      "authGate": {
+        "onlineTitle": "需要登录",
+        "onlineDescription": "请先登录以开始八字香水分析。分析结果将自动保存！"
+      }
+    },
+    "analyzing": {
+      "headline": "正在排出{name}的八个字",
+      "headlineIdol": "正在排出{name}的八个字",
+      "headlineLate": "正在读八字，选香气",
+      "subLate": "约30秒 — 萬歲曆已推算完毕",
+      "quotes": [
+        "四柱不是注定的命运，而是与生俱来气质的地图。",
+        "八个字里，藏着出生那个季节的温度。",
+        "泄有余，补不足 — 调香与命理同理。",
+        "年柱为根，月柱为干，日柱为我，时柱为果。",
+        "日干是我的中心 — 其余七字环绕其旁。",
+        "水涸之人，予以海的香；火熄之人，予以正午的香。",
+        "寻找用神，就是寻找八字中最干渴的地方。",
+        "同日而生，时辰不同，便是不同的香。",
+        "香比记忆更长久，气随香而动。"
+      ],
+      "knots": {
+        "calc": "萬歲曆",
+        "read": "解读",
+        "blend": "调香"
+      },
+      "eta": "约30秒"
+    },
+    "result": {
+      "loading": "正在展开卷轴",
+      "dataMissing": "找不到四柱结果，请重新解读八字。",
+      "s0": {
+        "headline": "您出生的那一刻，\n天上刻下了八个字",
+        "headlineIdol": "那个人出生的那一刻，\n天上刻下了八个字",
+        "headlineNoHour": "您出生的那一刻，\n天上刻下了六个字",
+        "headlineNoHourIdol": "那个人出生的那一刻，\n天上刻下了六个字",
+        "scrollCue": "向下"
+      },
+      "s1": {
+        "kicker": "一章 · 命式",
+        "headline": "八个字，各归其位",
+        "pillarLabels": {
+          "year": "年柱",
+          "month": "月柱",
+          "day": "日柱",
+          "hour": "时柱"
+        },
+        "jasiNotice": "生于子時者，依流派不同，日柱或有差异。本命式以子夜为界解读。"
+      },
+      "s2": {
+        "kicker": "二章 · 日干",
+        "headline": "您的中心之字",
+        "headlineIdol": "那个人的中心之字",
+        "compatNote": "两个中心，将在四章相遇"
+      },
+      "s3": {
+        "kicker": "三章 · 五行",
+        "headline": "气的流向",
+        "dominantChip": "有余之气 · {element}",
+        "lackingChip": "不足之气 · {element}",
+        "legendMine": "我的命式"
+      },
+      "s4": {
+        "kicker": "四章 · 所望",
+        "timingLabel": "时(時)之建议",
+        "compat": {
+          "kicker": "四章 · 合",
+          "scoreSuffix": "/100",
+          "harmonyTitle": "相合之处",
+          "frictionTitle": "相冲之处",
+          "perfumeBasisNote": "香，依单子主人 {name} 的用神处方。"
+        }
+      },
+      "s5": {
+        "kicker": "五章 · 用神",
+        "headline": "您所需要的气",
+        "headlineIdol": "那个人所需要的气",
+        "transition": "这股气，可以成为香。"
+      },
+      "s6": {
+        "kicker": "終章 · 香",
+        "whyTitle": "为何是这支香",
+        "noteTiers": {
+          "top": "表层之气",
+          "middle": "中心之气",
+          "base": "根基之气"
+        }
+      },
+      "s7": {
+        "kicker": "處方 · 仪式",
+        "headline": "用香之法",
+        "rows": {
+          "time": "喷洒之时",
+          "season": "相宜的季节/时间",
+          "flow": "今年的流向"
+        },
+        "closing": "子夜调香所 — 从您的八字中选出的唯一之香",
+        "closingIdol": "子夜调香所 — 从那个人的八字中选出的唯一之香"
+      }
     }
   }
 }

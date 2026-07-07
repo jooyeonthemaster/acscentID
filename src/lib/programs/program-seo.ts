@@ -7,6 +7,7 @@ export type ProgramSeoSlug =
   | 'chemistry'
   | 'le-quack'
   | 'personal'
+  | 'saju'
 
 interface ProgramSeoText {
   title: string
@@ -60,6 +61,13 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       keywords: ['퍼스널 퍼퓸', '맞춤 향수', '시그니처 향수', 'AI 향수 추천'],
       programLabel: '프로그램',
     },
+    saju: {
+      title: '사주 분석 퍼퓸 - 운명의 조향',
+      description: '생년월일시로 읽는 운명의 향. 만세력 기반 사주 분석으로 일간과 오행, 용신을 풀어내고 부족한 기운을 채우는 맞춤 퍼퓸(10ml/50ml)을 조향합니다. 명식 분석보고서 포함.',
+      productDescription: '생년월일시 기반 사주 분석으로 조향하는 맞춤 퍼퓸. 뿌덕퍼퓸 + 명식 분석보고서 포함.',
+      keywords: ['사주 향수', '사주 분석 퍼퓸', '오행 향수', '용신 향수', '운세 향수', '최애 사주', '맞춤 향수'],
+      programLabel: '프로그램',
+    },
   },
   en: {
     'idol-image': {
@@ -102,6 +110,13 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       description: 'Create your own signature perfume with AI image analysis and personalized scent recommendations.',
       productDescription: 'Your own signature perfume created with AI image analysis.',
       keywords: ['personal perfume', 'custom scent', 'signature perfume', 'AI perfume recommendation'],
+      programLabel: 'Programs',
+    },
+    saju: {
+      title: 'Saju (Four Pillars) Fragrance Reading',
+      description: 'A scent read from the moment you were born. Based on Saju, the Korean Four Pillars of Destiny, we chart your birth date and hour, interpret your day master and five elements, and blend a custom perfume that restores the energy you lack.',
+      productDescription: 'A custom perfume prescribed from your Korean Four Pillars (Saju) birth chart, including a printed chart analysis report.',
+      keywords: ['saju perfume', 'four pillars of destiny', 'Korean fortune telling', 'birth chart fragrance', 'five elements perfume', 'custom perfume'],
       programLabel: 'Programs',
     },
   },
@@ -148,6 +163,13 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       keywords: ['パーソナル香水', 'カスタム香り', 'シグニチャー香水', 'AI香水推薦'],
       programLabel: 'プログラム',
     },
+    saju: {
+      title: '四柱推命パフューム - 運命の調香',
+      description: '生年月日時から読み解く運命の香り。韓国式四柱推命であなたの日干・五行・用神を分析し、足りない気を満たすカスタムパフュームを調香します。命式分析レポート付き。',
+      productDescription: '四柱推命の命式から調香するカスタムパフューム。命式分析レポート付き。',
+      keywords: ['四柱推命 香水', '四柱推命 パフューム', '五行 香水', '占い 香水', 'カスタム香水'],
+      programLabel: 'プログラム',
+    },
   },
   zh: {
     'idol-image': {
@@ -192,6 +214,13 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       keywords: ['个人香水', '定制香气', '标志香水', 'AI香水推荐'],
       programLabel: '项目',
     },
+    saju: {
+      title: '四柱八字香水 - 命运的调香',
+      description: '用出生年月日时读出的命运之香。基于韩式四柱八字命理，解析你的日主、五行与用神，为你调配补足所缺之气的定制香水，并附命盘分析报告。',
+      productDescription: '依据四柱八字命盘调配的定制香水，附命盘分析报告。',
+      keywords: ['四柱香水', '八字香水', '五行香水', '命理香水', '定制香水'],
+      programLabel: '项目',
+    },
   },
   es: {
     'idol-image': {
@@ -234,6 +263,13 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       description: 'Crea tu propio perfume signature con análisis de imagen IA y recomendaciones personalizadas.',
       productDescription: 'Tu propio perfume signature creado con análisis de imagen IA.',
       keywords: ['perfume personal', 'aroma personalizado', 'perfume signature', 'recomendación de perfume IA'],
+      programLabel: 'Programas',
+    },
+    saju: {
+      title: 'Perfume de Saju (Cuatro Pilares del Destino)',
+      description: 'Un aroma leído en el momento de tu nacimiento. Basado en el Saju, la astrología coreana de los Cuatro Pilares, interpretamos tu carta natal y los cinco elementos para crear un perfume que equilibra la energía que te falta. Incluye reporte de análisis.',
+      productDescription: 'Un perfume personalizado creado a partir de tu carta de Saju (Cuatro Pilares), con reporte físico de análisis.',
+      keywords: ['perfume saju', 'cuatro pilares del destino', 'astrología coreana', 'perfume de carta natal', 'perfume de cinco elementos', 'perfume personalizado'],
       programLabel: 'Programas',
     },
   },
