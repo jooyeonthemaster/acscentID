@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTranslations } from 'next-intl'
 import { Droplet, TestTube2, AlertTriangle, PartyPopper, TrendingUp, TrendingDown, Minus, Check, RotateCcw, Target, Sparkles } from 'lucide-react'
 import { GeneratedRecipe, CategoryChange, PerfumeFeedback } from '@/types/feedback'
 import { Button } from '@/components/ui/button'
 import { perfumes } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
+import { FeedbackTheme, SJ, useFeedbackTranslations } from './sajuFeedbackTheme'
 
 interface FeedbackSuccessProps {
   userDirectRecipe: GeneratedRecipe // 1안: 사용자 직접 선택
@@ -17,6 +17,7 @@ interface FeedbackSuccessProps {
   onClose: () => void
   onConfirmRecipe: (recipe: GeneratedRecipe, recipeType: 'user_direct' | 'ai_recommended') => void // 레시피 확정하기 (선택된 탭의 레시피)
   onRetryFeedback: () => void // 다시 피드백 기록하기
+  theme?: FeedbackTheme
 }
 
 // 강도별 스타일 (labels are translated via t())
@@ -67,9 +68,11 @@ export function FeedbackSuccess({
   previousFeedback,
   onClose,
   onConfirmRecipe,
-  onRetryFeedback
+  onRetryFeedback,
+  theme = 'default',
 }: FeedbackSuccessProps) {
-  const t = useTranslations('feedback')
+  const t = useFeedbackTranslations(theme)
+  const saju = theme === 'saju'
   const { getLocalizedName } = useLocalizedPerfumes()
   // 탭 상태 (1안: user, 2안: ai)
   const [activeTab, setActiveTab] = useState<'user' | 'ai'>('user')
@@ -94,25 +97,31 @@ export function FeedbackSuccess({
     return brightness > 180
   }
 
-  const strengthStyle = STRENGTH_STYLES[recipe.estimatedStrength]
+  // 강도 뱃지 — 사주는 청묵/금/주사 3단
+  const SAJU_STRENGTH_STYLES = {
+    light: { bg: 'bg-[#2C3E50]/10', text: 'text-[#2C3E50]' },
+    medium: { bg: 'bg-[#C9A227]/15', text: 'text-[#7A5C14]' },
+    strong: { bg: 'bg-[#C0392B]/10', text: 'text-[#A93226]' },
+  }
+  const strengthStyle = (saju ? SAJU_STRENGTH_STYLES : STRENGTH_STYLES)[recipe.estimatedStrength]
   const strengthLabel = t(`strength${recipe.estimatedStrength.charAt(0).toUpperCase() + recipe.estimatedStrength.slice(1)}` as 'strengthLight')
 
-  // 변화 아이콘 렌더링
+  // 변화 아이콘 렌더링 (사주: 오행 목/화 텍스트 톤)
   const renderChangeIcon = (change: CategoryChange['change']) => {
     if (change === 'increased') {
-      return <TrendingUp size={14} className="text-green-600" />
+      return <TrendingUp size={14} className={saju ? 'text-[#2F6340]' : 'text-green-600'} />
     } else if (change === 'decreased') {
-      return <TrendingDown size={14} className="text-red-500" />
+      return <TrendingDown size={14} className={saju ? 'text-[#A93226]' : 'text-red-500'} />
     }
-    return <Minus size={14} className="text-slate-400" />
+    return <Minus size={14} className={saju ? 'text-[#8B8578]' : 'text-slate-400'} />
   }
 
   // 변화량 계산 및 표시
   const renderScoreChange = (original: number, newScore: number) => {
     const diff = newScore - original
-    if (diff === 0) return <span className="text-slate-400 text-xs">±0</span>
-    if (diff > 0) return <span className="text-green-600 text-xs font-medium">+{diff}</span>
-    return <span className="text-red-500 text-xs font-medium">{diff}</span>
+    if (diff === 0) return <span className={`text-xs ${saju ? 'text-[#8B8578]' : 'text-slate-400'}`}>±0</span>
+    if (diff > 0) return <span className={`text-xs font-medium ${saju ? 'text-[#2F6340]' : 'text-green-600'}`}>+{diff}</span>
+    return <span className={`text-xs font-medium ${saju ? 'text-[#A93226]' : 'text-red-500'}`}>{diff}</span>
   }
 
   return (
@@ -125,22 +134,34 @@ export function FeedbackSuccess({
     >
       {/* 성공 헤더 */}
       <div className="text-center space-y-3">
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', delay: 0.1, stiffness: 200 }}
-          className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-yellow-400/40"
-        >
-          <PartyPopper size={28} className="text-white" />
-        </motion.div>
+        {saju ? (
+          // 주사 낙관 — 도장이 내려앉듯 (成 = 처방 완성)
+          <motion.div
+            initial={{ scale: 1.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', delay: 0.1, stiffness: 260, damping: 18 }}
+            className="w-16 h-16 mx-auto flex items-center justify-center rounded-[6px] bg-[#B03325] shadow-lg shadow-[#C0392B]/30 rotate-[-3deg]"
+          >
+            <span className="font-serif-kr text-3xl leading-none text-[#F5EFE2]">成</span>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', delay: 0.1, stiffness: 200 }}
+            className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-yellow-400/40"
+          >
+            <PartyPopper size={28} className="text-white" />
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-lg font-black text-slate-900">{t('recipeComplete')}</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className={`text-lg font-black ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>{t('recipeComplete')}</h2>
+          <p className={`text-xs mt-0.5 ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
             {t('basedOnCustom', { name: recipe.granules[0] ? getLocalizedName(recipe.granules[0].id, perfumeName) : perfumeName })}
           </p>
         </motion.div>
@@ -151,14 +172,14 @@ export function FeedbackSuccess({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="flex bg-slate-100 p-1 rounded-xl gap-1"
+        className={`flex p-1 rounded-xl gap-1 ${saju ? 'bg-[#EDE5D2]' : 'bg-slate-100'}`}
       >
         <button
           onClick={() => setActiveTab('user')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
             activeTab === 'user'
-              ? 'bg-white text-amber-600 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
+              ? saju ? 'bg-[#FDFAF1] text-[#7A5C14] shadow-sm' : 'bg-white text-amber-600 shadow-sm'
+              : saju ? 'text-[#5C564A] hover:text-[#1A1610]' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           <Target size={14} />
@@ -169,10 +190,10 @@ export function FeedbackSuccess({
           disabled={!aiRecommendedRecipe}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
             activeTab === 'ai'
-              ? 'bg-white text-purple-600 shadow-sm'
+              ? saju ? 'bg-[#FDFAF1] text-[#A93226] shadow-sm' : 'bg-white text-purple-600 shadow-sm'
               : aiRecommendedRecipe
-                ? 'text-slate-500 hover:text-slate-700'
-                : 'text-slate-300 cursor-not-allowed'
+                ? saju ? 'text-[#5C564A] hover:text-[#1A1610]' : 'text-slate-500 hover:text-slate-700'
+                : saju ? 'text-[#8B8578]/60 cursor-not-allowed' : 'text-slate-300 cursor-not-allowed'
           }`}
         >
           <Sparkles size={14} />
@@ -190,8 +211,8 @@ export function FeedbackSuccess({
           transition={{ duration: 0.2 }}
           className={`rounded-xl p-3 border text-center text-sm ${
             activeTab === 'user'
-              ? 'bg-amber-50 border-amber-200 text-amber-700'
-              : 'bg-purple-50 border-purple-200 text-purple-700'
+              ? saju ? 'bg-[#C9A227]/10 border-[#C9A227]/40 text-[#7A5C14]' : 'bg-amber-50 border-amber-200 text-amber-700'
+              : saju ? 'bg-[#2C3E50]/8 border-[#2C3E50]/30 text-[#2C3E50]' : 'bg-purple-50 border-purple-200 text-purple-700'
           }`}
         >
           {activeTab === 'user' ? (
@@ -216,8 +237,8 @@ export function FeedbackSuccess({
         className="space-y-3"
       >
         <div className="flex items-center gap-2">
-          <Droplet size={14} className="text-amber-500" />
-          <h3 className="text-sm font-bold text-slate-700">{t('recipeComposition')}</h3>
+          <Droplet size={14} className={saju ? 'text-[#C9A227]' : 'text-amber-500'} />
+          <h3 className={`text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>{t('recipeComposition')}</h3>
         </div>
 
         {recipe.granules.map((granule, index) => {
@@ -230,7 +251,7 @@ export function FeedbackSuccess({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 + index * 0.08 }}
-            className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm"
+            className={`rounded-xl p-4 border shadow-sm ${saju ? SJ.card : 'bg-white border-slate-100'}`}
           >
             <div className="flex items-start gap-4">
               {/* 방울 수 - 엄청 크게! */}
@@ -245,13 +266,13 @@ export function FeedbackSuccess({
               {/* 향료 정보 */}
               <div className="flex-1 min-w-0 py-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-slate-900 text-base">{getLocalizedName(granule.id, granule.name)}</span>
-                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold">
+                  <span className={`font-bold text-base ${saju ? SJ.ink : 'text-slate-900'}`}>{getLocalizedName(granule.id, granule.name)}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${saju ? SJ.chipGold : 'bg-amber-100 text-amber-700'}`}>
                     {granule.ratio}%
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium mt-1">{granule.id}</p>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className={`text-xs font-medium mt-1 ${saju ? SJ.inkFaint : 'text-slate-500'}`}>{granule.id}</p>
+                <p className={`text-sm mt-2 leading-relaxed ${saju ? SJ.inkMuted : 'text-slate-600'}`}>
                   {granule.reason}
                 </p>
               </div>
@@ -265,9 +286,9 @@ export function FeedbackSuccess({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-3 border border-yellow-200/50"
+        className={`rounded-xl p-3 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200/50'}`}
       >
-        <p className="text-slate-700 text-sm leading-relaxed">
+        <p className={`text-sm leading-relaxed ${saju ? SJ.ink : 'text-slate-700'}`}>
           {recipe.overallExplanation}
         </p>
       </motion.div>
@@ -279,9 +300,9 @@ export function FeedbackSuccess({
         transition={{ delay: 0.4 }}
         className="flex items-center justify-center gap-3"
       >
-        <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-full">
-          <Droplet size={12} className="text-amber-500" />
-          <span className="text-xs font-medium text-slate-700">
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${saju ? 'bg-[#EDE5D2]' : 'bg-slate-100'}`}>
+          <Droplet size={12} className={saju ? 'text-[#C9A227]' : 'text-amber-500'} />
+          <span className={`text-xs font-medium ${saju ? SJ.inkMuted : 'text-slate-700'}`}>
             {t('totalDrops', { count: recipe.totalDrops })}
           </span>
         </div>
@@ -298,17 +319,17 @@ export function FeedbackSuccess({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45 }}
-          className="bg-slate-50 rounded-xl p-4 space-y-3"
+          className={`rounded-xl p-4 space-y-3 ${saju ? 'bg-[#EDE5D2] border border-[#D8CFBB]' : 'bg-slate-50'}`}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-700">{t('balanceChange')}</h3>
-            <div className="flex items-center gap-3 text-[10px] text-slate-500">
+            <h3 className={`text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>{t('balanceChange')}</h3>
+            <div className={`flex items-center gap-3 text-[10px] ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                <span className={`w-2 h-2 rounded-full ${saju ? 'bg-[#D8CFBB]' : 'bg-slate-300'}`}></span>
                 {t('existing')}
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span className={`w-2 h-2 rounded-full ${saju ? 'bg-[#C9A227]' : 'bg-amber-400'}`}></span>
                 {t('changed')}
               </span>
             </div>
@@ -333,22 +354,22 @@ export function FeedbackSuccess({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-slate-700 w-16">{categoryName}</span>
+                      <span className={`text-xs font-medium w-16 ${saju ? SJ.inkMuted : 'text-slate-700'}`}>{categoryName}</span>
                       {renderChangeIcon(change.change)}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-400">{originalScore}</span>
-                      <span className="text-[10px] text-slate-400">→</span>
-                      <span className="text-[10px] font-medium text-slate-700">{newScore}</span>
+                      <span className={`text-[10px] ${saju ? SJ.inkFaint : 'text-slate-400'}`}>{originalScore}</span>
+                      <span className={`text-[10px] ${saju ? SJ.inkFaint : 'text-slate-400'}`}>→</span>
+                      <span className={`text-[10px] font-medium ${saju ? SJ.ink : 'text-slate-700'}`}>{newScore}</span>
                       {renderScoreChange(originalScore, newScore)}
                     </div>
                   </div>
 
                   {/* 듀얼 바 차트 */}
-                  <div className="relative h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                  <div className={`relative h-3 rounded-full overflow-hidden border ${saju ? 'bg-[#FDFAF1] border-[#D8CFBB]' : 'bg-white border-slate-200'}`}>
                     {/* 기존 점수 (회색 배경) */}
                     <div
-                      className="absolute top-0 left-0 h-full bg-slate-200 transition-all"
+                      className={`absolute top-0 left-0 h-full transition-all ${saju ? 'bg-[#D8CFBB]' : 'bg-slate-200'}`}
                       style={{ width: `${originalScore}%` }}
                     />
                     {/* 새 점수 (컬러 오버레이) */}
@@ -372,40 +393,42 @@ export function FeedbackSuccess({
         className="space-y-2"
       >
         <div className="flex items-center gap-2">
-          <TestTube2 size={14} className="text-purple-500" />
-          <h3 className="text-sm font-bold text-slate-700">{t('testMethod')}</h3>
+          <TestTube2 size={14} className={saju ? 'text-[#2C3E50]' : 'text-purple-500'} />
+          <h3 className={`text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>{t('testMethod')}</h3>
         </div>
 
-        <div className="bg-purple-50 rounded-xl p-3 space-y-2">
+        <div className={`rounded-xl p-3 space-y-2 ${saju ? 'bg-[#EDE5D2] border border-[#D8CFBB]' : 'bg-purple-50'}`}>
           {[
             recipe.testingInstructions.step1,
             recipe.testingInstructions.step2,
             recipe.testingInstructions.step3,
           ].map((step, index) => (
             <div key={index} className="flex gap-2">
-              <span className="w-5 h-5 bg-purple-200 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-700 flex-shrink-0">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                saju ? 'bg-[#2C3E50]/15 text-[#2C3E50]' : 'bg-purple-200 text-purple-700'
+              }`}>
                 {index + 1}
               </span>
-              <p className="text-xs text-slate-700 flex-1">{step}</p>
+              <p className={`text-xs flex-1 ${saju ? SJ.inkMuted : 'text-slate-700'}`}>{step}</p>
             </div>
           ))}
         </div>
 
         {/* 주의사항 */}
-        <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-2.5 border border-amber-200/50">
-          <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
-          <p className="text-[11px] text-amber-700">{recipe.testingInstructions.caution}</p>
+        <div className={`flex items-start gap-2 rounded-lg p-2.5 border ${saju ? SJ.cardCinnabar : 'bg-amber-50 border-amber-200/50'}`}>
+          <AlertTriangle size={14} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#A93226]' : 'text-amber-500'}`} />
+          <p className={`text-[11px] ${saju ? SJ.cinnabarText : 'text-amber-700'}`}>{recipe.testingInstructions.caution}</p>
         </div>
       </motion.div>
 
-      {/* 팬 메시지 */}
+      {/* 팬 메시지 — 사주: 덕담 족자 느낌(금 괘선 + 세리프) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.9 }}
-        className="bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 rounded-xl p-4 border border-purple-200/50"
+        className={`rounded-xl p-4 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 border-purple-200/50'}`}
       >
-        <p className="text-sm text-slate-700 leading-relaxed text-center font-medium">
+        <p className={`text-sm leading-relaxed text-center font-medium ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>
           {recipe.fanMessage}
         </p>
       </motion.div>
@@ -420,10 +443,12 @@ export function FeedbackSuccess({
         {/* 레시피 확정하기 버튼 */}
         <Button
           onClick={() => onConfirmRecipe(recipe, activeTab === 'user' ? 'user_direct' : 'ai_recommended')}
-          className={`w-full h-12 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
-            activeTab === 'user'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/30'
-              : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-purple-500/30'
+          className={`w-full h-12 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
+            saju
+              ? activeTab === 'user' ? SJ.ctaCinnabar : SJ.ctaBlueInk
+              : activeTab === 'user'
+                ? 'text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/30'
+                : 'text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-purple-500/30'
           }`}
         >
           <Check size={18} />
@@ -434,7 +459,11 @@ export function FeedbackSuccess({
         <Button
           onClick={onRetryFeedback}
           variant="outline"
-          className="w-full h-11 border-2 border-purple-300 text-purple-600 hover:bg-purple-50 rounded-xl font-medium flex items-center justify-center gap-2"
+          className={`w-full h-11 border-2 rounded-xl font-medium flex items-center justify-center gap-2 ${
+            saju
+              ? 'border-[#2C3E50]/40 text-[#2C3E50] bg-transparent hover:bg-[#2C3E50]/5'
+              : 'border-purple-300 text-purple-600 hover:bg-purple-50'
+          }`}
         >
           <RotateCcw size={16} />
           {t('retryFeedback')}
@@ -443,7 +472,9 @@ export function FeedbackSuccess({
         {/* 완료하고 돌아가기 */}
         <button
           onClick={onClose}
-          className="w-full text-center text-sm text-slate-400 hover:text-slate-600 py-2 transition-colors"
+          className={`w-full text-center text-sm py-2 transition-colors ${
+            saju ? 'text-[#8B8578] hover:text-[#5C564A]' : 'text-slate-400 hover:text-slate-600'
+          }`}
         >
           {t('later')}
         </button>

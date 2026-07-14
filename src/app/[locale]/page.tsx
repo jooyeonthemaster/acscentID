@@ -34,7 +34,7 @@ export default function Home() {
   )
   const slideRef = useRef<HTMLDivElement>(null)
   const { banners, loading: bannersLoading } = useBanners()
-  const { isProductActive, isProductVisible, getProductBadge } = useActiveProducts()
+  const { isProductVisible, getProductBadge } = useActiveProducts()
   // 오늘의 향 섹션: admin_products 행이 없으면 기본 노출, 있으면 is_active 따름
   const showTodayScent = isProductVisible('today-scent')
   const { getOptions } = useProductPricing()
@@ -163,7 +163,7 @@ export default function Home() {
 
   // 활성화된 상품만 필터링 + 관리자 뱃지 오버라이드 적용
   // badge_text 가 있으면 자동 계산("X% OFF")/기본 뱃지를 덮어쓰고, badge_color 가 있으면 인라인 색상으로 표시한다.
-  const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductActive(p.id)).map((p) => {
+  const PRODUCTS = ALL_PRODUCTS.filter((p) => isProductVisible(p.id)).map((p) => {
     const override = getProductBadge(p.id)
     return {
       ...p,

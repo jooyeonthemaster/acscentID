@@ -187,6 +187,10 @@ export function SajuAnalyzingOverlay({
 
     return (
         <div className="fixed inset-0 z-[99999]">
+            {/* 말림 중 화폭이 걷혀도 뒤의 입력 셸이 비치지 않도록 하는 solid 먹색 백드롭
+                (clipPath에 걸리지 않는 형제 레이어 — §4.5 전환 시 이전 화면 노출 방지) */}
+            <div aria-hidden className="absolute inset-0 bg-[#0C0E16]" />
+
             {/* 화폭(두루마리) — 족자 말림 시 아래에서 위로 걷힌다 */}
             <motion.div
                 className="saju-ink-grain absolute inset-0 overflow-hidden bg-[#0C0E16]"

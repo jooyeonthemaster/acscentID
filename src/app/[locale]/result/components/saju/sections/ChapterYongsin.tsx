@@ -68,7 +68,9 @@ export function ChapterYongsin({ result, targetType }: ChapterYongsinProps) {
     const el = fitRef.current;
     if (!el) return;
     const update = () => {
-      const budget = window.innerHeight - 24;
+      // 콘텐츠를 화면 정중앙에 유지하면서 위아래로 넉넉한 여백을 둔다.
+      // 상하 각 ≈108px씩 예산에서 제외(헤더 가림 방지 + 시각적 숨 공간).
+      const budget = window.innerHeight - 216;
       const h = el.scrollHeight;
       setFitScale(h > budget ? Math.max(0.62, budget / h) : 1);
     };
@@ -137,7 +139,7 @@ export function ChapterYongsin({ result, targetType }: ChapterYongsinProps) {
   // ---------- reduced-motion: 정적 렌더 (§5.10) ----------
   if (reduce) {
     return (
-      <section className="relative px-6 py-24">
+      <section className="relative px-6 py-32">
         <div className="absolute left-6 top-24">
           <VerticalLabel text="五章" tone="gold" />
         </div>
@@ -162,7 +164,7 @@ export function ChapterYongsin({ result, targetType }: ChapterYongsinProps) {
   return (
     <section ref={ref} className="relative" style={{ height: '220vh' }}>
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
-        <motion.div className="absolute left-6 top-16" style={{ opacity: headOpacity }}>
+        <motion.div className="absolute left-6 top-20" style={{ opacity: headOpacity }}>
           <VerticalLabel text="五章" tone="gold" />
         </motion.div>
 

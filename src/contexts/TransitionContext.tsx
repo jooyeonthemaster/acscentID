@@ -1,8 +1,8 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 
 type TransitionStage = 'open' | 'closing' | 'closed' | 'opening'
 
@@ -18,18 +18,25 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname()
     const [stage, setStage] = useState<TransitionStage>('open')
     const [targetUrl, setTargetUrl] = useState<string | null>(null)
+    const previousPathnameRef = useRef(pathname)
+    const isSajuDoorTransition =
+        targetUrl?.includes('type=saju') || targetUrl?.includes('/programs/saju')
 
     // URL이 변경되면(페이지 이동 완료되면) 문을 연다
     useEffect(() => {
         console.log('Pathname changed:', pathname, 'Current stage:', stage)
+        const pathnameChanged = previousPathnameRef.current !== pathname
+        previousPathnameRef.current = pathname
+        if (!pathnameChanged) return
+
         // 만약 현재 닫혀있는 상태라면 (혹은 닫히는 중이었다면) 페이지 이동이 감지되었을 때 문을 연다
         if (stage === 'closed' || stage === 'closing') {
             console.log('Opening doors...')
             // 약간의 지연을 주어 페이지 로딩이 조금 진행된 후 열리게 할 수도 있음
-            // 여기서는 즉시 열림 시작
-            setStage('opening')
+            const openTimer = window.setTimeout(() => setStage('opening'), 0)
+            return () => window.clearTimeout(openTimer)
         }
-    }, [pathname])
+    }, [pathname, stage])
 
     // 문이 다 열리면 상태를 open으로 초기화 (애니메이션이 끝난 후 호출되어야 함)
     const onTransitionEnd = () => {
@@ -83,6 +90,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       */}
             <DoorTransitionController
                 stage={stage}
+                isSajuDoor={!!isSajuDoorTransition}
                 onClosed={onDoorClosed}
                 onOpened={onTransitionEnd}
             />
@@ -94,10 +102,12 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
 
 function DoorTransitionController({
     stage,
+    isSajuDoor,
     onClosed,
     onOpened
 }: {
     stage: TransitionStage
+    isSajuDoor: boolean
     onClosed: () => void
     onOpened: () => void
 }) {
@@ -124,33 +134,16 @@ function DoorTransitionController({
                         onOpened()
                     }
                 }}
-                className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative pointer-events-auto flex items-center justify-end"
+                className={
+                    isSajuDoor
+                        ? "relative h-full w-1/2 overflow-hidden border-r-[3px] border-[#2E1710] pointer-events-auto flex items-center justify-end"
+                        : "w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative pointer-events-auto flex items-center justify-end"
+                }
             >
-                {/* 왼쪽 문 디자인 (SVG) */}
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                    <defs>
-                        <pattern id="wood-pattern" width="100" height="100" patternUnits="userSpaceOnUse">
-                            <path d="M0 0h100v100H0z" fill="#fbbf24" />
-                            <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#wood-pattern)" />
-
-                    {/* 문틀 장식 */}
-                    <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                    <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                </svg>
-
-                {/* 손잡이 */}
-                <div className="relative z-10 mr-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-12 bg-amber-600 rounded-full" />
-                </div>
-
-                {/* 문구 */}
-                {(stage === 'closing' || stage === 'closed') && (
-                    <div className="absolute right-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl rotate-90 z-20">
-                        OPEN
-                    </div>
+                {isSajuDoor ? (
+                    <SajuShojiDoorHalf side="left" />
+                ) : (
+                    <LegacyDoorHalf side="left" stage={stage} />
                 )}
             </motion.div>
 
@@ -164,29 +157,129 @@ function DoorTransitionController({
                     duration: 0.6,
                     ease: [0.22, 1, 0.36, 1]
                 }}
-                className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative pointer-events-auto flex items-center justify-start"
+                className={
+                    isSajuDoor
+                        ? "relative h-full w-1/2 overflow-hidden border-l-[3px] border-[#2E1710] pointer-events-auto flex items-center justify-start"
+                        : "w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative pointer-events-auto flex items-center justify-start"
+                }
             >
-                {/* 오른쪽 문 디자인 (SVG) */}
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                    <rect width="100%" height="100%" fill="url(#wood-pattern)" />
-
-                    {/* 문틀 장식 */}
-                    <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                    <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                </svg>
-
-                {/* 손잡이 */}
-                <div className="relative z-10 ml-4 w-4 h-16 bg-amber-700 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-12 bg-amber-600 rounded-full" />
-                </div>
-
-                {(stage === 'closing' || stage === 'closed') && (
-                    <div className="absolute left-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl -rotate-90 z-20">
-                        YOUR WORLD
-                    </div>
+                {isSajuDoor ? (
+                    <SajuShojiDoorHalf side="right" />
+                ) : (
+                    <LegacyDoorHalf side="right" stage={stage} />
                 )}
             </motion.div>
         </div>
+    )
+}
+
+function LegacyDoorHalf({ side, stage }: { side: 'left' | 'right'; stage: TransitionStage }) {
+    const patternId = `wood-pattern-${side}`
+    const label = side === 'left' ? 'OPEN' : 'YOUR WORLD'
+    const labelClassName =
+        side === 'left'
+            ? 'absolute right-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl rotate-90 z-20'
+            : 'absolute left-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl -rotate-90 z-20'
+
+    return (
+        <>
+            <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
+                <defs>
+                    <pattern id={patternId} width="100" height="100" patternUnits="userSpaceOnUse">
+                        <path d="M0 0h100v100H0z" fill="#fbbf24" />
+                        <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill={`url(#${patternId})`} />
+                <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+                <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
+            </svg>
+
+            <div className={`relative z-10 h-16 w-4 rounded-full bg-amber-700 shadow-lg flex items-center justify-center ${side === 'left' ? 'mr-4' : 'ml-4'}`}>
+                <div className="h-12 w-2 rounded-full bg-amber-600" />
+            </div>
+
+            {(stage === 'closing' || stage === 'closed') && (
+                <div className={labelClassName}>
+                    {label}
+                </div>
+            )}
+        </>
+    )
+}
+
+const shojiWoodStyle: React.CSSProperties = {
+    backgroundColor: '#563018',
+    backgroundImage: [
+        'linear-gradient(90deg, rgba(255,255,255,0.08), transparent 20%, rgba(0,0,0,0.18) 54%, transparent 78%, rgba(255,255,255,0.05))',
+        'repeating-linear-gradient(0deg, rgba(255,214,143,0.13) 0 2px, transparent 2px 18px)',
+        'linear-gradient(180deg, #7B431F 0%, #9A5A2D 42%, #5A2C18 100%)',
+    ].join(', '),
+}
+
+const shojiPaperGlowStyle: React.CSSProperties = {
+    backgroundImage: [
+        'radial-gradient(circle at 24% 20%, rgba(255,255,255,0.78), transparent 32%)',
+        'radial-gradient(circle at 78% 70%, rgba(201,162,39,0.16), transparent 35%)',
+        'linear-gradient(180deg, rgba(255,248,225,0.9), rgba(237,229,210,0.95))',
+    ].join(', '),
+}
+
+const shojiLatticeStyle: React.CSSProperties = {
+    backgroundImage: [
+        'repeating-linear-gradient(90deg, transparent 0 58px, rgba(84,40,19,0.72) 58px 64px)',
+        'repeating-linear-gradient(180deg, transparent 0 72px, rgba(84,40,19,0.66) 72px 78px)',
+    ].join(', '),
+}
+
+function SajuShojiDoorHalf({ side }: { side: 'left' | 'right' }) {
+    const isLeft = side === 'left'
+    const ornamentSideClass = isLeft ? 'right-10' : 'left-10'
+
+    return (
+        <>
+            <div className="absolute inset-0" style={shojiWoodStyle} />
+            <div
+                aria-hidden
+                className={`absolute inset-y-0 ${isLeft ? 'right-0' : 'left-0'} w-[10px]`}
+                style={{
+                    background: 'linear-gradient(90deg, #2E1710 0%, #9A5A2D 45%, #2E1710 100%)',
+                    boxShadow: '0 0 22px rgba(12,14,22,0.32)',
+                }}
+            />
+
+            <div className="absolute inset-[14px] rounded-[3px] border border-[#C9A227]/25 shadow-[inset_0_0_22px_rgba(12,14,22,0.24)]" />
+
+            <div className="absolute inset-[24px] grid grid-rows-[0.34fr_1fr] gap-3">
+                {['upper', 'lower'].map((row) => (
+                    <div
+                        key={row}
+                        className="saju-hanji relative overflow-hidden rounded-[3px] border-[6px] border-[#673118] shadow-[inset_0_0_18px_rgba(84,40,19,0.24)]"
+                    >
+                        <div className="absolute inset-0" style={shojiPaperGlowStyle} />
+                        <div className="absolute inset-0 opacity-85" style={shojiLatticeStyle} />
+                        <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-[#673118]/75" />
+                        <div className="absolute inset-y-0 left-1/2 w-[5px] -translate-x-1/2 bg-[#673118]/70" />
+                    </div>
+                ))}
+            </div>
+
+            <div
+                aria-hidden
+                className={`absolute top-1/2 z-20 h-[68px] w-[16px] -translate-y-1/2 rounded-full border border-[#C9A227]/55 bg-[#5A2A17] shadow-[0_10px_24px_rgba(12,14,22,0.34)] ${isLeft ? 'right-4' : 'left-4'}`}
+            >
+                <div className="mx-auto mt-2 h-12 w-[6px] rounded-full bg-gradient-to-b from-[#E8C766] via-[#9A5A2D] to-[#3A1C10]" />
+            </div>
+
+            <div
+                aria-hidden
+                className={`absolute bottom-12 z-10 h-24 w-24 rounded-full border border-[#C0392B]/20 bg-[#C0392B]/[0.06] ${ornamentSideClass}`}
+            />
+            <div
+                aria-hidden
+                className={`absolute bottom-16 z-10 h-px w-24 bg-gradient-to-r from-transparent via-[#C9A227]/45 to-transparent ${ornamentSideClass}`}
+            />
+        </>
     )
 }
 

@@ -16,6 +16,8 @@ export interface HanjiCardProps {
   seal?: string;
   /** 20px | 28px */
   padding?: 'md' | 'lg';
+  /** 족자(두루마리) 지면 — 모서리 라운드·자체 그림자 제거(상하 축이 프레임 역할) */
+  scroll?: boolean;
   className?: string;
 }
 
@@ -24,19 +26,27 @@ export function HanjiCard({
   verticalLabel,
   seal,
   padding = 'md',
+  scroll = false,
   className,
 }: HanjiCardProps) {
   return (
     <div
-      className={`saju-hanji relative rounded-lg border border-[#D8CFBB] ${
-        padding === 'lg' ? 'p-7' : 'p-5'
-      } ${className ?? ''}`}
-      style={{ boxShadow: '0 16px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)' }}
+      className={`saju-hanji relative border-x border-[#D8CFBB] ${
+        scroll ? 'rounded-none border-y-0' : 'rounded-lg border-y'
+      } ${padding === 'lg' ? 'p-7' : 'p-5'} ${className ?? ''}`}
+      style={scroll ? undefined : { boxShadow: '0 16px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)' }}
     >
       {/* 상단 금 괘선 — border-image는 radius와 충돌하므로 내부 첫 요소로 */}
       <div aria-hidden className="mb-4 h-[2px] w-12" style={{ background: SAJU_GOLD_GRADIENT }} />
 
-      <div className="relative break-keep text-[#1A1610]">{children}</div>
+      {/* 낙관(sm 36px, bottom-3.5 right-4)이 있으면 본문 아래에 낙관 높이만큼 여백을 둬
+          마지막 줄이 도장에 가리지 않게 한다. cardPadding(p-5 20 / p-7 28)을 감안해 필요분만 확보. */}
+      <div
+        className="relative break-keep text-[#1A1610]"
+        style={seal ? { paddingBottom: 14 + 36 + 6 - (padding === 'lg' ? 28 : 20) } : undefined}
+      >
+        {children}
+      </div>
 
       {verticalLabel && (
         <div className="absolute right-3 top-5">

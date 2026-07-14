@@ -45,7 +45,7 @@
   </g>
 
   <!-- 6. 좌측 명식 그리드 프레임 + 일주 브래킷 (일주 열 좌표 고정) -->
-  <rect x="78" y="142" width="272" height="180" fill="none" stroke="#1A1610" stroke-width="0.75"/>
+  <rect x="52" y="142" width="318" height="180" fill="none" stroke="#1A1610" stroke-width="0.75"/>
   <g fill="none" stroke="#1A1610" stroke-width="1.2">
     <path d="M148,166 L148,158 L156,158"/>
     <path d="M202,158 L210,158 L210,166"/>

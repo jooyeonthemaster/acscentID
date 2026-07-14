@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { useResultData } from '../../hooks/useResultData';
 import { useAutoSave } from '../../hooks/useAutoSave';
@@ -28,6 +29,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { ShareModal } from '../ShareModal';
 import { FeedbackModal } from '../FeedbackModal';
 import { FeedbackHistory } from '../feedback/FeedbackHistory';
+import Image from 'next/image';
 import { SealStamp } from '@/components/saju';
 
 import type { SajuAnalysisResult } from '@/types/analysis';
@@ -42,6 +44,41 @@ import { ChapterYongsin } from './sections/ChapterYongsin';
 import { ChapterReveal } from './sections/ChapterReveal';
 import { Prescription } from './sections/Prescription';
 import { SajuBottomActions } from './SajuBottomActions';
+
+// ── 섹션 명암 교차 밴드 (§5.0 보강) ─────────────────────────────
+// 산문 챕터마다 밴드 색을 번갈아 줘서 모든 섹션이 구분되게 한다.
+//  - 'raised'(一·三): 페이지보다 한 톤 밝은 먹색
+//  - 'deep'  (二·四): 페이지보다 한 톤 깊은 먹색
+// → 序(먹색)·一(밝음)·二(깊음)·三(밝음)·四(깊음)·五·終(먹색)의 밝음/깊음 교차 리듬.
+// 위·아래 경계는 페이지 먹색(#0C0E16)으로 그라데이션 페이드해 색이 자연스럽게 섞이게 한다.
+// ★ 되돌리기: 아래 플래그를 false로 두면 전 섹션이 이전과 동일한 먹색(#0C0E16)으로 렌더된다.
+const SAJU_SECTION_BANDS = true;
+
+function SectionBand({
+  children,
+  tone = 'raised',
+}: {
+  children: React.ReactNode;
+  tone?: 'raised' | 'deep';
+}) {
+  if (!SAJU_SECTION_BANDS) return <>{children}</>;
+  const bandBg = tone === 'deep' ? 'bg-[#08090F]' : 'bg-[#171C28]';
+  return (
+    <div className={`relative ${bandBg}`}>
+      {/* 상단 경계 — 페이지 먹색 → 밴드색으로 자연스럽게 섞임 (섹션 py-24 여백 안) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#0C0E16] to-transparent"
+      />
+      {children}
+      {/* 하단 경계 — 밴드색 → 페이지 먹색 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-24 bg-gradient-to-t from-[#0C0E16] to-transparent"
+      />
+    </div>
+  );
+}
 
 export default function SajuResultPage() {
   const router = useRouter();
@@ -119,6 +156,21 @@ export default function SajuResultPage() {
     pin: userInfo?.pin || null,
     targetType,
   });
+
+  // 자동 저장 상태 pill — 저장 중엔 계속, 저장 완료 후 2.5초 뒤 자동으로 사라진다
+  const [showSavePill, setShowSavePill] = useState(false);
+  useEffect(() => {
+    if (isAutoSaving) {
+      setShowSavePill(true);
+      return;
+    }
+    if (isAutoSaved) {
+      setShowSavePill(true);
+      const timer = setTimeout(() => setShowSavePill(false), 2500);
+      return () => clearTimeout(timer);
+    }
+    setShowSavePill(false);
+  }, [isAutoSaving, isAutoSaved]);
 
   const handleRestart = () => {
     localStorage.removeItem('analysisResult');
@@ -291,7 +343,14 @@ export default function SajuResultPage() {
       <div className="saju-ink-grain relative flex min-h-screen flex-col items-center justify-center bg-[#0C0E16] px-8">
         <GoldDust count={12} className="absolute inset-0" />
         <div className="relative z-10 flex flex-col items-center gap-6">
-          <SealStamp chars="命香" size="lg" tone="cinnabar" />
+          <Image
+            src="/images/saju/saju-logo.png"
+            alt={t('saju.common.programName')}
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px] select-none object-contain"
+            priority
+          />
           <p className="font-serif-kr break-keep text-center text-[15px] leading-[1.85] text-[#A69F8D]">
             {t('saju.result.loading')}
           </p>
@@ -328,31 +387,39 @@ export default function SajuResultPage() {
       {/* 전역 금 파티클 — 페이지에 1개만(§5.10). 섹션 로컬 파티클은 終章 8개만 허용 */}
       <GoldDust count={14} className="fixed inset-0 z-0" />
 
-      {/* 전역 크롬 — 재스킨 금지 */}
-      <Header showBack backHref={backHref} />
+      {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}
+      <Header showBack backHref={backHref} dark />
 
-      {/* 자동 저장 상태 pill (기존 로직, 사주 스킨) */}
-      {(isAutoSaving || isAutoSaved) && (
-        <div className="pointer-events-none fixed left-1/2 top-[88px] z-40 -translate-x-1/2">
-          <div className="flex items-center gap-1.5 rounded-full border border-[#262A38] bg-[#12141D]/95 px-3 py-1.5 backdrop-blur">
-            {isAutoSaving ? (
-              <>
-                <Loader2 size={11} className="animate-spin text-[#A69F8D]" />
-                <span className="font-serif-kr text-[11px] font-semibold text-[#A69F8D]">
-                  {t('result.saving')}
-                </span>
-              </>
-            ) : (
-              <>
-                <CheckCircle2 size={11} className="text-[#C9A227]" />
-                <span className="font-serif-kr text-[11px] font-semibold text-[#A69F8D]">
-                  {t('result.saved')}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 자동 저장 상태 pill (기존 로직, 사주 스킨) — 저장 완료 후 2.5초 뒤 페이드아웃 */}
+      <AnimatePresence>
+        {showSavePill && (isAutoSaving || isAutoSaved) && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+            className="pointer-events-none fixed left-1/2 top-[88px] z-40 -translate-x-1/2"
+          >
+            <div className="flex items-center gap-1.5 rounded-full border border-[#262A38] bg-[#12141D]/95 px-3 py-1.5 backdrop-blur">
+              {isAutoSaving ? (
+                <>
+                  <Loader2 size={11} className="animate-spin text-[#A69F8D]" />
+                  <span className="font-serif-kr text-[11px] font-semibold text-[#A69F8D]">
+                    {t('result.saving')}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={11} className="text-[#C9A227]" />
+                  <span className="font-serif-kr text-[11px] font-semibold text-[#A69F8D]">
+                    {t('result.saved')}
+                  </span>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 두루마리 — 章 세로 서사 */}
       <main className="relative z-10">
@@ -360,27 +427,35 @@ export default function SajuResultPage() {
           {/* 序 — 밤하늘 (sticky #1) */}
           <PrologueStars result={sajuResult} targetType={targetType} locale={locale} />
 
-          {/* 一章 — 원국 命式 */}
-          <ChapterMyeongsik
-            result={sajuResult}
-            targetType={targetType}
-            locale={locale}
-            userName={userName}
-          />
+          {/* 一章 — 원국 命式 (밝은 밴드) */}
+          <SectionBand>
+            <ChapterMyeongsik
+              result={sajuResult}
+              targetType={targetType}
+              locale={locale}
+              userName={userName}
+            />
+          </SectionBand>
 
-          {/* 二章 — 일간 日干 */}
-          <ChapterIlgan result={sajuResult} targetType={targetType} locale={locale} />
+          {/* 二章 — 일간 日干 (깊은 밴드) */}
+          <SectionBand tone="deep">
+            <ChapterIlgan result={sajuResult} targetType={targetType} locale={locale} />
+          </SectionBand>
 
-          {/* 三章 — 오행의 흐름 */}
-          <ChapterElementFlow result={sajuResult} targetType={targetType} locale={locale} />
+          {/* 三章 — 오행의 흐름 (밝은 밴드) */}
+          <SectionBand>
+            <ChapterElementFlow result={sajuResult} targetType={targetType} locale={locale} />
+          </SectionBand>
 
-          {/* 四章 — 소망의 운 (궁합 시 §5.5-B 대체) */}
-          <ChapterPurpose
-            result={sajuResult}
-            targetType={targetType}
-            locale={locale}
-            userName={userName ?? undefined}
-          />
+          {/* 四章 — 소망의 운 (궁합 시 §5.5-B 대체) (깊은 밴드) */}
+          <SectionBand tone="deep">
+            <ChapterPurpose
+              result={sajuResult}
+              targetType={targetType}
+              locale={locale}
+              userName={userName ?? undefined}
+            />
+          </SectionBand>
 
           {/* 五章 — 용신의 계시 (sticky #2) */}
           <ChapterYongsin result={sajuResult} targetType={targetType} locale={locale} />
@@ -391,8 +466,8 @@ export default function SajuResultPage() {
           {/* 처방전 — 리츄얼 (크림 반전) */}
           <Prescription result={sajuResult} targetType={targetType} locale={locale} />
 
-          {/* 하단 고정 바 클리어런스 (§0 계약) */}
-          <div className="pb-36" aria-hidden />
+          {/* 하단 고정 바 클리어런스 (§0 계약) — 서명 블록에서 리포트가 끝나 보이도록 최소치(바 높이 ≈76px + 여유) */}
+          <div className="pb-24" aria-hidden />
         </div>
       </main>
 
@@ -422,7 +497,7 @@ export default function SajuResultPage() {
         shareUrl={shareUrl}
       />
 
-      {/* 피드백 모달 (offline) — 공용 컴포넌트 그대로 */}
+      {/* 피드백 모달 (offline) — 공용 컴포넌트 + 사주 한지 스킨 */}
       {topPerfume && (
         <FeedbackModal
           isOpen={isFeedbackModalOpen}
@@ -448,6 +523,7 @@ export default function SajuResultPage() {
               : 'floral'
           }
           resultId={existingResultId || savedResultId || undefined}
+          theme="saju"
         />
       )}
 
@@ -455,6 +531,7 @@ export default function SajuResultPage() {
       <FeedbackHistory
         isOpen={isFeedbackHistoryOpen}
         onClose={() => setIsFeedbackHistoryOpen(false)}
+        theme="saju"
       />
 
       {/* 로그인 유도 모달 (익명 사용자용) */}

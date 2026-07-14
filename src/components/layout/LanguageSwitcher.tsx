@@ -14,7 +14,7 @@ import {
   saveLocaleFormDomSnapshot,
 } from '@/hooks/useLocaleSwitchState'
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
   const locale = useLocale() as Locale
   const router = useRouter()
   const pathname = usePathname()
@@ -65,7 +65,10 @@ export function LanguageSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-slate-100 transition-colors text-slate-600"
+        className={cn(
+          "flex items-center gap-1 px-1.5 py-1 rounded-lg transition-colors",
+          dark ? "text-[#A69F8D] hover:bg-white/5" : "text-slate-600 hover:bg-slate-100"
+        )}
         aria-label="Language"
       >
         <Globe size={14} />

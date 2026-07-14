@@ -194,9 +194,10 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
 
   // §5.1 바인딩 (reduce 분기 전에 훅 호출 — 순서 고정)
   const containerOpacity = useTransform(p, [0.88, 1], [1, 0.4]);
-  const headlineOpacity = useTransform(p, [0.02, 0.1, 0.42, 0.52], [0, 1, 1, 0]);
-  const headlineY = useTransform(p, [0.02, 0.1], [16, 0]);
-  const cueOpacity = useTransform(p, [0.02, 0.05], [1, 0]);
+  // 로드 직후(p=0)부터 헤드라인이 보이도록 — 이전엔 0.02부터 페이드인이라 첫 화면이 비어 보였다
+  const headlineOpacity = useTransform(p, [0, 0.42, 0.52], [1, 1, 0]);
+  const headlineY = useTransform(p, [0, 0.12], [8, 0]);
+  const cueOpacity = useTransform(p, [0.06, 0.12], [1, 0]);
 
   // reduced-motion: 정적 최종 상태 (§5.10 — sticky 해제, 헤드라인은 접근성상 유지)
   if (reduce) {

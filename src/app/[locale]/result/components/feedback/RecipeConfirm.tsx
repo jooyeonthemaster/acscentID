@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTranslations } from 'next-intl'
 import { Check, ChevronLeft, Scale, Beaker, Sparkles, Copy, CheckCircle2, LogIn, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +14,7 @@ import { perfumes } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthModal } from '@/components/auth/AuthModal'
+import { FeedbackTheme, SJ, useFeedbackTranslations } from './sajuFeedbackTheme'
 
 interface RecipeConfirmProps {
   recipe: GeneratedRecipe
@@ -23,6 +23,7 @@ interface RecipeConfirmProps {
   selectedRecipeType?: 'user_direct' | 'ai_recommended'  // 선택된 레시피 타입
   onBack: () => void
   onComplete: () => void
+  theme?: FeedbackTheme
 }
 
 export function RecipeConfirm({
@@ -32,8 +33,10 @@ export function RecipeConfirm({
   selectedRecipeType,
   onBack,
   onComplete,
+  theme = 'default',
 }: RecipeConfirmProps) {
-  const t = useTranslations('feedback')
+  const t = useFeedbackTranslations(theme)
+  const saju = theme === 'saju'
   const { getLocalizedName } = useLocalizedPerfumes()
   const { unifiedUser } = useAuth()
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('perfume_10ml')
@@ -157,23 +160,29 @@ AC'SCENT IDENTITY`
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+          className={`p-2 rounded-lg transition-colors ${saju ? SJ.iconHover : 'hover:bg-slate-100'}`}
         >
-          <ChevronLeft size={20} className="text-slate-600" />
+          <ChevronLeft size={20} className={saju ? 'text-[#5C564A]' : 'text-slate-600'} />
         </button>
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-slate-900">{t('confirmRecipe')}</h2>
-          <p className="text-xs text-slate-500">{t('customRecipeOf', { name: recipe.granules[0] ? getLocalizedName(recipe.granules[0].id, perfumeName) : perfumeName })}</p>
+          <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>{t('confirmRecipe')}</h2>
+          <p className={`text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>{t('customRecipeOf', { name: recipe.granules[0] ? getLocalizedName(recipe.granules[0].id, perfumeName) : perfumeName })}</p>
         </div>
-        <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-          <Scale size={18} className="text-white" />
-        </div>
+        {saju ? (
+          <div className="w-10 h-10 rounded-[5px] bg-[#B03325] rotate-[-3deg] flex items-center justify-center shadow-md shadow-[#C0392B]/25">
+            <span className="font-serif-kr text-lg leading-none text-[#F5EFE2]">定</span>
+          </div>
+        ) : (
+          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+            <Scale size={18} className="text-white" />
+          </div>
+        )}
       </div>
 
       {/* 제품 타입 선택 */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-          <Beaker size={14} className="text-purple-500" />
+        <h3 className={`text-sm font-bold flex items-center gap-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>
+          <Beaker size={14} className={saju ? 'text-[#2C3E50]' : 'text-purple-500'} />
           {t('sizeSelection')}
         </h3>
 
@@ -186,15 +195,21 @@ AC'SCENT IDENTITY`
                 onClick={() => setSelectedProduct(product.id)}
                 className={`p-3 rounded-xl border-2 transition-all text-center ${
                   isSelected
-                    ? 'border-green-400 bg-green-50 shadow-md'
-                    : 'border-slate-200 bg-white hover:border-green-200 hover:bg-green-50/50'
+                    ? saju ? `${SJ.cardGold} shadow-md` : 'border-green-400 bg-green-50 shadow-md'
+                    : saju
+                      ? 'border-[#D8CFBB] bg-[#FDFAF1] hover:border-[#C9A227]/60 hover:bg-[#C9A227]/5'
+                      : 'border-slate-200 bg-white hover:border-green-200 hover:bg-green-50/50'
                 }`}
               >
                 <span className="text-2xl block mb-1">{product.icon}</span>
-                <p className={`text-xs font-bold ${isSelected ? 'text-green-700' : 'text-slate-700'}`}>
+                <p className={`text-xs font-bold ${
+                  isSelected
+                    ? saju ? SJ.goldText : 'text-green-700'
+                    : saju ? SJ.ink : 'text-slate-700'
+                }`}>
                   {product.id === 'perfume_10ml' ? t('productPerfume10Label') : product.id === 'perfume_50ml' ? t('productPerfume50Label') : t('productDiffuser5Label')}
                 </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
+                <p className={`text-[10px] mt-0.5 ${saju ? SJ.inkFaint : 'text-slate-400'}`}>
                   {product.id === 'perfume_10ml' ? t('productPerfume10Desc') : product.id === 'perfume_50ml' ? t('productPerfume50Desc') : t('productDiffuser5Desc')}
                 </p>
               </button>
@@ -208,25 +223,25 @@ AC'SCENT IDENTITY`
         key={selectedProduct}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/50"
+        className={`rounded-2xl p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50'}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{productInfo.icon}</span>
             <div>
-              <p className="font-bold text-slate-900">
+              <p className={`font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>
                 {productInfo.id === 'perfume_10ml' ? t('productPerfume10Label') : productInfo.id === 'perfume_50ml' ? t('productPerfume50Label') : t('productDiffuser5Label')}
               </p>
-              <p className="text-xs text-slate-500">{t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}</p>
+              <p className={`text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>{t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-500">{t('totalIngredient')}</p>
-            <p className="text-xl font-black text-green-600">{productInfo.fragranceVolumeMl}g</p>
+            <p className={`text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>{t('totalIngredient')}</p>
+            <p className={`text-xl font-black ${saju ? SJ.goldText : 'text-green-600'}`}>{productInfo.fragranceVolumeMl}g</p>
           </div>
         </div>
 
-        <div className="bg-white/60 rounded-lg px-3 py-2 text-xs text-slate-600">
+        <div className={`rounded-lg px-3 py-2 text-xs ${saju ? `bg-[#FDFAF1]/70 ${SJ.inkMuted}` : 'bg-white/60 text-slate-600'}`}>
           {productInfo.id === 'perfume_10ml' && (
             <p>{t('formulaPerfume10')}</p>
           )}
@@ -244,27 +259,31 @@ AC'SCENT IDENTITY`
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl border-2 border-red-400 bg-gradient-to-r from-red-50 via-red-50 to-orange-50 p-4 shadow-lg shadow-red-200/40"
+        className={`relative overflow-hidden rounded-2xl border-2 p-4 shadow-lg ${
+          saju
+            ? 'border-[#C0392B] bg-[#C0392B]/8 shadow-[#C0392B]/15'
+            : 'border-red-400 bg-gradient-to-r from-red-50 via-red-50 to-orange-50 shadow-red-200/40'
+        }`}
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500" />
+        <div className={`absolute top-0 left-0 w-full h-1 ${saju ? 'bg-[#C0392B]' : 'bg-gradient-to-r from-red-500 to-orange-500'}`} />
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-            <AlertTriangle size={20} className="text-white" />
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${saju ? 'bg-[#B03325]' : 'bg-red-500'}`}>
+            <AlertTriangle size={20} className={saju ? 'text-[#F5EFE2]' : 'text-white'} />
           </div>
           <div className="flex-1 space-y-2">
-            <p className="text-sm font-black text-red-700">{t('scaleWarningTitle')}</p>
+            <p className={`text-sm font-black ${saju ? `${SJ.serif} ${SJ.cinnabarText}` : 'text-red-700'}`}>{t('scaleWarningTitle')}</p>
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-red-100 rounded-xl p-2.5 text-center border border-red-300">
-                <p className="text-lg text-red-400 font-bold line-through">0.08g</p>
-                <p className="text-sm text-red-500 font-bold mt-0.5">X</p>
+              <div className={`flex-1 rounded-xl p-2.5 text-center border ${saju ? 'bg-[#C0392B]/10 border-[#C0392B]/40' : 'bg-red-100 border-red-300'}`}>
+                <p className={`text-lg font-bold line-through ${saju ? 'text-[#C0392B]/60' : 'text-red-400'}`}>0.08g</p>
+                <p className={`text-sm font-bold mt-0.5 ${saju ? SJ.cinnabarText : 'text-red-500'}`}>X</p>
               </div>
-              <span className="text-lg font-black text-slate-400">&rarr;</span>
-              <div className="flex-1 bg-green-100 rounded-xl p-2.5 text-center border-2 border-green-400">
-                <p className="text-xl font-black text-green-700">0.80g</p>
-                <p className="text-xs text-green-600 font-bold mt-0.5">O</p>
+              <span className={`text-lg font-black ${saju ? SJ.inkFaint : 'text-slate-400'}`}>&rarr;</span>
+              <div className={`flex-1 rounded-xl p-2.5 text-center border-2 ${saju ? 'bg-[#C9A227]/15 border-[#C9A227]' : 'bg-green-100 border-green-400'}`}>
+                <p className={`text-xl font-black ${saju ? SJ.goldText : 'text-green-700'}`}>0.80g</p>
+                <p className={`text-xs font-bold mt-0.5 ${saju ? SJ.goldText : 'text-green-600'}`}>O</p>
               </div>
             </div>
-            <div className="text-xs text-red-600 font-medium space-y-0.5">
+            <div className={`text-xs font-medium space-y-0.5 ${saju ? SJ.cinnabarText : 'text-red-600'}`}>
               <p>{t('scaleWarningDesc1')}</p>
               <p className="font-bold">{t('scaleWarningDesc2')}</p>
             </div>
@@ -275,18 +294,18 @@ AC'SCENT IDENTITY`
       {/* 향료별 계산 결과 */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-            <Sparkles size={14} className="text-amber-500" />
+          <h3 className={`text-sm font-bold flex items-center gap-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>
+            <Sparkles size={14} className={saju ? 'text-[#C9A227]' : 'text-amber-500'} />
             {t('ingredientMeasurement')}
           </h3>
           <button
             onClick={handleCopyRecipe}
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-green-600 transition-colors"
+            className={`flex items-center gap-1 text-xs transition-colors ${saju ? 'text-[#5C564A] hover:text-[#7A5C14]' : 'text-slate-500 hover:text-green-600'}`}
           >
             {copied ? (
               <>
-                <CheckCircle2 size={14} className="text-green-500" />
-                <span className="text-green-600">{t('recipeCopied')}</span>
+                <CheckCircle2 size={14} className={saju ? 'text-[#C9A227]' : 'text-green-500'} />
+                <span className={saju ? SJ.goldText : 'text-green-600'}>{t('recipeCopied')}</span>
               </>
             ) : (
               <>
@@ -315,7 +334,7 @@ AC'SCENT IDENTITY`
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm"
+                className={`rounded-xl p-3 border shadow-sm ${saju ? SJ.card : 'bg-white border-slate-100'}`}
               >
                 <div className="flex items-center gap-3">
                   {/* 향료 컬러 박스 */}
@@ -330,17 +349,17 @@ AC'SCENT IDENTITY`
                   {/* 향료 정보 */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{getLocalizedName(granule.id, granule.name)}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full">
+                      <span className={`font-bold text-sm ${saju ? SJ.ink : 'text-slate-900'}`}>{getLocalizedName(granule.id, granule.name)}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${saju ? SJ.chipGold : 'bg-green-100 text-green-700'}`}>
                         {granule.ratio}%
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 font-medium">{granule.id}</p>
+                    <p className={`text-[11px] font-medium ${saju ? SJ.inkFaint : 'text-slate-500'}`}>{granule.id}</p>
                   </div>
 
                   {/* 용량 표시 */}
                   <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-bold text-green-600">{granule.amountMl.toFixed(2)}g</p>
+                    <p className={`text-lg font-bold ${saju ? SJ.goldText : 'text-green-600'}`}>{granule.amountMl.toFixed(2)}g</p>
                   </div>
                 </div>
               </motion.div>
@@ -350,18 +369,18 @@ AC'SCENT IDENTITY`
       </div>
 
       {/* 합계 */}
-      <div className="bg-slate-100 rounded-xl p-4">
+      <div className={`rounded-xl p-4 ${saju ? 'bg-[#EDE5D2] border border-[#D8CFBB]' : 'bg-slate-100'}`}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-slate-700">{t('totalIngredient')}</span>
+          <span className={`text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>{t('totalIngredient')}</span>
           <div className="text-right">
-            <p className="text-xl font-black text-slate-900">{totalAmount.ml.toFixed(2)}g</p>
+            <p className={`text-xl font-black ${saju ? SJ.ink : 'text-slate-900'}`}>{totalAmount.ml.toFixed(2)}g</p>
           </div>
         </div>
       </div>
 
       {/* 안내 메시지 */}
-      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200/50">
-        <p className="text-xs text-amber-700 leading-relaxed">
+      <div className={`rounded-xl p-3 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-amber-50 border-amber-200/50'}`}>
+        <p className={`text-xs leading-relaxed ${saju ? SJ.inkMuted : 'text-amber-700'}`}>
           {t('measurementTipFull')}
         </p>
       </div>
@@ -373,7 +392,9 @@ AC'SCENT IDENTITY`
           <Button
             onClick={handleComplete}
             disabled={isSaving}
-            className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 disabled:opacity-50"
+            className={`w-full h-12 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 ${
+              saju ? SJ.ctaCinnabar : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-green-500/30'
+            }`}
           >
             <Check size={18} />
             {isSaving ? t('saving') : t('confirmThisRecipe')}
@@ -382,13 +403,15 @@ AC'SCENT IDENTITY`
           // 비로그인인 경우
           <Button
             onClick={handleComplete}
-            className="w-full h-12 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white rounded-xl font-bold shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"
+            className={`w-full h-12 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
+              saju ? SJ.ctaGold : 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-amber-500/30'
+            }`}
           >
             <LogIn size={18} />
             {t('saveMyRecipe')}
           </Button>
         )}
-        <p className="text-[10px] text-slate-400 text-center">
+        <p className={`text-[10px] text-center ${saju ? SJ.inkFaint : 'text-slate-400'}`}>
           {unifiedUser ? t('confirmNote') : t('loginNote')}
         </p>
       </div>

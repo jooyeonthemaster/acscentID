@@ -49,13 +49,15 @@ export default async function QRRedirectPage({ params }: PageProps) {
     saju_perfume: 'saju',
   }
   const productSlug = productTypeToSlug[qrCode.product_type] || 'idol-image'
+  // 메인 노출(is_active)이 아니라 프로그램 활성(is_enabled) 기준으로 진입을 막는다.
+  // 메인에 노출되지 않아도 활성 프로그램이면 QR로 진입할 수 있어야 한다.
   const { data: product } = await supabase
     .from('admin_products')
-    .select('is_active')
+    .select('is_enabled')
     .eq('slug', productSlug)
     .single()
 
-  if (product && !product.is_active) {
+  if (product && product.is_enabled === false) {
     redirect('/')
   }
 

@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1300" viewBox="0 0 1800 1300">
+  <defs>
+    <pattern id="checker" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#fafafa"/>
+      <rect width="16" height="16" fill="#e9e9e9"/>
+      <rect x="16" y="16" width="16" height="16" fill="#e9e9e9"/>
+    </pattern>
+
+    <linearGradient id="pinkGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff7f4" stop-opacity="0.08"/>
+      <stop offset="36%" stop-color="#ffd6da" stop-opacity="0.26"/>
+      <stop offset="72%" stop-color="#f5a7b4" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#e9819a" stop-opacity="0.18"/>
+    </linearGradient>
+
+    <linearGradient id="cloudPink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffdfe0" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#f7a9b2" stop-opacity="0.58"/>
+      <stop offset="100%" stop-color="#e78292" stop-opacity="0.42"/>
+    </linearGradient>
+
+    <radialGradient id="sunRed" cx="42%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#df695f" stop-opacity="0.72"/>
+      <stop offset="100%" stop-color="#b93a42" stop-opacity="0.54"/>
+    </radialGradient>
+
+    <linearGradient id="goldFoil" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8a6720"/>
+      <stop offset="22%" stop-color="#c9a227"/>
+      <stop offset="52%" stop-color="#f2d98a"/>
+      <stop offset="78%" stop-color="#c9a227"/>
+      <stop offset="100%" stop-color="#8a6720"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1a1010" flood-opacity="0.14"/>
+    </filter>
+
+    <clipPath id="wrapClip">
+      <rect x="140" y="160" width="1420" height="820" rx="28"/>
+    </clipPath>
+
+    <symbol id="cloud" viewBox="0 0 260 130">
+      <path d="M16 96 C38 66 63 76 76 52 C91 24 131 25 145 53 C166 39 198 44 204 72 C227 70 246 81 255 102 L16 102 Z"
+            fill="url(#cloudPink)" stroke="#8b3f45" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M60 91 C76 72 99 76 105 55 C113 31 143 34 145 58" fill="none"
+            stroke="#8b3f45" stroke-width="1.9" stroke-linecap="round"/>
+      <path d="M168 91 C152 82 154 63 172 60 C190 57 202 72 194 86" fill="none"
+            stroke="#8b3f45" stroke-width="1.9" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="star4" viewBox="-24 -24 48 48">
+      <path d="M0 -22 L6 -6 L22 0 L6 6 L0 22 L-6 6 L-22 0 L-6 -6 Z"
+            fill="url(#goldFoil)" stroke="#a67827" stroke-width="1.5"/>
+    </symbol>
+  </defs>
+
+  <rect width="1800" height="1300" fill="#f7f0ea"/>
+  <text x="140" y="70" font-family="Arial, sans-serif" font-size="34" font-weight="800" fill="#221817">
+    AC'SCENT 사주 디퓨저 패키지용 투명 랩 스티커 평면 시안
+  </text>
+  <text x="140" y="108" font-family="Arial, sans-serif" font-size="18" fill="#6b5b58">
+    실제 치수 확정 전 구조 참고용: 좌측면 + 전면 + 우측면을 한 장으로 감싸는 투명 PET 스티커
+  </text>
+
+  <g filter="url(#softShadow)">
+    <rect x="140" y="160" width="1420" height="820" rx="28" fill="url(#checker)" stroke="#cfc8c3" stroke-width="2"/>
+    <rect x="140" y="160" width="1420" height="820" rx="28" fill="url(#pinkGlass)"/>
+  </g>
+
+  <g clip-path="url(#wrapClip)">
+    <rect x="140" y="160" width="1420" height="820" fill="url(#pinkGlass)"/>
+
+    <rect x="170" y="190" width="1360" height="760" rx="18" fill="none" stroke="#9dbfb3" stroke-width="12" opacity="0.86"/>
+    <rect x="184" y="204" width="1332" height="732" rx="14" fill="none" stroke="#c65d67" stroke-width="4" opacity="0.86"/>
+    <rect x="199" y="219" width="1302" height="702" rx="10" fill="none" stroke="url(#goldFoil)" stroke-width="2.5" opacity="0.8"/>
+
+    <path d="M206 312 C326 236 454 254 560 342 S773 425 920 326 S1210 194 1484 274"
+          fill="none" stroke="url(#goldFoil)" stroke-width="2.3" opacity="0.75"/>
+    <path d="M330 827 C462 677 638 702 744 579 S954 408 1168 516 S1360 704 1492 579"
+          fill="none" stroke="url(#goldFoil)" stroke-width="2.3" opacity="0.72"/>
+    <path d="M758 900 C780 714 803 589 878 455 C927 366 1004 291 1138 224"
+          fill="none" stroke="url(#goldFoil)" stroke-width="2" opacity="0.64"/>
+
+    <circle cx="720" cy="838" r="148" fill="url(#sunRed)"/>
+    <use href="#cloud" x="85" y="647" width="360" height="180"/>
+    <use href="#cloud" x="320" y="705" width="330" height="165"/>
+    <use href="#cloud" x="585" y="753" width="400" height="200"/>
+    <use href="#cloud" x="870" y="718" width="385" height="193"/>
+    <use href="#cloud" x="1165" y="664" width="355" height="178"/>
+    <use href="#cloud" x="70" y="420" width="270" height="135"/>
+    <use href="#cloud" x="1326" y="288" width="285" height="142"/>
+    <use href="#cloud" x="1260" y="504" width="300" height="150"/>
+
+    <path d="M1212 288 C1288 319 1321 400 1281 467 C1365 427 1394 322 1311 248 C1270 211 1230 217 1212 288 Z"
+          fill="#f3b27c" fill-opacity="0.68" stroke="#a35c43" stroke-width="2"/>
+    <use href="#star4" x="1116" y="280" width="62" height="62"/>
+    <use href="#star4" x="1248" y="490" width="48" height="48"/>
+    <circle cx="388" cy="330" r="4" fill="#d69b32"/>
+    <circle cx="462" cy="324" r="3" fill="#d69b32"/>
+    <circle cx="1420" cy="650" r="4" fill="#d69b32"/>
+    <circle cx="1354" cy="726" r="3" fill="#d69b32"/>
+
+    <rect x="760" y="210" width="142" height="142" rx="22" fill="#b94642" stroke="#fff5ef" stroke-width="8"/>
+    <rect x="775" y="225" width="112" height="112" rx="14" fill="none" stroke="#ffd9cd" stroke-width="2"/>
+    <text x="831" y="286" font-family="'Noto Serif KR', 'Apple SD Gothic Neo', serif"
+          font-size="52" font-weight="700" text-anchor="middle" fill="#fff6ed">命</text>
+    <text x="831" y="333" font-family="'Noto Serif KR', 'Apple SD Gothic Neo', serif"
+          font-size="52" font-weight="700" text-anchor="middle" fill="#fff6ed">香</text>
+
+    <rect x="608" y="842" width="448" height="84" rx="18" fill="#e5b6a8" fill-opacity="0.46"
+          stroke="url(#goldFoil)" stroke-width="2.5"/>
+    <path d="M628 884 H706 M958 884 H1036" stroke="#8e5b48" stroke-width="1.4" opacity="0.7"/>
+    <text x="832" y="893" font-family="Georgia, 'Times New Roman', serif" font-size="32"
+          text-anchor="middle" fill="#7b5a26" letter-spacing="2">AC'SCENT ID</text>
+
+    <rect x="360" y="575" width="66" height="66" rx="8" fill="none" stroke="#c34a42" stroke-width="2" opacity="0.8"/>
+    <path d="M376 593 H410 M376 612 H410 M393 585 V628 M385 593 L405 613 M405 593 L385 613"
+          stroke="#c34a42" stroke-width="2" opacity="0.78"/>
+    <rect x="1287" y="612" width="58" height="58" rx="8" fill="none" stroke="#c34a42" stroke-width="2" opacity="0.74"/>
+    <path d="M1300 630 H1332 M1300 646 H1332 M1316 624 V660 M1308 630 L1326 648 M1326 630 L1308 648"
+          stroke="#c34a42" stroke-width="1.8" opacity="0.72"/>
+  </g>
+
+  <rect x="140" y="160" width="1420" height="820" rx="28" fill="none" stroke="#e4007f"
+        stroke-width="4" stroke-dasharray="18 12"/>
+  <rect x="160" y="180" width="1380" height="780" rx="22" fill="none" stroke="#7f7f7f"
+        stroke-width="2" stroke-dasharray="8 10" opacity="0.6"/>
+
+  <line x1="450" y1="160" x2="450" y2="980" stroke="#2f74d0" stroke-width="3" stroke-dasharray="14 12"/>
+  <line x1="1250" y1="160" x2="1250" y2="980" stroke="#2f74d0" stroke-width="3" stroke-dasharray="14 12"/>
+  <text x="295" y="142" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#5b636a" text-anchor="middle">LEFT SIDE</text>
+  <text x="850" y="142" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#222" text-anchor="middle">FRONT / 제품 투명창</text>
+  <text x="1405" y="142" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#5b636a" text-anchor="middle">RIGHT SIDE</text>
+
+  <rect x="540" y="360" width="620" height="395" rx="42" fill="#ffffff" fill-opacity="0.18"
+        stroke="#ffffff" stroke-width="2" stroke-dasharray="10 10"/>
+  <text x="850" y="565" font-family="Arial, sans-serif" font-size="28" font-weight="800"
+        text-anchor="middle" fill="#2b2b2b" opacity="0.22">CLEAR PRODUCT WINDOW</text>
+
+  <g transform="translate(150 1050)">
+    <text x="0" y="-28" font-family="Arial, sans-serif" font-size="19" font-weight="800" fill="#302222">
+      별도 상단 봉인 스티커
+    </text>
+    <rect x="0" y="0" width="182" height="182" rx="26" fill="url(#checker)" stroke="#cfc8c3"/>
+    <rect x="18" y="18" width="146" height="146" rx="24" fill="#b94642" stroke="#fff5ef" stroke-width="8"/>
+    <rect x="32" y="32" width="118" height="118" rx="16" fill="none" stroke="#ffd9cd" stroke-width="2"/>
+    <text x="91" y="83" font-family="'Noto Serif KR', 'Apple SD Gothic Neo', serif"
+          font-size="54" font-weight="700" text-anchor="middle" fill="#fff6ed">命</text>
+    <text x="91" y="134" font-family="'Noto Serif KR', 'Apple SD Gothic Neo', serif"
+          font-size="54" font-weight="700" text-anchor="middle" fill="#fff6ed">香</text>
+    <rect x="0" y="0" width="182" height="182" rx="26" fill="none" stroke="#e4007f"
+          stroke-width="3" stroke-dasharray="12 8"/>
+  </g>
+
+  <g transform="translate(420 1050)" font-family="Arial, sans-serif" font-size="18" fill="#3b3331">
+    <text x="0" y="-28" font-weight="800">발주 레이어 표기</text>
+    <line x1="0" y1="10" x2="86" y2="10" stroke="#e4007f" stroke-width="4" stroke-dasharray="16 10"/>
+    <text x="108" y="16">커팅선 / 칼선</text>
+    <line x1="0" y1="58" x2="86" y2="58" stroke="#2f74d0" stroke-width="4" stroke-dasharray="14 10"/>
+    <text x="108" y="64">접힘 기준선 / 박스 모서리</text>
+    <line x1="0" y1="106" x2="86" y2="106" stroke="url(#goldFoil)" stroke-width="5"/>
+    <text x="108" y="112">금박 또는 금색 인쇄</text>
+    <rect x="0" y="142" width="86" height="28" rx="8" fill="#ffd6da" fill-opacity="0.45" stroke="#cf8f98"/>
+    <text x="108" y="164">반투명 핑크 인쇄층</text>
+  </g>
+
+  <g transform="translate(1060 1050)" font-family="Arial, sans-serif" fill="#5b4c49">
+    <text x="0" y="-28" font-size="19" font-weight="800" fill="#302222">구조 메모</text>
+    <text x="0" y="16" font-size="17">1. 중앙은 무인쇄 투명창으로 남겨 제품을 보이게 둡니다.</text>
+    <text x="0" y="52" font-size="17">2. 구름/달/별은 투명 PET 위 반투명 인쇄 + 부분 금박을 가정합니다.</text>
+    <text x="0" y="88" font-size="17">3. 실제 발주 전 박스 실측 후 좌/전/우 패널 폭을 재조정해야 합니다.</text>
+    <text x="0" y="124" font-size="17">4. 이 파일은 콘셉트 전개도이며, 최종 납품은 AI/PDF 벡터 권장.</text>
+  </g>
+</svg>

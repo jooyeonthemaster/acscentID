@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { KeyRound } from 'lucide-react'
+import { KeyRound, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { SealStamp } from '@/components/saju'
 import type { SajuFormState } from '../constants'
@@ -31,7 +31,7 @@ export function GatePhase({ formData, setFormData, isOnline }: GatePhaseProps) {
         if (formData.pin.length === 4 && !pinToastShownRef.current) {
             pinToastShownRef.current = true
             const showTimer = setTimeout(() => setShowPinToast(true), 0)
-            const hideTimer = setTimeout(() => setShowPinToast(false), 4000)
+            const hideTimer = setTimeout(() => setShowPinToast(false), 3000)
             return () => {
                 clearTimeout(showTimer)
                 clearTimeout(hideTimer)
@@ -127,29 +127,6 @@ export function GatePhase({ formData, setFormData, isOnline }: GatePhaseProps) {
                             </p>
                         </div>
                     </motion.div>
-
-                    {/* PIN 4자리 완성 확인 */}
-                    <AnimatePresence>
-                        {showPinToast && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.3 }}
-                                className="rounded-lg border border-[#C9A227]/40 bg-[#12141D] px-3.5 py-3"
-                            >
-                                <p className="font-serif-kr break-keep text-[12px] leading-[1.6] text-[#E9E2D0]">
-                                    {t('pin.toastLabel')}{' '}
-                                    <span className="font-sans text-[14px] font-semibold tracking-[0.3em] text-[#C9A227]">
-                                        {formData.pin}
-                                    </span>
-                                </p>
-                                <p className="font-serif-kr break-keep mt-0.5 text-[11px] leading-[1.6] text-[#A69F8D]">
-                                    {t('pin.toastHelp')}
-                                </p>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </div>
             )}
 
@@ -177,10 +154,51 @@ export function GatePhase({ formData, setFormData, isOnline }: GatePhaseProps) {
                         other: t('genderOther'),
                     }}
                 />
-                <div className="mt-3">
-                    <HelperNote>{isIdol ? t('genderHelperIdol') : t('genderHelper')}</HelperNote>
-                </div>
+                {isIdol && (
+                    <div className="mt-3">
+                        <HelperNote>{t('genderHelperIdol')}</HelperNote>
+                    </div>
+                )}
             </div>
+
+            {/* PIN 확인 팝업 — 직접 닫기(X) + 3초 자동 닫힘 (§3.1) */}
+            <AnimatePresence>
+                {showPinToast && (
+                    <motion.div
+                        key="pin-popup"
+                        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 16, scale: 0.96 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="fixed inset-x-0 bottom-24 z-[60] mx-auto w-[calc(100%-48px)] max-w-[407px]"
+                    >
+                        <div className="relative rounded-xl border border-[#C9A227]/50 bg-[#12141D] px-4 py-3.5 shadow-[0_16px_44px_rgba(0,0,0,0.55)]">
+                            <button
+                                type="button"
+                                onClick={() => setShowPinToast(false)}
+                                aria-label={t('pin.toastClose')}
+                                className="absolute right-2.5 top-2.5 text-[#5C564A] transition-colors hover:text-[#E9E2D0]"
+                            >
+                                <X size={16} />
+                            </button>
+                            <div className="flex items-start gap-2.5 pr-5">
+                                <KeyRound size={15} className="mt-0.5 flex-shrink-0 text-[#C9A227]" />
+                                <div className="font-serif-kr break-keep">
+                                    <p className="text-[13px] leading-[1.6] text-[#E9E2D0]">
+                                        {t('pin.toastLabel')}{' '}
+                                        <span className="font-sans text-[15px] font-semibold tracking-[0.3em] text-[#C9A227]">
+                                            {formData.pin}
+                                        </span>
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] leading-[1.6] text-[#A69F8D]">
+                                        {t('pin.toastHelp')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

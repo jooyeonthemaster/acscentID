@@ -97,7 +97,9 @@ function ProductsDetailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const slug = decodeSlug(params.slug)
-  const { getProductBySlug, loading: productsLoading } = useStoreProducts()
+  // 관리자 편집 미리보기에서는 비활성 상품도 불러와 편집/미리보기할 수 있게 한다
+  const isAdminPreview = searchParams.get("adminPreview") === "1"
+  const { getProductBySlug, loading: productsLoading } = useStoreProducts({ includeInactive: isAdminPreview })
   const product = getProductBySlug(slug)
   const { detail, isCustomMode } = useProductDetail(slug)
   const { user, unifiedUser, loading } = useAuth()

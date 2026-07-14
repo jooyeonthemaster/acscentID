@@ -56,13 +56,13 @@ export function UnderlineField({ label, value, onChange, placeholder, maxLength,
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 maxLength={maxLength}
-                className="font-serif-kr h-12 w-full rounded-none border-0 border-b border-[#262A38] bg-transparent px-1 text-[17px] text-[#E9E2D0] outline-none transition-colors placeholder:text-[#3A3E4C] focus:border-[#C9A227]"
+                className="saju-underline-input font-serif-kr h-12 w-full rounded-none border-0 border-b border-[#262A38] bg-transparent px-1 text-[17px] text-[#E9E2D0] outline-none transition-colors placeholder:text-[#3A3E4C] focus:border-[#C9A227]"
             />
         </div>
     )
 }
 
-// ---------- 성별 필 [乾 남성][坤 여성][기타] ----------
+// ---------- 성별 필 [男 남성][女 여성][기타] ----------
 
 export interface GenderOptionLabels {
     male: string
@@ -78,8 +78,8 @@ interface GenderPillsProps {
 }
 
 const GENDER_HANJA: Record<'male' | 'female' | 'other', string | null> = {
-    male: '乾',
-    female: '坤',
+    male: '男',
+    female: '女',
     other: null,
 }
 

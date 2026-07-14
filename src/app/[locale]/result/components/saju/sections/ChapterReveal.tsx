@@ -15,7 +15,7 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   BrushDivider,
   HanjiCard,
@@ -43,7 +43,11 @@ const BOTTLE_SCALE = BOTTLE_SIZE / 200;
 // 라벨지 rect (70, 150, 60, 80) — 향수명 HTML 레이어 좌표
 const LABEL_TOP = 150 * BOTTLE_SCALE; // 180
 const LABEL_H = 80 * BOTTLE_SCALE; // 96
-const NAME_W = 104; // 라벨보다 살짝 넓게 — 오버플로 방어와 가독의 절충
+const LABEL_W = 60 * BOTTLE_SCALE; // 72 — 크림 라벨 실제 폭
+const NAME_W = LABEL_W - 8; // 라벨 안쪽 여백(좌우 4px)까지 텍스트가 침범하지 않도록
+// 자동 맞춤 폰트 크기 경계 — 이름 길이와 무관하게 라벨 안에 들어오도록 축소
+const NAME_FONT_MAX = 22;
+const NAME_FONT_MIN = 10;
 
 export function ChapterReveal({ result }: ChapterRevealProps) {
   const t = useTranslations('saju.result');
@@ -83,13 +87,48 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
   const why = destiny?.whyNarrative;
   const revealed = phase === 'complete';
 
-  // 향수명 — 24자 slice + 2줄 클램프 (§5.7/§7.3 R3 이중 방어)
+  // 향수명 — 24자 slice (§5.7/§7.3 R3 이중 방어)
   const displayName = hasText(perfumeName) ? sajuClip(perfumeName, 24) : null;
-  // 라벨지 폭 안에서의 오버플로 방어 — 길이에 따라 단계적으로 축소 (§5.9 원칙)
-  const nameLen = displayName?.length ?? 0;
-  const nameFontSize = nameLen <= 6 ? 22 : nameLen <= 9 ? 18 : nameLen <= 14 ? 15 : 13;
-  // 받침 세로 클리핑 방지 — 행간을 px로 고정하고 클램프 높이를 정확히 2줄에 맞춘다
-  const nameLineHeight = Math.round(nameFontSize * 1.4);
+
+  // 향수명 자동 맞춤 — 라벨 폭·높이 안에 들어올 때까지 폰트를 한 단계씩 줄인다 (§5.9 오버플로 방어)
+  const nameBoxRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const [nameFontSize, setNameFontSize] = useState(NAME_FONT_MAX);
+
+  useLayoutEffect(() => {
+    const box = nameBoxRef.current;
+    const el = nameRef.current;
+    if (!displayName || !box || !el) return;
+
+    const measure = () => {
+      let size = NAME_FONT_MAX;
+      const apply = (s: number) => {
+        el.style.fontSize = `${s}px`;
+        el.style.lineHeight = `${Math.round(s * 1.28)}px`;
+      };
+      apply(size);
+      while (
+        size > NAME_FONT_MIN &&
+        (el.scrollWidth > box.clientWidth || el.scrollHeight > box.clientHeight)
+      ) {
+        size -= 1;
+        apply(size);
+      }
+      setNameFontSize(size);
+    };
+
+    measure();
+    // 명조체 웹폰트 로드 후 글리프 폭이 바뀔 수 있어 재측정
+    let cancelled = false;
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      void document.fonts.ready.then(() => {
+        if (!cancelled) measure();
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [displayName]);
 
   // 브랜드 라인 — perfumeId가 이미 "AC'SCENT ##" 형태면 접두어 중복 금지
   const rawPerfumeId = top?.perfumeId?.trim();
@@ -174,7 +213,8 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
         {/* 향수명 — 라벨지 위 HTML 레이어 (scale 1.12→1, easeSettle, 2줄 클램프 + 24자 slice) */}
         {displayName && (
           <motion.div
-            className="absolute left-1/2 flex items-center justify-center"
+            ref={nameBoxRef}
+            className="absolute left-1/2 flex items-center justify-center overflow-hidden"
             style={{
               top: LABEL_TOP,
               height: LABEL_H,
@@ -186,15 +226,11 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
             transition={{ duration: 0.6, ease: SAJU_EASE_SETTLE }}
           >
             <h2
+              ref={nameRef}
               className="break-keep text-center font-serif-kr font-black text-[#1A1610]"
               style={{
                 fontSize: nameFontSize,
-                lineHeight: `${nameLineHeight}px`,
-                maxHeight: nameLineHeight * 2,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
+                lineHeight: `${Math.round(nameFontSize * 1.28)}px`,
               }}
             >
               {displayName}
@@ -206,7 +242,7 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
       {/* 브랜드 라인 — perfumeId 그대로가 이미 브랜드 표기면 중복 접두 없이 */}
       {brandLine && (
         <motion.p
-          className="mt-4 text-center font-sans text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-[#A69F8D]"
+          className="mt-4 text-center font-sans text-[15px] font-semibold uppercase leading-[1.5] tracking-[0.2em] text-[#A69F8D]"
           initial={{ opacity: 0 }}
           animate={revealed ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}

@@ -606,3 +606,13 @@
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(var(--dust-sway, 10px)); }
 }
+
+/* 사주 입력 필드 — 브라우저 자동완성 흰 배경 제거 (밑줄 필기 입력 유지) */
+.saju-underline-input:-webkit-autofill,
+.saju-underline-input:-webkit-autofill:hover,
+.saju-underline-input:-webkit-autofill:focus,
+.saju-underline-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #E9E2D0;
+  transition: background-color 0s 600000s, color 0s 600000s;
+  caret-color: #E9E2D0;
+}

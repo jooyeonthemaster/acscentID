@@ -40,6 +40,9 @@ export function ChapterIlgan({ result, targetType }: ChapterIlganProps) {
   const compat = result.sajuCompatibility;
   const meta = ELEMENT_META[chart.dayMaster.element];
 
+  // 중심 글자(한자) 한글 독음 — 천간(예: '무') + 오행(예: '토') = '무토', 한자 '戊土'와 대응
+  const dayMasterKorean = `${chart.dayMaster.gan}${chart.dayMaster.element}`;
+
   const paragraphs = reading.narrative
     .split(/\n{2,}/)
     .map((p) => p.trim())
@@ -80,8 +83,8 @@ export function ChapterIlgan({ result, targetType }: ChapterIlganProps) {
         </h2>
       </motion.div>
 
-      {/* 대형 한자 + 방사형 은은광 */}
-      <div className="relative flex justify-center">
+      {/* 대형 한자 + 방사형 은은광 + 위 작은 한글 독음 */}
+      <div className="relative flex flex-col items-center">
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -91,11 +94,25 @@ export function ChapterIlgan({ result, targetType }: ChapterIlganProps) {
             background: 'radial-gradient(circle, rgba(201,162,39,0.12), transparent 70%)',
           }}
         />
+        {/* 작은 한글 독음 — 한자 위에 어떻게 읽는지 표시 */}
+        <motion.span
+          aria-hidden
+          className="font-serif-kr relative mb-2 text-[15px] font-semibold leading-none tracking-[0.3em] text-[#C9A227]"
+          {...fadeInView()}
+        >
+          {dayMasterKorean}
+        </motion.span>
         <motion.span
           role="img"
-          aria-label={`일간 ${reading.hanja}`}
+          aria-label={`일간 ${dayMasterKorean}(${reading.hanja})`}
           className="saju-gold-foil font-serif-kr relative"
-          style={{ fontSize: 120, lineHeight: 1, fontWeight: 900, letterSpacing: 0 }}
+          style={{
+            fontSize: 'clamp(44px, 16vw, 76px)',
+            lineHeight: 1.1,
+            fontWeight: 900,
+            letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap',
+          }}
           initial={reduce ? false : { opacity: 0, scale: 1.15 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={SAJU_VIEWPORT}

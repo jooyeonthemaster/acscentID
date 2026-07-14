@@ -13,7 +13,8 @@ import { useTranslations } from 'next-intl'
 
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
-import { ProgressThread, SealStamp, SAJU_EASE_INK } from '@/components/saju'
+import Image from 'next/image'
+import { ProgressThread, SAJU_EASE_INK } from '@/components/saju'
 
 import { useSajuForm } from './hooks/useSajuForm'
 import type { SajuPhase } from './constants'
@@ -50,7 +51,6 @@ export default function SajuInputPage() {
         isPhaseValid,
         handleNext,
         handlePrev,
-        jumpToPhase,
         handleSeal,
         navigateToResult,
     } = useSajuForm()
@@ -86,7 +86,7 @@ export default function SajuInputPage() {
             case 'wish':
                 return <WishPhase formData={formData} setFormData={setFormData} onSkip={handleNext} />
             case 'seal':
-                return <SealPhase formData={formData} isSealing={isSealing} onEdit={jumpToPhase} />
+                return <SealPhase formData={formData} setFormData={setFormData} isOnline={isOnline} isSealing={isSealing} />
         }
     }
 
@@ -107,16 +107,23 @@ export default function SajuInputPage() {
                 <GoldDust count={12} />
             </div>
 
-            {/* 전역 크롬 — 재스킨 금지 */}
-            <Header showBack backHref="back" compact />
+            {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}
+            <Header showBack backHref="back" compact dark />
 
             <div className="relative mx-auto min-h-screen w-full max-w-[455px]">
                 {/* compact 헤더 높이 여백 */}
                 <div className="h-14 flex-shrink-0" />
 
-                {/* 프로그램 명패 (전 페이즈 공통) */}
+                {/* 프로그램 명패 (전 페이즈 공통) — 사주 분석 낙관 로고 */}
                 <div className="flex items-center justify-center gap-2.5 pb-1 pt-4">
-                    <SealStamp chars="命香" size="sm" tone="cinnabar" />
+                    <Image
+                        src="/images/saju/saju-logo.png"
+                        alt={t('saju.common.programName')}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 select-none object-contain"
+                        priority
+                    />
                     <span className="font-serif-kr text-[11px] font-semibold leading-[1.4] tracking-[0.14em] text-[#A69F8D]">
                         {t('saju.common.programName')}
                     </span>

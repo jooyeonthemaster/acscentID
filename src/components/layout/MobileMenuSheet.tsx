@@ -138,7 +138,7 @@ export function MobileMenuSheet({
     handleClose()
   }
 
-  const { isProductActive } = useActiveProducts()
+  const { isProductVisible } = useActiveProducts()
 
   // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
@@ -160,7 +160,7 @@ export function MobileMenuSheet({
     { slug: 'saju', href: '/programs/saju', label: t('products.saju') },
     { slug: 'le-quack', href: '/programs/le-quack', label: t('products.leQuack') },
   ]
-    .filter((link) => isProductActive(link.slug))
+    .filter((link) => isProductVisible(link.slug))
     .map((link) => ({
       ...link,
       image: thumbnailsLoading ? PRODUCT_IMAGE_PLACEHOLDER : (thumbnails[link.slug] || PRODUCT_IMAGE_PLACEHOLDER),

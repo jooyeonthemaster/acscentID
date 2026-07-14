@@ -23,6 +23,7 @@ import {
   MessageSquare,
   Sparkles,
   HelpCircle,
+  CreditCard,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -112,6 +113,12 @@ const navGroups: NavGroup[] = [
         label: '상품 관리',
         icon: Package,
         description: '일반 판매 상품',
+      },
+      {
+        href: '/admin/payment-links',
+        label: '개인결제창',
+        icon: CreditCard,
+        description: '맞춤 결제 링크',
       },
       {
         href: '/admin/promotions',

@@ -24,7 +24,7 @@ import Link from 'next/link'
 // 테이블용 짧은 라벨
 // [FIX] HIGH: signature 추가 (admin.ts ProductType 통합)
 const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
-  image_analysis: '최애 이미지',
+  image_analysis: '이미지',
   image_analysis_paper: '시향지',
   figure_diffuser: '피규어',
   personal_scent: '퍼스널',
@@ -36,6 +36,47 @@ const SHORT_PRODUCT_LABELS: Record<ProductType, string> = {
   store_product: '상품',
   saju_perfume: '사주',
   etc: '기타',
+}
+
+// 상품 타입 → 색 계열(hue). 목록에서 타입을 색으로 구분한다.
+const PRODUCT_HUE: Record<ProductType, keyof typeof HUE_STYLE> = {
+  image_analysis: 'purple',
+  image_analysis_paper: 'teal',
+  figure_diffuser: 'cyan',
+  personal_scent: 'pink',
+  graduation: 'emerald',
+  signature: 'amber',
+  chemistry_set: 'violet',
+  payment_test: 'red',
+  today_scent: 'orange',
+  store_product: 'lime',
+  saju_perfume: 'indigo',
+  etc: 'slate',
+}
+
+// 같은 색 계열(hue) 안에서 분석대상별 명도 분리 — 나(self)는 옅게, 최애(idol)는 한 톤 진하게.
+// 같은 상품 타입은 같은 계열을 유지하므로 색감은 비슷하고, 대상만 명도로 구분된다.
+// (Tailwind JIT 인식을 위해 클래스는 전부 정적 문자열로 나열)
+const HUE_STYLE = {
+  purple:  { self: { row: 'bg-purple-50',  badge: 'bg-purple-100 text-purple-700' },   idol: { row: 'bg-purple-100',  badge: 'bg-purple-200 text-purple-800' } },
+  teal:    { self: { row: 'bg-teal-50',    badge: 'bg-teal-100 text-teal-700' },       idol: { row: 'bg-teal-100',    badge: 'bg-teal-200 text-teal-800' } },
+  cyan:    { self: { row: 'bg-cyan-50',    badge: 'bg-cyan-100 text-cyan-700' },       idol: { row: 'bg-cyan-100',    badge: 'bg-cyan-200 text-cyan-800' } },
+  pink:    { self: { row: 'bg-pink-50',    badge: 'bg-pink-100 text-pink-700' },       idol: { row: 'bg-pink-100',    badge: 'bg-pink-200 text-pink-800' } },
+  emerald: { self: { row: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700' }, idol: { row: 'bg-emerald-100', badge: 'bg-emerald-200 text-emerald-800' } },
+  amber:   { self: { row: 'bg-amber-50',   badge: 'bg-amber-100 text-amber-700' },     idol: { row: 'bg-amber-100',   badge: 'bg-amber-200 text-amber-800' } },
+  violet:  { self: { row: 'bg-violet-50',  badge: 'bg-violet-100 text-violet-700' },   idol: { row: 'bg-violet-100',  badge: 'bg-violet-200 text-violet-800' } },
+  red:     { self: { row: 'bg-red-50',     badge: 'bg-red-100 text-red-700' },         idol: { row: 'bg-red-100',     badge: 'bg-red-200 text-red-800' } },
+  orange:  { self: { row: 'bg-orange-50',  badge: 'bg-orange-100 text-orange-700' },   idol: { row: 'bg-orange-100',  badge: 'bg-orange-200 text-orange-800' } },
+  lime:    { self: { row: 'bg-lime-50',    badge: 'bg-lime-100 text-lime-700' },       idol: { row: 'bg-lime-100',    badge: 'bg-lime-200 text-lime-800' } },
+  indigo:  { self: { row: 'bg-indigo-50',  badge: 'bg-indigo-100 text-indigo-700' },   idol: { row: 'bg-indigo-100',  badge: 'bg-indigo-200 text-indigo-800' } },
+  slate:   { self: { row: 'bg-slate-50',   badge: 'bg-slate-100 text-slate-600' },     idol: { row: 'bg-slate-100',   badge: 'bg-slate-200 text-slate-700' } },
+} as const
+
+// 상품 타입 + 분석대상 → 행/뱃지 색. 같은 타입이면 같은 계열, 대상(self/idol)만 명도로 달라진다.
+function getRowStyle(productType: ProductType, targetType?: TargetType | null): { row: string; badge: string } {
+  const hue = PRODUCT_HUE[productType] ?? 'slate'
+  const variant = targetType === 'idol' ? 'idol' : 'self'
+  return HUE_STYLE[hue][variant]
 }
 
 export default function AnalysisPage() {
@@ -401,11 +442,12 @@ export default function AnalysisPage() {
                 <tbody className="divide-y divide-slate-100">
                   {analyses.map((analysis) => {
                     const isSelected = selectedIdSet.has(analysis.id)
+                    const rowStyle = getRowStyle(analysis.product_type as ProductType, analysis.target_type)
 
                     return (
                     <Fragment key={analysis.id}>
                       <tr
-                        className={`${isSelected ? 'bg-yellow-50/70' : 'hover:bg-slate-50'} transition-colors cursor-pointer`}
+                        className={`${isSelected ? 'bg-yellow-50/70' : `${rowStyle.row} hover:brightness-95`} transition-colors cursor-pointer`}
                         onClick={() => setExpandedId(expandedId === analysis.id ? null : analysis.id)}
                       >
                         <td className="px-2 md:px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -451,8 +493,8 @@ export default function AnalysisPage() {
                           )}
                         </td>
                         <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
-                            {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
+                          <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${rowStyle.badge}`}>
+                            {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '이미지'}
                           </span>
                         </td>
                         <td className="hidden md:table-cell px-3 py-3 whitespace-nowrap">
@@ -538,7 +580,7 @@ export default function AnalysisPage() {
                               <div className="flex justify-between gap-2">
                                 <span className="text-slate-500">상품 타입</span>
                                 <span className="text-slate-900 font-medium">
-                                  {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '최애 이미지'}
+                                  {SHORT_PRODUCT_LABELS[analysis.product_type as ProductType] || '이미지'}
                                 </span>
                               </div>
                               <div className="flex justify-between gap-2">

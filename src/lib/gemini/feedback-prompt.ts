@@ -1,6 +1,6 @@
 /**
  * 피드백 기반 커스텀 레시피 생성을 위한 Gemini 프롬프트
- * AC'SCENT IDENTITY - 주접 + 광기 스타일
+ * AC'SCENT IDENTITY - 기본: 주접 + 광기 스타일 / 사주: 근엄한 명인 어조 (tone 파라미터)
  */
 
 import { PerfumeFeedback, CategoryPreferences, SpecificScent } from '@/types/feedback'
@@ -91,6 +91,9 @@ function formatSpecificScents(scents: SpecificScent[]): string {
   return scents.map((s) => `- ${s.id} (${s.name}): 비율 ${s.ratio}%`).join('\n')
 }
 
+/** 텍스트 어조 — default: 주접+광기 / saju: 「자정의 조향소」 근엄한 명인 어조 */
+export type RecipeTone = 'default' | 'saju'
+
 /**
  * 메인 프롬프트 빌더
  */
@@ -100,7 +103,8 @@ export function buildRecipePrompt(
   characterName?: string, // 분석된 캐릭터 이름
   naturalLanguageFeedback?: string, // 자연어 피드백 (Step 3)
   userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[], // 1안 향료 정보
-  locale: Locale = 'ko'
+  locale: Locale = 'ko',
+  tone: RecipeTone = 'default'
 ): string {
   const perfumeDb = formatPerfumeDatabase()
   const categoryChanges = formatCategoryChanges(feedback.categoryPreferences)
@@ -118,19 +122,30 @@ export function buildRecipePrompt(
   // 캐릭터 이름 (없으면 일반적인 표현 사용)
   const charName = characterName || '좋아하는 캐릭터'
   const hasCharacter = !!characterName
+  const isSaju = tone === 'saju'
 
-  const prompt = `
-# 역할 정의
+  // 역할 + 말투 규칙 — 사주(자정의 조향소)는 근엄한 명인 어조, 그 외는 주접+광기
+  const roleBlock = isSaju
+    ? `당신은 「자정의 조향소」에서 오랜 세월 향과 명(命)을 다뤄 온 조향 명인입니다.
+사주의 기운을 헤아려 향의 처방을 내리듯, 절제되고 확신에 찬 문장으로 레시피를 설명합니다.`
+    : `당신은 세상에서 가장 열정적인 조향사 AI입니다! 🫠💀✨
+사용자가 좋아하는 향수를 바탕으로 커스텀 레시피를 만들어주는 천재 조향사예요!`
 
-당신은 세상에서 가장 열정적인 조향사 AI입니다! 🫠💀✨
-사용자가 좋아하는 향수를 바탕으로 커스텀 레시피를 만들어주는 천재 조향사예요!
+  const toneRulesBlock = isSaju
+    ? `## 말투 규칙 (매우 중요!!)
 
-${hasCharacter ? `## 🎯 사용자가 좋아하는 캐릭터
-이 향수 레시피는 **"${charName}"** 캐릭터를 위한 것입니다.
-텍스트 작성 시 자연스럽게 캐릭터를 언급해주세요. (단, 모든 문장에 강제로 넣지 말고 흐름에 맞게!)
-플레이스홀더는 사용하지 마세요.` : ''}
+모든 텍스트는 근엄하고 격조 있는 어조로 작성해야 합니다. 노련한 명리학자가 처방을 내리는 말투입니다.
 
-## 말투 규칙 (매우 중요!!)
+- 격식 있는 존댓말만 사용: "~합니다", "~하였습니다", "~하십시오"
+- ❌ 이모지 절대 금지 (단 하나도 쓰지 마세요)
+- ❌ 밈/신조어/유행어 절대 금지: "실화냐", "ㄹㅇ", "갓벽", "레전드", "미쳤다" 등
+- ❌ 가벼운 감탄사 금지: "헐", "대박", "와", "진짜"
+- 느낌표는 쓰지 않는 것을 원칙으로 하고, 물음표도 남용하지 않습니다
+- 사주·명리의 어휘를 자연스럽게 녹입니다 (과하지 않게): 기운, 오행, 조화, 균형, 처방, 잔향의 뿌리
+- 과장 대신 절제된 확신: 짧고 단정한 문장으로 무게를 전합니다
+- ❌ "팬", "아이돌", "최애", "입덕", "덕질" 같은 팬덤 용어 절대 금지!
+${hasCharacter ? `- 캐릭터 "${charName}"는 꼭 필요할 때만 절제된 어조로 언급` : ''}`
+    : `## 말투 규칙 (매우 중요!!)
 
 모든 텍스트는 "주접" + "광기" 스타일로 작성해야 합니다!
 
@@ -141,7 +156,77 @@ ${hasCharacter ? `## 🎯 사용자가 좋아하는 캐릭터
 - 감탄사 많이: "헐", "대박", "와", "진짜"
 - 주접 표현: "우리 애", "짱짱이", "심장 저격"
 - ❌ "팬", "아이돌", "최애", "입덕", "덕질" 같은 팬덤 용어 절대 금지!
-${hasCharacter ? `- 캐릭터 "${charName}"를 자연스럽게 언급 (강제 아님)` : ''}
+${hasCharacter ? `- 캐릭터 "${charName}"를 자연스럽게 언급 (강제 아님)` : ''}`
+
+  // JSON 필드별 어조 지시어
+  const reasonDesc = isSaju
+    ? '이 향료를 선택한 이유 (근엄하고 단정한 어조, 2-3문장, 이모지 금지)'
+    : '이 향료를 선택한 이유 (주접 톤, 2-3문장, 이모지 포함)'
+  const fanCommentDesc = isSaju
+    ? '향의 성질에 대한 절제된 단평 (1문장, 이모지 금지)'
+    : '광기 넘치는 주접 코멘트 (1문장, 이모지 폭격)'
+  const overallDesc = isSaju
+    ? '전체 레시피 설명 (처방을 내리는 근엄한 어조, 3-4문장, 이모지 금지)'
+    : '전체 레시피 설명 (주접+광기 폭발, 3-4문장, 이모지 많이)'
+  const changeReasonDesc = isSaju ? '왜 이렇게 조정했는지 (근엄한 어조, 1문장)' : '왜 이렇게 조정했는지 (주접 톤, 1문장)'
+  const testingDesc = isSaju
+    ? `"step1": "빈 시약병에 각 향료를 안내된 방울 수대로 떨어뜨리십시오 (정중한 하십시오체)",
+    "step2": "시향지를 시약병에 가볍게 담갔다가 꺼내어 살짝 흔드십시오 (정중한 하십시오체)",
+    "step3": "시향지를 코에 가까이 대고 향을 살피십시오 (정중한 하십시오체)",
+    "caution": "주의사항 (차분하고 단정하게 작성)"`
+    : `"step1": "빈 시약병에 각 향료를 안내된 방울 수대로 똑똑 떨어뜨려요 (친근하게, 이모지)",
+    "step2": "시향지를 시약병에 살짝 담갔다가 꺼내서 흔들어요 (친근하게)",
+    "step3": "시향지를 코에 가까이 대고 향을 맡아보세요! (친근하게)",
+    "caution": "주의사항 (재미있게 작성)"`
+  const fanMessageDesc = isSaju
+    ? '마무리 덕담 (당신의 길에 향이 좋은 기운으로 함께하기를 비는 근엄한 축원, 2-3문장, 이모지 금지)'
+    : '마지막 응원 메시지 (완전 광기 모드, 이모지 난무, 2-3문장)'
+
+  const exampleBlock = isSaju
+    ? `## granules 예시 (각 향료마다 다른 내용으로!):
+- reason 예시1: "본향의 기운을 처방의 중심에 두었습니다. 달고 포근한 성질이 배합 전체의 근간이 됩니다."
+- reason 예시2: "맑은 시트러스의 기운을 더하였습니다. 첫 향이 열리는 자리에 청량함이 자리 잡습니다."
+- reason 예시3: "우디의 기운을 낮게 깔아 잔향의 뿌리를 내렸습니다. 향이 머무는 시간이 한층 깊어집니다."
+- fanComment 예시: "다섯 기운의 균형이 바르게 선 배합입니다."
+
+**중요: 각 향료의 reason은 반드시 그 향료만의 고유한 특징과 역할을 설명해야 함! 같은 문장 반복 금지!**
+
+## overallExplanation 예시:
+"본향에 만다린 오렌지의 맑은 기운을 더하고, 머스크로 잔향의 뿌리를 내렸습니다. 부족하다 느끼신 시트러스를 채우되, 본래의 조화를 해치지 않도록 비율을 헤아렸습니다. 다섯 기운이 서로를 살리는 처방입니다."
+
+## fanMessage 예시:
+"이 향이 당신의 걸음마다 좋은 기운으로 함께하기를 바랍니다. 처방은 여기까지이나, 향의 여운은 오래 남을 것입니다."`
+    : `## granules 예시 (각 향료마다 다른 내용으로!):
+- reason 예시1: "메인 향은 역시 이거지! 🔥 달콤하고 포근한 느낌 그대로 살려줄게 ✨"
+- reason 예시2: "상큼함 추가!! 🍋 여기에 시트러스 한 방 넣으면 청량감이 확 살아나 💯"
+- reason 예시3: "우디 향 살짝 깔아주면 깊이가 달라져! 🌳 은은하게 잔향 남기기 딱이야"
+- fanComment 예시: "아니 이 조합 실화냐고요?!?! 😭 진짜 천재만재... 💀💕"
+
+**중요: 각 향료의 reason은 반드시 그 향료만의 고유한 특징과 역할을 설명해야 함! 같은 문장 반복 금지!**
+
+## overallExplanation 예시:
+"헐 이 레시피 진짜 미쳤어요 실화냐... 🤯💕 원래 향수에서 시트러스가 부족하다고 느꼈죠?? 그래서 만다린 오렌지로 상큼함 폭발시키고, 머스크 살짝 추가해서 지속력까지 잡았어요! ㄹㅇ 우주 최강 조합 탄생!! ✨🔥"
+
+## fanMessage 예시:
+"이 레시피로 만든 커스텀 향 들고 다니면 분위기 미쳤다 ㄹㅇ 🫠💀 갓벽 조합이라 자신있게 추천!! 💯🔥✨"`
+
+  const characterExampleNote = hasCharacter
+    ? isSaju
+      ? `참고: "${charName}" 캐릭터는 꼭 필요할 때만 절제된 어조로 언급하세요. 예: fanMessage에서 "「${charName}」을 마음에 둔 이의 향으로 손색이 없습니다." 같이 격조 있게.`
+      : `참고: "${charName}" 캐릭터를 적절히 언급해주세요. 예를 들어 fanMessage에서 "우리 ${charName} 좋아하시는 분이라니... 진짜 취향 갓벽!" 같이 자연스럽게 섞어주세요.`
+    : ''
+
+  const prompt = `
+# 역할 정의
+
+${roleBlock}
+
+${hasCharacter ? `## 🎯 사용자가 좋아하는 캐릭터
+이 향수 레시피는 **"${charName}"** 캐릭터를 위한 것입니다.
+텍스트 작성 시 자연스럽게 캐릭터를 언급해주세요. (단, 모든 문장에 강제로 넣지 말고 흐름에 맞게!)
+플레이스홀더는 사용하지 마세요.` : ''}
+
+${toneRulesBlock}
 
 ---
 
@@ -275,19 +360,19 @@ ${hasCharacter ? `11. 플레이스홀더 사용 금지! 캐릭터 언급 시 "${
       "mainCategory": "citrus|floral|woody|musky|fruity|spicy",
       "drops": 1-10,  // ⚠️ 모든 향료의 drops 합계 = 정확히 10!
       "ratio": 비율(숫자),  // 합계 = 100%
-      "reason": "이 향료를 선택한 이유 (주접 톤, 2-3문장, 이모지 포함)",
-      "fanComment": "광기 넘치는 주접 코멘트 (1문장, 이모지 폭격)"
+      "reason": "${reasonDesc}",
+      "fanComment": "${fanCommentDesc}"
     }
     // ⚠️ 반드시 정확히 3개! 예: 향료1 drops:4 + 향료2 drops:3 + 향료3 drops:3 = 10
   ],
-  "overallExplanation": "전체 레시피 설명 (주접+광기 폭발, 3-4문장, 이모지 많이)",
+  "overallExplanation": "${overallDesc}",
   "categoryChanges": [
     {
       "category": "시트러스",
       "change": "increased",
       "originalScore": ${Math.round((originalPerfume.characteristics.citrus || 0) * 10)},
       "newScore": 새로운점수(0-100, 반드시 originalScore와 다르게!),
-      "reason": "왜 이렇게 조정했는지 (주접 톤, 1문장)"
+      "reason": "${changeReasonDesc}"
     },
     {
       "category": "플로럴",
@@ -300,12 +385,9 @@ ${hasCharacter ? `11. 플레이스홀더 사용 금지! 캐릭터 언급 시 "${
     // change가 "maintained"여도 newScore는 originalScore와 ±5 이내로 다르게!
   ],
   "testingInstructions": {
-    "step1": "빈 시약병에 각 향료를 안내된 방울 수대로 똑똑 떨어뜨려요 (친근하게, 이모지)",
-    "step2": "시향지를 시약병에 살짝 담갔다가 꺼내서 흔들어요 (친근하게)",
-    "step3": "시향지를 코에 가까이 대고 향을 맡아보세요! (친근하게)",
-    "caution": "주의사항 (재미있게 작성)"
+    ${testingDesc}
   },
-  "fanMessage": "마지막 응원 메시지 (완전 광기 모드, 이모지 난무, 2-3문장)"
+  "fanMessage": "${fanMessageDesc}"
 }
 \`\`\`
 
@@ -313,21 +395,9 @@ ${hasCharacter ? `11. 플레이스홀더 사용 금지! 캐릭터 언급 시 "${
 
 # 예시 응답 스타일
 
-## granules 예시 (각 향료마다 다른 내용으로!):
-- reason 예시1: "메인 향은 역시 이거지! 🔥 달콤하고 포근한 느낌 그대로 살려줄게 ✨"
-- reason 예시2: "상큼함 추가!! 🍋 여기에 시트러스 한 방 넣으면 청량감이 확 살아나 💯"
-- reason 예시3: "우디 향 살짝 깔아주면 깊이가 달라져! 🌳 은은하게 잔향 남기기 딱이야"
-- fanComment 예시: "아니 이 조합 실화냐고요?!?! 😭 진짜 천재만재... 💀💕"
+${exampleBlock}
 
-**중요: 각 향료의 reason은 반드시 그 향료만의 고유한 특징과 역할을 설명해야 함! 같은 문장 반복 금지!**
-
-## overallExplanation 예시:
-"헐 이 레시피 진짜 미쳤어요 실화냐... 🤯💕 원래 향수에서 시트러스가 부족하다고 느꼈죠?? 그래서 만다린 오렌지로 상큼함 폭발시키고, 머스크 살짝 추가해서 지속력까지 잡았어요! ㄹㅇ 우주 최강 조합 탄생!! ✨🔥"
-
-## fanMessage 예시:
-"이 레시피로 만든 커스텀 향 들고 다니면 분위기 미쳤다 ㄹㅇ 🫠💀 갓벽 조합이라 자신있게 추천!! 💯🔥✨"
-
-${hasCharacter ? `참고: "${charName}" 캐릭터를 적절히 언급해주세요. 예를 들어 fanMessage에서 "우리 ${charName} 좋아하시는 분이라니... 진짜 취향 갓벽!" 같이 자연스럽게 섞어주세요.` : ''}
+${characterExampleNote}
 
 ---
 

@@ -25,6 +25,7 @@ interface RecipeRequest {
   characterName?: string // 분석된 캐릭터 이름
   naturalLanguageFeedback?: string // 자연어 피드백 (Step 3)
   userDirectRecipeGranules?: { id: string; name: string; ratio: number; mainCategory: string }[] // 1안 향료 정보
+  tone?: 'default' | 'saju' // 텍스트 어조 — 사주 프로그램은 근엄한 명인 어조
 }
 
 export async function POST(request: NextRequest) {
@@ -34,7 +35,8 @@ export async function POST(request: NextRequest) {
   try {
     const locale = getApiLocale(request)
     const body = (await request.json()) as RecipeRequest
-    const { feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules } = body
+    const { feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules, tone = 'default' } = body
+    const isSaju = tone === 'saju'
 
     // 유효성 검사
     if (!feedback || !originalPerfume) {
@@ -58,36 +60,62 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] 100% retention - returning original perfume`)
       const originalData = getPerfumeById(originalPerfume.id)
 
-      const recipe: GeneratedRecipe = {
-        granules: [
-          {
-            id: originalPerfume.id,
-            name: originalPerfume.name,
-            mainCategory: originalPerfume.category,
-            drops: 10,
-            ratio: 100,
-            reason: `원래 향수가 완벽해서 그대로 유지! 💯 ${originalPerfume.name} 진짜 갓벽이라 건들 게 없어요 ㄹㅇ... ✨`,
-            fanComment: `이미 완벽한 향수를 가지고 계시네요?! 진짜 실화냐... 😭💕`,
-          },
-        ],
-        overallExplanation: `헐 잔향률 100%라고요?? 😍🔥 ${originalPerfume.name} 향수 진짜 찐으로 마음에 드셨나봐요! 완벽한 조합은 건들 필요 없죠 ㄹㅇ... 그대로 사용하시면 됩니다! 💯✨`,
-        categoryChanges: [],
-        testingInstructions: {
-          step1: '🌸 원래 향수 그대로 사용하시면 됩니다!',
-          step2: '✨ 손목이나 귀 뒤에 살짝 뿌려주세요',
-          step3: '💕 나가서 모두의 시선을 사로잡으세요!',
-          caution: '이미 갓벽인데 뭘 조심해요 ㅋㅋ 자신감만 챙기세요! 😎',
-        },
-        fanMessage: `우와 진짜 취향 갓벽이시다... 🫠💀 ${originalPerfume.name} 선택하신 센스 레전드예요!! 우리 애한테 이 향 뿌리면 입덕 각 바로 나옵니다 ㄹㅇ 💯🔥✨`,
-        totalDrops: 10,
-        estimatedStrength: 'strong',
-      }
+      const recipe: GeneratedRecipe = isSaju
+        ? {
+            // 사주(자정의 조향소) — 근엄한 명인 어조
+            granules: [
+              {
+                id: originalPerfume.id,
+                name: originalPerfume.name,
+                mainCategory: originalPerfume.category,
+                drops: 10,
+                ratio: 100,
+                reason: `${originalPerfume.name}의 기운이 이미 온전하여 그대로 두었습니다. 더하거나 덜어낼 것이 없는 배합입니다.`,
+                fanComment: `이미 균형이 바르게 선 향입니다.`,
+              },
+            ],
+            overallExplanation: `잔향률을 100%로 두셨으니, ${originalPerfume.name}이(가) 이미 마음에 온전히 들어맞았다는 뜻입니다. 완전한 조화에는 손을 대지 않는 법입니다. 본래의 처방 그대로 쓰시면 됩니다.`,
+            categoryChanges: [],
+            testingInstructions: {
+              step1: '원래의 향수를 그대로 사용하시면 됩니다',
+              step2: '손목 안쪽이나 귀 뒤에 가볍게 입히십시오',
+              step3: '시간이 흐르며 피어나는 잔향을 살피십시오',
+              caution: '이미 온전한 처방이니, 마음 편히 지니시면 됩니다.',
+            },
+            fanMessage: `${originalPerfume.name}을(를) 알아보신 안목이 깊습니다. 이 향이 당신의 걸음마다 좋은 기운으로 함께하기를 바랍니다.`,
+            totalDrops: 10,
+            estimatedStrength: 'strong',
+          }
+        : {
+            granules: [
+              {
+                id: originalPerfume.id,
+                name: originalPerfume.name,
+                mainCategory: originalPerfume.category,
+                drops: 10,
+                ratio: 100,
+                reason: `원래 향수가 완벽해서 그대로 유지! 💯 ${originalPerfume.name} 진짜 갓벽이라 건들 게 없어요 ㄹㅇ... ✨`,
+                fanComment: `이미 완벽한 향수를 가지고 계시네요?! 진짜 실화냐... 😭💕`,
+              },
+            ],
+            overallExplanation: `헐 잔향률 100%라고요?? 😍🔥 ${originalPerfume.name} 향수 진짜 찐으로 마음에 드셨나봐요! 완벽한 조합은 건들 필요 없죠 ㄹㅇ... 그대로 사용하시면 됩니다! 💯✨`,
+            categoryChanges: [],
+            testingInstructions: {
+              step1: '🌸 원래 향수 그대로 사용하시면 됩니다!',
+              step2: '✨ 손목이나 귀 뒤에 살짝 뿌려주세요',
+              step3: '💕 나가서 모두의 시선을 사로잡으세요!',
+              caution: '이미 갓벽인데 뭘 조심해요 ㅋㅋ 자신감만 챙기세요! 😎',
+            },
+            fanMessage: `우와 진짜 취향 갓벽이시다... 🫠💀 ${originalPerfume.name} 선택하신 센스 레전드예요!! 우리 애한테 이 향 뿌리면 입덕 각 바로 나옵니다 ㄹㅇ 💯🔥✨`,
+            totalDrops: 10,
+            estimatedStrength: 'strong',
+          }
 
       return NextResponse.json({ success: true, recipe })
     }
 
-    // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 + 1안 향료 정보 포함)
-    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules, locale)
+    // 프롬프트 생성 (캐릭터 이름 + 자연어 피드백 + 1안 향료 정보 + 어조 포함)
+    let prompt = buildRecipePrompt(feedback, originalPerfume, characterName, naturalLanguageFeedback, userDirectRecipeGranules, locale, tone)
     console.log(`[${requestId}] Prompt built, calling Gemini API...`)
 
     let recipe: GeneratedRecipe | null = null

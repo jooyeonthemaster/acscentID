@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import {
   STORE_PRODUCTS,
   applyRepresentativeProductImages,
@@ -40,12 +41,17 @@ async function withRepresentativeImages(
   return applyRepresentativeProductImages(products, (data ?? []) as StoreProductImageRow[])
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // adminPreview에서 비활성 상품도 편집/미리보기 할 수 있도록 관리자에 한해 비활성 포함 허용
+  const includeInactive = new URL(request.url).searchParams.get('includeInactive') === '1'
+  const allowInactive = includeInactive ? Boolean(await requireAdmin()) : false
+
   const client = createServiceRoleClient()
-  const { data, error } = await client
+  let builder = client
     .from('admin_store_products')
     .select('slug, title, short_label, size, fallback_price, image_url, badge, description, included, is_active, display_order')
-    .eq('is_active', true)
+  if (!allowInactive) builder = builder.eq('is_active', true)
+  const { data, error } = await builder
     .order('display_order', { ascending: true })
     .order('slug', { ascending: true })
 

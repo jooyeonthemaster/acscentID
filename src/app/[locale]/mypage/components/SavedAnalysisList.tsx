@@ -17,6 +17,8 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
 import { emitCartChanged } from '@/lib/cart-events'
 
+const SAJU_ANALYSIS_PLACEHOLDER_IMAGE = '/images/saju/analysis-placeholder.png'
+
 // 향수 ID로 색상 가져오기
 const getPerfumeColor = (id: string): string => {
   const perfume = perfumes.find(p => p.id === id)
@@ -117,6 +119,11 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   }
   const getChemistryPerfumePairName = (chem: ChemistryAnalysis) =>
     `${getAnalysisPerfumeName(chem.characterA)} x ${getAnalysisPerfumeName(chem.characterB)}`
+  const getDisplayImageUrl = (analysis: Analysis | null | undefined) => {
+    if (!analysis) return ''
+    if (analysis.user_image_url) return analysis.user_image_url
+    return analysis.product_type === 'saju_perfume' ? SAJU_ANALYSIS_PLACEHOLDER_IMAGE : ''
+  }
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
@@ -582,6 +589,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
               }
 
               const analysis = item.data
+              const displayImageUrl = getDisplayImageUrl(analysis)
               return (
           <motion.div
               key={analysis.id}
@@ -617,9 +625,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       )}
                     </div>
                   )}
-                  {analysis.user_image_url ? (
+                  {displayImageUrl ? (
                     <img
-                      src={analysis.user_image_url}
+                      src={displayImageUrl}
                       alt={analysis.twitter_name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -856,9 +864,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   className="w-20 h-20 rounded-xl overflow-hidden border-2 border-black flex-shrink-0 cursor-pointer"
                   onClick={isSelectionMode ? undefined : () => setSelectedImage(analysis)}
                 >
-                  {analysis.user_image_url ? (
+                  {getDisplayImageUrl(analysis) ? (
                     <img
-                      src={analysis.user_image_url}
+                      src={getDisplayImageUrl(analysis)}
                       alt={analysis.twitter_name}
                       className="w-full h-full object-cover hover:scale-110 transition-transform"
                     />
@@ -1010,9 +1018,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black] overflow-y-auto">
                   {/* 이미지 - 모바일에서 크기 제한 */}
                   <div className="relative aspect-[4/3] sm:aspect-square max-h-[40vh] sm:max-h-[50vh]">
-                    {selectedImage.user_image_url ? (
+                    {getDisplayImageUrl(selectedImage) ? (
                       <img
-                        src={selectedImage.user_image_url}
+                        src={getDisplayImageUrl(selectedImage)}
                         alt={selectedImage.twitter_name}
                         className="w-full h-full object-cover"
                       />

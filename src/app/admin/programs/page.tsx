@@ -26,6 +26,7 @@ interface AdminProduct {
   slug: string
   name: string
   is_active: boolean
+  is_enabled: boolean
   display_order: number
   badge_text: string | null
   badge_color: string | null
@@ -179,6 +180,40 @@ function ProductTypeChip({ type }: { type: ProductType }) {
   )
 }
 
+function ToggleSwitch({
+  checked,
+  disabled,
+  onColor,
+  ariaLabel,
+  onToggle,
+}: {
+  checked: boolean
+  disabled: boolean
+  onColor: string
+  ariaLabel: string
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={onToggle}
+      disabled={disabled}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+        checked ? onColor : 'bg-slate-300'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-4' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  )
+}
+
 export default function AdminProgramsPage() {
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [loading, setLoading] = useState(true)
@@ -228,13 +263,21 @@ export default function AdminProgramsPage() {
       .sort((a, b) => a.display_order - b.display_order)
   }, [products])
 
+  // "활성 프로그램" = 사용 가능(is_enabled) 프로그램 수. 메인 노출(is_active)과는 별개다.
   const activeCount = ADMIN_PROGRAMS.filter((program) => {
-    if (!program.registryManaged) return true
-    return productBySlug.get(program.slug)?.is_active
+    const registry = productBySlug.get(program.slug)
+    if (!program.registryManaged) return registry ? registry.is_enabled !== false : true
+    return !!registry && registry.is_enabled !== false
   }).length
 
-  // 메인페이지 노출 on/off (오늘의 향 등 레지스트리 비관리 프로그램용). 행 없으면 생성, 있으면 수정.
-  const handleToggleActive = async (program: AdminProgramDefinition, nextActive: boolean) => {
+  // 프로그램 레지스트리 행을 부분 수정(PATCH)하거나 없으면 생성(POST)한다.
+  // POST 기본값(API): is_active=false, is_enabled=true.
+  const patchProgram = async (
+    program: AdminProgramDefinition,
+    patch: Record<string, unknown>,
+    successMessage: string,
+    failMessage: string,
+  ) => {
     setBusySlug(program.slug)
     try {
       const existing = productBySlug.get(program.slug)
@@ -243,20 +286,38 @@ export default function AdminProgramsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
           existing
-            ? { slug: program.slug, is_active: nextActive }
-            : { slug: program.slug, name: program.name, is_active: nextActive, display_order: products.length },
+            ? { slug: program.slug, ...patch }
+            : { slug: program.slug, name: program.name, display_order: products.length, ...patch },
         ),
       })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error || '노출 설정 실패')
-      showToast(nextActive ? '메인 페이지에 노출됩니다' : '메인 페이지에서 숨김 처리되었습니다')
+      if (!res.ok) throw new Error(json.error || failMessage)
+      showToast(successMessage)
       await fetchProducts()
     } catch (error) {
-      showToast(error instanceof Error ? error.message : '노출 설정 실패')
+      showToast(error instanceof Error ? error.message : failMessage)
     } finally {
       setBusySlug(null)
     }
   }
+
+  // 프로그램 활성/비활성 (사용 가능 여부 마스터 스위치). 메인 노출 여부와 무관하게 켜고 끌 수 있다.
+  const handleToggleEnabled = (program: AdminProgramDefinition, nextEnabled: boolean) =>
+    patchProgram(
+      program,
+      { is_enabled: nextEnabled },
+      nextEnabled ? '프로그램이 활성화되었습니다' : '프로그램이 비활성화되었습니다',
+      '활성 설정 실패',
+    )
+
+  // 메인페이지 노출 on/off (오늘의 향 등 레지스트리 비관리 프로그램용). 행 없으면 생성, 있으면 수정.
+  const handleToggleActive = (program: AdminProgramDefinition, nextActive: boolean) =>
+    patchProgram(
+      program,
+      { is_active: nextActive },
+      nextActive ? '메인 페이지에 노출됩니다' : '메인 페이지에서 숨김 처리되었습니다',
+      '노출 설정 실패',
+    )
 
   // 메인 카드 뱃지 저장. registry 행이 있을 때만 호출된다(PATCH).
   const handleSaveBadge = async (program: AdminProgramDefinition, text: string, color: string) => {
@@ -356,12 +417,12 @@ export default function AdminProgramsPage() {
               const registry = productBySlug.get(program.slug)
               const kindBadge = KIND_BADGE[program.kind]
               const isRegistered = !program.registryManaged || !!registry
-              // registryManaged: registry.is_active 기준. 그 외(오늘의 향 등): 행 없으면 기본 노출(true)
-              const isActive = program.registryManaged
-                ? registry?.is_active === true
-                : registry
-                  ? registry.is_active
-                  : true
+              // 활성(사용 가능) 여부. 행이 없으면 기본 활성.
+              const isEnabled = registry ? registry.is_enabled !== false : true
+              // 메인 노출 원본 플래그. registryManaged 프로그램은 행이 있어야 노출, 그 외(오늘의 향 등)는 행 없으면 기본 노출.
+              const mainOn = registry ? registry.is_active : !program.registryManaged
+              // 실제 메인 노출 = 활성 AND 메인 노출 플래그.
+              const isVisible = isEnabled && mainOn
 
               return (
                 <section key={program.slug} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
@@ -381,27 +442,31 @@ export default function AdminProgramsPage() {
                       </div>
                     </div>
                     {isRegistered && (
-                      <div className="flex shrink-0 items-center justify-between gap-3 sm:flex-col sm:items-end sm:gap-1">
-                        <span className={`text-[10px] font-bold ${isActive ? 'text-green-600' : 'text-slate-400'}`}>
-                          {isActive ? '메인 노출' : '미노출'}
-                        </span>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={isActive}
-                          aria-label={isActive ? '메인 노출 끄기' : '메인 노출 켜기'}
-                          onClick={() => handleToggleActive(program, !isActive)}
-                          disabled={busySlug === program.slug}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                            isActive ? 'bg-green-500' : 'bg-slate-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                              isActive ? 'translate-x-4' : 'translate-x-0.5'
-                            }`}
+                      <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold ${isEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>
+                            {isEnabled ? '활성' : '비활성'}
+                          </span>
+                          <ToggleSwitch
+                            checked={isEnabled}
+                            disabled={busySlug === program.slug}
+                            onColor="bg-emerald-500"
+                            ariaLabel={isEnabled ? '프로그램 비활성화' : '프로그램 활성화'}
+                            onToggle={() => handleToggleEnabled(program, !isEnabled)}
                           />
-                        </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold ${isVisible ? 'text-green-600' : 'text-slate-400'}`}>
+                            {isVisible ? '메인 노출' : '미노출'}
+                          </span>
+                          <ToggleSwitch
+                            checked={isVisible}
+                            disabled={busySlug === program.slug || !isEnabled}
+                            onColor="bg-green-500"
+                            ariaLabel={isVisible ? '메인 노출 끄기' : '메인 노출 켜기'}
+                            onToggle={() => handleToggleActive(program, !mainOn)}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

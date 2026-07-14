@@ -26,7 +26,7 @@ export function PurposePhase({ formData, setFormData }: PurposePhaseProps) {
     const select = (purpose: SajuPurpose) =>
         setFormData((prev) => ({ ...prev, purpose }))
 
-    const renderCard = (purpose: SajuPurpose, fullWidth = false) => {
+    const renderCard = (purpose: SajuPurpose, hero = false) => {
         const isActive = selected === purpose
         const dimmed = selected !== null && !isActive
         return (
@@ -38,21 +38,21 @@ export function PurposePhase({ formData, setFormData }: PurposePhaseProps) {
                 animate={{ opacity: dimmed ? 0.55 : 1 }}
                 transition={{ duration: 0.3 }}
                 className={`flex flex-col items-center gap-1.5 rounded-lg border p-4 transition-colors duration-300 ${
-                    fullWidth ? 'col-span-2 min-h-[96px]' : 'min-h-[124px]'
+                    hero ? 'col-span-2 min-h-[148px] justify-center' : 'min-h-[124px]'
                 } ${isActive ? 'border-[#C9A227] bg-[#12141D]' : 'border-[#262A38] bg-[#12141D]'}`}
                 style={isActive ? { boxShadow: '0 0 20px rgba(201,162,39,0.15)' } : undefined}
             >
                 {isActive ? (
-                    <SealStamp chars={SAJU_PURPOSE_HANJA[purpose]} size="md" tone="cinnabar" stamped />
+                    <SealStamp chars={SAJU_PURPOSE_HANJA[purpose]} size={hero ? 'lg' : 'md'} tone="cinnabar" stamped />
                 ) : (
                     <span className="text-[#A69F8D]">
-                        <SealStamp chars={SAJU_PURPOSE_HANJA[purpose]} size="md" tone="outline" />
+                        <SealStamp chars={SAJU_PURPOSE_HANJA[purpose]} size={hero ? 'lg' : 'md'} tone="outline" />
                     </span>
                 )}
                 <span
-                    className={`font-serif-kr break-keep mt-1 text-[16px] font-semibold leading-[1.4] transition-colors duration-300 ${
-                        isActive ? 'text-[#E9E2D0]' : 'text-[#A69F8D]'
-                    }`}
+                    className={`font-serif-kr break-keep mt-1 font-semibold leading-[1.4] transition-colors duration-300 ${
+                        hero ? 'text-[18px]' : 'text-[16px]'
+                    } ${isActive ? 'text-[#E9E2D0]' : 'text-[#A69F8D]'}`}
                 >
                     {t(`options.${purpose}.label`)}
                 </span>
@@ -72,8 +72,8 @@ export function PurposePhase({ formData, setFormData }: PurposePhaseProps) {
             <PhaseHeader title={t('title')} sub={isIdol ? t('subIdol') : t('sub')} />
 
             <div className="grid grid-cols-2 gap-3">
-                {SAJU_PURPOSE_ORDER.filter((p) => p !== 'compatibility').map((p) => renderCard(p))}
-                {renderCard('compatibility', true)}
+                {renderCard('general', true)}
+                {SAJU_PURPOSE_ORDER.filter((p) => p !== 'general').map((p) => renderCard(p))}
             </div>
         </div>
     )

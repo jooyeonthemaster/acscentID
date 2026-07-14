@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +14,7 @@ import { RecipeConfirm } from './feedback/RecipeConfirm'
 import { RetryFeedbackGuide } from './feedback/RetryFeedbackGuide'
 import { ScentCategoryScores } from '@/types/analysis'
 import { PerfumeFeedback } from '@/types/feedback'
+import { FeedbackTheme, SJ, SJ_SEAL_TILE, SAJU_STEP_HANJA, useFeedbackTranslations } from './feedback/sajuFeedbackTheme'
 
 // 모달 뷰 상태 타입
 type ModalView = 'form' | 'success' | 'confirm' | 'retry-guide'
@@ -28,6 +28,8 @@ interface FeedbackModalProps {
   perfumeCategory: string
   resultId?: string
   characterName?: string // 분석된 캐릭터 이름
+  /** 프로그램별 스킨 — 사주는 한지 처방전 스킨 */
+  theme?: FeedbackTheme
 }
 
 // Step info icons (titles come from translations)
@@ -47,7 +49,9 @@ export function FeedbackModal({
   perfumeCategory,
   resultId,
   characterName,
+  theme = 'default',
 }: FeedbackModalProps) {
+  const saju = theme === 'saju'
   const {
     step,
     feedback,
@@ -73,10 +77,11 @@ export function FeedbackModal({
     perfumeCategory,
     resultId,
     characterName,
+    theme,
   })
 
   const router = useRouter()
-  const t = useTranslations('feedback')
+  const t = useFeedbackTranslations(theme)
 
   // Step info with translations
   const STEP_INFO = [
@@ -227,7 +232,7 @@ export function FeedbackModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className={`fixed inset-0 z-50 ${saju ? SJ.backdrop : 'bg-black/60 backdrop-blur-sm'}`}
           />
 
           {/* 모달 */}
@@ -236,24 +241,28 @@ export function FeedbackModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-white rounded-t-3xl shadow-2xl overflow-hidden flex flex-col"
+            className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] ${saju ? SJ.sheet : 'bg-white'} rounded-t-3xl shadow-2xl overflow-hidden flex flex-col`}
           >
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${saju ? SJ.hairline : 'border-slate-100'} flex-shrink-0`}>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{currentStepInfo.icon}</span>
+                {saju ? (
+                  <span aria-hidden className={SJ_SEAL_TILE}>{SAJU_STEP_HANJA[step - 1]}</span>
+                ) : (
+                  <span className="text-2xl">{currentStepInfo.icon}</span>
+                )}
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900">
+                  <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>
                     {currentStepInfo.title}
                   </h2>
-                  <p className="text-xs text-slate-500">{currentStepInfo.subtitle}</p>
+                  <p className={`text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>{currentStepInfo.subtitle}</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
-                className="p-2 -mr-2 rounded-full hover:bg-slate-100 transition-colors"
+                className={`p-2 -mr-2 rounded-full ${saju ? SJ.iconHover : 'hover:bg-slate-100'} transition-colors`}
               >
-                <X size={20} className="text-slate-500" />
+                <X size={20} className={saju ? 'text-[#5C564A]' : 'text-slate-500'} />
               </button>
             </div>
 
@@ -264,7 +273,9 @@ export function FeedbackModal({
                   <motion.div
                     key={s}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
-                      s <= step ? 'bg-amber-400' : 'bg-slate-200'
+                      s <= step
+                        ? saju ? SJ.progressActive : 'bg-amber-400'
+                        : saju ? SJ.progressInactive : 'bg-slate-200'
                     }`}
                     initial={s === step ? { scaleX: 0 } : {}}
                     animate={{ scaleX: 1 }}
@@ -276,41 +287,55 @@ export function FeedbackModal({
 
             {/* Step 2: 현재 비율 상태 고정 표시 */}
             {step === 2 && (
-              <div className="px-5 pb-2 flex-shrink-0 sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
-                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-3 border border-amber-200/50">
+              <div className={`px-5 pb-2 flex-shrink-0 sticky top-0 z-10 border-b shadow-sm ${saju ? `bg-[#F5EFE2] ${SJ.hairline}` : 'bg-white border-slate-100'}`}>
+                <div className={`rounded-xl p-3 border ${saju ? SJ.cardSoft : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200/50'}`}>
                   <div className="flex justify-between items-center text-xs mb-2">
-                    <span className="text-slate-600 font-medium">📊 {t('ratioStatus')}</span>
-                    <span className={`font-bold ${isOverLimit ? 'text-red-500' : currentTotalRatio === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+                    <span className={`font-medium ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{saju ? t('ratioStatus') : `📊 ${t('ratioStatus')}`}</span>
+                    <span className={`font-bold ${
+                      isOverLimit
+                        ? saju ? SJ.cinnabarText : 'text-red-500'
+                        : currentTotalRatio === 100
+                          ? saju ? SJ.goldText : 'text-green-600'
+                          : saju ? SJ.inkMuted : 'text-amber-600'
+                    }`}>
                       {currentTotalRatio}% / 100%
                     </span>
                   </div>
-                  <div className="h-2.5 bg-white rounded-full overflow-hidden shadow-inner">
+                  <div className={`h-2.5 rounded-full overflow-hidden shadow-inner ${saju ? 'bg-[#FDFAF1]' : 'bg-white'}`}>
                     <div className="h-full flex">
                       <div
-                        className="bg-amber-400 transition-all duration-300"
+                        className={`transition-all duration-300 ${saju ? SJ.fillGold : 'bg-amber-400'}`}
                         style={{ width: `${Math.min(feedback.retentionPercentage, 100)}%` }}
                       />
                       <div
-                        className={`transition-all duration-300 ${isOverLimit ? 'bg-red-400' : 'bg-green-400'}`}
+                        className={`transition-all duration-300 ${
+                          isOverLimit
+                            ? saju ? SJ.fillCinnabar : 'bg-red-400'
+                            : saju ? SJ.fillBlue : 'bg-green-400'
+                        }`}
                         style={{ width: `${Math.min(totalAdditionalRatio, 100 - feedback.retentionPercentage)}%` }}
                       />
                     </div>
                   </div>
-                  <div className="flex justify-between text-[10px] mt-1.5 text-slate-500">
+                  <div className={`flex justify-between text-[10px] mt-1.5 ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
                     <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span className={`w-2 h-2 rounded-full ${saju ? SJ.fillGold : 'bg-amber-400'}`}></span>
                       {t('recommendedScent')} {feedback.retentionPercentage}%
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className={`w-2 h-2 rounded-full ${isOverLimit ? 'bg-red-400' : 'bg-green-400'}`}></span>
+                      <span className={`w-2 h-2 rounded-full ${
+                        isOverLimit
+                          ? saju ? SJ.fillCinnabar : 'bg-red-400'
+                          : saju ? SJ.fillBlue : 'bg-green-400'
+                      }`}></span>
                       {t('additionalScent')} {totalAdditionalRatio}%
                     </span>
                     {currentTotalRatio < 100 && (
-                      <span className="text-slate-300">{t('unset')} {100 - currentTotalRatio}%</span>
+                      <span className={saju ? SJ.inkFaint : 'text-slate-300'}>{t('unset')} {100 - currentTotalRatio}%</span>
                     )}
                   </div>
                   {isOverLimit && (
-                    <p className="text-xs text-red-500 mt-2 font-medium text-center">
+                    <p className={`text-xs mt-2 font-medium text-center ${saju ? SJ.cinnabarText : 'text-red-500'}`}>
                       {t('ratioOverWarning')}
                     </p>
                   )}
@@ -327,14 +352,14 @@ export function FeedbackModal({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between"
+                    className={`mb-4 p-3 border rounded-xl flex items-center justify-between ${saju ? SJ.cardSoft : 'bg-blue-50 border-blue-200'}`}
                   >
-                    <p className="text-blue-600 text-sm">
+                    <p className={`text-sm ${saju ? SJ.blueInk : 'text-blue-600'}`}>
                       {t('restoredNotice')}
                     </p>
                     <button
                       onClick={() => setShowRestoredNotice(false)}
-                      className="text-blue-400 hover:text-blue-600"
+                      className={saju ? 'text-[#8B8578] hover:text-[#2C3E50]' : 'text-blue-400 hover:text-blue-600'}
                     >
                       <X size={16} />
                     </button>
@@ -349,12 +374,12 @@ export function FeedbackModal({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between"
+                    className={`mb-4 p-3 border rounded-xl flex items-center justify-between ${saju ? SJ.cardCinnabar : 'bg-red-50 border-red-200'}`}
                   >
-                    <p className="text-red-600 text-sm">{error}</p>
+                    <p className={`text-sm ${saju ? SJ.cinnabarText : 'text-red-600'}`}>{error}</p>
                     <button
                       onClick={clearError}
-                      className="text-red-400 hover:text-red-600"
+                      className={saju ? 'text-[#C0392B]/60 hover:text-[#A93226]' : 'text-red-400 hover:text-red-600'}
                     >
                       <X size={16} />
                     </button>
@@ -369,25 +394,37 @@ export function FeedbackModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
+                    className={`absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center ${saju ? 'bg-[#F5EFE2]/95' : 'bg-white/90'}`}
                   >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-400/40 mb-4"
-                    >
-                      <Sparkles size={28} className="text-white" />
-                    </motion.div>
+                    {saju ? (
+                      // 금 고리 스피너 — 가운데 낙관 한자
+                      <div className="relative mb-4 flex h-16 w-16 items-center justify-center">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+                          className="absolute inset-0 rounded-full border-2 border-[#C9A227] border-t-transparent"
+                        />
+                        <span className="font-serif-kr text-2xl text-[#A93226]">香</span>
+                      </div>
+                    ) : (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-400/40 mb-4"
+                      >
+                        <Sparkles size={28} className="text-white" />
+                      </motion.div>
+                    )}
                     <motion.p
                       key={loadingMessageIndex}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="text-lg font-bold text-slate-700"
+                      className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}
                     >
                       {LOADING_MESSAGES[loadingMessageIndex]}
                     </motion.p>
-                    <p className="text-sm text-slate-400 mt-2">
+                    <p className={`text-sm mt-2 ${saju ? SJ.inkMuted : 'text-slate-400'}`}>
                       {t('loadingWait')}
                     </p>
                   </motion.div>
@@ -403,6 +440,7 @@ export function FeedbackModal({
                     retention={feedback.retentionPercentage}
                     onRetentionChange={updateRetention}
                     previousFeedback={previousFeedback}
+                    theme={theme}
                   />
                 )}
                 {modalView === 'form' && step === 2 && (
@@ -419,6 +457,7 @@ export function FeedbackModal({
                     onUpdateRatio={updateScentRatio}
                     onNotesChange={(notes) => updateFeedback({ notes })}
                     previousFeedback={previousFeedback}
+                    theme={theme}
                   />
                 )}
                 {modalView === 'form' && step === 3 && (
@@ -427,6 +466,7 @@ export function FeedbackModal({
                     feedback={feedback}
                     naturalLanguageFeedback={feedback.naturalLanguageFeedback || ''}
                     onNaturalLanguageFeedbackChange={(value) => updateFeedback({ naturalLanguageFeedback: value })}
+                    theme={theme}
                   />
                 )}
 
@@ -441,6 +481,7 @@ export function FeedbackModal({
                     onClose={handleClose}
                     onConfirmRecipe={handleConfirmRecipe}
                     onRetryFeedback={handleRetryFeedback}
+                    theme={theme}
                   />
                 )}
 
@@ -454,6 +495,7 @@ export function FeedbackModal({
                     selectedRecipeType={selectedRecipeType}
                     onBack={handleBackFromConfirm}
                     onComplete={handleCompleteConfirm}
+                    theme={theme}
                   />
                 )}
 
@@ -465,6 +507,7 @@ export function FeedbackModal({
                     perfumeName={perfumeName}
                     onConfirm={handleConfirmRetry}
                     onCancel={handleCancelRetry}
+                    theme={theme}
                   />
                 )}
               </AnimatePresence>
@@ -472,13 +515,13 @@ export function FeedbackModal({
 
             {/* 푸터 (폼 뷰에서만 표시) */}
             {modalView === 'form' && step < 4 && (
-              <div className="px-5 pt-4 pb-20 md:pb-4 border-t border-slate-100 flex gap-3 flex-shrink-0 bg-white">
+              <div className={`px-5 pt-4 pb-20 md:pb-4 border-t flex gap-3 flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-slate-100 bg-white'}`}>
                 {step > 1 && (
                   <Button
                     variant="outline"
                     onClick={prevStep}
                     disabled={isSubmitting}
-                    className="flex-1 h-12 rounded-2xl font-semibold border-2"
+                    className={`flex-1 h-12 rounded-2xl font-semibold border-2 ${saju ? SJ.ctaOutline : ''}`}
                   >
                     <ChevronLeft size={18} />
                     {t('prevButton')}
@@ -487,14 +530,16 @@ export function FeedbackModal({
                 <Button
                   onClick={handleNext}
                   disabled={isSubmitting || (step === 2 && currentTotalRatio !== 100)}
-                  className={`flex-1 h-12 rounded-2xl font-bold text-white transition-all ${
+                  className={`flex-1 h-12 rounded-2xl font-bold transition-all ${
                     step === 2 && currentTotalRatio !== 100
-                      ? 'bg-slate-400 cursor-not-allowed'
-                      : step === 3
-                        ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-lg shadow-purple-500/30'
-                        : step === 2
-                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-lg shadow-amber-500/30'
-                          : 'bg-slate-900 hover:bg-slate-800'
+                      ? saju ? SJ.ctaDisabled : 'text-white bg-slate-400 cursor-not-allowed'
+                      : saju
+                        ? SJ.ctaCinnabar
+                        : step === 3
+                          ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-lg shadow-purple-500/30'
+                          : step === 2
+                            ? 'text-white bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 shadow-lg shadow-amber-500/30'
+                            : 'text-white bg-slate-900 hover:bg-slate-800'
                   }`}
                 >
                   {isSubmitting ? (

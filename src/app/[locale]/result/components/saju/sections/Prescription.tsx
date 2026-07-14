@@ -7,18 +7,18 @@
 // 처방 항목(세로 리스트, 한자 불릿):
 //   時 뿌리는 때(ritualGuide 전문) / 景 향이 놓이는 장면(wearingMoment)
 //   季 어울리는 계절·시간(칩 — 이모지 금지) / 流 올해의 흐름(yearlyFlow, 인용 스타일)
-// 키워드 낙관 칩(matchingKeywords ≤4) + 공유 넛지 + 마무리 낙관 命香.
+// 키워드 낙관 칩(matchingKeywords ≤4) + 공유 넛지 + 마무리 사주 분석 로고.
 // ※ SajuResultPage는 이 섹션을 가로 패딩 래퍼 없이(full-bleed) 렌더할 것.
 // ============================================================
 
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import Image from 'next/image';
 import type { BestSeasonType, BestTimeType } from '@/types/analysis';
 import { BEST_SEASON_LABELS, BEST_TIME_LABELS } from '@/types/analysis';
 import {
   BrushDivider,
-  SealStamp,
   VerticalLabel,
   SAJU_EASE_INK,
   SAJU_VIEWPORT,
@@ -151,6 +151,7 @@ function Chip({ label, selected }: { label: string; selected: boolean }) {
 export function Prescription({ result, targetType, onShare }: PrescriptionProps) {
   const t = useTranslations('saju.result');
   const tt = (key: string, fallback: string) => (t.has(key) ? t(key) : fallback);
+  const reduce = useReducedMotion();
   const [sealStamped, setSealStamped] = useState(false);
 
   const destiny = result.sajuAnalysis?.scentDestiny;
@@ -165,7 +166,7 @@ export function Prescription({ result, targetType, onShare }: PrescriptionProps)
     <section className="saju-hanji relative overflow-x-clip bg-[#F5EFE2]">
       <ScrollRod />
 
-      <div className="relative px-6 py-20">
+      <div className="relative px-6 pt-8 pb-8">
         {/* 오프너 — 크림 지면: ink 톤 */}
         <div className="relative">
           <div className="mb-3">
@@ -299,7 +300,19 @@ export function Prescription({ result, targetType, onShare }: PrescriptionProps)
           viewport={SAJU_VIEWPORT}
           onViewportEnter={() => setSealStamped(true)}
         >
-          <SealStamp chars="命香" size="lg" tone="cinnabar" stamped={sealStamped} />
+          <motion.div
+            initial={reduce ? false : { opacity: 0, scale: 1.12 }}
+            animate={sealStamped ? { opacity: 1, scale: 1 } : undefined}
+            transition={{ duration: 0.7, ease: SAJU_EASE_INK }}
+          >
+            <Image
+              src="/images/saju/saju-logo.png"
+              alt={tt('s7.closingSealAlt', '사주 분석 퍼퓸')}
+              width={72}
+              height={72}
+              className="h-[72px] w-[72px] select-none object-contain"
+            />
+          </motion.div>
           <p className="max-w-[300px] break-keep text-center font-serif-kr text-[12px] leading-[1.6] text-[#5C564A]">
             {targetType === 'idol' ? t('s7.closingIdol') : t('s7.closing')}
           </p>

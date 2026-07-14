@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties } from 'react'
 import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO } from '@/types/analysis'
-import { sajuClip } from '@/components/saju/text'
 
 interface PrintableAnalysis {
   id: string
@@ -385,6 +384,36 @@ const SAJU_TIME_CHIPS = [
   { key: 'night', label: '밤' },
 ] as const
 
+const SAJU_PILLAR_TILE_LEFT = 84
+const SAJU_PILLAR_TILE_STEP = 68
+
+function sajuPrintFit(text: string | null | undefined, max: number): string {
+  const normalized = (text || '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+
+  const chars = Array.from(normalized)
+  if (chars.length <= max) return normalized
+
+  const hard = chars.slice(0, max).join('')
+  const lastSpace = hard.lastIndexOf(' ')
+  const cut = lastSpace >= max * 0.58 ? hard.slice(0, lastSpace) : hard
+  return cut.replace(/[\s,.·…:;—-]+$/u, '')
+}
+
+function sajuPrintSentence(text: string | null | undefined, max: number): string {
+  const normalized = (text || '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+
+  const firstSentence = normalized.match(/^[^.!?。！？]+[.!?。！？]?/u)?.[0] || normalized
+  const summary = sajuPrintFit(firstSentence.replace(/[.!?。！？]+$/u, ''), max)
+  return summary ? `${summary.replace(/\s+—\s+/gu, ' —\n')}.` : ''
+}
+
+function sajuPrintPerfumeCode(code: string): string {
+  const number = code.match(/\d+/)?.[0]
+  return number ? `악센트 ${number}호` : '악센트'
+}
+
 // 인쇄용 GanjiTile 정적 재현 (§7.2 L9/L10) — 크림 면은 배경 SVG에 맡긴다
 function SajuPrintTile({ left, top, hanja, reading, barColor, unknown = false, isSelf }: {
   left: number; top: number; hanja: string; reading: string; barColor: string; unknown?: boolean; isSelf: boolean
@@ -440,13 +469,13 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   const labelStyle: CSSProperties = { fontSize: 7.5, fontWeight: 600, letterSpacing: '0.14em', color: labelColor, lineHeight: 1.2 }
 
   // L5/L7 — 이름·생시
-  const displayName = (analysis.idol_name || analysis.twitter_name || '').slice(0, 10)
+  const displayName = sajuPrintFit(analysis.idol_name || analysis.twitter_name || '', 10)
   const bd = chart?.birthDisplay
   const birthLine1 = bd ? `${bd.solarDate.replace(/-/g, '.')} (${bd.calendar === 'lunar' ? '음력' : '양력'})` : ''
   const genderRaw = (analysis.idol_gender || '').toLowerCase()
   const genderLabel = genderRaw.startsWith('m') || genderRaw.includes('남')
-    ? '건명'
-    : genderRaw.startsWith('f') || genderRaw.includes('여') ? '곤명' : ''
+    ? '남성(男)'
+    : genderRaw.startsWith('f') || genderRaw.includes('여') ? '여성(女)' : ''
   const sijinLabel = chart ? (chart.isThreePillar || !bd?.sijin ? '시(時) 미상' : bd.sijin) : ''
   const birthLine2 = [sijinLabel, genderLabel].filter(Boolean).join(' · ')
 
@@ -460,18 +489,18 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
 
   const yongsinElement = chart?.yongsin?.element
   const yongsinInfo = yongsinElement ? SAJU_ELEMENT_INFO[yongsinElement] : null
-  const yongsinReason = sajuClip(saju?.elementFlow?.yongsinNarrative || '', 60)
+  const yongsinReason = sajuPrintSentence(saju?.elementFlow?.yongsinNarrative || '', 58)
 
   // R3~R7 — 향
   const matching = data?.matchingPerfumes?.[0]
   const persona = matching?.persona
-  const perfumeName = sajuClip(persona?.name || analysis.perfume_name || '', 24)
+  const perfumeName = sajuPrintFit(persona?.name || analysis.perfume_name || '', 32)
   const rawPerfumeId = matching?.perfumeId || persona?.id || ''
-  const brandLine = rawPerfumeId ? (/ac.?scent/i.test(rawPerfumeId) ? rawPerfumeId : `AC'SCENT ${rawPerfumeId}`) : ''
+  const brandLine = rawPerfumeId ? sajuPrintPerfumeCode(rawPerfumeId) : ''
   const noteRows = [
-    { chip: '겉기운 TOP', name: persona?.mainScent?.name, meaning: saju?.scentDestiny?.topMeaning, top: 144 },
-    { chip: '중심기운 MIDDLE', name: persona?.subScent1?.name, meaning: saju?.scentDestiny?.middleMeaning, top: 200 },
-    { chip: '뿌리기운 BASE', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 256 },
+    { chip: '겉향', name: persona?.mainScent?.name, meaning: saju?.scentDestiny?.topMeaning, top: 144 },
+    { chip: '중심향', name: persona?.subScent1?.name, meaning: saju?.scentDestiny?.middleMeaning, top: 200 },
+    { chip: '잔향', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 256 },
   ]
 
   // R9 — 6계열 점수 내림차순 (기존 문법)
@@ -479,7 +508,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
     .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 6)
   const scentRecommendation = data?.scentRecommendation
-  const timingAdvice = sajuClip(saju?.purposeReading?.timingAdvice || '', 80)
+  const timingAdvice = sajuPrintSentence(saju?.purposeReading?.timingAdvice || '', 72)
   const reportDate = (analysis.created_at || '').slice(0, 10).replace(/-/g, '.')
 
   return (
@@ -502,15 +531,20 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
       >
         {/* 배경 — 장식 전용 SVG (3-1 최애 / 3-2 나) */}
         <img
-          src={isSelfSaju ? '/background/3-2.svg' : '/background/3-1.svg'}
+          src={isSelfSaju ? '/background/3-2.svg?v=aligned-pillars-20260715' : '/background/3-1.svg?v=aligned-pillars-20260715'}
           alt=""
           className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         />
 
         {/* ===== 좌측 패널 — 命式 (§7.2) ===== */}
 
-        {/* L1 프로그램 낙관 */}
-        <SajuPrintSeal left={36} top={36} size={44} chars="命香" isSelf={isSelfSaju} />
+        {/* L1 프로그램 낙관 — 사주 분석 로고 */}
+        <img
+          src="/images/saju/saju-logo.png"
+          alt="사주 분석 퍼퓸"
+          className="absolute object-contain"
+          style={{ left: 36, top: 36, width: 44, height: 44 }}
+        />
 
         {/* L2 타이틀 */}
         <div className="absolute" style={{ left: 92, top: 40, width: 240, height: 18, fontSize: 13, fontWeight: 900, letterSpacing: '0.35em', color: '#1A1610', lineHeight: 1.2 }}>
@@ -526,7 +560,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         <div className="absolute" style={{ left: 36, top: 94, width: 60, height: 10, ...labelStyle }}>이름</div>
 
         {/* L5 이름 값 — 10자 truncate */}
-        <div className="absolute" style={{ left: 36, top: 106, width: 150, height: 20, fontSize: 14, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+        <div className="absolute" style={{ left: 36, top: 106, width: 150, height: 20, fontSize: 14, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
           {displayName || '-'}
         </div>
 
@@ -536,14 +570,14 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {/* L7 생시 값 — 2줄, 각 줄 truncate */}
         {(birthLine1 || birthLine2) && (
           <div className="absolute" style={{ left: 196, top: 106, width: 170, height: 30 }}>
-            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{birthLine1}</div>
-            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{birthLine2}</div>
+            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>{birthLine1}</div>
+            <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>{birthLine2}</div>
           </div>
         )}
 
         {/* L8 열 헤더 + L9/L10 간지 타일 (좌→우 時柱 日柱 月柱 年柱) */}
         {pillarColumns.map((col, i) => {
-          const left = 84 + 68 * i
+          const left = SAJU_PILLAR_TILE_LEFT + SAJU_PILLAR_TILE_STEP * i
           const ganBar = col.unknown ? '#8B8578' : isSelfSaju ? '#1A1610' : (col.pillar ? SAJU_ELEMENT_INFO[col.pillar.ganElement].color : '#8B8578')
           const jiBar = col.unknown ? '#8B8578' : isSelfSaju ? '#1A1610' : (col.pillar ? SAJU_ELEMENT_INFO[col.pillar.jiElement].color : '#8B8578')
           return (
@@ -581,7 +615,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           const info = SAJU_ELEMENT_INFO[el]
           const count = Math.max(0, Math.min(8, chart.elementCount?.[el] ?? 0))
           return (
-            <div key={el} className="absolute flex items-center" style={{ left: 52, top: 344 + 21 * j, width: 300, height: 16 }}>
+            <div key={el} className="absolute flex items-center" style={{ left: 52, top: 344 + 21 * j, width: 318, height: 16 }}>
               <span style={{ width: 52, fontSize: 10, fontWeight: 600, color: isSelfSaju ? '#1A1610' : info.onCream, flexShrink: 0 }}>
                 {info.hanja} {el}
               </span>
@@ -609,12 +643,12 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         )}
 
         {/* L14 용신 라벨 */}
-        <div className="absolute" style={{ left: 140, top: 470, width: 224, height: 10, ...labelStyle }}>용신(用神) — 필요한 기운</div>
+        <div className="absolute" style={{ left: 140, top: 470, width: 240, height: 10, ...labelStyle }}>용신(用神) · 필요한 기운</div>
 
         {/* L15 용신 오행명 — 1줄 truncate */}
         {yongsinElement && yongsinInfo && (
-          <div className="absolute" style={{ left: 140, top: 483, width: 224, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
-            {yongsinElement}({yongsinInfo.hanja}) — {SAJU_YONGSIN_EPITHET[yongsinElement]}
+          <div className="absolute" style={{ left: 140, top: 483, width: 240, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
+            {yongsinElement}({yongsinInfo.hanja}) · {SAJU_YONGSIN_EPITHET[yongsinElement]}
           </div>
         )}
 
@@ -622,22 +656,22 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {yongsinReason && (
           <div
             className="absolute"
-            style={{ left: 140, top: 504, width: 224, height: 32, fontSize: 8.5, lineHeight: 1.4, color: '#5C564A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+            style={{ left: 140, top: 504, width: 240, height: 38, fontSize: 8.5, lineHeight: 1.45, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
           >
             {yongsinReason}
           </div>
         )}
 
         {/* L17 푸터 */}
-        <div className="absolute" style={{ left: 52, top: 552, width: 300, height: 12, fontSize: 7, color: '#8B8578', letterSpacing: '0.1em', lineHeight: 1.2 }}>
-          MIDNIGHT ATELIER{reportDate ? ` · ${reportDate}` : ''}
+        <div className="absolute" style={{ left: 52, top: 552, width: 318, height: 12, fontSize: 7, color: '#8B8578', letterSpacing: '0.1em', lineHeight: 1.2 }}>
+          자정의 조향소{reportDate ? ` · ${reportDate}` : ''}
         </div>
 
-        {/* ===== 우측 패널 — SCENT PROFILE (§7.3) ===== */}
+        {/* ===== 우측 패널 — 香處方 (§7.3) ===== */}
 
         {/* R1 헤더 */}
-        <div className="absolute" style={{ left: 462, top: 40, width: 220, height: 14, fontSize: 11, fontWeight: 900, letterSpacing: '0.4em', color: isSelfSaju ? '#1A1610' : '#7A5C14', lineHeight: 1.2 }}>
-          SCENT PROFILE
+        <div className="absolute" style={{ left: 462, top: 40, width: 220, height: 14, fontSize: 11, fontWeight: 900, letterSpacing: '0.32em', color: isSelfSaju ? '#1A1610' : '#7A5C14', lineHeight: 1.2 }}>
+          香處方
         </div>
 
         {/* R2 서브 */}
@@ -649,7 +683,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {perfumeName && (
           <div
             className="absolute"
-            style={{ left: 462, top: 82, width: 328, height: 40, fontSize: 19, fontWeight: 900, lineHeight: '20px', color: '#1A1610', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+            style={{ left: 462, top: 82, width: 328, height: 40, fontSize: 18, fontWeight: 900, lineHeight: '20px', color: '#1A1610', overflow: 'hidden', wordBreak: 'keep-all' }}
           >
             {perfumeName}
           </div>
@@ -668,7 +702,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
             <div
               className="absolute flex items-center justify-center"
               style={{
-                left: 462, top: row.top, width: 78, height: 18, borderRadius: 2,
+                left: 462, top: row.top, width: 54, height: 18, borderRadius: 2,
                 fontSize: 7.5, fontWeight: 900, letterSpacing: '0.04em', lineHeight: 1,
                 ...(isSelfSaju
                   ? { border: '1px solid #1A1610', color: '#1A1610' }
@@ -678,16 +712,16 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
               {row.chip}
             </div>
             {row.name && (
-              <div className="absolute flex items-center" style={{ left: 550, top: row.top, width: 240, height: 18, fontSize: 12.5, fontWeight: 700, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {sajuClip(row.name, 14)}
+              <div className="absolute flex items-center" style={{ left: 528, top: row.top, width: 262, height: 18, fontSize: 12.5, fontWeight: 700, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                {sajuPrintFit(row.name, 20)}
               </div>
             )}
             {row.meaning && (
               <div
                 className="absolute"
-                style={{ left: 462, top: row.top + 22, width: 328, height: 26, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all' }}
+                style={{ left: 462, top: row.top + 22, width: 328, height: 26, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
               >
-                {sajuClip(row.meaning, 55)}
+                {sajuPrintSentence(row.meaning, 54)}
               </div>
             )}
           </div>
@@ -706,16 +740,24 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
               <span style={{ width: 64, fontSize: 10, fontWeight: 700, color: '#1A1610', flexShrink: 0 }}>
                 {CATEGORY_INFO[key]?.name || key}
               </span>
-              <div className="flex items-center" style={{ gap: 3 }}>
+              <div
+                className="grid items-center"
+                style={{
+                  flex: 1,
+                  gridTemplateColumns: 'repeat(10, minmax(0, 1fr))',
+                  gap: 3,
+                  marginRight: 8,
+                }}
+              >
                 {Array.from({ length: 10 }).map((_, i) => (
                   i < value ? (
                     isSelfSaju
-                      ? <div key={i} style={{ width: 8, height: 8, backgroundColor: '#1A1610' }} />
-                      : <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: catColor }} />
+                      ? <div key={i} style={{ width: '100%', height: 8, backgroundColor: '#1A1610' }} />
+                      : <div key={i} style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: catColor }} />
                   ) : (
                     isSelfSaju
-                      ? <div key={i} style={{ width: 8, height: 8, border: '1px solid #C8BFA9' }} />
-                      : <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#C8BFA9', transform: 'scale(0.6)' }} />
+                      ? <div key={i} style={{ width: '100%', height: 8, border: '1px solid #C8BFA9' }} />
+                      : <div key={i} style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: '#C8BFA9', transform: 'scaleY(0.62)' }} />
                   )
                 ))}
               </div>
@@ -730,25 +772,26 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
               >
                 <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{value}</span>
               </div>
-              {isTop && (
-                <div
-                  className="flex items-center justify-center"
-                  style={{
-                    marginLeft: 4, width: 12, height: 12, flexShrink: 0,
-                    ...(isSelfSaju
-                      ? { backgroundColor: '#1A1610' }
-                      : { backgroundColor: '#B03325', borderRadius: '18%', transform: 'rotate(-3deg)' }),
-                  }}
-                >
-                  <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{isSelfSaju ? '★' : '首'}</span>
-                </div>
-              )}
+              <div className="flex items-center justify-center" style={{ marginLeft: 4, width: 12, height: 12, flexShrink: 0 }}>
+                {isTop && (
+                  <div
+                    className="flex h-full w-full items-center justify-center"
+                    style={{
+                      ...(isSelfSaju
+                        ? { backgroundColor: '#1A1610' }
+                        : { backgroundColor: '#B03325', borderRadius: '18%', transform: 'rotate(-3deg)' }),
+                    }}
+                  >
+                    <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{isSelfSaju ? '★' : '首'}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
 
-        {/* R10 SEASON 라벨 */}
-        <div className="absolute" style={{ left: 462, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.3em' }}>BEST SEASON</div>
+        {/* R10 계절 라벨 */}
+        <div className="absolute" style={{ left: 462, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.18em' }}>길한 계절</div>
 
         {/* R11 SEASON 칩 ×4 */}
         <div className="absolute flex" style={{ left: 462, top: 470, width: 150, height: 36, gap: 6 }}>
@@ -771,8 +814,8 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           })}
         </div>
 
-        {/* R12 TIME 라벨 */}
-        <div className="absolute" style={{ left: 640, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.3em' }}>BEST TIME</div>
+        {/* R12 시간 라벨 */}
+        <div className="absolute" style={{ left: 640, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.18em' }}>길한 시간</div>
 
         {/* R13 TIME 칩 ×4 */}
         <div className="absolute flex" style={{ left: 640, top: 470, width: 150, height: 36, gap: 6 }}>
@@ -800,7 +843,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           <div className="absolute flex" style={{ left: 462, top: 520, width: 328, height: 40 }}>
             <div style={{ width: 2.5, backgroundColor: accent, flexShrink: 0 }} />
             <p
-              style={{ paddingLeft: 8, fontSize: 9, lineHeight: 1.5, color: '#1A1610', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'keep-all', margin: 0 }}
+              style={{ paddingLeft: 8, fontSize: 9, lineHeight: 1.5, color: '#1A1610', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all', margin: 0 }}
             >
               {timingAdvice}
             </p>

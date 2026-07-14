@@ -567,16 +567,24 @@ export default function AdminOrdersPage() {
   }, [fetchRefundPending])
 
   // 주문 목록 조회
-  const fetchOrders = useCallback(async (page = 1) => {
+  // overrides — 필터 버튼 클릭처럼 setState 직후 바로 조회해야 할 때,
+  // 아직 반영되지 않은 새 필터 값을 명시적으로 넘겨 stale closure를 회피한다.
+  const fetchOrders = useCallback(async (
+    page = 1,
+    overrides?: { status?: string; influencer?: '' | 'true' | 'false' }
+  ) => {
     setLoading(true)
     setError(null)
+
+    const effectiveStatus = overrides?.status ?? statusFilter
+    const effectiveInfluencer = overrides?.influencer ?? influencerFilter
 
     try {
       const params = new URLSearchParams()
       params.set('page', page.toString())
       params.set('limit', '20')
-      if (statusFilter) params.set('status', statusFilter)
-      if (influencerFilter) params.set('influencer', influencerFilter)
+      if (effectiveStatus) params.set('status', effectiveStatus)
+      if (effectiveInfluencer) params.set('influencer', effectiveInfluencer)
       if (search) params.set('search', search)
       if (dateFrom) params.set('date_from', dateFrom)
       if (dateTo) params.set('date_to', dateTo)
@@ -712,7 +720,7 @@ export default function AdminOrdersPage() {
   // 필터 변경
   const handleFilterChange = (status: string) => {
     setStatusFilter(status)
-    fetchOrders(1)
+    fetchOrders(1, { status })
   }
 
   // 인플루언서 토글 핸들러
@@ -745,7 +753,7 @@ export default function AdminOrdersPage() {
   // 인플루언서 필터 변경
   const handleInfluencerFilterChange = (value: '' | 'true' | 'false') => {
     setInfluencerFilter(value)
-    fetchOrders(1)
+    fetchOrders(1, { influencer: value })
   }
 
   // 필터 초기화

@@ -22,6 +22,7 @@
 //   부모(SajuResultPage)의 onCheckout에서 writeSajuCheckoutStorage() 사용 권장.
 // ============================================================
 
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import {
@@ -62,6 +63,23 @@ export function SajuBottomActions({
 }: SajuBottomActionsProps) {
   const t = useTranslations('bottomActions');
 
+  // 페이지 맨 끝 근처(≤240px)에 도달하면 피드백 CTA를 천천히 글로우시켜 클릭을 유도한다.
+  const [nearEnd, setNearEnd] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const reachedEnd = window.innerHeight + window.scrollY >= doc.scrollHeight - 240;
+      setNearEnd(reachedEnd);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
   return (
     <motion.div
       initial={{ y: 100, opacity: 0 }}
@@ -86,6 +104,25 @@ export function SajuBottomActions({
           .animate-saju-buy-glow {
             animation: none;
             filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.6));
+          }
+        }
+
+        /* 피드백 CTA 글로우 — 페이지 끝 도달 시 천천히(2.8s) 맥동하며 클릭 유도 */
+        @keyframes sajuCtaGlow {
+          0%, 100% {
+            filter: drop-shadow(0 0 2px rgba(201, 162, 39, 0.4)) drop-shadow(0 0 6px rgba(192, 57, 43, 0.3));
+          }
+          50% {
+            filter: drop-shadow(0 0 10px rgba(232, 199, 102, 0.85)) drop-shadow(0 0 22px rgba(201, 162, 39, 0.6));
+          }
+        }
+        .animate-saju-cta-glow {
+          animation: sajuCtaGlow 2.8s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-saju-cta-glow {
+            animation: none;
+            filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.55));
           }
         }
       `}</style>
@@ -135,7 +172,9 @@ export function SajuBottomActions({
               type="button"
               onClick={onFeedback}
               whileTap={{ scale: 0.98 }}
-              className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#C0392B] font-serif-kr text-sm font-semibold text-[#F5EFE2]"
+              className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#C0392B] font-serif-kr text-sm font-semibold text-[#F5EFE2] ${
+                nearEnd ? 'animate-saju-cta-glow' : ''
+              }`}
             >
               <MessageSquarePlus size={16} />
               <span className="break-keep">{t('feedback')}</span>

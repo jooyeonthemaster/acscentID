@@ -14,10 +14,13 @@ interface ProductPayload {
   slug?: string
   name?: string
   is_active?: boolean
+  is_enabled?: boolean
   display_order?: number
   badge_text?: string | null
   badge_color?: string | null
 }
+
+const PRODUCT_COLUMNS = 'slug, name, is_active, is_enabled, display_order, badge_text, badge_color, updated_at'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const BADGE_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
@@ -70,7 +73,7 @@ export async function GET() {
   const client = createServiceRoleClient()
   const { data, error } = await client
     .from('admin_products')
-    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
+    .select(PRODUCT_COLUMNS)
     .order('display_order', { ascending: true })
     .order('slug', { ascending: true })
 
@@ -104,6 +107,9 @@ export async function POST(request: NextRequest) {
   if (body.is_active !== undefined && typeof body.is_active !== 'boolean') {
     return NextResponse.json({ error: 'is_active는 boolean이어야 합니다' }, { status: 400 })
   }
+  if (body.is_enabled !== undefined && typeof body.is_enabled !== 'boolean') {
+    return NextResponse.json({ error: 'is_enabled는 boolean이어야 합니다' }, { status: 400 })
+  }
 
   const badgeText = normalizeBadgeText(body.badge_text)
   if ('error' in badgeText) return NextResponse.json({ error: badgeText.error }, { status: 400 })
@@ -133,12 +139,13 @@ export async function POST(request: NextRequest) {
       slug,
       name,
       is_active: body.is_active ?? false,
+      is_enabled: body.is_enabled ?? true,
       display_order: displayOrder,
       badge_text: badgeText.value,
       badge_color: badgeColor.value,
       updated_at: now,
     })
-    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
+    .select(PRODUCT_COLUMNS)
     .single()
 
   if (error) {
@@ -204,6 +211,9 @@ export async function PATCH(request: NextRequest) {
   if (typeof body.is_active === 'boolean') {
     updates.is_active = body.is_active
   }
+  if (typeof body.is_enabled === 'boolean') {
+    updates.is_enabled = body.is_enabled
+  }
   if (body.display_order !== undefined) {
     const displayOrder = normalizeOrder(body.display_order)
     if (displayOrder === null) {
@@ -232,7 +242,7 @@ export async function PATCH(request: NextRequest) {
     .from('admin_products')
     .update(updates)
     .eq('slug', slug)
-    .select('slug, name, is_active, display_order, badge_text, badge_color, updated_at')
+    .select(PRODUCT_COLUMNS)
     .single()
 
   if (error) {

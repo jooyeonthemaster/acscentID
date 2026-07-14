@@ -19,10 +19,12 @@ interface HeaderProps {
   backHref?: string
   hideLogo?: boolean
   compact?: boolean
+  /** 사주 등 다크 테마 프로그램에서 전역 헤더를 어둡게 재스킨 */
+  dark?: boolean
 }
 
 // title / hideLogo 은 하위호환을 위해 props 에 유지하되, 중앙 로고는 항상 표시한다.
-export function Header({ showBack, backHref = "/", compact = false }: HeaderProps) {
+export function Header({ showBack, backHref = "/", compact = false, dark = false }: HeaderProps) {
   const { user, unifiedUser, loading, signOut } = useAuth()
   const currentUser = unifiedUser || user
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -59,7 +61,9 @@ export function Header({ showBack, backHref = "/", compact = false }: HeaderProp
       <header
         className={cn(
           "fixed top-0 left-1/2 -translate-x-1/2 z-50 flex flex-col transition-transform duration-300 w-full max-w-[455px]",
-          "bg-white border-b-2 border-black shadow-md"
+          dark
+            ? "bg-[#0C0E16] border-b border-[#262A38]"
+            : "bg-white border-b-2 border-black shadow-md"
         )}
       >
         {!compact && (
@@ -81,7 +85,12 @@ export function Header({ showBack, backHref = "/", compact = false }: HeaderProp
             {showBack ? (
               <Link
                 href={backHref}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-900 hover:bg-slate-100 transition-colors border-2 border-transparent hover:border-black"
+                className={cn(
+                  "w-8 h-8 rounded-xl flex items-center justify-center transition-colors border-2 border-transparent",
+                  dark
+                    ? "text-[#E9E2D0] hover:bg-white/5 hover:border-[#C9A227]"
+                    : "text-slate-900 hover:bg-slate-100 hover:border-black"
+                )}
                 onClick={(e) => {
                   if (backHref === 'back') {
                     e.preventDefault();
@@ -103,10 +112,16 @@ export function Header({ showBack, backHref = "/", compact = false }: HeaderProp
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center"
               >
-                <span className="text-base font-black tracking-tighter text-slate-900">
+                <span className={cn(
+                  "text-base font-black tracking-tighter",
+                  dark ? "text-[#E9E2D0]" : "text-slate-900"
+                )}>
                   AC&apos;SCENT
                 </span>
-                <span className="text-[7px] font-bold tracking-[0.25em] text-slate-500 -mt-1">
+                <span className={cn(
+                  "text-[7px] font-bold tracking-[0.25em] -mt-1",
+                  dark ? "text-[#A69F8D]" : "text-slate-500"
+                )}>
                   IDENTITY
                 </span>
               </motion.div>
@@ -116,14 +131,19 @@ export function Header({ showBack, backHref = "/", compact = false }: HeaderProp
           {/* Right: Language + Login + Hamburger Menu */}
           <div className="flex-1 flex justify-end items-center gap-1.5">
             {/* Language Switcher */}
-            <LanguageSwitcher />
+            <LanguageSwitcher dark={dark} />
 
             {!loading && currentUser ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/mypage"
                   aria-label={t('nav.myPage')}
-                  className="w-7 h-7 rounded-full border-2 border-black bg-white overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:scale-90 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  className={cn(
+                    "w-7 h-7 rounded-full border-2 overflow-hidden transition-all active:scale-90",
+                    dark
+                      ? "border-[#C9A227]/70 bg-[#12141D]"
+                      : "border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  )}
                 >
                   {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
                     <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -137,20 +157,30 @@ export function Header({ showBack, backHref = "/", compact = false }: HeaderProp
             ) : !loading && !currentUser ? (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-1 px-2 py-1 bg-yellow-100 border-2 border-yellow-400 rounded-full hover:bg-yellow-200 transition-colors whitespace-nowrap"
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 border-2 rounded-full transition-colors whitespace-nowrap",
+                  dark
+                    ? "bg-[#C9A227]/10 border-[#C9A227]/60 hover:bg-[#C9A227]/20"
+                    : "bg-yellow-100 border-yellow-400 hover:bg-yellow-200"
+                )}
               >
-                <User size={12} className="text-yellow-700" />
-                <span className="text-[10px] font-bold text-yellow-700">{t('nav.login')}</span>
+                <User size={12} className={dark ? "text-[#C9A227]" : "text-yellow-700"} />
+                <span className={cn("text-[10px] font-bold", dark ? "text-[#C9A227]" : "text-yellow-700")}>{t('nav.login')}</span>
               </button>
             ) : null}
 
             {/* Cart Button */}
             <button
               onClick={() => router.push('/mypage?tab=cart')}
-              className="relative w-9 h-9 rounded-full border-2 border-black flex items-center justify-center bg-white hover:bg-yellow-400 transition-all active:scale-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
+              className={cn(
+                "relative w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all active:scale-90",
+                dark
+                  ? "border-[#262A38] bg-[#12141D] hover:border-[#C9A227] hover:bg-[#C9A227]/10"
+                  : "border-black bg-white hover:bg-yellow-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-0 hover:translate-x-[2px] hover:translate-y-[2px]"
+              )}
               aria-label={t('nav.cart')}
             >
-              <ShoppingCart size={16} className="text-black" strokeWidth={2.5} />
+              <ShoppingCart size={16} className={dark ? "text-[#E9E2D0]" : "text-black"} strokeWidth={2.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-white text-white text-[10px] font-black leading-none">
                   {cartCount > 99 ? '99+' : cartCount}

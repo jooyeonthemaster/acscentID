@@ -21,6 +21,8 @@ interface UseFeedbackFormProps {
   perfumeCategory: string
   resultId?: string
   characterName?: string // 분석된 캐릭터 이름
+  /** 프로그램별 텍스트 어조 — 사주는 근엄한 명인 어조 */
+  theme?: 'default' | 'saju'
 }
 
 interface UseFeedbackFormReturn {
@@ -97,8 +99,10 @@ export function useFeedbackForm({
   perfumeCategory,
   resultId,
   characterName,
+  theme = 'default',
 }: UseFeedbackFormProps): UseFeedbackFormReturn {
   const t = useTranslations('feedback')
+  const saju = theme === 'saju'
   // localStorage 키 (resultId 또는 perfumeId 기반)
   const storageKey = `feedback_draft_${resultId || perfumeId}`
 
@@ -159,13 +163,13 @@ export function useFeedbackForm({
     ].filter(s => s.ratio > 0)
 
     // 1차: 비율 기반으로 drops 계산 (floor 사용)
-    let drops = allScents.map(scent => ({
+    const drops = allScents.map(scent => ({
       ...scent,
       drops: Math.floor((scent.ratio / 100) * TARGET_DROPS)
     }))
 
     // 2차: 합계가 10이 될 때까지 나머지 분배 (비율이 높은 순으로)
-    let currentTotal = drops.reduce((sum, d) => sum + d.drops, 0)
+    const currentTotal = drops.reduce((sum, d) => sum + d.drops, 0)
     const remaining = TARGET_DROPS - currentTotal
 
     if (remaining > 0) {
@@ -187,12 +191,12 @@ export function useFeedbackForm({
         mainCategory: perfumeData?.category || (scent.isMain ? perfumeCategory : 'unknown'),
         drops: scent.drops,
         ratio: scent.ratio,
-        reason: scent.isMain
-          ? `${scent.name} ${scent.ratio}% 💯`
-          : `${scent.name} ${scent.ratio}% 🎯`,
-        fanComment: scent.isMain
-          ? `✨`
-          : `💕`,
+        reason: saju
+          ? `${scent.name} ${scent.ratio}%`
+          : scent.isMain
+            ? `${scent.name} ${scent.ratio}% 💯`
+            : `${scent.name} ${scent.ratio}% 🎯`,
+        fanComment: saju ? '' : scent.isMain ? `✨` : `💕`,
       }
     })
 
@@ -226,11 +230,12 @@ export function useFeedbackForm({
       const diff = newScore - original
       const change = diff > 5 ? 'increased' as const : diff < -5 ? 'decreased' as const : 'maintained' as const
       const categoryLabel = t(`category${cat.charAt(0).toUpperCase() + cat.slice(1)}` as 'categoryCitrus')
+      const keyPrefix = saju ? 'sajuCategoryChange' : 'categoryChange'
       const reasonText = change === 'increased'
-        ? t('categoryChangeIncreased', { category: categoryLabel })
+        ? t(`${keyPrefix}Increased` as 'categoryChangeIncreased', { category: categoryLabel })
         : change === 'decreased'
-          ? t('categoryChangeDecreased', { category: categoryLabel })
-          : t('categoryChangeMaintained', { category: categoryLabel })
+          ? t(`${keyPrefix}Decreased` as 'categoryChangeDecreased', { category: categoryLabel })
+          : t(`${keyPrefix}Maintained` as 'categoryChangeMaintained', { category: categoryLabel })
       return {
         category: cat,
         originalScore: original,
@@ -240,10 +245,12 @@ export function useFeedbackForm({
       }
     })
 
-    // overallExplanation 생성
+    // overallExplanation 생성 (사주는 근엄한 어조의 별도 키 사용)
     const addedScents = currentFeedback.specificScents.map(s => s.name).join(', ')
-    const addedPart = addedScents ? t('directAddedPart', { scents: addedScents }) : t('directNoAddedPart')
-    const overallExplanation = t('directExplanation', {
+    const addedPart = addedScents
+      ? t(saju ? 'sajuDirectAddedPart' : 'directAddedPart', { scents: addedScents })
+      : t(saju ? 'sajuDirectNoAddedPart' : 'directNoAddedPart')
+    const overallExplanation = t(saju ? 'sajuDirectExplanation' : 'directExplanation', {
       perfumeName: currentFeedback.perfumeName,
       retention: currentFeedback.retentionPercentage,
       addedPart,
@@ -254,16 +261,16 @@ export function useFeedbackForm({
       overallExplanation,
       categoryChanges,
       testingInstructions: {
-        step1: t('testStep1'),
-        step2: t('testStep2'),
-        step3: t('testStep3'),
-        caution: t('testCaution'),
+        step1: t(saju ? 'sajuTestStep1' : 'testStep1'),
+        step2: t(saju ? 'sajuTestStep2' : 'testStep2'),
+        step3: t(saju ? 'sajuTestStep3' : 'testStep3'),
+        caution: t(saju ? 'sajuTestCaution' : 'testCaution'),
       },
-      fanMessage: t('fanMessageDirect'),
+      fanMessage: t(saju ? 'sajuFanMessageDirect' : 'fanMessageDirect'),
       totalDrops: TARGET_DROPS,
       estimatedStrength: 'medium', // 10방울은 medium
     }
-  }, [perfumeCategory, perfumeCharacteristics, t])
+  }, [perfumeCategory, perfumeCharacteristics, t, saju])
 
   // 에러 클리어
   const clearError = useCallback(() => {
@@ -397,6 +404,7 @@ export function useFeedbackForm({
           characterName, // 분석된 캐릭터 이름 전달
           naturalLanguageFeedback: feedback.naturalLanguageFeedback || '', // 자연어 피드백
           userDirectRecipeGranules: directRecipe.granules.map(g => ({ id: g.id, name: g.name, ratio: g.ratio, mainCategory: g.mainCategory })), // 1안 향료 정보
+          tone: theme, // 텍스트 어조 — 사주는 근엄한 명인 어조
         }),
       })
 
@@ -454,7 +462,7 @@ export function useFeedbackForm({
       setIsSubmitting(false)
       setIsGenerating(false)
     }
-  }, [feedback, perfumeId, perfumeName, perfumeCharacteristics, perfumeCategory, resultId, characterName, generateUserDirectRecipe, t])
+  }, [feedback, perfumeId, perfumeName, perfumeCharacteristics, perfumeCategory, resultId, characterName, theme, generateUserDirectRecipe, t])
 
   // 리셋
   const reset = useCallback(() => {

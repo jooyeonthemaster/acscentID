@@ -27,7 +27,7 @@ import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
-import { useProductDisplayName } from '@/hooks/useAdminContent'
+import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { BrushDivider, HanjiCard, SealStamp, SAJU_EASE_INK, SAJU_ELEMENTS, SAJU_VIEWPORT } from "@/components/saju"
 import { SAJU_ELEMENT_INFO, type SajuElement } from "@/types/analysis"
@@ -79,8 +79,14 @@ export default function SajuProgramPage() {
     )
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [selectedProductImage, setSelectedProductImage] = useState(0)
   const t = useTranslations()
   const productName = useProductDisplayName('saju', t('products.saju'))
+  const { imageUrls: sajuImageUrls, loading: sajuImagesLoading } = useProductImages('saju')
+  const productImages = useMemo(
+    () => (sajuImagesLoading ? [] : (sajuImageUrls.length > 0 ? sajuImageUrls : ['/images/perfume/saju-50ml.png'])),
+    [sajuImageUrls, sajuImagesLoading],
+  )
 
   // i18n 키가 아직 없으면 ko 폴백으로 우아하게 강등 (Footer.tsx 관례)
   const tf = (key: string, fallback: string) => (t.has(key) ? t(key) : fallback)
@@ -170,6 +176,12 @@ export default function SajuProgramPage() {
         productSlug="saju"
         title={productName}
         imageAlt={t('programs.productImage')}
+        images={{
+          urls: productImages,
+          loading: sajuImagesLoading,
+          selectedIndex: selectedProductImage,
+          onSelect: setSelectedProductImage,
+        }}
         pageContent={pageContent}
         pagePositionStyle={pagePositionStyle}
         badgeClassName="bg-[#0C0E16] text-[#E8C766]"

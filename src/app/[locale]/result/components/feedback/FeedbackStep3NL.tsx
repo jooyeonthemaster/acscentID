@@ -2,10 +2,10 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { useTranslations } from 'next-intl'
 import { MessageSquare, Sparkles, User, Info } from 'lucide-react'
 import { PerfumeFeedback, FEEDBACK_CATEGORY_INFO } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
+import { FeedbackTheme, SJ, useFeedbackTranslations } from './sajuFeedbackTheme'
 
 // 배경색이 밝은지 어두운지 판단 (밝으면 true)
 const isLightColor = (hexColor: string) => {
@@ -22,6 +22,7 @@ interface FeedbackStep3NLProps {
   feedback: PerfumeFeedback
   naturalLanguageFeedback: string
   onNaturalLanguageFeedbackChange: (value: string) => void
+  theme?: FeedbackTheme
 }
 
 // 카테고리 키 타입
@@ -31,8 +32,10 @@ export function FeedbackStep3NL({
   feedback,
   naturalLanguageFeedback,
   onNaturalLanguageFeedbackChange,
+  theme = 'default',
 }: FeedbackStep3NLProps) {
-  const t = useTranslations('feedback')
+  const t = useFeedbackTranslations(theme)
+  const saju = theme === 'saju'
   // 향수 색상 가져오기
   const getGranuleColor = (id: string) => {
     const perfume = perfumes.find((p) => p.id === id)
@@ -53,15 +56,15 @@ export function FeedbackStep3NL({
       className="space-y-5"
     >
       {/* 이전 선택 요약 카드 */}
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border border-slate-200">
-        <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-          <User size={16} className="text-slate-500" />
+      <div className={`rounded-2xl p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'}`}>
+        <h3 className={`text-sm font-bold mb-3 flex items-center gap-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>
+          <User size={16} className={saju ? 'text-[#5C564A]' : 'text-slate-500'} />
           {t('myCombination')}
         </h3>
 
         <div className="space-y-2">
           {/* 추천 향 */}
-          <div className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100">
+          <div className={`flex items-center gap-3 rounded-xl p-3 border ${saju ? SJ.card : 'bg-white border-slate-100'}`}>
             <div
               className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
                 isLightColor(getGranuleColor(feedback.perfumeId)) ? 'text-slate-800' : 'text-white'
@@ -72,13 +75,13 @@ export function FeedbackStep3NL({
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 text-sm">{feedback.perfumeName}</span>
+                <span className={`font-medium text-sm ${saju ? SJ.ink : 'text-slate-900'}`}>{feedback.perfumeName}</span>
                 <span className="text-lg">{categoryInfo?.icon}</span>
               </div>
-              <p className="text-[11px] text-slate-400">{t('recommendedScentLabel')}</p>
+              <p className={`text-[11px] ${saju ? SJ.inkFaint : 'text-slate-400'}`}>{t('recommendedScentLabel')}</p>
             </div>
             <div className="text-right">
-              <span className="text-lg font-bold text-amber-500">{feedback.retentionPercentage}%</span>
+              <span className={`text-lg font-bold ${saju ? SJ.goldText : 'text-amber-500'}`}>{feedback.retentionPercentage}%</span>
             </div>
           </div>
 
@@ -91,7 +94,7 @@ export function FeedbackStep3NL({
             return (
               <div
                 key={scent.id}
-                className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100"
+                className={`flex items-center gap-3 rounded-xl p-3 border ${saju ? SJ.card : 'bg-white border-slate-100'}`}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
@@ -103,13 +106,13 @@ export function FeedbackStep3NL({
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-900 text-sm">{scent.name}</span>
+                    <span className={`font-medium text-sm ${saju ? SJ.ink : 'text-slate-900'}`}>{scent.name}</span>
                     <span className="text-lg">{scentCategoryInfo?.icon}</span>
                   </div>
-                  <p className="text-[11px] text-slate-400">{t('additionalScentLabel')}</p>
+                  <p className={`text-[11px] ${saju ? SJ.inkFaint : 'text-slate-400'}`}>{t('additionalScentLabel')}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-bold text-green-500">{scent.ratio}%</span>
+                  <span className={`text-lg font-bold ${saju ? SJ.blueInk : 'text-green-500'}`}>{scent.ratio}%</span>
                 </div>
               </div>
             )
@@ -118,13 +121,13 @@ export function FeedbackStep3NL({
       </div>
 
       {/* 자연어 피드백 입력 */}
-      <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 rounded-2xl p-4 border-2 border-purple-200/60 shadow-sm">
-        <h3 className="text-sm font-bold text-purple-800 flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
-            <MessageSquare size={15} className="text-purple-600" />
+      <div className={`rounded-2xl p-4 border-2 shadow-sm ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 border-purple-200/60'}`}>
+        <h3 className={`text-sm font-bold flex items-center gap-2 mb-3 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-purple-800'}`}>
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${saju ? 'bg-[#FDFAF1] border border-[#D8CFBB]' : 'bg-purple-100'}`}>
+            <MessageSquare size={15} className={saju ? 'text-[#7A5C14]' : 'text-purple-600'} />
           </div>
           {t('feelingQuestion')}
-          <span className="text-xs font-normal text-purple-400 bg-purple-100/50 px-2 py-0.5 rounded-full">
+          <span className={`text-xs font-normal px-2 py-0.5 rounded-full ${saju ? SJ.chipSoft : 'text-purple-400 bg-purple-100/50'}`}>
             {t('optional')}
           </span>
         </h3>
@@ -135,49 +138,53 @@ export function FeedbackStep3NL({
           placeholder={t('feelingPlaceholder')}
           maxLength={500}
           rows={4}
-          className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-none text-sm placeholder:text-purple-300"
+          className={`w-full px-4 py-3 rounded-xl border-2 transition-all resize-none text-sm ${
+            saju
+              ? `${SJ.input} focus:ring-2 focus:ring-[#C9A227]/20`
+              : 'border-purple-200 bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-100 placeholder:text-purple-300'
+          }`}
         />
 
         <div className="flex justify-between items-center mt-2">
-          <div className="flex items-center gap-1.5 text-xs text-purple-600 font-medium">
-            <Sparkles size={12} className="text-purple-500" />
+          <div className={`flex items-center gap-1.5 text-xs font-medium ${saju ? SJ.goldText : 'text-purple-600'}`}>
+            <Sparkles size={12} className={saju ? 'text-[#C9A227]' : 'text-purple-500'} />
             <span>{t('aiRefNote')}</span>
           </div>
-          <span className="text-xs text-purple-400 font-medium">
+          <span className={`text-xs font-medium ${saju ? SJ.inkFaint : 'text-purple-400'}`}>
             {naturalLanguageFeedback.length} / 500
           </span>
         </div>
       </div>
 
       {/* 결과 안내 박스 */}
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200/50 space-y-3">
-        <h3 className="text-sm font-bold text-purple-800 flex items-center gap-2">
-          <Sparkles size={16} className="text-purple-500" />
+      <div className={`rounded-2xl p-4 border space-y-3 ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200/50'}`}>
+        <h3 className={`text-sm font-bold flex items-center gap-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-purple-800'}`}>
+          <Sparkles size={16} className={saju ? 'text-[#C9A227]' : 'text-purple-500'} />
           {t('resultTwoOptions')}
         </h3>
 
         <div className="space-y-2">
           {/* 1안 설명 */}
-          <div className="flex items-start gap-3 bg-white/60 rounded-xl p-3">
-            <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 font-bold text-sm flex-shrink-0">
-              1
+          <div className={`flex items-start gap-3 rounded-xl p-3 ${saju ? 'bg-[#FDFAF1]/80' : 'bg-white/60'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${saju ? `${SJ.serif} ${SJ.chipGold}` : 'bg-amber-100 text-amber-600'}`}>
+              {saju ? '直' : '1'}
             </div>
             <div>
-              <p className="font-medium text-slate-800 text-sm">{t('option1Title')}</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className={`font-medium text-sm ${saju ? SJ.ink : 'text-slate-800'}`}>{t('option1Title')}</p>
+              <p className={`text-xs mt-0.5 ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
                 {t('option1Desc')}
               </p>
             </div>
           </div>
 
           {/* 2안 설명 */}
-          <div className="flex items-start gap-3 bg-white/60 rounded-xl p-3">
-            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold text-sm flex-shrink-0">
-              2
+          <div className={`flex items-start gap-3 rounded-xl p-3 ${saju ? 'bg-[#FDFAF1]/80' : 'bg-white/60'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${saju ? `${SJ.serif} ${SJ.chipBlue}` : 'bg-purple-100 text-purple-600'}`}>
+              {saju ? '薦' : '2'}
             </div>
             <div>
-              <p className="font-medium text-slate-800 text-sm">{t('option2Title')}</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className={`font-medium text-sm ${saju ? SJ.ink : 'text-slate-800'}`}>{t('option2Title')}</p>
+              <p className={`text-xs mt-0.5 ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
                 {naturalLanguageFeedback
                   ? t('option2DescWithFeedback')
                   : t('option2DescNoFeedback')}
@@ -188,8 +195,8 @@ export function FeedbackStep3NL({
       </div>
 
       {/* 안내 메시지 */}
-      <div className="flex items-start gap-2 text-xs text-slate-500">
-        <Info size={14} className="text-slate-400 flex-shrink-0 mt-0.5" />
+      <div className={`flex items-start gap-2 text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
+        <Info size={14} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#8B8578]' : 'text-slate-400'}`} />
         <p>
           {t('skipNote')}
         </p>

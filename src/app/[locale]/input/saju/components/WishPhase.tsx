@@ -34,7 +34,7 @@ export function WishPhase({ formData, setFormData, onSkip }: WishPhaseProps) {
                 onChange={(e) => setFormData((prev) => ({ ...prev, wish: e.target.value.slice(0, WISH_MAX) }))}
                 maxLength={WISH_MAX}
                 placeholder={isIdol ? t('placeholderIdol') : t('placeholder')}
-                className="font-serif-kr break-keep min-h-[96px] w-full resize-none rounded-md border border-[#262A38] bg-[#12141D] p-4 text-[15px] leading-[1.85] text-[#E9E2D0] outline-none transition-colors placeholder:text-[#3A3E4C] focus:border-[#C9A227]"
+                className="font-serif-kr break-keep min-h-[clamp(160px,42vh,460px)] w-full resize-none rounded-md border border-[#262A38] bg-[#12141D] p-4 text-[15px] leading-[1.85] text-[#E9E2D0] outline-none transition-colors placeholder:text-[#3A3E4C] focus:border-[#C9A227]"
             />
 
             <div className="mt-1.5 text-right">

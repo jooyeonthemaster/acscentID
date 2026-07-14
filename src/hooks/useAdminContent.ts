@@ -131,6 +131,9 @@ export interface AdminProduct {
   slug: string
   name: string
   is_active: boolean
+  // 프로그램 활성(사용 가능) 여부. is_active(메인 노출)와 분리된 마스터 스위치.
+  // 컬럼이 없던 과거 데이터 호환을 위해 optional; undefined 는 활성(true)으로 간주한다.
+  is_enabled?: boolean
   display_order: number
   badge_text?: string | null
   badge_color?: string | null
@@ -143,13 +146,13 @@ export interface ProductBadgeOverride {
 
 // 기본 상품 목록 (DB 조회 실패 시 폴백)
 const FALLBACK_PRODUCTS: AdminProduct[] = [
-  { slug: 'idol-image', name: 'AI 이미지 분석 퍼퓸', is_active: true, display_order: 0 },
-  { slug: 'figure', name: '피규어 화분 디퓨저', is_active: true, display_order: 1 },
-  { slug: 'graduation', name: '졸업 기념 퍼퓸', is_active: false, display_order: 2 },
-  { slug: 'le-quack', name: 'LE QUACK 시그니처', is_active: false, display_order: 3 },
-  { slug: 'personal', name: '퍼스널 센트', is_active: false, display_order: 4 },
-  { slug: 'chemistry', name: '레이어링 퍼퓸 세트', is_active: true, display_order: 5 },
-  { slug: 'saju', name: '사주 분석 퍼퓸', is_active: false, display_order: 6 },
+  { slug: 'idol-image', name: 'AI 이미지 분석 퍼퓸', is_active: true, is_enabled: true, display_order: 0 },
+  { slug: 'figure', name: '피규어 화분 디퓨저', is_active: true, is_enabled: true, display_order: 1 },
+  { slug: 'graduation', name: '졸업 기념 퍼퓸', is_active: false, is_enabled: false, display_order: 2 },
+  { slug: 'le-quack', name: 'LE QUACK 시그니처', is_active: false, is_enabled: false, display_order: 3 },
+  { slug: 'personal', name: '퍼스널 센트', is_active: false, is_enabled: false, display_order: 4 },
+  { slug: 'chemistry', name: '레이어링 퍼퓸 세트', is_active: true, is_enabled: true, display_order: 5 },
+  { slug: 'saju', name: '사주 분석 퍼퓸', is_active: false, is_enabled: false, display_order: 6 },
 ]
 
 export function useActiveProducts() {
@@ -178,13 +181,21 @@ export function useActiveProducts() {
     fetchProducts()
   }, [])
 
-  const activeProducts = products.filter((p) => p.is_active)
-  const activeSlugs = new Set(activeProducts.map((p) => p.slug))
+  // is_enabled: 프로그램 활성(사용 가능) 여부 — 상세/체크아웃/QR 진입 게이트.
+  // is_active:  메인 노출 여부. 실제 메인 노출 = (활성 AND 메인 노출).
+  const enabledSlugs = new Set(products.filter((p) => p.is_enabled !== false).map((p) => p.slug))
+  const visibleSlugs = new Set(
+    products.filter((p) => p.is_enabled !== false && p.is_active).map((p) => p.slug),
+  )
   const knownSlugs = new Set(products.map((p) => p.slug))
+  const activeProducts = products.filter((p) => p.is_enabled !== false)
 
-  const isProductActive = (slug: string) => activeSlugs.has(slug)
-  // admin_products 행이 없으면 기본 노출(true), 있으면 is_active 따름 (오늘의 향 등 기본 노출 프로그램용)
-  const isProductVisible = (slug: string) => (knownSlugs.has(slug) ? activeSlugs.has(slug) : true)
+  // 프로그램 활성(사용 가능) 여부. 행이 없으면 기본 활성(true).
+  const isProductEnabled = (slug: string) => (knownSlugs.has(slug) ? enabledSlugs.has(slug) : true)
+  // 메인/네비 노출 여부 = 활성 AND 메인 노출. 행이 없으면 기본 노출(true, 오늘의 향 등).
+  const isProductVisible = (slug: string) => (knownSlugs.has(slug) ? visibleSlugs.has(slug) : true)
+  // 하위호환 별칭: 기존 소비자(가드/체크아웃/마이페이지)는 "사용 가능 여부"를 의미했으므로 활성 여부로 매핑한다.
+  const isProductActive = isProductEnabled
 
   // 관리자에서 지정한 뱃지 문구/색상. 미설정이면 null → 메인 페이지 기본 동작 유지
   const getProductBadge = (slug: string): ProductBadgeOverride => {
@@ -195,7 +206,7 @@ export function useActiveProducts() {
     }
   }
 
-  return { products, activeProducts, isProductActive, isProductVisible, getProductBadge, loading }
+  return { products, activeProducts, isProductActive, isProductEnabled, isProductVisible, getProductBadge, loading }
 }
 
 export function useProductDisplayName(productSlug: string, fallbackName: string) {
