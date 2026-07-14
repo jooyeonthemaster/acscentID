@@ -16,8 +16,43 @@ import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
 import { emitCartChanged } from '@/lib/cart-events'
+import { getScentElementEntry } from '@/lib/saju'
+import { SAJU_ELEMENT_INFO, type SajuElement } from '@/types/analysis'
+import { CloudRidge } from '@/components/saju'
 
 const SAJU_ANALYSIS_PLACEHOLDER_IMAGE = '/images/saju/analysis-placeholder.png'
+
+// 사주 분석 대표 이미지 — 추천 향의 주(主) 오행 한자 타일 (자정의 조향소 톤)
+function SajuElementTile({ element, size = 'md' }: { element: SajuElement; size?: 'sm' | 'md' }) {
+  const info = SAJU_ELEMENT_INFO[element]
+  return (
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#0C0E16] transition-transform duration-500 group-hover:scale-105">
+      {/* 오행색 방사광 */}
+      <div
+        aria-hidden
+        className="absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ background: `radial-gradient(circle, ${info.color}33, transparent 70%)` }}
+      />
+      {/* 운문 능선 (상품 아트 모티프) */}
+      {size !== 'sm' && (
+        <CloudRidge
+          tone="raised"
+          strokeOpacity={0.22}
+          className="absolute inset-x-0 bottom-0"
+          style={{ height: '30%' }}
+        />
+      )}
+      <span
+        className={`relative font-serif-kr font-black leading-none ${
+          size === 'sm' ? 'text-3xl' : 'text-[clamp(44px,18vw,96px)]'
+        }`}
+        style={{ color: info.onDark, textShadow: `0 0 26px ${info.color}59` }}
+      >
+        {info.hanja}
+      </span>
+    </div>
+  )
+}
 
 // 향수 ID로 색상 가져오기
 const getPerfumeColor = (id: string): string => {
@@ -123,6 +158,12 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     if (!analysis) return ''
     if (analysis.user_image_url) return analysis.user_image_url
     return analysis.product_type === 'saju_perfume' ? SAJU_ANALYSIS_PLACEHOLDER_IMAGE : ''
+  }
+  // 사주 분석 — 추천 향의 주 오행 (있으면 placeholder 이미지 대신 오행 한자 타일 렌더)
+  const getSajuElement = (analysis: Analysis | null | undefined): SajuElement | null => {
+    if (!analysis || analysis.product_type !== 'saju_perfume' || analysis.user_image_url) return null
+    const perfumeId = getAnalysisPerfumeId(analysis)
+    return perfumeId ? getScentElementEntry(perfumeId)?.primaryElement ?? null : null
   }
   const [selectedImage, setSelectedImage] = useState<Analysis | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
@@ -590,6 +631,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
               const analysis = item.data
               const displayImageUrl = getDisplayImageUrl(analysis)
+              const sajuElement = getSajuElement(analysis)
               return (
           <motion.div
               key={analysis.id}
@@ -625,7 +667,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       )}
                     </div>
                   )}
-                  {displayImageUrl ? (
+                  {sajuElement ? (
+                    <SajuElementTile element={sajuElement} />
+                  ) : displayImageUrl ? (
                     <img
                       src={displayImageUrl}
                       alt={analysis.twitter_name}
@@ -864,7 +908,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   className="w-20 h-20 rounded-xl overflow-hidden border-2 border-black flex-shrink-0 cursor-pointer"
                   onClick={isSelectionMode ? undefined : () => setSelectedImage(analysis)}
                 >
-                  {getDisplayImageUrl(analysis) ? (
+                  {getSajuElement(analysis) ? (
+                    <SajuElementTile element={getSajuElement(analysis)!} size="sm" />
+                  ) : getDisplayImageUrl(analysis) ? (
                     <img
                       src={getDisplayImageUrl(analysis)}
                       alt={analysis.twitter_name}
@@ -1018,7 +1064,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_black] overflow-y-auto">
                   {/* 이미지 - 모바일에서 크기 제한 */}
                   <div className="relative aspect-[4/3] sm:aspect-square max-h-[40vh] sm:max-h-[50vh]">
-                    {getDisplayImageUrl(selectedImage) ? (
+                    {getSajuElement(selectedImage) ? (
+                      <SajuElementTile element={getSajuElement(selectedImage)!} />
+                    ) : getDisplayImageUrl(selectedImage) ? (
                       <img
                         src={getDisplayImageUrl(selectedImage)}
                         alt={selectedImage.twitter_name}
