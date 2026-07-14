@@ -347,8 +347,6 @@ function ComparativePrintRadarChart({ traitsA, traitsB, monochrome = false }: { 
 // ============================================================
 
 // 오행 행 순서 (§7.2 L12 — 木火土金水)
-const SAJU_PRINT_ELEMENT_ORDER: SajuElement[] = ['목', '화', '토', '금', '수']
-
 // 용신 오행명 한 줄 에피셋 (CONTENT.md §3 감각 번역 어휘 — 인쇄 전용 한국어, §7.2 L15)
 const SAJU_YONGSIN_EPITHET: Record<SajuElement, string> = {
   목: '틔워주는 새순',
@@ -356,16 +354,6 @@ const SAJU_YONGSIN_EPITHET: Record<SajuElement, string> = {
   토: '다져주는 무게',
   금: '벼려주는 광택',
   수: '스며드는 고요',
-}
-
-// CATEGORY_INFO 계열색(Tailwind 클래스)의 인쇄용 hex 등가 — §7.3 R9 (3-1 전용)
-const SAJU_PRINT_CATEGORY_HEX: Record<string, string> = {
-  citrus: '#FACC15', // yellow-400
-  floral: '#F472B6', // pink-400
-  woody: '#D97706',  // amber-600
-  musky: '#C084FC',  // purple-400
-  fruity: '#F87171', // red-400
-  spicy: '#FB923C',  // orange-400
 }
 
 // §7.3 R11 — 계절 칩 (선택 시 3-1 계절색: 봄 wood/여름 fire/가을 earth/겨울 water)
@@ -407,6 +395,14 @@ function sajuPrintSentence(text: string | null | undefined, max: number): string
   const firstSentence = normalized.match(/^[^.!?。！？]+[.!?。！？]?/u)?.[0] || normalized
   const summary = sajuPrintFit(firstSentence.replace(/[.!?。！？]+$/u, ''), max)
   return summary ? `${summary.replace(/\s+—\s+/gu, ' —\n')}.` : ''
+}
+
+/** 서사 블록용 — 여러 문장 유지, 잘리면 말줄임표 */
+function sajuPrintNarrative(text: string | null | undefined, max: number): string {
+  const normalized = (text || '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+  const fitted = sajuPrintFit(normalized, max)
+  return Array.from(normalized).length > max ? `${fitted}…` : fitted
 }
 
 function sajuPrintPerfumeCode(code: string): string {
@@ -491,6 +487,16 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   const yongsinInfo = yongsinElement ? SAJU_ELEMENT_INFO[yongsinElement] : null
   const yongsinReason = sajuPrintSentence(saju?.elementFlow?.yongsinNarrative || '', 58)
 
+  // L11'/L12' — 일간(타고난 기질) 서사: 오행 분포 그래프 자리를 해석 전문으로 대체
+  const dayMaster = saju?.dayMasterReading
+  const dayMasterTitle = dayMaster
+    ? [dayMaster.archetypeTitle, dayMaster.hanja].filter(Boolean).join(' · ')
+    : ''
+  const dayMasterBody = sajuPrintNarrative(
+    [dayMaster?.natureMetaphor, dayMaster?.narrative].filter(Boolean).join(' '),
+    190
+  )
+
   // R3~R7 — 향
   const matching = data?.matchingPerfumes?.[0]
   const persona = matching?.persona
@@ -503,10 +509,9 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
     { chip: '잔향', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 256 },
   ]
 
-  // R9 — 6계열 점수 내림차순 (기존 문법)
-  const sortedScents = Object.entries(data?.scentCategories || {})
-    .sort(([, a], [, b]) => (b as number) - (a as number))
-    .slice(0, 6)
+  // R8'/R9' — 처방의 연유: 6계열 그래프 자리를 命→香 서사로 대체
+  const scentBridge = sajuPrintFit(saju?.scentDestiny?.elementBridge || '', 34)
+  const scentWhy = sajuPrintNarrative(saju?.scentDestiny?.whyNarrative || '', 185)
   const scentRecommendation = data?.scentRecommendation
   const timingAdvice = sajuPrintSentence(saju?.purposeReading?.timingAdvice || '', 72)
   const reportDate = (analysis.created_at || '').slice(0, 10).replace(/-/g, '.')
@@ -531,7 +536,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
       >
         {/* 배경 — 장식 전용 SVG (3-1 최애 / 3-2 나) */}
         <img
-          src={isSelfSaju ? '/background/3-2.svg?v=spread-pillars-20260715' : '/background/3-1.svg?v=spread-pillars-20260715'}
+          src={isSelfSaju ? '/background/3-2.svg?v=white-paper-20260715' : '/background/3-1.svg?v=white-paper-20260715'}
           alt=""
           className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         />
@@ -607,35 +612,23 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           )
         })}
 
-        {/* L11 오행 분포 라벨 */}
-        <div className="absolute" style={{ left: 52, top: 330, width: 120, height: 10, ...labelStyle }}>五行 분포</div>
+        {/* L11' 일간 라벨 — 오행 분포 그래프 자리를 일간 해석 서사로 대체 */}
+        <div className="absolute" style={{ left: 52, top: 330, width: 200, height: 10, ...labelStyle }}>일간(日干) · 타고난 기질</div>
 
-        {/* L12 오행 행 ×5 — 8칸 도트 미터 */}
-        {chart && SAJU_PRINT_ELEMENT_ORDER.map((el, j) => {
-          const info = SAJU_ELEMENT_INFO[el]
-          const count = Math.max(0, Math.min(8, chart.elementCount?.[el] ?? 0))
-          return (
-            <div key={el} className="absolute flex items-center" style={{ left: 52, top: 344 + 21 * j, width: 318, height: 16 }}>
-              <span style={{ width: 52, fontSize: 10, fontWeight: 600, color: isSelfSaju ? '#1A1610' : info.onCream, flexShrink: 0 }}>
-                {info.hanja} {el}
-              </span>
-              <div className="flex items-center" style={{ gap: 4 }}>
-                {Array.from({ length: 8 }).map((_, d) => (
-                  d < count ? (
-                    isSelfSaju
-                      ? <div key={d} style={{ width: 8, height: 8, backgroundColor: '#1A1610' }} />
-                      : <div key={d} style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: info.color }} />
-                  ) : (
-                    isSelfSaju
-                      ? <div key={d} style={{ width: 8, height: 8, border: '1px solid #C8BFA9' }} />
-                      : <div key={d} style={{ width: 10, height: 10, borderRadius: '50%', border: '1px solid #C8BFA9' }} />
-                  )
-                ))}
-              </div>
-              <span style={{ marginLeft: 'auto', fontSize: 9, color: '#5C564A' }}>{count}</span>
-            </div>
-          )
-        })}
+        {/* L12' 일간 원형 제목 + 서사 본문 */}
+        {dayMasterTitle && (
+          <div className="absolute" style={{ left: 52, top: 344, width: 318, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
+            {dayMasterTitle}
+          </div>
+        )}
+        {dayMasterBody && (
+          <div
+            className="absolute"
+            style={{ left: 52, top: 368, width: 318, height: 84, fontSize: 8.5, lineHeight: 1.55, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
+          >
+            {dayMasterBody}
+          </div>
+        )}
 
         {/* L13 용신 낙관 */}
         {yongsinInfo && (
@@ -727,68 +720,26 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           </div>
         ))}
 
-        {/* R8 향 차트 라벨 */}
-        <div className="absolute" style={{ left: 462, top: 326, width: 150, height: 10, ...labelStyle }}>향의 여섯 결</div>
+        {/* R8' 처방 연유 라벨 — 6계열 그래프 자리를 命→香 서사로 대체 */}
+        <div className="absolute" style={{ left: 462, top: 326, width: 200, height: 10, ...labelStyle }}>처방의 연유 · 命과 香</div>
 
-        {/* R9 카테고리 행 ×6 — 10도트 미터, 1위 표식 首/★ */}
-        {sortedScents.map(([key, rawValue], k) => {
-          const value = Math.max(0, Math.min(10, Number(rawValue)))
-          const catColor = SAJU_PRINT_CATEGORY_HEX[key] || '#8B8578'
-          const isTop = k === 0
-          return (
-            <div key={key} className="absolute flex items-center" style={{ left: 462, top: 342 + 18 * k, width: 328, height: 14 }}>
-              <span style={{ width: 64, fontSize: 10, fontWeight: 700, color: '#1A1610', flexShrink: 0 }}>
-                {CATEGORY_INFO[key]?.name || key}
-              </span>
-              <div
-                className="grid items-center"
-                style={{
-                  flex: 1,
-                  gridTemplateColumns: 'repeat(10, minmax(0, 1fr))',
-                  gap: 3,
-                  marginRight: 8,
-                }}
-              >
-                {Array.from({ length: 10 }).map((_, i) => (
-                  i < value ? (
-                    isSelfSaju
-                      ? <div key={i} style={{ width: '100%', height: 8, backgroundColor: '#1A1610' }} />
-                      : <div key={i} style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: catColor }} />
-                  ) : (
-                    isSelfSaju
-                      ? <div key={i} style={{ width: '100%', height: 8, border: '1px solid #C8BFA9' }} />
-                      : <div key={i} style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: '#C8BFA9', transform: 'scaleY(0.62)' }} />
-                  )
-                ))}
-              </div>
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  marginLeft: 8, width: 16, height: 16, flexShrink: 0,
-                  ...(isSelfSaju
-                    ? { backgroundColor: '#1A1610' }
-                    : { backgroundColor: catColor, borderRadius: '50%' }),
-                }}
-              >
-                <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{value}</span>
-              </div>
-              <div className="flex items-center justify-center" style={{ marginLeft: 4, width: 12, height: 12, flexShrink: 0 }}>
-                {isTop && (
-                  <div
-                    className="flex h-full w-full items-center justify-center"
-                    style={{
-                      ...(isSelfSaju
-                        ? { backgroundColor: '#1A1610' }
-                        : { backgroundColor: '#B03325', borderRadius: '18%', transform: 'rotate(-3deg)' }),
-                    }}
-                  >
-                    <span style={{ fontSize: 8, fontWeight: 900, color: '#F5EFE2', lineHeight: 1 }}>{isSelfSaju ? '★' : '首'}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {/* R9' 기운 다리(한 줄 강조) + 왜 이 향인가 서사 */}
+        {scentBridge && (
+          <div className="absolute flex items-center" style={{ left: 462, top: 340, width: 328, height: 18 }}>
+            <div style={{ width: 2.5, height: 14, backgroundColor: accent, flexShrink: 0 }} />
+            <span style={{ paddingLeft: 8, fontSize: 11, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.2 }}>
+              {scentBridge}
+            </span>
+          </div>
+        )}
+        {scentWhy && (
+          <div
+            className="absolute"
+            style={{ left: 462, top: 364, width: 328, height: 84, fontSize: 8.5, lineHeight: 1.55, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
+          >
+            {scentWhy}
+          </div>
+        )}
 
         {/* R10 계절 라벨 */}
         <div className="absolute" style={{ left: 462, top: 456, width: 150, height: 10, ...labelStyle, letterSpacing: '0.18em' }}>길한 계절</div>
