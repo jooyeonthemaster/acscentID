@@ -397,9 +397,39 @@ function sajuPrintSentence(text: string | null | undefined, max: number): string
   return summary ? `${summary.replace(/\s+—\s+/gu, ' —\n')}.` : ''
 }
 
-/** 서사 블록용 — 완결 문장 단위로만 채운다(문장 중간에서 자르지 않고, 들어가는 문장까지 온전히).
- *  첫 문장부터 max를 넘는 극단적인 경우에만 어절 단위 컷 + 말줄임으로 강등. */
-function sajuPrintNarrative(text: string | null | undefined, max: number): string {
+/** 글리프 폭 추정 단위 — 한글/한자 1, 라틴·숫자·기호 ≈ 0.55 */
+function sajuCharUnits(s: string): number {
+  let units = 0
+  for (const ch of s) units += /[ -ÿ]/.test(ch) ? 0.55 : 1
+  return units
+}
+
+/** break-keep(어절 단위 줄바꿈) 기준 렌더 줄 수 추정 — 그리디 워드랩 시뮬레이션 */
+function sajuEstimateLines(text: string, unitsPerLine: number): number {
+  const words = text.split(' ')
+  let lines = 1
+  let current = 0
+  for (const word of words) {
+    const wordUnits = sajuCharUnits(word)
+    const withWord = current === 0 ? wordUnits : current + 0.5 + wordUnits
+    if (withWord > unitsPerLine && current > 0) {
+      lines += 1
+      current = wordUnits
+    } else {
+      current = withWord
+    }
+  }
+  return lines
+}
+
+/** 서사 블록용 — 완결 문장 단위로만 채운다(문장 중간에서 자르지 않음).
+ *  글자 수가 아니라 렌더 줄 수를 시뮬레이션해, 박스에 들어가는 마지막 문장까지 꽉 채운다.
+ *  첫 문장부터 박스를 넘는 극단적인 경우에만 어절 단위 컷 + 말줄임으로 강등. */
+function sajuPrintNarrative(
+  text: string | null | undefined,
+  unitsPerLine: number,
+  maxLines: number
+): string {
   const normalized = (text || '').replace(/\s+/g, ' ').trim()
   if (!normalized) return ''
 
@@ -409,11 +439,11 @@ function sajuPrintNarrative(text: string | null | undefined, max: number): strin
   let out = ''
   for (const s of sentences) {
     const candidate = out ? `${out} ${s.trim()}` : s.trim()
-    if (Array.from(candidate).length > max) break
+    if (sajuEstimateLines(candidate, unitsPerLine) > maxLines) break
     out = candidate
   }
 
-  if (!out) return `${sajuPrintFit(normalized, max)}…`
+  if (!out) return `${sajuPrintFit(normalized, Math.floor(unitsPerLine * maxLines * 0.92))}…`
   // 마침표 없는 마지막 조각이 통째로 들어온 경우 종결 부호 보정
   return /[.!?。！？]["'』」)]*$/u.test(out) ? out : `${out}.`
 }
@@ -505,9 +535,11 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   const dayMasterTitle = dayMaster
     ? [dayMaster.archetypeTitle, dayMaster.hanja].filter(Boolean).join(' · ')
     : ''
+  // 박스: width 318 / font 8.5 ≈ 37유닛·줄, 높이 92 / 행간 12.75 = 7줄
   const dayMasterBody = sajuPrintNarrative(
     [dayMaster?.natureMetaphor, dayMaster?.narrative].filter(Boolean).join(' '),
-    190
+    37,
+    7
   )
 
   // R3~R7 — 향
@@ -523,8 +555,9 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   ]
 
   // R8'/R9' — 처방의 연유: 6계열 그래프 자리를 命→香 서사로 대체
+  // 박스: width 328 / font 8.5 ≈ 38유닛·줄, 높이 90 / 행간 12.75 = 7줄
   const scentBridge = sajuPrintFit(saju?.scentDestiny?.elementBridge || '', 34)
-  const scentWhy = sajuPrintNarrative(saju?.scentDestiny?.whyNarrative || '', 185)
+  const scentWhy = sajuPrintNarrative(saju?.scentDestiny?.whyNarrative || '', 38, 7)
   const scentRecommendation = data?.scentRecommendation
   const timingAdvice = sajuPrintSentence(saju?.purposeReading?.timingAdvice || '', 72)
   const reportDate = (analysis.created_at || '').slice(0, 10).replace(/-/g, '.')
@@ -637,7 +670,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {dayMasterBody && (
           <div
             className="absolute"
-            style={{ left: 52, top: 368, width: 318, height: 84, fontSize: 8.5, lineHeight: 1.55, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
+            style={{ left: 52, top: 368, width: 318, height: 92, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
           >
             {dayMasterBody}
           </div>
@@ -748,7 +781,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {scentWhy && (
           <div
             className="absolute"
-            style={{ left: 462, top: 364, width: 328, height: 84, fontSize: 8.5, lineHeight: 1.55, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
+            style={{ left: 462, top: 362, width: 328, height: 90, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
           >
             {scentWhy}
           </div>
