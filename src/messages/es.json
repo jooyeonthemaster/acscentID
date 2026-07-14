@@ -3126,5 +3126,58 @@
         "closingIdol": "Un solo aroma, elegido de los ocho caracteres de esa persona"
       }
     }
+  },
+  "reserve": {
+    "title": "Reserva de Visita",
+    "stepDate": "Fecha",
+    "stepSlot": "Hora",
+    "stepForm": "Datos",
+    "selectDate": "Elige una fecha",
+    "changeDate": "Cambiar fecha",
+    "changeSlot": "Cambiar hora",
+    "selectedSlot": "Horario seleccionado",
+    "dateStripHint": "Desliza para ver más fechas",
+    "noSlots": "No hay horarios disponibles en esta fecha",
+    "slotsUnavailable": "El sistema de reservas está en mantenimiento. Inténtalo más tarde.",
+    "policy": {
+      "duration": "Duración aproximada: {minutes} minutos",
+      "leadTime": "Reserva con al menos {hours} horas de antelación",
+      "payment": "El pago se realiza en la tienda el día de tu visita (pago en el local)"
+    },
+    "form": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "emailHint": "Se enviará un correo de confirmación a esta dirección",
+      "phone": "Teléfono (opcional)",
+      "phonePlaceholder": "+34 600-000-000",
+      "partySize": "Personas",
+      "program": "Programa",
+      "notes": "Peticiones (opcional)",
+      "notesPlaceholder": "Cuéntanos si tienes alguna petición",
+      "submit": "Reservar",
+      "submitting": "Reservando..."
+    },
+    "programs": {
+      "idol-image": "Perfume de Análisis de Imagen IA",
+      "personal": "Personal Scent",
+      "chemistry": "Perfume de Capas (Chemistry)"
+    },
+    "errors": {
+      "slotTaken": "Alguien acaba de reservar ese horario. Elige otro, por favor.",
+      "tooMany": "Has alcanzado el máximo de reservas activas para este correo.",
+      "generic": "Algo salió mal. Inténtalo de nuevo más tarde."
+    },
+    "done": {
+      "title": "¡Tu reserva está confirmada!",
+      "subtitle": "Te hemos enviado un correo de confirmación",
+      "codeLabel": "Código de reserva",
+      "dateLabel": "Fecha y hora",
+      "programLabel": "Programa",
+      "emailNotice": "Se ha enviado un correo de confirmación a {email}",
+      "cancelNotice": "Para cambiar o cancelar, responde al correo de confirmación",
+      "mapLink": "Ver ubicación de la tienda",
+      "home": "Volver al inicio"
+    },
+    "naverAlternative": "También puedes reservar por Naver"
   }
 }

@@ -3126,5 +3126,58 @@
         "closingIdol": "あの人の八字から選んだ、ただひとつの香り"
       }
     }
+  },
+  "reserve": {
+    "title": "来店予約",
+    "stepDate": "日付",
+    "stepSlot": "時間",
+    "stepForm": "情報入力",
+    "selectDate": "日付を選択してください",
+    "changeDate": "日付を変更",
+    "changeSlot": "時間を変更",
+    "selectedSlot": "選択した日時",
+    "dateStripHint": "スワイプすると他の日付が見られます",
+    "noSlots": "この日付には予約可能な時間がありません",
+    "slotsUnavailable": "予約システムはメンテナンス中です。しばらくしてから再度お試しください。",
+    "policy": {
+      "duration": "所要時間 約{minutes}分",
+      "leadTime": "{hours}時間前までにご予約ください",
+      "payment": "お支払いはご来店当日、店舗にて行います（現地決済）"
+    },
+    "form": {
+      "name": "お名前",
+      "email": "メールアドレス",
+      "emailHint": "確認メールがこのアドレスに送信されます",
+      "phone": "電話番号（任意）",
+      "phonePlaceholder": "+81 90-0000-0000",
+      "partySize": "人数",
+      "program": "プログラム",
+      "notes": "ご要望（任意）",
+      "notesPlaceholder": "ご要望があればご記入ください",
+      "submit": "予約する",
+      "submitting": "予約処理中..."
+    },
+    "programs": {
+      "idol-image": "AI画像分析パフューム",
+      "personal": "パーソナルセント",
+      "chemistry": "レイヤリングパフューム（ケミ）"
+    },
+    "errors": {
+      "slotTaken": "その時間はたった今予約されました。他の時間をお選びください。",
+      "tooMany": "同じメールアドレスでの予約可能件数を超えています。",
+      "generic": "予約処理中に問題が発生しました。しばらくしてから再度お試しください。"
+    },
+    "done": {
+      "title": "予約が確定しました！",
+      "subtitle": "確認メールをお送りしました",
+      "codeLabel": "予約番号",
+      "dateLabel": "予約日時",
+      "programLabel": "プログラム",
+      "emailNotice": "{email} 宛に確認メールを送信しました",
+      "cancelNotice": "変更・キャンセルは確認メールにご返信ください",
+      "mapLink": "店舗の場所を見る",
+      "home": "ホームに戻る"
+    },
+    "naverAlternative": "Naver予約からもご予約いただけます"
   }
 }

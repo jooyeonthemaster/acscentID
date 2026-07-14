@@ -3126,5 +3126,58 @@
         "closingIdol": "One scent, chosen from their eight characters"
       }
     }
+  },
+  "reserve": {
+    "title": "Visit Reservation",
+    "stepDate": "Date",
+    "stepSlot": "Time",
+    "stepForm": "Details",
+    "selectDate": "Choose a date",
+    "changeDate": "Change date",
+    "changeSlot": "Change time",
+    "selectedSlot": "Selected slot",
+    "dateStripHint": "Swipe to see more dates",
+    "noSlots": "No available times on this date",
+    "slotsUnavailable": "The reservation system is under maintenance. Please try again later.",
+    "policy": {
+      "duration": "Takes about {minutes} minutes",
+      "leadTime": "Book at least {hours} hours in advance",
+      "payment": "Payment is made in-store on the day of your visit (pay on site)"
+    },
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "A confirmation email will be sent to this address",
+      "phone": "Phone (optional)",
+      "phonePlaceholder": "+82 10-0000-0000",
+      "partySize": "Party size",
+      "program": "Program",
+      "notes": "Requests (optional)",
+      "notesPlaceholder": "Let us know if you have any requests",
+      "submit": "Reserve",
+      "submitting": "Reserving..."
+    },
+    "programs": {
+      "idol-image": "AI Image Analysis Perfume",
+      "personal": "Personal Scent",
+      "chemistry": "Layering Perfume (Chemistry)"
+    },
+    "errors": {
+      "slotTaken": "Someone just booked that time. Please pick another slot.",
+      "tooMany": "You have reached the maximum number of active reservations for this email.",
+      "generic": "Something went wrong. Please try again later."
+    },
+    "done": {
+      "title": "Your reservation is confirmed!",
+      "subtitle": "We've sent you a confirmation email",
+      "codeLabel": "Reservation code",
+      "dateLabel": "Date & time",
+      "programLabel": "Program",
+      "emailNotice": "A confirmation email has been sent to {email}",
+      "cancelNotice": "To change or cancel, simply reply to the confirmation email",
+      "mapLink": "View store location",
+      "home": "Back to home"
+    },
+    "naverAlternative": "You can also book via Naver Reservation"
   }
 }

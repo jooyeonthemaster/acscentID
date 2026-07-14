@@ -3126,5 +3126,58 @@
         "closingIdol": "从那个人的八字中选出的唯一之香"
       }
     }
+  },
+  "reserve": {
+    "title": "到店预约",
+    "stepDate": "日期",
+    "stepSlot": "时间",
+    "stepForm": "填写信息",
+    "selectDate": "请选择日期",
+    "changeDate": "更改日期",
+    "changeSlot": "更改时间",
+    "selectedSlot": "已选时间",
+    "dateStripHint": "左右滑动查看更多日期",
+    "noSlots": "该日期没有可预约的时间",
+    "slotsUnavailable": "预约系统维护中，请稍后再试。",
+    "policy": {
+      "duration": "约需{minutes}分钟",
+      "leadTime": "请至少提前{hours}小时预约",
+      "payment": "费用于到店当天在门店支付（现场付款）"
+    },
+    "form": {
+      "name": "姓名",
+      "email": "邮箱",
+      "emailHint": "确认邮件将发送至该地址",
+      "phone": "电话（选填）",
+      "phonePlaceholder": "+86 138-0000-0000",
+      "partySize": "人数",
+      "program": "项目",
+      "notes": "备注（选填）",
+      "notesPlaceholder": "如有特殊需求请填写",
+      "submit": "立即预约",
+      "submitting": "预约处理中..."
+    },
+    "programs": {
+      "idol-image": "AI图像分析香水",
+      "personal": "个人定制香水",
+      "chemistry": "叠加香水（Chemistry）"
+    },
+    "errors": {
+      "slotTaken": "该时间刚刚被其他顾客预约，请选择其他时间。",
+      "tooMany": "该邮箱的有效预约数量已达上限。",
+      "generic": "预约处理出现问题，请稍后再试。"
+    },
+    "done": {
+      "title": "预约已确认！",
+      "subtitle": "确认邮件已发送",
+      "codeLabel": "预约编号",
+      "dateLabel": "预约时间",
+      "programLabel": "项目",
+      "emailNotice": "确认邮件已发送至 {email}",
+      "cancelNotice": "如需更改或取消，请直接回复确认邮件",
+      "mapLink": "查看门店位置",
+      "home": "返回首页"
+    },
+    "naverAlternative": "也可通过Naver预约"
   }
 }

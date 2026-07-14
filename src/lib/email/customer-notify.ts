@@ -1,6 +1,8 @@
 import { getResendClient, FROM_EMAIL } from './client'
 import { refundCompletedTemplate, orderShippedTemplate } from './templates'
+import { reservationCustomerTemplate } from './reservation-templates'
 import { CARRIER_LABELS, type CarrierId } from '@/lib/shipping/cj'
+import type { Locale } from '@/i18n/config'
 
 /**
  * 고객 개별 이메일 발송 (fire-and-forget).
@@ -52,6 +54,35 @@ function getKoreanTime(): string {
     minute: '2-digit',
     hour12: false,
   })
+}
+
+// 방문 예약 확정 알림 — 고객 언어로 발송
+export function notifyCustomerReservationConfirmed(data: {
+  customerEmail: string | null | undefined
+  locale: Locale
+  reservationCode: string
+  name: string
+  program: string
+  partySize: number
+  slotStartIso: string
+}) {
+  if (!data.customerEmail) {
+    console.log('[Email/customer] reservation notification skipped — no email')
+    return
+  }
+
+  const tpl = reservationCustomerTemplate(
+    {
+      reservationCode: data.reservationCode,
+      name: data.name,
+      program: data.program,
+      partySize: data.partySize,
+      slotStartIso: data.slotStartIso,
+    },
+    data.locale
+  )
+
+  sendCustomerEmail(data.customerEmail, tpl).catch(console.error)
 }
 
 // 환불 완료 알림 — 고객에게 발송

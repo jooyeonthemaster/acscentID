@@ -56,6 +56,11 @@ const STATIC_PAGES: StaticSitemapPage[] = [
     changeFrequency: 'weekly',
     priority: 0.8,
   },
+  {
+    path: '/reserve',
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  },
   ...STORE_PRODUCTS.map((product): StaticSitemapPage => ({
     path: `/products/${product.slug}`,
     changeFrequency: 'weekly',

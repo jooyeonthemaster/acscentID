@@ -3094,5 +3094,58 @@
         "closingIdol": "그 사람의 팔자에서 고른 단 하나의 향"
       }
     }
+  },
+  "reserve": {
+    "title": "방문 예약",
+    "stepDate": "날짜",
+    "stepSlot": "시간",
+    "stepForm": "정보 입력",
+    "selectDate": "날짜를 선택해주세요",
+    "changeDate": "날짜 변경",
+    "changeSlot": "시간 변경",
+    "selectedSlot": "선택한 일시",
+    "dateStripHint": "옆으로 밀어 더 많은 날짜를 볼 수 있어요",
+    "noSlots": "이 날짜에는 예약 가능한 시간이 없습니다",
+    "slotsUnavailable": "예약 시스템 점검 중입니다. 잠시 후 다시 시도해주세요.",
+    "policy": {
+      "duration": "소요 시간 약 {minutes}분",
+      "leadTime": "최소 {hours}시간 전 예약",
+      "payment": "결제는 방문 당일 매장에서 진행됩니다 (현장 결제)"
+    },
+    "form": {
+      "name": "이름",
+      "email": "이메일",
+      "emailHint": "확인 메일이 이 주소로 발송됩니다",
+      "phone": "전화번호 (선택)",
+      "phonePlaceholder": "010-0000-0000",
+      "partySize": "인원",
+      "program": "프로그램",
+      "notes": "요청사항 (선택)",
+      "notesPlaceholder": "요청사항이 있다면 적어주세요",
+      "submit": "예약하기",
+      "submitting": "예약 처리 중..."
+    },
+    "programs": {
+      "idol-image": "AI 이미지 분석 퍼퓸",
+      "personal": "퍼스널 센트",
+      "chemistry": "레이어링 퍼퓸 (케미)"
+    },
+    "errors": {
+      "slotTaken": "방금 다른 고객이 해당 시간을 예약했어요. 다른 시간을 선택해주세요.",
+      "tooMany": "동일 이메일로 예약 가능한 건수를 초과했습니다.",
+      "generic": "예약 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+    },
+    "done": {
+      "title": "예약이 확정되었습니다!",
+      "subtitle": "확인 메일을 보내드렸어요",
+      "codeLabel": "예약번호",
+      "dateLabel": "예약일시",
+      "programLabel": "프로그램",
+      "emailNotice": "{email} 주소로 확인 메일이 발송되었습니다",
+      "cancelNotice": "변경·취소는 확인 메일에 회신해주세요",
+      "mapLink": "매장 위치 보기",
+      "home": "홈으로 돌아가기"
+    },
+    "naverAlternative": "네이버 예약으로도 예약할 수 있어요"
   }
 }

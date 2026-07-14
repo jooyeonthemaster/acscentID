@@ -1,6 +1,8 @@
 import { getResendClient, getAdminEmails, FROM_EMAIL } from './client'
 import { newMemberTemplate, newOrderTemplate, cancelRequestTemplate } from './templates'
+import { reservationAdminTemplate } from './reservation-templates'
 import { createOrderInNotion } from '../notion/admin-notify'
+import { createReservationInNotion } from '../notion/reservation-notify'
 
 // 비동기 알림 전송 (실패해도 메인 로직에 영향 없음)
 async function sendAdminNotification(
@@ -90,6 +92,29 @@ export function notifyNewOrder(data: {
     ...data,
     createdAtIso: new Date().toISOString(),
   }).catch(console.error)
+}
+
+export function notifyNewReservation(data: {
+  reservationCode: string
+  name: string
+  email: string
+  phone: string | null
+  program: string
+  partySize: number
+  slotStartIso: string
+  slotEndIso: string
+  notes: string | null
+  locale: string
+  calendarRegistered: boolean
+}) {
+  // 1) 관리자 이메일 알림 (Resend)
+  sendAdminNotification(reservationAdminTemplate({
+    ...data,
+    createdAt: getKoreanTime()
+  })).catch(console.error)
+
+  // 2) 노션 알림 (예약 DB 행 추가 + 모바일 푸시) — fire-and-forget
+  createReservationInNotion(data).catch(console.error)
 }
 
 export function notifyCancelRequest(data: {
