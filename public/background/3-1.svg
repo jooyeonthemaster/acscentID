@@ -22,7 +22,7 @@
   </defs>
 
   <!-- 1. 한지 지면 -->
-  <rect width="842.25" height="595.5" fill="#F5EFE2"/>
+  <rect width="842.25" height="595.5" fill="#FFFFFF"/>
   <rect width="842.25" height="595.5" filter="url(#s31-fiber)" opacity="0.05" style="mix-blend-mode:multiply"/>
   <rect width="842.25" height="595.5" filter="url(#s31-spots)" opacity="0.04" style="mix-blend-mode:multiply"/>
 
@@ -50,9 +50,7 @@
     <path d="M634,92 C644,83 660,82 670,89 C662,93 655,96 651,103" stroke-width="0.8"/>
   </g>
 
-  <!-- 3. 외곽 프레임 — 이중 금 괘선 (outer inset 12 / inner inset 19) -->
-  <rect x="12" y="12" width="818.25" height="571.5" fill="none" stroke="#C9A227" stroke-width="1.5"/>
-  <rect x="19" y="19" width="804.25" height="557.5" fill="none" stroke="#C9A227" stroke-width="0.5" opacity="0.6"/>
+  <!-- 3. 외곽 프레임 — 제거(코너 오너먼트만 남김) -->
 
   <!-- 4. 코너 오너먼트 4곳 (40×40 영역) -->
   <use xlink:href="#s31-cloud" href="#s31-cloud" transform="translate(24,24)"/>
@@ -70,9 +68,9 @@
   <!-- 6. 좌측 명식 그리드 프레임 + 일주 브래킷 (일주 열 좌표 고정) -->
   <rect x="52" y="142" width="318" height="180" fill="none" stroke="#C9A227" stroke-width="0.75"/>
   <g fill="none" stroke="#C9A227" stroke-width="1.2">
-    <path d="M142,166 L142,158 L150,158"/>
-    <path d="M196,158 L204,158 L204,166"/>
-    <path d="M142,312 L142,320 L150,320"/>
-    <path d="M196,320 L204,320 L204,312"/>
+    <path d="M142,169 L142,161 L150,161"/>
+    <path d="M196,161 L204,161 L204,169"/>
+    <path d="M142,309 L142,317 L150,317"/>
+    <path d="M196,317 L204,317 L204,309"/>
   </g>
 </svg>

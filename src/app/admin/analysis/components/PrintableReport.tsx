@@ -582,7 +582,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
       >
         {/* 배경 — 장식 전용 SVG (3-1 최애 / 3-2 나) */}
         <img
-          src={isSelfSaju ? '/background/3-2.svg?v=white-paper-20260715' : '/background/3-1.svg?v=white-paper-20260715'}
+          src={isSelfSaju ? '/background/3-2.svg?v=no-frame-20260715' : '/background/3-1.svg?v=no-frame-20260715'}
           alt=""
           className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         />
