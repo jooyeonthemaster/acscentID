@@ -19,6 +19,7 @@ import type { BestSeasonType, BestTimeType } from '@/types/analysis';
 import { BEST_SEASON_LABELS, BEST_TIME_LABELS } from '@/types/analysis';
 import {
   BrushDivider,
+  CloudPuff,
   VerticalLabel,
   SAJU_EASE_INK,
   SAJU_VIEWPORT,
@@ -165,6 +166,23 @@ export function Prescription({ result, targetType, onShare }: PrescriptionProps)
   return (
     <section className="saju-hanji relative overflow-x-clip bg-[#F5EFE2]">
       <ScrollRod />
+
+      {/* 운문 워터마크 — 실물 패키지와 같은 무늬를 처방전 여백에 (먹 저농도, SAJU_CLOUDS) */}
+      <CloudPuff
+        tone="cream"
+        width={160}
+        fillOpacity={0.03}
+        strokeOpacity={0.12}
+        className="absolute -right-6 top-14"
+      />
+      <CloudPuff
+        tone="cream"
+        width={130}
+        flip
+        fillOpacity={0.03}
+        strokeOpacity={0.12}
+        className="absolute -left-5 bottom-28"
+      />
 
       <div className="relative px-6 pt-8 pb-8">
         {/* 오프너 — 크림 지면: ink 톤 */}

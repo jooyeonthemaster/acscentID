@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Link2, X } from 'lucide-react'
+import { Check, Link2, Loader2, MoonStar, X } from 'lucide-react'
 import { ImageAnalysisResult } from '@/types/analysis'
 import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
+import { shareSajuCard, type SajuShareCardOptions } from '@/lib/saju/share-card'
+import { SAJU_CLOUDS } from '@/components/saju/clouds'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -19,6 +21,8 @@ interface ShareModalProps {
   perfumeBrand?: string
   analysisData?: ImageAnalysisResult
   shareUrl?: string
+  /** 사주 전용 — 운문 공유 카드(PNG) 생성 옵션. 전달 시 카드 저장 버튼 노출 (SAJU_CLOUDS) */
+  sajuCard?: SajuShareCardOptions
 }
 
 export function ShareModal({
@@ -26,10 +30,24 @@ export function ShareModal({
   onClose,
   twitterName,
   perfumeName,
-  shareUrl
+  shareUrl,
+  sajuCard
 }: ShareModalProps) {
   const t = useTranslations('share')
   const [copied, setCopied] = useState(false)
+  const [cardBusy, setCardBusy] = useState(false)
+
+  const handleSajuCard = async () => {
+    if (!sajuCard || cardBusy) return
+    setCardBusy(true)
+    try {
+      await shareSajuCard(sajuCard)
+    } catch (e) {
+      console.error('Saju card share error:', e)
+    } finally {
+      setCardBusy(false)
+    }
+  }
 
   useEffect(() => {
     setMobileOverlayOpen('share-modal', isOpen)
@@ -148,6 +166,31 @@ export function ShareModal({
                   </p>
                 </div>
               </button>
+
+              {/* 사주 전용 — 운문 카드 저장 (실물 상품 아트와 같은 달+구름 카드) */}
+              {sajuCard && SAJU_CLOUDS && (
+                <button
+                  onClick={handleSajuCard}
+                  disabled={cardBusy}
+                  className="
+                    w-full flex items-center gap-4 p-4
+                    bg-[#0C0E16] hover:bg-[#171C28]
+                    rounded-2xl transition-all disabled:opacity-60
+                  "
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-[#C9A227]/50 bg-[#12141D]">
+                    {cardBusy ? (
+                      <Loader2 size={22} className="animate-spin text-[#C9A227]" />
+                    ) : (
+                      <MoonStar size={22} className="text-[#C9A227]" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-serif-kr font-bold text-[#E9E2D0]">{t('sajuCardSave')}</p>
+                    <p className="text-xs text-[#A69F8D]">{t('sajuCardSaveDesc')}</p>
+                  </div>
+                </button>
+              )}
             </div>
 
             <div className="px-5 pb-5">

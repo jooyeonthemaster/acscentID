@@ -14,7 +14,7 @@ import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
 import Image from 'next/image'
-import { ProgressThread, SAJU_EASE_INK } from '@/components/saju'
+import { CloudRidge, ProgressThread, SAJU_EASE_INK } from '@/components/saju'
 
 import { useSajuForm } from './hooks/useSajuForm'
 import type { SajuPhase } from './constants'
@@ -105,6 +105,12 @@ export default function SajuInputPage() {
             {/* 금 파티클 고정 레이어 (count 12 — §3.0) */}
             <div className="pointer-events-none fixed inset-0">
                 <GoldDust count={12} />
+            </div>
+
+            {/* 운문 — 자정 하늘 아래 구름 능선 (상품 아트 모티프, SAJU_CLOUDS).
+                하단 내비 바(z-50)가 아랫단을 덮으므로 초저대비 실루엣만 남긴다. */}
+            <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0">
+                <CloudRidge tone="raised" strokeOpacity={0.12} fillOpacity={0.7} style={{ height: 96 }} />
             </div>
 
             {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}

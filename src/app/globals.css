@@ -607,6 +607,18 @@
   50% { transform: translateX(var(--dust-sway, 10px)); }
 }
 
+/* 운문(구름) 저속 드리프트 — clouds.tsx CloudDrift 전용 */
+@keyframes saju-cloud-drift-kf {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(var(--cloud-sway, 12px)); }
+}
+.saju-cloud-drift {
+  animation: saju-cloud-drift-kf 14s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .saju-cloud-drift { animation: none; }
+}
+
 /* 사주 입력 필드 — 브라우저 자동완성 흰 배경 제거 (밑줄 필기 입력 유지) */
 .saju-underline-input:-webkit-autofill,
 .saju-underline-input:-webkit-autofill:hover,

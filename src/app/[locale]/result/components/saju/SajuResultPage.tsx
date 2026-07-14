@@ -30,7 +30,7 @@ import { ShareModal } from '../ShareModal';
 import { FeedbackModal } from '../FeedbackModal';
 import { FeedbackHistory } from '../feedback/FeedbackHistory';
 import Image from 'next/image';
-import { SealStamp } from '@/components/saju';
+import { CloudRidge, SealStamp } from '@/components/saju';
 
 import type { SajuAnalysisResult } from '@/types/analysis';
 import { GoldDust } from './GoldDust';
@@ -70,11 +70,26 @@ function SectionBand({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#0C0E16] to-transparent"
       />
+      {/* 운문 — 페이지 먹색 구름이 밴드 위로 드리운다 (상품 아트 모티프, SAJU_CLOUDS) */}
+      <CloudRidge
+        tone="ink"
+        flip
+        strokeOpacity={0.16}
+        className="absolute inset-x-0 top-0 z-0"
+        style={{ height: 52 }}
+      />
       {children}
       {/* 하단 경계 — 밴드색 → 페이지 먹색 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-24 bg-gradient-to-t from-[#0C0E16] to-transparent"
+      />
+      {/* 운문 — 아래 경계는 구름 능선이 밴드로 솟는다 */}
+      <CloudRidge
+        tone="ink"
+        strokeOpacity={0.16}
+        className="absolute inset-x-0 bottom-0 z-0"
+        style={{ height: 52 }}
       />
     </div>
   );
@@ -495,6 +510,11 @@ export default function SajuResultPage() {
         perfumeBrand={topPerfume?.persona?.recommendation || "AC'SCENT"}
         analysisData={sajuResult}
         shareUrl={shareUrl}
+        sajuCard={{
+          perfumeName: topPerfumeName || t('result.recommendedPerfume'),
+          programName: t('saju.common.programName'),
+          brandLine: topPerfume?.perfumeId,
+        }}
       />
 
       {/* 피드백 모달 (offline) — 공용 컴포넌트 + 사주 한지 스킨 */}

@@ -15,3 +15,4 @@ export * from './VerticalLabel';
 export * from './ProgressThread';
 export * from './SajuBottle';
 export * from './GoldDust';
+export * from './clouds';

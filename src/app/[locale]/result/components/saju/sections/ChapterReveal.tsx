@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   BrushDivider,
+  CloudPuff,
   HanjiCard,
   SajuBottle,
   VerticalLabel,
@@ -210,6 +211,36 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
             size={BOTTLE_SIZE}
           />
         )}
+        {/* 운문 받침 — 완성 시 병이 구름 위에 떠오른다 (상품 아트 모티프, SAJU_CLOUDS) */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-5 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, y: 12 }}
+          animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+          transition={{ duration: 1.4, ease: SAJU_EASE_INK }}
+        >
+          <div className="relative" style={{ width: BOTTLE_SIZE + 80, height: 96 }}>
+            <CloudPuff
+              tone="raised"
+              width={150}
+              flip
+              strokeOpacity={0.26}
+              style={{ position: 'absolute', left: 0, bottom: 8 }}
+            />
+            <CloudPuff
+              tone="blue"
+              width={190}
+              strokeOpacity={0.34}
+              style={{ position: 'absolute', left: '50%', bottom: 0, marginLeft: -95 }}
+            />
+            <CloudPuff
+              tone="raised"
+              width={120}
+              strokeOpacity={0.24}
+              style={{ position: 'absolute', right: 0, bottom: 12 }}
+            />
+          </div>
+        </motion.div>
         {/* 향수명 — 라벨지 위 HTML 레이어 (scale 1.12→1, easeSettle, 2줄 클램프 + 24자 slice) */}
         {displayName && (
           <motion.div
@@ -304,7 +335,7 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
           viewport={SAJU_VIEWPORT}
           transition={{ duration: 0.8, ease: SAJU_EASE_INK }}
         >
-          <HanjiCard padding="lg" verticalLabel="調香記" seal="香">
+          <HanjiCard padding="lg" verticalLabel="調香記" seal="香" cloudWatermark>
             <p className="mb-3 break-keep font-serif-kr text-[11px] font-semibold leading-[1.4] tracking-[0.14em] text-[#7A5C14]">
               {t('s6.whyTitle')}
             </p>

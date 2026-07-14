@@ -15,6 +15,7 @@ import { RetryFeedbackGuide } from './feedback/RetryFeedbackGuide'
 import { ScentCategoryScores } from '@/types/analysis'
 import { PerfumeFeedback } from '@/types/feedback'
 import { FeedbackTheme, SJ, SJ_SEAL_TILE, SAJU_STEP_HANJA, useFeedbackTranslations } from './feedback/sajuFeedbackTheme'
+import { CloudDrift } from '@/components/saju'
 
 // 모달 뷰 상태 타입
 type ModalView = 'form' | 'success' | 'confirm' | 'retry-guide'
@@ -397,14 +398,36 @@ export function FeedbackModal({
                     className={`absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center ${saju ? 'bg-[#F5EFE2]/95' : 'bg-white/90'}`}
                   >
                     {saju ? (
-                      // 금 고리 스피너 — 가운데 낙관 한자
-                      <div className="relative mb-4 flex h-16 w-16 items-center justify-center">
+                      // 운문 로딩 — 구름 사이로 금달이 차오른다 (상품 아트 모티프, SAJU_CLOUDS)
+                      <div className="relative mb-4 h-20 w-44 overflow-hidden">
                         <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
-                          className="absolute inset-0 rounded-full border-2 border-[#C9A227] border-t-transparent"
+                          aria-hidden
+                          className="absolute left-1/2 top-1 h-11 w-11 -translate-x-1/2 rounded-full"
+                          style={{
+                            background: 'radial-gradient(circle at 40% 35%, #F2DA8A, #C9A227 75%)',
+                            boxShadow: '0 0 18px rgba(201,162,39,0.45)',
+                          }}
+                          animate={{ y: [6, 0, 6], opacity: [0.85, 1, 0.85] }}
+                          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
                         />
-                        <span className="font-serif-kr text-2xl text-[#A93226]">香</span>
+                        <CloudDrift
+                          tone="blue"
+                          width={96}
+                          sway={9}
+                          duration={7}
+                          strokeOpacity={0.3}
+                          style={{ position: 'absolute', bottom: -3, left: 2 }}
+                        />
+                        <CloudDrift
+                          tone="raised"
+                          width={76}
+                          flip
+                          sway={-8}
+                          duration={9}
+                          delay={1.2}
+                          strokeOpacity={0.26}
+                          style={{ position: 'absolute', bottom: -6, right: 4 }}
+                        />
                       </div>
                     ) : (
                       <motion.div

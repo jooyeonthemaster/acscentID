@@ -16,6 +16,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import type { SajuChartSnapshot } from '@/types/analysis'
 import {
+    CloudDrift,
+    CloudRidge,
     ElementRing,
     GanjiTile,
     SealStamp,
@@ -209,6 +211,20 @@ export function SajuAnalyzingOverlay({
                 }
             >
                 <GoldDust count={24} />
+
+                {/* 운문 — 의식이 진행되는 동안 자정 하늘 아래 구름이 낮게 흐른다 (SAJU_CLOUDS)
+                    진행 실(bottom 48px) 가독성을 위해 저대비(fill 0.6 / stroke 0.12)로만 깐다. */}
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0">
+                    <CloudDrift
+                        tone="raised"
+                        width={150}
+                        sway={14}
+                        duration={16}
+                        strokeOpacity={0.16}
+                        style={{ position: 'absolute', bottom: 88, right: -28, opacity: 0.6 }}
+                    />
+                    <CloudRidge tone="raised" strokeOpacity={0.12} fillOpacity={0.6} style={{ height: 72 }} />
+                </div>
 
                 <div className="relative mx-auto flex h-full max-w-[455px] flex-col items-center justify-center px-8">
                     {/* 헤드라인 */}

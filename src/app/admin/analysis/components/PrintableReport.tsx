@@ -384,8 +384,8 @@ const SAJU_TIME_CHIPS = [
   { key: 'night', label: '밤' },
 ] as const
 
-const SAJU_PILLAR_TILE_LEFT = 84
-const SAJU_PILLAR_TILE_STEP = 68
+const SAJU_PILLAR_TILE_LEFT = 70
+const SAJU_PILLAR_TILE_STEP = 76
 
 function sajuPrintFit(text: string | null | undefined, max: number): string {
   const normalized = (text || '').replace(/\s+/g, ' ').trim()
@@ -531,7 +531,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
       >
         {/* 배경 — 장식 전용 SVG (3-1 최애 / 3-2 나) */}
         <img
-          src={isSelfSaju ? '/background/3-2.svg?v=aligned-pillars-20260715' : '/background/3-1.svg?v=aligned-pillars-20260715'}
+          src={isSelfSaju ? '/background/3-2.svg?v=spread-pillars-20260715' : '/background/3-1.svg?v=spread-pillars-20260715'}
           alt=""
           className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         />

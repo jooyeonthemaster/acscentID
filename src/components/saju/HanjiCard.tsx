@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { SAJU_GOLD_GRADIENT } from './tokens';
 import { SealStamp } from './SealStamp';
 import { VerticalLabel } from './VerticalLabel';
+import { CloudPuff } from './clouds';
 
 export interface HanjiCardProps {
   children: ReactNode;
@@ -18,6 +19,8 @@ export interface HanjiCardProps {
   padding?: 'md' | 'lg';
   /** 족자(두루마리) 지면 — 모서리 라운드·자체 그림자 제거(상하 축이 프레임 역할) */
   scroll?: boolean;
+  /** 좌하단 운문 워터마크 — 실물 패키지와 같은 무늬 (SAJU_CLOUDS) */
+  cloudWatermark?: boolean;
   className?: string;
 }
 
@@ -27,6 +30,7 @@ export function HanjiCard({
   seal,
   padding = 'md',
   scroll = false,
+  cloudWatermark = false,
   className,
 }: HanjiCardProps) {
   return (
@@ -38,6 +42,17 @@ export function HanjiCard({
     >
       {/* 상단 금 괘선 — border-image는 radius와 충돌하므로 내부 첫 요소로 */}
       <div aria-hidden className="mb-4 h-[2px] w-12" style={{ background: SAJU_GOLD_GRADIENT }} />
+
+      {/* 운문 워터마크 — 좌하단, 먹 저농도(낙관·라벨과 겹치지 않는 자리) */}
+      {cloudWatermark && (
+        <CloudPuff
+          tone="cream"
+          width={110}
+          fillOpacity={0.035}
+          strokeOpacity={0.14}
+          className="absolute bottom-3 left-3"
+        />
+      )}
 
       {/* 낙관(sm 36px, bottom-3.5 right-4)이 있으면 본문 아래에 낙관 높이만큼 여백을 둬
           마지막 줄이 도장에 가리지 않게 한다. cardPadding(p-5 20 / p-7 28)을 감안해 필요분만 확보. */}

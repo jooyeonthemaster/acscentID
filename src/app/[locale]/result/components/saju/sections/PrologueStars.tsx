@@ -19,7 +19,7 @@ import {
 } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import type { SajuElement } from '@/types/analysis';
-import { GanjiTile } from '@/components/saju';
+import { CloudMoon, CloudRidge, GanjiTile } from '@/components/saju';
 import type { PrologueStarsProps } from './types';
 
 const TILE_W = 40; // GanjiTile sm
@@ -199,6 +199,13 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
   const headlineY = useTransform(p, [0, 0.12], [8, 0]);
   const cueOpacity = useTransform(p, [0.06, 0.12], [1, 0]);
 
+  // 운문 — 상품 아트(달+겹구름) 도입부: 스크롤이 진행되면 구름이 좌우로 걷히고
+  // 달빛이 잦아들며 별(운명별)이 응집한다. (SAJU_CLOUDS — clouds.tsx 플래그로 일괄 토글)
+  const moonOpacity = useTransform(p, [0, 0.35, 0.6], [0.95, 0.7, 0.15]);
+  const cloudBackX = useTransform(p, [0.08, 0.55], ['0%', '-12%']);
+  const cloudFrontX = useTransform(p, [0.08, 0.55], ['0%', '12%']);
+  const cloudOpacity = useTransform(p, [0.08, 0.45, 0.6], [1, 0.8, 0]);
+
   // reduced-motion: 정적 최종 상태 (§5.10 — sticky 해제, 헤드라인은 접근성상 유지)
   if (reduce) {
     const hasHour = Boolean(chart.pillars.hour);
@@ -208,8 +215,12 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
     return (
       <section
         ref={ref}
-        className="relative flex min-h-screen flex-col items-center justify-center gap-12 px-6 py-24"
+        className="relative flex min-h-screen flex-col items-center justify-center gap-12 overflow-hidden px-6 py-24"
       >
+        {/* 운문 — 정적 렌더(reduced-motion): 하단 구름 능선만 */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0">
+          <CloudRidge tone="raised" strokeOpacity={0.2} style={{ height: 96 }} />
+        </div>
         <h2
           className="font-serif-kr break-keep text-center text-[#E9E2D0]"
           style={{ fontSize: 34, lineHeight: 1.35, fontWeight: 900, letterSpacing: '-0.01em', whiteSpace: 'pre-line' }}
@@ -256,6 +267,29 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
         className="sticky top-0 h-screen overflow-hidden"
         style={{ opacity: containerOpacity }}
       >
+        {/* 운문 — 보름달 (헤드라인 위, 별보다 뒤) */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[7%] -translate-x-1/2"
+          style={{ opacity: moonOpacity }}
+        >
+          <CloudMoon size={92} />
+        </motion.div>
+
+        {/* 운문 — 하단 겹구름: 스크롤에 따라 좌우로 걷힌다 */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[200px]"
+          style={{ opacity: cloudOpacity }}
+        >
+          <motion.div className="absolute -inset-x-[12%] bottom-9" style={{ x: cloudBackX }}>
+            <CloudRidge tone="raised" strokeOpacity={0.22} style={{ height: 104 }} />
+          </motion.div>
+          <motion.div className="absolute -inset-x-[12%] bottom-0" style={{ x: cloudFrontX }}>
+            <CloudRidge tone="blue" strokeOpacity={0.3} style={{ height: 118 }} />
+          </motion.div>
+        </motion.div>
+
         {/* 배경별 28개 */}
         <div className="absolute inset-0" aria-hidden>
           {Array.from({ length: 28 }, (_, i) => (
