@@ -1,15 +1,18 @@
 'use client'
 
+import type { ComponentProps } from 'react'
 import { useEffect, useState } from 'react'
 import { AlertCircle, ArrowLeft, Loader2, Printer } from 'lucide-react'
 import { PrintableReport } from '../components/PrintableReport'
 
+type PrintableReportData = ComponentProps<typeof PrintableReport>
+
 interface PrintPageData {
-  analysis: any
-  user_profile: any
-  feedback: any
-  layering_session?: any
-  partner_analysis?: any
+  analysis: PrintableReportData['analysis']
+  user_profile: PrintableReportData['userProfile']
+  feedback: PrintableReportData['feedback']
+  layering_session?: PrintableReportData['layeringSession']
+  partner_analysis?: PrintableReportData['partnerAnalysis']
 }
 
 interface LoadedReport {
@@ -55,8 +58,8 @@ export default function BulkPrintReportPage() {
                 return { id, data: null, failed: true }
               }
 
-              const data = await res.json()
-              return { id, data: data as PrintPageData, failed: false }
+              const data = (await res.json()) as PrintPageData
+              return { id, data, failed: false }
             } catch {
               return { id, data: null, failed: true }
             }

@@ -1,15 +1,18 @@
 'use client'
 
+import type { ComponentProps } from 'react'
 import { useState, useEffect, use } from 'react'
 import { Loader2, Printer } from 'lucide-react'
 import { PrintableReport } from '../../components/PrintableReport'
 
+type PrintableReportData = ComponentProps<typeof PrintableReport>
+
 interface PrintPageData {
-  analysis: any
-  user_profile: any
-  feedback: any
-  layering_session?: any
-  partner_analysis?: any
+  analysis: PrintableReportData['analysis']
+  user_profile: PrintableReportData['userProfile']
+  feedback: PrintableReportData['feedback']
+  layering_session?: PrintableReportData['layeringSession']
+  partner_analysis?: PrintableReportData['partnerAnalysis']
 }
 
 export default function PrintReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,21 +22,21 @@ export default function PrintReportPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/admin/analysis/${id}`)
+        if (!res.ok) throw new Error('데이터를 불러오는데 실패했습니다')
+        const data = (await res.json()) as PrintPageData
+        setData(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '오류가 발생했습니다')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchData()
   }, [id])
-
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`/api/admin/analysis/${id}`)
-      if (!res.ok) throw new Error('데이터를 불러오는데 실패했습니다')
-      const data = await res.json()
-      setData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handlePrint = () => {
     window.print()
