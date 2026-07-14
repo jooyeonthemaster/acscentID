@@ -27,7 +27,7 @@ const kirangHaerang = Kirang_Haerang({
   weight: "400",
 });
 
-// 사주 분석 퍼퓸 「자정의 조향소」 전용 세리프 (UI-SPEC §1.2)
+// 사주 분석 퍼퓸 전용 세리프 (UI-SPEC §1.2)
 const notoSerifKR = Noto_Serif_KR({
   subsets: ["latin"],           // 한글 서브셋은 next/font가 unicode-range 분할로 자동 처리
   variable: "--font-noto-serif-kr",

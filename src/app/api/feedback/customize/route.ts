@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
       const recipe: GeneratedRecipe = isSaju
         ? {
-            // 사주(자정의 조향소) — 근엄한 명인 어조
+            // 사주 — 근엄한 명인 어조
             granules: [
               {
                 id: originalPerfume.id,

@@ -280,7 +280,7 @@ function InputPageContent() {
         )
     }
 
-    // 사주 분석 퍼퓸 — 「자정의 조향소」 문진 위저드
+    // 사주 분석 퍼퓸 — 문진 위저드
     if (type === "saju") {
         return (
             <InactiveProductGuard productSlug={productSlug}>

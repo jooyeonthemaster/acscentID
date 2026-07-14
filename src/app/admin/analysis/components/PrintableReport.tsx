@@ -604,7 +604,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
 
         {/* L3 서브타이틀 */}
         <div className="absolute" style={{ left: 92, top: 60, width: 240, height: 12, fontSize: 8.5, color: '#5C564A', lineHeight: 1.2 }}>
-          자정의 조향소 · 사주 분석 보고서
+          사주 분석 보고서
         </div>
 
         {/* L4 이름 라벨 */}
@@ -703,7 +703,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
 
         {/* L17 푸터 */}
         <div className="absolute" style={{ left: 52, top: 552, width: 318, height: 12, fontSize: 7, color: '#8B8578', letterSpacing: '0.1em', lineHeight: 1.2 }}>
-          자정의 조향소{reportDate ? ` · ${reportDate}` : ''}
+          AC&apos;SCENT IDENTITY{reportDate ? ` · ${reportDate}` : ''}
         </div>
 
         {/* ===== 우측 패널 — 香處方 (§7.3) ===== */}

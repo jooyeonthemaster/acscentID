@@ -10,7 +10,7 @@ interface ChemistryResultRouterProps {
 
 /**
  * chemistry 타입이면 케미 전용 결과 페이지를,
- * saju 타입이면 사주 전용 결과 페이지(자정의 조향소)를 렌더링,
+ * saju 타입이면 사주 전용 결과 페이지를 렌더링,
  * 아니면 기존 ResultPageMain을 렌더링.
  */
 export function ChemistryResultRouter({ children }: ChemistryResultRouterProps) {

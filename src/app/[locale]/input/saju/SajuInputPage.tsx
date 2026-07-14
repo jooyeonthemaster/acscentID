@@ -1,7 +1,7 @@
 'use client'
 
 // ============================================================
-// 「자정의 조향소」 문진 위저드 셸 (UI-SPEC §3.0)
+// 사주 문진 위저드 셸 (UI-SPEC §3.0)
 // 페이즈 머신: gate → purpose → birth → (partner) → wish → seal
 // 먹색 자정 배경 + 금 파티클 + 금실 진행(ProgressThread) + 한지 넘김 전환
 // 모드 계약(온/오프라인·PIN·AuthModal·QR 가드)은 useSajuForm이 이행한다.

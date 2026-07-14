@@ -2739,7 +2739,7 @@
   },
   "saju": {
     "common": {
-      "programName": "El Atelier de Medianoche",
+      "programName": "Perfume de Análisis Saju",
       "elements": {
         "wood": "Madera (木)",
         "fire": "Fuego (火)",
@@ -2760,7 +2760,7 @@
       },
       "process": {
         "title": "De los ocho caracteres (八字) a un aroma",
-        "sub": "El taller de medianoche trabaja en cuatro pasos.",
+        "sub": "El análisis se completa en cuatro pasos.",
         "step1": {
           "title": "Consulta",
           "desc": "Le preguntamos su hora de nacimiento"
@@ -3050,7 +3050,7 @@
       "knots": {
         "calc": "Almanaque",
         "read": "Lectura",
-        "blend": "Mezcla (調香)"
+        "blend": "Mezcla"
       },
       "eta": "Unos 30 s"
     },
@@ -3122,8 +3122,8 @@
           "season": "Estación y hora afines",
           "flow": "El flujo de este año"
         },
-        "closing": "El Atelier de Medianoche — un solo aroma, elegido de sus ocho caracteres",
-        "closingIdol": "El Atelier de Medianoche — un solo aroma, elegido de los ocho caracteres de esa persona"
+        "closing": "Un solo aroma, elegido de sus ocho caracteres",
+        "closingIdol": "Un solo aroma, elegido de los ocho caracteres de esa persona"
       }
     }
   }

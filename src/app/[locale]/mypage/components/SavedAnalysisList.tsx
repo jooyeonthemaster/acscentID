@@ -22,7 +22,7 @@ import { CloudRidge } from '@/components/saju'
 
 const SAJU_ANALYSIS_PLACEHOLDER_IMAGE = '/images/saju/analysis-placeholder.png'
 
-// 사주 분석 대표 이미지 — 추천 향의 주(主) 오행 한자 타일 (자정의 조향소 톤)
+// 사주 분석 대표 이미지 — 추천 향의 주(主) 오행 한자 타일 (사주 먹·금 톤)
 function SajuElementTile({ element, size = 'md' }: { element: SajuElement; size?: 'sm' | 'md' }) {
   const info = SAJU_ELEMENT_INFO[element]
   return (

@@ -1,7 +1,7 @@
 "use client"
 
 // ============================================================
-// 사주 분석 퍼퓸 「자정의 조향소」 — 프로그램 랜딩 (/programs/saju)
+// 사주 분석 퍼퓸 — 프로그램 랜딩 (/programs/saju)
 // SSOT: docs/saju/UI-SPEC.md §6 (히어로 파라미터 §6.1, 하드코딩 섹션 §6.3)
 // 상단 히어로 = 기존 공용 문법(키치 사이트와의 다리), 아래 섹션부터
 // 먹/금박/한지의 사주 월드로 톤이 전환된다. §1.0 금지 목록 준수:
@@ -258,7 +258,7 @@ export default function SajuProgramPage() {
                   {tf('saju.landing.process.title', '여덟 글자가 향이 되기까지')}
                 </motion.h2>
                 <motion.p variants={fadeInUp} className="mt-2 break-keep font-serif-kr text-[13px] leading-[1.7] text-[#5C564A]">
-                  {tf('saju.landing.process.sub', '자정의 조향소는 네 걸음으로 일합니다.')}
+                  {tf('saju.landing.process.sub', '사주 분석은 네 걸음으로 완성됩니다.')}
                 </motion.p>
               </div>
 

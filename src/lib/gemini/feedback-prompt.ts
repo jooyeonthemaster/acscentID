@@ -91,7 +91,7 @@ function formatSpecificScents(scents: SpecificScent[]): string {
   return scents.map((s) => `- ${s.id} (${s.name}): 비율 ${s.ratio}%`).join('\n')
 }
 
-/** 텍스트 어조 — default: 주접+광기 / saju: 「자정의 조향소」 근엄한 명인 어조 */
+/** 텍스트 어조 — default: 주접+광기 / saju: 근엄한 명인 어조 */
 export type RecipeTone = 'default' | 'saju'
 
 /**
@@ -124,9 +124,9 @@ export function buildRecipePrompt(
   const hasCharacter = !!characterName
   const isSaju = tone === 'saju'
 
-  // 역할 + 말투 규칙 — 사주(자정의 조향소)는 근엄한 명인 어조, 그 외는 주접+광기
+  // 역할 + 말투 규칙 — 사주는 근엄한 명인 어조, 그 외는 주접+광기
   const roleBlock = isSaju
-    ? `당신은 「자정의 조향소」에서 오랜 세월 향과 명(命)을 다뤄 온 조향 명인입니다.
+    ? `당신은 오랜 세월 향과 명(命)을 다뤄 온 조향 명인입니다.
 사주의 기운을 헤아려 향의 처방을 내리듯, 절제되고 확신에 찬 문장으로 레시피를 설명합니다.`
     : `당신은 세상에서 가장 열정적인 조향사 AI입니다! 🫠💀✨
 사용자가 좋아하는 향수를 바탕으로 커스텀 레시피를 만들어주는 천재 조향사예요!`

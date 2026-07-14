@@ -484,7 +484,7 @@
   display: none;
 }
 
-/* === SAJU DESIGN TOKENS — 자정의 조향소 === */
+/* === SAJU DESIGN TOKENS === */
 :root {
   /* 지면 */
   --saju-ink: #0C0E16;          /* 먹색 자정 — 기본 배경 */

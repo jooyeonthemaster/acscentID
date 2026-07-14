@@ -2739,7 +2739,7 @@
   },
   "saju": {
     "common": {
-      "programName": "The Midnight Atelier",
+      "programName": "Saju Analysis Perfume",
       "elements": {
         "wood": "Wood (木)",
         "fire": "Fire (火)",
@@ -2760,7 +2760,7 @@
       },
       "process": {
         "title": "From Eight Characters (八字) to a Scent",
-        "sub": "The midnight atelier works in four steps.",
+        "sub": "The analysis unfolds in four steps.",
         "step1": {
           "title": "Inquiry",
           "desc": "We ask for your birth hour"
@@ -3050,7 +3050,7 @@
       "knots": {
         "calc": "Almanac",
         "read": "Reading",
-        "blend": "Blending (調香)"
+        "blend": "Blending"
       },
       "eta": "About 30 sec"
     },
@@ -3122,8 +3122,8 @@
           "season": "Season & hour",
           "flow": "This year's flow"
         },
-        "closing": "The Midnight Atelier — one scent, chosen from your eight characters",
-        "closingIdol": "The Midnight Atelier — one scent, chosen from their eight characters"
+        "closing": "One scent, chosen from your eight characters",
+        "closingIdol": "One scent, chosen from their eight characters"
       }
     }
   }
