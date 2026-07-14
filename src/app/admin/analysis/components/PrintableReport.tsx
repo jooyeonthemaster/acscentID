@@ -397,12 +397,25 @@ function sajuPrintSentence(text: string | null | undefined, max: number): string
   return summary ? `${summary.replace(/\s+—\s+/gu, ' —\n')}.` : ''
 }
 
-/** 서사 블록용 — 여러 문장 유지, 잘리면 말줄임표 */
+/** 서사 블록용 — 완결 문장 단위로만 채운다(문장 중간에서 자르지 않고, 들어가는 문장까지 온전히).
+ *  첫 문장부터 max를 넘는 극단적인 경우에만 어절 단위 컷 + 말줄임으로 강등. */
 function sajuPrintNarrative(text: string | null | undefined, max: number): string {
   const normalized = (text || '').replace(/\s+/g, ' ').trim()
   if (!normalized) return ''
-  const fitted = sajuPrintFit(normalized, max)
-  return Array.from(normalized).length > max ? `${fitted}…` : fitted
+
+  const sentences =
+    normalized.match(/[^.!?。！？]+[.!?。！？]+["'』」)]*|[^.!?。！？]+$/gu) || [normalized]
+
+  let out = ''
+  for (const s of sentences) {
+    const candidate = out ? `${out} ${s.trim()}` : s.trim()
+    if (Array.from(candidate).length > max) break
+    out = candidate
+  }
+
+  if (!out) return `${sajuPrintFit(normalized, max)}…`
+  // 마침표 없는 마지막 조각이 통째로 들어온 경우 종결 부호 보정
+  return /[.!?。！？]["'』」)]*$/u.test(out) ? out : `${out}.`
 }
 
 function sajuPrintPerfumeCode(code: string): string {
