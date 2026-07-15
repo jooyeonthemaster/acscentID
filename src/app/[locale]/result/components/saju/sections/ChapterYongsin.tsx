@@ -163,7 +163,7 @@ export function ChapterYongsin({ result, targetType }: ChapterYongsinProps) {
   // ---------- 스크롤 연동 sticky 렌더 ----------
   return (
     <section ref={ref} className="relative" style={{ height: '220vh' }}>
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
+      <div className="sticky top-0 flex h-[100dvh] items-center justify-center overflow-hidden px-6">
         <motion.div className="absolute left-6 top-20" style={{ opacity: headOpacity }}>
           <VerticalLabel text="五章" tone="gold" />
         </motion.div>

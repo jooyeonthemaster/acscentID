@@ -91,7 +91,7 @@ export default function SajuInputPage() {
     }
 
     return (
-        <div className="saju-ink-grain min-h-screen bg-[#0C0E16]">
+        <div className="saju-ink-grain min-h-[100dvh] bg-[#0C0E16]">
             {/* 분석 의식 오버레이 (§4) */}
             <SajuAnalyzingOverlay
                 isVisible={isSubmitting}
@@ -116,7 +116,7 @@ export default function SajuInputPage() {
             {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}
             <Header showBack backHref="back" compact dark />
 
-            <div className="relative mx-auto min-h-screen w-full max-w-[455px]">
+            <div className="relative mx-auto min-h-[100dvh] w-full max-w-[455px]">
                 {/* compact 헤더 높이 여백 */}
                 <div className="h-14 flex-shrink-0" />
 

@@ -71,6 +71,27 @@ export function SajuAnalyzingOverlay({
     const [scrollStage, setScrollStage] = useState<'idle' | 'seal' | 'rod' | 'roll'>('idle')
     const doorOpenedRef = useRef(false)
 
+    // 도킹 상승량 — 화면 높이에 따라 계산해 헤드라인(top 10%)과 원국 패가 겹치지 않게 한다.
+    // 짧은 화면에서는 고정 -96px가 헤드라인을 침범했다(피드백: "겹쳐서 나타나요").
+    const stageRef = useRef<HTMLDivElement>(null)
+    const [dockY, setDockY] = useState(-96)
+    useEffect(() => {
+        if (!docked) return
+        const compute = () => {
+            const stageH = stageRef.current?.offsetHeight
+            if (!stageH) return
+            const h = window.innerHeight
+            // 헤드라인 블록(10% + 2줄 + 부제 ≈ 100px) 아래 16px에 도킹된 원국(scale 0.82) 상단을 맞춘다
+            const targetTop = h * 0.1 + 116
+            const scaledHalf = (stageH * 0.82) / 2
+            const y = Math.round(targetTop + scaledHalf - h / 2)
+            setDockY(Math.min(0, Math.max(y, -96)))
+        }
+        compute()
+        window.addEventListener('resize', compute)
+        return () => window.removeEventListener('resize', compute)
+    }, [docked])
+
     // 격언 — 셔플 시작 (§4.3). 렌더 순수성을 위해 이름 시드 결정적 셔플.
     const quotes = useMemo(() => {
         const raw = (t.raw('quotes') as string[]) ?? []
@@ -257,11 +278,12 @@ export function SajuAnalyzingOverlay({
 
                     {/* 무대: 원국(패 그리드) + 만세력 책 */}
                     <motion.div
+                        ref={stageRef}
                         className="flex flex-col items-center"
                         animate={{
                             opacity: dimmed ? 0.3 : 1,
                             scale: docked ? 0.82 : 1,
-                            y: docked ? -96 : 0,
+                            y: docked ? dockY : 0,
                         }}
                         transition={{ duration: 1.2, ease: SAJU_EASE_INK }}
                     >

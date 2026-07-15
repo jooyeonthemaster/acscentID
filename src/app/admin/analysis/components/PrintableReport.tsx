@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties } from 'react'
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO } from '@/types/analysis'
+import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO, SAJU_PURPOSES } from '@/types/analysis'
 
 interface PrintableAnalysis {
   id: string
@@ -530,15 +530,30 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   const yongsinInfo = yongsinElement ? SAJU_ELEMENT_INFO[yongsinElement] : null
   const yongsinReason = sajuPrintSentence(saju?.elementFlow?.yongsinNarrative || '', 58)
 
-  // L11'/L12' — 일간(타고난 기질) 서사: 오행 분포 그래프 자리를 해석 전문으로 대체
+  // 선택한 분석 유형 (종합/연애/재물/직업/궁합) — 우측 패널 헤더 칩
+  const purposeMeta = SAJU_PURPOSES.find(
+    (p) => p.id === (saju?.purposeReading?.purpose ?? data?.sajuPurpose)
+  )
+
+  // 오행 분포 (L12' 우측 미니 바) — 웹 三章과 동일한 원국 스냅숏 개수(elementCount) 기준
+  const elementRows = chart
+    ? (['목', '화', '토', '금', '수'] as SajuElement[]).map((el) => ({
+        el,
+        info: SAJU_ELEMENT_INFO[el],
+        count: chart.elementCount?.[el] ?? 0,
+      }))
+    : []
+  const elementMax = Math.max(1, ...elementRows.map((r) => r.count))
+
+  // L11'/L12' — 일간(타고난 기질) 서사 + 오행 분포 미니 바(우측 110px 열)
   const dayMaster = saju?.dayMasterReading
   const dayMasterTitle = dayMaster
     ? [dayMaster.archetypeTitle, dayMaster.hanja].filter(Boolean).join(' · ')
     : ''
-  // 박스: width 318 / font 8.5 ≈ 37유닛·줄, 높이 92 / 행간 12.75 = 7줄
+  // 박스: width 196 / font 8.5 ≈ 23유닛·줄, 높이 92 / 행간 12.75 = 7줄 (우측은 오행 분포)
   const dayMasterBody = sajuPrintNarrative(
     [dayMaster?.natureMetaphor, dayMaster?.narrative].filter(Boolean).join(' '),
-    37,
+    23,
     7
   )
 
@@ -550,8 +565,8 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
   const brandLine = rawPerfumeId ? sajuPrintPerfumeCode(rawPerfumeId) : ''
   const noteRows = [
     { chip: '겉향', name: persona?.mainScent?.name, meaning: saju?.scentDestiny?.topMeaning, top: 144 },
-    { chip: '중심향', name: persona?.subScent1?.name, meaning: saju?.scentDestiny?.middleMeaning, top: 200 },
-    { chip: '잔향', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 256 },
+    { chip: '중심향', name: persona?.subScent1?.name, meaning: saju?.scentDestiny?.middleMeaning, top: 203 },
+    { chip: '잔향', name: persona?.subScent2?.name, meaning: saju?.scentDestiny?.baseMeaning, top: 262 },
   ]
 
   // R8'/R9' — 처방의 연유: 6계열 그래프 자리를 命→香 서사로 대체
@@ -658,10 +673,10 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           )
         })}
 
-        {/* L11' 일간 라벨 — 오행 분포 그래프 자리를 일간 해석 서사로 대체 */}
+        {/* L11' 일간 라벨 */}
         <div className="absolute" style={{ left: 52, top: 330, width: 200, height: 10, ...labelStyle }}>일간(日干) · 타고난 기질</div>
 
-        {/* L12' 일간 원형 제목 + 서사 본문 */}
+        {/* L12' 일간 원형 제목 + 서사 본문 (좌 196px) */}
         {dayMasterTitle && (
           <div className="absolute" style={{ left: 52, top: 344, width: 318, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
             {dayMasterTitle}
@@ -670,10 +685,37 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {dayMasterBody && (
           <div
             className="absolute"
-            style={{ left: 52, top: 368, width: 318, height: 92, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
+            style={{ left: 52, top: 368, width: 196, height: 92, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', wordBreak: 'keep-all' }}
           >
             {dayMasterBody}
           </div>
+        )}
+
+        {/* L12'' 오행 분포 — 원국 8자 기준 개수 미니 바 (우 110px, 웹 三章과 동일 데이터) */}
+        {elementRows.length > 0 && (
+          <>
+            <div className="absolute" style={{ left: 260, top: 368, width: 110, height: 10, ...labelStyle }}>오행 분포</div>
+            {elementRows.map((row, i) => (
+              <div key={row.el} className="absolute flex items-center" style={{ left: 260, top: 383 + i * 13, width: 110, height: 11 }}>
+                <span style={{ width: 14, fontSize: 8.5, fontWeight: 700, color: '#1A1610', lineHeight: 1, flexShrink: 0 }}>
+                  {row.info.hanja}
+                </span>
+                <div style={{ width: 62, height: 5, backgroundColor: 'rgba(26,22,16,0.08)', borderRadius: 1, flexShrink: 0 }}>
+                  <div
+                    style={{
+                      width: row.count > 0 ? Math.max(4, Math.round((row.count / elementMax) * 62)) : 0,
+                      height: 5,
+                      borderRadius: 1,
+                      backgroundColor: isSelfSaju ? '#1A1610' : row.info.color,
+                    }}
+                  />
+                </div>
+                <span style={{ width: 30, textAlign: 'right', fontSize: 7.5, color: '#5C564A', lineHeight: 1, flexShrink: 0 }}>
+                  {row.count}
+                </span>
+              </div>
+            ))}
+          </>
         )}
 
         {/* L13 용신 낙관 */}
@@ -718,6 +760,20 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           처방된 운명의 향
         </div>
 
+        {/* R2' 분석 유형 칩 — 사용자가 선택한 풀이 목적 (종합운/연애운/재물운/직업운/궁합) */}
+        {purposeMeta && (
+          <div
+            className="absolute flex items-center justify-center"
+            style={{
+              right: 52, top: 38, height: 20, padding: '0 8px', borderRadius: 2,
+              border: `1px solid ${accent}`, color: accent,
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', lineHeight: 1,
+            }}
+          >
+            {purposeMeta.hanja} · {purposeMeta.label} 분석
+          </div>
+        )}
+
         {/* R3 향수명 — 2줄 클램프(24자 slice). lineHeight 20px = 2줄이 슬롯 40px에 정합(§7.3 h:40와 1.25 행간의 충돌 조정) */}
         {perfumeName && (
           <div
@@ -758,9 +814,10 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
             {row.meaning && (
               <div
                 className="absolute"
-                style={{ left: 462, top: row.top + 22, width: 328, height: 26, fontSize: 8.5, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
+                style={{ left: 462, top: row.top + 21, width: 328, height: 36, fontSize: 8, lineHeight: 1.5, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
               >
-                {sajuPrintSentence(row.meaning, 54)}
+                {/* 문장 중간 컷 방지 — 3줄(width 328/font 8 ≈ 41유닛) 안에 들어가는 완결 문장까지 노출 */}
+                {sajuPrintNarrative(row.meaning, 41, 3)}
               </div>
             )}
           </div>

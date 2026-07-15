@@ -416,7 +416,10 @@ export function ChapterPurpose({ result, targetType, userName }: ChapterPurposeP
         {/* 두 일간의 자연물 관계 — 타이틀 */}
         {hasText(compat.title) && (
           <FadeIn delay={0.1}>
-            <h3 className="mt-10 break-keep text-center font-serif-kr text-[24px] font-semibold leading-[1.45] text-[#E9E2D0]">
+            <h3
+              className="mt-10 break-keep text-center font-serif-kr text-[24px] font-semibold leading-[1.45] text-[#E9E2D0]"
+              style={{ textWrap: 'balance' }}
+            >
               {sajuClip(compat.title, 40)}
             </h3>
           </FadeIn>
@@ -545,6 +548,8 @@ export function ChapterPurpose({ result, targetType, userName }: ChapterPurposeP
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
+              // 마지막 어절 하나만 다음 줄로 떨어지는 고아 줄바꿈 방지 (예: "…내는 / 법")
+              textWrap: 'balance',
             }}
           >
             {sajuClip(reading.title, 28)}

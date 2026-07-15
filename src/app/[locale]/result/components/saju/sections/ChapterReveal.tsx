@@ -75,7 +75,6 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
 
   const chart = result.sajuChart;
   const destiny = result.sajuAnalysis?.scentDestiny;
-  if (!chart) return null;
 
   const top = result.matchingPerfumes?.[0];
   const persona = top?.persona;
@@ -130,6 +129,9 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
       cancelled = true;
     };
   }, [displayName]);
+
+  // 조기 반환은 모든 훅 선언 뒤에 — 훅 호출 순서 고정 (rules-of-hooks)
+  if (!chart) return null;
 
   // 브랜드 라인 — perfumeId가 이미 "AC'SCENT ##" 형태면 접두어 중복 금지
   const rawPerfumeId = top?.perfumeId?.trim();
@@ -270,10 +272,11 @@ export function ChapterReveal({ result }: ChapterRevealProps) {
         )}
       </div>
 
-      {/* 브랜드 라인 — perfumeId 그대로가 이미 브랜드 표기면 중복 접두 없이 */}
+      {/* 브랜드 라인 — perfumeId 그대로가 이미 브랜드 표기면 중복 접두 없이.
+          구름 받침(-bottom-5, ≈20px 돌출)과 노트 카드(mt-10) 사이 여백의 정가운데에 놓는다 */}
       {brandLine && (
         <motion.p
-          className="mt-4 text-center font-sans text-[15px] font-semibold uppercase leading-[1.5] tracking-[0.2em] text-[#A69F8D]"
+          className="mt-14 text-center font-sans text-[22px] font-semibold uppercase leading-[1.5] tracking-[0.2em] text-[#E9E2D0]"
           initial={{ opacity: 0 }}
           animate={revealed ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}

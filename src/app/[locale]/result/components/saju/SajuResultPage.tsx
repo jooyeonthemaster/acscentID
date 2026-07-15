@@ -355,7 +355,7 @@ export default function SajuResultPage() {
   // ---------- 로딩 — 먹색 정적 대기(§1.0: 스피너 키치 금지) ----------
   if (loading) {
     return (
-      <div className="saju-ink-grain relative flex min-h-screen flex-col items-center justify-center bg-[#0C0E16] px-8">
+      <div className="saju-ink-grain relative flex min-h-[100dvh] flex-col items-center justify-center bg-[#0C0E16] px-8">
         <GoldDust count={12} className="absolute inset-0" />
         <div className="relative z-10 flex flex-col items-center gap-6">
           <Image
@@ -377,7 +377,7 @@ export default function SajuResultPage() {
   // ---------- 에러 / 사주 데이터 아님 ----------
   if (error || !sajuResult) {
     return (
-      <div className="saju-ink-grain relative flex min-h-screen flex-col items-center justify-center bg-[#0C0E16] px-8">
+      <div className="saju-ink-grain relative flex min-h-[100dvh] flex-col items-center justify-center bg-[#0C0E16] px-8">
         <div className="relative z-10 flex w-full max-w-[360px] flex-col items-center gap-6 text-center">
           <SealStamp chars="命" size="lg" tone="ink" />
           <h2 className="font-serif-kr break-keep text-[24px] font-semibold leading-[1.45] text-[#E9E2D0]">
@@ -398,7 +398,7 @@ export default function SajuResultPage() {
   }
 
   return (
-    <div className="saju-ink-grain relative min-h-screen bg-[#0C0E16]">
+    <div className="saju-ink-grain relative min-h-[100dvh] bg-[#0C0E16]">
       {/* 전역 금 파티클 — 페이지에 1개만(§5.10). 섹션 로컬 파티클은 終章 8개만 허용 */}
       <GoldDust count={14} className="fixed inset-0 z-0" />
 

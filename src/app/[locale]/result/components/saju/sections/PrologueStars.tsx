@@ -215,7 +215,7 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
     return (
       <section
         ref={ref}
-        className="relative flex min-h-screen flex-col items-center justify-center gap-12 overflow-hidden px-6 py-24"
+        className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-12 overflow-hidden px-6 py-24"
       >
         {/* 운문 — 정적 렌더(reduced-motion): 하단 구름 능선만 */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0">
@@ -264,7 +264,7 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
   return (
     <section ref={ref} className="relative h-[240vh]">
       <motion.div
-        className="sticky top-0 h-screen overflow-hidden"
+        className="sticky top-0 h-[100dvh] overflow-hidden"
         style={{ opacity: containerOpacity }}
       >
         {/* 운문 — 보름달 (헤드라인 위, 별보다 뒤) */}
@@ -326,10 +326,13 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
           </h2>
         </motion.div>
 
-        {/* 스크롤 큐 */}
+        {/* 스크롤 큐 — 하단 고정 액션 바(≈76px + safe-area)에 가려지지 않도록 그 위에 띄운다 */}
         <motion.div
-          className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2"
-          style={{ opacity: cueOpacity }}
+          className="absolute inset-x-0 flex flex-col items-center gap-2"
+          style={{
+            opacity: cueOpacity,
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
+          }}
         >
           <span className="font-serif-kr text-[12px] leading-[1.6] text-[#A69F8D]">
             {t('scrollCue')}
