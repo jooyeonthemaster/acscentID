@@ -3178,6 +3178,16 @@
       "mapLink": "Ver ubicación de la tienda",
       "home": "Volver al inicio"
     },
-    "naverAlternative": "También puedes reservar por Naver"
+    "naverAlternative": "También puedes reservar por Naver",
+    "choice": {
+      "title": "Elige cómo reservar",
+      "subtitle": "¿Cómo deseas hacer tu reserva?",
+      "site": "Reservar en este sitio",
+      "siteDesc": "Elige fecha y hora, confirmación al instante",
+      "naver": "Reserva Naver",
+      "naverDesc": "Abre la página de reservas de Naver",
+      "comingSoon": "Próximamente",
+      "close": "Cerrar"
+    }
   }
 }

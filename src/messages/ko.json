@@ -3146,6 +3146,16 @@
       "mapLink": "매장 위치 보기",
       "home": "홈으로 돌아가기"
     },
-    "naverAlternative": "네이버 예약으로도 예약할 수 있어요"
+    "naverAlternative": "네이버 예약으로도 예약할 수 있어요",
+    "choice": {
+      "title": "예약 방법 선택",
+      "subtitle": "어떤 방법으로 예약하시겠어요?",
+      "site": "이 사이트에서 예약",
+      "siteDesc": "날짜·시간 선택 후 바로 확정돼요",
+      "naver": "네이버 예약",
+      "naverDesc": "네이버 예약 페이지로 이동해요",
+      "comingSoon": "준비중",
+      "close": "닫기"
+    }
   }
 }

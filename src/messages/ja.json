@@ -3178,6 +3178,16 @@
       "mapLink": "店舗の場所を見る",
       "home": "ホームに戻る"
     },
-    "naverAlternative": "Naver予約からもご予約いただけます"
+    "naverAlternative": "Naver予約からもご予約いただけます",
+    "choice": {
+      "title": "予約方法を選択",
+      "subtitle": "どの方法で予約しますか？",
+      "site": "このサイトで予約",
+      "siteDesc": "日時を選んですぐに確定できます",
+      "naver": "Naver予約",
+      "naverDesc": "Naver予約ページに移動します",
+      "comingSoon": "準備中",
+      "close": "閉じる"
+    }
   }
 }

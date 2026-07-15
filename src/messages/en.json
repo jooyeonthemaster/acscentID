@@ -3178,6 +3178,16 @@
       "mapLink": "View store location",
       "home": "Back to home"
     },
-    "naverAlternative": "You can also book via Naver Reservation"
+    "naverAlternative": "You can also book via Naver Reservation",
+    "choice": {
+      "title": "Choose how to book",
+      "subtitle": "How would you like to make your reservation?",
+      "site": "Book on this site",
+      "siteDesc": "Pick a date and time — confirmed instantly",
+      "naver": "Naver Reservation",
+      "naverDesc": "Opens the Naver booking page",
+      "comingSoon": "Coming soon",
+      "close": "Close"
+    }
   }
 }

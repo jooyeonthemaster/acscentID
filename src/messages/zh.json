@@ -3178,6 +3178,16 @@
       "mapLink": "查看门店位置",
       "home": "返回首页"
     },
-    "naverAlternative": "也可通过Naver预约"
+    "naverAlternative": "也可通过Naver预约",
+    "choice": {
+      "title": "选择预约方式",
+      "subtitle": "您想通过哪种方式预约？",
+      "site": "在本网站预约",
+      "siteDesc": "选择日期和时间，立即确认",
+      "naver": "Naver预约",
+      "naverDesc": "跳转至Naver预约页面",
+      "comingSoon": "准备中",
+      "close": "关闭"
+    }
   }
 }
