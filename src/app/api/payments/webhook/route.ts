@@ -6,6 +6,92 @@ import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
 
+type PortOneV2WebhookBody = {
+  type?: string
+  data?: {
+    paymentId?: string
+  }
+}
+
+const SMOAT_WEBHOOK_URL =
+  process.env.SMOAT_PORTONE_WEBHOOK_URL ||
+  'https://www.smoat.co.kr/api/portone/webhook'
+const SMOAT_MERCHANT_UID_PREFIX = 'sm_'
+
+const FORWARD_HEADER_BLOCKLIST = new Set([
+  'accept-encoding',
+  'connection',
+  'content-encoding',
+  'content-length',
+  'cookie',
+  'host',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'set-cookie',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+])
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isSmoatPortOneV1Webhook(body: unknown): boolean {
+  if (!isRecord(body)) return false
+  const merchantUid = body.merchant_uid
+  return (
+    typeof merchantUid === 'string' &&
+    merchantUid.startsWith(SMOAT_MERCHANT_UID_PREFIX)
+  )
+}
+
+function buildForwardHeaders(request: NextRequest): Headers {
+  const headers = new Headers()
+
+  request.headers.forEach((value, key) => {
+    if (!FORWARD_HEADER_BLOCKLIST.has(key.toLowerCase())) {
+      headers.set(key, value)
+    }
+  })
+
+  if (!headers.has('content-type')) {
+    headers.set('content-type', 'application/json')
+  }
+
+  headers.set('x-acscent-forwarded-webhook', 'portone-v1')
+  return headers
+}
+
+async function forwardSmoatWebhook(
+  request: NextRequest,
+  rawBody: ArrayBuffer
+): Promise<boolean> {
+  try {
+    const response = await fetch(SMOAT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: buildForwardHeaders(request),
+      body: rawBody,
+    })
+
+    if (!response.ok) {
+      console.error('[Payments Webhook] SMOAT forward failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      })
+      return false
+    }
+
+    console.log('[Payments Webhook] SMOAT webhook forwarded')
+    return true
+  } catch (error) {
+    console.error('[Payments Webhook] SMOAT forward error:', error)
+    return false
+  }
+}
+
 function getOrderIdFromPaymentCustomData(customData: unknown): string | null {
   if (!customData) return null
 
@@ -37,8 +123,25 @@ export async function POST(request: NextRequest) {
   console.log('[Payments Webhook] POST request received')
 
   try {
-    const body = await request.json()
-    const { type, data } = body
+    const rawBody = await request.arrayBuffer()
+    let body: unknown
+
+    try {
+      body = JSON.parse(new TextDecoder().decode(rawBody))
+    } catch {
+      console.warn('[Payments Webhook] Invalid JSON body')
+      return NextResponse.json({ success: true })
+    }
+
+    if (isSmoatPortOneV1Webhook(body)) {
+      const forwarded = await forwardSmoatWebhook(request, rawBody)
+      return NextResponse.json(
+        { success: forwarded, forwarded: 'smoat' },
+        { status: forwarded ? 200 : 502 }
+      )
+    }
+
+    const { type, data } = body as PortOneV2WebhookBody
 
     console.log('[Payments Webhook] Webhook type:', type, 'data:', JSON.stringify(data))
 
