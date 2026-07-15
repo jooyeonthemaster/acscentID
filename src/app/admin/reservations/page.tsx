@@ -451,7 +451,7 @@ function ReservationSettingsTab() {
   )
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="space-y-4">
       {/* 접수 on/off */}
       <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5 flex items-center justify-between">
         <div>
@@ -597,12 +597,13 @@ export default function AdminReservationsPage() {
   const [tab, setTab] = useState<'list' | 'settings'>('list')
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-slate-50">
       <AdminHeader
         title="방문 예약"
         subtitle="오프라인 방문 예약 현황과 정책을 관리합니다"
       />
 
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div className="flex gap-2">
         <button
           onClick={() => setTab('list')}
@@ -629,6 +630,7 @@ export default function AdminReservationsPage() {
       </div>
 
       {tab === 'list' ? <ReservationListTab /> : <ReservationSettingsTab />}
+      </main>
     </div>
   )
 }
