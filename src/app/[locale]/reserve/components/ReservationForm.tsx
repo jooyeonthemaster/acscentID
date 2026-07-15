@@ -4,13 +4,14 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2, Send } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
-import { RESERVATION_CONFIG, type ReservationProgram } from "@/lib/reservation/config"
+import type { ReservationPolicy } from "@/lib/reservation/config"
 import type { ReservationResult } from "./SuccessCard"
 
 interface ReservationFormProps {
+  policy: ReservationPolicy
   slotStartIso: string
-  program: ReservationProgram
-  onProgramChange: (program: ReservationProgram) => void
+  program: string
+  onProgramChange: (program: string) => void
   onSlotTaken: () => void
   onSuccess: (result: ReservationResult) => void
 }
@@ -19,6 +20,7 @@ const inputClass =
   "w-full rounded-xl border-2 border-slate-900 bg-white px-3 py-2.5 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
 
 export function ReservationForm({
+  policy,
   slotStartIso,
   program,
   onProgramChange,
@@ -161,7 +163,7 @@ export function ReservationForm({
             onChange={(e) => setPartySize(Number(e.target.value))}
             className={inputClass}
           >
-            {Array.from({ length: RESERVATION_CONFIG.maxPartySize }, (_, i) => i + 1).map((n) => (
+            {Array.from({ length: policy.maxPartySize }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>
@@ -174,10 +176,10 @@ export function ReservationForm({
           </label>
           <select
             value={program}
-            onChange={(e) => onProgramChange(e.target.value as ReservationProgram)}
+            onChange={(e) => onProgramChange(e.target.value)}
             className={inputClass}
           >
-            {RESERVATION_CONFIG.programs.map((p) => (
+            {policy.programs.map((p) => (
               <option key={p} value={p}>
                 {t(`programs.${p}`)}
               </option>

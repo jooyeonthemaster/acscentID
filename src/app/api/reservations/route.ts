@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getApiLocale } from '@/lib/api-locale'
 import { getGoogleCalendarConfig, insertEvent, queryFreeBusy } from '@/lib/google/calendar'
-import { RESERVATION_CONFIG, isReservationProgram } from '@/lib/reservation/config'
+import { isReservationProgram } from '@/lib/reservation/config'
+import { getReservationPolicy } from '@/lib/reservation/settings'
 import { isValidSlot, overlaps } from '@/lib/reservation/slots'
 import { notifyNewReservation } from '@/lib/email/admin-notify'
 import { notifyCustomerReservationConfirmed } from '@/lib/email/customer-notify'
@@ -23,9 +24,9 @@ function generateReservationCode(): string {
 }
 
 /** 슬롯 시작 ISO(+09:00 고정)에 소요시간을 더한 종료 ISO */
-function slotEndIso(slotStartIso: string): string {
+function slotEndIso(slotStartIso: string, durationMinutes: number): string {
   const end = new Date(
-    new Date(slotStartIso).getTime() + RESERVATION_CONFIG.durationMinutes * 60_000 + 9 * 3600_000
+    new Date(slotStartIso).getTime() + durationMinutes * 60_000 + 9 * 3600_000
   )
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())}T${pad(end.getUTCHours())}:${pad(end.getUTCMinutes())}:00+09:00`
@@ -69,6 +70,13 @@ export async function POST(request: NextRequest) {
     const partySize = Number(body.partySize)
     const slotStart = typeof body.slotStart === 'string' ? body.slotStart : ''
 
+    const serviceClient = createServiceRoleClient()
+    const policy = await getReservationPolicy(serviceClient)
+
+    if (!policy.accepting) {
+      return NextResponse.json({ error: 'reservations_paused' }, { status: 503 })
+    }
+
     if (!name || name.length > 100) {
       return NextResponse.json({ error: 'invalid_name' }, { status: 400 })
     }
@@ -78,18 +86,19 @@ export async function POST(request: NextRequest) {
     if (
       !Number.isInteger(partySize) ||
       partySize < 1 ||
-      partySize > RESERVATION_CONFIG.maxPartySize
+      partySize > policy.maxPartySize
     ) {
       return NextResponse.json({ error: 'invalid_party_size' }, { status: 400 })
     }
-    if (!isReservationProgram(program)) {
+    // 알려진 프로그램이면서 현재 어드민 설정에서 노출 중인 프로그램만 허용
+    if (!isReservationProgram(program) || !policy.programs.includes(program)) {
       return NextResponse.json({ error: 'invalid_program' }, { status: 400 })
     }
     // 그리드/영업시간/휴무일/리드타임/최대일수 검증
-    if (!isValidSlot(slotStart)) {
+    if (!isValidSlot(slotStart, Date.now(), policy)) {
       return NextResponse.json({ error: 'invalid_slot' }, { status: 400 })
     }
-    const slotEnd = slotEndIso(slotStart)
+    const slotEnd = slotEndIso(slotStart, policy.durationMinutes)
 
     const calendarConfig = getGoogleCalendarConfig()
     if (!calendarConfig) {
@@ -102,8 +111,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'slot_taken' }, { status: 409 })
     }
 
-    const serviceClient = createServiceRoleClient()
-
     // 안티스팸 2: 이메일당 활성(미래 confirmed) 예약 수 제한
     const { count: activeCount, error: countError } = await serviceClient
       .from('reservations')
@@ -114,7 +121,7 @@ export async function POST(request: NextRequest) {
     if (countError) {
       console.error('[Reservations API] active count failed:', countError)
     }
-    if ((activeCount ?? 0) >= RESERVATION_CONFIG.maxActiveReservationsPerEmail) {
+    if ((activeCount ?? 0) >= policy.maxActiveReservationsPerEmail) {
       return NextResponse.json({ error: 'too_many_reservations' }, { status: 429 })
     }
 

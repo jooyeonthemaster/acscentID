@@ -1,21 +1,17 @@
 "use client"
 
-import { useCallback, useState, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { CalendarDays, ChevronLeft, Clock } from "lucide-react"
-import { RESERVATION_CONFIG, isReservationProgram, type ReservationProgram } from "@/lib/reservation/config"
+import { apiFetch } from "@/lib/api-client"
+import { isReservationProgram, type ReservationPolicy } from "@/lib/reservation/config"
 import { DateStrip } from "./DateStrip"
 import { SlotGrid } from "./SlotGrid"
 import { ReservationForm } from "./ReservationForm"
 import { SuccessCard, type ReservationResult } from "./SuccessCard"
 
 type Step = "date" | "slot" | "form" | "done"
-
-// SSR-CSR 하이드레이션 게이트 (홈 page.tsx와 동일 패턴)
-const subscribeToHydration = () => () => {}
-const getHydratedSnapshot = () => true
-const getServerHydrationSnapshot = () => false
 
 const INTL_LOCALE: Record<string, string> = {
   ko: "ko-KR",
@@ -46,20 +42,39 @@ export function ReserveFlow() {
   const [slotRefreshKey, setSlotRefreshKey] = useState(0)
   const [slotTakenNotice, setSlotTakenNotice] = useState(false)
 
-  // ?program= 쿼리 preselect
+  // ?program= 쿼리 preselect (정책 로드 후 노출 목록과 대조해 보정)
   const programParam = searchParams.get("program")
-  const [program, setProgram] = useState<ReservationProgram>(
-    programParam && isReservationProgram(programParam)
-      ? programParam
-      : RESERVATION_CONFIG.programs[0]
+  const [program, setProgram] = useState<string>(
+    programParam && isReservationProgram(programParam) ? programParam : ""
   )
 
-  // 날짜/슬롯 계산이 Date.now() 의존이라 SSR-CSR 불일치 방지용 마운트 게이트
-  const mounted = useSyncExternalStore(
-    subscribeToHydration,
-    getHydratedSnapshot,
-    getServerHydrationSnapshot
-  )
+  // 정책은 어드민 설정(DB) 기반 — 클라이언트에서 로드 (SSR에는 스피너만 렌더)
+  const [policy, setPolicy] = useState<ReservationPolicy | null>(null)
+  const [policyError, setPolicyError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    apiFetch("/api/reservations/config")
+      .then(async (res) => {
+        if (cancelled) return
+        if (!res.ok) {
+          setPolicyError(true)
+          return
+        }
+        const data = (await res.json()) as { policy: ReservationPolicy }
+        if (cancelled) return
+        setPolicy(data.policy)
+        setProgram((prev) =>
+          prev && data.policy.programs.includes(prev) ? prev : data.policy.programs[0] || ""
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setPolicyError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSlotTaken = useCallback(() => {
     // 409: 방금 다른 손님이 선점 → 슬롯 목록 갱신 후 시간 선택으로 복귀
@@ -69,11 +84,28 @@ export function ReserveFlow() {
     setStep("slot")
   }, [])
 
-  if (!mounted) {
+  if (policyError) {
+    return (
+      <p className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-8 text-center text-sm font-black text-slate-600 shadow-[4px_4px_0_0_black]">
+        {t("errors.generic")}
+      </p>
+    )
+  }
+
+  if (!policy) {
     return (
       <div className="flex justify-center py-20">
         <div className="w-12 h-12 border-4 border-slate-900 border-t-[#FCD34D] rounded-full animate-spin" />
       </div>
+    )
+  }
+
+  // 어드민에서 예약 접수를 꺼둔 경우
+  if (!policy.accepting) {
+    return (
+      <p className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-8 text-center text-sm font-black text-slate-600 shadow-[4px_4px_0_0_black]">
+        {t("slotsUnavailable")}
+      </p>
     )
   }
 
@@ -114,9 +146,9 @@ export function ReserveFlow() {
       {/* 안내 카드 (정책) */}
       <div className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-3 shadow-[4px_4px_0_0_black]">
         <p className="text-xs font-bold text-slate-700 leading-relaxed">
-          ⏱ {t("policy.duration", { minutes: RESERVATION_CONFIG.durationMinutes })}
+          ⏱ {t("policy.duration", { minutes: policy.durationMinutes })}
           {" · "}
-          {t("policy.leadTime", { hours: RESERVATION_CONFIG.minLeadTimeHours })}
+          {t("policy.leadTime", { hours: policy.minLeadTimeHours })}
           <br />💳 {t("policy.payment")}
         </p>
       </div>
@@ -129,6 +161,7 @@ export function ReserveFlow() {
             <h2 className="text-base font-black text-slate-900">{t("selectDate")}</h2>
           </div>
           <DateStrip
+            policy={policy}
             selectedDate={selectedDate}
             onSelect={(date) => {
               setSelectedDate(date)
@@ -197,6 +230,7 @@ export function ReserveFlow() {
             </button>
           </div>
           <ReservationForm
+            policy={policy}
             slotStartIso={selectedSlot.startIso}
             program={program}
             onProgramChange={setProgram}

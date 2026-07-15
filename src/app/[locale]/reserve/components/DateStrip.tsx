@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { useLocale, useTranslations } from "next-intl"
+import type { ReservationPolicy } from "@/lib/reservation/config"
 import {
   generateSlotsForDate,
   getBookableDateRange,
@@ -18,17 +19,19 @@ const INTL_LOCALE: Record<string, string> = {
 }
 
 interface DateStripProps {
+  policy: ReservationPolicy
   selectedDate: string | null
   onSelect: (date: string) => void
 }
 
-/** 향후 30일 가로 스크롤 날짜 선택 (라이브러리 없음) */
-export function DateStrip({ selectedDate, onSelect }: DateStripProps) {
+/** 예약 가능 기간 가로 스크롤 날짜 선택 (라이브러리 없음, 정책은 어드민 설정 기반) */
+export function DateStrip({ policy, selectedDate, onSelect }: DateStripProps) {
   const t = useTranslations("reserve")
   const locale = useLocale()
 
   const days = useMemo(() => {
-    const { dates } = getBookableDateRange()
+    // nowMs는 기본 인자(라이브러리 내부)에서 취득 — 렌더 중 impure 호출 lint 회피
+    const { dates } = getBookableDateRange(undefined, policy)
     const weekdayFmt = new Intl.DateTimeFormat(INTL_LOCALE[locale] || "en-US", {
       timeZone: "Asia/Seoul",
       weekday: "short",
@@ -41,8 +44,10 @@ export function DateStrip({ selectedDate, onSelect }: DateStripProps) {
       const d = new Date(`${date}T00:00:00+09:00`)
       // 휴무일이거나 (리드타임 등으로) 모든 슬롯이 이미 닫힌 날은 비활성
       const bookable =
-        !isClosedDate(date) &&
-        generateSlotsForDate(date).some((slot) => isValidSlot(slot.startIso))
+        !isClosedDate(date, policy) &&
+        generateSlotsForDate(date, policy).some((slot) =>
+          isValidSlot(slot.startIso, undefined, policy)
+        )
       return {
         date,
         dayNumber: date.slice(8),
@@ -52,7 +57,7 @@ export function DateStrip({ selectedDate, onSelect }: DateStripProps) {
         bookable,
       }
     })
-  }, [locale])
+  }, [locale, policy])
 
   return (
     <div>

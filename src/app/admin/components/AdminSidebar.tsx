@@ -24,6 +24,7 @@ import {
   Sparkles,
   HelpCircle,
   CreditCard,
+  CalendarDays,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -107,6 +108,12 @@ const navGroups: NavGroup[] = [
         label: '주문 관리',
         icon: ShoppingCart,
         description: '주문 상태 관리',
+      },
+      {
+        href: '/admin/reservations',
+        label: '방문 예약',
+        icon: CalendarDays,
+        description: '오프라인 예약 관리',
       },
       {
         href: '/admin/products',

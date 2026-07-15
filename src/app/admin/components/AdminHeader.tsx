@@ -12,6 +12,7 @@ const pathTitles: Record<string, string> = {
   '/admin/cost-analysis': '원가 분석',
   '/admin/analysis': '분석 관리',
   '/admin/orders': '주문 관리',
+  '/admin/reservations': '방문 예약',
   '/admin/members': '회원 관리',
   '/admin/qr': 'QR 관리',
   '/admin/coupons': '쿠폰 관리',

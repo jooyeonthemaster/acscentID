@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getGoogleCalendarConfig, queryFreeBusy } from '@/lib/google/calendar'
+import { getReservationPolicy } from '@/lib/reservation/settings'
 import {
   generateSlotsForDate,
   getBookableDateRange,
@@ -15,6 +16,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
  * GET /api/reservations/availability?date=YYYY-MM-DD
  *
  * 구글 캘린더가 단일 진실 소스: freeBusy busy 구간 + 당일 confirmed 예약(방어)을 제외한다.
+ * 정책(영업시간 등)은 어드민 설정(DB)을 따른다.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +25,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'invalid_date' }, { status: 400 })
     }
 
-    const { startDate, endDate } = getBookableDateRange()
+    const serviceClient = createServiceRoleClient()
+    const policy = await getReservationPolicy(serviceClient)
+
+    if (!policy.accepting) {
+      return NextResponse.json({ error: 'reservations_paused' }, { status: 503 })
+    }
+
+    const { startDate, endDate } = getBookableDateRange(Date.now(), policy)
     if (date < startDate || date > endDate) {
       return NextResponse.json({ error: 'date_out_of_range' }, { status: 400 })
     }
@@ -33,7 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'calendar_not_configured' }, { status: 503 })
     }
 
-    const grid = generateSlotsForDate(date)
+    const grid = generateSlotsForDate(date, policy)
     if (grid.length === 0) {
       return NextResponse.json(
         { date, slots: [] },
@@ -47,7 +56,6 @@ export async function GET(request: NextRequest) {
     const busy = await queryFreeBusy(calendarConfig, dayStart, dayEnd)
 
     // (방어) 캘린더 이벤트 생성에 실패한 confirmed 예약도 슬롯에서 제외
-    const serviceClient = createServiceRoleClient()
     const { data: reserved, error: reservedError } = await serviceClient
       .from('reservations')
       .select('slot_start, slot_end')
@@ -66,7 +74,7 @@ export async function GET(request: NextRequest) {
       return {
         time: slot.time,
         startIso: slot.startIso,
-        available: !isBusy && !isReserved && isValidSlot(slot.startIso),
+        available: !isBusy && !isReserved && isValidSlot(slot.startIso, Date.now(), policy),
       }
     })
 
