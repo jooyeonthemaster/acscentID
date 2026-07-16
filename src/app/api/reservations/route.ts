@@ -100,15 +100,14 @@ export async function POST(request: NextRequest) {
     }
     const slotEnd = slotEndIso(slotStart, policy.durationMinutes)
 
+    // 더블부킹 1차 방어: 예약 직전 freeBusy 재확인 (캘린더 미연동 시 스킵 —
+    // DB 부분 유니크 인덱스가 2차 방어선으로 계속 동작한다)
     const calendarConfig = getGoogleCalendarConfig()
-    if (!calendarConfig) {
-      return NextResponse.json({ error: 'calendar_not_configured' }, { status: 503 })
-    }
-
-    // 더블부킹 1차 방어: 예약 직전 freeBusy 재확인
-    const busy = await queryFreeBusy(calendarConfig, slotStart, slotEnd)
-    if (busy.some((b) => overlaps(slotStart, slotEnd, b.start, b.end))) {
-      return NextResponse.json({ error: 'slot_taken' }, { status: 409 })
+    if (calendarConfig) {
+      const busy = await queryFreeBusy(calendarConfig, slotStart, slotEnd)
+      if (busy.some((b) => overlaps(slotStart, slotEnd, b.start, b.end))) {
+        return NextResponse.json({ error: 'slot_taken' }, { status: 409 })
+      }
     }
 
     // 안티스팸 2: 이메일당 활성(미래 confirmed) 예약 수 제한
@@ -162,37 +161,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'reservation_failed' }, { status: 500 })
     }
 
-    // 캘린더 등록 — 실패해도 예약은 유지 (알림에 실패 표기)
+    // 캘린더 등록 — 실패해도 예약은 유지 (알림에 실패 표기). 미연동 시 스킵.
     const programLabelKo = RESERVATION_PROGRAM_LABELS_KO[program] || program
     let calendarRegistered = false
-    try {
-      const eventId = await insertEvent(calendarConfig, {
-        summary: `[웹예약] ${name} ${partySize}인 · ${programLabelKo}`,
-        description: [
-          `예약번호: ${reservationCode}`,
-          `이름: ${name}`,
-          `이메일: ${email}`,
-          phone ? `전화: ${phone}` : null,
-          `프로그램: ${programLabelKo}`,
-          `인원: ${partySize}`,
-          notes ? `요청사항: ${notes}` : null,
-          `언어: ${locale}`,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-        startIso: slotStart,
-        endIso: slotEnd,
-      })
-      calendarRegistered = true
-      const { error: updateError } = await serviceClient
-        .from('reservations')
-        .update({ google_event_id: eventId, updated_at: new Date().toISOString() })
-        .eq('id', reservation.id)
-      if (updateError) {
-        console.error('[Reservations API] google_event_id update failed:', updateError)
+    if (calendarConfig) {
+      try {
+        const eventId = await insertEvent(calendarConfig, {
+          summary: `[웹예약] ${name} ${partySize}인 · ${programLabelKo}`,
+          description: [
+            `예약번호: ${reservationCode}`,
+            `이름: ${name}`,
+            `이메일: ${email}`,
+            phone ? `전화: ${phone}` : null,
+            `프로그램: ${programLabelKo}`,
+            `인원: ${partySize}`,
+            notes ? `요청사항: ${notes}` : null,
+            `언어: ${locale}`,
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          startIso: slotStart,
+          endIso: slotEnd,
+        })
+        calendarRegistered = true
+        const { error: updateError } = await serviceClient
+          .from('reservations')
+          .update({ google_event_id: eventId, updated_at: new Date().toISOString() })
+          .eq('id', reservation.id)
+        if (updateError) {
+          console.error('[Reservations API] google_event_id update failed:', updateError)
+        }
+      } catch (calendarError) {
+        console.error('[Reservations API] calendar insert failed:', calendarError)
       }
-    } catch (calendarError) {
-      console.error('[Reservations API] calendar insert failed:', calendarError)
     }
 
     // fire-and-forget 알림 (관리자: 이메일+노션 / 고객: 확인 메일)

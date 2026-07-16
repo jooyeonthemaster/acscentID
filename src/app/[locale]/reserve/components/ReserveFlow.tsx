@@ -1,17 +1,17 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarDays, ChevronLeft, Clock } from "lucide-react"
+import { CalendarDays, ChevronLeft, Clock, Globe } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
 import { isReservationProgram, type ReservationPolicy } from "@/lib/reservation/config"
-import { DateStrip } from "./DateStrip"
+import { MonthCalendar } from "./MonthCalendar"
 import { SlotGrid } from "./SlotGrid"
 import { ReservationForm } from "./ReservationForm"
 import { SuccessCard, type ReservationResult } from "./SuccessCard"
 
-type Step = "date" | "slot" | "form" | "done"
+type Step = "when" | "form" | "done"
 
 const INTL_LOCALE: Record<string, string> = {
   ko: "ko-KR",
@@ -35,12 +35,13 @@ export function ReserveFlow() {
   const locale = useLocale()
   const searchParams = useSearchParams()
 
-  const [step, setStep] = useState<Step>("date")
+  const [step, setStep] = useState<Step>("when")
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<{ time: string; startIso: string } | null>(null)
   const [result, setResult] = useState<ReservationResult | null>(null)
   const [slotRefreshKey, setSlotRefreshKey] = useState(0)
   const [slotTakenNotice, setSlotTakenNotice] = useState(false)
+  const slotSectionRef = useRef<HTMLDivElement>(null)
 
   // ?program= 쿼리 preselect (정책 로드 후 노출 목록과 대조해 보정)
   const programParam = searchParams.get("program")
@@ -76,12 +77,19 @@ export function ReserveFlow() {
     }
   }, [])
 
+  // 날짜 선택 시 시간 섹션으로 부드럽게 스크롤 (모바일 UX)
+  useEffect(() => {
+    if (selectedDate && step === "when") {
+      slotSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }
+  }, [selectedDate, step])
+
   const handleSlotTaken = useCallback(() => {
-    // 409: 방금 다른 손님이 선점 → 슬롯 목록 갱신 후 시간 선택으로 복귀
+    // 409: 방금 다른 손님이 선점 → 슬롯 목록 갱신 후 일시 선택으로 복귀
     setSelectedSlot(null)
     setSlotTakenNotice(true)
     setSlotRefreshKey((k) => k + 1)
-    setStep("slot")
+    setStep("when")
   }, [])
 
   if (policyError) {
@@ -113,13 +121,12 @@ export function ReserveFlow() {
     return <SuccessCard result={result} />
   }
 
-  const steps: Step[] = ["date", "slot", "form"]
+  const steps: Exclude<Step, "done">[] = ["when", "form"]
   const stepLabels: Record<Exclude<Step, "done">, string> = {
-    date: t("stepDate"),
-    slot: t("stepSlot"),
+    when: t("stepWhen"),
     form: t("stepForm"),
   }
-  const currentIndex = steps.indexOf(step)
+  const currentIndex = steps.indexOf(step as Exclude<Step, "done">)
 
   return (
     <div className="space-y-5">
@@ -137,93 +144,96 @@ export function ReserveFlow() {
                 i === currentIndex ? "text-slate-900" : "text-slate-400"
               }`}
             >
-              {i + 1}. {stepLabels[s as Exclude<Step, "done">]}
+              {i + 1}. {stepLabels[s]}
             </p>
           </div>
         ))}
       </div>
 
-      {/* 안내 카드 (정책) */}
-      <div className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-3 shadow-[4px_4px_0_0_black]">
-        <p className="text-xs font-bold text-slate-700 leading-relaxed">
+      {/* 매장 정보 칩 */}
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
+          <Clock size={13} strokeWidth={2.8} />
+          {t("hours")} {policy.openTime}–{policy.closeTime}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
           ⏱ {t("policy.duration", { minutes: policy.durationMinutes })}
-          {" · "}
-          {t("policy.leadTime", { hours: policy.minLeadTimeHours })}
-          <br />💳 {t("policy.payment")}
-        </p>
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
+          💳 {t("policy.payment")}
+        </span>
       </div>
 
-      {/* Step 1: 날짜 */}
-      {step === "date" && (
-        <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
-          <div className="mb-3 flex items-center gap-2">
-            <CalendarDays size={18} className="text-slate-900" />
-            <h2 className="text-base font-black text-slate-900">{t("selectDate")}</h2>
-          </div>
-          <DateStrip
-            policy={policy}
-            selectedDate={selectedDate}
-            onSelect={(date) => {
-              setSelectedDate(date)
-              setSelectedSlot(null)
-              setSlotTakenNotice(false)
-              setStep("slot")
-            }}
-          />
-        </section>
-      )}
-
-      {/* Step 2: 시간 */}
-      {step === "slot" && selectedDate && (
-        <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock size={18} className="text-slate-900" />
-              <h2 className="text-base font-black text-slate-900">
-                {formatKstDate(selectedDate, locale)}
-              </h2>
+      {/* Step 1: 날짜 + 시간 (한 화면, Calendly 스타일) */}
+      {step === "when" && (
+        <>
+          <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
+            <div className="mb-3 flex items-center gap-2">
+              <CalendarDays size={18} className="text-slate-900" />
+              <h2 className="text-base font-black text-slate-900">{t("selectDate")}</h2>
             </div>
-            <button
-              onClick={() => setStep("date")}
-              className="flex items-center gap-1 rounded-full border-2 border-slate-900 bg-white px-3 py-1 text-xs font-black text-slate-900 shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black]"
-            >
-              <ChevronLeft size={13} strokeWidth={3} />
-              {t("changeDate")}
-            </button>
-          </div>
-          {slotTakenNotice && (
-            <p className="mb-3 rounded-xl border-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-black text-red-600">
-              {t("errors.slotTaken")}
+            <MonthCalendar
+              policy={policy}
+              selectedDate={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date)
+                setSelectedSlot(null)
+                setSlotTakenNotice(false)
+              }}
+            />
+            <p className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+              <Globe size={12} />
+              {t("kstNotice")}
             </p>
+          </section>
+
+          {selectedDate && (
+            <section
+              ref={slotSectionRef}
+              className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]"
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <Clock size={18} className="text-slate-900" />
+                <h2 className="text-base font-black text-slate-900">
+                  {formatKstDate(selectedDate, locale)} · {t("selectTime")}
+                </h2>
+              </div>
+              {slotTakenNotice && (
+                <p className="mb-3 rounded-xl border-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-black text-red-600">
+                  {t("errors.slotTaken")}
+                </p>
+              )}
+              <SlotGrid
+                date={selectedDate}
+                refreshKey={slotRefreshKey}
+                selectedStartIso={selectedSlot?.startIso ?? null}
+                onSelect={(slot) => {
+                  setSelectedSlot(slot)
+                  setSlotTakenNotice(false)
+                  setStep("form")
+                }}
+              />
+            </section>
           )}
-          <SlotGrid
-            date={selectedDate}
-            refreshKey={slotRefreshKey}
-            selectedStartIso={selectedSlot?.startIso ?? null}
-            onSelect={(slot) => {
-              setSelectedSlot(slot)
-              setSlotTakenNotice(false)
-              setStep("form")
-            }}
-          />
-        </section>
+        </>
       )}
 
-      {/* Step 3: 정보 입력 */}
+      {/* Step 2: 정보 입력 */}
       {step === "form" && selectedDate && selectedSlot && (
         <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-xl border-2 border-slate-900 bg-[#FEF3C7] px-3 py-2.5">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
                 {t("selectedSlot")}
               </p>
-              <p className="text-base font-black text-slate-900">
+              <p className="text-sm font-black text-slate-900 sm:text-base">
                 {formatKstDate(selectedDate, locale)} · {selectedSlot.time}
+                <span className="ml-1 text-xs font-bold text-slate-500">(KST)</span>
               </p>
             </div>
             <button
-              onClick={() => setStep("slot")}
-              className="flex items-center gap-1 rounded-full border-2 border-slate-900 bg-white px-3 py-1 text-xs font-black text-slate-900 shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black]"
+              onClick={() => setStep("when")}
+              className="flex flex-shrink-0 items-center gap-1 rounded-full border-2 border-slate-900 bg-white px-3 py-1 text-xs font-black text-slate-900 shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black]"
             >
               <ChevronLeft size={13} strokeWidth={3} />
               {t("changeSlot")}

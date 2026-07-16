@@ -2855,7 +2855,7 @@
           },
           "wealth": {
             "label": "재물",
-            "desc": "모이고 흩어지는 재물의\u00a0결",
+            "desc": "모이고 흩어지는 재물의 결",
             "descIdol": "재물복은 타고나는 걸까요"
           },
           "career": {
@@ -3097,14 +3097,16 @@
   },
   "reserve": {
     "title": "방문 예약",
-    "stepDate": "날짜",
-    "stepSlot": "시간",
+    "stepWhen": "날짜·시간",
+    "selectTime": "시간을 선택해주세요",
+    "hours": "영업시간",
+    "kstNotice": "모든 시간은 한국 시간(KST) 기준입니다",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
     "stepForm": "정보 입력",
     "selectDate": "날짜를 선택해주세요",
-    "changeDate": "날짜 변경",
     "changeSlot": "시간 변경",
     "selectedSlot": "선택한 일시",
-    "dateStripHint": "옆으로 밀어 더 많은 날짜를 볼 수 있어요",
     "noSlots": "이 날짜에는 예약 가능한 시간이 없습니다",
     "slotsUnavailable": "예약 시스템 점검 중입니다. 잠시 후 다시 시도해주세요.",
     "policy": {

@@ -37,11 +37,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'date_out_of_range' }, { status: 400 })
     }
 
-    const calendarConfig = getGoogleCalendarConfig()
-    if (!calendarConfig) {
-      return NextResponse.json({ error: 'calendar_not_configured' }, { status: 503 })
-    }
-
     const grid = generateSlotsForDate(date, policy)
     if (grid.length === 0) {
       return NextResponse.json(
@@ -50,10 +45,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 하루 영업시간 범위 1회 조회 (네이버 예약 등 수동 입력분 포함 모든 busy)
     const dayStart = grid[0].startIso
     const dayEnd = grid[grid.length - 1].endIso
-    const busy = await queryFreeBusy(calendarConfig, dayStart, dayEnd)
+
+    // 캘린더 연동 시: 하루 영업시간 범위 1회 freeBusy (네이버 예약 등 수동 입력분 포함)
+    // 미연동 시: DB confirmed 예약만으로 판정 (연동 전 임시 운영 모드)
+    const calendarConfig = getGoogleCalendarConfig()
+    const busy = calendarConfig
+      ? await queryFreeBusy(calendarConfig, dayStart, dayEnd)
+      : []
 
     // (방어) 캘린더 이벤트 생성에 실패한 confirmed 예약도 슬롯에서 제외
     const { data: reserved, error: reservedError } = await serviceClient

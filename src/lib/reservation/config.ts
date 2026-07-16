@@ -6,8 +6,9 @@
 export const RESERVATION_CONFIG = {
   timezone: 'Asia/Seoul',
   utcOffset: '+09:00',
-  openTime: '11:00',
-  closeTime: '19:00',
+  // 실제 매장 운영시간 (네이버/Fever 기준: 매일 13:00–21:00)
+  openTime: '13:00',
+  closeTime: '21:00',
   slotIntervalMinutes: 30,
   durationMinutes: 60,
   minLeadTimeHours: 12,
