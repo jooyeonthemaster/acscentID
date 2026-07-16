@@ -3150,7 +3150,7 @@
       "name": "Name",
       "email": "Email",
       "emailHint": "A confirmation email will be sent to this address",
-      "phone": "Phone (optional)",
+      "phone": "Phone",
       "phonePlaceholder": "+82 10-0000-0000",
       "partySize": "Party size",
       "program": "Program",

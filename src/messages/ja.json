@@ -3150,7 +3150,7 @@
       "name": "お名前",
       "email": "メールアドレス",
       "emailHint": "確認メールがこのアドレスに送信されます",
-      "phone": "電話番号（任意）",
+      "phone": "電話番号",
       "phonePlaceholder": "+81 90-0000-0000",
       "partySize": "人数",
       "program": "プログラム",

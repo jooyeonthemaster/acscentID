@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2, Send } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
+import { useAuth } from "@/contexts/AuthContext"
 import type { ReservationPolicy } from "@/lib/reservation/config"
 import type { ReservationResult } from "./SuccessCard"
 
@@ -17,7 +18,7 @@ interface ReservationFormProps {
 }
 
 const inputClass =
-  "w-full rounded-xl border-2 border-slate-900 bg-white px-3 py-2.5 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
+  "w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2.5 text-sm font-bold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#D7D7D7]"
 
 export function ReservationForm({
   policy,
@@ -28,9 +29,13 @@ export function ReservationForm({
   onSuccess,
 }: ReservationFormProps) {
   const t = useTranslations("reserve")
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
+  const { user, unifiedUser } = useAuth()
+
+  // 회원 자동입력: 직접 입력 전(null)에는 계정/배송지 값을 보여준다 (입력하면 그 값 우선)
+  const [nameInput, setNameInput] = useState<string | null>(null)
+  const [emailInput, setEmailInput] = useState<string | null>(null)
+  const [phoneInput, setPhoneInput] = useState<string | null>(null)
+  const [savedPhone, setSavedPhone] = useState("")
   const [partySize, setPartySize] = useState(1)
   const [notes, setNotes] = useState("")
   // 안티스팸 honeypot — 사람 눈에는 보이지 않는 필드
@@ -38,8 +43,38 @@ export function ReservationForm({
   const [submitting, setSubmitting] = useState(false)
   const [errorKey, setErrorKey] = useState<string | null>(null)
 
+  const authName =
+    unifiedUser?.name ||
+    user?.user_metadata?.name ||
+    user?.user_metadata?.full_name ||
+    ""
+  const authEmail = user?.email || unifiedUser?.email || ""
+  const isLoggedIn = !!(user || unifiedUser)
+
+  // 회원이면 기본 배송지의 전화번호를 가져와 자동입력
+  useEffect(() => {
+    if (!isLoggedIn) return
+    let cancelled = false
+    fetch("/api/user/address")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { address?: { phone?: string } } | null) => {
+        if (!cancelled && data?.address?.phone) setSavedPhone(data.address.phone)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn])
+
+  const name = nameInput ?? authName
+  const email = emailInput ?? authEmail
+  const phone = phoneInput ?? savedPhone
+
+  const phoneDigits = phone.replace(/\D/g, "")
   const isValid =
-    name.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    name.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
+    phoneDigits.length >= 7
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,7 +148,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-slate-700">
+        <label className="mb-1 block text-xs font-black text-stone-700">
           {t("form.name")} <span className="text-red-500">*</span>
         </label>
         <input
@@ -121,13 +156,28 @@ export function ReservationForm({
           required
           maxLength={100}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setNameInput(e.target.value)}
           className={inputClass}
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-slate-700">
+        <label className="mb-1 block text-xs font-black text-stone-700">
+          {t("form.phone")} <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="tel"
+          required
+          maxLength={30}
+          value={phone}
+          onChange={(e) => setPhoneInput(e.target.value)}
+          placeholder={t("form.phonePlaceholder")}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-black text-stone-700">
           {t("form.email")} <span className="text-red-500">*</span>
         </label>
         <input
@@ -135,27 +185,15 @@ export function ReservationForm({
           required
           maxLength={200}
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmailInput(e.target.value)}
           className={inputClass}
         />
-        <p className="mt-1 text-[11px] font-bold text-slate-500">{t("form.emailHint")}</p>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-xs font-black text-slate-700">{t("form.phone")}</label>
-        <input
-          type="tel"
-          maxLength={30}
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder={t("form.phonePlaceholder")}
-          className={inputClass}
-        />
+        <p className="mt-1 text-[11px] font-bold text-stone-500">{t("form.emailHint")}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-black text-slate-700">
+          <label className="mb-1 block text-xs font-black text-stone-700">
             {t("form.partySize")}
           </label>
           <select
@@ -171,7 +209,7 @@ export function ReservationForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-black text-slate-700">
+          <label className="mb-1 block text-xs font-black text-stone-700">
             {t("form.program")}
           </label>
           <select
@@ -189,7 +227,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-slate-700">{t("form.notes")}</label>
+        <label className="mb-1 block text-xs font-black text-stone-700">{t("form.notes")}</label>
         <textarea
           rows={3}
           maxLength={500}
@@ -213,7 +251,7 @@ export function ReservationForm({
       <button
         type="submit"
         disabled={!isValid || submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-900 bg-[#FCD34D] py-3.5 text-base font-black text-slate-900 shadow-[4px_4px_0_0_black] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0_0_black]"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-stone-900 bg-black py-3.5 text-base font-black text-white shadow-[4px_4px_0_0_black] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0_0_black]"
       >
         {submitting ? (
           <>

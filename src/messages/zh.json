@@ -3150,7 +3150,7 @@
       "name": "姓名",
       "email": "邮箱",
       "emailHint": "确认邮件将发送至该地址",
-      "phone": "电话（选填）",
+      "phone": "电话",
       "phonePlaceholder": "+86 138-0000-0000",
       "partySize": "人数",
       "program": "项目",

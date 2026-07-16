@@ -83,6 +83,10 @@ export async function POST(request: NextRequest) {
     if (!EMAIL_RE.test(email) || email.length > 200) {
       return NextResponse.json({ error: 'invalid_email' }, { status: 400 })
     }
+    // 전화번호 필수 (숫자 7자리 이상)
+    if (phone.replace(/\D/g, '').length < 7) {
+      return NextResponse.json({ error: 'invalid_phone' }, { status: 400 })
+    }
     if (
       !Number.isInteger(partySize) ||
       partySize < 1 ||

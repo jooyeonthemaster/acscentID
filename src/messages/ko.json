@@ -3118,7 +3118,7 @@
       "name": "이름",
       "email": "이메일",
       "emailHint": "확인 메일이 이 주소로 발송됩니다",
-      "phone": "전화번호 (선택)",
+      "phone": "전화번호",
       "phonePlaceholder": "010-0000-0000",
       "partySize": "인원",
       "program": "프로그램",
