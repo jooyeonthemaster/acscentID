@@ -433,7 +433,7 @@ export default function AdminProductEditPage() {
   const editorSectionClassName = (section: AdminEditorSection) => (
     `scroll-mt-4 rounded-xl border bg-white p-4 transition-all duration-200 ${
       highlightedEditorSection === section
-        ? 'border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.32),3px_3px_0_0_#111827]'
+        ? 'border-yellow-400'
         : 'border-slate-200'
     }`
   )
@@ -441,7 +441,7 @@ export default function AdminProductEditPage() {
   const pageFieldClassName = (field: PageEditorField) => (
     `block rounded-lg border-2 p-2 transition-all ${
       highlightedPageField === field
-        ? 'border-yellow-400 bg-yellow-50 shadow-[2px_2px_0_0_#111827]'
+        ? 'border-yellow-400 bg-yellow-50'
         : 'border-transparent bg-transparent'
     }`
   )
@@ -1617,7 +1617,7 @@ export default function AdminProductEditPage() {
                       key={image.id}
                       onClick={() => setSelectedImageId(image.id)}
                       className={`relative aspect-square overflow-hidden rounded-lg border-2 bg-white ${
-                        selectedImage?.id === image.id ? 'border-black shadow-[2px_2px_0_0_black]' : 'border-slate-200'
+                        selectedImage?.id === image.id ? 'border-black' : 'border-slate-200'
                       }`}
                     >
                       <NextImage

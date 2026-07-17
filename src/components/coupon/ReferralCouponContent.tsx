@@ -77,9 +77,9 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 border-4 border-slate-200 border-t-[#F472B6] rounded-full mx-auto"
+          className="w-10 h-10 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full mx-auto"
         />
-        <p className="text-slate-500 mt-3 text-sm font-bold">추천인 코드를 불러오는 중...</p>
+        <p className="text-[#8B8578] mt-3 text-sm lg:text-base font-bold">추천인 코드를 불러오는 중...</p>
       </div>
     )
   }
@@ -87,13 +87,13 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
   if (error) {
     return (
       <div className="space-y-3">
-        <div className="bg-[#FBCFE8] text-slate-800 px-4 py-3 rounded-xl text-sm font-bold border-2 border-slate-900 text-center">
+        <div className="bg-[#1B1F2C] text-[#E9E2D0] px-4 py-3 rounded-[12px] text-sm lg:text-base font-bold border-2 border-[#262A38] text-center">
           {error}
         </div>
         {error.includes('로그인') && (
           <a
             href="/api/auth/kakao"
-            className="block w-full py-3 bg-[#FEE500] hover:bg-[#FDD835] text-slate-900 font-black text-center rounded-xl transition-colors border-2 border-slate-900 shadow-[3px_3px_0_#000]"
+            className="block w-full py-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#E9E2D0] font-black text-center rounded-[12px] transition-colors border-2 border-[#262A38]"
           >
             카카오로 로그인하기
           </a>
@@ -105,16 +105,16 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
   return (
     <div className="space-y-3">
       {/* 할인율 + 추천인 코드 통합 */}
-      <div className="bg-gradient-to-br from-[#FFF8E7] to-[#FBCFE8] rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000] text-center">
+      <div className="bg-gradient-to-br from-[#0E1016] to-[#1B1F2C] rounded-[12px] p-4 border-2 border-[#262A38] text-center">
         <div className="mb-3">
-          <span className="text-4xl font-black text-[#F472B6]">10%</span>
-          <span className="text-lg font-black text-slate-700 ml-2">할인</span>
-          <p className="text-xs text-slate-600 font-bold mt-1">친구와 나, 둘 다 받아요!</p>
+          <span className="text-4xl font-black text-[#9F9F9F]">10%</span>
+          <span className="text-lg font-black text-[#A69F8D] ml-2">할인</span>
+          <p className="text-xs lg:text-sm text-[#A69F8D] font-bold mt-1">친구와 나, 둘 다 받아요!</p>
         </div>
 
         {/* 추천인 코드 */}
-        <p className="text-xs text-slate-500 font-bold mb-2">내 추천 코드</p>
-        <div className="bg-slate-900 text-white text-2xl font-black py-3 px-6 rounded-lg tracking-[0.3em] inline-block">
+        <p className="text-xs lg:text-sm text-[#8B8578] font-bold mb-2">내 추천 코드</p>
+        <div className="bg-[#161925] text-[#E9E2D0] text-2xl font-black py-3 px-6 rounded-[12px] tracking-[0.3em] inline-block">
           {referralCode}
         </div>
       </div>
@@ -124,49 +124,49 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={handleCopy}
-          className={`py-3 px-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+          className={`py-3 px-3 rounded-[12px] border-2 transition-all flex items-center justify-center gap-2 ${
             copied
-              ? 'bg-[#A5F3FC] border-slate-900 shadow-[2px_2px_0_#000]'
-              : 'bg-white border-slate-900 shadow-[2px_2px_0_#000]'
+              ? 'bg-[#1B1F2C] border-[#262A38]'
+              : 'bg-[#12141D] border-[#262A38]'
           }`}
         >
           {copied ? (
             <>
-              <Check className="w-4 h-4 text-slate-900" />
-              <span className="font-bold text-sm text-slate-900">복사됨!</span>
+              <Check className="w-4 h-4 text-[#E9E2D0]" />
+              <span className="font-bold text-sm lg:text-base text-[#E9E2D0]">복사됨!</span>
             </>
           ) : (
             <>
-              <Copy className="w-4 h-4 text-slate-700" />
-              <span className="font-bold text-sm text-slate-700">코드 복사</span>
+              <Copy className="w-4 h-4 text-[#A69F8D]" />
+              <span className="font-bold text-sm lg:text-base text-[#A69F8D]">코드 복사</span>
             </>
           )}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={handleShare}
-          className="py-3 px-3 bg-[#F472B6] rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#000] flex items-center justify-center gap-2"
+          className="py-3 px-3 bg-[#161925] rounded-[12px] border-2 border-[#262A38] flex items-center justify-center gap-2"
         >
-          <Share2 className="w-4 h-4 text-white" />
-          <span className="font-bold text-sm text-white">공유하기</span>
+          <Share2 className="w-4 h-4 text-[#E9E2D0]" />
+          <span className="font-bold text-sm lg:text-base text-[#E9E2D0]">공유하기</span>
         </motion.button>
       </div>
 
       {/* 안내 + 초대 현황 통합 */}
       <div className="flex gap-2">
-        <div className="flex-1 bg-[#FEF9C3] rounded-lg p-3 border-2 border-slate-900">
+        <div className="flex-1 bg-[#151823] rounded-[12px] p-3 border-2 border-[#262A38]">
           <div className="flex items-center gap-2 mb-1">
-            <Gift className="w-4 h-4 text-[#F472B6]" />
-            <span className="font-bold text-xs text-slate-800">친구가 가입하면</span>
+            <Gift className="w-4 h-4 text-[#9F9F9F]" />
+            <span className="font-bold text-xs lg:text-sm text-[#E9E2D0]">친구가 가입하면</span>
           </div>
-          <p className="text-xs text-slate-600 font-bold">친구도 10% 할인 쿠폰을 받아요</p>
+          <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">친구도 10% 할인 쿠폰을 받아요</p>
         </div>
-        <div className="bg-[#FFF8E7] rounded-lg p-3 border-2 border-slate-900 text-center min-w-[80px]">
-          <p className="text-xs text-slate-500 font-bold">초대한 친구</p>
+        <div className="bg-[#0E1016] rounded-[12px] p-3 border-2 border-[#262A38] text-center min-w-[80px]">
+          <p className="text-xs lg:text-sm text-[#8B8578] font-bold">초대한 친구</p>
           <div className="flex items-center justify-center gap-1 mt-1">
-            <Users className="w-4 h-4 text-[#F472B6]" />
-            <span className="text-2xl font-black text-slate-900">{inviteCount}</span>
-            <span className="text-sm font-bold text-slate-600">명</span>
+            <Users className="w-4 h-4 text-[#9F9F9F]" />
+            <span className="text-2xl font-black text-[#E9E2D0]">{inviteCount}</span>
+            <span className="text-sm lg:text-base font-bold text-[#A69F8D]">명</span>
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ export function ReferralCouponContent({ coupon }: ReferralCouponContentProps) {
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={closeClaimModal}
-        className="w-full py-3 bg-[#F472B6] hover:bg-[#EC4899] text-white font-black rounded-xl transition-colors border-2 border-slate-900 shadow-[3px_3px_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000]"
+        className="w-full py-3 bg-[#F5EFE2] hover:bg-[#FFFDF5] text-[#12141D] font-black rounded-[12px] transition-colors border-2 border-[#262A38]"
       >
         💝 확인했어요!
       </motion.button>

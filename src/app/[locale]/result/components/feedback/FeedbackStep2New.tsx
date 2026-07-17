@@ -64,35 +64,35 @@ export function FeedbackStep2New({
 
   // 향료 아이템/슬라이더 — 검색 결과와 카테고리 아코디언 두 곳에서 공유하는 스킨
   const itemSelectedCls = saju
-    ? 'bg-[#C9A227]/15 border-2 border-[#C9A227] rounded-xl rounded-b-none'
-    : 'bg-amber-100 border-2 border-amber-400 rounded-xl rounded-b-none'
+    ? 'bg-[#C9A227]/15 border-2 border-[#C9A227] rounded-[12px] rounded-b-none'
+    : 'bg-[#151823] border-2 border-[#343A4C] rounded-[12px] rounded-b-none'
   const itemAddableCls = saju
-    ? 'bg-[#FDFAF1] hover:bg-[#F5EFE2] border border-[#D8CFBB] hover:border-[#C9A227] rounded-xl'
-    : 'bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl'
+    ? 'bg-[#FDFAF1] hover:bg-[#F5EFE2] border border-[#D8CFBB] hover:border-[#C9A227] rounded-[12px]'
+    : 'bg-[#12141D] hover:bg-[#0C0E16] border border-[#262A38] hover:border-[#262A38] rounded-[12px]'
   const itemDisabledCls = saju
-    ? 'bg-[#EDE5D2] border border-[#D8CFBB] opacity-50 cursor-not-allowed rounded-xl'
-    : 'bg-slate-100 border border-slate-200 opacity-50 cursor-not-allowed rounded-xl'
-  const itemNameCls = saju ? SJ.ink : 'text-slate-900'
-  const itemMetaCls = saju ? SJ.inkFaint : 'text-slate-400'
+    ? 'bg-[#EDE5D2] border border-[#D8CFBB] opacity-50 cursor-not-allowed rounded-[12px]'
+    : 'bg-[#1B1F2C] border border-[#262A38] opacity-50 cursor-not-allowed rounded-[12px]'
+  const itemNameCls = saju ? SJ.ink : 'text-[#E9E2D0]'
+  const itemMetaCls = saju ? SJ.inkFaint : 'text-[#8B8578]'
   const selectedChipCls = saju
-    ? `${SJ.chipGold} text-xs font-medium px-2 py-1 rounded-full`
-    : 'text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full'
-  const plusIconCls = saju ? 'text-[#C9A227]' : 'text-amber-500'
+    ? `${SJ.chipGold} text-xs lg:text-sm font-medium px-2 py-1 rounded-full`
+    : 'text-xs lg:text-sm font-medium text-[#A69F8D] bg-[#0C0E16] px-2 py-1 rounded-full'
+  const plusIconCls = saju ? 'text-[#C9A227]' : 'text-[#8B8578]'
   const sliderPanelCls = saju
-    ? 'bg-[#C9A227]/10 border-2 border-t-0 border-[#C9A227] rounded-b-xl px-4 py-3 space-y-2'
-    : 'bg-amber-50 border-2 border-t-0 border-amber-400 rounded-b-xl px-4 py-3 space-y-2'
-  const ratioLabelCls = saju ? SJ.inkMuted : 'text-slate-600'
-  const ratioValueCls = saju ? SJ.goldText : 'text-amber-600'
+    ? 'bg-[#C9A227]/10 border-2 border-t-0 border-[#C9A227] rounded-b-[12px] px-4 py-3 space-y-2'
+    : 'bg-[#0C0E16] border-2 border-t-0 border-[#343A4C] rounded-b-[12px] px-4 py-3 space-y-2'
+  const ratioLabelCls = saju ? SJ.inkMuted : 'text-[#A69F8D]'
+  const ratioValueCls = saju ? SJ.goldText : 'text-[#A69F8D]'
   const stepBtnCls = saju
     ? 'bg-[#FDFAF1] border border-[#C9A227]/40 hover:bg-[#C9A227]/15'
-    : 'bg-white border border-amber-200 hover:bg-amber-100'
-  const stepIconCls = saju ? 'text-[#7A5C14]' : 'text-amber-600'
+    : 'bg-[#12141D] border border-[#262A38] hover:bg-[#151823]'
+  const stepIconCls = saju ? 'text-[#7A5C14]' : 'text-[#A69F8D]'
   const removeBtnCls = saju ? 'hover:bg-[#C0392B]/10' : 'hover:bg-red-100'
-  const removeIconCls = saju ? 'text-[#8B8578] hover:text-[#A93226]' : 'text-slate-400 hover:text-red-500'
-  const rangeTrackCls = saju ? 'bg-[#D8CFBB]' : 'bg-amber-200'
-  const rangeThumbCls = saju ? '[&::-webkit-slider-thumb]:bg-[#C9A227]' : '[&::-webkit-slider-thumb]:bg-amber-500'
-  const maxNoteCls = saju ? 'text-[#7A5C14]/70' : 'text-amber-600/70'
-  const sectionTitleCls = saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'
+  const removeIconCls = saju ? 'text-[#8B8578] hover:text-[#A93226]' : 'text-[#8B8578] hover:text-red-500'
+  const rangeTrackCls = saju ? 'bg-[#D8CFBB]' : 'bg-[#232838]'
+  const rangeThumbCls = saju ? '[&::-webkit-slider-thumb]:bg-[#C9A227]' : '[&::-webkit-slider-thumb]:bg-[#161925]'
+  const maxNoteCls = saju ? 'text-[#7A5C14]/70' : 'text-stone-600/70'
+  const sectionTitleCls = saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#A69F8D]'
 
   // 검색 상태
   const [searchQuery, setSearchQuery] = useState('')
@@ -237,30 +237,30 @@ export function FeedbackStep2New({
       className="space-y-5"
     >
       {/* 추천 향수 정보 카드 */}
-      <div className={`rounded-2xl p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200/50'}`}>
+      <div className={`rounded-[12px] p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-[#0C0E16] to-[#0C0E16] border-stone-200/50'}`}>
         <div className="flex items-center gap-3 mb-3">
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg ${
-              isLightColor(recommendedPerfume?.primaryColor || '#6B7280') ? 'text-slate-800' : 'text-white'
+            className={`w-12 h-12 rounded-[12px] flex items-center justify-center text-sm lg:text-base font-bold shadow-lg ${
+              isLightColor(recommendedPerfume?.primaryColor || '#6B7280') ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
             }`}
             style={{ backgroundColor: recommendedPerfume?.primaryColor || '#6B7280' }}
           >
             {recommendedPerfumeId.split(' ')[1]}
           </div>
           <div className="flex-1">
-            <p className={`text-xs font-medium ${saju ? SJ.goldText : 'text-amber-600'}`}>{t('recommendedScentLabel')}</p>
-            <h3 className={`font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>{recommendedPerfumeName}</h3>
+            <p className={`text-xs lg:text-sm font-medium ${saju ? SJ.goldText : 'text-[#A69F8D]'}`}>{t('recommendedScentLabel')}</p>
+            <h3 className={`font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>{recommendedPerfumeName}</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-lg">{recommendedCategoryInfo?.icon}</span>
-              <span className={`text-xs ${saju ? SJ.inkMuted : 'text-slate-500'}`}>{t('categoryFamily', { label: recommendedCategoryInfo ? getCategoryLabel(recommendedPerfumeCategory) : '' })}</span>
+              <span className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>{t('categoryFamily', { label: recommendedCategoryInfo ? getCategoryLabel(recommendedPerfumeCategory) : '' })}</span>
             </div>
           </div>
           <div className="text-right">
-            <p className={`text-xs ${saju ? SJ.inkFaint : 'text-slate-400'}`}>{t('selectedRatio')}</p>
-            <p className={`text-2xl font-black ${saju ? SJ.goldText : 'text-amber-500'}`}>{retentionPercentage}%</p>
+            <p className={`text-xs lg:text-sm ${saju ? SJ.inkFaint : 'text-[#8B8578]'}`}>{t('selectedRatio')}</p>
+            <p className={`text-2xl font-black ${saju ? SJ.goldText : 'text-[#8B8578]'}`}>{retentionPercentage}%</p>
           </div>
         </div>
-        <div className={`text-xs rounded-lg px-3 py-2 space-y-1 ${saju ? `${SJ.inkMuted} bg-[#FDFAF1]/70` : 'text-slate-500 bg-white/60'}`}>
+        <div className={`text-xs lg:text-sm rounded-[12px] px-3 py-2 space-y-1 ${saju ? `${SJ.inkMuted} bg-[#FDFAF1]/70` : 'text-[#8B8578] bg-[#12141D]/60'}`}>
           <p>
             {saju ? '' : '💡 '}{t('remainingGuide', { ratio: remainingRatio })}
           </p>
@@ -273,20 +273,20 @@ export function FeedbackStep2New({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`rounded-xl p-3 border ${saju ? SJ.cardSoft : 'bg-purple-50 border-purple-200/50'}`}
+          className={`rounded-[12px] p-3 border ${saju ? SJ.cardSoft : 'bg-[#0C0E16] border-stone-200/50'}`}
         >
           <div className="flex items-start gap-2">
-            <Info size={16} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#2C3E50]' : 'text-purple-500'}`} />
-            <div className="text-sm flex-1">
-              <p className={`font-medium mb-1.5 ${saju ? SJ.blueInk : 'text-purple-700'}`}>{t('previousSelectedScents')}</p>
+            <Info size={16} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#2C3E50]' : 'text-[#8B8578]'}`} />
+            <div className="text-sm lg:text-base flex-1">
+              <p className={`font-medium mb-1.5 ${saju ? SJ.blueInk : 'text-[#A69F8D]'}`}>{t('previousSelectedScents')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {previousFeedback.specificScents.map((scent) => (
                   <span
                     key={scent.id}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${saju ? SJ.chipBlue : 'bg-purple-100 text-purple-700'}`}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs lg:text-sm ${saju ? SJ.chipBlue : 'bg-[#151823] text-[#A69F8D]'}`}
                   >
                     <span className="font-medium">{scent.name}</span>
-                    <span className={saju ? 'text-[#2C3E50]/70' : 'text-purple-500'}>{scent.ratio}%</span>
+                    <span className={saju ? 'text-[#2C3E50]/70' : 'text-[#8B8578]'}>{scent.ratio}%</span>
                   </span>
                 ))}
               </div>
@@ -297,7 +297,7 @@ export function FeedbackStep2New({
 
       {/* 향료 검색 바 */}
       <div className="space-y-2">
-        <h3 className={`text-sm font-bold flex items-center gap-2 ${sectionTitleCls}`}>
+        <h3 className={`text-sm lg:text-base font-bold flex items-center gap-2 ${sectionTitleCls}`}>
           <Search size={14} className={plusIconCls} />
           {t('searchScent')}
         </h3>
@@ -309,8 +309,8 @@ export function FeedbackStep2New({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchScentPlaceholder')}
-            className={`w-full pl-9 pr-9 py-2.5 rounded-xl border-2 focus:ring-0 focus:outline-none text-sm transition-colors ${
-              saju ? SJ.input : 'border-slate-200 focus:border-amber-400 bg-white placeholder:text-slate-400'
+            className={`w-full pl-9 pr-9 py-2.5 rounded-[12px] border-2 focus:ring-0 focus:outline-none text-sm lg:text-base transition-colors ${
+              saju ? SJ.input : 'border-[#262A38] focus:border-[#343A4C] bg-[#12141D] placeholder:text-[#8B8578]'
             }`}
           />
           {searchQuery && (
@@ -319,7 +319,7 @@ export function FeedbackStep2New({
                 setSearchQuery('')
                 searchInputRef.current?.focus()
               }}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-slate-100'}`}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-[#1B1F2C]'}`}
             >
               <X size={14} className={itemMetaCls} />
             </button>
@@ -338,10 +338,10 @@ export function FeedbackStep2New({
             >
               {searchResults.length === 0 ? (
                 <div className="py-6 text-center">
-                  <p className={`text-sm ${itemMetaCls}`}>{t('searchNoResults')}</p>
+                  <p className={`text-sm lg:text-base ${itemMetaCls}`}>{t('searchNoResults')}</p>
                 </div>
               ) : (
-                <div className={`space-y-2 max-h-[320px] overflow-y-auto rounded-xl border p-2 ${saju ? 'border-[#D8CFBB] bg-[#EDE5D2]/60' : 'border-slate-200 bg-slate-50'}`}>
+                <div className={`space-y-2 max-h-[320px] overflow-y-auto rounded-[12px] border p-2 ${saju ? 'border-[#D8CFBB] bg-[#EDE5D2]/60' : 'border-[#262A38] bg-[#151823]'}`}>
                   {searchResults.map((perfume) => {
                     const alreadySelected = isSelected(perfume.id)
                     const canAdd = selectedScents.length < maxScents
@@ -366,18 +366,18 @@ export function FeedbackStep2New({
                           }`}
                         >
                           <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ${
-                              isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                            className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xs lg:text-sm font-bold shadow-sm flex-shrink-0 ${
+                              isLightColor(perfume.primaryColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
                             }`}
                             style={{ backgroundColor: perfume.primaryColor }}
                           >
                             {perfume.id.split(' ')[1]}
                           </div>
                           <div className="flex-1 text-left min-w-0">
-                            <p className={`font-medium text-sm truncate ${itemNameCls}`}>
+                            <p className={`font-medium text-sm lg:text-base truncate ${itemNameCls}`}>
                               {getLocalizedName(perfume.id, perfume.name)}
                             </p>
-                            <p className={`text-xs truncate ${itemMetaCls}`}>
+                            <p className={`text-xs lg:text-sm truncate ${itemMetaCls}`}>
                               {perfume.id} · {getLocalizedKeywords(perfume.id).slice(0, 3).join(' · ')}
                             </p>
                           </div>
@@ -402,7 +402,7 @@ export function FeedbackStep2New({
                             >
                               <div className={sliderPanelCls}>
                                 <div className="flex justify-between items-center">
-                                  <span className={`text-xs font-medium ${ratioLabelCls}`}>{t('additionalRatio')}</span>
+                                  <span className={`text-xs lg:text-sm font-medium ${ratioLabelCls}`}>{t('additionalRatio')}</span>
                                   <div className="flex items-center gap-2">
                                     <span className={`text-lg font-bold ${ratioValueCls}`}>{selectedScent.ratio}%</span>
                                     <button
@@ -423,7 +423,7 @@ export function FeedbackStep2New({
                                       onUpdateRatio(perfume.id, selectedScent.ratio - 10)
                                     }}
                                     disabled={selectedScent.ratio <= 10}
-                                    className={`p-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
+                                    className={`p-1.5 rounded-[12px] disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
                                   >
                                     <Minus size={14} className={stepIconCls} />
                                   </button>
@@ -453,12 +453,12 @@ export function FeedbackStep2New({
                                       onUpdateRatio(perfume.id, selectedScent.ratio + 10)
                                     }}
                                     disabled={!canIncrease}
-                                    className={`p-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
+                                    className={`p-1.5 rounded-[12px] disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
                                   >
                                     <Plus size={14} className={stepIconCls} />
                                   </button>
                                 </div>
-                                <p className={`text-[10px] text-right ${maxNoteCls}`}>
+                                <p className={`text-[10px] lg:text-[12px] text-right ${maxNoteCls}`}>
                                   {t('maxRatio', { ratio: maxRatioForThis })}
                                 </p>
                               </div>
@@ -478,10 +478,10 @@ export function FeedbackStep2New({
       {/* 카테고리 아코디언 (검색 중이 아닐 때만 표시) */}
       {!isSearching && (
       <div className="space-y-2">
-        <h3 className={`text-sm font-bold mb-3 ${sectionTitleCls}`}>
+        <h3 className={`text-sm lg:text-base font-bold mb-3 ${sectionTitleCls}`}>
           {t('categoryExplore')}
           {selectedScents.length >= maxScents && (
-            <span className={`text-xs font-normal ml-2 ${itemMetaCls}`}>
+            <span className={`text-xs lg:text-sm font-normal ml-2 ${itemMetaCls}`}>
               {t('maxSelected', { count: maxScents })}
             </span>
           )}
@@ -502,12 +502,12 @@ export function FeedbackStep2New({
           return (
             <div
               key={category}
-              className={`overflow-hidden rounded-2xl border-2 transition-colors ${
+              className={`overflow-hidden rounded-[12px] border-2 transition-colors ${
                 isExpanded
-                  ? saju ? 'border-[#C9A227] shadow-sm' : 'border-amber-300 shadow-sm'
+                  ? saju ? 'border-[#C9A227] shadow-sm' : 'border-[#262A38] shadow-sm'
                   : hasSelectedScents
-                    ? saju ? 'border-[#C9A227]/50' : 'border-amber-200'
-                    : saju ? 'border-[#D8CFBB]' : 'border-slate-200'
+                    ? saju ? 'border-[#C9A227]/50' : 'border-[#262A38]'
+                    : saju ? 'border-[#D8CFBB]' : 'border-[#262A38]'
               }`}
             >
               {/* 카테고리 헤더 */}
@@ -515,10 +515,10 @@ export function FeedbackStep2New({
                 onClick={() => toggleCategory(category)}
                 className={`w-full flex items-center justify-between p-4 transition-all ${
                   isExpanded
-                    ? saju ? 'bg-[#EDE5D2]' : 'bg-gradient-to-r from-amber-50 to-yellow-50'
+                    ? saju ? 'bg-[#EDE5D2]' : 'bg-gradient-to-r from-[#0C0E16] to-[#0C0E16]'
                     : hasSelectedScents
-                      ? saju ? 'bg-[#EDE5D2]/50 hover:bg-[#EDE5D2]' : 'bg-amber-50/50 hover:bg-amber-50'
-                      : saju ? 'bg-[#FDFAF1] hover:bg-[#F5EFE2]' : 'bg-white hover:bg-slate-50'
+                      ? saju ? 'bg-[#EDE5D2]/50 hover:bg-[#EDE5D2]' : 'bg-[#0C0E16]/50 hover:bg-[#0C0E16]'
+                      : saju ? 'bg-[#FDFAF1] hover:bg-[#F5EFE2]' : 'bg-[#12141D] hover:bg-[#151823]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -528,12 +528,12 @@ export function FeedbackStep2New({
                       <span className={`font-bold ${
                         saju
                           ? `${SJ.serif} ${isExpanded ? SJ.goldText : SJ.ink}`
-                          : isExpanded ? 'text-amber-800' : 'text-slate-900'
+                          : isExpanded ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
                       }`}>
                         {getCategoryLabel(category)}
                       </span>
                       {isRecommendedCategory && (
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${saju ? SJ.chipGold : 'text-amber-600 bg-amber-100'}`}>
+                        <span className={`text-[10px] lg:text-[12px] font-medium px-1.5 py-0.5 rounded-[12px] ${saju ? SJ.chipGold : 'text-[#A69F8D] bg-[#151823]'}`}>
                           {t('recommendedCategory')}
                         </span>
                       )}
@@ -544,17 +544,17 @@ export function FeedbackStep2New({
                         {selectedInCategory.map((scent) => (
                           <span
                             key={scent.id}
-                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${saju ? SJ.chipGold : 'text-amber-700 bg-amber-100'}`}
+                            className={`text-[11px] lg:text-[13px] font-medium px-2 py-0.5 rounded-full ${saju ? SJ.chipGold : 'text-[#A69F8D] bg-[#151823]'}`}
                           >
                             {scent.id} {scent.ratio}%
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className={`text-xs ${
+                      <p className={`text-xs lg:text-sm ${
                         saju
                           ? isExpanded ? 'text-[#7A5C14]/70' : SJ.inkFaint
-                          : isExpanded ? 'text-amber-600/70' : 'text-slate-400'
+                          : isExpanded ? 'text-stone-600/70' : 'text-[#8B8578]'
                       }`}>
                         {t(`categoryDesc${category.charAt(0).toUpperCase() + category.slice(1)}` as 'categoryDescCitrus')}
                       </p>
@@ -562,10 +562,10 @@ export function FeedbackStep2New({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-medium ${
+                  <span className={`text-xs lg:text-sm font-medium ${
                     saju
                       ? isExpanded ? SJ.goldText : SJ.inkFaint
-                      : isExpanded ? 'text-amber-600' : 'text-slate-400'
+                      : isExpanded ? 'text-[#A69F8D]' : 'text-[#8B8578]'
                   }`}>
                     {t('countItems', { count: categoryPerfumes.length })}
                   </span>
@@ -576,7 +576,7 @@ export function FeedbackStep2New({
                     <ChevronDown size={20} className={
                       saju
                         ? isExpanded ? 'text-[#C9A227]' : 'text-[#8B8578]'
-                        : isExpanded ? 'text-amber-500' : 'text-slate-400'
+                        : isExpanded ? 'text-[#8B8578]' : 'text-[#8B8578]'
                     } />
                   </motion.div>
                 </div>
@@ -592,9 +592,9 @@ export function FeedbackStep2New({
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className={`p-3 border-t space-y-2 max-h-[280px] overflow-y-auto ${saju ? 'bg-[#EDE5D2]/60 border-[#D8CFBB]' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3 border-t space-y-2 max-h-[280px] overflow-y-auto ${saju ? 'bg-[#EDE5D2]/60 border-[#D8CFBB]' : 'bg-[#151823] border-[#262A38]'}`}>
                       {categoryPerfumes.length === 0 ? (
-                        <p className={`text-sm text-center py-4 ${itemMetaCls}`}>
+                        <p className={`text-sm lg:text-base text-center py-4 ${itemMetaCls}`}>
                           {t('noCategoryScents')}
                         </p>
                       ) : (
@@ -626,18 +626,18 @@ export function FeedbackStep2New({
                                 }`}
                               >
                                 <div
-                                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ${
-                                    isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                                  className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xs lg:text-sm font-bold shadow-sm flex-shrink-0 ${
+                                    isLightColor(perfume.primaryColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
                                   }`}
                                   style={{ backgroundColor: perfume.primaryColor }}
                                 >
                                   {perfume.id.split(' ')[1]}
                                 </div>
                                 <div className="flex-1 text-left min-w-0">
-                                  <p className={`font-medium text-sm truncate ${itemNameCls}`}>
+                                  <p className={`font-medium text-sm lg:text-base truncate ${itemNameCls}`}>
                                     {getLocalizedName(perfume.id, perfume.name)}
                                   </p>
-                                  <p className={`text-xs truncate ${itemMetaCls}`}>
+                                  <p className={`text-xs lg:text-sm truncate ${itemMetaCls}`}>
                                     {getLocalizedKeywords(perfume.id).slice(0, 3).join(' · ')}
                                   </p>
                                 </div>
@@ -662,7 +662,7 @@ export function FeedbackStep2New({
                                   >
                                     <div className={sliderPanelCls}>
                                       <div className="flex justify-between items-center">
-                                        <span className={`text-xs font-medium ${ratioLabelCls}`}>{t('additionalRatio')}</span>
+                                        <span className={`text-xs lg:text-sm font-medium ${ratioLabelCls}`}>{t('additionalRatio')}</span>
                                         <div className="flex items-center gap-2">
                                           <span className={`text-lg font-bold ${ratioValueCls}`}>{selectedScent.ratio}%</span>
                                           <button
@@ -683,7 +683,7 @@ export function FeedbackStep2New({
                                             onUpdateRatio(perfume.id, selectedScent.ratio - 10)
                                           }}
                                           disabled={selectedScent.ratio <= 10}
-                                          className={`p-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
+                                          className={`p-1.5 rounded-[12px] disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
                                         >
                                           <Minus size={14} className={stepIconCls} />
                                         </button>
@@ -713,12 +713,12 @@ export function FeedbackStep2New({
                                             onUpdateRatio(perfume.id, selectedScent.ratio + 10)
                                           }}
                                           disabled={!canIncrease}
-                                          className={`p-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
+                                          className={`p-1.5 rounded-[12px] disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${stepBtnCls}`}
                                         >
                                           <Plus size={14} className={stepIconCls} />
                                         </button>
                                       </div>
-                                      <p className={`text-[10px] text-right ${maxNoteCls}`}>
+                                      <p className={`text-[10px] lg:text-[12px] text-right ${maxNoteCls}`}>
                                         {t('maxRatio', { ratio: maxRatioForThis })}
                                       </p>
                                     </div>
@@ -740,47 +740,47 @@ export function FeedbackStep2New({
       )}
 
       {/* 현재 비율 상태 표시 */}
-      <div className={`rounded-2xl p-4 border-2 ${
+      <div className={`rounded-[12px] p-4 border-2 ${
         currentTotalRatio === 100
-          ? saju ? SJ.cardGold : 'bg-green-50 border-green-300'
+          ? saju ? SJ.cardGold : 'bg-[#0C0E16] border-[#262A38]'
           : currentTotalRatio > 100
             ? saju ? SJ.cardCinnabar : 'bg-red-50 border-red-300'
-            : saju ? SJ.cardSoft : 'bg-amber-50 border-amber-300'
+            : saju ? SJ.cardSoft : 'bg-[#0C0E16] border-[#262A38]'
       }`}>
         <div className="flex items-center justify-between mb-2">
-          <span className={`text-sm font-bold ${sectionTitleCls}`}>{t('ratioStatus')}</span>
+          <span className={`text-sm lg:text-base font-bold ${sectionTitleCls}`}>{t('ratioStatus')}</span>
           <span className={`text-lg font-black ${
             currentTotalRatio === 100
-              ? saju ? SJ.goldText : 'text-green-600'
+              ? saju ? SJ.goldText : 'text-[#A69F8D]'
               : currentTotalRatio > 100
                 ? saju ? SJ.cinnabarText : 'text-red-600'
-                : saju ? SJ.inkMuted : 'text-amber-600'
+                : saju ? SJ.inkMuted : 'text-[#A69F8D]'
           }`}>
             {currentTotalRatio}% / 100%
           </span>
         </div>
 
         {/* 프로그레스 바 */}
-        <div className={`w-full h-3 rounded-full overflow-hidden ${saju ? 'bg-[#FDFAF1]' : 'bg-slate-200'}`}>
+        <div className={`w-full h-3 rounded-full overflow-hidden ${saju ? 'bg-[#FDFAF1]' : 'bg-[#232838]'}`}>
           <div
             className={`h-full transition-all duration-300 ${
               currentTotalRatio === 100
-                ? saju ? SJ.fillGold : 'bg-green-500'
+                ? saju ? SJ.fillGold : 'bg-[#161925]'
                 : currentTotalRatio > 100
                   ? saju ? SJ.fillCinnabar : 'bg-red-500'
-                  : saju ? 'bg-[#C9A227]/60' : 'bg-amber-500'
+                  : saju ? 'bg-[#C9A227]/60' : 'bg-[#161925]'
             }`}
             style={{ width: `${Math.min(currentTotalRatio, 100)}%` }}
           />
         </div>
 
         {/* 상태 메시지 */}
-        <p className={`text-xs mt-2 font-medium ${
+        <p className={`text-xs lg:text-sm mt-2 font-medium ${
           currentTotalRatio === 100
-            ? saju ? SJ.goldText : 'text-green-700'
+            ? saju ? SJ.goldText : 'text-[#A69F8D]'
             : currentTotalRatio > 100
               ? saju ? SJ.cinnabarText : 'text-red-700'
-              : saju ? SJ.inkMuted : 'text-amber-700'
+              : saju ? SJ.inkMuted : 'text-[#A69F8D]'
         }`}>
           {currentTotalRatio === 100
             ? t('ratioPerfect')

@@ -63,7 +63,7 @@ export function SlotGrid({ date, refreshKey, selectedStartIso, onSelect }: SlotG
 
   if (error) {
     return (
-      <p className="rounded-xl border-2 border-slate-900 bg-white px-4 py-6 text-center text-sm font-black text-slate-600">
+      <p className="rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-6 text-center text-sm lg:text-base font-black text-[#A69F8D]">
         {error === "unavailable" ? t("slotsUnavailable") : t("errors.generic")}
       </p>
     )
@@ -72,7 +72,7 @@ export function SlotGrid({ date, refreshKey, selectedStartIso, onSelect }: SlotG
   if (!slots) {
     return (
       <div className="flex justify-center py-10">
-        <div className="w-8 h-8 border-4 border-slate-900 border-t-[#FCD34D] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#262A38] border-t-[#D7D7D7] rounded-full animate-spin" />
       </div>
     )
   }
@@ -80,7 +80,7 @@ export function SlotGrid({ date, refreshKey, selectedStartIso, onSelect }: SlotG
   const hasAvailable = slots.some((s) => s.available)
   if (!hasAvailable) {
     return (
-      <p className="rounded-xl border-2 border-slate-900 bg-white px-4 py-6 text-center text-sm font-black text-slate-600">
+      <p className="rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-6 text-center text-sm lg:text-base font-black text-[#A69F8D]">
         {t("noSlots")}
       </p>
     )
@@ -95,12 +95,12 @@ export function SlotGrid({ date, refreshKey, selectedStartIso, onSelect }: SlotG
             key={slot.startIso}
             disabled={!slot.available}
             onClick={() => onSelect({ time: slot.time, startIso: slot.startIso })}
-            className={`rounded-xl border-2 py-2.5 text-sm font-black transition-all ${
+            className={`rounded-[12px] border-2 py-2.5 text-sm lg:text-base font-black transition-all ${
               selected
-                ? "border-slate-900 bg-[#FCD34D] text-slate-900 shadow-[3px_3px_0_0_black]"
+                ? "border-[#262A38] bg-[#D7D7D7] text-[#E9E2D0]"
                 : slot.available
-                  ? "border-slate-900 bg-white text-slate-900 shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black]"
-                  : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-300 line-through shadow-none"
+                  ? "border-[#262A38] bg-[#12141D] text-[#E9E2D0]"
+                  : "cursor-not-allowed border-[#262A38] bg-[#1B1F2C] text-[#5C564A] line-through shadow-none"
             }`}
           >
             {slot.time}

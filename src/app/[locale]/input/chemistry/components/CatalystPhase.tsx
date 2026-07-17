@@ -31,51 +31,51 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-pink-500 text-white rounded-full border-2 border-black shadow-[3px_3px_0_0_black]"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610] rounded-full border-2 border-[#D8CFBB]"
         >
           <Sparkles size={16} />
-          <span className="text-sm font-black">{t('catalyst.ready')}</span>
+          <span className="text-sm lg:text-base font-black">{t('catalyst.ready')}</span>
         </motion.div>
-        <h2 className="text-xl font-black text-slate-900 mt-4">
+        <h2 className="text-xl font-black text-[#1A1610] mt-4">
           {t('catalyst.title')}
         </h2>
-        <p className="text-sm text-slate-500 mt-1">{t('catalyst.subtitle')}</p>
+        <p className="text-sm lg:text-base text-[#8B8578] mt-1">{t('catalyst.subtitle')}</p>
       </div>
 
       {/* 요약 카드 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] overflow-hidden"
+        className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
       >
         {/* 캐릭터 요약 */}
-        <div className="p-4 border-b-2 border-black bg-[#FFF8E7]">
+        <div className="p-4 border-b-2 border-[#D8CFBB] bg-[#0E1016]">
           <div className="flex items-center justify-center gap-4">
             {/* A */}
             <div className="text-center">
               {formData.character1ImageBase64 && (
-                <div className="w-16 h-16 rounded-xl border-2 border-violet-400 overflow-hidden mx-auto mb-1">
+                <div className="w-16 h-16 rounded-[12px] border-2 border-[#C9BFA8] overflow-hidden mx-auto mb-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={formData.character1ImageBase64} alt={character1Name} className="w-full h-full object-cover" />
                 </div>
               )}
-              <span className="text-xs font-bold text-slate-800 block">{character1Name}</span>
-              <span className="text-[10px] text-violet-500">{archs1.length > 0 ? archs1.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype1 || ''}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610] block">{character1Name}</span>
+              <span className="text-[10px] lg:text-[12px] text-[#8B8578]">{archs1.length > 0 ? archs1.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype1 || ''}</span>
             </div>
 
             {/* VS */}
-            <div className="text-2xl font-black text-violet-400">x</div>
+            <div className="text-2xl font-black text-[#8B8578]">x</div>
 
             {/* B */}
             <div className="text-center">
               {formData.character2ImageBase64 && (
-                <div className="w-16 h-16 rounded-xl border-2 border-pink-400 overflow-hidden mx-auto mb-1">
+                <div className="w-16 h-16 rounded-[12px] border-2 border-[#C9BFA8] overflow-hidden mx-auto mb-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={formData.character2ImageBase64} alt={character2Name} className="w-full h-full object-cover" />
                 </div>
               )}
-              <span className="text-xs font-bold text-slate-800 block">{character2Name}</span>
-              <span className="text-[10px] text-pink-500">{archs2.length > 0 ? archs2.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype2 || ''}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610] block">{character2Name}</span>
+              <span className="text-[10px] lg:text-[12px] text-[#8B8578]">{archs2.length > 0 ? archs2.map(a => `${a!.emoji} ${getChemistryOptionLabel(a!.id, locale)}`).join(', ') : formData.customArchetype2 || ''}</span>
             </div>
           </div>
         </div>
@@ -100,12 +100,12 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 text-center"
+        className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-4 text-center"
       >
-        <p className="text-xs text-violet-600 font-medium">
+        <p className="text-xs lg:text-sm text-[#5C564A] font-medium">
           {t('catalyst.guideLine1')}<br />
           {t('catalyst.guideLine2')}<br />
-          <span className="text-violet-400">{t('catalyst.duration')}</span>
+          <span className="text-[#8B8578]">{t('catalyst.duration')}</span>
         </p>
       </motion.div>
     </div>
@@ -115,11 +115,11 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
 function SummaryRow({ label, value, customValue }: { label: string; value: string; customValue?: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="text-xs font-bold text-slate-400 w-16 flex-shrink-0">{label}</span>
+      <span className="text-xs lg:text-sm font-bold text-[#8B8578] w-16 flex-shrink-0">{label}</span>
       <div className="flex-1">
-        <span className="text-xs font-medium text-slate-700">{value}</span>
+        <span className="text-xs lg:text-sm font-medium text-[#5C564A]">{value}</span>
         {customValue && (
-          <span className="text-xs text-violet-500 font-medium block mt-0.5">+ {customValue}</span>
+          <span className="text-xs lg:text-sm text-[#8B8578] font-medium block mt-0.5">+ {customValue}</span>
         )}
       </div>
     </div>

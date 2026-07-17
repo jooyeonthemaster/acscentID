@@ -4,7 +4,7 @@ import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ChevronRight, ImageIcon, Sparkles } from "lucide-react"
+import { ChevronLeft, ChevronRight, ImageIcon, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useProductImages } from "@/hooks/useAdminContent"
 import { cn } from "@/lib/utils"
@@ -58,11 +58,11 @@ export function UnifiedDetailHero({
   pagePositionStyle,
   breadcrumbs,
   images,
-  badgeClassName = "bg-black text-white",
+  badgeClassName = "bg-[#EEB62B] text-[#1A1610]",
   secondaryBadges,
   meta,
   price,
-  infoIcon = <Sparkles size={14} className="text-slate-900" />,
+  infoIcon = <Sparkles size={14} className="text-[#1A1610]" />,
   infoItems,
   cta,
   secondaryCta,
@@ -85,22 +85,29 @@ export function UnifiedDetailHero({
     selectImage(0)
   }, [imageList.length, selectedImageIndex, selectImage])
 
+  // 좌우 화살표 — 홈 배너와 동일하게 처음/끝에서 순환
+  const showArrows = !imagesLoading && thumbnailImages.length > 1
+  const prevImage = () =>
+    selectImage((selectedImageIndex - 1 + thumbnailImages.length) % thumbnailImages.length)
+  const nextImage = () =>
+    selectImage((selectedImageIndex + 1) % thumbnailImages.length)
+
   return (
     <section className={cn("px-4 pb-10 pt-28", sectionClassName)}>
       <div className="mx-auto w-full max-w-[455px]">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-5 overflow-hidden rounded-[28px] border-[3px] border-black bg-white shadow-[6px_6px_0_0_black]"
+          className="mb-5 -mx-4 overflow-hidden bg-[#F5EFE2]"
         >
           <div
-            className="relative aspect-square bg-white"
+            className="relative aspect-square bg-[#F5EFE2]"
             data-admin-product-image="true"
             data-admin-page-position-field="productImage"
             style={pagePositionStyle?.("productImage")}
           >
             {imagesLoading ? (
-              <div className="h-full w-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" />
+              <div className="h-full w-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#D8CFBB]" />
             ) : selectedImage ? (
               <Image
                 src={selectedImage}
@@ -108,13 +115,13 @@ export function UnifiedDetailHero({
                 fill
                 sizes="(max-width: 455px) 100vw, 455px"
                 priority
-                className="object-contain p-10 transition-transform duration-300 sm:p-12"
+                className="object-cover transition-transform duration-300"
                 data-pin-nopin="true"
               />
             ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-slate-400">
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-[#8B8578]">
                 <ImageIcon className="h-12 w-12" />
-                <span className="text-sm font-black" data-admin-page-field="imagePlaceholder">
+                <span className="text-sm lg:text-base font-black" data-admin-page-field="imagePlaceholder">
                   {pageContent.imagePlaceholder}
                 </span>
               </div>
@@ -122,7 +129,7 @@ export function UnifiedDetailHero({
 
             <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2">
               <span
-                className={cn("inline-flex min-h-11 items-center rounded-full border-[3px] border-black px-5 text-sm font-black shadow-[2px_2px_0_0_black]", badgeClassName)}
+                className={cn("inline-flex items-center rounded-full border-2 border-[#B8880F] px-3 py-1 text-xs lg:text-sm font-black", badgeClassName)}
                 data-admin-page-position-field="badge"
                 style={pagePositionStyle?.("badge")}
               >
@@ -130,43 +137,50 @@ export function UnifiedDetailHero({
               </span>
               {secondaryBadges}
             </div>
-          </div>
 
-          {(imagesLoading || thumbnailImages.length > 0) && (
-            <div className="flex gap-2 overflow-x-auto border-t-2 border-black bg-white p-3">
-              {imagesLoading ? (
-                <div className="h-14 w-14 shrink-0 animate-pulse rounded-xl border-2 border-slate-200 bg-slate-100" />
-              ) : thumbnailImages.map((image, index) => {
-                const selected = index === selectedImageIndex
-                return (
+            {/* 좌우 네비게이션 버튼 — 홈 배너와 동일한 스타일 */}
+            {showArrows && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  aria-label={t('programs.prevImage')}
+                  className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all hover:bg-black/35 active:scale-95"
+                >
+                  <ChevronLeft size={24} className="text-[#E9E2D0] drop-shadow" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  aria-label={t('programs.nextImage')}
+                  className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all hover:bg-black/35 active:scale-95"
+                >
+                  <ChevronRight size={24} className="text-[#E9E2D0] drop-shadow" />
+                </button>
+              </>
+            )}
+
+            {/* 사진 장수 표시 — 점 인디케이터 (사진 위 하단 중앙) */}
+            {showArrows && (
+              <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+                {thumbnailImages.map((_, index) => (
                   <button
-                    key={`${image}-${index}`}
+                    key={index}
                     type="button"
                     onClick={() => selectImage(index)}
                     className={cn(
-                      "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-all",
-                      selected ? "border-black shadow-[2px_2px_0_0_black]" : "border-slate-200 opacity-80 hover:border-slate-500 hover:opacity-100",
+                      "h-2.5 rounded-full transition-all duration-300",
+                      index === selectedImageIndex
+                        ? "w-6 bg-[#12141D] shadow-md"
+                        : "w-2.5 bg-[#12141D]/40 hover:bg-[#12141D]/70",
                     )}
                     aria-label={t('programs.thumbnailAria', { alt: imageAlt, index: index + 1 })}
-                  >
-                    <Image
-                      src={image}
-                      alt=""
-                      fill
-                      sizes="56px"
-                      className="object-contain p-1"
-                      data-pin-nopin="true"
-                    />
-                    {index === 0 && (
-                      <span className="absolute left-1 top-1 rounded bg-[#FCD34D] px-1 text-[9px] font-black text-black ring-1 ring-black">
-                        {t('programs.representative')}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          )}
+                    aria-current={index === selectedImageIndex}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </motion.div>
 
         <motion.div
@@ -174,16 +188,16 @@ export function UnifiedDetailHero({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
-          <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+          <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs lg:text-sm text-[#8B8578]">
             {breadcrumbs.map((item, index) => (
               <span key={index} className="inline-flex items-center gap-1.5">
                 {index > 0 && <ChevronRight size={12} />}
                 {item.href ? (
-                  <Link href={item.href} className="hover:text-black">
+                  <Link href={item.href} className="hover:text-[#1A1610]">
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="font-bold text-black">{item.label}</span>
+                  <span className="font-bold text-[#E9E2D0]">{item.label}</span>
                 )}
               </span>
             ))}
@@ -192,7 +206,7 @@ export function UnifiedDetailHero({
           {meta && <div className="mb-2">{meta}</div>}
 
           <div className="mb-4">
-            <h1 className={cn("mb-1.5 break-keep text-2xl font-black leading-tight text-black", titleClassName)}>
+            <h1 className={cn("mb-1.5 break-keep text-2xl font-black leading-tight text-[#E9E2D0]", titleClassName)}>
               <span
                 className="inline-block"
                 data-admin-editable="product_name"
@@ -202,7 +216,7 @@ export function UnifiedDetailHero({
                 {title}
               </span>
             </h1>
-            <p className="text-sm font-medium leading-relaxed text-slate-600">
+            <p className="text-sm lg:text-base font-medium leading-relaxed text-[#A69F8D]">
               <span
                 className="inline-block"
                 data-admin-page-field="subtitle"
@@ -215,24 +229,24 @@ export function UnifiedDetailHero({
           </div>
 
           <div
-            className="mb-4 rounded-xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_black]"
+            className="mb-4 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4"
             data-admin-page-position-field="infoCard"
             style={pagePositionStyle?.("infoCard")}
           >
             {price && <div className="mb-3">{price}</div>}
 
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+            <div className="rounded-[12px] border border-[#D8CFBB] bg-[#EDE5D2] p-2.5">
               <div className="mb-1.5 flex items-center gap-2">
                 {infoIcon}
-                <span className="font-bold text-xs text-black" data-admin-page-field="infoTitle">
+                <span className="font-bold text-xs lg:text-sm text-[#1A1610]" data-admin-page-field="infoTitle">
                   {pageContent.infoTitle}
                 </span>
               </div>
-              <p className="mb-1.5 whitespace-pre-line text-[11px] text-slate-600" data-admin-page-field="infoBody">
+              <p className="mb-1.5 whitespace-pre-line text-[11px] lg:text-[13px] text-[#5C564A]" data-admin-page-field="infoBody">
                 {pageContent.infoBody}
               </p>
               {infoItems && infoItems.length > 0 && (
-                <ul className="space-y-0.5 pl-5 text-[11px] text-slate-600">
+                <ul className="space-y-0.5 pl-5 text-[11px] lg:text-[13px] text-[#5C564A]">
                   {infoItems.map((item, index) => (
                     <li key={index} className="list-disc">
                       {item}
@@ -250,7 +264,7 @@ export function UnifiedDetailHero({
                 onClick={cta.onClick}
                 disabled={cta.disabled}
                 className={cn(
-                  "flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-black py-3.5 text-base font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#cbd5e1] disabled:opacity-50",
+                  "flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all disabled:opacity-50",
                   cta.className,
                 )}
                 data-admin-page-position-field="ctaButton"
@@ -264,15 +278,15 @@ export function UnifiedDetailHero({
                   onClick={secondaryCta.onClick}
                   disabled={secondaryCta.disabled}
                   className={cn(
-                    "mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-white py-3 text-sm font-black text-black shadow-[3px_3px_0_0_black] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_black] disabled:opacity-50",
+                    "mt-2 flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] py-3 text-sm lg:text-base font-black text-[#1A1610] transition-all disabled:opacity-50",
                     secondaryCta.className,
                   )}
                 >
                   {secondaryCta.label}
                 </button>
               )}
-              {cta.hint && <div className="mt-2 text-center text-xs font-medium text-slate-500">{cta.hint}</div>}
-              {secondaryCta?.hint && <div className="mt-1 text-center text-xs font-medium text-slate-500">{secondaryCta.hint}</div>}
+              {cta.hint && <div className="mt-2 text-center text-xs lg:text-sm font-medium text-[#8B8578]">{cta.hint}</div>}
+              {secondaryCta?.hint && <div className="mt-1 text-center text-xs lg:text-sm font-medium text-[#8B8578]">{secondaryCta.hint}</div>}
             </>
           )}
         </motion.div>

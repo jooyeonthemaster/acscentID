@@ -140,7 +140,7 @@ function StatCard({
 
   return (
     <div
-      className={`bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0] ${onClick ? 'cursor-pointer hover:border-slate-300 transition-colors' : ''}`}
+      className={`bg-white rounded-xl border-2 border-slate-200 p-5 ${onClick ? 'cursor-pointer hover:border-slate-300 transition-colors' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between">
@@ -302,7 +302,7 @@ function HourlyChart({ data }: { data: HourlyData[] }) {
   const peakHour = data.reduce((peak, h) => h.visitors > peak.visitors ? h : peak, data[0])
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-slate-500" />
@@ -419,7 +419,7 @@ function DailyChart({ data, period }: { data: DailyData[]; period: string }) {
   const isCompact = period === '90d' || period === 'all'
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-slate-500" />
@@ -605,7 +605,7 @@ function CalendarHeatmap({
   const canGoNext = !(year === today.getFullYear() && month === today.getMonth() + 1)
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-slate-500" />
@@ -717,7 +717,7 @@ function DurationDetailPanel({
   const maxDistCount = Math.max(...data.distribution.map((d) => d.count), 1)
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Timer className="w-5 h-5 text-orange-500" />
@@ -876,7 +876,7 @@ function DayDetailPopup({
   onClose: () => void
 }) {
   return (
-    <div className="bg-white rounded-xl border-2 border-blue-200 p-4 shadow-[3px_3px_0px_#bfdbfe]">
+    <div className="bg-white rounded-xl border-2 border-blue-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-bold text-slate-900">
           {year}.{String(month).padStart(2, '0')}.{String(day.day).padStart(2, '0')} 상세
@@ -1450,7 +1450,7 @@ export default function VisitorsPage() {
             <button
               onClick={downloadVisitorExcel}
               disabled={excelLoading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#047857] transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {excelLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -1462,7 +1462,7 @@ export default function VisitorsPage() {
             <button
               onClick={downloadVisitorCSV}
               disabled={csvLoading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#1d4ed8] transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {csvLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -1563,7 +1563,7 @@ export default function VisitorsPage() {
         {/* 인기 페이지 & 유입 경로 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 인기 페이지 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">인기 페이지 TOP 10</h3>
             <div className="space-y-3">
               {topPages.slice(0, 10).map((page, idx) => (
@@ -1590,7 +1590,7 @@ export default function VisitorsPage() {
           </div>
 
           {/* 유입 경로 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">유입 경로</h3>
             <div className="space-y-3">
               {referrers.map((ref) => (
@@ -1621,7 +1621,7 @@ export default function VisitorsPage() {
         {/* 디바이스 & 사용자 플로우 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 디바이스 분포 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">디바이스 분포</h3>
             {devices && totalDevices > 0 ? (
               <div className="space-y-4">
@@ -1689,7 +1689,7 @@ export default function VisitorsPage() {
           </div>
 
           {/* 사용자 플로우 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">주요 페이지 이동 경로</h3>
             <div className="space-y-3">
               {userFlow.slice(0, 8).map((flow, idx) => (

@@ -129,36 +129,36 @@ export function ProfileCard() {
 
   return (
     <>
-      <div className="bg-white border-2 border-black rounded-2xl p-4 mb-4 shadow-[4px_4px_0_0_black]">
+      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-4 mb-4">
         <div className="flex items-center gap-3">
           {/* 프로필 사진 (클릭 시 알림함) + 안 읽은 알림 빨간 뱃지 */}
           <button
             onClick={openInbox}
             title={t('notificationsTitle')}
-            className="relative shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="relative shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#343A4C]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={avatar}
               alt={t('profile.profileAlt')}
-              className="w-14 h-14 rounded-full object-cover border-2 border-black bg-amber-100"
+              className="w-14 h-14 rounded-full object-cover border-2 border-[#262A38] bg-[#151823]"
             />
             {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-white text-white text-[11px] font-black leading-none">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-[#F5EFE2] text-[#E9E2D0] text-[11px] lg:text-[13px] font-black leading-none">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold text-slate-900 truncate">{currentName}</h2>
-            {email && <p className="text-xs text-slate-500 truncate">{email}</p>}
-            <span className="inline-flex mt-1 text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+            <h2 className="text-base font-bold text-[#12141D] truncate">{currentName}</h2>
+            {email && <p className="text-xs lg:text-sm text-[#5C564A] truncate">{email}</p>}
+            <span className="inline-flex mt-1 text-[10px] lg:text-[12px] px-2 py-0.5 bg-[#E9E2D0] text-[#5C564A] rounded-full">
               {providerLabel} {t('profile.loginSuffix')}
             </span>
           </div>
           <button
             onClick={openEdit}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-500 border-2 border-black text-black text-xs font-bold transition-colors shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] bg-[#12141D] hover:bg-[#1B1F2C] border-2 border-[#12141D] text-[#F5EFE2] text-xs lg:text-sm font-bold transition-colors shrink-0"
           >
             <Pencil size={14} />
             {t('editButton')}
@@ -172,28 +172,28 @@ export function ProfileCard() {
           onClick={() => !saving && setEditing(false)}
         >
           <div
-            className="bg-white border-2 border-black rounded-2xl w-full max-w-sm shadow-[6px_6px_0_0_black] overflow-hidden"
+            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] w-full max-w-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-black">
-              <h3 className="text-lg font-bold text-slate-900">{t('profileEditTitle')}</h3>
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-[#262A38]">
+              <h3 className="text-lg font-bold text-[#E9E2D0]">{t('profileEditTitle')}</h3>
               <button
                 onClick={() => !saving && setEditing(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-[#1B1F2C] rounded-[12px] transition-colors"
               >
-                <X size={18} className="text-slate-500" />
+                <X size={18} className="text-[#8B8578]" />
               </button>
             </div>
 
             <div className="px-5 py-5 space-y-4">
               {error && (
-                <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">
+                <div className="bg-red-50 text-red-700 text-sm lg:text-base px-3 py-2 rounded-[12px] border border-red-200">
                   {error}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">{t('profileNameLabel')}</label>
+                <label className="block text-sm lg:text-base font-bold text-[#A69F8D] mb-1.5">{t('profileNameLabel')}</label>
                 <input
                   type="text"
                   value={name}
@@ -204,34 +204,34 @@ export function ProfileCard() {
                   maxLength={30}
                   placeholder={t('profileNamePlaceholder')}
                   autoFocus
-                  className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-black text-sm transition-colors outline-none"
+                  className="w-full px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-sm lg:text-base transition-colors outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">{t('profileEmailLabel')}</label>
+                <label className="block text-sm lg:text-base font-bold text-[#A69F8D] mb-1.5">{t('profileEmailLabel')}</label>
                 <input
                   type="text"
                   value={email || '-'}
                   disabled
-                  className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-sm text-slate-400 cursor-not-allowed"
+                  className="w-full px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] bg-[#151823] text-sm lg:text-base text-[#8B8578] cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-400 mt-1">{t('profileEmailReadonly')}</p>
+                <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('profileEmailReadonly')}</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t-2 border-black bg-slate-50">
+            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t-2 border-[#262A38] bg-[#151823]">
               <button
                 onClick={() => setEditing(false)}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-bold rounded-xl border-2 border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm lg:text-base font-bold rounded-[12px] border-2 border-[#262A38] text-[#A69F8D] hover:bg-[#1B1F2C] transition-colors disabled:opacity-50"
               >
                 {t('profileCancel')}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-bold rounded-xl bg-yellow-400 hover:bg-yellow-500 border-2 border-black text-black transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-2 text-sm lg:text-base font-bold rounded-[12px] bg-[#F5EFE2] hover:bg-[#FFFDF5] border-2 border-[#F5EFE2] text-[#12141D] transition-colors disabled:opacity-50 flex items-center gap-1.5"
               >
                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {t('profileSave')}

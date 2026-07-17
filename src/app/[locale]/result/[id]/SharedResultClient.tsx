@@ -72,37 +72,37 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
   const { analysisData, userImageUrl, twitterName, perfumeName, perfumeBrand } = result
 
   return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[#FAFAFA] font-sans">
+    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[#10131C] font-wanted">
       {/* 배경 */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
         <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
         <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
-            className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply"
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply"
           />
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-            className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply"
+            className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply"
           />
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
-            className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply"
+            className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply"
           />
         </div>
       </div>
 
       {/* 헤더 */}
       <header className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2">
-        <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-white/50 transition-colors">
-          <ChevronLeft size={24} className="text-slate-800" />
+        <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-[#12141D]/50 transition-colors">
+          <ChevronLeft size={24} className="text-[#E9E2D0]" />
         </Link>
         <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-yellow-500" />
-          <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">
+          <Sparkles size={14} className="text-[#8B8578]" />
+          <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578] tracking-widest uppercase">
             AC&apos;SCENT IDENTITY
           </span>
         </div>
@@ -119,21 +119,21 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
         >
           {/* 공유된 결과 배지 */}
           <motion.div variants={fadeInUp} className="text-center pt-2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-400/20 rounded-full mb-3">
-              <span className="text-pink-600 text-xs font-bold">💌 친구의 향수 결과</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-stone-800/20 rounded-full mb-3">
+              <span className="text-[#A69F8D] text-xs lg:text-sm font-bold">💌 친구의 향수 결과</span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
+            <h1 className="text-2xl font-black text-[#E9E2D0] leading-tight">
               친구의 향기를<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#161925] to-[#161925]">
                 구경해보세요!
               </span>
             </h1>
           </motion.div>
 
           {/* 사용자 이미지 + 트위터 이름 */}
-          <motion.div variants={fadeInUp} className="glass-card rounded-3xl p-4 space-y-4">
+          <motion.div variants={fadeInUp} className="glass-card rounded-[12px] p-4 space-y-4">
             {userImageUrl && (
-              <div className="relative w-full aspect-[5/6] rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+              <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#1B1F2C] shadow-inner">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={userImageUrl}
@@ -146,7 +146,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
           </motion.div>
 
           {/* 탭 네비게이션 + 콘텐츠 */}
-          <motion.div variants={fadeInUp} className="glass-card rounded-3xl overflow-hidden">
+          <motion.div variants={fadeInUp} className="glass-card rounded-[12px] overflow-hidden">
             <TabNavigation
               activeTab={activeTab}
               onTabChange={(tab) => setActiveTab(tab as 'analysis' | 'perfume' | 'comparison')}
@@ -172,7 +172,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
           <motion.div variants={fadeInUp} className="flex flex-col gap-3 pt-2 pb-4">
             <Button
               onClick={handleStartAnalysis}
-              className="w-full h-14 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-amber-500/30 hover:shadow-xl hover:from-yellow-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
+              className="w-full h-14 bg-[#F5EFE2] text-[#12141D] rounded-[12px] font-bold text-base shadow-lg shadow-stone-500/30 hover:shadow-xl hover:from-[#161925] hover:to-[#161925] transition-all flex items-center justify-center gap-2"
             >
               <Sparkles size={18} />
               <span>나도 분석 받기</span>
@@ -180,7 +180,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
             <Button
               variant="outline"
               onClick={handleShare}
-              className="w-full h-12 border-2 border-slate-200 bg-white/60 text-slate-600 rounded-2xl font-semibold hover:bg-white hover:border-slate-300 transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 border-2 border-[#262A38] bg-[#12141D]/60 text-[#A69F8D] rounded-[12px] font-semibold hover:bg-[#12141D] hover:border-[#262A38] transition-all flex items-center justify-center gap-2"
             >
               <Share2 size={16} />
               <span>이 결과 공유하기</span>
@@ -194,7 +194,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
             transition={{ delay: 1.2, duration: 1 }}
             className="w-full text-center pb-4"
           >
-            <span className="text-[9px] font-semibold text-slate-400/80 tracking-[0.3em] uppercase">
+            <span className="text-[9px] font-semibold text-stone-400/80 tracking-[0.3em] uppercase">
               © 2025 Ac&apos;scent Identity
             </span>
           </motion.div>

@@ -95,17 +95,17 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
           onClick={() => setMonthIdx((i) => Math.max(0, i - 1))}
           disabled={monthIdx <= 0}
           aria-label={t("prevMonth")}
-          className="grid h-9 w-9 place-items-center rounded-xl border-2 border-slate-900 bg-white shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black] disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300 disabled:shadow-none"
+          className="grid h-9 w-9 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
         >
           <ChevronLeft size={17} strokeWidth={2.8} />
         </button>
-        <p className="text-base font-black text-slate-900">{monthLabel}</p>
+        <p className="text-base font-black text-[#E9E2D0]">{monthLabel}</p>
         <button
           type="button"
           onClick={() => setMonthIdx((i) => Math.min(months.length - 1, i + 1))}
           disabled={monthIdx >= months.length - 1}
           aria-label={t("nextMonth")}
-          className="grid h-9 w-9 place-items-center rounded-xl border-2 border-slate-900 bg-white shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black] disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300 disabled:shadow-none"
+          className="grid h-9 w-9 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
         >
           <ChevronRight size={17} strokeWidth={2.8} />
         </button>
@@ -116,8 +116,8 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
         {weekdayLabels.map((label, i) => (
           <p
             key={i}
-            className={`py-1 text-center text-[11px] font-black ${
-              i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-slate-400"
+            className={`py-1 text-center text-[11px] lg:text-[13px] font-black ${
+              i === 0 ? "text-red-400" : i === 6 ? "text-[#8B8578]" : "text-[#8B8578]"
             }`}
           >
             {label}
@@ -139,21 +139,21 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
               type="button"
               disabled={!bookable}
               onClick={() => onSelect(date)}
-              className={`relative mx-auto grid h-10 w-10 place-items-center rounded-xl text-sm font-black transition-all sm:h-11 sm:w-11 ${
+              className={`relative mx-auto grid h-10 w-10 place-items-center rounded-[12px] text-sm lg:text-base font-black transition-all sm:h-11 sm:w-11 ${
                 selected
-                  ? "border-2 border-slate-900 bg-[#FCD34D] text-slate-900 shadow-[2px_2px_0_0_black]"
+                  ? "border-2 border-[#262A38] bg-[#D7D7D7] text-[#E9E2D0]"
                   : bookable
-                    ? `border-2 border-slate-200 bg-white text-slate-900 hover:border-slate-900 hover:shadow-[2px_2px_0_0_black] ${
-                        weekday === 0 ? "text-red-500" : weekday === 6 ? "text-blue-500" : ""
+                    ? `border-2 border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:border-[#262A38] ${
+                        weekday === 0 ? "text-red-500" : weekday === 6 ? "text-[#8B8578]" : ""
                       }`
-                    : "cursor-not-allowed text-slate-300"
+                    : "cursor-not-allowed text-[#5C564A]"
               }`}
             >
               {Number(date.slice(8))}
               {isToday && (
                 <span
                   className={`absolute bottom-1 h-1 w-1 rounded-full ${
-                    selected ? "bg-slate-900" : "bg-[#F59E0B]"
+                    selected ? "bg-[#161925]" : "bg-[#161925]"
                   }`}
                 />
               )}

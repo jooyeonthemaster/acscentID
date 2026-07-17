@@ -13,25 +13,25 @@ export function ScentStoryCard({ scentStory }: ScentStoryCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border-2 border-slate-900 shadow-[4px_4px_0px_#000]"
+      className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-5 border-2 border-[#D8CFBB]"
     >
       {/* 제목 */}
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">✨</span>
-        <h3 className="text-lg font-black text-slate-900">향기 스토리</h3>
+        <h3 className="text-lg font-black text-[#1A1610]">향기 스토리</h3>
       </div>
 
       {/* 스토리 제목 */}
-      <div className="bg-white rounded-xl p-4 border-2 border-purple-200 mb-4">
-        <h4 className="text-xl font-black text-purple-700 mb-3 text-center">
+      <div className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB] mb-4">
+        <h4 className="text-xl font-black text-[#5C564A] mb-3 text-center">
           &ldquo;{scentStory.storyTitle}&rdquo;
         </h4>
-        <div className="w-16 h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-auto" />
+        <div className="w-16 h-1 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-full mx-auto" />
       </div>
 
       {/* 스토리 본문 */}
-      <div className="bg-white/60 rounded-xl p-4 border border-purple-100">
-        <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+      <div className="bg-[#F5EFE2]/60 rounded-[12px] p-4 border border-[#EDE5D2]">
+        <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
           {scentStory.storyNarrative}
         </p>
       </div>

@@ -528,7 +528,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
 
   const yongsinElement = chart?.yongsin?.element
   const yongsinInfo = yongsinElement ? SAJU_ELEMENT_INFO[yongsinElement] : null
-  const yongsinReason = sajuPrintSentence(saju?.elementFlow?.yongsinNarrative || '', 58)
+  const yongsinReason = sajuPrintSentence(saju?.elementFlow?.yongsinNarrative || '', 68)
 
   // 선택한 분석 유형 (종합/연애/재물/직업/궁합) — 우측 패널 헤더 칩
   const purposeMeta = SAJU_PURPOSES.find(
@@ -634,8 +634,9 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         <div className="absolute" style={{ left: 196, top: 94, width: 140, height: 10, ...labelStyle }}>생시</div>
 
         {/* L7 생시 값 — 2줄, 각 줄 truncate */}
+        {/* top 110 — 이름(14px)과 생시 1줄(9.5px)의 베이스라인 정합(글자 크기 차 보정) */}
         {(birthLine1 || birthLine2) && (
-          <div className="absolute" style={{ left: 196, top: 106, width: 170, height: 30 }}>
+          <div className="absolute" style={{ left: 196, top: 110, width: 170, height: 30 }}>
             <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>{birthLine1}</div>
             <div style={{ fontSize: 9.5, lineHeight: 1.5, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>{birthLine2}</div>
           </div>
@@ -720,15 +721,15 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
 
         {/* L13 용신 낙관 */}
         {yongsinInfo && (
-          <SajuPrintSeal left={52} top={466} size={72} chars={yongsinInfo.hanja} isSelf={isSelfSaju} />
+          <SajuPrintSeal left={52} top={484} size={36} chars={yongsinInfo.hanja} isSelf={isSelfSaju} />
         )}
 
         {/* L14 용신 라벨 */}
-        <div className="absolute" style={{ left: 140, top: 470, width: 240, height: 10, ...labelStyle }}>용신(用神) · 필요한 기운</div>
+        <div className="absolute" style={{ left: 100, top: 470, width: 280, height: 10, ...labelStyle }}>용신(用神) · 필요한 기운</div>
 
         {/* L15 용신 오행명 — 1줄 truncate */}
         {yongsinElement && yongsinInfo && (
-          <div className="absolute" style={{ left: 140, top: 483, width: 240, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
+          <div className="absolute" style={{ left: 100, top: 483, width: 280, height: 18, fontSize: 13, fontWeight: 900, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1.3 }}>
             {yongsinElement}({yongsinInfo.hanja}) · {SAJU_YONGSIN_EPITHET[yongsinElement]}
           </div>
         )}
@@ -737,7 +738,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {yongsinReason && (
           <div
             className="absolute"
-            style={{ left: 140, top: 504, width: 240, height: 38, fontSize: 8.5, lineHeight: 1.45, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
+            style={{ left: 100, top: 504, width: 280, height: 38, fontSize: 8.5, lineHeight: 1.45, color: '#5C564A', overflow: 'hidden', whiteSpace: 'pre-line', wordBreak: 'keep-all' }}
           >
             {yongsinReason}
           </div>
@@ -760,12 +761,12 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
           처방된 운명의 향
         </div>
 
-        {/* R2' 분석 유형 칩 — 사용자가 선택한 풀이 목적 (종합운/연애운/재물운/직업운/궁합) */}
+        {/* L2' 분석 유형 칩 — 사용자가 선택한 풀이 목적 (종합운/연애운/재물운/직업운/궁합), 좌측 페이지 우상단 */}
         {purposeMeta && (
           <div
             className="absolute flex items-center justify-center"
             style={{
-              right: 52, top: 38, height: 20, padding: '0 8px', borderRadius: 2,
+              right: 472, top: 38, height: 20, padding: '0 8px 2px', borderRadius: 2,
               border: `1px solid ${accent}`, color: accent,
               fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', lineHeight: 1,
             }}
@@ -775,19 +776,17 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         )}
 
         {/* R3 향수명 — 2줄 클램프(24자 slice). lineHeight 20px = 2줄이 슬롯 40px에 정합(§7.3 h:40와 1.25 행간의 충돌 조정) */}
-        {perfumeName && (
-          <div
-            className="absolute"
-            style={{ left: 462, top: 82, width: 328, height: 40, fontSize: 18, fontWeight: 900, lineHeight: '20px', color: '#1A1610', overflow: 'hidden', wordBreak: 'keep-all' }}
-          >
-            {perfumeName}
-          </div>
-        )}
-
-        {/* R4 브랜드 라인 */}
-        {brandLine && (
-          <div className="absolute" style={{ left: 462, top: 124, width: 328, height: 12, fontSize: 8, letterSpacing: '0.15em', color: '#5C564A', lineHeight: 1.2 }}>
-            {brandLine}
+        {(perfumeName || brandLine) && (
+          <div className="absolute flex items-baseline" style={{ left: 462, top: 82, width: 328, height: 40, overflow: 'hidden' }}>
+            <span style={{ fontSize: 18, fontWeight: 900, lineHeight: '20px', color: '#1A1610', wordBreak: 'keep-all' }}>
+              {perfumeName}
+            </span>
+            {/* R4 브랜드 라인 — 향수명 오른쪽, 베이스라인 정렬 */}
+            {brandLine && (
+              <span style={{ marginLeft: 10, fontSize: 8, letterSpacing: '0.15em', color: '#5C564A', lineHeight: 1.2, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {brandLine}
+              </span>
+            )}
           </div>
         )}
 
@@ -798,6 +797,8 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
               className="absolute flex items-center justify-center"
               style={{
                 left: 462, top: row.top, width: 54, height: 18, borderRadius: 2,
+                // Noto Serif KR은 어센트>디센트라 글리프가 중심보다 낮게 앉음 — 시각 보정
+                paddingBottom: 1.5,
                 fontSize: 7.5, fontWeight: 900, letterSpacing: '0.04em', lineHeight: 1,
                 ...(isSelfSaju
                   ? { border: '1px solid #1A1610', color: '#1A1610' }
@@ -807,7 +808,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
               {row.chip}
             </div>
             {row.name && (
-              <div className="absolute flex items-center" style={{ left: 528, top: row.top, width: 262, height: 18, fontSize: 12.5, fontWeight: 700, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <div className="absolute flex items-center" style={{ left: 528, top: row.top, width: 262, height: 18, paddingBottom: 2.5, fontSize: 12.5, fontWeight: 700, color: '#1A1610', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 {sajuPrintFit(row.name, 20)}
               </div>
             )}
@@ -856,7 +857,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
                 key={chip.key}
                 className="flex items-center justify-center"
                 style={{
-                  width: 26, height: 34, borderRadius: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
+                  width: 26, height: 34, borderRadius: 2, paddingBottom: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
                   ...(selected
                     ? { backgroundColor: isSelfSaju ? '#1A1610' : chip.color, color: '#F5EFE2' }
                     : { border: '1px solid #C8BFA9', color: '#8B8578' }),
@@ -880,7 +881,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
                 key={chip.key}
                 className="flex items-center justify-center"
                 style={{
-                  width: 26, height: 34, borderRadius: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
+                  width: 26, height: 34, borderRadius: 2, paddingBottom: 2, fontSize: 10, fontWeight: 700, lineHeight: 1,
                   ...(selected
                     ? { backgroundColor: isSelfSaju ? '#1A1610' : '#C9A227', color: '#F5EFE2' }
                     : { border: '1px solid #C8BFA9', color: '#8B8578' }),
@@ -1303,7 +1304,7 @@ export function PrintableReport({
 
         {/* 분석 이미지 */}
         <div
-          className={`absolute overflow-hidden ${isSelfImageReport ? 'rounded-none shadow-[2px_2px_0px_#000]' : 'rounded-lg shadow-[2px_2px_0px_#000]'}`}
+          className={`absolute overflow-hidden ${isSelfImageReport ? 'rounded-none' : 'rounded-lg'}`}
           style={{ left: 32, top: 95, width: 156, height: 189 }}
         >
           {analysis.user_image_url ? (

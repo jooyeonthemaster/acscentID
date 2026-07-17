@@ -206,7 +206,7 @@ export default function FragranceUsageSection() {
   return (
     <div className="space-y-6">
       {/* 필터 영역 */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">시작일</label>
@@ -266,7 +266,7 @@ export default function FragranceUsageSection() {
 
       {/* 온라인/오프라인/합계 요약 카드 (항상 표시) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-4 shadow-[3px_3px_0px_#bfdbfe]">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-4">
           <div className="flex items-center gap-2 text-blue-600 mb-2">
             <Globe className="w-4 h-4" />
             <span className="text-xs font-bold">온라인 소진량</span>
@@ -278,7 +278,7 @@ export default function FragranceUsageSection() {
             {data.summary.online.totalItems.toLocaleString()}건 주문
           </div>
         </div>
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-4 shadow-[3px_3px_0px_#bbf7d0]">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-4">
           <div className="flex items-center gap-2 text-green-600 mb-2">
             <Store className="w-4 h-4" />
             <span className="text-xs font-bold">오프라인 소진량</span>
@@ -290,7 +290,7 @@ export default function FragranceUsageSection() {
             {data.summary.offline.totalItems.toLocaleString()}건 제조
           </div>
         </div>
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-600 mb-2">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-bold">총 소진량</span>
@@ -306,7 +306,7 @@ export default function FragranceUsageSection() {
 
       {/* 상세 요약 카드 (현재 선택된 뷰 모드) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Droplet className="w-4 h-4" />
             <span className="text-xs font-medium">{VIEW_MODE_INFO[viewMode].label} 소진량</span>
@@ -318,7 +318,7 @@ export default function FragranceUsageSection() {
             ({currentSummary.totalG.toLocaleString()}g)
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Package className="w-4 h-4" />
             <span className="text-xs font-medium">제조 건수</span>
@@ -327,7 +327,7 @@ export default function FragranceUsageSection() {
             {currentSummary.totalItems.toLocaleString()}건
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-medium">사용 향료 종류</span>
@@ -336,7 +336,7 @@ export default function FragranceUsageSection() {
             {currentSummary.uniqueFragrances}종
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Sparkles className="w-4 h-4" />
             <span className="text-xs font-medium">TOP 향료</span>
@@ -353,7 +353,7 @@ export default function FragranceUsageSection() {
       {/* 메인 그리드 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 향료별 소진량 순위 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-white">
             <div className="flex items-center gap-2">
               <Droplet className="w-5 h-5 text-amber-500" />
@@ -408,7 +408,7 @@ export default function FragranceUsageSection() {
         </div>
 
         {/* 카테고리별 분포 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-white">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-500" />
@@ -458,7 +458,7 @@ export default function FragranceUsageSection() {
             return (
               <div
                 key={key}
-                className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]"
+                className="bg-white rounded-xl border-2 border-slate-200 p-4"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`p-1.5 rounded-lg ${info.color} text-white`}>

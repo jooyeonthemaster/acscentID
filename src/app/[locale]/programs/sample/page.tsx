@@ -17,6 +17,8 @@ import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer
 import { ProgramAdminBridge } from "@/components/programs/ProgramAdminBridge"
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
+import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { useProductDisplayName } from "@/hooks/useAdminContent"
@@ -90,77 +92,72 @@ export default function SamplePaperPage() {
     setShowAuthModal(true)
   }
 
-  return (
-    <InactiveProductGuard productSlug="sample">
-      <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
-        <Header />
-        <ProgramAdminBridge productSlug="sample" />
+  const heroProps = {
+    productSlug: "sample",
+    title: productName,
+    imageAlt: productName,
+    pageContent,
+    pagePositionStyle,
+    breadcrumbs: [
+      { label: t("programs.breadcrumbHome"), href: "/" },
+      { label: t("programs.breadcrumbPrograms"), href: "/" },
+      { label: productName },
+    ],
+    price: (
+      <div className="flex items-end gap-2">
+        <span className="text-xl font-black text-[#E9E2D0]">{t("currency.symbol")}{formatPrice(paperPrice)}</span>
+        {paperOpt?.original_price && paperOpt.original_price > paperPrice && (
+          <>
+            <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t("currency.symbol")}{formatPrice(paperOpt.original_price)}</span>
+            {paperDiscount !== null && (
+              <span className="rounded-[12px] bg-red-500 px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#E9E2D0]">{paperDiscount}% OFF</span>
+            )}
+          </>
+        )}
+      </div>
+    ),
+    infoIcon: <Star size={14} className="fill-[#E9E2D0] text-[#E9E2D0]" />,
+    infoItems: [
+      t("programs.detail.sample.infoItem1"),
+      t("programs.detail.sample.infoItem2"),
+      t("shipping.estimated"),
+    ],
+    cta: {
+      onClick: handleStartClick,
+      disabled: loading,
+      label: pageContent.ctaLabel,
+      hint: t("programs.detail.sample.ctaHint"),
+    },
+  }
 
-        {/* HERO */}
-        <UnifiedDetailHero
-          productSlug="sample"
-          title={productName}
-          imageAlt={productName}
-          pageContent={pageContent}
-          pagePositionStyle={pagePositionStyle}
-          breadcrumbs={[
-            { label: t("programs.breadcrumbHome"), href: "/" },
-            { label: t("programs.breadcrumbPrograms"), href: "/" },
-            { label: productName },
-          ]}
-          price={
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-black text-black">{t("currency.symbol")}{formatPrice(paperPrice)}</span>
-              {paperOpt?.original_price && paperOpt.original_price > paperPrice && (
-                <>
-                  <span className="text-xs text-slate-400 line-through">{t("currency.symbol")}{formatPrice(paperOpt.original_price)}</span>
-                  {paperDiscount !== null && (
-                    <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{paperDiscount}% OFF</span>
-                  )}
-                </>
-              )}
-            </div>
-          }
-          infoIcon={<Star size={14} className="fill-slate-900 text-slate-900" />}
-          infoItems={[
-            t("programs.detail.sample.infoItem1"),
-            t("programs.detail.sample.infoItem2"),
-            t("shipping.estimated"),
-          ]}
-          cta={{
-            onClick: handleStartClick,
-            disabled: loading,
-            label: pageContent.ctaLabel,
-            hint: t("programs.detail.sample.ctaHint"),
-          }}
-        />
-
-        {isCustomMode ? (
+  const detailBody = (
+    <>
+      {isCustomMode ? (
           <CustomDetailRenderer html={detail?.custom_html ?? ""} />
         ) : (
           <div data-admin-editable="detail_html">
             {/* Feature Bar */}
-            <section className="py-6 px-4 bg-black">
+            <section className="py-6 px-4 bg-[#0C0E16]">
               <div className="w-full">
-                <div className="flex flex-wrap items-center justify-center gap-4 text-white">
+                <div className="flex flex-wrap items-center justify-center gap-4 text-[#E9E2D0]">
                   <div className="flex items-center gap-1.5">
-                    <Sparkles size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">{t("programs.detail.sample.featureAnalysis")}</span>
+                    <Sparkles size={14} className="text-[#8B8578]" />
+                    <span className="font-bold text-xs lg:text-sm">{t("programs.detail.sample.featureAnalysis")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Palette size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">{t("programs.detail.sample.featureScent")}</span>
+                    <Palette size={14} className="text-[#8B8578]" />
+                    <span className="font-bold text-xs lg:text-sm">{t("programs.detail.sample.featureScent")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <FileCheck size={14} className="text-cyan-400" />
-                    <span className="font-bold text-xs">{t("programs.detail.sample.featureReport")}</span>
+                    <FileCheck size={14} className="text-[#8B8578]" />
+                    <span className="font-bold text-xs lg:text-sm">{t("programs.detail.sample.featureReport")}</span>
                   </div>
                 </div>
               </div>
             </section>
 
             {/* 진행 과정 */}
-            <section className="py-12 px-4 bg-[#FFFDF5]">
+            <section className="py-12 px-4 bg-[#0C0E16]">
               <motion.div
                 initial="hidden"
                 whileInView="visible"
@@ -169,28 +166,28 @@ export default function SamplePaperPage() {
                 className="w-full"
               >
                 <div className="text-center mb-8">
-                  <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-blue-400 text-white text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
+                  <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#161925] text-[#E9E2D0] text-xs lg:text-sm font-black rounded-full border-2 border-[#262A38] mb-3">
                     HOW IT WORKS
                   </motion.div>
-                  <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
+                  <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#E9E2D0] break-keep">
                     {t("programs.detail.sample.howItWorksTitle")}
                   </motion.h2>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { step: "01", title: t("programs.detail.sample.step1Title"), desc: t("programs.detail.sample.step1Desc"), icon: Camera, color: "bg-yellow-400" },
-                    { step: "02", title: t("programs.detail.sample.step2Title"), desc: t("programs.detail.sample.step2Desc"), icon: FileText, color: "bg-orange-400" },
-                    { step: "03", title: t("programs.detail.sample.step3Title"), desc: t("programs.detail.sample.step3Desc"), icon: Zap, color: "bg-pink-400" },
-                    { step: "04", title: t("programs.detail.sample.step4Title"), desc: t("programs.detail.sample.step4Desc"), icon: Gift, color: "bg-purple-400" },
+                    { step: "01", title: t("programs.detail.sample.step1Title"), desc: t("programs.detail.sample.step1Desc"), icon: Camera, color: "bg-[#161925]" },
+                    { step: "02", title: t("programs.detail.sample.step2Title"), desc: t("programs.detail.sample.step2Desc"), icon: FileText, color: "bg-[#161925]" },
+                    { step: "03", title: t("programs.detail.sample.step3Title"), desc: t("programs.detail.sample.step3Desc"), icon: Zap, color: "bg-[#161925]" },
+                    { step: "04", title: t("programs.detail.sample.step4Title"), desc: t("programs.detail.sample.step4Desc"), icon: Gift, color: "bg-[#161925]" },
                   ].map((item, idx) => (
                     <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
-                      <div className={`w-14 h-14 ${item.color} border-2 border-black rounded-xl shadow-[3px_3px_0_0_black] flex items-center justify-center mb-2`}>
-                        <item.icon size={24} className="text-white" />
+                      <div className={`w-14 h-14 ${item.color} border-2 border-[#262A38] rounded-[12px] flex items-center justify-center mb-2`}>
+                        <item.icon size={24} className="text-[#E9E2D0]" />
                       </div>
-                      <span className="text-xl font-black text-slate-200 mb-1">{item.step}</span>
-                      <h3 className="text-sm font-black text-black mb-0.5">{item.title}</h3>
-                      <p className="text-[11px] text-slate-600">{item.desc}</p>
+                      <span className="text-xl font-black text-[#262A38] mb-1">{item.step}</span>
+                      <h3 className="text-sm lg:text-base font-black text-[#E9E2D0] mb-0.5">{item.title}</h3>
+                      <p className="text-[11px] lg:text-[13px] text-[#A69F8D]">{item.desc}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -198,21 +195,41 @@ export default function SamplePaperPage() {
             </section>
           </div>
         )}
+    </>
+  )
 
-        {/* 로그인 안내 모달 */}
-        <ProgramLoginPrompt
-          isOpen={showLoginPrompt}
-          onClose={() => setShowLoginPrompt(false)}
-          onLogin={handleLoginClick}
-        />
+  return (
+    <InactiveProductGuard productSlug="sample">
+      <ViewportSwitch
+        mobile={
+          <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+            <Header />
+            <ProgramAdminBridge productSlug="sample" />
+            <UnifiedDetailHero {...heroProps} />
+            {detailBody}
+          </main>
+        }
+        desktop={
+          <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+            <DesktopDetailHero {...heroProps} />
+            <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
+          </main>
+        }
+      />
 
-        {/* 로그인 모달 */}
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          redirectPath={SAMPLE_INPUT_PATH}
-        />
-      </main>
+      {/* 로그인 안내 모달 */}
+      <ProgramLoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={handleLoginClick}
+      />
+
+      {/* 로그인 모달 */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        redirectPath={SAMPLE_INPUT_PATH}
+      />
     </InactiveProductGuard>
   )
 }

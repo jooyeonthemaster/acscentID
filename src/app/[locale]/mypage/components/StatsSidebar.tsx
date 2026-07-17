@@ -77,11 +77,11 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="bg-white border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black] animate-pulse">
-          <div className="h-6 bg-slate-200 rounded w-1/2 mb-4" />
+        <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-5 animate-pulse">
+          <div className="h-6 bg-[#232838] rounded-[12px] w-1/2 mb-4" />
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-20 bg-slate-100 rounded-xl" />
-            <div className="h-20 bg-slate-100 rounded-xl" />
+            <div className="h-20 bg-[#1B1F2C] rounded-[12px]" />
+            <div className="h-20 bg-[#1B1F2C] rounded-[12px]" />
           </div>
         </div>
       </div>
@@ -91,8 +91,8 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
   return (
     <div className="space-y-4">
       {/* 통계 카드 */}
-      <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]">
-        <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-yellow-400 to-amber-400">
+      <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-[#262A38] bg-gradient-to-r from-[#161925] to-[#161925]">
           <h3 className="font-black flex items-center gap-2">
             <TrendingUp size={18} />
             {t('myStats')}
@@ -102,44 +102,44 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
         <div className="p-4">
           <div className="grid grid-cols-2 gap-3">
             {/* 총 분석 */}
-            <div className="p-4 bg-purple-50 rounded-xl border-2 border-black">
+            <div className="p-4 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={16} className="text-purple-600" />
-                <span className="text-xs font-bold text-purple-600">{t('totalAnalyses')}</span>
+                <Sparkles size={16} className="text-[#A69F8D]" />
+                <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('totalAnalyses')}</span>
               </div>
               <p className="text-2xl font-black">{analyses.length}</p>
             </div>
 
             {/* 확정 레시피 */}
-            <div className="p-4 bg-yellow-50 rounded-xl border-2 border-black">
+            <div className="p-4 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]">
               <div className="flex items-center gap-2 mb-2">
-                <Beaker size={16} className="text-yellow-600" />
-                <span className="text-xs font-bold text-yellow-600">{t('confirmedRecipes')}</span>
+                <Beaker size={16} className="text-[#A69F8D]" />
+                <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('confirmedRecipes')}</span>
               </div>
               <p className="text-2xl font-black">{analyses.filter(a => a.confirmed_recipe !== null).length}</p>
             </div>
           </div>
 
           {/* 이번 달 활동 */}
-          <div className="mt-4 p-4 bg-slate-50 rounded-xl border-2 border-black">
+          <div className="mt-4 p-4 bg-[#151823] rounded-[12px] border-2 border-[#262A38]">
             <div className="flex items-center gap-2 mb-3">
               <Calendar size={16} />
-              <span className="text-xs font-bold">{t('thisMonthActivity')}</span>
+              <span className="text-xs lg:text-sm font-bold">{t('thisMonthActivity')}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="text-center">
-                <p className="text-lg font-black text-purple-600">{thisMonthAnalyses}</p>
-                <p className="text-[10px] text-slate-500">{t('analysisLabel')}</p>
+                <p className="text-lg font-black text-[#A69F8D]">{thisMonthAnalyses}</p>
+                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('analysisLabel')}</p>
               </div>
               <div className="text-2xl">+</div>
               <div className="text-center">
-                <p className="text-lg font-black text-yellow-600">{thisMonthRecipes}</p>
-                <p className="text-[10px] text-slate-500">{t('recipeLabel')}</p>
+                <p className="text-lg font-black text-[#A69F8D]">{thisMonthRecipes}</p>
+                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('recipeLabel')}</p>
               </div>
               <div className="text-2xl">=</div>
               <div className="text-center">
                 <p className="text-lg font-black">{thisMonthAnalyses + thisMonthRecipes}</p>
-                <p className="text-[10px] text-slate-500">{t('totalActivity')}</p>
+                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('totalActivity')}</p>
               </div>
             </div>
           </div>
@@ -147,8 +147,8 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
       </div>
 
       {/* 최근 활동 */}
-      <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]">
-        <div className="px-5 py-4 border-b-2 border-black">
+      <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-[#262A38]">
           <h3 className="font-black flex items-center gap-2">
             <Clock size={18} />
             {t('recentActivity')}
@@ -158,10 +158,10 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
         <div className="p-3">
           {recentActivities.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm text-slate-500">{t('noActivity')}</p>
+              <p className="text-sm lg:text-base text-[#8B8578]">{t('noActivity')}</p>
               <Link
                 href="/"
-                className="inline-block mt-3 px-4 py-2 bg-yellow-400 text-black text-xs font-bold rounded-lg border-2 border-black shadow-[2px_2px_0_0_black] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                className="inline-block mt-3 px-4 py-2 bg-[#F5EFE2] text-[#12141D] text-xs lg:text-sm font-bold rounded-[12px] border-2 border-[#F5EFE2] transition-all"
               >
                 {t('startFirstAnalysis')}
               </Link>
@@ -177,31 +177,31 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
                 >
                   <Link
                     href={`/result?id=${activity.id}`}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-[12px] hover:bg-[#151823] transition-colors group"
                   >
                     {/* 아이콘/이미지 */}
                     {activity.image ? (
                       <img
                         src={activity.image}
                         alt=""
-                        className="w-10 h-10 rounded-lg object-cover border-2 border-black"
+                        className="w-10 h-10 rounded-[12px] object-cover border-2 border-[#262A38]"
                       />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 border-black ${
-                        activity.hasRecipe ? 'bg-yellow-100' : 'bg-purple-100'
+                      <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center border-2 border-[#262A38] ${
+                        activity.hasRecipe ? 'bg-[#151823]' : 'bg-[#151823]'
                       }`}>
                         {activity.hasRecipe ? (
-                          <Beaker size={16} className="text-yellow-600" />
+                          <Beaker size={16} className="text-[#A69F8D]" />
                         ) : (
-                          <Sparkles size={16} className="text-purple-600" />
+                          <Sparkles size={16} className="text-[#A69F8D]" />
                         )}
                       </div>
                     )}
 
                     {/* 정보 */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate">{activity.name}</p>
-                      <p className="text-[10px] text-slate-500">
+                      <p className="text-sm lg:text-base font-bold truncate">{activity.name}</p>
+                      <p className="text-[10px] lg:text-[12px] text-[#8B8578]">
                         {activity.hasRecipe ? t('recipeSaved') : t('analysisComplete')}
                         {' · '}
                         {formatRelativeTime(activity.date)}
@@ -209,7 +209,7 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
                     </div>
 
                     {/* 화살표 */}
-                    <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight size={16} className="text-[#5C564A] group-hover:text-[#8B8578] group-hover:translate-x-1 transition-all" />
                   </Link>
                 </motion.li>
               ))}
@@ -219,12 +219,12 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
       </div>
 
       {/* 빠른 액션 */}
-      <div className="bg-gradient-to-br from-black to-slate-800 border-2 border-black rounded-2xl p-5 text-white shadow-[4px_4px_0_0_#fbbf24]">
+      <div className="bg-gradient-to-br from-[#0C0E16] to-[#161925] border-2 border-[#262A38] rounded-[12px] p-5 text-[#E9E2D0]">
         <h3 className="font-black text-lg mb-2">{t('startNewAnalysis')}</h3>
-        <p className="text-xs text-slate-300 mb-4">{t('aiFindsScent')}</p>
+        <p className="text-xs lg:text-sm text-[#5C564A] mb-4">{t('aiFindsScent')}</p>
         <Link
           href="/"
-          className="block w-full py-3 bg-yellow-400 text-black text-center font-bold rounded-xl border-2 border-black hover:bg-yellow-300 transition-colors"
+          className="block w-full py-3 bg-[#F5EFE2] text-[#12141D] text-center font-bold rounded-[12px] border-2 border-[#F5EFE2] hover:bg-[#FFFDF5] transition-colors"
         >
           {t('goAnalyze')}
         </Link>

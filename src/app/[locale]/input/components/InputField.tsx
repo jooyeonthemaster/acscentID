@@ -5,12 +5,12 @@ import type { InputFieldProps } from "../types"
 
 const ACCENT_STYLES = {
     yellow: {
-        label: "text-yellow-600",
-        ring: "ring-2 ring-yellow-400 bg-white border-yellow-200",
+        label: "text-[#E9E2D0]",
+        ring: "border-[#E9E2D0]/70 shadow-[0_0_20px_rgba(233,226,208,0.1)]",
     },
     rose: {
-        label: "text-rose-600",
-        ring: "ring-2 ring-rose-400 bg-white border-rose-200",
+        label: "text-[#E9E2D0]",
+        ring: "border-[#E9E2D0]/70 shadow-[0_0_20px_rgba(233,226,208,0.1)]",
     },
 }
 
@@ -37,8 +37,8 @@ export function InputField({
             transition={{ duration: 0.5 }}
             className="space-y-2"
         >
-            <label className={`text-xs font-bold uppercase tracking-wider transition-colors ${
-                isFocused ? accent.label : "text-slate-500"
+            <label className={`text-xs lg:text-sm font-bold uppercase tracking-wider transition-colors ${
+                isFocused ? accent.label : "text-[#8B8578]"
             }`}>
                 {label}
             </label>
@@ -50,10 +50,10 @@ export function InputField({
                 onBlur={onBlur}
                 placeholder={placeholder}
                 maxLength={maxLength}
-                className={`w-full bg-white/80 backdrop-blur-md rounded-xl p-4 text-lg font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all duration-300 border border-white/60 shadow-lg shadow-slate-900/5 ${
+                className={`w-full bg-[#12141D] rounded-[12px] p-4 text-lg font-semibold text-[#E9E2D0] placeholder:text-[#5C564A] placeholder:font-normal outline-none transition-colors duration-300 border ${
                     center ? "text-center" : ""
                 } ${letterSpacing ? "tracking-[0.3em]" : ""} ${
-                    isFocused ? accent.ring : "hover:bg-white/90 hover:border-white"
+                    isFocused ? accent.ring : "border-[#262A38] hover:border-[#3A4051]"
                 }`}
             />
         </motion.div>

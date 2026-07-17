@@ -1,5 +1,6 @@
 {
   "nav": {
+    "about": "About",
     "products": "Products",
     "home": "Home",
     "programs": "Programs",
@@ -577,7 +578,9 @@
       }
     },
     "representative": "Main",
-    "thumbnailAria": "View {alt} image {index}"
+    "thumbnailAria": "View {alt} image {index}",
+    "prevImage": "Previous image",
+    "nextImage": "Next image"
   },
   "input": {
     "customInput": "+ Enter manually",

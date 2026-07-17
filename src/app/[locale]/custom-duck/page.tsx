@@ -11,13 +11,13 @@ type PartType = 'head' | 'arms' | 'tail' | 'feet' | 'face' | 'bodyColor'
 
 const PARTS_CONFIG = {
     bodyColor: [
-        { id: '#FCD34D', name: '오리 옐로우', price: 0 },
+        { id: '#D7D7D7', name: '오리 옐로우', price: 0 },
         { id: '#FFFFFF', name: '화이트', price: 0 },
-        { id: '#FF6B9D', name: '딸기 핑크', price: 0 },
-        { id: '#A78BFA', name: '퍼플', price: 0 },
-        { id: '#94A3B8', name: '메탈릭 실버', price: 1000 },
-        { id: '#F97316', name: '오렌지', price: 0 },
-        { id: '#34D399', name: '민트', price: 0 },
+        { id: '#9E9E9E', name: '딸기 핑크', price: 0 },
+        { id: '#9D9D9D', name: '퍼플', price: 0 },
+        { id: '#A2A2A2', name: '메탈릭 실버', price: 1000 },
+        { id: '#9A9A9A', name: '오렌지', price: 0 },
+        { id: '#BBBBBB', name: '민트', price: 0 },
     ],
     head: [
         { id: 'none', name: '선택 안함', price: 0, url: null },
@@ -73,12 +73,12 @@ interface CustomizationState {
 export default function CustomDuckPage() {
     const [activeTab, setActiveTab] = useState<PartType>('bodyColor')
     const [customization, setCustomization] = useState<CustomizationState>({
-        head: 'none', headColor: '#FF6B9D',
-        arms: 'none', armsColor: '#FCD34D',
-        tail: 'none', tailColor: '#FCD34D',
-        feet: 'none', feetColor: '#F97316',
+        head: 'none', headColor: '#9E9E9E',
+        arms: 'none', armsColor: '#D7D7D7',
+        tail: 'none', tailColor: '#D7D7D7',
+        feet: 'none', feetColor: '#9A9A9A',
         face: 'none', faceColor: '#EF4444',
-        bodyColor: '#FCD34D'
+        bodyColor: '#D7D7D7'
     })
 
     // 가격 설정은 필요 없음. 기본 케이스가 1만원. 파츠 비용 없음.
@@ -92,32 +92,32 @@ export default function CustomDuckPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-100 font-sans flex items-center justify-center">
-            <div className="w-full max-w-[455px] h-[100dvh] mx-auto bg-[#FFF7ED] shadow-[0_0_40px_rgba(0,0,0,0.1)] flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-[#1B1F2C] font-wanted flex items-center justify-center">
+            <div className="w-full max-w-[455px] h-[100dvh] mx-auto bg-[#0C0E16] shadow-[0_0_40px_rgba(0,0,0,0.1)] flex flex-col relative overflow-hidden">
                 {/* --- Top: 3D Canvas --- */}
-                <div className="relative w-full h-[50%] bg-[#FCD34D]/20">
+                <div className="relative w-full h-[50%] bg-[#D7D7D7]/20">
                     {/* Back Button */}
-                    <Link href="/" className="absolute top-6 left-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full shadow-[2px_2px_0px_#000] hover:translate-y-[2px] hover:shadow-none transition-all">
-                        <ArrowLeft size={24} className="text-slate-900" />
+                    <Link href="/" className="absolute top-6 left-6 z-10 p-3 bg-[#12141D] border-2 border-[#262A38] rounded-full transition-all">
+                        <ArrowLeft size={24} className="text-[#E9E2D0]" />
                     </Link>
 
                     {/* Reset Button */}
                     <button
                         onClick={() => setCustomization({
-                            head: 'none', headColor: '#FF6B9D',
-                            arms: 'none', armsColor: '#FCD34D',
-                            tail: 'none', tailColor: '#FCD34D',
-                            feet: 'none', feetColor: '#F97316',
+                            head: 'none', headColor: '#9E9E9E',
+                            arms: 'none', armsColor: '#D7D7D7',
+                            tail: 'none', tailColor: '#D7D7D7',
+                            feet: 'none', feetColor: '#9A9A9A',
                             face: 'none', faceColor: '#EF4444',
-                            bodyColor: '#FCD34D'
+                            bodyColor: '#D7D7D7'
                         })}
-                        className="absolute top-6 right-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full shadow-[2px_2px_0px_#000] hover:translate-y-[2px] hover:shadow-none transition-all"
+                        className="absolute top-6 right-6 z-10 p-3 bg-[#12141D] border-2 border-[#262A38] rounded-full transition-all"
                     >
-                        <RotateCcw size={24} className="text-slate-900" />
+                        <RotateCcw size={24} className="text-[#E9E2D0]" />
                     </button>
 
                     <div className="absolute top-20 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0">
-                        <h1 className="text-5xl font-black text-slate-900 drop-shadow-sm tracking-tighter opacity-10 whitespace-nowrap">
+                        <h1 className="text-5xl font-black text-[#E9E2D0] drop-shadow-sm tracking-tighter opacity-10 whitespace-nowrap">
                             CUSTOM DUCK
                         </h1>
                     </div>
@@ -153,29 +153,29 @@ export default function CustomDuckPage() {
                 </div>
 
                 {/* --- Bottom: Controls --- */}
-                <div className="w-full h-[50%] bg-white border-t-4 border-slate-900 flex flex-col relative z-20 rounded-t-[32px] -mt-16 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+                <div className="w-full h-[50%] bg-[#12141D] border-t-4 border-[#262A38] flex flex-col relative z-20 rounded-t-[12px] -mt-16 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
 
                     {/* Price Header */}
-                    <div className="px-5 pt-5 pb-3 border-b-2 border-slate-100 flex justify-between items-center">
+                    <div className="px-5 pt-5 pb-3 border-b-2 border-[#1E222E] flex justify-between items-center">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-400 block mb-0.5">TOTAL PRICE</span>
-                            <span className="text-xl font-black text-slate-900 leading-none">₩{totalPrice.toLocaleString()}</span>
+                            <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578] block mb-0.5">TOTAL PRICE</span>
+                            <span className="text-xl font-black text-[#E9E2D0] leading-none">₩{totalPrice.toLocaleString()}</span>
                         </div>
-                        <button disabled className="bg-slate-300 text-slate-500 px-4 py-2 rounded-lg font-bold flex flex-col items-center justify-center cursor-not-allowed border-2 border-slate-300 leading-tight">
-                            <span className="text-[10px] font-black">2026/03/02</span>
-                            <span className="text-xs">COMING SOON</span>
+                        <button disabled className="bg-[#232838] text-[#8B8578] px-4 py-2 rounded-[12px] font-bold flex flex-col items-center justify-center cursor-not-allowed border-2 border-[#262A38] leading-tight">
+                            <span className="text-[10px] lg:text-[12px] font-black">2026/03/02</span>
+                            <span className="text-xs lg:text-sm">COMING SOON</span>
                         </button>
                     </div>
 
                     {/* Category Tabs */}
-                    <div className="flex overflow-x-auto px-4 py-2.5 gap-2 no-scrollbar border-b border-slate-100">
+                    <div className="flex overflow-x-auto px-4 py-2.5 gap-2 no-scrollbar border-b border-[#1E222E]">
                         {Object.keys(PARTS_CONFIG).map((key) => (
                             <button
                                 key={key}
                                 onClick={() => setActiveTab(key as PartType)}
-                                className={`px-4 py-1.5 rounded-full font-bold text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${activeTab === key
-                                    ? 'bg-[#FCD34D] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#000]'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 border-2 border-transparent'
+                                className={`px-4 py-1.5 rounded-full font-bold text-[11px] lg:text-[13px] whitespace-nowrap transition-all flex-shrink-0 ${activeTab === key
+                                    ? 'bg-[#161925] text-[#E9E2D0] border-2 border-[#262A38]'
+                                    : 'bg-[#1B1F2C] text-[#8B8578] hover:bg-[#232838] border-2 border-transparent'
                                     }`}
                             >
                                 {key === 'bodyColor' && '1. 오리 컬러'}
@@ -190,17 +190,17 @@ export default function CustomDuckPage() {
 
                     {/* Part Color Tool (Only when a part is selected & not bodyColor) */}
                     {activeTab !== 'bodyColor' && customization[activeTab as keyof CustomizationState] !== 'none' && (
-                        <div className="flex items-center gap-3 overflow-x-auto px-5 py-2.5 border-b border-slate-200 bg-white no-scrollbar">
-                            <span className="text-[10px] font-black text-slate-400 whitespace-nowrap">파트 색상</span>
+                        <div className="flex items-center gap-3 overflow-x-auto px-5 py-2.5 border-b border-[#262A38] bg-[#12141D] no-scrollbar">
+                            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] whitespace-nowrap">파트 색상</span>
                             {/* 추가적인 색상들을 위해 조금 더 확장된 배열 사용 */}
-                            {[...PARTS_CONFIG.bodyColor, { id: '#EF4444', name: '레드' }, { id: '#0F172A', name: '블랙' }, { id: '#3B82F6', name: '블루' }].map((c) => (
+                            {[...PARTS_CONFIG.bodyColor, { id: '#EF4444', name: '레드' }, { id: '#171717', name: '블랙' }, { id: '#858585', name: '블루' }].map((c) => (
                                 <button
                                     key={`color-${c.id}`}
                                     onClick={() => setCustomization(prev => ({ ...prev, [`${activeTab}Color`]: c.id }))}
                                     title={c.name}
                                     className={`w-6 h-6 rounded-full border-2 flex-shrink-0 transition-all ${customization[`${activeTab}Color` as keyof CustomizationState] === c.id
-                                        ? 'border-slate-900 scale-110 shadow-[2px_2px_0px_#000]'
-                                        : 'border-slate-200 hover:scale-105 hover:shadow-sm'
+                                        ? 'border-[#262A38] scale-110'
+                                        : 'border-[#262A38] hover:scale-105 hover:shadow-sm'
                                         }`}
                                     style={{ backgroundColor: c.id }}
                                 />
@@ -209,30 +209,30 @@ export default function CustomDuckPage() {
                     )}
 
                     {/* Options Grid */}
-                    <div className="flex-1 p-3 overflow-y-auto bg-slate-50/50">
+                    <div className="flex-1 p-3 overflow-y-auto bg-stone-50/50">
                         <div className="grid grid-cols-2 gap-2 pb-8">
                             {PARTS_CONFIG[activeTab].map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => handlePartSelect(activeTab, item.id)}
-                                    className={`group relative p-3 rounded-xl border-2 transition-all text-left h-20 flex flex-col justify-between ${
+                                    className={`group relative p-3 rounded-[12px] border-2 transition-all text-left h-20 flex flex-col justify-between ${
                                         // @ts-ignore
                                         customization[activeTab] === item.id
-                                            ? 'bg-white border-slate-900 shadow-[4px_4px_0px_#000]'
-                                            : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md'
+                                            ? 'bg-[#12141D] border-[#262A38]'
+                                            : 'bg-[#12141D] border-[#262A38] hover:border-[#262A38] shadow-sm hover:shadow-md'
                                         }`}
                                 >
                                     {/* Visual Indicator for Colors */}
                                     {activeTab === 'bodyColor' && item.id !== 'none' && (
-                                        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full border border-slate-200 shadow-sm" style={{ backgroundColor: item.id }} />
+                                        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full border border-[#262A38] shadow-sm" style={{ backgroundColor: item.id }} />
                                     )}
 
-                                    <span className="font-bold text-slate-900 text-sm mt-auto">{item.name}</span>
+                                    <span className="font-bold text-[#E9E2D0] text-sm lg:text-base mt-auto">{item.name}</span>
 
                                     {/* Selected Checkmark */}
                                     {/* @ts-ignore */}
                                     {customization[activeTab] === item.id && (
-                                        <div className="absolute -top-2 -right-2 bg-slate-900 text-white p-1 rounded-full border-2 border-white">
+                                        <div className="absolute -top-2 -right-2 bg-[#161925] text-[#E9E2D0] p-1 rounded-full border-2 border-[#5C564A]">
                                             <Check size={12} strokeWidth={4} />
                                         </div>
                                     )}
@@ -242,7 +242,7 @@ export default function CustomDuckPage() {
                     </div>
 
                     {/* Shadow gradient for scrolling indication (optional) */}
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#151823] to-transparent pointer-events-none" />
                 </div>
             </div>
         </div>

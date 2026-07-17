@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
+import { Layers } from "lucide-react"
 
 interface ChemistryAnalyzingOverlayProps {
   isVisible: boolean
@@ -20,19 +21,10 @@ export function ChemistryAnalyzingOverlay({
   isComplete = false, onDoorOpened,
 }: ChemistryAnalyzingOverlayProps) {
   const t = useTranslations('chemistry.analyzing')
+  const tRoot = useTranslations()
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
   const [doorState, setDoorState] = useState<'closed' | 'opening'>('closed')
   const [mergePhase, setMergePhase] = useState(0) // 0: 떨어짐, 1: 접근, 2: 합체
-  const [particles] = useState(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      background: i % 2 === 0 ? '#c4b5fd' : '#f9a8d4',
-      duration: 3 + Math.random() * 2,
-      delay: Math.random() * 2,
-    }))
-  )
 
   const [shuffledQuotes] = useState(() => {
     const rawQuotes = t.raw('quotes') as string[]
@@ -83,210 +75,185 @@ export function ChemistryAnalyzingOverlay({
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-[99999] flex items-center justify-center"
     >
-      {/* 배경 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-200/80 via-pink-100/80 to-violet-200/80 backdrop-blur-xl z-10" />
+      <div className="absolute inset-0 bg-[#0B0E16] z-10" />
 
-      {/* 문 효과 */}
-      <div className="absolute inset-0 flex pointer-events-none">
+      {/* 두 시향지가 벌어지듯 열리는 문 */}
+      <div className="absolute inset-0 z-20 flex pointer-events-none overflow-hidden">
         <motion.div
           initial={{ x: "-100%" }}
           animate={{ x: doorPosition.left }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           onAnimationComplete={handleDoorAnimationComplete}
-          className="w-1/2 h-full bg-violet-500 border-r-4 border-violet-700 relative"
+          className="relative h-full w-1/2 overflow-hidden border-r border-[#12141D]"
         >
-          <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-            <defs>
-              <pattern id="wood-chem-l" width="100" height="100" patternUnits="userSpaceOnUse">
-                <path d="M0 0h100v100H0z" fill="#8b5cf6" />
-                <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#7c3aed" strokeWidth="2" strokeOpacity="0.3" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#wood-chem-l)" />
-          </svg>
+          <ChemistryBlotterDoorHalf side="left" />
         </motion.div>
+
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: doorPosition.right }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="w-1/2 h-full bg-pink-500 border-l-4 border-pink-700 relative"
+          className="relative h-full w-1/2 overflow-hidden border-l border-[#12141D]"
         >
-          <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-            <defs>
-              <pattern id="wood-chem-r" width="100" height="100" patternUnits="userSpaceOnUse">
-                <path d="M0 0h100v100H0z" fill="#ec4899" />
-                <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#db2777" strokeWidth="2" strokeOpacity="0.3" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#wood-chem-r)" />
-          </svg>
+          <ChemistryBlotterDoorHalf side="right" />
         </motion.div>
       </div>
 
-      {/* 파티클 */}
-      <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute w-1.5 h-1.5 rounded-full"
-            style={{
-              left: particle.left,
-              top: particle.top,
-              background: particle.background,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [0.5, 1.5, 0.5],
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              delay: particle.delay,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 메인 콘텐츠 */}
       <motion.div
         animate={{
           opacity: doorState === 'opening' ? 0 : 1,
           scale: doorState === 'opening' ? 0.9 : 1,
         }}
         transition={{ duration: 0.4 }}
-        className="relative z-30 w-full max-w-sm px-6 flex flex-col items-center"
+        className="relative z-30 w-full max-w-[360px] px-6"
       >
-        {/* 두 캐릭터 이미지 — 합쳐지는 애니메이션 */}
-        <div className="relative flex items-center justify-center mb-8" style={{ height: 140 }}>
-          {/* 캐릭터 A — 왼쪽에서 중앙으로 */}
-          <motion.div
-            animate={{
-              x: mergePhase === 0 ? -50 : mergePhase === 1 ? -25 : -8,
-              scale: mergePhase === 2 ? 0.95 : 1,
-            }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="relative z-10"
-          >
-            <div className="w-[100px] h-[100px] rounded-full border-4 border-white overflow-hidden shadow-[0_0_20px_rgba(139,92,246,0.4)]">
-              {image1Preview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={image1Preview} alt={character1Name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-violet-200 flex items-center justify-center text-3xl font-black text-violet-500">
-                  {character1Name.charAt(0)}
-                </div>
-              )}
-            </div>
-            <span className="block text-center text-xs font-black text-slate-700 mt-2 drop-shadow-sm">
-              {character1Name}
-            </span>
-          </motion.div>
-
-          {/* 가운데 합체 이펙트 */}
-          <motion.div
-            animate={{
-              scale: mergePhase === 2 ? [1, 1.5, 1] : [0.8, 1.2, 0.8],
-              opacity: mergePhase === 2 ? 1 : 0.6,
-            }}
-            transition={{
-              duration: mergePhase === 2 ? 1.5 : 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute z-20 flex items-center justify-center"
-          >
-            {mergePhase < 2 ? (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-400 to-pink-400 flex items-center justify-center shadow-lg">
-                <span className="text-white text-xs font-black">x</span>
-              </div>
-            ) : (
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-violet-400 to-pink-400 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.5)]"
-              >
-                <span className="text-white text-sm font-black">x</span>
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* 캐릭터 B — 오른쪽에서 중앙으로 */}
-          <motion.div
-            animate={{
-              x: mergePhase === 0 ? 50 : mergePhase === 1 ? 25 : 8,
-              scale: mergePhase === 2 ? 0.95 : 1,
-            }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="relative z-10"
-          >
-            <div className="w-[100px] h-[100px] rounded-full border-4 border-white overflow-hidden shadow-[0_0_20px_rgba(236,72,153,0.4)]">
-              {image2Preview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={image2Preview} alt={character2Name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-pink-200 flex items-center justify-center text-3xl font-black text-pink-500">
-                  {character2Name.charAt(0)}
-                </div>
-              )}
-            </div>
-            <span className="block text-center text-xs font-black text-slate-700 mt-2 drop-shadow-sm">
-              {character2Name}
-            </span>
-          </motion.div>
-
-          {/* 합체 시 글로우 링 */}
-          {mergePhase === 2 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: [0, 0.6, 0], scale: [0.5, 1.8, 2.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute z-0 w-32 h-32 rounded-full border-2 border-violet-300/50"
-            />
-          )}
-        </div>
-
-        {/* 타이틀 */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-lg font-black text-slate-800 text-center mb-6 drop-shadow-sm"
-        >
-          {t('title')}
-        </motion.p>
-
-        {/* 프로그레스 바 */}
-        <div className="relative w-full max-w-xs h-5 bg-white/30 rounded-full overflow-hidden border border-white/50 backdrop-blur-md shadow-inner mx-auto mb-8">
-          <motion.div
-            className="h-full bg-gradient-to-r from-violet-500 via-pink-400 to-violet-500 rounded-full"
-            initial={{ width: "0%" }}
-            animate={{ width: isComplete ? "100%" : "90%" }}
-            transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white mix-blend-difference tracking-widest">
-            {isComplete ? '100%' : 'ANALYZING...'}
+        <div className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]">
+          <div className="bg-[#12141D] px-6 py-5 text-center">
+            <p className="font-heading text-xl font-semibold tracking-[0.14em] text-[#F5EFE2]">AC&apos;SCENT</p>
+            <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-[#8B8371]">{tRoot('chemistry.title')}</p>
           </div>
-        </div>
 
-        {/* 멘트 카드 */}
-        <div className="w-full bg-white/20 backdrop-blur-xl rounded-2xl p-6 border border-white/30 shadow-xl text-center">
-          <div className="min-h-[48px] flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={currentQuoteIndex}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.4 }}
-                className="text-slate-700 text-sm font-bold leading-relaxed"
-              >
-                &ldquo;{shuffledQuotes[currentQuoteIndex]}&rdquo;
-              </motion.p>
-            </AnimatePresence>
+          <div className="px-6 py-7">
+            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
+              <Layers size={12} strokeWidth={2} className="text-[#9A8B5E]" />
+              {tRoot('chemistry.title')}
+            </div>
+
+            <p className="mb-6 text-left font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+              {t('title')}
+            </p>
+
+            <div className="relative mb-6 h-[170px] overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF]">
+              <svg className="absolute inset-x-4 bottom-6 h-24 w-[calc(100%-2rem)]" viewBox="0 0 280 92" aria-hidden>
+                <path d="M16 34C58 -6 98 66 139 38C188 4 226 20 264 56" fill="none" stroke="#B7B39E" strokeWidth="8" strokeLinecap="round" opacity="0.5" />
+                <path d="M16 70C70 24 112 88 162 60C206 36 238 48 264 76" fill="none" stroke="#C7A98C" strokeWidth="8" strokeLinecap="round" opacity="0.45" />
+              </svg>
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  animate={{
+                    x: mergePhase === 0 ? -40 : mergePhase === 1 ? -22 : -10,
+                    scale: mergePhase === 2 ? 0.96 : 1,
+                  }}
+                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                  className="relative z-10 text-center"
+                >
+                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[#D8CFBB] bg-[#FBF7EF]">
+                    {image1Preview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={image1Preview} alt={character1Name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[#1A1610]">
+                        {character1Name.charAt(0) || 'A'}
+                      </div>
+                    )}
+                  </div>
+                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[#6E6659]">
+                    {character1Name || 'A'}
+                  </span>
+                </motion.div>
+
+                <motion.div
+                  animate={{
+                    scale: mergePhase === 2 ? [1, 1.12, 1] : 1,
+                  }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: mergePhase === 2 ? Infinity : 0,
+                    ease: "easeInOut",
+                  }}
+                  className="relative z-20 mx-[-2px] flex h-11 w-11 items-center justify-center rounded-full border border-[#D8CFBB] bg-[#12141D] text-base font-medium text-[#F5EFE2]"
+                >
+                  ×
+                </motion.div>
+
+                <motion.div
+                  animate={{
+                    x: mergePhase === 0 ? 40 : mergePhase === 1 ? 22 : 10,
+                    scale: mergePhase === 2 ? 0.96 : 1,
+                  }}
+                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                  className="relative z-10 text-center"
+                >
+                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[#D8CFBB] bg-[#FBF7EF]">
+                    {image2Preview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={image2Preview} alt={character2Name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[#1A1610]">
+                        {character2Name.charAt(0) || 'B'}
+                      </div>
+                    )}
+                  </div>
+                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[#6E6659]">
+                    {character2Name || 'B'}
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+
+            <div className="mb-6 overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF] px-5 py-6">
+              <div className="flex min-h-[48px] items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={currentQuoteIndex}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.4 }}
+                    className="text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[#6E6659]"
+                  >
+                    &ldquo;{shuffledQuotes[currentQuoteIndex]}&rdquo;
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <div className="relative h-1.5 overflow-hidden rounded-full bg-[#12141D]/10">
+              <motion.div
+                className="h-full rounded-full bg-[#12141D]"
+                initial={{ width: "0%" }}
+                animate={{ width: isComplete ? "100%" : "90%" }}
+                transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
+              />
+            </div>
+            <p className="mt-3 text-right text-[10px] font-medium uppercase tracking-[0.22em] text-[#8B8371]">
+              {isComplete ? '100%' : 'Blending'}
+            </p>
           </div>
         </div>
       </motion.div>
     </motion.div>
+  )
+}
+
+function ChemistryBlotterDoorHalf({ side }: { side: 'left' | 'right' }) {
+  const isLeft = side === 'left'
+  const label = isLeft ? 'A NOTE' : 'B NOTE'
+  const lineClassName = isLeft ? 'left-10' : 'right-10'
+  const spineClassName = isLeft ? 'right-0' : 'left-0'
+  // 좌우 은근한 톤 차이 — 왼쪽은 살짝 차갑게, 오른쪽은 살짝 따뜻하게
+  const background = isLeft
+    ? 'linear-gradient(160deg, #FBF8F1 0%, #E6E7DB 100%)'
+    : 'linear-gradient(160deg, #FBF6EE 0%, #EEE0D2 100%)'
+
+  return (
+    <>
+      <div className="absolute inset-0" style={{ background }} />
+      <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
+        <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+          <Layers size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
+        </span>
+        <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">{label}</span>
+      </div>
+      {[34, 50, 66, 82].map((top) => (
+        <div
+          key={top}
+          className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+          style={{ top: `${top}%` }}
+        />
+      ))}
+      <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+    </>
   )
 }

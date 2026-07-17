@@ -97,7 +97,7 @@ export default function CustomDuckPage() {
                 {/* --- Top: 3D Canvas --- */}
                 <div className="relative w-full h-[50%] bg-[#FCD34D]/20">
                     {/* Back Button */}
-                    <Link href="/" className="absolute top-6 left-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full shadow-[2px_2px_0px_#000] hover:translate-y-[2px] hover:shadow-none transition-all">
+                    <Link href="/" className="absolute top-6 left-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full transition-all">
                         <ArrowLeft size={24} className="text-slate-900" />
                     </Link>
 
@@ -111,7 +111,7 @@ export default function CustomDuckPage() {
                             face: 'none', faceColor: '#EF4444',
                             bodyColor: '#FCD34D'
                         })}
-                        className="absolute top-6 right-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full shadow-[2px_2px_0px_#000] hover:translate-y-[2px] hover:shadow-none transition-all"
+                        className="absolute top-6 right-6 z-10 p-3 bg-white border-2 border-slate-900 rounded-full transition-all"
                     >
                         <RotateCcw size={24} className="text-slate-900" />
                     </button>
@@ -174,7 +174,7 @@ export default function CustomDuckPage() {
                                 key={key}
                                 onClick={() => setActiveTab(key as PartType)}
                                 className={`px-4 py-1.5 rounded-full font-bold text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${activeTab === key
-                                    ? 'bg-[#FCD34D] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#000]'
+                                    ? 'bg-[#FCD34D] text-slate-900 border-2 border-slate-900'
                                     : 'bg-slate-100 text-slate-400 hover:bg-slate-200 border-2 border-transparent'
                                     }`}
                             >
@@ -199,7 +199,7 @@ export default function CustomDuckPage() {
                                     onClick={() => setCustomization(prev => ({ ...prev, [`${activeTab}Color`]: c.id }))}
                                     title={c.name}
                                     className={`w-6 h-6 rounded-full border-2 flex-shrink-0 transition-all ${customization[`${activeTab}Color` as keyof CustomizationState] === c.id
-                                        ? 'border-slate-900 scale-110 shadow-[2px_2px_0px_#000]'
+                                        ? 'border-slate-900 scale-110'
                                         : 'border-slate-200 hover:scale-105 hover:shadow-sm'
                                         }`}
                                     style={{ backgroundColor: c.id }}
@@ -218,7 +218,7 @@ export default function CustomDuckPage() {
                                     className={`group relative p-3 rounded-xl border-2 transition-all text-left h-20 flex flex-col justify-between ${
                                         // @ts-ignore
                                         customization[activeTab] === item.id
-                                            ? 'bg-white border-slate-900 shadow-[4px_4px_0px_#000]'
+                                            ? 'bg-white border-slate-900'
                                             : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md'
                                         }`}
                                 >

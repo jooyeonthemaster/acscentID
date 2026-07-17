@@ -53,7 +53,7 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
           key={retentionText}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`font-medium text-base whitespace-pre-line ${saju ? SJ.ink : 'text-slate-700'}`}
+          className={`font-medium text-base whitespace-pre-line ${saju ? SJ.ink : 'text-[#A69F8D]'}`}
         >
           {retentionText}
         </motion.p>
@@ -68,23 +68,23 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
           className={`text-6xl font-black ${
             saju
               ? 'saju-gold-foil'
-              : 'bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent'
+              : 'bg-gradient-to-r from-[#161925] to-[#161925] bg-clip-text text-transparent'
           }`}
         >
           {retention}
         </motion.span>
-        <span className={`text-3xl font-bold ml-1 ${saju ? SJ.inkFaint : 'text-slate-400'}`}>%</span>
+        <span className={`text-3xl font-bold ml-1 ${saju ? SJ.inkFaint : 'text-[#8B8578]'}`}>%</span>
       </div>
 
       {/* 슬라이더 */}
       <div className="px-2 space-y-4">
         <div className="relative">
           {/* 배경 트랙 */}
-          <div className={`absolute inset-0 h-3 rounded-full ${saju ? SJ.trackBase : 'bg-slate-200'}`} />
+          <div className={`absolute inset-0 h-3 rounded-full ${saju ? SJ.trackBase : 'bg-[#232838]'}`} />
 
           {/* 채워진 트랙 */}
           <motion.div
-            className={`absolute h-3 rounded-full ${saju ? SJ.fillGold : 'bg-gradient-to-r from-yellow-400 to-amber-500'}`}
+            className={`absolute h-3 rounded-full ${saju ? SJ.fillGold : 'bg-gradient-to-r from-[#161925] to-[#161925]'}`}
             style={{ width: `${retention}%` }}
             layout
           />
@@ -116,11 +116,11 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
               [&::-moz-range-thumb]:cursor-grab
               ${saju
                 ? SJ.sliderThumb
-                : `[&::-webkit-slider-thumb]:bg-white
-                   [&::-webkit-slider-thumb]:border-amber-500
-                   [&::-webkit-slider-thumb]:shadow-amber-500/30
-                   [&::-moz-range-thumb]:bg-white
-                   [&::-moz-range-thumb]:border-amber-500`}`}
+                : `[&::-webkit-slider-thumb]:bg-[#12141D]
+                   [&::-webkit-slider-thumb]:border-[#343A4C]
+                   [&::-webkit-slider-thumb]:shadow-stone-500/30
+                   [&::-moz-range-thumb]:bg-[#12141D]
+                   [&::-moz-range-thumb]:border-[#343A4C]`}`}
           />
         </div>
 
@@ -130,10 +130,10 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
             <button
               key={step}
               onClick={() => onRetentionChange(step)}
-              className={`text-xs font-medium transition-colors ${
+              className={`text-xs lg:text-sm font-medium transition-colors ${
                 retention === step
-                  ? saju ? SJ.goldText : 'text-amber-600'
-                  : saju ? 'text-[#8B8578] hover:text-[#5C564A]' : 'text-slate-400 hover:text-slate-600'
+                  ? saju ? SJ.goldText : 'text-[#A69F8D]'
+                  : saju ? 'text-[#8B8578] hover:text-[#5C564A]' : 'text-[#8B8578] hover:text-[#A69F8D]'
               }`}
             >
               {step}%
@@ -143,7 +143,7 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
       </div>
 
       {/* 안내 라벨 */}
-      <div className={`flex justify-between text-xs px-2 ${saju ? SJ.inkFaint : 'text-slate-400'}`}>
+      <div className={`flex justify-between text-xs lg:text-sm px-2 ${saju ? SJ.inkFaint : 'text-[#8B8578]'}`}>
         <span>{t('newCombination')}</span>
         <span>{t('keepRecommended')}</span>
       </div>
@@ -153,13 +153,13 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`rounded-2xl p-3 border ${saju ? SJ.cardSoft : 'bg-purple-50 border-purple-200/50'}`}
+          className={`rounded-[12px] p-3 border ${saju ? SJ.cardSoft : 'bg-[#0C0E16] border-stone-200/50'}`}
         >
           <div className="flex items-start gap-2">
-            <Info size={16} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#2C3E50]' : 'text-purple-500'}`} />
-            <div className="text-sm">
-              <p className={`font-medium ${saju ? SJ.blueInk : 'text-purple-700'}`}>{t('previousSelection')}</p>
-              <p className={`text-xs mt-0.5 ${saju ? SJ.inkMuted : 'text-purple-600'}`}>
+            <Info size={16} className={`flex-shrink-0 mt-0.5 ${saju ? 'text-[#2C3E50]' : 'text-[#8B8578]'}`} />
+            <div className="text-sm lg:text-base">
+              <p className={`font-medium ${saju ? SJ.blueInk : 'text-[#A69F8D]'}`}>{t('previousSelection')}</p>
+              <p className={`text-xs lg:text-sm mt-0.5 ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>
                 {t('recommendedRatio')} <span className="font-bold">{previousFeedback.retentionPercentage}%</span>
               </p>
             </div>
@@ -172,9 +172,9 @@ export function FeedbackStep1({ retention, onRetentionChange, previousFeedback, 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`rounded-2xl p-4 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200/50'}`}
+        className={`rounded-[12px] p-4 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] border-stone-200/50'}`}
       >
-        <p className={`text-sm ${saju ? SJ.inkMuted : 'text-amber-800'}`}>
+        <p className={`text-sm lg:text-base ${saju ? SJ.inkMuted : 'text-[#E9E2D0]'}`}>
           {saju ? <span className={`${SJ.serif} ${SJ.goldText}`}>訣 </span> : '💡 '}
           <span className={`font-semibold ${saju ? SJ.ink : ''}`}>{t('tipTitle')}</span>{' '}
           {retention < 50

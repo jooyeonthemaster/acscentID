@@ -220,7 +220,7 @@ export default function AdminChatbot({ fullPage }: { fullPage?: boolean }) {
   }
 
   return (
-    <div className={`flex bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0] ${
+    <div className={`flex bg-white rounded-xl border-2 border-slate-200 overflow-hidden ${
       fullPage ? 'h-[calc(100vh-160px)]' : 'h-[calc(100vh-280px)] min-h-[500px]'
     }`}>
       {/* 사이드바 - 세션 목록 */}
@@ -228,7 +228,7 @@ export default function AdminChatbot({ fullPage }: { fullPage?: boolean }) {
         <div className="p-3 border-b border-slate-200">
           <button
             onClick={createSession}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors shadow-[2px_2px_0px_#fbbf24]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
           >
             <Plus className="w-4 h-4" />
             새 채팅
@@ -378,7 +378,7 @@ export default function AdminChatbot({ fullPage }: { fullPage?: boolean }) {
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-[2px_2px_0px_#fbbf24]"
+              className="px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>

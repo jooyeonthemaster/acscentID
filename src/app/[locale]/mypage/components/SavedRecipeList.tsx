@@ -90,17 +90,17 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 animate-pulse border-2 border-black shadow-[4px_4px_0_0_black]">
+          <div key={i} className="bg-[#12141D] rounded-[12px] p-4 animate-pulse border-2 border-[#262A38]">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-slate-200 rounded-xl" />
+              <div className="w-12 h-12 bg-[#232838] rounded-[12px]" />
               <div className="flex-1">
-                <div className="h-5 bg-slate-200 rounded w-1/3 mb-2" />
-                <div className="h-3 bg-slate-100 rounded w-1/4" />
+                <div className="h-5 bg-[#232838] rounded-[12px] w-1/3 mb-2" />
+                <div className="h-3 bg-[#1B1F2C] rounded-[12px] w-1/4" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[1, 2].map((j) => (
-                <div key={j} className="h-24 bg-slate-100 rounded-xl" />
+                <div key={j} className="h-24 bg-[#1B1F2C] rounded-[12px]" />
               ))}
             </div>
           </div>
@@ -129,17 +129,17 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
   // 빈 상태
   if (totalRecipes === 0) {
     return (
-      <div className="bg-white border-2 border-black rounded-2xl p-12 text-center shadow-[4px_4px_0_0_black]">
-        <div className="w-24 h-24 mx-auto mb-6 bg-yellow-100 rounded-2xl flex items-center justify-center border-2 border-black shadow-[2px_2px_0_0_black]">
-          <Beaker size={40} className="text-yellow-600" />
+      <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-12 text-center">
+        <div className="w-24 h-24 mx-auto mb-6 bg-[#151823] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
+          <Beaker size={40} className="text-[#A69F8D]" />
         </div>
         <h3 className="text-xl font-black mb-2">{t('emptyTitle')}</h3>
-        <p className="text-slate-500 text-sm mb-6">
+        <p className="text-[#8B8578] text-sm lg:text-base mb-6">
           {t('emptyDesc')}
         </p>
         <Link
           href="/"
-          className="inline-block px-8 py-3 bg-yellow-400 text-black font-bold rounded-xl border-2 border-black shadow-[4px_4px_0_0_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+          className="inline-block px-8 py-3 bg-[#F5EFE2] text-[#12141D] font-bold rounded-[12px] border-2 border-[#F5EFE2] transition-all"
         >
           {t('startAnalysis')}
         </Link>
@@ -149,15 +149,15 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
 
   // 레시피 카드 컴포넌트
   const RecipeCard = ({ recipe, compact = false }: { recipe: Recipe; compact?: boolean }) => (
-    <div className={`bg-white border-2 border-black rounded-xl overflow-hidden shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all ${compact ? 'p-3' : 'p-4'}`}>
+    <div className={`bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden transition-all ${compact ? 'p-3' : 'p-4'}`}>
       {/* 헤더 */}
       <div className="flex items-start gap-2 mb-3">
-        <div className={`${compact ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-yellow-100 to-amber-100 rounded-lg flex items-center justify-center border border-black flex-shrink-0`}>
-          <Droplets size={compact ? 14 : 16} className="text-amber-600" />
+        <div className={`${compact ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-[#151823] to-[#151823] rounded-[12px] flex items-center justify-center border border-[#262A38] flex-shrink-0`}>
+          <Droplets size={compact ? 14 : 16} className="text-[#A69F8D]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className={`font-bold truncate ${compact ? 'text-sm' : 'text-base'}`}>{recipe.perfume_name}</h4>
-          <p className="text-[10px] text-slate-500 flex items-center gap-1">
+          <h4 className={`font-bold truncate ${compact ? 'text-sm lg:text-base' : 'text-base'}`}>{recipe.perfume_name}</h4>
+          <p className="text-[10px] lg:text-[12px] text-[#8B8578] flex items-center gap-1">
             <Calendar size={8} />
             {formatRelativeTime(recipe.created_at)}
           </p>
@@ -170,13 +170,13 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
           {recipe.generated_recipe.granules.slice(0, compact ? 2 : 3).map((g) => (
             <span
               key={g.id}
-              className="text-[9px] px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-bold"
+              className="text-[9px] px-2 py-0.5 bg-[#151823] text-[#E9E2D0] rounded-full font-bold"
             >
               {g.name} {g.ratio}%
             </span>
           ))}
           {recipe.generated_recipe.granules.length > (compact ? 2 : 3) && (
-            <span className="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">
+            <span className="text-[9px] px-2 py-0.5 bg-[#1B1F2C] text-[#8B8578] rounded-full">
               +{recipe.generated_recipe.granules.length - (compact ? 2 : 3)}
             </span>
           )}
@@ -187,12 +187,12 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
       {recipe.retention_percentage > 0 && (
         <div className="mb-3">
           <div className="flex justify-between text-[9px] mb-0.5">
-            <span className="font-bold text-slate-500">{t('retention')}</span>
-            <span className="font-black text-amber-600">{recipe.retention_percentage}%</span>
+            <span className="font-bold text-[#8B8578]">{t('retention')}</span>
+            <span className="font-black text-[#A69F8D]">{recipe.retention_percentage}%</span>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[#1B1F2C] rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"
+              className="h-full bg-gradient-to-r from-[#161925] to-[#161925] rounded-full"
               style={{ width: `${recipe.retention_percentage}%` }}
             />
           </div>
@@ -203,7 +203,7 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
       <div className="flex gap-2">
         <Link
           href={`/mypage/recipe/${recipe.id}`}
-          className="flex-1 py-2 bg-black text-white text-[11px] font-bold rounded-lg text-center hover:bg-slate-800 transition-colors flex items-center justify-center gap-1"
+          className="flex-1 py-2 bg-[#F5EFE2] text-[#12141D] text-[11px] lg:text-[13px] font-bold rounded-[12px] text-center hover:bg-[#FFFDF5] transition-colors flex items-center justify-center gap-1"
         >
           {t('viewDetail')}
           <ChevronRight size={12} />
@@ -215,7 +215,7 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
               onDelete(recipe.id)
             }
           }}
-          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-slate-200 hover:border-red-200"
+          className="p-2 text-[#8B8578] hover:text-red-500 hover:bg-red-50 rounded-[12px] transition-colors border border-[#262A38] hover:border-red-200"
           title={t('delete')}
         >
           <Trash2 size={14} />
@@ -238,28 +238,28 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: groupIndex * 0.1 }}
-            className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]"
+            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden"
           >
             {/* 폴더 헤더 */}
             <button
               onClick={() => toggleGroup(groupId)}
-              className="w-full p-4 flex items-center gap-4 hover:bg-yellow-50 transition-colors text-left"
+              className="w-full p-4 flex items-center gap-4 hover:bg-[#0C0E16] transition-colors text-left"
             >
               {/* 폴더 아이콘 또는 분석 이미지 */}
               {group.analysis?.user_image_url ? (
                 <img
                   src={group.analysis.user_image_url}
                   alt=""
-                  className="w-14 h-14 rounded-xl object-cover border-2 border-black shadow-[2px_2px_0_0_black]"
+                  className="w-14 h-14 rounded-[12px] object-cover border-2 border-[#262A38]"
                 />
               ) : (
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 border-black shadow-[2px_2px_0_0_black] ${
-                  group.analysis ? 'bg-gradient-to-br from-purple-100 to-pink-100' : 'bg-gradient-to-br from-slate-100 to-slate-200'
+                <div className={`w-14 h-14 rounded-[12px] flex items-center justify-center border-2 border-[#262A38] ${
+                  group.analysis ? 'bg-gradient-to-br from-[#151823] to-[#151823]' : 'bg-gradient-to-br from-[#151823] to-[#232838]'
                 }`}>
                   {group.analysis ? (
-                    <Sparkles size={24} className="text-purple-500" />
+                    <Sparkles size={24} className="text-[#8B8578]" />
                   ) : (
-                    isExpanded ? <FolderOpen size={24} className="text-slate-500" /> : <Folder size={24} className="text-slate-500" />
+                    isExpanded ? <FolderOpen size={24} className="text-[#8B8578]" /> : <Folder size={24} className="text-[#8B8578]" />
                   )}
                 </div>
               )}
@@ -270,23 +270,23 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
                   <h3 className="font-black text-lg truncate">
                     {group.analysis?.twitter_name || t('independentRecipes')}
                   </h3>
-                  <span className="px-2 py-0.5 bg-yellow-400 text-black text-xs font-black rounded-full border border-black">
+                  <span className="px-2 py-0.5 bg-[#161925] text-[#E9E2D0] text-xs lg:text-sm font-black rounded-full border border-[#262A38]">
                     {group.recipes.length}
                   </span>
                 </div>
                 {group.analysis ? (
-                  <p className="text-sm text-slate-500 truncate">
+                  <p className="text-sm lg:text-base text-[#8B8578] truncate">
                     {group.analysis.perfume_name} · {formatRelativeTime(group.analysis.created_at)}
                   </p>
                 ) : (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm lg:text-base text-[#8B8578]">
                     {t('unlinkedRecipes')}
                   </p>
                 )}
               </div>
 
               {/* 확장/축소 아이콘 */}
-              <div className={`p-2 rounded-lg border-2 border-black transition-transform ${isExpanded ? 'rotate-180 bg-yellow-100' : 'bg-white'}`}>
+              <div className={`p-2 rounded-[12px] border-2 border-[#262A38] transition-transform ${isExpanded ? 'rotate-180 bg-[#151823]' : 'bg-[#12141D]'}`}>
                 <ChevronDown size={20} />
               </div>
             </button>
@@ -301,7 +301,7 @@ export function SavedRecipeList({ recipeGroups, recipes, loading, onDelete, view
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 pt-0 border-t-2 border-dashed border-slate-200">
+                  <div className="p-4 pt-0 border-t-2 border-dashed border-[#262A38]">
                     <div className={viewMode === 'grid'
                       ? 'grid grid-cols-2 gap-2 pt-4'
                       : 'space-y-3 pt-4'

@@ -50,7 +50,7 @@ export default async function TodayScentSharePage({ params }: Props) {
       locale={locale}
       name={scent?.name ?? null}
       emoji={scent?.emoji ?? '🎁'}
-      bg={scent?.theme.bg ?? '#FCD34D'}
+      bg={scent?.theme.bg ?? '#D7D7D7'}
       ink={scent?.theme.ink ?? '#1a1a1a'}
     />
   )

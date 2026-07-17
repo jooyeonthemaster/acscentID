@@ -228,9 +228,9 @@ export function CartList({ viewMode }: CartListProps) {
 
   // 상품 타입 뱃지
   const renderProductTypeBadge = (productType: ProductType) => {
-    const badge = PRODUCT_TYPE_BADGES[productType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', labelShort: productType }
+    const badge = PRODUCT_TYPE_BADGES[productType] || { bg: 'bg-[#E9E2D0]', text: 'text-[#5C564A]', border: 'border-[#262A38]', labelShort: productType }
     return (
-      <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${badge.bg} ${badge.text} border ${badge.border}`}>
+      <span className={`px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold rounded-[12px] ${badge.bg} ${badge.text} border ${badge.border}`}>
         {badge.labelShort}
       </span>
     )
@@ -250,10 +250,10 @@ export function CartList({ viewMode }: CartListProps) {
 
   if (loading) {
     return (
-      <div className="bg-white border-2 border-black rounded-2xl p-8 shadow-[4px_4px_0_0_black]">
+      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-8">
         <div className="flex items-center justify-center gap-3">
-          <div className="w-8 h-8 border-4 border-black border-t-amber-400 rounded-full animate-spin" />
-          <span className="font-bold">{t('loading')}</span>
+          <div className="w-8 h-8 border-4 border-[#262A38] border-t-[#343A4C] rounded-full animate-spin" />
+          <span className="font-bold text-[#12141D]">{t('loading')}</span>
         </div>
       </div>
     )
@@ -261,18 +261,18 @@ export function CartList({ viewMode }: CartListProps) {
 
   if (cartItems.length === 0) {
     return (
-      <div className="bg-white border-2 border-black rounded-2xl p-8 shadow-[4px_4px_0_0_black]">
+      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-8">
         <div className="text-center py-8">
-          <div className="w-20 h-20 mx-auto mb-4 bg-amber-100 rounded-full flex items-center justify-center border-2 border-black">
-            <ShoppingCart size={32} className="text-amber-600" />
+          <div className="w-20 h-20 mx-auto mb-4 bg-[#151823] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+            <ShoppingCart size={32} className="text-[#A69F8D]" />
           </div>
-          <h3 className="font-black text-lg mb-2">{t('empty')}</h3>
-          <p className="text-sm text-slate-600 mb-6">
+          <h3 className="font-black text-lg mb-2 text-[#12141D]">{t('empty')}</h3>
+          <p className="text-sm lg:text-base text-[#5C564A] mb-6">
             {t('emptyHint')}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-400 text-black font-bold rounded-xl border-2 border-black shadow-[4px_4px_0_0_black] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#12141D] text-[#F5EFE2] font-bold rounded-[12px] border-2 border-[#12141D] transition-all"
           >
             <Sparkles size={18} />
             {t('startAnalysis')}
@@ -285,7 +285,7 @@ export function CartList({ viewMode }: CartListProps) {
   return (
     <div className="space-y-4">
       {/* 상단 컨트롤 */}
-      <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]">
+      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-4">
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 cursor-pointer">
             <button
@@ -293,11 +293,11 @@ export function CartList({ viewMode }: CartListProps) {
               className="flex items-center gap-1.5"
             >
               {selectedIds.size === cartItems.length ? (
-                <CheckSquare className="w-5 h-5 text-purple-500" />
+                <CheckSquare className="w-5 h-5 text-[#5C564A]" />
               ) : (
-                <Square className="w-5 h-5 text-slate-400" />
+                <Square className="w-5 h-5 text-[#5C564A]" />
               )}
-              <span className="font-bold text-sm">
+              <span className="font-bold text-sm lg:text-base text-[#12141D]">
                 {t('selectAll', { selected: selectedIds.size, total: cartItems.length })}
               </span>
             </button>
@@ -305,7 +305,7 @@ export function CartList({ viewMode }: CartListProps) {
           <button
             onClick={removeSelected}
             disabled={selectedIds.size === 0}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-3 py-1.5 text-sm lg:text-base font-bold text-red-600 hover:bg-red-50 rounded-[12px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trash2 size={14} />
             {t('deleteSelected')}
@@ -324,8 +324,8 @@ export function CartList({ viewMode }: CartListProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`bg-white rounded-2xl overflow-hidden transition-all ${
-              selectedIds.has(item.id) ? 'ring-2 ring-amber-400' : ''
+            className={`bg-[#F5EFE2] rounded-[12px] overflow-hidden transition-all ${
+              selectedIds.has(item.id) ? 'ring-2 ring-[#343A4C]' : ''
             } ${updatingIds.has(item.id) ? 'opacity-60' : ''}`}
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           >
@@ -337,11 +337,11 @@ export function CartList({ viewMode }: CartListProps) {
                   className="flex-shrink-0"
                 >
                   {selectedIds.has(item.id) ? (
-                    <div className="w-5 h-5 bg-amber-400 rounded-md flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                    <div className="w-5 h-5 bg-[#161925] rounded-[12px] flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-[#E9E2D0]" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-5 h-5 bg-slate-100 rounded-md border border-slate-300" />
+                    <div className="w-5 h-5 bg-[#E9E2D0] rounded-[12px] border border-[#262A38]" />
                   )}
                 </button>
                 {renderProductTypeBadge(effectiveProductType)}
@@ -349,7 +349,7 @@ export function CartList({ viewMode }: CartListProps) {
               <button
                 onClick={() => removeItem(item.id)}
                 disabled={updatingIds.has(item.id)}
-                className="p-1.5 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-50"
+                className="p-1.5 text-[#5C564A] hover:text-red-400 transition-colors disabled:opacity-50"
               >
                 <Trash2 size={18} />
               </button>
@@ -363,22 +363,22 @@ export function CartList({ viewMode }: CartListProps) {
                   <img
                     src={item.image_url}
                     alt={item.perfume_name}
-                    className="w-20 h-20 rounded-xl object-cover bg-slate-100"
+                    className="w-20 h-20 rounded-[12px] object-cover bg-[#1B1F2C]"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center">
-                    <ShoppingBag size={28} className="text-amber-500" />
+                  <div className="w-20 h-20 rounded-[12px] bg-gradient-to-br from-[#151823] to-[#151823] flex items-center justify-center">
+                    <ShoppingBag size={28} className="text-[#8B8578]" />
                   </div>
                 )}
               </div>
 
               {/* 상품 정보 */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 truncate mb-1">{item.perfume_name}</h3>
+                <h3 className="font-bold text-[#12141D] truncate mb-1">{item.perfume_name}</h3>
 
                 {/* 장바구니에 담은 시각 (모든 상품 공통) */}
                 {item.created_at && (
-                  <p className="flex items-center gap-1 text-[11px] text-slate-400 mb-1">
+                  <p className="flex items-center gap-1 text-[11px] lg:text-[13px] text-[#5C564A] mb-1">
                     <Clock size={11} className="flex-shrink-0" />
                     {formatAddedAt(item.created_at)}
                   </p>
@@ -391,7 +391,7 @@ export function CartList({ viewMode }: CartListProps) {
                       e.stopPropagation()
                       setRecipeModalTarget(item)
                     }}
-                    className="mb-2 py-1 px-2.5 bg-amber-400 text-black text-[11px] font-bold rounded-md flex items-center gap-1 hover:bg-amber-300 transition-colors"
+                    className="mb-2 py-1 px-2.5 bg-[#12141D] text-[#F5EFE2] text-[11px] lg:text-[13px] font-bold rounded-[12px] flex items-center gap-1 hover:bg-[#1B1F2C] transition-colors"
                   >
                     <Beaker className="w-3 h-3" />
                     {t('checkRecipe')}
@@ -399,9 +399,9 @@ export function CartList({ viewMode }: CartListProps) {
                 )}
 
                 {/* 옵션 선택 */}
-                <div className="text-sm text-slate-500">
+                <div className="text-sm lg:text-base text-[#5C564A]">
                   {effectiveProductType === 'figure_diffuser' || effectiveProductType === 'store_product' ? (
-                    <span className="text-xs">
+                    <span className="text-xs lg:text-sm">
                       {effectiveProductType === 'figure_diffuser' ? t('setProduct') : item.size === 'scent_paper' ? '시향지' : `${item.size} 향수`}
                     </span>
                   ) : (
@@ -409,7 +409,7 @@ export function CartList({ viewMode }: CartListProps) {
                       value={item.size}
                       onChange={(e) => updateSize(item, e.target.value)}
                       disabled={updatingIds.has(item.id)}
-                      className="text-xs text-slate-600 bg-slate-50 rounded-md px-2 py-1 border-none outline-none disabled:opacity-50"
+                      className="text-xs lg:text-sm text-[#5C564A] bg-[#E9E2D0] rounded-[12px] px-2 py-1 border-none outline-none disabled:opacity-50"
                     >
                       {getOptions(effectiveProductType).map(option => (
                         <option key={option.size} value={option.size}>
@@ -423,25 +423,25 @@ export function CartList({ viewMode }: CartListProps) {
             </div>
 
             {/* 하단: 수량 + 가격 */}
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80">
-              <div className="flex items-center bg-white rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#E9E2D0]">
+              <div className="flex items-center bg-[#12141D] rounded-[12px] border border-[#262A38]">
                 <button
                   onClick={() => updateQuantity(item, -1)}
-                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                  className="w-8 h-8 flex items-center justify-center text-[#8B8578] hover:text-[#A69F8D] transition-colors disabled:opacity-30"
                   disabled={item.quantity <= 1 || updatingIds.has(item.id)}
                 >
                   <Minus size={14} />
                 </button>
-                <span className="w-8 text-center font-bold text-sm text-slate-700">{item.quantity}</span>
+                <span className="w-8 text-center font-bold text-sm lg:text-base text-[#A69F8D]">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item, 1)}
-                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                  className="w-8 h-8 flex items-center justify-center text-[#8B8578] hover:text-[#A69F8D] transition-colors disabled:opacity-30"
                   disabled={item.quantity >= 10 || updatingIds.has(item.id)}
                 >
                   <Plus size={14} />
                 </button>
               </div>
-              <span className="font-black text-lg text-slate-900">
+              <span className="font-black text-lg text-[#12141D]">
                 {formatPrice(item.price * item.quantity)}{tCurrency('suffix')}
               </span>
             </div>
@@ -451,24 +451,24 @@ export function CartList({ viewMode }: CartListProps) {
       </div>
 
       {/* 하단 결제 정보 */}
-      <div className="bg-gradient-to-r from-amber-400 to-yellow-400 border-2 border-black rounded-2xl p-5 shadow-[4px_4px_0_0_black]">
+      <div className="bg-gradient-to-r from-[#F5EFE2] to-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-5">
         <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-sm">
-            <span>{t('productAmount')}</span>
-            <span className="font-bold">{formatPrice(totals.subtotal)}{tCurrency('suffix')}</span>
+          <div className="flex justify-between text-sm lg:text-base">
+            <span className="text-[#12141D]">{t('productAmount')}</span>
+            <span className="font-bold text-[#12141D]">{formatPrice(totals.subtotal)}{tCurrency('suffix')}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="flex items-center gap-1.5">
+          <div className="flex justify-between text-sm lg:text-base">
+            <span className="flex items-center gap-1.5 text-[#12141D]">
               {t('shippingFee')}
               {shippingResult.isFreeByPromotion && (
-                <span className="px-1.5 py-0.5 bg-pink-500 text-white text-[9px] font-black rounded-full">배송비</span>
+                <span className="px-1.5 py-0.5 bg-[#161925] text-[#E9E2D0] text-[9px] font-black rounded-full">배송비</span>
               )}
             </span>
-            <span className="font-bold">
+            <span className="font-bold text-[#12141D]">
               {shippingResult.isFreeByPromotion ? (
                 <span className="flex items-center gap-1.5">
-                  <span className="line-through text-slate-400">{formatPrice(shippingResult.originalFee)}{tCurrency('suffix')}</span>
-                  <span className="text-pink-600 font-black">0{tCurrency('suffix')}</span>
+                  <span className="line-through text-[#5C564A]">{formatPrice(shippingResult.originalFee)}{tCurrency('suffix')}</span>
+                  <span className="text-[#12141D] font-black">0{tCurrency('suffix')}</span>
                 </span>
               ) : totals.shippingFee === 0 ? (
                 tCurrency('free')
@@ -478,29 +478,29 @@ export function CartList({ viewMode }: CartListProps) {
             </span>
           </div>
           {shippingResult.isFreeByPromotion && (
-            <p className="text-xs text-pink-600 font-bold">✓ {shippingResult.promotionName || '무료배송 이벤트'} 적용중</p>
+            <p className="text-xs lg:text-sm text-[#5C564A] font-bold">✓ {shippingResult.promotionName || '무료배송 이벤트'} 적용중</p>
           )}
           {!shippingResult.isFreeByPromotion && totals.shippingFee === 0 && (
-            <p className="text-xs text-amber-700">✓ {t('freeShippingNote')}</p>
+            <p className="text-xs lg:text-sm text-[#5C564A]">✓ {t('freeShippingNote')}</p>
           )}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-3 border-t-2 border-black/20">
           <div>
-            <p className="text-sm font-bold">
+            <p className="text-sm lg:text-base font-bold text-[#12141D]">
               {hasSelection
                 ? t('selectedItems', { count: selectedIds.size })
                 : t('selectPrompt')
               }
             </p>
-            <p className="text-2xl font-black">
+            <p className="text-2xl font-black text-[#12141D]">
               {formatPrice(totals.total)}{tCurrency('suffix')}
             </p>
           </div>
           <button
             onClick={handleCheckout}
             disabled={!hasSelection}
-            className="w-full sm:w-auto px-8 py-4 bg-black text-white font-black rounded-xl border-2 border-black shadow-[4px_4px_0_0_white] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-[4px_4px_0_0_white] disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+            className="w-full sm:w-auto px-8 py-4 bg-[#EEB62B] text-[#1A1610] font-black rounded-[12px] border-2 border-[#B8880F] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:"
           >
             {t('goCheckout')}
           </button>
@@ -523,17 +523,17 @@ export function CartList({ viewMode }: CartListProps) {
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white border-2 border-black rounded-2xl max-w-md w-full max-h-full flex flex-col shadow-[8px_8px_0_0_black] overflow-hidden"
+              className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] max-w-md w-full max-h-full flex flex-col overflow-hidden"
             >
               {/* 모달 헤더 */}
-              <div className="px-5 py-4 border-b-2 border-black bg-gradient-to-r from-amber-400 to-yellow-400 flex items-center justify-between flex-shrink-0">
+              <div className="px-5 py-4 border-b-2 border-[#262A38] bg-gradient-to-r from-[#161925] to-[#161925] flex items-center justify-between flex-shrink-0">
                 <h3 className="font-black text-lg flex items-center gap-2">
                   <Beaker size={20} />
                   {t('perfumeAnalysisInfo')}
                 </h3>
                 <button
                   onClick={() => setRecipeModalTarget(null)}
-                  className="p-1 hover:bg-black/10 rounded-lg transition-colors"
+                  className="p-1 hover:bg-black/10 rounded-[12px] transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -556,21 +556,21 @@ export function CartList({ viewMode }: CartListProps) {
 
                   return (
                     <>
-                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[#262A38]">
                         {recipeModalTarget.image_url ? (
                           <img
                             src={recipeModalTarget.image_url}
                             alt=""
-                            className="w-14 h-14 rounded-xl object-cover border-2 border-black"
+                            className="w-14 h-14 rounded-[12px] object-cover border-2 border-[#262A38]"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center border-2 border-black">
-                            <Sparkles size={24} className="text-purple-500" />
+                          <div className="w-14 h-14 rounded-[12px] bg-[#151823] flex items-center justify-center border-2 border-[#262A38]">
+                            <Sparkles size={24} className="text-[#8B8578]" />
                           </div>
                         )}
                         <div>
-                          <p className="text-xs text-slate-500">{recipeModalTarget.twitter_name || t('analysisResult')}</p>
-                          <h2 className="text-xl font-black leading-tight text-slate-900">
+                          <p className="text-xs lg:text-sm text-[#8B8578]">{recipeModalTarget.twitter_name || t('analysisResult')}</p>
+                          <h2 className="text-xl font-black leading-tight text-[#E9E2D0]">
                             {persona?.name || recipeModalTarget.perfume_name}
                           </h2>
                         </div>
@@ -579,23 +579,23 @@ export function CartList({ viewMode }: CartListProps) {
                       {confirmedRecipe?.granules ? (
                         /* 확정 레시피가 있는 경우 */
                         <div className="space-y-3">
-                          <p className="text-sm font-bold text-slate-600 mb-3">{t('customRecipe')}</p>
+                          <p className="text-sm lg:text-base font-bold text-[#A69F8D] mb-3">{t('customRecipe')}</p>
                           {confirmedRecipe.granules.map((granule, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border-2 border-amber-200"
+                              className="flex items-center justify-between p-3 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]"
                             >
                               <div className="flex items-center gap-2">
-                                <Droplets size={16} className="text-amber-600" />
+                                <Droplets size={16} className="text-[#A69F8D]" />
                                 <span className="font-bold">{getLocalizedName(granule.id, granule.name)}</span>
                               </div>
-                              <span className="px-3 py-1 bg-white rounded-lg font-black text-amber-700 border border-amber-300">
+                              <span className="px-3 py-1 bg-[#12141D] rounded-[12px] font-black text-[#A69F8D] border border-[#262A38]">
                                 {granule.ratio}%
                               </span>
                             </div>
                           ))}
-                          <div className="mt-4 p-3 bg-slate-50 rounded-xl text-center">
-                            <p className="text-xs text-slate-500">
+                          <div className="mt-4 p-3 bg-[#151823] rounded-[12px] text-center">
+                            <p className="text-xs lg:text-sm text-[#8B8578]">
                               {t('recipeAdjusted')}
                             </p>
                           </div>
@@ -616,18 +616,18 @@ export function CartList({ viewMode }: CartListProps) {
                           {/* 분석 정보가 없는 경우 */}
                           {!persona?.mainScent && !persona?.categories && (
                             <div className="text-center py-8">
-                              <p className="text-slate-400 text-sm">{t('noDetailedInfo')}</p>
+                              <p className="text-[#8B8578] text-sm lg:text-base">{t('noDetailedInfo')}</p>
                               <Link
                                 href={`/result?id=${recipeModalTarget.analysis_id}&from=mypage`}
-                                className="inline-block mt-3 px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-lg"
+                                className="inline-block mt-3 px-4 py-2 bg-[#161925] text-[#E9E2D0] text-sm lg:text-base font-bold rounded-[12px]"
                               >
                                 {t('checkOnResultPage')}
                               </Link>
                             </div>
                           )}
 
-                          <div className="mt-4 p-3 bg-slate-50 rounded-xl text-center">
-                            <p className="text-xs text-slate-500">
+                          <div className="mt-4 p-3 bg-[#151823] rounded-[12px] text-center">
+                            <p className="text-xs lg:text-sm text-[#8B8578]">
                               {t('makeFeedbackRecipe')}
                             </p>
                           </div>
@@ -639,17 +639,17 @@ export function CartList({ viewMode }: CartListProps) {
               </div>
 
               {/* 모달 푸터 */}
-              <div className="px-5 py-4 border-t-2 border-black bg-slate-50 flex-shrink-0">
+              <div className="px-5 py-4 border-t-2 border-[#262A38] bg-[#151823] flex-shrink-0">
                 <div className="flex gap-2">
                   <button
                     onClick={() => setRecipeModalTarget(null)}
-                    className="flex-1 py-3 bg-white border-2 border-black rounded-xl font-bold hover:bg-slate-100 transition-colors"
+                    className="flex-1 py-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] font-bold hover:bg-[#1B1F2C] transition-colors"
                   >
                     {tButtons('close')}
                   </button>
                   <Link
                     href={`/result?id=${recipeModalTarget.analysis_id}&from=mypage`}
-                    className="flex-1 py-3 bg-purple-500 text-white border-2 border-black rounded-xl font-bold text-center hover:bg-purple-600 transition-colors"
+                    className="flex-1 py-3 bg-[#F5EFE2] text-[#12141D] border-2 border-[#F5EFE2] rounded-[12px] font-bold text-center hover:bg-[#161925] transition-colors"
                     onClick={() => setRecipeModalTarget(null)}
                   >
                     {t('viewResultDetail')}

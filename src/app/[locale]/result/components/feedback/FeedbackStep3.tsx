@@ -88,9 +88,9 @@ export function FeedbackStep3({
             exit={{ opacity: 0, height: 0 }}
             className="space-y-3"
           >
-            <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+            <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-2">
               <span>선택된 향료</span>
-              <span className="text-xs font-normal text-amber-600">
+              <span className="text-xs lg:text-sm font-normal text-[#A69F8D]">
                 ({selectedScents.length}/2)
               </span>
             </h3>
@@ -105,15 +105,15 @@ export function FeedbackStep3({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9, x: -100 }}
-                  className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-4 border border-yellow-200/50"
+                  className="bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] rounded-[12px] p-4 border border-stone-200/50"
                 >
                   {/* 헤더 */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {perfumeData && (
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shadow-md ${
-                            isLightColor(perfumeData.primaryColor) ? 'text-slate-800' : 'text-white'
+                          className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xs lg:text-sm font-bold shadow-md ${
+                            isLightColor(perfumeData.primaryColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
                           }`}
                           style={{ backgroundColor: perfumeData.primaryColor }}
                         >
@@ -121,32 +121,32 @@ export function FeedbackStep3({
                         </div>
                       )}
                       <div>
-                        <span className="font-bold text-slate-900">{scent.name}</span>
-                        <p className="text-xs text-slate-400">{scent.id}</p>
+                        <span className="font-bold text-[#E9E2D0]">{scent.name}</span>
+                        <p className="text-xs lg:text-sm text-[#8B8578]">{scent.id}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => onRemoveScent(scent.id)}
                       className="p-2 rounded-full hover:bg-red-100 transition-colors group"
                     >
-                      <X size={18} className="text-slate-400 group-hover:text-red-500" />
+                      <X size={18} className="text-[#8B8578] group-hover:text-red-500" />
                     </button>
                   </div>
 
                   {/* 비율 조절 */}
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">비율 조절</span>
-                      <span className="font-bold text-amber-600">{scent.ratio}%</span>
+                    <div className="flex justify-between items-center text-xs lg:text-sm">
+                      <span className="text-[#8B8578]">비율 조절</span>
+                      <span className="font-bold text-[#A69F8D]">{scent.ratio}%</span>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => onUpdateRatio(scent.id, scent.ratio - 10)}
                         disabled={scent.ratio <= 10}
-                        className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="p-1.5 rounded-[12px] bg-[#12141D] border border-[#262A38] hover:bg-[#151823] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        <Minus size={14} className="text-slate-600" />
+                        <Minus size={14} className="text-[#A69F8D]" />
                       </button>
 
                       <input
@@ -156,11 +156,11 @@ export function FeedbackStep3({
                         step="10"
                         value={scent.ratio}
                         onChange={(e) => onUpdateRatio(scent.id, parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-yellow-200 rounded-full appearance-none cursor-pointer
+                        className="flex-1 h-2 bg-[#232838] rounded-full appearance-none cursor-pointer
                           [&::-webkit-slider-thumb]:appearance-none
                           [&::-webkit-slider-thumb]:w-5
                           [&::-webkit-slider-thumb]:h-5
-                          [&::-webkit-slider-thumb]:bg-amber-500
+                          [&::-webkit-slider-thumb]:bg-[#161925]
                           [&::-webkit-slider-thumb]:rounded-full
                           [&::-webkit-slider-thumb]:shadow
                           [&::-webkit-slider-thumb]:cursor-grab"
@@ -169,9 +169,9 @@ export function FeedbackStep3({
                       <button
                         onClick={() => onUpdateRatio(scent.id, scent.ratio + 10)}
                         disabled={scent.ratio >= 90}
-                        className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="p-1.5 rounded-[12px] bg-[#12141D] border border-[#262A38] hover:bg-[#151823] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        <Plus size={14} className="text-slate-600" />
+                        <Plus size={14} className="text-[#A69F8D]" />
                       </button>
                     </div>
                   </div>
@@ -185,16 +185,16 @@ export function FeedbackStep3({
       {/* 향료 검색/추가 */}
       {selectedScents.length < 2 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-slate-700">
+          <h3 className="text-sm lg:text-base font-bold text-[#A69F8D]">
             향료 추가{' '}
-            <span className="text-slate-400 font-normal">(선택사항, 최대 2개)</span>
+            <span className="text-[#8B8578] font-normal">(선택사항, 최대 2개)</span>
           </h3>
 
           {/* 검색 입력 */}
           <div className="relative">
             <Search
               size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8578]"
             />
             <input
               type="text"
@@ -206,14 +206,14 @@ export function FeedbackStep3({
                 // 약간의 딜레이를 줘서 클릭 이벤트가 먼저 처리되게 함
                 setTimeout(() => setIsSearchFocused(false), 200)
               }}
-              className="w-full pl-11 pr-4 py-3.5 bg-slate-50 rounded-2xl border border-slate-200
-                focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                outline-none transition-all text-sm"
+              className="w-full pl-11 pr-4 py-3.5 bg-[#151823] rounded-[12px] border border-[#262A38]
+                focus:border-[#343A4C] focus:ring-2 focus:ring-stone-400/20
+                outline-none transition-all text-sm lg:text-base"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8B8578] hover:text-[#A69F8D]"
               >
                 <X size={16} />
               </button>
@@ -227,34 +227,34 @@ export function FeedbackStep3({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden max-h-[280px] overflow-y-auto"
+                className="bg-[#12141D] rounded-[12px] border border-[#262A38] shadow-lg overflow-hidden max-h-[280px] overflow-y-auto"
               >
                 {filteredPerfumes.length > 0 ? (
                   filteredPerfumes.map((perfume) => (
                     <button
                       key={perfume.id}
                       onClick={() => handleSelectScent(perfume)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-amber-50 transition-colors border-b border-slate-100 last:border-b-0"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-[#0C0E16] transition-colors border-b border-[#1E222E] last:border-b-0"
                     >
                       <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${
-                          isLightColor(perfume.primaryColor) ? 'text-slate-800' : 'text-white'
+                        className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xs lg:text-sm font-bold shadow-sm ${
+                          isLightColor(perfume.primaryColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
                         }`}
                         style={{ backgroundColor: perfume.primaryColor }}
                       >
                         {perfume.id.split(' ')[1]}
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-slate-900 text-sm">{getLocalizedName(perfume.id, perfume.name)}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="font-medium text-[#E9E2D0] text-sm lg:text-base">{getLocalizedName(perfume.id, perfume.name)}</p>
+                        <p className="text-xs lg:text-sm text-[#8B8578]">
                           {perfume.category} · {getLocalizedKeywords(perfume.id).slice(0, 2).join(', ')}
                         </p>
                       </div>
-                      <Plus size={18} className="text-amber-500" />
+                      <Plus size={18} className="text-[#8B8578]" />
                     </button>
                   ))
                 ) : (
-                  <div className="py-8 text-center text-sm text-slate-400">
+                  <div className="py-8 text-center text-sm lg:text-base text-[#8B8578]">
                     검색 결과가 없어요 😢
                   </div>
                 )}
@@ -266,8 +266,8 @@ export function FeedbackStep3({
 
       {/* 추가 메모 */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-700">
-          추가 메모 <span className="text-slate-400 font-normal">(선택사항)</span>
+        <h3 className="text-sm lg:text-base font-bold text-[#A69F8D]">
+          추가 메모 <span className="text-[#8B8578] font-normal">(선택사항)</span>
         </h3>
         <textarea
           placeholder="원하는 느낌이나 특별한 요청사항을 자유롭게 적어주세요... 예) 좀 더 상큼하게, 가을 분위기로"
@@ -275,11 +275,11 @@ export function FeedbackStep3({
           onChange={(e) => onNotesChange(e.target.value)}
           rows={3}
           maxLength={200}
-          className="w-full px-4 py-3 bg-slate-50 rounded-2xl border border-slate-200
-            focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-            outline-none transition-all text-sm resize-none"
+          className="w-full px-4 py-3 bg-[#151823] rounded-[12px] border border-[#262A38]
+            focus:border-[#343A4C] focus:ring-2 focus:ring-stone-400/20
+            outline-none transition-all text-sm lg:text-base resize-none"
         />
-        <p className="text-xs text-slate-400 text-right">{notes.length}/200</p>
+        <p className="text-xs lg:text-sm text-[#8B8578] text-right">{notes.length}/200</p>
       </div>
 
       {/* 팁 박스 */}
@@ -287,9 +287,9 @@ export function FeedbackStep3({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200/50"
+        className="bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] rounded-[12px] p-4 border border-stone-200/50"
       >
-        <p className="text-sm text-purple-800">
+        <p className="text-sm lg:text-base text-[#E9E2D0]">
           💜 <span className="font-semibold">팁!</span> 특정 향료를 선택하지 않아도 AI가
           피드백을 분석해서 최적의 레시피를 만들어줄 거예요! ✨
         </p>

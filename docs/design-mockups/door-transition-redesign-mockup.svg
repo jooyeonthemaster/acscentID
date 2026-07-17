@@ -1,0 +1,248 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#0E1018" flood-opacity="0.22"/>
+    </filter>
+    <filter id="panelShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0E1018" flood-opacity="0.28"/>
+    </filter>
+    <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.78  0 0 0 0 0.95  0 0 0 0.55 0"/>
+      <feBlend in="SourceGraphic" mode="screen"/>
+    </filter>
+    <filter id="glowAmber" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.55  0 0 0 0 0.22  0 0 0 0.48 0"/>
+      <feBlend in="SourceGraphic" mode="screen"/>
+    </filter>
+    <linearGradient id="pageBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F6F0E6"/>
+      <stop offset="0.45" stop-color="#E9EEF0"/>
+      <stop offset="1" stop-color="#F6E6E1"/>
+    </linearGradient>
+    <linearGradient id="imageShell" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111217"/>
+      <stop offset="0.46" stop-color="#1C2030"/>
+      <stop offset="1" stop-color="#101115"/>
+    </linearGradient>
+    <linearGradient id="scanGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#DFFAFF" stop-opacity="0.76"/>
+      <stop offset="0.42" stop-color="#6EE7F9" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#F7D8FF" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="scanDoorLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#272B34"/>
+      <stop offset="0.52" stop-color="#14171F"/>
+      <stop offset="1" stop-color="#2F3440"/>
+    </linearGradient>
+    <linearGradient id="scanDoorRight" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#29313A"/>
+      <stop offset="0.5" stop-color="#151820"/>
+      <stop offset="1" stop-color="#343A45"/>
+    </linearGradient>
+    <pattern id="scanGrid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0v36" fill="none" stroke="#C7F7FF" stroke-width="1" stroke-opacity="0.13"/>
+    </pattern>
+    <pattern id="microPixel" width="18" height="18" patternUnits="userSpaceOnUse">
+      <rect x="2" y="2" width="3" height="3" fill="#8FEFFF" opacity="0.24"/>
+      <rect x="11" y="10" width="2.5" height="2.5" fill="#F0C4FF" opacity="0.2"/>
+    </pattern>
+    <linearGradient id="chemShell" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF6DE"/>
+      <stop offset="0.46" stop-color="#E8F4EF"/>
+      <stop offset="1" stop-color="#FCE4DD"/>
+    </linearGradient>
+    <linearGradient id="chemGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.86"/>
+      <stop offset="0.5" stop-color="#DDF3EC" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.18"/>
+    </linearGradient>
+    <linearGradient id="chemDoorLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8EEE0"/>
+      <stop offset="0.58" stop-color="#CCE6DA"/>
+      <stop offset="1" stop-color="#A7C8BD"/>
+    </linearGradient>
+    <linearGradient id="chemDoorRight" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE8D9"/>
+      <stop offset="0.55" stop-color="#F4C9C4"/>
+      <stop offset="1" stop-color="#C6DCD3"/>
+    </linearGradient>
+    <linearGradient id="liquidA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#62D6B0"/>
+      <stop offset="1" stop-color="#D9B35F"/>
+    </linearGradient>
+    <linearGradient id="liquidB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F08A86"/>
+      <stop offset="1" stop-color="#8A8DEB"/>
+    </linearGradient>
+    <pattern id="chemEtch" width="58" height="58" patternUnits="userSpaceOnUse">
+      <circle cx="16" cy="16" r="3" fill="#365F55" opacity="0.12"/>
+      <circle cx="42" cy="36" r="3" fill="#8E5857" opacity="0.12"/>
+      <path d="M18 18L42 36" stroke="#4C6962" stroke-width="1.3" opacity="0.12"/>
+    </pattern>
+    <clipPath id="phoneClipImage">
+      <rect x="136" y="160" width="560" height="860" rx="46"/>
+    </clipPath>
+    <clipPath id="phoneClipChem">
+      <rect x="1104" y="160" width="560" height="860" rx="46"/>
+    </clipPath>
+    <style>
+      .title { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 900; letter-spacing: 0; fill: #141414; }
+      .label { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 800; letter-spacing: 0; fill: #262626; }
+      .copy { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 600; letter-spacing: 0; fill: #4A4A4A; }
+      .ui { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 800; letter-spacing: 0; }
+      .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-weight: 800; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="url(#pageBg)"/>
+  <path d="M0 860C260 782 404 934 642 862C868 794 984 660 1256 716C1488 764 1588 930 1800 858V1120H0Z" fill="#FFFFFF" opacity="0.34"/>
+
+  <text x="90" y="92" class="title" font-size="44">Door Transition Redesign Mockup</text>
+  <text x="90" y="136" class="copy" font-size="20">Standalone visual proposal only. No product code is applied.</text>
+
+  <!-- Image analysis phone -->
+  <g filter="url(#softShadow)">
+    <rect x="116" y="140" width="600" height="900" rx="58" fill="#0B0C10"/>
+    <rect x="136" y="160" width="560" height="860" rx="46" fill="url(#imageShell)"/>
+  </g>
+
+  <g clip-path="url(#phoneClipImage)">
+    <rect x="136" y="160" width="560" height="860" fill="url(#imageShell)"/>
+    <rect x="136" y="160" width="560" height="860" fill="url(#scanGrid)"/>
+    <rect x="136" y="160" width="560" height="860" fill="url(#microPixel)"/>
+    <circle cx="416" cy="570" r="250" fill="#18222B" opacity="0.72"/>
+    <circle cx="416" cy="570" r="190" fill="none" stroke="#8FEFFF" stroke-width="1.5" stroke-opacity="0.32"/>
+    <circle cx="416" cy="570" r="120" fill="none" stroke="#F0C4FF" stroke-width="1.4" stroke-opacity="0.28"/>
+
+    <!-- Revealed image card behind the gate -->
+    <rect x="246" y="294" width="340" height="482" rx="8" fill="url(#scanGlass)" stroke="#D8FBFF" stroke-opacity="0.48"/>
+    <rect x="278" y="332" width="276" height="276" rx="8" fill="#10131A" stroke="#FFFFFF" stroke-opacity="0.12"/>
+    <circle cx="414" cy="430" r="54" fill="#DCE9EE" opacity="0.82"/>
+    <path d="M326 578C354 520 388 486 418 492C458 500 470 572 528 544L554 608H278Z" fill="#A6C8D1" opacity="0.74"/>
+    <rect x="282" y="626" width="188" height="10" rx="5" fill="#DFFAFF" opacity="0.34"/>
+    <rect x="282" y="654" width="248" height="10" rx="5" fill="#F0C4FF" opacity="0.22"/>
+    <rect x="282" y="682" width="144" height="10" rx="5" fill="#DFFAFF" opacity="0.26"/>
+
+    <!-- Opening scanner doors -->
+    <g filter="url(#panelShadow)">
+      <path d="M136 160H330V1020H136Z" fill="url(#scanDoorLeft)"/>
+      <path d="M696 160H502V1020H696Z" fill="url(#scanDoorRight)"/>
+      <rect x="318" y="160" width="12" height="860" fill="#8FEFFF" opacity="0.54"/>
+      <rect x="502" y="160" width="12" height="860" fill="#F0C4FF" opacity="0.44"/>
+      <path d="M172 244H296M172 302H296M172 360H296M172 418H296M172 476H296M172 534H296M172 592H296M172 650H296M172 708H296M172 766H296M172 824H296" stroke="#FFFFFF" stroke-width="1" opacity="0.14"/>
+      <path d="M536 244H660M536 302H660M536 360H660M536 418H660M536 476H660M536 534H660M536 592H660M536 650H660M536 708H660M536 766H660M536 824H660" stroke="#FFFFFF" stroke-width="1" opacity="0.14"/>
+      <rect x="234" y="196" width="66" height="16" rx="3" fill="#8FEFFF" opacity="0.5"/>
+      <rect x="532" y="928" width="78" height="16" rx="3" fill="#F0C4FF" opacity="0.44"/>
+    </g>
+
+    <!-- Aperture blades -->
+    <g transform="translate(416 570)" opacity="0.96">
+      <circle r="104" fill="#07090D" stroke="#DDFBFF" stroke-width="2" stroke-opacity="0.32"/>
+      <path d="M-92 -18L-20 -102L22 -102L-28 -8Z" fill="#232936"/>
+      <path d="M-18 -92L92 -46L106 -10L4 -34Z" fill="#2B3141"/>
+      <path d="M90 -20L64 92L32 112L28 6Z" fill="#252B39"/>
+      <path d="M44 86L-80 76L-108 42L-8 22Z" fill="#303746"/>
+      <path d="M-92 42L-62 -70L-28 -96L-28 10Z" fill="#1E2531"/>
+      <circle r="38" fill="#DFFAFF" opacity="0.78" filter="url(#glowCyan)"/>
+      <circle r="20" fill="#0B0C10"/>
+    </g>
+
+    <!-- Scan line and focus UI -->
+    <rect x="220" y="486" width="392" height="3" rx="1.5" fill="#8FEFFF" filter="url(#glowCyan)"/>
+    <path d="M248 260H184V324M584 260H648V324M248 834H184V770M584 834H648V770" fill="none" stroke="#DFFAFF" stroke-width="5" stroke-linecap="round" opacity="0.74"/>
+    <text x="206" y="222" class="mono" font-size="16" fill="#8FEFFF">IMAGE SCAN GATE</text>
+    <text x="206" y="896" class="ui" font-size="20" fill="#F2F5ED">사진의 분위기를 읽는 중</text>
+    <rect x="206" y="920" width="420" height="16" rx="8" fill="#FFFFFF" opacity="0.14"/>
+    <rect x="206" y="920" width="356" height="16" rx="8" fill="#8FEFFF" opacity="0.86"/>
+    <text x="574" y="955" class="mono" font-size="14" fill="#DFFAFF" text-anchor="end">SCANNING 89%</text>
+  </g>
+
+  <g>
+    <rect x="116" y="140" width="600" height="900" rx="58" fill="none" stroke="#FFFFFF" stroke-opacity="0.58"/>
+    <text x="136" y="1080" class="copy" font-size="21">이미지 분석: 렌즈 셔터와 스캔라인이 열리는 문</text>
+  </g>
+
+  <!-- Center notes -->
+  <g>
+    <path d="M842 374C882 352 920 352 958 374" fill="none" stroke="#222" stroke-width="2" opacity="0.12"/>
+    <path d="M840 732C882 754 920 754 960 732" fill="none" stroke="#222" stroke-width="2" opacity="0.12"/>
+    <rect x="782" y="434" width="236" height="252" rx="8" fill="#FFFFFF" opacity="0.52" stroke="#222222" stroke-opacity="0.08"/>
+    <text x="900" y="494" class="label" font-size="20" text-anchor="middle">Design shift</text>
+    <text x="900" y="536" class="copy" font-size="16" text-anchor="middle">same timing contract</text>
+    <text x="900" y="568" class="copy" font-size="16" text-anchor="middle">different door grammar</text>
+    <text x="900" y="600" class="copy" font-size="16" text-anchor="middle">program-specific mood</text>
+    <text x="900" y="638" class="mono" font-size="14" text-anchor="middle" fill="#555">0.6s slide / 100% / route</text>
+  </g>
+
+  <!-- Chemistry phone -->
+  <g filter="url(#softShadow)">
+    <rect x="1084" y="140" width="600" height="900" rx="58" fill="#28211D"/>
+    <rect x="1104" y="160" width="560" height="860" rx="46" fill="url(#chemShell)"/>
+  </g>
+
+  <g clip-path="url(#phoneClipChem)">
+    <rect x="1104" y="160" width="560" height="860" fill="url(#chemShell)"/>
+    <rect x="1104" y="160" width="560" height="860" fill="url(#chemEtch)"/>
+    <circle cx="1384" cy="572" r="268" fill="#FFFFFF" opacity="0.32"/>
+    <circle cx="1384" cy="572" r="206" fill="none" stroke="#365F55" stroke-width="1.5" stroke-opacity="0.16"/>
+    <circle cx="1384" cy="572" r="152" fill="none" stroke="#8E5857" stroke-width="1.5" stroke-opacity="0.16"/>
+
+    <!-- Door as glass chambers -->
+    <g filter="url(#panelShadow)">
+      <path d="M1104 160H1302V1020H1104Z" fill="url(#chemDoorLeft)"/>
+      <path d="M1664 160H1466V1020H1664Z" fill="url(#chemDoorRight)"/>
+      <rect x="1286" y="160" width="16" height="860" fill="#FFFFFF" opacity="0.54"/>
+      <rect x="1466" y="160" width="16" height="860" fill="#FFFFFF" opacity="0.5"/>
+      <path d="M1140 238H1260M1140 304H1260M1140 370H1260M1140 436H1260M1140 502H1260M1140 568H1260M1140 634H1260M1140 700H1260M1140 766H1260M1140 832H1260" stroke="#365F55" stroke-width="1.2" opacity="0.2"/>
+      <path d="M1510 238H1630M1510 304H1630M1510 370H1630M1510 436H1630M1510 502H1630M1510 568H1630M1510 634H1630M1510 700H1630M1510 766H1630M1510 832H1630" stroke="#8E5857" stroke-width="1.2" opacity="0.2"/>
+      <rect x="1140" y="742" width="118" height="208" rx="8" fill="#FFFFFF" opacity="0.25" stroke="#FFFFFF" stroke-opacity="0.42"/>
+      <path d="M1140 840C1176 810 1210 862 1258 828V950H1140Z" fill="url(#liquidA)" opacity="0.76"/>
+      <rect x="1510" y="742" width="118" height="208" rx="8" fill="#FFFFFF" opacity="0.25" stroke="#FFFFFF" stroke-opacity="0.42"/>
+      <path d="M1510 816C1550 852 1580 792 1628 834V950H1510Z" fill="url(#liquidB)" opacity="0.78"/>
+    </g>
+
+    <!-- Central blend chamber -->
+    <rect x="1228" y="286" width="312" height="484" rx="8" fill="url(#chemGlass)" stroke="#FFFFFF" stroke-opacity="0.74"/>
+    <rect x="1260" y="338" width="248" height="354" rx="8" fill="#FFFFFF" opacity="0.28" stroke="#35534E" stroke-opacity="0.18"/>
+
+    <!-- Character / scent orbs -->
+    <g>
+      <circle cx="1326" cy="500" r="72" fill="#E7FFF6" stroke="#4AC99E" stroke-width="4"/>
+      <circle cx="1442" cy="500" r="72" fill="#FFF0EC" stroke="#EF847D" stroke-width="4"/>
+      <path d="M1326 500C1362 456 1406 456 1442 500C1406 544 1362 544 1326 500Z" fill="#F7D67A" opacity="0.42"/>
+      <text x="1326" y="508" class="ui" font-size="28" fill="#2D7665" text-anchor="middle">A</text>
+      <text x="1442" y="508" class="ui" font-size="28" fill="#A34B52" text-anchor="middle">B</text>
+      <circle cx="1384" cy="500" r="28" fill="#FFF7C9" stroke="#D9A547" stroke-width="3" filter="url(#glowAmber)"/>
+      <text x="1384" y="507" class="mono" font-size="20" fill="#5A3D1A" text-anchor="middle">x</text>
+    </g>
+
+    <!-- Diffusion ribbons -->
+    <path d="M1294 608C1340 548 1438 664 1486 606" fill="none" stroke="#48B98D" stroke-width="10" stroke-linecap="round" opacity="0.32"/>
+    <path d="M1298 642C1356 582 1416 706 1492 630" fill="none" stroke="#E9757C" stroke-width="10" stroke-linecap="round" opacity="0.28"/>
+    <path d="M1306 674C1366 622 1408 718 1480 680" fill="none" stroke="#836EDB" stroke-width="8" stroke-linecap="round" opacity="0.22"/>
+
+    <!-- Molecule linework -->
+    <g stroke="#365F55" stroke-width="2.4" opacity="0.42" fill="#FFFFFF">
+      <path d="M1234 246L1274 222L1314 246M1534 240L1574 220L1606 250"/>
+      <circle cx="1234" cy="246" r="6"/>
+      <circle cx="1274" cy="222" r="6"/>
+      <circle cx="1314" cy="246" r="6"/>
+      <circle cx="1534" cy="240" r="6"/>
+      <circle cx="1574" cy="220" r="6"/>
+      <circle cx="1606" cy="250" r="6"/>
+    </g>
+
+    <text x="1174" y="222" class="mono" font-size="16" fill="#365F55">BLENDING CHAMBER GATE</text>
+    <text x="1228" y="844" class="ui" font-size="20" fill="#33251E">두 향의 접점을 찾는 중</text>
+    <rect x="1228" y="870" width="312" height="16" rx="8" fill="#FFFFFF" opacity="0.52"/>
+    <rect x="1228" y="870" width="264" height="16" rx="8" fill="url(#liquidA)" opacity="0.92"/>
+    <text x="1540" y="918" class="mono" font-size="14" fill="#365F55" text-anchor="end">BLENDING 89%</text>
+  </g>
+
+  <g>
+    <rect x="1084" y="140" width="600" height="900" rx="58" fill="none" stroke="#FFFFFF" stroke-opacity="0.72"/>
+    <text x="1104" y="1080" class="copy" font-size="21">케미 분석: 유리 챔버와 향 리본이 합쳐지는 문</text>
+  </g>
+</svg>

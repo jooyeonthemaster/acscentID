@@ -32,12 +32,12 @@ export function CouponFloatingButton() {
       {/* 티켓 모양 버튼 */}
       <div className="relative">
         {/* 메인 티켓 */}
-        <div className="bg-[#F472B6] border-4 border-slate-900 rounded-2xl px-4 py-3 shadow-[4px_4px_0px_#000] transition-shadow group-hover:shadow-[2px_2px_0px_#000]">
+        <div className="bg-[#F5EFE2] border-4 border-[#262A38] rounded-[12px] px-4 py-3 transition-shadow">
           <div className="flex items-center gap-2">
-            <Ticket className="w-6 h-6 text-white" />
+            <Ticket className="w-6 h-6 text-[#E9E2D0]" />
             <div className="text-left">
-              <p className="text-xs font-bold text-white/80">혜택</p>
-              <p className="text-sm font-black text-white">쿠폰</p>
+              <p className="text-xs lg:text-sm font-bold text-white/80">혜택</p>
+              <p className="text-sm lg:text-base font-black text-[#E9E2D0]">쿠폰</p>
             </div>
           </div>
 
@@ -50,9 +50,9 @@ export function CouponFloatingButton() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-[#FBBF24] border-2 border-slate-900 rounded-full flex items-center justify-center"
+            className="absolute -top-2 -right-2 w-6 h-6 bg-[#C8C8C8] border-2 border-[#262A38] rounded-full flex items-center justify-center"
           >
-            <span className="text-xs font-black text-slate-900">{unclaimedCount}</span>
+            <span className="text-xs lg:text-sm font-black text-[#E9E2D0]">{unclaimedCount}</span>
           </motion.div>
         )}
 
@@ -67,7 +67,7 @@ export function CouponFloatingButton() {
             repeat: Infinity,
             repeatDelay: 3,
           }}
-          className="absolute inset-0 bg-[#F472B6] rounded-2xl -z-10"
+          className="absolute inset-0 bg-[#161925] rounded-[12px] -z-10"
         />
       </div>
     </motion.button>

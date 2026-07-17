@@ -15,7 +15,7 @@ export default function TermsPage() {
   const t = useTranslations('policy.terms')
 
   return (
-    <main className="min-h-screen bg-[#FFFDF5]">
+    <main className="min-h-screen bg-[#0C0E16]">
       <Header />
 
       {/* Hero Section */}
@@ -26,14 +26,14 @@ export default function TermsPage() {
             animate="visible"
             variants={fadeInUp}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-full text-sm font-bold mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#0C0E16] text-[#E9E2D0] rounded-full text-sm lg:text-base font-bold mb-6">
               <Scale size={16} />
               {t('badge')}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 whitespace-pre-line">
+            <h1 className="text-3xl md:text-4xl font-black text-[#E9E2D0] mb-4 whitespace-pre-line">
               {t('title')}
             </h1>
-            <p className="text-slate-600">
+            <p className="text-[#A69F8D]">
               {t('effectiveDate')}
             </p>
           </motion.div>
@@ -47,17 +47,17 @@ export default function TermsPage() {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="bg-white border-2 border-black rounded-2xl shadow-[6px_6px_0_0_black] p-6 md:p-10 space-y-10"
+            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 md:p-10 space-y-10"
           >
             {/* 제1조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article1Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article1Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article1Desc')}</p>
               </div>
             </section>
@@ -65,12 +65,12 @@ export default function TermsPage() {
             {/* 제2조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article2Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article2Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-disc list-inside space-y-2">
                   <li><span className="font-bold">{t('article2Item1Label')}</span>{t('article2Item1Desc')}</li>
                   <li><span className="font-bold">{t('article2Item2Label')}</span>{t('article2Item2Desc')}</li>
@@ -83,12 +83,12 @@ export default function TermsPage() {
             {/* 제3조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-green-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <ShieldCheck size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article3Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article3Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article3Item1')}</li>
                   <li>{t('article3Item2')}</li>
@@ -100,15 +100,15 @@ export default function TermsPage() {
             {/* 제4조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-purple-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article4Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article4Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article4Intro')}</p>
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38]">
+                  <ul className="list-disc list-inside space-y-1 text-sm lg:text-base">
                     <li>{t('article4Service1')}</li>
                     <li>{t('article4Service2')}</li>
                     <li>{t('article4Service3')}</li>
@@ -123,12 +123,12 @@ export default function TermsPage() {
             {/* 제5조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-orange-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article5Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article5Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article5Item1')}</li>
                   <li>{t('article5Item2')}</li>
@@ -140,15 +140,15 @@ export default function TermsPage() {
             {/* 제6조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-pink-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <AlertTriangle size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article6Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article6Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article6Intro')}</p>
-                <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                <div className="bg-red-50 rounded-[12px] p-4 border border-red-200">
+                  <ul className="list-disc list-inside space-y-1 text-sm lg:text-base">
                     <li>{t('article6Item1')}</li>
                     <li>{t('article6Item2')}</li>
                     <li>{t('article6Item3')}</li>
@@ -163,12 +163,12 @@ export default function TermsPage() {
             {/* 제7조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-cyan-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <Ban size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article7Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article7Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article7Desc1')}</p>
                 <p>{t('article7Desc2')}</p>
               </div>
@@ -177,18 +177,18 @@ export default function TermsPage() {
             {/* 제8조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article8Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article8Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article8Item1')}</li>
                   <li>{t('article8Item2')}</li>
                   <li>{t('article8Item3')}</li>
                   <li>{t('article8Item4')}
-                    <ul className="list-disc list-inside ml-4 mt-1 text-sm space-y-1">
+                    <ul className="list-disc list-inside ml-4 mt-1 text-sm lg:text-base space-y-1">
                       <li>{t('article8Reject1')}</li>
                       <li>{t('article8Reject2')}</li>
                       <li>{t('article8Reject3')}</li>
@@ -201,15 +201,15 @@ export default function TermsPage() {
             {/* 제9조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article9Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article9Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article9Intro')}</p>
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38]">
+                  <ul className="list-disc list-inside space-y-1 text-sm lg:text-base">
                     <li>{t('article9Method1')}</li>
                     <li>{t('article9Method2')}</li>
                     <li>{t('article9Method3')}</li>
@@ -222,12 +222,12 @@ export default function TermsPage() {
             {/* 제10조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-lime-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article10Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article10Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article10Item1')}</li>
                   <li>{t('article10Item2')}</li>
@@ -240,14 +240,14 @@ export default function TermsPage() {
             {/* 제11조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-rose-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <FileText size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article11Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article11Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
-                <p>{t('article11Intro').split(t('article11RefundLink'))[0]}<Link href="/refund-policy" className="font-bold text-blue-600 underline underline-offset-2">{t('article11RefundLink')}</Link>{t('article11Intro').split(t('article11RefundLink'))[1] || ''}</p>
-                <div className="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-200 text-sm space-y-1">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
+                <p>{t('article11Intro').split(t('article11RefundLink'))[0]}<Link href="/refund-policy" className="font-bold text-[#A69F8D] underline underline-offset-2">{t('article11RefundLink')}</Link>{t('article11Intro').split(t('article11RefundLink'))[1] || ''}</p>
+                <div className="bg-[#0C0E16] rounded-[12px] p-4 border-2 border-[#262A38] text-sm lg:text-base space-y-1">
                   <p>• {t('article11Note1')}</p>
                   <p>• {t('article11Note2')}</p>
                   <p>• {t('article11Note3')}</p>
@@ -258,12 +258,12 @@ export default function TermsPage() {
             {/* 제12조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-indigo-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <ShieldCheck size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article12Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article12Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article12Item1')}</li>
                   <li>{t('article12Item2')}</li>
@@ -275,12 +275,12 @@ export default function TermsPage() {
             {/* 제13조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-sky-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <ShieldCheck size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article13Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article13Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article13Item1')}</li>
                   <li>{t('article13Item2')}</li>
@@ -292,12 +292,12 @@ export default function TermsPage() {
             {/* 제14조 */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-teal-400 rounded-xl flex items-center justify-center border-2 border-black">
+                <div className="w-10 h-10 bg-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
                   <Gavel size={20} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">{t('article14Title')}</h2>
+                <h2 className="text-xl font-black text-[#E9E2D0]">{t('article14Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-slate-700 leading-relaxed">
+              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article14Item1')}</li>
                   <li>{t('article14Item2')}</li>
@@ -307,23 +307,23 @@ export default function TermsPage() {
             </section>
 
             {/* 부칙 */}
-            <section className="pt-6 border-t-2 border-slate-200">
-              <p className="text-slate-600 text-sm">
+            <section className="pt-6 border-t-2 border-[#262A38]">
+              <p className="text-[#A69F8D] text-sm lg:text-base">
                 {t('supplementEffective', { date: '2025년 1월 1일' })}
               </p>
-              <p className="text-slate-500 text-sm mt-2">
+              <p className="text-[#8B8578] text-sm lg:text-base mt-2">
                 {t('supplementNotice')}
               </p>
               <div className="mt-4 flex gap-3">
                 <Link
                   href="/privacy"
-                  className="text-sm font-bold text-blue-600 hover:underline"
+                  className="text-sm lg:text-base font-bold text-[#A69F8D] hover:underline"
                 >
                   {t('linkPrivacy')}
                 </Link>
                 <Link
                   href="/refund-policy"
-                  className="text-sm font-bold text-blue-600 hover:underline"
+                  className="text-sm lg:text-base font-bold text-[#A69F8D] hover:underline"
                 >
                   {t('linkRefund')}
                 </Link>

@@ -61,21 +61,21 @@ export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+    <div className="bg-[#12141D] rounded-[12px] p-5 shadow-sm border border-[#1E222E]">
       <div className="flex items-center gap-4">
         {/* 프로필 이미지 */}
         <img
           src={userAvatar}
           alt={t('profileAlt')}
-          className="w-16 h-16 rounded-full object-cover border-3 border-amber-400 shadow-lg bg-amber-100"
+          className="w-16 h-16 rounded-full object-cover border-3 border-[#343A4C] shadow-lg bg-[#151823]"
         />
 
         {/* 프로필 정보 */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-slate-900 truncate">{userName}</h2>
-          <p className="text-sm text-slate-500 truncate">{userEmail || t('kakaoLogin')}</p>
+          <h2 className="text-lg font-bold text-[#E9E2D0] truncate">{userName}</h2>
+          <p className="text-sm lg:text-base text-[#8B8578] truncate">{userEmail || t('kakaoLogin')}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+            <span className="text-[10px] lg:text-[12px] px-2 py-0.5 bg-[#1B1F2C] text-[#A69F8D] rounded-full">
               {providerLabel} {t('loginSuffix')}
             </span>
           </div>
@@ -84,7 +84,7 @@ export function ProfileHeader({ user, unifiedUser }: ProfileHeaderProps) {
         {/* 로그아웃 버튼 */}
         <button
           onClick={handleSignOut}
-          className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
+          className="p-2.5 rounded-[12px] bg-[#1B1F2C] hover:bg-[#232838] transition-colors text-[#8B8578] hover:text-[#A69F8D]"
           title={t('logout')}
         >
           <LogOut size={18} />

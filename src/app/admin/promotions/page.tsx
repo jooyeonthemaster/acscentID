@@ -75,7 +75,7 @@ function DeleteConfirmModal({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] p-6 max-w-md w-full mx-4"
+        className="bg-white rounded-2xl border-2 border-slate-900 p-6 max-w-md w-full mx-4"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
@@ -181,7 +181,7 @@ function PromotionFormModal({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] w-full max-w-lg mx-4 my-auto"
+        className="bg-white rounded-2xl border-2 border-slate-900 w-full max-w-lg mx-4 my-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">

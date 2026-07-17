@@ -42,25 +42,25 @@ export function InviteFriendBanner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0_0_black]">
+    <div className="bg-gradient-to-r from-[#151823] to-[#151823] border-2 border-[#262A38] rounded-[12px] p-4">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-white rounded-xl border-2 border-black flex items-center justify-center shadow-[2px_2px_0_0_black]">
-          <Gift size={24} className="text-purple-600" />
+        <div className="w-12 h-12 bg-[#12141D] rounded-[12px] border-2 border-[#262A38] flex items-center justify-center">
+          <Gift size={24} className="text-[#A69F8D]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-black text-sm">{t('title')}</p>
-          <p className="text-xs text-slate-600 truncate">{t('desc')}</p>
+          <p className="font-black text-sm lg:text-base">{t('title')}</p>
+          <p className="text-xs lg:text-sm text-[#A69F8D] truncate">{t('desc')}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleCopyLink}
-            className="p-2.5 bg-white rounded-xl border-2 border-black shadow-[2px_2px_0_0_black] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            className="p-2.5 bg-[#12141D] rounded-[12px] border-2 border-[#262A38] transition-all"
           >
-            {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+            {copied ? <Check size={18} className="text-[#A69F8D]" /> : <Copy size={18} />}
           </button>
           <button
             onClick={handleShare}
-            className="p-2.5 bg-black text-white rounded-xl border-2 border-black shadow-[2px_2px_0_0_#a855f7] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            className="p-2.5 bg-[#F5EFE2] text-[#12141D] rounded-[12px] border-2 border-[#F5EFE2] transition-all"
           >
             <Share2 size={18} />
           </button>

@@ -38,11 +38,11 @@ export default function ReviewerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#151823] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+        <div className="bg-[#12141D] rounded-[12px] shadow-sm border border-[#262A38] p-8">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-[#161925] rounded-[12px] flex items-center justify-center mx-auto mb-4">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M12 2L4 7v10l8 5 8-5V7l-8-5z"
@@ -53,13 +53,13 @@ export default function ReviewerLoginPage() {
                 <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h1 className="text-lg font-bold text-slate-900">심사 담당자 로그인</h1>
-            <p className="text-sm text-slate-500 mt-1">PG 결제 심사용 테스트 계정</p>
+            <h1 className="text-lg font-bold text-[#E9E2D0]">심사 담당자 로그인</h1>
+            <p className="text-sm lg:text-base text-[#8B8578] mt-1">PG 결제 심사용 테스트 계정</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="email" className="block text-sm lg:text-base font-semibold text-[#A69F8D] mb-1.5">
                 아이디
               </label>
               <input
@@ -69,12 +69,12 @@ export default function ReviewerLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="이메일 주소"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-[12px] border border-[#262A38] bg-[#151823] text-sm lg:text-base text-[#E9E2D0] placeholder:text-[#8B8578] focus:outline-none focus:ring-2 focus:ring-[#262A38] focus:border-transparent transition-all"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="password" className="block text-sm lg:text-base font-semibold text-[#A69F8D] mb-1.5">
                 비밀번호
               </label>
               <input
@@ -84,12 +84,12 @@ export default function ReviewerLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-[12px] border border-[#262A38] bg-[#151823] text-sm lg:text-base text-[#E9E2D0] placeholder:text-[#8B8578] focus:outline-none focus:ring-2 focus:ring-[#262A38] focus:border-transparent transition-all"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 font-medium bg-red-50 px-4 py-2 rounded-lg">
+              <p className="text-sm lg:text-base text-red-500 font-medium bg-red-50 px-4 py-2 rounded-[12px]">
                 {error}
               </p>
             )}
@@ -97,14 +97,14 @@ export default function ReviewerLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-3 bg-[#161925] text-[#E9E2D0] text-sm lg:text-base font-bold rounded-[12px] hover:bg-[#161925] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "로그인 중..." : "로그인"}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-4">
+        <p className="text-center text-xs lg:text-sm text-[#8B8578] mt-4">
           NEANDER Co.,LTD &middot; PG Review Access
         </p>
       </div>

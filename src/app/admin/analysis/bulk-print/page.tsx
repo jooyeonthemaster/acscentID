@@ -244,7 +244,7 @@ export default function BulkPrintReportPage() {
         </button>
         <button
           onClick={handlePrint}
-          className="flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-yellow-400 px-5 py-2 text-sm font-bold text-slate-900 shadow-[3px_3px_0px_#1e293b] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_#1e293b]"
+          className="flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-yellow-400 px-5 py-2 text-sm font-bold text-slate-900 transition-all"
         >
           <Printer className="h-4 w-4" />
           인쇄하기

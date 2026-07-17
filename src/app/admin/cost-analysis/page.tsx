@@ -264,7 +264,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm text-slate-500 mb-1">{label}</p>
@@ -339,7 +339,7 @@ function WorkspaceSwitch({
               onClick={() => onChange(value)}
               className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
                 selected
-                  ? 'border-slate-900 bg-slate-900 text-white shadow-[3px_3px_0px_#cbd5e1]'
+                  ? 'border-slate-900 bg-slate-900 text-white'
                   : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
               }`}
             >
@@ -491,7 +491,7 @@ function CostAnalysisPasswordGate({
       <div className="flex min-h-[70vh] items-center justify-center p-4">
         <form
           onSubmit={onSubmit}
-          className="w-full max-w-md rounded-xl border-2 border-slate-200 bg-white p-6 shadow-[3px_3px_0px_#e2e8f0]"
+          className="w-full max-w-md rounded-xl border-2 border-slate-200 bg-white p-6"
         >
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-slate-900 text-white">
             <Lock className="h-7 w-7" />
@@ -833,13 +833,13 @@ export default function CostAnalysisPage() {
         )}
 
         {activeWorkspace === 'site_cost' && loading && !data && (
-          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-[3px_3px_0px_#e2e8f0]">
+          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white">
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </section>
         )}
 
         {activeWorkspace === 'site_cost' && error && !data && (
-          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <section className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-slate-200 bg-white p-5">
             <div className="text-center">
               <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
               <p className="text-slate-600">{error}</p>
@@ -889,7 +889,7 @@ export default function CostAnalysisPage() {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px] gap-6">
-              <section className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+              <section className="bg-white rounded-xl border-2 border-slate-200 p-5">
                 <div className="flex items-center justify-between gap-3 mb-5">
                   <div>
                     <h2 className="text-lg font-black text-slate-900">원가 구성</h2>
@@ -917,7 +917,7 @@ export default function CostAnalysisPage() {
                 </div>
               </section>
 
-              <section className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+              <section className="bg-white rounded-xl border-2 border-slate-200 p-5">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
                     <SlidersHorizontal className="w-5 h-5 text-slate-500" />
@@ -986,7 +986,7 @@ export default function CostAnalysisPage() {
             </div>
 
             <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0] overflow-hidden">
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-5 overflow-hidden">
                 <div className="flex items-center gap-2 mb-4">
                   <Truck className="w-5 h-5 text-slate-500" />
                   <h2 className="text-lg font-black text-slate-900">월별 원가</h2>
@@ -1023,7 +1023,7 @@ export default function CostAnalysisPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0] overflow-hidden">
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-5 overflow-hidden">
                 <div className="flex items-center gap-2 mb-4">
                   <Package className="w-5 h-5 text-slate-500" />
                   <h2 className="text-lg font-black text-slate-900">최근 일별 원가</h2>
@@ -1063,7 +1063,7 @@ export default function CostAnalysisPage() {
               </div>
             </section>
 
-            <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+            <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
               <h2 className="text-lg font-black text-slate-900 mb-3">계산 기준</h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 text-sm text-slate-600">
                 {data.notes.map((note) => (

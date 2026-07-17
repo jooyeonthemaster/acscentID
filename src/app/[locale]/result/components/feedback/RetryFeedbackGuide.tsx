@@ -39,19 +39,19 @@ export function RetryFeedbackGuide({
           transition={{ type: 'spring', delay: 0.1, stiffness: 200 }}
           className={`w-16 h-16 mx-auto flex items-center justify-center shadow-lg ${
             saju
-              ? 'rounded-[6px] bg-[#2C3E50] shadow-[#2C3E50]/30 rotate-[-3deg]'
-              : 'bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full shadow-purple-400/40'
+              ? 'rounded-[12px] bg-[#2C3E50] shadow-[#2C3E50]/30 rotate-[-3deg]'
+              : 'bg-gradient-to-br from-[#161925] to-[#161925] rounded-full shadow-stone-400/40'
           }`}
         >
           {saju ? (
             <span className="font-serif-kr text-3xl leading-none text-[#F5EFE2]">再</span>
           ) : (
-            <RotateCcw size={28} className="text-white" />
+            <RotateCcw size={28} className="text-[#E9E2D0]" />
           )}
         </motion.div>
         <div>
-          <h2 className={`text-lg font-black ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-900'}`}>{t('newFeedback')}</h2>
-          <p className={`text-sm mt-1 ${saju ? SJ.inkMuted : 'text-slate-500'}`}>
+          <h2 className={`text-lg font-black ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>{t('newFeedback')}</h2>
+          <p className={`text-sm lg:text-base mt-1 ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>
             {t('retryStart', { name: perfumeName })}
           </p>
         </div>
@@ -62,7 +62,7 @@ export function RetryFeedbackGuide({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`rounded-2xl p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'}`}
+        className={`rounded-[12px] p-4 border ${saju ? SJ.cardSoft : 'bg-gradient-to-br from-[#151823] to-[#151823] border-[#262A38]'}`}
       >
         <div className="flex items-center gap-2 mb-3">
           {saju ? (
@@ -70,42 +70,42 @@ export function RetryFeedbackGuide({
           ) : (
             <span className="text-base">📋</span>
           )}
-          <span className={`text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-slate-700'}`}>{t('previousChoices')}</span>
+          <span className={`text-sm lg:text-base font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#A69F8D]'}`}>{t('previousChoices')}</span>
         </div>
 
         <div className="space-y-3">
           {/* 추천 향 비율 */}
-          <div className={`rounded-xl p-3 shadow-sm ${saju ? `${SJ.card} border` : 'bg-white'}`}>
+          <div className={`rounded-[12px] p-3 shadow-sm ${saju ? `${SJ.card} border` : 'bg-[#12141D]'}`}>
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{t('retentionRatio')}</span>
-              <span className={`text-lg font-black ${saju ? SJ.goldText : 'text-amber-500'}`}>
+              <span className={`text-xs lg:text-sm font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{t('retentionRatio')}</span>
+              <span className={`text-lg font-black ${saju ? SJ.goldText : 'text-[#8B8578]'}`}>
                 {previousFeedback.retentionPercentage}%
               </span>
             </div>
-            <div className={`mt-2 h-2 rounded-full overflow-hidden ${saju ? SJ.trackBase : 'bg-slate-100'}`}>
+            <div className={`mt-2 h-2 rounded-full overflow-hidden ${saju ? SJ.trackBase : 'bg-[#1B1F2C]'}`}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${previousFeedback.retentionPercentage}%` }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className={`h-full rounded-full ${saju ? SJ.fillGold : 'bg-gradient-to-r from-amber-400 to-yellow-400'}`}
+                className={`h-full rounded-full ${saju ? SJ.fillGold : 'bg-gradient-to-r from-[#161925] to-[#161925]'}`}
               />
             </div>
           </div>
 
           {/* 추가 향료 */}
           {previousFeedback.specificScents.length > 0 && (
-            <div className={`rounded-xl p-3 shadow-sm ${saju ? `${SJ.card} border` : 'bg-white'}`}>
-              <span className={`text-xs font-medium block mb-2 ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{t('addedScentsLabel')}</span>
+            <div className={`rounded-[12px] p-3 shadow-sm ${saju ? `${SJ.card} border` : 'bg-[#12141D]'}`}>
+              <span className={`text-xs lg:text-sm font-medium block mb-2 ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{t('addedScentsLabel')}</span>
               <div className="flex flex-wrap gap-2">
                 {previousFeedback.specificScents.map((scent) => (
                   <span
                     key={scent.id}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-xs ${
-                      saju ? 'bg-[#C9A227]/10 border-[#C9A227]/40' : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-xs lg:text-sm ${
+                      saju ? 'bg-[#C9A227]/10 border-[#C9A227]/40' : 'bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] border-[#262A38]'
                     }`}
                   >
-                    <span className={`font-bold ${saju ? SJ.goldText : 'text-amber-700'}`}>{scent.name}</span>
-                    <span className={`font-medium ${saju ? 'text-[#7A5C14]/70' : 'text-amber-500'}`}>{scent.ratio}%</span>
+                    <span className={`font-bold ${saju ? SJ.goldText : 'text-[#A69F8D]'}`}>{scent.name}</span>
+                    <span className={`font-medium ${saju ? 'text-[#7A5C14]/70' : 'text-[#8B8578]'}`}>{scent.ratio}%</span>
                   </span>
                 ))}
               </div>
@@ -119,10 +119,10 @@ export function RetryFeedbackGuide({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className={`flex items-center gap-2 px-4 py-3 rounded-xl border ${saju ? SJ.cardSoft : 'bg-purple-50 border-purple-100'}`}
+        className={`flex items-center gap-2 px-4 py-3 rounded-[12px] border ${saju ? SJ.cardSoft : 'bg-[#0C0E16] border-[#151823]'}`}
       >
-        <Sparkles size={16} className={`flex-shrink-0 ${saju ? 'text-[#C9A227]' : 'text-purple-500'}`} />
-        <p className={`text-xs ${saju ? SJ.inkMuted : 'text-purple-700'}`}>
+        <Sparkles size={16} className={`flex-shrink-0 ${saju ? 'text-[#C9A227]' : 'text-[#8B8578]'}`} />
+        <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>
           {t('retryGuideNote')}
         </p>
       </motion.div>
@@ -134,15 +134,15 @@ export function RetryFeedbackGuide({
         transition={{ delay: 0.4 }}
         className="flex items-center justify-center"
       >
-        <div className={`flex items-center gap-1 rounded-full px-4 py-2 ${saju ? 'bg-[#EDE5D2]' : 'bg-slate-100'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${saju ? `${SJ.serif} bg-[#C9A227] text-[#1A1610]` : 'bg-amber-400 text-white'}`}>{saju ? '一' : '1'}</span>
-          <span className={`text-[10px] font-medium mx-1 ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{t('flowRatio')}</span>
-          <span className={saju ? 'text-[#8B8578]' : 'text-slate-300'}>→</span>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mx-1 ${saju ? `${SJ.serif} bg-[#2C3E50] text-[#F5EFE2]` : 'bg-green-400 text-white'}`}>{saju ? '二' : '2'}</span>
-          <span className={`text-[10px] font-medium ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{t('flowScent')}</span>
-          <span className={saju ? 'text-[#8B8578]' : 'text-slate-300'}>→</span>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mx-1 ${saju ? `${SJ.serif} bg-[#C0392B] text-[#F5EFE2]` : 'bg-purple-400 text-white'}`}>{saju ? '三' : '3'}</span>
-          <span className={`text-[10px] font-medium ${saju ? SJ.inkMuted : 'text-slate-600'}`}>{t('flowRecipe')}</span>
+        <div className={`flex items-center gap-1 rounded-full px-4 py-2 ${saju ? 'bg-[#EDE5D2]' : 'bg-[#1B1F2C]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold ${saju ? `${SJ.serif} bg-[#C9A227] text-[#1A1610]` : 'bg-[#161925] text-[#E9E2D0]'}`}>{saju ? '一' : '1'}</span>
+          <span className={`text-[10px] lg:text-[12px] font-medium mx-1 ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{t('flowRatio')}</span>
+          <span className={saju ? 'text-[#8B8578]' : 'text-[#5C564A]'}>→</span>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold mx-1 ${saju ? `${SJ.serif} bg-[#2C3E50] text-[#F5EFE2]` : 'bg-[#161925] text-[#E9E2D0]'}`}>{saju ? '二' : '2'}</span>
+          <span className={`text-[10px] lg:text-[12px] font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{t('flowScent')}</span>
+          <span className={saju ? 'text-[#8B8578]' : 'text-[#5C564A]'}>→</span>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold mx-1 ${saju ? `${SJ.serif} bg-[#C0392B] text-[#F5EFE2]` : 'bg-[#161925] text-[#E9E2D0]'}`}>{saju ? '三' : '3'}</span>
+          <span className={`text-[10px] lg:text-[12px] font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{t('flowRecipe')}</span>
         </div>
       </motion.div>
 
@@ -155,8 +155,8 @@ export function RetryFeedbackGuide({
       >
         <Button
           onClick={onConfirm}
-          className={`w-full h-12 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 ${
-            saju ? SJ.ctaCinnabar : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-purple-500/30'
+          className={`w-full h-12 rounded-[12px] font-bold shadow-lg flex items-center justify-center gap-2 ${
+            saju ? SJ.ctaCinnabar : 'bg-[#F5EFE2] hover:from-[#161925] hover:to-[#161925] text-[#12141D] shadow-stone-500/30'
           }`}
         >
           {t('newFeedbackRecord')}
@@ -164,7 +164,7 @@ export function RetryFeedbackGuide({
         </Button>
         <button
           onClick={onCancel}
-          className={`w-full text-center text-sm py-2 transition-colors ${saju ? 'text-[#8B8578] hover:text-[#5C564A]' : 'text-slate-400 hover:text-slate-600'}`}
+          className={`w-full text-center text-sm lg:text-base py-2 transition-colors ${saju ? 'text-[#8B8578] hover:text-[#5C564A]' : 'text-[#8B8578] hover:text-[#A69F8D]'}`}
         >
           {t('backToPrevRecipe')}
         </button>

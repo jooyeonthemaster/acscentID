@@ -120,7 +120,7 @@ export function RefundModal({ order, onClose, onSuccess }: RefundModalProps) {
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#000] max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl border-2 border-slate-900 max-h-[90vh] overflow-y-auto">
         {/* 헤더 */}
         <div className="sticky top-0 bg-white border-b-2 border-slate-200 px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -329,7 +329,7 @@ export function RefundModal({ order, onClose, onSuccess }: RefundModalProps) {
           <button
             onClick={handleSubmit}
             disabled={submitting || !acknowledged || reason.trim().length < 2 || amountInvalid}
-            className="flex-1 h-11 rounded-xl border-2 border-slate-900 font-black text-white bg-red-500 hover:bg-red-600 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl border-2 border-slate-900 font-black text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>

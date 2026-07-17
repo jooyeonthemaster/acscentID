@@ -111,8 +111,8 @@ const EMPTY_CHECKOUT_FORM_DATA: CheckoutFormData = {
 // 로딩 컴포넌트
 function CheckoutLoading() {
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#0E1016] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full animate-spin" />
     </div>
   )
 }
@@ -944,19 +944,19 @@ function CheckoutContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0E1016] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="relative min-h-screen bg-[#FFF8E7] font-sans">
+    <div className="relative min-h-screen bg-[#0E1016] font-wanted">
       {/* 배경 데코레이션 */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-200/10 rounded-full blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-stone-300/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-stone-300/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-stone-200/10 rounded-full blur-3xl" />
       </div>
 
       <Header title={t('checkout.title')} showBack={true} backHref={backHref} />
@@ -972,9 +972,9 @@ function CheckoutContent() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2 rounded-full border-2 border-slate-900 shadow-[3px_3px_0px_#FBCFE8] mb-4">
-              <Sparkles size={16} className="text-[#F472B6]" />
-              <span className="font-bold text-sm tracking-wide">
+            <div className="inline-flex items-center gap-2 bg-[#12141D] text-[#E9E2D0] px-5 py-2 rounded-full border-2 border-[#262A38] mb-4">
+              <Sparkles size={16} className="text-[#9F9F9F]" />
+              <span className="font-bold text-sm lg:text-base tracking-wide">
                 {isMultiItemMode ? t('checkout.orderItems', { count: checkoutItems.length }) : t('checkout.signatureOrder')}
               </span>
             </div>
@@ -1015,19 +1015,19 @@ function CheckoutContent() {
                   />
                   {/* 확정 레시피 배지 (재주문 시) */}
                   {confirmedRecipe && (
-                    <div className="bg-amber-50 border-2 border-slate-900 rounded-2xl p-4 shadow-[3px_3px_0px_#FBBF24]">
+                    <div className="bg-[#0C0E16] border-2 border-[#262A38] rounded-[12px] p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 bg-amber-400 border-2 border-slate-900 rounded-lg flex items-center justify-center shadow-[1px_1px_0px_#1e293b]">
-                          <span className="text-sm">🧪</span>
+                        <div className="w-7 h-7 bg-[#161925] border-2 border-[#262A38] rounded-[12px] flex items-center justify-center">
+                          <span className="text-sm lg:text-base">🧪</span>
                         </div>
-                        <span className="font-black text-slate-900 text-sm tracking-tight">{t('checkout.customRecipe')}</span>
+                        <span className="font-black text-[#E9E2D0] text-sm lg:text-base tracking-tight">{t('checkout.customRecipe')}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mb-3">
+                      <p className="text-xs lg:text-sm text-[#8B8578] mb-3">
                         {t('checkout.recipeBased', { name: confirmedRecipePerfumeName || perfumeName })}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {confirmedRecipe.granules?.map((g) => (
-                          <span key={g.id} className="text-[10px] px-2.5 py-1 bg-white border-[1.5px] border-slate-900 rounded-full text-slate-800 font-bold shadow-[1px_1px_0px_#FBBF24]">
+                          <span key={g.id} className="text-[10px] lg:text-[12px] px-2.5 py-1 bg-[#12141D] border-[1.5px] border-[#262A38] rounded-full text-[#E9E2D0] font-bold">
                             {g.name} {g.ratio}%
                           </span>
                         ))}
@@ -1049,7 +1049,7 @@ function CheckoutContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] mt-6"
+            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 mt-6"
           >
             <CouponSelector
               selectedCoupon={selectedCoupon}
@@ -1069,21 +1069,21 @@ function CheckoutContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-[4px_4px_0px_#000] mt-6"
+            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 mt-6"
           >
             {/* 헤더 */}
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-full bg-[#A5F3FC] border-2 border-slate-900 flex items-center justify-center">
-                <CreditCard size={20} className="text-slate-900" />
+              <div className="w-10 h-10 rounded-full bg-[#1B1F2C] border-2 border-[#262A38] flex items-center justify-center">
+                <CreditCard size={20} className="text-[#E9E2D0]" />
               </div>
-              <h3 className="font-black text-xl text-slate-900">{t('checkout.paymentInfo')}</h3>
+              <h3 className="font-black text-xl text-[#E9E2D0]">{t('checkout.paymentInfo')}</h3>
             </div>
 
             {/* 결제 내용 */}
             <div className="flex flex-col gap-5">
               {/* 결제 수단 선택 */}
               <div className="space-y-4">
-                <p className="text-sm font-black text-slate-900">{t('checkout.paymentMethod')}</p>
+                <p className="text-sm lg:text-base font-black text-[#E9E2D0]">{t('checkout.paymentMethod')}</p>
                 <PaymentMethodSelector
                   selectedMethod={paymentMethod}
                   onMethodChange={setPaymentMethod}
@@ -1094,22 +1094,22 @@ function CheckoutContent() {
               {paymentMethod === "bank_transfer" && (
                 <div className="space-y-4">
                   {/* 계좌 정보 카드 */}
-                  <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
+                  <div className="bg-[#151823] border-2 border-[#262A38] rounded-[12px] p-4">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500 font-bold">{t('checkout.bankLabel')}</span>
-                        <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
+                        <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('checkout.bankLabel')}</span>
+                        <span className="font-black text-[#E9E2D0]">{BANK_INFO.bank}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500 font-bold whitespace-nowrap mr-3">{t('checkout.accountLabel')}</span>
+                        <span className="text-sm lg:text-base text-[#8B8578] font-bold whitespace-nowrap mr-3">{t('checkout.accountLabel')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-900 font-mono whitespace-nowrap text-[15px]">{BANK_INFO.account}</span>
+                          <span className="font-black text-[#E9E2D0] font-mono whitespace-nowrap text-[15px]">{BANK_INFO.account}</span>
                           <button
                             onClick={copyAccountNumber}
-                            className={`p-2 rounded-lg border-2 transition-all flex-shrink-0 ${
+                            className={`p-2 rounded-[12px] border-2 transition-all flex-shrink-0 ${
                               copied
-                                ? "bg-[#A5F3FC] border-slate-900 text-slate-900"
-                                : "bg-white border-slate-300 hover:border-slate-900 text-slate-600"
+                                ? "bg-[#1B1F2C] border-[#262A38] text-[#E9E2D0]"
+                                : "bg-[#12141D] border-[#262A38] hover:border-[#262A38] text-[#A69F8D]"
                             }`}
                           >
                             {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -1117,23 +1117,23 @@ function CheckoutContent() {
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500 font-bold">{t('checkout.accountHolder')}</span>
-                        <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
+                        <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('checkout.accountHolder')}</span>
+                        <span className="font-black text-[#E9E2D0]">{BANK_INFO.holder}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* 안내 문구 */}
                   <div className="space-y-2">
-                    <p className="text-sm text-red-500 font-bold flex items-center gap-2">
+                    <p className="text-sm lg:text-base text-red-500 font-bold flex items-center gap-2">
                       <AlertCircle size={14} className="flex-shrink-0" />
                       {t('checkout.sameNameWarning')}
                     </p>
-                    <p className="text-sm text-slate-600 font-bold flex items-center gap-2">
+                    <p className="text-sm lg:text-base text-[#A69F8D] font-bold flex items-center gap-2">
                       <Truck size={14} className="flex-shrink-0" />
                       {t('checkout.depositAfterShipping')}
                     </p>
-                    <p className="text-sm text-slate-600 font-bold flex items-start gap-2">
+                    <p className="text-sm lg:text-base text-[#A69F8D] font-bold flex items-start gap-2">
                       <Clock size={14} className="flex-shrink-0 mt-0.5" />
                       <span>{t('checkout.manualDepositNotice')}</span>
                     </p>
@@ -1142,44 +1142,44 @@ function CheckoutContent() {
               )}
 
               {/* 결제 금액 */}
-              <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-5">
-                <p className="text-sm font-black text-slate-900 mb-4">{t('checkout.paymentAmountLabel')}</p>
-                <div className="space-y-3 text-sm">
+              <div className="bg-[#151823] border-2 border-[#262A38] rounded-[12px] p-5">
+                <p className="text-sm lg:text-base font-black text-[#E9E2D0] mb-4">{t('checkout.paymentAmountLabel')}</p>
+                <div className="space-y-3 text-sm lg:text-base">
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">
+                    <span className="text-[#8B8578] font-bold">
                       {t('checkout.productAmount')} {isMultiItemMode && t('checkout.itemCount', { count: checkoutItems.length })}
                     </span>
-                    <span className="font-black text-slate-900">{formatPrice(productPrice)}{t('currency.suffix')}</span>
+                    <span className="font-black text-[#E9E2D0]">{formatPrice(productPrice)}{t('currency.suffix')}</span>
                   </div>
                   {shippingResult.isFreeByPromotion ? (
-                    <div className="bg-pink-50 border border-pink-200 rounded-lg px-3 py-2.5">
+                    <div className="bg-[#0C0E16] border border-[#262A38] rounded-[12px] px-3 py-2.5">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 bg-[#F472B6] text-white rounded font-bold tracking-tight">
+                          <span className="text-[#8B8578] font-bold">{t('shipping.label')}</span>
+                          <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[#161925] text-[#E9E2D0] rounded-[12px] font-bold tracking-tight">
                             {shippingResult.promotionName}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-400 line-through">
+                          <span className="text-xs lg:text-sm text-[#8B8578] line-through">
                             {formatPrice(shippingResult.originalFee)}{t('currency.suffix')}
                           </span>
-                          <span className="font-black text-[#F472B6]">0{t('currency.suffix')}</span>
+                          <span className="font-black text-[#9F9F9F]">0{t('currency.suffix')}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="flex justify-between">
-                      <span className="text-slate-500 font-bold">{t('shipping.label')}</span>
+                      <span className="text-[#8B8578] font-bold">{t('shipping.label')}</span>
                       {shippingFee === 0 ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-400 line-through">
+                          <span className="text-xs lg:text-sm text-[#8B8578] line-through">
                             {formatPrice(DEFAULT_SHIPPING_FEE)}{t('currency.suffix')}
                           </span>
-                          <span className="font-black text-[#F472B6]">0{t('currency.suffix')}</span>
+                          <span className="font-black text-[#9F9F9F]">0{t('currency.suffix')}</span>
                         </div>
                       ) : (
-                        <span className="font-black text-slate-900">
+                        <span className="font-black text-[#E9E2D0]">
                           {formatPrice(shippingFee)}{t('currency.suffix')}
                         </span>
                       )}
@@ -1188,13 +1188,13 @@ function CheckoutContent() {
                   {discountAmount > 0 && (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-slate-500 font-bold">{t('checkout.couponDiscount')}</span>
-                        <span className="font-black text-[#F472B6]">
+                        <span className="text-[#8B8578] font-bold">{t('checkout.couponDiscount')}</span>
+                        <span className="font-black text-[#9F9F9F]">
                           -{formatPrice(discountAmount)}{t('currency.suffix')}
                         </span>
                       </div>
                       {couponUnusedAmount > 0 && (
-                        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
+                        <div className="flex items-start gap-2 rounded-[12px] border border-[#262A38] bg-[#0C0E16] px-3 py-2 text-xs lg:text-sm font-bold leading-relaxed text-[#E9E2D0]">
                           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                           <span>
                             정액 쿠폰 잔액 {formatPrice(couponUnusedAmount)}{t('currency.suffix')}은 이 주문에서 사용되지 않고 소멸됩니다.
@@ -1203,15 +1203,15 @@ function CheckoutContent() {
                       )}
                     </>
                   )}
-                  <div className="border-t-2 border-slate-900 pt-4 mt-4 flex justify-between items-center">
-                    <span className="font-black text-slate-900 text-lg">{t('checkout.totalPayment')}</span>
+                  <div className="border-t-2 border-[#262A38] pt-4 mt-4 flex justify-between items-center">
+                    <span className="font-black text-[#E9E2D0] text-lg">{t('checkout.totalPayment')}</span>
                     <div className="text-right">
                       {discountAmount > 0 && (
-                        <span className="text-sm text-slate-400 line-through mr-2">
+                        <span className="text-sm lg:text-base text-[#8B8578] line-through mr-2">
                           {formatPrice(productPrice + shippingResult.originalFee)}{t('currency.suffix')}
                         </span>
                       )}
-                      <span className="font-black text-2xl text-slate-900">
+                      <span className="font-black text-2xl text-[#E9E2D0]">
                         {formatPrice(totalPrice)}{t('currency.suffix')}
                       </span>
                     </div>
@@ -1224,7 +1224,7 @@ function CheckoutContent() {
           {/* 개인정보 동의 + 결제 버튼 */}
           <div className="mt-6 space-y-6">
             {/* 개인정보 동의 */}
-            <div className="bg-white border-2 border-slate-900 rounded-3xl p-5 shadow-[4px_4px_0px_#000]">
+            <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-5">
                 <label className="flex items-start gap-3 cursor-pointer group">
                   <div className="relative mt-0.5">
                     <input
@@ -1233,19 +1233,19 @@ function CheckoutContent() {
                       onChange={(e) => setPrivacyAgreed(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${
+                    <div className={`w-6 h-6 rounded-[12px] border-2 transition-all flex items-center justify-center ${
                       privacyAgreed
-                        ? "bg-[#F472B6] border-slate-900"
-                        : "bg-white border-slate-300 group-hover:border-slate-900"
+                        ? "bg-[#F5EFE2] border-[#262A38]"
+                        : "bg-[#12141D] border-[#262A38] group-hover:border-[#262A38]"
                     }`}>
-                      {privacyAgreed && <Check size={14} className="text-white" strokeWidth={3} />}
+                      {privacyAgreed && <Check size={14} className="text-[#12141D]" strokeWidth={3} />}
                     </div>
                   </div>
                   <div>
-                    <span className="font-black text-slate-900">
-                      {t('checkout.privacyConsent')} <span className="text-[#F472B6]">{t('checkout.privacyRequired')}</span>
+                    <span className="font-black text-[#E9E2D0]">
+                      {t('checkout.privacyConsent')} <span className="text-[#9F9F9F]">{t('checkout.privacyRequired')}</span>
                     </span>
-                    <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                    <p className="text-xs lg:text-sm text-[#8B8578] font-medium mt-1 leading-relaxed">
                       {t('checkout.privacyDescription')}
                     </p>
                   </div>
@@ -1266,14 +1266,13 @@ function CheckoutContent() {
                       aria-disabled={buttonDisabled}
                       className="group relative w-full disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <div className="absolute inset-0 bg-slate-900 rounded-2xl translate-x-1 translate-y-1 transition-transform group-hover:translate-x-2 group-hover:translate-y-2 group-disabled:translate-x-1 group-disabled:translate-y-1" />
-                      <div className="relative w-full h-14 bg-[#F472B6] text-white rounded-2xl border-2 border-slate-900 font-black text-lg flex items-center justify-center gap-2 transition-transform group-hover:-translate-y-0.5 group-disabled:hover:translate-y-0">
+                      <div className="relative w-full h-14 bg-[#EEB62B] text-[#1A1610] rounded-[12px] border-2 border-[#B8880F] font-black text-lg flex items-center justify-center gap-2">
                         {isSubmitting ? (
                           <>
                             <motion.div
                               animate={{ rotate: 360 }}
                               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                              className="w-5 h-5 border-2 border-[#5C564A] border-t-transparent rounded-full"
                             />
                             <span>{t('checkout.processingOrder')}</span>
                           </>
@@ -1286,12 +1285,12 @@ function CheckoutContent() {
                       </div>
                     </button>
                     {blockedByInApp && (
-                      <p className="text-xs text-red-600 text-center mt-3 font-bold break-keep">
+                      <p className="text-xs lg:text-sm text-red-600 text-center mt-3 font-bold break-keep">
                         인앱 브라우저에서는 카드 결제가 제한됩니다. 상단 안내에 따라 외부 브라우저로 열어주세요.
                       </p>
                     )}
                     {!isFormValid() && !blockedByInApp && (
-                      <p className="text-xs text-slate-500 text-center mt-3 font-bold">
+                      <p className="text-xs lg:text-sm text-[#8B8578] text-center mt-3 font-bold">
                         {t('checkout.fillRequired')}
                       </p>
                     )}
@@ -1301,16 +1300,16 @@ function CheckoutContent() {
             </div>
 
             {/* 안내 문구 */}
-            <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 font-bold">
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs lg:text-sm text-[#8B8578] font-bold">
+              <span className="flex items-center gap-1.5 bg-[#12141D] px-3 py-1.5 rounded-full border border-[#262A38]">
                 <ShieldCheck size={14} />
                 {t('checkout.securePayment')}
               </span>
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200">
+              <span className="flex items-center gap-1.5 bg-[#12141D] px-3 py-1.5 rounded-full border border-[#262A38]">
                 <Truck size={14} />
                 {t('checkout.fastShipping')}
               </span>
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200">
+              <span className="flex items-center gap-1.5 bg-[#12141D] px-3 py-1.5 rounded-full border border-[#262A38]">
                 <Package size={14} />
                 {t('checkout.arriveIn')}
               </span>

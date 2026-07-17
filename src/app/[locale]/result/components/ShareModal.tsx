@@ -121,7 +121,7 @@ export function ShareModal({
             className="
               fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90]
               max-w-[400px] mx-auto
-              bg-white rounded-3xl shadow-2xl
+              bg-[#12141D] rounded-[12px] shadow-2xl
               overflow-hidden
             "
             style={{
@@ -129,14 +129,14 @@ export function ShareModal({
               maxHeight: 'calc(100dvh - 32px)'
             }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">{t('title')}</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E222E]">
+              <h2 className="text-lg font-bold text-[#E9E2D0]">{t('title')}</h2>
               <button
                 onClick={onClose}
-                className="p-2 -mr-2 rounded-full hover:bg-slate-100 transition-colors"
+                className="p-2 -mr-2 rounded-full hover:bg-[#1B1F2C] transition-colors"
                 aria-label="Close"
               >
-                <X size={20} className="text-slate-500" />
+                <X size={20} className="text-[#8B8578]" />
               </button>
             </div>
 
@@ -145,23 +145,23 @@ export function ShareModal({
                 onClick={handleLinkShare}
                 className="
                   w-full flex items-center gap-4 p-4
-                  bg-gradient-to-r from-slate-50 to-slate-100
-                  hover:from-slate-100 hover:to-slate-200
-                  rounded-2xl transition-all
+                  bg-gradient-to-r from-[#151823] to-[#151823]
+                  hover:from-[#151823] hover:to-[#232838]
+                  rounded-[12px] transition-all
                 "
               >
-                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-[#161925] rounded-[12px] flex items-center justify-center">
                   {copied ? (
-                    <Check size={22} className="text-white" />
+                    <Check size={22} className="text-[#E9E2D0]" />
                   ) : (
-                    <Link2 size={22} className="text-white" />
+                    <Link2 size={22} className="text-[#E9E2D0]" />
                   )}
                 </div>
                 <div className="text-left">
-                  <p className="font-bold text-slate-900">
+                  <p className="font-bold text-[#E9E2D0]">
                     {copied ? t('linkCopied') : t('linkShare')}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs lg:text-sm text-[#8B8578]">
                     {t('linkShareDesc')}
                   </p>
                 </div>
@@ -175,10 +175,10 @@ export function ShareModal({
                   className="
                     w-full flex items-center gap-4 p-4
                     bg-[#0C0E16] hover:bg-[#171C28]
-                    rounded-2xl transition-all disabled:opacity-60
+                    rounded-[12px] transition-all disabled:opacity-60
                   "
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-[#C9A227]/50 bg-[#12141D]">
+                  <div className="w-12 h-12 rounded-[12px] flex items-center justify-center border border-[#C9A227]/50 bg-[#12141D]">
                     {cardBusy ? (
                       <Loader2 size={22} className="animate-spin text-[#C9A227]" />
                     ) : (
@@ -187,14 +187,14 @@ export function ShareModal({
                   </div>
                   <div className="text-left">
                     <p className="font-serif-kr font-bold text-[#E9E2D0]">{t('sajuCardSave')}</p>
-                    <p className="text-xs text-[#A69F8D]">{t('sajuCardSaveDesc')}</p>
+                    <p className="text-xs lg:text-sm text-[#A69F8D]">{t('sajuCardSaveDesc')}</p>
                   </div>
                 </button>
               )}
             </div>
 
             <div className="px-5 pb-5">
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs lg:text-sm text-[#8B8578]">
                 {t('shareHint')}
               </p>
             </div>

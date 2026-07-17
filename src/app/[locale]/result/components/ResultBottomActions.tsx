@@ -36,16 +36,16 @@ export function ResultBottomActions({
       transition={{ delay: 0.5, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={`
         fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[455px] px-4 py-3
-        bg-white border-t-2 border-black safe-area-bottom
-        shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]
+        bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom
+        
       `}
     >
       {serviceMode === 'online' && onScentPaperCheckout && (
         <button
           onClick={onScentPaperCheckout}
-          className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-white px-4 py-3 text-sm font-black text-slate-900 shadow-[3px_3px_0_0_#FACC15] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#FACC15]"
+          className="mb-2 flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3 text-sm lg:text-base font-black text-[#E9E2D0] transition-all"
         >
-          <Ticket size={16} className="text-amber-500" />
+          <Ticket size={16} className="text-[#8B8578]" />
           <span>{t('scentPaperCta')}</span>
         </button>
       )}
@@ -57,7 +57,7 @@ export function ResultBottomActions({
           onClick={onShare}
           disabled={isShareSaving}
           aria-label={isShareSaving ? t('saving') : t('share')}
-          className="shrink-0 aspect-square p-3.5 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center disabled:opacity-70"
+          className="shrink-0 aspect-square p-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center disabled:opacity-70"
         >
           <Share2 size={16} />
         </button>
@@ -68,7 +68,7 @@ export function ResultBottomActions({
             <button
               onClick={onAddToCart}
               disabled={isAddingToCart}
-              className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-green-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               <ShoppingCart size={16} />
               <span>{isAddingToCart ? t('adding') : t('addToCart')}</span>
@@ -77,13 +77,13 @@ export function ResultBottomActions({
               onClick={onCheckout}
               animate={{
                 boxShadow: [
-                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(251,146,60,0.3)",
-                  "3px 3px 0 0 #000, 0 0 28px 8px rgba(251,146,60,1)",
-                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(251,146,60,0.3)",
+                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(172,172,172,0.3)",
+                  "3px 3px 0 0 #000, 0 0 28px 8px rgba(172,172,172,1)",
+                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(172,172,172,0.3)",
                 ],
               }}
               transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-sm rounded-xl border-2 border-black hover:translate-x-[1px] hover:translate-y-[1px] transition-transform flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#B8880F] flex items-center justify-center gap-2"
             >
               <CreditCard size={16} />
               <span>{t('buy')}</span>
@@ -96,14 +96,14 @@ export function ResultBottomActions({
           <>
             <button
               onClick={onFeedback}
-              className="flex-1 py-3.5 bg-gradient-to-r from-pink-400 to-rose-400 text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
             >
               <MessageSquarePlus size={16} />
               <span>{t('feedback')}</span>
             </button>
             <button
               onClick={onFeedbackHistory}
-              className="py-3.5 px-4 bg-white text-black font-black text-sm rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center"
+              className="py-3.5 px-4 bg-[#12141D] text-[#E9E2D0] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#262A38] transition-all flex items-center justify-center"
             >
               <History size={16} />
             </button>

@@ -42,7 +42,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
   // PC 레이아웃: 가로 배치 (키치 스타일)
   if (isDesktop) {
     return (
-      <div className="relative bg-[#FEF9C3] p-2.5 rounded-t-2xl border-b-2 border-slate-900">
+      <div className="relative bg-[#151823] p-2.5 rounded-t-[12px] border-b-2 border-[#262A38]">
         <div className="grid gap-2 grid-cols-3">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -52,10 +52,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`relative flex items-center justify-center gap-2.5 py-3 px-5 text-sm font-bold transition-all rounded-xl border-2 ${
+                className={`relative flex items-center justify-center gap-2.5 py-3 px-5 text-sm lg:text-base font-bold transition-all rounded-[12px] border-2 ${
                   isActive
-                    ? 'text-slate-900 bg-white border-slate-900 shadow-[3px_3px_0px_#000]'
-                    : 'text-slate-500 bg-white/50 border-transparent hover:bg-white/80 hover:text-slate-700'
+                    ? 'text-[#E9E2D0] bg-[#12141D] border-[#262A38]'
+                    : 'text-[#8B8578] bg-[#12141D]/50 border-transparent hover:bg-[#12141D]/80 hover:text-[#A69F8D]'
                 }`}
               >
                 <span className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
   // 졸업 모드: 3개 탭을 한 줄에 표시
   if (isGraduationMode) {
     return (
-      <div className="relative bg-[#FEF9C3] p-2 rounded-t-2xl border-b-2 border-slate-900">
+      <div className="relative bg-[#151823] p-2 rounded-t-[12px] border-b-2 border-[#262A38]">
         <div className="grid grid-cols-3 gap-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
@@ -83,15 +83,15 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`relative flex items-center justify-center gap-1 py-2.5 px-2 text-sm transition-all rounded-xl border-2 ${
+                className={`relative flex items-center justify-center gap-1 py-2.5 px-2 text-sm lg:text-base transition-all rounded-[12px] border-2 ${
                   isActive
-                    ? 'text-slate-900 bg-white border-slate-900 shadow-[2px_2px_0px_#000]'
-                    : 'text-slate-500 bg-white/50 border-transparent hover:bg-white/80'
+                    ? 'text-[#E9E2D0] bg-[#12141D] border-[#262A38]'
+                    : 'text-[#8B8578] bg-[#12141D]/50 border-transparent hover:bg-[#12141D]/80'
                 }`}
               >
                 <span className="flex flex-col items-center gap-0.5">
-                  <span className="text-sm">{tab.emoji}</span>
-                  <span className="font-bold text-[10px]">{tab.label}</span>
+                  <span className="text-sm lg:text-base">{tab.emoji}</span>
+                  <span className="font-bold text-[10px] lg:text-[12px]">{tab.label}</span>
                 </span>
               </button>
             )
@@ -103,7 +103,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
 
   // 일반 모드: 기존 레이아웃 (피규어 모드 포함)
   return (
-    <div className="relative bg-[#FEF9C3] p-2 rounded-t-2xl border-b-2 border-slate-900">
+    <div className="relative bg-[#151823] p-2 rounded-t-[12px] border-b-2 border-[#262A38]">
       <div className="grid grid-cols-2 gap-2 mb-2">
         {tabs.slice(0, 2).map((tab) => {
           const isActive = activeTab === tab.id
@@ -112,15 +112,15 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex items-center justify-center gap-2 py-2.5 px-3 text-sm transition-all rounded-xl border-2 ${
+              className={`relative flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border-2 ${
                 isActive
-                  ? 'text-slate-900 bg-white border-slate-900 shadow-[2px_2px_0px_#000]'
-                  : 'text-slate-500 bg-white/50 border-transparent hover:bg-white/80'
+                  ? 'text-[#E9E2D0] bg-[#12141D] border-[#262A38]'
+                  : 'text-[#8B8578] bg-[#12141D]/50 border-transparent hover:bg-[#12141D]/80'
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <span className="text-sm">{tab.emoji}</span>
-                <span className="font-bold text-xs">{tab.label}</span>
+                <span className="text-sm lg:text-base">{tab.emoji}</span>
+                <span className="font-bold text-xs lg:text-sm">{tab.label}</span>
               </span>
             </button>
           )
@@ -134,15 +134,15 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative w-full flex items-center justify-center gap-2 py-2.5 px-3 text-sm transition-all rounded-xl border-2 ${
+              className={`relative w-full flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border-2 ${
                 isActive
-                  ? 'text-slate-900 bg-white border-slate-900 shadow-[2px_2px_0px_#000]'
-                  : 'text-slate-500 bg-white/50 border-transparent hover:bg-white/80'
+                  ? 'text-[#E9E2D0] bg-[#12141D] border-[#262A38]'
+                  : 'text-[#8B8578] bg-[#12141D]/50 border-transparent hover:bg-[#12141D]/80'
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <span className="text-sm">{tab.emoji}</span>
-                <span className="font-bold text-xs">{tab.label}</span>
+                <span className="text-sm lg:text-base">{tab.emoji}</span>
+                <span className="font-bold text-xs lg:text-sm">{tab.label}</span>
               </span>
             </button>
           )

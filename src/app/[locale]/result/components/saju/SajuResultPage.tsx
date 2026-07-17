@@ -31,6 +31,7 @@ import { FeedbackModal } from '../FeedbackModal';
 import { FeedbackHistory } from '../feedback/FeedbackHistory';
 import Image from 'next/image';
 import { CloudRidge, SealStamp } from '@/components/saju';
+import { ViewportSwitch } from '@/components/desktop/ViewportSwitch';
 
 import type { SajuAnalysisResult } from '@/types/analysis';
 import { GoldDust } from './GoldDust';
@@ -397,15 +398,90 @@ export default function SajuResultPage() {
     );
   }
 
+  // ── 章 시퀀스 — 모바일/데스크탑 두 트리가 동일 JSX를 공유한다 (S6) ──────────
+  // 이 블록에는 페이지 레벨 ref/id 부착이 없어 하나의 const 공유가 안전하다.
+  // (序/五章 내부의 useScroll ref는 각 트리의 컴포넌트 인스턴스 소유 —
+  //  하이드레이션 후 ViewportSwitch가 한쪽 트리만 남긴다)
+  const chapterSequence = (
+    <>
+      {/* 序 — 밤하늘 (sticky #1) */}
+      <PrologueStars result={sajuResult} targetType={targetType} locale={locale} />
+
+      {/* 一章 — 원국 命式 (밝은 밴드) */}
+      <SectionBand>
+        <ChapterMyeongsik
+          result={sajuResult}
+          targetType={targetType}
+          locale={locale}
+          userName={userName}
+        />
+      </SectionBand>
+
+      {/* 二章 — 일간 日干 (깊은 밴드) */}
+      <SectionBand tone="deep">
+        <ChapterIlgan result={sajuResult} targetType={targetType} locale={locale} />
+      </SectionBand>
+
+      {/* 三章 — 오행의 흐름 (밝은 밴드) */}
+      <SectionBand>
+        <ChapterElementFlow result={sajuResult} targetType={targetType} locale={locale} />
+      </SectionBand>
+
+      {/* 四章 — 소망의 운 (궁합 시 §5.5-B 대체) (깊은 밴드) */}
+      <SectionBand tone="deep">
+        <ChapterPurpose
+          result={sajuResult}
+          targetType={targetType}
+          locale={locale}
+          userName={userName ?? undefined}
+        />
+      </SectionBand>
+
+      {/* 五章 — 용신의 계시 (sticky #2) */}
+      <ChapterYongsin result={sajuResult} targetType={targetType} locale={locale} />
+
+      {/* 終章 — 운명의 향 공개 */}
+      <ChapterReveal result={sajuResult} targetType={targetType} locale={locale} />
+
+      {/* 처방전 — 리츄얼 (크림 반전) */}
+      <Prescription result={sajuResult} targetType={targetType} locale={locale} />
+
+      {/* 하단 고정 바 클리어런스 (§0 계약) — 서명 블록에서 리포트가 끝나 보이도록 최소치(바 높이 ≈76px + 여유) */}
+      <div className="pb-24" aria-hidden />
+    </>
+  );
+
+  // ===== 모바일 트리 (<1024px) — 기존 455px 두루마리 셸 그대로 =====
+  const mobileResult = (
+    <>
+      {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}
+      <Header showBack backHref={backHref} dark />
+
+      {/* 두루마리 — 章 세로 서사 */}
+      <main className="relative z-10">
+        <div className="mx-auto w-full max-w-[455px]">{chapterSequence}</div>
+      </main>
+    </>
+  );
+
+  // ===== 데스크탑 트리 (lg+) — S6 서사 확폭(680px) =====
+  // /result는 데스크탑 크롬 노출 라우트 — 레이아웃이 렌더하는 84px DesktopHeader
+  // 아래로 pt-[84px] 오프셋을 준다. 모바일 Header는 모바일 트리 안에 남는다
+  // (hideAtLg 계약으로 lg에서 스스로 사라진다).
+  const desktopResult = (
+    <main className="relative z-10 pt-[84px]">
+      <div className="mx-auto w-full max-w-[680px]">{chapterSequence}</div>
+    </main>
+  );
+
   return (
     <div className="saju-ink-grain relative min-h-[100dvh] bg-[#0C0E16]">
       {/* 전역 금 파티클 — 페이지에 1개만(§5.10). 섹션 로컬 파티클은 終章 8개만 허용 */}
       <GoldDust count={14} className="fixed inset-0 z-0" />
 
-      {/* 전역 크롬 — 사주 다크 테마로 재스킨 */}
-      <Header showBack backHref={backHref} dark />
-
-      {/* 자동 저장 상태 pill (기존 로직, 사주 스킨) — 저장 완료 후 2.5초 뒤 페이드아웃 */}
+      {/* 자동 저장 상태 pill (기존 로직, 사주 스킨) — 저장 완료 후 2.5초 뒤 페이드아웃
+          (뷰포트 모드 무관 단일 인스턴스 — z-40 고정 레이어라 DOM 위치와 무관하게
+           기존과 동일한 스택 순서를 유지한다) */}
       <AnimatePresence>
         {showSavePill && (isAutoSaving || isAutoSaved) && (
           <motion.div
@@ -436,55 +512,7 @@ export default function SajuResultPage() {
         )}
       </AnimatePresence>
 
-      {/* 두루마리 — 章 세로 서사 */}
-      <main className="relative z-10">
-        <div className="mx-auto w-full max-w-[455px]">
-          {/* 序 — 밤하늘 (sticky #1) */}
-          <PrologueStars result={sajuResult} targetType={targetType} locale={locale} />
-
-          {/* 一章 — 원국 命式 (밝은 밴드) */}
-          <SectionBand>
-            <ChapterMyeongsik
-              result={sajuResult}
-              targetType={targetType}
-              locale={locale}
-              userName={userName}
-            />
-          </SectionBand>
-
-          {/* 二章 — 일간 日干 (깊은 밴드) */}
-          <SectionBand tone="deep">
-            <ChapterIlgan result={sajuResult} targetType={targetType} locale={locale} />
-          </SectionBand>
-
-          {/* 三章 — 오행의 흐름 (밝은 밴드) */}
-          <SectionBand>
-            <ChapterElementFlow result={sajuResult} targetType={targetType} locale={locale} />
-          </SectionBand>
-
-          {/* 四章 — 소망의 운 (궁합 시 §5.5-B 대체) (깊은 밴드) */}
-          <SectionBand tone="deep">
-            <ChapterPurpose
-              result={sajuResult}
-              targetType={targetType}
-              locale={locale}
-              userName={userName ?? undefined}
-            />
-          </SectionBand>
-
-          {/* 五章 — 용신의 계시 (sticky #2) */}
-          <ChapterYongsin result={sajuResult} targetType={targetType} locale={locale} />
-
-          {/* 終章 — 운명의 향 공개 */}
-          <ChapterReveal result={sajuResult} targetType={targetType} locale={locale} />
-
-          {/* 처방전 — 리츄얼 (크림 반전) */}
-          <Prescription result={sajuResult} targetType={targetType} locale={locale} />
-
-          {/* 하단 고정 바 클리어런스 (§0 계약) — 서명 블록에서 리포트가 끝나 보이도록 최소치(바 높이 ≈76px + 여유) */}
-          <div className="pb-24" aria-hidden />
-        </div>
-      </main>
+      <ViewportSwitch mobile={mobileResult} desktop={desktopResult} />
 
       {/* 하단 고정 액션 바 — 기존 계약, 사주 스킨(§5.8 S8) */}
       <SajuBottomActions

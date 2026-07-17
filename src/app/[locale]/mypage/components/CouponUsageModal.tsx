@@ -89,23 +89,23 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-[110]"
           >
-            <div className="bg-[#FFF8E7] rounded-2xl overflow-hidden border-3 border-slate-900 shadow-[6px_6px_0_#000]">
+            <div className="bg-[#0E1016] rounded-[12px] overflow-hidden border-3 border-[#262A38]">
               {/* Header */}
-              <div className="bg-[#F472B6] px-5 py-4 relative">
+              <div className="bg-[#161925] px-5 py-4 relative">
                 <button
                   onClick={onClose}
                   className="absolute top-3 right-3 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors border-2 border-white/30"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <X className="w-4 h-4 text-[#E9E2D0]" />
                 </button>
 
                 <div className="flex items-center gap-3 pr-10">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-3 border-slate-900 shadow-[2px_2px_0_#000]">
-                    <Icon className="w-6 h-6 text-[#F472B6]" />
+                  <div className="w-12 h-12 bg-[#12141D] rounded-full flex items-center justify-center border-3 border-[#262A38]">
+                    <Icon className="w-6 h-6 text-[#9F9F9F]" />
                   </div>
-                  <div className="text-white">
+                  <div className="text-[#E9E2D0]">
                     <h2 className="text-lg font-black">{coupon.title}</h2>
-                    <p className="text-sm opacity-90 font-bold">{getCouponDiscountLabel(coupon)} 할인권</p>
+                    <p className="text-sm lg:text-base opacity-90 font-bold">{getCouponDiscountLabel(coupon)} 할인권</p>
                   </div>
                 </div>
               </div>
@@ -113,18 +113,18 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
               {/* Content */}
               <div className="p-5 space-y-4">
                 {/* 쿠폰 코드 */}
-                <div className="bg-white rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000]">
-                  <p className="text-xs text-slate-500 font-bold mb-2">{t('couponCode')}</p>
+                <div className="bg-[#12141D] rounded-[12px] p-4 border-2 border-[#262A38]">
+                  <p className="text-xs lg:text-sm text-[#8B8578] font-bold mb-2">{t('couponCode')}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-mono font-black text-slate-900 tracking-wider">
+                    <span className="text-xl font-mono font-black text-[#E9E2D0] tracking-wider">
                       {coupon.code}
                     </span>
                     <button
                       onClick={handleCopyCode}
-                      className={`px-3 py-1.5 rounded-lg font-bold text-sm transition-all border-2 border-slate-900 ${
+                      className={`px-3 py-1.5 rounded-[12px] font-bold text-sm lg:text-base transition-all border-2 border-[#262A38] ${
                         copied
-                          ? 'bg-green-400 text-white'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                          ? 'bg-[#F5EFE2] text-[#12141D]'
+                          : 'bg-[#1B1F2C] hover:bg-[#FFFDF5] text-[#E9E2D0] hover:text-[#E9E2D0]'
                       }`}
                     >
                       {copied ? (
@@ -142,8 +142,8 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
 
                 {/* 사용 방법 */}
                 <div>
-                  <h3 className="font-black text-slate-900 mb-3 flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5 text-[#F472B6]" />
+                  <h3 className="font-black text-[#E9E2D0] mb-3 flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-[#9F9F9F]" />
                     {t('howToUse')}
                   </h3>
                   <div className="space-y-2">
@@ -153,22 +153,22 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex items-start gap-3 bg-white rounded-lg p-3 border-2 border-slate-200"
+                        className="flex items-start gap-3 bg-[#12141D] rounded-[12px] p-3 border-2 border-[#262A38]"
                       >
-                        <div className="w-6 h-6 bg-[#F472B6] rounded-full flex items-center justify-center flex-shrink-0 border-2 border-slate-900">
-                          <span className="text-xs font-black text-white">{index + 1}</span>
+                        <div className="w-6 h-6 bg-[#161925] rounded-full flex items-center justify-center flex-shrink-0 border-2 border-[#262A38]">
+                          <span className="text-xs lg:text-sm font-black text-[#E9E2D0]">{index + 1}</span>
                         </div>
-                        <p className="text-sm text-slate-700 font-bold leading-relaxed">{step}</p>
+                        <p className="text-sm lg:text-base text-[#A69F8D] font-bold leading-relaxed">{step}</p>
                       </motion.div>
                     ))}
                   </div>
                 </div>
 
                 {/* 팁 */}
-                <div className="bg-gradient-to-br from-[#FBCFE8] to-[#FFF8E7] rounded-xl p-3 border-2 border-[#F472B6]/30">
+                <div className="bg-gradient-to-br from-[#1B1F2C] to-[#0E1016] rounded-[12px] p-3 border-2 border-[#9F9F9F]/30">
                   <div className="flex items-start gap-2">
-                    <Sparkles className="w-5 h-5 text-[#F472B6] flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-slate-700 font-bold">{tip}</p>
+                    <Sparkles className="w-5 h-5 text-[#9F9F9F] flex-shrink-0 mt-0.5" />
+                    <p className="text-sm lg:text-base text-[#A69F8D] font-bold">{tip}</p>
                   </div>
                 </div>
 
@@ -179,7 +179,7 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
                     onClose()
                     window.location.href = '/'
                   }}
-                  className="w-full py-3 bg-[#F472B6] hover:bg-[#EC4899] text-white font-black rounded-xl transition-colors border-2 border-slate-900 shadow-[3px_3px_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000] flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-[#F5EFE2] hover:bg-[#FFFDF5] text-[#12141D] font-black rounded-[12px] transition-colors border-2 border-[#262A38] flex items-center justify-center gap-2"
                 >
                   {t('goMakePerfume')}
                   <ArrowRight className="w-5 h-5" />

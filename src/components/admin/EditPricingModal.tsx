@@ -163,54 +163,54 @@ export function EditPricingModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] w-full max-w-md mx-4 my-auto"
+        className="bg-[#12141D] rounded-[12px] border-2 border-[#262A38] w-full max-w-md mx-4 my-auto"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#262A38]">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">가격 수정</h2>
+            <h2 className="text-lg font-bold text-[#E9E2D0]">가격 수정</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`px-2 py-0.5 ${badge.bg} ${badge.text} text-xs font-bold rounded ${badge.border} border`}>
+              <span className={`px-2 py-0.5 ${badge.bg} ${badge.text} text-xs font-bold rounded-[12px] ${badge.border} border`}>
                 {badge.label}
               </span>
-              <span className="text-xs text-slate-500">·</span>
-              <span className="text-xs text-slate-700 font-medium">{row.label}</span>
+              <span className="text-xs text-[#8B8578]">·</span>
+              <span className="text-xs text-[#A69F8D] font-medium">{row.label}</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-[#1B1F2C] rounded-[12px] transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-[#8B8578]" />
           </button>
         </div>
 
         <div className="p-6 space-y-5">
           {/* Price */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label className="block text-sm font-semibold text-[#A69F8D] mb-2">
               판매가 <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">₩</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8578] font-medium">₩</span>
               <input
                 type="number"
                 min={0}
                 step={1000}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full pl-9 pr-4 py-3 border-2 border-slate-200 rounded-xl text-slate-900 font-mono tabular-nums focus:border-yellow-400 focus:ring-0 focus:outline-none"
+                className="w-full pl-9 pr-4 py-3 border-2 border-[#262A38] rounded-[12px] text-[#E9E2D0] font-mono tabular-nums focus:border-[#343A4C] focus:ring-0 focus:outline-none"
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">현재: ₩{formatPrice(row.price)}</p>
+            <p className="text-xs text-[#8B8578] mt-1">현재: ₩{formatPrice(row.price)}</p>
           </div>
 
           {/* Original Price */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label className="block text-sm font-semibold text-[#A69F8D] mb-2">
               정가 (할인 표시용)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">₩</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8578] font-medium">₩</span>
               <input
                 type="number"
                 min={0}
@@ -218,13 +218,13 @@ export function EditPricingModal({
                 value={originalPrice}
                 onChange={(e) => setOriginalPrice(e.target.value)}
                 placeholder="비워두면 할인 뱃지 비표시"
-                className="w-full pl-9 pr-4 py-3 border-2 border-slate-200 rounded-xl text-slate-900 font-mono tabular-nums focus:border-yellow-400 focus:ring-0 focus:outline-none"
+                className="w-full pl-9 pr-4 py-3 border-2 border-[#262A38] rounded-[12px] text-[#E9E2D0] font-mono tabular-nums focus:border-[#343A4C] focus:ring-0 focus:outline-none"
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#8B8578] mt-1">
               현재: {row.original_price !== null ? `₩${formatPrice(row.original_price)}` : '없음'}
               {previewDiscount !== null && (
-                <span className="ml-2 inline-block px-2 py-0.5 bg-rose-100 text-rose-600 font-bold rounded">
+                <span className="ml-2 inline-block px-2 py-0.5 bg-[#151823] text-[#A69F8D] font-bold rounded-[12px]">
                   {previewDiscount}% OFF (미리보기)
                 </span>
               )}
@@ -233,7 +233,7 @@ export function EditPricingModal({
 
           {/* Option Image */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">옵션 이미지</label>
+            <label className="block text-sm font-semibold text-[#A69F8D] mb-2">옵션 이미지</label>
             <input
               ref={fileInputRef}
               type="file"
@@ -251,14 +251,14 @@ export function EditPricingModal({
                 <img
                   src={imageUrl}
                   alt="옵션 이미지"
-                  className="h-16 w-16 rounded-xl border-2 border-slate-200 object-cover"
+                  className="h-16 w-16 rounded-[12px] border-2 border-[#262A38] object-cover"
                 />
                 <div className="flex flex-1 gap-2">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-[12px] border-2 border-[#262A38] px-3 py-2.5 text-sm font-semibold text-[#A69F8D] hover:bg-[#151823] disabled:opacity-50"
                   >
                     {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     교체
@@ -267,7 +267,7 @@ export function EditPricingModal({
                     type="button"
                     onClick={() => setImageUrl(null)}
                     disabled={uploading}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
+                    className="flex items-center justify-center gap-1.5 rounded-[12px] bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -278,25 +278,25 @@ export function EditPricingModal({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="flex h-20 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-900 hover:text-slate-600 disabled:opacity-50"
+                className="flex h-20 w-full flex-col items-center justify-center gap-1 rounded-[12px] border-2 border-dashed border-[#262A38] text-[#8B8578] hover:border-[#262A38] hover:text-[#A69F8D] disabled:opacity-50"
               >
                 {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                 <span className="text-xs font-bold">이미지 업로드</span>
               </button>
             )}
-            <p className="text-xs text-slate-400 mt-1">체크아웃 옵션 선택 화면에 표시됩니다.</p>
+            <p className="text-xs text-[#8B8578] mt-1">체크아웃 옵션 선택 화면에 표시됩니다.</p>
           </div>
 
           {/* Active Toggle */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">판매 상태</label>
+            <label className="block text-sm font-semibold text-[#A69F8D] mb-2">판매 상태</label>
             <button
               type="button"
               onClick={() => setIsActive(!isActive)}
-              className={`w-full py-3 px-4 rounded-xl border-2 font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3 px-4 rounded-[12px] border-2 font-semibold transition-all flex items-center justify-center gap-2 ${
                 isActive
-                  ? 'bg-green-50 border-green-300 text-green-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-500'
+                  ? 'bg-[#0C0E16] border-[#262A38] text-[#A69F8D]'
+                  : 'bg-[#151823] border-[#262A38] text-[#8B8578]'
               }`}
             >
               {isActive ? (
@@ -309,45 +309,45 @@ export function EditPricingModal({
                 </>
               )}
             </button>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#8B8578] mt-1">
               판매 중지 시 결제 시도 즉시 거부됩니다 (서버 검증).
             </p>
           </div>
 
           {/* Reason */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              변경 사유 <span className="text-slate-400 font-normal">(선택)</span>
+            <label className="block text-sm font-semibold text-[#A69F8D] mb-2">
+              변경 사유 <span className="text-[#8B8578] font-normal">(선택)</span>
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="예: 1Q 프로모션 종료, 원자재 가격 인상 등"
               rows={2}
-              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-yellow-400 focus:ring-0 focus:outline-none resize-none"
+              className="w-full px-4 py-3 border-2 border-[#262A38] rounded-[12px] text-[#E9E2D0] placeholder:text-[#8B8578] focus:border-[#343A4C] focus:ring-0 focus:outline-none resize-none"
             />
-            <p className="text-xs text-slate-400 mt-1">변경 로그에 함께 기록됩니다.</p>
+            <p className="text-xs text-[#8B8578] mt-1">변경 로그에 함께 기록됩니다.</p>
           </div>
 
           {err && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
+            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-[12px]">
               <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
               <p className="text-sm text-red-600">{err}</p>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#262A38]">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+            className="px-5 py-2.5 bg-[#1B1F2C] text-[#A69F8D] font-semibold rounded-[12px] hover:bg-[#232838] transition-colors"
           >
             취소
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving || uploading || !!validation || isUnchanged}
-            className="px-5 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#F5EFE2] text-[#12141D] font-bold rounded-[12px] border-2 border-[#262A38] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving ? (
               <>

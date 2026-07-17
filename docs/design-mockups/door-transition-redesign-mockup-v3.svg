@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <filter id="phoneShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#090A0D" flood-opacity="0.24"/>
+    </filter>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="8" stdDeviation="0" flood-color="#111318" flood-opacity="1"/>
+    </filter>
+    <linearGradient id="cream" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFDF2"/>
+      <stop offset="1" stop-color="#F3E8D1"/>
+    </linearGradient>
+    <linearGradient id="mintPaper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFDF2"/>
+      <stop offset="1" stop-color="#DCEFE5"/>
+    </linearGradient>
+    <linearGradient id="pinkPaper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFDF2"/>
+      <stop offset="1" stop-color="#F8DCE3"/>
+    </linearGradient>
+    <clipPath id="leftPhoneClip"><rect x="130" y="174" width="600" height="870" rx="46"/></clipPath>
+    <clipPath id="rightPhoneClip"><rect x="1070" y="174" width="600" height="870" rx="46"/></clipPath>
+    <style>
+      .title { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 900; letter-spacing: 0; fill: #111318; }
+      .copy { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 700; letter-spacing: 0; fill: #5A554B; }
+      .brand { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 900; letter-spacing: 0; }
+      .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-weight: 800; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="#F8F3E8"/>
+  <rect width="1800" height="52" fill="#FFC400"/>
+  <text x="900" y="34" text-anchor="middle" class="brand" font-size="17" fill="#111318">AC'SCENT IDENTITY · 사이트 톤 확인 후 낮춘 문 전환 시안 · 실제 적용 없음</text>
+
+  <text x="92" y="108" class="title" font-size="39">Door Transition Redesign Mockup v3</text>
+  <text x="92" y="144" class="copy" font-size="18">Black outline, cream paper, yellow CTA. The door should feel like product packaging, not a sci-fi device.</text>
+
+  <!-- Image analysis -->
+  <g filter="url(#phoneShadow)">
+    <rect x="108" y="152" width="644" height="914" rx="64" fill="#111318"/>
+    <rect x="130" y="174" width="600" height="870" rx="46" fill="#0B0E16"/>
+  </g>
+  <g clip-path="url(#leftPhoneClip)">
+    <rect x="130" y="174" width="600" height="870" fill="#0B0E16"/>
+
+    <text x="430" y="238" text-anchor="middle" class="brand" font-size="26" fill="#F8F3E8">AC'SCENT</text>
+    <text x="430" y="264" text-anchor="middle" class="mono" font-size="12" fill="#A9A18F">IMAGE ANALYSIS PERFUME</text>
+
+    <g filter="url(#cardShadow)">
+      <rect x="250" y="322" width="360" height="500" rx="8" fill="url(#cream)" stroke="#111318" stroke-width="4"/>
+    </g>
+    <rect x="276" y="350" width="132" height="34" rx="17" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="342" y="373" text-anchor="middle" class="brand" font-size="15" fill="#111318">AI 이미지 분석</text>
+    <text x="276" y="434" class="title" font-size="30">사진의 인상을</text>
+    <text x="276" y="472" class="title" font-size="30">향으로 정리 중</text>
+    <rect x="276" y="520" width="308" height="178" rx="8" fill="#FBF4E3" stroke="#111318" stroke-width="3"/>
+    <circle cx="426" cy="582" r="39" fill="#111318" opacity="0.82"/>
+    <path d="M302 682C344 608 386 604 430 646C482 696 514 612 558 664V698H302Z" fill="#D6CAB5"/>
+    <rect x="276" y="728" width="260" height="13" rx="7" fill="#111318" opacity="0.13"/>
+    <rect x="276" y="758" width="200" height="13" rx="7" fill="#111318" opacity="0.1"/>
+
+    <!-- opened paper doors -->
+    <rect x="130" y="174" width="132" height="870" fill="#F8F3E8" stroke="#111318" stroke-width="4"/>
+    <rect x="598" y="174" width="132" height="870" fill="#F8F3E8" stroke="#111318" stroke-width="4"/>
+    <rect x="174" y="228" width="70" height="28" rx="14" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="209" y="248" text-anchor="middle" class="brand" font-size="13" fill="#111318">PHOTO</text>
+    <path d="M172 356H224M172 838H224M636 356H688M636 838H688" stroke="#111318" stroke-width="3" opacity="0.16"/>
+    <rect x="262" y="174" width="14" height="870" fill="#111318"/>
+    <rect x="584" y="174" width="14" height="870" fill="#111318"/>
+    <circle cx="276" cy="614" r="19" fill="#FFC400" stroke="#111318" stroke-width="4"/>
+    <circle cx="584" cy="614" r="19" fill="#FFC400" stroke="#111318" stroke-width="4"/>
+
+    <rect x="214" y="900" width="432" height="20" rx="10" fill="#F8F3E8" opacity="0.18"/>
+    <rect x="214" y="900" width="330" height="20" rx="10" fill="#FFC400"/>
+    <text x="560" y="952" text-anchor="end" class="mono" font-size="16" fill="#F8F3E8">ANALYZING 89%</text>
+  </g>
+  <rect x="108" y="152" width="644" height="914" rx="64" fill="none" stroke="#111318" stroke-width="3"/>
+
+  <!-- Direction note -->
+  <g>
+    <rect x="804" y="448" width="192" height="224" rx="8" fill="#FFFDF2" stroke="#111318" stroke-width="3"/>
+    <rect x="832" y="474" width="136" height="34" rx="17" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="900" y="497" text-anchor="middle" class="brand" font-size="14" fill="#111318">디자인 원칙</text>
+    <text x="900" y="550" text-anchor="middle" class="copy" font-size="17">조용하게</text>
+    <text x="900" y="590" text-anchor="middle" class="copy" font-size="17">종이/패키지처럼</text>
+    <text x="900" y="630" text-anchor="middle" class="copy" font-size="17">기존 0.6s 문법 유지</text>
+  </g>
+
+  <!-- Chemistry -->
+  <g filter="url(#phoneShadow)">
+    <rect x="1048" y="152" width="644" height="914" rx="64" fill="#111318"/>
+    <rect x="1070" y="174" width="600" height="870" rx="46" fill="#0B0E16"/>
+  </g>
+  <g clip-path="url(#rightPhoneClip)">
+    <rect x="1070" y="174" width="600" height="870" fill="#0B0E16"/>
+
+    <text x="1370" y="238" text-anchor="middle" class="brand" font-size="26" fill="#F8F3E8">AC'SCENT</text>
+    <text x="1370" y="264" text-anchor="middle" class="mono" font-size="12" fill="#A9A18F">CHEMISTRY LAYERING</text>
+
+    <g filter="url(#cardShadow)">
+      <rect x="1190" y="322" width="360" height="500" rx="8" fill="url(#cream)" stroke="#111318" stroke-width="4"/>
+    </g>
+    <rect x="1216" y="350" width="136" height="34" rx="17" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1284" y="373" text-anchor="middle" class="brand" font-size="15" fill="#111318">레이어링 퍼퓸</text>
+    <text x="1216" y="434" class="title" font-size="30">두 향의 거리를</text>
+    <text x="1216" y="472" class="title" font-size="30">맞추는 중</text>
+    <rect x="1216" y="520" width="308" height="178" rx="8" fill="#FBF4E3" stroke="#111318" stroke-width="3"/>
+    <path d="M1244 606C1292 560 1338 646 1382 612C1434 572 1474 598 1500 630" fill="none" stroke="#74B897" stroke-width="9" stroke-linecap="round" opacity="0.62"/>
+    <path d="M1244 650C1304 602 1348 686 1406 650C1452 622 1478 638 1500 666" fill="none" stroke="#E47191" stroke-width="9" stroke-linecap="round" opacity="0.52"/>
+    <circle cx="1305" cy="616" r="34" fill="#FFFDF2" stroke="#111318" stroke-width="3"/>
+    <circle cx="1435" cy="616" r="34" fill="#FFFDF2" stroke="#111318" stroke-width="3"/>
+    <text x="1305" y="626" text-anchor="middle" class="brand" font-size="24" fill="#111318">A</text>
+    <text x="1435" y="626" text-anchor="middle" class="brand" font-size="24" fill="#111318">B</text>
+    <circle cx="1370" cy="616" r="24" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1370" y="624" text-anchor="middle" class="brand" font-size="18" fill="#111318">x</text>
+
+    <!-- opened blotter doors -->
+    <rect x="1070" y="174" width="132" height="870" fill="url(#mintPaper)" stroke="#111318" stroke-width="4"/>
+    <rect x="1538" y="174" width="132" height="870" fill="url(#pinkPaper)" stroke="#111318" stroke-width="4"/>
+    <rect x="1114" y="228" width="76" height="28" rx="14" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1152" y="248" text-anchor="middle" class="brand" font-size="13" fill="#111318">A NOTE</text>
+    <rect x="1550" y="228" width="76" height="28" rx="14" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1588" y="248" text-anchor="middle" class="brand" font-size="13" fill="#111318">B NOTE</text>
+    <path d="M1116 342H1166M1116 424H1166M1116 506H1166M1116 588H1166M1116 670H1166M1116 752H1166M1574 342H1624M1574 424H1624M1574 506H1624M1574 588H1624M1574 670H1624M1574 752H1624" stroke="#111318" stroke-width="3" opacity="0.13"/>
+    <rect x="1202" y="174" width="14" height="870" fill="#111318"/>
+    <rect x="1524" y="174" width="14" height="870" fill="#111318"/>
+
+    <rect x="1154" y="900" width="432" height="20" rx="10" fill="#F8F3E8" opacity="0.18"/>
+    <rect x="1154" y="900" width="330" height="20" rx="10" fill="#FFC400"/>
+    <text x="1500" y="952" text-anchor="end" class="mono" font-size="16" fill="#F8F3E8">BLENDING 89%</text>
+  </g>
+  <rect x="1048" y="152" width="644" height="914" rx="64" fill="none" stroke="#111318" stroke-width="3"/>
+
+  <text x="430" y="1094" text-anchor="middle" class="copy" font-size="22">이미지 분석: 사진 리포트 봉투가 조용히 열림</text>
+  <text x="1370" y="1094" text-anchor="middle" class="copy" font-size="22">케미 분석: 두 시향지가 벌어지며 결과 카드가 보임</text>
+</svg>

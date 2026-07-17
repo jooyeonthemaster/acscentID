@@ -18,7 +18,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
   }, [html])
 
   return (
-    <section className="py-8 px-4 bg-white">
+    <section className="py-8 px-4 bg-[#12141D]">
       <div className="w-full max-w-[455px] mx-auto">
         <div
           className="custom-detail-content"
@@ -109,14 +109,14 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
 
         /* Links */
         .custom-detail-content a {
-          color: #2563eb;
+          color: #6D6D6D;
           text-decoration: underline;
           text-underline-offset: 3px;
           transition: color 0.15s;
         }
 
         .custom-detail-content a:hover {
-          color: #1d4ed8;
+          color: #5C5C5C;
         }
 
         /* Lists */
@@ -154,7 +154,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
         .custom-detail-content mark[data-color] {
           padding: 0.125rem 0.25rem;
           border-radius: 0.25rem;
-          background-color: #fef08a;
+          background-color: #1B1F2C;
         }
 
         /* Colored text - inline styles from TipTap handle this,
@@ -197,7 +197,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
         }
 
         .custom-detail-content pre {
-          background-color: #1e293b;
+          background-color: #292929;
           color: #e2e8f0;
           padding: 1rem;
           border-radius: 0.75rem;

@@ -9,10 +9,10 @@ import { useRouter } from 'next/navigation'
 import { getCouponDiscountLabel } from '@/types/coupon'
 
 const TICKET_COLORS: Record<string, string> = {
-  birthday: '#FBCFE8',
-  referral: '#BAE6FD',
-  repurchase: '#FEF08A',
-  welcome: '#D9F99D',
+  birthday: '#1B1F2C',
+  referral: '#DFDFDF',
+  repurchase: '#1B1F2C',
+  welcome: '#EDEDED',
 }
 
 export function CouponDrawer() {
@@ -63,13 +63,13 @@ export function CouponDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-[#FEFCE2] z-[70] shadow-[-8px_0_24px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-[#151823] z-[70] shadow-[-8px_0_24px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#161925] text-[#E9E2D0] px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-black">특별 혜택</h2>
-                <p className="text-sm text-slate-300">오늘의 쿠폰을 받아가세요</p>
+                <p className="text-sm lg:text-base text-[#5C564A]">오늘의 쿠폰을 받아가세요</p>
               </div>
               <button
                 onClick={closeDrawer}
@@ -86,13 +86,13 @@ export function CouponDrawer() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-between"
+                  className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-[12px] text-sm lg:text-base font-bold flex items-center justify-between"
                 >
                   <span>{error}</span>
                   {error.includes('로그인') && (
                     <button
                       onClick={handleLogin}
-                      className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-600 transition-colors"
+                      className="flex items-center gap-1 bg-red-500 text-[#E9E2D0] px-3 py-1 rounded-[12px] text-xs lg:text-sm font-bold hover:bg-red-600 transition-colors"
                     >
                       <LogIn className="w-3 h-3" />
                       로그인
@@ -117,14 +117,14 @@ export function CouponDrawer() {
                     <StickerTicket
                       title={coupon.title}
                       discount={getCouponDiscountLabel(coupon)}
-                      color={TICKET_COLORS[coupon.type] || '#BAE6FD'}
+                      color={TICKET_COLORS[coupon.type] || '#DFDFDF'}
                       className={`w-full ${isClaimed ? 'opacity-60' : ''}`}
                     />
 
                     {/* 쿠폰 받기 버튼 */}
                     <div className="absolute bottom-4 right-4">
                       {isClaimed ? (
-                        <div className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-full text-sm font-bold">
+                        <div className="flex items-center gap-1 bg-[#161925] text-[#E9E2D0] px-3 py-2 rounded-full text-sm lg:text-base font-bold">
                           <Check className="w-4 h-4" />
                           받음
                         </div>
@@ -132,7 +132,7 @@ export function CouponDrawer() {
                         <button
                           onClick={() => handleClaimCoupon(coupon.id)}
                           disabled={isClaiming}
-                          className="bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-[#161925] text-[#E9E2D0] px-4 py-2 rounded-full text-sm lg:text-base font-bold hover:bg-[#161925] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isClaiming ? '받는 중...' : '쿠폰 받기'}
                         </button>
@@ -143,16 +143,16 @@ export function CouponDrawer() {
               })}
 
               {availableCoupons.length === 0 && (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-[#8B8578]">
                   <p className="text-lg font-bold">현재 사용 가능한 쿠폰이 없어요</p>
-                  <p className="text-sm mt-2">나중에 다시 확인해주세요!</p>
+                  <p className="text-sm lg:text-base mt-2">나중에 다시 확인해주세요!</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="border-t-4 border-slate-900 bg-white/50 px-6 py-4">
-              <p className="text-xs text-slate-500 text-center">
+            <div className="border-t-4 border-[#262A38] bg-[#12141D]/50 px-6 py-4">
+              <p className="text-xs lg:text-sm text-[#8B8578] text-center">
                 쿠폰은 마이페이지에서 확인할 수 있어요
               </p>
             </div>

@@ -264,7 +264,7 @@ export function SajuAnalyzingOverlay({
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.8, ease: SAJU_EASE_INK }}
                             >
-                                <p className="font-serif-kr break-keep text-[20px] font-semibold leading-[1.5] text-[#E9E2D0]">
+                                <p className="font-serif-kr whitespace-pre-line break-keep text-[20px] font-semibold leading-[1.5] text-[#E9E2D0]">
                                     {showLate ? t('headlineLate') : headlineEarly}
                                 </p>
                                 {showLate && (

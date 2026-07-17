@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
+import { ImageIcon } from "lucide-react"
 
 interface AnalyzingOverlayProps {
     isVisible: boolean
@@ -42,7 +43,8 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
     // 분석 완료 시 문 열기
     useEffect(() => {
         if (isComplete && doorState === 'closed') {
-            setDoorState('opening')
+            const openTimer = setTimeout(() => setDoorState('opening'), 0)
+            return () => clearTimeout(openTimer)
         }
     }, [isComplete, doorState])
 
@@ -66,53 +68,31 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[99999] flex items-center justify-center"
         >
-            {/* 뒤가 안 보이게 불투명 배경 & 글래스모피즘 */}
-            <div className="absolute inset-0 bg-white/20 backdrop-blur-xl z-10" />
+            <div className="absolute inset-0 bg-[#0B0E16] z-10" />
 
-            {/* 문 배경 */}
-            <div className="absolute inset-0 flex">
-                {/* 문 디자인 (기존 SVG 유지) */}
-                <div className="absolute inset-0 flex pointer-events-none">
-                    {/* 왼쪽 문 */}
-                    <motion.div
-                        initial={{ x: "-100%" }}
-                        animate={{ x: doorPosition.left }}
-                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                        onAnimationComplete={handleDoorAnimationComplete}
-                        className="w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative"
-                    >
-                        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                            <defs>
-                                <pattern id="wood-pattern-analyze" width="100" height="100" patternUnits="userSpaceOnUse">
-                                    <path d="M0 0h100v100H0z" fill="#fbbf24" />
-                                    <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
-                                </pattern>
-                            </defs>
-                            <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
-                            <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                            <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                        </svg>
-                    </motion.div>
+            {/* 사진 리포트 봉투처럼 열리는 문 */}
+            <div className="absolute inset-0 z-20 flex pointer-events-none overflow-hidden">
+                <motion.div
+                    initial={{ x: "-100%" }}
+                    animate={{ x: doorPosition.left }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    onAnimationComplete={handleDoorAnimationComplete}
+                    className="relative h-full w-1/2 overflow-hidden border-r border-[#12141D]"
+                >
+                    <ImageReportDoorHalf side="left" />
+                </motion.div>
 
-                    {/* 오른쪽 문 */}
-                    <motion.div
-                        initial={{ x: "100%" }}
-                        animate={{ x: doorPosition.right }}
-                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                        className="w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative"
-                    >
-                        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                            <rect width="100%" height="100%" fill="url(#wood-pattern-analyze)" />
-                            <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                            <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                        </svg>
-                    </motion.div>
-                </div>
+                <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: doorPosition.right }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative h-full w-1/2 overflow-hidden border-l border-[#12141D]"
+                >
+                    <ImageReportDoorHalf side="right" />
+                </motion.div>
             </div>
 
-            {/* 로딩 콘텐츠 - 중앙 배치 */}
-            <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center gap-8">
-                {/* 상단 섹션: 타이틀 및 프로그레스 */}
+            <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center px-6">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{
@@ -120,77 +100,93 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                         y: doorState === 'opening' ? -40 : 0
                     }}
                     transition={{ duration: 0.4 }}
-                    className="w-full max-w-sm px-8 text-center"
+                    className="w-full max-w-[360px]"
                 >
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="mb-8"
+                        className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]"
                     >
-                        <p className="text-2xl md:text-3xl font-black text-amber-950 mb-1 drop-shadow-md">
-                            <span className="text-amber-800">{t('input.analyzing.userName', { name: userName })}</span>
-                        </p>
-                        <p className="text-2xl md:text-3xl font-black text-amber-950 drop-shadow-md">
-                            {t('input.analyzing.perfumeAnalyzing')}
-                        </p>
+                        <div className="bg-[#12141D] px-6 py-5 text-center">
+                            <p className="font-heading text-xl font-semibold tracking-[0.14em] text-[#F5EFE2]">AC&apos;SCENT</p>
+                            <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-[#8B8371]">{t('products.idolImage')}</p>
+                        </div>
+
+                        <div className="px-6 py-7">
+                            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
+                                <ImageIcon size={12} strokeWidth={2} className="text-[#9A8B5E]" />
+                                {t('footer.aiImageAnalysis')}
+                            </div>
+
+                            <div className="mb-7 text-left">
+                                <p className="font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+                                    {t('input.analyzing.userName', { name: userName })}
+                                </p>
+                                <p className="mt-0.5 font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+                                    {t('input.analyzing.perfumeAnalyzing')}
+                                </p>
+                            </div>
+
+                            <div className="mb-6 overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF] px-5 py-6">
+                                <AnimatePresence mode="wait">
+                                    <motion.p
+                                        key={currentQuoteIndex}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.4 }}
+                                        className="min-h-[52px] text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[#6E6659]"
+                                    >
+                                        &ldquo;{currentQuote}&rdquo;
+                                    </motion.p>
+                                </AnimatePresence>
+                            </div>
+
+                            <div className="relative h-1.5 overflow-hidden rounded-full bg-[#12141D]/10">
+                                <motion.div
+                                    className="h-full rounded-full bg-[#12141D]"
+                                    initial={{ width: "0%" }}
+                                    animate={{ width: isComplete ? "100%" : "90%" }}
+                                    transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
+                                />
+                            </div>
+                            <p className="mt-3 text-right text-[10px] font-medium uppercase tracking-[0.22em] text-[#8B8371]">
+                                {isComplete ? '100%' : 'Analyzing'}
+                            </p>
+                        </div>
                     </motion.div>
-
-                    {/* 로딩 바 - 프리미엄 글래스 스타일 */}
-                    <div className="relative w-64 md:w-80 h-6 bg-white/20 rounded-full overflow-hidden border-2 border-amber-600/30 backdrop-blur-md shadow-inner mx-auto">
-                        <motion.div
-                            className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600 rounded-full shadow-[0_0_15px_rgba(217,119,6,0.4)]"
-                            initial={{ width: "0%" }}
-                            animate={{ width: isComplete ? "100%" : "90%" }}
-                            transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
-                        />
-                        {/* 진행률 텍스트 인라인 */}
-                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white mix-blend-difference">
-                            {isComplete ? '100%' : 'ANALYZING...'}
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* 하단 섹션: 멘트 카드 */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{
-                        opacity: doorState === 'opening' ? 0 : 1,
-                        scale: doorState === 'opening' ? 0.9 : 1
-                    }}
-                    transition={{ duration: 0.4 }}
-                    className="w-full max-w-sm px-8"
-                >
-                    <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl text-center relative overflow-hidden">
-                        {/* 미니 장식 요소 */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-
-                        <div className="min-h-[64px] flex flex-col items-center justify-center">
-                            <AnimatePresence mode="wait">
-                                <motion.p
-                                    key={currentQuoteIndex}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.4 }}
-                                    className="text-amber-950 text-base md:text-lg font-bold leading-relaxed italic"
-                                >
-                                    "{currentQuote}"
-                                </motion.p>
-                            </AnimatePresence>
-                        </div>
-
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="mt-6 text-amber-800/80 text-xs font-black uppercase tracking-[0.3em]"
-                        >
-                            Est. Time: 30 Seconds
-                        </motion.p>
-                    </div>
                 </motion.div>
             </div>
         </motion.div>
+    )
+}
+
+function ImageReportDoorHalf({ side }: { side: 'left' | 'right' }) {
+    const isLeft = side === 'left'
+    const lineClassName = isLeft ? 'left-10' : 'right-10'
+    const spineClassName = isLeft ? 'right-0' : 'left-0'
+
+    return (
+        <>
+            <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(160deg, #FBF7EF 0%, #ECE3D0 100%)' }}
+            />
+            <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+                    <ImageIcon size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">Photo</span>
+            </div>
+            {[34, 50, 66, 82].map((top) => (
+                <div
+                    key={top}
+                    className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+                    style={{ top: `${top}%` }}
+                />
+            ))}
+            <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+        </>
     )
 }

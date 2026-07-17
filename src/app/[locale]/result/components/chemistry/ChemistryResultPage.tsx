@@ -12,6 +12,7 @@ import { ChemistryFeedbackModal, type ChemistryConfirmedRecipesPayload } from ".
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
+import { useViewportMode } from "@/hooks/useViewportMode"
 import { apiFetch } from "@/lib/api-client"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useLocale, useTranslations } from "next-intl"
@@ -169,11 +170,11 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
 }) {
   const { getLocalizedName } = useLocalizedPerfumes()
   const isViolet = accentColor === 'violet'
-  const borderColor = isViolet ? 'border-violet-400' : 'border-pink-400'
-  const shadowColor = isViolet ? 'shadow-[3px_3px_0_0_#8b5cf6]' : 'shadow-[3px_3px_0_0_#ec4899]'
-  const ringColor = isViolet ? 'ring-violet-200' : 'ring-pink-200'
-  const bgGradient = isViolet ? 'from-violet-50 to-violet-100/50' : 'from-pink-50 to-pink-100/50'
-  const textColor = isViolet ? 'text-violet-600' : 'text-pink-600'
+  const borderColor = isViolet ? 'border-[#C9BFA8]' : 'border-[#C9BFA8]'
+  const shadowColor = isViolet ? '' : ''
+  const ringColor = isViolet ? 'ring-[#D8CFBB]' : 'ring-[#D8CFBB]'
+  const bgGradient = isViolet ? 'from-[#FDFAF1] to-[#EDE5D2]/50' : 'from-[#FDFAF1] to-[#EDE5D2]/50'
+  const textColor = isViolet ? 'text-[#5C564A]' : 'text-[#5C564A]'
   const perfume = analysis.matchingPerfumes?.[0]
   const localizedPerfumeName = perfume?.perfumeId
     ? getLocalizedName(perfume.perfumeId, perfume.persona?.name)
@@ -182,7 +183,7 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
 
   return (
     <div className="px-4 mb-5">
-      <div className={`bg-gradient-to-br ${bgGradient} border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] overflow-hidden`}>
+      <div className={`bg-gradient-to-br ${bgGradient} border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden`}>
         <div className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
           {/* 이미지 */}
           <div className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-full border-3 ${borderColor} overflow-hidden flex-shrink-0 ${shadowColor} ring-2 ${ringColor} ring-offset-2`}>
@@ -190,22 +191,22 @@ function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analys
               // eslint-disable-next-line @next/next/no-img-element
               <img src={imagePreview} alt={name} className="w-full h-full object-cover" />
             ) : (
-              <div className={`w-full h-full bg-white flex items-center justify-center text-2xl`}>{emoji}</div>
+              <div className={`w-full h-full bg-[#F5EFE2] flex items-center justify-center text-2xl`}>{emoji}</div>
             )}
           </div>
           {/* 텍스트 */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">{emoji}</span>
-              <h2 className="text-lg font-black text-slate-900 truncate">{name}</h2>
+              <h2 className="text-lg font-black text-[#1A1610] truncate">{name}</h2>
             </div>
             {mood && (
-              <p className="text-[12px] sm:text-xs text-slate-600 leading-relaxed whitespace-pre-line break-keep">{mood}</p>
+              <p className="text-[12px] lg:text-[14px] sm:text-xs text-[#5C564A] leading-relaxed whitespace-pre-line break-keep">{mood}</p>
             )}
             {localizedPerfumeName && (
-              <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1 bg-white/80 rounded-full border border-slate-200`}>
-                <span className="text-[10px]">{String.fromCodePoint(0x1F48E)}</span>
-                <span className={`text-[11px] font-bold ${textColor} truncate max-w-[140px]`}>{localizedPerfumeName}</span>
+              <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1 bg-[#F5EFE2]/80 rounded-full border border-[#D8CFBB]`}>
+                <span className="text-[10px] lg:text-[12px]">{String.fromCodePoint(0x1F48E)}</span>
+                <span className={`text-[11px] lg:text-[13px] font-bold ${textColor} truncate max-w-[140px]`}>{localizedPerfumeName}</span>
               </div>
             )}
           </div>
@@ -223,6 +224,8 @@ export default function ChemistryResultPage() {
   const { getOptions } = useProductPricing()
   const { getLocalizedName } = useLocalizedPerfumes()
   const t = useTranslations()
+  // lg+ 데스크탑에서만 하위 카드 데스크탑 변형 활성 ('ssr'/'mobile'이면 false → 모바일 불변)
+  const isDesktop = useViewportMode() === 'desktop'
   const [result, setResult] = useState<ChemistryAnalysisResult | null>(null)
   const [formMeta, setFormMeta] = useState<ChemistryFormMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -635,10 +638,10 @@ export default function ChemistryResultPage() {
 
   if (loading || isTranslatingLocale) {
     return (
-      <div className="min-h-[100svh] bg-[#FEF9C3] flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-slate-900 rounded-xl animate-spin mx-auto mb-4" />
-          <p className="text-slate-900 font-black">{t('result.loading')}</p>
+      <div className="min-h-[100svh] bg-[#0C0E16] flex items-center justify-center">
+        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB] text-center">
+          <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
+          <p className="text-[#1A1610] font-black">{t('result.loading')}</p>
         </div>
       </div>
     )
@@ -646,12 +649,12 @@ export default function ChemistryResultPage() {
 
   if (!result || !formMeta) {
     return (
-      <div className="min-h-[100svh] bg-[#FAFAFA] flex flex-col items-center justify-center gap-4">
-        <div className="bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000] text-center">
-          <p className="text-slate-500 mb-4">{t('chemistry.buttons.noResult')}</p>
+      <div className="min-h-[100svh] bg-[#0C0E16] flex flex-col items-center justify-center gap-4">
+        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB] text-center">
+          <p className="text-[#8B8578] mb-4">{t('chemistry.buttons.noResult')}</p>
           <button
             onClick={() => router.push('/')}
-            className="px-6 py-3 bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all"
+            className="px-6 py-3 bg-[#12141D] text-[#F5EFE2] font-black rounded-[12px] border-2 border-[#12141D] transition-all"
           >
             {t('buttons.goHome')}
           </button>
@@ -672,63 +675,63 @@ export default function ChemistryResultPage() {
     : characterBPerfume?.persona?.name || ''
 
   return (
-    <div className="min-h-[100svh] bg-[#FAFAFA]">
+    <div className="min-h-[100svh] bg-[#0C0E16]">
       {/* 배경 */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
         <div className="absolute inset-0 z-0 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
         <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-200 rounded-full mix-blend-multiply animate-blob-rotate" />
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply animate-blob-rotate-fast" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
         </div>
       </div>
 
       <Header showBack backHref="/" />
 
-      <div className="relative z-10 w-full max-w-[455px] mx-auto min-h-[100svh] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+      <div className="relative z-10 w-full max-w-[455px] mx-auto min-h-[100svh] pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:max-w-[760px]">
         <div className="h-[84px]" />
 
         {/* 통합 스티키 네비게이션 */}
         <div className="sticky top-[84px] z-40">
-        <div className="w-full bg-[#FAFAFA]/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
+        <div className="w-full bg-[#F5EFE2]/95 backdrop-blur-md border-b border-stone-200/60 shadow-sm">
           {/* 메인 탭 */}
           <div className="px-4 pt-2 pb-1.5 space-y-1">
             {/* 두 인물 탭 — 2열 */}
-            <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl">
+            <div className="grid grid-cols-2 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
               <button
                 onClick={() => handleTabChange('characterA')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-bold transition-all rounded-lg ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
                   mainTab === 'characterA'
-                    ? 'text-white bg-violet-500 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'text-[#F5EFE2] bg-[#12141D] shadow-sm'
+                    : 'text-[#8B8578] hover:text-[#5C564A]'
                 }`}
               >
-                <span className="text-xs">{String.fromCodePoint(0x1F319)}</span>
+                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x1F319)}</span>
                 <span className="truncate max-w-[70px]">{character1Name}</span>
               </button>
               <button
                 onClick={() => handleTabChange('characterB')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-bold transition-all rounded-lg ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
                   mainTab === 'characterB'
-                    ? 'text-white bg-pink-500 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'text-[#F5EFE2] bg-[#12141D] shadow-sm'
+                    : 'text-[#8B8578] hover:text-[#5C564A]'
                 }`}
               >
-                <span className="text-xs">{String.fromCodePoint(0x2600, 0xFE0F)}</span>
+                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x2600, 0xFE0F)}</span>
                 <span className="truncate max-w-[70px]">{character2Name}</span>
               </button>
             </div>
             {/* 케미 탭 — 가로 전체, 강조 색상 */}
-            <div className="bg-gradient-to-r from-violet-100 to-pink-100 p-1 rounded-xl">
+            <div className="bg-gradient-to-r from-[#EDE5D2] to-[#EDE5D2] p-1 rounded-[12px]">
               <button
                 onClick={() => handleTabChange('chemistry')}
-                className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-[11px] font-bold transition-all rounded-lg ${
+                className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
                   mainTab === 'chemistry'
-                    ? 'text-white bg-gradient-to-r from-violet-500 to-pink-500 shadow-sm'
-                    : 'text-violet-500 hover:text-violet-700'
+                    ? 'text-[#1A1610] bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] shadow-sm'
+                    : 'text-[#8B8578] hover:text-[#5C564A]'
                 }`}
               >
-                <span className="text-xs">{String.fromCodePoint(0x26A1)}</span>
+                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x26A1)}</span>
                 <span>{t('chemistry.result.analysisTab')}</span>
               </button>
             </div>
@@ -737,13 +740,13 @@ export default function ChemistryResultPage() {
           {/* 하위 탭 - 캐릭터 탭일 때 */}
           {(mainTab === 'characterA' || mainTab === 'characterB') && (
             <div className="px-4 pb-2">
-              <div className="grid grid-cols-2 gap-1 bg-white/80 p-1 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 gap-1 bg-[#F5EFE2]/80 p-1 rounded-[12px] border border-[#D8CFBB]">
                 <button
                   onClick={() => setCharSubTab('perfume')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-bold rounded-[12px] transition-all ${
                     charSubTab === 'perfume'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'bg-[#F5EFE2] text-[#1A1610] shadow-sm border border-[#D8CFBB]'
+                      : 'text-[#8B8578] hover:text-[#5C564A]'
                   }`}
                 >
                   <span>{String.fromCodePoint(0x1F48E)}</span>
@@ -751,10 +754,10 @@ export default function ChemistryResultPage() {
                 </button>
                 <button
                   onClick={() => setCharSubTab('analysis')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-bold rounded-[12px] transition-all ${
                     charSubTab === 'analysis'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'bg-[#F5EFE2] text-[#1A1610] shadow-sm border border-[#D8CFBB]'
+                      : 'text-[#8B8578] hover:text-[#5C564A]'
                   }`}
                 >
                   <span>{String.fromCodePoint(0x1F50D)}</span>
@@ -772,7 +775,7 @@ export default function ChemistryResultPage() {
                   <button
                     key={section.id}
                     onClick={() => scrollToChemistrySection(section.id)}
-                    className="flex items-center gap-0.5 px-2.5 py-1 bg-white/80 border border-slate-200 rounded-md text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all active:scale-95 whitespace-nowrap"
+                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[#F5EFE2]/80 border border-[#D8CFBB] rounded-[12px] text-[10px] lg:text-[12px] font-bold text-[#8B8578] hover:border-[#D8CFBB] hover:text-[#5C564A] hover:bg-[#FDFAF1] transition-all active:scale-95 whitespace-nowrap"
                   >
                     <span>{section.emoji}</span>
                     <span>{t(section.labelKey)}</span>
@@ -809,6 +812,7 @@ export default function ChemistryResultPage() {
                   analysis={characterA}
                   accentColor="violet"
                   activeSubTab={charSubTab}
+                  isDesktop={isDesktop}
                 />
               </motion.div>
             )}
@@ -834,6 +838,7 @@ export default function ChemistryResultPage() {
                   analysis={characterB}
                   accentColor="pink"
                   activeSubTab={charSubTab}
+                  isDesktop={isDesktop}
                 />
               </motion.div>
             )}
@@ -870,7 +875,7 @@ export default function ChemistryResultPage() {
 
         {/* 3. 푸터 */}
         <div className="w-full text-center pt-12 pb-8">
-          <span className="text-[9px] font-semibold text-slate-400/80 tracking-[0.3em] uppercase">
+          <span className="text-[9px] font-semibold text-stone-400/80 tracking-[0.3em] uppercase">
             &copy; 2025 Ac&apos;scent Identity
           </span>
         </div>

@@ -664,7 +664,7 @@ function BlockPreview({
     case 'hero':
       return (
         <div
-          className="rounded-lg border-2 border-slate-900 p-4 shadow-[2px_2px_0_0_#111827]"
+          className="rounded-lg border-2 border-slate-900 p-4"
           style={{ backgroundColor: block.bgColor, textAlign: block.align }}
         >
           <div
@@ -732,7 +732,7 @@ function BlockPreview({
     case 'features': {
       const featureItems = block.items.length > 0 ? block.items : ['']
       return (
-        <div className="rounded-lg border-2 border-slate-900 bg-white p-3 shadow-[2px_2px_0_0_#111827]">
+        <div className="rounded-lg border-2 border-slate-900 bg-white p-3">
           <InlineEditableText
             value={block.title}
             onChange={(title) => onPatch({ title } as Partial<DetailBlock>)}
@@ -784,7 +784,7 @@ function BlockPreview({
           <InlineEditableText
             value={block.label}
             onChange={(label) => onPatch({ label } as Partial<DetailBlock>)}
-            className="inline-flex min-h-10 items-center rounded-lg border-2 border-slate-900 px-4 text-sm font-black shadow-[2px_2px_0_0_#111827]"
+            className="inline-flex min-h-10 items-center rounded-lg border-2 border-slate-900 px-4 text-sm font-black"
             style={{ backgroundColor: block.bgColor, color: block.textColor }}
             placeholder="버튼 문구"
           />
@@ -794,7 +794,7 @@ function BlockPreview({
       return (
         <div className="relative h-28 rounded-lg border border-dashed border-slate-300 bg-slate-50">
           <div
-            className="absolute flex flex-col items-center justify-center gap-1 border-2 text-center shadow-[2px_2px_0_0_currentColor]"
+            className="absolute flex flex-col items-center justify-center gap-1 border-2 text-center"
             style={{
               left: Math.min(block.x / 3, 120),
               top: Math.min(block.y / 8, 58),

@@ -20,84 +20,84 @@ const TRAIT_COLORS: Record<string, {
   shadow: string
 }> = {
   sexy: {
-    bg: 'bg-rose-100',
-    text: 'text-rose-700',
-    border: 'border-rose-400',
-    fill: 'rgba(244, 63, 94, 0.15)',
-    gradient: 'from-rose-400 to-pink-500',
-    shadow: 'shadow-rose-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(133,133,133, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   cute: {
-    bg: 'bg-pink-100',
-    text: 'text-pink-600',
-    border: 'border-pink-400',
-    fill: 'rgba(236, 72, 153, 0.15)',
-    gradient: 'from-pink-400 to-rose-400',
-    shadow: 'shadow-pink-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(136,136,136, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   charisma: {
-    bg: 'bg-amber-100',
-    text: 'text-amber-700',
-    border: 'border-amber-400',
-    fill: 'rgba(245, 158, 11, 0.15)',
-    gradient: 'from-amber-400 to-orange-500',
-    shadow: 'shadow-amber-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(177,177,177, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   darkness: {
-    bg: 'bg-slate-200',
-    text: 'text-slate-700',
-    border: 'border-slate-500',
-    fill: 'rgba(71, 85, 105, 0.15)',
-    gradient: 'from-slate-600 to-slate-800',
-    shadow: 'shadow-slate-300'
+    bg: 'bg-[#232838]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(84,84,84, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-300'
   },
   freshness: {
-    bg: 'bg-cyan-100',
-    text: 'text-cyan-700',
-    border: 'border-cyan-400',
-    fill: 'rgba(6, 182, 212, 0.15)',
-    gradient: 'from-cyan-400 to-teal-500',
-    shadow: 'shadow-cyan-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(166,166,166, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   elegance: {
-    bg: 'bg-violet-100',
-    text: 'text-violet-700',
-    border: 'border-violet-400',
-    fill: 'rgba(139, 92, 246, 0.15)',
-    gradient: 'from-violet-400 to-purple-500',
-    shadow: 'shadow-violet-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(123,123,123, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   freedom: {
-    bg: 'bg-sky-100',
-    text: 'text-sky-700',
-    border: 'border-sky-400',
-    fill: 'rgba(14, 165, 233, 0.15)',
-    gradient: 'from-sky-400 to-blue-500',
-    shadow: 'shadow-sky-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(155,155,155, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   luxury: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-700',
-    border: 'border-yellow-500',
-    fill: 'rgba(234, 179, 8, 0.15)',
-    gradient: 'from-yellow-400 to-amber-500',
-    shadow: 'shadow-yellow-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(187,187,187, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   },
   purity: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-600',
-    border: 'border-blue-300',
-    fill: 'rgba(147, 197, 253, 0.2)',
-    gradient: 'from-blue-300 to-indigo-400',
-    shadow: 'shadow-blue-100'
+    bg: 'bg-[#0C0E16]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#262A38]',
+    fill: 'rgba(193,193,193, 0.2)',
+    gradient: 'from-[#232838] to-[#161925]',
+    shadow: 'shadow-[#151823]'
   },
   uniqueness: {
-    bg: 'bg-fuchsia-100',
-    text: 'text-fuchsia-700',
-    border: 'border-fuchsia-400',
-    fill: 'rgba(217, 70, 239, 0.15)',
-    gradient: 'from-fuchsia-400 to-purple-500',
-    shadow: 'shadow-fuchsia-200'
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    border: 'border-[#343A4C]',
+    fill: 'rgba(138,138,138, 0.15)',
+    gradient: 'from-[#161925] to-[#161925]',
+    shadow: 'shadow-stone-200'
   }
 }
 
@@ -182,7 +182,7 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
         textAnchor="middle"
         fontSize="9"
         fontWeight="600"
-        fill="#64748b"
+        fill="#737373"
       >
         {char.label}
       </text>
@@ -212,9 +212,9 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
           className="relative mb-4"
         >
           {/* 말풍선 */}
-          <div className={`relative bg-gradient-to-r ${topTraitColor.gradient} rounded-2xl p-4 shadow-lg`}>
+          <div className={`relative bg-gradient-to-r ${topTraitColor.gradient} rounded-[12px] p-4 shadow-lg`}>
             {/* 반짝이 효과 */}
-            <div className="absolute inset-0 overflow-hidden rounded-2xl">
+            <div className="absolute inset-0 overflow-hidden rounded-[12px]">
               <motion.div
                 animate={{ x: ['-100%', '200%'] }}
                 transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
@@ -226,17 +226,17 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
               <motion.div
                 animate={{ rotate: [0, -10, 10, 0] }}
                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center flex-shrink-0 shadow-md border-2 border-white"
+                className="w-10 h-10 rounded-[12px] bg-[#12141D]/90 flex items-center justify-center flex-shrink-0 shadow-md border-2 border-[#5C564A]"
               >
                 <span className="text-lg">{highestTrait.icon}</span>
               </motion.div>
               <div className="flex-1">
-                <p className="text-white text-sm font-black leading-relaxed drop-shadow-sm">
+                <p className="text-[#E9E2D0] text-sm lg:text-base font-black leading-relaxed drop-shadow-sm">
                   &quot;{getAiMessage(highestTrait.key)}&quot;
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-white/80 text-[10px] font-bold">@acscent_ai</span>
-                  <span className="px-2 py-0.5 bg-white/20 rounded-full text-white text-[10px] font-black">
+                  <span className="text-white/80 text-[10px] lg:text-[12px] font-bold">@acscent_ai</span>
+                  <span className="px-2 py-0.5 bg-white/20 rounded-full text-[#E9E2D0] text-[10px] lg:text-[12px] font-black">
                     {highestTrait.label} {highestTrait.value}{t('scoreUnit')}
                   </span>
                 </div>
@@ -250,7 +250,7 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
       )}
 
       {/* SVG 레이더 차트 */}
-      <div className="flex justify-center bg-slate-50/50 rounded-2xl p-4">
+      <div className="flex justify-center bg-stone-50/50 rounded-[12px] p-4">
         <svg width="280" height="280" viewBox="0 0 280 280">
           {gridCircles}
           {axisLines}
@@ -268,9 +268,9 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
           {/* 그라데이션 정의 */}
           <defs>
             <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#F472B6" />
-              <stop offset="50%" stopColor="#FACC15" />
-              <stop offset="100%" stopColor="#60A5FA" />
+              <stop offset="0%" stopColor="#9F9F9F" />
+              <stop offset="50%" stopColor="#D1D1D1" />
+              <stop offset="100%" stopColor="#A2A2A2" />
             </linearGradient>
           </defs>
 
@@ -311,17 +311,17 @@ export default function TraitRadarChart({ traits, showAnimation = true }: TraitR
               transition={{ delay: 1 + i * 0.05, type: 'spring', stiffness: 200 }}
               whileHover={{ scale: 1.05, y: -2 }}
               className={`
-                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[12px]
                 ${traitColor.bg} ${traitColor.text} border-2 ${traitColor.border}
-                ${isTop ? 'ring-2 ring-offset-1 ring-yellow-400 shadow-md' : ''}
+                ${isTop ? 'ring-2 ring-offset-1 ring-[#343A4C] shadow-md' : ''}
                 transition-all cursor-default
               `}
             >
-              <span className="text-sm">{char.icon}</span>
-              <span className="text-[11px] font-black">{char.label}</span>
+              <span className="text-sm lg:text-base">{char.icon}</span>
+              <span className="text-[11px] lg:text-[13px] font-black">{char.label}</span>
               <span className={`
-                text-[10px] font-black px-1.5 py-0.5 rounded-md
-                ${isTop ? 'bg-white/60' : 'bg-white/40'}
+                text-[10px] lg:text-[12px] font-black px-1.5 py-0.5 rounded-[12px]
+                ${isTop ? 'bg-[#12141D]/60' : 'bg-white/40'}
               `}>
                 {char.value}
               </span>

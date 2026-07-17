@@ -33,11 +33,10 @@ export function CustomInputToggle({
                     onClick={onToggle}
                     className="
                         w-full py-3 px-4
-                        text-sm font-medium text-slate-600
-                        bg-white/80 backdrop-blur-md rounded-xl
-                        border-2 border-dashed border-slate-300
-                        shadow-md shadow-slate-900/5
-                        hover:border-yellow-400 hover:text-yellow-600 hover:bg-white/90
+                        text-sm lg:text-base font-medium text-[#A69F8D]
+                        bg-[#12141D] rounded-[12px]
+                        border border-dashed border-[#262A38]
+                        hover:border-[#3A4051]
                         transition-all duration-200
                     "
                 >
@@ -46,7 +45,7 @@ export function CustomInputToggle({
             ) : (
                 <div className="relative">
                     {/* 스티치 효과 - 외곽선 */}
-                    <div className="absolute -inset-[3px] rounded-2xl border-2 border-dashed border-yellow-400/60 pointer-events-none" />
+                    <div className="absolute -inset-[3px] rounded-[12px] border border-dashed border-[#3A4051] pointer-events-none" />
                     <input
                         type="text"
                         value={value}
@@ -54,13 +53,12 @@ export function CustomInputToggle({
                         placeholder={placeholder || t('input.customPlaceholder')}
                         className="
                             relative w-full p-3
-                            bg-white/90 backdrop-blur-md rounded-xl
-                            text-sm text-slate-800
-                            placeholder:text-slate-400
+                            bg-[#12141D] rounded-[12px]
+                            text-sm lg:text-base text-[#E9E2D0]
+                            placeholder:text-[#5C564A]
                             outline-none
-                            border-2 border-yellow-200
-                            shadow-lg shadow-yellow-400/10
-                            focus:border-yellow-400 focus:bg-white focus:shadow-yellow-400/20
+                            border border-[#262A38]
+                            focus:border-[#E9E2D0]/70
                             transition-all
                         "
                     />

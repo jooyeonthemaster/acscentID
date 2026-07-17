@@ -23,24 +23,24 @@ function FAQAccordionItem({
   return (
     <div
       className={cn(
-        'border-2 rounded-2xl overflow-hidden bg-white transition-all',
+        'border-2 rounded-[12px] overflow-hidden bg-[#12141D] transition-all',
         isOpen
-          ? 'border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
-          : 'border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
+          ? 'border-[#262A38]'
+          : 'border-black/80'
       )}
     >
       <button
         onClick={onToggle}
-        className="w-full px-4 md:px-5 py-4 flex items-center gap-3 text-left hover:bg-yellow-50 transition-colors"
+        className="w-full px-4 md:px-5 py-4 flex items-center gap-3 text-left hover:bg-[#0C0E16] transition-colors"
       >
-        <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-black text-yellow-400 grid place-items-center text-sm font-black">
+        <span className="flex-shrink-0 w-7 h-7 rounded-[12px] bg-[#0C0E16] text-[#8B8578] grid place-items-center text-sm lg:text-base font-black">
           Q
         </span>
-        <span className="flex-1 font-bold text-slate-900 leading-snug">{faq.question}</span>
+        <span className="flex-1 font-bold text-[#E9E2D0] leading-snug">{faq.question}</span>
         <ChevronDown
           size={20}
           className={cn(
-            'flex-shrink-0 text-slate-500 transition-transform duration-200',
+            'flex-shrink-0 text-[#8B8578] transition-transform duration-200',
             isOpen && 'rotate-180'
           )}
         />
@@ -54,17 +54,17 @@ function FAQAccordionItem({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 md:px-5 pb-4 pt-3 border-t-2 border-dashed border-slate-200 bg-slate-50/70">
+            <div className="px-4 md:px-5 pb-4 pt-3 border-t-2 border-dashed border-[#262A38] bg-stone-50/70">
               {showCategory && (
-                <span className="inline-flex mb-2 px-2 py-0.5 bg-yellow-100 border border-yellow-300 rounded-full text-[10px] font-black text-slate-700">
+                <span className="inline-flex mb-2 px-2 py-0.5 bg-[#151823] border border-[#262A38] rounded-full text-[10px] lg:text-[12px] font-black text-[#A69F8D]">
                   {faq.category}
                 </span>
               )}
               <div className="flex gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-yellow-400 text-black grid place-items-center text-sm font-black">
+                <span className="flex-shrink-0 w-7 h-7 rounded-[12px] bg-[#161925] text-[#E9E2D0] grid place-items-center text-sm lg:text-base font-black">
                   A
                 </span>
-                <p className="flex-1 text-slate-600 leading-relaxed whitespace-pre-line pt-0.5">{faq.answer}</p>
+                <p className="flex-1 text-[#A69F8D] leading-relaxed whitespace-pre-line pt-0.5">{faq.answer}</p>
               </div>
             </div>
           </motion.div>
@@ -131,24 +131,24 @@ export default function FAQPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-yellow-50 via-white to-purple-50 pt-24 pb-32">
+      <main className="min-h-screen bg-gradient-to-b from-[#0C0E16] via-[#12141D] to-[#0C0E16] pt-24 pb-32">
         <div className="max-w-3xl mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 border-2 border-purple-300 rounded-full mb-3"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#151823] border-2 border-[#262A38] rounded-full mb-3"
             >
-              <HelpCircle size={16} className="text-purple-600" />
-              <span className="text-xs font-bold text-purple-700">{t('badge')}</span>
+              <HelpCircle size={16} className="text-[#A69F8D]" />
+              <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('badge')}</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-3xl md:text-5xl font-black text-slate-900 mb-2"
+              className="text-3xl md:text-5xl font-black text-[#E9E2D0] mb-2"
             >
               {t('title')}
             </motion.h1>
@@ -157,7 +157,7 @@ export default function FAQPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-slate-600 text-sm md:text-lg"
+              className="text-[#A69F8D] text-sm lg:text-base md:text-lg"
             >
               {t('subtitle')}
             </motion.p>
@@ -165,7 +165,7 @@ export default function FAQPage() {
 
           {/* Search */}
           <div className="relative mb-4">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8578]" />
             <input
               value={query}
               onChange={(event) => {
@@ -173,7 +173,7 @@ export default function FAQPage() {
                 setOpenId(null)
               }}
               placeholder={t('searchPlaceholder')}
-              className="w-full h-12 rounded-2xl border-2 border-black bg-white pl-11 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-[3px_3px_0_0_#FACC15] outline-none focus:ring-2 focus:ring-yellow-300"
+              className="w-full h-12 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] pl-11 pr-4 text-sm lg:text-base font-bold text-[#E9E2D0] placeholder:text-[#8B8578] outline-none focus:ring-2 focus:ring-[#262A38]"
             />
           </div>
 
@@ -190,10 +190,10 @@ export default function FAQPage() {
                   key={category}
                   onClick={() => handleTabChange(category)}
                   className={cn(
-                    'px-2.5 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl font-bold text-[11px] md:text-sm border-2 transition-all whitespace-nowrap',
+                    'px-2.5 py-2 md:px-4 md:py-2.5 rounded-[12px] md:rounded-[12px] font-bold text-[11px] lg:text-[13px] md:text-sm border-2 transition-all whitespace-nowrap',
                     currentTab === category
-                      ? 'bg-black text-white border-black shadow-[2px_2px_0px_0px_#FACC15] md:shadow-[3px_3px_0px_0px_#FACC15]'
-                      : 'bg-white text-slate-700 border-slate-300 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                      ? 'bg-[#0C0E16] text-[#E9E2D0] border-[#262A38]'
+                      : 'bg-[#12141D] text-[#A69F8D] border-[#262A38] hover:border-[#262A38]'
                   )}
                 >
                   {category}
@@ -205,7 +205,7 @@ export default function FAQPage() {
           {/* FAQ List */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-7 h-7 text-slate-400 animate-spin" />
+              <Loader2 className="w-7 h-7 text-[#8B8578] animate-spin" />
             </div>
           ) : (
             <motion.div
@@ -225,9 +225,9 @@ export default function FAQPage() {
                 />
               ))}
               {visibleFaqs.length === 0 && (
-                <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white/70 px-5 py-14 text-center">
-                  <MessagesSquare className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                  <p className="text-sm font-bold text-slate-500">{t('noResults')}</p>
+                <div className="rounded-[12px] border-2 border-dashed border-[#262A38] bg-[#12141D]/70 px-5 py-14 text-center">
+                  <MessagesSquare className="w-12 h-12 text-[#262A38] mx-auto mb-3" />
+                  <p className="text-sm lg:text-base font-bold text-[#8B8578]">{t('noResults')}</p>
                 </div>
               )}
             </motion.div>

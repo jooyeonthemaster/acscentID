@@ -98,7 +98,7 @@ function DeleteConfirmModal({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] p-6 max-w-md w-full mx-4"
+        className="bg-white rounded-2xl border-2 border-slate-900 p-6 max-w-md w-full mx-4"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
@@ -241,7 +241,7 @@ function BannerFormModal({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] w-full max-w-2xl mx-4 my-auto"
+        className="bg-white rounded-2xl border-2 border-slate-900 w-full max-w-2xl mx-4 my-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
@@ -432,7 +432,7 @@ function BannerFormModal({
           <button
             onClick={handleSubmit}
             disabled={saving || uploading}
-            className="px-6 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving ? (
               <>
@@ -478,7 +478,7 @@ function HeroPreview({ banners }: { banners: Banner[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="relative w-full aspect-[455/420] rounded-xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] bg-slate-900">
+      <div className="relative w-full aspect-[455/420] rounded-xl overflow-hidden border-2 border-slate-900 bg-slate-900">
         <AnimatePresence mode="wait">
           <motion.img
             key={activeBanners[safeIndex].id}
@@ -860,7 +860,7 @@ export default function AdminBannersPage() {
         actions={
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 transition-all"
           >
             <Plus className="w-4 h-4" />
             새 배너 추가
@@ -915,7 +915,7 @@ export default function AdminBannersPage() {
               <p className="text-slate-400 text-sm mb-6">새 배너를 추가하여 메인 페이지를 꾸며보세요.</p>
               <button
                 onClick={openCreate}
-                className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 text-slate-900 font-bold rounded-xl border-2 border-slate-900 transition-all"
               >
                 <Plus className="w-4 h-4" />
                 첫 배너 추가하기

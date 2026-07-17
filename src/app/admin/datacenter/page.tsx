@@ -356,7 +356,7 @@ function OverviewSection({
   return (
     <>
       {/* 프로그램 선택 탭 + 다운로드 버튼 */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-3 mb-6 shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-3 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {(Object.keys(PROGRAM_LABELS) as ProgramType[]).map((programType) => {
@@ -371,7 +371,7 @@ function OverviewSection({
                   className={`
                     flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all
                     ${isActive
-                      ? 'bg-slate-900 text-white shadow-[2px_2px_0px_#fbbf24]'
+                      ? 'bg-slate-900 text-white'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }
                   `}
@@ -394,7 +394,7 @@ function OverviewSection({
           <button
             onClick={handleDownload}
             disabled={downloading || loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 shadow-[3px_3px_0px_#065f46] hover:shadow-[1px_1px_0px_#065f46] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 transition-all disabled:opacity-50"
           >
             {downloading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -419,7 +419,7 @@ function OverviewSection({
           <p className="text-slate-600">{error}</p>
           <button
             onClick={fetchData}
-            className="mt-4 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            className="mt-4 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
           >
             다시 시도
           </button>
@@ -431,7 +431,7 @@ function OverviewSection({
         <>
           {/* 상단 요약 카드 */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
               <div className="flex items-center gap-2 text-slate-500 mb-2">
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-xs font-medium">총 분석</span>
@@ -440,7 +440,7 @@ function OverviewSection({
                 {currentStats.totalAnalyses.toLocaleString()}건
               </div>
             </div>
-            <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
               <div className="flex items-center gap-2 text-slate-500 mb-2">
                 <Crown className="w-4 h-4" />
                 <span className="text-xs font-medium">TOP 이름</span>
@@ -452,7 +452,7 @@ function OverviewSection({
                 {currentStats.nameCounts[0]?.count || 0}회 분석
               </div>
             </div>
-            <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
               <div className="flex items-center gap-2 text-slate-500 mb-2">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-xs font-medium">TOP 향수</span>
@@ -464,7 +464,7 @@ function OverviewSection({
                 {currentStats.perfumeCounts[0]?.count || 0}회 추천
               </div>
             </div>
-            <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
               <div className="flex items-center gap-2 text-slate-500 mb-2">
                 <Cloud className="w-4 h-4" />
                 <span className="text-xs font-medium">TOP 키워드</span>
@@ -481,7 +481,7 @@ function OverviewSection({
           {/* 메인 그리드 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 분석 대상 이름 순위 */}
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-white">
                 <div className="flex items-center gap-2">
                   <User className="w-5 h-5 text-purple-500" />
@@ -500,7 +500,7 @@ function OverviewSection({
             </div>
 
             {/* 향수 추천 순위 */}
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-white">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -520,7 +520,7 @@ function OverviewSection({
 
             {/* 일자별 향수 추천 트렌드 */}
             {data?.perfumeDailyTrend && data.perfumeDailyTrend.length > 0 && (
-              <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+              <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-white">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -543,7 +543,7 @@ function OverviewSection({
             )}
 
             {/* 키워드 클라우드 */}
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 to-white">
                 <div className="flex items-center gap-2">
                   <Cloud className="w-5 h-5 text-cyan-500" />
@@ -562,7 +562,7 @@ function OverviewSection({
             </div>
 
             {/* 성별 통계 */}
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-pink-50">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-500" />
@@ -579,7 +579,7 @@ function OverviewSection({
           </div>
 
           {/* 상위 키워드 TOP 20 */}
-          <div className="mt-6 bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="mt-6 bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
               <h2 className="font-bold text-slate-900">상위 키워드 TOP 20</h2>
             </div>
@@ -612,7 +612,7 @@ function OverviewSection({
                 return (
                   <div
                     key={programType}
-                    className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]"
+                    className="bg-white rounded-xl border-2 border-slate-200 p-4"
                   >
                     <div className="flex items-center gap-2 mb-3">
                       <span className={`p-1.5 rounded-lg ${color} text-white`}>
@@ -713,7 +713,7 @@ export default function DatacenterPage() {
 
       <div className="p-6">
         {/* 탭 네비게이션 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-2 mb-6 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-2 mb-6">
           <div className="flex flex-wrap gap-1">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id
@@ -724,7 +724,7 @@ export default function DatacenterPage() {
                   className={`
                     flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all
                     ${isActive
-                      ? 'bg-slate-900 text-white shadow-[2px_2px_0px_#fbbf24]'
+                      ? 'bg-slate-900 text-white'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }
                   `}

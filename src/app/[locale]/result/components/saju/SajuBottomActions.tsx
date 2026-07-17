@@ -85,7 +85,7 @@ export function SajuBottomActions({
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5, duration: 0.4, ease: SAJU_EASE_INK }}
-      className="safe-area-bottom fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[455px] border-t border-[#C9A227]/30 bg-[#12141D]/95 px-4 py-3 backdrop-blur"
+      className="safe-area-bottom fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[455px] border-t border-[#C9A227]/30 bg-[#12141D]/95 px-4 py-3 backdrop-blur lg:max-w-[680px]"
     >
       {/* 금 글로우 — 기존 buyGlow(1.8s, drop-shadow) 키프레임 구조의 금 변형 (§5.8) */}
       <style>{`

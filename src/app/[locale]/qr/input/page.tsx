@@ -47,7 +47,7 @@ function QRInputForm() {
     const qrRedirectPath = `/qr/input?${searchParams.toString()}`
 
     return (
-        <div className="relative w-full min-h-screen bg-[#FAFAFA] font-sans text-slate-800 flex flex-col">
+        <div className="relative w-full min-h-screen bg-[#10131C] font-wanted text-[#E9E2D0] flex flex-col">
             {/* 배경 */}
             <Background />
 
@@ -167,9 +167,9 @@ function Background() {
 function ProgressBar({ currentStep }: { currentStep: number }) {
     return (
         <div className="relative z-10 px-4 py-2 max-w-xl mx-auto w-full">
-            <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1 bg-[#1B1F2C] rounded-full overflow-hidden">
                 <motion.div
-                    className="h-full bg-yellow-400 rounded-full"
+                    className="h-full bg-[#161925] rounded-full"
                     initial={{ width: "0%" }}
                     animate={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -197,7 +197,7 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         onClick={onPrev}
-                        className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+                        className="flex-shrink-0 w-14 h-14 rounded-[12px] bg-[#12141D] border border-[#262A38] flex items-center justify-center text-[#A69F8D] hover:bg-[#151823] transition-colors"
                     >
                         <ArrowLeft size={20} />
                     </motion.button>
@@ -206,15 +206,15 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                     whileTap={{ scale: 0.98 }}
                     onClick={onNext}
                     disabled={!isValid || isSubmitting}
-                    className={`flex-1 h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all duration-300 ${isValid && !isSubmitting
-                        ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:shadow-xl"
-                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    className={`flex-1 h-14 rounded-[12px] font-bold text-base flex items-center justify-center gap-2 transition-all duration-300 ${isValid && !isSubmitting
+                        ? "bg-[#161925] text-[#E9E2D0] shadow-lg shadow-stone-900/20 hover:shadow-xl"
+                        : "bg-[#232838] text-[#8B8578] cursor-not-allowed"
                         }`}
                 >
                     <div className="flex items-center justify-center gap-2">
                         {isSubmitting ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <div className="w-5 h-5 border-2 border-[#5C564A] border-t-transparent rounded-full animate-spin" />
                                 <span>분석 중...</span>
                             </>
                         ) : (
@@ -227,7 +227,7 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                 </motion.button>
             </div>
             {isSubmitting && (
-                <div className="text-xs text-slate-500 text-center mt-3 animate-pulse">
+                <div className="text-xs lg:text-sm text-[#8B8578] text-center mt-3 animate-pulse">
                     AI가 향수를 분석하는 중... (최대 30초 소요)
                 </div>
             )}
@@ -238,7 +238,7 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
 // ===== 메인 Export =====
 export default function QRInputPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[#10131C]" />}>
             <QRInputForm />
         </Suspense>
     )

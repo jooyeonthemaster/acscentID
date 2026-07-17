@@ -73,7 +73,7 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative w-full max-w-[300px] mx-auto"
           >
-            <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="relative aspect-square rounded-[12px] overflow-hidden border-2 border-[#262A38]">
               <Image
                 src={preview}
                 alt={isMemory ? t('memoryImageAlt') : t('figureImageAlt')}
@@ -81,7 +81,7 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
                 className="object-cover"
               />
             </div>
-            <div className="mt-2 text-center text-sm text-gray-600">
+            <div className="mt-2 text-center text-sm lg:text-base text-[#A69F8D]">
               {isMemory ? t('memoryUploadSuccess') : t('figureUploadSuccess')}
             </div>
           </motion.div>
@@ -96,10 +96,10 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`
-              relative w-full max-w-[300px] mx-auto aspect-square rounded-xl border-2 border-dashed
+              relative w-full max-w-[300px] mx-auto aspect-square rounded-[12px] border-2 border-dashed
               ${isDragging
-                ? 'border-yellow-500 bg-yellow-50'
-                : 'border-gray-300 bg-gray-50 hover:border-yellow-400 hover:bg-yellow-50'
+                ? 'border-[#343A4C] bg-[#0C0E16]'
+                : 'border-[#262A38] bg-[#151823] hover:border-[#343A4C] hover:bg-[#0C0E16]'
               }
               cursor-pointer transition-all
               flex flex-col items-center justify-center gap-4
@@ -112,10 +112,10 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
               className={`
                 w-16 h-16 rounded-full flex items-center justify-center
                 ${isMemory
-                  ? 'bg-gradient-to-br from-pink-300 to-purple-300'
-                  : 'bg-gradient-to-br from-cyan-300 to-blue-300'
+                  ? 'bg-gradient-to-br from-[#232838] to-[#232838]'
+                  : 'bg-gradient-to-br from-[#232838] to-[#232838]'
                 }
-                border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                border-2 border-[#262A38]
               `}
             >
               {isMemory ? (
@@ -126,10 +126,10 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
             </motion.div>
 
             <div className="text-center px-4">
-              <p className="font-bold text-gray-800 mb-1">
+              <p className="font-bold text-[#E9E2D0] mb-1">
                 {isMemory ? t('memoryUploadTitle') : t('figureUploadTitle')}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm lg:text-base text-[#8B8578]">
                 {isMemory
                   ? t('memoryUploadDesc')
                   : t('figureUploadDesc')
@@ -137,7 +137,7 @@ export function ImageUploader({ onUpload, imageType, disabled = false, preview }
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center gap-2 text-xs lg:text-sm text-[#8B8578]">
               <Upload className="w-4 h-4" />
               <span>{t('dragAndDrop')}</span>
             </div>

@@ -249,7 +249,7 @@ export default function AnalysisPage() {
 
       <div className="p-6">
         {/* 필터 영역 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 mb-6 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             {/* 검색 */}
             <div className="flex-1 min-w-[200px]">
@@ -322,7 +322,7 @@ export default function AnalysisPage() {
             {/* 검색 버튼 */}
             <button
               onClick={handleSearch}
-              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
             >
               검색
             </button>
@@ -331,7 +331,7 @@ export default function AnalysisPage() {
             <button
               onClick={downloadCSV}
               disabled={csvLoading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#1d4ed8] transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {csvLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -345,7 +345,7 @@ export default function AnalysisPage() {
             <button
               onClick={openSelectedPrintPage}
               disabled={selectedIds.length === 0}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-[2px_2px_0px_#cbd5e1] transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
             >
               <Printer className="w-4 h-4" />
               선택 인쇄
@@ -413,7 +413,7 @@ export default function AnalysisPage() {
         {/* 분석 목록 */}
         {!loading && !error && (
           <>
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0] overflow-x-auto">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden overflow-x-auto">
               <table className="w-full md:min-w-[1200px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>

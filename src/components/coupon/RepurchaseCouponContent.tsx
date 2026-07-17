@@ -67,8 +67,8 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <Loader2 className="w-8 h-8 text-[#F472B6] animate-spin mx-auto" />
-        <p className="text-slate-600 mt-3 text-sm font-bold">자격을 확인하는 중...</p>
+        <Loader2 className="w-8 h-8 text-[#9F9F9F] animate-spin mx-auto" />
+        <p className="text-[#A69F8D] mt-3 text-sm lg:text-base font-bold">자격을 확인하는 중...</p>
       </div>
     )
   }
@@ -84,12 +84,12 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.1 }}
-          className="w-20 h-20 bg-[#F472B6] rounded-full flex items-center justify-center mx-auto mb-3 border-3 border-slate-900 shadow-[3px_3px_0_#000]"
+          className="w-20 h-20 bg-[#161925] rounded-full flex items-center justify-center mx-auto mb-3 border-3 border-[#262A38]"
         >
-          <PartyPopper className="w-10 h-10 text-white" />
+          <PartyPopper className="w-10 h-10 text-[#E9E2D0]" />
         </motion.div>
-        <h3 className="text-xl font-black text-slate-900">쿠폰 GET!</h3>
-        <p className="text-sm text-slate-600 mt-1 font-bold">결제할 때 10% 할인 적용하세요</p>
+        <h3 className="text-xl font-black text-[#E9E2D0]">쿠폰 GET!</h3>
+        <p className="text-sm lg:text-base text-[#A69F8D] mt-1 font-bold">결제할 때 10% 할인 적용하세요</p>
       </motion.div>
     )
   }
@@ -97,12 +97,12 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
   return (
     <div className="space-y-3">
       {/* 할인율 카드 */}
-      <div className="bg-gradient-to-br from-[#FFF8E7] to-[#FBCFE8] rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000] text-center relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0E1016] to-[#1B1F2C] rounded-[12px] p-4 border-2 border-[#262A38] text-center relative overflow-hidden">
         <div className="absolute -top-3 -right-3 text-5xl opacity-20">✨</div>
         <div className="relative">
-          <span className="text-4xl font-black text-[#F472B6]">10%</span>
-          <span className="text-lg font-black text-slate-700 ml-2">할인</span>
-          <p className="text-xs text-slate-600 mt-1 font-bold">
+          <span className="text-4xl font-black text-[#9F9F9F]">10%</span>
+          <span className="text-lg font-black text-[#A69F8D] ml-2">할인</span>
+          <p className="text-xs lg:text-sm text-[#A69F8D] mt-1 font-bold">
             재구매 고객님께 드리는 감사 할인
           </p>
         </div>
@@ -113,15 +113,15 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#FBCFE8] rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000]"
+          className="bg-[#1B1F2C] rounded-[12px] p-4 border-2 border-[#262A38]"
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#F472B6] rounded-full flex items-center justify-center border-2 border-slate-900">
-              <Check className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-[#161925] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+              <Check className="w-6 h-6 text-[#E9E2D0]" />
             </div>
             <div className="flex-1">
-              <p className="font-black text-slate-900">자격 확인 완료!</p>
-              <p className="text-xs text-slate-700 font-bold">완료된 주문 {completedOrders}건</p>
+              <p className="font-black text-[#E9E2D0]">자격 확인 완료!</p>
+              <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">완료된 주문 {completedOrders}건</p>
             </div>
           </div>
         </motion.div>
@@ -129,24 +129,24 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-100 rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000]"
+          className="bg-[#1B1F2C] rounded-[12px] p-4 border-2 border-[#262A38]"
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center border-2 border-slate-900">
-              <ShoppingBag className="w-6 h-6 text-slate-500" />
+            <div className="w-12 h-12 bg-[#232838] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+              <ShoppingBag className="w-6 h-6 text-[#8B8578]" />
             </div>
             <div>
-              <p className="font-black text-slate-700">아직 사용할 수 없어요</p>
-              <p className="text-xs text-slate-500 font-bold">첫 구매 완료 후 사용 가능해요</p>
+              <p className="font-black text-[#A69F8D]">아직 사용할 수 없어요</p>
+              <p className="text-xs lg:text-sm text-[#8B8578] font-bold">첫 구매 완료 후 사용 가능해요</p>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* 안내 카드 */}
-      <div className="bg-[#FEF9C3] rounded-lg p-3 border-2 border-slate-900 flex items-start gap-2">
-        <Heart className="w-4 h-4 text-slate-700 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-slate-700 font-bold">
+      <div className="bg-[#151823] rounded-[12px] p-3 border-2 border-[#262A38] flex items-start gap-2">
+        <Heart className="w-4 h-4 text-[#A69F8D] flex-shrink-0 mt-0.5" />
+        <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">
           다시 찾아주셔서 감사해요! 두 번째 향기는 더 특별하게 만들어 드릴게요.
         </p>
       </div>
@@ -158,7 +158,7 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs font-bold border-2 border-red-300"
+            className="bg-red-100 text-red-700 px-3 py-2 rounded-[12px] text-xs lg:text-sm font-bold border-2 border-red-300"
           >
             {error}
           </motion.div>
@@ -171,7 +171,7 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
           whileTap={{ scale: 0.98 }}
           onClick={handleClaim}
           disabled={isSubmitting}
-          className="w-full py-3 bg-[#F472B6] hover:bg-[#EC4899] disabled:bg-slate-300 text-white font-black rounded-xl transition-colors disabled:cursor-not-allowed border-2 border-slate-900 shadow-[3px_3px_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000]"
+          className="w-full py-3 bg-[#F5EFE2] hover:bg-[#FFFDF5] disabled:bg-[#232838] text-[#12141D] font-black rounded-[12px] transition-colors disabled:cursor-not-allowed border-2 border-[#262A38]"
         >
           {isSubmitting ? '발급 중...' : '✨ 10% 쿠폰 받기!'}
         </motion.button>
@@ -179,7 +179,7 @@ export function RepurchaseCouponContent({ coupon }: RepurchaseCouponContentProps
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={closeClaimModal}
-          className="w-full py-3 bg-slate-400 text-white font-black rounded-xl transition-colors border-2 border-slate-900 shadow-[3px_3px_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000]"
+          className="w-full py-3 bg-[#F5EFE2] text-[#12141D] font-black rounded-[12px] transition-colors border-2 border-[#262A38]"
         >
           확인했어요
         </motion.button>

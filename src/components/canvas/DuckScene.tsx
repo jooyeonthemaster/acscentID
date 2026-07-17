@@ -287,7 +287,7 @@ export function DuckScene({ parts, config }: DuckSceneProps) {
                                                     <group rotation={[Math.PI / 2, Math.PI / 2, 0]}>
                                                         {/* 내부: 동물발과 동일한 눕히기 */}
                                                         <group rotation={[-Math.PI / 2, 0, -Math.PI / 2]}>
-                                                            <STLModel url={feetData.url} color={"#F97316"} />
+                                                            <STLModel url={feetData.url} color={"#9A9A9A"} />
                                                         </group>
                                                     </group>
                                                 </group>
@@ -357,7 +357,7 @@ export function DuckScene({ parts, config }: DuckSceneProps) {
                     </Float>
 
                     {/* Floor shadow positioned relative to center */}
-                    <ContactShadows position={[0, -5, 0]} opacity={0.6} scale={150} blur={2.5} far={40} color="#0f172a" />
+                    <ContactShadows position={[0, -5, 0]} opacity={0.6} scale={150} blur={2.5} far={40} color="#171717" />
                 </group>
             </Center>
 

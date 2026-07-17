@@ -26,9 +26,9 @@ export const TodayScentCard = forwardRef<HTMLDivElement, TodayScentCardProps>(
           width: 340,
           backgroundColor: scent.theme.bg,
           color: scent.theme.ink,
-          border: '4px solid #0f172a',
+          border: '4px solid #171717',
           borderRadius: 28,
-          boxShadow: '8px 8px 0px #0f172a',
+          boxShadow: '8px 8px 0px #171717',
           padding: 28,
           boxSizing: 'border-box',
           fontFamily:
@@ -93,7 +93,7 @@ export const TodayScentCard = forwardRef<HTMLDivElement, TodayScentCardProps>(
           style={{
             marginTop: 22,
             backgroundColor: 'rgba(255,255,255,0.55)',
-            border: '2px solid #0f172a',
+            border: '2px solid #171717',
             borderRadius: 16,
             padding: '14px 16px',
             display: 'flex',

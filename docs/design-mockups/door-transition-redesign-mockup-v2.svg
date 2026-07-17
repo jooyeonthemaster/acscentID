@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#06070A" flood-opacity="0.22"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#06070A" flood-opacity="0.18"/>
+    </filter>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFDF3"/>
+      <stop offset="1" stop-color="#F4EBD7"/>
+    </linearGradient>
+    <linearGradient id="paperPink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF8EF"/>
+      <stop offset="1" stop-color="#F9DCE2"/>
+    </linearGradient>
+    <linearGradient id="paperMint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF8EF"/>
+      <stop offset="1" stop-color="#DCEFE5"/>
+    </linearGradient>
+    <pattern id="grain" width="54" height="54" patternUnits="userSpaceOnUse">
+      <path d="M8 12H9M28 20H29M42 8H43M18 42H19M48 34H49" stroke="#161616" stroke-width="1.4" opacity="0.08"/>
+    </pattern>
+    <clipPath id="phoneA">
+      <rect x="140" y="150" width="580" height="900" rx="44"/>
+    </clipPath>
+    <clipPath id="phoneB">
+      <rect x="1080" y="150" width="580" height="900" rx="44"/>
+    </clipPath>
+    <style>
+      .title { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 900; letter-spacing: 0; fill: #111318; }
+      .copy { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 700; letter-spacing: 0; fill: #4D4B45; }
+      .small { font-family: Pretendard, Inter, Arial, sans-serif; font-weight: 800; letter-spacing: 0; fill: #111318; }
+      .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-weight: 800; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="#F8F3E8"/>
+  <rect x="0" y="0" width="1800" height="54" fill="#FFC400"/>
+  <text x="900" y="35" text-anchor="middle" class="small" font-size="18">AC'SCENT IDENTITY · 조용한 문 전환 재시안 · 실제 적용 없음</text>
+
+  <text x="92" y="108" class="title" font-size="40">Door Transition Redesign Mockup v2</text>
+  <text x="92" y="148" class="copy" font-size="19">Tone checked from the local site: cream paper, black outlines, yellow CTA, restrained kitsh accents.</text>
+
+  <!-- Left phone: image analysis -->
+  <g filter="url(#shadow)">
+    <rect x="120" y="130" width="620" height="940" rx="60" fill="#111318"/>
+    <rect x="140" y="150" width="580" height="900" rx="44" fill="#0B0E16"/>
+  </g>
+  <g clip-path="url(#phoneA)">
+    <rect x="140" y="150" width="580" height="900" fill="#0B0E16"/>
+    <rect x="140" y="150" width="580" height="900" fill="url(#grain)" opacity="0.3"/>
+
+    <text x="430" y="217" text-anchor="middle" class="title" font-size="26" fill="#F8F3E8">AC'SCENT</text>
+    <text x="430" y="243" text-anchor="middle" class="mono" font-size="12" fill="#AFA793">IMAGE ANALYSIS PERFUME</text>
+
+    <rect x="204" y="300" width="452" height="568" rx="10" fill="url(#paper)" stroke="#111318" stroke-width="5"/>
+    <rect x="228" y="326" width="404" height="516" rx="6" fill="#FFF9E9" stroke="#111318" stroke-width="2.5" opacity="0.9"/>
+    <rect x="250" y="352" width="160" height="32" rx="16" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="330" y="374" text-anchor="middle" class="small" font-size="15">AI 이미지 분석</text>
+    <text x="250" y="426" class="title" font-size="31" fill="#111318">사진의 결을</text>
+    <text x="250" y="463" class="title" font-size="31" fill="#111318">향기로 옮기는 중</text>
+
+    <rect x="250" y="510" width="360" height="212" rx="8" fill="#F7F0DF" stroke="#111318" stroke-width="3"/>
+    <path d="M278 692C318 610 372 586 424 626C472 664 506 590 582 646V722H278Z" fill="#DACDB5"/>
+    <circle cx="416" cy="586" r="42" fill="#111318" opacity="0.82"/>
+    <rect x="278" y="750" width="270" height="14" rx="7" fill="#111318" opacity="0.16"/>
+    <rect x="278" y="780" width="210" height="14" rx="7" fill="#111318" opacity="0.12"/>
+
+    <!-- quiet opening door halves: photo report sleeve -->
+    <g filter="url(#soft)">
+      <path d="M140 150H338V1050H140Z" fill="#F8F3E8" stroke="#111318" stroke-width="4"/>
+      <path d="M720 150H522V1050H720Z" fill="#F8F3E8" stroke="#111318" stroke-width="4"/>
+      <rect x="184" y="196" width="118" height="32" rx="16" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+      <text x="243" y="218" text-anchor="middle" class="small" font-size="14">PHOTO</text>
+      <path d="M204 296H296M204 812H296" stroke="#111318" stroke-width="3" opacity="0.2"/>
+      <path d="M562 296H654M562 812H654" stroke="#111318" stroke-width="3" opacity="0.2"/>
+      <rect x="318" y="150" width="20" height="900" fill="#111318"/>
+      <rect x="522" y="150" width="20" height="900" fill="#111318"/>
+      <circle cx="338" cy="602" r="22" fill="#FFC400" stroke="#111318" stroke-width="4"/>
+      <circle cx="522" cy="602" r="22" fill="#FFC400" stroke="#111318" stroke-width="4"/>
+    </g>
+
+    <rect x="214" y="902" width="432" height="20" rx="10" fill="#F8F3E8" opacity="0.18"/>
+    <rect x="214" y="902" width="330" height="20" rx="10" fill="#FFC400"/>
+    <text x="646" y="952" text-anchor="end" class="mono" font-size="17" fill="#F8F3E8">ANALYZING 89%</text>
+  </g>
+  <rect x="120" y="130" width="620" height="940" rx="60" fill="none" stroke="#111318" stroke-width="3"/>
+
+  <!-- Center notes -->
+  <g>
+    <rect x="814" y="426" width="172" height="268" rx="8" fill="#FFFDF3" stroke="#111318" stroke-width="3"/>
+    <rect x="834" y="448" width="132" height="34" rx="17" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="900" y="471" text-anchor="middle" class="small" font-size="14">변경 방향</text>
+    <text x="900" y="528" text-anchor="middle" class="copy" font-size="17">덜 장치적</text>
+    <text x="900" y="570" text-anchor="middle" class="copy" font-size="17">더 상품 카드처럼</text>
+    <text x="900" y="612" text-anchor="middle" class="copy" font-size="17">브랜드 컬러 유지</text>
+    <text x="900" y="654" text-anchor="middle" class="mono" font-size="13" fill="#5C574C">slide contract same</text>
+  </g>
+
+  <!-- Right phone: chemistry -->
+  <g filter="url(#shadow)">
+    <rect x="1060" y="130" width="620" height="940" rx="60" fill="#111318"/>
+    <rect x="1080" y="150" width="580" height="900" rx="44" fill="#0B0E16"/>
+  </g>
+  <g clip-path="url(#phoneB)">
+    <rect x="1080" y="150" width="580" height="900" fill="#0B0E16"/>
+    <rect x="1080" y="150" width="580" height="900" fill="url(#grain)" opacity="0.24"/>
+
+    <text x="1370" y="217" text-anchor="middle" class="title" font-size="26" fill="#F8F3E8">AC'SCENT</text>
+    <text x="1370" y="243" text-anchor="middle" class="mono" font-size="12" fill="#AFA793">CHEMISTRY LAYERING</text>
+
+    <rect x="1144" y="300" width="452" height="568" rx="10" fill="url(#paper)" stroke="#111318" stroke-width="5"/>
+    <rect x="1168" y="326" width="404" height="516" rx="6" fill="#FFF9E9" stroke="#111318" stroke-width="2.5" opacity="0.9"/>
+    <rect x="1190" y="352" width="158" height="32" rx="16" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1269" y="374" text-anchor="middle" class="small" font-size="15">레이어링 퍼퓸</text>
+    <text x="1190" y="426" class="title" font-size="31" fill="#111318">두 향의 간격을</text>
+    <text x="1190" y="463" class="title" font-size="31" fill="#111318">맞추는 중</text>
+
+    <rect x="1190" y="520" width="360" height="178" rx="8" fill="#F7F0DF" stroke="#111318" stroke-width="3"/>
+    <path d="M1222 610C1270 560 1324 662 1372 612S1464 566 1518 620" fill="none" stroke="#74B897" stroke-width="10" stroke-linecap="round" opacity="0.62"/>
+    <path d="M1222 650C1284 598 1332 700 1394 650S1470 612 1518 664" fill="none" stroke="#E47191" stroke-width="10" stroke-linecap="round" opacity="0.52"/>
+    <circle cx="1302" cy="608" r="38" fill="#F8F3E8" stroke="#111318" stroke-width="3"/>
+    <circle cx="1438" cy="608" r="38" fill="#F8F3E8" stroke="#111318" stroke-width="3"/>
+    <text x="1302" y="617" text-anchor="middle" class="small" font-size="26">A</text>
+    <text x="1438" y="617" text-anchor="middle" class="small" font-size="26">B</text>
+    <rect x="1350" y="588" width="40" height="40" rx="20" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+    <text x="1370" y="614" text-anchor="middle" class="small" font-size="20">x</text>
+
+    <!-- quiet opening door halves: scent blotters -->
+    <g filter="url(#soft)">
+      <path d="M1080 150H1278V1050H1080Z" fill="url(#paperMint)" stroke="#111318" stroke-width="4"/>
+      <path d="M1660 150H1462V1050H1660Z" fill="url(#paperPink)" stroke="#111318" stroke-width="4"/>
+      <path d="M1120 276H1238M1120 344H1238M1120 412H1238M1120 480H1238M1120 548H1238M1120 616H1238M1120 684H1238M1120 752H1238" stroke="#111318" stroke-width="3" opacity="0.12"/>
+      <path d="M1502 276H1620M1502 344H1620M1502 412H1620M1502 480H1620M1502 548H1620M1502 616H1620M1502 684H1620M1502 752H1620" stroke="#111318" stroke-width="3" opacity="0.12"/>
+      <rect x="1118" y="196" width="102" height="32" rx="16" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+      <text x="1169" y="218" text-anchor="middle" class="small" font-size="14">A NOTE</text>
+      <rect x="1518" y="196" width="102" height="32" rx="16" fill="#FFC400" stroke="#111318" stroke-width="3"/>
+      <text x="1569" y="218" text-anchor="middle" class="small" font-size="14">B NOTE</text>
+      <rect x="1258" y="150" width="20" height="900" fill="#111318"/>
+      <rect x="1462" y="150" width="20" height="900" fill="#111318"/>
+    </g>
+
+    <rect x="1154" y="902" width="432" height="20" rx="10" fill="#F8F3E8" opacity="0.18"/>
+    <rect x="1154" y="902" width="330" height="20" rx="10" fill="#FFC400"/>
+    <text x="1586" y="952" text-anchor="end" class="mono" font-size="17" fill="#F8F3E8">BLENDING 89%</text>
+  </g>
+  <rect x="1060" y="130" width="620" height="940" rx="60" fill="none" stroke="#111318" stroke-width="3"/>
+
+  <text x="430" y="1092" text-anchor="middle" class="copy" font-size="22">이미지 분석: 사진 리포트 봉투가 좌우로 열림</text>
+  <text x="1370" y="1092" text-anchor="middle" class="copy" font-size="22">케미 분석: 두 시향지가 겹쳤다가 열림</text>
+</svg>

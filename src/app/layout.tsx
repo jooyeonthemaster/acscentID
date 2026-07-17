@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Jua, Kirang_Haerang, Noto_Serif_KR } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
@@ -15,6 +16,31 @@ const outfit = Outfit({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
+// 에스코어드림 — 한글 본문 서체 (self-host).
+// Outfit 은 라틴 전용이라 한글이 OS 기본 폰트(Apple SD Gothic Neo / 맑은 고딕)로 폴백되던 문제를 해결한다.
+// 위계에 필요한 굵기만 선별 로드: 3 Light / 4 Regular / 5 Medium / 6 Bold / 7 ExtraBold
+const scoreDream = localFont({
+  variable: "--font-score-dream",
+  display: "swap",
+  src: [
+    { path: "../../public/fonts/score-dream/SCoreDream-3Light.woff", weight: "300", style: "normal" },
+    { path: "../../public/fonts/score-dream/SCoreDream-4Regular.woff", weight: "400", style: "normal" },
+    { path: "../../public/fonts/score-dream/SCoreDream-5Medium.woff", weight: "500", style: "normal" },
+    { path: "../../public/fonts/score-dream/SCoreDream-6Bold.woff", weight: "600", style: "normal" },
+    { path: "../../public/fonts/score-dream/SCoreDream-7ExtraBold.woff", weight: "700", style: "normal" },
+  ],
+});
+
+// Wanted Sans — 한글 본문 서체 (self-host, 가변 폰트 단일 파일).
+// 기하학적이면서 획이 곧고 끝이 날카로워 클래식 세리프 로고와 호응한다. (에스코어드림 대체)
+const wantedSans = localFont({
+  variable: "--font-wanted",
+  display: "swap",
+  src: [
+    { path: "../../public/fonts/wanted-sans/WantedSansVariable.woff2", weight: "400 800", style: "normal" },
+  ],
+});
+
 const jua = Jua({
   subsets: ["latin"],
   variable: "--font-jua",
@@ -25,6 +51,15 @@ const kirangHaerang = Kirang_Haerang({
   subsets: ["latin"],
   variable: "--font-kirang",
   weight: "400",
+});
+
+// 홈 섹션 제목용 — 프리텐다드 (self-host 가변 폰트, 적당히 굵은 SemiBold로 사용)
+const headingSerif = localFont({
+  variable: "--font-heading-serif",
+  display: "swap",
+  src: [
+    { path: "../../public/fonts/pretendard/PretendardVariable.woff2", weight: "400 900", style: "normal" },
+  ],
 });
 
 // 사주 분석 퍼퓸 전용 세리프 (UI-SPEC §1.2)
@@ -49,7 +84,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#FEF9E7",
+  themeColor: "#08090F",
 };
 
 export default function RootLayout({
@@ -68,7 +103,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${outfit.variable} ${jua.variable} ${kirangHaerang.variable} ${notoSerifKR.variable} antialiased bg-[#FAFAFA] min-h-screen font-sans selection:bg-yellow-200 selection:text-yellow-900`}
+        className={`${outfit.variable} ${wantedSans.variable} ${scoreDream.variable} ${jua.variable} ${kirangHaerang.variable} ${headingSerif.variable} ${notoSerifKR.variable} antialiased bg-[#0C0E16] min-h-screen font-wanted selection:bg-[#232838] selection:text-[#E9E2D0]`}
       >
         <AuthProvider>
           <ClarityProvider>

@@ -18,7 +18,7 @@ interface ReservationFormProps {
 }
 
 const inputClass =
-  "w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2.5 text-sm font-bold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#D7D7D7]"
+  "w-full rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-3 py-2.5 text-sm lg:text-base font-bold text-[#E9E2D0] placeholder:text-[#8B8578] focus:outline-none focus:ring-2 focus:ring-[#D7D7D7]"
 
 export function ReservationForm({
   policy,
@@ -148,7 +148,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-stone-700">
+        <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">
           {t("form.name")} <span className="text-red-500">*</span>
         </label>
         <input
@@ -162,7 +162,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-stone-700">
+        <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">
           {t("form.phone")} <span className="text-red-500">*</span>
         </label>
         <input
@@ -177,7 +177,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-stone-700">
+        <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">
           {t("form.email")} <span className="text-red-500">*</span>
         </label>
         <input
@@ -188,12 +188,12 @@ export function ReservationForm({
           onChange={(e) => setEmailInput(e.target.value)}
           className={inputClass}
         />
-        <p className="mt-1 text-[11px] font-bold text-stone-500">{t("form.emailHint")}</p>
+        <p className="mt-1 text-[11px] lg:text-[13px] font-bold text-[#8B8578]">{t("form.emailHint")}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-black text-stone-700">
+          <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">
             {t("form.partySize")}
           </label>
           <select
@@ -209,7 +209,7 @@ export function ReservationForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-black text-stone-700">
+          <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">
             {t("form.program")}
           </label>
           <select
@@ -227,7 +227,7 @@ export function ReservationForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-black text-stone-700">{t("form.notes")}</label>
+        <label className="mb-1 block text-xs lg:text-sm font-black text-[#A69F8D]">{t("form.notes")}</label>
         <textarea
           rows={3}
           maxLength={500}
@@ -239,7 +239,7 @@ export function ReservationForm({
       </div>
 
       {errorKey && (
-        <p className="rounded-xl border-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-black text-red-600">
+        <p className="rounded-[12px] border-2 border-red-500 bg-red-50 px-3 py-2 text-xs lg:text-sm font-black text-red-600">
           {errorKey === "tooMany"
             ? t("errors.tooMany")
             : errorKey === "systemUnavailable"
@@ -251,7 +251,7 @@ export function ReservationForm({
       <button
         type="submit"
         disabled={!isValid || submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-stone-900 bg-black py-3.5 text-base font-black text-white shadow-[4px_4px_0_0_black] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_black] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0_0_black]"
+        className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:"
       >
         {submitting ? (
           <>

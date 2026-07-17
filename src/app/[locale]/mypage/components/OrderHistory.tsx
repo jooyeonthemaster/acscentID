@@ -89,27 +89,27 @@ interface OrderHistoryProps {
 
 const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
   awaiting_payment: {
-    color: 'bg-cyan-100 text-cyan-700 border-cyan-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: Loader2,
   },
   pending: {
-    color: 'bg-amber-100 text-amber-700 border-amber-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: Clock,
   },
   paid: {
-    color: 'bg-blue-100 text-blue-700 border-blue-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: CreditCard,
   },
   preparing: {
-    color: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: PackageCheck,
   },
   shipping: {
-    color: 'bg-purple-100 text-purple-700 border-purple-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: Truck,
   },
   delivered: {
-    color: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
     icon: CheckCircle,
   },
   cancel_requested: {
@@ -117,7 +117,7 @@ const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
     icon: XCircle,
   },
   cancelled: {
-    color: 'bg-slate-100 text-slate-500 border-slate-300',
+    color: 'bg-[#1B1F2C] text-[#8B8578] border-[#262A38]',
     icon: Ban,
   }
 }
@@ -136,13 +136,13 @@ const STATUS_KEYS: Record<string, { labelKey: string; descKey: string }> = {
 function getPaymentMethodBadge(paymentMethod: string | undefined, tPayment: (key: string) => string) {
   switch (paymentMethod) {
     case 'card':
-      return { label: tPayment('card'), className: 'bg-blue-100 text-blue-700' }
+      return { label: tPayment('card'), className: 'bg-[#151823] text-[#A69F8D]' }
     case 'kakao_pay':
-      return { label: tPayment('kakaoPay'), className: 'bg-yellow-100 text-yellow-800' }
+      return { label: tPayment('kakaoPay'), className: 'bg-[#151823] text-[#E9E2D0]' }
     case 'naver_pay':
-      return { label: tPayment('naverPay'), className: 'bg-green-100 text-green-700' }
+      return { label: tPayment('naverPay'), className: 'bg-[#151823] text-[#A69F8D]' }
     default:
-      return { label: tPayment('bankTransferShort'), className: 'bg-gray-100 text-gray-600' }
+      return { label: tPayment('bankTransferShort'), className: 'bg-[#1B1F2C] text-[#A69F8D]' }
   }
 }
 
@@ -173,7 +173,7 @@ function TrackingInfoCard({
         href={url}
         {...EXTERNAL_LINK_SAFE_ATTRS}
         aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors"
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs lg:text-sm font-bold text-[#5C564A] bg-[#E9E2D0] border border-[#262A38] rounded-[12px] hover:bg-[#F5EFE2] transition-colors"
       >
         <Truck size={12} />
         <span className="font-mono">{trackingNumber}</span>
@@ -183,26 +183,26 @@ function TrackingInfoCard({
   }
 
   return (
-    <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-3">
+    <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
       <div className="flex items-start gap-2">
-        <Truck size={16} className="text-purple-600 mt-0.5 flex-shrink-0" />
+        <Truck size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-purple-900">{carrierLabel} 배송 시작</p>
+          <p className="text-xs lg:text-sm font-bold text-[#12141D]">{carrierLabel} 배송 시작</p>
           <a
             href={url}
             {...EXTERNAL_LINK_SAFE_ATTRS}
             aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
-            className="inline-flex items-center gap-1 mt-1 font-mono text-sm text-purple-800 hover:text-purple-900 hover:underline break-all"
+            className="inline-flex items-center gap-1 mt-1 font-mono text-sm lg:text-base text-[#12141D] hover:text-[#12141D] hover:underline break-all"
           >
             {trackingNumber}
             <ExternalLink size={12} aria-hidden />
           </a>
           {shippedAt && (
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] lg:text-[13px] text-[#5C564A] mt-0.5">
               발송: {new Date(shippedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           )}
-          <p className="text-[11px] text-purple-600 mt-1">클릭 시 외부 사이트(CJ대한통운)에서 자동 조회됩니다.</p>
+          <p className="text-[11px] lg:text-[13px] text-[#5C564A] mt-1">클릭 시 외부 사이트(CJ대한통운)에서 자동 조회됩니다.</p>
         </div>
       </div>
     </div>
@@ -410,13 +410,13 @@ function OrderCard({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border-2 border-slate-900 rounded-xl p-4 shadow-[3px_3px_0px_#000]"
+          className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-4"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* 이미지 + 정보 */}
             <div className="flex items-center gap-4 flex-1 min-w-0">
               {/* 이미지 썸네일 */}
-              <div className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-[#FEF9C3] border-2 border-slate-900">
+              <div className="w-14 h-14 flex-shrink-0 rounded-[12px] overflow-hidden bg-[#151823] border-2 border-[#262A38]">
                 {order.user_image_url ? (
                   <img
                     src={order.user_image_url}
@@ -425,23 +425,23 @@ function OrderCard({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Star size={20} className="text-slate-400" />
+                    <Star size={20} className="text-[#8B8578]" />
                   </div>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-xs text-slate-500">{order.order_number}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${status.color}`}>
+                  <span className="font-mono text-xs lg:text-sm text-[#5C564A]">{order.order_number}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs lg:text-sm font-bold border ${status.color}`}>
                     {statusLabel}
                   </span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${paymentBadge.className}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs lg:text-sm font-bold ${paymentBadge.className}`}>
                     {paymentBadge.label}
                   </span>
                 </div>
-                <h4 className="font-bold text-slate-900 truncate">{order.perfume_name}</h4>
-                <p className="text-sm text-slate-500">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
+                <h4 className="font-bold text-[#12141D] truncate">{order.perfume_name}</h4>
+                <p className="text-sm lg:text-base text-[#5C564A]">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
               </div>
             </div>
 
@@ -451,7 +451,7 @@ function OrderCard({
               {hasAnalysisData && !isSignatureProduct && (
                 <button
                   onClick={() => setShowRecipeModal(true)}
-                  className="px-3 py-1.5 text-xs font-bold bg-[#FEF9C3] border-2 border-slate-900 rounded-lg hover:shadow-[2px_2px_0px_#000] transition-all"
+                  className="px-3 py-1.5 text-xs lg:text-sm font-bold bg-[#E9E2D0] text-[#12141D] border-2 border-[#262A38] rounded-[12px] transition-all"
                 >
                   {t('recipe')}
                 </button>
@@ -459,7 +459,7 @@ function OrderCard({
               {canCancel && (
                 <button
                   onClick={() => setShowCancelConfirm(true)}
-                  className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 border-2 border-red-300 rounded-lg hover:bg-red-100 transition-all"
+                  className="px-3 py-1.5 text-xs lg:text-sm font-bold text-red-600 bg-red-50 border-2 border-red-300 rounded-[12px] hover:bg-red-100 transition-all"
                 >
                   {t('cancelOrder')}
                 </button>
@@ -471,7 +471,7 @@ function OrderCard({
             <button
               onClick={handleBuyAsPerfume}
               disabled={isLoadingBuyPerfume}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-black border-2 border-slate-900 bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] text-slate-900 hover:shadow-[2px_2px_0px_#000] transition-all disabled:opacity-50"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-black border-2 border-[#12141D] bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C] transition-all disabled:opacity-50"
             >
               {isLoadingBuyPerfume ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
               {t('buyAsPerfume')}
@@ -495,10 +495,10 @@ function OrderCard({
           )}
           {/* 상품 단종 안내 */}
           {isProductDiscontinued && (
-            <div className="mt-3 bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5">
-              <div className="flex items-center gap-2 text-xs">
-                <AlertTriangle size={14} className="text-slate-500 flex-shrink-0" />
-                <span className="text-slate-600">{t('productDiscontinuedTitle')}</span>
+            <div className="mt-3 bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-2.5">
+              <div className="flex items-center gap-2 text-xs lg:text-sm">
+                <AlertTriangle size={14} className="text-[#5C564A] flex-shrink-0" />
+                <span className="text-[#5C564A]">{t('productDiscontinuedTitle')}</span>
               </div>
             </div>
           )}
@@ -532,18 +532,18 @@ function OrderCard({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white border-2 border-slate-900 rounded-2xl overflow-hidden shadow-[4px_4px_0px_#000]"
+        className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] overflow-hidden"
       >
         {/* 상단 헤더 */}
-        <div className="bg-slate-50 border-b-2 border-slate-900 px-4 py-3">
+        <div className="bg-[#E9E2D0] border-b-2 border-[#262A38] px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-slate-500">{order.order_number}</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${paymentBadge.className}`}>
+              <span className="font-mono text-xs lg:text-sm text-[#5C564A]">{order.order_number}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs lg:text-sm font-bold ${paymentBadge.className}`}>
                 {paymentBadge.label}
               </span>
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${status.color}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs lg:text-sm font-bold border flex items-center gap-1 ${status.color}`}>
               <StatusIcon size={12} />
               {statusLabel}
             </span>
@@ -555,7 +555,7 @@ function OrderCard({
           {/* 이미지 + 상품명 */}
           <div className="flex gap-4">
             {/* 이미지 썸네일 */}
-            <div className="w-20 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-[#FEF9C3] border-2 border-slate-900 shadow-[2px_2px_0px_#000]">
+            <div className="w-20 h-24 flex-shrink-0 rounded-[12px] overflow-hidden bg-[#151823] border-2 border-[#262A38]">
               {order.user_image_url ? (
                 <img
                   src={order.user_image_url}
@@ -564,17 +564,17 @@ function OrderCard({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Star size={24} className="text-slate-400" />
+                  <Star size={24} className="text-[#8B8578]" />
                 </div>
               )}
             </div>
 
             {/* 정보 */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[#F472B6] font-bold mb-0.5">{order.perfume_brand}</p>
-              <h4 className="font-black text-lg text-slate-900 leading-tight mb-1">{order.perfume_name}</h4>
-              <p className="text-sm text-slate-500 font-bold">{sizeLabel}</p>
-              <p className="font-black text-lg text-slate-900 mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
+              <p className="text-xs lg:text-sm text-[#5C564A] font-bold mb-0.5">{order.perfume_brand}</p>
+              <h4 className="font-black text-lg text-[#12141D] leading-tight mb-1">{order.perfume_name}</h4>
+              <p className="text-sm lg:text-base text-[#5C564A] font-bold">{sizeLabel}</p>
+              <p className="font-black text-lg text-[#12141D] mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
             </div>
           </div>
 
@@ -584,7 +584,7 @@ function OrderCard({
               {order.keywords.slice(0, 4).map((keyword, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 text-xs font-bold text-slate-600 bg-slate-100 rounded-full border border-slate-200"
+                  className="px-2 py-0.5 text-xs lg:text-sm font-bold text-[#5C564A] bg-[#E9E2D0] rounded-full border border-[#262A38]"
                 >
                   #{keyword}
                 </span>
@@ -593,21 +593,21 @@ function OrderCard({
           )}
 
           {/* 배송 정보 */}
-          <div className="bg-slate-50 rounded-xl p-3 space-y-2 border border-slate-200">
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin size={14} className="text-slate-400 flex-shrink-0" />
-              <span className="text-slate-600 truncate">
+          <div className="bg-[#E9E2D0] rounded-[12px] p-3 space-y-2 border border-[#262A38]">
+            <div className="flex items-center gap-2 text-sm lg:text-base">
+              <MapPin size={14} className="text-[#5C564A] flex-shrink-0" />
+              <span className="text-[#5C564A] truncate">
                 {order.address} {order.address_detail}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Package size={14} className="text-slate-400 flex-shrink-0" />
-              <span className="text-slate-600">{order.recipient_name} • {order.phone}</span>
+            <div className="flex items-center gap-2 text-sm lg:text-base">
+              <Package size={14} className="text-[#5C564A] flex-shrink-0" />
+              <span className="text-[#5C564A]">{order.recipient_name} • {order.phone}</span>
             </div>
           </div>
 
           {/* 상태 설명 */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 text-xs lg:text-sm text-[#5C564A] bg-[#E9E2D0] rounded-[12px] px-3 py-2">
             <StatusIcon size={14} />
             <span>{tStatus(statusKeys.descKey)}</span>
           </div>
@@ -628,12 +628,12 @@ function OrderCard({
 
           {/* 상품 단종 안내 — 재구매/분석상세 차단 사유 명시 */}
           {isProductDiscontinued && (
-            <div className="bg-slate-50 border-2 border-slate-300 rounded-xl p-3">
+            <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle size={16} className="text-slate-500 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0 text-xs">
-                  <p className="font-bold text-slate-700">{t('productDiscontinuedTitle')}</p>
-                  <p className="text-slate-500 mt-0.5 leading-relaxed">{t('productDiscontinuedDesc')}</p>
+                <AlertTriangle size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0 text-xs lg:text-sm">
+                  <p className="font-bold text-[#5C564A]">{t('productDiscontinuedTitle')}</p>
+                  <p className="text-[#5C564A] mt-0.5 leading-relaxed">{t('productDiscontinuedDesc')}</p>
                 </div>
               </div>
             </div>
@@ -647,10 +647,10 @@ function OrderCard({
                 onClick={handleViewAnalysis}
                 disabled={!hasAnalysisData || isProductDiscontinued}
                 title={isProductDiscontinued ? t('productDiscontinued') : undefined}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
                   hasAnalysisData && !isProductDiscontinued
-                    ? 'bg-white border-slate-900 text-slate-900 hover:bg-slate-50 hover:shadow-[2px_2px_0px_#000]'
-                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                    ? 'bg-[#12141D] border-[#262A38] text-[#E9E2D0] hover:bg-[#151823]'
+                    : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
                 }`}
               >
                 <Eye size={16} />
@@ -663,10 +663,10 @@ function OrderCard({
               <button
                 onClick={() => setShowRecipeModal(true)}
                 disabled={!hasAnalysisData}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
                   hasAnalysisData
-                    ? 'bg-[#FEF9C3] border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000]'
-                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                    ? 'bg-[#151823] border-[#262A38] text-[#E9E2D0]'
+                    : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
                 }`}
               >
                 <FlaskConical size={16} />
@@ -679,10 +679,10 @@ function OrderCard({
               onClick={handleRepurchase}
               disabled={isProductDiscontinued}
               title={isProductDiscontinued ? t('productDiscontinued') : undefined}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
                 isProductDiscontinued
-                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-[#FBCFE8] border-slate-900 text-slate-900 hover:shadow-[2px_2px_0px_#000]'
+                  ? 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
+                  : 'bg-[#1B1F2C] border-[#262A38] text-[#E9E2D0]'
               }`}
             >
               <RefreshCw size={16} />
@@ -693,10 +693,10 @@ function OrderCard({
             <button
               onClick={() => setShowCancelConfirm(true)}
               disabled={!canCancel}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
                 canCancel
-                  ? 'bg-white border-red-400 text-red-600 hover:bg-red-50'
-                  : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-[#12141D] border-red-400 text-red-600 hover:bg-red-50'
+                  : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
               }`}
             >
               <XCircle size={16} />
@@ -710,7 +710,7 @@ function OrderCard({
               <button
                 onClick={handleBuyAsPerfume}
                 disabled={isLoadingBuyPerfume}
-                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-black border-2 border-slate-900 bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] text-slate-900 shadow-[3px_3px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#000] transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-[12px] text-sm lg:text-base font-black border-2 border-[#12141D] bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C] transition-all disabled:opacity-50"
               >
                 {isLoadingBuyPerfume ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -719,12 +719,12 @@ function OrderCard({
                 )}
                 {t('buyAsPerfume')}
               </button>
-              <p className="text-[11px] text-slate-500 text-center mt-1.5">{t('buyAsPerfumeHint')}</p>
+              <p className="text-[11px] lg:text-[13px] text-[#5C564A] text-center mt-1.5">{t('buyAsPerfumeHint')}</p>
             </div>
           )}
 
           {/* 주문일시 */}
-          <p className="text-xs text-slate-400 text-right pt-1 border-t border-slate-100">
+          <p className="text-xs lg:text-sm text-[#5C564A] text-right pt-1 border-t border-[#1E222E]">
             {t('orderDate', { date: formatDate(order.created_at) })}
           </p>
         </div>
@@ -813,24 +813,24 @@ function CancelConfirmDialog({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#000] z-50 p-6"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[90vh] overflow-y-auto bg-[#12141D] rounded-[12px] border-2 border-[#262A38] z-50 p-6"
           >
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 border-2 border-red-300">
                 <AlertTriangle size={32} className="text-red-500" />
               </div>
-              <h3 className="font-black text-xl text-slate-900 mb-2">
+              <h3 className="font-black text-xl text-[#E9E2D0] mb-2">
                 {t('cancelTitle')}
               </h3>
-              <p className="text-sm text-slate-500 font-bold mb-1">
+              <p className="text-sm lg:text-base text-[#8B8578] font-bold mb-1">
                 {t('cancelOrderNum', { orderNumber })}
               </p>
-              <p className="text-xs text-slate-400 mb-6">
+              <p className="text-xs lg:text-sm text-[#8B8578] mb-6">
                 {t('cancelDesc')}
               </p>
 
               <div className="w-full text-left mb-4">
-                <label className="block text-sm font-black text-slate-900 mb-1">
+                <label className="block text-sm lg:text-base font-black text-[#E9E2D0] mb-1">
                   {t('cancelReasonLabel')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -838,22 +838,22 @@ function CancelConfirmDialog({
                   onChange={(e) => setReason(e.target.value)}
                   rows={4}
                   maxLength={500}
-                  className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 resize-none"
+                  className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38] resize-none"
                   placeholder={t('cancelReasonPlaceholder')}
                   disabled={isLoading}
                 />
-                <p className={`mt-1 text-xs ${reasonValid ? 'text-slate-400' : 'text-red-500'}`}>
+                <p className={`mt-1 text-xs lg:text-sm ${reasonValid ? 'text-[#8B8578]' : 'text-red-500'}`}>
                   {reasonValid ? t('cancelReasonHelp') : t('cancelReasonRequired')}
                 </p>
               </div>
 
               {/* 계좌이체: 환불받을 계좌 입력 */}
               {isBankTransfer && (
-                <div className="w-full text-left mb-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-3 space-y-2">
-                  <p className="text-sm font-black text-slate-900">
+                <div className="w-full text-left mb-4 rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] p-3 space-y-2">
+                  <p className="text-sm lg:text-base font-black text-[#E9E2D0]">
                     환불받을 계좌 <span className="text-red-500">*</span>
                   </p>
-                  <p className="text-xs text-amber-800 mb-1">
+                  <p className="text-xs lg:text-sm text-[#E9E2D0] mb-1">
                     계좌이체(무통장입금)로 결제하셨습니다. 입력하신 계좌로 환불해 드립니다.
                   </p>
                   <input
@@ -862,7 +862,7 @@ function CancelConfirmDialog({
                     onChange={(e) => setBankName(e.target.value)}
                     disabled={isLoading}
                     placeholder="은행명 (예: 국민은행)"
-                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
                   />
                   <input
                     type="text"
@@ -871,7 +871,7 @@ function CancelConfirmDialog({
                     onChange={(e) => setAccountNumber(e.target.value)}
                     disabled={isLoading}
                     placeholder="계좌번호 (- 없이 숫자만)"
-                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
                   />
                   <input
                     type="text"
@@ -879,10 +879,10 @@ function CancelConfirmDialog({
                     onChange={(e) => setAccountHolder(e.target.value)}
                     disabled={isLoading}
                     placeholder="예금주"
-                    className="w-full rounded-xl border-2 border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
                   />
                   {!accountValid && (
-                    <p className="text-xs text-red-500">은행, 계좌번호, 예금주를 모두 입력해 주세요.</p>
+                    <p className="text-xs lg:text-sm text-red-500">은행, 계좌번호, 예금주를 모두 입력해 주세요.</p>
                   )}
                 </div>
               )}
@@ -891,18 +891,18 @@ function CancelConfirmDialog({
                 <button
                   onClick={onClose}
                   disabled={isLoading}
-                  className="flex-1 py-3 rounded-xl font-bold bg-slate-100 border-2 border-slate-900 text-slate-900 hover:bg-slate-200 transition-colors"
+                  className="flex-1 py-3 rounded-[12px] font-bold bg-[#1B1F2C] border-2 border-[#262A38] text-[#E9E2D0] hover:bg-[#232838] transition-colors"
                 >
                   {t('no')}
                 </button>
                 <button
                   onClick={handleConfirm}
                   disabled={isLoading || !canSubmit}
-                  className="flex-1 py-3 rounded-xl font-bold bg-red-500 border-2 border-slate-900 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 rounded-[12px] font-bold bg-red-500 border-2 border-[#262A38] text-[#E9E2D0] hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-[#5C564A] border-t-transparent rounded-full animate-spin" />
                       {t('processing')}
                     </span>
                   ) : (
@@ -922,14 +922,14 @@ function CancelConfirmDialog({
 function CustomerServiceBanner() {
   const t = useTranslations('mypage')
   return (
-    <div className="bg-gradient-to-r from-[#FEF9C3] to-[#FBCFE8] border-2 border-slate-900 rounded-2xl p-4 mb-4 shadow-[4px_4px_0px_#000]">
+    <div className="bg-gradient-to-r from-[#151823] to-[#1B1F2C] border-2 border-[#262A38] rounded-[12px] p-4 mb-4">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-slate-900 shadow-[2px_2px_0px_#000]">
-          <Headphones size={20} className="text-slate-900" />
+        <div className="w-10 h-10 bg-[#12141D] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+          <Headphones size={20} className="text-[#E9E2D0]" />
         </div>
         <div>
-          <h3 className="font-black text-slate-900">{t('customerService')}</h3>
-          <p className="text-xs text-slate-600 font-bold">{t('customerServiceDesc')}</p>
+          <h3 className="font-black text-[#E9E2D0]">{t('customerService')}</h3>
+          <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">{t('customerServiceDesc')}</p>
         </div>
       </div>
 
@@ -937,36 +937,36 @@ function CustomerServiceBanner() {
         {/* 전화번호 */}
         <a
           href="tel:02-336-3368"
-          className="flex items-center gap-3 bg-white border-2 border-slate-900 rounded-xl px-3 py-2.5 hover:shadow-[2px_2px_0px_#000] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          className="flex items-center gap-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] px-3 py-2.5 transition-all"
         >
-          <div className="w-8 h-8 bg-[#A7F3D0] rounded-lg flex items-center justify-center border border-slate-900">
-            <Phone size={16} className="text-slate-900" />
+          <div className="w-8 h-8 bg-[#12141D] rounded-[12px] flex items-center justify-center border border-[#262A38]">
+            <Phone size={16} className="text-[#E9E2D0]" />
           </div>
           <div className="flex-1">
-            <p className="font-black text-slate-900">02-336-3368</p>
-            <p className="text-[10px] text-slate-500 font-bold">{t('tapToCall')}</p>
+            <p className="font-black text-[#E9E2D0]">02-336-3368</p>
+            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{t('tapToCall')}</p>
           </div>
         </a>
 
         {/* 이메일 */}
         <a
           href="mailto:nadr110619@gmail.com"
-          className="flex items-center gap-3 bg-white border-2 border-slate-900 rounded-xl px-3 py-2.5 hover:shadow-[2px_2px_0px_#000] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          className="flex items-center gap-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] px-3 py-2.5 transition-all"
         >
-          <div className="w-8 h-8 bg-[#BFDBFE] rounded-lg flex items-center justify-center border border-slate-900">
-            <Mail size={16} className="text-slate-900" />
+          <div className="w-8 h-8 bg-[#12141D] rounded-[12px] flex items-center justify-center border border-[#262A38]">
+            <Mail size={16} className="text-[#E9E2D0]" />
           </div>
           <div className="flex-1">
-            <p className="font-black text-slate-900 text-sm">nadr110619@gmail.com</p>
-            <p className="text-[10px] text-slate-500 font-bold">{t('tapToEmail')}</p>
+            <p className="font-black text-[#E9E2D0] text-sm lg:text-base">nadr110619@gmail.com</p>
+            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{t('tapToEmail')}</p>
           </div>
         </a>
       </div>
 
       {/* 운영시간 안내 */}
-      <div className="mt-3 bg-white/60 rounded-lg px-3 py-2 border border-slate-300">
-        <p className="text-xs text-slate-600 font-bold text-center">
-          <span className="text-slate-900">{t('serviceHours')}</span> · {t('serviceTime')}
+      <div className="mt-3 bg-[#12141D]/60 rounded-[12px] px-3 py-2 border border-[#262A38]">
+        <p className="text-xs lg:text-sm text-[#A69F8D] font-bold text-center">
+          <span className="text-[#E9E2D0]">{t('serviceHours')}</span> · {t('serviceTime')}
         </p>
       </div>
     </div>
@@ -977,9 +977,9 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
   const t = useTranslations('mypage')
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-12 h-12 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin mb-4" />
-        <p className="font-bold text-slate-600">{t('loadingOrders')}</p>
+      <div className="flex flex-col items-center justify-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
+        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full animate-spin mb-4" />
+        <p className="font-bold text-[#5C564A]">{t('loadingOrders')}</p>
       </div>
     )
   }
@@ -988,16 +988,16 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
     return (
       <div>
         <CustomerServiceBanner />
-        <div className="text-center py-20">
+        <div className="text-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
             <AlertTriangle size={32} className="text-red-500" />
           </div>
-          <h3 className="text-xl font-black text-slate-900 mb-2">{t('ordersLoadFailed')}</h3>
-          <p className="text-sm text-slate-500 font-bold mb-5">{error}</p>
+          <h3 className="text-xl font-black text-[#12141D] mb-2">{t('ordersLoadFailed')}</h3>
+          <p className="text-sm lg:text-base text-[#5C564A] font-bold mb-5">{error}</p>
           {onOrderUpdate && (
             <button
               onClick={onOrderUpdate}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-black text-white rounded-xl border-2 border-black font-black shadow-[3px_3px_0_0_#FCD34D] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_#FCD34D] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#12141D] text-[#F5EFE2] rounded-[12px] border-2 border-[#262A38] font-black hover:bg-[#1B1F2C] transition-all"
             >
               <RefreshCw size={16} />
               {t('retry')}
@@ -1012,12 +1012,12 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
     return (
       <div>
         <CustomerServiceBanner />
-        <div className="text-center py-20">
-          <div className="w-20 h-20 bg-[#FEF9C3] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-900 shadow-[3px_3px_0px_#000]">
-            <Package size={32} className="text-slate-500" />
+        <div className="text-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
+          <div className="w-20 h-20 bg-[#151823] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#262A38]">
+            <Package size={32} className="text-[#8B8578]" />
           </div>
-          <h3 className="text-xl font-black text-slate-900 mb-2">{t('noOrders')}</h3>
-          <p className="text-slate-500 font-bold">{t('noOrdersHint')}</p>
+          <h3 className="text-xl font-black text-[#12141D] mb-2">{t('noOrders')}</h3>
+          <p className="text-[#5C564A] font-bold">{t('noOrdersHint')}</p>
         </div>
       </div>
     )
@@ -1074,24 +1074,24 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancel_requested: 환불 처리 중
   if (order.status === 'cancel_requested') {
     return (
-      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
+      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
         <div className="flex items-start gap-2">
-          <Loader2 size={16} className="text-amber-600 mt-0.5 animate-spin flex-shrink-0" />
-          <div className="flex-1 min-w-0 text-xs">
-            <p className="font-bold text-amber-900">환불 처리 중</p>
-            <p className="text-amber-800 mt-1 leading-relaxed">
+          <Loader2 size={16} className="text-[#5C564A] mt-0.5 animate-spin flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs lg:text-sm">
+            <p className="font-bold text-[#12141D]">환불 처리 중</p>
+            <p className="text-[#12141D] mt-1 leading-relaxed">
               취소 요청이 접수되어 관리자가 검토·처리 중입니다. {isBank ? '입금하신 계좌로 영업일 기준 3~5일 내 환불됩니다.' : '포트원을 통해 자동 환불되며, 결제 수단별 반영 기간은 아래와 같습니다.'}
             </p>
             {!isBank && (
-              <p className="text-slate-600 mt-1 text-[11px]">{methodGuide}</p>
+              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">{methodGuide}</p>
             )}
             {isBank && order.refund_account_number && (
-              <p className="text-amber-800 mt-1 text-[11px]">
+              <p className="text-[#12141D] mt-1 text-[11px] lg:text-[13px]">
                 환불 계좌: {order.refund_bank_name} {order.refund_account_number} ({order.refund_account_holder})
               </p>
             )}
             {order.cancel_reason && (
-              <p className="text-slate-500 mt-1 text-[11px]">
+              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">
                 사유: {order.cancel_reason}
               </p>
             )}
@@ -1104,28 +1104,28 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 환불 완료
   if (order.status === 'cancelled' && isRefunded) {
     return (
-      <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3">
+      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
         <div className="flex items-start gap-2">
-          <CheckCircle size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1 min-w-0 text-xs">
-            <p className="font-bold text-emerald-900">
+          <CheckCircle size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs lg:text-sm">
+            <p className="font-bold text-[#12141D]">
               환불 완료
               {typeof order.refund_amount === 'number' && order.refund_amount > 0 && (
-                <span className="ml-2 text-emerald-700">
+                <span className="ml-2 text-[#5C564A]">
                   {order.refund_amount.toLocaleString()}원
                 </span>
               )}
             </p>
             {order.refunded_at && (
-              <p className="text-emerald-800 mt-0.5">
+              <p className="text-[#12141D] mt-0.5">
                 {formatDateTime(order.refunded_at)}
               </p>
             )}
-            <p className="text-slate-600 mt-1 leading-relaxed">
+            <p className="text-[#5C564A] mt-1 leading-relaxed">
               {methodGuide}
             </p>
             {(order.refund_reason || order.cancel_reason) && (
-              <p className="text-slate-500 mt-1 text-[11px]">
+              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">
                 사유: {order.refund_reason || order.cancel_reason}
               </p>
             )}
@@ -1138,10 +1138,10 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 미환불 (오염된 상태) — 고객에게 문제를 숨기지 않고 명확히 안내
   if (order.status === 'cancelled' && !isRefunded && hasPaymentId) {
     return (
-      <div className="bg-red-50 border-2 border-red-400 rounded-xl p-3">
+      <div className="bg-red-50 border-2 border-red-400 rounded-[12px] p-3">
         <div className="flex items-start gap-2">
           <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1 min-w-0 text-xs">
+          <div className="flex-1 min-w-0 text-xs lg:text-sm">
             <p className="font-bold text-red-900">환불 처리 확인 중</p>
             <p className="text-red-800 mt-1 leading-relaxed">
               주문은 취소됐으나 환불 반영이 확인되지 않았습니다. 수분 내 자동으로 반영되며, 계속 보이면 주문번호와 함께 고객센터로 문의해 주세요.
@@ -1155,12 +1155,12 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 계좌이체 + 미환불 (수동 송금 대기)
   if (order.status === 'cancelled' && !isRefunded && isBank) {
     return (
-      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
+      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
         <div className="flex items-start gap-2">
-          <Clock size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1 min-w-0 text-xs">
-            <p className="font-bold text-amber-900">환불 준비 중</p>
-            <p className="text-amber-800 mt-1 leading-relaxed">
+          <Clock size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-xs lg:text-sm">
+            <p className="font-bold text-[#12141D]">환불 준비 중</p>
+            <p className="text-[#12141D] mt-1 leading-relaxed">
               입금하신 계좌로 수동 송금 준비 중입니다. 영업일 기준 3~5일 내 완료됩니다.
             </p>
           </div>

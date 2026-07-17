@@ -17,7 +17,7 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #FEF9E7 0%, #FCD34D 50%, #F59E0B 100%)',
+          background: 'linear-gradient(135deg, #FEF9E7 0%, #D7D7D7 50%, #B1B1B1 100%)',
           fontFamily: 'sans-serif',
         }}
       >
@@ -67,7 +67,7 @@ export default async function Image() {
             style={{
               width: '120px',
               height: '4px',
-              background: '#FCD34D',
+              background: '#D7D7D7',
               margin: '20px 0',
               borderRadius: '2px',
               display: 'flex',
@@ -79,7 +79,7 @@ export default async function Image() {
             style={{
               fontSize: '28px',
               fontWeight: 600,
-              color: '#64748b',
+              color: '#737373',
               display: 'flex',
             }}
           >
@@ -98,13 +98,13 @@ export default async function Image() {
               <div
                 key={tag}
                 style={{
-                  background: '#FEF3C7',
-                  color: '#92400E',
+                  background: '#F5F0E1',
+                  color: '#585858',
                   padding: '8px 20px',
                   borderRadius: '20px',
                   fontSize: '18px',
                   fontWeight: 700,
-                  border: '2px solid #F59E0B',
+                  border: '2px solid #B1B1B1',
                   display: 'flex',
                 }}
               >
@@ -120,7 +120,7 @@ export default async function Image() {
             position: 'absolute',
             bottom: '30px',
             fontSize: '20px',
-            color: '#92400E',
+            color: '#585858',
             fontWeight: 600,
             display: 'flex',
           }}

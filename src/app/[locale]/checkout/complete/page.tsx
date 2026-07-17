@@ -227,13 +227,13 @@ function OrderCompleteContent() {
   // 검증 중/실패 상태 UI
   if (!isBankTransfer && verifyStatus === "verifying") {
     return (
-      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-6">
-        <div className="w-full max-w-sm bg-white border-2 border-slate-900 rounded-3xl p-8 shadow-[4px_4px_0px_#000] flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-[#A5F3FC] border-2 border-slate-900 rounded-full flex items-center justify-center">
-            <Loader2 size={28} className="text-slate-900 animate-spin" strokeWidth={2.5} />
+      <div className="min-h-screen bg-[#0E1016] flex items-center justify-center px-6">
+        <div className="w-full max-w-sm bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-8 flex flex-col items-center gap-4">
+          <div className="w-16 h-16 bg-[#1B1F2C] border-2 border-[#262A38] rounded-full flex items-center justify-center">
+            <Loader2 size={28} className="text-[#E9E2D0] animate-spin" strokeWidth={2.5} />
           </div>
-          <h2 className="font-black text-xl text-slate-900 text-center">결제를 확인하고 있습니다</h2>
-          <p className="text-sm text-slate-600 text-center font-medium leading-relaxed">
+          <h2 className="font-black text-xl text-[#E9E2D0] text-center">결제를 확인하고 있습니다</h2>
+          <p className="text-sm lg:text-base text-[#A69F8D] text-center font-medium leading-relaxed">
             잠시만 기다려 주세요.<br />페이지를 닫거나 새로고침하지 마세요.
           </p>
         </div>
@@ -244,28 +244,28 @@ function OrderCompleteContent() {
   if (!isBankTransfer && (verifyStatus === "failed" || verifyStatus === "cancelled")) {
     const isCancel = verifyStatus === "cancelled"
     return (
-      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm bg-white border-2 border-slate-900 rounded-3xl p-8 shadow-[4px_4px_0px_#000] flex flex-col items-center gap-4">
-          <div className={`w-16 h-16 border-2 border-slate-900 rounded-full flex items-center justify-center ${
-            isCancel ? "bg-slate-100" : "bg-red-100"
+      <div className="min-h-screen bg-[#0E1016] flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-8 flex flex-col items-center gap-4">
+          <div className={`w-16 h-16 border-2 border-[#262A38] rounded-full flex items-center justify-center ${
+            isCancel ? "bg-[#1B1F2C]" : "bg-red-100"
           }`}>
-            <AlertCircle size={28} className={isCancel ? "text-slate-700" : "text-red-600"} strokeWidth={2.5} />
+            <AlertCircle size={28} className={isCancel ? "text-[#A69F8D]" : "text-red-600"} strokeWidth={2.5} />
           </div>
-          <h2 className="font-black text-xl text-slate-900 text-center">
+          <h2 className="font-black text-xl text-[#E9E2D0] text-center">
             {isCancel ? "결제가 취소되었습니다" : "결제에 실패했습니다"}
           </h2>
-          <p className="text-sm text-slate-600 text-center font-medium leading-relaxed break-keep">
+          <p className="text-sm lg:text-base text-[#A69F8D] text-center font-medium leading-relaxed break-keep">
             {verifyError || "결제 처리 중 문제가 발생했습니다."}
           </p>
           <div className="w-full flex flex-col gap-2 mt-2">
             <button
               onClick={() => router.push("/checkout")}
-              className="w-full h-12 bg-[#F472B6] text-white rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+              className="w-full h-12 bg-[#F5EFE2] text-[#12141D] rounded-[12px] font-black border-2 border-[#262A38] transition-all"
             >
               다시 결제하기
             </button>
             <Link href="/mypage" className="block">
-              <button className="w-full h-12 bg-white text-slate-900 rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+              <button className="w-full h-12 bg-[#12141D] text-[#E9E2D0] rounded-[12px] font-black border-2 border-[#262A38] transition-all">
                 마이페이지로 이동
               </button>
             </Link>
@@ -276,10 +276,10 @@ function OrderCompleteContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#FFF8E7] font-sans">
+    <div className="relative min-h-screen bg-[#0E1016] font-wanted">
       {/* 배경 패턴 */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#FDBA74_1px,transparent_1px),linear-gradient(to_bottom,#FDBA74_1px,transparent_1px)] [background-size:40px_40px]" />
+        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#C7C7C7_1px,transparent_1px),linear-gradient(to_bottom,#C7C7C7_1px,transparent_1px)] [background-size:40px_40px]" />
       </div>
 
       <Header title={t('checkoutComplete.title')} showBack={false} />
@@ -293,8 +293,8 @@ function OrderCompleteContent() {
             transition={{ type: "spring", duration: 0.6 }}
             className="flex justify-center mb-6"
           >
-            <div className="w-24 h-24 bg-[#FBCFE8] rounded-full flex items-center justify-center border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-              <CheckCircle size={48} className="text-slate-900" strokeWidth={2.5} />
+            <div className="w-24 h-24 bg-[#1B1F2C] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+              <CheckCircle size={48} className="text-[#E9E2D0]" strokeWidth={2.5} />
             </div>
           </motion.div>
 
@@ -305,11 +305,11 @@ function OrderCompleteContent() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-2xl font-black text-slate-900 mb-2 flex items-center justify-center gap-2">
+            <h1 className="text-2xl font-black text-[#E9E2D0] mb-2 flex items-center justify-center gap-2">
               {isBankTransfer ? t('checkoutComplete.bankOrderComplete') : t('checkoutComplete.onlinePayComplete')}
-              <Heart size={24} className="text-[#F472B6] fill-[#F472B6]" />
+              <Heart size={24} className="text-[#9F9F9F] fill-[#9F9F9F]" />
             </h1>
-            <p className="text-slate-600 font-bold">
+            <p className="text-[#A69F8D] font-bold">
               {isBankTransfer
                 ? t('checkoutComplete.bankSubtext')
                 : t('checkoutComplete.onlineSubtext')}
@@ -322,31 +322,31 @@ function OrderCompleteContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
+              className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 mb-6"
             >
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#FEF9C3] border-2 border-slate-900 flex items-center justify-center">
-                  <Package size={16} className="text-slate-900" />
+                <div className="w-8 h-8 rounded-full bg-[#151823] border-2 border-[#262A38] flex items-center justify-center">
+                  <Package size={16} className="text-[#E9E2D0]" />
                 </div>
-                <h3 className="font-black text-lg text-slate-900">{t('checkoutComplete.orderInfo')}</h3>
+                <h3 className="font-black text-lg text-[#E9E2D0]">{t('checkoutComplete.orderInfo')}</h3>
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-500 font-bold">{t('checkoutComplete.orderNumber')}</span>
-                  <span className="font-mono font-black text-slate-900">{orderInfo.orderNumber}</span>
+              <div className="space-y-3 text-sm lg:text-base">
+                <div className="flex justify-between items-center p-3 bg-[#151823] rounded-[12px]">
+                  <span className="text-[#8B8578] font-bold">{t('checkoutComplete.orderNumber')}</span>
+                  <span className="font-mono font-black text-[#E9E2D0]">{orderInfo.orderNumber}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-500 font-bold">{t('checkoutComplete.product')}</span>
-                  <span className="font-bold text-slate-900">{orderInfo.perfumeName}</span>
+                <div className="flex justify-between items-center p-3 bg-[#151823] rounded-[12px]">
+                  <span className="text-[#8B8578] font-bold">{t('checkoutComplete.product')}</span>
+                  <span className="font-bold text-[#E9E2D0]">{orderInfo.perfumeName}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-500 font-bold">{t('checkoutComplete.volume')}</span>
-                  <span className="font-bold text-slate-900">{getOrderSizeLabel(orderInfo.size)}</span>
+                <div className="flex justify-between items-center p-3 bg-[#151823] rounded-[12px]">
+                  <span className="text-[#8B8578] font-bold">{t('checkoutComplete.volume')}</span>
+                  <span className="font-bold text-[#E9E2D0]">{getOrderSizeLabel(orderInfo.size)}</span>
                 </div>
-                <div className="border-t-2 border-slate-900 pt-4 mt-4 flex justify-between items-center">
-                  <span className="font-black text-slate-900">{t('checkoutComplete.paymentAmount')}</span>
-                  <span className="font-black text-2xl text-[#F472B6]">
+                <div className="border-t-2 border-[#262A38] pt-4 mt-4 flex justify-between items-center">
+                  <span className="font-black text-[#E9E2D0]">{t('checkoutComplete.paymentAmount')}</span>
+                  <span className="font-black text-2xl text-[#9F9F9F]">
                     {orderInfo.price.toLocaleString()}{t('currency.suffix')}
                   </span>
                 </div>
@@ -360,30 +360,30 @@ function OrderCompleteContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-[#FEF9C3] border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
+              className="bg-[#151823] border-2 border-[#262A38] rounded-[12px] p-6 mb-6"
             >
-              <h3 className="font-black text-lg text-slate-900 mb-4 text-center flex items-center justify-center gap-2">
-                <Sparkles size={18} className="text-[#F472B6]" />
+              <h3 className="font-black text-lg text-[#E9E2D0] mb-4 text-center flex items-center justify-center gap-2">
+                <Sparkles size={18} className="text-[#9F9F9F]" />
                 {t('checkoutComplete.depositAccount')}
               </h3>
 
-              <div className="bg-white rounded-2xl p-5 space-y-4 border-2 border-slate-900">
+              <div className="bg-[#12141D] rounded-[12px] p-5 space-y-4 border-2 border-[#262A38]">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 font-bold">{t('payment.bank')}</span>
-                  <span className="font-black text-slate-900">{BANK_INFO.bank}</span>
+                  <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('payment.bank')}</span>
+                  <span className="font-black text-[#E9E2D0]">{BANK_INFO.bank}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 font-bold">{t('payment.accountNumber')}</span>
+                  <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('payment.accountNumber')}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-slate-900 font-mono text-lg">
+                    <span className="font-black text-[#E9E2D0] font-mono text-lg">
                       {BANK_INFO.account}
                     </span>
                     <button
                       onClick={copyAccountNumber}
-                      className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all flex items-center gap-1 border-2 ${
+                      className={`px-3 py-1.5 rounded-[12px] text-sm lg:text-base font-bold transition-all flex items-center gap-1 border-2 ${
                         copied
-                          ? "bg-[#FBCFE8] border-slate-900 text-slate-900"
-                          : "bg-white border-slate-900 hover:bg-[#FEF9C3] text-slate-900"
+                          ? "bg-[#1B1F2C] border-[#262A38] text-[#E9E2D0]"
+                          : "bg-[#12141D] border-[#262A38] hover:bg-[#151823] text-[#E9E2D0]"
                       }`}
                     >
                       {copied ? (
@@ -401,13 +401,13 @@ function OrderCompleteContent() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 font-bold">{t('payment.accountHolder')}</span>
-                  <span className="font-black text-slate-900">{BANK_INFO.holder}</span>
+                  <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('payment.accountHolder')}</span>
+                  <span className="font-black text-[#E9E2D0]">{BANK_INFO.holder}</span>
                 </div>
               </div>
 
-              <div className="mt-4 p-3 bg-white rounded-xl border-2 border-[#F472B6]">
-                <p className="text-xs text-[#F472B6] text-center font-black">
+              <div className="mt-4 p-3 bg-[#12141D] rounded-[12px] border-2 border-[#9F9F9F]">
+                <p className="text-xs lg:text-sm text-[#9F9F9F] text-center font-black">
                   {t('checkoutComplete.sameNameWarning')}
                 </p>
               </div>
@@ -417,13 +417,13 @@ function OrderCompleteContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-[#A5F3FC] border-2 border-slate-900 rounded-3xl p-6 mb-6 shadow-[4px_4px_0px_#000]"
+              className="bg-[#1B1F2C] border-2 border-[#262A38] rounded-[12px] p-6 mb-6"
             >
-              <h3 className="font-black text-lg text-slate-900 mb-3 text-center flex items-center justify-center gap-2">
-                <CheckCircle size={18} className="text-slate-900" />
+              <h3 className="font-black text-lg text-[#E9E2D0] mb-3 text-center flex items-center justify-center gap-2">
+                <CheckCircle size={18} className="text-[#E9E2D0]" />
                 {t('checkoutComplete.paymentComplete')}
               </h3>
-              <p className="text-sm text-slate-700 font-bold text-center">
+              <p className="text-sm lg:text-base text-[#A69F8D] font-bold text-center">
                 {t('checkoutComplete.paymentCompleteDesc')}
               </p>
             </motion.div>
@@ -434,30 +434,30 @@ function OrderCompleteContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-[#E9D5FF] border-2 border-slate-900 rounded-3xl p-6 mb-8 shadow-[4px_4px_0px_#000]"
+            className="bg-[#DDDDDD] border-2 border-[#262A38] rounded-[12px] p-6 mb-8"
           >
-            <h3 className="font-black text-lg text-slate-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-900 flex items-center justify-center">
-                <Truck size={16} className="text-slate-900" />
+            <h3 className="font-black text-lg text-[#E9E2D0] mb-4 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-[#12141D] border-2 border-[#262A38] flex items-center justify-center">
+                <Truck size={16} className="text-[#E9E2D0]" />
               </div>
               {t('checkoutComplete.shippingGuide')}
             </h3>
 
             <div className="space-y-3">
-              <div className="flex items-start gap-3 text-sm bg-white/50 p-3 rounded-xl">
-                <Clock size={18} className="text-slate-900 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-800 font-bold" dangerouslySetInnerHTML={{
+              <div className="flex items-start gap-3 text-sm lg:text-base bg-[#12141D]/50 p-3 rounded-[12px]">
+                <Clock size={18} className="text-[#E9E2D0] mt-0.5 flex-shrink-0" />
+                <span className="text-[#E9E2D0] font-bold" dangerouslySetInnerHTML={{
                   __html: (isBankTransfer
                     ? t('checkoutComplete.bankShippingText')
                     : t('checkoutComplete.onlineShippingText')
-                  ).replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#F472B6]">$1</strong>')
+                  ).replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#9F9F9F]">$1</strong>')
                 }} />
               </div>
-              <div className="flex items-start gap-3 text-sm bg-white/50 p-3 rounded-xl">
-                <Package size={18} className="text-slate-900 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-800 font-bold" dangerouslySetInnerHTML={{
+              <div className="flex items-start gap-3 text-sm lg:text-base bg-[#12141D]/50 p-3 rounded-[12px]">
+                <Package size={18} className="text-[#E9E2D0] mt-0.5 flex-shrink-0" />
+                <span className="text-[#E9E2D0] font-bold" dangerouslySetInnerHTML={{
                   __html: t('checkoutComplete.checkMypage')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#F472B6]">$1</strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#9F9F9F]">$1</strong>')
                 }} />
               </div>
             </div>
@@ -471,14 +471,14 @@ function OrderCompleteContent() {
             className="space-y-3"
           >
             <Link href="/mypage" className="block">
-              <button className="w-full h-14 bg-[#F472B6] text-white rounded-2xl font-black text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2">
+              <button className="w-full h-14 bg-[#F5EFE2] text-[#12141D] rounded-[12px] font-black text-lg border-2 border-[#262A38] transition-all flex items-center justify-center gap-2">
                 <User size={20} />
                 {t('checkoutComplete.goMypage')}
               </button>
             </Link>
 
             <Link href="/" className="block">
-              <button className="w-full h-14 bg-white text-slate-900 rounded-2xl font-black text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2">
+              <button className="w-full h-14 bg-[#12141D] text-[#E9E2D0] rounded-[12px] font-black text-lg border-2 border-[#262A38] transition-all flex items-center justify-center gap-2">
                 <Home size={20} />
                 {t('checkoutComplete.goHome')}
               </button>
@@ -494,8 +494,8 @@ export default function OrderCompletePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-slate-900 border-t-[#F472B6] rounded-full animate-spin" />
+        <div className="min-h-screen bg-[#0E1016] flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full animate-spin" />
         </div>
       }
     >

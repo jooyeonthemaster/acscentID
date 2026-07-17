@@ -35,7 +35,7 @@ function TitleGroup() {
                 fontSize={0.5}
                 position={[-1.8, 1.8, 0]}
                 anchorX="left"
-                color="#1e293b" // slate-900
+                color="#292929" // slate-900
                 outlineWidth={0.02}
                 outlineColor="#ffffff"
             >
@@ -48,9 +48,9 @@ function TitleGroup() {
                 fontSize={1.2}
                 position={[-2.0, 0.7, 0]}
                 anchorX="left"
-                color="#FBCFE8" // pink-200
+                color="#1B1F2C" // pink-200
                 outlineWidth={0.04}
-                outlineColor="#0f172a" // slate-900
+                outlineColor="#171717" // slate-900
                 characters="가장유쾌한 브랜드"
             >
                 가장 유쾌한 브랜드
@@ -62,7 +62,7 @@ function TitleGroup() {
                 fontSize={0.9}
                 position={[-1.9, -0.8, 0]}
                 anchorX="left"
-                color="#1e293b" // slate-900
+                color="#292929" // slate-900
                 outlineWidth={0.03}
                 outlineColor="#ffffff"
             >

@@ -95,7 +95,7 @@ export function GraduationStep1({
 
                 {/* 성별 */}
                 <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-xs lg:text-sm font-bold text-[#8B8578] uppercase tracking-wider">
                         {t('step1.genderLabel')}
                     </label>
                     <div className="flex gap-2">
@@ -104,10 +104,10 @@ export function GraduationStep1({
                                 key={key}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setGender(key)}
-                                className={`relative flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden backdrop-blur-md border ${
+                                className={`relative flex-1 py-3.5 rounded-[12px] text-sm lg:text-base font-semibold transition-all duration-300 overflow-hidden backdrop-blur-md border ${
                                     formData.gender === key
-                                        ? "text-white shadow-lg border-[#1e3a5f]"
-                                        : "bg-white/80 text-slate-500 border-white/60 shadow-md shadow-slate-900/5 hover:bg-white/90 hover:border-white"
+                                        ? "text-[#E9E2D0] shadow-lg border-[#393939]"
+                                        : "bg-[#12141D]/80 text-[#8B8578] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[#12141D]/90 hover:border-[#5C564A]"
                                 }`}
                             >
                                 {formData.gender === key && (
@@ -126,7 +126,7 @@ export function GraduationStep1({
 
                 {/* 졸업 유형 */}
                 <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-xs lg:text-sm font-bold text-[#8B8578] uppercase tracking-wider">
                         {t('step1.graduationTypeLabel')}
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -135,10 +135,10 @@ export function GraduationStep1({
                                 key={key}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setGraduationType(key)}
-                                className={`relative py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 overflow-hidden backdrop-blur-md border ${
+                                className={`relative py-3 px-2 rounded-[12px] text-xs lg:text-sm font-semibold transition-all duration-300 overflow-hidden backdrop-blur-md border ${
                                     formData.graduationType === key
-                                        ? "text-white shadow-lg border-[#d4af37]"
-                                        : "bg-white/80 text-slate-600 border-white/60 shadow-md shadow-slate-900/5 hover:bg-white/90"
+                                        ? "text-[#E9E2D0] shadow-lg border-[#B3B3B3]"
+                                        : "bg-[#12141D]/80 text-[#A69F8D] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[#12141D]/90"
                                 }`}
                             >
                                 {formData.graduationType === key && (

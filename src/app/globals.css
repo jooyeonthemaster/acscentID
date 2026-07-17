@@ -7,8 +7,14 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
+  /* 에스코어드림 — 한글 본문 서체. 라틴은 Outfit, 한글은 에스코어드림이 담당 */
+  --font-score: var(--font-score-dream), var(--font-outfit);
+  /* Wanted Sans — 한글 본문. 라틴+한글 모두 이 폰트가 담당 */
+  --font-wanted: var(--font-wanted), sans-serif;
   --font-jua: var(--font-jua);
   --font-serif-kr: var(--font-noto-serif-kr), "Noto Serif KR", serif;
+  /* 홈 제목 명조 — 고운바탕 */
+  --font-heading: var(--font-heading-serif), "Apple SD Gothic Neo", sans-serif;
 
 
   --color-sidebar-ring: var(--sidebar-ring);
@@ -48,24 +54,24 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.86 0.18 89);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #0C0E16;
+  --foreground: #E9E2D0;
+  --card: #12141D;
+  --card-foreground: #E9E2D0;
+  --popover: #12141D;
+  --popover-foreground: #E9E2D0;
+  --primary: #EEB62B;
+  --primary-foreground: #1A1610;
+  --secondary: #1B1F2C;
+  --secondary-foreground: #E9E2D0;
+  --muted: #1B1F2C;
+  --muted-foreground: #A69F8D;
+  --accent: #1B1F2C;
+  --accent-foreground: #E9E2D0;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #262A38;
+  --input: #262A38;
+  --ring: #5C564A;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -148,7 +154,7 @@
 
   /* Sophisticated Glass */
   .glass-card {
-    @apply bg-white/40 backdrop-blur-2xl border border-white/60 shadow-xl;
+    @apply bg-[#12141D]/60 backdrop-blur-2xl border border-white/10 shadow-xl;
     box-shadow:
       0 4px 24px -1px rgba(0, 0, 0, 0.05),
       0 0 0 1px rgba(255, 255, 255, 0.4) inset;
@@ -169,7 +175,7 @@
   }
 
   body {
-    @apply bg-[#FDFDFD] text-slate-900;
+    @apply bg-[#0C0E16] text-[#E9E2D0];
   }
 
   /* Smooth text */
@@ -381,7 +387,7 @@
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #facc15 transparent;
+  scrollbar-color: #525252 transparent;
 }
 
 /* Chrome, Edge, and Safari */
@@ -396,16 +402,16 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #facc15;
+  background: #525252;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #eab308;
+  background: #737373;
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: #ca8a04;
+  background: #8c8c8c;
 }
 
 .admin-shell {
@@ -566,6 +572,12 @@
 /* 먹지 질감 — 다크 배경 위 은은한 입자 (기존 .bg-noise의 정적·저비용 버전) */
 .saju-ink-grain:where(:not(.absolute):not(.fixed):not(.sticky)) {
   position: relative;
+}
+/* 사주 폰트 격리 — 전역 기본이 Wanted Sans로 바뀌어도 사주 서브트리는
+   기존 폰트(Outfit + 시스템 한글, 그리고 자식의 font-serif-kr)를 그대로 유지한다.
+   사주 TSX 를 건드리지 않고 사주 전용 훅(.saju-ink-grain)으로만 고정. */
+.saju-ink-grain {
+  font-family: var(--font-outfit), "Apple SD Gothic Neo", sans-serif;
 }
 .saju-ink-grain::before {
   content: "";

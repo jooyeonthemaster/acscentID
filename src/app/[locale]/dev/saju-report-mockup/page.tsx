@@ -64,7 +64,7 @@ function SajuReportMockupHarness() {
 
       <div className="mx-auto mb-5 flex w-[842px] items-center justify-between print:hidden">
         <div>
-          <p className="m-0 text-xs font-bold tracking-[0.18em] text-[#7A5C14]">
+          <p className="m-0 text-xs lg:text-sm font-bold tracking-[0.18em] text-[#7A5C14]">
             사주 보고서 시안
           </p>
           <h1 className="m-0 mt-1 text-lg font-black text-[#1A1610]">
@@ -74,19 +74,19 @@ function SajuReportMockupHarness() {
         <div className="flex items-center gap-2">
           <a
             href={`?variant=${variant === 'self' ? 'idol' : 'self'}`}
-            className="rounded border border-[#1A1610]/20 bg-white/55 px-3 py-2 text-sm font-bold text-[#1A1610] hover:bg-white"
+            className="rounded-[12px] border border-[#1A1610]/20 bg-white/55 px-3 py-2 text-sm lg:text-base font-bold text-[#1A1610] hover:bg-white"
           >
             {variant === 'self' ? '최애 판' : '나의 판'}
           </a>
           <a
             href={`/${params.locale}/dev/saju-print?variant=${variant}`}
-            className="rounded border border-[#1A1610]/20 bg-white/55 px-3 py-2 text-sm font-bold text-[#1A1610] hover:bg-white"
+            className="rounded-[12px] border border-[#1A1610]/20 bg-white/55 px-3 py-2 text-sm lg:text-base font-bold text-[#1A1610] hover:bg-white"
           >
             인쇄 하네스
           </a>
           <button
             onClick={() => window.print()}
-            className="rounded bg-[#1A1610] px-4 py-2 text-sm font-black text-white hover:bg-[#3A3329]"
+            className="rounded-[12px] bg-[#1A1610] px-4 py-2 text-sm lg:text-base font-black text-white hover:bg-[#3A3329]"
           >
             인쇄
           </button>

@@ -966,7 +966,7 @@ export default function AdminOrdersPage() {
       <div className="p-6">
         {/* 환불 처리 대기 배너 */}
         {refundPending.total > 0 && (
-          <div className="mb-6 rounded-xl border-2 border-red-400 bg-red-50 p-4 shadow-[3px_3px_0px_#fca5a5]">
+          <div className="mb-6 rounded-xl border-2 border-red-400 bg-red-50 p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center">
                 <AlertCircle className="w-4 h-4 text-red-600" />
@@ -1003,7 +1003,7 @@ export default function AdminOrdersPage() {
         )}
 
         {/* 검색 및 필터 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 mb-6 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 mb-6">
           {/* 상태 필터 */}
           <div className="flex flex-wrap gap-2 mb-4">
             {statusFilters.map((filter) => {
@@ -1014,7 +1014,7 @@ export default function AdminOrdersPage() {
                   onClick={() => handleFilterChange(filter.value)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                     statusFilter === filter.value
-                      ? 'bg-yellow-400 border-slate-900 text-slate-900 shadow-[2px_2px_0px_#1e293b]'
+                      ? 'bg-yellow-400 border-slate-900 text-slate-900'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
@@ -1031,7 +1031,7 @@ export default function AdminOrdersPage() {
               onClick={() => handleInfluencerFilterChange(influencerFilter === 'true' ? '' : 'true')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                 influencerFilter === 'true'
-                  ? 'bg-rose-400 border-rose-700 text-white shadow-[2px_2px_0px_#be123c]'
+                  ? 'bg-rose-400 border-rose-700 text-white'
                   : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
               }`}
             >
@@ -1067,7 +1067,7 @@ export default function AdminOrdersPage() {
 
             <button
               onClick={handleSearch}
-              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
             >
               검색
             </button>
@@ -1075,7 +1075,7 @@ export default function AdminOrdersPage() {
             <button
               onClick={downloadPaidOrdersExcel}
               disabled={excelLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 shadow-[3px_3px_0px_#047857] hover:shadow-[1px_1px_0px_#047857] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg border-2 border-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               title="출고 대상 주문(입금완료 + 상품준비중)을 엑셀로 다운로드"
             >
               {excelLoading ? (
@@ -1090,7 +1090,7 @@ export default function AdminOrdersPage() {
               <button
                 onClick={handleDeleteSelected}
                 disabled={deleteLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border-2 border-red-700 shadow-[3px_3px_0px_#b91c1c] hover:shadow-[1px_1px_0px_#b91c1c] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border-2 border-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleteLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -1148,7 +1148,7 @@ export default function AdminOrdersPage() {
         {/* 주문 목록 */}
         {!loading && !error && (
           <>
-            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-x-auto shadow-[3px_3px_0px_#e2e8f0]">
+            <div className="bg-white rounded-xl border-2 border-slate-200 overflow-x-auto">
               <table className="w-full md:min-w-[720px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
@@ -1737,7 +1737,7 @@ export default function AdminOrdersPage() {
                                     <button
                                       onClick={() => saveMemo(order.id)}
                                       disabled={memoSaving}
-                                      className="px-3 py-1.5 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 hover:shadow-[2px_2px_0px_#1e293b] transition-all disabled:opacity-50"
+                                      className="px-3 py-1.5 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 transition-all disabled:opacity-50"
                                     >
                                       {memoSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                                     </button>
@@ -1832,7 +1832,7 @@ export default function AdminOrdersPage() {
                                       e.stopPropagation()
                                       handleRefund(order)
                                     }}
-                                    className="px-3 py-1 text-xs font-bold text-white bg-red-500 hover:bg-red-600 border-2 border-slate-900 rounded-lg shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex-shrink-0"
+                                    className="px-3 py-1 text-xs font-bold text-white bg-red-500 hover:bg-red-600 border-2 border-slate-900 rounded-lg transition-all flex-shrink-0"
                                   >
                                     {order.payment_method === 'bank_transfer' ? '수동환불 기록' : '환불 처리'}
                                   </button>
@@ -2235,7 +2235,7 @@ export default function AdminOrdersPage() {
                         <button
                           onClick={() => handleTrackingSave(false)}
                           disabled={trackingSaving || !trackingInput.trim() || !isValidTrackingNumber(trackingInput) || normalizeTrackingNumber(trackingInput) === (selectedOrder.tracking_number ?? '')}
-                          className="px-3 py-1.5 text-sm font-bold bg-purple-600 text-white rounded-lg border-2 border-purple-700 shadow-[2px_2px_0px_#581c87] hover:shadow-[1px_1px_0px_#581c87] hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0"
+                          className="px-3 py-1.5 text-sm font-bold bg-purple-600 text-white rounded-lg border-2 border-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {trackingSaving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : '운송장 저장'}
                         </button>
@@ -2281,7 +2281,7 @@ export default function AdminOrdersPage() {
                             setSelectedOrder(prev => prev ? { ...prev, admin_memo: memoText } : null)
                           }}
                           disabled={memoSaving}
-                          className="px-3 py-2 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 hover:shadow-[2px_2px_0px_#1e293b] transition-all disabled:opacity-50"
+                          className="px-3 py-2 text-xs font-medium bg-yellow-400 text-slate-900 rounded-lg border-2 border-slate-900 transition-all disabled:opacity-50"
                         >
                           {memoSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : '저장'}
                         </button>
@@ -2394,7 +2394,7 @@ export default function AdminOrdersPage() {
                       <ReportPrintLink
                         key={item.id}
                         href={getReportPrintHref(item)}
-                        className="flex items-center gap-2 px-3 py-2 bg-yellow-400 text-slate-900 text-sm font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        className="flex items-center gap-2 px-3 py-2 bg-yellow-400 text-slate-900 text-sm font-medium rounded-lg border-2 border-slate-900 transition-all"
                         title={`${item.perfume_name} 보고서 출력`}
                         iconClassName="w-4 h-4"
                         label={`${item.perfume_name} 보고서`}
@@ -2405,7 +2405,7 @@ export default function AdminOrdersPage() {
                     /* 단일 상품: 기존 버튼 */
                     <ReportPrintLink
                       href={getOrderReportPrintHref(selectedOrder)}
-                      className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
                       title="보고서 출력"
                       iconClassName="w-5 h-5"
                       label="보고서 출력"

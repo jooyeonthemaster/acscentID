@@ -585,7 +585,7 @@ export default function AdminCouponsPage() {
       <main className="coupon-admin-main space-y-6 overflow-x-hidden p-4 sm:p-6">
         <RepurchaseCouponSettings />
 
-        <section className="admin-no-print min-w-0 rounded-2xl border-2 border-slate-900 bg-white p-3 shadow-[4px_4px_0_#0f172a] sm:p-5">
+        <section className="admin-no-print min-w-0 rounded-2xl border-2 border-slate-900 bg-white p-3 sm:p-5">
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-slate-900 bg-yellow-300">
               <QrCode className="h-5 w-5 text-slate-950" />
@@ -720,7 +720,7 @@ export default function AdminCouponsPage() {
               <button
                 type="submit"
                 disabled={issuing}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-yellow-300 px-4 py-3 font-black text-slate-950 shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#000] disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-yellow-300 px-4 py-3 font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {issuing ? <Loader2 className="h-5 w-5 animate-spin" /> : <QrCode className="h-5 w-5" />}
                 쿠폰 발급
@@ -776,7 +776,7 @@ export default function AdminCouponsPage() {
                       key={group.key}
                       className={`overflow-hidden rounded-xl border-2 transition ${
                         selected
-                          ? 'border-slate-950 bg-yellow-50 shadow-[3px_3px_0_#000]'
+                          ? 'border-slate-950 bg-yellow-50'
                           : 'border-slate-200 bg-white'
                       }`}
                     >
@@ -832,7 +832,7 @@ export default function AdminCouponsPage() {
                                 type="button"
                                 onClick={() => void handlePrintSelectedGroup(group)}
                                 disabled={group.active === 0}
-                                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-white px-2.5 py-2 text-xs font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
+                                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-900 bg-white px-2.5 py-2 text-xs font-black text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
                               >
                                 <Printer className="h-4 w-4" />
                                 <span className="hidden sm:inline">묶음 인쇄</span>

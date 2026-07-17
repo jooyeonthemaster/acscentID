@@ -41,7 +41,7 @@ export async function GET(
     ? [{ name: 'NotoSansKR', data: fontData, weight: 800 as const, style: 'normal' as const }]
     : []
 
-  const theme = scent?.theme ?? { bg: '#FCD34D', accent: '#F59E0B', ink: '#1a1a1a' }
+  const theme = scent?.theme ?? { bg: '#D7D7D7', accent: '#B1B1B1', ink: '#1a1a1a' }
 
   return new ImageResponse(
     (
@@ -61,7 +61,7 @@ export async function GET(
         }}
       >
         {/* 상단 바 */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: '#0f172a', display: 'flex' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: '#171717', display: 'flex' }} />
 
         {/* 카드 */}
         <div
@@ -73,8 +73,8 @@ export async function GET(
             background: 'rgba(255,255,255,0.92)',
             borderRadius: '36px',
             padding: '56px 72px',
-            border: '6px solid #0f172a',
-            boxShadow: '14px 14px 0px 0px #0f172a',
+            border: '6px solid #171717',
+            boxShadow: '14px 14px 0px 0px #171717',
             width: '1000px',
           }}
         >
@@ -87,7 +87,7 @@ export async function GET(
               fontSize: '26px',
               padding: '8px 24px',
               borderRadius: '999px',
-              border: '3px solid #0f172a',
+              border: '3px solid #171717',
             }}
           >
             오늘의 향
@@ -118,21 +118,21 @@ export async function GET(
                     flexDirection: 'column',
                     alignItems: 'center',
                     background: '#ffffff',
-                    border: '3px solid #0f172a',
+                    border: '3px solid #171717',
                     borderRadius: '20px',
                     padding: '16px 28px',
-                    boxShadow: '4px 4px 0px 0px #0f172a',
+                    boxShadow: '4px 4px 0px 0px #171717',
                   }}
                 >
                   <div style={{ display: 'flex', fontSize: '22px', color: theme.accent }}>{n.k}</div>
-                  <div style={{ display: 'flex', fontSize: '34px', marginTop: '6px', color: '#0f172a' }}>{n.v}</div>
+                  <div style={{ display: 'flex', fontSize: '34px', marginTop: '6px', color: '#171717' }}>{n.v}</div>
                 </div>
               ))}
             </div>
           )}
 
           {/* 푸터 */}
-          <div style={{ display: 'flex', marginTop: '34px', fontSize: '24px', color: '#0f172a', opacity: 0.7 }}>
+          <div style={{ display: 'flex', marginTop: '34px', fontSize: '24px', color: '#171717', opacity: 0.7 }}>
             AC&apos;SCENT · www.acscent.co.kr
           </div>
         </div>

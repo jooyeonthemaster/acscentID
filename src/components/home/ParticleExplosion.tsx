@@ -11,14 +11,14 @@ interface ParticleExplosionProps {
 
 // 키치 색상 팔레트
 const PARTICLE_COLORS = [
-  '#FBCFE8', // 핑크
-  '#BAE6FD', // 하늘
-  '#FEF08A', // 노랑
-  '#F472B6', // 진한 핑크
-  '#FBBF24', // 주황
-  '#A5F3FC', // 민트
-  '#C4B5FD', // 보라
-  '#86EFAC', // 연두
+  '#1B1F2C', // 핑크
+  '#DFDFDF', // 하늘
+  '#1B1F2C', // 노랑
+  '#9F9F9F', // 진한 핑크
+  '#C8C8C8', // 주황
+  '#1B1F2C', // 민트
+  '#BFBFBF', // 보라
+  '#DADADA', // 연두
 ]
 
 const PARTICLE_COUNT = 16
@@ -41,7 +41,7 @@ function StarParticle({ color, size }: { color: string; size: number }) {
 function CircleParticle({ color, size }: { color: string; size: number }) {
   return (
     <div
-      className="rounded-full border-2 border-black"
+      className="rounded-full border-2 border-[#262A38]"
       style={{
         width: size,
         height: size,
@@ -100,7 +100,7 @@ export function ParticleExplosion({ origin, isActive, onComplete }: ParticleExpl
             animate={{ scale: 3, opacity: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-white"
+            className="absolute -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-[#12141D]"
           />
 
           {/* 축하 텍스트 */}
@@ -110,7 +110,7 @@ export function ParticleExplosion({ origin, isActive, onComplete }: ParticleExpl
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
             className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap"
           >
-            <span className="text-3xl font-black text-white drop-shadow-[2px_2px_0px_#000]">
+            <span className="text-3xl font-black text-[#E9E2D0] drop-">
               {celebrationText}
             </span>
           </motion.div>
@@ -157,14 +157,14 @@ export function ParticleExplosion({ origin, isActive, onComplete }: ParticleExpl
             initial={{ scale: 0, opacity: 0.8 }}
             animate={{ scale: 2.5, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-4 border-[#FBBF24]"
+            className="absolute -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-4 border-[#C8C8C8]"
           />
 
           <motion.div
             initial={{ scale: 0, opacity: 0.6 }}
             animate={{ scale: 3, opacity: 0 }}
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-4 border-[#F472B6]"
+            className="absolute -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-4 border-[#9F9F9F]"
           />
         </div>
       )}

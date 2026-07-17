@@ -56,7 +56,7 @@ export function SummonPhase({
         animate={{ opacity: 1, y: 0 }}
         className="space-y-1.5"
       >
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-wider px-1">
+        <label className="block text-xs lg:text-sm font-black text-[#8B8578] uppercase tracking-wider px-1">
           {t('target.label')}
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -70,17 +70,18 @@ export function SummonPhase({
                 key={key}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-sm font-bold transition-all border-2 border-black ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-[12px] text-sm lg:text-base font-bold bg-[#F5EFE2] border-2 transition-colors duration-300 ${
                   isActive
-                    ? "bg-violet-500 text-white shadow-[4px_4px_0_0_black]"
-                    : "bg-white text-slate-500 shadow-[2px_2px_0_0_black] hover:bg-slate-50"
+                    ? "border-[#B8880F] text-[#1A1610]"
+                    : "border-[#D8CFBB] text-[#5C564A] hover:border-[#C9BFA8]"
                 }`}
+                style={isActive ? { boxShadow: '0 0 16px rgba(212,160,23,0.18)' } : undefined}
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">{emoji}</span>
                   <span className="text-base font-black">{label}</span>
                 </div>
-                <span className={`text-[9px] font-medium leading-tight ${isActive ? "text-white/80" : "text-slate-400"}`}>
+                <span className={`text-[9px] font-medium leading-tight ${isActive ? "text-[#5C564A]" : "text-[#8B8578]"}`}>
                   {desc}
                 </span>
               </motion.button>
@@ -96,15 +97,15 @@ export function SummonPhase({
           animate={{ opacity: 1, y: 0 }}
           className="space-y-2"
         >
-          <div className="bg-white border-2 border-black rounded-xl p-3 shadow-[3px_3px_0_0_black]">
-            <label className="block text-xs font-black text-slate-700 mb-2">{t('pin.label')}</label>
+          <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-3">
+            <label className="block text-xs lg:text-sm font-black text-[#5C564A] mb-2">{t('pin.label')}</label>
             <input
               type="tel"
               inputMode="numeric"
               maxLength={4}
               value={formData.pin}
               onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value.replace(/\D/g, '') }))}
-              className="w-full h-11 px-4 text-center text-2xl font-bold tracking-[0.5em] border-2 border-slate-300 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
+              className="w-full h-11 px-4 text-center text-2xl font-bold tracking-[0.5em] bg-[#FDFAF1] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] focus:border-[#C9BFA8] focus:ring-2 focus:ring-[#D8CFBB] outline-none"
               placeholder="0000"
             />
           </div>
@@ -114,16 +115,16 @@ export function SummonPhase({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-start gap-2 bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-xl px-3 py-2.5"
+            className="flex items-start gap-2 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] px-3 py-2.5"
           >
-            <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-rose-400 border-2 border-rose-500 flex items-center justify-center mt-0.5">
-              <KeyRound size={12} className="text-white" />
+            <div className="flex-shrink-0 w-6 h-6 rounded-[12px] bg-[#EFE4C8] border-2 border-[#C9BFA8] flex items-center justify-center mt-0.5">
+              <KeyRound size={12} className="text-[#1A1610]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-black text-rose-700 leading-tight">
+              <p className="text-[11px] lg:text-[13px] font-black text-[#5C564A] leading-tight">
                 {t('pin.helpTitle')}
               </p>
-              <p className="text-[10px] text-rose-600/80 mt-0.5 leading-snug">
+              <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-0.5 leading-snug">
                 {t('pin.helpDesc')}
               </p>
             </div>
@@ -141,12 +142,12 @@ export function SummonPhase({
             transition={{ type: "spring", bounce: 0.4, duration: 0.6 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
           >
-            <div className="bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl p-4 shadow-2xl shadow-rose-500/30 border-2 border-rose-400">
+            <div className="bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-[12px] p-4 shadow-2xl shadow-stone-500/30 border-2 border-[#C9BFA8]">
               <div className="text-center">
-                <p className="text-white/80 text-xs font-medium">{t('pin.toastLabel')}</p>
-                <p className="text-white text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
+                <p className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('pin.toastLabel')}</p>
+                <p className="text-[#1A1610] text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
               </div>
-              <p className="text-white/70 text-[11px] mt-2 text-center">{t('pin.toastHelp')}</p>
+              <p className="text-[#5C564A] text-[11px] lg:text-[13px] mt-2 text-center">{t('pin.toastHelp')}</p>
             </div>
           </motion.div>
         )}
@@ -192,9 +193,9 @@ export function SummonPhase({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className={`${isOffline ? 'bg-white/85 border-slate-200 p-2.5' : 'bg-violet-50 border-violet-200 p-4'} border-2 rounded-2xl text-center`}
+        className={`${isOffline ? 'bg-[#F5EFE2]/85 border-[#D8CFBB] p-2.5' : 'bg-[#FDFAF1] border-[#D8CFBB] p-4'} border-2 rounded-[12px] text-center`}
       >
-        <p className={`${isOffline ? 'text-[11px] text-slate-500' : 'text-xs text-violet-600'} font-medium leading-relaxed`}>
+        <p className={`${isOffline ? 'text-[11px] lg:text-[13px] text-[#8B8578]' : 'text-xs lg:text-sm text-[#5C564A]'} font-medium leading-relaxed`}>
           {t('summon.imageGuideMain')}
           {!isOffline && <><br />{t('summon.imageGuideSub')}</>}
         </p>
@@ -220,20 +221,20 @@ function CharacterCard({
   accentColor: 'violet' | 'pink'
 }) {
   const t = useTranslations('chemistry.summon')
-  const borderColor = accentColor === 'violet' ? 'border-violet-400' : 'border-pink-400'
-  const bgColor = accentColor === 'violet' ? 'bg-violet-50' : 'bg-pink-50'
-  const focusBorder = accentColor === 'violet' ? 'focus:border-violet-500' : 'focus:border-pink-500'
+  const borderColor = accentColor === 'violet' ? 'border-[#C9BFA8]' : 'border-[#C9BFA8]'
+  const bgColor = accentColor === 'violet' ? 'bg-[#FDFAF1]' : 'bg-[#FDFAF1]'
+  const focusBorder = accentColor === 'violet' ? 'focus:border-[#C9BFA8]' : 'focus:border-[#C9BFA8]'
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[3px_3px_0_0_black]`}
+      className={`bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden`}
     >
       {/* 헤더 */}
-      <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-black`}>
+      <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-[#D8CFBB]`}>
         {icon}
-        <span className="text-xs font-black text-slate-800">{emoji} {label}</span>
+        <span className="text-xs lg:text-sm font-black text-[#1A1610]">{emoji} {label}</span>
       </div>
 
       {/* 이미지 영역 */}
@@ -245,25 +246,25 @@ function CharacterCard({
           role={!imageBase64 ? "button" : undefined}
           tabIndex={!imageBase64 ? 0 : undefined}
           aria-label={!imageBase64 ? t('selectImageAria', { character: label }) : undefined}
-          className={`relative w-full aspect-[4/3] rounded-xl border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
+          className={`relative w-full aspect-[4/3] rounded-[12px] border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
         >
           {isCompressing ? (
-            <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#8B8578] animate-spin" />
           ) : imageBase64 ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageBase64} alt={label} className="w-full h-full object-cover" />
               <button
                 onClick={(e) => { e.stopPropagation(); onRemoveImage() }}
-                className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white"
+                className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[#1A1610]"
               >
                 <X size={12} />
               </button>
             </>
           ) : (
             <div className="text-center">
-              <Camera className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-              <span className="text-[10px] text-slate-400 font-medium">{t('uploadImage')}</span>
+              <Camera className="w-8 h-8 text-[#5C564A] mx-auto mb-1" />
+              <span className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{t('uploadImage')}</span>
             </div>
           )}
         </div>
@@ -273,7 +274,7 @@ function CharacterCard({
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center border-2 border-slate-300 rounded-xl ${focusBorder} focus:ring-2 focus:ring-violet-200 outline-none`}
+          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center bg-[#FDFAF1] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] ${focusBorder} focus:ring-2 focus:ring-[#D8CFBB] outline-none`}
           placeholder={t('namePlaceholder')}
           maxLength={20}
         />

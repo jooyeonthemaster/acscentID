@@ -23,7 +23,7 @@ export function CouponRegisterClient() {
   if (loading || hasUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F7F2] px-5 py-10">
-        <div className="w-full max-w-sm rounded-lg border-3 border-slate-950 bg-white p-6 text-center shadow-[5px_5px_0_#000]">
+        <div className="w-full max-w-sm rounded-lg border-3 border-slate-950 bg-white p-6 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border-2 border-slate-950 bg-yellow-300">
             <Loader2 className="h-7 w-7 animate-spin text-slate-950" />
           </div>
@@ -47,7 +47,7 @@ export function CouponRegisterClient() {
           </div>
         </div>
 
-        <section className="rounded-lg border-3 border-slate-950 bg-white p-6 shadow-[6px_6px_0_#000]">
+        <section className="rounded-lg border-3 border-slate-950 bg-white p-6">
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-lg border-2 border-slate-950 bg-slate-950">
             <QrCode className="h-8 w-8 text-yellow-300" />
           </div>
@@ -79,7 +79,7 @@ export function CouponRegisterClient() {
 
           <button
             onClick={() => setShowAuthModal(true)}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-slate-950 bg-yellow-300 px-4 py-4 font-black text-slate-950 shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-slate-950 bg-yellow-300 px-4 py-4 font-black text-slate-950 transition"
           >
             <LogIn className="h-5 w-5" />
             로그인하고 쿠폰 등록하기

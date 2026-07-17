@@ -36,14 +36,14 @@ export const PAST_PERSONALITIES = [
 
 // 현재 감정 상태
 export const CURRENT_FEELINGS = [
-  { key: "excited", label: "설레는", emoji: "🌟", color: "bg-yellow-100 border-yellow-400" },
-  { key: "nostalgic", label: "아쉬운", emoji: "🥹", color: "bg-blue-100 border-blue-400" },
-  { key: "proud", label: "뿌듯한", emoji: "🎉", color: "bg-green-100 border-green-400" },
-  { key: "anxious", label: "떨리는", emoji: "💓", color: "bg-pink-100 border-pink-400" },
-  { key: "grateful", label: "감사한", emoji: "🙏", color: "bg-amber-100 border-amber-400" },
-  { key: "hopeful", label: "희망찬", emoji: "🌈", color: "bg-purple-100 border-purple-400" },
-  { key: "bittersweet", label: "아련한", emoji: "🌸", color: "bg-rose-100 border-rose-400" },
-  { key: "determined", label: "결연한", emoji: "💪", color: "bg-slate-100 border-slate-400" }
+  { key: "excited", label: "설레는", emoji: "🌟", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "nostalgic", label: "아쉬운", emoji: "🥹", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "proud", label: "뿌듯한", emoji: "🎉", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "anxious", label: "떨리는", emoji: "💓", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "grateful", label: "감사한", emoji: "🙏", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "hopeful", label: "희망찬", emoji: "🌈", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "bittersweet", label: "아련한", emoji: "🌸", color: "bg-[#151823] border-[#343A4C]" },
+  { key: "determined", label: "결연한", emoji: "💪", color: "bg-[#1B1F2C] border-[#343A4C]" }
 ] as const
 
 // 성장한 점들 (현재)
@@ -114,13 +114,13 @@ export const GRADUATION_ANALYZING_QUOTES = [
 
 // 졸업 테마 컬러
 export const GRADUATION_THEME = {
-  primary: "#1e3a5f",      // 네이비 블루
-  secondary: "#d4af37",    // 골드
+  primary: "#EEB62B",      // CTA 골드
+  secondary: "#EEB62B",    // CTA 골드
   accent: "#f8f4e8",       // 아이보리
   text: "#1a1a2e",         // 다크 네이비
   background: "#f5f3ef",   // 웜 화이트
-  success: "#2d5a27",      // 딥 그린
-  highlight: "#fff8dc"     // 연한 골드
+  success: "#505050",      // 딥 그린
+  highlight: "#151823"     // 연한 골드
 } as const
 
 // 기본 폼 데이터 초기값

@@ -84,7 +84,7 @@ function CancelConfirmModal({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl border-2 border-slate-900 shadow-[6px_6px_0px_#0f172a] p-6 max-w-md w-full mx-4"
+        className="bg-white rounded-2xl border-2 border-slate-900 p-6 max-w-md w-full mx-4"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
@@ -193,7 +193,7 @@ function ReservationListTab() {
   return (
     <div className="space-y-4">
       {/* 필터 바 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-4 flex flex-wrap items-center gap-3">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-4 flex flex-wrap items-center gap-3">
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value as typeof period)}
@@ -262,7 +262,7 @@ function ReservationListTab() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] overflow-hidden">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
@@ -453,7 +453,7 @@ function ReservationSettingsTab() {
   return (
     <div className="space-y-4">
       {/* 접수 on/off */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-5 flex items-center justify-between">
         <div>
           <p className="font-bold text-slate-900">예약 접수</p>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -476,7 +476,7 @@ function ReservationSettingsTab() {
       </div>
 
       {/* 영업시간/슬롯 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5 space-y-4">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-5 space-y-4">
         <h3 className="font-bold text-slate-900">영업시간 · 슬롯</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
@@ -506,7 +506,7 @@ function ReservationSettingsTab() {
       </div>
 
       {/* 예약 정책 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5 space-y-4">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-5 space-y-4">
         <h3 className="font-bold text-slate-900">예약 정책</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {numberField('최소 리드타임', 'minLeadTimeHours', 0, 168, '시간 전')}
@@ -517,7 +517,7 @@ function ReservationSettingsTab() {
       </div>
 
       {/* 휴무 요일 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-5">
         <h3 className="font-bold text-slate-900 mb-3">정기 휴무 요일</h3>
         <div className="flex flex-wrap gap-2">
           {WEEKDAY_LABELS.map((label, day) => {
@@ -548,7 +548,7 @@ function ReservationSettingsTab() {
       </div>
 
       {/* 프로그램 */}
-      <div className="bg-white rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] p-5">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-5">
         <h3 className="font-bold text-slate-900 mb-3">예약 가능 프로그램</h3>
         <div className="flex flex-wrap gap-2">
           {KNOWN_RESERVATION_PROGRAMS.map((p) => {

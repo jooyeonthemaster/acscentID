@@ -75,19 +75,19 @@ export function CouponClaimModal() {
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-[90]"
           >
-            <div className="bg-[#FFF8E7] rounded-2xl overflow-hidden border-3 border-slate-900 shadow-[6px_6px_0_#000]">
+            <div className="bg-[#0E1016] rounded-[12px] overflow-hidden border-3 border-[#262A38]">
               {/* Header - 키컬러 핑크 */}
-              <div className="bg-[#F472B6] px-5 py-4 relative">
+              <div className="bg-[#161925] px-5 py-4 relative">
                 {/* Close Button */}
                 <button
                   onClick={closeClaimModal}
-                  className="absolute top-3 right-3 w-7 h-7 bg-slate-900/20 hover:bg-slate-900/30 rounded-full flex items-center justify-center transition-colors border-2 border-white/30"
+                  className="absolute top-3 right-3 w-7 h-7 bg-stone-900/20 hover:bg-stone-900/30 rounded-full flex items-center justify-center transition-colors border-2 border-white/30"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <X className="w-4 h-4 text-[#E9E2D0]" />
                 </button>
 
                 {/* Header Content */}
-                <div className="text-center text-white pr-8">
+                <div className="text-center text-[#E9E2D0] pr-8">
                   <motion.div
                     initial={{ scale: 0, rotate: -20 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -99,7 +99,7 @@ export function CouponClaimModal() {
                   <h2 className="text-lg font-black tracking-tight">
                     {header.title}
                   </h2>
-                  <p className="text-xs opacity-90 mt-0.5 font-bold">
+                  <p className="text-xs lg:text-sm opacity-90 mt-0.5 font-bold">
                     {header.subtitle}
                   </p>
                 </div>
@@ -107,7 +107,7 @@ export function CouponClaimModal() {
                 {/* Decorative elements */}
                 <Sparkles className="absolute top-3 left-3 w-5 h-5 text-white/40" />
                 <Sparkles className="absolute bottom-3 right-16 w-4 h-4 text-white/30" />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#FFF8E7] rounded-t-full" />
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#0E1016] rounded-t-full" />
               </div>
 
               {/* Content */}

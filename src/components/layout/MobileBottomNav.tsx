@@ -14,6 +14,8 @@ import { useTranslations } from 'next-intl'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
 import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
 import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
+import { useViewportMode } from '@/hooks/useViewportMode'
+import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
 
 // Programs 드롭업 메뉴 항목 (전체)
@@ -46,18 +48,18 @@ function NavItem({
       className={cn(
         "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
         isActive
-          ? "text-yellow-600"
-          : "text-slate-600 hover:text-slate-900"
+          ? "text-[#A69F8D]"
+          : "text-[#A69F8D] hover:text-[#E9E2D0]"
       )}
     >
       <div className={cn(
-        "p-1.5 rounded-xl transition-all",
-        isActive && "bg-yellow-100"
+        "p-1.5 rounded-[12px] transition-all",
+        isActive && "bg-[#151823]"
       )}>
         <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
       </div>
       <span className={cn(
-        "text-[10px] tracking-wide",
+        "text-[10px] lg:text-[12px] tracking-wide",
         isActive ? "font-black" : "font-bold"
       )}>{label}</span>
     </Link>
@@ -93,25 +95,25 @@ function ProgramsSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-[60] bg-white border-t-2 border-black rounded-t-3xl shadow-[0_-8px_0px_0px_rgba(250,204,21,1)]"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-[60] font-wanted bg-[#12141D] border-t-2 border-[#262A38] rounded-t-[12px]"
       >
         {/* 핸들 바 */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+          <div className="w-12 h-1.5 bg-[#232838] rounded-full" />
         </div>
 
         {/* 헤더 */}
-        <div className="px-6 pb-4 border-b-2 border-slate-100">
+        <div className="px-6 pb-4 border-b-2 border-[#1E222E]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-black text-slate-900">{t('nav.programSelect')}</h3>
-              <p className="text-xs text-slate-500 mt-0.5">{t('nav.programSelectDesc')}</p>
+              <h3 className="text-lg font-black text-[#E9E2D0]">{t('nav.programSelect')}</h3>
+              <p className="text-xs lg:text-sm text-[#8B8578] mt-0.5">{t('nav.programSelectDesc')}</p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+              className="w-8 h-8 rounded-full bg-[#1B1F2C] flex items-center justify-center hover:bg-[#232838] transition-colors"
             >
-              <X size={16} className="text-slate-600" />
+              <X size={16} className="text-[#A69F8D]" />
             </button>
           </div>
         </div>
@@ -123,23 +125,23 @@ function ProgramsSheet({
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className="flex items-center gap-4 p-4 border-2 rounded-2xl transition-all group bg-slate-50 border-slate-200 hover:border-purple-400 hover:bg-purple-50"
+              className="flex items-center gap-4 p-4 border-2 rounded-[12px] transition-all group bg-[#F5EFE2] border-[#262A38] hover:border-[#343A4C] hover:bg-[#FFFDF5]"
             >
               <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center overflow-hidden transition-all shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] group-hover:shadow-[3px_3px_0px_0px_rgba(147,51,234,1)]">
+                <div className="w-14 h-14 rounded-[12px] bg-[#12141D] border-2 border-[#262A38] flex items-center justify-center overflow-hidden transition-all">
                   <img src={link.image} alt={t(link.labelKey)} className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold transition-colors text-slate-900 group-hover:text-purple-700">{t(link.labelKey)}</h4>
+                  <h4 className="font-bold text-[#12141D]">{t(link.labelKey)}</h4>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 whitespace-pre-line">
+                <p className="text-xs lg:text-sm text-[#5C564A] mt-0.5 whitespace-pre-line">
                   {t(link.descKey)}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center transition-all border-slate-200 group-hover:border-purple-400 group-hover:bg-purple-100">
-                <ChevronRight size={16} className="text-slate-400 group-hover:text-purple-600" />
+              <div className="w-8 h-8 rounded-full bg-[#12141D] border-2 flex items-center justify-center transition-all border-[#262A38] group-hover:border-[#343A4C] group-hover:bg-[#151823]">
+                <ChevronRight size={16} className="text-[#8B8578] group-hover:text-[#A69F8D]" />
               </div>
             </Link>
           ))}
@@ -157,6 +159,9 @@ export function MobileBottomNav() {
   const currentUser = unifiedUser || user
   const t = useTranslations()
   const { isProductVisible } = useActiveProducts()
+  const viewportMode = useViewportMode()
+  // 데스크탑 크롬이 켜진 라우트에서는 lg+에서 DesktopHeader 내비가 대신한다
+  const hideAtLg = !isDesktopChromeExcludedPath(pathname)
 
   // 상품관리 이미지의 첫 번째 사진이 메뉴 썸네일입니다.
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
@@ -228,6 +233,9 @@ export function MobileBottomNav() {
 
   if (isAdminPage || shouldHideForFocusedExperience || hasOwnBottomBar) return null
 
+  // 하이드레이션 후 데스크탑으로 확정되면 하단 네비는 언마운트 (lg 미만 동작 불변)
+  if (hideAtLg && viewportMode === 'desktop') return null
+
   const isHomeActive = normalizedPathname === '/'
   const isProgramsActive = normalizedPathname.startsWith('/programs')
   const isProductsActive = normalizedPathname.startsWith('/products')
@@ -281,15 +289,16 @@ export function MobileBottomNav() {
       {isProgramDetailPage && !shouldHideBars && (
         <div
           className={cn(
-            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t-2 border-black safe-area-bottom",
+            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom",
             "transition-all duration-300 ease-out",
-            isVisible ? "bottom-16" : "bottom-0 shadow-[0_-4px_0px_0px_rgba(250,204,21,1)]"
+            isVisible ? "bottom-16" : "bottom-0",
+            hideAtLg && "lg:hidden"
           )}
         >
           <button
             onClick={handleProgramCTAClick}
             disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-400 text-black font-black text-base rounded-xl border-2 border-black shadow-[3px_3px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_black] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 bg-[#EEB62B] text-[#1A1610] font-black text-base rounded-[12px] border-2 border-[#B8880F] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {t('buttons.analyzeNow')}
           </button>
@@ -300,9 +309,10 @@ export function MobileBottomNav() {
       {!shouldHideBars && (
         <nav
           className={cn(
-            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(250,204,21,1)] safe-area-bottom",
+            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom",
             "transition-transform duration-300 ease-out",
-            isVisible ? "translate-y-0" : "translate-y-full"
+            isVisible ? "translate-y-0" : "translate-y-full",
+            hideAtLg && "lg:hidden"
           )}
         >
           <div className="flex items-center justify-around h-16 px-2 relative">
@@ -318,13 +328,13 @@ export function MobileBottomNav() {
               className={cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all relative",
                 isProgramsActive || showProgramsMenu
-                  ? "text-yellow-600"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "text-[#A69F8D]"
+                  : "text-[#A69F8D] hover:text-[#E9E2D0]"
               )}
             >
               <div className={cn(
-                "p-1.5 rounded-xl transition-all",
-                (isProgramsActive || showProgramsMenu) && "bg-yellow-100"
+                "p-1.5 rounded-[12px] transition-all",
+                (isProgramsActive || showProgramsMenu) && "bg-[#151823]"
               )}>
                 {showProgramsMenu ? (
                   <X size={20} strokeWidth={2.5} />
@@ -333,7 +343,7 @@ export function MobileBottomNav() {
                 )}
               </div>
               <span className={cn(
-                "text-[10px] tracking-wide",
+                "text-[10px] lg:text-[12px] tracking-wide",
                 isProgramsActive ? "font-black" : "font-bold"
               )}>{t('nav.programs')}</span>
             </button>
@@ -351,41 +361,41 @@ export function MobileBottomNav() {
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
                   isMyPageActive
-                    ? "text-yellow-600"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "text-[#A69F8D]"
+                    : "text-[#A69F8D] hover:text-[#E9E2D0]"
                 )}
               >
                 <div className={cn(
-                  "p-1.5 rounded-xl transition-all",
-                  isMyPageActive && "bg-yellow-100"
+                  "p-1.5 rounded-[12px] transition-all",
+                  isMyPageActive && "bg-[#151823]"
                 )}>
                   <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
                 </div>
                 <span className={cn(
-                  "text-[10px] tracking-wide",
+                  "text-[10px] lg:text-[12px] tracking-wide",
                   isMyPageActive ? "font-black" : "font-bold"
                 )}>{t('nav.my')}</span>
               </Link>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-slate-600 hover:text-slate-900"
+                className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-[#A69F8D] hover:text-[#E9E2D0]"
               >
-                <div className="p-1.5 rounded-xl transition-all">
+                <div className="p-1.5 rounded-[12px] transition-all">
                   <User size={20} strokeWidth={2} />
                 </div>
-                <span className="text-[10px] tracking-wide font-bold">{t('nav.login')}</span>
+                <span className="text-[10px] lg:text-[12px] tracking-wide font-bold">{t('nav.login')}</span>
               </button>
             )}
 
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-slate-600 hover:text-slate-900 transition-all"
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-[#A69F8D] hover:text-[#E9E2D0] transition-all"
             >
-              <div className="p-1.5 rounded-xl">
+              <div className="p-1.5 rounded-[12px]">
                 <Menu size={20} strokeWidth={2} />
               </div>
-              <span className="text-[10px] font-bold tracking-wide">{t('nav.menu')}</span>
+              <span className="text-[10px] lg:text-[12px] font-bold tracking-wide">{t('nav.menu')}</span>
             </button>
           </div>
         </nav>

@@ -17,9 +17,9 @@ function PerfumeBottle(props: any) {
     })
 
     // Colors
-    const liquidColor = props.color || "#F472B6"
+    const liquidColor = props.color || "#9F9F9F"
     const glassColor = "#ffffff"
-    const capColor = "#FCD34D" // Gold
+    const capColor = "#D7D7D7" // Gold
 
     return (
         <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
@@ -127,30 +127,30 @@ export function KitschScene() {
                 {/* Soft Studio Lighting - Warmer for Yellow BG */}
                 <ambientLight intensity={1.2} />
                 <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
-                <pointLight position={[-10, 0, -10]} intensity={0.8} color="#FDE047" /> {/* Yellow tint */}
+                <pointLight position={[-10, 0, -10]} intensity={0.8} color="#E0E0E0" /> {/* Yellow tint */}
 
                 {/* 
             Procedural Perfume Bottles - Moved further back and spread out to not interfere with text
         */}
-                <PerfumeBottle position={[-12, 2, -5]} rotation={[0, 0.3, 0.2]} color="#F472B6" />
-                <PerfumeBottle position={[12, -2, -6]} rotation={[0, -0.3, -0.2]} color="#67E8F9" />
+                <PerfumeBottle position={[-12, 2, -5]} rotation={[0, 0.3, 0.2]} color="#9F9F9F" />
+                <PerfumeBottle position={[12, -2, -6]} rotation={[0, -0.3, -0.2]} color="#D6D6D6" />
 
                 {/* Center/Background decorative elements */}
                 <Float speed={1.5} floatIntensity={2}>
                     <Sphere args={[0.4, 32, 32]} position={[8, 6, -8]}>
-                        <meshStandardMaterial color="#FDE047" />
+                        <meshStandardMaterial color="#E0E0E0" />
                     </Sphere>
                 </Float>
 
                 {/* Scent Spray Effects - Reduced count and opacity */}
-                <ScentParticles count={20} color="#FBCFE8" />
-                <ScentParticles count={10} color="#FEF08A" />
+                <ScentParticles count={20} color="#1B1F2C" />
+                <ScentParticles count={10} color="#1B1F2C" />
 
                 {/* Environment for shiny glass reflections */}
                 <Environment preset="city" />
 
                 {/* Soft Ground Shadows - Darker for visibility on yellow */}
-                <ContactShadows opacity={0.2} scale={40} blur={4} far={10} color="#A16207" />
+                <ContactShadows opacity={0.2} scale={40} blur={4} far={10} color="#707070" />
             </Canvas>
         </div>
     )

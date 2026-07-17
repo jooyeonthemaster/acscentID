@@ -1,5 +1,6 @@
 {
   "nav": {
+    "about": "소개",
     "products": "상품",
     "home": "홈",
     "programs": "프로그램",
@@ -577,7 +578,9 @@
       }
     },
     "representative": "대표",
-    "thumbnailAria": "{alt} 이미지 {index} 보기"
+    "thumbnailAria": "{alt} 이미지 {index} 보기",
+    "prevImage": "이전 사진",
+    "nextImage": "다음 사진"
   },
   "input": {
     "customInput": "+ 직접 입력하기",
@@ -1725,7 +1728,7 @@
     "noResults": "검색 결과가 없습니다. 다른 단어로 검색해보세요.",
     "badge": "자주 묻는 질문",
     "title": "FAQ",
-    "subtitle": "궁금하신 점이 있으신가요? 아래에서 답변을 찾아보세요.",
+    "subtitle": "구매 전 궁금한 주문, 결제, 배송, 취소 기준을 한곳에서 확인해보세요.",
     "tabs": {
       "perfume": "AI 이미지 분석 퍼퓸",
       "figure": "피규어 화분 디퓨저",
@@ -3000,8 +3003,8 @@
       }
     },
     "analyzing": {
-      "headline": "{name} 님의 여덟 글자를 뽑고 있습니다",
-      "headlineIdol": "{name}의 여덟 글자를 뽑고 있습니다",
+      "headline": "{name} 님의\n여덟 글자를 뽑고 있습니다",
+      "headlineIdol": "{name}의\n여덟 글자를 뽑고 있습니다",
       "headlineLate": "팔자를 읽고, 향을 고르고 있습니다",
       "subLate": "약 30초 — 만세력은 이미 계산되었습니다",
       "quotes": [

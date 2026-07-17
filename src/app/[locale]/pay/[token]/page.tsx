@@ -211,104 +211,104 @@ export default function PaymentLinkPage() {
   ])
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7]">
+    <div className="min-h-screen bg-[#0E1016]">
       <Header />
       <div className="mx-auto max-w-lg px-4 py-8 sm:py-12">
         {loadState === "loading" && (
-          <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white p-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#F472B6]" />
+          <div className="flex items-center justify-center rounded-[12px] border border-[#262A38] bg-[#12141D] p-16">
+            <Loader2 className="h-8 w-8 animate-spin text-[#9F9F9F]" />
           </div>
         )}
 
         {loadState === "error" && (
-          <div className="rounded-3xl border border-rose-200 bg-white p-8 text-center">
-            <AlertCircle className="mx-auto h-10 w-10 text-rose-400" />
-            <h1 className="mt-4 text-lg font-black text-slate-900">결제할 수 없는 링크입니다</h1>
-            <p className="mt-2 text-sm text-slate-500">{loadError}</p>
+          <div className="rounded-[12px] border border-[#262A38] bg-[#12141D] p-8 text-center">
+            <AlertCircle className="mx-auto h-10 w-10 text-[#8B8578]" />
+            <h1 className="mt-4 text-lg font-black text-[#E9E2D0]">결제할 수 없는 링크입니다</h1>
+            <p className="mt-2 text-sm lg:text-base text-[#8B8578]">{loadError}</p>
           </div>
         )}
 
         {loadState === "ready" && link && (
           <div className="space-y-5">
             {/* 결제 항목 카드 */}
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-[12px] border border-[#262A38] bg-[#12141D] shadow-sm">
               {link.imageUrl && (
-                <div className="relative h-48 w-full bg-slate-100">
+                <div className="relative h-48 w-full bg-[#1B1F2C]">
                   <Image src={link.imageUrl} alt={link.title} fill className="object-cover" sizes="(max-width: 512px) 100vw, 512px" />
                 </div>
               )}
               <div className="p-6">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#F472B6]/10 px-3 py-1 text-xs font-bold text-[#DB2777]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-stone-800/10 px-3 py-1 text-xs lg:text-sm font-bold text-[#757575]">
                   <CreditCard className="h-3.5 w-3.5" />
                   개인결제창
                 </span>
-                <h1 className="mt-3 text-xl font-black text-slate-900">{link.title}</h1>
+                <h1 className="mt-3 text-xl font-black text-[#E9E2D0]">{link.title}</h1>
                 {link.description && (
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-500">{link.description}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm lg:text-base leading-relaxed text-[#8B8578]">{link.description}</p>
                 )}
-                <div className="mt-5 flex items-baseline justify-between border-t border-slate-100 pt-5">
-                  <span className="text-sm font-bold text-slate-500">결제 금액</span>
-                  <span className="text-2xl font-black text-slate-900">₩{formatPrice(link.amount)}</span>
+                <div className="mt-5 flex items-baseline justify-between border-t border-[#1E222E] pt-5">
+                  <span className="text-sm lg:text-base font-bold text-[#8B8578]">결제 금액</span>
+                  <span className="text-2xl font-black text-[#E9E2D0]">₩{formatPrice(link.amount)}</span>
                 </div>
               </div>
             </section>
 
             {/* 결제자 정보 */}
-            <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-sm font-black text-slate-900">결제자 정보</h2>
+            <section className="space-y-4 rounded-[12px] border border-[#262A38] bg-[#12141D] p-6 shadow-sm">
+              <h2 className="text-sm lg:text-base font-black text-[#E9E2D0]">결제자 정보</h2>
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-slate-500">이름</span>
+                <span className="mb-1 block text-xs lg:text-sm font-bold text-[#8B8578]">이름</span>
                 <input
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="결제자 이름"
-                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900"
+                  className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2.5 text-sm lg:text-base outline-none focus:border-[#262A38]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-slate-500">연락처</span>
+                <span className="mb-1 block text-xs lg:text-sm font-bold text-[#8B8578]">연락처</span>
                 <input
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="010-0000-0000"
                   inputMode="tel"
-                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900"
+                  className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2.5 text-sm lg:text-base outline-none focus:border-[#262A38]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-slate-500">이메일 (선택 · 영수증)</span>
+                <span className="mb-1 block text-xs lg:text-sm font-bold text-[#8B8578]">이메일 (선택 · 영수증)</span>
                 <input
                   value={buyerEmail}
                   onChange={(e) => setBuyerEmail(e.target.value)}
                   placeholder="email@example.com"
                   inputMode="email"
-                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900"
+                  className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2.5 text-sm lg:text-base outline-none focus:border-[#262A38]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-slate-500">요청사항 (선택)</span>
+                <span className="mb-1 block text-xs lg:text-sm font-bold text-[#8B8578]">요청사항 (선택)</span>
                 <textarea
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   rows={2}
-                  className="w-full resize-none rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-900"
+                  className="w-full resize-none rounded-[12px] border-2 border-[#262A38] px-3 py-2.5 text-sm lg:text-base outline-none focus:border-[#262A38]"
                 />
               </label>
             </section>
 
             {/* 결제수단 */}
-            <section className="space-y-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-sm font-black text-slate-900">결제 수단</h2>
+            <section className="space-y-3 rounded-[12px] border border-[#262A38] bg-[#12141D] p-6 shadow-sm">
+              <h2 className="text-sm lg:text-base font-black text-[#E9E2D0]">결제 수단</h2>
               <div className="grid grid-cols-2 gap-2">
                 {PAYMENT_METHODS.map((method) => (
                   <button
                     key={method.value}
                     type="button"
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`rounded-xl border-2 px-3 py-3 text-sm font-bold transition ${
+                    className={`rounded-[12px] border-2 px-3 py-3 text-sm lg:text-base font-bold transition ${
                       paymentMethod === method.value
-                        ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        ? "border-[#262A38] bg-[#161925] text-[#E9E2D0]"
+                        : "border-[#262A38] bg-[#12141D] text-[#A69F8D] hover:border-[#262A38]"
                     }`}
                   >
                     {method.label}
@@ -317,33 +317,33 @@ export default function PaymentLinkPage() {
               </div>
 
               {paymentMethod === "bank_transfer" && (
-                <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                  <div className="flex items-center gap-2 font-bold text-slate-900">
+                <div className="rounded-[12px] bg-[#151823] p-4 text-sm lg:text-base">
+                  <div className="flex items-center gap-2 font-bold text-[#E9E2D0]">
                     <Wallet className="h-4 w-4" /> 입금 계좌
                   </div>
-                  <p className="mt-2 text-slate-600">
-                    {BANK_INFO.bank}은행 <span className="font-mono font-black text-slate-900">{BANK_INFO.account}</span>
+                  <p className="mt-2 text-[#A69F8D]">
+                    {BANK_INFO.bank}은행 <span className="font-mono font-black text-[#E9E2D0]">{BANK_INFO.account}</span>
                   </p>
-                  <p className="text-slate-600">예금주 {BANK_INFO.holder}</p>
-                  <p className="mt-2 text-xs text-slate-400">입금 확인 후 처리됩니다.</p>
+                  <p className="text-[#A69F8D]">예금주 {BANK_INFO.holder}</p>
+                  <p className="mt-2 text-xs lg:text-sm text-[#8B8578]">입금 확인 후 처리됩니다.</p>
                 </div>
               )}
             </section>
 
             {/* 동의 + 결제 버튼 */}
-            <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <label className="flex items-start gap-2 text-sm text-slate-600">
+            <section className="space-y-4 rounded-[12px] border border-[#262A38] bg-[#12141D] p-6 shadow-sm">
+              <label className="flex items-start gap-2 text-sm lg:text-base text-[#A69F8D]">
                 <input
                   type="checkbox"
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-[#F472B6]"
+                  className="mt-0.5 h-4 w-4 accent-[#9F9F9F]"
                 />
                 <span>결제 진행 및 개인정보 수집·이용에 동의합니다.</span>
               </label>
 
               {submitError && (
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-rose-500">
+                <p className="flex items-center gap-1.5 text-sm lg:text-base font-semibold text-[#8B8578]">
                   <AlertCircle className="h-4 w-4" /> {submitError}
                 </p>
               )}
@@ -351,7 +351,7 @@ export default function PaymentLinkPage() {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-4 text-base font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#161925] px-4 py-4 text-base font-black text-[#E9E2D0] transition hover:bg-[#161925] disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="h-5 w-5 animate-spin" />

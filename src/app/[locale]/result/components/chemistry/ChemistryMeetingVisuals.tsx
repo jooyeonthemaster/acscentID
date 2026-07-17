@@ -15,7 +15,7 @@ export function SectionCard({ children }: { children: React.ReactNode }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.4 }}
-      className="bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] overflow-hidden"
+      className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
     >
       {children}
     </motion.div>
@@ -24,9 +24,9 @@ export function SectionCard({ children }: { children: React.ReactNode }) {
 
 export function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
   return (
-    <div className="bg-[#FFF8E7] px-4 py-3 border-b-2 border-black flex items-center gap-2">
+    <div className="bg-[#0E1016] px-4 py-3 border-b-2 border-[#D8CFBB] flex items-center gap-2">
       <span className="text-lg">{emoji}</span>
-      <h3 className="text-sm font-black text-slate-900">{title}</h3>
+      <h3 className="text-sm lg:text-base font-black text-[#1A1610]">{title}</h3>
     </div>
   )
 }
@@ -65,13 +65,13 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 * i }}
-              className="flex-shrink-0 w-[78%] snap-center bg-gradient-to-br from-[#FFFDF5] to-[#FFF8E7] border-2 border-slate-200 rounded-2xl p-4"
+              className="flex-shrink-0 w-[78%] snap-center bg-gradient-to-br from-[#FDFAF1] to-[#0E1016] border-2 border-[#D8CFBB] rounded-[12px] p-4"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">{scenarioIcons[i % scenarioIcons.length]}</span>
-                <h4 className="text-sm font-black text-slate-800">{sc.title}</h4>
+                <h4 className="text-sm lg:text-base font-black text-[#1A1610]">{sc.title}</h4>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed line-clamp-4">{sc.content}</p>
+              <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed line-clamp-4">{sc.content}</p>
             </motion.div>
           ))}
         </div>
@@ -81,7 +81,7 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
             <div
               key={i}
               className={`w-1.5 h-1.5 rounded-full transition-all ${
-                i === activeIdx ? 'bg-violet-500 w-4' : 'bg-slate-300'
+                i === activeIdx ? 'bg-[#EFE4C8] w-4' : 'bg-[#D8CFBB]'
               }`}
             />
           ))}
@@ -109,14 +109,14 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
           viewport={{ once: true }}
           className="flex gap-2 items-end"
         >
-          <div className="w-8 h-8 rounded-full bg-violet-100 border-2 border-violet-300 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm">🌙</span>
+          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+            <span className="text-sm lg:text-base">🌙</span>
           </div>
           <div className="max-w-[75%]">
-            <span className="text-[10px] font-black text-violet-600 block mb-1">{nameA}</span>
-            <div className="bg-violet-100 border-2 border-violet-200 rounded-2xl rounded-bl-md p-3">
-              <p className="text-sm font-bold text-slate-800 italic">&ldquo;{dialogues.aToB.line}&rdquo;</p>
-              <p className="text-[10px] text-violet-500 mt-1.5 italic">({dialogues.aToB.action})</p>
+            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] block mb-1">{nameA}</span>
+            <div className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] rounded-bl-[12px] p-3">
+              <p className="text-sm lg:text-base font-bold text-[#1A1610] italic">&ldquo;{dialogues.aToB.line}&rdquo;</p>
+              <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-1.5 italic">({dialogues.aToB.action})</p>
             </div>
           </div>
         </motion.div>
@@ -129,14 +129,14 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
           transition={{ delay: 0.2 }}
           className="flex gap-2 items-end flex-row-reverse"
         >
-          <div className="w-8 h-8 rounded-full bg-pink-100 border-2 border-pink-300 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm">☀️</span>
+          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+            <span className="text-sm lg:text-base">☀️</span>
           </div>
           <div className="max-w-[75%]">
-            <span className="text-[10px] font-black text-pink-600 block mb-1 text-right">{nameB}</span>
-            <div className="bg-pink-100 border-2 border-pink-200 rounded-2xl rounded-br-md p-3">
-              <p className="text-sm font-bold text-slate-800 italic">&ldquo;{dialogues.bToA.line}&rdquo;</p>
-              <p className="text-[10px] text-pink-500 mt-1.5 italic">({dialogues.bToA.action})</p>
+            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] block mb-1 text-right">{nameB}</span>
+            <div className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] rounded-br-[12px] p-3">
+              <p className="text-sm lg:text-base font-bold text-[#1A1610] italic">&ldquo;{dialogues.bToA.line}&rdquo;</p>
+              <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-1.5 italic">({dialogues.bToA.action})</p>
             </div>
           </div>
         </motion.div>
@@ -194,16 +194,16 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
       <SectionHeader emoji="🔢" title={t('chemistry.result.nameChemistry')} />
       <div className="p-4">
         <div className="text-center mb-3">
-          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578] bg-[#EDE5D2] px-2 py-0.5 rounded-full">
             {t('chemistry.result.nameChemistrySubtitle')}
           </span>
         </div>
 
         {/* 이름 표시 */}
         <div className="flex justify-center gap-3 mb-4">
-          <span className="text-xs font-black text-violet-600 bg-violet-50 px-2 py-1 rounded-lg border border-violet-200">🌙 {nameA}</span>
-          <span className="text-xs text-slate-400 font-bold">x</span>
-          <span className="text-xs font-black text-pink-600 bg-pink-50 px-2 py-1 rounded-lg border border-pink-200">☀️ {nameB}</span>
+          <span className="text-xs lg:text-sm font-black text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">🌙 {nameA}</span>
+          <span className="text-xs lg:text-sm text-[#8B8578] font-bold">x</span>
+          <span className="text-xs lg:text-sm font-black text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">☀️ {nameB}</span>
         </div>
 
         {/* 피라미드 (최대 5줄만 표시) */}
@@ -220,12 +220,12 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
               {row.slice(0, 12).map((num, ci) => (
                 <div
                   key={ci}
-                  className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black ${
+                  className={`w-6 h-6 rounded-[12px] flex items-center justify-center text-[10px] lg:text-[12px] font-black ${
                     ri === pyramid.length - 1 || (pyramid.length > 5 && ri === 4)
-                      ? 'bg-gradient-to-r from-violet-400 to-pink-400 text-white'
+                      ? 'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]'
                       : ri === 0
-                        ? ci % 2 === 0 ? 'bg-violet-100 text-violet-700' : 'bg-pink-100 text-pink-700'
-                        : 'bg-slate-100 text-slate-600'
+                        ? ci % 2 === 0 ? 'bg-[#EDE5D2] text-[#5C564A]' : 'bg-[#EDE5D2] text-[#5C564A]'
+                        : 'bg-[#EDE5D2] text-[#5C564A]'
                   }`}
                 >
                   {num}
@@ -243,10 +243,10 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
           transition={{ delay: 0.5, type: "spring" }}
           className="mt-4 text-center"
         >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-pink-500 text-white px-5 py-2.5 rounded-full border-2 border-black shadow-[3px_3px_0_0_black]">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610] px-5 py-2.5 rounded-full border-2 border-[#D8CFBB]">
             <span className="text-lg font-black">{finalNumber}%</span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-2">
+          <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-2">
             {finalNumber >= 80
               ? t('chemistry.result.nameChemistryLevels.perfect')
               : finalNumber >= 60
@@ -290,72 +290,72 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
 
         {/* 뿌리는 순서 */}
         <div>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">{t('chemistry.result.sprayOrder')}</span>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-3">{t('chemistry.result.sprayOrder')}</span>
           <div className="flex items-center justify-center gap-3">
             <div className="flex flex-col items-center gap-1">
-              <div className="w-12 h-12 rounded-full bg-violet-100 border-2 border-violet-300 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center">
                 <span className="text-lg">🌙</span>
               </div>
-              <span className="text-[11px] font-black text-violet-700">{nameA}</span>
-              <span className="text-[9px] text-violet-500 font-bold">FIRST</span>
+              <span className="text-[11px] lg:text-[13px] font-black text-[#5C564A]">{nameA}</span>
+              <span className="text-[9px] text-[#8B8578] font-bold">FIRST</span>
             </div>
             <div className="flex flex-col items-center">
               <svg width="40" height="16" viewBox="0 0 40 16" className="flex-shrink-0">
-                <path d="M0 8h30M26 3l8 5-8 5" fill="none" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M0 8h30M26 3l8 5-8 5" fill="none" stroke="#7B7B7B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <div className="w-12 h-12 rounded-full bg-pink-100 border-2 border-pink-300 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center">
                 <span className="text-lg">☀️</span>
               </div>
-              <span className="text-[11px] font-black text-pink-700">{nameB}</span>
-              <span className="text-[9px] text-pink-500 font-bold">SECOND</span>
+              <span className="text-[11px] lg:text-[13px] font-black text-[#5C564A]">{nameB}</span>
+              <span className="text-[9px] text-[#8B8578] font-bold">SECOND</span>
             </div>
           </div>
         </div>
 
         {/* 비율 — 가로 바 형태 */}
         <div>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">{t('chemistry.result.ratio')}</span>
-          <div className="flex h-8 rounded-full overflow-hidden border-2 border-slate-900 shadow-[2px_2px_0_0_black]">
-            <div className="bg-violet-400 flex items-center justify-center" style={{ width: `${percentA}%` }}>
-              <span className="text-[10px] font-black text-white">{percentA}%</span>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.ratio')}</span>
+          <div className="flex h-8 rounded-full overflow-hidden border-2 border-[#D8CFBB]">
+            <div className="bg-[#EFE4C8] flex items-center justify-center" style={{ width: `${percentA}%` }}>
+              <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{percentA}%</span>
             </div>
-            <div className="bg-pink-400 flex items-center justify-center" style={{ width: `${percentB}%` }}>
-              <span className="text-[10px] font-black text-white">{percentB}%</span>
+            <div className="bg-[#EFE4C8] flex items-center justify-center" style={{ width: `${percentB}%` }}>
+              <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{percentB}%</span>
             </div>
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-[10px] font-bold text-violet-600">🌙 {nameA}</span>
-            <span className="text-[10px] font-bold text-pink-600">☀️ {nameB}</span>
+            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">🌙 {nameA}</span>
+            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">☀️ {nameB}</span>
           </div>
         </div>
 
         {/* 레이어링 팁 */}
-        <div className="bg-gradient-to-br from-violet-50 to-pink-50 rounded-xl p-3 border border-violet-200">
-          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-1.5">{t('chemistry.result.layeringTip')}</span>
-          <p className="text-xs text-slate-700 leading-relaxed font-medium">{guide.method}</p>
+        <div className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-3 border border-[#D8CFBB]">
+          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.layeringTip')}</span>
+          <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed font-medium">{guide.method}</p>
         </div>
 
         {/* 추천 상황/계절/시간 */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.season')}</span>
-            <span className="text-xs font-black text-amber-700">{seasonLabel}</span>
+          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.season')}</span>
+            <span className="text-xs lg:text-sm font-black text-[#5C564A]">{seasonLabel}</span>
           </div>
-          <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.time')}</span>
-            <span className="text-xs font-black text-indigo-700">{timeLabel}</span>
+          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.time')}</span>
+            <span className="text-xs lg:text-sm font-black text-[#5C564A]">{timeLabel}</span>
           </div>
-          <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-black text-slate-400 block mb-1">{t('chemistry.result.situation')}</span>
-            <span className="text-[10px] font-black text-rose-700 leading-tight block">{guide.situation}</span>
+          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.situation')}</span>
+            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] leading-tight block">{guide.situation}</span>
           </div>
         </div>
 
         {/* 이유 */}
         {guide.seasonTime.reason && (
-          <p className="text-[11px] text-slate-500 leading-relaxed italic">💡 {guide.seasonTime.reason}</p>
+          <p className="text-[11px] lg:text-[13px] text-[#8B8578] leading-relaxed italic">💡 {guide.seasonTime.reason}</p>
         )}
       </div>
     </SectionCard>
@@ -374,7 +374,7 @@ export function FutureTimeline({ predictions, futureVision }: {
     ? predictions
     : generateDefaultPredictions(futureVision, t)
 
-  const dotColors = ['bg-violet-500', 'bg-fuchsia-400', 'bg-pink-400', 'bg-rose-400', 'bg-amber-500']
+  const dotColors = ['bg-[#EFE4C8]', 'bg-[#EFE4C8]', 'bg-[#EFE4C8]', 'bg-[#EFE4C8]', 'bg-[#EFE4C8]']
   const emojis = ['🌱', '🌿', '🌸', '🌳', '✨']
 
   return (
@@ -393,17 +393,17 @@ export function FutureTimeline({ predictions, futureVision }: {
             >
               {/* 타임라인 축 */}
               <div className="flex flex-col items-center flex-shrink-0" style={{ width: 24 }}>
-                <div className={`w-6 h-6 rounded-full ${dotColors[i] || dotColors[0]} flex items-center justify-center text-[10px] shadow-sm`}>
+                <div className={`w-6 h-6 rounded-full ${dotColors[i] || dotColors[0]} flex items-center justify-center text-[10px] lg:text-[12px] shadow-sm`}>
                   {emojis[i] || '⭐'}
                 </div>
                 {i < milestones.length - 1 && (
-                  <div className="w-0.5 flex-1 bg-gradient-to-b from-violet-200 to-pink-200 my-1" />
+                  <div className="w-0.5 flex-1 bg-gradient-to-b from-[#D8CFBB] to-[#D8CFBB] my-1" />
                 )}
               </div>
               {/* 콘텐츠 */}
               <div className="pb-4 flex-1 min-w-0">
-                <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider">{m.timeLabel}</span>
-                <p className="text-xs text-slate-700 leading-relaxed mt-1 font-medium">{m.prediction}</p>
+                <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] uppercase tracking-wider">{m.timeLabel}</span>
+                <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed mt-1 font-medium">{m.prediction}</p>
               </div>
             </motion.div>
           ))}

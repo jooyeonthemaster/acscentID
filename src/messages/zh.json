@@ -1,5 +1,6 @@
 {
   "nav": {
+    "about": "关于",
     "products": "商品",
     "home": "首页",
     "programs": "项目",
@@ -577,7 +578,9 @@
       }
     },
     "representative": "主图",
-    "thumbnailAria": "查看 {alt} 图片 {index}"
+    "thumbnailAria": "查看 {alt} 图片 {index}",
+    "prevImage": "上一张图片",
+    "nextImage": "下一张图片"
   },
   "input": {
     "customInput": "+ 直接输入",

@@ -44,7 +44,7 @@ export function InAppBrowserNoticeClient() {
   }
 
   return (
-    <div className="bg-red-50 border-2 border-red-500 rounded-2xl p-4 mb-4 shadow-[3px_3px_0px_#FCA5A5]">
+    <div className="bg-red-50 border-2 border-red-500 rounded-[12px] p-4 mb-4">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center mt-0.5">
           <AlertTriangle size={18} className="text-red-600" strokeWidth={2.5} />
@@ -53,29 +53,29 @@ export function InAppBrowserNoticeClient() {
           <h3 className="font-black text-red-900 text-base mb-1">
             {info.displayName} 브라우저에서는 결제가 제한됩니다
           </h3>
-          <p className="text-sm text-red-800 font-medium leading-relaxed break-keep">
+          <p className="text-sm lg:text-base text-red-800 font-medium leading-relaxed break-keep">
             원활한 결제를 위해 <strong className="font-black">Safari 또는 Chrome</strong>에서 열어주세요.
           </p>
 
           {info.canAutoEscape ? (
             <button
               onClick={handleOpenExternal}
-              className="mt-3 w-full h-12 bg-red-500 text-white rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              className="mt-3 w-full h-12 bg-red-500 text-[#E9E2D0] rounded-[12px] font-black border-2 border-[#262A38] transition-all flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
               외부 브라우저로 열기
             </button>
           ) : (
             <>
-              <div className="mt-3 bg-white border-2 border-red-300 rounded-xl p-3">
-                <p className="text-xs text-slate-700 font-bold leading-relaxed break-keep">
+              <div className="mt-3 bg-[#12141D] border-2 border-red-300 rounded-[12px] p-3">
+                <p className="text-xs lg:text-sm text-[#A69F8D] font-bold leading-relaxed break-keep">
                   {getManualEscapeGuide(info)}
                 </p>
               </div>
               <button
                 onClick={copyCurrentUrl}
-                className={`mt-2 w-full h-11 rounded-xl font-black border-2 border-slate-900 shadow-[2px_2px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center justify-center gap-2 ${
-                  copied ? "bg-green-500 text-white" : "bg-white text-slate-900"
+                className={`mt-2 w-full h-11 rounded-[12px] font-black border-2 border-[#262A38] transition-all flex items-center justify-center gap-2 ${
+                  copied ? "bg-[#F5EFE2] text-[#12141D]" : "bg-[#12141D] text-[#E9E2D0]"
                 }`}
               >
                 {copied ? (

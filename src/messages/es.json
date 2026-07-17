@@ -1,5 +1,6 @@
 {
   "nav": {
+    "about": "Acerca de",
     "products": "Productos",
     "home": "Inicio",
     "programs": "Programas",
@@ -577,7 +578,9 @@
       }
     },
     "representative": "Principal",
-    "thumbnailAria": "Ver imagen {index} de {alt}"
+    "thumbnailAria": "Ver imagen {index} de {alt}",
+    "prevImage": "Imagen anterior",
+    "nextImage": "Imagen siguiente"
   },
   "input": {
     "customInput": "+ Escribir manualmente",

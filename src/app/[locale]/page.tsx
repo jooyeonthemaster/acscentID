@@ -11,6 +11,8 @@ import { useTranslations } from 'next-intl'
 import { PopupModal } from "@/components/home/PopupModal"
 import { ReserveChoiceModal } from "@/components/home/ReserveChoiceModal"
 import { TodayScentDraw } from "@/components/home/TodayScentDraw"
+import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
+import { HomeDesktop } from "./_desktop/HomeDesktop"
 import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/useAdminContent"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
@@ -83,7 +85,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(idolPrice, "SALE"),
-      badgeColor: "bg-[#FF6B9D]",
+      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
       href: "/programs/idol-image"
     },
     {
@@ -95,7 +97,7 @@ export default function Home() {
       originalPrice: figurePrice?.original_price ?? null,
       delivery: t('shipping.afterProduction'),
       badge: computeBadge(figurePrice, "NEW"),
-      badgeColor: "bg-[#A78BFA]",
+      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
       href: "/programs/figure"
     },
     {
@@ -107,7 +109,7 @@ export default function Home() {
       originalPrice: graduationPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(graduationPrice, "LIMITED"),
-      badgeColor: "bg-[#EF4444]",
+      badgeColor: "bg-[#EF4444] text-white",
       href: "/programs/graduation"
     },
     {
@@ -120,7 +122,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(personalPrice, "SIGNATURE"),
-      badgeColor: "bg-[#111827]",
+      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
       href: "/programs/personal"
     },
     {
@@ -133,7 +135,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: "SEASON 3",
-      badgeColor: "bg-[#F472B6]",
+      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
       href: "/programs/chemistry"
     },
     {
@@ -146,7 +148,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(sajuPrice, "NEW"),
-      badgeColor: "bg-[#0C0E16]",
+      badgeColor: "bg-[#0C0E16] text-[#E9E2D0]",
       href: "/programs/saju"
     },
     {
@@ -158,7 +160,7 @@ export default function Home() {
       originalPrice: leQuackPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(leQuackPrice, "SIGNATURE"),
-      badgeColor: "bg-[#F59E0B]",
+      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
       href: "/programs/le-quack"
     },
   ]
@@ -207,9 +209,21 @@ export default function Home() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-[#FCD34D] font-sans selection:bg-yellow-200 selection:text-yellow-900">
-      <PopupModal />
+  // 데스크탑 변형에 내려보낼 파생 데이터 (상태는 페이지 레벨 공유 — 리사이즈에도 유지)
+  const desktopStoreProducts = visibleStoreProducts.map((product) => {
+    const localized = storeText(product)
+    return {
+      slug: product.slug,
+      title: localized.title,
+      description: localized.description,
+      image: product.image,
+      badge: product.badge,
+      price: storeProductPrice(product.size, product.fallbackPrice),
+    }
+  })
+
+  const mobileHome = (
+    <div className="min-h-screen bg-[#0C0E16] font-wanted selection:bg-[#232838] selection:text-[#E9E2D0]">
       <Header />
 
       {/* 메인 컨텐츠 */}
@@ -255,7 +269,7 @@ export default function Home() {
                         data-pin-nopin="true"
                       />
                     ) : (
-                      <div className="w-full h-full animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden />
+                      <div className="w-full h-full animate-pulse bg-gradient-to-br from-[#151823] to-[#232838]" aria-hidden />
                     )}
                   </div>
                 </motion.div>
@@ -267,14 +281,14 @@ export default function Home() {
                 aria-label={t('home.prevBanner')}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
-                <ChevronLeft size={24} className="text-white drop-shadow" />
+                <ChevronLeft size={24} className="text-[#E9E2D0] drop-shadow" />
               </button>
               <button
                 onClick={nextSlide}
                 aria-label={t('home.nextBanner')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
               >
-                <ChevronRight size={24} className="text-white drop-shadow" />
+                <ChevronRight size={24} className="text-[#E9E2D0] drop-shadow" />
               </button>
 
               <div className="absolute bottom-32 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
@@ -283,8 +297,8 @@ export default function Home() {
                     key={index}
                     onClick={() => setCurrentSlide(index)}
                     className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentSlide
-                      ? 'bg-white w-6 shadow-md'
-                      : 'bg-white/50 hover:bg-white/70'
+                      ? 'bg-[#12141D] w-6 shadow-md'
+                      : 'bg-[#12141D]/50 hover:bg-[#12141D]/70'
                       }`}
                   />
                 ))}
@@ -296,46 +310,27 @@ export default function Home() {
 
           {/* Wrapper for Sticky Control */}
           <div className="relative">
+            {/* 현장방문 예약 — sticky 배너 밖(이 wrapper는 스크롤됨)이라 스크롤 시 함께 올라간다.
+                배너 하단에 겹쳐 보이도록 위로 당김. */}
+            <button
+              type="button"
+              onClick={() => setShowReserveChoice(true)}
+              aria-label={t('nav.visitReservation')}
+              className="absolute left-4 right-4 -top-[76px] z-30 flex items-center justify-center gap-2 whitespace-nowrap rounded-[12px] border border-[#B8880F] bg-[#F5EFE2] px-5 py-3.5 text-base font-bold text-[#1A1610] shadow-[0_6px_20px_rgba(0,0,0,0.4)] transition-colors hover:bg-[#FFFDF5] active:scale-[0.98]"
+            >
+              <MapPin size={18} />
+              {t('nav.visitReservation')}
+            </button>
             {/* ===== 프로그램 둘러보기 섹션 ===== */}
-            <section id="programs-section" className="bg-white px-4 pt-8 pb-[clamp(132px,19svh,180px)] rounded-t-[32px] -mt-[clamp(64px,12svh,104px)] sticky top-[84px] z-10 min-h-[50vh] border-2 border-slate-900 border-b-0">
-              <div className="mb-7">
-                <button
-                  type="button"
-                  onClick={() => setShowReserveChoice(true)}
-                  aria-label={t('nav.visitReservation')}
-                  className="group flex w-full min-h-[76px] items-center gap-3 rounded-2xl border-2 border-slate-900 bg-[#FCD34D] px-4 py-3 text-left shadow-[4px_4px_0px_#000] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#000] active:scale-[0.99]"
-                >
-                  <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full border-2 border-slate-900 bg-white">
-                    <MapPin size={21} className="text-slate-950" strokeWidth={2.6} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[10px] font-black uppercase leading-none tracking-[0.16em] text-slate-700">
-                      AC&apos;SCENT ID
-                    </span>
-                    <span className="mt-1 block text-base font-black leading-tight text-slate-950">
-                      {t('nav.visitReservation')}
-                    </span>
-                  </span>
-                  <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-white/80 transition-transform group-hover:translate-x-0.5">
-                    <ChevronRight size={18} className="text-slate-950" strokeWidth={2.8} />
-                  </span>
-                </button>
-              </div>
-
-              <ReserveChoiceModal
-                open={showReserveChoice}
-                onClose={() => setShowReserveChoice(false)}
-                naverUrl={VISIT_RESERVATION_URL}
-              />
-
+            <section id="programs-section" className="bg-[#FBF7EF] px-4 pt-8 pb-[clamp(132px,19svh,180px)] rounded-t-[12px] -mt-[clamp(64px,12svh,104px)] sticky top-[84px] z-10 min-h-[50vh] border-2 border-[#D8CFBB] border-b-0">
               {/* 섹션 타이틀 */}
               <div className="flex items-center gap-2 mb-6">
-                <Search size={20} className="text-slate-900" />
-                <h2 className="text-lg font-black text-slate-900">{t('home.browsePrograms')}</h2>
+                <Search size={20} className="text-[#1A1610]" />
+                <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#1A1610]">{t('home.browsePrograms')}</h2>
               </div>
 
               {/* 2열 그리드 카드 */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 items-stretch gap-3">
                 {PRODUCTS.map((product, index) => (
                   <motion.div
                     key={product.id}
@@ -343,9 +338,9 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     onClick={() => handleCardClick(product.href)}
-                    className="group cursor-pointer"
+                    className="group h-full cursor-pointer"
                   >
-                    <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[#B8880F]/55 bg-[#F5EFE2] transition-colors group-hover:border-[#B8880F]">
                       {/* 카드 이미지 */}
                       <div className="relative aspect-square overflow-hidden">
                         {product.image ? (
@@ -358,41 +353,41 @@ export default function Home() {
                             data-pin-nopin="true"
                           />
                         ) : (
-                          <div className="w-full h-full animate-pulse bg-gradient-to-br from-yellow-100 to-amber-100" />
+                          <div className="w-full h-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#EDE5D2]" />
                         )}
                         {/* 뱃지 */}
                         {product.badge && (
                           <div
-                            className={`absolute top-2 left-2 px-2 py-0.5 ${product.badgeColor} text-white text-[8px] font-black rounded-full`}
+                            className={`absolute top-2 left-2 px-2 py-[3px] ${product.badgeColor || "text-white"} text-[10px] lg:text-[12px] font-medium uppercase tracking-[0.1em] rounded-[2px]`}
                             style={product.badgeStyle}
                           >
                             {product.badge}
                           </div>
                         )}
                       </div>
-                    </div>
-                    {/* 카드 타이틀 (카드 밖) */}
-                    <div className="mt-5 px-1">
-                      <h3 className="font-bold text-slate-900 text-sm truncate">
+                      {/* 카드 타이틀 (테두리 안 — 사진과 한 덩어리) */}
+                      <div className="flex flex-1 flex-col border-t border-[#B8880F]/30 px-3 py-3">
+                      <h3 className="font-medium text-[#1A1610] text-[clamp(13px,3.6vw,15px)] tracking-[-0.01em] truncate">
                         {product.title}
                       </h3>
-                      <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2 whitespace-pre-line">
+                      <p className="text-[clamp(10px,2.8vw,11.5px)] text-[#6E6659] leading-snug mt-1 line-clamp-2 whitespace-pre-line">
                         {product.subtitle}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-sm font-bold text-slate-900">
+                        <span className="text-[clamp(16px,4.4vw,19px)] font-semibold tracking-[-0.02em] text-[#1A1610]">
                           {t('currency.symbol')}{product.price.toLocaleString()}{product.priceRange && '~'}
                         </span>
                         {product.originalPrice && (
-                          <span className="text-[10px] text-slate-400 line-through">
+                          <span className="text-[clamp(10px,2.7vw,12px)] text-[#6E6659] line-through">
                             {t('currency.symbol')}{product.originalPrice.toLocaleString()}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[9px] font-medium mt-1 text-emerald-600">
+                      <p className="text-[clamp(10.5px,2.8vw,12px)] font-light mt-auto pt-2 text-[#5C564A]">
                         {product.delivery}
                       </p>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -407,13 +402,13 @@ export default function Home() {
           {showTodayScent && <TodayScentDraw />}
 
           {/* ===== 상품 둘러보기 섹션 ===== */}
-          <section className="bg-white px-4 pt-12 pb-[clamp(132px,18svh,180px)] rounded-t-[32px] -mt-[clamp(92px,14svh,128px)] relative z-20 min-h-[60vh] border-2 border-slate-900 border-b-0">
+          <section className="bg-[#FBF7EF] px-4 pt-12 pb-[clamp(132px,18svh,180px)] rounded-t-[12px] -mt-[clamp(92px,14svh,128px)] relative z-20 min-h-[60vh] border-2 border-[#D8CFBB] border-b-0">
             <div className="flex items-center gap-2 mb-6">
-              <Gift size={20} className="text-slate-900" />
-              <h2 className="text-lg font-black text-slate-900">{t('home.browseProducts')}</h2>
+              <Gift size={20} className="text-[#1A1610]" />
+              <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#1A1610]">{t('home.browseProducts')}</h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 items-stretch gap-3">
               {visibleStoreProducts.map((product, index) => {
                 const localized = storeText(product)
                 return (
@@ -423,10 +418,10 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.08 }}
                     onClick={() => handleCardClick(`/products/${product.slug}`)}
-                    className="group cursor-pointer"
+                    className="group h-full cursor-pointer"
                   >
-                    <div className="relative bg-[#FEF3C7] rounded-2xl border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                      <div className="relative aspect-square overflow-hidden bg-slate-200 flex items-center justify-center">
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[#B8880F]/55 bg-[#F5EFE2] transition-colors group-hover:border-[#B8880F]">
+                      <div className="relative aspect-square overflow-hidden bg-[#D8CFBB] flex items-center justify-center">
                         <Image
                           src={product.image}
                           alt={localized.title}
@@ -435,26 +430,26 @@ export default function Home() {
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                           data-pin-nopin="true"
                         />
-                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-lime-600 text-white text-[8px] font-black rounded-full z-10">
+                        <div className="absolute top-2 left-2 px-2 py-[3px] bg-[#EEB62B] text-[#1A1610] text-[10px] lg:text-[12px] font-medium uppercase tracking-[0.1em] rounded-[2px] z-10">
                           {product.badge}
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-3 px-1">
-                      <h3 className="font-bold text-slate-900 text-sm truncate">
+                      <div className="flex flex-1 flex-col border-t border-[#B8880F]/30 px-3 py-3">
+                      <h3 className="font-medium text-[#1A1610] text-[clamp(13px,3.6vw,15px)] tracking-[-0.01em] truncate">
                         {localized.title}
                       </h3>
-                      <p className="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
+                      <p className="text-[clamp(10px,2.8vw,11.5px)] text-[#6E6659] leading-snug mt-1 line-clamp-2">
                         {localized.description}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-sm font-bold text-slate-900">
+                        <span className="text-[clamp(16px,4.4vw,19px)] font-semibold tracking-[-0.02em] text-[#1A1610]">
                           {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-[9px] font-medium mt-1 text-emerald-600">
+                      <p className="text-[clamp(10.5px,2.8vw,12px)] font-light mt-auto pt-2 text-[#5C564A]">
                         {t('store.selectAndBuy')}
                       </p>
+                      </div>
                     </div>
                   </motion.div>
                 )
@@ -462,45 +457,45 @@ export default function Home() {
             </div>
 
             <div className="mt-12 text-center">
-              <Link href="/products" className="inline-flex items-center gap-2 text-sm font-black text-slate-900 underline underline-offset-4 decoration-wavy decoration-yellow-400">
+              <Link href="/products" className="inline-flex items-center gap-2 text-sm lg:text-base font-medium text-[#1A1610] underline underline-offset-4 decoration-wavy decoration-stone-400">
                 {t('store.viewAll')} <ChevronRight size={14} />
               </Link>
             </div>
           </section>
 
           {/* ===== 콜라보 & 협업 문의 섹션 ===== */}
-          <section className="bg-white px-4 pt-12 pb-32 rounded-t-[32px] -mt-[clamp(84px,12svh,112px)] relative z-30 min-h-[40vh] border-2 border-slate-900 border-b-0">
+          <section className="bg-[#12141D] px-4 pt-12 pb-32 rounded-t-[12px] -mt-[clamp(84px,12svh,112px)] relative z-30 min-h-[40vh] border-2 border-[#262A38] border-b-0">
             <div className="flex items-center gap-2 mb-6">
-              <Handshake size={20} className="text-slate-900" />
-              <h2 className="text-lg font-black text-slate-900">{t('home.collaboration')}</h2>
+              <Handshake size={20} className="text-[#E9E2D0]" />
+              <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#E9E2D0]">{t('home.collaboration')}</h2>
             </div>
 
             {/* 협업 소개 */}
-            <div className="bg-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#FCD34D]">
-              <p className="text-white text-sm font-medium mb-4 whitespace-pre-line">
+            <div className="bg-[#161925] rounded-[12px] p-5 border border-[#343A4C]">
+              <p className="text-[#E9E2D0] text-sm lg:text-base font-medium mb-4 whitespace-pre-line">
                 {t('home.collaborationDesc')}
               </p>
 
               {/* 협업 아이템 */}
               <div className="space-y-2 mb-5">
-                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
-                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
-                  <span className="text-xs text-white/90">{t('home.collaborationItem1')}</span>
+                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
+                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
+                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem1')}</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
-                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
-                  <span className="text-xs text-white/90">{t('home.collaborationItem2')}</span>
+                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
+                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
+                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem2')}</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2.5">
-                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
-                  <span className="text-xs text-white/90">{t('home.collaborationItem3')}</span>
+                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
+                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
+                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem3')}</span>
                 </div>
               </div>
 
               {/* CTA 버튼 */}
               <Link
                 href="/collaboration"
-                className="block w-full bg-[#FCD34D] text-slate-900 text-center font-bold text-sm py-3 rounded-xl border-2 border-slate-900 hover:bg-yellow-300 transition-colors"
+                className="block w-full bg-[#F5EFE2] text-[#12141D] text-center font-bold text-sm lg:text-base py-3 rounded-[12px] border-2 border-[#262A38] hover:bg-[#FFFDF5] transition-colors"
               >
                 {t('home.viewCollaboration')}
               </Link>
@@ -510,5 +505,41 @@ export default function Home() {
         </div>
       </main>
     </div>
+  )
+
+  return (
+    <>
+      {/* 공유 오버레이 — 뷰포트 모드와 무관하게 단일 인스턴스 */}
+      <PopupModal />
+      <ReserveChoiceModal
+        open={showReserveChoice}
+        onClose={() => setShowReserveChoice(false)}
+        naverUrl={VISIT_RESERVATION_URL}
+      />
+
+      <ViewportSwitch
+        mobile={mobileHome}
+        desktop={
+          <HomeDesktop
+            banners={banners}
+            bannersLoading={bannersLoading}
+            currentSlide={currentSlide}
+            currentBanner={currentBanner}
+            isHydrated={isHydrated}
+            onPrevSlide={prevSlide}
+            onNextSlide={nextSlide}
+            onSelectSlide={setCurrentSlide}
+            onBannerClick={() => {
+              if (currentBanner?.link_url) router.push(currentBanner.link_url)
+            }}
+            products={PRODUCTS}
+            storeProducts={desktopStoreProducts}
+            showTodayScent={showTodayScent}
+            onCardClick={handleCardClick}
+            onReserveClick={() => setShowReserveChoice(true)}
+          />
+        }
+      />
+    </>
   )
 }

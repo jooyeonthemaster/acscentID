@@ -28,12 +28,12 @@ function SajuPrintHarness() {
   return (
     <div className="min-h-screen bg-slate-200 py-6">
       <div className="mx-auto mb-4 flex w-[842px] items-center justify-between print:hidden">
-        <span className="text-sm font-bold text-slate-600">
+        <span className="text-sm lg:text-base font-bold text-slate-600">
           사주 보고서 하네스 — variant: {variant} (?variant=self|idol)
         </span>
         <button
           onClick={() => window.print()}
-          className="rounded bg-slate-900 px-3 py-1.5 text-sm font-bold text-white"
+          className="rounded-[12px] bg-slate-900 px-3 py-1.5 text-sm lg:text-base font-bold text-white"
         >
           인쇄
         </button>

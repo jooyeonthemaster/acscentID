@@ -10,6 +10,8 @@ import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { UnifiedDetailHero } from '@/components/products/UnifiedDetailHero'
+import { DesktopDetailHero } from '@/components/desktop/DesktopDetailHero'
+import { ViewportSwitch } from '@/components/desktop/ViewportSwitch'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { extractProductPageContent, type ProductPagePositionField } from '@/lib/products/page-content'
@@ -46,18 +48,18 @@ export default function GenericProgramPage() {
 
   if (!productsLoading && !product) {
     return (
-      <main className="min-h-screen bg-[#FFFDF5] font-sans">
+      <main className="min-h-screen bg-[#0C0E16] font-wanted">
         <Header />
         <section className="flex min-h-screen items-center justify-center px-4 pt-24">
-          <div className="w-full max-w-sm rounded-2xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0_0_black]">
-            <Package className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-            <h1 className="text-xl font-black text-slate-900">{t('programs.detail.generic.notFoundTitle')}</h1>
-            <p className="mt-2 text-sm font-medium text-slate-500">
+          <div className="w-full max-w-sm rounded-[12px] border-2 border-[#262A38] bg-[#12141D] p-8 text-center">
+            <Package className="mx-auto mb-4 h-12 w-12 text-[#5C564A]" />
+            <h1 className="text-xl font-black text-[#E9E2D0]">{t('programs.detail.generic.notFoundTitle')}</h1>
+            <p className="mt-2 text-sm lg:text-base font-medium text-[#8B8578]">
               {t('programs.detail.generic.notRegistered')}
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-black px-5 text-sm font-black text-white ring-2 ring-black"
+              className="mt-6 inline-flex min-h-11 items-center rounded-[12px] bg-[#0C0E16] px-5 text-sm lg:text-base font-black text-[#E9E2D0] ring-2 ring-[#262A38]"
             >
               {t('programs.detail.generic.backHome')}
             </Link>
@@ -67,49 +69,65 @@ export default function GenericProgramPage() {
     )
   }
 
+  const heroProps = {
+    productSlug: slug,
+    title: productName,
+    imageAlt: productName,
+    pageContent,
+    pagePositionStyle,
+    breadcrumbs: [
+      { label: t('programs.breadcrumbHome'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: productName },
+    ],
+    infoIcon: <Sparkles className="h-4 w-4 text-[#E9E2D0]" />,
+    cta: {
+      label: pageContent.ctaLabel,
+      disabled: true,
+    },
+  }
+
+  const detailBody = (
+    <>
+      {detailLoading ? (
+        <section className="bg-[#12141D] px-4 py-8">
+          <div className="mx-auto h-64 w-full max-w-[455px] animate-pulse rounded-[12px] bg-[#1B1F2C]" />
+        </section>
+      ) : isCustomMode ? (
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+      ) : (
+        <section className="bg-[#12141D] px-4 py-8">
+          <div className="mx-auto w-full max-w-[455px]" data-admin-editable="detail_html">
+            <section className="rounded-[12px] border-2 border-dashed border-[#262A38] bg-[#151823] p-8 text-center">
+              <h2 className="text-xl font-black text-[#E9E2D0]">{t('programs.detail.generic.prepareTitle')}</h2>
+              <p className="mt-3 text-sm lg:text-base font-medium leading-relaxed text-[#8B8578]">
+                {t('programs.detail.generic.prepareDesc')}
+              </p>
+            </section>
+          </div>
+        </section>
+      )}
+    </>
+  )
+
   return (
     <InactiveProductGuard productSlug={slug}>
-      <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
-        <Header />
-        <ProgramAdminBridge productSlug={slug} />
-
-        <UnifiedDetailHero
-          productSlug={slug}
-          title={productName}
-          imageAlt={productName}
-          pageContent={pageContent}
-          pagePositionStyle={pagePositionStyle}
-          breadcrumbs={[
-            { label: t('programs.breadcrumbHome'), href: '/' },
-            { label: t('programs.breadcrumbPrograms'), href: '/' },
-            { label: productName },
-          ]}
-          infoIcon={<Sparkles className="h-4 w-4 text-slate-900" />}
-          cta={{
-            label: pageContent.ctaLabel,
-            disabled: true,
-          }}
-        />
-
-        {detailLoading ? (
-          <section className="bg-white px-4 py-8">
-            <div className="mx-auto h-64 w-full max-w-[455px] animate-pulse rounded-2xl bg-slate-100" />
-          </section>
-        ) : isCustomMode ? (
-          <CustomDetailRenderer html={detail?.custom_html ?? ''} />
-        ) : (
-          <section className="bg-white px-4 py-8">
-            <div className="mx-auto w-full max-w-[455px]" data-admin-editable="detail_html">
-              <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                <h2 className="text-xl font-black text-slate-900">{t('programs.detail.generic.prepareTitle')}</h2>
-                <p className="mt-3 text-sm font-medium leading-relaxed text-slate-500">
-                  {t('programs.detail.generic.prepareDesc')}
-                </p>
-              </section>
-            </div>
-          </section>
-        )}
-      </main>
+      <ViewportSwitch
+        mobile={
+          <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+            <Header />
+            <ProgramAdminBridge productSlug={slug} />
+            <UnifiedDetailHero {...heroProps} />
+            {detailBody}
+          </main>
+        }
+        desktop={
+          <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+            <DesktopDetailHero {...heroProps} />
+            <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
+          </main>
+        }
+      />
     </InactiveProductGuard>
   )
 }

@@ -12,74 +12,74 @@ interface KeywordCloudProps {
 const KEYWORD_STYLES = [
   {
     // 핫핑크 리본 스타일
-    bg: 'bg-gradient-to-r from-pink-400 to-rose-400',
-    text: 'text-white',
-    shape: 'rounded-lg',
+    bg: 'bg-gradient-to-r from-[#161925] to-[#161925]',
+    text: 'text-[#E9E2D0]',
+    shape: 'rounded-[12px]',
     decoration: '🎀',
-    shadow: 'shadow-md shadow-pink-200',
+    shadow: 'shadow-md shadow-stone-200',
     border: ''
   },
   {
     // 옐로우 스티커 스타일
-    bg: 'bg-[#FEF9C3]',
-    text: 'text-amber-800',
-    shape: 'rounded-xl',
+    bg: 'bg-[#151823]',
+    text: 'text-[#E9E2D0]',
+    shape: 'rounded-[12px]',
     decoration: '⭐',
-    shadow: 'shadow-[3px_3px_0px_#000]',
-    border: 'border-2 border-slate-900'
+    shadow: '',
+    border: 'border-2 border-[#262A38]'
   },
   {
     // 민트 버블 스타일
-    bg: 'bg-gradient-to-br from-cyan-200 to-teal-200',
-    text: 'text-teal-800',
+    bg: 'bg-gradient-to-br from-[#232838] to-[#232838]',
+    text: 'text-[#E9E2D0]',
     shape: 'rounded-full',
     decoration: '✨',
-    shadow: 'shadow-lg shadow-cyan-100',
-    border: 'border border-teal-300'
+    shadow: 'shadow-lg shadow-[#151823]',
+    border: 'border border-[#262A38]'
   },
   {
     // 라벤더 필 스타일
-    bg: 'bg-violet-100',
-    text: 'text-violet-700',
-    shape: 'rounded-2xl',
+    bg: 'bg-[#151823]',
+    text: 'text-[#A69F8D]',
+    shape: 'rounded-[12px]',
     decoration: '💜',
     shadow: '',
-    border: 'border-2 border-violet-300 border-dashed'
+    border: 'border-2 border-[#262A38] border-dashed'
   },
   {
     // 오렌지 뱃지 스타일
-    bg: 'bg-gradient-to-r from-orange-400 to-amber-400',
-    text: 'text-white',
-    shape: 'rounded-lg',
+    bg: 'bg-gradient-to-r from-[#161925] to-[#161925]',
+    text: 'text-[#E9E2D0]',
+    shape: 'rounded-[12px]',
     decoration: '🔥',
-    shadow: 'shadow-md shadow-orange-200',
+    shadow: 'shadow-md shadow-stone-200',
     border: ''
   },
   {
     // 스카이블루 태그 스타일
-    bg: 'bg-sky-50',
-    text: 'text-sky-700',
-    shape: 'rounded-lg',
+    bg: 'bg-[#0C0E16]',
+    text: 'text-[#A69F8D]',
+    shape: 'rounded-[12px]',
     decoration: '💙',
     shadow: '',
-    border: 'border-2 border-sky-300'
+    border: 'border-2 border-[#262A38]'
   },
   {
     // 코랄 스탬프 스타일
-    bg: 'bg-rose-50',
-    text: 'text-rose-600',
-    shape: 'rounded-xl',
+    bg: 'bg-[#0C0E16]',
+    text: 'text-[#A69F8D]',
+    shape: 'rounded-[12px]',
     decoration: '💕',
     shadow: 'shadow-inner',
-    border: 'border-2 border-rose-200'
+    border: 'border-2 border-[#262A38]'
   },
   {
     // 그린 네온 스타일
-    bg: 'bg-gradient-to-r from-emerald-400 to-green-400',
-    text: 'text-white',
+    bg: 'bg-gradient-to-r from-[#161925] to-[#161925]',
+    text: 'text-[#E9E2D0]',
     shape: 'rounded-full',
     decoration: '🌿',
-    shadow: 'shadow-lg shadow-emerald-200',
+    shadow: 'shadow-lg shadow-stone-200',
     border: ''
   }
 ]
@@ -89,10 +89,10 @@ const ROTATIONS = [-3, 2, -2, 3, -1, 1, 0, -4, 4]
 
 // 다양한 크기
 const SIZES = [
-  'text-xs px-2.5 py-1',
-  'text-sm px-3 py-1.5',
-  'text-sm px-3.5 py-2 font-bold',
-  'text-xs px-2 py-1'
+  'text-xs lg:text-sm px-2.5 py-1',
+  'text-sm lg:text-base px-3 py-1.5',
+  'text-sm lg:text-base px-3.5 py-2 font-bold',
+  'text-xs lg:text-sm px-2 py-1'
 ]
 
 export default function KeywordCloud({ keywords, showAnimation = true }: KeywordCloudProps) {
@@ -130,7 +130,7 @@ export default function KeywordCloud({ keywords, showAnimation = true }: Keyword
       className="relative"
     >
       {/* 배경 장식 */}
-      <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden rounded-[12px] pointer-events-none">
         <div className="absolute top-2 right-4 text-2xl opacity-20">✨</div>
         <div className="absolute bottom-2 left-4 text-2xl opacity-20">💫</div>
       </div>
@@ -173,7 +173,7 @@ export default function KeywordCloud({ keywords, showAnimation = true }: Keyword
               `}
             >
               {keyword.showDecoration && (
-                <span className="text-[10px]">{keyword.style.decoration}</span>
+                <span className="text-[10px] lg:text-[12px]">{keyword.style.decoration}</span>
               )}
               <span className="whitespace-nowrap">#{keyword.text}</span>
             </span>
@@ -190,7 +190,7 @@ export default function KeywordCloud({ keywords, showAnimation = true }: Keyword
             animate={{ scale: 1 }}
             transition={{ delay: 0.8 + i * 0.1 }}
             className={`w-1.5 h-1.5 rounded-full ${
-              i % 2 === 0 ? 'bg-pink-300' : 'bg-yellow-300'
+              i % 2 === 0 ? 'bg-[#232838]' : 'bg-[#232838]'
             }`}
           />
         ))}

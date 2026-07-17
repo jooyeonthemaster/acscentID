@@ -1,5 +1,6 @@
 {
   "nav": {
+    "about": "紹介",
     "products": "商品",
     "home": "ホーム",
     "programs": "プログラム",
@@ -577,7 +578,9 @@
       }
     },
     "representative": "メイン",
-    "thumbnailAria": "{alt} 画像 {index} を見る"
+    "thumbnailAria": "{alt} 画像 {index} を見る",
+    "prevImage": "前の写真",
+    "nextImage": "次の写真"
   },
   "input": {
     "customInput": "+ 直接入力",

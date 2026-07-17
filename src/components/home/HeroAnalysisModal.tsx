@@ -31,25 +31,25 @@ interface HeroAnalysisModalProps {
 
 // ==================== COLOR MAPS ====================
 const FRAGRANCE_COLORS: Record<string, { bg: string; border: string; text: string; fill: string }> = {
-    yellow: { bg: "bg-yellow-50", border: "border-yellow-300", text: "text-yellow-700", fill: "bg-yellow-400" },
+    yellow: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
     red: { bg: "bg-red-50", border: "border-red-300", text: "text-red-700", fill: "bg-red-400" },
-    pink: { bg: "bg-pink-50", border: "border-pink-300", text: "text-pink-700", fill: "bg-pink-400" },
-    amber: { bg: "bg-amber-50", border: "border-amber-300", text: "text-amber-700", fill: "bg-amber-500" },
-    purple: { bg: "bg-purple-50", border: "border-purple-300", text: "text-purple-700", fill: "bg-purple-400" },
-    orange: { bg: "bg-orange-50", border: "border-orange-300", text: "text-orange-700", fill: "bg-orange-500" },
-    green: { bg: "bg-green-50", border: "border-green-300", text: "text-green-700", fill: "bg-green-500" },
-    blue: { bg: "bg-blue-50", border: "border-blue-300", text: "text-blue-700", fill: "bg-blue-400" },
-    teal: { bg: "bg-teal-50", border: "border-teal-300", text: "text-teal-700", fill: "bg-teal-400" },
+    pink: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    amber: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    purple: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    orange: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    green: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    blue: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
+    teal: { bg: "bg-[#0C0E16]", border: "border-[#262A38]", text: "text-[#A69F8D]", fill: "bg-[#161925]" },
 }
 
 const HASHTAG_STYLES = [
-    "bg-gradient-to-br from-cyan-200 to-teal-200 text-teal-800 border-teal-300 shadow-cyan-100",
-    "bg-gradient-to-r from-emerald-400 to-green-400 text-white shadow-emerald-200",
-    "bg-rose-50 text-rose-600 border-2 border-rose-200",
-    "bg-gradient-to-br from-violet-200 to-purple-200 text-purple-800 border-purple-300",
-    "bg-gradient-to-r from-amber-300 to-yellow-300 text-amber-800 shadow-amber-200",
-    "bg-gradient-to-br from-pink-200 to-rose-200 text-rose-700 border-rose-300",
-    "bg-gradient-to-r from-blue-400 to-cyan-400 text-white shadow-blue-200",
+    "bg-gradient-to-br from-[#232838] to-[#232838] text-[#E9E2D0] border-[#262A38] shadow-[#151823]",
+    "bg-gradient-to-r from-[#161925] to-[#161925] text-[#E9E2D0] shadow-stone-200",
+    "bg-[#0C0E16] text-[#A69F8D] border-2 border-[#262A38]",
+    "bg-gradient-to-br from-[#232838] to-[#232838] text-[#E9E2D0] border-[#262A38]",
+    "bg-gradient-to-r from-[#232838] to-[#232838] text-[#E9E2D0] shadow-stone-200",
+    "bg-gradient-to-br from-[#232838] to-[#232838] text-[#A69F8D] border-[#262A38]",
+    "bg-gradient-to-r from-[#161925] to-[#161925] text-[#E9E2D0] shadow-stone-200",
 ]
 
 // ==================== RADAR CHART ====================
@@ -95,13 +95,13 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
     const gridCircles = [2, 4, 6, 8, 10]
 
     return (
-        <div className="flex justify-center bg-slate-50/50 rounded-2xl p-3">
+        <div className="flex justify-center bg-stone-50/50 rounded-[12px] p-3">
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                 <defs>
                     <linearGradient id="heroChartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#F472B6" />
-                        <stop offset="50%" stopColor="#FACC15" />
-                        <stop offset="100%" stopColor="#60A5FA" />
+                        <stop offset="0%" stopColor="#9F9F9F" />
+                        <stop offset="50%" stopColor="#D1D1D1" />
+                        <stop offset="100%" stopColor="#A2A2A2" />
                     </linearGradient>
                 </defs>
 
@@ -137,7 +137,7 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
                 {/* 데이터 영역 */}
                 <motion.path
                     d={dataPath}
-                    fill="rgba(14, 165, 233, 0.15)"
+                    fill="rgba(155,155,155, 0.15)"
                     stroke="url(#heroChartGradient)"
                     strokeWidth="2.5"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -176,7 +176,7 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
                             textAnchor="middle"
                             fontSize="8"
                             fontWeight="600"
-                            fill="#64748b"
+                            fill="#737373"
                         >
                             {label}
                         </text>
@@ -203,13 +203,13 @@ function HashtagBadges({ hashtags }: { hashtags: string[] }) {
                     <span
                         className={`
                             inline-flex items-center gap-1 font-bold
-                            rounded-full shadow-lg text-sm px-3 py-1.5
+                            rounded-full shadow-lg text-sm lg:text-base px-3 py-1.5
                             border select-none
                             ${HASHTAG_STYLES[i % HASHTAG_STYLES.length]}
                         `}
                     >
-                        {i === 0 && <span className="text-[10px]">✨</span>}
-                        {i === 3 && <span className="text-[10px]">🌿</span>}
+                        {i === 0 && <span className="text-[10px] lg:text-[12px]">✨</span>}
+                        {i === 3 && <span className="text-[10px] lg:text-[12px]">🌿</span>}
                         <span className="whitespace-nowrap">{tag}</span>
                     </span>
                 </motion.div>
@@ -224,7 +224,7 @@ function FragranceHintBars({ hints, mainFragrance }: {
     mainFragrance: HeroAnalysisData['mainFragrance']
 }) {
     return (
-        <div className="bg-white border-2 border-slate-900 rounded-2xl p-3 shadow-[3px_3px_0px_#000]">
+        <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-3">
             <div className="space-y-2">
                 {hints.slice(0, 6).map((hint, index) => {
                     const colors = FRAGRANCE_COLORS[hint.color] || FRAGRANCE_COLORS.purple
@@ -236,17 +236,17 @@ function FragranceHintBars({ hints, mainFragrance }: {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: index * 0.1 }}
-                            className={`relative rounded-xl p-2 ${colors.bg} border-2 ${colors.border} ${isMain ? 'ring-2 ring-offset-1 ring-yellow-400' : ''}`}
+                            className={`relative rounded-[12px] p-2 ${colors.bg} border-2 ${colors.border} ${isMain ? 'ring-2 ring-offset-1 ring-[#343A4C]' : ''}`}
                         >
                             {isMain && (
-                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 rounded-full border-2 border-slate-900 flex items-center justify-center text-[10px]">
+                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#161925] rounded-full border-2 border-[#262A38] flex items-center justify-center text-[10px] lg:text-[12px]">
                                     👑
                                 </div>
                             )}
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1 min-w-[60px]">
                                     <span className="text-base">{hint.emoji}</span>
-                                    <span className={`text-[10px] font-bold ${colors.text}`}>{hint.name}</span>
+                                    <span className={`text-[10px] lg:text-[12px] font-bold ${colors.text}`}>{hint.name}</span>
                                 </div>
                                 <div className="flex-grow flex items-center gap-0.5">
                                     {Array.from({ length: 10 }).map((_, i) => (
@@ -256,14 +256,14 @@ function FragranceHintBars({ hints, mainFragrance }: {
                                             animate={{ scale: i < hint.score ? 1 : 0.4 }}
                                             transition={{ duration: 0.2, delay: index * 0.1 + i * 0.03 }}
                                             className={`w-2 h-2 rounded-full border ${i < hint.score
-                                                ? `${colors.fill} border-slate-900`
-                                                : 'bg-slate-200 border-slate-300'
+                                                ? `${colors.fill} border-[#262A38]`
+                                                : 'bg-[#232838] border-[#262A38]'
                                                 }`}
                                         />
                                     ))}
                                 </div>
-                                <div className={`flex-shrink-0 w-6 h-6 rounded-lg ${colors.fill} border-2 border-slate-900 flex items-center justify-center`}>
-                                    <span className="text-[10px] font-black text-white">{hint.score}</span>
+                                <div className={`flex-shrink-0 w-6 h-6 rounded-[12px] ${colors.fill} border-2 border-[#262A38] flex items-center justify-center`}>
+                                    <span className="text-[10px] lg:text-[12px] font-black text-[#E9E2D0]">{hint.score}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -276,16 +276,16 @@ function FragranceHintBars({ hints, mainFragrance }: {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.6 }}
-                className="mt-3 pt-2 border-t-2 border-dashed border-slate-200"
+                className="mt-3 pt-2 border-t-2 border-dashed border-[#262A38]"
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
-                        <Sparkles size={12} className="text-yellow-500" />
-                        <span className="text-[10px] font-bold text-slate-500">메인 계열</span>
+                        <Sparkles size={12} className="text-[#8B8578]" />
+                        <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578]">메인 계열</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-amber-100 px-2.5 py-1 rounded-full border-2 border-slate-900">
-                        <span className="text-sm">{mainFragrance.emoji}</span>
-                        <span className="text-xs font-black text-slate-800">{mainFragrance.name}</span>
+                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#151823] to-[#151823] px-2.5 py-1 rounded-full border-2 border-[#262A38]">
+                        <span className="text-sm lg:text-base">{mainFragrance.emoji}</span>
+                        <span className="text-xs lg:text-sm font-black text-[#E9E2D0]">{mainFragrance.name}</span>
                     </div>
                 </div>
             </motion.div>
@@ -326,26 +326,26 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         className="fixed bottom-0 left-0 right-0 z-[10000] max-h-[85vh] overflow-y-auto"
                     >
-                        <div className="bg-[#FFFDF5] rounded-t-[32px] border-t-4 border-x-4 border-slate-900 shadow-2xl">
+                        <div className="bg-[#0C0E16] rounded-t-[12px] border-t-4 border-x-4 border-[#262A38] shadow-2xl">
                             {/* 핸들 바 */}
                             <div className="flex justify-center pt-3 pb-2">
-                                <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+                                <div className="w-12 h-1.5 bg-[#232838] rounded-full" />
                             </div>
 
                             {/* 헤더 */}
                             <div className="flex items-center justify-between px-5 pb-3">
                                 <div>
-                                    <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                                    <h2 className="text-lg font-black text-[#E9E2D0] flex items-center gap-2">
                                         <span className="text-xl">✨</span>
                                         이미지 분석 결과
                                     </h2>
-                                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                    <p className="text-xs lg:text-sm text-[#8B8578] font-medium mt-0.5">
                                         {data.teaser}
                                     </p>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                                    className="w-8 h-8 rounded-full bg-[#1B1F2C] flex items-center justify-center text-[#8B8578] hover:bg-[#232838] transition-colors"
                                 >
                                     <X size={18} />
                                 </button>
@@ -356,8 +356,8 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                                 {/* 1. 레이더 차트 */}
                                 <div>
                                     <div className="flex items-center gap-1.5 mb-2 px-1">
-                                        <span className="text-sm">📊</span>
-                                        <span className="text-xs font-bold text-slate-600">이미지 분위기 분석</span>
+                                        <span className="text-sm lg:text-base">📊</span>
+                                        <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">이미지 분위기 분석</span>
                                     </div>
                                     <RadarChart scores={data.radarScores} />
                                 </div>
@@ -365,8 +365,8 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                                 {/* 2. 해시태그 */}
                                 <div>
                                     <div className="flex items-center gap-1.5 mb-2 px-1">
-                                        <span className="text-sm">#️⃣</span>
-                                        <span className="text-xs font-bold text-slate-600">이미지 키워드</span>
+                                        <span className="text-sm lg:text-base">#️⃣</span>
+                                        <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">이미지 키워드</span>
                                     </div>
                                     <HashtagBadges hashtags={data.hashtags} />
                                 </div>
@@ -374,24 +374,24 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                                 {/* 3. 향료 힌트 */}
                                 <div>
                                     <div className="flex items-center gap-1.5 mb-2 px-1">
-                                        <span className="text-sm">🧪</span>
-                                        <span className="text-xs font-bold text-slate-600">어울리는 향료 힌트</span>
+                                        <span className="text-sm lg:text-base">🧪</span>
+                                        <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">어울리는 향료 힌트</span>
                                     </div>
                                     <FragranceHintBars hints={data.fragranceHints} mainFragrance={data.mainFragrance} />
                                 </div>
                             </div>
 
                             {/* 하단 버튼 - 모바일 하단 네비게이션 고려하여 패딩 추가 */}
-                            <div className="sticky bottom-0 px-4 pt-8 pb-24 md:pb-6 bg-gradient-to-t from-[#FFFDF5] via-[#FFFDF5] to-transparent">
+                            <div className="sticky bottom-0 px-4 pt-8 pb-24 md:pb-6 bg-gradient-to-t from-[#0C0E16] via-[#0C0E16] to-transparent">
                                 <motion.button
                                     whileTap={{ scale: 0.98 }}
                                     onClick={onDetailClick}
-                                    className="w-full py-4 bg-slate-900 text-white font-black text-base rounded-2xl border-4 border-slate-900 shadow-[4px_4px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#FACC15] transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-[#161925] text-[#E9E2D0] font-black text-base rounded-[12px] border-4 border-[#262A38] transition-all flex items-center justify-center gap-2"
                                 >
                                     <Sparkles size={20} />
                                     자세한 분석 받기
                                 </motion.button>
-                                <p className="text-center text-[10px] text-slate-400 mt-2">
+                                <p className="text-center text-[10px] lg:text-[12px] text-[#8B8578] mt-2">
                                     최종 퍼퓸 레시피와 맞춤 추천을 받아보세요
                                 </p>
                             </div>

@@ -89,13 +89,13 @@ export function TodayScentDraw() {
     : undefined
 
   return (
-    <section ref={sectionRef} className="bg-white px-4 pt-10 pb-[clamp(132px,18svh,180px)] rounded-t-[32px] -mt-[clamp(84px,12svh,112px)] relative z-20 border-2 border-slate-900 border-b-0 scroll-mt-[100px]">
+    <section ref={sectionRef} className="bg-[#12141D] px-4 pt-10 pb-[clamp(132px,18svh,180px)] rounded-t-[12px] -mt-[clamp(84px,12svh,112px)] relative z-20 border-2 border-[#262A38] border-b-0 scroll-mt-[100px]">
       {/* 섹션 타이틀 */}
       <div className="flex items-center gap-2 mb-1">
-        <Sparkles size={20} className="text-slate-900" />
-        <h2 className="text-lg font-black text-slate-900">{t('title')}</h2>
+        <Sparkles size={20} className="text-[#E9E2D0]" />
+        <h2 className="text-lg font-black text-[#E9E2D0]">{t('title')}</h2>
       </div>
-      <p className="text-xs text-slate-500 font-medium mb-6">{t('subtitle')}</p>
+      <p className="text-xs lg:text-sm text-[#8B8578] font-medium mb-6">{t('subtitle')}</p>
 
       {/* 친구 공유 유입 환영 배너 */}
       <AnimatePresence>
@@ -104,25 +104,25 @@ export function TodayScentDraw() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="relative mb-6 bg-[#FCD34D] border-2 border-slate-900 rounded-2xl p-4 shadow-[4px_4px_0px_#0f172a]"
+            className="relative mb-6 bg-[#D7D7D7] border-2 border-[#262A38] rounded-[12px] p-4"
           >
             <button
               onClick={() => setSharedScent(null)}
               aria-label="닫기"
               className="absolute top-2 right-2 p-1 rounded-full hover:bg-black/10 transition-colors"
             >
-              <X size={16} className="text-slate-700" />
+              <X size={16} className="text-[#A69F8D]" />
             </button>
             <div className="flex items-start gap-3 pr-5">
               <div className="text-2xl shrink-0">{sharedScent.emoji}</div>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 leading-snug">
+                <p className="text-sm lg:text-base font-black text-[#E9E2D0] leading-snug">
                   {t('sharedBanner', { name: sharedScent.name })}
                 </p>
-                <p className="text-xs font-bold text-slate-700/80 mt-0.5">{t('sharedBannerSub')}</p>
+                <p className="text-xs lg:text-sm font-bold text-stone-700/80 mt-0.5">{t('sharedBannerSub')}</p>
                 <button
                   onClick={() => router.push(`/programs/today-scent?scent=${sharedScent.id}`)}
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-black text-slate-900 bg-white border-2 border-slate-900 rounded-full px-3 py-1 shadow-[2px_2px_0px_#0f172a] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#0f172a] transition-all"
+                  className="mt-2 inline-flex items-center gap-1 text-xs lg:text-sm font-black text-[#E9E2D0] bg-[#12141D] border-2 border-[#262A38] rounded-full px-3 py-1 transition-all"
                 >
                   <Gift size={13} />
                   {t('viewSharedScent', { name: sharedScent.name })}
@@ -144,7 +144,7 @@ export function TodayScentDraw() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               whileTap={{ scale: 0.97 }}
-              className="w-full max-w-[340px] bg-[#FCD34D] border-4 border-slate-900 rounded-[28px] shadow-[8px_8px_0px_#0f172a] px-6 py-10 text-center active:translate-x-[2px] active:translate-y-[2px] active:shadow-[4px_4px_0px_#0f172a] transition-all"
+              className="w-full max-w-[340px] bg-[#F5EFE2] border-4 border-[#262A38] rounded-[12px] px-6 py-10 text-center transition-all"
             >
               <motion.div
                 animate={{ rotate: [0, -8, 8, -8, 0] }}
@@ -153,10 +153,10 @@ export function TodayScentDraw() {
               >
                 🎰
               </motion.div>
-              <div className="mt-5 text-xl font-black text-slate-900">
+              <div className="mt-5 text-xl font-black text-[#E9E2D0]">
                 {t('drawButton')}
               </div>
-              <div className="mt-2 text-xs font-bold text-slate-700/70">
+              <div className="mt-2 text-xs lg:text-sm font-bold text-[#8B8578]">
                 {t('drawHint')}
               </div>
             </motion.button>
@@ -169,7 +169,7 @@ export function TodayScentDraw() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-[340px] bg-[#FEF3C7] border-4 border-slate-900 rounded-[28px] shadow-[8px_8px_0px_#0f172a] px-6 py-12 text-center"
+              className="w-full max-w-[340px] bg-[#151823] border-4 border-[#262A38] rounded-[12px] px-6 py-12 text-center"
             >
               <motion.div
                 key={spinEmoji}
@@ -180,7 +180,7 @@ export function TodayScentDraw() {
               >
                 {spinEmoji}
               </motion.div>
-              <div className="mt-6 text-base font-black text-slate-900 animate-pulse">
+              <div className="mt-6 text-base font-black text-[#E9E2D0] animate-pulse">
                 {t('drawingText')}
               </div>
             </motion.div>
@@ -196,7 +196,7 @@ export function TodayScentDraw() {
               className="w-full flex flex-col items-center"
             >
               {alreadyDrawn && (
-                <div className="mb-4 px-4 py-1.5 bg-slate-900 text-white text-[11px] font-bold rounded-full">
+                <div className="mb-4 px-4 py-1.5 bg-[#161925] text-[#E9E2D0] text-[11px] lg:text-[13px] font-bold rounded-full">
                   {t('alreadyToday')}
                 </div>
               )}
@@ -207,7 +207,7 @@ export function TodayScentDraw() {
               <div className="w-full max-w-[340px] mt-6 space-y-3">
                 <button
                   onClick={() => setIsShareModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-black text-sm py-3.5 rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0px_#FCD34D] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#FCD34D] transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-[#161925] text-[#E9E2D0] font-black text-sm lg:text-base py-3.5 rounded-[12px] border-2 border-[#262A38] transition-all"
                 >
                   <Share2 size={18} />
                   {t('shareButton')}
@@ -215,14 +215,14 @@ export function TodayScentDraw() {
 
                 <button
                   onClick={() => router.push(`/programs/today-scent?scent=${scent.id}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-[#FCD34D] text-slate-900 font-black text-sm py-3.5 rounded-2xl border-2 border-slate-900 hover:bg-yellow-300 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base py-3.5 rounded-[12px] border-2 border-[#262A38] hover:bg-[#FFFDF5] transition-colors"
                 >
                   <Wand2 size={18} />
                   {t('makeButton')}
                 </button>
               </div>
 
-              <p className="mt-5 text-[11px] text-slate-400 font-medium text-center">
+              <p className="mt-5 text-[11px] lg:text-[13px] text-[#8B8578] font-medium text-center">
                 {t('comeback')}
               </p>
             </motion.div>

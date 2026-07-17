@@ -36,10 +36,10 @@ function blockId(slug: string, suffix: string) {
 
 function heroBlock(id: string, title: string, subtitle: string) {
   return `
-    <section data-ac-block="hero" data-ac-block-id="${id}" data-title="${escapeAttr(title)}" data-subtitle="${escapeAttr(subtitle)}" data-align="center" data-bg="#FFF7ED" data-accent="#FACC15" style="margin: 0 0 28px; padding: 34px 24px; border-radius: 22px; background: #FFF7ED; text-align: center; border: 2px solid #111827; box-shadow: 4px 4px 0 #111827;">
-      <div style="width: 44px; height: 6px; border-radius: 999px; background: #FACC15; margin: 0 auto 16px;"></div>
+    <section data-ac-block="hero" data-ac-block-id="${id}" data-title="${escapeAttr(title)}" data-subtitle="${escapeAttr(subtitle)}" data-align="center" data-bg="#0C0E16" data-accent="#D1D1D1" style="margin: 0 0 28px; padding: 34px 24px; border-radius: 22px; background: #0C0E16; text-align: center; border: 2px solid #111827; box-shadow: 4px 4px 0 #111827;">
+      <div style="width: 44px; height: 6px; border-radius: 999px; background: #D1D1D1; margin: 0 auto 16px;"></div>
       <h2 style="margin: 0 0 10px; font-size: 28px; line-height: 1.2; font-weight: 900; color: #111827;">${escapeHtml(title)}</h2>
-      <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #475569;">${linesToHtml(subtitle)}</p>
+      <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #545454;">${linesToHtml(subtitle)}</p>
     </section>
   `
 }
@@ -55,7 +55,7 @@ function headingBlock(id: string, text: string) {
 function textBlock(id: string, text: string) {
   return `
     <section data-ac-block="text" data-ac-block-id="${id}" data-text="${escapeAttr(text)}" data-align="left" style="margin: 14px 0; text-align: left;">
-      <p style="margin: 0; font-size: 15px; line-height: 1.82; color: #334155;">${linesToHtml(text)}</p>
+      <p style="margin: 0; font-size: 15px; line-height: 1.82; color: #404040;">${linesToHtml(text)}</p>
     </section>
   `
 }
@@ -63,18 +63,18 @@ function textBlock(id: string, text: string) {
 function imageBlock(id: string, caption: string) {
   return `
     <figure data-ac-block="image" data-ac-block-id="${id}" data-src="" data-alt="" data-caption="${escapeAttr(caption)}" data-fit="cover" data-radius="16" style="margin: 22px 0;">
-      <div style="height: 220px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 2px dashed #cbd5e1; color: #94a3b8; font-weight: 800;">이미지를 추가하세요</div>
-      <figcaption style="margin-top: 8px; font-size: 12px; line-height: 1.5; text-align: center; color: #64748b;">${escapeHtml(caption)}</figcaption>
+      <div style="height: 220px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 2px dashed #262A38; color: #A2A2A2; font-weight: 800;">이미지를 추가하세요</div>
+      <figcaption style="margin-top: 8px; font-size: 12px; line-height: 1.5; text-align: center; color: #737373;">${escapeHtml(caption)}</figcaption>
     </figure>
   `
 }
 
-function featuresBlock(id: string, title: string, items: string[], accentColor = '#8B5CF6') {
+function featuresBlock(id: string, title: string, items: string[], accentColor = '#7B7B7B') {
   return `
     <section data-ac-block="features" data-ac-block-id="${id}" data-title="${escapeAttr(title)}" data-items="${jsonAttr(items)}" data-accent="${escapeAttr(accentColor)}" style="margin: 22px 0; padding: 18px; border-radius: 18px; background: #ffffff; border: 2px solid #111827; box-shadow: 3px 3px 0 #111827;">
       <h3 style="margin: 0 0 12px; font-size: 17px; font-weight: 900; color: #111827;">${escapeHtml(title)}</h3>
       <ul style="margin: 0; padding: 0; list-style: none;">
-        ${items.map((item) => `<li style="display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; font-size: 14px; line-height: 1.62; color: #334155;"><span style="margin-top: 7px; width: 8px; height: 8px; border-radius: 999px; background: ${escapeAttr(accentColor)}; flex: 0 0 auto;"></span><span>${escapeHtml(item)}</span></li>`).join('')}
+        ${items.map((item) => `<li style="display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; font-size: 14px; line-height: 1.62; color: #404040;"><span style="margin-top: 7px; width: 8px; height: 8px; border-radius: 999px; background: ${escapeAttr(accentColor)}; flex: 0 0 auto;"></span><span>${escapeHtml(item)}</span></li>`).join('')}
       </ul>
     </section>
   `
@@ -100,7 +100,7 @@ function dividerBlock(id: string, label: string) {
   return `
     <section data-ac-block="divider" data-ac-block-id="${id}" data-label="${escapeAttr(label)}" style="margin: 28px 0; display: flex; align-items: center; gap: 12px;">
       <div style="height: 2px; flex: 1; background: #111827;"></div>
-      <span style="font-size: 12px; font-weight: 900; color: #64748b;">${escapeHtml(label)}</span>
+      <span style="font-size: 12px; font-weight: 900; color: #737373;">${escapeHtml(label)}</span>
       <div style="height: 2px; flex: 1; background: #111827;"></div>
     </section>
   `
@@ -141,7 +141,7 @@ export function buildDefaultProductDetailTemplate({ slug, name }: ProductDetailT
       '1단계: 고객이 선택하거나 입력해야 하는 내용을 적어주세요.',
       '2단계: 제작, 분석, 준비 등 내부 진행 과정을 적어주세요.',
       '3단계: 결과 확인, 배송, 수령 등 마지막 단계를 적어주세요.',
-    ], '#22D3EE')}
+    ], '#C1C1C1')}
     ${quoteBlock(blockId(slug, 'message'), '고객이 기억했으면 하는 핵심 문장을 입력하세요.')}
     ${buttonBlock(blockId(slug, 'cta'), '버튼 문구를 입력하세요')}
   </div>`

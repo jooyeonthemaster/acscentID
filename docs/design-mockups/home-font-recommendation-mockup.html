@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AC'SCENT Home Font Mockup</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: "SCoreDream";
+      src: url("../../public/fonts/score-dream/SCoreDream-4Regular.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "SCoreDream";
+      src: url("../../public/fonts/score-dream/SCoreDream-6Bold.woff") format("woff");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "SCoreDream";
+      src: url("../../public/fonts/score-dream/SCoreDream-7ExtraBold.woff") format("woff");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "SUIT";
+      src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "SUIT";
+      src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "SUIT";
+      src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Heavy.woff2") format("woff2");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "LINE Seed Sans KR";
+      src: url("https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Rg.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "LINE Seed Sans KR";
+      src: url("https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Bd.woff2") format("woff2");
+      font-weight: 700 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "NanumSquareNeo";
+      src: url("https://cdn.jsdelivr.net/npm/@noonnu/nanum-square-neo-variable@latest/fonts/nanumsquareneo-variable-normal.woff2") format("woff2");
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --ink: #0c0e16;
+      --panel: #12141d;
+      --line: #262a38;
+      --cream: #e9e2d0;
+      --cream-2: #f5efe2;
+      --muted: #a69f8d;
+      --gold: #eeb62b;
+      --hot: #ef5a88;
+      --purple: #8b5cf6;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f8f3e8;
+      color: var(--ink);
+      font-family: Pretendard, system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+    .sheet {
+      width: 1800px;
+      min-height: 1260px;
+      padding: 34px 52px 54px;
+      background:
+        linear-gradient(180deg, #ffc400 0 58px, transparent 58px),
+        radial-gradient(circle at 8% 8%, rgba(238, 182, 43, 0.12), transparent 28%),
+        #f8f3e8;
+    }
+    .topline {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -34px -52px 34px;
+      color: #111318;
+      font-weight: 900;
+      font-size: 19px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 44px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+    .lead {
+      margin: 12px 0 28px;
+      color: #5a554b;
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 34px;
+    }
+    .case {
+      display: grid;
+      grid-template-columns: 196px 1fr;
+      gap: 18px;
+      align-items: stretch;
+      min-height: 470px;
+      padding: 18px;
+      border: 3px solid #111318;
+      border-radius: 8px;
+      background: #fffdf2;
+      box-shadow: 8px 10px 0 #111318;
+    }
+    .meta {
+      padding: 6px 0 0 2px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      height: 32px;
+      padding: 0 12px;
+      border: 3px solid #111318;
+      border-radius: 999px;
+      background: var(--gold);
+      font-weight: 900;
+      font-size: 14px;
+    }
+    .font-name {
+      margin-top: 18px;
+      font-size: 26px;
+      line-height: 1.08;
+      font-weight: 900;
+      word-break: keep-all;
+    }
+    .tone {
+      margin-top: 12px;
+      color: #5a554b;
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+    .note {
+      margin-top: 18px;
+      padding: 12px;
+      background: #f3ead6;
+      border: 2px solid rgba(17, 19, 24, 0.22);
+      border-radius: 8px;
+      color: #38342e;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+    .phone {
+      width: 280px;
+      min-height: 430px;
+      border: 12px solid #080b0f;
+      border-radius: 38px;
+      overflow: hidden;
+      background: #0b0e16;
+      box-shadow: 0 20px 30px rgba(9, 10, 13, 0.22);
+    }
+    .hero {
+      min-height: 430px;
+      padding: 18px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(180deg, rgba(12, 14, 22, 0.18), rgba(12, 14, 22, 0.92)),
+        linear-gradient(135deg, #202736, #0b0e16 42%, #2f2417);
+      color: var(--cream);
+      position: relative;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, transparent 0 25%, rgba(255,255,255,.08) 26% 32%, transparent 33%),
+        radial-gradient(circle at 78% 18%, rgba(238,182,43,.18), transparent 28%);
+      opacity: .85;
+    }
+    .phone-inner {
+      position: relative;
+      z-index: 1;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 56px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .logo {
+      text-align: center;
+      line-height: 1;
+      color: var(--cream);
+      font-weight: 900;
+      font-size: 17px;
+    }
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #161925;
+      color: var(--cream);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .hero-title {
+      margin: 20px 0 10px;
+      color: var(--cream);
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 900;
+      word-break: keep-all;
+    }
+    .hero-title .dim {
+      color: var(--muted);
+    }
+    .hero-copy {
+      width: 92%;
+      color: rgba(233, 226, 208, .82);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 600;
+      word-break: keep-all;
+    }
+    .upload {
+      margin-top: 24px;
+      min-height: 124px;
+      border: 3px solid #262a38;
+      border-radius: 8px;
+      background: rgba(18, 20, 29, 0.82);
+      padding: 16px;
+    }
+    .upload-title {
+      color: var(--cream);
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 900;
+    }
+    .upload-sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+    .cta {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 18px;
+      border: 3px solid #b8880f;
+      border-radius: 8px;
+      background: var(--gold);
+      color: #1a1610;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .bottom {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #f5efe2;
+    }
+    .dot:nth-child(2) {
+      background: #232838;
+    }
+
+    .score { font-family: SCoreDream, Pretendard, sans-serif; }
+    .pretendard { font-family: Pretendard, system-ui, sans-serif; }
+    .suit { font-family: SUIT, Pretendard, sans-serif; }
+    .plex { font-family: "IBM Plex Sans KR", Pretendard, sans-serif; }
+    .lineSeed { font-family: "LINE Seed Sans KR", Pretendard, sans-serif; }
+    .nanum { font-family: NanumSquareNeo, Pretendard, sans-serif; }
+    .recommend {
+      border-color: #b8880f;
+      box-shadow: 8px 10px 0 #b8880f;
+    }
+    .recommend .rank {
+      background: #111318;
+      color: var(--cream);
+      border-color: #111318;
+    }
+    .foot {
+      margin-top: 34px;
+      display: flex;
+      gap: 20px;
+      color: #5a554b;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+    .foot div {
+      flex: 1;
+      padding: 18px;
+      border: 2px solid rgba(17,19,24,.18);
+      border-radius: 8px;
+      background: rgba(255,255,255,.42);
+      word-break: keep-all;
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <div class="topline">AC'SCENT IDENTITY · HOME FONT TEST · 적용 전 목업</div>
+    <h1>홈 화면 폰트 방향 제안</h1>
+    <p class="lead">“고급스럽되 너무 고풍스럽지 않게”를 기준으로, 현재 홈 히어로 톤에 올려 본 비교입니다.</p>
+
+    <section class="grid">
+      <article class="case score">
+        <div class="meta">
+          <div>
+            <span class="rank">현재 기준</span>
+            <div class="font-name">S-Core Dream</div>
+            <p class="tone">탄탄하고 친근하지만, 굵게 쓰면 브랜드가 조금 캐주얼하게 눌립니다.</p>
+          </div>
+          <div class="note">비교 기준. 프로모션/키치에는 강하지만 “고급 향수” 쪽으론 약간 두껍게 느껴질 수 있습니다.</div>
+        </div>
+        <div class="phone score"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+
+      <article class="case suit recommend">
+        <div class="meta">
+          <div>
+            <span class="rank">추천 1</span>
+            <div class="font-name">SUIT</div>
+            <p class="tone">깔끔하고 밀도가 좋아서 고급 UI 느낌이 납니다. 귀엽거나 고풍스럽지 않습니다.</p>
+          </div>
+          <div class="note">홈 전체 폰트로 가장 추천. 버튼/카드/본문까지 같이 쓰기 좋고, 현재 컬러와도 잘 붙습니다.</div>
+        </div>
+        <div class="phone suit"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+
+      <article class="case pretendard">
+        <div class="meta">
+          <div>
+            <span class="rank">추천 2</span>
+            <div class="font-name">Pretendard</div>
+            <p class="tone">가장 안전하고 현대적인 선택입니다. 브랜드를 정돈해주지만 개성은 조금 덜합니다.</p>
+          </div>
+          <div class="note">사이트 전체 기본 서체로 두기 좋습니다. 실패 확률이 낮고 다국어 화면도 안정적입니다.</div>
+        </div>
+        <div class="phone pretendard"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+
+      <article class="case plex">
+        <div class="meta">
+          <div>
+            <span class="rank">브랜드형</span>
+            <div class="font-name">IBM Plex Sans KR</div>
+            <p class="tone">조금 더 지적이고 차분합니다. 향수 브랜드 설명/리포트에 잘 어울립니다.</p>
+          </div>
+          <div class="note">고급스럽지만 살짝 기업/에디토리얼 톤입니다. 홈보다는 결과 리포트 계열에 특히 좋습니다.</div>
+        </div>
+        <div class="phone plex"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+
+      <article class="case lineSeed">
+        <div class="meta">
+          <div>
+            <span class="rank">부드러운 쪽</span>
+            <div class="font-name">LINE Seed Sans KR</div>
+            <p class="tone">둥글고 안정적입니다. 너무 딱딱하지 않은 프리미엄 앱 느낌이 납니다.</p>
+          </div>
+          <div class="note">사용감은 좋지만, 향수 브랜드보다는 모바일 서비스 브랜드처럼 보일 수 있습니다.</div>
+        </div>
+        <div class="phone lineSeed"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+
+      <article class="case nanum">
+        <div class="meta">
+          <div>
+            <span class="rank">편안한 쪽</span>
+            <div class="font-name">NanumSquare Neo</div>
+            <p class="tone">부담 없고 안정적입니다. 다만 지금 원하는 “고급스러움”은 조금 약합니다.</p>
+          </div>
+          <div class="note">밝은 서비스/커뮤니티 톤에는 좋습니다. AC'SCENT 홈에는 다소 평범하게 보일 수 있습니다.</div>
+        </div>
+        <div class="phone nanum"><div class="hero"><div class="phone-inner">
+          <div class="nav"><span>KO</span><span class="logo">AC'SCENT<br><small>IDENTITY</small></span><span>MENU</span></div>
+          <span class="label">AI 이미지 분석 퍼퓸</span>
+          <h2 class="hero-title"><span class="dim">이미지</span>로<br>나만의 퍼퓸 만들기</h2>
+          <p class="hero-copy">사진을 올리면 AI가 분위기를 읽고, 어울리는 향을 추천해드려요.</p>
+          <div class="upload"><div class="upload-title">좋아하는 사진을 올려보세요</div><div class="upload-sub">분석 결과와 향 추천을 바로 확인할 수 있어요.</div></div>
+          <div class="cta">지금 바로 분석하기</div><div class="bottom"><span class="dot"></span><span class="dot"></span></div>
+        </div></div></div>
+      </article>
+    </section>
+
+    <section class="foot">
+      <div><strong>내 추천:</strong> 홈/상품/입력 전반은 SUIT, 로고 주변 영문은 현재처럼 Outfit 계열을 유지하는 조합이 가장 덜 낡고 가장 단정합니다.</div>
+      <div><strong>대안:</strong> 너무 무난해도 괜찮다면 Pretendard, 더 차분한 브랜드 리포트 느낌을 키우고 싶다면 IBM Plex Sans KR을 추천합니다.</div>
+    </section>
+  </main>
+</body>
+</html>

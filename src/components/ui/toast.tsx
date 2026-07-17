@@ -67,15 +67,15 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
     }, [toast.duration, onClose])
 
     const icons = {
-        success: <CheckCircle size={18} className="text-emerald-500" />,
+        success: <CheckCircle size={18} className="text-[#8B8578]" />,
         error: <AlertCircle size={18} className="text-red-500" />,
-        info: <Info size={18} className="text-yellow-500" />
+        info: <Info size={18} className="text-[#8B8578]" />
     }
 
     const bgColors = {
-        success: "bg-emerald-50 border-emerald-200",
+        success: "bg-[#0C0E16] border-[#262A38]",
         error: "bg-red-50 border-red-200",
-        info: "bg-yellow-50 border-yellow-200"
+        info: "bg-[#0C0E16] border-[#262A38]"
     }
 
     return (
@@ -84,15 +84,15 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`relative flex items-center gap-3 p-4 rounded-2xl border backdrop-blur-sm shadow-lg ${bgColors[toast.type]}`}
+            className={`relative flex items-center gap-3 p-4 rounded-[12px] border backdrop-blur-sm shadow-lg ${bgColors[toast.type]}`}
         >
             {icons[toast.type]}
-            <p className="flex-1 text-sm font-medium text-slate-700">{toast.message}</p>
+            <p className="flex-1 text-sm lg:text-base font-medium text-[#A69F8D]">{toast.message}</p>
             <button
                 onClick={onClose}
                 className="p-1 rounded-full hover:bg-black/5 transition-colors"
             >
-                <X size={14} className="text-slate-400" />
+                <X size={14} className="text-[#8B8578]" />
             </button>
         </motion.div>
     )

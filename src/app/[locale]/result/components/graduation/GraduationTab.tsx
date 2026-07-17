@@ -55,10 +55,10 @@ export function GraduationTab({ displayedAnalysis, userName, isDesktop = false }
             {/* 향기 분석 상세 */}
             <section>
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-400 border-2 border-slate-900 shadow-[2px_2px_0px_#000] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#EFE4C8] to-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center">
                         <span className="text-xl">🔬</span>
                     </div>
-                    <h2 className={`font-black text-slate-900 ${isDesktop ? 'text-xl' : 'text-lg'}`}>
+                    <h2 className={`font-black text-[#1A1610] ${isDesktop ? 'text-xl' : 'text-lg'}`}>
                         AI 향기 분석 결과
                     </h2>
                 </div>

@@ -94,7 +94,7 @@ export function ReserveFlow() {
 
   if (policyError) {
     return (
-      <p className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-8 text-center text-sm font-black text-slate-600 shadow-[4px_4px_0_0_black]">
+      <p className="rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] px-4 py-8 text-center text-sm lg:text-base font-black text-[#A69F8D]">
         {t("errors.generic")}
       </p>
     )
@@ -103,7 +103,7 @@ export function ReserveFlow() {
   if (!policy) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-12 h-12 border-4 border-slate-900 border-t-[#FCD34D] rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#D7D7D7] rounded-full animate-spin" />
       </div>
     )
   }
@@ -111,7 +111,7 @@ export function ReserveFlow() {
   // 어드민에서 예약 접수를 꺼둔 경우
   if (!policy.accepting) {
     return (
-      <p className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] px-4 py-8 text-center text-sm font-black text-slate-600 shadow-[4px_4px_0_0_black]">
+      <p className="rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] px-4 py-8 text-center text-sm lg:text-base font-black text-[#A69F8D]">
         {t("slotsUnavailable")}
       </p>
     )
@@ -135,13 +135,13 @@ export function ReserveFlow() {
         {steps.map((s, i) => (
           <div key={s} className="flex-1">
             <div
-              className={`h-1.5 rounded-full border border-slate-900 ${
-                i <= currentIndex ? "bg-[#FCD34D]" : "bg-white"
+              className={`h-1.5 rounded-full border border-[#262A38] ${
+                i <= currentIndex ? "bg-[#D7D7D7]" : "bg-[#12141D]"
               }`}
             />
             <p
-              className={`mt-1.5 text-[11px] font-black ${
-                i === currentIndex ? "text-slate-900" : "text-slate-400"
+              className={`mt-1.5 text-[11px] lg:text-[13px] font-black ${
+                i === currentIndex ? "text-[#E9E2D0]" : "text-[#8B8578]"
               }`}
             >
               {i + 1}. {stepLabels[s]}
@@ -152,14 +152,14 @@ export function ReserveFlow() {
 
       {/* 매장 정보 칩 */}
       <div className="flex flex-wrap gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#262A38] bg-[#12141D] px-3 py-1.5 text-xs lg:text-sm font-black text-[#E9E2D0]">
           <Clock size={13} strokeWidth={2.8} />
           {t("hours")} {policy.openTime}–{policy.closeTime}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#262A38] bg-[#12141D] px-3 py-1.5 text-xs lg:text-sm font-black text-[#E9E2D0]">
           ⏱ {t("policy.duration", { minutes: policy.durationMinutes })}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1.5 text-xs font-black text-slate-800 shadow-[2px_2px_0_0_black]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#262A38] bg-[#12141D] px-3 py-1.5 text-xs lg:text-sm font-black text-[#E9E2D0]">
           💳 {t("policy.payment")}
         </span>
       </div>
@@ -167,10 +167,10 @@ export function ReserveFlow() {
       {/* Step 1: 날짜 + 시간 (한 화면, Calendly 스타일) */}
       {step === "when" && (
         <>
-          <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
+          <section className="rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] p-4">
             <div className="mb-3 flex items-center gap-2">
-              <CalendarDays size={18} className="text-slate-900" />
-              <h2 className="text-base font-black text-slate-900">{t("selectDate")}</h2>
+              <CalendarDays size={18} className="text-[#E9E2D0]" />
+              <h2 className="text-base font-black text-[#E9E2D0]">{t("selectDate")}</h2>
             </div>
             <MonthCalendar
               policy={policy}
@@ -181,7 +181,7 @@ export function ReserveFlow() {
                 setSlotTakenNotice(false)
               }}
             />
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+            <p className="mt-3 flex items-center gap-1.5 text-[11px] lg:text-[13px] font-bold text-[#8B8578]">
               <Globe size={12} />
               {t("kstNotice")}
             </p>
@@ -190,16 +190,16 @@ export function ReserveFlow() {
           {selectedDate && (
             <section
               ref={slotSectionRef}
-              className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]"
+              className="rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] p-4"
             >
               <div className="mb-3 flex items-center gap-2">
-                <Clock size={18} className="text-slate-900" />
-                <h2 className="text-base font-black text-slate-900">
+                <Clock size={18} className="text-[#E9E2D0]" />
+                <h2 className="text-base font-black text-[#E9E2D0]">
                   {formatKstDate(selectedDate, locale)} · {t("selectTime")}
                 </h2>
               </div>
               {slotTakenNotice && (
-                <p className="mb-3 rounded-xl border-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-black text-red-600">
+                <p className="mb-3 rounded-[12px] border-2 border-red-500 bg-red-50 px-3 py-2 text-xs lg:text-sm font-black text-red-600">
                   {t("errors.slotTaken")}
                 </p>
               )}
@@ -220,20 +220,20 @@ export function ReserveFlow() {
 
       {/* Step 2: 정보 입력 */}
       {step === "form" && selectedDate && selectedSlot && (
-        <section className="rounded-2xl border-2 border-slate-900 bg-[#FFFDF5] p-4 shadow-[4px_4px_0_0_black]">
-          <div className="mb-4 flex items-center justify-between rounded-xl border-2 border-slate-900 bg-[#FEF3C7] px-3 py-2.5">
+        <section className="rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] p-4">
+          <div className="mb-4 flex items-center justify-between rounded-[12px] border-2 border-[#262A38] bg-[#151823] px-3 py-2.5">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+              <p className="text-[11px] lg:text-[13px] font-black uppercase tracking-[0.14em] text-[#8B8578]">
                 {t("selectedSlot")}
               </p>
-              <p className="text-sm font-black text-slate-900 sm:text-base">
+              <p className="text-sm lg:text-base font-black text-[#E9E2D0] sm:text-base">
                 {formatKstDate(selectedDate, locale)} · {selectedSlot.time}
-                <span className="ml-1 text-xs font-bold text-slate-500">(KST)</span>
+                <span className="ml-1 text-xs lg:text-sm font-bold text-[#8B8578]">(KST)</span>
               </p>
             </div>
             <button
               onClick={() => setStep("when")}
-              className="flex flex-shrink-0 items-center gap-1 rounded-full border-2 border-slate-900 bg-white px-3 py-1 text-xs font-black text-slate-900 shadow-[2px_2px_0_0_black] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_black]"
+              className="flex flex-shrink-0 items-center gap-1 rounded-full border-2 border-[#262A38] bg-[#12141D] px-3 py-1 text-xs lg:text-sm font-black text-[#E9E2D0] transition-all"
             >
               <ChevronLeft size={13} strokeWidth={3} />
               {t("changeSlot")}

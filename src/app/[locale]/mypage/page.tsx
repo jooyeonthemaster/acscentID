@@ -241,7 +241,7 @@ function MyPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7]">
+    <div className="min-h-screen bg-[#0E1016]">
       {/* 메인 레이아웃 */}
       <div className="px-4 py-4">
         {/* 회원정보 카드 */}
@@ -251,55 +251,55 @@ function MyPageContent() {
         <DefaultAddressCard />
 
         {/* 탭 네비게이션 */}
-        <div className="bg-white border-2 border-black rounded-2xl p-2 mb-4 shadow-[4px_4px_0_0_black]">
+        <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-2 mb-4">
           <div className="grid grid-cols-4 gap-1">
             <button
               onClick={() => handleTabChange('analyses')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'analyses'
-                  ? 'bg-black text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#12141D] text-[#F5EFE2]'
+                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
               }`}
             >
               <Sparkles size={18} />
               <span>{t('analysis')}</span>
-              <span className="text-[10px] opacity-70">{t('itemCount', { count: analyses.length + chemistryAnalyses.length })}</span>
+              <span className="text-[10px] lg:text-[12px] opacity-70">{t('itemCount', { count: analyses.length + chemistryAnalyses.length })}</span>
             </button>
             <button
               onClick={() => handleTabChange('cart')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'cart'
-                  ? 'bg-black text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#12141D] text-[#F5EFE2]'
+                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
               }`}
             >
               <ShoppingCart size={18} />
               <span>{t('cart.tab')}</span>
-              <span className="text-[10px] opacity-70">{t('itemCount', { count: cartCount })}</span>
+              <span className="text-[10px] lg:text-[12px] opacity-70">{t('itemCount', { count: cartCount })}</span>
             </button>
             <button
               onClick={() => handleTabChange('orders')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'orders'
-                  ? 'bg-black text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#12141D] text-[#F5EFE2]'
+                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
               }`}
             >
               <ShoppingBag size={18} />
               <span>{t('orders.tab')}</span>
-              <span className="text-[10px] opacity-70">{t('itemCount', { count: orders.length })}</span>
+              <span className="text-[10px] lg:text-[12px] opacity-70">{t('itemCount', { count: orders.length })}</span>
             </button>
             <button
               onClick={() => handleTabChange('coupons')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl font-bold text-xs transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'coupons'
-                  ? 'bg-black text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#12141D] text-[#F5EFE2]'
+                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
               }`}
             >
               <Ticket size={18} />
               <span>{t('coupons')}</span>
-              <span className="text-[10px] opacity-70">{t('itemCount', { count: couponCount })}</span>
+              <span className="text-[10px] lg:text-[12px] opacity-70">{t('itemCount', { count: couponCount })}</span>
             </button>
           </div>
         </div>
@@ -345,9 +345,9 @@ function MyPageContent() {
 function LoadingFallback() {
   const t = useTranslations('mypage')
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
+    <div className="min-h-screen bg-[#0E1016] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-black border-t-yellow-400 rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#343A4C] rounded-full animate-spin mx-auto mb-4" />
         <p className="font-bold">{t('loading')}</p>
       </div>
     </div>

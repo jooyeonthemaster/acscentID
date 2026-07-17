@@ -68,14 +68,14 @@ export function CookieConsentBanner() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-32px)] max-w-[423px] bg-white border-2 border-black/80 rounded-xl px-5 py-5 shadow-[3px_3px_0_0_rgba(0,0,0,0.15)]"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-32px)] max-w-[423px] bg-[#12141D] border-2 border-black/80 rounded-[12px] px-5 py-5"
         >
           <div className="flex flex-col gap-3">
-            <p className="text-[13px] text-gray-500 leading-relaxed">
+            <p className="text-[13px] lg:text-[15px] text-[#8B8578] leading-relaxed">
               {t('message')}{' '}
               <button
                 onClick={() => router.push(`/${locale}/privacy`)}
-                className="underline hover:text-gray-600 transition-colors cursor-pointer"
+                className="underline hover:text-[#A69F8D] transition-colors cursor-pointer"
               >
                 {t('privacy')}
               </button>
@@ -83,13 +83,13 @@ export function CookieConsentBanner() {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleReject}
-                className="text-[13px] text-gray-400 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                className="text-[13px] lg:text-[15px] text-[#8B8578] px-4 py-2 rounded-[12px] hover:bg-[#151823] transition-colors cursor-pointer"
               >
                 {t('reject')}
               </button>
               <button
                 onClick={handleAccept}
-                className="text-[13px] font-semibold px-5 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition-colors cursor-pointer"
+                className="text-[13px] lg:text-[15px] font-semibold px-5 py-2 rounded-[12px] bg-[#161925] text-[#E9E2D0] hover:bg-[#161925] transition-colors cursor-pointer"
               >
                 {t('accept')}
               </button>

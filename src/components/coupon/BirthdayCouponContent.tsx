@@ -80,12 +80,12 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.1 }}
-          className="w-20 h-20 bg-[#F472B6] rounded-full flex items-center justify-center mx-auto mb-3 border-3 border-slate-900 shadow-[3px_3px_0_#000]"
+          className="w-20 h-20 bg-[#161925] rounded-full flex items-center justify-center mx-auto mb-3 border-3 border-[#262A38]"
         >
-          <PartyPopper className="w-10 h-10 text-white" />
+          <PartyPopper className="w-10 h-10 text-[#E9E2D0]" />
         </motion.div>
-        <h3 className="text-xl font-black text-slate-900">쿠폰 GET!</h3>
-        <p className="text-sm text-slate-600 mt-1 font-bold">결제할 때 20% 할인 적용하세요</p>
+        <h3 className="text-xl font-black text-[#E9E2D0]">쿠폰 GET!</h3>
+        <p className="text-sm lg:text-base text-[#A69F8D] mt-1 font-bold">결제할 때 20% 할인 적용하세요</p>
       </motion.div>
     )
   }
@@ -93,12 +93,12 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
   return (
     <div className="space-y-3">
       {/* 할인율 카드 */}
-      <div className="bg-gradient-to-br from-[#FFF8E7] to-[#FBCFE8] rounded-xl p-4 border-2 border-slate-900 shadow-[3px_3px_0_#000] text-center relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0E1016] to-[#1B1F2C] rounded-[12px] p-4 border-2 border-[#262A38] text-center relative overflow-hidden">
         <div className="absolute -top-3 -right-3 text-5xl opacity-20">🎂</div>
         <div className="relative">
-          <span className="text-4xl font-black text-[#F472B6]">20%</span>
-          <span className="text-lg font-black text-slate-700 ml-2">할인</span>
-          <p className="text-xs text-slate-600 mt-1 font-bold">
+          <span className="text-4xl font-black text-[#9F9F9F]">20%</span>
+          <span className="text-lg font-black text-[#A69F8D] ml-2">할인</span>
+          <p className="text-xs lg:text-sm text-[#A69F8D] mt-1 font-bold">
             {currentMonth}월 생일이면 누구나!
           </p>
         </div>
@@ -106,45 +106,45 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
 
       {/* 유형 선택 */}
       <div>
-        <p className="text-sm font-black text-slate-900 mb-2">누구의 생일인가요?</p>
+        <p className="text-sm lg:text-base font-black text-[#E9E2D0] mb-2">누구의 생일인가요?</p>
         <div className="grid grid-cols-2 gap-2">
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={() => setProofType('self')}
-            className={`p-3 rounded-xl border-2 transition-all ${
+            className={`p-3 rounded-[12px] border-2 transition-all ${
               proofType === 'self'
-                ? 'border-slate-900 bg-[#FBCFE8] shadow-[3px_3px_0_#000]'
-                : 'border-slate-300 bg-white'
+                ? 'border-[#262A38] bg-[#1B1F2C]'
+                : 'border-[#262A38] bg-[#12141D]'
             }`}
           >
             <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 border-2 ${
               proofType === 'self'
-                ? 'bg-[#F472B6] border-slate-900'
-                : 'bg-slate-100 border-slate-200'
+                ? 'bg-[#9F9F9F] border-[#262A38]'
+                : 'bg-[#1B1F2C] border-[#262A38]'
             }`}>
-              <Cake className={`w-5 h-5 ${proofType === 'self' ? 'text-white' : 'text-slate-400'}`} />
+              <Cake className={`w-5 h-5 ${proofType === 'self' ? 'text-[#E9E2D0]' : 'text-[#8B8578]'}`} />
             </div>
-            <span className={`text-sm font-black ${proofType === 'self' ? 'text-slate-900' : 'text-slate-600'}`}>
+            <span className={`text-sm lg:text-base font-black ${proofType === 'self' ? 'text-[#E9E2D0]' : 'text-[#A69F8D]'}`}>
               내 생일
             </span>
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={() => setProofType('idol')}
-            className={`p-3 rounded-xl border-2 transition-all ${
+            className={`p-3 rounded-[12px] border-2 transition-all ${
               proofType === 'idol'
-                ? 'border-slate-900 bg-[#FBCFE8] shadow-[3px_3px_0_#000]'
-                : 'border-slate-300 bg-white'
+                ? 'border-[#262A38] bg-[#1B1F2C]'
+                : 'border-[#262A38] bg-[#12141D]'
             }`}
           >
             <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 border-2 ${
               proofType === 'idol'
-                ? 'bg-[#F472B6] border-slate-900'
-                : 'bg-slate-100 border-slate-200'
+                ? 'bg-[#9F9F9F] border-[#262A38]'
+                : 'bg-[#1B1F2C] border-[#262A38]'
             }`}>
-              <Star className={`w-5 h-5 ${proofType === 'idol' ? 'text-white' : 'text-slate-400'}`} />
+              <Star className={`w-5 h-5 ${proofType === 'idol' ? 'text-[#E9E2D0]' : 'text-[#8B8578]'}`} />
             </div>
-            <span className={`text-sm font-black ${proofType === 'idol' ? 'text-slate-900' : 'text-slate-600'}`}>
+            <span className={`text-sm lg:text-base font-black ${proofType === 'idol' ? 'text-[#E9E2D0]' : 'text-[#A69F8D]'}`}>
               특별한 생일
             </span>
           </motion.button>
@@ -160,13 +160,13 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-[#FFF8E7] rounded-lg p-3 border-2 border-slate-900 flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#F472B6] rounded-full flex items-center justify-center border-2 border-slate-900">
-                <Star className="w-4 h-4 text-white" />
+            <div className="bg-[#0E1016] rounded-[12px] p-3 border-2 border-[#262A38] flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#161925] rounded-full flex items-center justify-center border-2 border-[#262A38]">
+                <Star className="w-4 h-4 text-[#E9E2D0]" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-slate-500 font-bold">분석 대상</p>
-                <p className="font-black text-sm text-slate-900">{idolName || '(이름 없음)'}</p>
+                <p className="text-xs lg:text-sm text-[#8B8578] font-bold">분석 대상</p>
+                <p className="font-black text-sm lg:text-base text-[#E9E2D0]">{idolName || '(이름 없음)'}</p>
               </div>
             </div>
           </motion.div>
@@ -174,9 +174,9 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
       </AnimatePresence>
 
       {/* 안내 카드 */}
-      <div className="bg-[#FEF9C3] rounded-lg p-3 border-2 border-slate-900 flex items-start gap-2">
-        <Gift className="w-4 h-4 text-slate-700 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-slate-700 font-bold">
+      <div className="bg-[#151823] rounded-[12px] p-3 border-2 border-[#262A38] flex items-start gap-2">
+        <Gift className="w-4 h-4 text-[#A69F8D] flex-shrink-0 mt-0.5" />
+        <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">
           쿠폰은 바로 발급되고, 결제할 때 생일 증빙을 첨부하면 돼요!
         </p>
       </div>
@@ -188,7 +188,7 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs font-bold border-2 border-red-300"
+            className="bg-red-100 text-red-700 px-3 py-2 rounded-[12px] text-xs lg:text-sm font-bold border-2 border-red-300"
           >
             {error}
           </motion.div>
@@ -200,7 +200,7 @@ export function BirthdayCouponContent({ coupon }: BirthdayCouponContentProps) {
         whileTap={{ scale: proofType ? 0.98 : 1 }}
         onClick={handleSubmit}
         disabled={isSubmitting || !proofType}
-        className="w-full py-3 bg-[#F472B6] hover:bg-[#EC4899] disabled:bg-slate-300 text-white font-black rounded-xl transition-colors disabled:cursor-not-allowed border-2 border-slate-900 shadow-[3px_3px_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000]"
+        className="w-full py-3 bg-[#F5EFE2] hover:bg-[#FFFDF5] disabled:bg-[#232838] text-[#12141D] font-black rounded-[12px] transition-colors disabled:cursor-not-allowed border-2 border-[#262A38]"
       >
         {isSubmitting ? '발급 중...' : '🎂 20% 쿠폰 받기!'}
       </motion.button>

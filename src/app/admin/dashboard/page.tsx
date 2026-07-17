@@ -41,7 +41,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-slate-500 mb-1">{label}</p>
@@ -72,7 +72,7 @@ function OrderStatusBar({ stats }: { stats: AdminDashboardStats['ordersByStatus'
   ]
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
       <h3 className="text-sm font-medium text-slate-700 mb-4">주문 현황</h3>
       <div className="h-4 rounded-full overflow-hidden bg-slate-100 flex">
         {segments.map(seg => (
@@ -188,7 +188,7 @@ export default function DashboardPage() {
         {/* 상세 통계 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 상품별 분석 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">상품별 분석</h3>
             <div className="space-y-3">
               {Object.entries(stats.analysisByProduct).map(([key, value]) => (
@@ -213,7 +213,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 서비스 모드별 분석 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
             <h3 className="text-sm font-medium text-slate-700 mb-4">서비스 모드별 분석</h3>
             <div className="space-y-3">
               {Object.entries(stats.analysisByMode).map(([key, value]) => (

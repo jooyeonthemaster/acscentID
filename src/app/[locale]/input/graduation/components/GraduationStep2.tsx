@@ -48,9 +48,9 @@ export function GraduationStep2({
 
             <div className="flex-1 mt-4 overflow-y-auto">
                 <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <label className="text-xs lg:text-sm font-bold text-[#8B8578] uppercase tracking-wider flex items-center justify-between">
                         <span>{t('step2.keywordLabel')}</span>
-                        <span className="text-[10px] text-slate-400 normal-case font-normal">
+                        <span className="text-[10px] lg:text-[12px] text-[#8B8578] normal-case font-normal">
                             {t('step2.maxItems')}
                         </span>
                     </label>
@@ -64,12 +64,12 @@ export function GraduationStep2({
                                     whileTap={{ scale: isDisabled ? 1 : 0.95 }}
                                     onClick={() => !isDisabled && togglePastStyle(key)}
                                     disabled={isDisabled}
-                                    className={`relative py-3.5 px-3 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden backdrop-blur-md border text-left ${
+                                    className={`relative py-3.5 px-3 rounded-[12px] text-sm lg:text-base font-medium transition-all duration-300 overflow-hidden backdrop-blur-md border text-left ${
                                         isSelected
-                                            ? "text-white shadow-lg border-[#d4af37]"
+                                            ? "text-[#E9E2D0] shadow-lg border-[#B3B3B3]"
                                             : isDisabled
-                                            ? "bg-slate-100/50 text-slate-300 border-slate-200/50 cursor-not-allowed"
-                                            : "bg-white/80 text-slate-600 border-white/60 shadow-md shadow-slate-900/5 hover:bg-white/90"
+                                            ? "bg-stone-100/50 text-[#5C564A] border-stone-200/50 cursor-not-allowed"
+                                            : "bg-[#12141D]/80 text-[#A69F8D] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[#12141D]/90"
                                     }`}
                                 >
                                     {isSelected && (

@@ -93,7 +93,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
           <div className="flex gap-2">
             <Link
               href={`/admin/analysis/${id}/print`}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
             >
               <Printer className="w-5 h-5" />
               보고서 출력
@@ -115,7 +115,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
         {/* 기본 정보 카드 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 분석 정보 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5" />
               분석 정보
@@ -170,7 +170,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* 사용자 정보 */}
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <User className="w-5 h-5" />
               사용자 정보
@@ -209,7 +209,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
 
         {/* 키워드 */}
         {analysis.matching_keywords && analysis.matching_keywords.length > 0 && (
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4">매칭 키워드</h3>
             <div className="flex flex-wrap gap-2">
               {analysis.matching_keywords.map((keyword: string, idx: number) => (
@@ -226,7 +226,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
 
         {/* [FIX] CRITICAL #16: 케미 분석 전용 데이터 표시 */}
         {analysis.product_type === 'chemistry_set' && (
-          <div className="bg-white rounded-xl border-2 border-violet-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-violet-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <Package className="w-5 h-5 text-violet-500" />
               케미 분석 정보
@@ -240,7 +240,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
 
         {/* 피드백 정보 (오프라인 모드) */}
         {feedback && (
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <Package className="w-5 h-5" />
               피드백 & 커스텀 레시피
@@ -282,7 +282,7 @@ export default function AnalysisDetailPage({ params }: { params: Promise<{ id: s
 
         {/* 관련 주문 */}
         {orders && orders.length > 0 && (
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6 shadow-[3px_3px_0px_#e2e8f0]">
+          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4">관련 주문</h3>
             <div className="space-y-2">
               {orders.map((order: any) => (

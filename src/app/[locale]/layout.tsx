@@ -4,8 +4,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
-import { Footer } from "@/components/layout/Footer";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { ShellColumn } from "@/components/layout/ShellColumn";
+import { DesktopHeader } from "@/components/desktop/DesktopHeader";
+import { DesktopFooter } from "@/components/desktop/DesktopFooter";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, webSiteSchema } from "@/lib/seo/schemas";
 import { SetHtmlLang } from "./SetHtmlLang";
@@ -131,14 +132,10 @@ export default async function LocaleLayout({ children, params }: Props) {
       <SetHtmlLang locale={locale} />
       <JsonLd data={organizationSchema(locale as Locale)} />
       <JsonLd data={webSiteSchema(locale as Locale)} />
-      <div className="w-full min-h-screen bg-[#FEF9E7] relative flex flex-col">
-        <div className="w-full max-w-[455px] mx-auto min-h-screen bg-[#FFFDF5] shadow-xl relative flex flex-col">
-          <main className="flex-1 md:pb-0 relative z-10 bg-[#FFFDF5]">
-            {children}
-          </main>
-          <Footer />
-          <MobileBottomNav />
-        </div>
+      <div className="w-full min-h-screen bg-[#08090F] relative flex flex-col">
+        <DesktopHeader />
+        <ShellColumn>{children}</ShellColumn>
+        <DesktopFooter />
         <CookieConsentBanner />
       </div>
     </NextIntlClientProvider>

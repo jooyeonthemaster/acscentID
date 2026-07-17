@@ -152,12 +152,12 @@ export function CouponRocketGame({ containerRef }: CouponRocketGameProps) {
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50"
           >
-            <div className="bg-white border-4 border-black rounded-2xl px-8 py-6 shadow-[8px_8px_0px_#000] text-center">
+            <div className="bg-[#12141D] border-4 border-[#262A38] rounded-[12px] px-8 py-6 text-center">
               <div className="text-4xl mb-2">🎉</div>
-              <div className="text-xl font-black text-slate-900 mb-1">
+              <div className="text-xl font-black text-[#E9E2D0] mb-1">
                 쿠폰 획득!
               </div>
-              <div className="text-sm font-bold text-slate-600">
+              <div className="text-sm lg:text-base font-bold text-[#A69F8D]">
                 마이페이지에서 확인하세요
               </div>
             </div>

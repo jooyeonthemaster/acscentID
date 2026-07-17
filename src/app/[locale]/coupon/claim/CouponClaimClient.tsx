@@ -112,20 +112,20 @@ export function CouponClaimClient({
 
   return (
     <div className="flex min-h-[75vh] items-center justify-center px-5 py-10">
-      <div className="w-full max-w-sm rounded-[28px] border-3 border-slate-950 bg-white p-6 text-center shadow-[6px_6px_0_#000]">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-950 bg-yellow-300">
+      <div className="w-full max-w-sm rounded-[12px] border-3 border-[#262A38] bg-[#12141D] p-6 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[12px] border-2 border-[#262A38] bg-[#232838]">
           {status === 'success' ? (
-            <CheckCircle2 className="h-8 w-8 text-slate-950" />
+            <CheckCircle2 className="h-8 w-8 text-[#E9E2D0]" />
           ) : status === 'error' ? (
             <AlertTriangle className="h-8 w-8 text-red-600" />
           ) : status === 'loading' ? (
-            <Loader2 className="h-8 w-8 animate-spin text-slate-950" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#E9E2D0]" />
           ) : (
-            <Ticket className="h-8 w-8 text-slate-950" />
+            <Ticket className="h-8 w-8 text-[#E9E2D0]" />
           )}
         </div>
 
-        <h1 className="text-2xl font-black text-slate-950">
+        <h1 className="text-2xl font-black text-[#E9E2D0]">
           {status === 'success'
             ? '쿠폰 등록 완료'
             : status === 'error'
@@ -134,7 +134,7 @@ export function CouponClaimClient({
                 ? '로그인이 필요해요'
                 : '쿠폰 등록 중'}
         </h1>
-        <p className="mt-3 min-h-10 text-sm font-bold leading-relaxed text-slate-500">
+        <p className="mt-3 min-h-10 text-sm lg:text-base font-bold leading-relaxed text-[#8B8578]">
           {message || '잠시만 기다려주세요'}
         </p>
 
@@ -142,7 +142,7 @@ export function CouponClaimClient({
           {status === 'success' && (
             <button
               onClick={() => router.push('/mypage?tab=coupons')}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-950 bg-slate-950 px-4 py-3 font-black text-white shadow-[3px_3px_0_#FACC15] transition hover:-translate-y-0.5"
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#10131C] px-4 py-3 font-black text-[#E9E2D0] transition"
             >
               쿠폰함 보기
               <ArrowRight className="h-4 w-4" />
@@ -152,7 +152,7 @@ export function CouponClaimClient({
           {status === 'login' && (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-950 bg-yellow-300 px-4 py-3 font-black text-slate-950 shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5"
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#F5EFE2] px-4 py-3 font-black text-[#12141D] transition"
             >
               <LogIn className="h-4 w-4" />
               로그인하고 등록
@@ -162,7 +162,7 @@ export function CouponClaimClient({
           {status === 'error' && (
             <button
               onClick={retryClaim}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-950 bg-white px-4 py-3 font-black text-slate-950 shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5"
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3 font-black text-[#E9E2D0] transition"
             >
               <RotateCcw className="h-4 w-4" />
               다시 시도
@@ -171,7 +171,7 @@ export function CouponClaimClient({
 
           <button
             onClick={() => router.push('/')}
-            className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-black text-slate-500 transition hover:border-slate-300 hover:bg-slate-100"
+            className="w-full rounded-[12px] border-2 border-[#262A38] bg-[#151823] px-4 py-3 font-black text-[#8B8578] transition hover:border-[#262A38] hover:bg-[#1B1F2C]"
           >
             홈으로
           </button>

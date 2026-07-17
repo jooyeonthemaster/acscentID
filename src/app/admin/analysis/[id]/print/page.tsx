@@ -76,7 +76,7 @@ export default function PrintReportPage({ params }: { params: Promise<{ id: stri
         </button>
         <button
           onClick={handlePrint}
-          className="flex items-center gap-2 px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_#1e293b] hover:shadow-[1px_1px_0px_#1e293b] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+          className="flex items-center gap-2 px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900 transition-all"
         >
           <Printer className="w-5 h-5" />
           인쇄하기

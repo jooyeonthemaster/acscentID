@@ -187,7 +187,7 @@ export default function FeedbackPatternsSection() {
   return (
     <div className="space-y-6">
       {/* 요약 */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
         <div className="flex items-center gap-2 text-slate-500 mb-2">
           <MessageSquare className="w-4 h-4" />
           <span className="text-xs font-medium">총 피드백 수</span>
@@ -239,7 +239,7 @@ function RetentionCard({ data }: { data: RetentionDistribution[] }) {
   const peakRange = data.reduce((a, b) => (a.percentage > b.percentage ? a : b))
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-blue-500" />
@@ -291,7 +291,7 @@ function CategoryAdditionsCard({ data }: { data: CategoryAdditionStats[] }) {
   const maxSelections = Math.max(...data.map((d) => d.totalSelections), 1)
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-white">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-purple-500" />
@@ -363,7 +363,7 @@ function PopularScentsCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-white">
         <div className="flex items-center gap-2">
           <Flame className="w-5 h-5 text-amber-500" />
@@ -471,7 +471,7 @@ function RecipeTypeCard({ stats, total }: { stats: RecipeTypeStats; total: numbe
   const hasData = known > 0
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-green-50 to-white">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-green-500" />
@@ -546,7 +546,7 @@ function AiAnalysisSection({
   const summary = selectedAnalysis?.sentiment_summary
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+    <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 to-white">
         <div className="flex items-center justify-between">
           <div>

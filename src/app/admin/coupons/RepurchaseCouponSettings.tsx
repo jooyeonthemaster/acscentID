@@ -142,7 +142,7 @@ export function RepurchaseCouponSettings() {
       : `${isActive ? '자동 발급 켜짐' : '자동 발급 꺼짐'} · ${discountLabel(discountType, Number(discountValue) || 0)} · 미사용 ${unusedCount.toLocaleString('ko-KR')}장`
 
   return (
-    <section className="admin-no-print rounded-2xl border-2 border-slate-900 bg-white p-5 shadow-[4px_4px_0_#0f172a]">
+    <section className="admin-no-print rounded-2xl border-2 border-slate-900 bg-white p-5">
       <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${expanded ? 'mb-5' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-slate-900 bg-pink-300">
@@ -173,7 +173,7 @@ export function RepurchaseCouponSettings() {
             aria-expanded={expanded}
             aria-controls="repurchase-coupon-settings-panel"
             onClick={() => setExpanded((prev) => !prev)}
-            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-xs font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:-translate-y-0.5"
+            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-xs font-black text-slate-900 transition"
           >
             {expanded ? '접기' : '펼치기'}
             <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
@@ -285,7 +285,7 @@ export function RepurchaseCouponSettings() {
             type="button"
             onClick={handleSaveClick}
             disabled={saving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-pink-300 px-4 py-3 font-black text-slate-950 shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#000] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-pink-300 px-4 py-3 font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
             설정 저장
@@ -298,7 +298,7 @@ export function RepurchaseCouponSettings() {
       {/* 소급 여부 선택 모달 */}
       {scopeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border-2 border-slate-900 bg-white p-6 shadow-[6px_6px_0_#0f172a]">
+          <div className="w-full max-w-md rounded-2xl border-2 border-slate-900 bg-white p-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-black text-slate-950">할인 변경 적용 범위</h3>

@@ -18,7 +18,7 @@ export interface AnalysisPreviewProps {
   baseNotes?: string;
 }
 
-const defaultColors = ['#C084FC', '#F9A8D4', '#1E293B'];
+const defaultColors = ['#A8A29E', '#D6D3D1', '#1C1917'];
 const defaultKeywords = ['시크', '달콤', '카리스마'];
 
 export const AnalysisPreview: React.FC<AnalysisPreviewProps> = ({
@@ -36,7 +36,7 @@ export const AnalysisPreview: React.FC<AnalysisPreviewProps> = ({
   return (
     <AbsoluteFill
       style={{
-        background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+        background: 'linear-gradient(135deg, #FAF7EE 0%, #F5F0E1 100%)',
         fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, sans-serif',
       }}
     >
@@ -96,7 +96,7 @@ const BackgroundDeco: React.FC<{ frame: number }> = ({ frame }) => {
           width: 200,
           height: 200,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)',
+          background: 'linear-gradient(135deg, #F5F0E1 0%, #EDE9DD 100%)',
           opacity: 0.2,
           transform: `rotate(${rotation}deg)`,
         }}
@@ -109,7 +109,7 @@ const BackgroundDeco: React.FC<{ frame: number }> = ({ frame }) => {
           width: 150,
           height: 150,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)',
+          background: 'linear-gradient(135deg, #E7E5E4 0%, #D6D3D1 100%)',
           opacity: 0.15,
           transform: `rotate(-${rotation}deg)`,
         }}
@@ -143,15 +143,14 @@ const AnalyzingPhase: React.FC<{ frame: number }> = ({ frame }) => {
           background: 'white',
           padding: '24px 40px',
           borderRadius: 20,
-          border: '3px solid #1E293B',
-          boxShadow: '6px 6px 0px #1E293B',
+          border: '3px solid #1C1917',
         }}
       >
         <div
           style={{
             fontSize: 24,
             fontWeight: 900,
-            color: '#1E293B',
+            color: '#1C1917',
           }}
         >
           AI 분석 중{'.'.repeat(dots)}
@@ -181,12 +180,11 @@ const ColorAnalysis: React.FC<{
       {/* 헤더 */}
       <div
         style={{
-          background: '#C084FC',
+          background: '#78716C',
           color: 'white',
           padding: '8px 16px',
           borderRadius: 20,
-          border: '2px solid #1E293B',
-          boxShadow: '3px 3px 0px #1E293B',
+          border: '2px solid #1C1917',
           display: 'inline-flex',
           fontSize: 12,
           fontWeight: 900,
@@ -201,12 +199,11 @@ const ColorAnalysis: React.FC<{
         style={{
           background: 'white',
           borderRadius: 20,
-          border: '3px solid #1E293B',
-          boxShadow: '6px 6px 0px #1E293B',
+          border: '3px solid #1C1917',
           padding: 24,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: '#64748B' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: '#57534E' }}>
           주요 컬러
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
@@ -224,8 +221,7 @@ const ColorAnalysis: React.FC<{
                   height: 56,
                   borderRadius: 16,
                   backgroundColor: color,
-                  border: '3px solid #1E293B',
-                  boxShadow: '3px 3px 0px #1E293B',
+                  border: '3px solid #1C1917',
                   transform: `scale(${colorSpring})`,
                 }}
               />
@@ -252,7 +248,7 @@ const KeywordsAndScore: React.FC<{
     <AbsoluteFill style={{ padding: 30, paddingTop: 140 }}>
       {/* 키워드 */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: '#64748B' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: '#57534E' }}>
           분위기 키워드
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -267,10 +263,10 @@ const KeywordsAndScore: React.FC<{
                 key={i}
                 style={{
                   padding: '8px 16px',
-                  background: '#F3E8FF',
-                  color: '#7C3AED',
+                  background: '#F5F0E1',
+                  color: '#1C1917',
                   borderRadius: 20,
-                  border: '2px solid #7C3AED',
+                  border: '2px solid #1C1917',
                   fontSize: 14,
                   fontWeight: 700,
                   transform: `scale(${keywordSpring})`,
@@ -289,14 +285,13 @@ const KeywordsAndScore: React.FC<{
         style={{
           background: 'white',
           borderRadius: 20,
-          border: '3px solid #1E293B',
-          boxShadow: '6px 6px 0px #1E293B',
+          border: '3px solid #1C1917',
           padding: 24,
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#64748B' }}>감정 분석</span>
-          <span style={{ fontSize: 28, fontWeight: 900, color: '#1E293B' }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#57534E' }}>감정 분석</span>
+          <span style={{ fontSize: 28, fontWeight: 900, color: '#1C1917' }}>
             신비로움 {Math.round(animatedScore)}%
           </span>
         </div>
@@ -314,9 +309,9 @@ const PerfumeRecipe: React.FC<{
   fps: number;
 }> = ({ topNotes, middleNotes, baseNotes, frame, fps }) => {
   const notes = [
-    { label: '탑노트', value: topNotes, percent: '25%', color: '#FBBF24' },
-    { label: '미들노트', value: middleNotes, percent: '45%', color: '#F97316' },
-    { label: '베이스노트', value: baseNotes, percent: '30%', color: '#EC4899' },
+    { label: '탑노트', value: topNotes, percent: '25%', color: '#1C1917' },
+    { label: '미들노트', value: middleNotes, percent: '45%', color: '#44403C' },
+    { label: '베이스노트', value: baseNotes, percent: '30%', color: '#78716C' },
   ];
 
   return (
@@ -325,8 +320,7 @@ const PerfumeRecipe: React.FC<{
         style={{
           background: 'white',
           borderRadius: 24,
-          border: '3px solid #1E293B',
-          boxShadow: '6px 6px 0px #1E293B',
+          border: '3px solid #1C1917',
           padding: 24,
         }}
       >
@@ -339,7 +333,7 @@ const PerfumeRecipe: React.FC<{
           }}
         >
           <span style={{ fontSize: 20 }}>✨</span>
-          <span style={{ fontSize: 18, fontWeight: 900, color: '#1E293B' }}>
+          <span style={{ fontSize: 18, fontWeight: 900, color: '#1C1917' }}>
             추천 향수 레시피
           </span>
         </div>
@@ -359,7 +353,7 @@ const PerfumeRecipe: React.FC<{
               <div
                 key={i}
                 style={{
-                  background: '#FEF9C3',
+                  background: '#F5F0E1',
                   borderRadius: 16,
                   padding: 16,
                   transform: `translateX(${(1 - noteSpring) * 50}px)`,
@@ -374,10 +368,10 @@ const PerfumeRecipe: React.FC<{
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: 10, color: '#64748B', marginBottom: 4 }}>
+                    <div style={{ fontSize: 10, color: '#57534E', marginBottom: 4 }}>
                       {note.label}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1C1917' }}>
                       {note.value}
                     </div>
                   </div>
@@ -396,7 +390,7 @@ const PerfumeRecipe: React.FC<{
                   style={{
                     marginTop: 8,
                     height: 6,
-                    background: '#E5E7EB',
+                    background: '#E7E5E4',
                     borderRadius: 3,
                     overflow: 'hidden',
                   }}
@@ -455,12 +449,11 @@ const FinalReveal: React.FC<{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 4,
-            background: '#FBBF24',
-            color: '#1E293B',
+            background: '#1C1917',
+            color: '#1C1917',
             padding: '8px 16px',
             borderRadius: 20,
-            border: '2px solid #1E293B',
-            boxShadow: '3px 3px 0px #1E293B',
+            border: '2px solid #1C1917',
             fontSize: 14,
             fontWeight: 900,
             marginBottom: 20,
@@ -476,15 +469,14 @@ const FinalReveal: React.FC<{
             background: 'white',
             padding: '32px 48px',
             borderRadius: 24,
-            border: '4px solid #1E293B',
-            boxShadow: '8px 8px 0px #1E293B',
+            border: '4px solid #1C1917',
           }}
         >
           <div
             style={{
               fontSize: 32,
               fontWeight: 900,
-              color: '#1E293B',
+              color: '#1C1917',
               marginBottom: 8,
               whiteSpace: 'pre-line',
               textAlign: 'center',
@@ -492,7 +484,7 @@ const FinalReveal: React.FC<{
           >
             &quot;{perfumeName}&quot;
           </div>
-          <div style={{ fontSize: 14, color: '#64748B' }}>
+          <div style={{ fontSize: 14, color: '#57534E' }}>
             신비롭고 매혹적인 향기
           </div>
         </div>

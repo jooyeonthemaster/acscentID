@@ -38,8 +38,8 @@ export function ChemistryMeetingChapter({
     <div className="px-4 space-y-5">
       {/* 챕터 헤더 */}
       <div className="text-center">
-        <h2 className="text-lg font-black text-slate-900">{t('chemistry.result.meetingTitle')}</h2>
-        <p className="text-xs text-slate-500 mt-1">{t('chemistry.result.meetingSubtitle')}</p>
+        <h2 className="text-lg font-black text-[#1A1610]">{t('chemistry.result.meetingTitle')}</h2>
+        <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('chemistry.result.meetingSubtitle')}</p>
       </div>
 
       {/* === 섹션: 얼굴합 === */}
@@ -60,13 +60,13 @@ export function ChemistryMeetingChapter({
             <SectionCard>
               <SectionHeader emoji={String.fromCodePoint(0x1F4D6)} title={t('chemistry.result.story')} />
               <div className="p-4">
-                <div className="relative bg-gradient-to-br from-violet-50 to-pink-50 rounded-xl p-4 overflow-hidden border-2 border-violet-200">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-violet-300/20 rounded-full blur-2xl" />
+                <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
                   <div className="relative z-10">
-                    <p className="text-slate-700 text-sm font-medium leading-relaxed whitespace-pre-wrap italic">
+                    <p className="text-[#5C564A] text-sm lg:text-base font-medium leading-relaxed whitespace-pre-wrap italic">
                       &ldquo;{chemistry.chemistryStory}&rdquo;
                     </p>
-                    <p className="text-violet-500 text-xs mt-3 font-black">
+                    <p className="text-[#8B8578] text-xs lg:text-sm mt-3 font-black">
                       @acscent_ai
                     </p>
                   </div>
@@ -148,7 +148,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
   return (
     <SectionCard>
       {/* 타입 헤더 */}
-      <div className={`bg-gradient-to-br ${typeColor.gradient} p-6 text-center text-white relative overflow-hidden`}>
+      <div className={`bg-gradient-to-br ${typeColor.gradient} p-6 text-center text-[#1A1610] relative overflow-hidden`}>
         <div className="absolute -top-8 -right-8 w-28 h-28 bg-white/10 rounded-full" />
         <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full" />
         <motion.div
@@ -161,7 +161,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
           {typeIcon}
         </motion.div>
         <h3 className="text-xl font-black relative z-10">{typeLabel}</h3>
-        <p className="text-sm text-white/90 mt-2 relative z-10 font-medium leading-relaxed">
+        <p className="text-sm lg:text-base text-white/90 mt-2 relative z-10 font-medium leading-relaxed">
           &ldquo;{chemistry.chemistryTitle}&rdquo;
         </p>
       </div>
@@ -169,30 +169,30 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
       {/* 시너지 분석 보고서 */}
       <div className="p-5 space-y-4">
         {/* 공유 강점 */}
-        <div className="border-l-4 border-violet-400 pl-3">
-          <span className="text-[10px] font-black text-violet-500 uppercase tracking-wider block mb-2">{t('chemistry.result.sharedStrengths')}</span>
+        <div className="border-l-4 border-[#C9BFA8] pl-3">
+          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.sharedStrengths')}</span>
           <div className="space-y-2">
             {chemistry.traitsSynergy.sharedStrengths.slice(0, 2).map((s, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-violet-400 text-xs mt-0.5 flex-shrink-0">&#9679;</span>
-                <p className="text-xs text-slate-700 leading-relaxed">{s}</p>
+                <span className="text-[#8B8578] text-xs lg:text-sm mt-0.5 flex-shrink-0">&#9679;</span>
+                <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">{s}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-slate-100" />
+        <div className="border-t border-[#1E222E]" />
 
         {/* 보완 특성 */}
         {chemistry.traitsSynergy.complementaryTraits.length > 0 && (
-          <div className="border-l-4 border-pink-400 pl-3">
-            <span className="text-[10px] font-black text-pink-500 uppercase tracking-wider block mb-2">{t('chemistry.result.complementaryTraits')}</span>
+          <div className="border-l-4 border-[#C9BFA8] pl-3">
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.complementaryTraits')}</span>
             <div className="space-y-2">
               {chemistry.traitsSynergy.complementaryTraits.slice(0, 2).map((ct, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <span className="text-pink-400 text-xs mt-0.5 flex-shrink-0">&#9679;</span>
-                  <p className="text-xs text-slate-700 leading-relaxed">{ct}</p>
+                  <span className="text-[#8B8578] text-xs lg:text-sm mt-0.5 flex-shrink-0">&#9679;</span>
+                  <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">{ct}</p>
                 </div>
               ))}
             </div>
@@ -202,10 +202,10 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
         {/* 다이나믹 텐션 */}
         {chemistry.traitsSynergy.dynamicTension && (
           <>
-            <div className="border-t border-slate-100" />
-            <div className="bg-gradient-to-r from-violet-50/80 to-pink-50/80 rounded-xl p-3 border border-violet-100">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">{t('chemistry.result.summaryLabel')}</span>
-              <p className="text-[11px] text-slate-600 leading-relaxed">{chemistry.traitsSynergy.dynamicTension}</p>
+            <div className="border-t border-[#1E222E]" />
+            <div className="bg-gradient-to-r from-[#FDFAF1]/80 to-[#FDFAF1]/80 rounded-[12px] p-3 border border-[#EDE5D2]">
+              <span className="text-[9px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.summaryLabel')}</span>
+              <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed">{chemistry.traitsSynergy.dynamicTension}</p>
             </div>
           </>
         )}
@@ -246,12 +246,12 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
         {/* 범례 */}
         <div className="flex justify-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-violet-500" />
-            <span className="text-[10px] font-bold text-slate-600">🌙 {nameA}</span>
+            <div className="w-3 h-3 rounded-full bg-[#EFE4C8]" />
+            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">🌙 {nameA}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-pink-500" />
-            <span className="text-[10px] font-bold text-slate-600">☀️ {nameB}</span>
+            <div className="w-3 h-3 rounded-full bg-[#EFE4C8]" />
+            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">☀️ {nameB}</span>
           </div>
         </div>
 
@@ -272,8 +272,8 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
             {/* A 데이터 */}
             <motion.path
               d={makePath(entriesA)}
-              fill="rgba(139, 92, 246, 0.15)"
-              stroke="#8b5cf6"
+              fill="rgba(123,123,123, 0.15)"
+              stroke="#7B7B7B"
               strokeWidth="2"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -283,8 +283,8 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
             {/* B 데이터 */}
             <motion.path
               d={makePath(entriesB)}
-              fill="rgba(236, 72, 153, 0.15)"
-              stroke="#ec4899"
+              fill="rgba(136,136,136, 0.15)"
+              stroke="#888888"
               strokeWidth="2"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -294,17 +294,17 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
             {/* 점 */}
             {entriesA.map(([, v], i) => {
               const { x, y } = getXY(v, i)
-              return <circle key={`a-${i}`} cx={x} cy={y} r="3" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
+              return <circle key={`a-${i}`} cx={x} cy={y} r="3" fill="#7B7B7B" stroke="white" strokeWidth="1.5" />
             })}
             {entriesB.map(([, v], i) => {
               const { x, y } = getXY(v, i)
-              return <circle key={`b-${i}`} cx={x} cy={y} r="3" fill="#ec4899" stroke="white" strokeWidth="1.5" />
+              return <circle key={`b-${i}`} cx={x} cy={y} r="3" fill="#888888" stroke="white" strokeWidth="1.5" />
             })}
             {/* 라벨 */}
             {entriesA.map(([key], i) => {
               const { x, y } = getXY(max * 1.2, i)
               return (
-                <text key={key} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700" fill="#64748b">
+                <text key={key} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700" fill="#737373">
                   {tLabels(`traits.${key}`)}
                 </text>
               )
@@ -314,8 +314,8 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
 
         {/* 시너지 코멘트 (주접 텍스트) */}
         {synergyComment && (
-          <div className="mt-3 p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-xl border border-violet-200">
-            <p className="text-xs text-slate-600 leading-relaxed italic">{synergyComment}</p>
+          <div className="mt-3 p-3 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] border border-[#D8CFBB]">
+            <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed italic">{synergyComment}</p>
           </div>
         )}
       </div>
@@ -339,8 +339,8 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
       <div className="p-4">
         {/* 범례 */}
         <div className="flex justify-between mb-3 px-2">
-          <span className="text-[10px] font-black text-violet-600">🌙 {nameA}</span>
-          <span className="text-[10px] font-black text-pink-600">☀️ {nameB}</span>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A]">🌙 {nameA}</span>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A]">☀️ {nameB}</span>
         </div>
         <div className="space-y-2.5">
           {keys.map((key) => {
@@ -357,15 +357,15 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
                     whileInView={{ width: `${(valA / 10) * 100}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="h-5 bg-violet-400 rounded-l-full flex items-center justify-start pl-1.5"
+                    className="h-5 bg-[#EFE4C8] rounded-l-full flex items-center justify-start pl-1.5"
                   >
-                    <span className="text-[9px] font-black text-white">{valA}</span>
+                    <span className="text-[9px] font-black text-[#1A1610]">{valA}</span>
                   </motion.div>
                 </div>
                 {/* 중앙 라벨 */}
                 <div className="w-14 text-center flex-shrink-0">
-                  <span className="text-[10px]">{info.icon}</span>
-                  <span className="text-[9px] font-bold text-slate-600 block">{tLabels(`categories.${key}`)}</span>
+                  <span className="text-[10px] lg:text-[12px]">{info.icon}</span>
+                  <span className="text-[9px] font-bold text-[#5C564A] block">{tLabels(`categories.${key}`)}</span>
                 </div>
                 {/* B 바 (왼쪽 정렬) */}
                 <div className="flex-1 flex justify-start">
@@ -374,9 +374,9 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
                     whileInView={{ width: `${(valB / 10) * 100}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.1 }}
-                    className="h-5 bg-pink-400 rounded-r-full flex items-center justify-end pr-1.5"
+                    className="h-5 bg-[#EFE4C8] rounded-r-full flex items-center justify-end pr-1.5"
                   >
-                    <span className="text-[9px] font-black text-white">{valB}</span>
+                    <span className="text-[9px] font-black text-[#1A1610]">{valB}</span>
                   </motion.div>
                 </div>
               </div>
@@ -386,8 +386,8 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
 
         {/* 레이어링 효과 코멘트 (주접 텍스트) */}
         {harmonyComment && (
-          <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-200">
-            <p className="text-xs text-slate-600 leading-relaxed italic">{harmonyComment}</p>
+          <div className="mt-3 p-3 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] border border-[#D8CFBB]">
+            <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed italic">{harmonyComment}</p>
           </div>
         )}
       </div>
@@ -418,7 +418,7 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
         <ColorRow label={`🌙 ${nameA}`} colors={paletteA} />
         {/* 블렌딩 컬러 (중앙, 강조) */}
         <div className="text-center">
-          <span className="text-[10px] font-black text-slate-400 mb-1.5 block">BLEND</span>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] mb-1.5 block">BLEND</span>
           <div className="flex gap-2 justify-center">
             {blended.map((color, i) => (
               <motion.div
@@ -427,7 +427,7 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
                 whileInView={{ scale: 1, rotate: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * i, type: "spring" }}
-                className="w-11 h-11 rounded-full border-2 border-black shadow-[2px_2px_0_0_black]"
+                className="w-11 h-11 rounded-full border-2 border-[#D8CFBB]"
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -436,7 +436,7 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
         {/* B의 컬러 */}
         <ColorRow label={`☀️ ${nameB}`} colors={paletteB} />
 
-        <p className="text-[11px] text-slate-500 text-center font-medium mt-2">{chemistry.colorChemistry.description}</p>
+        <p className="text-[11px] lg:text-[13px] text-[#8B8578] text-center font-medium mt-2">{chemistry.colorChemistry.description}</p>
       </div>
     </SectionCard>
   )
@@ -445,10 +445,10 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
 function ColorRow({ label, colors }: { label: string; colors: string[] }) {
   return (
     <div className="text-center">
-      <span className="text-[10px] font-black text-slate-400 mb-1.5 block">{label}</span>
+      <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] mb-1.5 block">{label}</span>
       <div className="flex gap-2 justify-center">
         {colors.map((color, i) => (
-          <div key={i} className="w-9 h-9 rounded-full border border-slate-200 shadow-sm" style={{ backgroundColor: color }} />
+          <div key={i} className="w-9 h-9 rounded-full border border-[#D8CFBB] shadow-sm" style={{ backgroundColor: color }} />
         ))}
       </div>
     </div>
@@ -472,27 +472,27 @@ function ScentHarmonyDiagram({ chemistry }: {
             level="TOP"
             levelLabel={t('chemistry.result.firstImpression')}
             content={chemistry.scentHarmony.topNoteInteraction}
-            gradient="from-violet-400 to-pink-400"
-            bg="bg-gradient-to-r from-violet-50 to-pink-50"
-            border="border-violet-200"
+            gradient="from-[#EFE4C8] to-[#EFE4C8]"
+            bg="bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1]"
+            border="border-[#D8CFBB]"
             delay={0}
           />
           <HarmonyLevel
             level="MIDDLE"
             levelLabel={t('chemistry.result.mood')}
             content={chemistry.scentHarmony.middleNoteInteraction}
-            gradient="from-violet-300 to-pink-300"
-            bg="bg-gradient-to-r from-violet-50/60 to-pink-50/60"
-            border="border-violet-100"
+            gradient="from-[#D8CFBB] to-[#D8CFBB]"
+            bg="bg-gradient-to-r from-[#FDFAF1]/60 to-[#FDFAF1]/60"
+            border="border-[#EDE5D2]"
             delay={0.15}
           />
           <HarmonyLevel
             level="BASE"
             levelLabel={t('chemistry.result.trail')}
             content={chemistry.scentHarmony.baseNoteInteraction}
-            gradient="from-slate-300 to-violet-300"
-            bg="bg-gradient-to-r from-slate-50 to-violet-50"
-            border="border-slate-200"
+            gradient="from-[#D8CFBB] to-[#D8CFBB]"
+            bg="bg-gradient-to-r from-[#EDE5D2] to-[#FDFAF1]"
+            border="border-[#D8CFBB]"
             delay={0.3}
           />
         </div>
@@ -502,10 +502,10 @@ function ScentHarmonyDiagram({ chemistry }: {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-5 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-xl border-2 border-violet-200"
+          className="mt-5 p-4 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] border-2 border-[#D8CFBB]"
         >
-          <span className="text-[9px] font-black text-violet-400 uppercase tracking-wider block mb-1.5">{t('chemistry.result.overallHarmony')}</span>
-          <p className="text-xs font-medium text-violet-700 leading-relaxed">{chemistry.scentHarmony.overallHarmony}</p>
+          <span className="text-[9px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.overallHarmony')}</span>
+          <p className="text-xs lg:text-sm font-medium text-[#5C564A] leading-relaxed">{chemistry.scentHarmony.overallHarmony}</p>
         </motion.div>
       </div>
     </SectionCard>
@@ -521,15 +521,15 @@ function HarmonyLevel({ level, levelLabel, content, gradient, bg, border, delay 
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
-      className={`${bg} border ${border} rounded-xl p-3.5 flex items-start gap-3`}
+      className={`${bg} border ${border} rounded-[12px] p-3.5 flex items-start gap-3`}
     >
       <div className="flex-shrink-0 text-center">
-        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-          <span className="text-[10px] font-black text-white">{level}</span>
+        <div className={`w-12 h-12 rounded-[12px] bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+          <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{level}</span>
         </div>
-        <span className="text-[9px] text-slate-400 font-bold mt-1 block">{levelLabel}</span>
+        <span className="text-[9px] text-[#8B8578] font-bold mt-1 block">{levelLabel}</span>
       </div>
-      <p className="text-[11px] text-slate-700 leading-relaxed flex-1 pt-1">{content}</p>
+      <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed flex-1 pt-1">{content}</p>
     </motion.div>
   )
 }
@@ -543,17 +543,17 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
   const t = useTranslations()
   const sizes = [
     { size: 'text-base px-4 py-2', scale: 1.2 },
-    { size: 'text-sm px-3.5 py-1.5', scale: 1.1 },
-    { size: 'text-xs px-3 py-1.5', scale: 1 },
-    { size: 'text-xs px-2.5 py-1', scale: 0.9 },
-    { size: 'text-[11px] px-2.5 py-1', scale: 0.85 },
+    { size: 'text-sm lg:text-base px-3.5 py-1.5', scale: 1.1 },
+    { size: 'text-xs lg:text-sm px-3 py-1.5', scale: 1 },
+    { size: 'text-xs lg:text-sm px-2.5 py-1', scale: 0.9 },
+    { size: 'text-[11px] lg:text-[13px] px-2.5 py-1', scale: 0.85 },
   ]
   const colors = [
-    'bg-gradient-to-r from-violet-400 to-violet-500 text-white',
-    'bg-gradient-to-r from-pink-400 to-pink-500 text-white',
-    'bg-amber-100 text-amber-800 border-2 border-amber-300',
-    'bg-cyan-100 text-cyan-800 border-2 border-cyan-300',
-    'bg-rose-100 text-rose-700 border-2 border-rose-300',
+    'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]',
+    'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]',
+    'bg-[#EDE5D2] text-[#1A1610] border-2 border-[#D8CFBB]',
+    'bg-[#EDE5D2] text-[#1A1610] border-2 border-[#D8CFBB]',
+    'bg-[#EDE5D2] text-[#5C564A] border-2 border-[#D8CFBB]',
   ]
 
   return (
@@ -582,14 +582,14 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
 
         {/* 다이나믹 설명 */}
         {description && (
-          <p className="text-xs text-slate-600 text-center mt-4 leading-relaxed">{description}</p>
+          <p className="text-xs lg:text-sm text-[#5C564A] text-center mt-4 leading-relaxed">{description}</p>
         )}
 
         {/* Best Moment */}
         {bestMoment && (
-          <div className="mt-3 p-3 bg-pink-50 rounded-xl border border-pink-200">
-            <span className="text-[10px] font-black text-pink-500 block mb-1">{t('chemistry.result.bestMoment')}</span>
-            <p className="text-xs text-pink-700 leading-relaxed">{bestMoment}</p>
+          <div className="mt-3 p-3 bg-[#FDFAF1] rounded-[12px] border border-[#D8CFBB]">
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.bestMoment')}</span>
+            <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">{bestMoment}</p>
           </div>
         )}
       </div>
@@ -606,17 +606,17 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
 
   // 티어 판정 (최소 50%)
   const getTier = (s: number) => {
-    if (s >= 90) return { labelKey: 'soulmate', emoji: '💘', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' }
-    if (s >= 75) return { labelKey: 'realDeal', emoji: '🔥', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' }
-    if (s >= 65) return { labelKey: 'subtle', emoji: '✨', color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200' }
-    return { labelKey: 'mysterious', emoji: '🌙', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' }
+    if (s >= 90) return { labelKey: 'soulmate', emoji: '💘', color: 'text-[#8B8578]', bg: 'bg-[#FDFAF1]', border: 'border-[#D8CFBB]' }
+    if (s >= 75) return { labelKey: 'realDeal', emoji: '🔥', color: 'text-[#8B8578]', bg: 'bg-[#FDFAF1]', border: 'border-[#D8CFBB]' }
+    if (s >= 65) return { labelKey: 'subtle', emoji: '✨', color: 'text-[#8B8578]', bg: 'bg-[#FDFAF1]', border: 'border-[#D8CFBB]' }
+    return { labelKey: 'mysterious', emoji: '🌙', color: 'text-[#5C564A]', bg: 'bg-[#FDFAF1]', border: 'border-[#D8CFBB]' }
   }
 
   // 개별 바 색상 — 각 척도 자체 점수 기반
   const getBarColor = (s: number) => {
-    if (s >= 80) return 'bg-gradient-to-r from-rose-400 to-pink-500'
-    if (s >= 65) return 'bg-gradient-to-r from-violet-400 to-purple-500'
-    return 'bg-gradient-to-r from-cyan-400 to-blue-500'
+    if (s >= 80) return 'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8]'
+    if (s >= 65) return 'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8]'
+    return 'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8]'
   }
 
   const tier = getTier(score)
@@ -640,7 +640,7 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             viewport={{ once: true }}
             transition={{ type: "spring", bounce: 0.4 }}
           >
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Face Match</span>
+            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-[0.2em] block mb-1">Face Match</span>
             <div className="flex items-baseline justify-center gap-0">
               <span className={`text-8xl font-black ${tier.color} tabular-nums leading-none`}>{score}</span>
               <span className={`text-4xl font-black ${tier.color} -ml-1`}>%</span>
@@ -648,7 +648,7 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             <div className="mt-3">
               <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 ${tier.bg} ${tier.border} border-2 rounded-full`}>
                 <span className="text-lg">{tier.emoji}</span>
-                <span className={`text-sm font-black ${tier.color}`}>{t(`chemistry.tiers.${tier.labelKey}`)}</span>
+                <span className={`text-sm lg:text-base font-black ${tier.color}`}>{t(`chemistry.tiers.${tier.labelKey}`)}</span>
               </span>
             </div>
           </motion.div>
@@ -666,14 +666,14 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{item.emoji}</span>
-                  <span className="text-xs font-black text-slate-700">{item.label}</span>
+                  <span className="text-sm lg:text-base">{item.emoji}</span>
+                  <span className="text-xs lg:text-sm font-black text-[#5C564A]">{item.label}</span>
                 </div>
-                <span className="text-sm font-black text-slate-800 tabular-nums">{item.score}</span>
+                <span className="text-sm lg:text-base font-black text-[#1A1610] tabular-nums">{item.score}</span>
               </div>
               {/* 바 — h-5, 50% 참조선 */}
-              <div className="relative w-full h-5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300/60 z-10" />
+              <div className="relative w-full h-5 bg-[#EDE5D2] rounded-full overflow-hidden">
+                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-stone-300/60 z-10" />
                 <motion.div
                   initial={{ width: 0 }}
                   whileInView={{ width: `${item.score}%` }}
@@ -684,7 +684,7 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
               </div>
               {/* 설명 */}
               {item.desc && (
-                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">{item.desc}</p>
+                <p className="text-[11px] lg:text-[13px] text-[#8B8578] mt-1.5 leading-relaxed">{item.desc}</p>
               )}
             </motion.div>
           ))}
@@ -697,9 +697,9 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.8 }}
-            className="mt-5 p-4 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl border-2 border-slate-700 text-center"
+            className="mt-5 p-4 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] text-center"
           >
-            <p className="text-sm font-black text-white">{faceMatch.verdict}</p>
+            <p className="text-sm lg:text-base font-black text-[#1A1610]">{faceMatch.verdict}</p>
           </motion.div>
         )}
       </div>

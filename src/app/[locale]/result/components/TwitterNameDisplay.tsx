@@ -23,13 +23,13 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
       className="relative"
     >
       {/* 분석 대상 정보 카드 */}
-      <div className={`relative overflow-hidden border-2 border-slate-900 ${
+      <div className={`relative overflow-hidden border-2 border-[#D8CFBB] ${
         isCompact
-          ? 'rounded-xl shadow-[2px_2px_0px_#000]'
-          : 'rounded-2xl shadow-[4px_4px_0px_#000]'
+          ? 'rounded-[12px]'
+          : 'rounded-[12px]'
       }`}>
         {/* 배경 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FDFAF1] via-[#FDFAF1] to-[#FDFAF1]" />
 
         {/* 반짝이 효과 */}
         <div className="absolute inset-0 overflow-hidden">
@@ -43,32 +43,32 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
         {/* 본문 */}
         <div className={`relative z-10 ${isCompact ? 'p-3' : 'p-4'}`}>
           {/* 헤더 */}
-          <div className={`flex items-center gap-2 border-b-2 border-orange-200/60 ${isCompact ? 'mb-3 pb-2' : 'mb-4 pb-3'}`}>
+          <div className={`flex items-center gap-2 border-b-2 border-stone-200/60 ${isCompact ? 'mb-3 pb-2' : 'mb-4 pb-3'}`}>
             <span className={`${isCompact ? 'text-base' : 'text-lg'}`}>✨</span>
-            <p className={`text-orange-600 font-black ${isCompact ? 'text-xs' : 'text-sm'}`}>
+            <p className={`text-[#5C564A] font-black ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
               {t('analysisSubjectInfo')}
             </p>
           </div>
 
           {/* 정보 목록 */}
-          <div className={`space-y-2 ${isCompact ? 'text-xs' : 'text-sm'}`}>
+          <div className={`space-y-2 ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
             {/* 이름 */}
             <div className="flex items-start gap-2">
-              <span className="text-slate-500 font-medium min-w-[40px]">{t('nameLabel')}</span>
-              <span className="text-slate-900 font-bold">{idolName || '-'}</span>
+              <span className="text-[#8B8578] font-medium min-w-[40px]">{t('nameLabel')}</span>
+              <span className="text-[#1A1610] font-bold">{idolName || '-'}</span>
             </div>
 
             {/* 성별 */}
             <div className="flex items-start gap-2">
-              <span className="text-slate-500 font-medium min-w-[40px]">{t('genderLabel')}</span>
-              <span className="text-slate-900 font-bold">{genderText}</span>
+              <span className="text-[#8B8578] font-medium min-w-[40px]">{t('genderLabel')}</span>
+              <span className="text-[#1A1610] font-bold">{genderText}</span>
             </div>
           </div>
 
           {/* 주접멘트 */}
           {twitterName && (
-            <div className={`mt-3 pt-3 border-t-2 border-orange-200/60`}>
-              <p className={`text-slate-900 font-black leading-snug break-keep ${isCompact ? 'text-xs' : 'text-sm'}`}>
+            <div className={`mt-3 pt-3 border-t-2 border-stone-200/60`}>
+              <p className={`text-[#1A1610] font-black leading-snug break-keep ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
                 "{twitterName}"
               </p>
             </div>
@@ -76,7 +76,7 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
         </div>
 
         {/* 하단 패턴 */}
-        <div className={`bg-gradient-to-r from-yellow-400 via-orange-400 to-amber-400 ${isCompact ? 'h-1.5' : 'h-2'}`} />
+        <div className={`bg-gradient-to-r from-[#EFE4C8] via-[#EFE4C8] to-[#EFE4C8] ${isCompact ? 'h-1.5' : 'h-2'}`} />
       </div>
     </motion.div>
   )

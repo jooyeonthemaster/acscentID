@@ -101,7 +101,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             <div style={{
               position: 'absolute',
               top: 16, right: 16,
-              background: '#FCD34D', color: '#000',
+              background: '#D7D7D7', color: '#000',
               fontSize: 10, padding: '4px 8px', fontWeight: 700,
               boxShadow: '3px 3px 0px #000',
               transform: 'rotate(5deg)'
@@ -117,7 +117,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             flexDirection: 'column',
           }}>
             {/* Perfume Header */}
-            <div style={{ padding: 16, borderBottom: '1px solid #000', background: '#fafafa' }}>
+            <div style={{ padding: 16, borderBottom: '1px solid #000', background: '#10131C' }}>
               <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 4 }}>RECOMMENDED SCENT</div>
               <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 2 }}>{perfumeName}</div>
               <div style={{
@@ -185,7 +185,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             <span style={{ fontSize: 18, fontWeight: 700 }}>{userGender}</span>
           </div>
           {/* Date */}
-          <div style={{ flex: 1.2, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#fafafa' }}>
+          <div style={{ flex: 1.2, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#10131C' }}>
             <span style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>(07) DATE</span>
             <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.5px' }}>{currentDate}</span>
           </div>
@@ -198,7 +198,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           display: 'flex',
           flexDirection: 'column',
           padding: 24,
-          background: '#FCD34D', // Yellow highlight for Jujeop
+          background: '#D7D7D7', // Yellow highlight for Jujeop
           justifyContent: 'center'
         }}>
           <span style={{

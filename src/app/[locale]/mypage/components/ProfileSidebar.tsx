@@ -75,29 +75,29 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
   ]
 
   return (
-    <div className="bg-white border-2 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0_0_black]">
+    <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
       {/* 브랜드 로고 */}
-      <div className="hidden lg:block px-6 py-5 border-b-2 border-black">
+      <div className="hidden lg:block px-6 py-5 border-b-2 border-[#262A38]">
         <Link href="/" className="text-2xl font-black tracking-tight">
-          AC'SCENT<span className="text-yellow-500">.</span>
+          AC'SCENT<span className="text-[#8B8578]">.</span>
         </Link>
       </div>
 
       {/* 프로필 섹션 */}
-      <div className="p-5 border-b-2 border-black bg-gradient-to-br from-yellow-50 to-amber-50">
+      <div className="p-5 border-b-2 border-[#262A38] bg-gradient-to-br from-[#0C0E16] to-[#0C0E16]">
         <div className="flex items-center gap-4">
           {/* 프로필 이미지 */}
           <img
             src={userAvatar}
             alt={t('profileAlt')}
-            className="w-14 h-14 rounded-xl object-cover border-2 border-black shadow-[2px_2px_0_0_black] bg-yellow-100"
+            className="w-14 h-14 rounded-[12px] object-cover border-2 border-[#262A38] bg-[#151823]"
           />
 
           {/* 프로필 정보 */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-black text-black truncate">{userName}</h2>
-            <p className="text-xs text-slate-600 truncate">{userEmail || t('kakaoLogin')}</p>
-            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-black text-white rounded-full font-bold">
+            <h2 className="text-lg font-black text-[#E9E2D0] truncate">{userName}</h2>
+            <p className="text-xs lg:text-sm text-[#A69F8D] truncate">{userEmail || t('kakaoLogin')}</p>
+            <span className="inline-block mt-1 text-[10px] lg:text-[12px] px-2 py-0.5 bg-[#0C0E16] text-[#E9E2D0] rounded-full font-bold">
               {providerLabel} {t('loginSuffix')}
             </span>
           </div>
@@ -117,10 +117,10 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-sm lg:text-base transition-all ${
                     isActive
-                      ? 'bg-yellow-400 border-2 border-black shadow-[2px_2px_0_0_black]'
-                      : 'hover:bg-yellow-100 border-2 border-transparent'
+                      ? 'bg-[#F5EFE2] text-[#12141D] border-2 border-[#F5EFE2]'
+                      : 'text-[#E9E2D0] hover:bg-[#151823] border-2 border-transparent'
                   }`}
                 >
                   <item.icon size={18} />
@@ -134,10 +134,10 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
       </nav>
 
       {/* 로그아웃 버튼 */}
-      <div className="p-3 border-t-2 border-black">
+      <div className="p-3 border-t-2 border-[#262A38]">
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-200"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-sm lg:text-base text-[#A69F8D] hover:bg-red-50 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-200"
         >
           <LogOut size={18} />
           <span>{t('logout')}</span>
@@ -191,21 +191,21 @@ function InviteFriendCard() {
   }
 
   return (
-    <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-black shadow-[2px_2px_0_0_black]">
+    <div className="p-4 bg-gradient-to-br from-[#151823] to-[#151823] rounded-[12px] border-2 border-[#262A38]">
       <div className="text-3xl mb-2">🎁</div>
-      <p className="font-black text-sm mb-1">{tSidebar('inviteFriend')}</p>
-      <p className="text-xs text-slate-600 mb-3">{tSidebar('inviteDesc')}</p>
+      <p className="font-black text-sm lg:text-base mb-1">{tSidebar('inviteFriend')}</p>
+      <p className="text-xs lg:text-sm text-[#A69F8D] mb-3">{tSidebar('inviteDesc')}</p>
       <div className="flex gap-2">
         <button
           onClick={handleCopyLink}
-          className="flex-1 py-2 bg-white text-black text-xs font-bold rounded-lg border-2 border-black hover:bg-slate-50 transition-colors flex items-center justify-center gap-1"
+          className="flex-1 py-2 bg-[#12141D] text-[#E9E2D0] text-xs lg:text-sm font-bold rounded-[12px] border-2 border-[#262A38] hover:bg-[#151823] transition-colors flex items-center justify-center gap-1"
         >
-          {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-[#A69F8D]" /> : <Copy size={14} />}
           {copied ? tSidebar('linkCopied') : tSidebar('linkCopy')}
         </button>
         <button
           onClick={handleShare}
-          className="py-2 px-3 bg-black text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors"
+          className="py-2 px-3 bg-[#F5EFE2] text-[#12141D] text-xs lg:text-sm font-bold rounded-[12px] hover:bg-[#FFFDF5] transition-colors"
         >
           <Share2 size={14} />
         </button>

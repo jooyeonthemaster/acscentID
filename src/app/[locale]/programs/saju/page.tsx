@@ -23,6 +23,8 @@ import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
 import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
+import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
@@ -163,58 +165,51 @@ export default function SajuProgramPage() {
     },
   ]
 
-  return (
-    <InactiveProductGuard productSlug="saju">
-    <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
-      <Header />
-      <ProgramAdminBridge productSlug="saju" />
-
-      {/* ============================================
-          HERO SECTION - 공용 히어로 (기존 문법 유지 — §6.1)
-      ============================================ */}
-      <UnifiedDetailHero
-        productSlug="saju"
-        title={productName}
-        imageAlt={t('programs.productImage')}
-        images={{
-          urls: productImages,
-          loading: sajuImagesLoading,
-          selectedIndex: selectedProductImage,
-          onSelect: setSelectedProductImage,
-        }}
-        pageContent={pageContent}
-        pagePositionStyle={pagePositionStyle}
-        badgeClassName="bg-[#0C0E16] text-[#E8C766]"
-        breadcrumbs={[
-          { label: t('programs.breadcrumbHome'), href: '/' },
-          { label: t('programs.breadcrumbPrograms'), href: '/' },
-          { label: productName },
-        ]}
-        meta={
-          <ReviewTrigger
-            averageRating={reviewStats?.average_rating || 4.9}
-            totalCount={reviewStats?.total_count || 0}
-            onClick={() => {
-              document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })
-            }}
-          />
-        }
-        price={
-          <div className="flex items-end gap-2">
-            <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sajuMin ?? 48000)}~</span>
-            <span className="text-xs text-slate-400">{t('saju.landing.price')}</span>
-          </div>
-        }
-        infoIcon={<ScrollText size={14} className="text-slate-900" />}
-        infoItems={[t('saju.landing.info1'), t('saju.landing.info2')]}
-        cta={{
-          onClick: handleStartClick,
-          disabled: loading,
-          label: pageContent.ctaLabel,
-          hint: t('programs.hint'),
+  const heroProps = {
+    productSlug: "saju",
+    title: productName,
+    imageAlt: t('programs.productImage'),
+    images: {
+      urls: productImages,
+      loading: sajuImagesLoading,
+      selectedIndex: selectedProductImage,
+      onSelect: setSelectedProductImage,
+    },
+    pageContent,
+    pagePositionStyle,
+    badgeClassName: "bg-[#0C0E16] text-[#E8C766]",
+    breadcrumbs: [
+      { label: t('programs.breadcrumbHome'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: productName },
+    ],
+    meta: (
+      <ReviewTrigger
+        averageRating={reviewStats?.average_rating || 4.9}
+        totalCount={reviewStats?.total_count || 0}
+        onClick={() => {
+          document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })
         }}
       />
+    ),
+    price: (
+      <div className="flex items-end gap-2">
+        <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sajuMin ?? 48000)}~</span>
+        <span className="text-xs text-slate-400">{t('saju.landing.price')}</span>
+      </div>
+    ),
+    infoIcon: <ScrollText size={14} className="text-slate-900" />,
+    infoItems: [t('saju.landing.info1'), t('saju.landing.info2')],
+    cta: {
+      onClick: handleStartClick,
+      disabled: loading,
+      label: pageContent.ctaLabel,
+      hint: t('programs.hint'),
+    },
+  }
 
+  const detailBody = (
+    <>
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
@@ -463,32 +458,54 @@ export default function SajuProgramPage() {
           </section>
         </div>
       )}
+    </>
+  )
 
-      {/* ============================================
-          실제 후기 (공유 컴포넌트)
-      ============================================ */}
-      <ProgramReviewSection
-        programType="saju_perfume"
-        programName={productName}
-        currentUserId={currentUserId}
-        isLoggedIn={isLoggedIn}
-        onLoginRequired={() => setShowLoginPrompt(true)}
-      />
+  const reviewSection = (
+    <ProgramReviewSection
+      programType="saju_perfume"
+      programName={productName}
+      currentUserId={currentUserId}
+      isLoggedIn={isLoggedIn}
+      onLoginRequired={() => setShowLoginPrompt(true)}
+    />
+  )
 
-      {/* 로그인 안내 모달 (공유 컴포넌트) */}
-      <ProgramLoginPrompt
-        isOpen={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
-        onLogin={handleLoginClick}
-      />
+  return (
+    <InactiveProductGuard productSlug="saju">
+    <ViewportSwitch
+      mobile={
+        <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
+          <Header />
+          <ProgramAdminBridge productSlug="saju" />
+          {/* 헤더(티커 h-7 + 바 h-14 ≈ 84px)만큼만 상단 여백 → 이미지 위 흰 띠 제거 */}
+          <UnifiedDetailHero {...heroProps} sectionClassName="pt-[84px]" />
+          {detailBody}
+          {reviewSection}
+        </main>
+      }
+      desktop={
+        <main className="relative min-h-screen bg-[#FFFDF5] pb-16 font-sans">
+          <DesktopDetailHero {...heroProps} />
+          <div className="mx-auto w-full max-w-[960px]">{detailBody}</div>
+          <div className="mx-auto w-full max-w-[960px]">{reviewSection}</div>
+        </main>
+      }
+    />
 
-      {/* 로그인 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        redirectPath="/input?type=saju&mode=online"
-      />
-    </main>
+    {/* 로그인 안내 모달 (공유 컴포넌트) */}
+    <ProgramLoginPrompt
+      isOpen={showLoginPrompt}
+      onClose={() => setShowLoginPrompt(false)}
+      onLogin={handleLoginClick}
+    />
+
+    {/* 로그인 모달 */}
+    <AuthModal
+      isOpen={showAuthModal}
+      onClose={() => setShowAuthModal(false)}
+      redirectPath="/input?type=saju&mode=online"
+    />
     </InactiveProductGuard>
   )
 }

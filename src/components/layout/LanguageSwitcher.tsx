@@ -66,13 +66,13 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-1 px-1.5 py-1 rounded-lg transition-colors",
-          dark ? "text-[#A69F8D] hover:bg-white/5" : "text-slate-600 hover:bg-slate-100"
+          "flex items-center gap-1 px-1.5 py-1 rounded-[12px] transition-colors",
+          dark ? "text-[#9F9F9F] hover:bg-white/5" : "text-[#A69F8D] hover:bg-[#1B1F2C]"
         )}
         aria-label="Language"
       >
         <Globe size={14} />
-        <span className="text-[10px] font-bold uppercase">{locale}</span>
+        <span className="text-[10px] lg:text-[12px] font-bold uppercase">{locale}</span>
       </button>
 
       <AnimatePresence>
@@ -82,21 +82,21 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 bg-white border-2 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50 min-w-[140px]"
+            className="absolute right-0 top-full mt-1 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden z-50 min-w-[140px]"
           >
             {locales.map((l) => (
               <button
                 key={l}
                 onClick={() => handleLocaleChange(l)}
                 className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
+                  "w-full flex items-center gap-2 px-3 py-2 text-left text-sm lg:text-base transition-colors",
                   locale === l
-                    ? "bg-yellow-100 font-bold text-yellow-800"
-                    : "hover:bg-slate-50 text-slate-700"
+                    ? "bg-[#151823] font-bold text-[#E9E2D0]"
+                    : "hover:bg-[#151823] text-[#A69F8D]"
                 )}
               >
                 <span className="text-base">{localeFlags[l]}</span>
-                <span className="text-xs font-medium">{localeNames[l]}</span>
+                <span className="text-xs lg:text-sm font-medium">{localeNames[l]}</span>
               </button>
             ))}
           </motion.div>

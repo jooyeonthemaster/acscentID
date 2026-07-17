@@ -3,8 +3,10 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { motion } from "framer-motion"
+import { ImageIcon, FileText, Layers } from "lucide-react"
 
 type TransitionStage = 'open' | 'closing' | 'closed' | 'opening'
+type DoorVariant = 'image' | 'chemistry' | 'saju'
 
 interface TransitionContextType {
     stage: TransitionStage
@@ -13,14 +15,19 @@ interface TransitionContextType {
 
 const TransitionContext = createContext<TransitionContextType | undefined>(undefined)
 
+function getDoorVariant(url: string | null): DoorVariant {
+    if (url?.includes('type=saju') || url?.includes('/programs/saju')) return 'saju'
+    if (url?.includes('type=chemistry') || url?.includes('/programs/chemistry')) return 'chemistry'
+    return 'image'
+}
+
 export function TransitionProvider({ children }: { children: ReactNode }) {
     const router = useRouter()
     const pathname = usePathname()
     const [stage, setStage] = useState<TransitionStage>('open')
     const [targetUrl, setTargetUrl] = useState<string | null>(null)
     const previousPathnameRef = useRef(pathname)
-    const isSajuDoorTransition =
-        targetUrl?.includes('type=saju') || targetUrl?.includes('/programs/saju')
+    const doorVariant = getDoorVariant(targetUrl)
 
     // URL이 변경되면(페이지 이동 완료되면) 문을 연다
     useEffect(() => {
@@ -90,7 +97,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       */}
             <DoorTransitionController
                 stage={stage}
-                isSajuDoor={!!isSajuDoorTransition}
+                doorVariant={doorVariant}
                 onClosed={onDoorClosed}
                 onOpened={onTransitionEnd}
             />
@@ -102,16 +109,23 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
 
 function DoorTransitionController({
     stage,
-    isSajuDoor,
+    doorVariant,
     onClosed,
     onOpened
 }: {
     stage: TransitionStage
-    isSajuDoor: boolean
+    doorVariant: DoorVariant
     onClosed: () => void
     onOpened: () => void
 }) {
     // stage에 따라 애니메이션 제어
+    const isSajuDoor = doorVariant === 'saju'
+    const leftBorderClass = isSajuDoor
+        ? "relative h-full w-1/2 overflow-hidden border-r-[3px] border-[#2A1D13] pointer-events-auto flex items-center justify-end"
+        : "relative h-full w-1/2 overflow-hidden border-r border-[#12141D] pointer-events-auto"
+    const rightBorderClass = isSajuDoor
+        ? "relative h-full w-1/2 overflow-hidden border-l-[3px] border-[#2A1D13] pointer-events-auto flex items-center justify-start"
+        : "relative h-full w-1/2 overflow-hidden border-l border-[#12141D] pointer-events-auto"
 
     return (
         <div className="fixed inset-0 z-[100000] pointer-events-none flex">
@@ -134,16 +148,14 @@ function DoorTransitionController({
                         onOpened()
                     }
                 }}
-                className={
-                    isSajuDoor
-                        ? "relative h-full w-1/2 overflow-hidden border-r-[3px] border-[#2E1710] pointer-events-auto flex items-center justify-end"
-                        : "w-1/2 h-full bg-amber-400 border-r-4 border-amber-600 relative pointer-events-auto flex items-center justify-end"
-                }
+                className={leftBorderClass}
             >
-                {isSajuDoor ? (
+                {doorVariant === 'saju' ? (
                     <SajuShojiDoorHalf side="left" />
+                ) : doorVariant === 'chemistry' ? (
+                    <ChemistryBlotterDoorHalf side="left" />
                 ) : (
-                    <LegacyDoorHalf side="left" stage={stage} />
+                    <ImageReportDoorHalf side="left" />
                 )}
             </motion.div>
 
@@ -157,78 +169,108 @@ function DoorTransitionController({
                     duration: 0.6,
                     ease: [0.22, 1, 0.36, 1]
                 }}
-                className={
-                    isSajuDoor
-                        ? "relative h-full w-1/2 overflow-hidden border-l-[3px] border-[#2E1710] pointer-events-auto flex items-center justify-start"
-                        : "w-1/2 h-full bg-amber-400 border-l-4 border-amber-600 relative pointer-events-auto flex items-center justify-start"
-                }
+                className={rightBorderClass}
             >
-                {isSajuDoor ? (
+                {doorVariant === 'saju' ? (
                     <SajuShojiDoorHalf side="right" />
+                ) : doorVariant === 'chemistry' ? (
+                    <ChemistryBlotterDoorHalf side="right" />
                 ) : (
-                    <LegacyDoorHalf side="right" stage={stage} />
+                    <ImageReportDoorHalf side="right" />
                 )}
             </motion.div>
         </div>
     )
 }
 
-function LegacyDoorHalf({ side, stage }: { side: 'left' | 'right'; stage: TransitionStage }) {
-    const patternId = `wood-pattern-${side}`
-    const label = side === 'left' ? 'OPEN' : 'YOUR WORLD'
-    const labelClassName =
-        side === 'left'
-            ? 'absolute right-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl rotate-90 z-20'
-            : 'absolute left-12 top-1/2 -translate-y-1/2 text-amber-900/40 whitespace-nowrap font-black text-6xl -rotate-90 z-20'
+function ImageReportDoorHalf({ side }: { side: 'left' | 'right' }) {
+    const isLeft = side === 'left'
+    const lineClassName = isLeft ? 'left-10' : 'right-10'
+    const spineClassName = isLeft ? 'right-0' : 'left-0'
+    const label = isLeft ? 'PHOTO' : 'REPORT'
+    const Icon = isLeft ? ImageIcon : FileText
 
     return (
         <>
-            <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
-                <defs>
-                    <pattern id={patternId} width="100" height="100" patternUnits="userSpaceOnUse">
-                        <path d="M0 0h100v100H0z" fill="#fbbf24" />
-                        <path d="M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.3" />
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill={`url(#${patternId})`} />
-                <rect x="20" y="20" width="calc(100% - 40px)" height="calc(30% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-                <rect x="20" y="32%" width="calc(100% - 40px)" height="calc(70% - 40px)" rx="10" fill="#fef3c7" stroke="#d97706" strokeWidth="4" />
-            </svg>
-
-            <div className={`relative z-10 h-16 w-4 rounded-full bg-amber-700 shadow-lg flex items-center justify-center ${side === 'left' ? 'mr-4' : 'ml-4'}`}>
-                <div className="h-12 w-2 rounded-full bg-amber-600" />
+            <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(160deg, #FBF7EF 0%, #ECE3D0 100%)' }}
+            />
+            <div className="absolute inset-5 rounded-[16px] border border-[#D8CFBB]/70" />
+            <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+                    <Icon size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">{label}</span>
             </div>
-
-            {(stage === 'closing' || stage === 'closed') && (
-                <div className={labelClassName}>
-                    {label}
-                </div>
-            )}
+            {[34, 50, 66, 82].map((top) => (
+                <div
+                    key={top}
+                    className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+                    style={{ top: `${top}%` }}
+                />
+            ))}
+            <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+            <div className={`absolute top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border border-[#D8CFBB] bg-[#FBF7EF] ${isLeft ? 'right-4' : 'left-4'}`} />
+            <div className={`absolute bottom-12 h-28 w-28 rounded-full border border-[#1A1610]/8 ${isLeft ? 'right-10' : 'left-10'}`} />
         </>
     )
 }
 
+function ChemistryBlotterDoorHalf({ side }: { side: 'left' | 'right' }) {
+    const isLeft = side === 'left'
+    const label = isLeft ? 'A NOTE' : 'B NOTE'
+    const lineClassName = isLeft ? 'left-10' : 'right-10'
+    const spineClassName = isLeft ? 'right-0' : 'left-0'
+    // 좌우 은근한 톤 차이 — 왼쪽은 살짝 차갑게, 오른쪽은 살짝 따뜻하게
+    const background = isLeft
+        ? 'linear-gradient(160deg, #FBF8F1 0%, #E6E7DB 100%)'
+        : 'linear-gradient(160deg, #FBF6EE 0%, #EEE0D2 100%)'
+
+    return (
+        <>
+            <div className="absolute inset-0" style={{ background }} />
+            <div className="absolute inset-5 rounded-[16px] border border-[#D8CFBB]/70" />
+            <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+                    <Layers size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">{label}</span>
+            </div>
+            {[34, 50, 66, 82].map((top) => (
+                <div
+                    key={top}
+                    className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+                    style={{ top: `${top}%` }}
+                />
+            ))}
+            <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+            <div className={`absolute top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border border-[#D8CFBB] bg-[#FBF7EF] ${isLeft ? 'right-4' : 'left-4'}`} />
+            <div className={`absolute bottom-12 h-28 w-28 rounded-full border border-[#1A1610]/8 ${isLeft ? 'right-10' : 'left-10'}`} />
+        </>
+    )
+}
 const shojiWoodStyle: React.CSSProperties = {
-    backgroundColor: '#563018',
+    backgroundColor: '#3E2C1E',
     backgroundImage: [
-        'linear-gradient(90deg, rgba(255,255,255,0.08), transparent 20%, rgba(0,0,0,0.18) 54%, transparent 78%, rgba(255,255,255,0.05))',
-        'repeating-linear-gradient(0deg, rgba(255,214,143,0.13) 0 2px, transparent 2px 18px)',
-        'linear-gradient(180deg, #7B431F 0%, #9A5A2D 42%, #5A2C18 100%)',
+        'linear-gradient(90deg, rgba(255,240,220,0.08), transparent 20%, rgba(0,0,0,0.2) 54%, transparent 78%, rgba(255,240,220,0.05))',
+        'repeating-linear-gradient(0deg, rgba(120,90,62,0.16) 0 2px, transparent 2px 18px)',
+        'linear-gradient(180deg, #5A4231 0%, #6E5340 42%, #362619 100%)',
     ].join(', '),
 }
 
 const shojiPaperGlowStyle: React.CSSProperties = {
     backgroundImage: [
-        'radial-gradient(circle at 24% 20%, rgba(255,255,255,0.78), transparent 32%)',
-        'radial-gradient(circle at 78% 70%, rgba(201,162,39,0.16), transparent 35%)',
+        'radial-gradient(circle at 24% 20%, rgba(255,250,235,0.8), transparent 32%)',
+        'radial-gradient(circle at 78% 70%, rgba(200,170,130,0.18), transparent 35%)',
         'linear-gradient(180deg, rgba(255,248,225,0.9), rgba(237,229,210,0.95))',
     ].join(', '),
 }
 
 const shojiLatticeStyle: React.CSSProperties = {
     backgroundImage: [
-        'repeating-linear-gradient(90deg, transparent 0 58px, rgba(84,40,19,0.72) 58px 64px)',
-        'repeating-linear-gradient(180deg, transparent 0 72px, rgba(84,40,19,0.66) 72px 78px)',
+        'repeating-linear-gradient(90deg, transparent 0 58px, rgba(74,55,40,0.72) 58px 64px)',
+        'repeating-linear-gradient(180deg, transparent 0 72px, rgba(74,55,40,0.66) 72px 78px)',
     ].join(', '),
 }
 
@@ -243,41 +285,41 @@ function SajuShojiDoorHalf({ side }: { side: 'left' | 'right' }) {
                 aria-hidden
                 className={`absolute inset-y-0 ${isLeft ? 'right-0' : 'left-0'} w-[10px]`}
                 style={{
-                    background: 'linear-gradient(90deg, #2E1710 0%, #9A5A2D 45%, #2E1710 100%)',
-                    boxShadow: '0 0 22px rgba(12,14,22,0.32)',
+                    background: 'linear-gradient(90deg, #2A1D13 0%, #6E5340 45%, #2A1D13 100%)',
+                    boxShadow: '0 0 22px rgba(20,12,6,0.34)',
                 }}
             />
 
-            <div className="absolute inset-[14px] rounded-[3px] border border-[#C9A227]/25 shadow-[inset_0_0_22px_rgba(12,14,22,0.24)]" />
+            <div className="absolute inset-[14px] rounded-[12px] border border-[#8B6B4A]/30" />
 
             <div className="absolute inset-[24px] grid grid-rows-[0.34fr_1fr] gap-3">
                 {['upper', 'lower'].map((row) => (
                     <div
                         key={row}
-                        className="saju-hanji relative overflow-hidden rounded-[3px] border-[6px] border-[#673118] shadow-[inset_0_0_18px_rgba(84,40,19,0.24)]"
+                        className="saju-hanji relative overflow-hidden rounded-[12px] border-[6px] border-[#4A3728]"
                     >
                         <div className="absolute inset-0" style={shojiPaperGlowStyle} />
                         <div className="absolute inset-0 opacity-85" style={shojiLatticeStyle} />
-                        <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-[#673118]/75" />
-                        <div className="absolute inset-y-0 left-1/2 w-[5px] -translate-x-1/2 bg-[#673118]/70" />
+                        <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-[#4A3728]/75" />
+                        <div className="absolute inset-y-0 left-1/2 w-[5px] -translate-x-1/2 bg-[#4A3728]/70" />
                     </div>
                 ))}
             </div>
 
             <div
                 aria-hidden
-                className={`absolute top-1/2 z-20 h-[68px] w-[16px] -translate-y-1/2 rounded-full border border-[#C9A227]/55 bg-[#5A2A17] shadow-[0_10px_24px_rgba(12,14,22,0.34)] ${isLeft ? 'right-4' : 'left-4'}`}
+                className={`absolute top-1/2 z-20 h-[68px] w-[16px] -translate-y-1/2 rounded-full border border-[#8B6B4A]/55 bg-[#3A2A1D] shadow-[0_10px_24px_rgba(20,12,6,0.36)] ${isLeft ? 'right-4' : 'left-4'}`}
             >
-                <div className="mx-auto mt-2 h-12 w-[6px] rounded-full bg-gradient-to-b from-[#E8C766] via-[#9A5A2D] to-[#3A1C10]" />
+                <div className="mx-auto mt-2 h-12 w-[6px] rounded-full bg-gradient-to-b from-[#C9A87E] via-[#6E5340] to-[#2A1D13]" />
             </div>
 
             <div
                 aria-hidden
-                className={`absolute bottom-12 z-10 h-24 w-24 rounded-full border border-[#C0392B]/20 bg-[#C0392B]/[0.06] ${ornamentSideClass}`}
+                className={`absolute bottom-12 z-10 h-24 w-24 rounded-full border border-[#6B4E37]/25 bg-[#6B4E37]/[0.07] ${ornamentSideClass}`}
             />
             <div
                 aria-hidden
-                className={`absolute bottom-16 z-10 h-px w-24 bg-gradient-to-r from-transparent via-[#C9A227]/45 to-transparent ${ornamentSideClass}`}
+                className={`absolute bottom-16 z-10 h-px w-24 bg-gradient-to-r from-transparent via-[#8B6B4A]/50 to-transparent ${ornamentSideClass}`}
             />
         </>
     )

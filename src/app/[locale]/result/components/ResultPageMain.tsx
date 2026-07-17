@@ -23,9 +23,11 @@ import { ShareModal } from './ShareModal'
 import { FeedbackModal } from './FeedbackModal'
 import { FeedbackHistory } from './feedback/FeedbackHistory'
 import { ResultBottomActions } from './ResultBottomActions'
+import { DesktopResultActions } from './DesktopResultActions'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
+import { ViewportSwitch } from '@/components/desktop/ViewportSwitch'
 // 졸업 모드 컴포넌트
 import { GraduationTab } from './graduation'
 
@@ -326,25 +328,25 @@ export default function ResultPageMain() {
   // 로딩 상태 - 키치 스타일
   if (loading) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FEF9C3] font-sans">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#0C0E16] font-wanted">
         {/* 배경 */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
-            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-orange-200 rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center bg-white rounded-2xl p-8 border-2 border-slate-900 shadow-[4px_4px_0px_#000]"
+          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB]"
         >
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-slate-900 rounded-xl animate-spin mx-auto mb-4" />
-          <p className="text-slate-900 font-black">{t('result.loading')}</p>
-          <p className="text-slate-500 text-sm mt-1 font-medium">{t('result.loadingHintEmoji')}</p>
+          <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
+          <p className="text-[#1A1610] font-black">{t('result.loading')}</p>
+          <p className="text-[#8B8578] text-sm lg:text-base mt-1 font-medium">{t('result.loadingHintEmoji')}</p>
         </motion.div>
       </div>
     )
@@ -353,29 +355,29 @@ export default function ResultPageMain() {
   // 에러 상태 - 키치 스타일
   if (error) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#FEF9C3] font-sans">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#0C0E16] font-wanted">
         {/* 배경 */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-center bg-white rounded-2xl p-8 max-w-sm border-2 border-slate-900 shadow-[4px_4px_0px_#000]"
+          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 max-w-sm border-2 border-[#D8CFBB]"
         >
-          <div className="w-16 h-16 bg-red-100 rounded-xl border-2 border-slate-900 flex items-center justify-center mx-auto mb-4 shadow-[2px_2px_0px_#000]">
+          <div className="w-16 h-16 bg-red-100 rounded-[12px] border-2 border-[#D8CFBB] flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">😢</span>
           </div>
-          <h2 className="text-xl font-black text-slate-900 mb-2">{t('errors.generic')}</h2>
-          <p className="text-slate-500 text-sm mb-6 font-medium">{error}</p>
+          <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('errors.generic')}</h2>
+          <p className="text-[#8B8578] text-sm lg:text-base mb-6 font-medium">{error}</p>
           <Button
             onClick={handleRestart}
-            className="bg-yellow-400 text-slate-900 hover:bg-yellow-500 rounded-xl px-6 py-3 font-black border-2 border-slate-900 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            className="bg-[#12141D] text-[#F5EFE2] hover:bg-[#FFFDF5] rounded-[12px] px-6 py-3 font-black border-2 border-[#D8CFBB] transition-all"
           >
             {t('result.goBack')}
           </Button>
@@ -384,18 +386,71 @@ export default function ResultPageMain() {
     )
   }
 
-  return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[#FAFAFA] font-sans">
-      {/* 배경 - CSS 애니메이션으로 성능 최적화 */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#FDFDFD]">
-        <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
-        <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply animate-blob-rotate" />
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply animate-blob-rotate-fast" />
-        </div>
-      </div>
+  // ===== 모바일/데스크탑 공유 블록 (문자 그대로 호이스팅) =====
+  const titleSection = (
+                <motion.div variants={fadeInUp} className="text-center pt-2">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border-2 border-[#B8880F]">
+                      <span className="text-[#1A1610] text-xs lg:text-sm font-black">{t('result.analysisComplete')}</span>
+                    </div>
+                    {isAutoSaving && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F5EFE2] rounded-[12px] border-2 border-[#D8CFBB]">
+                        <Loader2 size={12} className="text-[#5C564A] animate-spin" />
+                        <span className="text-[#5C564A] text-xs lg:text-sm font-bold">{t('result.saving')}</span>
+                      </div>
+                    )}
+                    {isAutoSaved && !isAutoSaving && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border-2 border-[#C9BFA8]">
+                        <CheckCircle2 size={12} className="text-[#5C564A]" />
+                        <span className="text-[#5C564A] text-xs lg:text-sm font-bold">{t('result.saved')}</span>
+                      </div>
+                    )}
+                  </div>
+                  <h1 className="text-2xl font-black text-[#E9E2D0] leading-tight">
+                    {isGraduationMode ? (
+                      <>
+                        {t('result.graduationTitle')}<br />
+                        <span className="text-[#8B8578]">
+                          {t('result.graduationSubtitle')}
+                        </span>
+                      </>
+                    ) : isFigureMode ? (
+                      <>
+                        {t('result.figureTitle')}<br />
+                        <span className="text-[#8B8578]">
+                          {t('result.figureSubtitle')}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {t('result.defaultTitle')}<br />
+                        <span className="text-[#8B8578]">
+                          {t('result.defaultSubtitle')}
+                        </span>
+                      </>
+                    )}
+                  </h1>
+                </motion.div>
+  )
 
+  const imageSection = (
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border-2 border-[#D8CFBB]">
+                  {userImage && (
+                    <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border-2 border-[#D8CFBB]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={userImage}
+                        alt={t('result.uploadedImage')}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} />
+                </motion.div>
+  )
+
+  const mobileResult = (
+    <>
       {/* 헤더 */}
       <Header
         title={t('result.title')}
@@ -415,68 +470,12 @@ export default function ResultPageMain() {
             <>
               {/* ========== 455px 고정 레이아웃 ========== */}
               <div className="flex flex-col gap-5 w-full">
-                {/* 타이틀 섹션 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="text-center pt-2">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_#000]">
-                      <span className="text-slate-900 text-xs font-black">{t('result.analysisComplete')}</span>
-                    </div>
-                    {isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border-2 border-slate-300">
-                        <Loader2 size={12} className="text-slate-600 animate-spin" />
-                        <span className="text-slate-600 text-xs font-bold">{t('result.saving')}</span>
-                      </div>
-                    )}
-                    {isAutoSaved && !isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-100 rounded-xl border-2 border-emerald-400">
-                        <CheckCircle2 size={12} className="text-emerald-700" />
-                        <span className="text-emerald-700 text-xs font-bold">{t('result.saved')}</span>
-                      </div>
-                    )}
-                  </div>
-                  <h1 className="text-2xl font-black text-slate-900 leading-tight">
-                    {isGraduationMode ? (
-                      <>
-                        {t('result.graduationTitle')}<br />
-                        <span className="text-amber-500">
-                          {t('result.graduationSubtitle')}
-                        </span>
-                      </>
-                    ) : isFigureMode ? (
-                      <>
-                        {t('result.figureTitle')}<br />
-                        <span className="text-pink-500">
-                          {t('result.figureSubtitle')}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        {t('result.defaultTitle')}<br />
-                        <span className="text-yellow-500">
-                          {t('result.defaultSubtitle')}
-                        </span>
-                      </>
-                    )}
-                  </h1>
-                </motion.div>
+                {titleSection}
 
-                {/* 사용자 이미지 + 트위터 이름 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-4 space-y-4 border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
-                  {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={userImage}
-                        alt={t('result.uploadedImage')}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                  <TwitterNameDisplay twitterName={twitterName} idolName={userInfo?.name} idolGender={userInfo?.gender} />
-                </motion.div>
+                {imageSection}
 
                 {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[4px_4px_0px_#000]">
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] overflow-hidden border-2 border-[#D8CFBB]">
                   <TabNavigation
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -510,7 +509,7 @@ export default function ResultPageMain() {
                   transition={{ delay: 1.2, duration: 1 }}
                   className="w-full text-center pb-36"
                 >
-                  <span className="text-[9px] font-semibold text-slate-400/80 tracking-[0.3em] uppercase">
+                  <span className="text-[9px] font-semibold text-stone-400/80 tracking-[0.3em] uppercase">
                     © 2025 Ac&apos;scent Identity
                   </span>
                 </motion.div>
@@ -534,6 +533,88 @@ export default function ResultPageMain() {
           serviceMode={serviceMode}
         />
       )}
+    </>
+  )
+
+  const desktopResult = (
+    <main className="relative z-10 flex-1 pb-16 pt-[116px]">
+      {displayedAnalysis && (
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="mx-auto grid w-full max-w-[1120px] grid-cols-[420px_minmax(0,1fr)] items-start gap-8 px-8"
+        >
+          {/* 좌측: 타이틀 + 이미지 + 액션 패널 (sticky) */}
+          <div className="sticky top-[108px] flex flex-col gap-5 self-start">
+            {titleSection}
+            {imageSection}
+            <motion.div variants={fadeInUp}>
+              <DesktopResultActions
+                onShare={handleShare}
+                onAddToCart={handleAddToCart}
+                onCheckout={handleCheckout}
+                onScentPaperCheckout={canBuyScentPaper ? handleScentPaperCheckout : undefined}
+                onFeedback={() => setIsFeedbackModalOpen(true)}
+                onFeedbackHistory={() => setIsFeedbackHistoryOpen(true)}
+                isShareSaving={isSaving}
+                isAddingToCart={isAddingToCart}
+                serviceMode={serviceMode}
+              />
+            </motion.div>
+          </div>
+
+          {/* 우측: 탭 카드 — 휴면 isDesktop 레이아웃 활성 */}
+          <motion.div variants={fadeInUp} className="min-w-0 overflow-hidden rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2]">
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isFigureMode={isFigureMode}
+              isGraduationMode={isGraduationMode}
+              isDesktop
+            />
+
+            <div className="p-6">
+              <AnimatePresence mode="wait">
+                {activeTab === 'analysis' && (
+                  <AnalysisTab key="analysis" displayedAnalysis={displayedAnalysis} isDesktop />
+                )}
+                {activeTab === 'perfume' && (
+                  <PerfumeTab key="perfume" displayedAnalysis={displayedAnalysis} isDesktop />
+                )}
+                {activeTab === 'comparison' && (
+                  <ComparisonTab key="comparison" displayedAnalysis={displayedAnalysis} isDesktop />
+                )}
+                {activeTab === 'graduation' && isGraduationMode && (
+                  <GraduationTab key="graduation" displayedAnalysis={displayedAnalysis as GraduationAnalysisResult} userName={userInfo?.name} isDesktop />
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="pb-6 text-center">
+              <span className="text-[9px] font-semibold text-stone-400/80 tracking-[0.3em] uppercase">
+                © 2025 Ac&apos;scent Identity
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </main>
+  )
+
+  return (
+    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[#0C0E16] font-wanted">
+      {/* 배경 - CSS 애니메이션으로 성능 최적화 (뷰포트 모드 무관 단일 인스턴스) */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
+        <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
+        <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
+        </div>
+      </div>
+
+      <ViewportSwitch mobile={mobileResult} desktop={desktopResult} />
 
       {/* 공유 모달 */}
       {displayedAnalysis && (

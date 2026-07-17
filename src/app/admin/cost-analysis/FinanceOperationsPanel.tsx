@@ -1192,7 +1192,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
     totalTone: 'emerald' | 'red'
     helper: React.ReactNode
   }) => (
-    <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+    <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2">
           <Table2 className="h-5 w-5 text-slate-500" />
@@ -1355,7 +1355,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
 
   return (
     <section className="space-y-5">
-      <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="rounded-xl border-2 border-slate-200 bg-white p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -1460,7 +1460,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
       )}
 
       {data && activePanelTab === 'overview' && (
-          <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+          <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="h-5 w-5 text-slate-500" />
@@ -1535,7 +1535,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
       })}
 
       {data && activePanelTab === 'overview' && (
-        <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+        <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
           <h3 className="mb-4 text-base font-black text-slate-900">채널별 손익</h3>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             {data.summary.channels.map((channel) => (
@@ -1581,7 +1581,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
       )}
 
       {data && activePanelTab === 'events' && (
-        <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+        <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-slate-500" />
@@ -1784,7 +1784,7 @@ export function FinanceOperationsPanel({ accessGranted }: { accessGranted: boole
       )}
 
       {data && activePanelTab === 'settings' && (
-        <section className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-[3px_3px_0px_#e2e8f0]">
+        <section className="rounded-xl border-2 border-slate-200 bg-white p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-black text-slate-900">월별 계산 설정</h3>

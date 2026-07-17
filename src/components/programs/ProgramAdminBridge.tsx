@@ -40,18 +40,18 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
     const style = document.createElement('style')
     style.textContent = `
       body[data-admin-preview-editing="true"] {
-        --admin-edit-sky: #38bdf8;
+        --admin-edit-sky: #B1B1B1;
         --admin-edit-ink: #111827;
-        --admin-edit-muted: #64748b;
+        --admin-edit-muted: #737373;
       }
       [data-admin-editable] {
-        caret-color: #38bdf8;
+        caret-color: #B1B1B1;
       }
       [data-admin-field-editable="true"] {
         position: relative;
         z-index: 2147483641;
         cursor: text;
-        outline: 2px dashed rgba(56, 189, 248, 0.85);
+        outline: 2px dashed rgba(177,177,177, 0.85);
         outline-offset: 4px;
         transition: outline-color 0.15s ease, box-shadow 0.15s ease;
       }
@@ -61,8 +61,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         inset: 0;
         z-index: 2147483630;
         border-radius: inherit;
-        background: rgba(71, 85, 105, 0.34);
-        box-shadow: inset 0 0 0 1px rgba(51, 65, 85, 0.28);
+        background: rgba(84,84,84, 0.34);
+        box-shadow: inset 0 0 0 1px rgba(64,64,64, 0.28);
         pointer-events: none;
       }
       [data-admin-locked-animation="true"] {
@@ -82,7 +82,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         padding: 0 10px;
         border: 2px solid #111827;
         border-radius: 999px;
-        background: #64748b;
+        background: #737373;
         color: #ffffff;
         font-size: 11px;
         line-height: 1;
@@ -123,8 +123,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         z-index: 2147483636;
         pointer-events: none;
         background-image:
-          linear-gradient(rgba(56, 189, 248, 0.18) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(56, 189, 248, 0.18) 1px, transparent 1px);
+          linear-gradient(rgba(177,177,177, 0.18) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(177,177,177, 0.18) 1px, transparent 1px);
         background-size: ${GRID_SIZE}px ${GRID_SIZE}px;
       }
       [data-admin-field-editable="true"]::before,
@@ -165,7 +165,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         transform: translateY(0);
       }
       [data-admin-editable][contenteditable="true"]:focus {
-        outline: 3px solid rgba(56, 189, 248, 0.95);
+        outline: 3px solid rgba(177,177,177, 0.95);
         outline-offset: 4px;
       }
       [data-ac-block] {
@@ -186,8 +186,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         display: inline-block;
         min-width: 1em;
         cursor: text;
-        caret-color: #0284c7;
-        outline: 2px dashed rgba(56, 189, 248, 0.58);
+        caret-color: #7D7D7D;
+        outline: 2px dashed rgba(177,177,177, 0.58);
         outline-offset: 3px;
         border-radius: 4px;
         transition: background-color 0.15s ease, outline-color 0.15s ease;
@@ -197,8 +197,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
       }
       [data-admin-inline-editable="true"]:hover,
       [data-admin-inline-editable="true"]:focus {
-        background: rgba(186, 230, 253, 0.55);
-        outline-color: rgba(2, 132, 199, 0.95);
+        background: rgba(223,223,223, 0.55);
+        outline-color: rgba(125,125,125, 0.95);
       }
       [data-admin-page-editable="true"] {
         position: relative;
@@ -206,8 +206,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         display: inline-block;
         min-width: 1em;
         cursor: text;
-        caret-color: #0284c7;
-        outline: 2px dashed rgba(56, 189, 248, 0.72);
+        caret-color: #7D7D7D;
+        outline: 2px dashed rgba(177,177,177, 0.72);
         outline-offset: 3px;
         border-radius: 4px;
         transition: background-color 0.15s ease, outline-color 0.15s ease;
@@ -217,8 +217,8 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
       }
       [data-admin-page-editable="true"]:hover,
       [data-admin-page-editable="true"]:focus {
-        background: rgba(186, 230, 253, 0.6);
-        outline-color: rgba(2, 132, 199, 0.95);
+        background: rgba(223,223,223, 0.6);
+        outline-color: rgba(125,125,125, 0.95);
       }
       .admin-image-replace-button {
         position: absolute;
@@ -231,7 +231,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         padding: 0 10px;
         border: 2px solid #111827;
         border-radius: 999px;
-        background: #38bdf8;
+        background: #B1B1B1;
         color: #111827;
         font-size: 12px;
         line-height: 1;
@@ -240,29 +240,29 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         cursor: pointer;
       }
       .admin-image-replace-button:hover {
-        background: #7dd3fc;
+        background: #C8C8C8;
       }
       [data-admin-product-image-editable="true"] {
         cursor: pointer;
-        outline: 2px dashed rgba(56, 189, 248, 0.55);
+        outline: 2px dashed rgba(177,177,177, 0.55);
         outline-offset: -6px;
         transition: background-color 0.15s ease, outline-color 0.15s ease;
       }
       [data-admin-product-image-editable="true"]:hover,
       [data-admin-product-image-editable="true"][data-admin-product-image-drag-over="true"] {
-        background-color: rgba(186, 230, 253, 0.28);
-        outline-color: rgba(2, 132, 199, 0.95);
+        background-color: rgba(223,223,223, 0.28);
+        outline-color: rgba(125,125,125, 0.95);
       }
       [data-admin-detail-image-upload-target="true"] {
         cursor: pointer;
-        outline: 2px dashed rgba(56, 189, 248, 0.58);
+        outline: 2px dashed rgba(177,177,177, 0.58);
         outline-offset: -6px;
         transition: background-color 0.15s ease, outline-color 0.15s ease, filter 0.15s ease;
       }
       [data-admin-detail-image-upload-target="true"]:hover,
       [data-admin-detail-image-upload-target="true"][data-admin-detail-image-drag-over="true"] {
-        background-color: rgba(186, 230, 253, 0.28);
-        outline-color: rgba(2, 132, 199, 0.95);
+        background-color: rgba(223,223,223, 0.28);
+        outline-color: rgba(125,125,125, 0.95);
         filter: saturate(1.04);
       }
       .admin-block-drag-handle {
@@ -283,12 +283,12 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         line-height: 1;
         font-weight: 900;
         letter-spacing: 1px;
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.75);
+        text-shadow: 0 1px 0 rgba(38,42,56,1), 0 0 2px rgba(255, 255, 255, 0.75);
         cursor: grab;
         touch-action: none;
       }
       .admin-block-drag-handle:hover {
-        background: rgba(186, 230, 253, 0.55);
+        background: rgba(223,223,223, 0.55);
       }
       .admin-block-drag-handle:active {
         cursor: grabbing;
@@ -303,7 +303,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         border: 0;
         border-radius: 8px;
         background: transparent;
-        color: #0f172a;
+        color: #171717;
         font-size: 16px;
         line-height: 1;
         font-weight: 900;
@@ -326,7 +326,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         vertical-align: middle;
       }
       .admin-page-move-handle:hover {
-        background: rgba(186, 230, 253, 0.55);
+        background: rgba(223,223,223, 0.55);
         opacity: 1;
       }
       .admin-page-move-handle:active {
@@ -336,9 +336,9 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         will-change: transform;
       }
       [data-admin-editable-block="true"][data-admin-drag-over="true"] {
-        outline: 4px solid rgba(14, 165, 233, 0.95);
+        outline: 4px solid rgba(155,155,155, 0.95);
         outline-offset: 6px;
-        box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.22), 3px 3px 0 #111827;
+        box-shadow: 0 0 0 8px rgba(177,177,177, 0.22), 3px 3px 0 #111827;
       }
       [data-admin-legacy-block-id] {
         cursor: text;
@@ -355,35 +355,35 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
       [data-admin-editable-block="true"] {
         position: relative;
         z-index: 2147483641;
-        outline: 2px dashed rgba(56, 189, 248, 0.85);
+        outline: 2px dashed rgba(177,177,177, 0.85);
         outline-offset: -2px;
       }
       [data-ac-block]:hover {
-        outline: 3px solid rgba(56, 189, 248, 0.9);
+        outline: 3px solid rgba(177,177,177, 0.9);
         outline-offset: 4px;
       }
       [data-admin-legacy-block-id]:hover {
-        outline: 3px solid rgba(56, 189, 248, 0.9);
+        outline: 3px solid rgba(177,177,177, 0.9);
         outline-offset: 4px;
       }
       [data-admin-legacy-box-id]:hover {
-        outline: 3px solid rgba(56, 189, 248, 0.9);
+        outline: 3px solid rgba(177,177,177, 0.9);
         outline-offset: 4px;
       }
       [data-ac-block][data-admin-selected="true"],
       [data-admin-legacy-block-id][data-admin-selected="true"],
       [data-admin-legacy-box-id][data-admin-selected="true"] {
-        outline: 3px solid #0284c7;
+        outline: 3px solid #7D7D7D;
         outline-offset: 4px;
-        box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.24), 3px 3px 0 #111827;
+        box-shadow: 0 0 0 6px rgba(177,177,177, 0.24), 3px 3px 0 #111827;
       }
       [data-ac-block][data-admin-workbench-highlight="true"],
       [data-admin-legacy-block-id][data-admin-workbench-highlight="true"],
       [data-admin-legacy-box-id][data-admin-workbench-highlight="true"] {
-        outline: 4px solid #facc15 !important;
+        outline: 4px solid #D1D1D1 !important;
         outline-offset: 7px !important;
         box-shadow:
-          0 0 0 11px rgba(250, 204, 21, 0.34),
+          0 0 0 11px rgba(20,23,33, 0.34),
           4px 4px 0 #111827 !important;
       }
       [data-ac-block][data-admin-workbench-highlight="true"]::after,
@@ -400,7 +400,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         padding: 0 9px;
         border: 2px solid #111827;
         border-radius: 999px;
-        background: #facc15;
+        background: #D1D1D1;
         color: #111827;
         font-size: 11px;
         line-height: 1;
@@ -409,16 +409,16 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         pointer-events: none;
       }
       [data-admin-page-workbench-highlight="true"] {
-        outline: 4px solid #facc15 !important;
+        outline: 4px solid #D1D1D1 !important;
         outline-offset: 7px !important;
         box-shadow:
-          0 0 0 11px rgba(250, 204, 21, 0.3),
+          0 0 0 11px rgba(20,23,33, 0.3),
           4px 4px 0 #111827 !important;
       }
       [data-ac-block][contenteditable="true"]:focus,
       [data-admin-legacy-block-id][contenteditable="true"]:focus,
       [data-admin-legacy-box-id][contenteditable="true"]:focus {
-        outline: 3px solid #38bdf8;
+        outline: 3px solid #B1B1B1;
         outline-offset: 4px;
       }
       .admin-block-resize-handle {
@@ -430,7 +430,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         height: 18px;
         border: 2px solid #111827;
         border-radius: 5px;
-        background: #38bdf8;
+        background: #B1B1B1;
         box-shadow: 2px 2px 0 rgba(17, 24, 39, 0.9);
         cursor: nwse-resize;
         touch-action: none;
@@ -446,7 +446,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         border-bottom: 2px solid #111827;
       }
       [data-admin-resizing-block="true"] {
-        outline: 4px solid rgba(14, 165, 233, 0.95) !important;
+        outline: 4px solid rgba(155,155,155, 0.95) !important;
         outline-offset: 5px !important;
       }
       body[data-admin-preview-editing="true"] header {
@@ -476,9 +476,9 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         z-index: 220 !important;
       }
       [data-admin-locked-pulse="true"] {
-        outline: 3px dashed rgba(100, 116, 139, 0.92) !important;
+        outline: 3px dashed rgba(115,115,115, 0.92) !important;
         outline-offset: -3px !important;
-        box-shadow: inset 0 0 0 9999px rgba(148, 163, 184, 0.1) !important;
+        box-shadow: inset 0 0 0 9999px rgba(162,162,162, 0.1) !important;
       }
       .admin-editing-toast {
         position: fixed;
@@ -492,7 +492,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
         border: 2px solid #111827;
         border-radius: 999px;
         background: #ffffff;
-        color: #475569;
+        color: #545454;
         font-size: 12px;
         font-weight: 900;
         box-shadow: 3px 3px 0 #111827;
@@ -1224,7 +1224,7 @@ export function ProgramAdminBridge({ productSlug }: ProgramAdminBridgeProps) {
     }
 
     const findLegacyBoxTargets = (detailTarget: HTMLElement) => {
-      const candidates = Array.from(detailTarget.querySelectorAll<HTMLElement>('[class*="w-14"][class*="h-14"][class*="rounded"], [class*="border-2"][class*="rounded-xl"][class*="shadow"]'))
+      const candidates = Array.from(detailTarget.querySelectorAll<HTMLElement>('[class*="w-14"][class*="h-14"][class*="rounded-[12px]"], [class*="border-2"][class*="rounded-[12px]"][class*="shadow"]'))
       const targets = candidates
         .map((element) => closestLegacyCard(element, detailTarget))
         .filter((element) => !element.closest('[data-ac-block], [data-admin-field-editable="true"]'))

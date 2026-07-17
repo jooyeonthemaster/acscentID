@@ -21,6 +21,8 @@ import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
+import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
@@ -128,77 +130,70 @@ export default function LeQuackPage() {
     setShowAuthModal(true)
   }
 
-  return (
-    <InactiveProductGuard productSlug="le-quack">
-    <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
-      <Header />
-      <ProgramAdminBridge productSlug="le-quack" />
-
-      {/* ============================================
-          HERO SECTION - 제품 갤러리 + 정보
-      ============================================ */}
-      <UnifiedDetailHero
-        productSlug="le-quack"
-        title={productName}
-        imageAlt={productName}
-        pageContent={pageContent}
-        pagePositionStyle={pagePositionStyle}
-        breadcrumbs={[
-          { label: t('programs.breadcrumbHome'), href: "/" },
-          { label: t('programs.detail.leQuack.breadcrumbSignature'), href: "/" },
-          { label: productName },
-        ]}
-        images={{
-          urls: productImages,
-          loading: imagesLoading,
-          selectedIndex: selectedImage,
-          onSelect: setSelectedImage,
-        }}
-        meta={
-          <div className="flex flex-wrap items-center gap-2">
-            <ReviewTrigger
-              averageRating={reviewStats?.average_rating || 4.9}
-              totalCount={reviewStats?.total_count || 0}
-              onClick={() => setShowReviewModal(true)}
-            />
-            <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-black text-white">
-              SIGNATURE
-            </span>
-          </div>
-        }
-        price={
-          <>
-            <div className="mb-3 rounded-xl border-2 border-black bg-black p-3 text-center text-sm font-black text-white shadow-[2px_2px_0_0_#cbd5e1]">
-              {t('programs.detail.leQuack.signaturePerfumeLabel')}
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
-              {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
-                <>
-                  <span className="text-xs text-slate-400 line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>
-                  {sigDiscount !== null && (
-                    <span className="rounded bg-black px-1.5 py-0.5 text-[10px] font-bold text-white">{sigDiscount}% OFF</span>
-                  )}
-                </>
+  const heroProps = {
+    productSlug: "le-quack",
+    title: productName,
+    imageAlt: productName,
+    pageContent,
+    pagePositionStyle,
+    breadcrumbs: [
+      { label: t('programs.breadcrumbHome'), href: "/" },
+      { label: t('programs.detail.leQuack.breadcrumbSignature'), href: "/" },
+      { label: productName },
+    ],
+    images: {
+      urls: productImages,
+      loading: imagesLoading,
+      selectedIndex: selectedImage,
+      onSelect: setSelectedImage,
+    },
+    meta: (
+      <div className="flex flex-wrap items-center gap-2">
+        <ReviewTrigger
+          averageRating={reviewStats?.average_rating || 4.9}
+          totalCount={reviewStats?.total_count || 0}
+          onClick={() => setShowReviewModal(true)}
+        />
+        <span className="rounded-full bg-[#FDFAF1] px-2 py-0.5 text-[10px] lg:text-[12px] font-black text-[#1A1610]">
+          SIGNATURE
+        </span>
+      </div>
+    ),
+    price: (
+      <>
+        <div className="mb-3 rounded-[12px] border-2 border-[#D8CFBB] bg-[#FDFAF1] p-3 text-center text-sm lg:text-base font-black text-[#1A1610]">
+          {t('programs.detail.leQuack.signaturePerfumeLabel')}
+        </div>
+        <div className="flex items-end gap-2">
+          <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
+          {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
+            <>
+              <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>
+              {sigDiscount !== null && (
+                <span className="rounded-[12px] bg-[#FDFAF1] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#1A1610]">{sigDiscount}% OFF</span>
               )}
-            </div>
-          </>
-        }
-        infoIcon={<Star size={14} className="fill-slate-900 text-slate-900" />}
-        infoItems={[
-          t('programs.detail.leQuack.infoDelivery'),
-          t('programs.detail.leQuack.infoKeyringIncluded'),
-          t('programs.detail.leQuack.infoPremiumPackage'),
-          t('programs.detail.leQuack.infoFreeShipping'),
-        ]}
-        cta={{
-          onClick: handlePurchaseClick,
-          disabled: loading,
-          label: pageContent.ctaLabel,
-          hint: t('programs.detail.leQuack.ctaHint'),
-        }}
-      />
+            </>
+          )}
+        </div>
+      </>
+    ),
+    infoIcon: <Star size={14} className="fill-[#1A1610] text-[#1A1610]" />,
+    infoItems: [
+      t('programs.detail.leQuack.infoDelivery'),
+      t('programs.detail.leQuack.infoKeyringIncluded'),
+      t('programs.detail.leQuack.infoPremiumPackage'),
+      t('programs.detail.leQuack.infoFreeShipping'),
+    ],
+    cta: {
+      onClick: handlePurchaseClick,
+      disabled: loading,
+      label: pageContent.ctaLabel,
+      hint: t('programs.detail.leQuack.ctaHint'),
+    },
+  }
 
+  const detailBody = (
+    <>
       {isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
@@ -206,24 +201,24 @@ export default function LeQuackPage() {
           {/* ============================================
               Feature Bar - 검은 배경
           ============================================ */}
-          <section className="py-6 px-4 bg-black">
+          <section className="py-6 px-4 bg-[#FDFAF1]">
             <div className="w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-white">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-[#1A1610]">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">🦆</span>
-                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureKeyring')}</span>
+                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureKeyring')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureSignatureScent')}</span>
+                  <Sparkles size={14} className="text-[#8B8578]" />
+                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureSignatureScent')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Package size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureFastDelivery')}</span>
+                  <Package size={14} className="text-[#8B8578]" />
+                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureFastDelivery')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Heart size={14} className="text-amber-400" />
-                  <span className="font-bold text-xs">{t('programs.detail.leQuack.featureGiftRecommend')}</span>
+                  <Heart size={14} className="text-[#8B8578]" />
+                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureGiftRecommend')}</span>
                 </div>
               </div>
             </div>
@@ -232,7 +227,7 @@ export default function LeQuackPage() {
           {/* ============================================
               제품 특징
           ============================================ */}
-          <section className="py-12 px-4 bg-[#FFFDF5]">
+          <section className="py-12 px-4 bg-[#FDFAF1]">
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -241,10 +236,10 @@ export default function LeQuackPage() {
               className="w-full"
             >
               <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-amber-400 text-white text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
+                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
                   ✨ FEATURES
                 </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black break-keep">
+                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
                   {t('programs.detail.leQuack.featuresHeadingLine1')}
                   <br />
                   {t('programs.detail.leQuack.featuresHeadingLine2')}
@@ -253,34 +248,34 @@ export default function LeQuackPage() {
 
               <div className="space-y-4">
                 {/* 퍼퓸키링 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🦆</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardKeyringTitle')}</h3>
-                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardKeyringBodyLine1')}<br />{t('programs.detail.leQuack.cardKeyringBodyLine2')}</p>
+                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardKeyringTitle')}</h3>
+                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardKeyringBodyLine1')}<br />{t('programs.detail.leQuack.cardKeyringBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* 시그니처 향 */}
-                <motion.div variants={fadeInUp} className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                <motion.div variants={fadeInUp} className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">✨</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardScentTitle')}</h3>
-                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardScentBodyLine1')}<br />{t('programs.detail.leQuack.cardScentBodyLine2')}</p>
+                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardScentTitle')}</h3>
+                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardScentBodyLine1')}<br />{t('programs.detail.leQuack.cardScentBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* 선물용 */}
-                <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border-2 border-black shadow-[4px_4px_0_0_black]">
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🎁</div>
                     <div>
-                      <h3 className="font-black text-slate-900 mb-2">{t('programs.detail.leQuack.cardGiftTitle')}</h3>
-                      <p className="text-slate-600 text-sm">{t('programs.detail.leQuack.cardGiftBodyLine1')}<br />{t('programs.detail.leQuack.cardGiftBodyLine2')}</p>
+                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardGiftTitle')}</h3>
+                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardGiftBodyLine1')}<br />{t('programs.detail.leQuack.cardGiftBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -294,7 +289,7 @@ export default function LeQuackPage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section id="reviews" className="py-12 px-4 bg-white border-y-2 border-black">
+      <section id="reviews" className="py-12 px-4 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -303,16 +298,16 @@ export default function LeQuackPage() {
           className="w-full"
         >
           <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-yellow-400 text-black text-xs font-black rounded-full border-2 border-black shadow-[2px_2px_0_0_black] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-black mb-2 break-keep">
+            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] mb-2 break-keep">
               {t('programs.detail.leQuack.reviewsHeading')}
             </motion.h2>
             <motion.button
               variants={fadeInUp}
               onClick={() => setShowReviewModal(true)}
-              className="text-xs text-slate-500 hover:text-black transition-colors underline underline-offset-4"
+              className="text-xs lg:text-sm text-[#8B8578] hover:text-[#1A1610] transition-colors underline underline-offset-4"
             >
               {t('programs.detail.leQuack.viewAllReviews')}
             </motion.button>
@@ -340,29 +335,10 @@ export default function LeQuackPage() {
           </motion.div>
         </motion.div>
       </section>
+    </>
+  )
 
-      {/* ============================================
-          하단 고정 구매 버튼
-      ============================================ */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-black p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-        <div className="max-w-[455px] mx-auto">
-          <button
-            onClick={handlePurchaseClick}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-black py-3 text-base font-black text-white shadow-[3px_3px_0_0_#cbd5e1] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#cbd5e1] disabled:opacity-50"
-          >
-            <ShoppingCart size={18} />
-            {t('programs.detail.leQuack.ctaLabel')}
-          </button>
-        </div>
-      </div>
-
-      {/* 하단 여백 (고정 버튼 공간) */}
-      <div className="h-24" />
-
-      {/* ============================================
-          로그인 안내 모달
-      ============================================ */}
+  const loginPromptModal = (
       <AnimatePresence>
         {showLoginPrompt && (
           <>
@@ -379,40 +355,40 @@ export default function LeQuackPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-black"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-[#F5EFE2] rounded-[12px] shadow-2xl overflow-hidden border-2 border-[#D8CFBB]"
             >
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-amber-50 to-white">
+              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-[#FDFAF1] to-[#F5EFE2]">
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#EDE5D2] transition-colors"
                 >
-                  <X size={20} className="text-slate-400" />
+                  <X size={20} className="text-[#8B8578]" />
                 </button>
 
-                <div className="w-16 h-16 mx-auto mb-4 bg-amber-400 rounded-2xl flex items-center justify-center shadow-lg border-2 border-black shadow-[4px_4px_0_0_black]">
+                <div className="w-16 h-16 mx-auto mb-4 bg-[#EFE4C8] rounded-[12px] flex items-center justify-center shadow-lg border-2 border-[#D8CFBB]">
                   <span className="text-3xl">🦆</span>
                 </div>
 
-                <h2 className="text-xl font-black text-slate-900 mb-2">{t('programs.detail.leQuack.loginModalTitle')}</h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
+                <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.loginModalTitle')}</h2>
+                <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed">
                   {t('programs.detail.leQuack.loginModalDescPrefix')}<br />
-                  <span className="font-bold text-amber-600">{t('programs.detail.leQuack.loginModalDescHighlight')}</span>{t('programs.detail.leQuack.loginModalDescSuffix')}
+                  <span className="font-bold text-[#5C564A]">{t('programs.detail.leQuack.loginModalDescHighlight')}</span>{t('programs.detail.leQuack.loginModalDescSuffix')}
                 </p>
               </div>
 
-              <div className="px-6 py-4 bg-slate-50 border-y-2 border-black">
-                <div className="space-y-2 text-sm">
+              <div className="px-6 py-4 bg-[#EDE5D2] border-y-2 border-[#D8CFBB]">
+                <div className="space-y-2 text-sm lg:text-base">
                   <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitSaveOrders')}</span>
+                    <span className="text-[#8B8578] font-bold">✓</span>
+                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitSaveOrders')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitTrackDelivery')}</span>
+                    <span className="text-[#8B8578] font-bold">✓</span>
+                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitTrackDelivery')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-amber-500 font-bold">!</span>
-                    <span className="text-slate-600">{t('programs.detail.leQuack.loginBenefitGuestAllowed')}</span>
+                    <span className="text-[#8B8578] font-bold">!</span>
+                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitGuestAllowed')}</span>
                   </div>
                 </div>
               </div>
@@ -420,14 +396,14 @@ export default function LeQuackPage() {
               <div className="p-6 space-y-3">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_#cbd5e1] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#cbd5e1] transition-all border-2 border-black"
+                  className="w-full h-14 bg-[#12141D] text-[#F5EFE2] rounded-[12px] font-bold text-lg transition-all border-2 border-[#12141D]"
                 >
                   {t('programs.detail.leQuack.loginSignupButton')}
                 </button>
 
                 <button
                   onClick={handleGuestPurchase}
-                  className="w-full h-12 bg-white text-slate-600 rounded-2xl font-semibold border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-[#F5EFE2] text-[#5C564A] rounded-[12px] font-semibold border-2 border-[#D8CFBB] hover:bg-[#EDE5D2] hover:border-[#C9BFA8] transition-all flex items-center justify-center gap-2"
                 >
                   <span>{t('programs.detail.leQuack.guestPurchaseButton')}</span>
                 </button>
@@ -436,40 +412,90 @@ export default function LeQuackPage() {
           </>
         )}
       </AnimatePresence>
+  )
 
-      {/* 로그인 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        redirectPath="/checkout?product=le-quack&type=signature"
-      />
+  return (
+    <InactiveProductGuard productSlug="le-quack">
+    <ViewportSwitch
+      mobile={
+        <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+          <Header />
+          <ProgramAdminBridge productSlug="le-quack" />
+          <UnifiedDetailHero {...heroProps} />
+          {detailBody}
 
-      {/* 리뷰 모달 */}
-      <ReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        programType="le-quack"
-        programName={productName}
-        currentUserId={currentUserId}
-        onWriteReview={() => {
-          setShowReviewModal(false)
-          setShowReviewWriteModal(true)
-        }}
-      />
+          {/* ============================================
+              하단 고정 구매 버튼
+          ============================================ */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#12141D] border-t-2 border-[#262A38] p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+            <div className="max-w-[455px] mx-auto">
+              <button
+                onClick={handlePurchaseClick}
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#12141D] bg-[#12141D] py-3 text-base font-black text-[#F5EFE2] transition-all disabled:opacity-50"
+              >
+                <ShoppingCart size={18} />
+                {t('programs.detail.leQuack.ctaLabel')}
+              </button>
+            </div>
+          </div>
 
-      {/* 리뷰 작성 모달 */}
-      <ReviewWriteModal
-        isOpen={showReviewWriteModal}
-        onClose={() => setShowReviewWriteModal(false)}
-        programType="le-quack"
-        programName={productName}
-        userId={currentUserId || ''}
-        onSuccess={() => {
-          // 리뷰 통계 새로고침
-          getReviewStats('le-quack').then(setReviewStats)
-        }}
-      />
-    </main>
+          {/* 하단 여백 (고정 버튼 공간) */}
+          <div className="h-24" />
+        </main>
+      }
+      desktop={
+        <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+          <DesktopDetailHero {...heroProps} />
+          <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
+          <div className="mx-auto mt-8 w-full max-w-[760px] px-4">
+            <button
+              onClick={handlePurchaseClick}
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all hover:bg-[#F2C24A] disabled:opacity-50"
+            >
+              <ShoppingCart size={18} />
+              {t('programs.detail.leQuack.ctaLabel')}
+            </button>
+          </div>
+        </main>
+      }
+    />
+
+    {loginPromptModal}
+
+    {/* 로그인 모달 */}
+    <AuthModal
+      isOpen={showAuthModal}
+      onClose={() => setShowAuthModal(false)}
+      redirectPath="/checkout?product=le-quack&type=signature"
+    />
+
+    {/* 리뷰 모달 */}
+    <ReviewModal
+      isOpen={showReviewModal}
+      onClose={() => setShowReviewModal(false)}
+      programType="le-quack"
+      programName={productName}
+      currentUserId={currentUserId}
+      onWriteReview={() => {
+        setShowReviewModal(false)
+        setShowReviewWriteModal(true)
+      }}
+    />
+
+    {/* 리뷰 작성 모달 */}
+    <ReviewWriteModal
+      isOpen={showReviewWriteModal}
+      onClose={() => setShowReviewWriteModal(false)}
+      programType="le-quack"
+      programName={productName}
+      userId={currentUserId || ''}
+      onSuccess={() => {
+        // 리뷰 통계 새로고침
+        getReviewStats('le-quack').then(setReviewStats)
+      }}
+    />
     </InactiveProductGuard>
   )
 }

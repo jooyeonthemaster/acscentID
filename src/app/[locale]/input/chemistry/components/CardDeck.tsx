@@ -30,7 +30,7 @@ export function CardDeck({
           <div
             key={i}
             className={`w-2 h-2 rounded-full transition-all ${
-              i === currentCard ? 'bg-violet-500 w-6' : i < currentCard ? 'bg-violet-300' : 'bg-slate-200'
+              i === currentCard ? 'bg-[#EFE4C8] w-6' : i < currentCard ? 'bg-[#D8CFBB]' : 'bg-[#D8CFBB]'
             }`}
           />
         ))}
@@ -102,7 +102,7 @@ function CardWrapper({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1, rotateY: 0, scale: 1 }}
       exit={{ opacity: 0, rotateY: 90, scale: 0.8 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="bg-[#FFF8E7] border-2 border-black rounded-2xl shadow-[4px_4px_0_0_black] overflow-hidden"
+      className="bg-[#0E1016] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
     >
       {children}
     </motion.div>
@@ -131,20 +131,20 @@ function CustomInputToggle({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full py-2.5 px-4 text-xs font-bold text-slate-500 bg-white/80 rounded-xl border-2 border-dashed border-slate-300 hover:border-violet-400 hover:text-violet-600 transition-all flex items-center justify-center gap-1"
+          className="w-full py-2.5 px-4 text-xs lg:text-sm font-bold text-[#8B8578] bg-[#F5EFE2]/80 rounded-[12px] border-2 border-dashed border-[#D8CFBB] hover:border-[#C9BFA8] hover:text-[#5C564A] transition-all flex items-center justify-center gap-1"
         >
           <ChevronDown size={14} />
           <span>{t('customInput')}</span>
         </button>
       ) : (
         <div className="relative">
-          <div className="absolute -inset-[3px] rounded-2xl border-2 border-dashed border-violet-400/60 pointer-events-none" />
+          <div className="absolute -inset-[3px] rounded-[12px] border-2 border-dashed border-stone-400/60 pointer-events-none" />
           <input
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder || t('customPlaceholder')}
-            className="relative w-full p-3 bg-white/90 rounded-xl text-base text-slate-800 placeholder:text-slate-400 outline-none border-2 border-violet-200 shadow-lg shadow-violet-400/10 focus:border-violet-400 focus:bg-white transition-all"
+            className="relative w-full p-3 bg-[#F5EFE2]/90 rounded-[12px] text-base text-[#1A1610] placeholder:text-[#8B8578] outline-none border-2 border-[#D8CFBB] shadow-lg shadow-stone-400/10 focus:border-[#C9BFA8] focus:bg-[#F5EFE2] transition-all"
             maxLength={50}
           />
         </div>
@@ -172,8 +172,8 @@ function TropeCard({ formData, setFormData }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">{t('tropeTitle')}</h2>
-        <p className="text-xs text-slate-500 mt-1">{t('tropeSubtitle')}</p>
+        <h2 className="text-lg font-black text-[#1A1610]">{t('tropeTitle')}</h2>
+        <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('tropeSubtitle')}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {RELATION_TROPES.map((trope) => {
@@ -184,14 +184,14 @@ function TropeCard({ formData, setFormData }: {
               whileTap={{ scale: 0.95 }}
               onClick={() => toggleTrope(trope.id)}
               aria-pressed={isSelected}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3 rounded-[12px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-violet-500 bg-violet-50 shadow-[2px_2px_0_0_#8b5cf6]'
-                  : 'border-slate-200 bg-white hover:border-violet-300'
+                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
               <span className="text-xl block mb-1">{trope.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(trope.id, locale)}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610] block">{getChemistryOptionLabel(trope.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -224,11 +224,11 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
   return (
     <div className="p-5">
       {/* 인물 이름 배너 - 2분할 레이아웃 */}
-      <div className="bg-yellow-300 border-b-[3px] border-black -mx-5 -mt-5 mb-5 px-5 py-4">
+      <div className="bg-[#D8CFBB] border-b-[3px] border-[#D8CFBB] -mx-5 -mt-5 mb-5 px-5 py-4">
         <div className="flex items-center gap-4">
           {/* 좌측: 사진 */}
           <div className="flex-shrink-0">
-            <div className="w-16 h-16 rounded-xl border-2 border-black overflow-hidden shadow-[2px_2px_0_0_black] bg-white">
+            <div className="w-16 h-16 rounded-[12px] border-2 border-[#D8CFBB] overflow-hidden bg-[#F5EFE2]">
               {imageBase64 ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={imageBase64} alt={label} className="w-full h-full object-cover" />
@@ -239,12 +239,12 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
           </div>
           {/* 우측: 텍스트 좌측 정렬 */}
           <div className="flex-1 text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-black rounded-full shadow-[2px_2px_0_0_black] mb-1.5">
-              <span className="text-sm">{emoji}</span>
-              <span className="text-sm font-black text-slate-900">{label}</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-full mb-1.5">
+              <span className="text-sm lg:text-base">{emoji}</span>
+              <span className="text-sm lg:text-base font-black text-[#1A1610]">{label}</span>
             </div>
-            <h2 className="text-sm font-black text-slate-900">{t('archetypeQuestion', { name: label })}</h2>
-            <p className="text-[11px] text-slate-600 mt-0.5">{t('archetypeSubtitle')}</p>
+            <h2 className="text-sm lg:text-base font-black text-[#1A1610]">{t('archetypeQuestion', { name: label })}</h2>
+            <p className="text-[11px] lg:text-[13px] text-[#5C564A] mt-0.5">{t('archetypeSubtitle')}</p>
           </div>
         </div>
       </div>
@@ -256,14 +256,14 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               key={arch.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => onToggle(arch.id)}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3 rounded-[12px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-violet-500 bg-violet-50 shadow-[2px_2px_0_0_#8b5cf6]'
-                  : 'border-slate-200 bg-white hover:border-violet-300'
+                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
               <span className="text-xl block mb-1">{arch.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(arch.id, locale)}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610] block">{getChemistryOptionLabel(arch.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -298,8 +298,8 @@ function SceneCard({ formData, setFormData }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">{t('sceneTitle')}</h2>
-        <p className="text-xs text-slate-500 mt-1">{t('sceneSubtitle')}</p>
+        <h2 className="text-lg font-black text-[#1A1610]">{t('sceneTitle')}</h2>
+        <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('sceneSubtitle')}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {SCENE_OPTIONS.map((scene) => {
@@ -309,14 +309,14 @@ function SceneCard({ formData, setFormData }: {
               key={scene.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => toggleScene(scene.id)}
-              className={`p-4 rounded-xl border-2 text-center transition-all ${
+              className={`p-4 rounded-[12px] border-2 text-center transition-all ${
                 isSelected
-                  ? 'border-violet-500 bg-violet-50 shadow-[2px_2px_0_0_#8b5cf6]'
-                  : 'border-slate-200 bg-white hover:border-violet-300'
+                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
               <span className="text-2xl block mb-2">{scene.emoji}</span>
-              <span className="text-xs font-bold text-slate-800 block">{getChemistryOptionLabel(scene.id, locale)}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610] block">{getChemistryOptionLabel(scene.id, locale)}</span>
             </motion.button>
           )
         })}
@@ -345,8 +345,8 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">{t('emotionTitle')}</h2>
-        <p className="text-xs text-slate-500 mt-1">{t('emotionSubtitle')}</p>
+        <h2 className="text-lg font-black text-[#1A1610]">{t('emotionTitle')}</h2>
+        <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('emotionSubtitle')}</p>
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         {EMOTION_KEYWORDS.map((emotion) => {
@@ -359,17 +359,17 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
               onClick={() => toggleEmotion(emotion.id)}
               className={`px-4 py-3 rounded-full border-2 transition-all ${
                 isSelected
-                  ? 'border-violet-500 bg-violet-100 shadow-[2px_2px_0_0_#8b5cf6]'
-                  : 'border-slate-200 bg-white hover:border-violet-300'
+                  ? 'border-[#C9BFA8] bg-[#EDE5D2]'
+                  : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
               <span className="text-base mr-1">{emotion.emoji}</span>
-              <span className="text-xs font-bold text-slate-800">{getChemistryOptionLabel(emotion.id, locale)}</span>
+              <span className="text-xs lg:text-sm font-bold text-[#1A1610]">{getChemistryOptionLabel(emotion.id, locale)}</span>
             </motion.button>
           )
         })}
       </div>
-      <div className="mt-4 text-center text-xs text-violet-500 font-medium">
+      <div className="mt-4 text-center text-xs lg:text-sm text-[#8B8578] font-medium">
         {t('selectedCount', { count: formData.emotionKeywords.length, max: 3 })}
       </div>
       <CustomInputToggle
@@ -392,24 +392,24 @@ function MessageCard({ formData, setFormData }: {
   return (
     <div className="p-5">
       <div className="text-center mb-5">
-        <h2 className="text-lg font-black text-slate-900">{t('messageTitle')}</h2>
-        <p className="text-xs text-slate-500 mt-1">{t('messageSubtitle')}</p>
+        <h2 className="text-lg font-black text-[#1A1610]">{t('messageTitle')}</h2>
+        <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('messageSubtitle')}</p>
       </div>
 
       <textarea
         value={formData.message}
         onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-        className="w-full h-32 px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none resize-none"
+        className="w-full h-32 px-4 py-3 text-base bg-[#FDFAF1] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] focus:border-[#C9BFA8] focus:ring-2 focus:ring-[#D8CFBB] outline-none resize-none"
         placeholder={t('messagePlaceholder')}
         maxLength={300}
       />
 
       <div className="flex justify-end mt-2">
-        <span className="text-[11px] text-slate-400">{formData.message.length}/300</span>
+        <span className="text-[11px] lg:text-[13px] text-[#8B8578]">{formData.message.length}/300</span>
       </div>
 
-      <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl p-3">
-        <p className="text-[11px] text-violet-500 leading-relaxed text-center">
+      <div className="mt-3 bg-[#FDFAF1] border border-[#D8CFBB] rounded-[12px] p-3">
+        <p className="text-[11px] lg:text-[13px] text-[#8B8578] leading-relaxed text-center">
           {t('messageHint')}
         </p>
       </div>

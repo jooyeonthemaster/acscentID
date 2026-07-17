@@ -27,11 +27,11 @@ export function QuickReplyButtons({ replies, onSelect, disabled = false }: Quick
           whileTap={{ scale: 0.97 }}
           onClick={() => onSelect(reply)}
           disabled={disabled}
-          className="px-4 py-2.5 bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="px-4 py-2.5 bg-[#12141D] border-2 border-[#262A38] rounded-full hover:bg-[#151823] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <span className="flex items-center gap-2">
             {reply.emoji && <span className="text-lg">{reply.emoji}</span>}
-            <span className="font-medium text-sm">{reply.label}</span>
+            <span className="font-medium text-sm lg:text-base">{reply.label}</span>
           </span>
         </motion.button>
       ))}

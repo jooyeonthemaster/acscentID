@@ -1,18 +1,21 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Instagram, Twitter, Copy, Check } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useState } from 'react'
-import { isFocusedExperiencePath } from '@/lib/route-visibility'
+import { isFocusedExperiencePath, hasOwnBottomBar } from '@/lib/route-visibility'
 import { ADMIN_PROGRAMS } from '@/lib/admin/catalog'
 import { useActiveProducts } from '@/hooks/useAdminContent'
+import { useViewportMode } from '@/hooks/useViewportMode'
+import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
 
 // 입금계좌 (복사용 — 숫자만)
 const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
 
-const PROGRAM_NAME_KEYS: Record<string, string> = {
+export const PROGRAM_NAME_KEYS: Record<string, string> = {
   'idol-image': 'products.idolImage',
   figure: 'products.figureDiffuser',
   graduation: 'products.graduation',
@@ -31,6 +34,9 @@ export function Footer() {
   const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const { products, isProductVisible } = useActiveProducts()
+  const viewportMode = useViewportMode()
+  // 데스크탑 크롬이 켜진 라우트에서는 lg+에서 DesktopFooter가 대신 렌더링된다
+  const hideAtLg = !isDesktopChromeExcludedPath(pathname)
 
   // 노출(활성) 중인 프로그램만 admin_products 표시순서대로 자동 노출
   const productBySlug = new Map(products.map((p) => [p.slug, p]))
@@ -56,32 +62,37 @@ export function Footer() {
     }
   }
 
-  // 관리자 페이지, 집중 경험 경로에서는 숨김
-  if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname)) return null
+  // 관리자 페이지, 집중 경험 경로, 자체 하단 고정 바 페이지(구매바 등)에서는 숨김
+  // — 자체 하단 바가 있는 페이지에서 푸터가 고정 바를 덮는 겹침을 막는다.
+  if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname) || hasOwnBottomBar(pathname)) return null
+
+  // 하이드레이션 후 데스크탑으로 확정되면 모바일 푸터는 언마운트 (lg 미만 동작 불변)
+  if (hideAtLg && viewportMode === 'desktop') return null
 
   return (
-    <footer className="relative z-20 bg-black text-white border-t-4 border-yellow-400">
+    <footer className={`relative z-20 bg-[#0C0E16] text-[#E9E2D0] border-t-2 border-[#D4A017] font-wanted${hideAtLg ? ' lg:hidden' : ''}`}>
       <div className="w-full px-4 py-8">
         {/* Main Footer Content */}
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* Brand Section */}
           <div className="col-span-2">
             <div className="flex flex-col items-start mb-3">
-              <span className="text-xl font-black tracking-tighter text-white">
-                AC&apos;SCENT
-              </span>
-              <span className="text-[10px] font-bold tracking-[0.3em] text-yellow-400 -mt-1">
-                IDENTITY
-              </span>
+              <Image
+                src="/images/logo/acscent-wordmark-cream.png"
+                alt="AC'SCENT"
+                width={2053}
+                height={285}
+                className="h-[19px] w-auto select-none"
+              />
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">
               {t('footer.tagline')}
             </p>
           </div>
 
           {/* Programs Links */}
           <div>
-            <h3 className="text-xs font-black tracking-wider uppercase text-yellow-400 mb-3">
+            <h3 className="text-xs lg:text-sm font-black tracking-wider uppercase text-[#D4A017] mb-3">
               {t('footer.programs')}
             </h3>
             <ul className="space-y-1.5">
@@ -89,7 +100,7 @@ export function Footer() {
                 <li key={program.slug}>
                   <Link
                     href={program.href}
-                    className="text-xs text-slate-300 hover:text-white inline-block transition-all"
+                    className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
                   >
                     {program.name}
                   </Link>
@@ -100,14 +111,14 @@ export function Footer() {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-xs font-black tracking-wider uppercase text-yellow-400 mb-3">
+            <h3 className="text-xs lg:text-sm font-black tracking-wider uppercase text-[#D4A017] mb-3">
               {t('footer.support')}
             </h3>
             <ul className="space-y-1.5">
               <li>
                 <Link
                   href="/faq"
-                  className="text-xs text-slate-300 hover:text-white inline-block transition-all"
+                  className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
                 >
                   FAQ
                 </Link>
@@ -115,7 +126,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-xs text-slate-300 hover:text-white inline-block transition-all"
+                  className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
                 >
                   {t('footer.privacy')}
                 </Link>
@@ -125,9 +136,9 @@ export function Footer() {
         </div>
 
         {/* Company Info */}
-        <div className="border-t border-slate-700 pt-4 mb-4">
-          <p className="text-[10px] text-slate-400 leading-relaxed">
-            <span className="font-bold text-slate-300">NEANDER Co.,LTD</span>
+        <div className="border-t border-[#262A38] pt-4 mb-4">
+          <p className="text-[10px] lg:text-[12px] text-[#8B8578] leading-relaxed">
+            <span className="font-bold text-[#5C564A]">NEANDER Co.,LTD</span>
             <br />
             {t('footer.companyInfo')}
             <br />
@@ -138,32 +149,32 @@ export function Footer() {
             {t('footer.companyContact')}
           </p>
           <div className="flex gap-3 mt-2">
-            <Link href="/terms" className="text-[10px] text-slate-400 hover:text-white transition-colors">
+            <Link href="/terms" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
               {t('footer.terms')}
             </Link>
-            <Link href="/privacy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
+            <Link href="/privacy" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
               {t('footer.privacy')}
             </Link>
-            <Link href="/refund-policy" className="text-[10px] text-slate-400 hover:text-white transition-colors">
+            <Link href="/refund-policy" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
               {t('footer.cancelRefundExchange')}
             </Link>
           </div>
         </div>
 
         {/* Deposit Account */}
-        <div className="border-t border-slate-700 pt-4 mb-4">
+        <div className="border-t border-[#262A38] pt-4 mb-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-sm md:text-base font-bold text-white">
+            <p className="text-sm lg:text-base md:text-base font-bold text-[#E9E2D0]">
               {t('footer.depositAccount')}
             </p>
             <button
               onClick={handleCopyAccount}
               title={copied ? t('footer.copied') : t('footer.copyAccount')}
               aria-label={copied ? t('footer.copied') : t('footer.copyAccount')}
-              className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-colors shrink-0 ${
+              className={`flex items-center justify-center w-9 h-9 rounded-[12px] border transition-colors shrink-0 ${
                 copied
-                  ? 'border-green-400 text-green-400'
-                  : 'border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black'
+                  ? 'border-[#D4A017] text-[#D4A017]'
+                  : 'border-[#343A4C] text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017]'
               }`}
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -172,27 +183,27 @@ export function Footer() {
         </div>
 
         {/* Social Media & Copyright */}
-        <div className="border-t border-slate-700 pt-4 flex items-center justify-between gap-3">
+        <div className="border-t border-[#262A38] pt-4 flex items-center justify-between gap-3">
           {/* Social Links */}
           <div className="flex items-center gap-2">
             <Link
               href="https://www.instagram.com/acscent_id/"
               target="_blank"
-              className="w-8 h-8 rounded-full border border-slate-400 flex items-center justify-center text-slate-400 hover:border-white hover:text-white transition-colors"
+              className="w-8 h-8 rounded-full border border-[#343A4C] flex items-center justify-center text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017] transition-colors"
             >
               <Instagram size={14} />
             </Link>
             <Link
               href="https://x.com/acscent_id"
               target="_blank"
-              className="w-8 h-8 rounded-full border border-slate-400 flex items-center justify-center text-slate-400 hover:border-white hover:text-white transition-colors"
+              className="w-8 h-8 rounded-full border border-[#343A4C] flex items-center justify-center text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017] transition-colors"
             >
               <Twitter size={14} />
             </Link>
           </div>
 
           {/* Copyright */}
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] lg:text-[12px] text-[#8B8578]">
             © {currentYear} NEANDER Co.,LTD
           </p>
         </div>
@@ -201,7 +212,7 @@ export function Footer() {
   )
 }
 
-function getTranslatedProgramName(
+export function getTranslatedProgramName(
   slug: string,
   fallback: string,
   t: ReturnType<typeof useTranslations>

@@ -111,7 +111,7 @@ export default function RecipeSelectionSection() {
     <div className="space-y-6">
       {/* 요약 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-medium">총 레시피</span>
@@ -120,7 +120,7 @@ export default function RecipeSelectionSection() {
             {data.total.toLocaleString()}건
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-blue-200 p-4 shadow-[3px_3px_0px_#bfdbfe]">
+        <div className="bg-white rounded-xl border-2 border-blue-200 p-4">
           <div className="flex items-center gap-2 text-blue-500 mb-2">
             <User className="w-4 h-4" />
             <span className="text-xs font-medium">직접 선택</span>
@@ -132,7 +132,7 @@ export default function RecipeSelectionSection() {
             {data.breakdown.userDirect.count.toLocaleString()}건
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-purple-200 p-4 shadow-[3px_3px_0px_#e9d5ff]">
+        <div className="bg-white rounded-xl border-2 border-purple-200 p-4">
           <div className="flex items-center gap-2 text-purple-500 mb-2">
             <Wand2 className="w-4 h-4" />
             <span className="text-xs font-medium">AI 추천</span>
@@ -144,7 +144,7 @@ export default function RecipeSelectionSection() {
             {data.breakdown.aiRecommended.count.toLocaleString()}건
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Sparkles className="w-4 h-4" />
             <span className="text-xs font-medium">원본 유지</span>
@@ -160,7 +160,7 @@ export default function RecipeSelectionSection() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 선택 비율 파이 차트 (심플 바 형태) */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-50 to-white">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-indigo-500" />
@@ -221,7 +221,7 @@ export default function RecipeSelectionSection() {
         </div>
 
         {/* 프로그램별 통계 */}
-        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-white">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
@@ -281,7 +281,7 @@ export default function RecipeSelectionSection() {
 
       {/* 월별 트렌드 */}
       {data.trend.length > 0 && (
-        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-green-50 to-white">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-500" />

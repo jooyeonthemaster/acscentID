@@ -160,7 +160,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                     <h2 style={{
                         fontSize: 15,
                         fontWeight: 900,
-                        color: '#0f172a',
+                        color: '#171717',
                         margin: 0,
                         lineHeight: 1.1,
                         letterSpacing: -0.5
@@ -208,7 +208,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#94a3b8',
+                                color: '#A2A2A2',
                                 fontSize: 14,
                             }}
                         >
@@ -255,7 +255,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         style={{
                             fontSize: 14,
                             fontWeight: 700,
-                            color: '#451a03',
+                            color: '#272727',
                             lineHeight: 1.4,
                             margin: 0,
                             wordBreak: 'keep-all',
@@ -285,10 +285,10 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         flexDirection: 'column',
                     }}
                 >
-                    {/* Main Container: bg-white border-2 border-slate-900 rounded-xl p-3 shadow-[2px_2px_0px_#000] */}
+                    {/* Main Container: bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-3 */}
                     <div style={{
                         backgroundColor: '#fff',
-                        borderRadius: 6, // scaled rounded-xl
+                        borderRadius: 6, // scaled rounded-[12px]
                         padding: 6, // scaled p-3
                         boxShadow: '1px 1px 0px #000', // scaled shadow
                         display: 'flex',
@@ -321,7 +321,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                             return (
                                 <div key={catKey} style={{
                                     position: 'relative',
-                                    borderRadius: 4, // scaled rounded-lg
+                                    borderRadius: 4, // scaled rounded-[12px]
                                     padding: '2px 4px', // scaled p-2, extra vertical tight
                                     backgroundColor: styles.bg,
                                     border: `0.5px solid ${styles.borderColor}`,
@@ -376,7 +376,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                                     height: 3,
                                                     borderRadius: '50%',
                                                     backgroundColor: status === 'filled' ? styles.dotColor : '#e2e8f0',
-                                                    border: status === 'filled' ? '0.5px solid #0f172a' : '0.5px solid #cbd5e1',
+                                                    border: status === 'filled' ? '0.5px solid #171717' : '0.5px solid #262A38',
                                                     transform: status === 'empty' ? 'scale(0.4)' : 'none'
                                                 }}
                                             />
@@ -390,7 +390,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                         height: 10,
                                         borderRadius: 3,
                                         backgroundColor: styles.dotColor,
-                                        border: '1px solid #0f172a',
+                                        border: '1px solid #171717',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
@@ -434,7 +434,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                     style={{
                                         fontSize: 12,
                                         fontWeight: 900,
-                                        color: '#334155',
+                                        color: '#404040',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
@@ -484,7 +484,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                     style={{
                                         fontSize: 9,
                                         fontWeight: 900,
-                                        color: '#1e293b',
+                                        color: '#292929',
                                         lineHeight: 1.1,
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
@@ -502,7 +502,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                     padding: '0 8px',
                                     boxSizing: 'border-box',
                                     fontSize: 7.5,
-                                    color: '#64748b',
+                                    color: '#737373',
                                     lineHeight: 1.35,
                                     textAlign: 'center',
                                     wordBreak: 'keep-all',
@@ -554,27 +554,27 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         <svg width="112" height="112" viewBox="0 0 120 120">
                             <defs>
                                 <linearGradient id="shareChartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#F472B6" />
-                                    <stop offset="50%" stopColor="#FACC15" />
-                                    <stop offset="100%" stopColor="#60A5FA" />
+                                    <stop offset="0%" stopColor="#9F9F9F" />
+                                    <stop offset="50%" stopColor="#D1D1D1" />
+                                    <stop offset="100%" stopColor="#A2A2A2" />
                                 </linearGradient>
                             </defs>
 
                             {/* Grid Circles */}
                             {[7, 14, 21, 28, 35].map(r => (
-                                <circle key={r} cx="60" cy="60" r={r} fill="none" stroke="#94a3b8" strokeWidth="0.5" strokeOpacity="0.4" />
+                                <circle key={r} cx="60" cy="60" r={r} fill="none" stroke="#A2A2A2" strokeWidth="0.5" strokeOpacity="0.4" />
                             ))}
                             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => {
                                 const angle = -Math.PI / 2 + i * (Math.PI * 2) / 10
                                 const x2 = 60 + 35 * Math.cos(angle)
                                 const y2 = 60 + 35 * Math.sin(angle)
-                                return <line key={i} x1="60" y1="60" x2={x2} y2={y2} stroke="#94a3b8" strokeWidth="0.5" strokeOpacity="0.4" />
+                                return <line key={i} x1="60" y1="60" x2={x2} y2={y2} stroke="#A2A2A2" strokeWidth="0.5" strokeOpacity="0.4" />
                             })}
 
                             {/* Data Polygon */}
                             <polygon
                                 points={polygonPoints}
-                                fill="rgba(236, 72, 153, 0.25)"
+                                fill="rgba(136,136,136, 0.25)"
                                 stroke="url(#shareChartGradient)"
                                 strokeWidth="1.5"
                             />
@@ -599,7 +599,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                         textAnchor="middle"
                                         fontSize="6" // 폰트 사이즈 조금 작게
                                         fontWeight="700"
-                                        fill="#64748b"
+                                        fill="#737373"
                                         style={{ fontFamily: SHARE_CARD_FONT }}
                                     >
                                         {label}
@@ -635,7 +635,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                                 textOverflow: 'ellipsis',
                                 fontSize: '6.5px',
                                 fontWeight: 'bold',
-                                color: '#334155',
+                                color: '#404040',
                                 lineHeight: 1,
                                 whiteSpace: 'nowrap',
                                 textAlign: 'center'
@@ -662,10 +662,10 @@ function getCategoryStyles(cat: string) {
         case 'citrus':
             return {
                 bg: '#fefce8', // yellow-50
-                borderColor: '#fde047', // yellow-300 (approx)
-                ringColor: '#facc15', // yellow-400
-                textColor: '#a16207', // yellow-700
-                dotColor: '#facc15' // yellow-400
+                borderColor: '#E0E0E0', // yellow-300 (approx)
+                ringColor: '#D1D1D1', // yellow-400
+                textColor: '#707070', // yellow-700
+                dotColor: '#D1D1D1' // yellow-400
             }
         case 'fruity':
             return {
@@ -677,43 +677,43 @@ function getCategoryStyles(cat: string) {
             }
         case 'spicy':
             return {
-                bg: '#fff7ed', // orange-50
-                borderColor: '#fdba74', // orange-300
-                ringColor: '#fb923c', // orange-400 (or 500?) Snippet: orange-500
-                textColor: '#c2410c', // orange-700
-                dotColor: '#f97316' // orange-500
+                bg: '#0C0E16', // orange-50
+                borderColor: '#C7C7C7', // orange-300
+                ringColor: '#ACACAC', // orange-400 (or 500?) Snippet: orange-500
+                textColor: '#6D6D6D', // orange-700
+                dotColor: '#9A9A9A' // orange-500
             }
         case 'woody':
             return {
-                bg: '#fffbeb', // amber-50
-                borderColor: '#fcd34d', // amber-300
-                ringColor: '#fbbf24', // amber-400
-                textColor: '#b45309', // amber-700
-                dotColor: '#f59e0b' // amber-500
+                bg: '#0C0E16', // amber-50
+                borderColor: '#D7D7D7', // amber-300
+                ringColor: '#C8C8C8', // amber-400
+                textColor: '#6F6F6F', // amber-700
+                dotColor: '#B1B1B1' // amber-500
             }
         case 'musky':
             return {
                 bg: '#faf5ff', // purple-50
-                borderColor: '#d8b4fe', // purple-300
-                ringColor: '#c084fc', // purple-400
-                textColor: '#7e22ce', // purple-700
-                dotColor: '#c084fc' // purple-400
+                borderColor: '#C3C3C3', // purple-300
+                ringColor: '#9F9F9F', // purple-400
+                textColor: '#595959', // purple-700
+                dotColor: '#9F9F9F' // purple-400
             }
         case 'floral':
             return {
                 bg: '#fdf2f8', // pink-50
-                borderColor: '#f9a8d4', // pink-300
-                ringColor: '#f472b6', // pink-400
-                textColor: '#be185d', // pink-700
-                dotColor: '#f472b6' // pink-400
+                borderColor: '#C0C0C0', // pink-300
+                ringColor: '#9F9F9F', // pink-400
+                textColor: '#636363', // pink-700
+                dotColor: '#9F9F9F' // pink-400
             }
         default:
             return {
                 bg: '#f8fafc',
-                borderColor: '#cbd5e1',
-                ringColor: '#94a3b8',
-                textColor: '#334155',
-                dotColor: '#94a3b8'
+                borderColor: '#262A38',
+                ringColor: '#A2A2A2',
+                textColor: '#404040',
+                dotColor: '#A2A2A2'
             }
     }
 }

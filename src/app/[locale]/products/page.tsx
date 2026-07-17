@@ -11,6 +11,8 @@ import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { formatPrice } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
+import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
+import { ProductsDesktop } from "./_desktop/ProductsDesktop"
 
 export default function ProductsPage() {
   const t = useTranslations()
@@ -18,31 +20,31 @@ export default function ProductsPage() {
   const { products } = useStoreProducts()
   const storeText = useStoreProductText()
 
-  return (
-    <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
+  const mobileList = (
+    <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
       <Header />
 
       <section className="px-4 pb-28 pt-28">
         <div className="mx-auto w-full max-w-[455px]">
-          <div className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">
-            <Link href="/" className="hover:text-black">{t('nav.home')}</Link>
+          <div className="mb-4 flex items-center gap-1.5 text-xs lg:text-sm text-[#8B8578]">
+            <Link href="/" className="hover:text-[#1A1610]">{t('nav.home')}</Link>
             <ChevronRight size={12} />
-            <span className="font-bold text-black">{t('nav.products')}</span>
+            <span className="font-bold text-[#E9E2D0]">{t('nav.products')}</span>
           </div>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-2xl border-2 border-black bg-[#FCD34D] p-5 shadow-[4px_4px_0_0_black]"
+            className="mb-6"
           >
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border-2 border-black bg-white px-3 py-1 text-[11px] font-black text-black">
+            <div className="mb-3 inline-flex items-center gap-1.5 text-[11px] lg:text-[13px] font-black tracking-widest text-[#8B8578]">
               <ShoppingBag size={13} />
               PRODUCTS
             </div>
-            <h1 className="whitespace-pre-line text-2xl font-black leading-tight text-black">
+            <h1 className="whitespace-pre-line text-2xl font-black leading-tight text-[#E9E2D0]">
               {t('store.list.heroTitle')}
             </h1>
-            <p className="mt-2 text-sm font-bold leading-relaxed text-slate-800">
+            <p className="mt-2 text-sm lg:text-base font-bold leading-relaxed text-[#8B8578]">
               {t('store.list.heroDesc')}
             </p>
           </motion.div>
@@ -63,9 +65,9 @@ export default function ProductsPage() {
                 >
                   <Link
                     href={`/products/${product.slug}`}
-                    className="group grid grid-cols-[112px_minmax(0,1fr)] gap-4 rounded-2xl border-2 border-black bg-white p-3 shadow-[4px_4px_0_0_black] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_0_black]"
+                    className="group grid grid-cols-[112px_minmax(0,1fr)] gap-4 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-3 transition-all"
                   >
-                    <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-black bg-yellow-50">
+                    <div className="relative aspect-square overflow-hidden rounded-[12px] border-2 border-[#D8CFBB] bg-[#FDFAF1]">
                       <Image
                         src={product.image}
                         alt={localized.title}
@@ -75,24 +77,24 @@ export default function ProductsPage() {
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         data-pin-nopin="true"
                       />
-                      <span className="absolute left-2 top-2 rounded-full bg-black px-2 py-0.5 text-[9px] font-black text-white">
+                      <span className="absolute left-2 top-2 rounded-full bg-[#EEB62B] px-2 py-0.5 text-[9px] font-black text-[#1A1610]">
                         {product.badge}
                       </span>
                     </div>
 
                     <div className="min-w-0 py-1">
-                      <div className="mb-1 flex items-center gap-1.5 text-[11px] font-black text-lime-700">
+                      <div className="mb-1 flex items-center gap-1.5 text-[11px] lg:text-[13px] font-black text-[#5C564A]">
                         {product.size === "scent_paper" ? <Sparkles size={13} /> : <Droplets size={13} />}
                         <span>{t('store.list.scentSelectable')}</span>
                       </div>
-                      <h2 className="text-lg font-black leading-tight text-slate-900">{localized.title}</h2>
-                      <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">
+                      <h2 className="text-lg font-black leading-tight text-[#1A1610]">{localized.title}</h2>
+                      <p className="mt-1 line-clamp-2 text-xs lg:text-sm font-medium leading-relaxed text-[#8B8578]">
                         {localized.description}
                       </p>
                       <div className="mt-3 flex items-end gap-2">
-                        <span className="text-base font-black text-black">{formatPrice(price)}{t('currency.suffix')}</span>
+                        <span className="text-base font-black text-[#1A1610]">{formatPrice(price)}{t('currency.suffix')}</span>
                         {originalPrice && originalPrice > price && (
-                          <span className="text-xs font-bold text-slate-400 line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
+                          <span className="text-xs lg:text-sm font-bold text-[#8B8578] line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
                         )}
                       </div>
                     </div>
@@ -102,12 +104,12 @@ export default function ProductsPage() {
             })}
           </div>
 
-          <div className="mt-6 rounded-xl border-2 border-slate-900 bg-slate-900 p-4 text-white">
-            <div className="mb-2 flex items-center gap-2">
-              <Package size={16} className="text-[#FCD34D]" />
-              <span className="text-sm font-black">{t('store.list.orderInfoTitle')}</span>
+          <div className="mt-6">
+            <div className="mb-2 flex items-center gap-2 text-[#E9E2D0]">
+              <Package size={16} className="text-[#8B8578]" />
+              <span className="text-sm lg:text-base font-black">{t('store.list.orderInfoTitle')}</span>
             </div>
-            <p className="text-xs font-medium leading-relaxed text-white/80">
+            <p className="text-xs lg:text-sm font-medium leading-relaxed text-[#8B8578]">
               {t('store.list.orderInfoDesc')}
             </p>
           </div>
@@ -115,4 +117,6 @@ export default function ProductsPage() {
       </section>
     </main>
   )
+
+  return <ViewportSwitch mobile={mobileList} desktop={<ProductsDesktop />} />
 }

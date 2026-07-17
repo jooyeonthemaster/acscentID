@@ -34,9 +34,9 @@ export function ScentShareSplash({ id, locale, name, emoji, bg, ink }: ScentShar
       className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
     >
       <div className="text-7xl leading-none animate-bounce">{emoji}</div>
-      <p className="mt-6 text-sm font-black opacity-70">오늘의 향</p>
+      <p className="mt-6 text-sm lg:text-base font-black opacity-70">오늘의 향</p>
       {name && <h1 className="mt-1 text-2xl font-black">{name}</h1>}
-      <p className="mt-4 text-xs font-bold opacity-60">향을 불러오는 중...</p>
+      <p className="mt-4 text-xs lg:text-sm font-bold opacity-60">향을 불러오는 중...</p>
       <div className="mt-5 w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
     </div>
   )

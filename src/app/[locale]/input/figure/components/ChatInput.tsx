@@ -54,7 +54,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="bg-white border-t-2 border-black p-4">
+    <div className="bg-[#12141D] border-t-2 border-[#262A38] p-4">
       <div className="flex items-end gap-2">
         {/* 이미지 업로드 버튼 */}
         {showImageButton && (
@@ -63,7 +63,7 @@ export function ChatInput({
             whileTap={{ scale: 0.95 }}
             onClick={handleImageSelect}
             disabled={disabled}
-            className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-pink-300 to-purple-300 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center disabled:opacity-50 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all"
+            className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#232838] to-[#232838] rounded-[12px] border-2 border-[#262A38] flex items-center justify-center disabled:opacity-50 transition-all"
           >
             <ImagePlus className="w-5 h-5" />
           </motion.button>
@@ -87,7 +87,7 @@ export function ChatInput({
             placeholder={resolvedPlaceholder}
             disabled={disabled}
             rows={1}
-            className="w-full px-4 py-3 bg-gray-50 border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] resize-none focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 bg-[#151823] border-2 border-[#262A38] rounded-[12px] resize-none focus:outline-none focus:ring-2 focus:ring-[#343A4C] transition-all disabled:opacity-50"
             style={{ minHeight: '48px', maxHeight: '120px' }}
           />
         </div>
@@ -98,7 +98,7 @@ export function ChatInput({
           whileTap={{ scale: 0.95 }}
           onClick={handleSend}
           disabled={disabled || !message.trim()}
-          className="flex-shrink-0 w-12 h-12 bg-yellow-400 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-yellow-300 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all"
+          className="flex-shrink-0 w-12 h-12 bg-[#F5EFE2] rounded-[12px] border-2 border-[#F5EFE2] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#FFFDF5] transition-all"
         >
           <Send className="w-5 h-5" />
         </motion.button>

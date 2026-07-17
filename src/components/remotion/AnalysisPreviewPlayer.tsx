@@ -15,7 +15,7 @@ interface AnalysisPreviewPlayerProps {
 }
 
 export function AnalysisPreviewPlayer({
-  colors = ['#C084FC', '#F9A8D4', '#1E293B'],
+  colors = ['#9F9F9F', '#C0C0C0', '#292929'],
   keywords = ['시크', '달콤', '카리스마'],
   moodScore = 87,
   perfumeName = "AC'SCENT 27\n스모키 블랜드 우드",
@@ -27,7 +27,7 @@ export function AnalysisPreviewPlayer({
   return (
     <div
       data-admin-lock-region="analysis-preview-animation"
-      className={`relative rounded-2xl overflow-hidden border-2 border-black shadow-[4px_4px_0_0_black] ${className}`}
+      className={`relative rounded-[12px] overflow-hidden border-2 border-[#262A38] ${className}`}
     >
       <Player
         component={AnalysisPreview}
@@ -53,7 +53,7 @@ export function AnalysisPreviewPlayer({
         autoPlay
       />
       {/* 재생 인디케이터 */}
-      <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded-full flex items-center gap-1">
+      <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 text-[#E9E2D0] text-xs lg:text-sm font-bold rounded-full flex items-center gap-1">
         <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
         LIVE PREVIEW
       </div>

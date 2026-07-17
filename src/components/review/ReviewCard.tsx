@@ -69,7 +69,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-yellow-50 border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0_0_black] hover:shadow-[4px_4px_0_0_black] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+        className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-4 transition-all"
       >
         {/* 헤더: 별점 + 작성자 정보 */}
         <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
@@ -80,27 +80,27 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
                   key={star}
                   size={14}
                   className={star <= review.rating
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-slate-200"
+                    ? "fill-[#1A1610] text-[#1A1610]"
+                    : "text-[#5C564A]"
                   }
                 />
               ))}
             </div>
-            <div className="flex items-center gap-1.5 text-xs md:text-sm flex-wrap">
-              <span className="font-bold text-black">{maskedName}</span>
+            <div className="flex items-center gap-1.5 text-xs lg:text-sm md:text-sm flex-wrap">
+              <span className="font-bold text-[#1A1610]">{maskedName}</span>
               {review.idol_name && (
                 <>
-                  <span className="text-slate-300">|</span>
-                  <span className="text-slate-500 truncate">{review.idol_name}</span>
+                  <span className="text-[#5C564A]">|</span>
+                  <span className="text-[#8B8578] truncate">{review.idol_name}</span>
                 </>
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <span className="text-[10px] md:text-xs text-slate-400">{formatDate(review.created_at)}</span>
+            <span className="text-[10px] lg:text-[12px] md:text-xs text-[#8B8578]">{formatDate(review.created_at)}</span>
             {review.is_verified && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-[#EDE5D2] text-[#5C564A] text-[10px] lg:text-[12px] md:text-xs font-bold rounded-full">
                 <CheckCircle2 size={10} />
                 {t('review.verified')}
               </span>
@@ -110,14 +110,14 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
 
         {/* 옵션 정보 */}
         {review.option_info && (
-          <div className="text-[10px] md:text-xs text-slate-500 mb-2 px-2 py-1 bg-white rounded-lg inline-block">
+          <div className="text-[10px] lg:text-[12px] md:text-xs text-[#8B8578] mb-2 px-2 py-1 bg-[#F5EFE2] rounded-[12px] inline-block">
             {review.option_info}
           </div>
         )}
 
         {/* 리뷰 내용 */}
         {review.content && (
-          <p className="text-sm text-slate-700 leading-relaxed mb-3">
+          <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed mb-3">
             &ldquo;{review.content}&rdquo;
           </p>
         )}
@@ -132,7 +132,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
                   setCurrentImageIndex(idx)
                   setShowImageModal(true)
                 }}
-                className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg md:rounded-xl overflow-hidden border-2 border-black shadow-[2px_2px_0_0_black] hover:shadow-[3px_3px_0_0_black] transition-all"
+                className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-[12px] md:rounded-[12px] overflow-hidden border-2 border-[#D8CFBB] transition-all"
               >
                 <img
                   src={img.image_url}
@@ -142,7 +142,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
               </button>
             ))}
             {review.images.length > 3 && (
-              <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg md:rounded-xl bg-black/50 flex items-center justify-center text-white font-bold text-sm md:text-lg">
+              <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-[12px] md:rounded-[12px] bg-black/50 flex items-center justify-center text-[#1A1610] font-bold text-sm lg:text-base md:text-lg">
                 +{review.images.length - 3}
               </div>
             )}
@@ -150,24 +150,24 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
         )}
 
         {/* 도움돼요 버튼 */}
-        <div className="flex items-center justify-between pt-3 border-t border-yellow-200">
+        <div className="flex items-center justify-between pt-3 border-t border-[#D8CFBB]">
           <button
             onClick={handleLike}
             disabled={!currentUserId || isLiking}
-            className={`flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[12px] transition-all ${
               localLiked
-                ? 'bg-pink-100 text-pink-600 border border-pink-300'
-                : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400'
+                ? 'bg-[#EDE5D2] text-[#5C564A] border border-[#D8CFBB]'
+                : 'bg-[#F5EFE2] text-[#5C564A] border border-[#D8CFBB] hover:border-[#C9BFA8]'
             } ${!currentUserId ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ThumbsUp size={12} className={localLiked ? 'fill-current' : ''} />
-            <span className="text-xs md:text-sm font-medium">
+            <span className="text-xs lg:text-sm md:text-sm font-medium">
               {t('review.helpful')} {localCount > 0 && localCount}
             </span>
           </button>
 
           {!currentUserId && (
-            <span className="text-[10px] md:text-xs text-slate-400">{t('review.loginToLike')}</span>
+            <span className="text-[10px] lg:text-[12px] md:text-xs text-[#8B8578]">{t('review.loginToLike')}</span>
           )}
         </div>
       </motion.div>
@@ -180,7 +180,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
         >
           <button
             onClick={() => setShowImageModal(false)}
-            className="absolute top-4 right-4 p-2 text-white hover:text-yellow-400 transition-colors"
+            className="absolute top-4 right-4 p-2 text-[#1A1610] hover:text-[#8B8578] transition-colors"
           >
             <X size={32} />
           </button>
@@ -193,7 +193,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
             <img
               src={review.images[currentImageIndex].image_url}
               alt=""
-              className="max-w-full max-h-[80vh] object-contain rounded-xl"
+              className="max-w-full max-h-[80vh] object-contain rounded-[12px]"
             />
 
             {/* 네비게이션 */}
@@ -203,13 +203,13 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
                   onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : review.images.length - 1)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-sm transition-colors"
                 >
-                  <ChevronLeft size={24} className="text-white" />
+                  <ChevronLeft size={24} className="text-[#1A1610]" />
                 </button>
                 <button
                   onClick={() => setCurrentImageIndex(prev => prev < review.images.length - 1 ? prev + 1 : 0)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-sm transition-colors"
                 >
-                  <ChevronRight size={24} className="text-white" />
+                  <ChevronRight size={24} className="text-[#1A1610]" />
                 </button>
 
                 {/* 인디케이터 */}
@@ -219,7 +219,7 @@ export function ReviewCard({ review, onLike, currentUserId }: ReviewCardProps) {
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'
+                        idx === currentImageIndex ? 'bg-[#F5EFE2] w-6' : 'bg-[#F5EFE2]/50'
                       }`}
                     />
                   ))}

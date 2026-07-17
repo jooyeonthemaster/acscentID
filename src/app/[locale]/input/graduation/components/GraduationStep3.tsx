@@ -38,7 +38,7 @@ export function GraduationStep3({
 
             <div className="flex-1 mt-4 overflow-y-auto">
                 <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-xs lg:text-sm font-bold text-[#8B8578] uppercase tracking-wider">
                         {t('step3.selectLabel')}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -49,10 +49,10 @@ export function GraduationStep3({
                                     key={key}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => setCurrentFeeling(key)}
-                                    className={`relative py-4 px-4 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden border-2 ${
+                                    className={`relative py-4 px-4 rounded-[12px] text-sm lg:text-base font-medium transition-all duration-300 overflow-hidden border-2 ${
                                         isSelected
                                             ? `${color} shadow-lg`
-                                            : "bg-white/80 text-slate-600 border-white/60 shadow-md shadow-slate-900/5 hover:bg-white/90"
+                                            : "bg-[#12141D]/80 text-[#A69F8D] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[#12141D]/90"
                                     }`}
                                 >
                                     {isSelected && (

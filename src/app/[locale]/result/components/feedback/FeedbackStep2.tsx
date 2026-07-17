@@ -29,15 +29,15 @@ const PREFERENCE_OPTIONS: {
     value: 'increase',
     labelKey: 'prefIncrease',
     icon: ChevronUp,
-    activeColor: 'text-green-600',
-    bgColor: 'bg-green-100 border-green-400',
+    activeColor: 'text-[#A69F8D]',
+    bgColor: 'bg-[#151823] border-[#343A4C]',
   },
   {
     value: 'maintain',
     labelKey: 'prefMaintain',
     icon: Minus,
-    activeColor: 'text-slate-600',
-    bgColor: 'bg-slate-100 border-slate-400',
+    activeColor: 'text-[#A69F8D]',
+    bgColor: 'bg-[#1B1F2C] border-[#343A4C]',
   },
   {
     value: 'decrease',
@@ -89,14 +89,14 @@ export function FeedbackStep2({
     >
       {/* 헤더 */}
       <div className="text-center mb-6">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm lg:text-base text-[#8B8578]">
           {t('categoryAdjustQuestion')}
         </p>
         {changedCount > 0 && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xs text-amber-600 mt-2"
+            className="text-xs lg:text-sm text-[#A69F8D] mt-2"
           >
             ✨ {t('categoryChangedCount', { count: changedCount })}
           </motion.p>
@@ -112,19 +112,19 @@ export function FeedbackStep2({
           <motion.div
             key={category}
             variants={itemVariants}
-            className="bg-slate-50 rounded-2xl p-4 hover:bg-slate-100 transition-colors"
+            className="bg-[#151823] rounded-[12px] p-4 hover:bg-[#1B1F2C] transition-colors"
           >
             {/* 카테고리 헤더 */}
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">{info.icon}</span>
-              <span className="font-bold text-slate-900">{getCategoryLabel(category)}</span>
+              <span className="font-bold text-[#E9E2D0]">{getCategoryLabel(category)}</span>
               {currentValue !== 'maintain' && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className={`text-xs px-2 py-0.5 rounded-full ${
+                  className={`text-xs lg:text-sm px-2 py-0.5 rounded-full ${
                     currentValue === 'increase'
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-[#151823] text-[#A69F8D]'
                       : 'bg-red-100 text-red-600'
                   }`}
                 >
@@ -143,20 +143,20 @@ export function FeedbackStep2({
                   <button
                     key={option.value}
                     onClick={() => onPreferenceChange(category, option.value)}
-                    className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all border-2
+                    className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[12px] transition-all border-2
                       ${
                         isSelected
                           ? `${option.bgColor} shadow-sm`
-                          : 'bg-white/70 border-transparent hover:bg-white hover:border-slate-200'
+                          : 'bg-[#12141D]/70 border-transparent hover:bg-[#12141D] hover:border-[#262A38]'
                       }`}
                   >
                     <Icon
                       size={20}
-                      className={isSelected ? option.activeColor : 'text-slate-400'}
+                      className={isSelected ? option.activeColor : 'text-[#8B8578]'}
                     />
                     <span
-                      className={`text-xs font-medium ${
-                        isSelected ? option.activeColor : 'text-slate-500'
+                      className={`text-xs lg:text-sm font-medium ${
+                        isSelected ? option.activeColor : 'text-[#8B8578]'
                       }`}
                     >
                       {t(option.labelKey as 'prefIncrease')}
@@ -172,9 +172,9 @@ export function FeedbackStep2({
       {/* 팁 박스 */}
       <motion.div
         variants={itemVariants}
-        className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200/50 mt-6"
+        className="bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] rounded-[12px] p-4 border border-stone-200/50 mt-6"
       >
-        <p className="text-sm text-purple-800">
+        <p className="text-sm lg:text-base text-[#E9E2D0]">
           💜 <span className="font-semibold">{t('tipLabel')}</span> {t('tipMaintainOk')}
         </p>
       </motion.div>

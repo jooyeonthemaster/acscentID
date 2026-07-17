@@ -190,7 +190,7 @@ export default function InventorySection() {
     <div className="space-y-6">
       {/* 재고 부족 경고 */}
       {alerts.length > 0 && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-[3px_3px_0px_#fecaca]">
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
           <div className="flex items-center gap-2 text-red-600 mb-3">
             <AlertTriangle className="w-5 h-5" />
             <span className="font-bold">재고 부족 경고: {alerts.length}개 향료</span>
@@ -218,14 +218,14 @@ export default function InventorySection() {
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Package className="w-4 h-4" />
             <span className="text-xs font-medium">총 향료 종류</span>
           </div>
           <div className="text-2xl font-black text-slate-900">{items.length}종</div>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-4 shadow-[3px_3px_0px_#bfdbfe]">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-4">
           <div className="flex items-center gap-2 text-blue-600 mb-2">
             <Globe className="w-4 h-4" />
             <span className="text-xs font-bold">온라인 총 재고</span>
@@ -234,7 +234,7 @@ export default function InventorySection() {
             {items.reduce((sum, i) => sum + i.onlineStockMl, 0).toLocaleString()}ml
           </div>
         </div>
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-4 shadow-[3px_3px_0px_#bbf7d0]">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-4">
           <div className="flex items-center gap-2 text-green-600 mb-2">
             <Store className="w-4 h-4" />
             <span className="text-xs font-bold">오프라인 총 재고</span>
@@ -243,7 +243,7 @@ export default function InventorySection() {
             {items.reduce((sum, i) => sum + i.offlineStockMl, 0).toLocaleString()}ml
           </div>
         </div>
-        <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-medium">전체 총 재고</span>
@@ -255,7 +255,7 @@ export default function InventorySection() {
       </div>
 
       {/* 도구 모음 */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-4 shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -294,7 +294,7 @@ export default function InventorySection() {
       </div>
 
       {/* 재고 테이블 */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-[3px_3px_0px_#e2e8f0]">
+      <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
