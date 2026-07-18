@@ -49,7 +49,7 @@ export function CatalystPhase({ formData, character1Name, character2Name }: Cata
         className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
       >
         {/* 캐릭터 요약 */}
-        <div className="p-4 border-b-2 border-[#D8CFBB] bg-[#0E1016]">
+        <div className="p-4 border-b-2 border-[#D8CFBB] bg-[#EDE5D2]">
           <div className="flex items-center justify-center gap-4">
             {/* A */}
             <div className="text-center">

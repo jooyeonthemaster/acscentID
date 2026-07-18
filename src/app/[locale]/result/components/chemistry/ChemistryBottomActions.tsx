@@ -1,11 +1,12 @@
 "use client"
 
 import { motion } from 'framer-motion'
-import { ShoppingCart, CreditCard, MessageSquarePlus, History } from 'lucide-react'
+import { ShoppingCart, CreditCard, MessageSquarePlus, History, Share2, Ticket } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 interface ChemistryBottomActionsProps {
   onShare?: () => void
+  onScentPaperCheckout?: () => void
   onAddToCart: () => void
   onCheckout: () => void
   isShareSaving?: boolean
@@ -22,8 +23,11 @@ interface ChemistryBottomActionsProps {
 }
 
 export function ChemistryBottomActions({
+  onShare,
+  onScentPaperCheckout,
   onAddToCart,
   onCheckout,
+  isShareSaving = false,
   isAddingToCart = false,
   onFeedback,
   onFeedbackA,
@@ -47,7 +51,7 @@ export function ChemistryBottomActions({
           {handleFeedback && (
             <button
               onClick={handleFeedback}
-              className="flex-1 py-4 bg-[#F5EFE2] text-[#12141D] font-black text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-[#F5EFE2] text-[#12141D] font-bold text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
             >
               <MessageSquarePlus size={18} />
               <span>{t('chemistry.feedback.applyTaste')}</span>
@@ -59,31 +63,52 @@ export function ChemistryBottomActions({
             <button
               onClick={onFeedbackHistory}
               aria-label={t('chemistry.feedback.history')}
-              className="px-4 bg-[#12141D] text-[#E9E2D0] rounded-[12px] border-2 border-[#262A38] transition-all flex items-center justify-center"
+              className="px-4 bg-[#12141D] text-[#E9E2D0] rounded-[12px] border border-[#262A38] transition-all flex items-center justify-center"
             >
               <History size={18} />
             </button>
           )}
         </div>
       ) : (
-        /* 온라인 모드: 담기 + 구매 */
+        /* 온라인 모드: 시향지 + 공유/담기/구매 — 이미지 분석 결과와 동일 배치 */
+        <>
+        {onScentPaperCheckout && (
+          <button
+            onClick={onScentPaperCheckout}
+            className="mb-2 flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2] px-4 py-3 text-sm lg:text-base font-bold text-[#1A1610] transition-all"
+          >
+            <Ticket size={16} className="text-[#5C564A]" />
+            <span>{t('bottomActions.scentPaperCta')}</span>
+          </button>
+        )}
         <div className="flex gap-2">
+          {onShare && (
+            <button
+              onClick={onShare}
+              disabled={isShareSaving}
+              aria-label={isShareSaving ? t('bottomActions.saving') : t('bottomActions.share')}
+              className="shrink-0 aspect-square p-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center disabled:opacity-70"
+            >
+              <Share2 size={16} />
+            </button>
+          )}
           <button
             onClick={onAddToCart}
             disabled={isAddingToCart}
-            className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
           >
             <ShoppingCart size={16} />
             <span>{isAddingToCart ? t('chemistry.buttons.addingToCart') : t('bottomActions.addToCart')}</span>
           </button>
           <button
             onClick={onCheckout}
-            className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#B8880F] transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-bold text-sm lg:text-base rounded-[12px] border border-[#B8880F] transition-all flex items-center justify-center gap-2"
           >
             <CreditCard size={16} />
             <span>{t('bottomActions.buy')}</span>
           </button>
         </div>
+        </>
       )}
     </motion.div>
   )

@@ -26,7 +26,7 @@ const KEYWORD_STYLES = [
     shape: 'rounded-[12px]',
     decoration: '⭐',
     shadow: '',
-    border: 'border-2 border-[#262A38]'
+    border: 'border border-[#262A38]'
   },
   {
     // 민트 버블 스타일
@@ -44,7 +44,7 @@ const KEYWORD_STYLES = [
     shape: 'rounded-[12px]',
     decoration: '💜',
     shadow: '',
-    border: 'border-2 border-[#262A38] border-dashed'
+    border: 'border border-[#262A38] border-dashed'
   },
   {
     // 오렌지 뱃지 스타일
@@ -62,7 +62,7 @@ const KEYWORD_STYLES = [
     shape: 'rounded-[12px]',
     decoration: '💙',
     shadow: '',
-    border: 'border-2 border-[#262A38]'
+    border: 'border border-[#262A38]'
   },
   {
     // 코랄 스탬프 스타일
@@ -71,7 +71,7 @@ const KEYWORD_STYLES = [
     shape: 'rounded-[12px]',
     decoration: '💕',
     shadow: 'shadow-inner',
-    border: 'border-2 border-[#262A38]'
+    border: 'border border-[#262A38]'
   },
   {
     // 그린 네온 스타일

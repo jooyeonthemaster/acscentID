@@ -43,9 +43,9 @@ export function ResultBottomActions({
       {serviceMode === 'online' && onScentPaperCheckout && (
         <button
           onClick={onScentPaperCheckout}
-          className="mb-2 flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3 text-sm lg:text-base font-black text-[#E9E2D0] transition-all"
+          className="mb-2 flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2] px-4 py-3 text-sm lg:text-base font-bold text-[#1A1610] transition-all"
         >
-          <Ticket size={16} className="text-[#8B8578]" />
+          <Ticket size={16} className="text-[#5C564A]" />
           <span>{t('scentPaperCta')}</span>
         </button>
       )}
@@ -57,7 +57,7 @@ export function ResultBottomActions({
           onClick={onShare}
           disabled={isShareSaving}
           aria-label={isShareSaving ? t('saving') : t('share')}
-          className="shrink-0 aspect-square p-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center disabled:opacity-70"
+          className="shrink-0 aspect-square p-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center disabled:opacity-70"
         >
           <Share2 size={16} />
         </button>
@@ -68,26 +68,18 @@ export function ResultBottomActions({
             <button
               onClick={onAddToCart}
               disabled={isAddingToCart}
-              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               <ShoppingCart size={16} />
               <span>{isAddingToCart ? t('adding') : t('addToCart')}</span>
             </button>
-            <motion.button
+            <button
               onClick={onCheckout}
-              animate={{
-                boxShadow: [
-                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(172,172,172,0.3)",
-                  "3px 3px 0 0 #000, 0 0 28px 8px rgba(172,172,172,1)",
-                  "3px 3px 0 0 #000, 0 0 4px 1px rgba(172,172,172,0.3)",
-                ],
-              }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#B8880F] flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-bold text-sm lg:text-base rounded-[12px] border border-[#B8880F] flex items-center justify-center gap-2"
             >
               <CreditCard size={16} />
               <span>{t('buy')}</span>
-            </motion.button>
+            </button>
           </>
         )}
 
@@ -96,14 +88,14 @@ export function ResultBottomActions({
           <>
             <button
               onClick={onFeedback}
-              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
             >
               <MessageSquarePlus size={16} />
               <span>{t('feedback')}</span>
             </button>
             <button
               onClick={onFeedbackHistory}
-              className="py-3.5 px-4 bg-[#12141D] text-[#E9E2D0] font-black text-sm lg:text-base rounded-[12px] border-2 border-[#262A38] transition-all flex items-center justify-center"
+              className="py-3.5 px-4 bg-[#12141D] text-[#E9E2D0] font-bold text-sm lg:text-base rounded-[12px] border border-[#262A38] transition-all flex items-center justify-center"
             >
               <History size={16} />
             </button>

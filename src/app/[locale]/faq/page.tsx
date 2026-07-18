@@ -23,20 +23,20 @@ function FAQAccordionItem({
   return (
     <div
       className={cn(
-        'border-2 rounded-[12px] overflow-hidden bg-[#12141D] transition-all',
+        'border-2 rounded-[12px] overflow-hidden bg-[#12141D] lg:bg-[#F5EFE2] transition-all',
         isOpen
-          ? 'border-[#262A38]'
-          : 'border-black/80'
+          ? 'border-[#262A38] lg:border-[#B8880F]/55'
+          : 'border-black/80 lg:border-[#D8CFBB]'
       )}
     >
       <button
         onClick={onToggle}
-        className="w-full px-4 md:px-5 py-4 flex items-center gap-3 text-left hover:bg-[#0C0E16] transition-colors"
+        className="w-full px-4 md:px-5 py-4 flex items-center gap-3 text-left hover:bg-[#0C0E16] lg:hover:bg-[#EDE5D2] transition-colors"
       >
-        <span className="flex-shrink-0 w-7 h-7 rounded-[12px] bg-[#0C0E16] text-[#8B8578] grid place-items-center text-sm lg:text-base font-black">
+        <span className="flex-shrink-0 w-7 h-7 rounded-[12px] bg-[#0C0E16] lg:bg-[#EFE4C8] text-[#8B8578] lg:text-[#1A1610] grid place-items-center text-sm lg:text-base font-black">
           Q
         </span>
-        <span className="flex-1 font-bold text-[#E9E2D0] leading-snug">{faq.question}</span>
+        <span className="flex-1 font-bold text-[#E9E2D0] lg:text-[#1A1610] leading-snug">{faq.question}</span>
         <ChevronDown
           size={20}
           className={cn(
@@ -54,9 +54,9 @@ function FAQAccordionItem({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 md:px-5 pb-4 pt-3 border-t-2 border-dashed border-[#262A38] bg-stone-50/70">
+            <div className="px-4 md:px-5 pb-4 pt-3 border-t-2 border-dashed border-[#262A38] lg:border-[#D8CFBB] bg-stone-50/70 lg:bg-[#FBF7EF]">
               {showCategory && (
-                <span className="inline-flex mb-2 px-2 py-0.5 bg-[#151823] border border-[#262A38] rounded-full text-[10px] lg:text-[12px] font-black text-[#A69F8D]">
+                <span className="inline-flex mb-2 px-2 py-0.5 bg-[#151823] lg:bg-[#EFE4C8] border border-[#262A38] lg:border-[#B8880F]/40 rounded-full text-[10px] lg:text-[12px] font-black text-[#A69F8D] lg:text-[#6E6659]">
                   {faq.category}
                 </span>
               )}
@@ -64,7 +64,7 @@ function FAQAccordionItem({
                 <span className="flex-shrink-0 w-7 h-7 rounded-[12px] bg-[#161925] text-[#E9E2D0] grid place-items-center text-sm lg:text-base font-black">
                   A
                 </span>
-                <p className="flex-1 text-[#A69F8D] leading-relaxed whitespace-pre-line pt-0.5">{faq.answer}</p>
+                <p className="flex-1 text-[#A69F8D] lg:text-[#3A3630] leading-relaxed whitespace-pre-line pt-0.5">{faq.answer}</p>
               </div>
             </div>
           </motion.div>
@@ -131,24 +131,24 @@ export default function FAQPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-[#0C0E16] via-[#12141D] to-[#0C0E16] pt-24 pb-32">
+      <main className="min-h-screen bg-gradient-to-b from-[#0C0E16] via-[#12141D] to-[#0C0E16] lg:bg-none lg:bg-[#FBF7EF] pt-24 pb-32">
         <div className="max-w-3xl mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#151823] border-2 border-[#262A38] rounded-full mb-3"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#151823] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full mb-3"
             >
-              <HelpCircle size={16} className="text-[#A69F8D]" />
-              <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('badge')}</span>
+              <HelpCircle size={16} className="text-[#A69F8D] lg:text-[#6E6659]" />
+              <span className="text-xs lg:text-sm font-bold text-[#A69F8D] lg:text-[#6E6659]">{t('badge')}</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-3xl md:text-5xl font-black text-[#E9E2D0] mb-2"
+              className="text-3xl md:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-2"
             >
               {t('title')}
             </motion.h1>
@@ -157,7 +157,7 @@ export default function FAQPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-[#A69F8D] text-sm lg:text-base md:text-lg"
+              className="text-[#A69F8D] lg:text-[#6E6659] text-sm lg:text-base md:text-lg"
             >
               {t('subtitle')}
             </motion.p>
@@ -173,7 +173,7 @@ export default function FAQPage() {
                 setOpenId(null)
               }}
               placeholder={t('searchPlaceholder')}
-              className="w-full h-12 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] pl-11 pr-4 text-sm lg:text-base font-bold text-[#E9E2D0] placeholder:text-[#8B8578] outline-none focus:ring-2 focus:ring-[#262A38]"
+              className="w-full h-12 rounded-[12px] border-2 border-[#262A38] lg:border-[#B8880F]/45 bg-[#12141D] lg:bg-[#F5EFE2] pl-11 pr-4 text-sm lg:text-base font-bold text-[#E9E2D0] lg:text-[#1A1610] placeholder:text-[#8B8578] outline-none focus:ring-2 focus:ring-[#262A38] lg:focus:ring-[#B8880F]/40"
             />
           </div>
 
@@ -192,8 +192,8 @@ export default function FAQPage() {
                   className={cn(
                     'px-2.5 py-2 md:px-4 md:py-2.5 rounded-[12px] md:rounded-[12px] font-bold text-[11px] lg:text-[13px] md:text-sm border-2 transition-all whitespace-nowrap',
                     currentTab === category
-                      ? 'bg-[#0C0E16] text-[#E9E2D0] border-[#262A38]'
-                      : 'bg-[#12141D] text-[#A69F8D] border-[#262A38] hover:border-[#262A38]'
+                      ? 'bg-[#0C0E16] lg:bg-[#EEB62B] text-[#E9E2D0] lg:text-[#1A1610] border-[#262A38] lg:border-[#B8880F]'
+                      : 'bg-[#12141D] lg:bg-[#F5EFE2] text-[#A69F8D] lg:text-[#6E6659] border-[#262A38] lg:border-[#B8880F]/45 hover:border-[#262A38] lg:hover:border-[#B8880F]'
                   )}
                 >
                   {category}
@@ -225,8 +225,8 @@ export default function FAQPage() {
                 />
               ))}
               {visibleFaqs.length === 0 && (
-                <div className="rounded-[12px] border-2 border-dashed border-[#262A38] bg-[#12141D]/70 px-5 py-14 text-center">
-                  <MessagesSquare className="w-12 h-12 text-[#262A38] mx-auto mb-3" />
+                <div className="rounded-[12px] border-2 border-dashed border-[#262A38] lg:border-[#D8CFBB] bg-[#12141D]/70 lg:bg-[#F5EFE2] px-5 py-14 text-center">
+                  <MessagesSquare className="w-12 h-12 text-[#262A38] lg:text-[#C9BFA8] mx-auto mb-3" />
                   <p className="text-sm lg:text-base font-bold text-[#8B8578]">{t('noResults')}</p>
                 </div>
               )}

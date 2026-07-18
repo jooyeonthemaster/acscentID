@@ -21,24 +21,24 @@ export function ProductsDesktop() {
   const storeText = useStoreProductText()
 
   return (
-    <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+    <main className="relative min-h-screen bg-[#FBF7EF] font-wanted">
       <section className="px-6 pb-28 pt-[132px]">
         <div className="mx-auto w-full max-w-[1200px]">
           <div className="mb-4 flex items-center gap-1.5 text-xs lg:text-sm text-[#8B8578]">
-            <Link href="/" className="hover:text-[#E9E2D0]">{t('nav.home')}</Link>
+            <Link href="/" className="hover:text-[#1A1610]">{t('nav.home')}</Link>
             <ChevronRight size={12} />
-            <span className="font-bold text-[#E9E2D0]">{t('nav.products')}</span>
+            <span className="font-bold text-[#1A1610]">{t('nav.products')}</span>
           </div>
 
           <div className="mb-10">
-            <div className="mb-3 inline-flex items-center gap-1.5 text-[11px] lg:text-[13px] font-black tracking-widest text-[#8B8578]">
+            <div className="mb-3 inline-flex items-center gap-1.5 text-[11px] lg:text-[13px] font-black tracking-widest text-[#8A7A4E]">
               <ShoppingBag size={13} />
               PRODUCTS
             </div>
-            <h1 className="whitespace-pre-line text-4xl font-black leading-tight text-[#E9E2D0]">
+            <h1 className="whitespace-pre-line font-heading text-4xl font-black leading-tight text-[#1A1610]">
               {t('store.list.heroTitle')}
             </h1>
-            <p className="mt-3 max-w-[560px] text-sm lg:text-base font-bold leading-relaxed text-[#8B8578]">
+            <p className="mt-3 max-w-[560px] text-sm lg:text-base font-bold leading-relaxed text-[#6E6659]">
               {t('store.list.heroDesc')}
             </p>
           </div>
@@ -54,7 +54,7 @@ export function ProductsDesktop() {
                 <Link
                   key={product.slug}
                   href={`/products/${product.slug}`}
-                  className="group flex flex-col rounded-[16px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4 transition-colors hover:bg-[#FFFDF5]"
+                  className="group flex flex-col rounded-[16px] border-2 border-[#B8880F]/55 bg-[#F5EFE2] p-4 transition-colors hover:border-[#B8880F] hover:bg-[#FFFDF5]"
                 >
                   <div className="relative aspect-square overflow-hidden rounded-[12px] border-2 border-[#D8CFBB] bg-[#FDFAF1]">
                     <Image
@@ -96,12 +96,12 @@ export function ProductsDesktop() {
             })}
           </div>
 
-          <div className="mt-12 rounded-[12px] border border-[#262A38] bg-[#12141D] p-6">
-            <div className="mb-2 flex items-center gap-2 text-[#E9E2D0]">
-              <Package size={16} className="text-[#8B8578]" />
+          <div className="mt-12 rounded-[12px] border-2 border-[#B8880F]/45 bg-[#F5EFE2] p-6">
+            <div className="mb-2 flex items-center gap-2 text-[#1A1610]">
+              <Package size={16} className="text-[#8A7A4E]" />
               <span className="text-sm lg:text-base font-black">{t('store.list.orderInfoTitle')}</span>
             </div>
-            <p className="text-xs lg:text-sm font-medium leading-relaxed text-[#8B8578]">
+            <p className="text-xs lg:text-sm font-medium leading-relaxed text-[#6E6659]">
               {t('store.list.orderInfoDesc')}
             </p>
           </div>

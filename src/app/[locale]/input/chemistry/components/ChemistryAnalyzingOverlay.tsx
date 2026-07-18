@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
 import { Layers } from "lucide-react"
@@ -109,7 +110,14 @@ export function ChemistryAnalyzingOverlay({
       >
         <div className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]">
           <div className="bg-[#12141D] px-6 py-5 text-center">
-            <p className="font-heading text-xl font-semibold tracking-[0.14em] text-[#F5EFE2]">AC&apos;SCENT</p>
+            <Image
+              src="/images/logo/acscent-wordmark-cream.png"
+              alt="AC'SCENT"
+              width={2053}
+              height={285}
+              priority
+              className="mx-auto h-[18px] w-auto select-none"
+            />
             <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-[#8B8371]">{tRoot('chemistry.title')}</p>
           </div>
 

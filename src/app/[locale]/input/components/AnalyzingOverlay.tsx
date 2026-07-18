@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
 import { ImageIcon } from "lucide-react"
@@ -109,17 +110,26 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                         className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]"
                     >
                         <div className="bg-[#12141D] px-6 py-5 text-center">
-                            <p className="font-heading text-xl font-semibold tracking-[0.14em] text-[#F5EFE2]">AC&apos;SCENT</p>
+                            <Image
+                                src="/images/logo/acscent-wordmark-cream.png"
+                                alt="AC'SCENT"
+                                width={2053}
+                                height={285}
+                                priority
+                                className="mx-auto h-[18px] w-auto select-none"
+                            />
                             <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-[#8B8371]">{t('products.idolImage')}</p>
                         </div>
 
                         <div className="px-6 py-7">
-                            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
-                                <ImageIcon size={12} strokeWidth={2} className="text-[#9A8B5E]" />
-                                {t('footer.aiImageAnalysis')}
+                            <div className="mb-6 flex justify-center">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
+                                    <ImageIcon size={12} strokeWidth={2} className="text-[#9A8B5E]" />
+                                    {t('footer.aiImageAnalysis')}
+                                </span>
                             </div>
 
-                            <div className="mb-7 text-left">
+                            <div className="mb-7 text-center">
                                 <p className="font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
                                     {t('input.analyzing.userName', { name: userName })}
                                 </p>

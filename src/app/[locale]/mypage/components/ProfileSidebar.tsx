@@ -6,6 +6,7 @@ import { LogOut, Home, Sparkles, ChevronRight, Copy, Check, Share2, ShoppingCart
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/toast'
 
@@ -78,8 +79,14 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
     <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
       {/* 브랜드 로고 */}
       <div className="hidden lg:block px-6 py-5 border-b-2 border-[#262A38]">
-        <Link href="/" className="text-2xl font-black tracking-tight">
-          AC'SCENT<span className="text-[#8B8578]">.</span>
+        <Link href="/" aria-label="AC'SCENT" className="inline-block">
+          <Image
+            src="/images/logo/acscent-wordmark-cream.png"
+            alt="AC'SCENT"
+            width={2053}
+            height={285}
+            className="h-[20px] w-auto select-none"
+          />
         </Link>
       </div>
 

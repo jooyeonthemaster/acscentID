@@ -34,9 +34,9 @@ export function CustomInputToggle({
                     className="
                         w-full py-3 px-4
                         text-sm lg:text-base font-medium text-[#A69F8D]
-                        bg-[#12141D] rounded-[12px]
-                        border border-dashed border-[#262A38]
-                        hover:border-[#3A4051]
+                        bg-[#F5EFE2] rounded-[12px]
+                        border border-dashed border-[#D8CFBB]
+                        hover:border-[#C9BFA8]
                         transition-all duration-200
                     "
                 >

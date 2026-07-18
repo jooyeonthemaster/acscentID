@@ -102,7 +102,7 @@ function CardWrapper({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1, rotateY: 0, scale: 1 }}
       exit={{ opacity: 0, rotateY: 90, scale: 0.8 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="bg-[#0E1016] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
+      className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
     >
       {children}
     </motion.div>
@@ -186,7 +186,7 @@ function TropeCard({ formData, setFormData }: {
               aria-pressed={isSelected}
               className={`p-3 rounded-[12px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  ? 'border-[#A87B10] bg-[#FBF3DF] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
                   : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
@@ -258,7 +258,7 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               onClick={() => onToggle(arch.id)}
               className={`p-3 rounded-[12px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  ? 'border-[#A87B10] bg-[#FBF3DF] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
                   : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
@@ -311,7 +311,7 @@ function SceneCard({ formData, setFormData }: {
               onClick={() => toggleScene(scene.id)}
               className={`p-4 rounded-[12px] border-2 text-center transition-all ${
                 isSelected
-                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
+                  ? 'border-[#A87B10] bg-[#FBF3DF] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
                   : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >
@@ -359,7 +359,7 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
               onClick={() => toggleEmotion(emotion.id)}
               className={`px-4 py-3 rounded-full border-2 transition-all ${
                 isSelected
-                  ? 'border-[#C9BFA8] bg-[#EDE5D2]'
+                  ? 'border-[#A87B10] bg-[#FBF3DF] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
                   : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
               }`}
             >

@@ -342,10 +342,10 @@ export default function ResultPageMain() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB]"
+          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB]"
         >
           <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
-          <p className="text-[#1A1610] font-black">{t('result.loading')}</p>
+          <p className="text-[#1A1610] font-bold">{t('result.loading')}</p>
           <p className="text-[#8B8578] text-sm lg:text-base mt-1 font-medium">{t('result.loadingHintEmoji')}</p>
         </motion.div>
       </div>
@@ -368,16 +368,16 @@ export default function ResultPageMain() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 max-w-sm border-2 border-[#D8CFBB]"
+          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 max-w-sm border border-[#D8CFBB]"
         >
-          <div className="w-16 h-16 bg-red-100 rounded-[12px] border-2 border-[#D8CFBB] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-[12px] border border-[#D8CFBB] flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">😢</span>
           </div>
-          <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('errors.generic')}</h2>
+          <h2 className="text-xl font-bold text-[#1A1610] mb-2">{t('errors.generic')}</h2>
           <p className="text-[#8B8578] text-sm lg:text-base mb-6 font-medium">{error}</p>
           <Button
             onClick={handleRestart}
-            className="bg-[#12141D] text-[#F5EFE2] hover:bg-[#FFFDF5] rounded-[12px] px-6 py-3 font-black border-2 border-[#D8CFBB] transition-all"
+            className="bg-[#12141D] text-[#F5EFE2] hover:bg-[#FFFDF5] rounded-[12px] px-6 py-3 font-bold border border-[#D8CFBB] transition-all"
           >
             {t('result.goBack')}
           </Button>
@@ -390,23 +390,23 @@ export default function ResultPageMain() {
   const titleSection = (
                 <motion.div variants={fadeInUp} className="text-center pt-2">
                   <div className="flex items-center justify-center gap-2 mb-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border-2 border-[#B8880F]">
-                      <span className="text-[#1A1610] text-xs lg:text-sm font-black">{t('result.analysisComplete')}</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border border-[#B8880F]">
+                      <span className="text-[#1A1610] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
                     </div>
                     {isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F5EFE2] rounded-[12px] border-2 border-[#D8CFBB]">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB]">
                         <Loader2 size={12} className="text-[#5C564A] animate-spin" />
-                        <span className="text-[#5C564A] text-xs lg:text-sm font-bold">{t('result.saving')}</span>
+                        <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saving')}</span>
                       </div>
                     )}
                     {isAutoSaved && !isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border-2 border-[#C9BFA8]">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#C9BFA8]">
                         <CheckCircle2 size={12} className="text-[#5C564A]" />
-                        <span className="text-[#5C564A] text-xs lg:text-sm font-bold">{t('result.saved')}</span>
+                        <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
                       </div>
                     )}
                   </div>
-                  <h1 className="text-2xl font-black text-[#E9E2D0] leading-tight">
+                  <h1 className="text-2xl font-bold text-[#E9E2D0] leading-tight">
                     {isGraduationMode ? (
                       <>
                         {t('result.graduationTitle')}<br />
@@ -434,9 +434,9 @@ export default function ResultPageMain() {
   )
 
   const imageSection = (
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border-2 border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border border-[#D8CFBB]">
                   {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border-2 border-[#D8CFBB]">
+                    <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border border-[#D8CFBB]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={userImage}
@@ -475,7 +475,7 @@ export default function ResultPageMain() {
                 {imageSection}
 
                 {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] overflow-hidden border-2 border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] overflow-hidden border border-[#D8CFBB]">
                   <TabNavigation
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -565,7 +565,7 @@ export default function ResultPageMain() {
           </div>
 
           {/* 우측: 탭 카드 — 휴면 isDesktop 레이아웃 활성 */}
-          <motion.div variants={fadeInUp} className="min-w-0 overflow-hidden rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2]">
+          <motion.div variants={fadeInUp} className="min-w-0 overflow-hidden rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2]">
             <TabNavigation
               activeTab={activeTab}
               onTabChange={setActiveTab}

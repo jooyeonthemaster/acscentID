@@ -18,16 +18,16 @@ export function PerfumeNotes({ persona, isDesktop = false }: PerfumeNotesProps) 
     return (
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-6 h-6 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center">
+          <div className="w-6 h-6 rounded-[12px] bg-[#EFE4C8] border border-[#D8CFBB] flex items-center justify-center">
             <Droplets size={12} className="text-[#1A1610]" />
           </div>
           <div>
             <h3 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('noteTitle')}</h3>
-            <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('noteSubtitle')}</p>
+            <p className="text-[12px] lg:text-[12px] text-[#8B8578]">{t('noteSubtitle')}</p>
           </div>
         </div>
 
-        <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] px-4 py-3">
+        <div className="bg-[#F5EFE2] border border-[#D8CFBB] rounded-[12px] px-4 py-3">
           <div className="space-y-3">
             {/* 탑노트 - PC */}
             <DesktopNoteCard
@@ -85,12 +85,12 @@ export function PerfumeNotes({ persona, isDesktop = false }: PerfumeNotesProps) 
           <Droplets size={10} className="text-[#1A1610]" />
         </div>
         <div>
-          <h3 className="text-xs lg:text-sm font-bold text-[#1A1610]">{t('noteTitle')}</h3>
-          <p className="text-[9px] text-[#8B8578]">{t('noteSubtitle')}</p>
+          <h3 className="text-sm lg:text-sm font-bold text-[#1A1610]">{t('noteTitle')}</h3>
+          <p className="text-[11px] text-[#8B8578]">{t('noteSubtitle')}</p>
         </div>
       </div>
 
-      <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-2.5">
+      <div>
         <div className="space-y-2">
           {/* 탑노트 - 모바일 */}
           <MobileNoteCard
@@ -166,15 +166,15 @@ function MobileNoteCard({
         {/* 상단: 타입 + 이름 + 시간 */}
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] font-black ${timeColor} tracking-wider`}>{type}</span>
-            <span className={`text-[10px] lg:text-[12px] ${timeColor}`}>•</span>
-            <span className={`text-xs lg:text-sm font-black ${textColor}`}>{name}</span>
+            <span className={`text-[11px] font-medium ${timeColor} tracking-wider`}>{type}</span>
+            <span className={`text-[12px] lg:text-[12px] ${timeColor}`}>•</span>
+            <span className={`text-sm lg:text-sm font-bold ${textColor}`}>{name}</span>
           </div>
-          <span className={`text-[9px] font-medium ${timeColor}`}>{time}</span>
+          <span className={`text-[11px] font-medium ${timeColor}`}>{time}</span>
         </div>
 
         {/* 설명 */}
-        <p className={`text-[11px] lg:text-[13px] leading-relaxed ${textColor} opacity-80`}>
+        <p className={`text-[13px] lg:text-[13px] leading-relaxed ${textColor} opacity-80`}>
           {description}
         </p>
       </div>
@@ -223,16 +223,16 @@ function DesktopNoteCard({
                 {icon}
               </div>
               <div className="flex items-center gap-1.5">
-                <span className={`text-[10px] lg:text-[12px] font-black ${labelColor} tracking-wider`}>{type}</span>
+                <span className={`text-[12px] lg:text-[12px] font-medium ${labelColor} tracking-wider`}>{type}</span>
                 <span className={isDark ? 'text-[#8B8578]' : `${labelColor} opacity-50`}>|</span>
-                <span className={`text-sm lg:text-base font-black ${textColor}`}>{name}</span>
+                <span className={`text-sm lg:text-base font-bold ${textColor}`}>{name}</span>
               </div>
             </div>
-            <div className={`text-[10px] lg:text-[12px] font-bold ${isDark ? 'text-[#5C564A]' : labelColor} bg-[#F5EFE2]/80 px-2 py-0.5 rounded-full`}>
+            <div className={`text-[12px] lg:text-[12px] font-medium ${isDark ? 'text-[#5C564A]' : labelColor} bg-[#F5EFE2]/80 px-2 py-0.5 rounded-full`}>
               {time}
             </div>
           </div>
-          <p className={`text-xs lg:text-sm ${textColor} leading-relaxed pl-9 opacity-90`}>{description}</p>
+          <p className={`text-sm lg:text-sm ${textColor} leading-relaxed pl-9 opacity-90`}>{description}</p>
         </div>
       </div>
     </motion.div>

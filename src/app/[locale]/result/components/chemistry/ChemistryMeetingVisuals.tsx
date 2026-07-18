@@ -15,18 +15,17 @@ export function SectionCard({ children }: { children: React.ReactNode }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.4 }}
-      className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
+      className="bg-[#F5EFE2] border border-[#D8CFBB] rounded-[12px] overflow-hidden"
     >
       {children}
     </motion.div>
   )
 }
 
-export function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
+export function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="bg-[#0E1016] px-4 py-3 border-b-2 border-[#D8CFBB] flex items-center gap-2">
-      <span className="text-lg">{emoji}</span>
-      <h3 className="text-sm lg:text-base font-black text-[#1A1610]">{title}</h3>
+    <div className="bg-[#EDE5D2] px-4 py-3 border-b border-[#D8CFBB] text-center">
+      <h3 className="text-[18px] lg:text-[20px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
     </div>
   )
 }
@@ -50,7 +49,7 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔮" title={t('chemistry.result.scenarios')} />
+      <SectionHeader title={t('chemistry.result.scenarios')} />
       <div className="pb-4">
         <div
           ref={scrollRef}
@@ -65,11 +64,11 @@ export function ScenarioCarousel({ scenarios }: { scenarios: { title: string; co
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 * i }}
-              className="flex-shrink-0 w-[78%] snap-center bg-gradient-to-br from-[#FDFAF1] to-[#0E1016] border-2 border-[#D8CFBB] rounded-[12px] p-4"
+              className="flex-shrink-0 w-[78%] snap-center bg-gradient-to-br from-[#FDFAF1] to-[#0E1016] border border-[#D8CFBB] rounded-[12px] p-4"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">{scenarioIcons[i % scenarioIcons.length]}</span>
-                <h4 className="text-sm lg:text-base font-black text-[#1A1610]">{sc.title}</h4>
+                <h4 className="text-sm lg:text-base font-bold text-[#1A1610]">{sc.title}</h4>
               </div>
               <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed line-clamp-4">{sc.content}</p>
             </motion.div>
@@ -100,7 +99,7 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
   const t = useTranslations()
   return (
     <SectionCard>
-      <SectionHeader emoji="💬" title={t('chemistry.result.dialogues')} />
+      <SectionHeader title={t('chemistry.result.dialogues')} />
       <div className="p-4 space-y-3">
         {/* A 말풍선 (왼쪽) */}
         <motion.div
@@ -109,12 +108,12 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
           viewport={{ once: true }}
           className="flex gap-2 items-end"
         >
-          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
             <span className="text-sm lg:text-base">🌙</span>
           </div>
           <div className="max-w-[75%]">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] block mb-1">{nameA}</span>
-            <div className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] rounded-bl-[12px] p-3">
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A] block mb-1">{nameA}</span>
+            <div className="bg-[#EDE5D2] border border-[#D8CFBB] rounded-[12px] rounded-bl-[12px] p-3">
               <p className="text-sm lg:text-base font-bold text-[#1A1610] italic">&ldquo;{dialogues.aToB.line}&rdquo;</p>
               <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-1.5 italic">({dialogues.aToB.action})</p>
             </div>
@@ -129,12 +128,12 @@ export function DialogueBubbles({ dialogues, nameA, nameB }: {
           transition={{ delay: 0.2 }}
           className="flex gap-2 items-end flex-row-reverse"
         >
-          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#EDE5D2] border border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
             <span className="text-sm lg:text-base">☀️</span>
           </div>
           <div className="max-w-[75%]">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] block mb-1 text-right">{nameB}</span>
-            <div className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] rounded-br-[12px] p-3">
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A] block mb-1 text-right">{nameB}</span>
+            <div className="bg-[#EDE5D2] border border-[#D8CFBB] rounded-[12px] rounded-br-[12px] p-3">
               <p className="text-sm lg:text-base font-bold text-[#1A1610] italic">&ldquo;{dialogues.bToA.line}&rdquo;</p>
               <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-1.5 italic">({dialogues.bToA.action})</p>
             </div>
@@ -191,19 +190,19 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔢" title={t('chemistry.result.nameChemistry')} />
+      <SectionHeader title={t('chemistry.result.nameChemistry')} />
       <div className="p-4">
         <div className="text-center mb-3">
-          <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578] bg-[#EDE5D2] px-2 py-0.5 rounded-full">
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] bg-[#EDE5D2] px-2 py-0.5 rounded-full">
             {t('chemistry.result.nameChemistrySubtitle')}
           </span>
         </div>
 
         {/* 이름 표시 */}
         <div className="flex justify-center gap-3 mb-4">
-          <span className="text-xs lg:text-sm font-black text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">🌙 {nameA}</span>
-          <span className="text-xs lg:text-sm text-[#8B8578] font-bold">x</span>
-          <span className="text-xs lg:text-sm font-black text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">☀️ {nameB}</span>
+          <span className="text-xs lg:text-sm font-medium text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">🌙 {nameA}</span>
+          <span className="text-xs lg:text-sm text-[#8B8578] font-medium">x</span>
+          <span className="text-xs lg:text-sm font-medium text-[#5C564A] bg-[#FDFAF1] px-2 py-1 rounded-[12px] border border-[#D8CFBB]">☀️ {nameB}</span>
         </div>
 
         {/* 피라미드 (최대 5줄만 표시) */}
@@ -220,7 +219,7 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
               {row.slice(0, 12).map((num, ci) => (
                 <div
                   key={ci}
-                  className={`w-6 h-6 rounded-[12px] flex items-center justify-center text-[10px] lg:text-[12px] font-black ${
+                  className={`w-6 h-6 rounded-[12px] flex items-center justify-center text-[10px] lg:text-[12px] font-medium ${
                     ri === pyramid.length - 1 || (pyramid.length > 5 && ri === 4)
                       ? 'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]'
                       : ri === 0
@@ -243,8 +242,8 @@ export function NameChemistryPyramid({ nameA, nameB }: { nameA: string; nameB: s
           transition={{ delay: 0.5, type: "spring" }}
           className="mt-4 text-center"
         >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610] px-5 py-2.5 rounded-full border-2 border-[#D8CFBB]">
-            <span className="text-lg font-black">{finalNumber}%</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610] px-5 py-2.5 rounded-full border border-[#D8CFBB]">
+            <span className="text-lg font-bold">{finalNumber}%</span>
           </div>
           <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-2">
             {finalNumber >= 80
@@ -285,19 +284,19 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
 
   return (
     <SectionCard>
-      <SectionHeader emoji="✨" title={t('chemistry.result.layeringGuide')} />
+      <SectionHeader title={t('chemistry.result.layeringGuide')} />
       <div className="p-4 space-y-5">
 
         {/* 뿌리는 순서 */}
         <div>
-          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-3">{t('chemistry.result.sprayOrder')}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider block mb-3">{t('chemistry.result.sprayOrder')}</span>
           <div className="flex items-center justify-center gap-3">
             <div className="flex flex-col items-center gap-1">
-              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border border-[#D8CFBB] flex items-center justify-center">
                 <span className="text-lg">🌙</span>
               </div>
-              <span className="text-[11px] lg:text-[13px] font-black text-[#5C564A]">{nameA}</span>
-              <span className="text-[9px] text-[#8B8578] font-bold">FIRST</span>
+              <span className="text-[11px] lg:text-[13px] font-medium text-[#5C564A]">{nameA}</span>
+              <span className="text-[9px] text-[#8B8578] font-medium">FIRST</span>
             </div>
             <div className="flex flex-col items-center">
               <svg width="40" height="16" viewBox="0 0 40 16" className="flex-shrink-0">
@@ -305,51 +304,51 @@ export function LayeringInfographic({ guide, nameA, nameB }: {
               </svg>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border-2 border-[#D8CFBB] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-[#EDE5D2] border border-[#D8CFBB] flex items-center justify-center">
                 <span className="text-lg">☀️</span>
               </div>
-              <span className="text-[11px] lg:text-[13px] font-black text-[#5C564A]">{nameB}</span>
-              <span className="text-[9px] text-[#8B8578] font-bold">SECOND</span>
+              <span className="text-[11px] lg:text-[13px] font-medium text-[#5C564A]">{nameB}</span>
+              <span className="text-[9px] text-[#8B8578] font-medium">SECOND</span>
             </div>
           </div>
         </div>
 
         {/* 비율 — 가로 바 형태 */}
         <div>
-          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.ratio')}</span>
-          <div className="flex h-8 rounded-full overflow-hidden border-2 border-[#D8CFBB]">
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.ratio')}</span>
+          <div className="flex h-8 rounded-full overflow-hidden border border-[#D8CFBB]">
             <div className="bg-[#EFE4C8] flex items-center justify-center" style={{ width: `${percentA}%` }}>
-              <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{percentA}%</span>
+              <span className="text-[10px] lg:text-[12px] font-medium text-[#1A1610]">{percentA}%</span>
             </div>
             <div className="bg-[#EFE4C8] flex items-center justify-center" style={{ width: `${percentB}%` }}>
-              <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{percentB}%</span>
+              <span className="text-[10px] lg:text-[12px] font-medium text-[#1A1610]">{percentB}%</span>
             </div>
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">🌙 {nameA}</span>
-            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">☀️ {nameB}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">🌙 {nameA}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">☀️ {nameB}</span>
           </div>
         </div>
 
         {/* 레이어링 팁 */}
         <div className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-3 border border-[#D8CFBB]">
-          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.layeringTip')}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.layeringTip')}</span>
           <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed font-medium">{guide.method}</p>
         </div>
 
         {/* 추천 상황/계절/시간 */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.season')}</span>
-            <span className="text-xs lg:text-sm font-black text-[#5C564A]">{seasonLabel}</span>
+          <div className="bg-[#FDFAF1] border border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] block mb-1">{t('chemistry.result.season')}</span>
+            <span className="text-xs lg:text-sm font-medium text-[#5C564A]">{seasonLabel}</span>
           </div>
-          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.time')}</span>
-            <span className="text-xs lg:text-sm font-black text-[#5C564A]">{timeLabel}</span>
+          <div className="bg-[#FDFAF1] border border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] block mb-1">{t('chemistry.result.time')}</span>
+            <span className="text-xs lg:text-sm font-medium text-[#5C564A]">{timeLabel}</span>
           </div>
-          <div className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-3 text-center">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.situation')}</span>
-            <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] leading-tight block">{guide.situation}</span>
+          <div className="bg-[#FDFAF1] border border-[#D8CFBB] rounded-[12px] p-3 text-center">
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] block mb-1">{t('chemistry.result.situation')}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A] leading-tight block">{guide.situation}</span>
           </div>
         </div>
 
@@ -379,7 +378,7 @@ export function FutureTimeline({ predictions, futureVision }: {
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🔮" title={t('chemistry.result.future')} />
+      <SectionHeader title={t('chemistry.result.future')} />
       <div className="p-4">
         <div className="space-y-0">
           {milestones.map((m, i) => (
@@ -402,7 +401,7 @@ export function FutureTimeline({ predictions, futureVision }: {
               </div>
               {/* 콘텐츠 */}
               <div className="pb-4 flex-1 min-w-0">
-                <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A] uppercase tracking-wider">{m.timeLabel}</span>
+                <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A] uppercase tracking-wider">{m.timeLabel}</span>
                 <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed mt-1 font-medium">{m.prediction}</p>
               </div>
             </motion.div>

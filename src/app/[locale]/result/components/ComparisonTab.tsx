@@ -110,19 +110,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         {/* 2컬럼: AI 해석 + 유저 요약 */}
         <div className="grid grid-cols-2 gap-6">
           {/* AI 이미지 해석 */}
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<Eye size={14} />}
               title={t('aiImageInterpretation')}
               subtitle={t('aiImageSubtitle')}
             />
-            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB] h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] h-[calc(100%-48px)]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-stone-300/20 rounded-full blur-3xl" />
               <div className="relative z-10 flex flex-col h-full">
                 <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.imageInterpretation}
                 </p>
-                <p className="text-[#5C564A] text-xs lg:text-sm mt-3 font-black">
+                <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
                   - AI Vision System
                 </p>
               </div>
@@ -130,19 +130,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           </motion.div>
 
           {/* 유저 응답 요약 */}
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<User size={14} />}
               title={t('myImageView')}
               subtitle={t('myImageSubtitle')}
             />
-            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB] h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] h-[calc(100%-48px)]">
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-stone-300/20 rounded-full blur-3xl" />
               <div className="relative z-10 flex flex-col h-full">
                 <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.userInputSummary}
                 </p>
-                <p className="text-[#5C564A] text-xs lg:text-sm mt-3 font-black">
+                <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
                   - {t('myAnalysis')}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         </div>
 
         {/* 비교 분석 상세 */}
-        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
           <SectionHeader
             icon={<Sparkles size={14} />}
             title={t('matchSecret')}
@@ -210,9 +210,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-[#EDE5D2] rounded-[12px] border-2 border-[#D8CFBB]">
+          <div className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB]">
             <span>🎯</span>
-            <span className="text-sm lg:text-base text-[#1A1610] font-black">{t('aiFanFormula')}</span>
+            <span className="text-sm lg:text-base text-[#1A1610] font-bold">{t('aiFanFormula')}</span>
             <span>✨</span>
           </div>
         </motion.div>
@@ -231,19 +231,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       className="space-y-5"
     >
       {/* AI 이미지 해석 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
         <SectionHeader
           icon={<Eye size={14} />}
           title={t('aiImageInterpretation')}
           subtitle={t('aiImageSubtitle')}
         />
-        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
           <div className="relative z-10">
             <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.imageInterpretation}
             </p>
-            <p className="text-[#5C564A] text-xs lg:text-sm mt-3 font-black">
+            <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
               - AI Vision System
             </p>
           </div>
@@ -251,19 +251,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       </motion.div>
 
       {/* 유저 응답 요약 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
         <SectionHeader
           icon={<User size={14} />}
           title={t('myImageView')}
           subtitle={t('myImageSubtitle')}
         />
-        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
           <div className="relative z-10">
             <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.userInputSummary}
             </p>
-            <p className="text-[#5C564A] text-xs lg:text-sm mt-3 font-black">
+            <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
               - {t('myAnalysis')}
             </p>
           </div>
@@ -271,7 +271,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       </motion.div>
 
       {/* 비교 분석 상세 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
         <SectionHeader
           icon={<Sparkles size={14} />}
           title={t('matchSecret')}
@@ -329,9 +329,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border-2 border-[#D8CFBB]">
+        <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB]">
           <span>🎯</span>
-          <span className="text-xs lg:text-sm text-[#1A1610] font-black">{t('aiFanFormula')}</span>
+          <span className="text-sm lg:text-sm text-[#1A1610] font-bold">{t('aiFanFormula')}</span>
           <span>✨</span>
         </div>
       </motion.div>
@@ -342,14 +342,12 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
 // 섹션 헤더 컴포넌트 - 키치 스타일
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-7 h-7 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center text-[#1A1610]">
+    <div className="mb-4">
+      <div className="flex items-center gap-1.5 text-[#8B8578]">
         {icon}
+        <p className="text-[11px] lg:text-[12px] font-medium uppercase tracking-[0.12em]">{subtitle}</p>
       </div>
-      <div>
-        <h3 className="text-sm lg:text-base font-black text-[#1A1610]">{title}</h3>
-        <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{subtitle}</p>
-      </div>
+      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
     </div>
   )
 }
@@ -383,16 +381,16 @@ function AnalysisCard({
   const cleanedContent = cleanContent(content)
 
   return (
-    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB] ${highlight ? 'ring-2 ring-[#C9BFA8] ring-offset-1' : ''}`}>
+    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] ${highlight ? 'ring-2 ring-[#C9BFA8] ring-offset-1' : ''}`}>
       {/* 데코 패턴 */}
       <div className={`absolute top-0 right-0 w-24 h-24 ${badgeColor} opacity-10 rounded-full blur-2xl`} />
 
       <div className="relative z-10">
         {/* 배지 헤더 - 키치 스타일 */}
         <div className="flex items-center gap-2 mb-3">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${badgeColor} text-[#1A1610] rounded-[12px] border-2 border-[#D8CFBB]`}>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${badgeColor} text-[#1A1610] rounded-[12px] border border-[#D8CFBB]`}>
             {icon}
-            <span className="text-xs lg:text-sm font-black">{badge}</span>
+            <span className="text-sm lg:text-sm font-bold">{badge}</span>
           </div>
         </div>
 

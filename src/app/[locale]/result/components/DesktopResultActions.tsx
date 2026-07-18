@@ -39,9 +39,9 @@ export function DesktopResultActions({
           {onScentPaperCheckout && (
             <button
               onClick={onScentPaperCheckout}
-              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3 text-sm font-black text-[#E9E2D0] transition-colors hover:border-[#3A4051]"
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] px-4 py-3 text-sm font-black text-[#1A1610] transition-colors hover:border-[#B8880F]"
             >
-              <Ticket size={16} className="text-[#8B8578]" />
+              <Ticket size={16} className="text-[#5C564A]" />
               <span>{t('scentPaperCta')}</span>
             </button>
           )}

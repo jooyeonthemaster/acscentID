@@ -15,7 +15,6 @@ type SubTabType = 'perfume' | 'analysis'
 
 interface CharacterScentChapterProps {
   characterName: string
-  emoji: string
   analysis: ImageAnalysisResult
   accentColor: 'violet' | 'pink'
   activeSubTab?: SubTabType
@@ -70,11 +69,11 @@ export function CharacterScentChapter({
     <div className="px-4 space-y-5">
       {/* 서브탭 네비게이션 — activeSubTab이 없을 때만 내부 탭 표시 (fallback) */}
       {!activeSubTab && (
-        <div className="bg-[#EDE5D2] p-2 rounded-[12px] border-2 border-[#D8CFBB]">
+        <div className="bg-[#EDE5D2] p-2 rounded-[12px] border border-[#D8CFBB]">
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setInternalSubTab('perfume')}
-              className={`relative flex items-center justify-center gap-1.5 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border-2 ${
+              className={`relative flex items-center justify-center gap-1.5 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border ${
                 subTab === 'perfume'
                   ? 'text-[#1A1610] bg-[#F5EFE2] border-[#D8CFBB]'
                   : 'text-[#8B8578] bg-[#F5EFE2]/50 border-transparent hover:bg-[#F5EFE2]/80'
@@ -82,12 +81,12 @@ export function CharacterScentChapter({
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-sm lg:text-base">💎</span>
-                <span className="font-bold text-xs lg:text-sm">{t('tabs.perfumeRecommend')}</span>
+                <span className="font-medium text-xs lg:text-sm">{t('tabs.perfumeRecommend')}</span>
               </span>
             </button>
             <button
               onClick={() => setInternalSubTab('analysis')}
-              className={`relative flex items-center justify-center gap-1.5 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border-2 ${
+              className={`relative flex items-center justify-center gap-1.5 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border ${
                 subTab === 'analysis'
                   ? 'text-[#1A1610] bg-[#F5EFE2] border-[#D8CFBB]'
                   : 'text-[#8B8578] bg-[#F5EFE2]/50 border-transparent hover:bg-[#F5EFE2]/80'
@@ -95,7 +94,7 @@ export function CharacterScentChapter({
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-sm lg:text-base">🔍</span>
-                <span className="font-bold text-xs lg:text-sm">{t('tabs.analysisResult')}</span>
+                <span className="font-medium text-xs lg:text-sm">{t('tabs.analysisResult')}</span>
               </span>
             </button>
           </div>
@@ -110,12 +109,12 @@ export function CharacterScentChapter({
             animate="visible"
             exit={{ opacity: 0, y: -10 }}
             variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-            className="space-y-5"
+            className="bg-[#F5EFE2] border border-[#D8CFBB] rounded-[12px] px-5 divide-y divide-[#D8CFBB] [&>*]:py-5"
           >
             {/* ===== 1. 향수 헤더 카드 — PerfumeTab.tsx 모바일 스타일 그대로 ===== */}
             {persona && (
               <motion.div variants={fadeIn}>
-                <div className="relative rounded-[12px] p-5 bg-[#F5EFE2] overflow-hidden border-2 border-[#D8CFBB]">
+                <div className="relative overflow-hidden">
                   {/* 컬러풀한 데코 - 향수 색상 사용 */}
                   <div
                     className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15"
@@ -128,11 +127,11 @@ export function CharacterScentChapter({
 
                   <div className="relative z-10">
                     {/* 추천 향수 뱃지 */}
-                    <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] mb-2">
+                    <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-2">
                       <span className="text-xs lg:text-sm">💎</span>
-                      <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{t('result.recommendedPerfume')}</span>
+                      <span className="text-[10px] lg:text-[12px] font-medium text-[#1A1610]">{t('result.recommendedPerfume')}</span>
                     </div>
-                    <h2 className="text-2xl font-black leading-tight text-[#1A1610]">
+                    <h2 className="text-2xl font-bold leading-tight text-[#1A1610]">
                       {persona.id || t('result.customPerfumeAlt')}
                     </h2>
                     <p className="text-sm lg:text-base mt-1 text-[#5C564A] mb-3">
@@ -147,7 +146,7 @@ export function CharacterScentChapter({
                         {perfumeKeywords.slice(0, 5).map((keyword, i) => (
                           <span
                             key={i}
-                            className="px-2.5 py-1 text-[10px] lg:text-[12px] font-bold rounded-[12px] bg-[#FDFAF1] border-2 border-[#D8CFBB] text-[#5C564A]"
+                            className="px-2.5 py-1 text-[10px] lg:text-[12px] font-medium rounded-[12px] bg-[#FDFAF1] border border-[#D8CFBB] text-[#5C564A]"
                           >
                             #{keyword}
                           </span>
@@ -167,12 +166,12 @@ export function CharacterScentChapter({
                     <Droplets size={10} className="text-[#1A1610]" />
                   </div>
                   <div>
-                    <h3 className="text-xs lg:text-sm font-bold text-[#1A1610]">{t('perfume.noteTitle')}</h3>
+                    <h3 className="text-xs lg:text-sm font-medium text-[#1A1610]">{t('perfume.noteTitle')}</h3>
                     <p className="text-[9px] text-[#8B8578]">{t('perfume.noteSubtitle')}</p>
                   </div>
                 </div>
 
-                <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-2.5">
+                <div className="">
                   <div className="space-y-2">
                     {/* 탑노트 */}
                     <MobileNoteCard
@@ -218,16 +217,16 @@ export function CharacterScentChapter({
             {persona?.categories && (
               <motion.div variants={fadeIn}>
                 <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-5 h-5 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-[12px] bg-[#EFE4C8] border border-[#D8CFBB] flex items-center justify-center">
                     <FlaskConical size={10} className="text-[#1A1610]" />
                   </div>
                   <div>
-                    <h3 className="text-xs lg:text-sm font-bold text-[#1A1610]">{t('perfume.profileTitle')}</h3>
+                    <h3 className="text-xs lg:text-sm font-medium text-[#1A1610]">{t('perfume.profileTitle')}</h3>
                     <p className="text-[9px] text-[#8B8578]">{t('perfume.profileSubtitle')}</p>
                   </div>
                 </div>
 
-                <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-3">
+                <div className="">
                   <div className="space-y-2">
                     {Object.entries(persona.categories)
                       .sort(([, a], [, b]) => b - a)
@@ -248,12 +247,12 @@ export function CharacterScentChapter({
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.06, type: "spring", stiffness: 200 }}
                             className={`relative rounded-[12px] p-2 ${colors.bg} border ${colors.border} ${
-                              isMain ? 'ring-2 ring-offset-1 ring-[#C9BFA8] border-2' : ''
+                              isMain ? 'ring-2 ring-offset-1 ring-[#C9BFA8] border' : ''
                             }`}
                           >
                             {/* 메인 배지 */}
                             {isMain && (
-                              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#EFE4C8] rounded-full border-2 border-[#D8CFBB] flex items-center justify-center text-[10px] lg:text-[12px]">
+                              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#EFE4C8] rounded-full border border-[#D8CFBB] flex items-center justify-center text-[10px] lg:text-[12px]">
                                 👑
                               </div>
                             )}
@@ -262,7 +261,7 @@ export function CharacterScentChapter({
                               {/* 아이콘 + 이름 */}
                               <div className="flex items-center gap-1 min-w-[56px]">
                                 <span className="text-sm lg:text-base">{info.icon}</span>
-                                <span className={`text-[10px] lg:text-[12px] font-bold ${colors.text}`}>{getCategoryLabel(category)}</span>
+                                <span className={`text-[10px] lg:text-[12px] font-medium ${colors.text}`}>{getCategoryLabel(category)}</span>
                               </div>
 
                               {/* 동그라미 점 10개 */}
@@ -283,8 +282,8 @@ export function CharacterScentChapter({
                               </div>
 
                               {/* 숫자 박스 */}
-                              <div className={`flex-shrink-0 w-6 h-6 rounded-[12px] ${colors.bar} border-2 border-[#D8CFBB] flex items-center justify-center`}>
-                                <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">
+                              <div className={`flex-shrink-0 w-6 h-6 rounded-[12px] ${colors.bar} border border-[#D8CFBB] flex items-center justify-center`}>
+                                <span className="text-[10px] lg:text-[12px] font-medium text-[#1A1610]">
                                   {value as number}
                                 </span>
                               </div>
@@ -304,14 +303,14 @@ export function CharacterScentChapter({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <Sparkles size={12} className="text-[#8B8578]" />
-                        <span className="text-[10px] lg:text-[12px] font-bold text-[#8B8578]">{t('perfume.mainCategory')}</span>
+                        <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578]">{t('perfume.mainCategory')}</span>
                       </div>
                       {(() => {
                         const mainCategory = Object.entries(persona.categories).sort(([, a], [, b]) => b - a)[0]
                         return (
-                          <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#EDE5D2] to-[#EDE5D2] px-2.5 py-1 rounded-full border-2 border-[#D8CFBB]">
+                          <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#EDE5D2] to-[#EDE5D2] px-2.5 py-1 rounded-full border border-[#D8CFBB]">
                             <span className="text-sm lg:text-base">{CATEGORY_INFO[mainCategory[0]]?.icon || '⚪'}</span>
-                            <span className="text-xs lg:text-sm font-black text-[#1A1610]">
+                            <span className="text-xs lg:text-sm font-medium text-[#1A1610]">
                               {getCategoryLabel(mainCategory[0])}
                             </span>
                           </div>
@@ -326,13 +325,13 @@ export function CharacterScentChapter({
             {/* ===== 4. 향수 스토리 — PerfumeTab.tsx 모바일 스타일 그대로 ===== */}
             {perfume?.matchReason && (
               <motion.div variants={fadeIn}>
-                <div className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+                <div className="">
                   <SectionHeader
                     icon={<Sparkles size={14} />}
                     title={t('perfume.perfumeStory')}
                     subtitle={t('perfume.expertReview')}
                   />
-                  <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+                  <div className="relative">
                     <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed italic font-medium">
                       &quot;{perfume.matchReason}&quot;
                     </p>
@@ -344,13 +343,13 @@ export function CharacterScentChapter({
             {/* ===== 5. 사용 추천 + 계절/시간대 — PerfumeTab.tsx 모바일 스타일 그대로 ===== */}
             {persona?.recommendation && (
               <motion.div variants={fadeIn}>
-                <div className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+                <div className="">
                   <SectionHeader
                     icon={<Clock size={14} />}
                     title={t('perfume.usageRecommend')}
                     subtitle={t('perfume.usageRecommendSubtitle')}
                   />
-                  <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+                  <div className="relative">
                     <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium">
                       {persona.recommendation}
                     </p>
@@ -366,13 +365,13 @@ export function CharacterScentChapter({
 
             {/* ===== 6. 사용 가이드 — PerfumeTab.tsx 모바일 스타일 그대로 ===== */}
             <motion.div variants={fadeIn}>
-              <div className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+              <div className="">
                 <SectionHeader
                   icon={<BookOpen size={14} />}
                   title={t('perfume.usageGuide')}
                   subtitle={t('perfume.usageGuideSubtitle')}
                 />
-                <div className="bg-[#EDE5D2] rounded-[12px] p-4 space-y-3 border-2 border-[#D8CFBB]">
+                <div className="space-y-3">
                   {persona?.usageGuide?.tips && persona.usageGuide.tips.length > 0 ? (
                     persona.usageGuide.tips.map((tip, i) => (
                       <GuideItem key={i} text={tip} />
@@ -397,7 +396,7 @@ export function CharacterScentChapter({
             animate="visible"
             exit={{ opacity: 0, y: -10 }}
             variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-            className="space-y-5"
+            className="bg-[#F5EFE2] border border-[#D8CFBB] rounded-[12px] px-5 divide-y divide-[#D8CFBB] [&>*]:py-5"
           >
             {/* ===== 1. AI의 첫인상 — AnalysisTab.tsx 모바일 스타일 그대로 ===== */}
             {analysis.analysis && (
@@ -407,17 +406,17 @@ export function CharacterScentChapter({
                   title={t('analysis.imageMood')}
                   subtitle={t('analysis.aiFirstImpression')}
                 />
-                <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+                <div className="relative">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
                   <div className="relative z-10 flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-[12px] bg-[#EFE4C8] border border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
                       <span className="text-sm lg:text-base">💭</span>
                     </div>
                     <div>
                       <p className="text-[#5C564A] text-sm lg:text-base font-bold leading-relaxed">
                         &quot;{analysis.analysis.mood}&quot;
                       </p>
-                      <p className="text-[#5C564A] text-xs lg:text-sm mt-2 font-black">
+                      <p className="text-[#5C564A] text-xs lg:text-sm mt-2 font-medium">
                         @acscent_ai
                       </p>
                     </div>
@@ -427,7 +426,7 @@ export function CharacterScentChapter({
             )}
 
             {/* ===== 2. 특성 레이더 차트 — AnalysisTab.tsx 모바일 스타일 그대로 ===== */}
-            <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+            <motion.div variants={fadeIn} className="">
               <SectionHeader
                 icon={<Sparkles size={14} />}
                 title={t('analysis.traitScore')}
@@ -477,7 +476,7 @@ export function CharacterScentChapter({
 
             {/* ===== 4. 매칭 키워드 — AnalysisTab.tsx 모바일 스타일 그대로 ===== */}
             {analysis.matchingKeywords && analysis.matchingKeywords.length > 0 && (
-              <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+              <motion.div variants={fadeIn} className="">
                 <SectionHeader
                   icon={<Tag size={14} />}
                   title={t('analysis.matchingKeywords')}
@@ -495,17 +494,17 @@ export function CharacterScentChapter({
                   title={t('analysis.colorType')}
                   subtitle={t('analysis.imageColorAnalysis')}
                 />
-                <div className="bg-[#EDE5D2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+                <div className="">
                   <div className="flex items-start gap-3 mb-4">
                     <div
-                      className="w-12 h-12 rounded-[12px] flex-shrink-0 border-2 border-[#D8CFBB]"
+                      className="w-12 h-12 rounded-[12px] flex-shrink-0 border border-[#D8CFBB]"
                       style={{
                         background: `linear-gradient(135deg, ${analysis.personalColor.palette?.[0] || '#fff'}, ${analysis.personalColor.palette?.[1] || '#f9f9f9'})`
                       }}
                     />
                     <div>
-                      <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] mb-2">
-                        <span className="text-xs lg:text-sm font-black text-[#1A1610]">
+                      <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-2">
+                        <span className="text-xs lg:text-sm font-medium text-[#1A1610]">
                           {tLabels(`seasons.${analysis.personalColor.season}`)} {tLabels(`tones.${analysis.personalColor.tone}`)}
                         </span>
                       </div>
@@ -518,7 +517,7 @@ export function CharacterScentChapter({
                     {analysis.personalColor.palette?.map((color, index) => (
                       <div
                         key={index}
-                        className="w-10 h-10 rounded-[12px] border-2 border-[#D8CFBB] transition-transform hover:scale-110"
+                        className="w-10 h-10 rounded-[12px] border border-[#D8CFBB] transition-transform hover:scale-110"
                         style={{ backgroundColor: color }}
                         title={color}
                       />
@@ -537,14 +536,12 @@ export function CharacterScentChapter({
 // ===== 섹션 헤더 — PerfumeTab/AnalysisTab 키치 스타일 그대로 =====
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-7 h-7 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center text-[#1A1610]">
+    <div className="mb-4">
+      <div className="flex items-center gap-1.5 text-[#8B8578]">
         {icon}
+        <p className="text-[11px] lg:text-[12px] font-medium uppercase tracking-[0.12em]">{subtitle}</p>
       </div>
-      <div>
-        <h3 className="text-sm lg:text-base font-black text-[#1A1610]">{title}</h3>
-        <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{subtitle}</p>
-      </div>
+      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
     </div>
   )
 }
@@ -567,9 +564,9 @@ function AnalysisCard({ label, content, accentColor, bgColor }: {
   bgColor: string
 }) {
   return (
-    <div className={`relative rounded-[12px] p-4 overflow-hidden ${bgColor} border-2 border-[#D8CFBB]`}>
+    <div className={`relative rounded-[12px] p-4 overflow-hidden ${bgColor} border border-[#D8CFBB]`}>
       <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${accentColor}`} />
-      <p className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider mb-1 pl-2">{label}</p>
+      <p className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider mb-1 pl-2">{label}</p>
       <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium pl-2">{content}</p>
     </div>
   )
@@ -608,9 +605,9 @@ function MobileNoteCard({
         {/* 상단: 타입 + 이름 + 시간 */}
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] font-black ${timeColor} tracking-wider`}>{type}</span>
+            <span className={`text-[9px] font-medium ${timeColor} tracking-wider`}>{type}</span>
             <span className={`text-[10px] lg:text-[12px] ${timeColor}`}>•</span>
-            <span className={`text-xs lg:text-sm font-black ${textColor}`}>{name}</span>
+            <span className={`text-xs lg:text-sm font-medium ${textColor}`}>{name}</span>
           </div>
           <span className={`text-[9px] font-medium ${timeColor}`}>{time}</span>
         </div>

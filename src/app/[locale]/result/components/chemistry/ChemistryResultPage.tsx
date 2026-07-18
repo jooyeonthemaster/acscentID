@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import type { LucideIcon } from "lucide-react"
+import { CheckCircle2, Moon, Sun, Zap, Gem, Search, Camera, FlaskConical, BarChart3, Sparkles, Users } from "lucide-react"
 import type { ChemistryAnalysisResult, ImageAnalysisResult } from "@/types/analysis"
 import { ChemistryPrologue } from "./ChemistryPrologue"
 import { CharacterScentChapter } from "./CharacterScentChapter"
@@ -18,6 +20,7 @@ import { useProductPricing } from "@/hooks/useProductPricing"
 import { useLocale, useTranslations } from "next-intl"
 import { useLocalizedPerfumes } from "@/hooks/useLocalizedPerfumes"
 import type { Locale } from "@/i18n/config"
+import { SCENT_PAPER_SIZE } from "@/types/cart"
 
 interface ChemistryFormMeta {
   character1Name: string
@@ -39,11 +42,11 @@ type MainTabType = 'characterA' | 'characterB' | 'chemistry'
 type CharSubTabType = 'perfume' | 'analysis'
 
 const CHEMISTRY_SECTIONS = [
-  { id: 'face', labelKey: 'chemistry.result.faceMatch', emoji: '\u{1F4F8}' },
-  { id: 'type', labelKey: 'chemistry.result.chemistryType', emoji: '\u{1F36F}' },
-  { id: 'traits', labelKey: 'chemistry.result.traits', emoji: '\u{1F4CA}' },
-  { id: 'scent', labelKey: 'chemistry.result.scent', emoji: '\u{1F9EA}' },
-  { id: 'dynamic', labelKey: 'chemistry.result.dynamic', emoji: '\u{1F4AB}' },
+  { id: 'face', labelKey: 'chemistry.result.faceMatch', icon: Camera },
+  { id: 'type', labelKey: 'chemistry.result.chemistryType', icon: FlaskConical },
+  { id: 'traits', labelKey: 'chemistry.result.traits', icon: BarChart3 },
+  { id: 'scent', labelKey: 'chemistry.result.scent', icon: Sparkles },
+  { id: 'dynamic', labelKey: 'chemistry.result.dynamic', icon: Users },
 ] as const
 
 const CHEMISTRY_SAVE_DRAFT_KEY = 'chemistry_save_draft'
@@ -161,55 +164,68 @@ function getOrCreateChemistrySaveDraft(
 }
 
 // 개별 캐릭터 프로필 헤더
-function CharacterProfileHeader({ name, emoji, imagePreview, accentColor, analysis }: {
+function CharacterProfileHeader({ name, icon: Icon, imagePreview, analysis }: {
   name: string
-  emoji: string
+  icon: LucideIcon
   imagePreview: string | null
-  accentColor: 'violet' | 'pink'
   analysis: ImageAnalysisResult
 }) {
   const { getLocalizedName } = useLocalizedPerfumes()
-  const isViolet = accentColor === 'violet'
-  const borderColor = isViolet ? 'border-[#C9BFA8]' : 'border-[#C9BFA8]'
-  const shadowColor = isViolet ? '' : ''
-  const ringColor = isViolet ? 'ring-[#D8CFBB]' : 'ring-[#D8CFBB]'
-  const bgGradient = isViolet ? 'from-[#FDFAF1] to-[#EDE5D2]/50' : 'from-[#FDFAF1] to-[#EDE5D2]/50'
-  const textColor = isViolet ? 'text-[#5C564A]' : 'text-[#5C564A]'
+  const t = useTranslations()
   const perfume = analysis.matchingPerfumes?.[0]
   const localizedPerfumeName = perfume?.perfumeId
     ? getLocalizedName(perfume.perfumeId, perfume.persona?.name)
     : perfume?.persona?.name
   const mood = analysis.analysis?.mood || ''
 
+  // 이미지 분석 결과(ResultPageMain의 imageSection + TwitterNameDisplay)와 동일한 구조.
+  // 케미 플로우는 성별을 입력받지 않으므로 그 자리에 추천 향수를 넣는다.
   return (
     <div className="px-4 mb-5">
-      <div className={`bg-gradient-to-br ${bgGradient} border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden`}>
-        <div className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
-          {/* 이미지 */}
-          <div className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-full border-3 ${borderColor} overflow-hidden flex-shrink-0 ${shadowColor} ring-2 ${ringColor} ring-offset-2`}>
-            {imagePreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imagePreview} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <div className={`w-full h-full bg-[#F5EFE2] flex items-center justify-center text-2xl`}>{emoji}</div>
-            )}
-          </div>
-          {/* 텍스트 */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">{emoji}</span>
-              <h2 className="text-lg font-black text-[#1A1610] truncate">{name}</h2>
+      <div className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border border-[#D8CFBB]">
+        {/* 업로드 이미지 */}
+        <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border border-[#D8CFBB]">
+          {imagePreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imagePreview} alt={name} className="w-full h-full object-contain" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[#8B8578]"><Icon size={40} strokeWidth={1.5} /></div>
+          )}
+        </div>
+
+        {/* 분석 대상 정보 */}
+        <div className="relative overflow-hidden rounded-[12px] border border-[#D8CFBB] bg-[#FDFAF1]">
+          <div className="relative z-10 p-4">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#EDE5D2]">
+              <Icon size={16} className="text-[#8B8578]" strokeWidth={2} />
+              <p className="text-[#5C564A] font-bold text-sm lg:text-base">
+                {t('result.analysisSubjectInfo')}
+              </p>
             </div>
+
+            <div className="space-y-2 text-sm lg:text-base">
+              <div className="flex items-start gap-2">
+                <span className="text-[#8B8578] font-medium min-w-[64px]">{t('result.nameLabel')}</span>
+                <span className="text-[#1A1610] font-bold">{name || '-'}</span>
+              </div>
+              {localizedPerfumeName && (
+                <div className="flex items-start gap-2">
+                  <span className="text-[#8B8578] font-medium min-w-[64px]">{t('result.recommendedPerfume')}</span>
+                  <span className="text-[#1A1610] font-bold">{localizedPerfumeName}</span>
+                </div>
+              )}
+            </div>
+
             {mood && (
-              <p className="text-[12px] lg:text-[14px] sm:text-xs text-[#5C564A] leading-relaxed whitespace-pre-line break-keep">{mood}</p>
-            )}
-            {localizedPerfumeName && (
-              <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1 bg-[#F5EFE2]/80 rounded-full border border-[#D8CFBB]`}>
-                <span className="text-[10px] lg:text-[12px]">{String.fromCodePoint(0x1F48E)}</span>
-                <span className={`text-[11px] lg:text-[13px] font-bold ${textColor} truncate max-w-[140px]`}>{localizedPerfumeName}</span>
+              <div className="mt-3 pt-3 border-t-2 border-[#EDE5D2]">
+                <p className="text-[#1A1610] font-bold leading-snug break-keep whitespace-pre-line text-sm lg:text-base">
+                  &quot;{mood}&quot;
+                </p>
               </div>
             )}
           </div>
+
+          <div className="h-2 bg-[#EFE4C8]" />
         </div>
       </div>
     </div>
@@ -524,7 +540,7 @@ export default function ChemistryResultPage() {
     }
   }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, getLocalizedName, saveResultToDb, t])
 
-  const handleCheckout = useCallback(async () => {
+  const runCheckout = useCallback(async (targetSize?: string) => {
     if (!result || isAdding) return
     if (!user && !unifiedUser) {
       showToast(t('chemistry.buttons.loginRequired'), "error")
@@ -540,7 +556,10 @@ export default function ChemistryResultPage() {
       const perfumeAName = perfumeAId ? getLocalizedName(perfumeAId, perfumeA?.name) : perfumeA?.name
       const perfumeBName = perfumeBId ? getLocalizedName(perfumeBId, perfumeB?.name) : perfumeB?.name
       const chemistryOptions = getOptions('chemistry_set')
-      const selectedOption = chemistryOptions[0]
+      // targetSize 가 주어지면 그 옵션(예: 시향지 2매)을, 없으면 기본 세트를 쓴다
+      const selectedOption = targetSize
+        ? chemistryOptions.find((option) => option.size === targetSize)
+        : chemistryOptions[0]
       if (!selectedOption) {
         showToast(t('chemistry.errors.priceLoadFailed'), "error")
         return
@@ -567,6 +586,7 @@ export default function ChemistryResultPage() {
 
       // 체크아웃 페이지에 필요한 localStorage 데이터 설정
       localStorage.setItem('checkoutProductType', 'chemistry_set')
+      localStorage.setItem('checkoutSelectedSize', selectedOption.size)
       localStorage.setItem('checkoutLayeringSessionId', sessionId)
 
       // 체크아웃 이동
@@ -577,6 +597,13 @@ export default function ChemistryResultPage() {
       setIsAdding(false)
     }
   }, [result, isAdding, user, unifiedUser, formMeta, showToast, getOptions, getLocalizedName, router, saveResultToDb, t])
+
+  const handleCheckout = useCallback(() => runCheckout(), [runCheckout])
+  const handleScentPaperCheckout = useCallback(() => runCheckout(SCENT_PAPER_SIZE), [runCheckout])
+
+  // 시향지 옵션이 실제로 가격표에 있을 때만 버튼을 노출한다
+  const canBuyScentPaper = formMeta?.serviceMode !== 'offline'
+    && getOptions('chemistry_set').some((option) => option.size === SCENT_PAPER_SIZE)
 
   const handleConfirmChemistryRecipes = useCallback(async (payload: ChemistryConfirmedRecipesPayload) => {
     if (!result) throw new Error(t('chemistry.buttons.noResult'))
@@ -639,9 +666,9 @@ export default function ChemistryResultPage() {
   if (loading || isTranslatingLocale) {
     return (
       <div className="min-h-[100svh] bg-[#0C0E16] flex items-center justify-center">
-        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB] text-center">
+        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB] text-center">
           <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
-          <p className="text-[#1A1610] font-black">{t('result.loading')}</p>
+          <p className="text-[#1A1610] font-bold">{t('result.loading')}</p>
         </div>
       </div>
     )
@@ -650,11 +677,11 @@ export default function ChemistryResultPage() {
   if (!result || !formMeta) {
     return (
       <div className="min-h-[100svh] bg-[#0C0E16] flex flex-col items-center justify-center gap-4">
-        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border-2 border-[#D8CFBB] text-center">
+        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB] text-center">
           <p className="text-[#8B8578] mb-4">{t('chemistry.buttons.noResult')}</p>
           <button
             onClick={() => router.push('/')}
-            className="px-6 py-3 bg-[#12141D] text-[#F5EFE2] font-black rounded-[12px] border-2 border-[#12141D] transition-all"
+            className="px-6 py-3 bg-[#12141D] text-[#F5EFE2] font-bold rounded-[12px] border border-[#12141D] transition-all"
           >
             {t('buttons.goHome')}
           </button>
@@ -696,43 +723,40 @@ export default function ChemistryResultPage() {
         <div className="w-full bg-[#F5EFE2]/95 backdrop-blur-md border-b border-stone-200/60 shadow-sm">
           {/* 메인 탭 */}
           <div className="px-4 pt-2 pb-1.5 space-y-1">
-            {/* 두 인물 탭 — 2열 */}
-            <div className="grid grid-cols-2 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
+            {/* 인물 A / 인물 B / 케미 분석 — 3열 */}
+            <div className="grid grid-cols-3 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
               <button
                 onClick={() => handleTabChange('characterA')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
                   mainTab === 'characterA'
-                    ? 'text-[#F5EFE2] bg-[#12141D] shadow-sm'
-                    : 'text-[#8B8578] hover:text-[#5C564A]'
+                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
+                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
                 }`}
               >
-                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x1F319)}</span>
+                <Moon size={13} strokeWidth={2} />
                 <span className="truncate max-w-[70px]">{character1Name}</span>
               </button>
               <button
                 onClick={() => handleTabChange('characterB')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
                   mainTab === 'characterB'
-                    ? 'text-[#F5EFE2] bg-[#12141D] shadow-sm'
-                    : 'text-[#8B8578] hover:text-[#5C564A]'
+                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
+                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
                 }`}
               >
-                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x2600, 0xFE0F)}</span>
+                <Sun size={13} strokeWidth={2} />
                 <span className="truncate max-w-[70px]">{character2Name}</span>
               </button>
-            </div>
-            {/* 케미 탭 — 가로 전체, 강조 색상 */}
-            <div className="bg-gradient-to-r from-[#EDE5D2] to-[#EDE5D2] p-1 rounded-[12px]">
               <button
                 onClick={() => handleTabChange('chemistry')}
-                className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-[11px] lg:text-[13px] font-bold transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
                   mainTab === 'chemistry'
-                    ? 'text-[#1A1610] bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] shadow-sm'
-                    : 'text-[#8B8578] hover:text-[#5C564A]'
+                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
+                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
                 }`}
               >
-                <span className="text-xs lg:text-sm">{String.fromCodePoint(0x26A1)}</span>
-                <span>{t('chemistry.result.analysisTab')}</span>
+                <Zap size={13} strokeWidth={2} />
+                <span className="truncate">{t('chemistry.result.analysisTab')}</span>
               </button>
             </div>
           </div>
@@ -740,27 +764,27 @@ export default function ChemistryResultPage() {
           {/* 하위 탭 - 캐릭터 탭일 때 */}
           {(mainTab === 'characterA' || mainTab === 'characterB') && (
             <div className="px-4 pb-2">
-              <div className="grid grid-cols-2 gap-1 bg-[#F5EFE2]/80 p-1 rounded-[12px] border border-[#D8CFBB]">
+              <div className="grid grid-cols-2 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
                 <button
                   onClick={() => setCharSubTab('perfume')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-bold rounded-[12px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[12px] transition-all ${
                     charSubTab === 'perfume'
-                      ? 'bg-[#F5EFE2] text-[#1A1610] shadow-sm border border-[#D8CFBB]'
-                      : 'text-[#8B8578] hover:text-[#5C564A]'
+                      ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
+                      : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
                   }`}
                 >
-                  <span>{String.fromCodePoint(0x1F48E)}</span>
+                  <Gem size={13} strokeWidth={2} />
                   <span>{t('tabs.perfumeRecommend')}</span>
                 </button>
                 <button
                   onClick={() => setCharSubTab('analysis')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-bold rounded-[12px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[12px] transition-all ${
                     charSubTab === 'analysis'
-                      ? 'bg-[#F5EFE2] text-[#1A1610] shadow-sm border border-[#D8CFBB]'
-                      : 'text-[#8B8578] hover:text-[#5C564A]'
+                      ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
+                      : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
                   }`}
                 >
-                  <span>{String.fromCodePoint(0x1F50D)}</span>
+                  <Search size={13} strokeWidth={2} />
                   <span>{t('tabs.analysisResult')}</span>
                 </button>
               </div>
@@ -775,9 +799,9 @@ export default function ChemistryResultPage() {
                   <button
                     key={section.id}
                     onClick={() => scrollToChemistrySection(section.id)}
-                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[#F5EFE2]/80 border border-[#D8CFBB] rounded-[12px] text-[10px] lg:text-[12px] font-bold text-[#8B8578] hover:border-[#D8CFBB] hover:text-[#5C564A] hover:bg-[#FDFAF1] transition-all active:scale-95 whitespace-nowrap"
+                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[#F5EFE2]/80 border border-[#D8CFBB] rounded-[12px] text-[10px] lg:text-[12px] font-medium text-[#6E6659] hover:border-[#A87B10] hover:text-[#1A1610] hover:bg-[#FDFAF1] transition-all active:scale-95 whitespace-nowrap"
                   >
-                    <span>{section.emoji}</span>
+                    <section.icon size={12} strokeWidth={2} />
                     <span>{t(section.labelKey)}</span>
                   </button>
                 ))}
@@ -786,6 +810,30 @@ export default function ChemistryResultPage() {
           )}
         </div>
       </div>
+
+        {/* 결과 타이틀 + 상태 뱃지 — 이미지 분석 결과(titleSection)와 동일한 구성 */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center px-4 pt-2 pb-4"
+        >
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border border-[#B8880F]">
+              <span className="text-[#1A1610] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
+            </div>
+            {savedSessionId && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#C9BFA8]">
+                <CheckCircle2 size={12} className="text-[#5C564A]" />
+                <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
+              </div>
+            )}
+          </div>
+          <h1 className="text-2xl font-bold text-[#E9E2D0] leading-tight">
+            {t('chemistry.result.meetingTitle')}<br />
+            <span className="text-[#8B8578]">{t('chemistry.result.meetingSubtitle')}</span>
+          </h1>
+        </motion.div>
 
         {/* 탭 콘텐츠 */}
         <div ref={tabContentRef} className="scroll-mt-[190px] pt-4">
@@ -801,14 +849,12 @@ export default function ChemistryResultPage() {
                 {/* 캐릭터 프로필 헤더 */}
                 <CharacterProfileHeader
                   name={character1Name}
-                  emoji={String.fromCodePoint(0x1F319)}
+                  icon={Moon}
                   imagePreview={image1Preview}
-                  accentColor="violet"
                   analysis={characterA}
                 />
                 <CharacterScentChapter
                   characterName={character1Name}
-                  emoji={String.fromCodePoint(0x1F319)}
                   analysis={characterA}
                   accentColor="violet"
                   activeSubTab={charSubTab}
@@ -827,14 +873,12 @@ export default function ChemistryResultPage() {
                 {/* 캐릭터 프로필 헤더 */}
                 <CharacterProfileHeader
                   name={character2Name}
-                  emoji={String.fromCodePoint(0x2600, 0xFE0F)}
+                  icon={Sun}
                   imagePreview={image2Preview}
-                  accentColor="pink"
                   analysis={characterB}
                 />
                 <CharacterScentChapter
                   characterName={character2Name}
-                  emoji={String.fromCodePoint(0x2600, 0xFE0F)}
                   analysis={characterB}
                   accentColor="pink"
                   activeSubTab={charSubTab}
@@ -889,6 +933,7 @@ export default function ChemistryResultPage() {
         onShare={handleShare}
         onAddToCart={handleAddToCart}
         onCheckout={handleCheckout}
+        onScentPaperCheckout={canBuyScentPaper ? handleScentPaperCheckout : undefined}
         isShareSaving={isShareSaving}
         isAddingToCart={isAdding}
         isOffline={formMeta?.serviceMode === 'offline'}

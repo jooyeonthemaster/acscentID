@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
+import { Sparkles } from 'lucide-react'
 
 interface TwitterNameDisplayProps {
   twitterName?: string
@@ -23,7 +24,7 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
       className="relative"
     >
       {/* 분석 대상 정보 카드 */}
-      <div className={`relative overflow-hidden border-2 border-[#D8CFBB] ${
+      <div className={`relative overflow-hidden border border-[#D8CFBB] ${
         isCompact
           ? 'rounded-[12px]'
           : 'rounded-[12px]'
@@ -44,8 +45,8 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
         <div className={`relative z-10 ${isCompact ? 'p-3' : 'p-4'}`}>
           {/* 헤더 */}
           <div className={`flex items-center gap-2 border-b-2 border-stone-200/60 ${isCompact ? 'mb-3 pb-2' : 'mb-4 pb-3'}`}>
-            <span className={`${isCompact ? 'text-base' : 'text-lg'}`}>✨</span>
-            <p className={`text-[#5C564A] font-black ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
+            <Sparkles size={isCompact ? 14 : 16} className="text-[#8B8578]" strokeWidth={2} />
+            <p className={`text-[#5C564A] font-medium ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
               {t('analysisSubjectInfo')}
             </p>
           </div>
@@ -68,7 +69,7 @@ export function TwitterNameDisplay({ twitterName, idolName, idolGender, isCompac
           {/* 주접멘트 */}
           {twitterName && (
             <div className={`mt-3 pt-3 border-t-2 border-stone-200/60`}>
-              <p className={`text-[#1A1610] font-black leading-snug break-keep ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
+              <p className={`text-[#1A1610] font-medium leading-snug break-keep ${isCompact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base'}`}>
                 "{twitterName}"
               </p>
             </div>

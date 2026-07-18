@@ -38,7 +38,7 @@ export function ChemistryMeetingChapter({
     <div className="px-4 space-y-5">
       {/* 챕터 헤더 */}
       <div className="text-center">
-        <h2 className="text-lg font-black text-[#1A1610]">{t('chemistry.result.meetingTitle')}</h2>
+        <h2 className="text-lg font-bold text-[#1A1610]">{t('chemistry.result.meetingTitle')}</h2>
         <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('chemistry.result.meetingSubtitle')}</p>
       </div>
 
@@ -58,15 +58,15 @@ export function ChemistryMeetingChapter({
         {chemistry.chemistryStory && (
           <div className="mt-5">
             <SectionCard>
-              <SectionHeader emoji={String.fromCodePoint(0x1F4D6)} title={t('chemistry.result.story')} />
+              <SectionHeader title={t('chemistry.result.story')} />
               <div className="p-4">
-                <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+                <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
                   <div className="relative z-10">
                     <p className="text-[#5C564A] text-sm lg:text-base font-medium leading-relaxed whitespace-pre-wrap italic">
                       &ldquo;{chemistry.chemistryStory}&rdquo;
                     </p>
-                    <p className="text-[#8B8578] text-xs lg:text-sm mt-3 font-black">
+                    <p className="text-[#8B8578] text-xs lg:text-sm mt-3 font-medium">
                       @acscent_ai
                     </p>
                   </div>
@@ -160,7 +160,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
         >
           {typeIcon}
         </motion.div>
-        <h3 className="text-xl font-black relative z-10">{typeLabel}</h3>
+        <h3 className="text-xl font-bold relative z-10">{typeLabel}</h3>
         <p className="text-sm lg:text-base text-white/90 mt-2 relative z-10 font-medium leading-relaxed">
           &ldquo;{chemistry.chemistryTitle}&rdquo;
         </p>
@@ -170,7 +170,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
       <div className="p-5 space-y-4">
         {/* 공유 강점 */}
         <div className="border-l-4 border-[#C9BFA8] pl-3">
-          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.sharedStrengths')}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.sharedStrengths')}</span>
           <div className="space-y-2">
             {chemistry.traitsSynergy.sharedStrengths.slice(0, 2).map((s, i) => (
               <div key={i} className="flex items-start gap-2">
@@ -187,7 +187,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
         {/* 보완 특성 */}
         {chemistry.traitsSynergy.complementaryTraits.length > 0 && (
           <div className="border-l-4 border-[#C9BFA8] pl-3">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.complementaryTraits')}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider block mb-2">{t('chemistry.result.complementaryTraits')}</span>
             <div className="space-y-2">
               {chemistry.traitsSynergy.complementaryTraits.slice(0, 2).map((ct, i) => (
                 <div key={i} className="flex items-start gap-2">
@@ -204,7 +204,7 @@ function ChemistryTypeCard({ chemistry }: { chemistry: ChemistryProfile }) {
           <>
             <div className="border-t border-[#1E222E]" />
             <div className="bg-gradient-to-r from-[#FDFAF1]/80 to-[#FDFAF1]/80 rounded-[12px] p-3 border border-[#EDE5D2]">
-              <span className="text-[9px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.summaryLabel')}</span>
+              <span className="text-[9px] font-medium text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.summaryLabel')}</span>
               <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed">{chemistry.traitsSynergy.dynamicTension}</p>
             </div>
           </>
@@ -241,17 +241,17 @@ function DualRadarChart({ traitsA, traitsB, nameA, nameB, synergyComment }: {
 
   return (
     <SectionCard>
-      <SectionHeader emoji="📊" title={t('chemistry.result.traitsRadar')} />
+      <SectionHeader title={t('chemistry.result.traitsRadar')} />
       <div className="p-4">
         {/* 범례 */}
         <div className="flex justify-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-[#EFE4C8]" />
-            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">🌙 {nameA}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">🌙 {nameA}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-[#EFE4C8]" />
-            <span className="text-[10px] lg:text-[12px] font-bold text-[#5C564A]">☀️ {nameB}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">☀️ {nameB}</span>
           </div>
         </div>
 
@@ -335,12 +335,12 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🌺" title={t('chemistry.result.scentProfileComparison')} />
+      <SectionHeader title={t('chemistry.result.scentProfileComparison')} />
       <div className="p-4">
         {/* 범례 */}
         <div className="flex justify-between mb-3 px-2">
-          <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A]">🌙 {nameA}</span>
-          <span className="text-[10px] lg:text-[12px] font-black text-[#5C564A]">☀️ {nameB}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">🌙 {nameA}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#5C564A]">☀️ {nameB}</span>
         </div>
         <div className="space-y-2.5">
           {keys.map((key) => {
@@ -359,13 +359,13 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
                     transition={{ duration: 0.6 }}
                     className="h-5 bg-[#EFE4C8] rounded-l-full flex items-center justify-start pl-1.5"
                   >
-                    <span className="text-[9px] font-black text-[#1A1610]">{valA}</span>
+                    <span className="text-[9px] font-medium text-[#1A1610]">{valA}</span>
                   </motion.div>
                 </div>
                 {/* 중앙 라벨 */}
                 <div className="w-14 text-center flex-shrink-0">
                   <span className="text-[10px] lg:text-[12px]">{info.icon}</span>
-                  <span className="text-[9px] font-bold text-[#5C564A] block">{tLabels(`categories.${key}`)}</span>
+                  <span className="text-[9px] font-medium text-[#5C564A] block">{tLabels(`categories.${key}`)}</span>
                 </div>
                 {/* B 바 (왼쪽 정렬) */}
                 <div className="flex-1 flex justify-start">
@@ -376,7 +376,7 @@ function ScentComparisonChart({ categoriesA, categoriesB, nameA, nameB, harmonyC
                     transition={{ duration: 0.6, delay: 0.1 }}
                     className="h-5 bg-[#EFE4C8] rounded-r-full flex items-center justify-end pr-1.5"
                   >
-                    <span className="text-[9px] font-black text-[#1A1610]">{valB}</span>
+                    <span className="text-[9px] font-medium text-[#1A1610]">{valB}</span>
                   </motion.div>
                 </div>
               </div>
@@ -412,13 +412,13 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
 
   return (
     <SectionCard>
-      <SectionHeader emoji="🎨" title={t('chemistry.result.colorChemistry')} />
+      <SectionHeader title={t('chemistry.result.colorChemistry')} />
       <div className="p-4 space-y-4">
         {/* A의 컬러 */}
         <ColorRow label={`🌙 ${nameA}`} colors={paletteA} />
         {/* 블렌딩 컬러 (중앙, 강조) */}
         <div className="text-center">
-          <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] mb-1.5 block">BLEND</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] mb-1.5 block">BLEND</span>
           <div className="flex gap-2 justify-center">
             {blended.map((color, i) => (
               <motion.div
@@ -427,7 +427,7 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
                 whileInView={{ scale: 1, rotate: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * i, type: "spring" }}
-                className="w-11 h-11 rounded-full border-2 border-[#D8CFBB]"
+                className="w-11 h-11 rounded-full border border-[#D8CFBB]"
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -445,7 +445,7 @@ function ColorChemistryPalette({ chemistry, characterA, characterB, nameA, nameB
 function ColorRow({ label, colors }: { label: string; colors: string[] }) {
   return (
     <div className="text-center">
-      <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] mb-1.5 block">{label}</span>
+      <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] mb-1.5 block">{label}</span>
       <div className="flex gap-2 justify-center">
         {colors.map((color, i) => (
           <div key={i} className="w-9 h-9 rounded-full border border-[#D8CFBB] shadow-sm" style={{ backgroundColor: color }} />
@@ -464,7 +464,7 @@ function ScentHarmonyDiagram({ chemistry }: {
   const t = useTranslations()
   return (
     <SectionCard>
-      <SectionHeader emoji="🧪" title={t('chemistry.result.scentHarmonyDiagram')} />
+      <SectionHeader title={t('chemistry.result.scentHarmonyDiagram')} />
       <div className="p-5">
         {/* 3단 피라미드 시각화 - 개선된 버전 */}
         <div className="space-y-3">
@@ -502,9 +502,9 @@ function ScentHarmonyDiagram({ chemistry }: {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-5 p-4 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] border-2 border-[#D8CFBB]"
+          className="mt-5 p-4 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] border border-[#D8CFBB]"
         >
-          <span className="text-[9px] font-black text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.overallHarmony')}</span>
+          <span className="text-[9px] font-medium text-[#8B8578] uppercase tracking-wider block mb-1.5">{t('chemistry.result.overallHarmony')}</span>
           <p className="text-xs lg:text-sm font-medium text-[#5C564A] leading-relaxed">{chemistry.scentHarmony.overallHarmony}</p>
         </motion.div>
       </div>
@@ -525,9 +525,9 @@ function HarmonyLevel({ level, levelLabel, content, gradient, bg, border, delay 
     >
       <div className="flex-shrink-0 text-center">
         <div className={`w-12 h-12 rounded-[12px] bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-          <span className="text-[10px] lg:text-[12px] font-black text-[#1A1610]">{level}</span>
+          <span className="text-[10px] lg:text-[12px] font-medium text-[#1A1610]">{level}</span>
         </div>
-        <span className="text-[9px] text-[#8B8578] font-bold mt-1 block">{levelLabel}</span>
+        <span className="text-[9px] text-[#8B8578] font-medium mt-1 block">{levelLabel}</span>
       </div>
       <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed flex-1 pt-1">{content}</p>
     </motion.div>
@@ -551,14 +551,14 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
   const colors = [
     'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]',
     'bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] text-[#1A1610]',
-    'bg-[#EDE5D2] text-[#1A1610] border-2 border-[#D8CFBB]',
-    'bg-[#EDE5D2] text-[#1A1610] border-2 border-[#D8CFBB]',
-    'bg-[#EDE5D2] text-[#5C564A] border-2 border-[#D8CFBB]',
+    'bg-[#EDE5D2] text-[#1A1610] border border-[#D8CFBB]',
+    'bg-[#EDE5D2] text-[#1A1610] border border-[#D8CFBB]',
+    'bg-[#EDE5D2] text-[#5C564A] border border-[#D8CFBB]',
   ]
 
   return (
     <SectionCard>
-      <SectionHeader emoji="💫" title={t('chemistry.result.relationship')} />
+      <SectionHeader title={t('chemistry.result.relationship')} />
       <div className="p-5">
         {/* 키워드 버블 */}
         <div className="flex flex-wrap justify-center gap-2.5 items-center">
@@ -572,7 +572,7 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
                 whileInView={{ scale: s.scale, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * i, type: "spring" }}
-                className={`${s.size} ${c} rounded-full font-black shadow-sm whitespace-nowrap`}
+                className={`${s.size} ${c} rounded-full font-bold shadow-sm whitespace-nowrap`}
               >
                 #{kw}
               </motion.div>
@@ -588,7 +588,7 @@ function KeywordBubbleCloud({ keywords, description, bestMoment }: {
         {/* Best Moment */}
         {bestMoment && (
           <div className="mt-3 p-3 bg-[#FDFAF1] rounded-[12px] border border-[#D8CFBB]">
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] block mb-1">{t('chemistry.result.bestMoment')}</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] block mb-1">{t('chemistry.result.bestMoment')}</span>
             <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">{bestMoment}</p>
           </div>
         )}
@@ -630,7 +630,7 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
 
   return (
     <SectionCard>
-      <SectionHeader emoji={String.fromCodePoint(0x1F4F8)} title={t('chemistry.result.faceMatch')} />
+      <SectionHeader title={t('chemistry.result.faceMatch')} />
       <div className="p-5">
         {/* 큰 점수 + 라벨 + 티어 뱃지 */}
         <div className="text-center mb-6">
@@ -640,15 +640,15 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             viewport={{ once: true }}
             transition={{ type: "spring", bounce: 0.4 }}
           >
-            <span className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-[0.2em] block mb-1">Face Match</span>
+            <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-[0.2em] block mb-1">Face Match</span>
             <div className="flex items-baseline justify-center gap-0">
-              <span className={`text-8xl font-black ${tier.color} tabular-nums leading-none`}>{score}</span>
-              <span className={`text-4xl font-black ${tier.color} -ml-1`}>%</span>
+              <span className={`text-8xl font-bold ${tier.color} tabular-nums leading-none`}>{score}</span>
+              <span className={`text-4xl font-bold ${tier.color} -ml-1`}>%</span>
             </div>
             <div className="mt-3">
-              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 ${tier.bg} ${tier.border} border-2 rounded-full`}>
+              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 ${tier.bg} ${tier.border} border rounded-full`}>
                 <span className="text-lg">{tier.emoji}</span>
-                <span className={`text-sm lg:text-base font-black ${tier.color}`}>{t(`chemistry.tiers.${tier.labelKey}`)}</span>
+                <span className={`text-sm lg:text-base font-bold ${tier.color}`}>{t(`chemistry.tiers.${tier.labelKey}`)}</span>
               </span>
             </div>
           </motion.div>
@@ -667,9 +667,9 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm lg:text-base">{item.emoji}</span>
-                  <span className="text-xs lg:text-sm font-black text-[#5C564A]">{item.label}</span>
+                  <span className="text-xs lg:text-sm font-medium text-[#5C564A]">{item.label}</span>
                 </div>
-                <span className="text-sm lg:text-base font-black text-[#1A1610] tabular-nums">{item.score}</span>
+                <span className="text-sm lg:text-base font-bold text-[#1A1610] tabular-nums">{item.score}</span>
               </div>
               {/* 바 — h-5, 50% 참조선 */}
               <div className="relative w-full h-5 bg-[#EDE5D2] rounded-full overflow-hidden">
@@ -697,9 +697,9 @@ function FaceCompatibilitySection({ faceMatch }: { faceMatch: import('@/types/an
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.8 }}
-            className="mt-5 p-4 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] text-center"
+            className="mt-5 p-4 bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] text-center"
           >
-            <p className="text-sm lg:text-base font-black text-[#1A1610]">{faceMatch.verdict}</p>
+            <p className="text-sm lg:text-base font-bold text-[#1A1610]">{faceMatch.verdict}</p>
           </motion.div>
         )}
       </div>

@@ -194,8 +194,16 @@ function InputForm() {
                 <div className="relative z-10 h-14 flex-shrink-0" />
 
                 {/* 프로그램 명패 — 사주 위저드의 낙관 로고 위치를 따른다 */}
-                <div className="relative z-10 flex items-center justify-center gap-2 pb-1 pt-4">
-                    <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-[#E9E2D0]/70" />
+                <div className="relative z-10 flex items-center justify-center gap-2.5 pb-1 pt-4">
+                    <Image
+                        src="/images/logo/acscent-wordmark-cream.png"
+                        alt="AC'SCENT"
+                        width={2053}
+                        height={285}
+                        priority
+                        className="h-[11px] w-auto select-none opacity-90"
+                    />
+                    <span aria-hidden className="h-3 w-px bg-[#A69F8D]/40" />
                     <span className="text-[11px] lg:text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[#A69F8D]">
                         {programTitle}
                     </span>

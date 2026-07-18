@@ -137,16 +137,18 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                                     key={key}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                                    className={`relative flex min-h-[92px] flex-col items-center justify-center gap-1 py-3 rounded-[12px] text-sm lg:text-base font-bold border transition-colors duration-300 bg-[#12141D] ${
-                                        isActive ? "border-[#E9E2D0]" : "border-[#262A38] hover:border-[#3A4051]"
+                                    className={`relative flex min-h-[92px] flex-col items-center justify-center gap-1 py-3 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
+                                        isActive
+                                            ? "border-[#A87B10] bg-[#FBF3DF]"
+                                            : "border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#C9BFA8]"
                                     }`}
-                                    style={isActive ? { boxShadow: '0 0 20px rgba(233,226,208,0.12)' } : undefined}
+                                    style={isActive ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
                                 >
                                     <div className="flex items-center gap-1.5">
                                         <span className="text-base">{emoji}</span>
-                                        <span className={`text-base font-black transition-colors duration-300 ${isActive ? "text-[#E9E2D0]" : "text-[#A69F8D]"}`}>{label}</span>
+                                        <span className={`text-base font-black transition-colors duration-300 ${isActive ? "text-[#1A1610]" : "text-[#5C564A]"}`}>{label}</span>
                                     </div>
-                                    <span className={`text-[10px] lg:text-[12px] font-medium transition-colors duration-300 ${isActive ? "text-[#A69F8D]" : "text-[#5C564A]"}`}>
+                                    <span className={`text-[10px] lg:text-[12px] font-medium transition-colors duration-300 ${isActive ? "text-[#5C564A]" : "text-[#8B8578]"}`}>
                                         {desc}
                                     </span>
                                 </motion.button>
@@ -181,12 +183,12 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                                 key={key}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setFormData(prev => ({ ...prev, gender: key }))}
-                                className={`relative flex-1 py-3.5 rounded-[12px] text-sm lg:text-base font-semibold border bg-[#12141D] transition-colors duration-300 ${
+                                className={`relative flex-1 py-3.5 rounded-[12px] text-sm lg:text-base font-semibold border-2 transition-colors duration-300 ${
                                     formData.gender === key
-                                        ? "border-[#E9E2D0] text-[#E9E2D0]"
-                                        : "border-[#262A38] text-[#A69F8D] hover:border-[#3A4051]"
+                                        ? "border-[#A87B10] bg-[#FBF3DF] text-[#1A1610] font-black"
+                                        : "border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] hover:border-[#C9BFA8]"
                                 }`}
-                                style={formData.gender === key ? { boxShadow: '0 0 20px rgba(233,226,208,0.12)' } : undefined}
+                                style={formData.gender === key ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
                             >
                                 <span className="relative z-10">{label}</span>
                             </motion.button>

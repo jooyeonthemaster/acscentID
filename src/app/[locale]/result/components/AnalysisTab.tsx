@@ -35,23 +35,23 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
       >
         {/* 이미지 분위기 */}
         {displayedAnalysis.analysis && (
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<MessageCircle size={14} />}
               title={t('imageMood')}
               subtitle={t('aiFirstImpression')}
             />
-            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
               <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
               <div className="relative z-10 flex items-start gap-3">
-                <div className="w-10 h-10 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
-                  <span className="text-base">💭</span>
+                <div className="w-10 h-10 rounded-[12px] bg-[#EFE4C8] border border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={15} className="text-[#5C564A]" strokeWidth={2} />
                 </div>
                 <div>
                   <p className="text-[#5C564A] text-sm lg:text-base font-bold leading-relaxed">
                     &quot;{displayedAnalysis.analysis.mood}&quot;
                   </p>
-                  <p className="text-[#5C564A] text-xs lg:text-sm mt-2 font-black">
+                  <p className="text-[#5C564A] text-sm lg:text-sm mt-2 font-bold">
                     @acscent_ai
                   </p>
                 </div>
@@ -62,7 +62,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
 
         {/* 스타일 분석 */}
         {displayedAnalysis.analysis && (
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<Shirt size={14} />}
               title={t('styleAnalysis')}
@@ -98,7 +98,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
         )}
 
         {/* 특성 레이더 차트 */}
-        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
           <SectionHeader
             icon={<Sparkles size={14} />}
             title={t('traitScore')}
@@ -113,7 +113,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
 
         {/* 매칭 키워드 */}
         {displayedAnalysis.matchingKeywords && displayedAnalysis.matchingKeywords.length > 0 && (
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<Tag size={14} />}
               title={t('matchingKeywords')}
@@ -125,23 +125,23 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
 
         {/* 퍼스널 컬러 */}
         {displayedAnalysis.personalColor && (
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
             <SectionHeader
               icon={<Palette size={14} />}
               title={t('colorType')}
               subtitle={t('imageColorAnalysis')}
             />
-            <div className="bg-[#EDE5D2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+            <div className="bg-[#EDE5D2] rounded-[12px] p-4 border border-[#D8CFBB]">
               <div className="flex items-start gap-3 mb-4">
                 <div
-                  className="w-14 h-14 rounded-[12px] flex-shrink-0 border-2 border-[#D8CFBB]"
+                  className="w-14 h-14 rounded-[12px] flex-shrink-0 border border-[#D8CFBB]"
                   style={{
                     background: `linear-gradient(135deg, ${displayedAnalysis.personalColor.palette?.[0] || '#fff'}, ${displayedAnalysis.personalColor.palette?.[1] || '#f9f9f9'})`
                   }}
                 />
                 <div>
-                  <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] mb-2">
-                    <span className="text-xs lg:text-sm font-black text-[#1A1610]">
+                  <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-2">
+                    <span className="text-sm lg:text-sm font-bold text-[#1A1610]">
                       {tLabels(`seasons.${displayedAnalysis.personalColor.season}`)} {tLabels(`tones.${displayedAnalysis.personalColor.tone}`)}
                     </span>
                   </div>
@@ -154,7 +154,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
                 {displayedAnalysis.personalColor.palette?.map((color, index) => (
                   <div
                     key={index}
-                    className="w-12 h-12 rounded-[12px] border-2 border-[#D8CFBB] transition-transform hover:scale-110"
+                    className="w-12 h-12 rounded-[12px] border border-[#D8CFBB] transition-transform hover:scale-110"
                     style={{ backgroundColor: color }}
                     title={color}
                   />
@@ -185,17 +185,17 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
             title={t('imageMood')}
             subtitle={t('aiFirstImpression')}
           />
-          <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border-2 border-[#D8CFBB]">
+          <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
             <div className="relative z-10 flex items-start gap-3">
-              <div className="w-9 h-9 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
-                <span className="text-sm lg:text-base">💭</span>
+              <div className="w-9 h-9 rounded-[12px] bg-[#EFE4C8] border border-[#D8CFBB] flex items-center justify-center flex-shrink-0">
+                <MessageCircle size={15} className="text-[#5C564A]" strokeWidth={2} />
               </div>
               <div>
                 <p className="text-[#5C564A] text-sm lg:text-base font-bold leading-relaxed">
                   &quot;{displayedAnalysis.analysis.mood}&quot;
                 </p>
-                <p className="text-[#5C564A] text-xs lg:text-sm mt-2 font-black">
+                <p className="text-[#5C564A] text-sm lg:text-sm mt-2 font-bold">
                   @acscent_ai
                 </p>
               </div>
@@ -205,7 +205,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
       )}
 
       {/* 특성 레이더 차트 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
         <SectionHeader
           icon={<Sparkles size={14} />}
           title={t('traitScore')}
@@ -255,7 +255,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
 
       {/* 매칭 키워드 */}
       {displayedAnalysis.matchingKeywords && displayedAnalysis.matchingKeywords.length > 0 && (
-        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
           <SectionHeader
             icon={<Tag size={14} />}
             title={t('matchingKeywords')}
@@ -273,17 +273,17 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
             title={t('colorType')}
             subtitle={t('imageColorAnalysis')}
           />
-          <div className="bg-[#EDE5D2] rounded-[12px] p-4 border-2 border-[#D8CFBB]">
+          <div className="bg-[#EDE5D2] rounded-[12px] p-4 border border-[#D8CFBB]">
             <div className="flex items-start gap-3 mb-4">
               <div
-                className="w-12 h-12 rounded-[12px] flex-shrink-0 border-2 border-[#D8CFBB]"
+                className="w-12 h-12 rounded-[12px] flex-shrink-0 border border-[#D8CFBB]"
                 style={{
                   background: `linear-gradient(135deg, ${displayedAnalysis.personalColor.palette?.[0] || '#fff'}, ${displayedAnalysis.personalColor.palette?.[1] || '#f9f9f9'})`
                 }}
               />
               <div>
-                <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border-2 border-[#D8CFBB] mb-2">
-                  <span className="text-xs lg:text-sm font-black text-[#1A1610]">
+                <div className="inline-flex px-3 py-1 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-2">
+                  <span className="text-sm lg:text-sm font-bold text-[#1A1610]">
                     {tLabels(`seasons.${displayedAnalysis.personalColor.season}`)} {tLabels(`tones.${displayedAnalysis.personalColor.tone}`)}
                   </span>
                 </div>
@@ -296,7 +296,7 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
               {displayedAnalysis.personalColor.palette?.map((color, index) => (
                 <div
                   key={index}
-                  className="w-10 h-10 rounded-[12px] border-2 border-[#D8CFBB] transition-transform hover:scale-110"
+                  className="w-10 h-10 rounded-[12px] border border-[#D8CFBB] transition-transform hover:scale-110"
                   style={{ backgroundColor: color }}
                   title={color}
                 />
@@ -312,14 +312,12 @@ export function AnalysisTab({ displayedAnalysis, isDesktop = false }: AnalysisTa
 // 섹션 헤더 컴포넌트 - 키치 스타일
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-7 h-7 rounded-[12px] bg-[#EFE4C8] border-2 border-[#D8CFBB] flex items-center justify-center text-[#1A1610]">
+    <div className="mb-4">
+      <div className="flex items-center gap-1.5 text-[#8B8578]">
         {icon}
+        <p className="text-[11px] lg:text-[12px] font-medium uppercase tracking-[0.12em]">{subtitle}</p>
       </div>
-      <div>
-        <h3 className="text-sm lg:text-base font-black text-[#1A1610]">{title}</h3>
-        <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{subtitle}</p>
-      </div>
+      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
     </div>
   )
 }
@@ -332,9 +330,9 @@ function AnalysisCard({ label, content, accentColor, bgColor }: {
   bgColor: string
 }) {
   return (
-    <div className={`relative rounded-[12px] p-4 overflow-hidden ${bgColor} border-2 border-[#D8CFBB]`}>
+    <div className={`relative rounded-[12px] p-4 overflow-hidden ${bgColor} border border-[#D8CFBB]`}>
       <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${accentColor}`} />
-      <p className="text-[10px] lg:text-[12px] font-black text-[#8B8578] uppercase tracking-wider mb-1 pl-2">{label}</p>
+      <p className="text-[12px] lg:text-[12px] font-medium text-[#8B8578] uppercase tracking-wider mb-1 pl-2">{label}</p>
       <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium pl-2">{content}</p>
     </div>
   )

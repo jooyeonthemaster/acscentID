@@ -6,11 +6,11 @@ import type { InputFieldProps } from "../types"
 const ACCENT_STYLES = {
     yellow: {
         label: "text-[#E9E2D0]",
-        ring: "border-[#E9E2D0]/70 shadow-[0_0_20px_rgba(233,226,208,0.1)]",
+        ring: "border-[#B8880F] shadow-[0_0_16px_rgba(212,160,23,0.15)]",
     },
     rose: {
         label: "text-[#E9E2D0]",
-        ring: "border-[#E9E2D0]/70 shadow-[0_0_20px_rgba(233,226,208,0.1)]",
+        ring: "border-[#B8880F] shadow-[0_0_16px_rgba(212,160,23,0.15)]",
     },
 }
 
@@ -50,10 +50,10 @@ export function InputField({
                 onBlur={onBlur}
                 placeholder={placeholder}
                 maxLength={maxLength}
-                className={`w-full bg-[#12141D] rounded-[12px] p-4 text-lg font-semibold text-[#E9E2D0] placeholder:text-[#5C564A] placeholder:font-normal outline-none transition-colors duration-300 border ${
+                className={`w-full bg-[#F5EFE2] rounded-[12px] p-4 text-lg font-semibold text-[#1A1610] placeholder:text-[#8B8578] placeholder:font-normal outline-none transition-colors duration-300 border ${
                     center ? "text-center" : ""
                 } ${letterSpacing ? "tracking-[0.3em]" : ""} ${
-                    isFocused ? accent.ring : "border-[#262A38] hover:border-[#3A4051]"
+                    isFocused ? accent.ring : "border-[#D8CFBB] hover:border-[#C9BFA8]"
                 }`}
             />
         </motion.div>

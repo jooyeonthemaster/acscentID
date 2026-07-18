@@ -36,35 +36,67 @@
 
 ## 우선 리서치 출처
 
-- 웹 원본 기준 이미지: 278장
-- 생성 도구 호환용 변환본: 5장
+- 실제 웹 이미지 파일: 1,504개
+- 중복 포맷을 제외한 리서치 데이터셋 집계: 1,490장
+- 최근 1년 네이버 블로그: 35건 / 1,118장
+- 최근 공식 인스타그램: 7건 / 22장
+- 네이버 지도 최신 1차 확보: 59장
+- 레거시/보조 웹 이미지: 291개
 - 로컬 상품/디자인 참고 이미지: 9장
+- 전체 자료 인벤토리: `references/analysis/source-inventory.md`
+- 제품별 외형 사실표: `references/analysis/product-facts.md`
+
+실제 파일 합계에는 최근 블로그 대표 이미지의 중복 포맷 14개가 추가로 포함된다. 두 합계 모두 동일 원본의 생성 도구 호환 변환본과 레거시/최근 데이터셋 간 중복을 포함하며 고유 이미지 해시 수는 아니다.
 
 ### 네이버 지도
 
 - 매장: [악센트 아이디](https://map.naver.com/p/entry/place/1274492663)
 - 장소 ID: `1274492663`
 - 주소: 서울특별시 마포구 와우산로29라길 22 지하1층 B호
-- 수집: 공개 매장 사진 36장
-- 보관: `references/web/naver-map/`
+- 최신 수집: 2026-06-02~2026-07-18 공개 사진 59장 및 리뷰 메타데이터
+- 최신 보관: `references/web/naver-map-recent/`
+- 레거시 수집: 공개 매장 사진 36장
+- 레거시 보관: `references/web/naver-map/`
 - `converted/`의 3장은 생성 도구 호환을 위해 같은 원본을 JPEG로 다시 변환한 파일이며, 별도 사진 수에 포함하지 않는다.
 
 네이버 지도 사진에서 현재형 50ml 무광 검정 사각 보틀, 10ml 투명 원통 보틀, 은색 원통 캡, 흰색 로고, 2단 분석 리포트, 목재 배럴형 피규어 디퓨저를 우선 확인했다.
 
+최신 사진 API 첫 페이지는 원본 응답까지 보존했다. 추가 페이지는 네이버 측 일시 이용 제한으로 수집하지 못했으며, 실패 후 반복 요청하지 않았다. `references/web/naver-map-recent/index.partial.json`에 범위와 상태를 명시했다.
+
 ### 네이버 블로그 택배/체험 후기
 
-총 8개 게시물에서 공개 이미지 176장을 수집했다. 보관 경로는 `references/web/naver-blog/<blog-id>-<post-id>/`이다.
+2025-07-18~2026-07-18 검색 결과 후보 87건을 검토해 관련 게시물 35건과 공개 이미지 1,118장을 저장했다. 각 폴더에는 원문 HTML, 추출 텍스트, 메타데이터, 이미지가 함께 있다.
 
-- [amkma 후기](https://blog.naver.com/amkma/223716737994) - 7장
-- [dlrtn0002 후기](https://blog.naver.com/dlrtn0002/223707185288) - 25장
-- [gldktltm1004 후기](https://blog.naver.com/gldktltm1004/223715206142) - 18장
-- [remindedmin 후기](https://blog.naver.com/remindedmin/223715782584) - 16장
-- [solosoul 후기](https://blog.naver.com/solosoul/223708254013) - 46장
-- [nillilishop 케미스트리 후기](https://blog.naver.com/nillilishop/224300674987) - 15장
-- [onix81212 택배 후기](https://blog.naver.com/onix81212/224326064727) - 23장
-- [snapture 케미스트리 후기](https://blog.naver.com/snapture/224296907305) - 26장
+- 보관: `references/web/naver-blog-recent/<blog-id>-<post-id>/`
+- 전체 목록: `references/analysis/recent-blog-index.md`
+- 상품군 출현: 10ml 13건, 50ml 15건, 레이어링 16건, 최애 이미지 분석 32건, 본인 이미지 분석 26건, 시향지 5건
+
+상품군 수는 본문 키워드 기반 1차 분류라 한 게시물이 여러 상품군에 중복 집계된다. 실제 외형 판정은 본문과 사진을 함께 대조한 `product-facts.md`를 따른다.
+
+다음 게시물은 택배 구성과 현재 제품 외형을 판단할 때 특히 비중 있게 사용했다.
+
+- [jjyoon6228 10ml 레이어링 배송 후기](https://blog.naver.com/jjyoon6228/224286922464)
+- [snapture 50ml x2 레이어링 배송 후기](https://blog.naver.com/snapture/224296907305)
+- [onix81212 50ml 배송 후기](https://blog.naver.com/onix81212/224326064727)
+- [uandisslove 50ml/분석 보고서 배송 후기](https://blog.naver.com/uandisslove/224264120601)
+- [syd02231 현재 10ml/보고서 매장 후기](https://blog.naver.com/syd02231/224308838635)
+- [kco4053 2026-07-08 최신 매장 후기](https://blog.naver.com/kco4053/224340723449)
+- [qufqlcguswl 커플 50ml 레이어링 후기](https://blog.naver.com/qufqlcguswl/224304950085)
+- [23jeans_ 10ml/50ml 비교 후기](https://blog.naver.com/23jeans_/224277156574)
 
 후기 이미지에서는 구형 크라프트 택배 상자/검정 상품 상자와 현재형 흰색 택배 상자/흰색 허니컴 완충재를 모두 확인했다. 생성 이미지는 현재형 흰색 패키지를 기본으로 사용하고, 실제 후기에서 반복되는 검정 감사 카드와 상품별 리포트 구성을 반영했다.
+
+기존 `references/web/naver-blog/`의 8개 폴더와 176장은 과거 형태 비교용 레거시 자료로 유지했다. 최근 데이터셋과 겹치는 게시물도 있으므로 전체 파일 합계에는 중복이 포함된다.
+
+### 공식 인스타그램
+
+- 계정: [@acscent_id](https://www.instagram.com/acscent_id/)
+- 최근 1년 공개 게시물: 7건
+- 저장 이미지: 22장
+- 보관: `references/web/instagram-official-recent/`
+- 전체 목록: `references/analysis/official-instagram-index.md`
+
+[2026-04-21 이미지 분석 향수 게시물](https://www.instagram.com/p/DXYyW5KEfz_/)에서 10ml/50ml 보틀과 접이식 보고서를, [2026-05-01 레이어링 게시물](https://www.instagram.com/p/DXypxvekbKF/)에서 10ml x2/50ml x2 세트와 케미 보고서를 공식적으로 확인했다.
 
 ### 공식 및 보조 출처
 
@@ -74,6 +106,8 @@
 - [Tistory 방문 후기](https://giri2.tistory.com/638)
 
 공식 이미지와 보조 후기 자료는 네이버 자료에서 보이지 않는 각도나 상품 구성을 보완하는 용도로만 사용했다.
+
+공식/외부 17개 URL의 원문 HTML, 정제 텍스트, 응답 메타데이터는 `references/web/supplementary-pages/`에 저장했다. 15개는 정상 저장했고, Perto는 HTTP 403, Korea Grand Sale 영문 회고 페이지는 네트워크 실패 상태를 메타데이터에 남겼다.
 
 ## 생성 구도
 
@@ -98,4 +132,8 @@
 - 12개 디렉터리 모두 PNG 5장 존재
 - 총 60장 모두 `sharp` 메타데이터 판독 성공, 1254x1254 PNG 규격 일치
 - 콘택트 시트에서 빈 화면, 손상 파일, 상품군 혼동 여부를 육안 확인
+- `chemistry-03.png`는 최근 공식/택배 근거와 달랐던 단일 평면 보고서를 실제형 2단 접이식 케미 보고서로 교체
+- `idol-image-03.png`는 50ml 흰 개별 상자 전면을 현재형 세로 적층 `AC'SCENT` 타이포 패키지로 교체
+- 교체 전 원본은 `references/analysis/pre-correction/`에 검수 이력으로 보관
+- 두 수정본 모두 built-in `image_gen`의 reference-guided precise-object-edit 모드로 생성 후 프로젝트 경로에 복사
 - `today-scent-02.png`는 50ml 단독 컷에서 10ml가 함께 생성된 초안을 폐기하고 50ml+상자만 있는 결과로 교체
