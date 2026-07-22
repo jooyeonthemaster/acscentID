@@ -103,40 +103,40 @@ export function ChemistryPurchaseChapter({
 
   return (
     <div className="px-4">
-      <div className="bg-[#F5EFE2] border border-[#D8CFBB] rounded-[12px] overflow-hidden">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden">
         {/* 헤더 — 더 시각적으로 */}
-        <div className="bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] p-5 text-center text-[#1A1610] relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] p-5 text-center text-[var(--ink)] relative overflow-hidden">
           <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
           <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full" />
           <Package className="w-8 h-8 mx-auto mb-2 relative z-10" />
           <h2 className="text-lg font-bold relative z-10">{t('chemistry.result.purchase')}</h2>
-          <p className="text-xs lg:text-sm text-[#5C564A] mt-1 relative z-10">{t('chemistry.description')}</p>
+          <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-1 relative z-10">{t('chemistry.description')}</p>
         </div>
 
         {/* 향수 세트 시각화 — 두 향수 나란히 */}
-        <div className="p-5 border-b-2 border-[#1E222E]">
+        <div className="p-5 border-b-2 border-[var(--line)]">
           <div className="flex items-center justify-center gap-4">
             <div className="text-center flex-1">
               <div
-                className="w-14 h-14 rounded-full border border-[#D8CFBB] mx-auto"
+                className="w-14 h-14 rounded-full border border-[var(--line)] mx-auto"
                 style={{ background: perfumeA ? `linear-gradient(135deg, ${perfumeA.primaryColor}, ${perfumeA.secondaryColor})` : '#ddd' }}
               />
-              <span className="text-xs lg:text-sm font-medium text-[#1A1610] mt-1.5 block">{perfumeAName || t('chemistry.fallback.perfumeA')}</span>
-              <span className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{character1Name}</span>
+              <span className="text-xs lg:text-sm font-medium text-[var(--ink)] mt-1.5 block">{perfumeAName || t('chemistry.fallback.perfumeA')}</span>
+              <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{character1Name}</span>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#D8CFBB] to-[#D8CFBB] border border-[#D8CFBB] flex items-center justify-center">
-                <span className="text-base font-bold text-[#1A1610]">+</span>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[var(--line)] to-[var(--line)] border border-[var(--line)] flex items-center justify-center">
+                <span className="text-base font-bold text-[var(--ink)]">+</span>
               </div>
-              <span className="text-[9px] font-medium text-[#8B8578] mt-1 block">SET</span>
+              <span className="text-[9px] font-medium text-[var(--muted-ink)] mt-1 block">SET</span>
             </div>
             <div className="text-center flex-1">
               <div
-                className="w-14 h-14 rounded-full border border-[#D8CFBB] mx-auto"
+                className="w-14 h-14 rounded-full border border-[var(--line)] mx-auto"
                 style={{ background: perfumeB ? `linear-gradient(135deg, ${perfumeB.primaryColor}, ${perfumeB.secondaryColor})` : '#ddd' }}
               />
-              <span className="text-xs lg:text-sm font-medium text-[#1A1610] mt-1.5 block">{perfumeBName || t('chemistry.fallback.perfumeB')}</span>
-              <span className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{character2Name}</span>
+              <span className="text-xs lg:text-sm font-medium text-[var(--ink)] mt-1.5 block">{perfumeBName || t('chemistry.fallback.perfumeB')}</span>
+              <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{character2Name}</span>
             </div>
           </div>
         </div>
@@ -148,17 +148,17 @@ export function ChemistryPurchaseChapter({
               key={option.size}
               whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedSize(option.size as 'set_10ml' | 'set_50ml')}
-              className={`w-full p-4 rounded-[12px] border text-left transition-all ${
+              className={`w-full p-4 rounded-[6px] border text-left transition-all ${
                 selectedSize === option.size
-                  ? 'border-[#C9BFA8] bg-[#FDFAF1]'
-                  : 'border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#D8CFBB]'
+                  ? 'border-[var(--line)] bg-[var(--soft)]'
+                  : 'border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-sm lg:text-base font-bold text-[#1A1610]">{option.label}</span>
+                  <span className="text-sm lg:text-base font-bold text-[var(--ink)]">{option.label}</span>
                 </div>
-                <span className="text-base font-bold text-[#5C564A]">{formatPrice(option.price)}{t('currency.suffix')}</span>
+                <span className="text-base font-bold text-[var(--muted-ink)]">{formatPrice(option.price)}{t('currency.suffix')}</span>
               </div>
             </motion.button>
           ))}
@@ -170,7 +170,7 @@ export function ChemistryPurchaseChapter({
             whileTap={{ scale: 0.98 }}
             onClick={handleAddToCart}
             disabled={isAdding}
-            className="w-full h-14 rounded-[12px] font-bold text-base flex items-center justify-center gap-2 bg-[#EFE4C8] text-[#1A1610] border border-[#D8CFBB] transition-all disabled:opacity-50"
+            className="w-full h-14 rounded-[6px] font-bold text-base flex items-center justify-center gap-2 bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] transition-all disabled:opacity-50"
           >
             <ShoppingCart size={18} />
             <span>{isAdding ? t('chemistry.buttons.addingToCart') : t('chemistry.buttons.addToCart')}</span>
@@ -232,7 +232,7 @@ export function ChemistryPurchaseChapter({
               }
             }}
             disabled={isAdding}
-            className="w-full h-12 rounded-[12px] font-bold text-sm lg:text-base flex items-center justify-center gap-2 bg-[#EFE4C8] text-[#1A1610] border border-[#D8CFBB] hover:bg-[#EFE4C8] transition-all disabled:opacity-50"
+            className="w-full h-12 rounded-[6px] font-bold text-sm lg:text-base flex items-center justify-center gap-2 bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] hover:bg-[var(--soft)] transition-all disabled:opacity-50"
           >
             <CreditCard size={16} />
             <span>{t('checkout.orderProduct')}</span>

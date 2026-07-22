@@ -42,7 +42,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
   // PC 레이아웃: 가로 배치 (키치 스타일)
   if (isDesktop) {
     return (
-      <div className="relative bg-[#EDE5D2] p-2.5 rounded-t-[12px] border-b-2 border-[#D8CFBB]">
+      <div className="relative bg-[var(--soft)] p-2.5 rounded-t-[6px] border-b-2 border-[var(--line)]">
         <div className="grid gap-2 grid-cols-3">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -52,10 +52,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`relative flex items-center justify-center gap-2.5 py-3 px-5 text-sm lg:text-base font-bold transition-all rounded-[12px] border ${
+                className={`relative flex items-center justify-center gap-2.5 py-3 px-5 text-sm lg:text-base font-bold transition-all rounded-[6px] border ${
                   isActive
-                    ? 'text-[#1A1610] bg-[#F5EFE2] border-[#A87B10]'
-                    : 'text-[#6E6659] bg-transparent border-transparent hover:bg-[#F5EFE2]/70 hover:text-[#5C564A]'
+                    ? 'text-[var(--ink)] bg-[var(--soft)] border-[var(--line)]'
+                    : 'text-[var(--muted-ink)] bg-transparent border-transparent hover:bg-[var(--soft)]/70 hover:text-[var(--muted-ink)]'
                 }`}
               >
                 <span className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
   // 졸업 모드: 3개 탭을 한 줄에 표시
   if (isGraduationMode) {
     return (
-      <div className="relative bg-[#EDE5D2] p-2 rounded-t-[12px] border-b-2 border-[#D8CFBB]">
+      <div className="relative bg-[var(--soft)] p-2 rounded-t-[6px] border-b-2 border-[var(--line)]">
         <div className="grid grid-cols-3 gap-2">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -84,10 +84,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`relative flex items-center justify-center gap-1 py-2.5 px-2 text-sm lg:text-base transition-all rounded-[12px] border ${
+                className={`relative flex items-center justify-center gap-1 py-2.5 px-2 text-sm lg:text-base transition-all rounded-[6px] border ${
                   isActive
-                    ? 'text-[#1A1610] bg-[#F5EFE2] border-[#A87B10]'
-                    : 'text-[#6E6659] bg-transparent border-transparent hover:bg-[#F5EFE2]/70'
+                    ? 'text-[var(--ink)] bg-[var(--soft)] border-[var(--line)]'
+                    : 'text-[var(--muted-ink)] bg-transparent border-transparent hover:bg-[var(--soft)]/70'
                 }`}
               >
                 <span className="flex flex-col items-center gap-0.5">
@@ -104,7 +104,7 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
 
   // 일반 모드: 기존 레이아웃 (피규어 모드 포함)
   return (
-    <div className="relative bg-[#EDE5D2] p-2 rounded-t-[12px] border-b-2 border-[#D8CFBB]">
+    <div className="relative bg-[var(--soft)] p-2 rounded-t-[6px] border-b-2 border-[var(--line)]">
       <div className="grid grid-cols-2 gap-2 mb-2">
         {tabs.slice(0, 2).map((tab) => {
           const Icon = tab.icon
@@ -114,10 +114,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border ${
+              className={`relative flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[6px] border ${
                 isActive
-                  ? 'text-[#1A1610] bg-[#F5EFE2] border-[#A87B10]'
-                  : 'text-[#6E6659] bg-transparent border-transparent hover:bg-[#F5EFE2]/70'
+                  ? 'text-[var(--ink)] bg-[var(--soft)] border-[var(--line)]'
+                  : 'text-[var(--muted-ink)] bg-transparent border-transparent hover:bg-[var(--soft)]/70'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -137,10 +137,10 @@ export function TabNavigation({ activeTab, onTabChange, isDesktop = false, isGra
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative w-full flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[12px] border ${
+              className={`relative w-full flex items-center justify-center gap-2 py-2.5 px-3 text-sm lg:text-base transition-all rounded-[6px] border ${
                 isActive
-                  ? 'text-[#1A1610] bg-[#F5EFE2] border-[#A87B10]'
-                  : 'text-[#6E6659] bg-transparent border-transparent hover:bg-[#F5EFE2]/70'
+                  ? 'text-[var(--ink)] bg-[var(--soft)] border-[var(--line)]'
+                  : 'text-[var(--muted-ink)] bg-transparent border-transparent hover:bg-[var(--soft)]/70'
               }`}
             >
               <span className="flex items-center gap-1.5">

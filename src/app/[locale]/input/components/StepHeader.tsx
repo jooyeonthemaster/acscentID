@@ -16,13 +16,13 @@ export function StepHeader({ title, step, description }: StepHeaderProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <p className="text-[10px] lg:text-[12px] font-bold text-[#A69F8D] tracking-widest mb-1">
+            <p className="text-[10px] lg:text-[12px] font-bold text-[var(--muted-ink)] tracking-widest mb-1">
                 {step}/{TOTAL_STEPS}
             </p>
-            <h1 className="text-2xl font-extrabold text-[#E9E2D0] leading-tight">
+            <h1 className="text-2xl font-extrabold text-[var(--ink)] leading-tight">
                 {title}
             </h1>
-            <p className="text-sm lg:text-base text-[#A69F8D] mt-2">
+            <p className="text-sm lg:text-base text-[var(--muted-ink)] mt-2">
                 {description}
             </p>
         </motion.div>

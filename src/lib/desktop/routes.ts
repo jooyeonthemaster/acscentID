@@ -8,9 +8,9 @@ import { stripLocaleFromPathname } from '@/lib/route-visibility'
  *
  * - isDesktopReadyPath: 전용 데스크탑 레이아웃이 완성되어 455px 셸을
  *   해제할 라우트 (단계별로 하나씩 옵트인).
- * - isDesktopChromeExcludedPath: 데스크탑 헤더/푸터 크롬을 씌우지 않는
- *   라우트. /input*은 56px compact 모바일 헤더를 쓰는 유일한 라우트
- *   패밀리라 84px 데스크탑 헤더와 오프셋이 충돌한다.
+ * - isDesktopChromeExcludedPath: 데스크탑 헤더 크롬을 씌우지 않는 라우트.
+ *   /input* 위저드는 헤더를 노출하되(각 desktopWizard가 lg 상단 오프셋 확보),
+ *   푸터는 집중 흐름 유지를 위해 isDesktopFooterExcludedPath로 계속 제외한다.
  */
 
 /** Tailwind v4 기본 lg 브레이크포인트. rem 단위까지 일치시켜야 CSS와 JS가 같은 픽셀에서 전환된다. */
@@ -40,7 +40,10 @@ const DESKTOP_READY_PREFIXES: string[] = ['/products', '/programs']
 
 const CHROME_EXCLUDED_EXACT = new Set<string>(['/reviewer'])
 
-const CHROME_EXCLUDED_PREFIXES = ['/input', '/qr/input', '/dev', '/today-scent-og']
+const CHROME_EXCLUDED_PREFIXES = ['/qr/input', '/dev', '/today-scent-og']
+
+/** 데스크탑 푸터만 추가로 제외하는 라우트 — 분석 입력 위저드는 집중 흐름 유지 */
+const FOOTER_EXCLUDED_PREFIXES = ['/input']
 
 function normalize(pathname?: string | null): string {
   const stripped = stripLocaleFromPathname(pathname)
@@ -62,4 +65,10 @@ export function isDesktopChromeExcludedPath(pathname?: string | null): boolean {
   const p = normalize(pathname)
   if (CHROME_EXCLUDED_EXACT.has(p)) return true
   return CHROME_EXCLUDED_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))
+}
+
+export function isDesktopFooterExcludedPath(pathname?: string | null): boolean {
+  if (isDesktopChromeExcludedPath(pathname)) return true
+  const p = normalize(pathname)
+  return FOOTER_EXCLUDED_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))
 }

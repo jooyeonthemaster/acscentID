@@ -33,10 +33,10 @@ export function CustomInputToggle({
                     onClick={onToggle}
                     className="
                         w-full py-3 px-4
-                        text-sm lg:text-base font-medium text-[#A69F8D]
-                        bg-[#F5EFE2] rounded-[12px]
-                        border border-dashed border-[#D8CFBB]
-                        hover:border-[#C9BFA8]
+                        text-sm lg:text-base font-medium text-[var(--muted-ink)]
+                        bg-[var(--soft)] rounded-[6px]
+                        border border-dashed border-[var(--line)]
+                        hover:border-[var(--line)]
                         transition-all duration-200
                     "
                 >
@@ -45,7 +45,7 @@ export function CustomInputToggle({
             ) : (
                 <div className="relative">
                     {/* 스티치 효과 - 외곽선 */}
-                    <div className="absolute -inset-[3px] rounded-[12px] border border-dashed border-[#3A4051] pointer-events-none" />
+                    <div className="absolute -inset-[3px] rounded-[6px] border border-dashed border-[var(--line)] pointer-events-none" />
                     <input
                         type="text"
                         value={value}
@@ -53,12 +53,12 @@ export function CustomInputToggle({
                         placeholder={placeholder || t('input.customPlaceholder')}
                         className="
                             relative w-full p-3
-                            bg-[#12141D] rounded-[12px]
-                            text-sm lg:text-base text-[#E9E2D0]
-                            placeholder:text-[#5C564A]
+                            bg-[var(--paper)] rounded-[6px]
+                            text-sm lg:text-base text-[var(--ink)]
+                            placeholder:text-[var(--muted-ink)]
                             outline-none
-                            border border-[#262A38]
-                            focus:border-[#E9E2D0]/70
+                            border border-[var(--line)]
+                            focus:border-[var(--line)]/70
                             transition-all
                         "
                     />

@@ -241,7 +241,7 @@ function MyPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1016]">
+    <div className="min-h-screen bg-[var(--canvas)]">
       {/* 메인 레이아웃 */}
       <div className="px-4 py-4">
         {/* 회원정보 카드 */}
@@ -251,14 +251,14 @@ function MyPageContent() {
         <DefaultAddressCard />
 
         {/* 탭 네비게이션 */}
-        <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-2 mb-4">
+        <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-2 mb-4">
           <div className="grid grid-cols-4 gap-1">
             <button
               onClick={() => handleTabChange('analyses')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[6px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'analyses'
-                  ? 'bg-[#12141D] text-[#F5EFE2]'
-                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
+                  ? 'bg-[var(--paper)] text-[var(--ink)]'
+                  : 'text-[var(--muted-ink)] hover:bg-[var(--soft)]'
               }`}
             >
               <Sparkles size={18} />
@@ -267,10 +267,10 @@ function MyPageContent() {
             </button>
             <button
               onClick={() => handleTabChange('cart')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[6px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'cart'
-                  ? 'bg-[#12141D] text-[#F5EFE2]'
-                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
+                  ? 'bg-[var(--paper)] text-[var(--ink)]'
+                  : 'text-[var(--muted-ink)] hover:bg-[var(--soft)]'
               }`}
             >
               <ShoppingCart size={18} />
@@ -279,10 +279,10 @@ function MyPageContent() {
             </button>
             <button
               onClick={() => handleTabChange('orders')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[6px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'orders'
-                  ? 'bg-[#12141D] text-[#F5EFE2]'
-                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
+                  ? 'bg-[var(--paper)] text-[var(--ink)]'
+                  : 'text-[var(--muted-ink)] hover:bg-[var(--soft)]'
               }`}
             >
               <ShoppingBag size={18} />
@@ -291,10 +291,10 @@ function MyPageContent() {
             </button>
             <button
               onClick={() => handleTabChange('coupons')}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-[12px] font-bold text-xs lg:text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-[6px] font-bold text-xs lg:text-sm transition-all ${
                 activeTab === 'coupons'
-                  ? 'bg-[#12141D] text-[#F5EFE2]'
-                  : 'text-[#5C564A] hover:bg-[#E9E2D0]'
+                  ? 'bg-[var(--paper)] text-[var(--ink)]'
+                  : 'text-[var(--muted-ink)] hover:bg-[var(--soft)]'
               }`}
             >
               <Ticket size={18} />
@@ -345,9 +345,9 @@ function MyPageContent() {
 function LoadingFallback() {
   const t = useTranslations('mypage')
   return (
-    <div className="min-h-screen bg-[#0E1016] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#343A4C] rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--line)] rounded-full animate-spin mx-auto mb-4" />
         <p className="font-bold">{t('loading')}</p>
       </div>
     </div>

@@ -267,9 +267,10 @@ export default function SajuInputPage() {
     // 루트 캔버스(saju-ink-grain + bg-[#0C0E16])는 ViewportSwitch 바깥 페이지
     // 루트가 공유하므로 여기서 다시 칠하지 않는다(그레인 이중 적용 방지).
     const desktopWizard = (
-        <div className="relative z-10 mx-auto grid w-full max-w-[1020px] grid-cols-[320px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-10">
+        // pt: 고정 데스크탑 헤더(84px) 아래로 콘텐츠 시작
+        <div className="relative z-10 mx-auto grid w-full max-w-[1020px] grid-cols-[320px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-[116px]">
             {/* 좌측 레일 — 뒤로가기 + 낙관 명패 + 한자 매듭 세로 페이즈 목록 */}
-            <aside className="sticky top-10 self-start">
+            <aside className="sticky top-[116px] self-start">
                 <div className="flex items-center gap-3">
                     <button
                         type="button"

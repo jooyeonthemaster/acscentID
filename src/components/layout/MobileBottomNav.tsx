@@ -48,13 +48,13 @@ function NavItem({
       className={cn(
         "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
         isActive
-          ? "text-[#A69F8D]"
-          : "text-[#A69F8D] hover:text-[#E9E2D0]"
+          ? "text-[var(--ink)]"
+          : "text-[var(--muted-ink)] hover:text-[var(--ink)]"
       )}
     >
       <div className={cn(
-        "p-1.5 rounded-[12px] transition-all",
-        isActive && "bg-[#151823]"
+        "p-1.5 rounded-[6px] transition-all",
+        isActive && "bg-[var(--soft)]"
       )}>
         <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
       </div>
@@ -95,25 +95,25 @@ function ProgramsSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-[60] font-wanted bg-[#12141D] border-t-2 border-[#262A38] rounded-t-[12px]"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-[60] font-wanted bg-white border-t border-[var(--line)] rounded-t-[6px]"
       >
         {/* 핸들 바 */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 bg-[#232838] rounded-full" />
+          <div className="w-12 h-1.5 bg-[var(--line)] rounded-full" />
         </div>
 
         {/* 헤더 */}
-        <div className="px-6 pb-4 border-b-2 border-[#1E222E]">
+        <div className="px-6 pb-4 border-b border-[var(--line)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-black text-[#E9E2D0]">{t('nav.programSelect')}</h3>
-              <p className="text-xs lg:text-sm text-[#8B8578] mt-0.5">{t('nav.programSelectDesc')}</p>
+              <h3 className="text-lg font-black text-[var(--ink)]">{t('nav.programSelect')}</h3>
+              <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-0.5">{t('nav.programSelectDesc')}</p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-[#1B1F2C] flex items-center justify-center hover:bg-[#232838] transition-colors"
+              className="w-8 h-8 rounded-full bg-[var(--soft)] flex items-center justify-center hover:bg-[var(--line-soft)] transition-colors"
             >
-              <X size={16} className="text-[#A69F8D]" />
+              <X size={16} className="text-[var(--muted-ink)]" />
             </button>
           </div>
         </div>
@@ -125,23 +125,23 @@ function ProgramsSheet({
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className="flex items-center gap-4 p-4 border-2 rounded-[12px] transition-all group bg-[#F5EFE2] border-[#262A38] hover:border-[#343A4C] hover:bg-[#FFFDF5]"
+              className="flex items-center gap-4 p-4 border rounded-[6px] transition-all group bg-white border-[var(--line)] hover:bg-[var(--soft)]"
             >
               <div className="relative">
-                <div className="w-14 h-14 rounded-[12px] bg-[#12141D] border-2 border-[#262A38] flex items-center justify-center overflow-hidden transition-all">
+                <div className="w-14 h-14 rounded-[4px] bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center overflow-hidden transition-all">
                   <img src={link.image} alt={t(link.labelKey)} className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-[#12141D]">{t(link.labelKey)}</h4>
+                  <h4 className="font-bold text-[var(--ink)]">{t(link.labelKey)}</h4>
                 </div>
-                <p className="text-xs lg:text-sm text-[#5C564A] mt-0.5 whitespace-pre-line">
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-0.5 whitespace-pre-line">
                   {t(link.descKey)}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#12141D] border-2 flex items-center justify-center transition-all border-[#262A38] group-hover:border-[#343A4C] group-hover:bg-[#151823]">
-                <ChevronRight size={16} className="text-[#8B8578] group-hover:text-[#A69F8D]" />
+              <div className="w-8 h-8 rounded-full bg-white border flex items-center justify-center transition-all border-[var(--line)] group-hover:border-[var(--ink)]">
+                <ChevronRight size={16} className="text-[var(--muted-ink)] group-hover:text-[var(--ink)]" />
               </div>
             </Link>
           ))}
@@ -158,7 +158,7 @@ export function MobileBottomNav() {
   const { startTransition } = useTransition()
   const currentUser = unifiedUser || user
   const t = useTranslations()
-  const { isProductVisible } = useActiveProducts()
+  const { isProductVisible, isProductActive } = useActiveProducts()
   const viewportMode = useViewportMode()
   // 데스크탑 크롬이 켜진 라우트에서는 lg+에서 DesktopHeader 내비가 대신한다
   const hideAtLg = !isDesktopChromeExcludedPath(pathname)
@@ -193,7 +193,19 @@ export function MobileBottomNav() {
   const isGraduationPage = normalizedPathname === '/programs/graduation'
   const isChemistryPage = normalizedPathname === '/programs/chemistry'
   const isSajuPage = normalizedPathname === '/programs/saju'
-  const isProgramDetailPage = isIdolImagePage || isFigurePage || isGraduationPage || isChemistryPage || isSajuPage
+  const currentProgramSlug = isIdolImagePage
+    ? 'idol-image'
+    : isFigurePage
+      ? 'figure'
+      : isGraduationPage
+        ? 'graduation'
+        : isChemistryPage
+          ? 'chemistry'
+          : isSajuPage
+            ? 'saju'
+            : null
+  // 비활성 프로그램에서는 InactiveProductGuard 안내가 뜨므로 분석 CTA도 함께 숨긴다
+  const isProgramDetailPage = currentProgramSlug !== null && isProductActive(currentProgramSlug)
 
   useEffect(() => {
     if (isAdminPage) return
@@ -289,7 +301,7 @@ export function MobileBottomNav() {
       {isProgramDetailPage && !shouldHideBars && (
         <div
           className={cn(
-            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom",
+            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t border-[var(--line)] safe-area-bottom",
             "transition-all duration-300 ease-out",
             isVisible ? "bottom-16" : "bottom-0",
             hideAtLg && "lg:hidden"
@@ -298,7 +310,7 @@ export function MobileBottomNav() {
           <button
             onClick={handleProgramCTAClick}
             disabled={loading}
-            className="w-full py-3 bg-[#EEB62B] text-[#1A1610] font-black text-base rounded-[12px] border-2 border-[#B8880F] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 bg-[var(--ink)] text-white font-extrabold text-base rounded-[5px] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {t('buttons.analyzeNow')}
           </button>
@@ -309,7 +321,7 @@ export function MobileBottomNav() {
       {!shouldHideBars && (
         <nav
           className={cn(
-            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom",
+            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t border-[var(--line)] safe-area-bottom",
             "transition-transform duration-300 ease-out",
             isVisible ? "translate-y-0" : "translate-y-full",
             hideAtLg && "lg:hidden"
@@ -328,13 +340,13 @@ export function MobileBottomNav() {
               className={cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all relative",
                 isProgramsActive || showProgramsMenu
-                  ? "text-[#A69F8D]"
-                  : "text-[#A69F8D] hover:text-[#E9E2D0]"
+                  ? "text-[var(--ink)]"
+                  : "text-[var(--muted-ink)] hover:text-[var(--ink)]"
               )}
             >
               <div className={cn(
-                "p-1.5 rounded-[12px] transition-all",
-                (isProgramsActive || showProgramsMenu) && "bg-[#151823]"
+                "p-1.5 rounded-[6px] transition-all",
+                (isProgramsActive || showProgramsMenu) && "bg-[var(--soft)]"
               )}>
                 {showProgramsMenu ? (
                   <X size={20} strokeWidth={2.5} />
@@ -361,13 +373,13 @@ export function MobileBottomNav() {
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all",
                   isMyPageActive
-                    ? "text-[#A69F8D]"
-                    : "text-[#A69F8D] hover:text-[#E9E2D0]"
+                    ? "text-[var(--ink)]"
+                    : "text-[var(--muted-ink)] hover:text-[var(--ink)]"
                 )}
               >
                 <div className={cn(
-                  "p-1.5 rounded-[12px] transition-all",
-                  isMyPageActive && "bg-[#151823]"
+                  "p-1.5 rounded-[6px] transition-all",
+                  isMyPageActive && "bg-[var(--soft)]"
                 )}>
                   <User size={20} strokeWidth={isMyPageActive ? 2.5 : 2} />
                 </div>
@@ -379,9 +391,9 @@ export function MobileBottomNav() {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-[#A69F8D] hover:text-[#E9E2D0]"
+                className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all text-[var(--muted-ink)] hover:text-[var(--ink)]"
               >
-                <div className="p-1.5 rounded-[12px] transition-all">
+                <div className="p-1.5 rounded-[6px] transition-all">
                   <User size={20} strokeWidth={2} />
                 </div>
                 <span className="text-[10px] lg:text-[12px] tracking-wide font-bold">{t('nav.login')}</span>
@@ -390,9 +402,9 @@ export function MobileBottomNav() {
 
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-[#A69F8D] hover:text-[#E9E2D0] transition-all"
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-[var(--muted-ink)] hover:text-[var(--ink)] transition-all"
             >
-              <div className="p-1.5 rounded-[12px]">
+              <div className="p-1.5 rounded-[6px]">
                 <Menu size={20} strokeWidth={2} />
               </div>
               <span className="text-[10px] lg:text-[12px] font-bold tracking-wide">{t('nav.menu')}</span>

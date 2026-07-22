@@ -4,7 +4,7 @@ import { useState, useRef, useSyncExternalStore } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronRight, ChevronLeft, Search, Gift, Handshake, MapPin } from "lucide-react"
+import { ChevronRight, ChevronLeft, Handshake, MapPin } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
@@ -85,7 +85,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(idolPrice, "SALE"),
-      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/idol-image"
     },
     {
@@ -97,7 +97,7 @@ export default function Home() {
       originalPrice: figurePrice?.original_price ?? null,
       delivery: t('shipping.afterProduction'),
       badge: computeBadge(figurePrice, "NEW"),
-      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/figure"
     },
     {
@@ -109,7 +109,7 @@ export default function Home() {
       originalPrice: graduationPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(graduationPrice, "LIMITED"),
-      badgeColor: "bg-[#EF4444] text-white",
+      badgeColor: "bg-[var(--accent-chem)] text-white",
       href: "/programs/graduation"
     },
     {
@@ -122,7 +122,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(personalPrice, "SIGNATURE"),
-      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/personal"
     },
     {
@@ -135,7 +135,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: "SEASON 3",
-      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/chemistry"
     },
     {
@@ -148,7 +148,7 @@ export default function Home() {
       priceRange: true,
       delivery: t('shipping.estimated'),
       badge: computeBadge(sajuPrice, "NEW"),
-      badgeColor: "bg-[#0C0E16] text-[#E9E2D0]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/saju"
     },
     {
@@ -160,7 +160,7 @@ export default function Home() {
       originalPrice: leQuackPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(leQuackPrice, "SIGNATURE"),
-      badgeColor: "bg-[#EEB62B] text-[#1A1610]",
+      badgeColor: "bg-[var(--ink)] text-white",
       href: "/programs/le-quack"
     },
   ]
@@ -223,189 +223,188 @@ export default function Home() {
   })
 
   const mobileHome = (
-    <div className="min-h-screen bg-[#0C0E16] font-wanted selection:bg-[#232838] selection:text-[#E9E2D0]">
+    <div className="min-h-screen bg-[var(--canvas)]">
       <Header />
 
       {/* 메인 컨텐츠 */}
       <main className="pt-[84px]">
-        <div className="w-full max-w-[455px] mx-auto">
 
-          {/* ===== 히어로 슬라이드 섹션 ===== */}
-          <section className={`sticky top-[84px] z-0 w-full overflow-hidden md:overflow-visible transition-opacity duration-300 ${bannersLoading ? 'opacity-0' : 'opacity-100'}`}>
-            {/* 슬라이드 컨테이너 */}
-            <div className="relative h-[420px] flex items-center justify-center">
-              {/* 슬라이드 */}
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={currentSlide}
-                  ref={slideRef}
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDragStart={() => setIsDragging(true)}
-                  onDragEnd={handleDragEnd}
-                  className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
-                  onClick={() => {
-                    if (!isDragging && currentBanner?.link_url) {
-                      router.push(currentBanner.link_url)
-                    }
-                  }}
-                >
-                  {/* 슬라이드 배경 이미지 (동적 배너) */}
-                  <div className="absolute inset-0">
-                    {isHydrated && currentBanner?.image_url ? (
-                      <Image
-                        src={currentBanner.image_url}
-                        alt={currentBanner.title || 'hero background'}
-                        fill
-                        sizes="(max-width: 455px) 100vw, 455px"
-                        className="object-cover"
-                        style={{ objectPosition: 'center center' }}
-                        priority
-                        data-pin-nopin="true"
-                      />
-                    ) : (
-                      <div className="w-full h-full animate-pulse bg-gradient-to-br from-[#151823] to-[#232838]" aria-hidden />
-                    )}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* 좌우 네비게이션 버튼 */}
-              <button
-                onClick={prevSlide}
-                aria-label={t('home.prevBanner')}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
+        {/* ===== 히어로: 풀블리드 배너 슬라이드 ===== */}
+        <section className={`relative w-full overflow-hidden transition-opacity duration-300 ${bannersLoading ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="relative mx-auto h-[420px] w-full max-w-[455px]">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={currentSlide}
+                ref={slideRef}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragStart={() => setIsDragging(true)}
+                onDragEnd={handleDragEnd}
+                className="relative h-full w-full cursor-grab active:cursor-grabbing"
+                onClick={() => {
+                  if (!isDragging && currentBanner?.link_url) {
+                    router.push(currentBanner.link_url)
+                  }
+                }}
               >
-                <ChevronLeft size={24} className="text-[#E9E2D0] drop-shadow" />
-              </button>
-              <button
-                onClick={nextSlide}
-                aria-label={t('home.nextBanner')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
-              >
-                <ChevronRight size={24} className="text-[#E9E2D0] drop-shadow" />
-              </button>
+                {/* 슬라이드 배경 이미지 (동적 배너) */}
+                <div className="absolute inset-0">
+                  {isHydrated && currentBanner?.image_url ? (
+                    <Image
+                      src={currentBanner.image_url}
+                      alt={currentBanner.title || 'hero background'}
+                      fill
+                      sizes="(max-width: 455px) 100vw, 455px"
+                      className="object-cover"
+                      style={{ objectPosition: 'center center' }}
+                      priority
+                      data-pin-nopin="true"
+                    />
+                  ) : (
+                    <div className="h-full w-full animate-pulse bg-[var(--soft)]" aria-hidden />
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
-              <div className="absolute bottom-32 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+            {/* 좌우 네비게이션 버튼 (원형 아이콘 버튼 — 시스템 예외 허용) */}
+            <button
+              onClick={prevSlide}
+              aria-label={t('home.prevBanner')}
+              className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 transition-colors hover:bg-black/50 active:scale-95"
+            >
+              <ChevronLeft size={22} className="text-white" />
+            </button>
+            <button
+              onClick={nextSlide}
+              aria-label={t('home.nextBanner')}
+              className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 transition-colors hover:bg-black/50 active:scale-95"
+            >
+              <ChevronRight size={22} className="text-white" />
+            </button>
+
+            {/* 점 인디케이터 */}
+            {banners.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
                 {banners.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentSlide
-                      ? 'bg-[#12141D] w-6 shadow-md'
-                      : 'bg-[#12141D]/50 hover:bg-[#12141D]/70'
+                    aria-label={`banner ${index + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                      ? 'w-5 bg-white'
+                      : 'w-2 bg-white/55 hover:bg-white/80'
                       }`}
                   />
                 ))}
               </div>
+            )}
+          </div>
+        </section>
 
-            </div>
-          </section>
+        <div className="mx-auto w-full max-w-[455px]">
 
-
-          {/* Wrapper for Sticky Control */}
-          <div className="relative">
-            {/* 현장방문 예약 — sticky 배너 밖(이 wrapper는 스크롤됨)이라 스크롤 시 함께 올라간다.
-                배너 하단에 겹쳐 보이도록 위로 당김. */}
+          {/* ===== 현장방문 예약 스트립 ===== */}
+          <div className="border-y border-[var(--line)] bg-[var(--paper)] px-4 py-4">
             <button
               type="button"
               onClick={() => setShowReserveChoice(true)}
               aria-label={t('nav.visitReservation')}
-              className="absolute left-4 right-4 -top-[76px] z-30 flex items-center justify-center gap-2 whitespace-nowrap rounded-[12px] border border-[#B8880F] bg-[#F5EFE2] px-5 py-3.5 text-base font-bold text-[#1A1610] shadow-[0_6px_20px_rgba(0,0,0,0.4)] transition-colors hover:bg-[#FFFDF5] active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-[5px] border border-[var(--ink)] bg-white px-5 py-3.5 text-[15px] font-extrabold text-[var(--ink)] transition-colors hover:bg-[var(--soft)] active:scale-[0.99]"
             >
-              <MapPin size={18} />
+              <MapPin size={17} />
               {t('nav.visitReservation')}
             </button>
-            {/* ===== 프로그램 둘러보기 섹션 ===== */}
-            <section id="programs-section" className="bg-[#FBF7EF] px-4 pt-8 pb-[clamp(132px,19svh,180px)] rounded-t-[12px] -mt-[clamp(64px,12svh,104px)] sticky top-[84px] z-10 min-h-[50vh] border-2 border-[#D8CFBB] border-b-0">
-              {/* 섹션 타이틀 */}
-              <div className="flex items-center gap-2 mb-6">
-                <Search size={20} className="text-[#1A1610]" />
-                <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#1A1610]">{t('home.browsePrograms')}</h2>
-              </div>
+          </div>
 
-              {/* 2열 그리드 카드 */}
-              <div className="grid grid-cols-2 items-stretch gap-3">
-                {PRODUCTS.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => handleCardClick(product.href)}
-                    className="group h-full cursor-pointer"
-                  >
-                    <div className="relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[#B8880F]/55 bg-[#F5EFE2] transition-colors group-hover:border-[#B8880F]">
-                      {/* 카드 이미지 */}
-                      <div className="relative aspect-square overflow-hidden">
-                        {product.image ? (
-                          <Image
-                            src={product.image}
-                            alt={product.title}
-                            fill
-                            sizes="(max-width: 455px) 50vw, 220px"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            data-pin-nopin="true"
-                          />
-                        ) : (
-                          <div className="w-full h-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#EDE5D2]" />
-                        )}
-                        {/* 뱃지 */}
-                        {product.badge && (
-                          <div
-                            className={`absolute top-2 left-2 px-2 py-[3px] ${product.badgeColor || "text-white"} text-[10px] lg:text-[12px] font-medium uppercase tracking-[0.1em] rounded-[2px]`}
-                            style={product.badgeStyle}
-                          >
-                            {product.badge}
-                          </div>
-                        )}
-                      </div>
-                      {/* 카드 타이틀 (테두리 안 — 사진과 한 덩어리) */}
-                      <div className="flex flex-1 flex-col border-t border-[#B8880F]/30 px-3 py-3">
-                      <h3 className="font-medium text-[#1A1610] text-[clamp(13px,3.6vw,15px)] tracking-[-0.01em] truncate">
+          {/* ===== 프로그램 둘러보기 섹션 ===== */}
+          <section id="programs-section" className="bg-[var(--canvas)] px-4 pb-16 pt-10">
+            {/* 섹션 타이틀 */}
+            <div className="mb-6">
+              <p className="text-[11px] font-black text-[var(--muted-ink)]">PROGRAMS</p>
+              <h2 className="mt-1.5 break-keep text-[22px] font-black leading-tight text-[var(--ink)]">{t('home.browsePrograms')}</h2>
+            </div>
+
+            {/* 2열 그리드 카드 */}
+            <div className="grid grid-cols-2 items-stretch gap-3">
+              {PRODUCTS.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.06, duration: 0.35 }}
+                  onClick={() => handleCardClick(product.href)}
+                  className="group h-full cursor-pointer"
+                >
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
+                    {/* 카드 이미지 */}
+                    <div className="relative aspect-square overflow-hidden bg-[var(--soft)]">
+                      {product.image ? (
+                        <Image
+                          src={product.image}
+                          alt={product.title}
+                          fill
+                          sizes="(max-width: 455px) 50vw, 220px"
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                          data-pin-nopin="true"
+                        />
+                      ) : (
+                        <div className="h-full w-full animate-pulse bg-[var(--soft)]" />
+                      )}
+                      {/* 뱃지 */}
+                      {product.badge && (
+                        <div
+                          className={`absolute left-2 top-2 rounded-[3px] px-2 py-[3px] ${product.badgeColor || "text-white"} text-[10px] font-bold uppercase`}
+                          style={product.badgeStyle}
+                        >
+                          {product.badge}
+                        </div>
+                      )}
+                    </div>
+                    {/* 카드 타이틀 */}
+                    <div className="flex flex-1 flex-col border-t border-[var(--line-soft)] px-3 py-3">
+                      <h3 className="truncate break-keep text-[clamp(13px,3.6vw,15px)] font-bold text-[var(--ink)]">
                         {product.title}
                       </h3>
-                      <p className="text-[clamp(10px,2.8vw,11.5px)] text-[#6E6659] leading-snug mt-1 line-clamp-2 whitespace-pre-line">
+                      <p className="mt-1 line-clamp-2 whitespace-pre-line break-keep text-[clamp(10px,2.8vw,11.5px)] leading-snug text-[var(--muted-ink)]">
                         {product.subtitle}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[clamp(16px,4.4vw,19px)] font-semibold tracking-[-0.02em] text-[#1A1610]">
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <span className="text-[clamp(16px,4.4vw,19px)] font-extrabold text-[var(--ink)]">
                           {t('currency.symbol')}{product.price.toLocaleString()}{product.priceRange && '~'}
                         </span>
                         {product.originalPrice && (
-                          <span className="text-[clamp(10px,2.7vw,12px)] text-[#6E6659] line-through">
+                          <span className="text-[clamp(10px,2.7vw,12px)] text-[var(--muted-ink)] line-through">
                             {t('currency.symbol')}{product.originalPrice.toLocaleString()}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[clamp(10.5px,2.8vw,12px)] font-light mt-auto pt-2 text-[#5C564A]">
+                      <p className="mt-auto pt-2 text-[clamp(10.5px,2.8vw,12px)] text-[var(--muted-ink)]">
                         {product.delivery}
                       </p>
-                      </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        </div>
 
-            </section>
-            {/* Sticky Track Spacer (상품 섹션 숨김 동안 축소) */}
-            <div className="h-0 w-full" />
-          </div>
+        {/* ===== 오늘의 향 뽑기 섹션 (다크 밴드) ===== */}
+        {showTodayScent && <TodayScentDraw />}
 
-          {/* ===== 오늘의 향 뽑기 섹션 ===== */}
-          {showTodayScent && <TodayScentDraw />}
-
+        <div className="mx-auto w-full max-w-[455px]">
           {/* ===== 상품 둘러보기 섹션 ===== */}
-          <section className="bg-[#FBF7EF] px-4 pt-12 pb-[clamp(132px,18svh,180px)] rounded-t-[12px] -mt-[clamp(92px,14svh,128px)] relative z-20 min-h-[60vh] border-2 border-[#D8CFBB] border-b-0">
-            <div className="flex items-center gap-2 mb-6">
-              <Gift size={20} className="text-[#1A1610]" />
-              <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#1A1610]">{t('home.browseProducts')}</h2>
+          <section className="bg-[var(--paper)] px-4 pb-16 pt-12">
+            <div className="mb-6">
+              <p className="text-[11px] font-black text-[var(--muted-ink)]">STORE</p>
+              <h2 className="mt-1.5 break-keep text-[22px] font-black leading-tight text-[var(--ink)]">{t('home.browseProducts')}</h2>
             </div>
 
             <div className="grid grid-cols-2 items-stretch gap-3">
@@ -414,41 +413,41 @@ export default function Home() {
                 return (
                   <motion.div
                     key={product.slug}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.08 }}
+                    transition={{ delay: index * 0.06, duration: 0.35 }}
                     onClick={() => handleCardClick(`/products/${product.slug}`)}
                     className="group h-full cursor-pointer"
                   >
-                    <div className="relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[#B8880F]/55 bg-[#F5EFE2] transition-colors group-hover:border-[#B8880F]">
-                      <div className="relative aspect-square overflow-hidden bg-[#D8CFBB] flex items-center justify-center">
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
+                      <div className="relative aspect-square overflow-hidden bg-[var(--soft)]">
                         <Image
                           src={product.image}
                           alt={localized.title}
                           fill
                           sizes="(max-width: 455px) 50vw, 220px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                           data-pin-nopin="true"
                         />
-                        <div className="absolute top-2 left-2 px-2 py-[3px] bg-[#EEB62B] text-[#1A1610] text-[10px] lg:text-[12px] font-medium uppercase tracking-[0.1em] rounded-[2px] z-10">
+                        <div className="absolute left-2 top-2 z-10 rounded-[3px] bg-[var(--ink)] px-2 py-[3px] text-[10px] font-bold uppercase text-white">
                           {product.badge}
                         </div>
                       </div>
-                      <div className="flex flex-1 flex-col border-t border-[#B8880F]/30 px-3 py-3">
-                      <h3 className="font-medium text-[#1A1610] text-[clamp(13px,3.6vw,15px)] tracking-[-0.01em] truncate">
-                        {localized.title}
-                      </h3>
-                      <p className="text-[clamp(10px,2.8vw,11.5px)] text-[#6E6659] leading-snug mt-1 line-clamp-2">
-                        {localized.description}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[clamp(16px,4.4vw,19px)] font-semibold tracking-[-0.02em] text-[#1A1610]">
-                          {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-[clamp(10.5px,2.8vw,12px)] font-light mt-auto pt-2 text-[#5C564A]">
-                        {t('store.selectAndBuy')}
-                      </p>
+                      <div className="flex flex-1 flex-col border-t border-[var(--line-soft)] px-3 py-3">
+                        <h3 className="truncate break-keep text-[clamp(13px,3.6vw,15px)] font-bold text-[var(--ink)]">
+                          {localized.title}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 break-keep text-[clamp(10px,2.8vw,11.5px)] leading-snug text-[var(--muted-ink)]">
+                          {localized.description}
+                        </p>
+                        <div className="mt-1.5 flex items-center gap-1.5">
+                          <span className="text-[clamp(16px,4.4vw,19px)] font-extrabold text-[var(--ink)]">
+                            {t('currency.symbol')}{storeProductPrice(product.size, product.fallbackPrice).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="mt-auto pt-2 text-[clamp(10.5px,2.8vw,12px)] text-[var(--muted-ink)]">
+                          {t('store.selectAndBuy')}
+                        </p>
                       </div>
                     </div>
                   </motion.div>
@@ -456,53 +455,43 @@ export default function Home() {
               })}
             </div>
 
-            <div className="mt-12 text-center">
-              <Link href="/products" className="inline-flex items-center gap-2 text-sm lg:text-base font-medium text-[#1A1610] underline underline-offset-4 decoration-wavy decoration-stone-400">
+            <div className="mt-10 text-center">
+              <Link href="/products" className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--ink)] underline underline-offset-4">
                 {t('store.viewAll')} <ChevronRight size={14} />
               </Link>
             </div>
           </section>
-
-          {/* ===== 콜라보 & 협업 문의 섹션 ===== */}
-          <section className="bg-[#12141D] px-4 pt-12 pb-32 rounded-t-[12px] -mt-[clamp(84px,12svh,112px)] relative z-30 min-h-[40vh] border-2 border-[#262A38] border-b-0">
-            <div className="flex items-center gap-2 mb-6">
-              <Handshake size={20} className="text-[#E9E2D0]" />
-              <h2 className="font-heading text-[22px] font-bold tracking-[-0.01em] text-[#E9E2D0]">{t('home.collaboration')}</h2>
-            </div>
-
-            {/* 협업 소개 */}
-            <div className="bg-[#161925] rounded-[12px] p-5 border border-[#343A4C]">
-              <p className="text-[#E9E2D0] text-sm lg:text-base font-medium mb-4 whitespace-pre-line">
-                {t('home.collaborationDesc')}
-              </p>
-
-              {/* 협업 아이템 */}
-              <div className="space-y-2 mb-5">
-                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
-                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
-                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem1')}</span>
-                </div>
-                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
-                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
-                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem2')}</span>
-                </div>
-                <div className="flex items-center gap-3 bg-[#1B1F2C] rounded-[12px] px-3 py-2.5 border border-[#262A38]">
-                  <span className="w-1.5 h-1.5 bg-[#EEB62B] rounded-full flex-shrink-0"></span>
-                  <span className="text-xs lg:text-sm text-[#A69F8D]">{t('home.collaborationItem3')}</span>
-                </div>
-              </div>
-
-              {/* CTA 버튼 */}
-              <Link
-                href="/collaboration"
-                className="block w-full bg-[#F5EFE2] text-[#12141D] text-center font-bold text-sm lg:text-base py-3 rounded-[12px] border-2 border-[#262A38] hover:bg-[#FFFDF5] transition-colors"
-              >
-                {t('home.viewCollaboration')}
-              </Link>
-            </div>
-          </section>
-
         </div>
+
+        {/* ===== 콜라보 & 협업 문의 섹션 (다크 밴드) ===== */}
+        <section className="bg-[var(--dark-band)] px-4 pb-24 pt-14 text-white">
+          <div className="mx-auto w-full max-w-[455px]">
+            <div className="mb-5 flex items-center gap-2">
+              <Handshake size={18} className="text-white" />
+              <h2 className="break-keep text-[22px] font-black leading-tight text-white">{t('home.collaboration')}</h2>
+            </div>
+
+            <p className="whitespace-pre-line break-keep text-sm leading-relaxed text-[var(--dark-muted)]">
+              {t('home.collaborationDesc')}
+            </p>
+
+            {/* 협업 아이템 */}
+            <ul className="mt-6 border-t border-[var(--dark-line)]">
+              <li className="border-b border-[var(--dark-line)] py-3 text-[13px] text-[var(--dark-muted)]">{t('home.collaborationItem1')}</li>
+              <li className="border-b border-[var(--dark-line)] py-3 text-[13px] text-[var(--dark-muted)]">{t('home.collaborationItem2')}</li>
+              <li className="border-b border-[var(--dark-line)] py-3 text-[13px] text-[var(--dark-muted)]">{t('home.collaborationItem3')}</li>
+            </ul>
+
+            {/* CTA 버튼 */}
+            <Link
+              href="/collaboration"
+              className="mt-6 block w-full rounded-[5px] bg-white py-3.5 text-center text-sm font-extrabold text-[var(--ink)] transition-colors hover:bg-[var(--soft)]"
+            >
+              {t('home.viewCollaboration')}
+            </Link>
+          </div>
+        </section>
+
       </main>
     </div>
   )

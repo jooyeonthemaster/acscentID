@@ -7,9 +7,12 @@ import { getKakaoSession } from '@/lib/auth-session'
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
   .map(e => e.trim().toLowerCase())
-const ANALYSIS_LIST_SELECT = 'id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id, modeling_image_url, modeling_request'
-const EXCLUDE_B_IDS_CACHE_TTL_MS = 60_000
-let excludeBIdsCache: { expiresAt: number; ids: string[] } | null = null
+// [FIX] 레이어링 퍼퓸: 세션당 2 row 중 analysis_b_id로 참조되는 행을 제외하기 위해
+// layering_sessions를 FK(analysis_b_id)로 임베드한다. `.is('_lb', null)`로 필터하면
+// "B로 참조되지 않은 행"만 남는다 (DB 측 anti-join). 이전의 id 목록을 URL로 넘기는
+// 방식은 세션이 늘면 URL/헤더가 폭증해 HeadersOverflowError(fetch failed)를 유발했다.
+const LAYERING_B_EMBED = '_lb:layering_sessions!analysis_b_id(analysis_b_id)'
+const ANALYSIS_LIST_SELECT = `id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id, modeling_image_url, modeling_request, ${LAYERING_B_EMBED}`
 
 interface AnalysisListRow {
   id: string
@@ -27,6 +30,7 @@ interface AnalysisListRow {
   user_id: string | null
   modeling_image_url: string | null
   modeling_request: string | null
+  _lb?: unknown
 }
 
 interface UserProfileRow {
@@ -66,29 +70,6 @@ async function isAdmin(): Promise<{ isAdmin: boolean; email: string | null }> {
   return { isAdmin: false, email: null }
 }
 
-async function getExcludeBIds(supabase: ReturnType<typeof createServiceRoleClient>) {
-  if (excludeBIdsCache && excludeBIdsCache.expiresAt > Date.now()) {
-    return excludeBIdsCache.ids
-  }
-
-  const { data: bIdRows } = await supabase
-    .from('layering_sessions')
-    .select('analysis_b_id')
-    .not('analysis_b_id', 'is', null)
-    .limit(100000)
-
-  const ids = (bIdRows || [])
-    .map((row: { analysis_b_id: string | null }) => row.analysis_b_id)
-    .filter(Boolean) as string[]
-
-  excludeBIdsCache = {
-    expiresAt: Date.now() + EXCLUDE_B_IDS_CACHE_TTL_MS,
-    ids,
-  }
-
-  return ids
-}
-
 export async function GET(request: NextRequest) {
   try {
     // 관리자 권한 확인
@@ -112,21 +93,16 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // [FIX] 레이어링 퍼퓸: 세션당 2개 row가 생성되므로, 관리자 목록에서는 analysis_b_id를
-    // 전부 제외해 "세션 1건 = row 1건 (캐릭터 A 기준)"으로 표시
-    const excludeBIds = await getExcludeBIds(supabase)
-
     // CSV 내보내기 - 페이지네이션 없이 전체 조회
     if (format === 'csv') {
+      // [FIX] 레이어링 퍼퓸: analysis_b_id로 참조되는 행 제외 (DB 측 anti-join, 위 주석 참고)
       let csvQuery = supabase
         .from('analysis_results')
-        .select('id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id')
+        .select(`id, created_at, product_type, service_mode, target_type, idol_name, twitter_name, perfume_name, perfume_brand, matching_keywords, qr_code_id, pin, user_id, ${LAYERING_B_EMBED}`)
+        .is('_lb', null)
         .order('created_at', { ascending: false })
         .limit(50000)
 
-      if (excludeBIds.length > 0) {
-        csvQuery = csvQuery.not('id', 'in', `(${excludeBIds.join(',')})`)
-      }
       if (productType && productType !== 'all') csvQuery = csvQuery.eq('product_type', productType)
       if (serviceMode && serviceMode !== 'all') csvQuery = csvQuery.eq('service_mode', serviceMode)
       if (targetType && targetType !== 'all') csvQuery = csvQuery.eq('target_type', targetType)
@@ -222,16 +198,13 @@ export async function GET(request: NextRequest) {
     }
 
     // 기본 쿼리
+    // [FIX] 레이어링 퍼퓸: analysis_b_id로 참조되는 행 제외 (캐릭터 A만 표시, DB 측 anti-join)
     let query = supabase
       .from('analysis_results')
       .select(ANALYSIS_LIST_SELECT, { count: 'exact' })
+      .is('_lb', null)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
-
-    // [FIX] 레이어링 퍼퓸: 세션당 2 row 중 analysis_b_id row는 제외 (캐릭터 A만 표시)
-    if (excludeBIds.length > 0) {
-      query = query.not('id', 'in', `(${excludeBIds.join(',')})`)
-    }
 
     // 필터 적용
     if (productType && productType !== 'all') {
@@ -351,8 +324,10 @@ export async function GET(request: NextRequest) {
     // 응답 데이터 구성
     const enrichedAnalyses = analysisRows.map(analysis => {
       const pair = chemistryPairs[analysis.id]
+      const analysisFields = { ...analysis }
+      delete analysisFields._lb
       return {
-        ...analysis,
+        ...analysisFields,
         user_profile: analysis.user_id ? userProfiles[analysis.user_id] : null,
         feedback: feedbacks[analysis.id] || null,
         // 케미 세션 정보 (chemistry_set일 때만 채워짐)

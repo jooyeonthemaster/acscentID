@@ -110,7 +110,7 @@ export function GraduationAnalyzingOverlay({
                     className="w-full max-w-[300px] text-center"
                 >
                     <motion.h2
-                        className="text-[#E9E2D0] font-bold text-2xl mb-2 tracking-tight drop-shadow-lg"
+                        className="text-[var(--ink)] font-bold text-2xl mb-2 tracking-tight drop-shadow-lg"
                     >
                         {t('analyzing.title')}
                     </motion.h2>
@@ -123,7 +123,7 @@ export function GraduationAnalyzingOverlay({
                     {/* 프로그레스 바 - 글래스모피즘 스타일 */}
                     <div className="relative h-7 bg-white/5 rounded-full border border-white/10 overflow-hidden backdrop-blur-md shadow-inner">
                         <motion.div
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#B3B3B3] to-[#f8f4e8] shadow-[0_0_20px_rgba(179,179,179,0.4)]"
+                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#B3B3B3] to-[var(--soft)] shadow-[0_0_20px_rgba(179,179,179,0.4)]"
                             animate={{ width: `${progress}%` }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
                         />
@@ -134,7 +134,7 @@ export function GraduationAnalyzingOverlay({
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                         />
                         {/* 진행률 텍스트 */}
-                        <div className="absolute inset-0 flex items-center justify-center text-[11px] lg:text-[13px] font-black text-[#E9E2D0] mix-blend-difference tracking-widest">
+                        <div className="absolute inset-0 flex items-center justify-center text-[11px] lg:text-[13px] font-black text-[var(--ink)] mix-blend-difference tracking-widest">
                             {Math.round(progress)}%
                         </div>
                     </div>
@@ -150,7 +150,7 @@ export function GraduationAnalyzingOverlay({
                     transition={{ duration: 0.4 }}
                     className="w-full max-w-[340px] px-4"
                 >
-                    <div className="bg-white/5 backdrop-blur-xl rounded-[12px] p-8 border border-white/10 shadow-2xl text-center relative">
+                    <div className="bg-white/5 backdrop-blur-xl rounded-[6px] p-8 border border-white/10 shadow-2xl text-center relative">
                         {/* 미니멀한 장식 라인 */}
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-[1px] bg-[#B3B3B3]/40" />
 
@@ -161,7 +161,7 @@ export function GraduationAnalyzingOverlay({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.5 }}
-                                className="text-[#E9E2D0] text-[15px] font-medium leading-relaxed italic"
+                                className="text-[var(--ink)] text-[15px] font-medium leading-relaxed italic"
                             >
                                 &ldquo;{quotes[currentQuoteIndex % quotes.length]}&rdquo;
                             </motion.p>
@@ -199,8 +199,8 @@ export function GraduationAnalyzingOverlay({
                     {/* 문 디자인 - 왼쪽 */}
                     <div className="absolute inset-0 border-r-4" style={{ borderColor: GRADUATION_THEME.secondary }}>
                         {/* 장식 패널 */}
-                        <div className="absolute top-[10%] left-[15%] right-[15%] h-[25%] rounded-[12px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
-                        <div className="absolute top-[40%] left-[15%] right-[15%] h-[45%] rounded-[12px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
+                        <div className="absolute top-[10%] left-[15%] right-[15%] h-[25%] rounded-[6px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
+                        <div className="absolute top-[40%] left-[15%] right-[15%] h-[45%] rounded-[6px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
                     </div>
                     {/* 손잡이 */}
                     <div
@@ -229,8 +229,8 @@ export function GraduationAnalyzingOverlay({
                     {/* 문 디자인 - 오른쪽 */}
                     <div className="absolute inset-0 border-l-4" style={{ borderColor: GRADUATION_THEME.secondary }}>
                         {/* 장식 패널 */}
-                        <div className="absolute top-[10%] left-[15%] right-[15%] h-[25%] rounded-[12px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
-                        <div className="absolute top-[40%] left-[15%] right-[15%] h-[45%] rounded-[12px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
+                        <div className="absolute top-[10%] left-[15%] right-[15%] h-[25%] rounded-[6px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
+                        <div className="absolute top-[40%] left-[15%] right-[15%] h-[45%] rounded-[6px] border-2" style={{ borderColor: GRADUATION_THEME.secondary, backgroundColor: 'rgba(179,179,179, 0.1)' }} />
                     </div>
                     {/* 손잡이 */}
                     <div

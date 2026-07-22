@@ -132,7 +132,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <SetHtmlLang locale={locale} />
       <JsonLd data={organizationSchema(locale as Locale)} />
       <JsonLd data={webSiteSchema(locale as Locale)} />
-      <div className="w-full min-h-screen bg-[#08090F] relative flex flex-col">
+      <div className="public-editorial w-full min-h-screen relative flex flex-col">
         <DesktopHeader />
         <ShellColumn>{children}</ShellColumn>
         <DesktopFooter />

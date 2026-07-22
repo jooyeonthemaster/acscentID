@@ -88,7 +88,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         exit={{ opacity: 0, y: -10 }}
         className={`text-center ${isDesktop ? 'py-12' : 'py-8'}`}
       >
-        <p className="text-[#8B8578] text-sm lg:text-base">{t('noComparisonData')}</p>
+        <p className="text-[var(--muted-ink)] text-sm lg:text-base">{t('noComparisonData')}</p>
       </motion.div>
     )
   }
@@ -110,19 +110,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         {/* 2컬럼: AI 해석 + 유저 요약 */}
         <div className="grid grid-cols-2 gap-6">
           {/* AI 이미지 해석 */}
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
             <SectionHeader
               icon={<Eye size={14} />}
               title={t('aiImageInterpretation')}
               subtitle={t('aiImageSubtitle')}
             />
-            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)] h-[calc(100%-48px)]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-stone-300/20 rounded-full blur-3xl" />
               <div className="relative z-10 flex flex-col h-full">
-                <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
+                <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.imageInterpretation}
                 </p>
-                <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
+                <p className="text-[var(--muted-ink)] text-sm lg:text-sm mt-3 font-bold">
                   - AI Vision System
                 </p>
               </div>
@@ -130,19 +130,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           </motion.div>
 
           {/* 유저 응답 요약 */}
-          <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+          <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
             <SectionHeader
               icon={<User size={14} />}
               title={t('myImageView')}
               subtitle={t('myImageSubtitle')}
             />
-            <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] h-[calc(100%-48px)]">
+            <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)] h-[calc(100%-48px)]">
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-stone-300/20 rounded-full blur-3xl" />
               <div className="relative z-10 flex flex-col h-full">
-                <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
+                <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed whitespace-pre-wrap flex-1 font-medium">
                   {comparison.userInputSummary}
                 </p>
-                <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
+                <p className="text-[var(--muted-ink)] text-sm lg:text-sm mt-3 font-bold">
                   - {t('myAnalysis')}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
         </div>
 
         {/* 비교 분석 상세 */}
-        <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+        <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
           <SectionHeader
             icon={<Sparkles size={14} />}
             title={t('matchSecret')}
@@ -165,8 +165,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
               <AnalysisCard
                 icon={<CheckCircle2 size={16} />}
                 badge={t('agreePoint')}
-                badgeColor="bg-[#EFE4C8]"
-                bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+                badgeColor="bg-[var(--soft)]"
+                bgGradient="from-[var(--soft)] to-[var(--soft)]"
                 borderColor="border-stone-200/50"
                 content={parsedReflection.agree}
               />
@@ -177,8 +177,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
               <AnalysisCard
                 icon={<Lightbulb size={16} />}
                 badge={t('hiddenCharm')}
-                badgeColor="bg-[#EFE4C8]"
-                bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+                badgeColor="bg-[var(--soft)]"
+                bgGradient="from-[var(--soft)] to-[var(--soft)]"
                 borderColor="border-stone-200/50"
                 content={parsedReflection.hidden}
               />
@@ -189,8 +189,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
               <AnalysisCard
                 icon={<GitCompare size={16} />}
                 badge={t('gapAnalysis')}
-                badgeColor="bg-[#EFE4C8]"
-                bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+                badgeColor="bg-[var(--soft)]"
+                bgGradient="from-[var(--soft)] to-[var(--soft)]"
                 borderColor="border-stone-200/50"
                 content={parsedReflection.gap}
               />
@@ -201,8 +201,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
               <AnalysisCard
                 icon={<Target size={16} />}
                 badge={t('finalPerfumeMatch')}
-                badgeColor="bg-[#EFE4C8]"
-                bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+                badgeColor="bg-[var(--soft)]"
+                bgGradient="from-[var(--soft)] to-[var(--soft)]"
                 borderColor="border-stone-200/50"
                 content={parsedReflection.final}
                 highlight
@@ -210,9 +210,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB]">
+          <div className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
             <span>🎯</span>
-            <span className="text-sm lg:text-base text-[#1A1610] font-bold">{t('aiFanFormula')}</span>
+            <span className="text-sm lg:text-base text-[var(--ink)] font-bold">{t('aiFanFormula')}</span>
             <span>✨</span>
           </div>
         </motion.div>
@@ -231,19 +231,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       className="space-y-5"
     >
       {/* AI 이미지 해석 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-4 border border-[var(--line)]">
         <SectionHeader
           icon={<Eye size={14} />}
           title={t('aiImageInterpretation')}
           subtitle={t('aiImageSubtitle')}
         />
-        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
+        <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
           <div className="relative z-10">
-            <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
+            <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.imageInterpretation}
             </p>
-            <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
+            <p className="text-[var(--muted-ink)] text-sm lg:text-sm mt-3 font-bold">
               - AI Vision System
             </p>
           </div>
@@ -251,19 +251,19 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       </motion.div>
 
       {/* 유저 응답 요약 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-4 border border-[var(--line)]">
         <SectionHeader
           icon={<User size={14} />}
           title={t('myImageView')}
           subtitle={t('myImageSubtitle')}
         />
-        <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
+        <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)]">
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-stone-300/20 rounded-full blur-2xl" />
           <div className="relative z-10">
-            <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
+            <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
               {comparison.userInputSummary}
             </p>
-            <p className="text-[#5C564A] text-sm lg:text-sm mt-3 font-bold">
+            <p className="text-[var(--muted-ink)] text-sm lg:text-sm mt-3 font-bold">
               - {t('myAnalysis')}
             </p>
           </div>
@@ -271,7 +271,7 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
       </motion.div>
 
       {/* 비교 분석 상세 */}
-      <motion.div variants={fadeIn} className="bg-[#F5EFE2] rounded-[12px] p-4 border border-[#D8CFBB]">
+      <motion.div variants={fadeIn} className="bg-[var(--soft)] rounded-[6px] p-4 border border-[var(--line)]">
         <SectionHeader
           icon={<Sparkles size={14} />}
           title={t('matchSecret')}
@@ -284,8 +284,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             <AnalysisCard
               icon={<CheckCircle2 size={16} />}
               badge={t('agreePoint')}
-              badgeColor="bg-[#EFE4C8]"
-              bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+              badgeColor="bg-[var(--soft)]"
+              bgGradient="from-[var(--soft)] to-[var(--soft)]"
               borderColor="border-stone-200/50"
               content={parsedReflection.agree}
             />
@@ -296,8 +296,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             <AnalysisCard
               icon={<Lightbulb size={16} />}
               badge={t('hiddenCharm')}
-              badgeColor="bg-[#EFE4C8]"
-              bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+              badgeColor="bg-[var(--soft)]"
+              bgGradient="from-[var(--soft)] to-[var(--soft)]"
               borderColor="border-stone-200/50"
               content={parsedReflection.hidden}
             />
@@ -308,8 +308,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             <AnalysisCard
               icon={<GitCompare size={16} />}
               badge={t('gapAnalysis')}
-              badgeColor="bg-[#EFE4C8]"
-              bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+              badgeColor="bg-[var(--soft)]"
+              bgGradient="from-[var(--soft)] to-[var(--soft)]"
               borderColor="border-stone-200/50"
               content={parsedReflection.gap}
             />
@@ -320,8 +320,8 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
             <AnalysisCard
               icon={<Target size={16} />}
               badge={t('finalPerfumeMatch')}
-              badgeColor="bg-[#EFE4C8]"
-              bgGradient="from-[#FDFAF1] to-[#FDFAF1]"
+              badgeColor="bg-[var(--soft)]"
+              bgGradient="from-[var(--soft)] to-[var(--soft)]"
               borderColor="border-stone-200/50"
               content={parsedReflection.final}
               highlight
@@ -329,9 +329,9 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB]">
+        <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
           <span>🎯</span>
-          <span className="text-sm lg:text-sm text-[#1A1610] font-bold">{t('aiFanFormula')}</span>
+          <span className="text-sm lg:text-sm text-[var(--ink)] font-bold">{t('aiFanFormula')}</span>
           <span>✨</span>
         </div>
       </motion.div>
@@ -343,11 +343,11 @@ export function ComparisonTab({ displayedAnalysis, isDesktop = false }: Comparis
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-1.5 text-[#8B8578]">
+      <div className="flex items-center gap-1.5 text-[var(--muted-ink)]">
         {icon}
         <p className="text-[11px] lg:text-[12px] font-medium uppercase tracking-[0.12em]">{subtitle}</p>
       </div>
-      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
+      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[var(--ink)]">{title}</h3>
     </div>
   )
 }
@@ -381,22 +381,22 @@ function AnalysisCard({
   const cleanedContent = cleanContent(content)
 
   return (
-    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB] ${highlight ? 'ring-2 ring-[#C9BFA8] ring-offset-1' : ''}`}>
+    <div className={`relative bg-gradient-to-br ${bgGradient} rounded-[6px] p-4 overflow-hidden border border-[var(--line)] ${highlight ? 'ring-2 ring-[var(--line)] ring-offset-1' : ''}`}>
       {/* 데코 패턴 */}
       <div className={`absolute top-0 right-0 w-24 h-24 ${badgeColor} opacity-10 rounded-full blur-2xl`} />
 
       <div className="relative z-10">
         {/* 배지 헤더 - 키치 스타일 */}
         <div className="flex items-center gap-2 mb-3">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${badgeColor} text-[#1A1610] rounded-[12px] border border-[#D8CFBB]`}>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${badgeColor} text-[var(--ink)] rounded-[6px] border border-[var(--line)]`}>
             {icon}
             <span className="text-sm lg:text-sm font-bold">{badge}</span>
           </div>
         </div>
 
         {/* 내용 */}
-        <div className="bg-[#F5EFE2]/80 rounded-[12px] p-3 border border-[#D8CFBB]">
-          <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed whitespace-pre-line font-medium">
+        <div className="bg-[var(--soft)]/80 rounded-[6px] p-3 border border-[var(--line)]">
+          <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed whitespace-pre-line font-medium">
             {cleanedContent}
           </p>
         </div>

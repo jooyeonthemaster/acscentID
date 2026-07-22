@@ -130,7 +130,7 @@ function ChemistryInputFormInner() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-[#12141D]/80" />
+          <div className="absolute inset-0 bg-[var(--paper)]/80" />
         </div>
 
         {/* compact 헤더 높이 여백 */}
@@ -146,7 +146,7 @@ function ChemistryInputFormInner() {
           </div>
 
           {/* 네비게이션 버튼 */}
-          <div className="sticky bottom-0 z-20 -mx-4 mt-5 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#F5EFE2] via-[#F5EFE2]/95 to-[#F5EFE2]/0">
+          <div className="sticky bottom-0 z-20 -mx-4 mt-5 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[var(--soft)] via-[var(--soft)]/95 to-[var(--soft)]/0">
             <ChemistryNavButtons
               phase={phase}
               isSummonValid={isSummonValid()}
@@ -182,18 +182,19 @@ function ChemistryInputFormInner() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#12141D]/85" />
+        <div className="absolute inset-0 bg-[var(--paper)]/85" />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1060px] grid-cols-[340px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-10">
+      {/* pt: 고정 데스크탑 헤더(84px) 아래로 콘텐츠 시작 */}
+      <div className="relative z-10 mx-auto grid w-full max-w-[1060px] grid-cols-[340px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-[116px]">
         {/* 좌측 레일 */}
-        <aside className="sticky top-10 self-start">
+        <aside className="sticky top-[116px] self-start">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => window.history.back()}
               aria-label={t('buttons.prev')}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#262A38] text-[#A69F8D] transition-colors hover:border-[#3A4051] hover:text-[#E9E2D0]"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)] text-[var(--muted-ink)] transition-colors hover:border-[var(--line)] hover:text-[var(--ink)]"
             >
               <ArrowLeft size={16} />
             </button>
@@ -209,8 +210,8 @@ function ChemistryInputFormInner() {
           </div>
 
           <div className="mt-8 flex items-center gap-2">
-            <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-[#E9E2D0]/70" />
-            <span className="text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[#A69F8D]">
+            <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-[var(--soft)]/70" />
+            <span className="text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[var(--muted-ink)]">
               {t('products.chemistry')}
             </span>
           </div>
@@ -224,31 +225,31 @@ function ChemistryInputFormInner() {
                   {i < phaseLabels.length - 1 && (
                     <span
                       aria-hidden
-                      className={`absolute left-[5px] top-5 bottom-0 w-px ${state === 'done' ? 'bg-[#A69F8D]' : 'bg-[#262A38]'}`}
+                      className={`absolute left-[5px] top-5 bottom-0 w-px ${state === 'done' ? 'bg-[var(--muted-ink)]' : 'bg-[var(--soft)]'}`}
                     />
                   )}
                   <span
                     aria-hidden
                     className={`absolute left-0 top-1.5 ${
                       state === 'done'
-                        ? 'h-[11px] w-[11px] rounded-full bg-[#E9E2D0]'
+                        ? 'h-[11px] w-[11px] rounded-full bg-[var(--soft)]'
                         : state === 'now'
-                          ? 'h-[11px] w-[11px] rounded-full border-[1.5px] border-[#E9E2D0] bg-[#10131C]'
-                          : 'ml-[2px] mt-[2px] h-[7px] w-[7px] rounded-full border border-[#3A4051] bg-[#10131C]'
+                          ? 'h-[11px] w-[11px] rounded-full border-[1.5px] border-[var(--line)] bg-[var(--canvas)]'
+                          : 'ml-[2px] mt-[2px] h-[7px] w-[7px] rounded-full border border-[var(--line)] bg-[var(--canvas)]'
                     }`}
                   />
                   <span
                     className={`text-[14px] leading-tight ${
                       state === 'now'
-                        ? 'font-semibold text-[#E9E2D0]'
+                        ? 'font-semibold text-[var(--ink)]'
                         : state === 'done'
-                          ? 'text-[#A69F8D]'
-                          : 'text-[#5C564A]'
+                          ? 'text-[var(--muted-ink)]'
+                          : 'text-[var(--muted-ink)]'
                     }`}
                   >
                     {p.label}
                     {p.key === 'deck' && state === 'now' && (
-                      <span className="ml-2 text-[12px] font-bold text-[#8B8578]">
+                      <span className="ml-2 text-[12px] font-bold text-[var(--muted-ink)]">
                         {Math.min(currentCard + 1, TOTAL_CARDS)}/{TOTAL_CARDS}
                       </span>
                     )}
@@ -258,13 +259,13 @@ function ChemistryInputFormInner() {
                     <div className="mt-2 flex items-center gap-2">
                       {image1Preview && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={image1Preview} alt="" className="h-10 w-10 rounded-[8px] border border-[#262A38] object-cover" />
+                        <img src={image1Preview} alt="" className="h-10 w-10 rounded-[8px] border border-[var(--line)] object-cover" />
                       )}
                       {image2Preview && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={image2Preview} alt="" className="h-10 w-10 rounded-[8px] border border-[#262A38] object-cover" />
+                        <img src={image2Preview} alt="" className="h-10 w-10 rounded-[8px] border border-[var(--line)] object-cover" />
                       )}
-                      <span className="min-w-0 truncate text-[12px] text-[#8B8578]">
+                      <span className="min-w-0 truncate text-[12px] text-[var(--muted-ink)]">
                         {[formData.character1Name, formData.character2Name].filter(Boolean).join(' × ')}
                       </span>
                     </div>
@@ -299,7 +300,7 @@ function ChemistryInputFormInner() {
   )
 
   return (
-    <div className="min-h-[100svh] bg-[#10131C] font-wanted text-[#E9E2D0]">
+    <div className="min-h-[100svh] bg-[var(--canvas)] font-wanted text-[var(--ink)]">
       {/* 분석 중 오버레이 — 뷰포트 모드 무관 단일 인스턴스 */}
       <ChemistryAnalyzingOverlay
         isVisible={isSubmitting}
@@ -341,18 +342,18 @@ function ChemistryProgress({ phase, currentCard, totalCards }: {
 
   return (
     <div className="relative z-10 px-4 py-2 w-full">
-      <div className="h-1.5 bg-[#EDE5D2] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[var(--soft)] rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-full"
+          className="h-full bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-full"
           initial={{ width: "0%" }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
-      <div className="flex justify-between mt-1 text-[10px] lg:text-[12px] font-bold text-[#8B8578]">
-        <span className={phase === 'summon' ? 'text-[#8B8578]' : ''}>{t('progress.summon')}</span>
-        <span className={phase === 'deck' ? 'text-[#8B8578]' : ''}>{t('progress.deck')}</span>
-        <span className={phase === 'catalyst' ? 'text-[#8B8578]' : ''}>{t('progress.catalyst')}</span>
+      <div className="flex justify-between mt-1 text-[10px] lg:text-[12px] font-bold text-[var(--muted-ink)]">
+        <span className={phase === 'summon' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.summon')}</span>
+        <span className={phase === 'deck' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.deck')}</span>
+        <span className={phase === 'catalyst' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.catalyst')}</span>
       </div>
     </div>
   )
@@ -381,10 +382,10 @@ function ChemistryNavButtons({
           whileTap={{ scale: 0.98 }}
           onClick={onSummonNext}
           disabled={!isSummonValid}
-          className={`w-full h-14 rounded-[12px] font-bold text-base flex items-center justify-center gap-2 transition-all border-2 border-[#12141D] ${
+          className={`w-full h-14 rounded-[6px] font-bold text-base flex items-center justify-center gap-2 transition-all border border-[var(--line)] ${
             isSummonValid
-              ? "bg-[#EEB62B] text-[#1A1610] hover:bg-[#E0B02A]"
-            : "bg-[#EDE5D2] text-[#5C564A] cursor-not-allowed border-[#D8CFBB]"
+              ? "bg-[var(--ink)] text-white hover:bg-[#E0B02A]"
+            : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed border-[var(--line)]"
           }`}
         >
           <span>{t('analyze')}</span>
@@ -401,7 +402,7 @@ function ChemistryNavButtons({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           onClick={onCardPrev}
-          className="flex-shrink-0 w-14 h-14 rounded-[12px] bg-[#F5EFE2] border-2 border-[#D8CFBB] flex items-center justify-center text-[#5C564A] hover:bg-[#EDE5D2]"
+          className="flex-shrink-0 w-14 h-14 rounded-[6px] bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center text-[var(--muted-ink)] hover:bg-[var(--soft)]"
         >
           <ArrowLeft size={20} />
         </motion.button>
@@ -409,10 +410,10 @@ function ChemistryNavButtons({
           whileTap={{ scale: 0.98 }}
           onClick={onCardNext}
           disabled={!isCardValid}
-          className={`flex-1 h-14 rounded-[12px] font-bold text-base flex items-center justify-center gap-2 transition-all border-2 border-[#12141D] ${
+          className={`flex-1 h-14 rounded-[6px] font-bold text-base flex items-center justify-center gap-2 transition-all border border-[var(--line)] ${
             isCardValid
-              ? "bg-[#EEB62B] text-[#1A1610] hover:bg-[#E0B02A]"
-            : "bg-[#EDE5D2] text-[#5C564A] cursor-not-allowed border-[#D8CFBB]"
+              ? "bg-[var(--ink)] text-white hover:bg-[#E0B02A]"
+            : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed border-[var(--line)]"
           }`}
         >
           <span>{t('nextCard')}</span>
@@ -427,7 +428,7 @@ function ChemistryNavButtons({
     <div className="flex gap-3">
       <motion.button
         onClick={onCardPrev}
-        className="flex-shrink-0 w-14 h-14 rounded-[12px] bg-[#F5EFE2] border-2 border-[#D8CFBB] flex items-center justify-center text-[#5C564A] hover:bg-[#EDE5D2]"
+        className="flex-shrink-0 w-14 h-14 rounded-[6px] bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center text-[var(--muted-ink)] hover:bg-[var(--soft)]"
       >
         <ArrowLeft size={20} />
       </motion.button>
@@ -435,7 +436,7 @@ function ChemistryNavButtons({
         whileTap={{ scale: 0.98 }}
         onClick={onComplete}
         disabled={isSubmitting}
-        className="flex-1 h-14 rounded-[12px] font-black text-base flex items-center justify-center gap-2 bg-[#EEB62B] text-[#1A1610] border-2 border-[#B8880F] transition-all"
+        className="flex-1 h-14 rounded-[6px] font-black text-base flex items-center justify-center gap-2 bg-[var(--ink)] text-white border border-[var(--line)] transition-all"
       >
         <span>{t('startAnalysis')}</span>
         <ArrowRight size={18} />
@@ -446,7 +447,7 @@ function ChemistryNavButtons({
 
 export default function ChemistryInputPage() {
   return (
-    <Suspense fallback={<div className="min-h-[100svh] bg-[#10131C]" />}>
+    <Suspense fallback={<div className="min-h-[100svh] bg-[var(--canvas)]" />}>
       <ChemistryInputFormInner />
     </Suspense>
   )

@@ -86,32 +86,32 @@ export function AuthModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-[#12141D] rounded-[12px] shadow-2xl overflow-hidden"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] border border-[var(--line)] shadow-sm overflow-hidden"
           >
-            <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-[#0C0E16] to-[#12141D]">
+            <div className="relative p-6 pb-4 text-center">
               {closeable && (
                 <button
                   onClick={onClose}
                   disabled={isButtonDisabled}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#1B1F2C] transition-colors disabled:opacity-50"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors disabled:opacity-50"
                 >
-                  <X size={20} className="text-[#8B8578]" />
+                  <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
               )}
 
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#161925] to-[#161925] rounded-[12px] flex items-center justify-center shadow-lg shadow-stone-400/30">
-                <Sparkles size={28} className="text-[#E9E2D0]" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] flex items-center justify-center">
+                <Sparkles size={28} className="text-[var(--ink)]" />
               </div>
 
-              <h2 className="text-xl font-bold text-[#E9E2D0] mb-2">{displayTitle}</h2>
-              <p className="text-sm lg:text-base text-[#8B8578]">{displayDescription}</p>
+              <h2 className="text-xl font-bold text-[var(--ink)] mb-2">{displayTitle}</h2>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)]">{displayDescription}</p>
             </div>
 
             <div className="p-6 pt-2 space-y-3">
               <button
                 onClick={handleGoogleLogin}
                 disabled={isButtonDisabled}
-                className="w-full h-12 bg-[#12141D] border-2 border-[#262A38] text-[#A69F8D] rounded-[12px] font-semibold hover:bg-[#151823] hover:border-[#262A38] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-white border border-[var(--line)] text-[var(--ink)] rounded-[5px] font-semibold hover:bg-[var(--soft)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -125,7 +125,7 @@ export function AuthModal({
               <button
                 onClick={handleKakaoLogin}
                 disabled={isButtonDisabled}
-                className="w-full h-12 bg-[#FEE500] text-[#391B1B] rounded-[12px] font-semibold hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-[#FEE500] text-[#391B1B] rounded-[5px] font-semibold hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#391B1B" d="M12 3C6.477 3 2 6.463 2 10.691c0 2.648 1.758 4.974 4.394 6.318-.14.51-.52 1.907-.595 2.2-.094.365.134.36.282.262.117-.077 1.848-1.26 2.594-1.773.432.063.878.096 1.325.096 5.523 0 10-3.463 10-7.103C20 6.463 15.523 3 12 3z" />
@@ -137,17 +137,17 @@ export function AuthModal({
                 <>
                   <div className="relative py-3">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-[#262A38]" />
+                      <div className="w-full border-t border-[var(--line)]" />
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-[#12141D] px-3 text-[11px] lg:text-[13px] text-[#8B8578]">또는</span>
+                      <span className="bg-white px-3 text-[11px] lg:text-[13px] text-[var(--muted-ink)]">또는</span>
                     </div>
                   </div>
 
                   <button
                     onClick={handleGuestLogin}
                     disabled={isButtonDisabled}
-                    className="w-full h-12 bg-[#1B1F2C] text-[#A69F8D] rounded-[12px] font-semibold hover:bg-[#232838] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 bg-[var(--soft)] text-[var(--ink)] rounded-[5px] font-semibold hover:bg-[var(--line-soft)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     {isLoading ? t('loginInProgress') : '비회원으로 계속하기'}
@@ -155,7 +155,7 @@ export function AuthModal({
                 </>
               )}
 
-              <p className="text-[11px] lg:text-[13px] text-[#8B8578] text-center pt-2">
+              <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center pt-2">
                 {t('loginHint')}
               </p>
             </div>

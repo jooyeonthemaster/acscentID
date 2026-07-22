@@ -63,7 +63,7 @@ export function GraduationInputForm() {
     } = useGraduationForm()
 
     return (
-        <div className="min-h-screen bg-[#10131C] font-wanted text-[#E9E2D0]">
+        <div className="min-h-screen bg-[var(--canvas)] font-wanted text-[var(--ink)]">
             {/* 분석 중 로딩 오버레이 */}
             <GraduationAnalyzingOverlay
                 isVisible={isSubmitting}
@@ -99,7 +99,8 @@ export function GraduationInputForm() {
                 </div>
 
                 {/* compact 헤더 높이만큼 여백 */}
-                <div className="h-14 flex-shrink-0" />
+                {/* lg: 고정 데스크탑 헤더(84px)만큼 여백 확장 */}
+                <div className="h-14 flex-shrink-0 lg:h-[104px]" />
 
                 {/* 프로그레스 바 */}
                 <GraduationProgressBar currentStep={currentStep} totalSteps={totalSteps} />
@@ -191,10 +192,10 @@ function GraduationProgressBar({ currentStep, totalSteps }: { currentStep: numbe
     return (
         <div className="relative z-10 px-4 py-2 w-full">
             <div className="flex items-center justify-between mb-2">
-                <span className="text-xs lg:text-sm font-medium text-[#8B8578]">
+                <span className="text-xs lg:text-sm font-medium text-[var(--muted-ink)]">
                     STEP {currentStep} / {totalSteps}
                 </span>
-                <span className="text-xs lg:text-sm text-[#8B8578]">
+                <span className="text-xs lg:text-sm text-[var(--muted-ink)]">
                     {currentStep === 1 && t('progressLabels.step1')}
                     {currentStep === 2 && t('progressLabels.step2')}
                     {currentStep === 3 && t('progressLabels.step3')}
@@ -202,7 +203,7 @@ function GraduationProgressBar({ currentStep, totalSteps }: { currentStep: numbe
                     {currentStep === 5 && t('progressLabels.step5')}
                 </span>
             </div>
-            <div className="h-1.5 bg-[#232838] rounded-full overflow-hidden">
+            <div className="h-1.5 bg-[var(--soft)] rounded-full overflow-hidden">
                 <motion.div
                     className="h-full rounded-full"
                     style={{ backgroundColor: GRADUATION_THEME.primary }}
@@ -243,7 +244,7 @@ function GraduationNavigationButtons({
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         onClick={onPrev}
-                        className="flex-shrink-0 w-14 h-14 rounded-[12px] bg-[#12141D] border border-[#262A38] flex items-center justify-center text-[#A69F8D] hover:bg-[#151823] transition-colors"
+                        className="flex-shrink-0 w-14 h-14 rounded-[6px] bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors"
                     >
                         <ArrowLeft size={20} />
                     </motion.button>
@@ -252,10 +253,10 @@ function GraduationNavigationButtons({
                     whileTap={{ scale: 0.98 }}
                     onClick={onNext}
                     disabled={!isValid || isSubmitting}
-                    className={`flex-1 h-14 rounded-[12px] font-bold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
+                    className={`flex-1 h-14 rounded-[6px] font-bold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
                         isValid && !isSubmitting
-                            ? "text-[#1A1610] shadow-lg shadow-stone-900/20 hover:shadow-xl"
-                            : "bg-[#232838] text-[#8B8578] cursor-not-allowed"
+                            ? "text-[var(--ink)] shadow-lg shadow-stone-900/20 hover:shadow-xl"
+                            : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed"
                     }`}
                     style={{
                         backgroundColor: isValid && !isSubmitting

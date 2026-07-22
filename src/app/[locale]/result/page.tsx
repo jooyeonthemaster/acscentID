@@ -15,19 +15,19 @@ export async function generateMetadata() {
 // 로딩 컴포넌트
 function ResultLoading() {
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#10131C] font-wanted">
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[var(--canvas)] font-wanted">
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[var(--canvas)]">
         <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
         <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply animate-blob" />
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#232838] rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--soft)] rounded-full mix-blend-multiply animate-blob" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[var(--soft)] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[var(--soft)] rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
         </div>
       </div>
       <div className="relative z-10 text-center">
-        <div className="w-16 h-16 border-4 border-[#343A4C] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[#A69F8D] font-semibold">Loading...</p>
-        <p className="text-[#8B8578] text-sm lg:text-base mt-1">Please wait</p>
+        <div className="w-16 h-16 border-4 border-[var(--line)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[var(--muted-ink)] font-semibold">Loading...</p>
+        <p className="text-[var(--muted-ink)] text-sm lg:text-base mt-1">Please wait</p>
       </div>
     </div>
   )

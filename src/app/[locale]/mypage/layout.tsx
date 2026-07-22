@@ -27,10 +27,10 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
   // 로딩 중이거나 인증 확인 전
   if (loading || !authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10131C]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)]">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#8B8578] mx-auto mb-3" />
-          <p className="text-sm lg:text-base text-[#8B8578]">로딩 중...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-ink)] mx-auto mb-3" />
+          <p className="text-sm lg:text-base text-[var(--muted-ink)]">로딩 중...</p>
         </div>
       </div>
     )
@@ -39,10 +39,10 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
   // 인증 확인 후 로그인되지 않은 경우 (리다이렉트 대기 중)
   if (!currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10131C]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)]">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#8B8578] mx-auto mb-3" />
-          <p className="text-sm lg:text-base text-[#8B8578]">로그인이 필요합니다</p>
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-ink)] mx-auto mb-3" />
+          <p className="text-sm lg:text-base text-[var(--muted-ink)]">로그인이 필요합니다</p>
         </div>
       </div>
     )

@@ -75,16 +75,16 @@ function parseSelectedScentQuantities(scentParam: string | null, scentsParam: st
 function ProductNotFound() {
   const t = useTranslations()
   return (
-    <main className="min-h-screen bg-[#0C0E16] font-wanted">
+    <main className="min-h-screen bg-[var(--canvas)]">
       <Header />
       <section className="flex min-h-screen items-center justify-center px-4 pt-24">
-        <div className="w-full max-w-sm rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-8 text-center">
-          <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-[#5C564A]" />
-          <h1 className="text-xl font-black text-[#1A1610]">{t('store.detail.notFoundTitle')}</h1>
-          <p className="mt-2 text-sm lg:text-base font-medium text-[#8B8578]">{t('store.detail.notFoundDesc')}</p>
+        <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
+          <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-[var(--muted-ink)]" />
+          <h1 className="break-keep text-xl font-black text-[var(--ink)]">{t('store.detail.notFoundTitle')}</h1>
+          <p className="mt-2 break-keep text-sm text-[var(--muted-ink)]">{t('store.detail.notFoundDesc')}</p>
           <Link
             href="/products"
-            className="mt-6 inline-flex min-h-11 items-center rounded-[12px] bg-[#FDFAF1] px-5 text-sm lg:text-base font-black text-[#1A1610] ring-2 ring-[#D8CFBB]"
+            className="mt-6 inline-flex min-h-11 items-center rounded-[5px] bg-[var(--ink)] px-5 text-sm font-extrabold text-white transition-colors hover:bg-black"
           >
             {t('store.detail.backToProducts')}
           </Link>
@@ -131,8 +131,8 @@ function ProductsDetailContent() {
 
   if (productsLoading && !product) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0C0E16]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#D8CFBB] border-t-[#D8CFBB]" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--line)] border-t-[var(--ink)]" />
       </div>
     )
   }
@@ -483,15 +483,16 @@ function ProductDetailInner({
       selectedIndex: selectedImageIndex,
       onSelect: setSelectedImageIndex,
     },
+    badgeClassName: "bg-[var(--ink)] text-white",
     secondaryBadges: (
-      <span className="inline-flex items-center rounded-full border-2 border-[#B8880F] bg-[#EEB62B] px-3 py-1 text-xs lg:text-sm font-black text-[#1A1610]">
+      <span className="inline-flex items-center rounded-[3px] border border-[var(--line)] bg-[var(--soft)] px-2.5 py-1 text-xs font-extrabold text-[var(--ink)]">
         {t('store.detail.selectScent')}
       </span>
     ),
     meta: (
       <div className="flex items-center gap-2">
-        <span className="rounded-full bg-[#EDE5D2] px-2.5 py-1 text-[11px] lg:text-[13px] font-black text-[#5C564A] ring-1 ring-[#D8CFBB]">{t('store.detail.metaTag')}</span>
-        <span className="text-xs lg:text-sm font-bold text-[#8B8578]">{t('store.detail.metaSub')}</span>
+        <span className="rounded-[3px] bg-[var(--soft)] px-2.5 py-1 text-[11px] font-extrabold text-[var(--muted-ink)]">{t('store.detail.metaTag')}</span>
+        <span className="text-xs font-bold text-[var(--muted-ink)]">{t('store.detail.metaSub')}</span>
       </div>
     ),
     price: (
@@ -500,18 +501,18 @@ function ProductDetailInner({
         data-admin-page-position-field="price"
         style={pagePositionStyle("price")}
       >
-        <span className="text-2xl font-black text-[#1A1610]">{formatPrice(price)}{t('currency.suffix')}</span>
+        <span className="text-2xl font-black text-[var(--ink)]">{formatPrice(price)}{t('currency.suffix')}</span>
         {originalPrice && originalPrice > price && (
           <>
-            <span className="text-sm lg:text-base font-bold text-[#8B8578] line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
+            <span className="text-sm text-[var(--muted-ink)] line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
             {discount !== null && (
-              <span className="rounded-[12px] bg-[#FDFAF1] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-black text-[#1A1610]">{discount}% OFF</span>
+              <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] font-black text-white">{discount}% OFF</span>
             )}
           </>
         )}
       </div>
     ),
-    infoIcon: <Droplets size={14} className="text-[#1A1610]" />,
+    infoIcon: <Droplets size={14} className="text-[var(--ink)]" />,
     cta: {
       onClick: scrollToScentSelection,
       label: pageContent.ctaLabel,
@@ -526,27 +527,27 @@ function ProductDetailInner({
   }
 
   return (
-    <main className={desktopFrame ? "relative min-h-screen bg-[#0C0E16] pb-16 font-wanted" : "relative min-h-screen bg-[#0C0E16] pb-40 font-wanted"}>
+    <main className={desktopFrame ? "relative min-h-screen bg-[var(--canvas)] pb-16" : "relative min-h-screen bg-[var(--canvas)] pb-40"}>
       {!desktopFrame && <Header showBack backHref="/products" />}
       {!desktopFrame && <ProgramAdminBridge productSlug={product.slug} />}
 
       {desktopFrame ? <DesktopDetailHero {...heroProps} /> : <UnifiedDetailHero {...heroProps} />}
 
-      <section className="px-4 pb-8">
+      <section className="px-4 pb-8 pt-6">
         <div className={desktopFrame ? "mx-auto w-full max-w-[760px]" : "mx-auto w-full max-w-[455px]"}>
           <section
-            className="mb-5 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4"
+            className="mb-4 rounded-[6px] border border-[var(--line)] bg-white p-4"
             data-admin-page-position-field="included"
             style={pagePositionStyle("included")}
           >
             <div className="mb-3 flex items-center gap-2">
-              <Package size={16} className="text-[#1A1610]" />
-              <h2 className="text-sm lg:text-base font-black text-[#1A1610]">{t('store.detail.composition')}</h2>
+              <Package size={16} className="text-[var(--ink)]" />
+              <h2 className="text-sm font-extrabold text-[var(--ink)]">{t('store.detail.composition')}</h2>
             </div>
             <ul className="space-y-2">
               {localized.included.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm lg:text-base font-bold text-[#5C564A]">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#D8CFBB] bg-[#FDFAF1] text-[10px] lg:text-[12px] text-[#1A1610]">
+                <li key={item} className="flex items-center gap-2 break-keep text-sm text-[var(--muted-ink)]">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-[3px] bg-[var(--soft)] text-[var(--ink)]">
                     <Check size={12} />
                   </span>
                   {item}
@@ -555,27 +556,27 @@ function ProductDetailInner({
             </ul>
           </section>
 
-          <section ref={scentSectionRef} id="scent-selector" className="mb-5 scroll-mt-24 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4">
+          <section ref={scentSectionRef} id="scent-selector" className="mb-4 scroll-mt-24 rounded-[6px] border border-[var(--line)] bg-white p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="mb-1 flex items-center gap-2">
-                  <Droplets size={16} className="text-[#9F9F9F]" />
-                  <h2 className="text-sm lg:text-base font-black text-[#1A1610]">{t('store.detail.selectScent')}</h2>
+                  <Droplets size={16} className="text-[var(--ink)]" />
+                  <h2 className="text-sm font-extrabold text-[var(--ink)]">{t('store.detail.selectScent')}</h2>
                 </div>
-                <p className="text-xs lg:text-sm font-medium text-[#8B8578]">{t('store.detail.scentSelectDesc')}</p>
+                <p className="break-keep text-xs text-[var(--muted-ink)]">{t('store.detail.scentSelectDesc')}</p>
               </div>
-              <span className="inline-flex items-center justify-center rounded-full bg-[#EDE5D2] px-2.5 py-1 text-center text-[11px] lg:text-[13px] font-black text-[#5C564A]">
+              <span className="inline-flex items-center justify-center rounded-[3px] bg-[var(--soft)] px-2.5 py-1 text-center text-[11px] font-extrabold text-[var(--muted-ink)]">
                 {t('store.detail.scentsCount', { count: TODAY_SCENTS.length })}
               </span>
             </div>
 
             <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8B8578]" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-ink)]" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t('store.detail.searchPlaceholder')}
-                className="h-11 w-full rounded-[12px] border-2 border-[#D8CFBB] bg-[#EDE5D2] text-[#1A1610] placeholder:text-[#8B8578] pl-9 pr-3 text-sm lg:text-base font-bold outline-none transition-colors focus:border-[#D8CFBB] focus:bg-[#F5EFE2]"
+                className="h-11 w-full rounded-[4px] border border-[var(--line)] bg-white pl-9 pr-3 text-sm font-medium text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted-ink)] focus:border-[var(--ink)]"
               />
             </div>
 
@@ -595,15 +596,15 @@ function ProductDetailInner({
                         setScentQuantity(scent.id, active ? 0 : 1)
                       }
                     }}
-                    className={`w-full cursor-pointer select-none rounded-[12px] border-2 p-3 text-left transition-all ${
+                    className={`w-full cursor-pointer select-none rounded-[5px] border p-3 text-left transition-colors ${
                       active
-                        ? "border-[#D8CFBB] bg-[#EDE5D2]"
-                        : "border-[#D8CFBB] bg-[#F5EFE2] hover:border-[#C9BFA8]"
+                        ? "border-[var(--ink)] bg-[var(--soft)] shadow-[inset_0_0_0_1px_var(--ink)]"
+                        : "border-[var(--line)] bg-white hover:border-[var(--ink)]"
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <span
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] text-lg"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-[var(--line)] text-lg"
                         style={{ backgroundColor: scent.theme.bg }}
                       >
                         {scent.emoji}
@@ -611,8 +612,8 @@ function ProductDetailInner({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <div>
-                            <p className="text-sm lg:text-base font-black text-[#1A1610]">{scent.name}</p>
-                            <p className="text-[11px] lg:text-[13px] font-bold text-[#8B8578]">{scent.perfumeId}</p>
+                            <p className="text-sm font-extrabold text-[var(--ink)]">{scent.name}</p>
+                            <p className="text-[11px] font-bold text-[var(--muted-ink)]">{scent.perfumeId}</p>
                           </div>
                           <button
                             type="button"
@@ -620,44 +621,44 @@ function ProductDetailInner({
                               event.stopPropagation()
                               setScentQuantity(scent.id, active ? 0 : 1)
                             }}
-                            className={`min-h-8 shrink-0 rounded-full border-2 px-3 text-[11px] lg:text-[13px] font-black transition-colors ${
+                            className={`min-h-8 shrink-0 rounded-[4px] px-3 text-[11px] font-extrabold transition-colors ${
                               active
-                                ? "border-[#D8CFBB] bg-[#FDFAF1] text-[#1A1610]"
-                                : "border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A]"
+                                ? "bg-[var(--ink)] text-white"
+                                : "border border-[var(--line)] bg-white text-[var(--muted-ink)] hover:border-[var(--ink)] hover:text-[var(--ink)]"
                             }`}
                           >
                             {active ? t('store.detail.selected') : t('store.detail.select')}
                           </button>
                         </div>
-                        <p className="mt-1 line-clamp-2 text-xs lg:text-sm font-medium leading-relaxed text-[#8B8578]">{scent.vibe}</p>
+                        <p className="mt-1 line-clamp-2 break-keep text-xs leading-relaxed text-[var(--muted-ink)]">{scent.vibe}</p>
                         <div className="mt-2 flex flex-wrap gap-1">
                           {[scent.notes.top, scent.notes.mid, scent.notes.base].map((note) => (
-                            <span key={note} className="rounded-full bg-[#EDE5D2] px-2 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#5C564A]">
+                            <span key={note} className={`rounded-[3px] px-2 py-0.5 text-[10px] font-bold text-[var(--muted-ink)] ${active ? "bg-white" : "bg-[var(--soft)]"}`}>
                               {note}
                             </span>
                           ))}
                         </div>
                         {active && (
                           <div
-                            className="mt-3 flex items-center justify-between rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] px-2 py-2"
+                            className="mt-3 flex items-center justify-between rounded-[4px] border border-[var(--line)] bg-white px-2 py-2"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <span className="text-xs lg:text-sm font-black text-[#5C564A]">{t('store.detail.quantity')}</span>
+                            <span className="text-xs font-extrabold text-[var(--muted-ink)]">{t('store.detail.quantity')}</span>
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => setScentQuantity(scent.id, quantity - 1)}
-                                className="flex h-8 w-8 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] transition-colors hover:border-[#D8CFBB]"
+                                className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
                                 aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                               >
                                 <Minus size={14} />
                               </button>
-                              <span className="w-8 text-center text-sm lg:text-base font-black text-[#1A1610]">{quantity}</span>
+                              <span className="w-8 text-center text-sm font-extrabold text-[var(--ink)]">{quantity}</span>
                               <button
                                 type="button"
                                 onClick={() => setScentQuantity(scent.id, quantity + 1)}
                                 disabled={quantity >= MAX_SCENT_QUANTITY}
-                                className="flex h-8 w-8 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] transition-colors hover:border-[#D8CFBB] disabled:opacity-40"
+                                className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
                                 aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                               >
                                 <Plus size={14} />
@@ -674,11 +675,11 @@ function ProductDetailInner({
           </section>
 
           {/* 특정 향료 요청 (선택) — 향 선택 단계의 주관식 입력. 비워도 구매 가능. */}
-          <section className="rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4">
+          <section className="mb-4 rounded-[6px] border border-[var(--line)] bg-white p-4">
             <div className="mb-2 flex items-center gap-2">
-              <PenLine size={16} className="text-[#9F9F9F]" />
-              <h2 className="text-sm lg:text-base font-black text-[#1A1610]">특정 향료 요청</h2>
-              <span className="rounded-full bg-[#EDE5D2] px-2 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#8B8578]">선택</span>
+              <PenLine size={16} className="text-[var(--ink)]" />
+              <h2 className="text-sm font-extrabold text-[var(--ink)]">특정 향료 요청</h2>
+              <span className="rounded-[3px] bg-[var(--soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--muted-ink)]">선택</span>
             </div>
             <textarea
               value={fragranceRequestNote}
@@ -686,57 +687,57 @@ function ProductDetailInner({
               maxLength={200}
               rows={2}
               placeholder="예: 하현상 시그니처 향으로 주세요!"
-              className="w-full resize-none rounded-[12px] border-2 border-[#D8CFBB] bg-[#EDE5D2] px-3 py-2.5 text-sm lg:text-base text-[#1A1610] outline-none transition-colors placeholder:text-[#8B8578] focus:border-[#D8CFBB]"
+              className="w-full resize-none rounded-[4px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted-ink)] focus:border-[var(--ink)]"
             />
-            <p className="mt-1.5 text-[11px] lg:text-[13px] font-medium text-[#8B8578]">
+            <p className="mt-1.5 break-keep text-[11px] text-[var(--muted-ink)]">
               원하는 향이 따로 있으면 적어주세요. 작성하지 않아도 구매할 수 있어요.
             </p>
           </section>
 
           {selectedItems.length > 0 ? (
-            <section className="rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-4">
+            <section className="rounded-[6px] border border-[var(--line)] bg-white p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Droplets size={16} className="text-[#9F9F9F]" />
-                  <h2 className="text-sm lg:text-base font-black text-[#1A1610]">{t('store.detail.selectedScents')}</h2>
+                  <Droplets size={16} className="text-[var(--ink)]" />
+                  <h2 className="text-sm font-extrabold text-[var(--ink)]">{t('store.detail.selectedScents')}</h2>
                 </div>
-                <span className="rounded-full bg-[#EDE5D2] px-2.5 py-1 text-[11px] lg:text-[13px] font-black text-[#5C564A]">
+                <span className="rounded-[3px] bg-[var(--soft)] px-2.5 py-1 text-[11px] font-extrabold text-[var(--muted-ink)]">
                   {t('store.detail.countSummary', { count: selectedScentCount, qty: selectedTotalQuantity })}
                 </span>
               </div>
               <div className="space-y-2">
                 {selectedItems.map(({ scent, quantity }) => (
-                  <div key={scent.id} className="rounded-[12px] border border-[#D8CFBB] bg-[#EDE5D2] p-3">
+                  <div key={scent.id} className="rounded-[4px] bg-[var(--soft)] p-3">
                     <div className="flex items-center gap-3">
                       <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] text-base"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--line)] text-base"
                         style={{ backgroundColor: scent.theme.bg }}
                       >
                         {scent.emoji}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm lg:text-base font-black text-[#1A1610]">{scent.name}</p>
-                        <p className="text-[11px] lg:text-[13px] font-bold text-[#8B8578]">
+                        <p className="truncate text-sm font-extrabold text-[var(--ink)]">{scent.name}</p>
+                        <p className="text-[11px] font-bold text-[var(--muted-ink)]">
                           {localized.shortLabel} · {formatPrice(price)}{t('currency.suffix')} × {quantity}
                         </p>
                       </div>
-                      <span className="text-sm lg:text-base font-black text-[#1A1610]">{formatPrice(price * quantity)}{t('currency.suffix')}</span>
+                      <span className="text-sm font-extrabold text-[var(--ink)]">{formatPrice(price * quantity)}{t('currency.suffix')}</span>
                     </div>
                     <div className="mt-3 flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity - 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] transition-colors hover:border-[#D8CFBB]"
+                        className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
                         aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="w-8 text-center text-sm lg:text-base font-black text-[#1A1610]">{quantity}</span>
+                      <span className="w-8 text-center text-sm font-extrabold text-[var(--ink)]">{quantity}</span>
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity + 1)}
                         disabled={quantity >= MAX_SCENT_QUANTITY}
-                        className="flex h-8 w-8 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] transition-colors hover:border-[#D8CFBB] disabled:opacity-40"
+                        className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
                         aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                       >
                         <Plus size={14} />
@@ -744,7 +745,7 @@ function ProductDetailInner({
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, 0)}
-                        className="ml-1 min-h-8 rounded-[12px] bg-[#EDE5D2] px-3 text-xs lg:text-sm font-black text-[#8B8578] transition-colors hover:bg-[#D8CFBB]"
+                        className="ml-1 min-h-8 rounded-[4px] border border-[var(--line)] bg-white px-3 text-xs font-extrabold text-[var(--muted-ink)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
                       >
                         {t('store.detail.delete')}
                       </button>
@@ -752,20 +753,20 @@ function ProductDetailInner({
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-between rounded-[12px] bg-[#FDFAF1] px-3 py-2 text-[#1A1610]">
-                <span className="text-xs lg:text-sm font-black opacity-70">{t('store.detail.totalAmount')}</span>
+              <div className="mt-3 flex items-center justify-between border-t border-[var(--line)] px-1 pt-3 text-[var(--ink)]">
+                <span className="text-xs font-extrabold text-[var(--muted-ink)]">{t('store.detail.totalAmount')}</span>
                 <span className="text-base font-black">{formatPrice(selectedTotalPrice)}{t('currency.suffix')}</span>
               </div>
             </section>
           ) : (
-            <section className="rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] p-5 text-[#5C564A]">
+            <section className="rounded-[6px] border border-[var(--line)] bg-white p-5 text-[var(--muted-ink)]">
               <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-[12px] bg-[#EDE5D2] text-[#9F9F9F]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-[var(--soft)] text-[var(--muted-ink)]">
                   <Droplets size={22} />
                 </span>
                 <div>
-                  <p className="text-xs lg:text-sm font-black text-[#8B8578]">{t('store.detail.selectedScents')}</p>
-                  <h2 className="text-lg font-black text-[#1A1610]">{t('store.detail.noScentSelected')}</h2>
+                  <p className="text-xs font-bold text-[var(--muted-ink)]">{t('store.detail.selectedScents')}</p>
+                  <h2 className="break-keep text-lg font-black text-[var(--ink)]">{t('store.detail.noScentSelected')}</h2>
                 </div>
               </div>
             </section>
@@ -780,22 +781,22 @@ function ProductDetailInner({
       {/* 데스크탑: 고정 바 대신 본문 레일 끝의 인라인 구매 패널 */}
       {desktopFrame && (
         <div className="mx-auto w-full max-w-[760px] px-4">
-          <div className="rounded-[16px] border-2 border-[#262A38] bg-[#12141D] p-4">
+          <div className="rounded-[6px] border border-[var(--line)] bg-white p-4">
             {canTryScentPaperFirst && (
               <button
                 type="button"
                 onClick={handleTryScentPaperFirst}
-                className="mb-3 flex h-10 w-full items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-xs lg:text-sm font-black text-[#1A1610] transition-all hover:bg-[#FFFDF5]"
+                className="mb-3 flex h-10 w-full items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-xs font-extrabold text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
               >
                 {t('store.detail.tryPaperFirstBottom')}
               </button>
             )}
             <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(160px,0.8fr)] items-center gap-3">
               <div className="min-w-0">
-                <div className="truncate text-lg font-black leading-tight text-[#E9E2D0]">
+                <div className="truncate text-lg font-black leading-tight text-[var(--ink)]">
                   {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}{t('currency.suffix')}
                 </div>
-                <div className="mt-0.5 truncate text-[11px] lg:text-[13px] font-bold text-[#8B8578]">
+                <div className="mt-0.5 truncate text-[11px] font-bold text-[var(--muted-ink)]">
                   {selectedTotalQuantity > 0
                     ? t('store.detail.summaryShort', { count: selectedScentCount, qty: selectedTotalQuantity, label: localized.shortLabel })
                     : trimmedRequestNote
@@ -807,14 +808,14 @@ function ProductDetailInner({
                 onClick={handleAddToCart}
                 disabled={loading || addingToCart}
                 aria-label={t('store.detail.addToCartAria')}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#1A1610] transition-all hover:bg-[#FFFDF5] disabled:opacity-50"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[5px] border border-[var(--ink)] bg-white text-[var(--ink)] transition-colors hover:bg-[var(--soft)] disabled:opacity-50"
               >
                 {addingToCart ? <Loader2 size={20} className="animate-spin" /> : <ShoppingCart size={20} />}
               </button>
               <button
                 onClick={handlePurchaseClick}
                 disabled={loading}
-                className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] px-4 text-sm lg:text-base font-black text-[#1A1610] transition-all hover:bg-[#F2C24A] disabled:opacity-50"
+                className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] px-4 text-sm font-extrabold text-white transition-colors hover:bg-black disabled:opacity-50"
               >
                 {t('store.detail.buyNow')}
               </button>
@@ -824,22 +825,22 @@ function ProductDetailInner({
       )}
 
       {!desktopFrame && !showLoginPrompt && !showAuthModal && (
-        <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[455px] -translate-x-1/2 border-t-2 border-[#262A38] bg-[#12141D] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_20px_rgba(0,0,0,0.12)]">
+        <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[455px] -translate-x-1/2 border-t border-[var(--line)] bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
           {canTryScentPaperFirst && (
             <button
               type="button"
               onClick={handleTryScentPaperFirst}
-              className="mb-2 flex h-10 w-full items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-xs lg:text-sm font-black text-[#1A1610] transition-all"
+              className="mb-2 flex h-10 w-full items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-xs font-extrabold text-[var(--ink)] transition-colors"
             >
               {t('store.detail.tryPaperFirstBottom')}
             </button>
           )}
           <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
             <div className="min-w-0">
-              <div className="truncate text-[15px] font-black leading-tight text-[#E9E2D0]">
+              <div className="truncate text-[15px] font-black leading-tight text-[var(--ink)]">
                 {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}{t('currency.suffix')}
               </div>
-              <div className="mt-0.5 truncate text-[10px] lg:text-[12px] font-bold text-[#8B8578]">
+              <div className="mt-0.5 truncate text-[10px] font-bold text-[var(--muted-ink)]">
                 {selectedTotalQuantity > 0
                   ? t('store.detail.summaryShort', { count: selectedScentCount, qty: selectedTotalQuantity, label: localized.shortLabel })
                   : trimmedRequestNote
@@ -851,14 +852,14 @@ function ProductDetailInner({
               onClick={handleAddToCart}
               disabled={loading || addingToCart}
               aria-label={t('store.detail.addToCartAria')}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] text-[#1A1610] transition-all disabled:opacity-50"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[5px] border border-[var(--ink)] bg-white text-[var(--ink)] transition-colors disabled:opacity-50"
             >
               {addingToCart ? <Loader2 size={20} className="animate-spin" /> : <ShoppingCart size={20} />}
             </button>
             <button
               onClick={handlePurchaseClick}
               disabled={loading}
-              className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] px-3 text-sm lg:text-base font-black text-[#1A1610] transition-all disabled:opacity-50"
+              className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] px-3 text-sm font-extrabold text-white transition-colors disabled:opacity-50"
             >
               {t('store.detail.buyNow')}
             </button>
@@ -875,52 +876,52 @@ function ProductDetailInner({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[80] bg-black/60"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 z-[90] mx-auto max-w-sm -translate-y-1/2 overflow-hidden rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] shadow-2xl"
+              className="fixed inset-x-4 top-1/2 z-[90] mx-auto max-w-sm -translate-y-1/2 overflow-hidden rounded-[6px] border border-[var(--line)] bg-white"
             >
-              <div className="relative bg-gradient-to-b from-[#FDFAF1] to-[#F5EFE2] p-6 pb-4 text-center">
+              <div className="relative p-6 pb-4 text-center">
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-[#EDE5D2]"
+                  className="absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-[var(--soft)]"
                 >
-                  <X size={20} className="text-[#8B8578]" />
+                  <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[12px] border-2 border-[#D8CFBB] bg-[#FDFAF1]">
-                  <ShoppingBag size={28} className="text-[#1A1610]" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[5px] border border-[var(--line)] bg-[var(--soft)]">
+                  <ShoppingBag size={28} className="text-[var(--ink)]" />
                 </div>
-                <h2 className="mb-2 text-xl font-black text-[#1A1610]">{t('store.detail.loginTitle')}</h2>
-                <p className="text-sm lg:text-base leading-relaxed text-[#5C564A]">
+                <h2 className="mb-2 break-keep text-xl font-black text-[var(--ink)]">{t('store.detail.loginTitle')}</h2>
+                <p className="break-keep text-sm leading-relaxed text-[var(--muted-ink)]">
                   {t('store.detail.loginDesc')}
                 </p>
               </div>
-              <div className="border-y-2 border-[#D8CFBB] bg-[#EDE5D2] px-6 py-4">
-                <div className="space-y-2 text-sm lg:text-base">
+              <div className="border-y border-[var(--line-soft)] bg-[var(--soft)] px-6 py-4">
+                <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
-                    <span className="font-bold text-[#8B8578]">✓</span>
-                    <span className="text-[#5C564A]">{t('store.detail.benefit1')}</span>
+                    <span className="font-bold text-[var(--ink)]">✓</span>
+                    <span className="break-keep text-[var(--muted-ink)]">{t('store.detail.benefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="font-bold text-[#8B8578]">✓</span>
-                    <span className="text-[#5C564A]">{t('store.detail.benefit2')}</span>
+                    <span className="font-bold text-[var(--ink)]">✓</span>
+                    <span className="break-keep text-[var(--muted-ink)]">{t('store.detail.benefit2')}</span>
                   </div>
                 </div>
               </div>
               <div className="space-y-3 p-6">
                 <button
                   onClick={handleLoginClick}
-                  className="h-14 w-full rounded-[12px] border-2 border-[#12141D] bg-[#12141D] text-lg font-bold text-[#F5EFE2] transition-all"
+                  className="h-14 w-full rounded-[5px] bg-[var(--ink)] text-lg font-extrabold text-white transition-colors hover:bg-black"
                 >
                   {t('store.detail.loginButton')}
                 </button>
                 <button
                   onClick={handleGuestPurchase}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#D8CFBB] bg-[#F5EFE2] font-semibold text-[#5C564A] transition-all hover:border-[#C9BFA8] hover:bg-[#EDE5D2]"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-[5px] border border-[var(--line)] bg-white font-bold text-[var(--muted-ink)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
                 >
                   {t('store.detail.guestButton')}
                 </button>
@@ -943,8 +944,8 @@ export default function ProductDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#0C0E16]">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#D8CFBB] border-t-[#C9BFA8]" />
+        <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--line)] border-t-[var(--ink)]" />
         </div>
       }
     >

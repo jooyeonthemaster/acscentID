@@ -68,7 +68,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
             return (
               <motion.div key={index} variants={fadeIn} className="space-y-6">
                 {/* 향수 헤더 카드 - PC용 확장 (키치 스타일) */}
-                <div className="relative rounded-[12px] p-6 bg-[#F5EFE2] overflow-hidden border border-[#D8CFBB]">
+                <div className="relative rounded-[6px] p-6 bg-[var(--soft)] overflow-hidden border border-[var(--line)]">
                   {/* 데코 패턴 */}
                   <div
                     className="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl opacity-15"
@@ -82,14 +82,14 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
 
                   <div className="relative z-10">
                     {/* 향수 정보 */}
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-3">
-                      <Gem size={14} className="text-[#5C564A]" strokeWidth={2} />
-                      <span className="text-sm lg:text-sm font-bold text-[#1A1610]">{t('result.recommendedPerfume')}</span>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] mb-3">
+                      <Gem size={14} className="text-[var(--muted-ink)]" strokeWidth={2} />
+                      <span className="text-sm lg:text-sm font-bold text-[var(--ink)]">{t('result.recommendedPerfume')}</span>
                     </div>
-                    <h2 className="text-3xl font-bold leading-tight text-[#1A1610] mb-2">
+                    <h2 className="text-3xl font-bold leading-tight text-[var(--ink)] mb-2">
                       {persona?.id || t('result.customPerfumeAlt')}
                     </h2>
-                    <p className="text-base text-[#5C564A] mb-4">
+                    <p className="text-base text-[var(--muted-ink)] mb-4">
                       {persona?.name || ''}
                     </p>
 
@@ -99,7 +99,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                         {persona.keywords.slice(0, 6).map((keyword, i) => (
                           <span
                             key={i}
-                            className="px-3 py-1.5 text-sm lg:text-sm font-bold rounded-[12px] bg-[#FDFAF1] border border-[#D8CFBB] text-[#5C564A]"
+                            className="px-3 py-1.5 text-sm lg:text-sm font-bold rounded-[6px] bg-[var(--soft)] border border-[var(--line)] text-[var(--muted-ink)]"
                           >
                             #{keyword}
                           </span>
@@ -110,25 +110,25 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                 </div>
 
                 {/* 세로 배치: 향 노트 */}
-                <div className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+                <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
                   <PerfumeNotes persona={persona} isDesktop={true} />
                 </div>
 
                 {/* 세로 배치: 향수 프로필 */}
-                <div className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+                <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
                   <PerfumeProfile persona={persona} isDesktop={true} />
                 </div>
 
                 {/* 향수 스토리 */}
                 {match.matchReason && (
-                  <div className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+                  <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
                     <SectionHeader
                       icon={<Sparkles size={14} />}
                       title={t('perfume.perfumeStory')}
                       subtitle={t('perfume.expertReview')}
                     />
-                    <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
-                      <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium italic">
+                    <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)]">
+                      <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed font-medium italic">
                         &quot;{match.matchReason}&quot;
                       </p>
                     </div>
@@ -137,14 +137,14 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
 
                 {/* 사용 추천 */}
                 {persona?.recommendation && (
-                  <div className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+                  <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
                     <SectionHeader
                       icon={<Clock size={14} />}
                       title={t('perfume.usageRecommend')}
                       subtitle={t('perfume.usageRecommendSubtitle')}
                     />
-                    <div className="relative bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 overflow-hidden border border-[#D8CFBB]">
-                      <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium">
+                    <div className="relative bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 overflow-hidden border border-[var(--line)]">
+                      <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed font-medium">
                         {persona.recommendation}
                       </p>
                     </div>
@@ -157,13 +157,13 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                 )}
 
                 {/* 사용 가이드 - 전체 너비 */}
-                <div className="bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB]">
+                <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
                   <SectionHeader
                     icon={<BookOpen size={14} />}
                     title={t('perfume.usageGuide')}
                     subtitle={t('perfume.usageGuideSubtitle')}
                   />
-                  <div className="bg-[#EDE5D2] rounded-[12px] p-4 space-y-3 border border-[#D8CFBB]">
+                  <div className="bg-[var(--soft)] rounded-[6px] p-4 space-y-3 border border-[var(--line)]">
                     {persona?.usageGuide?.tips && persona.usageGuide.tips.length > 0 ? (
                       persona.usageGuide.tips.map((tip, i) => (
                         <GuideItem key={i} text={tip} />
@@ -183,13 +183,13 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
         ) : (
           <motion.div
             variants={fadeIn}
-            className="flex flex-col items-center justify-center py-16 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB]"
+            className="flex flex-col items-center justify-center py-16 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]"
           >
-            <div className="w-20 h-20 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB] flex items-center justify-center mb-4">
-              <Search size={28} className="text-[#5C564A]" />
+            <div className="w-20 h-20 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] flex items-center justify-center mb-4">
+              <Search size={28} className="text-[var(--muted-ink)]" />
             </div>
-            <p className="text-[#1A1610] text-center font-bold text-lg">{t('result.noMatchingPerfume')}</p>
-            <p className="text-[#8B8578] text-sm lg:text-base text-center mt-1 font-medium">{t('result.retryAnalysis')}</p>
+            <p className="text-[var(--ink)] text-center font-bold text-lg">{t('result.noMatchingPerfume')}</p>
+            <p className="text-[var(--muted-ink)] text-sm lg:text-base text-center mt-1 font-medium">{t('result.retryAnalysis')}</p>
           </motion.div>
         )}
       </motion.div>
@@ -216,7 +216,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
             <motion.div key={index} variants={fadeIn}>
               {/* 섹션 — 개별 박스 없이 가로선으로만 구분.
                   부모 탭 컨테이너가 이미 #F5EFE2 라 배경을 다시 깔 필요가 없다. */}
-              <div className="divide-y divide-[#D8CFBB] [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+              <div className="divide-y divide-[var(--line)] [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
               {/* 향수 헤더 — 박스 대신 향수 색상 워시만 남긴다 */}
               <div className="relative overflow-hidden">
                 {/* 컬러풀한 데코 - 향수 색상 사용 */}
@@ -231,14 +231,14 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
 
                 <div className="relative z-10">
                   {/* 향수 정보 */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EFE4C8] rounded-[12px] border border-[#D8CFBB] mb-2">
-                    <Gem size={14} className="text-[#5C564A]" strokeWidth={2} />
-                    <span className="text-[12px] lg:text-[12px] font-medium text-[#1A1610]">{t('result.recommendedPerfume')}</span>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] mb-2">
+                    <Gem size={14} className="text-[var(--muted-ink)]" strokeWidth={2} />
+                    <span className="text-[12px] lg:text-[12px] font-medium text-[var(--ink)]">{t('result.recommendedPerfume')}</span>
                   </div>
-                  <h2 className="text-2xl font-bold leading-tight text-[#1A1610]">
+                  <h2 className="text-2xl font-bold leading-tight text-[var(--ink)]">
                     {persona?.id || t('result.customPerfumeAlt')}
                   </h2>
-                  <p className="text-sm lg:text-base mt-1 text-[#5C564A] mb-3">
+                  <p className="text-sm lg:text-base mt-1 text-[var(--muted-ink)] mb-3">
                     {persona?.name || ''}
                   </p>
 
@@ -248,7 +248,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                       {persona.keywords.slice(0, 5).map((keyword, i) => (
                         <span
                           key={i}
-                          className="px-2.5 py-1 text-[12px] lg:text-[12px] font-medium rounded-[12px] bg-[#FDFAF1] border border-[#D8CFBB] text-[#5C564A]"
+                          className="px-2.5 py-1 text-[12px] lg:text-[12px] font-medium rounded-[6px] bg-[var(--soft)] border border-[var(--line)] text-[var(--muted-ink)]"
                         >
                           #{keyword}
                         </span>
@@ -272,7 +272,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     title={t('perfume.perfumeStory')}
                     subtitle={t('perfume.expertReview')}
                   />
-                  <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed italic font-medium">
+                  <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed italic font-medium">
                     &quot;{match.matchReason}&quot;
                   </p>
                 </div>
@@ -286,7 +286,7 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
                     title={t('perfume.usageRecommend')}
                     subtitle={t('perfume.usageRecommendSubtitle')}
                   />
-                  <p className="text-[#5C564A] text-sm lg:text-base leading-relaxed font-medium">
+                  <p className="text-[var(--muted-ink)] text-sm lg:text-base leading-relaxed font-medium">
                     {persona.recommendation}
                   </p>
                   {/* 추천 계절/시간대 */}
@@ -327,13 +327,13 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
       ) : (
         <motion.div
           variants={fadeIn}
-          className="flex flex-col items-center justify-center py-12 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB]"
+          className="flex flex-col items-center justify-center py-12 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]"
         >
-          <div className="w-16 h-16 bg-[#EDE5D2] rounded-[12px] border border-[#D8CFBB] flex items-center justify-center mb-4">
-            <Search size={24} className="text-[#5C564A]" />
+          <div className="w-16 h-16 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] flex items-center justify-center mb-4">
+            <Search size={24} className="text-[var(--muted-ink)]" />
           </div>
-          <p className="text-[#1A1610] text-center font-bold">{t('result.noMatchingPerfume')}</p>
-          <p className="text-[#8B8578] text-sm lg:text-base text-center mt-1 font-medium">{t('result.retryAnalysis')}</p>
+          <p className="text-[var(--ink)] text-center font-bold">{t('result.noMatchingPerfume')}</p>
+          <p className="text-[var(--muted-ink)] text-sm lg:text-base text-center mt-1 font-medium">{t('result.retryAnalysis')}</p>
         </motion.div>
       )}
     </motion.div>
@@ -344,11 +344,11 @@ export function PerfumeTab({ displayedAnalysis, isDesktop = false }: PerfumeTabP
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-1.5 text-[#8B8578]">
+      <div className="flex items-center gap-1.5 text-[var(--muted-ink)]">
         {icon}
         <p className="text-[11px] lg:text-[12px] font-medium uppercase tracking-[0.12em]">{subtitle}</p>
       </div>
-      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[#1A1610]">{title}</h3>
+      <h3 className="mt-1 text-[19px] lg:text-[21px] font-bold tracking-[-0.01em] text-[var(--ink)]">{title}</h3>
     </div>
   )
 }
@@ -357,8 +357,8 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
 function GuideItem({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2">
-      <div className="w-2 h-2 rounded-full bg-[#EFE4C8] border border-[#D8CFBB] mt-1 flex-shrink-0" />
-      <p className="text-[#5C564A] text-sm lg:text-sm font-medium leading-relaxed">{text}</p>
+      <div className="w-2 h-2 rounded-full bg-[var(--soft)] border border-[var(--line)] mt-1 flex-shrink-0" />
+      <p className="text-[var(--muted-ink)] text-sm lg:text-sm font-medium leading-relaxed">{text}</p>
     </div>
   )
 }

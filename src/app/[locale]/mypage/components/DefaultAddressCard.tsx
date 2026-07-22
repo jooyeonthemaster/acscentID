@@ -142,17 +142,17 @@ export function DefaultAddressCard() {
 
   return (
     <>
-      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-4 mb-4">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4 mb-4">
         <div className="flex items-center justify-between gap-3 mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#151823] border-2 border-[#262A38] flex items-center justify-center">
-              <MapPin size={15} className="text-[#E9E2D0]" />
+            <div className="w-8 h-8 rounded-full bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center">
+              <MapPin size={15} className="text-[var(--ink)]" />
             </div>
-            <h2 className="text-base font-bold text-[#12141D]">{t('mypage.defaultAddressTitle')}</h2>
+            <h2 className="text-base font-bold text-[var(--ink)]">{t('mypage.defaultAddressTitle')}</h2>
           </div>
           <button
             onClick={openEditor}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] bg-[#12141D] hover:bg-[#1B1F2C] border-2 border-[#12141D] text-[#F5EFE2] text-xs lg:text-sm font-bold transition-colors shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[6px] bg-[var(--paper)] hover:bg-[var(--soft)] border border-[var(--line)] text-[var(--ink)] text-xs lg:text-sm font-bold transition-colors shrink-0"
           >
             {address ? <Pencil size={14} /> : <Plus size={14} />}
             {address ? t('mypage.editButton') : t('mypage.defaultAddressAdd')}
@@ -161,19 +161,19 @@ export function DefaultAddressCard() {
 
         {loading ? (
           <div className="py-3 flex justify-center">
-            <Loader2 className="w-5 h-5 text-[#5C564A] animate-spin" />
+            <Loader2 className="w-5 h-5 text-[var(--muted-ink)] animate-spin" />
           </div>
         ) : address ? (
-          <div className="text-sm lg:text-base text-[#5C564A] leading-relaxed pl-1">
-            <p className="font-bold text-[#12141D]">
-              {address.name} <span className="font-medium text-[#5C564A]">· {address.phone}</span>
+          <div className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed pl-1">
+            <p className="font-bold text-[var(--ink)]">
+              {address.name} <span className="font-medium text-[var(--muted-ink)]">· {address.phone}</span>
             </p>
-            <p className="text-[#5C564A]">
+            <p className="text-[var(--muted-ink)]">
               ({address.zipCode}) {address.address} {address.addressDetail}
             </p>
           </div>
         ) : (
-          <p className="text-sm lg:text-base text-[#5C564A] pl-1 py-1">{t('mypage.defaultAddressEmpty')}</p>
+          <p className="text-sm lg:text-base text-[var(--muted-ink)] pl-1 py-1">{t('mypage.defaultAddressEmpty')}</p>
         )}
       </div>
 
@@ -183,41 +183,41 @@ export function DefaultAddressCard() {
           onClick={() => !saving && setEditing(false)}
         >
           <div
-            className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
+            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-[#262A38] shrink-0">
-              <h3 className="text-lg font-bold text-[#E9E2D0]">{t('mypage.defaultAddressTitle')}</h3>
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-[var(--line)] shrink-0">
+              <h3 className="text-lg font-bold text-[var(--ink)]">{t('mypage.defaultAddressTitle')}</h3>
               <button
                 onClick={() => !saving && setEditing(false)}
-                className="p-1.5 hover:bg-[#1B1F2C] rounded-[12px] transition-colors"
+                className="p-1.5 hover:bg-[var(--soft)] rounded-[6px] transition-colors"
               >
-                <X size={18} className="text-[#8B8578]" />
+                <X size={18} className="text-[var(--muted-ink)]" />
               </button>
             </div>
 
             <div className="px-5 py-5 space-y-4 overflow-y-auto">
               {error && (
-                <div className="bg-red-50 text-red-700 text-sm lg:text-base px-3 py-2 rounded-[12px] border border-red-200">
+                <div className="bg-red-50 text-red-700 text-sm lg:text-base px-3 py-2 rounded-[6px] border border-red-200">
                   {error}
                 </div>
               )}
 
               {/* 받는 분 */}
               <div>
-                <label className="block text-sm lg:text-base font-bold text-[#A69F8D] mb-1.5">{t('checkout.recipient')}</label>
+                <label className="block text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-1.5">{t('checkout.recipient')}</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => update('name', e.target.value)}
                   placeholder={t('checkout.namePlaceholder')}
-                  className="w-full px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-sm lg:text-base outline-none transition-colors"
+                  className="w-full px-4 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-sm lg:text-base outline-none transition-colors"
                 />
               </div>
 
               {/* 연락처 */}
               <div>
-                <label className="block text-sm lg:text-base font-bold text-[#A69F8D] mb-1.5">{t('checkout.phone')}</label>
+                <label className="block text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-1.5">{t('checkout.phone')}</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="tel"
@@ -225,32 +225,32 @@ export function DefaultAddressCard() {
                     value={form.phone1}
                     onChange={(e) => handlePhone('phone1', e.target.value, 3)}
                     maxLength={3}
-                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-center font-bold text-sm lg:text-base outline-none"
+                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-center font-bold text-sm lg:text-base outline-none"
                   />
-                  <span className="text-[#8B8578] font-bold">-</span>
+                  <span className="text-[var(--muted-ink)] font-bold">-</span>
                   <input
                     type="tel"
                     inputMode="numeric"
                     value={form.phone2}
                     onChange={(e) => handlePhone('phone2', e.target.value, 4)}
                     maxLength={4}
-                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-center font-bold text-sm lg:text-base outline-none"
+                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-center font-bold text-sm lg:text-base outline-none"
                   />
-                  <span className="text-[#8B8578] font-bold">-</span>
+                  <span className="text-[var(--muted-ink)] font-bold">-</span>
                   <input
                     type="tel"
                     inputMode="numeric"
                     value={form.phone3}
                     onChange={(e) => handlePhone('phone3', e.target.value, 4)}
                     maxLength={4}
-                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-center font-bold text-sm lg:text-base outline-none"
+                    className="flex-1 min-w-0 px-2 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-center font-bold text-sm lg:text-base outline-none"
                   />
                 </div>
               </div>
 
               {/* 주소 */}
               <div>
-                <label className="block text-sm lg:text-base font-bold text-[#A69F8D] mb-1.5">{t('checkout.address')}</label>
+                <label className="block text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-1.5">{t('checkout.address')}</label>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
@@ -259,12 +259,12 @@ export function DefaultAddressCard() {
                     onClick={handleSearch}
                     inputMode="numeric"
                     placeholder={t('checkout.zipcode')}
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-sm lg:text-base outline-none cursor-pointer"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-sm lg:text-base outline-none cursor-pointer"
                   />
                   <button
                     type="button"
                     onClick={handleSearch}
-                    className="flex-shrink-0 bg-[#151823] text-[#E9E2D0] px-3 py-2.5 rounded-[12px] border-2 border-[#262A38] font-bold flex items-center gap-1.5 hover:bg-[#1B1F2C] transition-colors text-sm lg:text-base"
+                    className="flex-shrink-0 bg-[var(--soft)] text-[var(--ink)] px-3 py-2.5 rounded-[6px] border border-[var(--line)] font-bold flex items-center gap-1.5 hover:bg-[var(--soft)] transition-colors text-sm lg:text-base"
                   >
                     <Search size={14} />
                     {t('checkout.addressSearch')}
@@ -275,24 +275,24 @@ export function DefaultAddressCard() {
                   value={form.address}
                   onChange={(e) => update('address', e.target.value)}
                   placeholder={t('checkout.addressSearchPlaceholder')}
-                  className="w-full px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-sm lg:text-base outline-none mb-2"
+                  className="w-full px-4 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-sm lg:text-base outline-none mb-2"
                 />
                 <input
                   type="text"
                   value={form.addressDetail}
                   onChange={(e) => update('addressDetail', e.target.value)}
                   placeholder={t('checkout.addressDetailPlaceholder')}
-                  className="w-full px-4 py-2.5 rounded-[12px] border-2 border-[#262A38] focus:border-[#262A38] text-sm lg:text-base outline-none"
+                  className="w-full px-4 py-2.5 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] text-sm lg:text-base outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 px-5 py-4 border-t-2 border-[#262A38] bg-[#151823] shrink-0">
+            <div className="flex items-center justify-between gap-2 px-5 py-4 border-t-2 border-[var(--line)] bg-[var(--soft)] shrink-0">
               {address ? (
                 <button
                   onClick={handleDelete}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm lg:text-base font-bold rounded-[12px] border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm lg:text-base font-bold rounded-[6px] border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                 >
                   <Trash2 size={14} />
                   {t('mypage.defaultAddressDelete')}
@@ -304,14 +304,14 @@ export function DefaultAddressCard() {
                 <button
                   onClick={() => setEditing(false)}
                   disabled={saving}
-                  className="px-4 py-2 text-sm lg:text-base font-bold rounded-[12px] border-2 border-[#262A38] text-[#A69F8D] hover:bg-[#1B1F2C] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-sm lg:text-base font-bold rounded-[6px] border border-[var(--line)] text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors disabled:opacity-50"
                 >
                   {t('mypage.profileCancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-4 py-2 text-sm lg:text-base font-bold rounded-[12px] bg-[#F5EFE2] hover:bg-[#FFFDF5] border-2 border-[#F5EFE2] text-[#12141D] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 text-sm lg:text-base font-bold rounded-[6px] bg-[var(--soft)] hover:bg-[var(--soft)] border border-[var(--line)] text-[var(--ink)] transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                   {t('mypage.profileSave')}

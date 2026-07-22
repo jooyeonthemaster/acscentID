@@ -19,7 +19,7 @@ export function ProgramImageGallery(props: ProgramImageGalleryProps) {
   const {
     productSlug,
     badge = "BEST",
-    badgeClassName = "bg-[#FDFAF1] text-[#1A1610]",
+    badgeClassName = "bg-white text-[var(--ink)]",
     pagePositionStyle,
   } = props
   const [selectedImage, setSelectedImage] = useState(0)
@@ -37,15 +37,15 @@ export function ProgramImageGallery(props: ProgramImageGalleryProps) {
       animate={{ opacity: 1, y: 0 }}
       className="mb-5"
     >
-      <div className="overflow-hidden rounded-[12px] border-[3px] border-[#D8CFBB] bg-[#F5EFE2]">
+      <div className="overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)]">
         <div
-          className="relative aspect-square bg-[#F5EFE2]"
+          className="relative aspect-square bg-[var(--soft)]"
           data-admin-product-image="true"
           data-admin-page-position-field="productImage"
           style={pagePositionStyle?.("productImage")}
         >
           {loading || productImages.length === 0 ? (
-            <div className="h-full w-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#D8CFBB]" />
+            <div className="h-full w-full animate-pulse bg-[var(--soft)]" />
           ) : (
             <Image
               src={currentImage}
@@ -62,16 +62,16 @@ export function ProgramImageGallery(props: ProgramImageGalleryProps) {
             data-admin-page-position-field="badge"
             style={pagePositionStyle?.("badge")}
           >
-            <span className={cn("inline-flex min-h-11 items-center rounded-full border-[3px] border-[#D8CFBB] px-5 text-sm lg:text-base font-black", badgeClassName)}>
+            <span className={cn("inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] px-5 text-sm lg:text-base font-black", badgeClassName)}>
               <span data-admin-page-field="badge">{badge}</span>
             </span>
           </div>
         </div>
 
         {(loading || thumbnailImages.length > 0) && (
-          <div className="flex gap-2 overflow-x-auto border-t-2 border-[#D8CFBB] bg-[#F5EFE2] p-3">
+          <div className="flex gap-2 overflow-x-auto border-t border-[var(--line)] bg-white p-3">
             {loading ? (
-              <div className="h-14 w-14 shrink-0 animate-pulse rounded-[12px] border-2 border-[#D8CFBB] bg-[#EDE5D2]" />
+              <div className="h-14 w-14 shrink-0 animate-pulse rounded-[4px] border border-[var(--line)] bg-[var(--soft)]" />
             ) : thumbnailImages.map((img, idx) => {
               const selected = selectedImage === idx
               return (
@@ -80,8 +80,8 @@ export function ProgramImageGallery(props: ProgramImageGalleryProps) {
                   type="button"
                   onClick={() => setSelectedImage(idx)}
                   className={cn(
-                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-[12px] border-2 bg-[#F5EFE2] transition-all",
-                    selected ? "border-[#D8CFBB]" : "border-[#D8CFBB] opacity-80 hover:border-[#C9BFA8] hover:opacity-100",
+                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-[4px] border bg-white transition-all",
+                    selected ? "border-[var(--ink)]" : "border-[var(--line)] opacity-80 hover:border-[var(--muted-ink)] hover:opacity-100",
                   )}
                   aria-label={`${t('programs.productImage')} 이미지 ${idx + 1} 보기`}
                 >
@@ -94,7 +94,7 @@ export function ProgramImageGallery(props: ProgramImageGalleryProps) {
                     data-pin-nopin="true"
                   />
                   {idx === 0 && (
-                    <span className="absolute left-1 top-1 rounded-[12px] bg-[#D8CFBB] px-1 text-[9px] font-black text-[#1A1610] ring-1 ring-[#C9BFA8]">
+                    <span className="absolute left-1 top-1 rounded-[3px] bg-[var(--ink)] px-1 text-[9px] font-black text-white">
                       대표
                     </span>
                   )}

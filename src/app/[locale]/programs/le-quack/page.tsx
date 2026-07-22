@@ -154,30 +154,30 @@ export default function LeQuackPage() {
           totalCount={reviewStats?.total_count || 0}
           onClick={() => setShowReviewModal(true)}
         />
-        <span className="rounded-full bg-[#FDFAF1] px-2 py-0.5 text-[10px] lg:text-[12px] font-black text-[#1A1610]">
+        <span className="rounded-[3px] border border-[var(--line)] bg-white px-2 py-0.5 text-[10px] lg:text-[12px] font-black text-[var(--ink)]">
           SIGNATURE
         </span>
       </div>
     ),
     price: (
       <>
-        <div className="mb-3 rounded-[12px] border-2 border-[#D8CFBB] bg-[#FDFAF1] p-3 text-center text-sm lg:text-base font-black text-[#1A1610]">
+        <div className="mb-3 rounded-[4px] border border-[var(--line)] bg-[var(--soft)] p-3 text-center text-sm lg:text-base font-black text-[var(--ink)]">
           {t('programs.detail.leQuack.signaturePerfumeLabel')}
         </div>
         <div className="flex items-end gap-2">
-          <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
+          <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
           {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
             <>
-              <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>
+              <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>
               {sigDiscount !== null && (
-                <span className="rounded-[12px] bg-[#FDFAF1] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#1A1610]">{sigDiscount}% OFF</span>
+                <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{sigDiscount}% OFF</span>
               )}
             </>
           )}
         </div>
       </>
     ),
-    infoIcon: <Star size={14} className="fill-[#1A1610] text-[#1A1610]" />,
+    infoIcon: <Star size={14} className="fill-[var(--ink)] text-[var(--ink)]" />,
     infoItems: [
       t('programs.detail.leQuack.infoDelivery'),
       t('programs.detail.leQuack.infoKeyringIncluded'),
@@ -201,23 +201,23 @@ export default function LeQuackPage() {
           {/* ============================================
               Feature Bar - 검은 배경
           ============================================ */}
-          <section className="py-6 px-4 bg-[#FDFAF1]">
+          <section className="border-y border-[var(--line)] bg-[var(--soft)] py-6 px-4">
             <div className="w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-[#1A1610]">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-[var(--ink)]">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">🦆</span>
                   <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureKeyring')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-[#8B8578]" />
+                  <Sparkles size={14} className="text-[var(--muted-ink)]" />
                   <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureSignatureScent')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Package size={14} className="text-[#8B8578]" />
+                  <Package size={14} className="text-[var(--muted-ink)]" />
                   <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureFastDelivery')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Heart size={14} className="text-[#8B8578]" />
+                  <Heart size={14} className="text-[var(--muted-ink)]" />
                   <span className="font-bold text-xs lg:text-sm">{t('programs.detail.leQuack.featureGiftRecommend')}</span>
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function LeQuackPage() {
           {/* ============================================
               제품 특징
           ============================================ */}
-          <section className="py-12 px-4 bg-[#FDFAF1]">
+          <section className="py-12 px-4 bg-[var(--paper)]">
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -236,10 +236,10 @@ export default function LeQuackPage() {
               className="w-full"
             >
               <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
                   ✨ FEATURES
                 </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
+                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[var(--ink)] break-keep">
                   {t('programs.detail.leQuack.featuresHeadingLine1')}
                   <br />
                   {t('programs.detail.leQuack.featuresHeadingLine2')}
@@ -248,34 +248,34 @@ export default function LeQuackPage() {
 
               <div className="space-y-4">
                 {/* 퍼퓸키링 */}
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-white rounded-[6px] p-5 border border-[var(--line)]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🦆</div>
                     <div>
-                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardKeyringTitle')}</h3>
-                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardKeyringBodyLine1')}<br />{t('programs.detail.leQuack.cardKeyringBodyLine2')}</p>
+                      <h3 className="font-black text-[var(--ink)] mb-2">{t('programs.detail.leQuack.cardKeyringTitle')}</h3>
+                      <p className="text-[var(--muted-ink)] text-sm lg:text-base">{t('programs.detail.leQuack.cardKeyringBodyLine1')}<br />{t('programs.detail.leQuack.cardKeyringBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* 시그니처 향 */}
-                <motion.div variants={fadeInUp} className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-white rounded-[6px] p-5 border border-[var(--line)]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">✨</div>
                     <div>
-                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardScentTitle')}</h3>
-                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardScentBodyLine1')}<br />{t('programs.detail.leQuack.cardScentBodyLine2')}</p>
+                      <h3 className="font-black text-[var(--ink)] mb-2">{t('programs.detail.leQuack.cardScentTitle')}</h3>
+                      <p className="text-[var(--muted-ink)] text-sm lg:text-base">{t('programs.detail.leQuack.cardScentBodyLine1')}<br />{t('programs.detail.leQuack.cardScentBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* 선물용 */}
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-white rounded-[6px] p-5 border border-[var(--line)]">
                   <div className="flex items-start gap-3">
                     <div className="text-3xl">🎁</div>
                     <div>
-                      <h3 className="font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.cardGiftTitle')}</h3>
-                      <p className="text-[#5C564A] text-sm lg:text-base">{t('programs.detail.leQuack.cardGiftBodyLine1')}<br />{t('programs.detail.leQuack.cardGiftBodyLine2')}</p>
+                      <h3 className="font-black text-[var(--ink)] mb-2">{t('programs.detail.leQuack.cardGiftTitle')}</h3>
+                      <p className="text-[var(--muted-ink)] text-sm lg:text-base">{t('programs.detail.leQuack.cardGiftBodyLine1')}<br />{t('programs.detail.leQuack.cardGiftBodyLine2')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -289,7 +289,7 @@ export default function LeQuackPage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section id="reviews" className="py-12 px-4 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
+      <section id="reviews" className="py-12 px-4 bg-[var(--paper)] border-t border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -298,16 +298,16 @@ export default function LeQuackPage() {
           className="w-full"
         >
           <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] mb-2 break-keep">
+            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[var(--ink)] mb-2 break-keep">
               {t('programs.detail.leQuack.reviewsHeading')}
             </motion.h2>
             <motion.button
               variants={fadeInUp}
               onClick={() => setShowReviewModal(true)}
-              className="text-xs lg:text-sm text-[#8B8578] hover:text-[#1A1610] transition-colors underline underline-offset-4"
+              className="text-xs lg:text-sm text-[var(--muted-ink)] hover:text-[var(--ink)] transition-colors underline underline-offset-4"
             >
               {t('programs.detail.leQuack.viewAllReviews')}
             </motion.button>
@@ -355,40 +355,40 @@ export default function LeQuackPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-[#F5EFE2] rounded-[12px] shadow-2xl overflow-hidden border-2 border-[#D8CFBB]"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
             >
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-[#FDFAF1] to-[#F5EFE2]">
+              <div className="relative p-6 pb-4 text-center">
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#EDE5D2] transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
                 >
-                  <X size={20} className="text-[#8B8578]" />
+                  <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
 
-                <div className="w-16 h-16 mx-auto mb-4 bg-[#EFE4C8] rounded-[12px] flex items-center justify-center shadow-lg border-2 border-[#D8CFBB]">
+                <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
                   <span className="text-3xl">🦆</span>
                 </div>
 
-                <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('programs.detail.leQuack.loginModalTitle')}</h2>
-                <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed">
+                <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('programs.detail.leQuack.loginModalTitle')}</h2>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
                   {t('programs.detail.leQuack.loginModalDescPrefix')}<br />
-                  <span className="font-bold text-[#5C564A]">{t('programs.detail.leQuack.loginModalDescHighlight')}</span>{t('programs.detail.leQuack.loginModalDescSuffix')}
+                  <span className="font-bold text-[var(--muted-ink)]">{t('programs.detail.leQuack.loginModalDescHighlight')}</span>{t('programs.detail.leQuack.loginModalDescSuffix')}
                 </p>
               </div>
 
-              <div className="px-6 py-4 bg-[#EDE5D2] border-y-2 border-[#D8CFBB]">
+              <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
                 <div className="space-y-2 text-sm lg:text-base">
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitSaveOrders')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.leQuack.loginBenefitSaveOrders')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitTrackDelivery')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.leQuack.loginBenefitTrackDelivery')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">!</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.leQuack.loginBenefitGuestAllowed')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">!</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.leQuack.loginBenefitGuestAllowed')}</span>
                   </div>
                 </div>
               </div>
@@ -396,14 +396,14 @@ export default function LeQuackPage() {
               <div className="p-6 space-y-3">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-[#12141D] text-[#F5EFE2] rounded-[12px] font-bold text-lg transition-all border-2 border-[#12141D]"
+                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
                 >
                   {t('programs.detail.leQuack.loginSignupButton')}
                 </button>
 
                 <button
                   onClick={handleGuestPurchase}
-                  className="w-full h-12 bg-[#F5EFE2] text-[#5C564A] rounded-[12px] font-semibold border-2 border-[#D8CFBB] hover:bg-[#EDE5D2] hover:border-[#C9BFA8] transition-all flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-white text-[var(--ink)] rounded-[5px] font-semibold border border-[var(--ink)] hover:bg-[var(--soft)] transition-all flex items-center justify-center gap-2"
                 >
                   <span>{t('programs.detail.leQuack.guestPurchaseButton')}</span>
                 </button>
@@ -418,7 +418,7 @@ export default function LeQuackPage() {
     <InactiveProductGuard productSlug="le-quack">
     <ViewportSwitch
       mobile={
-        <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+        <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
           <Header />
           <ProgramAdminBridge productSlug="le-quack" />
           <UnifiedDetailHero {...heroProps} />
@@ -427,12 +427,12 @@ export default function LeQuackPage() {
           {/* ============================================
               하단 고정 구매 버튼
           ============================================ */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#12141D] border-t-2 border-[#262A38] p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/97 border-t border-[var(--line)] p-4">
             <div className="max-w-[455px] mx-auto">
               <button
                 onClick={handlePurchaseClick}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#12141D] bg-[#12141D] py-3 text-base font-black text-[#F5EFE2] transition-all disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] py-3 text-base font-black text-white transition-all hover:bg-black disabled:opacity-50"
               >
                 <ShoppingCart size={18} />
                 {t('programs.detail.leQuack.ctaLabel')}
@@ -445,14 +445,14 @@ export default function LeQuackPage() {
         </main>
       }
       desktop={
-        <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+        <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
           <DesktopDetailHero {...heroProps} />
           <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
           <div className="mx-auto mt-8 w-full max-w-[760px] px-4">
             <button
               onClick={handlePurchaseClick}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all hover:bg-[#F2C24A] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] py-3.5 text-base font-black text-white transition-all hover:bg-black disabled:opacity-50"
             >
               <ShoppingCart size={18} />
               {t('programs.detail.leQuack.ctaLabel')}

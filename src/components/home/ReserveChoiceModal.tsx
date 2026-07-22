@@ -52,22 +52,22 @@ export function ReserveChoiceModal({ open, onClose, naverUrl }: ReserveChoiceMod
           <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative z-10 w-full max-w-[340px] rounded-[12px] border-2 border-[#262A38] bg-[#12141D] p-5"
+            className="relative z-10 w-full max-w-[340px] rounded-[6px] border border-[var(--line)] bg-white p-5"
           >
             <button
               onClick={onClose}
               aria-label={t('close')}
-              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full border border-[#262A38] bg-[#12141D] hover:bg-[#1B1F2C] transition-colors"
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--soft)]"
             >
-              <X size={16} className="text-[#A69F8D]" />
+              <X size={16} className="text-[var(--muted-ink)]" />
             </button>
 
-            <h3 className="text-lg font-black text-[#E9E2D0]">{t('title')}</h3>
-            <p className="mt-1 text-sm lg:text-base text-[#8B8578]">{t('subtitle')}</p>
+            <h3 className="break-keep text-lg font-black text-[var(--ink)]">{t('title')}</h3>
+            <p className="mt-1 break-keep text-sm text-[var(--muted-ink)]">{t('subtitle')}</p>
 
             <div className="mt-4 flex flex-col gap-3">
               <a
@@ -75,46 +75,46 @@ export function ReserveChoiceModal({ open, onClose, naverUrl }: ReserveChoiceMod
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onClose}
-                className="group flex items-center gap-3 rounded-[12px] border-2 border-[#262A38] bg-[#F5EFE2] px-4 py-3.5 transition-all active:scale-[0.99]"
+                className="group flex items-center gap-3 rounded-[5px] border border-[var(--line)] bg-white px-4 py-3.5 transition-colors hover:border-[var(--ink)] active:scale-[0.99]"
               >
-                <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full border-2 border-[#262A38] bg-[#03C75A]">
+                <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-[#03C75A]">
                   <span className="text-base font-black leading-none text-white">N</span>
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm lg:text-base font-black leading-tight text-[#1A1610]">{t('naver')}</span>
-                  <span className="mt-0.5 block text-xs lg:text-sm font-medium text-[#5C564A]">{t('naverDesc')}</span>
+                  <span className="block break-keep text-sm font-extrabold leading-tight text-[var(--ink)]">{t('naver')}</span>
+                  <span className="mt-0.5 block break-keep text-xs text-[var(--muted-ink)]">{t('naverDesc')}</span>
                 </span>
-                <ChevronRight size={18} className="flex-shrink-0 text-[#1A1610] transition-transform group-hover:translate-x-0.5" strokeWidth={2.8} />
+                <ChevronRight size={18} className="flex-shrink-0 text-[var(--ink)] transition-transform group-hover:translate-x-0.5" strokeWidth={2.4} />
               </a>
 
               {canUseSiteReserve ? (
                 <Link
                   href="/reserve"
                   onClick={onClose}
-                  className="group flex items-center gap-3 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3.5 transition-all active:scale-[0.99]"
+                  className="group flex items-center gap-3 rounded-[5px] bg-[var(--ink)] px-4 py-3.5 transition-colors hover:bg-black active:scale-[0.99]"
                 >
-                  <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full border-2 border-[#262A38] bg-[#12141D]">
-                    <CalendarCheck size={19} className="text-[#E9E2D0]" strokeWidth={2.4} />
+                  <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-white/10">
+                    <CalendarCheck size={19} className="text-white" strokeWidth={2.2} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm lg:text-base font-black leading-tight text-[#E9E2D0]">{t('site')}</span>
-                    <span className="mt-0.5 block text-xs lg:text-sm font-medium text-[#8B8578]">{t('siteDesc')}</span>
+                    <span className="block break-keep text-sm font-extrabold leading-tight text-white">{t('site')}</span>
+                    <span className="mt-0.5 block break-keep text-xs text-white/70">{t('siteDesc')}</span>
                   </span>
-                  <ChevronRight size={18} className="flex-shrink-0 text-[#E9E2D0] transition-transform group-hover:translate-x-0.5" strokeWidth={2.8} />
+                  <ChevronRight size={18} className="flex-shrink-0 text-white transition-transform group-hover:translate-x-0.5" strokeWidth={2.4} />
                 </Link>
               ) : (
                 <div
                   aria-disabled="true"
-                  className="flex cursor-not-allowed select-none items-center gap-3 rounded-[12px] border-2 border-[#262A38] bg-[#1B1F2C] px-4 py-3.5"
+                  className="flex cursor-not-allowed select-none items-center gap-3 rounded-[5px] border border-[var(--line)] bg-[var(--soft)] px-4 py-3.5"
                 >
-                  <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full border-2 border-[#262A38] bg-[#12141D]">
-                    <CalendarCheck size={19} className="text-[#8B8578]" strokeWidth={2.4} />
+                  <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full border border-[var(--line)] bg-white">
+                    <CalendarCheck size={19} className="text-[var(--muted-ink)]" strokeWidth={2.2} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm lg:text-base font-black leading-tight text-[#8B8578]">{t('site')}</span>
-                    <span className="mt-0.5 block text-xs lg:text-sm font-medium text-[#8B8578]">{t('siteDesc')}</span>
+                    <span className="block break-keep text-sm font-extrabold leading-tight text-[var(--muted-ink)]">{t('site')}</span>
+                    <span className="mt-0.5 block break-keep text-xs text-[var(--muted-ink)]">{t('siteDesc')}</span>
                   </span>
-                  <span className="flex-shrink-0 rounded-full bg-[#232838] px-2.5 py-1 text-[11px] lg:text-[13px] font-black text-[#A69F8D]">
+                  <span className="flex-shrink-0 rounded-[3px] border border-[var(--line)] bg-white px-2.5 py-1 text-[11px] font-extrabold text-[var(--muted-ink)]">
                     {t('comingSoon')}
                   </span>
                 </div>

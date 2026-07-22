@@ -123,9 +123,9 @@ export default function FigurePage() {
   }
 
   const productComponents = [
-    { icon: Box, name: t('programs.figure.comp3dFigure'), desc: t('programs.figure.comp3dFigureDesc'), color: "bg-[#EFE4C8]" },
-    { icon: Gem, name: t('programs.figure.compSachets'), desc: t('programs.figure.compSachetsDesc'), color: "bg-[#EFE4C8]" },
-    { icon: Sparkles, name: t('programs.figure.compAiEssence'), desc: t('programs.figure.compAiEssenceDesc'), color: "bg-[#EFE4C8]" },
+    { icon: Box, name: t('programs.figure.comp3dFigure'), desc: t('programs.figure.comp3dFigureDesc'), color: "bg-[var(--soft)]" },
+    { icon: Gem, name: t('programs.figure.compSachets'), desc: t('programs.figure.compSachetsDesc'), color: "bg-[var(--soft)]" },
+    { icon: Sparkles, name: t('programs.figure.compAiEssence'), desc: t('programs.figure.compAiEssenceDesc'), color: "bg-[var(--soft)]" },
   ]
 
   const heroSection = (
@@ -151,7 +151,7 @@ export default function FigurePage() {
           onSelect: setSelectedImage,
         }}
         secondaryBadges={
-          <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-[#D8CFBB] bg-[#EFE4C8] px-5 text-sm lg:text-base font-black text-[#1A1610]">
+          <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
             DIY KIT
           </span>
         }
@@ -164,18 +164,18 @@ export default function FigurePage() {
         }
         price={
           <div className="flex items-end gap-2">
-            <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
+            <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
             {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
               <>
-                <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
+                <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
                 {figureDiscount !== null && (
-                  <span className="rounded-[12px] bg-red-500 px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{figureDiscount}% OFF</span>
+                  <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{figureDiscount}% OFF</span>
                 )}
               </>
             )}
           </div>
         }
-        infoIcon={<Sparkles size={14} className="text-[#1A1610]" />}
+        infoIcon={<Sparkles size={14} className="text-[var(--ink)]" />}
         infoItems={[t('programs.figure.sachetsIncluded'), t('shipping.afterProduction')]}
         cta={{
           onClick: handleStartClick,
@@ -196,12 +196,12 @@ export default function FigurePage() {
           {/* ============================================
               구성품 배너
           ============================================ */}
-          <section className="py-6 px-4 bg-[#FDFAF1]">
+          <section className="border-y border-[var(--line)] bg-[var(--soft)] py-6 px-4">
         <div className="w-full">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-[#1A1610]">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[var(--ink)]">
             {productComponents.map((item, idx) => (
               <div key={idx} className="flex items-center gap-1.5">
-                <item.icon size={14} className="text-[#8B8578]" />
+                <item.icon size={14} className="text-[var(--muted-ink)]" />
                 <span className="font-bold text-xs lg:text-sm">{item.name}</span>
               </div>
             ))}
@@ -212,7 +212,7 @@ export default function FigurePage() {
       {/* ============================================
           진행 과정
       ============================================ */}
-      <section className="py-12 px-4 bg-[#F0FDFF]">
+      <section className="py-12 px-4 bg-[var(--paper)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -221,10 +221,10 @@ export default function FigurePage() {
           className="w-full"
         >
           <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
               {t('programs.process.badge')}
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
+            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[var(--ink)] break-keep">
               {t('programs.process.title')}
             </motion.h2>
           </div>
@@ -232,29 +232,29 @@ export default function FigurePage() {
           {/* 2x2 그리드 */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { step: "01", title: t('programs.figure.processStep1'), desc: t('programs.figure.processStep1Desc'), icon: Camera, color: "bg-[#EFE4C8]" },
-              { step: "02", title: t('programs.figure.processStep2'), desc: t('programs.figure.processStep2Desc'), icon: Sparkles, color: "bg-[#EFE4C8]" },
-              { step: "03", title: t('programs.figure.processStep3'), desc: t('programs.figure.processStep3Desc'), icon: ShoppingCart, color: "bg-[#EFE4C8]" },
-              { step: "04", title: t('programs.figure.processStep4'), desc: t('programs.figure.processStep4Desc'), icon: Truck, color: "bg-[#EFE4C8]" },
+              { step: "01", title: t('programs.figure.processStep1'), desc: t('programs.figure.processStep1Desc'), icon: Camera, color: "bg-[var(--soft)]" },
+              { step: "02", title: t('programs.figure.processStep2'), desc: t('programs.figure.processStep2Desc'), icon: Sparkles, color: "bg-[var(--soft)]" },
+              { step: "03", title: t('programs.figure.processStep3'), desc: t('programs.figure.processStep3Desc'), icon: ShoppingCart, color: "bg-[var(--soft)]" },
+              { step: "04", title: t('programs.figure.processStep4'), desc: t('programs.figure.processStep4Desc'), icon: Truck, color: "bg-[var(--soft)]" },
             ].map((item, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="relative bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-3"
+                className="relative bg-white border border-[var(--line)] rounded-[6px] p-3"
               >
                 {/* 스텝 번호 배지 */}
-                <div className="absolute -top-2 -left-2 w-6 h-6 bg-[#FDFAF1] text-[#1A1610] rounded-full flex items-center justify-center font-black text-[10px] lg:text-[12px] border-2 border-[#5C564A]">
+                <div className="absolute -top-2 -left-2 w-6 h-6 bg-white text-[var(--ink)] rounded-full flex items-center justify-center font-black text-[10px] lg:text-[12px] border border-[var(--ink)]">
                   {item.step}
                 </div>
 
                 {/* 아이콘 */}
-                <div className={`w-10 h-10 ${item.color} border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mx-auto mb-2`}>
-                  <item.icon size={20} className="text-[#1A1610]" />
+                <div className={`w-10 h-10 ${item.color} border border-[var(--line)] rounded-[6px] flex items-center justify-center mx-auto mb-2`}>
+                  <item.icon size={20} className="text-[var(--ink)]" />
                 </div>
 
                 {/* 텍스트 */}
-                <h3 className="text-xs lg:text-sm font-black text-[#1A1610] mb-0.5 text-center">{item.title}</h3>
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578] text-center leading-tight">{item.desc}</p>
+                <h3 className="text-xs lg:text-sm font-black text-[var(--ink)] mb-0.5 text-center">{item.title}</h3>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] text-center leading-tight">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -264,7 +264,7 @@ export default function FigurePage() {
       {/* ============================================
           구성품 상세
       ============================================ */}
-      <section className="py-12 px-4 bg-gradient-to-b from-[#F0FDFF] to-[#F5EFE2]">
+      <section className="border-t border-[var(--line-soft)] py-12 px-4 bg-[var(--paper)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -273,10 +273,10 @@ export default function FigurePage() {
           className="w-full"
         >
           <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
               {t('programs.figure.packageBadge')}
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
+            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[var(--ink)] break-keep">
               {t('programs.figure.packageTitle')}
             </motion.h2>
           </div>
@@ -287,30 +287,30 @@ export default function FigurePage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="w-[140px] group relative bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-4"
+                className="w-[140px] group relative bg-white border border-[var(--line)] rounded-[6px] p-4"
               >
                 {/* 번호 배지 */}
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FDFAF1] text-[#1A1610] rounded-full flex items-center justify-center font-black text-[10px] lg:text-[12px] border-2 border-[#5C564A]">
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[var(--ink)] rounded-full flex items-center justify-center font-black text-[10px] lg:text-[12px] border border-[var(--ink)]">
                   {idx + 1}
                 </div>
 
                 {/* 아이콘 */}
-                <div className={`w-12 h-12 ${item.color} border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mx-auto mb-3`}>
-                  <item.icon size={22} className="text-[#1A1610]" />
+                <div className={`w-12 h-12 ${item.color} border border-[var(--line)] rounded-[6px] flex items-center justify-center mx-auto mb-3`}>
+                  <item.icon size={22} className="text-[var(--ink)]" />
                 </div>
 
                 {/* 텍스트 */}
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578] text-center">{item.desc}</p>
-                <h3 className="font-black text-xs lg:text-sm text-[#1A1610] text-center">{item.name}</h3>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] text-center">{item.desc}</p>
+                <h3 className="font-black text-xs lg:text-sm text-[var(--ink)] text-center">{item.name}</h3>
               </motion.div>
             ))}
           </div>
 
           {/* 하단 안내 */}
           <motion.div variants={fadeInUp} className="mt-6 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#EDE5D2] to-[#EDE5D2] rounded-full border border-[#D8CFBB]">
-              <Truck size={14} className="text-[#5C564A]" />
-              <span className="text-xs lg:text-sm text-[#5C564A] font-medium">{t('programs.figure.packageShipping')}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--soft)] rounded-[4px] border border-[var(--line)]">
+              <Truck size={14} className="text-[var(--muted-ink)]" />
+              <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium">{t('programs.figure.packageShipping')}</span>
             </div>
           </motion.div>
         </motion.div>
@@ -319,7 +319,7 @@ export default function FigurePage() {
       {/* ============================================
           결과물 미리보기
       ============================================ */}
-      <section className="py-10 px-4 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
+      <section className="py-10 px-4 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -328,52 +328,52 @@ export default function FigurePage() {
           className="w-full"
         >
           <div className="text-center mb-6">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
               {t('programs.figure.resultBadge')}
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-xl font-black text-[#1A1610] mb-3 break-keep">
+            <motion.h2 variants={fadeInUp} className="text-xl font-black text-[var(--ink)] mb-3 break-keep">
               {t('programs.figure.resultTitle')}
             </motion.h2>
           </div>
 
-          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-[#FDFAF1] to-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-4">
+          <motion.div variants={fadeInUp} className="bg-white border border-[var(--line)] rounded-[6px] p-4">
             {/* 완성품 이미지 */}
             <div className="flex flex-col items-center mb-5">
               <div className="relative">
-                <div className="w-40 h-40 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center overflow-hidden">
+                <div className="w-40 h-40 bg-white border border-[var(--line)] rounded-[6px] flex items-center justify-center overflow-hidden">
                   {currentImage ? (
                     <img src={currentImage} alt={t('programs.productImage')} className="w-[80%] h-[80%] object-contain" />
                   ) : (
-                    <div className="h-full w-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#D8CFBB]" />
+                    <div className="h-full w-full animate-pulse bg-[var(--soft)]" />
                   )}
                 </div>
-                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-[#EFE4C8] text-[#1A1610] font-black rounded-full border-2 border-[#D8CFBB] text-[10px] lg:text-[12px]">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--soft)] text-[var(--ink)] font-black rounded-[3px] border border-[var(--line)] text-[10px] lg:text-[12px]">
                   {t('programs.figure.badge3d')}
                 </div>
               </div>
               <div className="mt-3 text-center">
-                <h3 className="text-lg font-black text-[#1A1610] mb-1">{t('programs.figure.myFigure')}</h3>
-                <p className="text-xs lg:text-sm text-[#5C564A]">{t('programs.figure.myFigureDesc')}</p>
+                <h3 className="text-lg font-black text-[var(--ink)] mb-1">{t('programs.figure.myFigure')}</h3>
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('programs.figure.myFigureDesc')}</p>
               </div>
             </div>
 
             {/* 디퓨저 사용법 */}
-            <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-3">
+            <div className="bg-white border border-[var(--line)] rounded-[6px] p-3">
               <h4 className="font-black text-sm lg:text-base mb-2 flex items-center gap-2">
-                <Droplets size={16} className="text-[#8B8578]" />
+                <Droplets size={16} className="text-[var(--muted-ink)]" />
                 {t('programs.figure.diffuserTitle')}
               </h4>
               <div className="space-y-1.5 text-xs lg:text-sm">
-                <div className="flex items-center gap-2 p-1.5 bg-[#FDFAF1] rounded-[12px]">
-                  <span className="w-5 h-5 bg-[#EFE4C8] text-[#1A1610] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[#D8CFBB] flex-shrink-0">1</span>
+                <div className="flex items-center gap-2 p-1.5 bg-[var(--soft)] rounded-[4px]">
+                  <span className="w-5 h-5 bg-[var(--soft)] text-[var(--ink)] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[var(--line)] flex-shrink-0">1</span>
                   <span>{t('programs.figure.diffuserStep1')}</span>
                 </div>
-                <div className="flex items-center gap-2 p-1.5 bg-[#FDFAF1] rounded-[12px]">
-                  <span className="w-5 h-5 bg-[#EFE4C8] text-[#1A1610] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[#D8CFBB] flex-shrink-0">2</span>
+                <div className="flex items-center gap-2 p-1.5 bg-[var(--soft)] rounded-[4px]">
+                  <span className="w-5 h-5 bg-[var(--soft)] text-[var(--ink)] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[var(--line)] flex-shrink-0">2</span>
                   <span>{t('programs.figure.diffuserStep2')}</span>
                 </div>
-                <div className="flex items-center gap-2 p-1.5 bg-[#FDFAF1] rounded-[12px]">
-                  <span className="w-5 h-5 bg-[#EFE4C8] text-[#1A1610] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[#D8CFBB] flex-shrink-0">3</span>
+                <div className="flex items-center gap-2 p-1.5 bg-[var(--soft)] rounded-[4px]">
+                  <span className="w-5 h-5 bg-[var(--soft)] text-[var(--ink)] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-bold border border-[var(--line)] flex-shrink-0">3</span>
                   <span>{t('programs.figure.diffuserStep3')}</span>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export default function FigurePage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section id="reviews" className="py-12 px-4 bg-[#F5EFE2]">
+      <section id="reviews" className="border-t border-[var(--line)] bg-[var(--paper)] py-12 px-4">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -400,16 +400,16 @@ export default function FigurePage() {
           className="w-full"
         >
           <div className="text-center mb-8">
-            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-white text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
               {t('programs.reviews.badge')}
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] mb-2 break-keep">
+            <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[var(--ink)] mb-2 break-keep">
               {t('programs.reviews.title')}
             </motion.h2>
             <motion.button
               variants={fadeInUp}
               onClick={() => setShowReviewModal(true)}
-              className="text-xs lg:text-sm text-[#8B8578] hover:text-[#1A1610] transition-colors underline underline-offset-4"
+              className="text-xs lg:text-sm text-[var(--muted-ink)] hover:text-[var(--ink)] transition-colors underline underline-offset-4"
             >
               {t('programs.reviews.viewAll')}
             </motion.button>
@@ -441,7 +441,7 @@ export default function FigurePage() {
   )
 
   const mobileTree = (
-    <main className="relative min-h-screen bg-[#F0FDFF] font-wanted">
+    <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
       <Header />
       <ProgramAdminBridge productSlug="figure" />
 
@@ -475,7 +475,7 @@ export default function FigurePage() {
               onSelect: setSelectedImage,
             }}
             secondaryBadges={
-              <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-[#D8CFBB] bg-[#EFE4C8] px-5 text-sm lg:text-base font-black text-[#1A1610]">
+              <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
                 DIY KIT
               </span>
             }
@@ -488,18 +488,18 @@ export default function FigurePage() {
             }
             price={
               <div className="flex items-end gap-2">
-                <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
+                <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(figureOpt?.price ?? 48000)}</span>
                 {figureOpt?.original_price && figureOpt.original_price > figureOpt.price && (
                   <>
-                    <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
+                    <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(figureOpt.original_price)}</span>
                     {figureDiscount !== null && (
-                      <span className="rounded-[12px] bg-red-500 px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{figureDiscount}% OFF</span>
+                      <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{figureDiscount}% OFF</span>
                     )}
                   </>
                 )}
               </div>
             }
-            infoIcon={<Sparkles size={14} className="text-[#1A1610]" />}
+            infoIcon={<Sparkles size={14} className="text-[var(--ink)]" />}
             infoItems={[t('programs.figure.sachetsIncluded'), t('shipping.afterProduction')]}
             cta={{
               onClick: handleStartClick,
@@ -532,40 +532,40 @@ export default function FigurePage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-[#F5EFE2] rounded-[12px] shadow-2xl overflow-hidden border-2 border-[#D8CFBB]"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
             >
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-[#FDFAF1] to-[#F5EFE2]">
+              <div className="relative p-6 pb-4 text-center">
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#EDE5D2] transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
                 >
-                  <X size={20} className="text-[#8B8578]" />
+                  <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
 
-                <div className="w-16 h-16 mx-auto mb-4 bg-[#EFE4C8] rounded-[12px] flex items-center justify-center shadow-lg border-2 border-[#D8CFBB]">
-                  <AlertTriangle size={28} className="text-[#1A1610]" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+                  <AlertTriangle size={28} className="text-[var(--ink)]" />
                 </div>
 
-                <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('auth.guestWarningTitle')}</h2>
-                <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed">
+                <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('auth.guestWarningTitle')}</h2>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
                   {t('programs.figure.loginWarning')}<br />
-                  <span className="font-bold text-red-500">{t('auth.notSavedBold')}</span>
+                  <span className="font-bold text-[var(--accent-chem-deep)]">{t('auth.notSavedBold')}</span>
                 </p>
               </div>
 
-              <div className="px-6 py-4 bg-[#EDE5D2] border-y-2 border-[#D8CFBB]">
+              <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
                 <div className="space-y-2 text-sm lg:text-base">
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.figure.loginBenefit1')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginBenefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.figure.loginBenefit2')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginBenefit2')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">!</span>
-                    <span className="text-[#5C564A]">{t('programs.figure.loginWarningGuest')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">!</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginWarningGuest')}</span>
                   </div>
                 </div>
               </div>
@@ -573,7 +573,7 @@ export default function FigurePage() {
               <div className="p-6">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-[#12141D] text-[#F5EFE2] rounded-[12px] font-bold text-lg transition-all border-2 border-[#12141D]"
+                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
                 >
                   {t('buttons.loginSignup')}
                 </button>

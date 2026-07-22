@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Share2, Wand2, Gift, X } from 'lucide-react'
+import { Share2, Wand2, Gift, X } from 'lucide-react'
 import { drawToday, getDrawnToday, todayKey } from '@/lib/today-scent/draw'
 import { getScentById, type TodayScent } from '@/lib/today-scent/scents'
 import { TodayScentCard } from './TodayScentCard'
@@ -89,145 +89,147 @@ export function TodayScentDraw() {
     : undefined
 
   return (
-    <section ref={sectionRef} className="bg-[#12141D] px-4 pt-10 pb-[clamp(132px,18svh,180px)] rounded-t-[12px] -mt-[clamp(84px,12svh,112px)] relative z-20 border-2 border-[#262A38] border-b-0 scroll-mt-[100px]">
-      {/* 섹션 타이틀 */}
-      <div className="flex items-center gap-2 mb-1">
-        <Sparkles size={20} className="text-[#E9E2D0]" />
-        <h2 className="text-lg font-black text-[#E9E2D0]">{t('title')}</h2>
-      </div>
-      <p className="text-xs lg:text-sm text-[#8B8578] font-medium mb-6">{t('subtitle')}</p>
+    <section ref={sectionRef} className="scroll-mt-[100px] bg-[var(--dark-band)] px-4 py-16 text-white">
+      <div className="mx-auto w-full max-w-[455px]">
+        {/* 섹션 타이틀 */}
+        <div className="mb-1 text-center">
+          <p className="text-[11px] font-black text-[var(--dark-muted)]">TODAY&apos;S SCENT</p>
+          <h2 className="mt-1.5 break-keep text-[22px] font-black leading-tight text-white">{t('title')}</h2>
+        </div>
+        <p className="mb-7 break-keep text-center text-xs text-[var(--dark-muted)]">{t('subtitle')}</p>
 
-      {/* 친구 공유 유입 환영 배너 */}
-      <AnimatePresence>
-        {sharedScent && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="relative mb-6 bg-[#D7D7D7] border-2 border-[#262A38] rounded-[12px] p-4"
-          >
-            <button
-              onClick={() => setSharedScent(null)}
-              aria-label="닫기"
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-black/10 transition-colors"
-            >
-              <X size={16} className="text-[#A69F8D]" />
-            </button>
-            <div className="flex items-start gap-3 pr-5">
-              <div className="text-2xl shrink-0">{sharedScent.emoji}</div>
-              <div className="min-w-0">
-                <p className="text-sm lg:text-base font-black text-[#E9E2D0] leading-snug">
-                  {t('sharedBanner', { name: sharedScent.name })}
-                </p>
-                <p className="text-xs lg:text-sm font-bold text-stone-700/80 mt-0.5">{t('sharedBannerSub')}</p>
-                <button
-                  onClick={() => router.push(`/programs/today-scent?scent=${sharedScent.id}`)}
-                  className="mt-2 inline-flex items-center gap-1 text-xs lg:text-sm font-black text-[#E9E2D0] bg-[#12141D] border-2 border-[#262A38] rounded-full px-3 py-1 transition-all"
-                >
-                  <Gift size={13} />
-                  {t('viewSharedScent', { name: sharedScent.name })}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col items-center">
-        <AnimatePresence mode="wait">
-          {/* ===== 뽑기 전 ===== */}
-          {phase === 'idle' && (
-            <motion.button
-              key="idle"
-              onClick={handleDraw}
-              initial={{ opacity: 0, y: 12 }}
+        {/* 친구 공유 유입 환영 배너 */}
+        <AnimatePresence>
+          {sharedScent && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full max-w-[340px] bg-[#F5EFE2] border-4 border-[#262A38] rounded-[12px] px-6 py-10 text-center transition-all"
+              exit={{ opacity: 0, y: -8 }}
+              className="relative mb-6 rounded-[5px] border border-[var(--line)] bg-white p-4"
             >
-              <motion.div
-                animate={{ rotate: [0, -8, 8, -8, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="text-6xl"
+              <button
+                onClick={() => setSharedScent(null)}
+                aria-label="닫기"
+                className="absolute right-2 top-2 rounded-full p-1 transition-colors hover:bg-black/10"
               >
-                🎰
-              </motion.div>
-              <div className="mt-5 text-xl font-black text-[#E9E2D0]">
-                {t('drawButton')}
-              </div>
-              <div className="mt-2 text-xs lg:text-sm font-bold text-[#8B8578]">
-                {t('drawHint')}
-              </div>
-            </motion.button>
-          )}
-
-          {/* ===== 뽑는 중 ===== */}
-          {phase === 'drawing' && (
-            <motion.div
-              key="drawing"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-[340px] bg-[#151823] border-4 border-[#262A38] rounded-[12px] px-6 py-12 text-center"
-            >
-              <motion.div
-                key={spinEmoji}
-                initial={{ scale: 0.6, opacity: 0.4 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.09 }}
-                className="text-7xl"
-              >
-                {spinEmoji}
-              </motion.div>
-              <div className="mt-6 text-base font-black text-[#E9E2D0] animate-pulse">
-                {t('drawingText')}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ===== 결과 ===== */}
-          {phase === 'result' && scent && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, y: 16, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-              className="w-full flex flex-col items-center"
-            >
-              {alreadyDrawn && (
-                <div className="mb-4 px-4 py-1.5 bg-[#161925] text-[#E9E2D0] text-[11px] lg:text-[13px] font-bold rounded-full">
-                  {t('alreadyToday')}
+                <X size={16} className="text-[var(--muted-ink)]" />
+              </button>
+              <div className="flex items-start gap-3 pr-5">
+                <div className="shrink-0 text-2xl">{sharedScent.emoji}</div>
+                <div className="min-w-0">
+                  <p className="break-keep text-sm font-extrabold leading-snug text-[var(--ink)]">
+                    {t('sharedBanner', { name: sharedScent.name })}
+                  </p>
+                  <p className="mt-0.5 break-keep text-xs text-[var(--muted-ink)]">{t('sharedBannerSub')}</p>
+                  <button
+                    onClick={() => router.push(`/programs/today-scent?scent=${sharedScent.id}`)}
+                    className="mt-2 inline-flex items-center gap-1 rounded-[4px] bg-[var(--ink)] px-3 py-1.5 text-xs font-extrabold text-white transition-colors hover:bg-black"
+                  >
+                    <Gift size={13} />
+                    {t('viewSharedScent', { name: sharedScent.name })}
+                  </button>
                 </div>
-              )}
-
-              <TodayScentCard scent={scent} dateLabel={dateLabel} />
-
-              {/* 액션 버튼들 */}
-              <div className="w-full max-w-[340px] mt-6 space-y-3">
-                <button
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-[#161925] text-[#E9E2D0] font-black text-sm lg:text-base py-3.5 rounded-[12px] border-2 border-[#262A38] transition-all"
-                >
-                  <Share2 size={18} />
-                  {t('shareButton')}
-                </button>
-
-                <button
-                  onClick={() => router.push(`/programs/today-scent?scent=${scent.id}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-[#F5EFE2] text-[#12141D] font-black text-sm lg:text-base py-3.5 rounded-[12px] border-2 border-[#262A38] hover:bg-[#FFFDF5] transition-colors"
-                >
-                  <Wand2 size={18} />
-                  {t('makeButton')}
-                </button>
               </div>
-
-              <p className="mt-5 text-[11px] lg:text-[13px] text-[#8B8578] font-medium text-center">
-                {t('comeback')}
-              </p>
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div className="flex flex-col items-center">
+          <AnimatePresence mode="wait">
+            {/* ===== 뽑기 전 ===== */}
+            {phase === 'idle' && (
+              <motion.button
+                key="idle"
+                onClick={handleDraw}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full max-w-[340px] rounded-[6px] border border-[var(--line)] bg-white px-6 py-10 text-center transition-colors hover:bg-[var(--soft)]"
+              >
+                <motion.div
+                  animate={{ rotate: [0, -8, 8, -8, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                  className="text-6xl"
+                >
+                  🎰
+                </motion.div>
+                <div className="mt-5 break-keep text-xl font-black text-[var(--ink)]">
+                  {t('drawButton')}
+                </div>
+                <div className="mt-2 break-keep text-xs font-bold text-[var(--muted-ink)]">
+                  {t('drawHint')}
+                </div>
+              </motion.button>
+            )}
+
+            {/* ===== 뽑는 중 ===== */}
+            {phase === 'drawing' && (
+              <motion.div
+                key="drawing"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full max-w-[340px] rounded-[6px] border border-[var(--line)] bg-white px-6 py-12 text-center"
+              >
+                <motion.div
+                  key={spinEmoji}
+                  initial={{ scale: 0.6, opacity: 0.4 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.09 }}
+                  className="text-7xl"
+                >
+                  {spinEmoji}
+                </motion.div>
+                <div className="mt-6 animate-pulse break-keep text-base font-black text-[var(--ink)]">
+                  {t('drawingText')}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ===== 결과 ===== */}
+            {phase === 'result' && scent && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex w-full flex-col items-center"
+              >
+                {alreadyDrawn && (
+                  <div className="mb-4 rounded-[3px] border border-[var(--dark-line)] px-3 py-1.5 text-[11px] font-bold text-[var(--dark-muted)]">
+                    {t('alreadyToday')}
+                  </div>
+                )}
+
+                <TodayScentCard scent={scent} dateLabel={dateLabel} />
+
+                {/* 액션 버튼들 */}
+                <div className="mt-6 w-full max-w-[340px] space-y-3">
+                  <button
+                    onClick={() => router.push(`/programs/today-scent?scent=${scent.id}`)}
+                    className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-white py-3.5 text-sm font-extrabold text-[var(--ink)] transition-colors hover:bg-[var(--soft)]"
+                  >
+                    <Wand2 size={17} />
+                    {t('makeButton')}
+                  </button>
+
+                  <button
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="flex w-full items-center justify-center gap-2 rounded-[5px] border border-white/70 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                  >
+                    <Share2 size={17} />
+                    {t('shareButton')}
+                  </button>
+                </div>
+
+                <p className="mt-5 break-keep text-center text-[11px] text-[var(--dark-muted)]">
+                  {t('comeback')}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* 공유 모달 — 결과 페이지 등 다른 곳과 동일한 공유 UX */}

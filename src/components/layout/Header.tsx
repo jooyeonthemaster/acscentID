@@ -71,17 +71,17 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
         className={cn(
           "fixed top-0 left-1/2 -translate-x-1/2 z-50 flex flex-col transition-transform duration-300 w-full max-w-[455px] font-wanted",
           dark
-            ? "bg-[#0C0E16] border-b border-[#262A38]"
-            : "bg-[#0C0E16] border-b border-[#262A38]",
+            ? "bg-[var(--dark-band)] border-b border-[var(--dark-line)]"
+            : "bg-white/[0.97] border-b border-[var(--line)]",
           hideAtLg && "lg:hidden"
         )}
       >
         {!compact && (
-          <div className="w-full bg-[#12141D] border-b border-[#262A38] py-1 overflow-hidden flex items-center h-7">
-            <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[9px] tracking-[0.15em] uppercase text-[#A69F8D]">
+          <div className="w-full bg-[var(--dark-band)] border-b border-[var(--dark-band)] py-1 overflow-hidden flex items-center h-7">
+            <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[9px] uppercase text-white">
               {Array(8).fill(t('header.marquee')).map((text, i) => (
                 <span key={i} className="flex items-center gap-2">
-                  {text} <Star size={8} fill="#A69F8D" />
+                  {text} <Star size={8} fill="#ADAEAA" />
                 </span>
               ))}
             </div>
@@ -96,10 +96,10 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
               <Link
                 href={backHref}
                 className={cn(
-                  "w-8 h-8 rounded-[12px] flex items-center justify-center transition-colors border-2 border-transparent",
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-colors border border-transparent",
                   dark
-                    ? "text-[#E2E2E2] hover:bg-white/5 hover:border-[#A7A7A7]"
-                    : "text-[#E9E2D0] hover:bg-white/5 hover:border-[#A69F8D]"
+                    ? "text-white hover:bg-white/10 hover:border-[var(--dark-line)]"
+                    : "text-[var(--ink)] hover:bg-[var(--soft)] hover:border-[var(--line)]"
                 )}
                 onClick={(e) => {
                   if (backHref === 'back') {
@@ -112,7 +112,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
               </Link>
             ) : null}
             {/* Language Switcher — 로고 중앙 정렬을 위해 좌측 배치 */}
-            <LanguageSwitcher dark />
+            <LanguageSwitcher dark={dark} />
           </div>
 
           {/* Center: 항상 홈으로 가는 로고 버튼 (absolute 정중앙) */}
@@ -125,7 +125,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
                 className="flex flex-col items-center"
               >
                 <Image
-                  src="/images/logo/acscent-wordmark-cream.png"
+                  src={dark ? "/images/logo/acscent-wordmark-cream.png" : "/images/logo/acscent-wordmark-ink.png"}
                   alt="AC'SCENT"
                   width={2053}
                   height={285}
@@ -134,7 +134,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
                 />
                 <span className={cn(
                   "text-[7px] font-bold tracking-[0.25em] mt-[3px]",
-                  dark ? "text-[#9F9F9F]" : "text-[#A69F8D]"
+                  dark ? "text-[var(--dark-muted)]" : "text-[var(--muted-ink)]"
                 )}>
                   IDENTITY
                 </span>
@@ -150,17 +150,20 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
                   href="/mypage"
                   aria-label={t('nav.myPage')}
                   className={cn(
-                    "w-7 h-7 rounded-full border-2 overflow-hidden transition-all active:scale-90",
+                    "w-7 h-7 rounded-full border overflow-hidden transition-all active:scale-90",
                     dark
-                      ? "border-[#A7A7A7]/70 bg-[#12141D]"
-                      : "border-[#A69F8D]/70 bg-[#12141D] hover:border-[#E9E2D0]"
+                      ? "border-[var(--dark-line)] bg-white/10"
+                      : "border-[var(--line)] bg-[var(--soft)] hover:border-[var(--ink)]"
                   )}
                 >
                   {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
                     <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-stone-800 to-stone-800 flex items-center justify-center">
-                      <User size={12} className="text-white" />
+                    <div className={cn(
+                      "w-full h-full flex items-center justify-center",
+                      dark ? "bg-white/10" : "bg-[var(--soft)]"
+                    )}>
+                      <User size={12} className={dark ? "text-white" : "text-[var(--muted-ink)]"} />
                     </div>
                   )}
                 </Link>
@@ -169,14 +172,14 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
               <button
                 onClick={() => setShowAuthModal(true)}
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 border-2 rounded-full transition-colors whitespace-nowrap",
+                  "flex items-center gap-1 px-2 py-1 border rounded-[5px] transition-colors whitespace-nowrap",
                   dark
-                    ? "bg-[#A7A7A7]/10 border-[#A7A7A7]/60 hover:bg-[#A7A7A7]/20"
-                    : "bg-white/10 border-[#5C564A] hover:bg-white/20"
+                    ? "bg-white/10 border-[var(--dark-line)] hover:bg-white/20"
+                    : "bg-white border-[var(--ink)] hover:bg-[var(--soft)]"
                 )}
               >
-                <User size={12} className={dark ? "text-[#A7A7A7]" : "text-[#A69F8D]"} />
-                <span className={cn("text-[10px] lg:text-[12px] font-bold", dark ? "text-[#A7A7A7]" : "text-[#A69F8D]")}>{t('nav.login')}</span>
+                <User size={12} className={dark ? "text-[var(--dark-muted)]" : "text-[var(--ink)]"} />
+                <span className={cn("text-[10px] lg:text-[12px] font-bold", dark ? "text-[var(--dark-muted)]" : "text-[var(--ink)]")}>{t('nav.login')}</span>
               </button>
             ) : null}
 
@@ -184,14 +187,14 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
             <button
               onClick={() => router.push('/mypage?tab=cart')}
               className={cn(
-                "relative w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all active:scale-90",
+                "relative w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-90",
                 dark
-                  ? "border-[#262A38] bg-[#12141D] hover:border-[#A7A7A7] hover:bg-[#A7A7A7]/10"
-                  : "border-[#262A38] bg-[#12141D] hover:border-[#A69F8D] hover:bg-[#A69F8D]/10"
+                  ? "border-[var(--dark-line)] bg-white/10 hover:border-white hover:bg-white/20"
+                  : "border-[var(--line)] bg-white hover:border-[var(--ink)] hover:bg-[var(--soft)]"
               )}
               aria-label={t('nav.cart')}
             >
-              <ShoppingCart size={16} className={dark ? "text-[#E2E2E2]" : "text-[#E9E2D0]"} strokeWidth={2.5} />
+              <ShoppingCart size={16} className={dark ? "text-white" : "text-[var(--ink)]"} strokeWidth={2.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-white text-white text-[10px] lg:text-[12px] font-black leading-none">
                   {cartCount > 99 ? '99+' : cartCount}

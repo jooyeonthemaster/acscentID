@@ -44,7 +44,7 @@ export function InAppBrowserNoticeClient() {
   }
 
   return (
-    <div className="bg-red-50 border-2 border-red-500 rounded-[12px] p-4 mb-4">
+    <div className="bg-red-50 border-2 border-red-500 rounded-[6px] p-4 mb-4">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center mt-0.5">
           <AlertTriangle size={18} className="text-red-600" strokeWidth={2.5} />
@@ -60,22 +60,22 @@ export function InAppBrowserNoticeClient() {
           {info.canAutoEscape ? (
             <button
               onClick={handleOpenExternal}
-              className="mt-3 w-full h-12 bg-red-500 text-[#E9E2D0] rounded-[12px] font-black border-2 border-[#262A38] transition-all flex items-center justify-center gap-2"
+              className="mt-3 w-full h-12 bg-red-500 text-[var(--ink)] rounded-[6px] font-black border border-[var(--line)] transition-all flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
               외부 브라우저로 열기
             </button>
           ) : (
             <>
-              <div className="mt-3 bg-[#12141D] border-2 border-red-300 rounded-[12px] p-3">
-                <p className="text-xs lg:text-sm text-[#A69F8D] font-bold leading-relaxed break-keep">
+              <div className="mt-3 bg-[var(--paper)] border-2 border-red-300 rounded-[6px] p-3">
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold leading-relaxed break-keep">
                   {getManualEscapeGuide(info)}
                 </p>
               </div>
               <button
                 onClick={copyCurrentUrl}
-                className={`mt-2 w-full h-11 rounded-[12px] font-black border-2 border-[#262A38] transition-all flex items-center justify-center gap-2 ${
-                  copied ? "bg-[#F5EFE2] text-[#12141D]" : "bg-[#12141D] text-[#E9E2D0]"
+                className={`mt-2 w-full h-11 rounded-[6px] font-black border border-[var(--line)] transition-all flex items-center justify-center gap-2 ${
+                  copied ? "bg-[var(--soft)] text-[var(--ink)]" : "bg-[var(--paper)] text-[var(--ink)]"
                 }`}
               >
                 {copied ? (

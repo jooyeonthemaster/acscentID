@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ArrowRight, Phone, Instagram, Mail, MapPin } from "lucide-react"
+import { ArrowLeft, ArrowRight, Instagram, Mail, MapPin } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useTranslations } from "next-intl"
 
@@ -88,16 +88,16 @@ export default function CollaborationPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#0C0E16] lg:bg-[#FBF7EF] font-wanted selection:bg-[#232838] selection:text-[#E9E2D0]">
+    <div className="min-h-screen bg-[var(--paper)]">
       <Header />
 
-      <main className="pt-[80px] pb-32">
-        <div className="w-full max-w-[455px] mx-auto px-5 lg:max-w-[880px]">
+      <main className="pb-32 pt-[80px] lg:pt-[110px]">
+        <div className="mx-auto w-full max-w-[455px] px-5 lg:max-w-[880px]">
 
           {/* 뒤로가기 */}
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm lg:text-base font-bold text-[#8B8578] hover:text-[#E9E2D0] lg:hover:text-[#1A1610] transition-colors mt-2 mb-8"
+            className="mb-8 mt-2 inline-flex items-center gap-2 text-sm font-bold text-[var(--muted-ink)] transition-colors hover:text-[var(--ink)] lg:text-base"
           >
             <ArrowLeft size={18} />
             {t('back')}
@@ -112,51 +112,50 @@ export default function CollaborationPage() {
             <motion.section variants={itemVariants} className="mb-16 text-center">
               <div className="relative mb-6">
                 {/* 3D Hero Image */}
-                <div className="w-full aspect-square relative bg-[#FFFAEB] rounded-[12px] border-2 border-[#262A38] lg:border-[#B8880F]/45 overflow-hidden mb-6 flex items-center justify-center lg:mx-auto lg:max-w-[480px]">
-                  <div className="absolute inset-0 bg-noise opacity-30 z-10 pointer-events-none mix-blend-multiply"></div>
+                <div className="relative mb-6 flex aspect-square w-full items-center justify-center overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] lg:mx-auto lg:max-w-[480px]">
                   <Image
                     src="/images/collaboration/hero.png"
                     alt="Collaboration 3D Illustration"
                     width={400}
                     height={400}
-                    className="w-[85%] h-[85%] object-contain animate-float"
+                    className="h-[85%] w-[85%] object-contain"
                     priority
                   />
                 </div>
 
-                <span className="inline-block px-3 py-1 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-xs lg:text-sm font-black text-[#E9E2D0] lg:text-[#1A1610] mb-3">
+                <span className="mb-3 inline-block rounded-[3px] bg-[var(--soft)] px-3 py-1 text-[11px] font-black text-[var(--muted-ink)]">
                   {t('badge')}
                 </span>
 
-                <h1 className="text-[28px] font-jua text-[#E9E2D0] lg:text-[#1A1610] leading-[1.2] mb-4">
+                <h1 className="mb-4 break-keep text-[28px] font-black leading-[1.25] text-[var(--ink)] lg:text-[34px]">
                   {t('heroTitle')}<br />
-                  <span className="text-[#8B8578] text-stroke-sm" style={{ WebkitTextStroke: '1px #171717' }}>{t('heroTitleHighlight')}</span>
+                  <span className="text-[var(--muted-ink)]">{t('heroTitleHighlight')}</span>
                 </h1>
 
-                <p className="text-sm lg:text-base font-medium text-[#8B8578] leading-relaxed whitespace-pre-wrap">
+                <p className="mx-auto max-w-[560px] whitespace-pre-wrap break-keep text-sm font-medium leading-relaxed text-[var(--muted-ink)] lg:text-base">
                   {t('heroDesc')}
                 </p>
               </div>
             </motion.section>
 
             {/* 협업 서비스 카드들 */}
-            <section className="space-y-6 mb-20 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
-              <div className="flex items-center gap-3 mb-6 lg:col-span-2">
-                <div className="h-0.5 flex-1 bg-[#232838] lg:bg-[#D8CFBB]"></div>
-                <h2 className="text-lg font-jua text-[#E9E2D0] lg:text-[#1A1610]">
+            <section className="mb-20 space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+              <div className="mb-6 flex items-center gap-3 lg:col-span-2">
+                <div className="h-px flex-1 bg-[var(--line)]"></div>
+                <h2 className="text-lg font-black text-[var(--ink)]">
                   {t('serviceTitle')}
                 </h2>
-                <div className="h-0.5 flex-1 bg-[#232838] lg:bg-[#D8CFBB]"></div>
+                <div className="h-px flex-1 bg-[var(--line)]"></div>
               </div>
 
               {COLLABORATION_SERVICES.map((service) => (
                 <motion.div
                   key={service.id}
                   variants={itemVariants}
-                  className="bg-[#12141D] lg:bg-[#F5EFE2] rounded-[12px] border-2 border-[#262A38] lg:border-[#B8880F]/45 p-0 overflow-hidden group transition-all duration-300"
+                  className="group overflow-hidden rounded-[6px] border border-[var(--line)] bg-white transition-all duration-300"
                 >
-                  <div className="bg-[#151823] lg:bg-[#FDFAF1] p-6 flex justify-center items-center border-b-2 border-[#262A38] relative">
-                    <div className="absolute top-4 left-4 bg-[#161925] lg:bg-[#EFE4C8] text-[#E9E2D0] lg:text-[#1A1610] text-xs lg:text-sm font-bold px-2 py-1 rounded-[12px]">
+                  <div className="relative flex items-center justify-center border-b border-[var(--line)] bg-[var(--soft)] p-6">
+                    <div className="absolute left-4 top-4 rounded-[3px] bg-white px-2 py-1 text-xs font-bold text-[var(--ink)] lg:text-sm">
                       {service.number}
                     </div>
                     <Image
@@ -164,30 +163,28 @@ export default function CollaborationPage() {
                       alt={service.title}
                       width={200}
                       height={200}
-                      className="w-40 h-40 object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500 ease-out"
+                      className="h-40 w-40 object-contain transition-transform duration-500 ease-out group-hover:scale-105"
                     />
                   </div>
 
                   <div className="p-6">
                     <div className="mb-4">
-                      <p className="text-xs lg:text-sm font-bold text-[#8B8578] mb-1">{service.subtitle}</p>
-                      <h3 className="font-jua text-xl text-[#E9E2D0] lg:text-[#1A1610]">{service.title}</h3>
+                      <p className="mb-1 text-xs font-bold text-[var(--muted-ink)] lg:text-sm">{service.subtitle}</p>
+                      <h3 className="text-xl font-black text-[var(--ink)]">{service.title}</h3>
                     </div>
 
-                    <p className="text-sm lg:text-base text-[#A69F8D] lg:text-[#6E6659] mb-6 leading-relaxed border-l-4 border-[#1E222E] lg:border-[#D8CFBB] pl-3">
+                    <p className="mb-6 break-keep border-l-2 border-[var(--line)] pl-3 text-sm leading-relaxed text-[var(--muted-ink)] lg:text-base">
                       {service.description}
                     </p>
 
-                    <div className="bg-[#151823] lg:bg-[#FDFAF1] rounded-[12px] p-4 border border-[#262A38] lg:border-[#B8880F]/30">
-                      <ul className="space-y-2">
-                        {service.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-xs lg:text-sm font-medium text-[#A69F8D] lg:text-[#6E6659]">
-                            <span className="w-1.5 h-1.5 bg-[#161925] lg:bg-[#EFE4C8] border border-[#262A38] lg:border-[#B8880F]/30 rounded-full flex-shrink-0"></span>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="space-y-2 border-t border-[var(--line-soft)] pt-4">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-xs font-medium text-[var(--muted-ink)] lg:text-sm">
+                          <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--ink)]"></span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </motion.div>
               ))}
@@ -195,27 +192,27 @@ export default function CollaborationPage() {
 
             {/* 협업 프로세스 */}
             <motion.section variants={itemVariants} className="mb-20">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="h-0.5 flex-1 bg-[#232838] lg:bg-[#D8CFBB]"></div>
-                <h2 className="text-lg font-jua text-[#E9E2D0] lg:text-[#1A1610]">
+              <div className="mb-8 flex items-center gap-3">
+                <div className="h-px flex-1 bg-[var(--line)]"></div>
+                <h2 className="text-lg font-black text-[var(--ink)]">
                   {t('processTitle')}
                 </h2>
-                <div className="h-0.5 flex-1 bg-[#232838] lg:bg-[#D8CFBB]"></div>
+                <div className="h-px flex-1 bg-[var(--line)]"></div>
               </div>
 
               <div className="relative">
                 {/* 연결선 */}
-                <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-[#232838] lg:bg-[#D8CFBB] border-l-2 border-dotted border-[#262A38] lg:border-[#C9BFA8]"></div>
+                <div className="absolute bottom-4 left-[27px] top-4 w-px bg-[var(--line)]"></div>
 
-                <div className="space-y-6 relative">
+                <div className="relative space-y-4">
                   {PROCESS_STEPS.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-5 relative z-10 group">
-                      <div className="w-[56px] h-[56px] bg-[#12141D] lg:bg-[#F5EFE2] rounded-[12px] border-2 border-[#262A38] lg:border-[#B8880F]/45 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <span className="font-jua text-lg text-[#E9E2D0] lg:text-[#1A1610]">{item.step}</span>
+                    <div key={idx} className="group relative z-10 flex items-center gap-5">
+                      <div className="flex h-[56px] w-[56px] flex-shrink-0 items-center justify-center rounded-[5px] border border-[var(--line)] bg-white">
+                        <span className="text-lg font-black text-[var(--ink)]">{item.step}</span>
                       </div>
-                      <div className="flex-1 bg-[#12141D] lg:bg-[#F5EFE2] rounded-[12px] border border-[#262A38] lg:border-[#B8880F]/30 p-4 shadow-sm group-hover:border-[#262A38] transition-colors">
-                        <p className="text-sm lg:text-base font-black text-[#E9E2D0] lg:text-[#1A1610] mb-0.5">{item.title}</p>
-                        <p className="text-xs lg:text-sm text-[#8B8578] font-medium">{item.desc}</p>
+                      <div className="flex-1 rounded-[5px] border border-[var(--line)] bg-white p-4 transition-colors group-hover:border-[var(--ink)]">
+                        <p className="mb-0.5 text-sm font-black text-[var(--ink)] lg:text-base">{item.title}</p>
+                        <p className="text-xs font-medium text-[var(--muted-ink)] lg:text-sm">{item.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -223,34 +220,32 @@ export default function CollaborationPage() {
               </div>
             </motion.section>
 
-            {/* 하단 정보 섹션 (지도 & 연락처) */}
+            {/* 하단 정보 섹션 (지도 & 연락처) — 다크 대비 밴드 */}
             <motion.section variants={itemVariants}>
-              <div className="bg-[#161925] lg:bg-[#EFE4C8] rounded-[12px] p-6 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#161925] via-[#161925] to-[#161925]"></div>
-
-                <h2 className="text-xl font-jua text-[#E9E2D0] lg:text-[#1A1610] mb-6">
+              <div className="relative overflow-hidden rounded-[6px] bg-[var(--dark-band)] p-6 text-center text-white">
+                <h2 className="mb-6 text-xl font-black">
                   {t('contactTitle')}
                 </h2>
 
-                <div className="space-y-3 mb-8">
+                <div className="mb-8 space-y-3">
                   <a
                     href="tel:02-336-3368"
-                    className="flex items-center justify-between bg-white/10 lg:bg-[#FDFAF1] hover:bg-white/20 lg:hover:bg-[#FFFDF5] rounded-[12px] px-5 py-4 transition-colors border border-white/10 lg:border-[#D8CFBB]"
+                    className="flex items-center justify-between rounded-[5px] border border-[var(--dark-line)] bg-white/5 px-5 py-4 transition-colors hover:bg-white/10"
                   >
-                    <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('contactTel')}</span>
-                    <span className="text-sm lg:text-base text-[#E9E2D0] lg:text-[#1A1610] font-medium">02-336-3368</span>
+                    <span className="text-sm font-bold text-[var(--dark-muted)] lg:text-base">{t('contactTel')}</span>
+                    <span className="text-sm font-medium text-white lg:text-base">02-336-3368</span>
                   </a>
                   <a
                     href="mailto:neander@neander.co.kr"
-                    className="flex items-center justify-between bg-white/10 lg:bg-[#FDFAF1] hover:bg-white/20 lg:hover:bg-[#FFFDF5] rounded-[12px] px-5 py-4 transition-colors border border-white/10 lg:border-[#D8CFBB]"
+                    className="flex items-center justify-between rounded-[5px] border border-[var(--dark-line)] bg-white/5 px-5 py-4 transition-colors hover:bg-white/10"
                   >
-                    <span className="text-sm lg:text-base text-[#8B8578] font-bold">{t('contactEmail')}</span>
-                    <span className="text-sm lg:text-base text-[#E9E2D0] lg:text-[#1A1610] font-medium">neander@neander.co.kr</span>
+                    <span className="text-sm font-bold text-[var(--dark-muted)] lg:text-base">{t('contactEmail')}</span>
+                    <span className="text-sm font-medium text-white lg:text-base">neander@neander.co.kr</span>
                   </a>
                 </div>
 
-                <div className="bg-[#12141D] lg:bg-[#F5EFE2] rounded-[12px] p-1 overflow-hidden">
-                  <div className="rounded-[12px] overflow-hidden border border-[#262A38] lg:border-[#B8880F]/30 relative h-[180px]">
+                <div className="overflow-hidden rounded-[5px] border border-[var(--dark-line)]">
+                  <div className="relative h-[180px] overflow-hidden">
                     <iframe
                       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3163.6147193789397!2d126.92435!3d37.554938!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357c999f9c2cbed1%3A0x886e9e7e11dbb8e6!2sAC&#39;SCENT%20ID%20%EC%95%85%EC%84%BC%ED%8A%B8%20%EC%95%84%EC%9D%B4%EB%94%94!5e0!3m2!1sko!2skr!4v1706750000000!5m2!1sko!2skr"
                       width="100%"
@@ -262,15 +257,15 @@ export default function CollaborationPage() {
                       className="absolute inset-0"
                     />
                   </div>
-                  <div className="py-3 px-2 flex justify-between items-center">
+                  <div className="flex items-center justify-between px-3 py-3">
                     <div className="text-left">
-                      <p className="text-xs lg:text-sm font-bold text-[#E9E2D0] lg:text-[#1A1610]">{t('mapName')}</p>
-                      <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('mapAddress')}</p>
+                      <p className="text-xs font-bold text-white lg:text-sm">{t('mapName')}</p>
+                      <p className="text-[10px] text-[var(--dark-muted)] lg:text-[12px]">{t('mapAddress')}</p>
                     </div>
                     <a
                       href="https://google.com/maps/place/AC'SCENT+ID"
                       target="_blank"
-                      className="w-8 h-8 bg-[#161925] lg:bg-[#EFE4C8] rounded-full flex items-center justify-center text-[#8B8578] hover:scale-110 transition-transform"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--dark-line)] text-white transition-colors hover:bg-white/10"
                     >
                       <ArrowRight size={14} />
                     </a>

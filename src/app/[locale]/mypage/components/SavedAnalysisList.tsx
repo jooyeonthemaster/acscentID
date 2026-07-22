@@ -26,7 +26,7 @@ const SAJU_ANALYSIS_PLACEHOLDER_IMAGE = '/images/saju/analysis-placeholder.png'
 function SajuElementTile({ element, size = 'md' }: { element: SajuElement; size?: 'sm' | 'md' }) {
   const info = SAJU_ELEMENT_INFO[element]
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#0C0E16] transition-transform duration-500 group-hover:scale-105">
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[var(--canvas)] transition-transform duration-500 group-hover:scale-105">
       {/* 오행색 방사광 */}
       <div
         aria-hidden
@@ -202,15 +202,21 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     })
   }
 
-  // 케미 분석은 장바구니를 지원하지 않아 일반 분석만 선택 대상입니다.
-  const allSelected = analyses.length > 0 && selectedIds.size === analyses.length
+  // 케미(레이어링) 분석도 선택 대상 — 선택 ID는 'chem:' 접두어로 일반 분석과 구분
+  const chemSelectionId = (chem: ChemistryAnalysis) => `chem:${chem.sessionId}`
+  const selectableChemistry = isChemistryDiscontinued ? [] : chemistryAnalyses
+  const totalSelectable = analyses.length + selectableChemistry.length
+  const allSelected = totalSelectable > 0 && selectedIds.size === totalSelectable
 
   // 전체 선택/해제
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(analyses.map(a => a.id)))
+      setSelectedIds(new Set([
+        ...analyses.map(a => a.id),
+        ...selectableChemistry.map(chemSelectionId),
+      ]))
     }
   }
 
@@ -226,18 +232,33 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
     setIsAddingToCart(true)
     try {
       const selectedAnalyses = analyses.filter(a => selectedIds.has(a.id))
-      const cartItems = selectedAnalyses.map(a => ({
-        analysis_id: a.id,
-        product_type: a.product_type || 'image_analysis',
-        perfume_name: getAnalysisPerfumeName(a),
-        perfume_brand: a.perfume_brand || undefined,
-        twitter_name: a.twitter_name || undefined,
-        size: getDefaultSize(a.product_type || 'image_analysis'),
-        price: getDefaultPrice(a.product_type || 'image_analysis'),
-        quantity: 1,
-        image_url: a.user_image_url || undefined,
-        analysis_data: a.analysis_data || undefined,
-      }))
+      const selectedChemistry = chemistryAnalyses.filter(c => selectedIds.has(chemSelectionId(c)))
+      const cartItems = [
+        ...selectedAnalyses.map(a => ({
+          analysis_id: a.id,
+          product_type: a.product_type || 'image_analysis',
+          perfume_name: getAnalysisPerfumeName(a),
+          perfume_brand: a.perfume_brand || undefined,
+          twitter_name: a.twitter_name || undefined,
+          size: getDefaultSize(a.product_type || 'image_analysis'),
+          price: getDefaultPrice(a.product_type || 'image_analysis'),
+          quantity: 1,
+          image_url: a.user_image_url || undefined,
+          analysis_data: a.analysis_data || undefined,
+        })),
+        ...selectedChemistry.map(chem => ({
+          layering_session_id: chem.sessionId,
+          product_type: 'chemistry_set' as ProductType,
+          perfume_name: getChemistryPerfumePairName(chem),
+          perfume_brand: chem.characterA.perfume_brand || "AC'SCENT",
+          twitter_name: `${chem.characterA.idol_name || chem.characterA.twitter_name} x ${chem.characterB.idol_name || chem.characterB.twitter_name}`,
+          size: getDefaultSize('chemistry_set'),
+          price: getDefaultPrice('chemistry_set'),
+          quantity: 1,
+          image_url: chem.characterA.user_image_url || undefined,
+          analysis_data: chem.chemistryData || undefined,
+        })),
+      ]
 
       const response = await fetch('/api/cart', {
         method: 'POST',
@@ -275,9 +296,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   // 상품 타입 뱃지 렌더링
   const renderProductTypeBadge = (productType?: ProductType) => {
     const type = productType || 'image_analysis'
-    const badge = PRODUCT_TYPE_BADGES[type] || { bg: 'bg-[#1B1F2C]', text: 'text-[#A69F8D]', border: 'border-[#262A38]', labelShort: type }
+    const badge = PRODUCT_TYPE_BADGES[type] || { bg: 'bg-[var(--soft)]', text: 'text-[var(--muted-ink)]', border: 'border-[var(--line)]', labelShort: type }
     return (
-      <span className={`px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[12px] ${badge.bg} ${badge.text} border ${badge.border}`}>
+      <span className={`px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[6px] ${badge.bg} ${badge.text} border ${badge.border}`}>
         {badge.labelShort}
       </span>
     )
@@ -437,12 +458,12 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className="bg-[#F5EFE2] rounded-[12px] sm:rounded-[12px] animate-pulse border-[1.5px] sm:border-2 border-[#262A38] overflow-hidden"
+            className="bg-[#F5EFE2] rounded-[6px] sm:rounded-[6px] animate-pulse border-[1.5px] sm:border border-[var(--line)] overflow-hidden"
           >
-            <div className="aspect-square bg-gradient-to-br from-[#151823] to-[#232838]" />
+            <div className="aspect-square bg-gradient-to-br from-[var(--soft)] to-[var(--soft)]" />
             <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
-              <div className="h-3 sm:h-4 bg-[#E9E2D0] rounded-[12px] w-2/3" />
-              <div className="h-2.5 sm:h-3 bg-[#E9E2D0]/60 rounded-[12px] w-1/2" />
+              <div className="h-3 sm:h-4 bg-[var(--soft)] rounded-[6px] w-2/3" />
+              <div className="h-2.5 sm:h-3 bg-[var(--soft)]/60 rounded-[6px] w-1/2" />
             </div>
           </div>
         ))}
@@ -453,17 +474,17 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   // 빈 상태
   if (analyses.length === 0 && chemistryAnalyses.length === 0) {
     return (
-      <div className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-12 text-center">
-        <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-[#151823] to-[#151823] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
-          <Sparkles size={40} className="text-[#8B8578]" />
+      <div className="bg-[#F5EFE2] border border-[var(--line)] rounded-[6px] p-12 text-center">
+        <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+          <Sparkles size={40} className="text-[var(--muted-ink)]" />
         </div>
-        <h3 className="text-xl font-black mb-2 text-[#12141D]">{t('emptyTitle')}</h3>
+        <h3 className="text-xl font-black mb-2 text-[var(--ink)]">{t('emptyTitle')}</h3>
         <p className="text-[#5C564A] text-sm lg:text-base mb-6">
           {t('emptyDesc')}
         </p>
         <Link
           href="/"
-          className="inline-block px-8 py-3 bg-[#12141D] text-[#F5EFE2] font-bold rounded-[12px] border-2 border-[#12141D] transition-all"
+          className="inline-block px-8 py-3 bg-[var(--paper)] text-[#F5EFE2] font-bold rounded-[6px] border border-[var(--line)] transition-all"
         >
           {t('startAnalysis')}
         </Link>
@@ -475,13 +496,13 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   if (viewMode === 'grid') {
     return (
       <>
-        {/* 선택 툴바 — 전체 선택(좌) / 장바구니 담기(우). 선택 가능한 일반 분석이 있을 때만 노출 */}
-        {analyses.length > 0 && (
+        {/* 선택 툴바 — 전체 선택(좌) / 장바구니 담기(우). 선택 가능한 항목이 있을 때만 노출 */}
+        {totalSelectable > 0 && (
         <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={toggleSelectAll}
-              className="px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[12px] border-2 border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:bg-[#151823] transition-colors flex items-center gap-1.5 shrink-0"
+              className="px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[6px] border border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)] transition-colors flex items-center gap-1.5 shrink-0"
             >
               {allSelected ? (
                 <>
@@ -496,7 +517,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
               )}
             </button>
             {selectedIds.size > 0 && (
-              <span className="text-xs lg:text-sm sm:text-sm text-[#8B8578] truncate">
+              <span className="text-xs lg:text-sm sm:text-sm text-[var(--muted-ink)] truncate">
                 {t('selectedCount', { count: selectedIds.size })}
               </span>
             )}
@@ -504,14 +525,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
           <button
             onClick={handleAddToCart}
             disabled={selectedIds.size === 0 || isAddingToCart}
-            className={`px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[12px] border-2 transition-colors flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[6px] border-2 transition-colors flex items-center gap-1.5 shrink-0 ${
               selectedIds.size === 0 || isAddingToCart
-                ? 'border-[#262A38] bg-[#232838] text-[#8B8578] cursor-not-allowed'
-                : 'border-[#F5EFE2] bg-[#F5EFE2] text-[#12141D] hover:bg-[#FFFDF5]'
+                ? 'border-[var(--line)] bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+                : 'border-[#F5EFE2] bg-[#F5EFE2] text-[var(--ink)] hover:bg-[#FFFDF5]'
             }`}
           >
             {isAddingToCart ? (
-              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-[#8B8578] border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border border-[var(--line)] border-t-transparent rounded-full animate-spin" />
             ) : (
               <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
@@ -544,11 +565,15 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     className="col-span-2"
                   >
                     <div
-                      className="bg-[#F5EFE2] border-[1.5px] sm:border-2 border-[#262A38] rounded-[12px] sm:rounded-[12px] overflow-hidden transition-all group"
+                      className={`bg-[#F5EFE2] border-[1.5px] sm:border-2 rounded-[6px] sm:rounded-[6px] overflow-hidden transition-all group ${
+                        selectedIds.has(chemSelectionId(chem))
+                          ? 'border-[var(--line)] ring-2 ring-[var(--line)]'
+                          : 'border-[var(--line)]'
+                      }`}
                     >
                       {/* 이미지 영역 - 두 캐릭터 나란히 */}
                       <div
-                        className="relative h-36 sm:h-44 overflow-hidden bg-gradient-to-br from-[#151823] via-[#0C0E16] to-[#0C0E16] cursor-pointer"
+                        className="relative h-36 sm:h-44 overflow-hidden bg-gradient-to-br from-[var(--soft)] via-[var(--canvas)] to-[var(--canvas)] cursor-pointer"
                         onClick={() => setChemistryDetailTarget(chem)}
                       >
                         <div className="flex w-full h-full">
@@ -556,45 +581,63 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             {chem.characterA.user_image_url ? (
                               <img src={chem.characterA.user_image_url} alt={chem.characterA.idol_name || chem.characterA.twitter_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#151823] to-[#151823]"><span className="text-2xl sm:text-3xl">✨</span></div>
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--soft)] to-[var(--soft)]"><span className="text-2xl sm:text-3xl">✨</span></div>
                             )}
                           </div>
                           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                            <div className="w-7 h-7 sm:w-9 sm:h-9 bg-[#12141D] border-[1.5px] sm:border-2 border-[#262A38] rounded-full flex items-center justify-center">
-                              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E9E2D0] fill-[#E9E2D0]" />
+                            <div className="w-7 h-7 sm:w-9 sm:h-9 bg-[var(--paper)] border-[1.5px] sm:border border-[var(--line)] rounded-full flex items-center justify-center">
+                              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--ink)] fill-[var(--ink)]" />
                             </div>
                           </div>
                           <div className="w-1/2 h-full overflow-hidden relative">
                             {chem.characterB.user_image_url ? (
                               <img src={chem.characterB.user_image_url} alt={chem.characterB.idol_name || chem.characterB.twitter_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#151823] to-[#151823]"><span className="text-2xl sm:text-3xl">✨</span></div>
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--soft)] to-[var(--soft)]"><span className="text-2xl sm:text-3xl">✨</span></div>
                             )}
                           </div>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex gap-1 items-center">
-                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded-[12px] sm:rounded-[12px] bg-[#151823] text-[#A69F8D] border-[1.5px] sm:border-2 border-[#262A38]">
+                        {/* 선택 체크박스 — 상시 노출 (판매중단 시 숨김) */}
+                        {!isChemistryDiscontinued && (
+                          <button
+                            type="button"
+                            onClick={(e) => toggleSelection(chemSelectionId(chem), e)}
+                            aria-pressed={selectedIds.has(chemSelectionId(chem))}
+                            aria-label={t('addToCart')}
+                            className={`absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-[6px] border-2 flex items-center justify-center transition-all ${
+                              selectedIds.has(chemSelectionId(chem))
+                                ? 'bg-[var(--ink)] border-[#B8880F]'
+                                : 'bg-[var(--paper)]/90 border-[var(--line)]'
+                            }`}
+                          >
+                            {selectedIds.has(chemSelectionId(chem)) && (
+                              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={3} />
+                            )}
+                          </button>
+                        )}
+                        <div className={`absolute top-1.5 sm:top-2 flex gap-1 items-center ${isChemistryDiscontinued ? 'left-1.5 sm:left-2' : 'left-8 sm:left-10'}`}>
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded-[6px] sm:rounded-[6px] bg-[var(--soft)] text-[var(--muted-ink)] border-[1.5px] sm:border border-[var(--line)]">
                             {PRODUCT_TYPE_BADGES.chemistry_set.labelShort}
                           </span>
                           {chem.service_mode === 'offline' && (
-                            <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[12px] sm:rounded-[12px] bg-[#161925] text-[#E9E2D0] border border-[#262A38]">
+                            <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[6px] sm:rounded-[6px] bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)]">
                               {t('offline')}
                             </span>
                           )}
                         </div>
                         <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2">
-                          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-[12px] sm:rounded-[12px] bg-[#12141D] border-[1.5px] sm:border-2 border-[#262A38] text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1">
+                          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-[6px] sm:rounded-[6px] bg-[var(--paper)] border-[1.5px] sm:border border-[var(--line)] text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1">
                             <Calendar className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
                             {formatRelativeTime(chem.created_at)}
                           </div>
                         </div>
                       </div>
                       {/* 정보 영역 */}
-                      <div className="p-2.5 sm:p-3 border-t-[1.5px] sm:border-t-2 border-[#262A38]">
+                      <div className="p-2.5 sm:p-3 border-t-[1.5px] sm:border-t-2 border-[var(--line)]">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-black text-[11px] lg:text-[13px] sm:text-sm truncate leading-tight text-[#12141D]">
+                            <h3 className="font-black text-[11px] lg:text-[13px] sm:text-sm truncate leading-tight text-[var(--ink)]">
                               {chem.characterA.idol_name || chem.characterA.twitter_name} x {chem.characterB.idol_name || chem.characterB.twitter_name}
                             </h3>
                             <p className="text-[9px] sm:text-[11px] text-[#5C564A] truncate mt-0.5">
@@ -605,7 +648,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             )}
                           </div>
                           <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChemistryDeleteTarget(chem) }}
-                            className="p-1 sm:p-1.5 text-[#5C564A] hover:text-red-500 hover:bg-red-50 rounded-[12px] sm:rounded-[12px] transition-colors flex-shrink-0" title={t('delete')}>
+                            className="p-1 sm:p-1.5 text-[#5C564A] hover:text-red-500 hover:bg-red-50 rounded-[6px] sm:rounded-[6px] transition-colors flex-shrink-0" title={t('delete')}>
                             <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </button>
                         </div>
@@ -614,10 +657,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             onClick={(e) => { e.stopPropagation(); setChemistryDetailTarget(chem) }}
                             disabled={isChemistryDiscontinued}
                             title={isChemistryDiscontinued ? tMypage('productDiscontinued') : undefined}
-                            className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[12px] sm:rounded-[12px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
+                            className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[6px] sm:rounded-[6px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
                               isChemistryDiscontinued
-                                ? 'bg-[#E9E2D0] text-[#8B8578] cursor-not-allowed'
-                                : 'bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C]'
+                                ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+                                : 'bg-[var(--paper)] text-[#F5EFE2] hover:bg-[var(--soft)]'
                             }`}
                           >
                             <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -642,15 +685,15 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
             >
               {/* 키치 스타일 카드 - 모바일에서 더 컴팩트 */}
               <div
-                className={`bg-[#F5EFE2] border-[1.5px] sm:border-2 rounded-[12px] sm:rounded-[12px] overflow-hidden transition-all group ${
+                className={`bg-[#F5EFE2] border-[1.5px] sm:border-2 rounded-[6px] sm:rounded-[6px] overflow-hidden transition-all group ${
                   selectedIds.has(analysis.id)
-                    ? 'border-[#343A4C] ring-2 ring-[#262A38]'
-                    : 'border-[#262A38]'
+                    ? 'border-[var(--line)] ring-2 ring-[var(--line)]'
+                    : 'border-[var(--line)]'
                 }`}
               >
                 {/* 이미지 영역 */}
                 <div
-                  className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#151823] via-[#0C0E16] to-[#0C0E16] cursor-pointer"
+                  className="relative aspect-square overflow-hidden bg-gradient-to-br from-[var(--soft)] via-[var(--canvas)] to-[var(--canvas)] cursor-pointer"
                   onClick={() => setSelectedImage(analysis)}
                 >
                   {/* 선택 체크박스 — 상시 노출 */}
@@ -659,14 +702,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     onClick={(e) => toggleSelection(analysis.id, e)}
                     aria-pressed={selectedIds.has(analysis.id)}
                     aria-label={t('addToCart')}
-                    className={`absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-[12px] border-2 flex items-center justify-center transition-all ${
+                    className={`absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-[6px] border-2 flex items-center justify-center transition-all ${
                       selectedIds.has(analysis.id)
-                        ? 'bg-[#161925] border-[#343A4C]'
-                        : 'bg-[#12141D]/90 border-[#262A38]'
+                        ? 'bg-[var(--ink)] border-[#B8880F]'
+                        : 'bg-[var(--paper)]/90 border-[var(--line)]'
                     }`}
                   >
                     {selectedIds.has(analysis.id) && (
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-[#E9E2D0]" strokeWidth={3} />
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={3} />
                     )}
                   </button>
                   {sajuElement ? (
@@ -681,7 +724,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center">
                         <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">✨</div>
-                        <span className="text-[#8B8578] text-[10px] lg:text-[12px] sm:text-xs font-bold">No Image</span>
+                        <span className="text-[var(--muted-ink)] text-[10px] lg:text-[12px] sm:text-xs font-bold">No Image</span>
                       </div>
                     </div>
                   )}
@@ -690,7 +733,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   {/* 날짜 뱃지 — 좌상단은 체크박스 자리라 우상단 (케미 카드와 동일) */}
-                  <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-[12px] sm:rounded-[12px] bg-[#12141D] border-[1.5px] sm:border-2 border-[#262A38] text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1">
+                  <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-[6px] sm:rounded-[6px] bg-[var(--paper)] border-[1.5px] sm:border border-[var(--line)] text-[8px] sm:text-[10px] font-bold flex items-center gap-0.5 sm:gap-1">
                     <Calendar className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
                     {formatRelativeTime(analysis.created_at)}
                   </div>
@@ -699,7 +742,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 flex gap-1">
                     {renderProductTypeBadge(analysis.product_type)}
                     {analysis.service_mode === 'offline' && (
-                      <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[12px] bg-[#161925] text-[#E9E2D0] border border-[#262A38]">
+                      <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold rounded-[6px] bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)]">
                         {t('offline')}
                       </span>
                     )}
@@ -709,7 +752,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 right-1.5 sm:right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setSelectedImage(analysis)}
-                      className="w-full py-1.5 sm:py-2 bg-[#12141D] border-[1.5px] sm:border-2 border-[#262A38] rounded-[12px] sm:rounded-[12px] text-[10px] lg:text-[12px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all"
+                      className="w-full py-1.5 sm:py-2 bg-[var(--paper)] border-[1.5px] sm:border border-[var(--line)] rounded-[6px] sm:rounded-[6px] text-[10px] lg:text-[12px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all"
                     >
                       <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       {t('viewDetail')}
@@ -718,10 +761,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 </div>
 
                 {/* 정보 영역 */}
-                <div className="p-2 sm:p-3 border-t-[1.5px] sm:border-t-2 border-[#262A38]">
+                <div className="p-2 sm:p-3 border-t-[1.5px] sm:border-t-2 border-[var(--line)]">
                   <div className="flex items-start justify-between gap-1 sm:gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-black text-[11px] lg:text-[13px] sm:text-sm truncate leading-tight text-[#12141D]">
+                      <h3 className="font-black text-[11px] lg:text-[13px] sm:text-sm truncate leading-tight text-[var(--ink)]">
                         {analysis.idol_name || analysis.twitter_name}
                       </h3>
                       <p className="text-[9px] sm:text-[11px] text-[#5C564A] truncate mt-0.5">
@@ -736,7 +779,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         e.stopPropagation()
                         setDeleteTarget(analysis)
                       }}
-                      className="p-1 sm:p-1.5 text-[#5C564A] hover:text-red-500 hover:bg-red-50 rounded-[12px] sm:rounded-[12px] transition-colors flex-shrink-0"
+                      className="p-1 sm:p-1.5 text-[#5C564A] hover:text-red-500 hover:bg-red-50 rounded-[6px] sm:rounded-[6px] transition-colors flex-shrink-0"
                       title={t('delete')}
                     >
                       <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -759,10 +802,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           }}
                           disabled={discontinued}
                           title={discontinued ? tMypage('productDiscontinued') : undefined}
-                          className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[12px] sm:rounded-[12px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
+                          className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[6px] sm:rounded-[6px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
                             discontinued
-                              ? 'bg-[#E9E2D0] text-[#8B8578] cursor-not-allowed'
-                              : 'bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C]'
+                              ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+                              : 'bg-[var(--paper)] text-[#F5EFE2] hover:bg-[var(--soft)]'
                           }`}
                         >
                           <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -793,7 +836,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
         <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={toggleSelectAll}
-            className="px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[12px] border-2 border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:bg-[#151823] transition-colors flex items-center gap-1.5 shrink-0"
+            className="px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[6px] border border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)] transition-colors flex items-center gap-1.5 shrink-0"
           >
             {allSelected ? (
               <>
@@ -808,7 +851,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
             )}
           </button>
           {selectedIds.size > 0 && (
-            <span className="text-xs lg:text-sm sm:text-sm text-[#8B8578] truncate">
+            <span className="text-xs lg:text-sm sm:text-sm text-[var(--muted-ink)] truncate">
               {t('selectedCount', { count: selectedIds.size })}
             </span>
           )}
@@ -816,14 +859,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
         <button
           onClick={handleAddToCart}
           disabled={selectedIds.size === 0 || isAddingToCart}
-          className={`px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[12px] border-2 transition-colors flex items-center gap-1.5 shrink-0 ${
+          className={`px-3 py-1.5 text-xs lg:text-sm sm:text-sm font-bold rounded-[6px] border-2 transition-colors flex items-center gap-1.5 shrink-0 ${
             selectedIds.size === 0 || isAddingToCart
-              ? 'border-[#262A38] bg-[#232838] text-[#8B8578] cursor-not-allowed'
-              : 'border-[#F5EFE2] bg-[#F5EFE2] text-[#12141D] hover:bg-[#FFFDF5]'
+              ? 'border-[var(--line)] bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+              : 'border-[#F5EFE2] bg-[#F5EFE2] text-[var(--ink)] hover:bg-[#FFFDF5]'
           }`}
         >
           {isAddingToCart ? (
-            <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-[#8B8578] border-t-transparent rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border border-[var(--line)] border-t-transparent rounded-full animate-spin" />
           ) : (
             <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           )}
@@ -840,10 +883,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
             transition={{ delay: index * 0.05 }}
           >
             <div
-              className={`bg-[#12141D] border-2 rounded-[12px] overflow-hidden transition-all ${
+              className={`bg-[var(--paper)] border-2 rounded-[6px] overflow-hidden transition-all ${
                 selectedIds.has(analysis.id)
-                  ? 'border-[#343A4C] ring-2 ring-[#262A38]'
-                  : 'border-[#262A38]'
+                  ? 'border-[var(--line)] ring-2 ring-[var(--line)]'
+                  : 'border-[var(--line)]'
               }`}
             >
               <div className="flex items-center gap-4 p-4">
@@ -853,20 +896,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   onClick={(e) => toggleSelection(analysis.id, e)}
                   aria-pressed={selectedIds.has(analysis.id)}
                   aria-label={t('addToCart')}
-                  className={`w-6 h-6 rounded-[12px] border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                  className={`w-6 h-6 rounded-[6px] border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                     selectedIds.has(analysis.id)
-                      ? 'bg-[#161925] border-[#343A4C]'
-                      : 'bg-[#12141D] border-[#262A38]'
+                      ? 'bg-[var(--ink)] border-[#B8880F]'
+                      : 'bg-[var(--paper)] border-[var(--line)]'
                   }`}
                 >
                   {selectedIds.has(analysis.id) && (
-                    <Check className="w-4 h-4 text-[#E9E2D0]" strokeWidth={3} />
+                    <Check className="w-4 h-4 text-white" strokeWidth={3} />
                   )}
                 </button>
 
                 {/* 이미지 */}
                 <div
-                  className="w-20 h-20 rounded-[12px] overflow-hidden border-2 border-[#262A38] flex-shrink-0 cursor-pointer"
+                  className="w-20 h-20 rounded-[6px] overflow-hidden border border-[var(--line)] flex-shrink-0 cursor-pointer"
                   onClick={() => setSelectedImage(analysis)}
                 >
                   {getSajuElement(analysis) ? (
@@ -878,8 +921,8 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       className="w-full h-full object-cover hover:scale-110 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#151823] to-[#151823] flex items-center justify-center">
-                      <Sparkles size={24} className="text-[#8B8578]" />
+                    <div className="w-full h-full bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] flex items-center justify-center">
+                      <Sparkles size={24} className="text-[var(--muted-ink)]" />
                     </div>
                   )}
                 </div>
@@ -890,19 +933,19 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     <h3 className="font-black text-lg truncate">{analysis.idol_name || analysis.twitter_name}</h3>
                     {renderProductTypeBadge(analysis.product_type)}
                     {analysis.service_mode === 'offline' && (
-                      <span className="px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold rounded-[12px] bg-[#161925] text-[#E9E2D0] border border-[#262A38]">
+                      <span className="px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold rounded-[6px] bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)]">
                         {t('offline')}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm lg:text-base text-[#A69F8D] truncate">{getAnalysisPerfumeName(analysis)}</p>
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)] truncate">{getAnalysisPerfumeName(analysis)}</p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs lg:text-sm text-[#8B8578] flex items-center gap-1">
+                    <span className="text-xs lg:text-sm text-[var(--muted-ink)] flex items-center gap-1">
                       <Calendar size={12} />
                       {formatRelativeTime(analysis.created_at)}
                     </span>
                     {analysis.confirmed_recipe?.granules && (
-                      <span className="text-xs lg:text-sm px-2 py-0.5 bg-[#151823] text-[#E9E2D0] rounded-full font-bold">
+                      <span className="text-xs lg:text-sm px-2 py-0.5 bg-[var(--soft)] text-[var(--ink)] rounded-full font-bold">
                         {t('recipeCount', { count: analysis.confirmed_recipe.granules.length })}
                       </span>
                     )}
@@ -917,7 +960,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       e.stopPropagation()
                       setDeleteTarget(analysis)
                     }}
-                    className="p-2.5 text-[#8B8578] hover:text-red-500 hover:bg-red-50 rounded-[12px] transition-colors"
+                    className="p-2.5 text-[var(--muted-ink)] hover:text-red-500 hover:bg-red-50 rounded-[6px] transition-colors"
                     title={t('delete')}
                   >
                     <Trash2 size={18} />
@@ -928,7 +971,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       e.stopPropagation()
                       setRecipeModalTarget(analysis)
                     }}
-                    className="px-4 py-2.5 bg-[#F5EFE2] text-[#12141D] text-sm lg:text-base font-bold rounded-[12px] hover:bg-[#FFFDF5] transition-colors flex items-center gap-1.5 border-2 border-[#F5EFE2]"
+                    className="px-4 py-2.5 bg-[#F5EFE2] text-[var(--ink)] text-sm lg:text-base font-bold rounded-[6px] hover:bg-[#FFFDF5] transition-colors flex items-center gap-1.5 border-2 border-[#F5EFE2]"
                   >
                     <Beaker size={16} />
                     {t('recipeLabel')}
@@ -936,7 +979,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
                   <Link
                     href={`/result?id=${analysis.id}&from=mypage`}
-                    className="px-4 py-2.5 bg-[#F5EFE2] text-[#12141D] text-sm lg:text-base font-bold rounded-[12px] hover:bg-[#161925] transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2.5 bg-[#F5EFE2] text-[var(--ink)] text-sm lg:text-base font-bold rounded-[6px] hover:bg-[var(--soft)] transition-colors flex items-center gap-1.5"
                   >
                     {t('viewMore')}
                     <ChevronRight size={16} />
@@ -973,18 +1016,24 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative max-w-md w-full max-h-[85vh] flex flex-col"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden"
               >
-                {/* 닫기 버튼 */}
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="absolute -top-10 right-0 p-2 text-white/70 hover:text-[#E9E2D0] transition-colors z-10"
-                >
-                  <X size={24} />
-                </button>
+                {/* 모달 헤더 — 레이어링 퍼퓸 상세와 동일한 구성 */}
+                <div className="px-5 py-4 border-b-2 border-[var(--line)] bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] flex items-center justify-between flex-shrink-0">
+                  <h3 className="font-black text-lg text-[var(--ink)] flex items-center gap-2">
+                    <Sparkles size={20} className="fill-[var(--ink)]" />
+                    {tMypage('analysisDetail')}
+                  </h3>
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    className="p-1 hover:bg-white/20 rounded-[6px] transition-colors text-[var(--ink)]"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
-                {/* 카드 - 스크롤 가능 */}
-                <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden overflow-y-auto">
+                {/* 카드 콘텐츠 - 스크롤 가능 */}
+                <div className="overflow-y-auto flex-1 min-h-0">
                   {/* 이미지 - 모바일에서 크기 제한 */}
                   <div className="relative aspect-[4/3] sm:aspect-square max-h-[40vh] sm:max-h-[50vh]">
                     {getSajuElement(selectedImage) ? (
@@ -996,26 +1045,26 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#151823] to-[#151823] flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] flex items-center justify-center">
                         <span className="text-6xl">✨</span>
                       </div>
                     )}
                   </div>
 
                   {/* 정보 */}
-                  <div className="p-5 border-t-2 border-[#262A38]">
+                  <div className="p-5 border-t-2 border-[var(--line)]">
                     <h2 className="font-black text-xl">{selectedImage.idol_name || selectedImage.twitter_name}</h2>
-                    <p className="text-[#A69F8D] text-sm lg:text-base mt-1">{getAnalysisPerfumeName(selectedImage)}</p>
+                    <p className="text-[var(--muted-ink)] text-sm lg:text-base mt-1">{getAnalysisPerfumeName(selectedImage)}</p>
 
                     {/* 확정 레시피 */}
                     {selectedImage.confirmed_recipe?.granules && (
-                      <div className="mt-4 p-3 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]">
-                        <p className="text-xs lg:text-sm font-black text-[#A69F8D] mb-2">{t('confirmedRecipe')}</p>
+                      <div className="mt-4 p-3 bg-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
+                        <p className="text-xs lg:text-sm font-black text-[var(--muted-ink)] mb-2">{t('confirmedRecipe')}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {selectedImage.confirmed_recipe.granules.map((g, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-1 bg-[#12141D] rounded-[12px] text-xs lg:text-sm font-bold text-[#E9E2D0] border border-[#262A38]"
+                              className="px-2 py-1 bg-[var(--paper)] rounded-[6px] text-xs lg:text-sm font-bold text-[var(--ink)] border border-[var(--line)]"
                             >
                               {g.name} {g.ratio}%
                             </span>
@@ -1027,7 +1076,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     <div className="flex gap-2 mt-4">
                       <Link
                         href={`/result?id=${selectedImage.id}&from=mypage`}
-                        className="flex-1 py-3 bg-[#12141D] border-2 border-[#262A38] text-[#E9E2D0] rounded-[12px] font-bold text-center hover:bg-[#151823] transition-colors"
+                        className="flex-1 py-3 bg-[var(--paper)] border border-[var(--line)] text-[var(--ink)] rounded-[6px] font-bold text-center hover:bg-[var(--soft)] transition-colors"
                       >
                         {t('viewResult')}
                       </Link>
@@ -1037,14 +1086,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           setSelectedImage(null)
                           setRecipeModalTarget(selectedImage)
                         }}
-                        className="flex-[1.5] py-3 bg-[#F5EFE2] text-[#12141D] border-2 border-[#F5EFE2] rounded-[12px] font-bold flex items-center justify-center gap-2 hover:bg-[#FFFDF5] transition-all"
+                        className="flex-[1.5] py-3 bg-[#F5EFE2] text-[var(--ink)] border-2 border-[#F5EFE2] rounded-[6px] font-bold flex items-center justify-center gap-2 hover:bg-[#FFFDF5] transition-all"
                       >
                         <Beaker size={18} />
                         {t('checkRecipe')}
                       </button>
                     </div>
 
-                    <p className="text-center text-[#8B8578] text-xs lg:text-sm mt-4">
+                    <p className="text-center text-[var(--muted-ink)] text-xs lg:text-sm mt-4">
                       {t('analyzedAt', { time: formatRelativeTime(selectedImage.created_at) })}
                     </p>
                   </div>
@@ -1070,21 +1119,21 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 max-w-xs w-full"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 max-w-xs w-full"
               >
                 <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-[6px] flex items-center justify-center border border-[var(--line)]">
                     <Trash2 size={32} className="text-red-500" />
                   </div>
                   <h3 className="text-lg font-black mb-2">{t('deleteConfirm')}</h3>
-                  <p className="text-sm lg:text-base text-[#8B8578] mb-6">
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-6">
                     {t('deleteDesc', { name: deleteTarget.idol_name || deleteTarget.twitter_name })}<br />
                     {t('deleteIrreversible')}
                   </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setDeleteTarget(null)}
-                      className="flex-1 py-3 bg-[#1B1F2C] text-[#A69F8D] rounded-[12px] font-bold hover:bg-[#232838] transition-colors border-2 border-[#262A38]"
+                      className="flex-1 py-3 bg-[var(--soft)] text-[var(--muted-ink)] rounded-[6px] font-bold hover:bg-[var(--soft)] transition-colors border border-[var(--line)]"
                     >
                       {tButtons('cancel')}
                     </button>
@@ -1093,7 +1142,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         onDelete(deleteTarget.id)
                         setDeleteTarget(null)
                       }}
-                      className="flex-1 py-3 bg-red-500 text-[#E9E2D0] rounded-[12px] font-bold hover:bg-red-600 transition-colors border-2 border-[#262A38]"
+                      className="flex-1 py-3 bg-red-500 text-[var(--ink)] rounded-[6px] font-bold hover:bg-red-600 transition-colors border border-[var(--line)]"
                     >
                       {t('delete')}
                     </button>
@@ -1120,21 +1169,21 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 max-w-xs w-full"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 max-w-xs w-full"
               >
                 <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-[6px] flex items-center justify-center border border-[var(--line)]">
                     <Trash2 size={32} className="text-red-500" />
                   </div>
                   <h3 className="text-lg font-black mb-2">{t('deleteConfirm')}</h3>
-                  <p className="text-sm lg:text-base text-[#8B8578] mb-6">
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-6">
                     {t('deleteDesc', { name: `${chemistryDeleteTarget.characterA.idol_name || chemistryDeleteTarget.characterA.twitter_name} x ${chemistryDeleteTarget.characterB.idol_name || chemistryDeleteTarget.characterB.twitter_name}` })}<br />
                     {t('deleteIrreversible')}
                   </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setChemistryDeleteTarget(null)}
-                      className="flex-1 py-3 bg-[#1B1F2C] text-[#A69F8D] rounded-[12px] font-bold hover:bg-[#232838] transition-colors border-2 border-[#262A38]"
+                      className="flex-1 py-3 bg-[var(--soft)] text-[var(--muted-ink)] rounded-[6px] font-bold hover:bg-[var(--soft)] transition-colors border border-[var(--line)]"
                     >
                       {tButtons('cancel')}
                     </button>
@@ -1145,7 +1194,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         }
                         setChemistryDeleteTarget(null)
                       }}
-                      className="flex-1 py-3 bg-red-500 text-[#E9E2D0] rounded-[12px] font-bold hover:bg-red-600 transition-colors border-2 border-[#262A38]"
+                      className="flex-1 py-3 bg-red-500 text-[var(--ink)] rounded-[6px] font-bold hover:bg-red-600 transition-colors border border-[var(--line)]"
                     >
                       {t('delete')}
                     </button>
@@ -1172,17 +1221,17 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] max-w-md w-full max-h-full flex flex-col overflow-hidden"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] max-w-md w-full max-h-full flex flex-col overflow-hidden"
               >
                 {/* 모달 헤더 */}
-                <div className="px-5 py-4 border-b-2 border-[#262A38] bg-gradient-to-r from-[#161925] to-[#161925] flex items-center justify-between flex-shrink-0">
+                <div className="px-5 py-4 border-b-2 border-[var(--line)] bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] flex items-center justify-between flex-shrink-0">
                   <h3 className="font-black text-lg flex items-center gap-2">
                     <Beaker size={20} />
                     {recipeModalTarget.confirmed_recipe ? t('confirmedRecipeTitle') : t('perfumeAnalysisInfo')}
                   </h3>
                   <button
                     onClick={() => setRecipeModalTarget(null)}
-                    className="p-1 hover:bg-black/10 rounded-[12px] transition-colors"
+                    className="p-1 hover:bg-black/10 rounded-[6px] transition-colors"
                   >
                     <X size={20} />
                   </button>
@@ -1194,21 +1243,21 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   {(() => {
                     const modalPersona = recipeModalTarget.analysis_data?.matchingPerfumes?.[0]?.persona
                     return (
-                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[#262A38]">
+                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--line)]">
                         {recipeModalTarget.user_image_url ? (
                           <img
                             src={recipeModalTarget.user_image_url}
                             alt=""
-                            className="w-14 h-14 rounded-[12px] object-cover border-2 border-[#262A38]"
+                            className="w-14 h-14 rounded-[6px] object-cover border border-[var(--line)]"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-[12px] bg-[#151823] flex items-center justify-center border-2 border-[#262A38]">
-                            <Sparkles size={24} className="text-[#8B8578]" />
+                          <div className="w-14 h-14 rounded-[6px] bg-[var(--soft)] flex items-center justify-center border border-[var(--line)]">
+                            <Sparkles size={24} className="text-[var(--muted-ink)]" />
                           </div>
                         )}
                         <div>
-                          <p className="text-xs lg:text-sm text-[#8B8578]">{recipeModalTarget.idol_name || recipeModalTarget.twitter_name}</p>
-                          <h2 className="text-xl font-black leading-tight text-[#E9E2D0]">{getAnalysisPerfumeName(recipeModalTarget) || modalPersona?.name || recipeModalTarget.perfume_name}</h2>
+                          <p className="text-xs lg:text-sm text-[var(--muted-ink)]">{recipeModalTarget.idol_name || recipeModalTarget.twitter_name}</p>
+                          <h2 className="text-xl font-black leading-tight text-[var(--ink)]">{getAnalysisPerfumeName(recipeModalTarget) || modalPersona?.name || recipeModalTarget.perfume_name}</h2>
                         </div>
                       </div>
                     )
@@ -1219,14 +1268,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                     <div className="space-y-4">
                       {/* 섹션 헤더 */}
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-gradient-to-br from-[#161925] to-[#161925] rounded-[12px] flex items-center justify-center border border-[#343A4C]">
-                          <Beaker size={14} className="text-[#E9E2D0]" />
+                        <div className="w-7 h-7 bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+                          <Beaker size={14} className="text-[var(--ink)]" />
                         </div>
-                        <span className="text-sm lg:text-base font-black text-[#A69F8D]">{t('customRecipe')}</span>
+                        <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">{t('customRecipe')}</span>
                       </div>
 
                       {/* 제품 타입 탭 */}
-                      <div className="flex gap-1 p-1 bg-[#1B1F2C] rounded-[12px]">
+                      <div className="flex gap-1 p-1 bg-[var(--soft)] rounded-[6px]">
                         {([
                           { key: '10ml' as const, label: t('perfumePerfumeLabel'), sub: t('perfumeSub10') },
                           { key: '50ml' as const, label: t('perfumeLabel50'), sub: t('perfumeSub50') },
@@ -1235,14 +1284,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           <button
                             key={tab.key}
                             onClick={() => setRecipeProductTab(tab.key)}
-                            className={`flex-1 py-2 px-1 rounded-[12px] text-center transition-all ${
+                            className={`flex-1 py-2 px-1 rounded-[6px] text-center transition-all ${
                               recipeProductTab === tab.key
-                                ? 'bg-[#12141D] border-2 border-[#262A38] font-black'
-                                : 'text-[#8B8578] hover:text-[#A69F8D]'
+                                ? 'bg-[var(--paper)] border border-[var(--line)] font-black'
+                                : 'text-[var(--muted-ink)] hover:text-[var(--muted-ink)]'
                             }`}
                           >
-                            <p className={`text-[11px] lg:text-[13px] sm:text-xs ${recipeProductTab === tab.key ? 'text-[#E9E2D0]' : ''}`}>{tab.label}</p>
-                            <p className={`text-[9px] sm:text-[10px] ${recipeProductTab === tab.key ? 'text-[#A69F8D] font-bold' : 'text-[#8B8578]'}`}>{tab.sub}</p>
+                            <p className={`text-[11px] lg:text-[13px] sm:text-xs ${recipeProductTab === tab.key ? 'text-[var(--ink)]' : ''}`}>{tab.label}</p>
+                            <p className={`text-[9px] sm:text-[10px] ${recipeProductTab === tab.key ? 'text-[var(--muted-ink)] font-bold' : 'text-[var(--muted-ink)]'}`}>{tab.sub}</p>
                           </button>
                         ))}
                       </div>
@@ -1264,7 +1313,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                                   initial={{ opacity: 0, x: -20 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: idx * 0.1 }}
-                                  className="relative overflow-hidden rounded-[12px] border-2 border-[#262A38]"
+                                  className="relative overflow-hidden rounded-[6px] border border-[var(--line)]"
                                 >
                                   {/* 배경 바 */}
                                   <div
@@ -1283,7 +1332,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                                   <div className="relative flex items-center gap-3 p-3">
                                     {/* 컬러 인디케이터 */}
                                     <div
-                                      className={`w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-sm lg:text-base border-2 ${isLight ? 'border-[#262A38]' : 'border-white/30'}`}
+                                      className={`w-10 h-10 rounded-[6px] flex items-center justify-center font-black text-sm lg:text-base border-2 ${isLight ? 'border-[var(--line)]' : 'border-white/30'}`}
                                       style={{
                                         backgroundColor: color,
                                         color: isLight ? '#292929' : 'white'
@@ -1294,14 +1343,14 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
                                     {/* 향료 정보 */}
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-black text-[#E9E2D0] truncate">{getLocalizedName(granule.id, granule.name)}</p>
-                                      <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{granule.id}</p>
+                                      <p className="font-black text-[var(--ink)] truncate">{getLocalizedName(granule.id, granule.name)}</p>
+                                      <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{granule.id}</p>
                                     </div>
 
                                     {/* 그램 수 표시 */}
-                                    <div className="flex flex-col items-center flex-shrink-0 bg-[#12141D]/80 rounded-[12px] px-2 py-1 border border-[#262A38]">
-                                      <span className="text-sm lg:text-base font-black text-[#A69F8D]">{gramsDisplay}g</span>
-                                      <Droplets size={12} className="text-[#8B8578]" />
+                                    <div className="flex flex-col items-center flex-shrink-0 bg-[var(--paper)]/80 rounded-[6px] px-2 py-1 border border-[var(--line)]">
+                                      <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">{gramsDisplay}g</span>
+                                      <Droplets size={12} className="text-[var(--muted-ink)]" />
                                     </div>
                                   </div>
                                 </motion.div>
@@ -1312,21 +1361,21 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       })()}
 
                       {/* 총 비율 + 총 그램 표시 */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#151823] to-[#151823] rounded-[12px] border border-[#262A38]">
-                        <span className="text-sm lg:text-base font-bold text-[#A69F8D]">{t('totalIngredient')}</span>
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-[6px] border border-[var(--line)]">
+                        <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">{t('totalIngredient')}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm lg:text-base font-bold text-[#8B8578]">
+                          <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">
                             {recipeModalTarget.confirmed_recipe.granules.reduce((sum, g) => sum + g.ratio, 0)}%
                           </span>
-                          <span className="text-lg font-black text-[#A69F8D]">
+                          <span className="text-lg font-black text-[var(--muted-ink)]">
                             {recipeProductTab === '10ml' ? '2' : recipeProductTab === '50ml' ? '10' : '5'}g
                           </span>
                         </div>
                       </div>
 
                       {/* 안내 메시지 */}
-                      <div className="p-3 bg-[#0C0E16] rounded-[12px] border border-[#262A38]">
-                        <p className="text-xs lg:text-sm text-[#A69F8D] text-center">
+                      <div className="p-3 bg-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
+                        <p className="text-xs lg:text-sm text-[var(--muted-ink)] text-center">
                           {t('recipeAdjusted')}
                         </p>
                       </div>
@@ -1353,10 +1402,10 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             {/* 분석 정보가 없는 경우 */}
                             {!persona?.mainScent && !persona?.categories && (
                               <div className="text-center py-8">
-                                <p className="text-[#8B8578] text-sm lg:text-base">{t('noDetailedInfo')}</p>
+                                <p className="text-[var(--muted-ink)] text-sm lg:text-base">{t('noDetailedInfo')}</p>
                                 <Link
                                   href={`/result?id=${recipeModalTarget.id}&from=mypage`}
-                                  className="inline-block mt-3 px-4 py-2 bg-[#161925] text-[#E9E2D0] text-sm lg:text-base font-bold rounded-[12px]"
+                                  className="inline-block mt-3 px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-bold rounded-[6px]"
                                 >
                                   {t('checkOnResultPage')}
                                 </Link>
@@ -1366,8 +1415,8 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         )
                       })()}
 
-                      <div className="mt-4 p-3 bg-[#151823] rounded-[12px] text-center">
-                        <p className="text-xs lg:text-sm text-[#8B8578]">
+                      <div className="mt-4 p-3 bg-[var(--soft)] rounded-[6px] text-center">
+                        <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                           {t('makeFeedbackRecipe')}
                         </p>
                       </div>
@@ -1376,11 +1425,11 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 </div>
 
                 {/* 모달 푸터 */}
-                <div className="px-5 py-4 border-t-2 border-[#262A38] bg-[#151823] flex-shrink-0">
+                <div className="px-5 py-4 border-t-2 border-[var(--line)] bg-[var(--soft)] flex-shrink-0">
                   <div className="flex gap-2">
                     <Link
                       href={`/result?id=${recipeModalTarget.id}&from=mypage`}
-                      className="flex-1 py-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] font-bold text-center hover:bg-[#1B1F2C] transition-colors"
+                      className="flex-1 py-3 bg-[var(--paper)] border border-[var(--line)] rounded-[6px] font-bold text-center hover:bg-[var(--soft)] transition-colors"
                       onClick={() => setRecipeModalTarget(null)}
                     >
                       {t('viewResult')}
@@ -1395,13 +1444,13 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           }}
                           disabled={discontinued}
                           title={discontinued ? tMypage('productDiscontinued') : undefined}
-                          className={`flex-[1.5] py-3 border-2 rounded-[12px] font-bold flex items-center justify-center gap-2 transition-colors ${
+                          className={`flex-[1.5] py-3 border-2 rounded-[6px] font-bold flex items-center justify-center gap-2 transition-colors ${
                             discontinued
-                              ? 'bg-[#232838] text-[#8B8578] border-[#262A38] cursor-not-allowed'
-                              : 'bg-[#F5EFE2] text-[#12141D] border-[#F5EFE2] hover:bg-[#FFFDF5]'
+                              ? 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)] cursor-not-allowed'
+                              : 'bg-[#F5EFE2] text-[var(--ink)] border-[#F5EFE2] hover:bg-[#FFFDF5]'
                           }`}
                         >
-                          <ShoppingBag size={18} className={discontinued ? 'text-[#8B8578]' : 'text-[#8B8578]'} />
+                          <ShoppingBag size={18} className={discontinued ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'} />
                           {discontinued ? tMypage('discontinuedShort') : t('purchase')}
                         </button>
                       )
@@ -1429,17 +1478,17 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] max-w-md w-full max-h-full flex flex-col overflow-hidden"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] max-w-md w-full max-h-full flex flex-col overflow-hidden"
               >
                 {/* 모달 헤더 */}
-                <div className="px-5 py-4 border-b-2 border-[#262A38] bg-gradient-to-r from-[#161925] to-[#161925] flex items-center justify-between flex-shrink-0">
-                  <h3 className="font-black text-lg text-[#E9E2D0] flex items-center gap-2">
-                    <Heart size={20} className="fill-[#E9E2D0]" />
+                <div className="px-5 py-4 border-b-2 border-[var(--line)] bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] flex items-center justify-between flex-shrink-0">
+                  <h3 className="font-black text-lg text-[var(--ink)] flex items-center gap-2">
+                    <Heart size={20} className="fill-[var(--ink)]" />
                     레이어링 퍼퓸 상세
                   </h3>
                   <button
                     onClick={() => setChemistryDetailTarget(null)}
-                    className="p-1 hover:bg-white/20 rounded-[12px] transition-colors text-[#E9E2D0]"
+                    className="p-1 hover:bg-white/20 rounded-[6px] transition-colors text-[var(--ink)]"
                   >
                     <X size={20} />
                   </button>
@@ -1449,7 +1498,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 <div className="p-5 overflow-y-auto flex-1 min-h-0 space-y-5">
                   {/* 듀얼 이미지 */}
                   <div className="flex items-center justify-center gap-3">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[12px] overflow-hidden border-2 border-[#343A4C] flex-shrink-0">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[6px] overflow-hidden border border-[var(--line)] flex-shrink-0">
                       {chemistryDetailTarget.characterA.user_image_url ? (
                         <img
                           src={chemistryDetailTarget.characterA.user_image_url}
@@ -1457,19 +1506,19 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#151823] to-[#151823] flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] flex items-center justify-center">
                           <span className="text-2xl">✨</span>
                         </div>
                       )}
                     </div>
 
                     <div className="flex flex-col items-center flex-shrink-0">
-                      <div className="w-8 h-8 bg-[#12141D] border-2 border-[#262A38] rounded-full flex items-center justify-center">
-                        <Heart className="w-4 h-4 text-[#E9E2D0] fill-[#E9E2D0]" />
+                      <div className="w-8 h-8 bg-[var(--paper)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                        <Heart className="w-4 h-4 text-[var(--ink)] fill-[var(--ink)]" />
                       </div>
                     </div>
 
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[12px] overflow-hidden border-2 border-[#343A4C] flex-shrink-0">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[6px] overflow-hidden border border-[var(--line)] flex-shrink-0">
                       {chemistryDetailTarget.characterB.user_image_url ? (
                         <img
                           src={chemistryDetailTarget.characterB.user_image_url}
@@ -1477,7 +1526,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#151823] to-[#151823] flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] flex items-center justify-center">
                           <span className="text-2xl">✨</span>
                         </div>
                       )}
@@ -1486,18 +1535,18 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
                   {/* 캐릭터 이름 */}
                   <div className="text-center">
-                    <h2 className="text-lg font-black text-[#E9E2D0] leading-tight">
+                    <h2 className="text-lg font-black text-[var(--ink)] leading-tight">
                       {chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
-                      <span className="text-[#8B8578] mx-1.5">x</span>
+                      <span className="text-[var(--muted-ink)] mx-1.5">x</span>
                       {chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
                     </h2>
                     {chemistryDetailTarget.chemistryTitle && (
-                      <p className="text-sm lg:text-base text-[#A69F8D] font-bold mt-1">
+                      <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold mt-1">
                         &quot;{chemistryDetailTarget.chemistryTitle}&quot;
                       </p>
                     )}
                     {chemistryDetailTarget.chemistryType && (
-                      <span className="inline-block mt-2 px-3 py-1 text-[10px] lg:text-[12px] font-black rounded-full bg-[#151823] text-[#A69F8D] border border-[#262A38]">
+                      <span className="inline-block mt-2 px-3 py-1 text-[10px] lg:text-[12px] font-black rounded-full bg-[var(--soft)] text-[var(--muted-ink)] border border-[var(--line)]">
                         {chemistryDetailTarget.chemistryType === 'milddang' && '밀당 케미'}
                         {chemistryDetailTarget.chemistryType === 'slowburn' && '슬로우번 케미'}
                         {chemistryDetailTarget.chemistryType === 'dalddal' && '달달 케미'}
@@ -1511,16 +1560,16 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   {(() => {
                     const personaA = chemistryDetailTarget.characterA.analysis_data?.matchingPerfumes?.[0]?.persona
                     return (
-                      <div className="bg-[#0C0E16] border-2 border-[#262A38] rounded-[12px] p-4">
+                      <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[6px] p-4">
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-full bg-[#161925] flex items-center justify-center">
-                            <span className="text-[#E9E2D0] text-[10px] lg:text-[12px] font-black">A</span>
+                          <div className="w-6 h-6 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                            <span className="text-[var(--ink)] text-[10px] lg:text-[12px] font-black">A</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">
+                            <p className="text-[10px] lg:text-[12px] text-[#5C564A] font-bold">
                               {chemistryDetailTarget.characterA.idol_name || chemistryDetailTarget.characterA.twitter_name}
                             </p>
-                            <p className="text-sm lg:text-base font-black text-[#E9E2D0] truncate">
+                            <p className="text-sm lg:text-base font-black text-[var(--ink)] truncate">
                               {getAnalysisPerfumeName(chemistryDetailTarget.characterA) || personaA?.name || chemistryDetailTarget.characterA.perfume_name}
                             </p>
                           </div>
@@ -1529,20 +1578,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           <div className="space-y-1.5">
                             {personaA.mainScent && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">TOP</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaA.mainScent === 'string' ? personaA.mainScent : personaA.mainScent.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">TOP</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaA.mainScent === 'string' ? personaA.mainScent : personaA.mainScent.name}</span>
                               </div>
                             )}
                             {personaA.subScent1 && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">MID</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaA.subScent1 === 'string' ? personaA.subScent1 : personaA.subScent1.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">MID</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaA.subScent1 === 'string' ? personaA.subScent1 : personaA.subScent1.name}</span>
                               </div>
                             )}
                             {personaA.subScent2 && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">BASE</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaA.subScent2 === 'string' ? personaA.subScent2 : personaA.subScent2.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">BASE</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaA.subScent2 === 'string' ? personaA.subScent2 : personaA.subScent2.name}</span>
                               </div>
                             )}
                           </div>
@@ -1555,16 +1604,16 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   {(() => {
                     const personaB = chemistryDetailTarget.characterB.analysis_data?.matchingPerfumes?.[0]?.persona
                     return (
-                      <div className="bg-[#0C0E16] border-2 border-[#262A38] rounded-[12px] p-4">
+                      <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[6px] p-4">
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-full bg-[#161925] flex items-center justify-center">
-                            <span className="text-[#E9E2D0] text-[10px] lg:text-[12px] font-black">B</span>
+                          <div className="w-6 h-6 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                            <span className="text-[var(--ink)] text-[10px] lg:text-[12px] font-black">B</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">
+                            <p className="text-[10px] lg:text-[12px] text-[#5C564A] font-bold">
                               {chemistryDetailTarget.characterB.idol_name || chemistryDetailTarget.characterB.twitter_name}
                             </p>
-                            <p className="text-sm lg:text-base font-black text-[#E9E2D0] truncate">
+                            <p className="text-sm lg:text-base font-black text-[var(--ink)] truncate">
                               {getAnalysisPerfumeName(chemistryDetailTarget.characterB) || personaB?.name || chemistryDetailTarget.characterB.perfume_name}
                             </p>
                           </div>
@@ -1573,20 +1622,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           <div className="space-y-1.5">
                             {personaB.mainScent && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">TOP</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaB.mainScent === 'string' ? personaB.mainScent : personaB.mainScent.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">TOP</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaB.mainScent === 'string' ? personaB.mainScent : personaB.mainScent.name}</span>
                               </div>
                             )}
                             {personaB.subScent1 && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">MID</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaB.subScent1 === 'string' ? personaB.subScent1 : personaB.subScent1.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">MID</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaB.subScent1 === 'string' ? personaB.subScent1 : personaB.subScent1.name}</span>
                               </div>
                             )}
                             {personaB.subScent2 && (
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#8B8578] w-8 flex-shrink-0">BASE</span>
-                                <span className="text-xs lg:text-sm text-[#A69F8D]">{typeof personaB.subScent2 === 'string' ? personaB.subScent2 : personaB.subScent2.name}</span>
+                                <span className="text-[9px] font-bold text-[#5C564A] w-8 flex-shrink-0">BASE</span>
+                                <span className="text-xs lg:text-sm text-[#1A1610]">{typeof personaB.subScent2 === 'string' ? personaB.subScent2 : personaB.subScent2.name}</span>
                               </div>
                             )}
                           </div>
@@ -1596,20 +1645,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   })()}
 
                   {/* 분석 일시 */}
-                  <p className="text-center text-[#8B8578] text-xs lg:text-sm">
+                  <p className="text-center text-[var(--muted-ink)] text-xs lg:text-sm">
                     {t('analyzedAt', { time: formatRelativeTime(chemistryDetailTarget.created_at) })}
                   </p>
                 </div>
 
                 {/* 모달 푸터 */}
-                <div className="px-5 py-4 border-t-2 border-[#262A38] bg-[#151823] flex-shrink-0">
+                <div className="px-5 py-4 border-t-2 border-[var(--line)] bg-[var(--soft)] flex-shrink-0">
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setChemistryDetailTarget(null)
                         handleViewChemistryResult(chemistryDetailTarget)
                       }}
-                      className="flex-1 py-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] font-bold text-center hover:bg-[#1B1F2C] transition-colors"
+                      className="flex-1 py-3 bg-[var(--paper)] border border-[var(--line)] rounded-[6px] font-bold text-center hover:bg-[var(--soft)] transition-colors"
                     >
                       {t('viewResult')}
                     </button>
@@ -1620,13 +1669,13 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       }}
                       disabled={isChemistryDiscontinued}
                       title={isChemistryDiscontinued ? tMypage('productDiscontinued') : undefined}
-                      className={`flex-[1.5] py-3 border-2 rounded-[12px] font-bold flex items-center justify-center gap-2 transition-colors ${
+                      className={`flex-[1.5] py-3 border-2 rounded-[6px] font-bold flex items-center justify-center gap-2 transition-colors ${
                         isChemistryDiscontinued
-                          ? 'bg-[#232838] text-[#8B8578] border-[#262A38] cursor-not-allowed'
-                          : 'bg-[#F5EFE2] text-[#12141D] border-[#F5EFE2] hover:bg-[#FFFDF5]'
+                          ? 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)] cursor-not-allowed'
+                          : 'bg-[#F5EFE2] text-[var(--ink)] border-[#F5EFE2] hover:bg-[#FFFDF5]'
                       }`}
                     >
-                      <ShoppingBag size={18} className={isChemistryDiscontinued ? 'text-[#8B8578]' : 'text-[#8B8578]'} />
+                      <ShoppingBag size={18} className={isChemistryDiscontinued ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'} />
                       {isChemistryDiscontinued ? tMypage('discontinuedShort') : t('purchase')}
                     </button>
                   </div>
@@ -1652,20 +1701,20 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-6 max-w-xs w-full"
+                className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 max-w-xs w-full"
               >
                 <div className="text-center">
                   {cartResultModal.type === 'success' ? (
                     <>
                       {/* 성공 아이콘 */}
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#161925] to-[#161925] rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
-                        <ShoppingCart size={36} className="text-[#E9E2D0]" />
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+                        <ShoppingCart size={36} className="text-[var(--ink)]" />
                       </div>
                       <h3 className="text-xl font-black mb-2">{t('addedToCart')}</h3>
-                      <p className="text-3xl font-black text-[#A69F8D] mb-1">
+                      <p className="text-3xl font-black text-[var(--muted-ink)] mb-1">
                         {cartResultModal.added}{t('itemsUnit')}
                       </p>
-                      <p className="text-sm lg:text-base text-[#8B8578] mb-4">
+                      <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-4">
                         {cartResultModal.duplicates && cartResultModal.duplicates > 0
                           ? t('alreadyInCart', { count: cartResultModal.duplicates })
                           : t('addedToCartDesc')}
@@ -1673,7 +1722,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       <div className="flex gap-3 mt-6">
                         <button
                           onClick={() => setCartResultModal(null)}
-                          className="flex-1 py-3 bg-[#1B1F2C] text-[#A69F8D] rounded-[12px] font-bold hover:bg-[#232838] transition-colors border-2 border-[#262A38]"
+                          className="flex-1 py-3 bg-[var(--soft)] text-[var(--muted-ink)] rounded-[6px] font-bold hover:bg-[var(--soft)] transition-colors border border-[var(--line)]"
                         >
                           {t('continueShopping')}
                         </button>
@@ -1682,7 +1731,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             setCartResultModal(null)
                             router.push('/mypage?tab=cart')
                           }}
-                          className="flex-1 py-3 bg-[#F5EFE2] text-[#12141D] rounded-[12px] font-bold hover:bg-[#FFFDF5] transition-colors border-2 border-[#F5EFE2] flex items-center justify-center gap-1.5"
+                          className="flex-1 py-3 bg-[#F5EFE2] text-[var(--ink)] rounded-[6px] font-bold hover:bg-[#FFFDF5] transition-colors border-2 border-[#F5EFE2] flex items-center justify-center gap-1.5"
                         >
                           <ShoppingCart size={16} />
                           {t('goToCart')}
@@ -1692,16 +1741,16 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                   ) : (
                     <>
                       {/* 에러 아이콘 */}
-                      <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-[12px] flex items-center justify-center border-2 border-[#262A38]">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-[6px] flex items-center justify-center border border-[var(--line)]">
                         <X size={36} className="text-red-500" />
                       </div>
                       <h3 className="text-xl font-black mb-2">{t('errorOccurred')}</h3>
-                      <p className="text-sm lg:text-base text-[#8B8578] mb-6">
+                      <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-6">
                         {cartResultModal.message}
                       </p>
                       <button
                         onClick={() => setCartResultModal(null)}
-                        className="w-full py-3 bg-[#1B1F2C] text-[#A69F8D] rounded-[12px] font-bold hover:bg-[#232838] transition-colors border-2 border-[#262A38]"
+                        className="w-full py-3 bg-[var(--soft)] text-[var(--muted-ink)] rounded-[6px] font-bold hover:bg-[var(--soft)] transition-colors border border-[var(--line)]"
                       >
                         {t('close')}
                       </button>

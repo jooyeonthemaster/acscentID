@@ -48,8 +48,8 @@ export function GraduationStep6({
                 <div className="w-full max-w-sm flex items-center justify-center gap-3">
                     {/* 원본 이미지 */}
                     <div className="flex-1">
-                        <div className="text-xs lg:text-sm text-center text-[#8B8578] mb-2 font-medium">{t('step6.original')}</div>
-                        <div className="aspect-[3/4] rounded-[12px] overflow-hidden border-2 border-[#262A38] bg-[#1B1F2C]">
+                        <div className="text-xs lg:text-sm text-center text-[var(--muted-ink)] mb-2 font-medium">{t('step6.original')}</div>
+                        <div className="aspect-[3/4] rounded-[6px] overflow-hidden border border-[var(--line)] bg-[var(--soft)]">
                             {imagePreview && (
                                 <Image
                                     src={imagePreview}
@@ -74,10 +74,10 @@ export function GraduationStep6({
 
                     {/* 변환된 이미지 */}
                     <div className="flex-1">
-                        <div className="text-xs lg:text-sm text-center text-[#8B8578] mb-2 font-medium">
+                        <div className="text-xs lg:text-sm text-center text-[var(--muted-ink)] mb-2 font-medium">
                             {hasTransformed ? t('step6.transformComplete') : t('step6.afterTransform')}
                         </div>
-                        <div className="aspect-[3/4] rounded-[12px] overflow-hidden border-2 border-[#B3B3B3] bg-gradient-to-br from-[#f8f4e8] to-[#151823]">
+                        <div className="aspect-[3/4] rounded-[6px] overflow-hidden border-2 border-[#B3B3B3] bg-gradient-to-br from-[var(--soft)] to-[var(--soft)]">
                             <AnimatePresence mode="wait">
                                 {isTransforming ? (
                                     <motion.div
@@ -88,7 +88,7 @@ export function GraduationStep6({
                                         className="w-full h-full flex flex-col items-center justify-center"
                                     >
                                         <Loader2 size={32} className="text-[#393939] animate-spin mb-2" />
-                                        <span className="text-xs lg:text-sm text-[#8B8578]">{t('step6.transforming')}</span>
+                                        <span className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('step6.transforming')}</span>
                                     </motion.div>
                                 ) : hasTransformed ? (
                                     <motion.div
@@ -113,7 +113,7 @@ export function GraduationStep6({
                                         className="w-full h-full flex flex-col items-center justify-center"
                                     >
                                         <ImageIcon size={32} className="text-[#B3B3B3]/50 mb-2" />
-                                        <span className="text-xs lg:text-sm text-[#8B8578]">{t('step6.preview')}</span>
+                                        <span className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('step6.preview')}</span>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -122,12 +122,12 @@ export function GraduationStep6({
                 </div>
 
                 {/* 안내 메시지 */}
-                <div className="w-full max-w-sm p-3 rounded-[12px] bg-gradient-to-br from-[#f8f4e8] to-[#151823] border border-[#B3B3B3]/20">
+                <div className="w-full max-w-sm p-3 rounded-[6px] bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] border border-[#B3B3B3]/20">
                     <div className="flex items-start gap-2">
                         <Sparkles size={16} className="text-[#B3B3B3] flex-shrink-0 mt-0.5" />
-                        <div className="text-xs lg:text-sm text-[#A69F8D]">
+                        <div className="text-xs lg:text-sm text-[var(--muted-ink)]">
                             <p className="font-semibold mb-1">{t('step6.aiTransformTitle')}</p>
-                            <p className="text-[#8B8578]">
+                            <p className="text-[var(--muted-ink)]">
                                 {t('step6.aiTransformDesc')}
                             </p>
                         </div>
@@ -143,7 +143,7 @@ export function GraduationStep6({
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleTransformImage}
                                 disabled={isTransforming || isSubmitting}
-                                className="w-full py-3.5 rounded-[12px] font-bold text-[#E9E2D0] shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3.5 rounded-[6px] font-bold text-[var(--ink)] shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                                 style={{ backgroundColor: GRADUATION_THEME.primary }}
                             >
                                 {isTransforming ? (
@@ -166,7 +166,7 @@ export function GraduationStep6({
                                     handleComplete()
                                 }}
                                 disabled={isSubmitting}
-                                className="w-full py-3 rounded-[12px] font-medium text-[#A69F8D] border-2 border-[#262A38] bg-[#12141D] hover:bg-[#151823] transition-all disabled:opacity-50"
+                                className="w-full py-3 rounded-[6px] font-medium text-[var(--muted-ink)] border border-[var(--line)] bg-[var(--paper)] hover:bg-[var(--soft)] transition-all disabled:opacity-50"
                             >
                                 {t('step6.startWithOriginal')}
                             </motion.button>
@@ -179,7 +179,7 @@ export function GraduationStep6({
                             whileTap={{ scale: 0.98 }}
                             onClick={handleComplete}
                             disabled={isSubmitting}
-                            className="w-full py-3.5 rounded-[12px] font-bold text-[#E9E2D0] shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full py-3.5 rounded-[6px] font-bold text-[var(--ink)] shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                             style={{ backgroundColor: GRADUATION_THEME.secondary }}
                         >
                             {isSubmitting ? (

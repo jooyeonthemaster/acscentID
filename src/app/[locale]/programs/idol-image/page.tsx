@@ -1,11 +1,7 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
-import { motion } from "framer-motion"
-import {
-  Star, Gift, Zap,
-  FileText, Camera, Sparkles, Palette, FileCheck,
-} from "lucide-react"
+import { Star } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTransition } from "@/contexts/TransitionContext"
@@ -18,7 +14,7 @@ import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
-import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { getReviewStats } from "@/lib/supabase/reviews"
@@ -26,35 +22,31 @@ import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice } from "@/types/cart"
 import { useProductDisplayName } from '@/hooks/useAdminContent'
+import { useCuratedGallery } from '@/hooks/useCuratedGallery'
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
-  }
-}
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
-  }
-}
+import { FeatureStrip } from "@/components/public/FeatureStrip"
+import { SectionHeading } from "@/components/public/SectionHeading"
+import { ProcessSteps } from "@/components/public/ProcessSteps"
+import { EvidenceMediaGrid } from "@/components/public/EvidenceMediaGrid"
+import { MediaCopySection } from "@/components/public/MediaCopySection"
+import { SizeComparison } from "@/components/public/SizeComparison"
+import { DeliveryPackageSection } from "@/components/public/DeliveryPackageSection"
+import { FAQSection } from "@/components/public/FAQSection"
+import { ClosingCta } from "@/components/public/ClosingCta"
 
 export default function IdolImagePage() {
   const { user, unifiedUser, loading } = useAuth()
   const { getOption } = useProductPricing()
-  const idolOpt = getOption('image_analysis', '10ml')
-  const idolDiscount = (idolOpt?.price && idolOpt.original_price && idolOpt.original_price > idolOpt.price)
-    ? Math.round(((idolOpt.original_price - idolOpt.price) / idolOpt.original_price) * 100)
+  const idolOpt10 = getOption('image_analysis', '10ml')
+  const idolOpt50 = getOption('image_analysis', '50ml')
+  const idolDiscount = (idolOpt10?.price && idolOpt10.original_price && idolOpt10.original_price > idolOpt10.price)
+    ? Math.round(((idolOpt10.original_price - idolOpt10.price) / idolOpt10.original_price) * 100)
     : null
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()
+  const te = useTranslations('editorialDetail')
+  const tg = useTranslations('detailGallery')
   const productName = useProductDisplayName('idol-image', t('products.idolImage'))
 
   // 리뷰 통계 (히어로 ReviewTrigger용)
@@ -91,6 +83,17 @@ export default function IdolImagePage() {
     }
   }
 
+  // 큐레이션 갤러리 — 승인 이미지 우선, 관리자 이미지는 중복 제거 후 뒤에
+  const gallery = useCuratedGallery('idol-image')
+  const galleryMeta: DetailHeroImageMeta[] = gallery.images.map((image) =>
+    image.curated
+      ? {
+          badge: image.curated.provenance === 'actual' ? te('common.badgeActual') : te('common.badgeVisual'),
+          caption: tg(`${image.curated.id}.caption`),
+        }
+      : {},
+  )
+
   const handleStartClick = () => {
     if (loading) return
     if (isLoggedIn) {
@@ -105,6 +108,9 @@ export default function IdolImagePage() {
     setShowAuthModal(true)
   }
 
+  const price10 = idolOpt10?.price ?? 24000
+  const price50 = idolOpt50?.price ?? 48000
+
   const heroProps = {
     productSlug: "idol-image",
     title: productName,
@@ -116,6 +122,12 @@ export default function IdolImagePage() {
       { label: t('programs.breadcrumbPrograms'), href: '/' },
       { label: productName },
     ],
+    images: gallery.controlled,
+    imageMeta: galleryMeta,
+    badgeClassName: "bg-[var(--accent-ai)] text-[#171717]",
+    secondaryBadges: (
+      <span className="text-xs font-bold text-[var(--muted-ink)]">{te('idol.eyebrowNote')}</span>
+    ),
     meta: (
       <ReviewTrigger
         averageRating={reviewStats?.average_rating || 4.9}
@@ -126,25 +138,81 @@ export default function IdolImagePage() {
       />
     ),
     price: (
-      <div className="flex items-end gap-2">
-        <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(idolOpt?.price ?? 24000)}~</span>
-        {idolOpt?.original_price && idolOpt.original_price > idolOpt.price && (
+      <div className="flex items-baseline gap-2">
+        <span className="text-[26px] font-black leading-none text-[var(--ink)] lg:text-[29px]">
+          {t('currency.symbol')}{formatPrice(price10)}
+        </span>
+        <span className="text-[13px] text-[var(--muted-ink)]">{te('common.priceFrom')}</span>
+        {idolOpt10?.original_price && idolOpt10.original_price > idolOpt10.price && (
           <>
-            <span className="text-xs lg:text-sm text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(idolOpt.original_price)}</span>
+            <span className="text-xs text-[var(--muted-ink)] line-through">
+              {t('currency.symbol')}{formatPrice(idolOpt10.original_price)}
+            </span>
             {idolDiscount !== null && (
-              <span className="rounded-[12px] bg-red-500 px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{idolDiscount}% OFF</span>
+              <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] font-black text-white">
+                {idolDiscount}% OFF
+              </span>
             )}
           </>
         )}
       </div>
     ),
-    infoIcon: <Star size={14} className="fill-[#1A1610] text-[#1A1610]" />,
-    infoItems: [t('programs.sizeSelectable'), t('shipping.estimated')],
+    infoIcon: <Star size={14} className="fill-[var(--ink)] text-[var(--ink)]" />,
+    // 프로그램은 분석 후 구매 흐름 — 용량은 결과 확인 뒤 선택하므로 정보성 표로만 안내
+    panelExtra: (
+      <SizeComparison
+        headers={[te('common.sizeHeaderOption'), te('idol.sizeHeaderNote'), te('common.sizeHeaderPrice')]}
+        rows={[
+          { option: '10ml', note: te('idol.sizeTenNote'), price: `${t('currency.symbol')}${formatPrice(price10)}` },
+          { option: '50ml', note: te('idol.sizeFiftyNote'), price: `${t('currency.symbol')}${formatPrice(price50)}` },
+        ]}
+        className="mt-5 border-t border-[var(--line)] [&>div:first-child]:min-h-0"
+      />
+    ),
     cta: {
       onClick: handleStartClick,
       disabled: loading,
       label: pageContent.ctaLabel,
-      hint: t('programs.hint'),
+      hint: te('idol.ctaHint'),
+    },
+  }
+
+  const evidence = {
+    tenPouch: {
+      src: '/images/product-detail/ai-10ml-pouch-bright.png',
+      alt: tg('aiTenPouch.alt'),
+      badge: te('common.badgeActual'),
+      caption: te('idol.reportEvidence1'),
+    },
+    fiftyFullSet: {
+      src: '/images/product-detail/ai-50ml-full-set-8056-square.png',
+      alt: tg('aiFiftyFullSet.alt'),
+      badge: te('common.badgeActual'),
+      caption: te('idol.reportEvidence2'),
+    },
+    tenReport: {
+      src: '/images/product-detail/ai-10ml-report-square.png',
+      alt: tg('aiTenReport.alt'),
+      badge: te('idol.sizeEvidence1Badge'),
+      caption: te('idol.sizeEvidence1'),
+    },
+    fiftyReport: {
+      src: '/images/product-detail/ai-50ml-report-square.png',
+      alt: tg('aiFiftyReport.alt'),
+      badge: te('idol.sizeEvidence2Badge'),
+      caption: te('idol.sizeEvidence2'),
+    },
+    outerBox: {
+      src: '/images/product-detail/shipping-outer-box-square.png',
+      alt: tg('shippingOuterBox.alt'),
+      badge: te('common.outerBoxTitle'),
+      caption: te('common.outerBoxCaption'),
+    },
+    whiteOpen: {
+      src: '/images/product-detail/shipping-white-open-square.png',
+      alt: tg('shippingWhiteOpen.alt'),
+      badge: te('common.innerBoxTitle'),
+      caption: te('common.innerBoxCaption'),
     },
   }
 
@@ -154,116 +222,119 @@ export default function IdolImagePage() {
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
         <div data-admin-editable="detail_html">
-          {/* ============================================
-              Feature Bar - 검은 배경
-          ============================================ */}
-          <section className="py-6 px-4 bg-[#FDFAF1]">
-            <div className="w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-[#1A1610]">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.features.aiAnalysis')}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Palette size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.features.customPerfume')}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <FileCheck size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.features.analysisReport')}</span>
-                </div>
-              </div>
+          {/* 핵심 특징 스트립 — 다크 대비 밴드 */}
+          <FeatureStrip
+            items={[te('idol.feature1'), te('idol.feature2'), te('idol.feature3')]}
+          />
+
+          {/* 소개 + 진행 과정 */}
+          <section className="bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
+            <SectionHeading
+              kicker={te('idol.introKicker')}
+              title={<span className="whitespace-pre-line">{te('idol.introTitle')}</span>}
+              lead={te('idol.introLead')}
+            />
+            <ProcessSteps
+              steps={[
+                { title: te('idol.step1Title'), description: te('idol.step1Desc') },
+                { title: te('idol.step2Title'), description: te('idol.step2Desc') },
+                { title: te('idol.step3Title'), description: te('idol.step3Desc') },
+                { title: te('idol.step4Title'), description: te('idol.step4Desc') },
+              ]}
+            />
+          </section>
+
+          {/* 인쇄 리포트 — 연회색 밴드 */}
+          <section className="border-y border-[var(--line)] bg-[#F1F1EC] px-5 py-16 lg:px-6 lg:py-28">
+            <MediaCopySection
+              media={<EvidenceMediaGrid items={[evidence.tenPouch, evidence.fiftyFullSet]} />}
+              kicker={te('idol.reportKicker')}
+              title={<span className="whitespace-pre-line">{te('idol.reportTitle')}</span>}
+              lead={te('idol.reportLead')}
+              detailList={[
+                { term: te('idol.reportItem1Term'), description: te('idol.reportItem1Desc') },
+                { term: te('idol.reportItem2Term'), description: te('idol.reportItem2Desc') },
+                { term: te('idol.reportItem3Term'), description: te('idol.reportItem3Desc') },
+              ]}
+            />
+          </section>
+
+          {/* 분석 결과 미리보기 — 기존 기능 유지 */}
+          <section className="bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-24">
+            <SectionHeading
+              kicker={t('programs.resultPreview.badge')}
+              title={t('programs.resultPreview.title')}
+              lead={<span className="whitespace-pre-line">{t('programs.resultPreview.description')}</span>}
+            />
+            <div className="mx-auto w-full max-w-[860px]">
+              <AnalysisPreviewPlayer
+                colors={['#9F9F9F', '#C0C0C0', '#292929']}
+                keywords={[
+                  t('programs.detail.idolImage.previewKeyword1'),
+                  t('programs.detail.idolImage.previewKeyword2'),
+                  t('programs.detail.idolImage.previewKeyword3'),
+                ]}
+                moodScore={87}
+                perfumeName={`AC'SCENT 27\n${t('programs.detail.idolImage.previewPerfumeName')}`}
+                topNotes={t('programs.detail.idolImage.previewTopNotes')}
+                middleNotes={t('programs.detail.idolImage.previewMiddleNotes')}
+                baseNotes={t('programs.detail.idolImage.previewBaseNotes')}
+              />
+              <p className="mt-3 text-center text-xs text-[var(--muted-ink)]">
+                {t('programs.previewCaption')}
+              </p>
             </div>
           </section>
 
-          {/* ============================================
-              진행 과정
-          ============================================ */}
-          <section className="py-12 px-4 bg-[#FDFAF1]">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-              className="w-full"
+          {/* 용량 비교 */}
+          <section className="border-t border-[var(--line)] bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
+            <MediaCopySection
+              reverse
+              media={<EvidenceMediaGrid items={[evidence.tenReport, evidence.fiftyReport]} />}
+              kicker={te('idol.sizeKicker')}
+              title={<span className="whitespace-pre-line">{te('idol.sizeTitle')}</span>}
+              lead={te('idol.sizeLead')}
             >
-              <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
-                  {t('programs.process.badge')}
-                </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
-                  {t('programs.process.title')}
-                </motion.h2>
-              </div>
-
-              <div className="relative">
-                <div className="grid grid-cols-2 gap-4 relative z-10">
-                  {[
-                    { step: "01", title: t('programs.process.step1Title'), desc: t('programs.process.step1Desc'), icon: Camera, color: "bg-[#EFE4C8]" },
-                    { step: "02", title: t('programs.process.step2Title'), desc: t('programs.process.step2Desc'), icon: FileText, color: "bg-[#EFE4C8]" },
-                    { step: "03", title: t('programs.process.step3Title'), desc: t('programs.process.step3Desc'), icon: Zap, color: "bg-[#EFE4C8]" },
-                    { step: "04", title: t('programs.process.step4Title'), desc: t('programs.process.step4Desc'), icon: Gift, color: "bg-[#EFE4C8]" },
-                  ].map((item, idx) => (
-                    <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
-                      <div className={`w-14 h-14 ${item.color} border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mb-2`}>
-                        <item.icon size={24} className="text-[#1A1610]" />
-                      </div>
-                      <span className="text-xl font-black text-[#B5A582] mb-1">{item.step}</span>
-                      <h3 className="text-sm lg:text-base font-black text-[#1A1610] mb-0.5">{item.title}</h3>
-                      <p className="text-[11px] lg:text-[13px] text-[#5C564A]">{item.desc}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+              <SizeComparison
+                headers={[te('common.sizeHeaderOption'), te('idol.sizeHeaderNote'), te('common.sizeHeaderPrice')]}
+                rows={[
+                  { option: '10ml', note: te('idol.sizeTenNote'), price: `${t('currency.symbol')}${formatPrice(price10)}` },
+                  { option: '50ml', note: te('idol.sizeFiftyNote'), price: `${t('currency.symbol')}${formatPrice(price50)}` },
+                ]}
+              />
+            </MediaCopySection>
           </section>
 
-          {/* ============================================
-              분석 결과 미리보기
-          ============================================ */}
-          <section className="py-12 px-4 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-              className="w-full"
-            >
-              <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
-                  {t('programs.resultPreview.badge')}
-                </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-xl font-black text-[#1A1610] mb-3 break-keep">
-                  {t('programs.resultPreview.title')}
-                </motion.h2>
-                <motion.p variants={fadeInUp} className="text-sm lg:text-base text-[#5C564A] whitespace-pre-line">
-                  {t('programs.resultPreview.description')}
-                </motion.p>
-              </div>
+          {/* 배송 안내 — 다크 밴드 */}
+          <DeliveryPackageSection
+            media={[evidence.outerBox, evidence.whiteOpen]}
+            kicker={te('common.deliveryKicker')}
+            title={<span className="whitespace-pre-line">{te('idol.deliveryTitle')}</span>}
+            lead={te('idol.deliveryLead')}
+            packageList={[
+              { title: te('idol.package1Title'), description: te('idol.package1Desc') },
+              { title: te('idol.package2Title'), description: te('idol.package2Desc') },
+              { title: te('idol.package3Title'), description: te('idol.package3Desc') },
+            ]}
+            deliveryFlow={[
+              { title: te('idol.flow1Title'), description: te('idol.flow1Desc') },
+              { title: te('idol.flow2Title'), description: te('idol.flow2Desc') },
+              { title: te('idol.flow3Title'), description: te('idol.flow3Desc') },
+              { title: te('idol.flow4Title'), description: te('idol.flow4Desc') },
+            ]}
+          />
 
-              {/* 결과 미리보기 - Remotion Player */}
-              <motion.div variants={fadeInUp} className="flex justify-center">
-                <div className="w-full">
-                  <AnalysisPreviewPlayer
-                    colors={['#9F9F9F', '#C0C0C0', '#292929']}
-                    keywords={[
-                      t('programs.detail.idolImage.previewKeyword1'),
-                      t('programs.detail.idolImage.previewKeyword2'),
-                      t('programs.detail.idolImage.previewKeyword3'),
-                    ]}
-                    moodScore={87}
-                    perfumeName={`AC'SCENT 27\n${t('programs.detail.idolImage.previewPerfumeName')}`}
-                    topNotes={t('programs.detail.idolImage.previewTopNotes')}
-                    middleNotes={t('programs.detail.idolImage.previewMiddleNotes')}
-                    baseNotes={t('programs.detail.idolImage.previewBaseNotes')}
-                  />
-                  <p className="text-center text-xs lg:text-sm text-[#8B8578] mt-3">
-                    {t('programs.previewCaption')}
-                  </p>
-                </div>
-              </motion.div>
-            </motion.div>
-          </section>
+          {/* FAQ */}
+          <FAQSection
+            kicker={te('common.faqKicker')}
+            title={te('common.faqTitle')}
+            items={[
+              { question: te('idol.faq1Q'), answer: te('idol.faq1A') },
+              { question: te('idol.faq2Q'), answer: te('idol.faq2A') },
+              { question: te('idol.faq3Q'), answer: te('idol.faq3A') },
+              { question: te('common.faqShippingQ'), answer: te('common.faqShippingA') },
+            ]}
+          />
         </div>
       )}
     </>
@@ -279,23 +350,35 @@ export default function IdolImagePage() {
     />
   )
 
+  const closingCta = (
+    <ClosingCta
+      kicker={te('idol.closingKicker')}
+      title={<span className="whitespace-pre-line">{te('idol.closingTitle')}</span>}
+      buttonLabel={te('idol.closingButton')}
+      onClick={handleStartClick}
+      disabled={loading}
+    />
+  )
+
   return (
     <InactiveProductGuard productSlug="idol-image">
     <ViewportSwitch
       mobile={
-        <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+        <main className="accent-ai relative min-h-screen bg-[var(--canvas)]">
           <Header />
           <ProgramAdminBridge productSlug="idol-image" />
           <UnifiedDetailHero {...heroProps} />
           {detailBody}
           {reviewSection}
+          {!isCustomMode && closingCta}
         </main>
       }
       desktop={
-        <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+        <main className="accent-ai relative min-h-screen bg-[var(--canvas)]">
           <DesktopDetailHero {...heroProps} />
-          <div className="mx-auto w-full max-w-[960px]">{detailBody}</div>
-          <div className="mx-auto w-full max-w-[960px]">{reviewSection}</div>
+          {detailBody}
+          <div className="mx-auto w-full max-w-[1240px]">{reviewSection}</div>
+          {!isCustomMode && closingCta}
         </main>
       }
     />

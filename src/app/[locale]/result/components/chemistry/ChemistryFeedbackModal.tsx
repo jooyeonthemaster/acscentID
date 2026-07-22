@@ -564,42 +564,42 @@ export function ChemistryFeedbackModal({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25 }}
-        className="relative w-full max-w-[455px] bg-[#0C0E16] rounded-t-[12px] border-t-2 border-x-2 border-[#262A38] max-h-[calc(100svh_-_env(safe-area-inset-top)_-_8px)] flex flex-col"
+        className="relative w-full max-w-[455px] bg-[var(--canvas)] rounded-t-[6px] border-t-2 border-x-2 border-[var(--line)] max-h-[calc(100svh_-_env(safe-area-inset-top)_-_8px)] flex flex-col"
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-5 py-2.5 border-b-2 border-[#262A38] bg-[#161925] rounded-t-[12px] flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-2.5 border-b-2 border-[var(--line)] bg-[var(--soft)] rounded-t-[6px] flex-shrink-0">
           <div>
-            <h2 className="text-base font-bold text-[#E9E2D0]">{t('chemistry.feedbackModal.title')}</h2>
+            <h2 className="text-base font-bold text-[var(--ink)]">{t('chemistry.feedbackModal.title')}</h2>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20">
-            <X size={16} className="text-[#E9E2D0]" />
+            <X size={16} className="text-[var(--ink)]" />
           </button>
         </div>
 
         {/* 진행 표시 — A/B 스텝 인디케이터 */}
         {(isFormA || isFormB) && (
-          <div className="px-4 py-2 border-b-2 border-[#262A38] bg-[#0C0E16] flex-shrink-0">
+          <div className="px-4 py-2 border-b-2 border-[var(--line)] bg-[var(--canvas)] flex-shrink-0">
             <div className="flex gap-2">
               <button
                 onClick={() => goToStep('formA')}
-                className={`min-w-0 flex-1 rounded-[12px] p-2 border transition-all text-left ${isFormA ? 'border-[#262A38] bg-[#151823]' : 'border-[#262A38] bg-[#12141D] opacity-60 hover:opacity-80 cursor-pointer'}`}
+                className={`min-w-0 flex-1 rounded-[6px] p-2 border transition-all text-left ${isFormA ? 'border-[var(--line)] bg-[var(--soft)]' : 'border-[var(--line)] bg-[var(--paper)] opacity-60 hover:opacity-80 cursor-pointer'}`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-base">🌙</span>
-                  {!isFormA && <span className="text-xs lg:text-sm text-[#8B8578] font-medium">✓ {t('chemistry.feedbackModal.completedShort')}</span>}
+                  {!isFormA && <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium">✓ {t('chemistry.feedbackModal.completedShort')}</span>}
                 </div>
-                <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormA ? 'text-[#A69F8D]' : 'text-[#8B8578]'}`}>{characterAName}</span>
-                <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormA ? 'text-[#8B8578]' : 'text-[#8B8578]'}`}>{perfumeAName || perfumeAId || "AC'SCENT"}</span>
+                <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormA ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{characterAName}</span>
+                <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormA ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{perfumeAName || perfumeAId || "AC'SCENT"}</span>
               </button>
               <button
                 onClick={() => goToStep('formB')}
-                className={`min-w-0 flex-1 rounded-[12px] p-2 border transition-all text-left ${isFormB ? 'border-[#262A38] bg-[#151823]' : 'border-[#262A38] bg-[#12141D] opacity-60 hover:opacity-80 cursor-pointer'}`}
+                className={`min-w-0 flex-1 rounded-[6px] p-2 border transition-all text-left ${isFormB ? 'border-[var(--line)] bg-[var(--soft)]' : 'border-[var(--line)] bg-[var(--paper)] opacity-60 hover:opacity-80 cursor-pointer'}`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-base">☀️</span>
                 </div>
-                <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormB ? 'text-[#A69F8D]' : 'text-[#8B8578]'}`}>{characterBName}</span>
-                <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormB ? 'text-[#8B8578]' : 'text-[#8B8578]'}`}>{perfumeBName || perfumeBId || "AC'SCENT"}</span>
+                <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormB ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{characterBName}</span>
+                <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormB ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{perfumeBName || perfumeBId || "AC'SCENT"}</span>
               </button>
             </div>
           </div>
@@ -619,14 +619,14 @@ export function ChemistryFeedbackModal({
               >
                 {/* 만족 여부 — 첫 질문 */}
                 <div>
-                  <p className="text-sm lg:text-base font-bold text-[#E9E2D0] mb-2.5">{t('chemistry.feedbackModal.question')}</p>
+                  <p className="text-sm lg:text-base font-bold text-[var(--ink)] mb-2.5">{t('chemistry.feedbackModal.question')}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: true }))}
-                      className={`p-3 rounded-[12px] border text-center transition-all ${
+                      className={`p-3 rounded-[6px] border text-center transition-all ${
                         currentTaste.satisfied
-                          ? 'border-[#262A38] bg-[#151823] -translate-x-[1px] -translate-y-[1px]'
-                          : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38]'
+                          ? 'border-[var(--line)] bg-[var(--soft)] -translate-x-[1px] -translate-y-[1px]'
+                          : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                       }`}
                     >
                       <span className="text-2xl block mb-1">😍</span>
@@ -634,10 +634,10 @@ export function ChemistryFeedbackModal({
                     </button>
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: false }))}
-                      className={`p-3 rounded-[12px] border text-center transition-all ${
+                      className={`p-3 rounded-[6px] border text-center transition-all ${
                         !currentTaste.satisfied
-                          ? 'border-[#262A38] bg-[#151823] -translate-x-[1px] -translate-y-[1px]'
-                          : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38]'
+                          ? 'border-[var(--line)] bg-[var(--soft)] -translate-x-[1px] -translate-y-[1px]'
+                          : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                       }`}
                     >
                       <span className="text-2xl block mb-1">🔧</span>
@@ -657,21 +657,21 @@ export function ChemistryFeedbackModal({
                     >
                       {/* 유지 비율 슬라이더 */}
                       <TasteQuestion number={1} title={t('chemistry.feedbackModal.retentionTitle')}>
-                        <div className="bg-[#12141D] rounded-[12px] p-4 border border-[#262A38]">
-                          <div className="flex justify-between text-xs lg:text-sm font-medium text-[#8B8578] mb-3">
+                        <div className="bg-[var(--paper)] rounded-[6px] p-4 border border-[var(--line)]">
+                          <div className="flex justify-between text-xs lg:text-sm font-medium text-[var(--muted-ink)] mb-3">
                             <span>🌱 {t('chemistry.feedbackModal.newCompletely')}</span>
                             <span>{t('chemistry.feedbackModal.keepAlmost')} ✨</span>
                           </div>
                           <input
                             type="range" min={0} max={90} step={10} value={Math.min(currentTaste.retention, 90)}
                             onChange={(e) => setCurrentTaste(prev => ({ ...prev, retention: Number(e.target.value) }))}
-                            className="w-full h-3 bg-gradient-to-r from-[#232838] via-[#232838] to-[#232838] rounded-full appearance-none cursor-pointer
+                            className="w-full h-3 bg-gradient-to-r from-[var(--soft)] via-[var(--soft)] to-[var(--soft)] rounded-full appearance-none cursor-pointer
                               [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8
-                              [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#12141D] [&::-webkit-slider-thumb]:border
-                              [&::-webkit-slider-thumb]:border-[#262A38] [&::-webkit-slider-thumb]:[&::-webkit-slider-thumb]:cursor-pointer"
+                              [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--paper)] [&::-webkit-slider-thumb]:border
+                              [&::-webkit-slider-thumb]:border-[var(--line)] [&::-webkit-slider-thumb]:[&::-webkit-slider-thumb]:cursor-pointer"
                           />
                           <div className="text-center mt-3">
-                            <span className="inline-block px-3 py-1 bg-[#1B1F2C] rounded-full text-xs lg:text-sm font-medium text-[#A69F8D]">
+                            <span className="inline-block px-3 py-1 bg-[var(--soft)] rounded-full text-xs lg:text-sm font-medium text-[var(--muted-ink)]">
                               {t('chemistry.feedbackModal.retentionSummary', { percent: currentTaste.retention })}
                             </span>
                           </div>
@@ -684,7 +684,7 @@ export function ChemistryFeedbackModal({
                           value={currentTaste.feedbackGood}
                           onChange={(e) => setCurrentTaste(prev => ({ ...prev, feedbackGood: e.target.value }))}
                           placeholder={t('chemistry.feedbackModal.feedbackGoodPlaceholder')}
-                          className="w-full h-16 px-4 py-3 text-base border border-[#262A38] rounded-[12px] bg-[#12141D] outline-none resize-none transition-all"
+                          className="w-full h-16 px-4 py-3 text-base border border-[var(--line)] rounded-[6px] bg-[var(--paper)] outline-none resize-none transition-all"
                           maxLength={200}
                         />
                       </TasteQuestion>
@@ -695,7 +695,7 @@ export function ChemistryFeedbackModal({
                           value={currentTaste.feedbackWish}
                           onChange={(e) => setCurrentTaste(prev => ({ ...prev, feedbackWish: e.target.value }))}
                           placeholder={t('chemistry.feedbackModal.feedbackWishPlaceholder')}
-                          className="w-full h-16 px-4 py-3 text-base border border-[#262A38] rounded-[12px] bg-[#12141D] outline-none resize-none transition-all"
+                          className="w-full h-16 px-4 py-3 text-base border border-[var(--line)] rounded-[6px] bg-[var(--paper)] outline-none resize-none transition-all"
                           maxLength={200}
                         />
                       </TasteQuestion>
@@ -707,15 +707,15 @@ export function ChemistryFeedbackModal({
                             <button
                               key={opt.id}
                               onClick={() => setCurrentTaste(prev => ({ ...prev, intensity: opt.id }))}
-                              className={`p-3 rounded-[12px] border text-center transition-all ${
+                              className={`p-3 rounded-[6px] border text-center transition-all ${
                                 currentTaste.intensity === opt.id
-                                  ? 'border-[#F5EFE2] bg-[#F5EFE2] text-[#12141D] -translate-x-[1px] -translate-y-[1px]'
-                                  : 'border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:border-[#262A38]'
+                                  ? 'border-[var(--line)] bg-[var(--soft)] text-[var(--ink)] -translate-x-[1px] -translate-y-[1px]'
+                                  : 'border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:border-[var(--line)]'
                               }`}
                             >
                               <span className="text-lg block mb-1">{opt.emoji}</span>
                               <span className="text-xs lg:text-sm font-medium block">{opt.label}</span>
-                              <span className="text-[9px] text-[#8B8578] block mt-0.5">{opt.sub}</span>
+                              <span className="text-[9px] text-[var(--muted-ink)] block mt-0.5">{opt.sub}</span>
                             </button>
                           ))}
                         </div>
@@ -725,7 +725,7 @@ export function ChemistryFeedbackModal({
                 </AnimatePresence>
 
                 {error && (
-                  <div className="p-3 bg-red-100 border border-red-400 rounded-[12px]">
+                  <div className="p-3 bg-red-100 border border-red-400 rounded-[6px]">
                     <p className="text-xs lg:text-sm font-medium text-red-700">{error}</p>
                   </div>
                 )}
@@ -734,41 +734,41 @@ export function ChemistryFeedbackModal({
 
             {step === 'generating' && (
               <motion.div key="gen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 px-5">
-                <div className="w-14 h-14 border-4 border-[#343A4C] border-t-[#262A38] rounded-[12px] animate-spin mb-4" />
-                <p className="text-sm lg:text-base font-bold text-[#E9E2D0]">{t('chemistry.feedbackModal.generatingTitle')}</p>
-                <p className="text-xs lg:text-sm text-[#8B8578] mt-1">{t('chemistry.feedbackModal.generatingSubtitle')}</p>
+                <div className="w-14 h-14 border-4 border-[var(--line)] border-t-[var(--line)] rounded-[6px] animate-spin mb-4" />
+                <p className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('chemistry.feedbackModal.generatingTitle')}</p>
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-1">{t('chemistry.feedbackModal.generatingSubtitle')}</p>
               </motion.div>
             )}
 
             {step === 'result' && result && (
               <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                 {/* A/B 탭 — sticky로 헤더 아래 고정 */}
-                <div className="sticky top-0 z-20 bg-[#12141D] border-b-2 border-[#1E222E] px-5 pt-3 pb-3 -mx-0">
+                <div className="sticky top-0 z-20 bg-[var(--paper)] border-b-2 border-[var(--line)] px-5 pt-3 pb-3 -mx-0">
                   <div className="flex gap-2">
                     {!tasteA.satisfied && (
                       <button
                         onClick={() => { setResultTab('A'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                        className={`flex-1 py-2.5 rounded-[12px] border text-center transition-all ${
+                        className={`flex-1 py-2.5 rounded-[6px] border text-center transition-all ${
                           resultTab === 'A'
-                            ? 'border-[#262A38] bg-[#151823] font-bold text-[#A69F8D]'
-                            : 'border-[#262A38] bg-[#12141D] text-[#8B8578]'
+                            ? 'border-[var(--line)] bg-[var(--soft)] font-bold text-[var(--muted-ink)]'
+                            : 'border-[var(--line)] bg-[var(--paper)] text-[var(--muted-ink)]'
                         }`}
                       >
                         <span className="text-xs lg:text-sm font-medium">🌙 {characterAName}</span>
-                        {selectedA && <span className="text-[#8B8578] ml-1 text-[10px] lg:text-[12px]">✓</span>}
+                        {selectedA && <span className="text-[var(--muted-ink)] ml-1 text-[10px] lg:text-[12px]">✓</span>}
                       </button>
                     )}
                     {!tasteB.satisfied && (
                       <button
                         onClick={() => { setResultTab('B'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                        className={`flex-1 py-2.5 rounded-[12px] border text-center transition-all ${
+                        className={`flex-1 py-2.5 rounded-[6px] border text-center transition-all ${
                           resultTab === 'B'
-                            ? 'border-[#262A38] bg-[#151823] font-bold text-[#A69F8D]'
-                            : 'border-[#262A38] bg-[#12141D] text-[#8B8578]'
+                            ? 'border-[var(--line)] bg-[var(--soft)] font-bold text-[var(--muted-ink)]'
+                            : 'border-[var(--line)] bg-[var(--paper)] text-[var(--muted-ink)]'
                         }`}
                       >
                         <span className="text-xs lg:text-sm font-medium">☀️ {characterBName}</span>
-                        {selectedB && <span className="text-[#8B8578] ml-1 text-[10px] lg:text-[12px]">✓</span>}
+                        {selectedB && <span className="text-[var(--muted-ink)] ml-1 text-[10px] lg:text-[12px]">✓</span>}
                       </button>
                     )}
                   </div>
@@ -781,11 +781,11 @@ export function ChemistryFeedbackModal({
                   {resultTab === 'A' && !tasteA.satisfied && (
                     <motion.div key="recA" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                       {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
-                      <div className="bg-[#0C0E16] border border-[#262A38] rounded-[12px] p-3">
-                        <p className="text-sm lg:text-base font-bold text-[#E9E2D0] flex items-center gap-1.5">
+                      <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
+                        <p className="text-sm lg:text-base font-bold text-[var(--ink)] flex items-center gap-1.5">
                           👇 <span className="underline decoration-stone-500 decoration-2 underline-offset-2">{t('chemistry.feedbackModal.selectOptionTitle')}</span>
                         </p>
-                        <p className="text-[10px] lg:text-[12px] text-[#A69F8D] leading-relaxed mt-1.5">
+                        <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] leading-relaxed mt-1.5">
                           {t('chemistry.feedbackModal.selectOptionHint')}
                         </p>
                       </div>
@@ -815,11 +815,11 @@ export function ChemistryFeedbackModal({
                   {resultTab === 'B' && !tasteB.satisfied && (
                     <motion.div key="recB" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                       {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
-                      <div className="bg-[#0C0E16] border border-[#262A38] rounded-[12px] p-3">
-                        <p className="text-sm lg:text-base font-bold text-[#E9E2D0] flex items-center gap-1.5">
+                      <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
+                        <p className="text-sm lg:text-base font-bold text-[var(--ink)] flex items-center gap-1.5">
                           👇 <span className="underline decoration-stone-500 decoration-2 underline-offset-2">{t('chemistry.feedbackModal.selectOptionTitle')}</span>
                         </p>
-                        <p className="text-[10px] lg:text-[12px] text-[#A69F8D] leading-relaxed mt-1.5">
+                        <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] leading-relaxed mt-1.5">
                           {t('chemistry.feedbackModal.selectOptionHint')}
                         </p>
                       </div>
@@ -853,28 +853,28 @@ export function ChemistryFeedbackModal({
             {/* 최종 확정 — 실제 제조용 그람 단위 안내 */}
             {step === 'confirmed' && result && (
               <motion.div key="confirmed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-4 space-y-4">
-                <div className="bg-[#0C0E16] border border-[#343A4C] rounded-[12px] p-3">
-                  <p className="text-sm lg:text-base font-bold text-[#E9E2D0]">⚖️ {t('chemistry.feedbackModal.finalRecipeTitle')}</p>
-                  <p className="text-[11px] lg:text-[13px] text-[#A69F8D] leading-relaxed mt-1">
+                <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
+                  <p className="text-sm lg:text-base font-bold text-[var(--ink)]">⚖️ {t('chemistry.feedbackModal.finalRecipeTitle')}</p>
+                  <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] leading-relaxed mt-1">
                     {t('chemistry.feedbackModal.finalRecipeDesc')}
                   </p>
                 </div>
 
-                <div className="bg-[#12141D] rounded-[12px] p-3 border border-[#262A38]">
-                  <p className="text-xs lg:text-sm font-medium text-[#A69F8D] mb-2">{t('chemistry.feedbackModal.productSize')}</p>
+                <div className="bg-[var(--paper)] rounded-[6px] p-3 border border-[var(--line)]">
+                  <p className="text-xs lg:text-sm font-medium text-[var(--muted-ink)] mb-2">{t('chemistry.feedbackModal.productSize')}</p>
                   <div className="grid grid-cols-3 gap-2">
                     {(['perfume_10ml', 'perfume_50ml', 'diffuser_5ml'] as ProductType[]).map((p) => (
                       <button
                         key={p}
                         onClick={() => setConfirmedProductType(p)}
-                        className={`p-2 rounded-[12px] border transition-all text-center ${
+                        className={`p-2 rounded-[6px] border transition-all text-center ${
                           confirmedProductType === p
-                            ? 'border-[#343A4C] bg-[#0C0E16] shadow-md'
-                            : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38]'
+                            ? 'border-[var(--line)] bg-[var(--canvas)] shadow-md'
+                            : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                         }`}
                       >
                         <span className="text-xl block">{p === 'perfume_10ml' ? '🧴' : p === 'perfume_50ml' ? '🍾' : '🌿'}</span>
-                        <p className="text-[10px] lg:text-[12px] font-medium text-[#A69F8D] mt-0.5">
+                        <p className="text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] mt-0.5">
                           {getProductLabel(p)}
                         </p>
                       </button>
@@ -902,9 +902,9 @@ export function ChemistryFeedbackModal({
                 </div>
 
                 {result.layeringNote && (
-                  <div className="p-3 bg-[#0C0E16] rounded-[12px] border border-[#262A38]">
-                    <span className="text-[9px] font-medium text-[#8B8578] uppercase tracking-wider block mb-1">Layering Note</span>
-                    <p className="text-xs lg:text-sm text-[#E9E2D0] font-medium leading-relaxed">{result.layeringNote}</p>
+                  <div className="p-3 bg-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
+                    <span className="text-[9px] font-medium text-[var(--muted-ink)] uppercase tracking-wider block mb-1">Layering Note</span>
+                    <p className="text-xs lg:text-sm text-[var(--ink)] font-medium leading-relaxed">{result.layeringNote}</p>
                   </div>
                 )}
 
@@ -937,8 +937,8 @@ export function ChemistryFeedbackModal({
                 )}
 
                 {result.pairExplanation && (
-                  <div className="p-3 bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] rounded-[12px] border border-[#262A38]">
-                    <p className="text-xs lg:text-sm text-[#A69F8D] leading-relaxed">{result.pairExplanation}</p>
+                  <div className="p-3 bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
+                    <p className="text-xs lg:text-sm text-[var(--muted-ink)] leading-relaxed">{result.pairExplanation}</p>
                   </div>
                 )}
               </motion.div>
@@ -957,17 +957,17 @@ export function ChemistryFeedbackModal({
                   initial={{ scale: 0, rotate: -90 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.1 }}
-                  className="w-24 h-24 rounded-full bg-gradient-to-br from-[#161925] to-[#161925] border-4 border-[#262A38] flex items-center justify-center"
+                  className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] border-4 border-[var(--line)] flex items-center justify-center"
                 >
-                  <Check size={56} className="text-[#E9E2D0]" strokeWidth={3.5} />
+                  <Check size={56} className="text-[var(--ink)]" strokeWidth={3.5} />
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <h3 className="text-2xl font-bold text-[#E9E2D0] mb-2">{t('chemistry.feedbackModal.successTitle')}</h3>
-                  <p className="text-sm lg:text-base text-[#A69F8D] font-medium leading-relaxed">
+                  <h3 className="text-2xl font-bold text-[var(--ink)] mb-2">{t('chemistry.feedbackModal.successTitle')}</h3>
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)] font-medium leading-relaxed">
                     {t('chemistry.feedbackModal.successDesc', { nameA: characterAName, nameB: characterBName })}
                   </p>
                 </motion.div>
@@ -975,7 +975,7 @@ export function ChemistryFeedbackModal({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="text-[11px] lg:text-[13px] text-[#8B8578]"
+                  className="text-[11px] lg:text-[13px] text-[var(--muted-ink)]"
                 >
                   {t('chemistry.feedbackModal.autoClose')}
                 </motion.div>
@@ -985,16 +985,16 @@ export function ChemistryFeedbackModal({
         </div>
 
         {/* 하단 CTA */}
-        <div className="px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t-2 border-[#262A38] bg-[#12141D] flex-shrink-0">
+        <div className="px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t-2 border-[var(--line)] bg-[var(--paper)] flex-shrink-0">
           {error && (step === 'result' || step === 'confirmed') && (
-            <div className="mb-3 p-3 bg-red-100 border border-red-400 rounded-[12px]">
+            <div className="mb-3 p-3 bg-red-100 border border-red-400 rounded-[6px]">
               <p className="text-xs lg:text-sm font-medium text-red-700">{error}</p>
             </div>
           )}
           {isFormA && (
             <button
               onClick={handleNextFromA}
-              className="w-full py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex flex-col items-center justify-center gap-0.5"
+              className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex flex-col items-center justify-center gap-0.5"
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-[10px] lg:text-[12px] opacity-80 font-medium">(1/2)</span>
@@ -1007,10 +1007,10 @@ export function ChemistryFeedbackModal({
           {isFormB && (
             <button
               onClick={handleNextFromB}
-              className={`w-full py-3.5 font-bold text-sm lg:text-base rounded-[12px] border border-[#262A38] transition-all flex flex-col items-center justify-center gap-0.5 ${
+              className={`w-full py-3.5 font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex flex-col items-center justify-center gap-0.5 ${
                 tasteA.satisfied && tasteB.satisfied
-                  ? 'bg-gradient-to-r from-[#161925] to-[#161925] text-[#E9E2D0]'
-                  : 'bg-gradient-to-r from-[#161925] to-[#161925] text-[#E9E2D0]'
+                  ? 'bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] text-[var(--ink)]'
+                  : 'bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] text-[var(--ink)]'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -1032,7 +1032,7 @@ export function ChemistryFeedbackModal({
               return (
                 <button
                   onClick={() => { setResultTab('B'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#161925] to-[#161925] text-[#E9E2D0] font-bold text-sm lg:text-base rounded-[12px] border border-[#262A38] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center gap-2"
                 >
                   {t('chemistry.feedbackModal.selectScentForName', { name: characterBName })} <ChevronRight size={16} />
                 </button>
@@ -1042,7 +1042,7 @@ export function ChemistryFeedbackModal({
               <button
                 onClick={() => allSelected ? setStep('confirmed') : null}
                 disabled={!allSelected}
-                className="w-full py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Check size={16} /> {t('chemistry.feedbackModal.confirmRecipe')}
               </button>
@@ -1052,7 +1052,7 @@ export function ChemistryFeedbackModal({
             <button
               onClick={handleCompleteConfirmed}
               disabled={isConfirming}
-              className="w-full py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Check size={16} /> {isConfirming ? t('chemistry.feedbackModal.saving') : t('chemistry.feedbackModal.done')}
             </button>
@@ -1060,7 +1060,7 @@ export function ChemistryFeedbackModal({
           {step === 'success' && (
             <button
               onClick={onClose}
-              className="w-full py-3.5 bg-[#161925] text-[#E9E2D0] font-bold text-sm lg:text-base rounded-[12px] border border-[#262A38] transition-all"
+              className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all"
             >
               {t('chemistry.feedbackModal.close')}
             </button>
@@ -1081,11 +1081,11 @@ function TasteQuestion({ number, title, hint, optional, children }: {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <span className="w-7 h-7 bg-[#161925] text-[#E9E2D0] text-xs lg:text-sm font-medium rounded-[12px] flex items-center justify-center border border-[#262A38]">{number}</span>
-        <span className="text-sm lg:text-base font-bold text-[#E9E2D0]">{title}</span>
-        {optional && <span className="text-[10px] lg:text-[12px] text-[#8B8578]">({t('feedback.optional')})</span>}
+        <span className="w-7 h-7 bg-[var(--soft)] text-[var(--ink)] text-xs lg:text-sm font-medium rounded-[6px] flex items-center justify-center border border-[var(--line)]">{number}</span>
+        <span className="text-sm lg:text-base font-bold text-[var(--ink)]">{title}</span>
+        {optional && <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">({t('feedback.optional')})</span>}
       </div>
-      {hint && <p className="text-[11px] lg:text-[13px] text-[#8B8578] mb-3 ml-9">{hint}</p>}
+      {hint && <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] mb-3 ml-9">{hint}</p>}
       {children}
     </div>
   )
@@ -1097,11 +1097,11 @@ function RecipePreviewCard({ label, emoji, recipe, accentColor }: {
   accentColor: 'violet' | 'pink'
 }) {
   const theme = accentColor === 'violet'
-    ? 'border-[#262A38] bg-[#0C0E16] text-[#A69F8D]'
-    : 'border-[#262A38] bg-[#0C0E16] text-[#A69F8D]'
+    ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--muted-ink)]'
+    : 'border-[var(--line)] bg-[var(--canvas)] text-[var(--muted-ink)]'
 
   return (
-    <div className={`rounded-[12px] border p-3 ${theme}`}>
+    <div className={`rounded-[6px] border p-3 ${theme}`}>
       <div className="flex items-center gap-1.5 mb-2 min-w-0">
         <span className="text-sm lg:text-base">{emoji}</span>
         <p className="text-xs lg:text-sm font-medium truncate">{label}</p>
@@ -1109,13 +1109,13 @@ function RecipePreviewCard({ label, emoji, recipe, accentColor }: {
       <div className="space-y-1.5">
         {recipe.granules.slice(0, 3).map((granule) => {
           const color = getGranuleColor(granule.id)
-          const textClass = isLightColor(color) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
+          const textClass = isLightColor(color) ? 'text-[var(--ink)]' : 'text-[var(--ink)]'
           return (
             <div key={`${granule.id}-${granule.ratio}`} className="flex items-center gap-1.5 min-w-0">
-              <span className={`w-5 h-5 rounded-[12px] flex items-center justify-center text-[9px] font-medium ${textClass}`} style={{ backgroundColor: color }}>
+              <span className={`w-5 h-5 rounded-[6px] flex items-center justify-center text-[9px] font-medium ${textClass}`} style={{ backgroundColor: color }}>
                 {granule.drops}
               </span>
-              <span className="text-[10px] lg:text-[12px] font-medium text-[#A69F8D] truncate">{granule.name}</span>
+              <span className="text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] truncate">{granule.name}</span>
             </div>
           )
         })}
@@ -1150,8 +1150,8 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
   const t = useTranslations()
   const [chartOpen, setChartOpen] = useState(false)
   const st = accentColor === 'violet'
-    ? { border: 'border-[#343A4C]', bg: 'bg-[#0C0E16]', text: 'text-[#A69F8D]', accent: 'bg-[#161925]' }
-    : { border: 'border-[#343A4C]', bg: 'bg-[#0C0E16]', text: 'text-[#A69F8D]', accent: 'bg-[#161925]' }
+    ? { border: 'border-[var(--line)]', bg: 'bg-[var(--canvas)]', text: 'text-[var(--muted-ink)]', accent: 'bg-[var(--soft)]' }
+    : { border: 'border-[var(--line)]', bg: 'bg-[var(--canvas)]', text: 'text-[var(--muted-ink)]', accent: 'bg-[var(--soft)]' }
 
   return (
     <div
@@ -1160,10 +1160,10 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
       onClick={onSelect}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
       aria-pressed={selected}
-      className={`relative w-full text-left border rounded-[12px] overflow-hidden transition-all cursor-pointer ${
+      className={`relative w-full text-left border rounded-[6px] overflow-hidden transition-all cursor-pointer ${
         selected
           ? `${st.border} ${st.bg} -translate-x-[1px] -translate-y-[1px]`
-          : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38]'
+          : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
       }`}
     >
       {/* 선택 라디오 인디케이터 — 우상단 큰 원 */}
@@ -1171,21 +1171,21 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
         <div
           className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
             selected
-              ? `${st.accent} border-[#262A38]`
-              : 'bg-[#12141D] border-[#262A38]'
+              ? `${st.accent} border-[var(--line)]`
+              : 'bg-[var(--paper)] border-[var(--line)]'
           }`}
         >
           {selected ? (
-            <Check size={16} className="text-[#E9E2D0]" strokeWidth={3} />
+            <Check size={16} className="text-[var(--ink)]" strokeWidth={3} />
           ) : (
-            <span className="w-2 h-2 rounded-full bg-[#232838]" />
+            <span className="w-2 h-2 rounded-full bg-[var(--soft)]" />
           )}
         </div>
       </div>
 
-      <div className={`px-4 py-2 border-b ${selected ? 'border-[#262A38]' : 'border-[#262A38]'} flex items-center gap-2 pr-12`}>
-        <span className={`text-base font-bold ${selected ? st.text : 'text-[#A69F8D]'}`}>{label}</span>
-        {!selected && <span className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{t('chemistry.feedbackModal.tapToSelect')}</span>}
+      <div className={`px-4 py-2 border-b ${selected ? 'border-[var(--line)]' : 'border-[var(--line)]'} flex items-center gap-2 pr-12`}>
+        <span className={`text-base font-bold ${selected ? st.text : 'text-[var(--muted-ink)]'}`}>{label}</span>
+        {!selected && <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{t('chemistry.feedbackModal.tapToSelect')}</span>}
         {selected && <span className={`text-[10px] lg:text-[12px] font-medium ${st.text}`}>· {t('chemistry.feedbackModal.selected')}</span>}
       </div>
 
@@ -1204,38 +1204,38 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
       <div className="p-3 space-y-2">
         {recipe.granules.map((g, i) => {
           const bgColor = getGranuleColor(g.id)
-          const txtCls = isLightColor(bgColor) ? 'text-[#E9E2D0] border border-[#262A38]' : 'text-[#E9E2D0]'
+          const txtCls = isLightColor(bgColor) ? 'text-[var(--ink)] border border-[var(--line)]' : 'text-[var(--ink)]'
           const isOriginal = originalPerfumeId && g.id === originalPerfumeId
           return (
             <div key={i} className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-[12px] flex flex-col items-center justify-center font-bold flex-shrink-0 ${txtCls}`} style={{ backgroundColor: bgColor }}>
+              <div className={`w-10 h-10 rounded-[6px] flex flex-col items-center justify-center font-bold flex-shrink-0 ${txtCls}`} style={{ backgroundColor: bgColor }}>
                 <span className="text-base leading-none">{g.drops}</span>
                 <span className="text-[8px] opacity-70">{t('chemistry.feedbackModal.drops')}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs lg:text-sm font-medium text-[#E9E2D0]">{g.name}</span>
-                  <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[#151823] text-[#A69F8D] rounded-full font-medium">{g.ratio}%</span>
+                  <span className="text-xs lg:text-sm font-medium text-[var(--ink)]">{g.name}</span>
+                  <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[var(--soft)] text-[var(--muted-ink)] rounded-full font-medium">{g.ratio}%</span>
                   {isOriginal && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-[#151823] text-[#A69F8D] rounded-full font-medium border border-[#262A38]">{t('chemistry.feedbackModal.original')}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 bg-[var(--soft)] text-[var(--muted-ink)] rounded-full font-medium border border-[var(--line)]">{t('chemistry.feedbackModal.original')}</span>
                   )}
                 </div>
-                <span className="text-[10px] lg:text-[12px] text-[#8B8578]">{g.id}</span>
+                <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{g.id}</span>
               </div>
             </div>
           )
         })}
         {recipe.overallExplanation && (
-          <p className="text-[11px] lg:text-[13px] text-[#8B8578] leading-relaxed pt-2 border-t border-[#1E222E]">{recipe.overallExplanation}</p>
+          <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] leading-relaxed pt-2 border-t border-[var(--line)]">{recipe.overallExplanation}</p>
         )}
 
         {/* 향 밸런스 변화 차트 — 토글 (기본 접힘) */}
         {recipe.categoryChanges && recipe.categoryChanges.length > 0 && (
-          <div className="pt-2 border-t border-[#1E222E]">
+          <div className="pt-2 border-t border-[var(--line)]">
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setChartOpen((v) => !v) }}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] lg:text-[13px] font-medium text-[#A69F8D] hover:bg-[#151823] rounded-[12px] transition-colors"
+              className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] lg:text-[13px] font-medium text-[var(--muted-ink)] hover:bg-[var(--soft)] rounded-[6px] transition-colors"
             >
               <span>📊 {t('chemistry.feedbackModal.viewBalanceChange')}</span>
               <ChevronDown

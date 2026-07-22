@@ -66,8 +66,8 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-1 px-1.5 py-1 rounded-[12px] transition-colors",
-          dark ? "text-[#9F9F9F] hover:bg-white/5" : "text-[#A69F8D] hover:bg-[#1B1F2C]"
+          "flex items-center gap-1 px-1.5 py-1 rounded-[4px] transition-colors",
+          dark ? "text-[var(--dark-muted)] hover:bg-white/10 hover:text-white" : "text-[var(--muted-ink)] hover:bg-[var(--soft)] hover:text-[var(--ink)]"
         )}
         aria-label="Language"
       >
@@ -82,7 +82,7 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden z-50 min-w-[140px]"
+            className="absolute right-0 top-full mt-1 bg-white border border-[var(--line)] rounded-[6px] shadow-sm overflow-hidden z-50 min-w-[140px]"
           >
             {locales.map((l) => (
               <button
@@ -91,8 +91,8 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
                 className={cn(
                   "w-full flex items-center gap-2 px-3 py-2 text-left text-sm lg:text-base transition-colors",
                   locale === l
-                    ? "bg-[#151823] font-bold text-[#E9E2D0]"
-                    : "hover:bg-[#151823] text-[#A69F8D]"
+                    ? "bg-[var(--soft)] font-bold text-[var(--ink)]"
+                    : "hover:bg-[var(--soft)] text-[var(--muted-ink)]"
                 )}
               >
                 <span className="text-base">{localeFlags[l]}</span>

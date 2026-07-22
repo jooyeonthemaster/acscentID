@@ -36,14 +36,14 @@ export const PAST_PERSONALITIES = [
 
 // 현재 감정 상태
 export const CURRENT_FEELINGS = [
-  { key: "excited", label: "설레는", emoji: "🌟", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "nostalgic", label: "아쉬운", emoji: "🥹", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "proud", label: "뿌듯한", emoji: "🎉", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "anxious", label: "떨리는", emoji: "💓", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "grateful", label: "감사한", emoji: "🙏", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "hopeful", label: "희망찬", emoji: "🌈", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "bittersweet", label: "아련한", emoji: "🌸", color: "bg-[#151823] border-[#343A4C]" },
-  { key: "determined", label: "결연한", emoji: "💪", color: "bg-[#1B1F2C] border-[#343A4C]" }
+  { key: "excited", label: "설레는", emoji: "🌟", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "nostalgic", label: "아쉬운", emoji: "🥹", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "proud", label: "뿌듯한", emoji: "🎉", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "anxious", label: "떨리는", emoji: "💓", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "grateful", label: "감사한", emoji: "🙏", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "hopeful", label: "희망찬", emoji: "🌈", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "bittersweet", label: "아련한", emoji: "🌸", color: "bg-[var(--soft)] border-[var(--line)]" },
+  { key: "determined", label: "결연한", emoji: "💪", color: "bg-[var(--soft)] border-[var(--line)]" }
 ] as const
 
 // 성장한 점들 (현재)

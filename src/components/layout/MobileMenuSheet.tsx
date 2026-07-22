@@ -55,12 +55,12 @@ export function MobileSection({
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="border-b border-[#1E222E] last:border-b-0">
+    <div className="border-b border-[var(--line-soft)] last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full flex items-center justify-between px-4 py-4 font-bold text-left transition-colors",
-          isActive ? "text-[#A69F8D] bg-[#0C0E16]" : "text-[#E9E2D0] hover:bg-[#151823]"
+          isActive ? "text-[var(--ink)] bg-[var(--soft)]" : "text-[var(--ink)] hover:bg-[var(--soft)]"
         )}
       >
         {title}
@@ -74,24 +74,24 @@ export function MobileSection({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden bg-[#151823]"
+            className="overflow-hidden bg-[var(--soft)]"
           >
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={onLinkClick}
-                className="flex items-center gap-3 px-8 py-3 text-sm lg:text-base text-[#A69F8D] hover:text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                className="flex items-center gap-3 px-8 py-3 text-sm lg:text-base text-[var(--muted-ink)] hover:text-[var(--ink)] hover:bg-[var(--line-soft)] transition-colors"
               >
                 {link.image && (
                   <div className="relative">
                     <img
                       src={link.image}
                       alt=""
-                      className="w-8 h-8 rounded-[12px] object-cover border border-[#262A38]"
+                      className="w-8 h-8 rounded-[4px] object-cover border border-[var(--line)]"
                     />
                     {link.limitedUntil && (
-                      <span className="absolute -top-1 -right-1 px-1 py-0.5 bg-red-500 text-[#E9E2D0] text-[8px] font-black rounded-[12px] leading-none">
+                      <span className="absolute -top-1 -right-1 px-1 py-0.5 bg-red-500 text-white text-[8px] font-black rounded-[3px] leading-none">
                         D-DAY
                       </span>
                     )}
@@ -100,7 +100,7 @@ export function MobileSection({
                 <div className="flex items-center gap-2">
                   {link.label}
                   {link.limitedUntil && (
-                    <span className="px-1.5 py-0.5 bg-red-500 text-[#E9E2D0] text-[10px] lg:text-[12px] font-bold rounded-[12px]">
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] lg:text-[12px] font-bold rounded-[3px]">
                       ~{link.limitedUntil}
                     </span>
                   )}
@@ -180,9 +180,9 @@ export function MobileMenuSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[300px] border-l-2 border-[#262A38] bg-[#12141D] p-0">
-        <SheetHeader className="p-6 border-b-2 border-[#1E222E] bg-[#0C0E16]">
-          <SheetTitle className="text-left text-xs lg:text-sm font-black tracking-widest text-[#E9E2D0] uppercase flex items-center gap-2">
+      <SheetContent side="right" className="w-[300px] border-l border-[var(--line)] bg-white p-0">
+        <SheetHeader className="p-6 border-b border-[var(--line)] bg-white">
+          <SheetTitle className="text-left text-xs lg:text-sm font-black text-[var(--ink)] uppercase flex items-center gap-2">
             {t('nav.menu')}
           </SheetTitle>
         </SheetHeader>
@@ -190,14 +190,14 @@ export function MobileMenuSheet({
         <div className="flex flex-col h-full overflow-y-auto">
           {loading ? (
             <div className="p-8 text-center">
-              <div className="w-8 h-8 border-2 border-[#262A38] border-dashed rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-8 h-8 border-2 border-[var(--line)] border-dashed rounded-full animate-spin mx-auto mb-2" />
             </div>
           ) : currentUser ? (
             <div className="flex flex-col flex-1 pb-20">
               {/* User Profile */}
-              <div className="p-6 bg-stone-50/50">
+              <div className="p-6 bg-[var(--soft)]">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full border-2 border-[#262A38] bg-[#12141D] flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 rounded-full border border-[var(--line)] bg-white text-[var(--muted-ink)] flex items-center justify-center overflow-hidden">
                     {(unifiedUser?.avatar_url || user?.user_metadata?.avatar_url) ? (
                       <img src={unifiedUser?.avatar_url || user?.user_metadata?.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -205,10 +205,10 @@ export function MobileMenuSheet({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-[#E9E2D0] truncate">
+                    <p className="font-bold text-[var(--ink)] truncate">
                       {unifiedUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || t('auth.defaultUser')}
                     </p>
-                    <p className="text-xs lg:text-sm text-[#8B8578] truncate mt-0.5">
+                    <p className="text-xs lg:text-sm text-[var(--muted-ink)] truncate mt-0.5">
                       {unifiedUser?.email || user?.email || t('auth.kakaoLoginFallback')}
                     </p>
                   </div>
@@ -220,7 +220,7 @@ export function MobileMenuSheet({
                 <Link
                   href="/"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-4 border-b border-[#1E222E] font-bold text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   {t('nav.home')}
                 </Link>
@@ -239,14 +239,14 @@ export function MobileMenuSheet({
                 <Link
                   href="/mypage"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-4 border-b border-[#1E222E] font-bold text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   {t('nav.myPage')}
                 </Link>
                 <Link
                   href="/faq"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-[#1E222E] font-bold text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                  className="flex items-center gap-3 px-6 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   <HelpCircle size={18} />
                   FAQ
@@ -254,11 +254,11 @@ export function MobileMenuSheet({
               </nav>
 
               {/* Actions */}
-              <div className="mt-auto p-4 border-t border-[#1E222E] space-y-1">
+              <div className="mt-auto p-4 border-t border-[var(--line-soft)] space-y-1">
                 <Button
                   variant="ghost"
                   asChild
-                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[12px] hover:bg-[#0C0E16] hover:text-[#A69F8D] text-[#8B8578] transition-all font-medium"
+                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[6px] hover:bg-[var(--soft)] hover:text-[var(--ink)] text-[var(--muted-ink)] transition-all font-medium"
                 >
                   <a
                     href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
@@ -272,7 +272,7 @@ export function MobileMenuSheet({
                 <Button
                   variant="ghost"
                   onClick={handleSignOut}
-                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[12px] hover:bg-red-50 hover:text-red-600 text-[#8B8578] transition-all font-medium"
+                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[6px] hover:bg-red-50 hover:text-red-600 text-[var(--muted-ink)] transition-all font-medium"
                 >
                   <LogOut size={18} />
                   <span>{t('nav.logout')}</span>
@@ -286,7 +286,7 @@ export function MobileMenuSheet({
                 <Link
                   href="/"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-4 border-b border-[#1E222E] font-bold text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                  className="flex items-center gap-3 px-4 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   {t('nav.home')}
                 </Link>
@@ -305,18 +305,18 @@ export function MobileMenuSheet({
                 <Link
                   href="/faq"
                   onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-[#1E222E] font-bold text-[#E9E2D0] hover:bg-[#151823] transition-colors"
+                  className="flex items-center gap-3 px-6 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   <HelpCircle size={18} />
                   FAQ
                 </Link>
               </nav>
 
-              <div className="p-4 border-t border-[#1E222E]">
+              <div className="p-4 border-t border-[var(--line-soft)]">
                 <Button
                   variant="ghost"
                   asChild
-                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[12px] hover:bg-[#0C0E16] hover:text-[#A69F8D] text-[#8B8578] transition-all font-medium"
+                  className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[6px] hover:bg-[var(--soft)] hover:text-[var(--ink)] text-[var(--muted-ink)] transition-all font-medium"
                 >
                   <a
                     href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
@@ -330,9 +330,9 @@ export function MobileMenuSheet({
               </div>
 
               {/* Login CTA */}
-              <div className="p-6 border-t border-[#1E222E] bg-[#151823]">
-                <h3 className="text-2xl font-black text-[#E9E2D0] mb-2">{t('auth.welcomeTitle')}</h3>
-                <p className="text-sm lg:text-base text-[#8B8578] mb-6 whitespace-pre-line">
+              <div className="p-6 border-t border-[var(--line)] bg-[var(--soft)]">
+                <h3 className="text-2xl font-black text-[var(--ink)] mb-2">{t('auth.welcomeTitle')}</h3>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-6 whitespace-pre-line">
                   {t('auth.welcomeDesc')}
                 </p>
                 <Button
@@ -340,7 +340,7 @@ export function MobileMenuSheet({
                     onLoginClick()
                     handleClose()
                   }}
-                  className="w-full h-14 bg-[#F5EFE2] text-[#12141D] rounded-[12px] font-bold text-lg transition-all active:bg-[#161925]"
+                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black active:bg-black"
                 >
                   {t('auth.loginButton')}
                 </Button>

@@ -47,18 +47,18 @@ export function ProgramReviewSection({
       {/* 리뷰 트리거 (히어로에서 사용할 수 있도록 export) */}
 
       {/* 리뷰 섹션 */}
-      <section id="reviews" className="py-8 px-4 bg-[#F5EFE2]">
+      <section id="reviews" className="py-8 px-4 bg-[var(--soft)]">
         <div className="w-full">
           <div className="text-center mb-4">
-            <div className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
+            <div className="inline-block px-3 py-1.5 bg-[var(--ink)] text-white text-xs lg:text-sm font-black rounded-full border border-[var(--line)] mb-3">
               {t('programs.reviews.badge')}
             </div>
-            <h2 className="text-2xl font-black text-[#1A1610] mb-2 break-keep">
+            <h2 className="text-2xl font-black text-[var(--ink)] mb-2 break-keep">
               {t('programs.reviews.title')}
             </h2>
             <button
               onClick={() => setShowReviewModal(true)}
-              className="text-xs lg:text-sm text-[#8B8578] hover:text-[#1A1610] transition-colors underline underline-offset-4"
+              className="text-xs lg:text-sm text-[var(--muted-ink)] hover:text-[var(--ink)] transition-colors underline underline-offset-4"
             >
               {t('programs.reviews.viewAll')}
             </button>
@@ -85,7 +85,7 @@ export function ProgramReviewSection({
                   setShowReviewModal(true)
                 }
               }}
-              className="w-full py-3 bg-[#12141D] text-[#F5EFE2] text-sm lg:text-base font-black rounded-[12px] border-2 border-[#12141D] transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[var(--paper)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center gap-2"
             >
               <PenLine size={16} />
               {t('review.writeButton')}

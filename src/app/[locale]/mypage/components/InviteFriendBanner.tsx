@@ -42,25 +42,25 @@ export function InviteFriendBanner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#151823] to-[#151823] border-2 border-[#262A38] rounded-[12px] p-4">
+    <div className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-[#12141D] rounded-[12px] border-2 border-[#262A38] flex items-center justify-center">
-          <Gift size={24} className="text-[#A69F8D]" />
+        <div className="w-12 h-12 bg-[var(--paper)] rounded-[6px] border border-[var(--line)] flex items-center justify-center">
+          <Gift size={24} className="text-[var(--muted-ink)]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-black text-sm lg:text-base">{t('title')}</p>
-          <p className="text-xs lg:text-sm text-[#A69F8D] truncate">{t('desc')}</p>
+          <p className="text-xs lg:text-sm text-[var(--muted-ink)] truncate">{t('desc')}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleCopyLink}
-            className="p-2.5 bg-[#12141D] rounded-[12px] border-2 border-[#262A38] transition-all"
+            className="p-2.5 bg-[var(--paper)] rounded-[6px] border border-[var(--line)] transition-all"
           >
-            {copied ? <Check size={18} className="text-[#A69F8D]" /> : <Copy size={18} />}
+            {copied ? <Check size={18} className="text-[var(--muted-ink)]" /> : <Copy size={18} />}
           </button>
           <button
             onClick={handleShare}
-            className="p-2.5 bg-[#F5EFE2] text-[#12141D] rounded-[12px] border-2 border-[#F5EFE2] transition-all"
+            className="p-2.5 bg-[var(--soft)] text-[var(--ink)] rounded-[6px] border border-[var(--line)] transition-all"
           >
             <Share2 size={18} />
           </button>

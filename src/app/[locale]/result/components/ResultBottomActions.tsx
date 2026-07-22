@@ -36,16 +36,16 @@ export function ResultBottomActions({
       transition={{ delay: 0.5, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={`
         fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[455px] px-4 py-3
-        bg-[#12141D] border-t-2 border-[#262A38] safe-area-bottom
+        bg-[var(--paper)] border-t-2 border-[var(--line)] safe-area-bottom
         
       `}
     >
       {serviceMode === 'online' && onScentPaperCheckout && (
         <button
           onClick={onScentPaperCheckout}
-          className="mb-2 flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2] px-4 py-3 text-sm lg:text-base font-bold text-[#1A1610] transition-all"
+          className="mb-2 flex w-full items-center justify-center gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--soft)] px-4 py-3 text-sm lg:text-base font-bold text-[var(--ink)] transition-all"
         >
-          <Ticket size={16} className="text-[#5C564A]" />
+          <Ticket size={16} className="text-[var(--muted-ink)]" />
           <span>{t('scentPaperCta')}</span>
         </button>
       )}
@@ -57,7 +57,7 @@ export function ResultBottomActions({
           onClick={onShare}
           disabled={isShareSaving}
           aria-label={isShareSaving ? t('saving') : t('share')}
-          className="shrink-0 aspect-square p-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center disabled:opacity-70"
+          className="shrink-0 aspect-square p-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center disabled:opacity-70"
         >
           <Share2 size={16} />
         </button>
@@ -68,14 +68,14 @@ export function ResultBottomActions({
             <button
               onClick={onAddToCart}
               disabled={isAddingToCart}
-              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="flex-1 py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               <ShoppingCart size={16} />
               <span>{isAddingToCart ? t('adding') : t('addToCart')}</span>
             </button>
             <button
               onClick={onCheckout}
-              className="flex-1 py-3.5 bg-[#EEB62B] text-[#1A1610] font-bold text-sm lg:text-base rounded-[12px] border border-[#B8880F] flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[var(--ink)] text-white font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] flex items-center justify-center gap-2"
             >
               <CreditCard size={16} />
               <span>{t('buy')}</span>
@@ -88,14 +88,14 @@ export function ResultBottomActions({
           <>
             <button
               onClick={onFeedback}
-              className="flex-1 py-3.5 bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base rounded-[12px] border border-[#F5EFE2] transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center gap-2"
             >
               <MessageSquarePlus size={16} />
               <span>{t('feedback')}</span>
             </button>
             <button
               onClick={onFeedbackHistory}
-              className="py-3.5 px-4 bg-[#12141D] text-[#E9E2D0] font-bold text-sm lg:text-base rounded-[12px] border border-[#262A38] transition-all flex items-center justify-center"
+              className="py-3.5 px-4 bg-[var(--paper)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex items-center justify-center"
             >
               <History size={16} />
             </button>

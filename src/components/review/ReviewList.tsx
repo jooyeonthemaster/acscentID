@@ -106,7 +106,7 @@ export function ReviewList({
         <div className="relative">
           <button
             onClick={() => setShowSortDropdown(!showSortDropdown)}
-            className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] font-bold text-xs lg:text-sm md:text-sm text-[#1A1610] transition-all"
+            className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] font-bold text-xs lg:text-sm md:text-sm text-[var(--ink)] transition-all"
           >
             {t(SORT_OPTIONS.find(o => o.value === sortBy)?.labelKey || 'review.sortLatest')}
             <ChevronDown size={14} className={`transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
@@ -124,10 +124,10 @@ export function ReviewList({
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="fixed left-4 right-4 bottom-4 md:absolute md:bottom-auto md:top-full md:left-0 md:right-auto md:mt-2 w-auto md:w-40 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden z-50"
+                  className="fixed left-4 right-4 bottom-4 md:absolute md:bottom-auto md:top-full md:left-0 md:right-auto md:mt-2 w-auto md:w-40 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden z-50"
                 >
-                  <div className="p-2 border-b border-[#D8CFBB] md:hidden">
-                    <p className="text-xs lg:text-sm font-bold text-[#8B8578] text-center">{t('review.sortLabel')}</p>
+                  <div className="p-2 border-b border-[var(--line)] md:hidden">
+                    <p className="text-xs lg:text-sm font-bold text-[var(--muted-ink)] text-center">{t('review.sortLabel')}</p>
                   </div>
                   {SORT_OPTIONS.map((option) => (
                     <button
@@ -138,8 +138,8 @@ export function ReviewList({
                       }}
                       className={`w-full px-4 py-3 md:py-2.5 text-left text-sm lg:text-base font-medium transition-colors ${
                         sortBy === option.value
-                          ? 'bg-[#EDE5D2] text-[#1A1610]'
-                          : 'hover:bg-[#EDE5D2]'
+                          ? 'bg-[var(--soft)] text-[var(--ink)]'
+                          : 'hover:bg-[var(--soft)]'
                       }`}
                     >
 	                      {t(option.labelKey)}
@@ -154,10 +154,10 @@ export function ReviewList({
         {/* 사진리뷰만 */}
         <button
           onClick={() => setPhotoOnly(!photoOnly)}
-          className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 border-2 border-[#12141D] rounded-[12px] font-bold text-xs lg:text-sm md:text-sm transition-all ${
+          className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 border border-[var(--line)] rounded-[6px] font-bold text-xs lg:text-sm md:text-sm transition-all ${
             photoOnly
-              ? 'bg-[#12141D] text-[#F5EFE2]'
-              : 'bg-[#F5EFE2] text-[#1A1610]'
+              ? 'bg-[var(--paper)] text-[var(--ink)]'
+              : 'bg-[var(--soft)] text-[var(--ink)]'
           }`}
         >
           <Camera size={14} />
@@ -167,11 +167,11 @@ export function ReviewList({
 
         {/* 별점 필터 표시 */}
         {ratingFilter && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EDE5D2] border-2 border-[#C9BFA8] rounded-[12px] font-bold text-xs lg:text-sm md:text-sm">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] font-bold text-xs lg:text-sm md:text-sm">
             {t('review.star', { rating: ratingFilter })}
             <button
               onClick={() => onRatingFilterChange?.(null)}
-              className="text-[#5C564A] hover:text-[#1A1610]"
+              className="text-[var(--muted-ink)] hover:text-[var(--ink)]"
             >
               ✕
             </button>
@@ -182,7 +182,7 @@ export function ReviewList({
         {hasActiveFilters && (
           <button
             onClick={handleClearFilters}
-            className="px-2 py-1.5 text-xs lg:text-sm md:text-sm text-[#8B8578] hover:text-[#1A1610] transition-colors"
+            className="px-2 py-1.5 text-xs lg:text-sm md:text-sm text-[var(--muted-ink)] hover:text-[var(--ink)] transition-colors"
           >
             {t('review.reset')}
           </button>
@@ -192,12 +192,12 @@ export function ReviewList({
       {/* 리뷰 목록 */}
       {isLoading && page === 1 ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-[#8B8578]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-ink)]" />
         </div>
       ) : reviews.length === 0 ? (
         <div className="text-center py-8 md:py-12">
-          <p className="text-[#8B8578]">{t('review.noReviews')}</p>
-          <p className="text-xs lg:text-sm md:text-sm text-[#8B8578] mt-1">{t('review.writeFirst')}</p>
+          <p className="text-[var(--muted-ink)]">{t('review.noReviews')}</p>
+          <p className="text-xs lg:text-sm md:text-sm text-[var(--muted-ink)] mt-1">{t('review.writeFirst')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -219,10 +219,10 @@ export function ReviewList({
           <button
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1}
-            className={`w-10 h-10 flex items-center justify-center border-2 border-[#D8CFBB] rounded-[12px] transition-all ${
+            className={`w-10 h-10 flex items-center justify-center border border-[var(--line)] rounded-[6px] transition-all ${
               page === 1
-                ? 'bg-[#EDE5D2] text-[#8B8578] cursor-not-allowed'
-                : 'bg-[#F5EFE2]'
+                ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+                : 'bg-[var(--soft)]'
             }`}
           >
             <ChevronLeft size={18} />
@@ -243,14 +243,14 @@ export function ReviewList({
                 return (
                   <div key={p} className="flex items-center gap-1">
                     {showEllipsisBefore && (
-                      <span className="px-2 text-[#8B8578]">...</span>
+                      <span className="px-2 text-[var(--muted-ink)]">...</span>
                     )}
                     <button
                       onClick={() => handlePageChange(p)}
-                      className={`w-10 h-10 flex items-center justify-center border-2 border-[#12141D] rounded-[12px] font-bold text-sm lg:text-base transition-all ${
+                      className={`w-10 h-10 flex items-center justify-center border border-[var(--line)] rounded-[6px] font-bold text-sm lg:text-base transition-all ${
                         page === p
-                          ? 'bg-[#12141D] text-[#F5EFE2]'
-                          : 'bg-[#F5EFE2] text-[#1A1610]'
+                          ? 'bg-[var(--paper)] text-[var(--ink)]'
+                          : 'bg-[var(--soft)] text-[var(--ink)]'
                       }`}
                     >
                       {p}
@@ -264,10 +264,10 @@ export function ReviewList({
           <button
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages}
-            className={`w-10 h-10 flex items-center justify-center border-2 border-[#D8CFBB] rounded-[12px] transition-all ${
+            className={`w-10 h-10 flex items-center justify-center border border-[var(--line)] rounded-[6px] transition-all ${
               page === totalPages
-                ? 'bg-[#EDE5D2] text-[#8B8578] cursor-not-allowed'
-                : 'bg-[#F5EFE2]'
+                ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
+                : 'bg-[var(--soft)]'
             }`}
           >
             <ChevronRight size={18} />
@@ -277,7 +277,7 @@ export function ReviewList({
 
       {/* 페이지 정보 */}
       {totalPages > 1 && !isLoading && (
-        <p className="text-center text-xs lg:text-sm text-[#8B8578] mt-3">
+        <p className="text-center text-xs lg:text-sm text-[var(--muted-ink)] mt-3">
           {t('review.reviewRange', {
             total: totalCount,
             start: (page - 1) * REVIEWS_PER_PAGE + 1,

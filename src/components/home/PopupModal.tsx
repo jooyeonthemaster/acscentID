@@ -163,19 +163,19 @@ export function PopupModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[360px] bg-[#12141D] rounded-[12px] border-2 border-[#262A38] overflow-hidden z-10"
+            className="relative w-full max-w-[360px] bg-white rounded-[6px] border border-[var(--line)] overflow-hidden z-10"
           >
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 z-20 w-8 h-8 bg-[#12141D]/90 rounded-full flex items-center justify-center border border-[#262A38] hover:bg-[#1B1F2C] transition-colors"
+              className="absolute top-3 right-3 z-20 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center border border-[var(--line)] hover:bg-[var(--soft)] transition-colors"
             >
-              <X size={16} className="text-[#A69F8D]" />
+              <X size={16} className="text-[var(--muted-ink)]" />
             </button>
 
             {/* Popup counter */}
             {popups.length > 1 && (
-              <div className="absolute top-3 left-3 z-20 px-2 py-0.5 bg-black/60 text-[#E9E2D0] text-[10px] lg:text-[12px] font-bold rounded-full">
+              <div className="absolute top-3 left-3 z-20 px-2 py-0.5 bg-black/60 text-white text-[10px] lg:text-[12px] font-bold rounded-[3px]">
                 {currentIndex + 1} / {popups.length}
               </div>
             )}
@@ -221,19 +221,19 @@ export function PopupModal() {
             {(current.title || current.description) && (
               <div className="p-4">
                 {current.title && !current.image_url && (
-                  <h3 className="text-lg font-bold text-[#E9E2D0] mb-1">
+                  <h3 className="text-lg font-bold text-[var(--ink)] mb-1">
                     {current.title}
                   </h3>
                 )}
                 {current.description && (
-                  <p className="text-sm lg:text-base text-[#A69F8D] whitespace-pre-line">
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)] whitespace-pre-line">
                     {current.description}
                   </p>
                 )}
                 {current.link_url && current.link_text && (
                   <button
                     onClick={handleLinkClick}
-                    className="mt-3 w-full bg-[#F5EFE2] text-[#12141D] font-bold text-sm lg:text-base py-2.5 rounded-[12px] border-2 border-[#262A38] hover:bg-[#FFFDF5] transition-colors"
+                    className="mt-3 w-full bg-[var(--ink)] text-white font-bold text-sm lg:text-base py-2.5 rounded-[5px] hover:bg-black transition-colors"
                   >
                     {current.link_text}
                   </button>
@@ -242,17 +242,17 @@ export function PopupModal() {
             )}
 
             {/* Bottom actions */}
-            <div className="flex border-t border-[#262A38]">
+            <div className="flex border-t border-[var(--line)]">
               <button
                 onClick={hideForToday}
-                className="flex-1 py-3 text-xs lg:text-sm text-[#8B8578] hover:bg-[#151823] transition-colors font-medium"
+                className="flex-1 py-3 text-xs lg:text-sm text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors font-medium"
               >
                 오늘 하루 보지 않기
               </button>
-              <div className="w-px bg-[#232838]" />
+              <div className="w-px bg-[var(--line)]" />
               <button
                 onClick={handleClose}
-                className="flex-1 py-3 text-xs lg:text-sm text-[#E9E2D0] hover:bg-[#151823] transition-colors font-bold"
+                className="flex-1 py-3 text-xs lg:text-sm text-[var(--ink)] hover:bg-[var(--soft)] transition-colors font-bold"
               >
                 닫기
               </button>

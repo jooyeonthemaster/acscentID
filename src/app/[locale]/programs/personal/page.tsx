@@ -140,37 +140,37 @@ export default function PersonalPage() {
           onSelect: setSelectedImage,
         }}
         secondaryBadges={
-          <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-[#D8CFBB] bg-[#EFE4C8] px-5 text-sm lg:text-base font-black text-[#1A1610]">
+          <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
             PREMIUM
           </span>
         }
         meta={
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} className="h-4 w-4 fill-[#1A1610] text-[#1A1610]" />
+              <Star key={i} className="h-4 w-4 fill-[var(--ink)] text-[var(--ink)]" />
             ))}
-            <span className="ml-1 text-xs lg:text-sm font-bold text-[#5C564A]">4.9 (2,847)</span>
+            <span className="ml-1 text-xs lg:text-sm font-bold text-[var(--muted-ink)]">4.9 (2,847)</span>
           </div>
         }
         price={
           <>
             <div className="flex items-end gap-3">
-              <span className="text-2xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)}</span>
+              <span className="text-2xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)}</span>
               {personal10?.original_price && personal10.original_price > personal10.price && (
                 <>
-                  <span className="text-sm lg:text-base text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(personal10.original_price)}</span>
+                  <span className="text-sm lg:text-base text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(personal10.original_price)}</span>
                   {personalDiscount !== null && (
-                    <span className="rounded-[12px] bg-[#FDFAF1] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#1A1610]">{personalDiscount}% OFF</span>
+                    <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{personalDiscount}% OFF</span>
                   )}
                 </>
               )}
             </div>
-            <div className="mt-1 text-xs lg:text-sm text-[#8B8578]">
+            <div className="mt-1 text-xs lg:text-sm text-[var(--muted-ink)]">
               10ml {t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)} / 50ml {t('currency.symbol')}{formatPrice(personal50?.price ?? 48000)}
             </div>
           </>
         }
-        infoIcon={<Droplets size={14} className="text-[#1A1610]" />}
+        infoIcon={<Droplets size={14} className="text-[var(--ink)]" />}
         infoItems={[
           pageContent.infoTitle,
           t('programs.detail.personal.infoShipping', { fee: `${t('currency.symbol')}${formatPrice(3000)}` }),
@@ -195,12 +195,12 @@ export default function PersonalPage() {
           {/* ============================================
               구성품 배너
           ============================================ */}
-          <section className="py-8 px-4 bg-[#FDFAF1]">
+          <section className="border-y border-[var(--line)] bg-[var(--soft)] py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-[#1A1610]">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-[var(--ink)]">
             {productIncludes.map((item, idx) => (
               <div key={idx} className="flex items-center gap-2">
-                <item.icon size={18} className="text-[#8B8578]" />
+                <item.icon size={18} className="text-[var(--muted-ink)]" />
                 <span className="font-bold text-sm lg:text-base">{item.name}</span>
               </div>
             ))}
@@ -211,7 +211,7 @@ export default function PersonalPage() {
       {/* ============================================
           구성품 상세
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-[#F5EFE2] to-[#F5EFE2]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--paper)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -220,10 +220,10 @@ export default function PersonalPage() {
           className="max-w-5xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#FDFAF1] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-white text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               📦 PACKAGE
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610]">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)]">
               {t('programs.detail.personal.packageTitle')}
             </motion.h2>
           </div>
@@ -233,13 +233,13 @@ export default function PersonalPage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-4 text-center"
+                className="bg-white border border-[var(--line)] rounded-[6px] p-4 text-center"
               >
-                <div className="w-12 h-12 bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mx-auto mb-3">
-                  <item.icon size={24} className="text-[#1A1610]" />
+                <div className="w-12 h-12 bg-white border border-[var(--line)] rounded-[6px] flex items-center justify-center mx-auto mb-3">
+                  <item.icon size={24} className="text-[var(--ink)]" />
                 </div>
-                <h3 className="font-black text-sm lg:text-base text-[#1A1610] mb-1">{item.name}</h3>
-                <p className="text-xs lg:text-sm text-[#8B8578]">{item.desc}</p>
+                <h3 className="font-black text-sm lg:text-base text-[var(--ink)] mb-1">{item.name}</h3>
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -249,7 +249,7 @@ export default function PersonalPage() {
       {/* ============================================
           이런 분께 추천
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -258,10 +258,10 @@ export default function PersonalPage() {
           className="max-w-5xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#D8CFBB] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               🎯 TARGET
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610]">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)]">
               {t('programs.detail.personal.targetTitle')}
             </motion.h2>
           </div>
@@ -276,11 +276,11 @@ export default function PersonalPage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="bg-gradient-to-br from-[#EDE5D2] to-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] p-6 transition-all"
+                className="bg-white border border-[var(--line)] rounded-[6px] p-6 transition-all"
               >
                 <div className="text-4xl mb-3">{item.emoji}</div>
-                <h3 className="text-xl font-black text-[#1A1610] mb-2">{item.title}</h3>
-                <p className="text-[#5C564A]">{item.desc}</p>
+                <h3 className="text-xl font-black text-[var(--ink)] mb-2">{item.title}</h3>
+                <p className="text-[var(--muted-ink)]">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -290,7 +290,7 @@ export default function PersonalPage() {
       {/* ============================================
           진행 과정
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F5EFE2]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--paper)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -299,17 +299,17 @@ export default function PersonalPage() {
           className="max-w-5xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#EFE4C8] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               📋 PROCESS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610]">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)]">
               {t('programs.detail.personal.processTitle')}
             </motion.h2>
           </div>
 
           <div className="relative">
             {/* 연결선 */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-[#FDFAF1] -translate-y-1/2 z-0" />
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-[var(--line-soft)] -translate-y-1/2 z-0" />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
               {[
@@ -319,12 +319,12 @@ export default function PersonalPage() {
                 { step: "04", title: t('programs.detail.personal.process4Title'), desc: t('programs.detail.personal.process4Desc'), icon: Truck },
               ].map((item, idx) => (
                 <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mb-4">
-                    <item.icon size={32} className="text-[#1A1610]" />
+                  <div className="w-20 h-20 bg-white border border-[var(--line)] rounded-[6px] flex items-center justify-center mb-4">
+                    <item.icon size={32} className="text-[var(--ink)]" />
                   </div>
-                  <span className="text-3xl font-black text-[#B5A582] mb-2">{item.step}</span>
-                  <h3 className="text-lg font-black text-[#1A1610] mb-1">{item.title}</h3>
-                  <p className="text-sm lg:text-base text-[#5C564A]">{item.desc}</p>
+                  <span className="text-3xl font-black text-[var(--line)] mb-2">{item.step}</span>
+                  <h3 className="text-lg font-black text-[var(--ink)] mb-1">{item.title}</h3>
+                  <p className="text-sm lg:text-base text-[var(--muted-ink)]">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -335,7 +335,7 @@ export default function PersonalPage() {
       {/* ============================================
           결과물 미리보기
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -344,43 +344,43 @@ export default function PersonalPage() {
           className="max-w-6xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#EDE5D2] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               📊 RESULT PREVIEW
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610] mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)] mb-4">
               {t('programs.detail.personal.resultTitle')}
             </motion.h2>
           </div>
 
-          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-[#EDE5D2] to-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] p-6 md:p-10">
+          <motion.div variants={fadeInUp} className="bg-white border border-[var(--line)] rounded-[6px] p-6 md:p-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
 
               {/* 왼쪽: 분석 결과 */}
               <div className="space-y-4">
-                <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-5">
+                <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-5">
                   <h4 className="font-black text-lg mb-4 flex items-center gap-2">
-                    <FileText size={20} className="text-[#1A1610]" />
+                    <FileText size={20} className="text-[var(--ink)]" />
                     {t('programs.detail.personal.resultProfileTitle')}
                   </h4>
                   <div className="space-y-3">
                     {[t('programs.detail.personal.resultProfile1'), t('programs.detail.personal.resultProfile2'), t('programs.detail.personal.resultProfile3'), t('programs.detail.personal.resultProfile4')].map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-2 bg-[#EDE5D2] rounded-[12px]">
-                        <CheckCircle2 size={16} className="text-[#1A1610]" />
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-white rounded-[4px]">
+                        <CheckCircle2 size={16} className="text-[var(--ink)]" />
                         <span className="text-sm lg:text-base">{item}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-5">
+                <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-5">
                   <h4 className="font-black text-lg mb-3 flex items-center gap-2">
-                    <Star size={20} className="text-[#1A1610]" />
+                    <Star size={20} className="text-[var(--ink)]" />
                     {t('programs.detail.personal.resultTopTitle')}
                   </h4>
                   <div className="space-y-2">
                     {[t('programs.detail.personal.resultTop1'), t('programs.detail.personal.resultTop2'), t('programs.detail.personal.resultTop3')].map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-2 bg-[#EDE5D2] rounded-[12px] text-sm lg:text-base">
-                        <span className="w-6 h-6 bg-[#FDFAF1] text-[#1A1610] rounded-full flex items-center justify-center text-xs lg:text-sm font-bold">{idx + 1}</span>
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-white rounded-[4px] text-sm lg:text-base">
+                        <span className="w-6 h-6 bg-[var(--ink)] text-white rounded-full flex items-center justify-center text-xs lg:text-sm font-bold">{idx + 1}</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -391,20 +391,20 @@ export default function PersonalPage() {
               {/* 오른쪽: 완성품 이미지 */}
               <div className="flex flex-col items-center">
                 <div className="relative">
-                  <div className="w-64 h-64 bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center overflow-hidden">
+                  <div className="w-64 h-64 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] flex items-center justify-center overflow-hidden">
                     {currentImage ? (
                       <img src={currentImage} alt={t('programs.detail.personal.finishedProductAlt')} className="w-[80%] h-[80%] object-contain" />
                     ) : (
-                      <div className="h-full w-full animate-pulse bg-gradient-to-br from-[#EDE5D2] to-[#D8CFBB]" />
+                      <div className="h-full w-full animate-pulse bg-[var(--soft)]" />
                     )}
                   </div>
-                  <div className="absolute -top-3 -right-3 px-4 py-2 bg-[#FDFAF1] text-[#1A1610] font-black rounded-full border-2 border-[#D8CFBB] text-sm lg:text-base">
+                  <div className="absolute -top-3 -right-3 px-4 py-2 bg-white text-[var(--ink)] font-black rounded-[4px] border border-[var(--line)] text-sm lg:text-base">
                     YOUR SCENT ✨
                   </div>
                 </div>
                 <div className="mt-6 text-center">
-                  <h3 className="text-2xl font-black text-[#1A1610] mb-2">{t('programs.detail.personal.resultSignatureTitle')}</h3>
-                  <p className="text-[#5C564A]">{t('programs.detail.personal.resultSignatureDesc')}</p>
+                  <h3 className="text-2xl font-black text-[var(--ink)] mb-2">{t('programs.detail.personal.resultSignatureTitle')}</h3>
+                  <p className="text-[var(--muted-ink)]">{t('programs.detail.personal.resultSignatureDesc')}</p>
                 </div>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function PersonalPage() {
       {/* ============================================
           실제 후기
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F5EFE2]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--paper)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -430,10 +430,10 @@ export default function PersonalPage() {
           className="max-w-5xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#D8CFBB] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               💬 REAL REVIEWS
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610]">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)]">
               {t('programs.detail.personal.reviewsTitle')}
             </motion.h2>
           </div>
@@ -443,17 +443,17 @@ export default function PersonalPage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-6"
+                className="bg-white border border-[var(--line)] rounded-[6px] p-6"
               >
                 <div className="flex items-center gap-1 mb-3">
                   {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} size={16} className="fill-[#1A1610] text-[#1A1610]" />
+                    <Star key={i} size={16} className="fill-[var(--ink)] text-[var(--ink)]" />
                   ))}
                 </div>
-                <p className="text-[#5C564A] mb-4 leading-relaxed">&quot;{review.text}&quot;</p>
+                <p className="text-[var(--muted-ink)] mb-4 leading-relaxed">&quot;{review.text}&quot;</p>
                 <div className="flex items-center justify-between">
-                  <p className="font-black text-[#1A1610]">{review.name}</p>
-                  <div className="px-3 py-1 bg-[#EDE5D2] text-[#5C564A] text-xs lg:text-sm font-bold rounded-full">
+                  <p className="font-black text-[var(--ink)]">{review.name}</p>
+                  <div className="px-3 py-1 bg-[var(--soft)] text-[var(--muted-ink)] text-xs lg:text-sm font-bold rounded-[3px]">
                     {t('programs.detail.personal.purchaseVerified')}
                   </div>
                 </div>
@@ -470,7 +470,7 @@ export default function PersonalPage() {
       {/* ============================================
           FAQ
       ============================================ */}
-      <section className="py-16 px-4 md:px-8 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
+      <section className="py-16 px-4 md:px-8 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -479,10 +479,10 @@ export default function PersonalPage() {
           className="max-w-3xl mx-auto"
         >
           <div className="text-center mb-12">
-            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[#EFE4C8] text-[#1A1610] text-sm lg:text-base font-black rounded-full border-2 border-[#D8CFBB] mb-4">
+            <motion.div variants={fadeInUp} className="inline-block px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-sm lg:text-base font-black rounded-[4px] border border-[var(--line)] mb-4">
               ❓ FAQ
             </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[#1A1610]">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-black text-[var(--ink)]">
               {t('programs.detail.personal.faqTitle')}
             </motion.h2>
           </div>
@@ -492,14 +492,14 @@ export default function PersonalPage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className="bg-[#EDE5D2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden"
+                className="bg-white border border-[var(--line)] rounded-[6px] overflow-hidden"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left font-black text-[#1A1610] hover:bg-[#EDE5D2] transition-colors"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left font-black text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   <span className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-[#FDFAF1] text-[#1A1610] border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center text-sm lg:text-base">Q</span>
+                    <span className="w-8 h-8 bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] rounded-[4px] flex items-center justify-center text-sm lg:text-base">Q</span>
                     {faq.q}
                   </span>
                   <ChevronDown size={20} className={`transition-transform ${openFaq === idx ? 'rotate-180' : ''}`} />
@@ -513,7 +513,7 @@ export default function PersonalPage() {
                       className="overflow-hidden"
                     >
                       <div className="px-6 pb-5 pt-0">
-                        <div className="pl-11 text-[#5C564A] leading-relaxed">{faq.a}</div>
+                        <div className="pl-11 text-[var(--muted-ink)] leading-relaxed">{faq.a}</div>
                       </div>
                     </motion.div>
                   )}
@@ -527,7 +527,7 @@ export default function PersonalPage() {
       {/* ============================================
           최종 CTA
       ============================================ */}
-      <section className="py-20 px-4 md:px-8 bg-[#FDFAF1]">
+      <section className="py-20 px-4 md:px-8 bg-[var(--paper)] border-t border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -535,11 +535,11 @@ export default function PersonalPage() {
           variants={fadeInUp}
           className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-3xl md:text-5xl font-black text-[#1A1610] mb-6 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--ink)] mb-6 leading-tight">
             {t('programs.detail.personal.finalCtaTitleLine1')}<br />
-            <span className="text-[#8B8578]">{t('programs.detail.personal.finalCtaTitleLine2')}</span>
+            <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.finalCtaTitleLine2')}</span>
           </h2>
-          <p className="text-[#8B8578] mb-8 text-lg">
+          <p className="text-[var(--muted-ink)] mb-8 text-lg">
             {t('programs.detail.personal.finalCtaDescLine1')}<br />
             {t('programs.detail.personal.finalCtaDescLine2')}
           </p>
@@ -547,13 +547,13 @@ export default function PersonalPage() {
           <button
             onClick={handleStartClick}
             disabled={loading}
-            className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-[#F5EFE2] text-[#1A1610] font-black text-xl rounded-[12px] border-2 border-[#D8CFBB] transition-all disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-3 px-12 py-6 bg-[var(--ink)] text-white font-black text-xl rounded-[5px] transition-all hover:bg-black disabled:opacity-50"
           >
             <Sparkles size={28} />
             {t('programs.detail.personal.finalCtaButton')}
           </button>
 
-          <p className="text-[#5C564A] mt-6 text-sm lg:text-base">
+          <p className="text-[var(--muted-ink)] mt-6 text-sm lg:text-base">
             {t('programs.detail.personal.finalCtaTime')} ⚡
           </p>
         </motion.div>
@@ -562,7 +562,7 @@ export default function PersonalPage() {
   )
 
   const mobileTree = (
-    <main className="relative min-h-screen bg-[#10131C] font-wanted">
+    <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
       <Header />
       <ProgramAdminBridge productSlug="personal" />
 
@@ -598,37 +598,37 @@ export default function PersonalPage() {
               onSelect: setSelectedImage,
             }}
             secondaryBadges={
-              <span className="inline-flex min-h-11 items-center rounded-full border-[3px] border-[#D8CFBB] bg-[#EFE4C8] px-5 text-sm lg:text-base font-black text-[#1A1610]">
+              <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
                 PREMIUM
               </span>
             }
             meta={
               <div className="flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-[#1A1610] text-[#1A1610]" />
+                  <Star key={i} className="h-4 w-4 fill-[var(--ink)] text-[var(--ink)]" />
                 ))}
-                <span className="ml-1 text-xs lg:text-sm font-bold text-[#5C564A]">4.9 (2,847)</span>
+                <span className="ml-1 text-xs lg:text-sm font-bold text-[var(--muted-ink)]">4.9 (2,847)</span>
               </div>
             }
             price={
               <>
                 <div className="flex items-end gap-3">
-                  <span className="text-2xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)}</span>
+                  <span className="text-2xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)}</span>
                   {personal10?.original_price && personal10.original_price > personal10.price && (
                     <>
-                      <span className="text-sm lg:text-base text-[#8B8578] line-through">{t('currency.symbol')}{formatPrice(personal10.original_price)}</span>
+                      <span className="text-sm lg:text-base text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(personal10.original_price)}</span>
                       {personalDiscount !== null && (
-                        <span className="rounded-[12px] bg-[#FDFAF1] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-[#1A1610]">{personalDiscount}% OFF</span>
+                        <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] lg:text-[12px] font-bold text-white">{personalDiscount}% OFF</span>
                       )}
                     </>
                   )}
                 </div>
-                <div className="mt-1 text-xs lg:text-sm text-[#8B8578]">
+                <div className="mt-1 text-xs lg:text-sm text-[var(--muted-ink)]">
                   10ml {t('currency.symbol')}{formatPrice(personal10?.price ?? 24000)} / 50ml {t('currency.symbol')}{formatPrice(personal50?.price ?? 48000)}
                 </div>
               </>
             }
-            infoIcon={<Droplets size={14} className="text-[#1A1610]" />}
+            infoIcon={<Droplets size={14} className="text-[var(--ink)]" />}
             infoItems={[
               pageContent.infoTitle,
               t('programs.detail.personal.infoShipping', { fee: `${t('currency.symbol')}${formatPrice(3000)}` }),
@@ -666,40 +666,40 @@ export default function PersonalPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-[#F5EFE2] rounded-[12px] shadow-2xl overflow-hidden border-2 border-[#D8CFBB]"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
             >
-              <div className="relative p-6 pb-4 text-center bg-gradient-to-b from-[#EDE5D2] to-[#F5EFE2]">
+              <div className="relative p-6 pb-4 text-center">
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#EDE5D2] transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
                 >
-                  <X size={20} className="text-[#8B8578]" />
+                  <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
 
-                <div className="w-16 h-16 mx-auto mb-4 bg-[#FDFAF1] rounded-[12px] flex items-center justify-center shadow-lg border-2 border-[#D8CFBB]">
-                  <AlertTriangle size={28} className="text-[#1A1610]" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+                  <AlertTriangle size={28} className="text-[var(--ink)]" />
                 </div>
 
-                <h2 className="text-xl font-black text-[#1A1610] mb-2">{t('programs.detail.personal.loginPromptTitle')} 🤔</h2>
-                <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed">
+                <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('programs.detail.personal.loginPromptTitle')} 🤔</h2>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
                   {t('programs.detail.personal.loginPromptBodyLine1')}<br />
-                  <span className="font-bold text-red-500">{t('programs.detail.personal.loginPromptBodyLine2')}</span>
+                  <span className="font-bold text-[var(--accent-chem-deep)]">{t('programs.detail.personal.loginPromptBodyLine2')}</span>
                 </p>
               </div>
 
-              <div className="px-6 py-4 bg-[#EDE5D2] border-y-2 border-[#D8CFBB]">
+              <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
                 <div className="space-y-2 text-sm lg:text-base">
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.personal.loginBenefit1')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit1')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">✓</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.personal.loginBenefit2')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit2')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-[#8B8578] font-bold">!</span>
-                    <span className="text-[#5C564A]">{t('programs.detail.personal.loginBenefit3')}</span>
+                    <span className="text-[var(--muted-ink)] font-bold">!</span>
+                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit3')}</span>
                   </div>
                 </div>
               </div>
@@ -707,7 +707,7 @@ export default function PersonalPage() {
               <div className="p-6">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full h-14 bg-[#12141D] text-[#F5EFE2] rounded-[12px] font-bold text-lg transition-all border-2 border-[#12141D]"
+                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
                 >
                   {t('programs.detail.personal.loginButton')}
                 </button>

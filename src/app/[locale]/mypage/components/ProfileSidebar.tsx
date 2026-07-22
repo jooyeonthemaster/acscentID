@@ -76,9 +76,9 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
   ]
 
   return (
-    <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
+    <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] overflow-hidden">
       {/* 브랜드 로고 */}
-      <div className="hidden lg:block px-6 py-5 border-b-2 border-[#262A38]">
+      <div className="hidden lg:block px-6 py-5 border-b-2 border-[var(--line)]">
         <Link href="/" aria-label="AC'SCENT" className="inline-block">
           <Image
             src="/images/logo/acscent-wordmark-cream.png"
@@ -91,20 +91,20 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
       </div>
 
       {/* 프로필 섹션 */}
-      <div className="p-5 border-b-2 border-[#262A38] bg-gradient-to-br from-[#0C0E16] to-[#0C0E16]">
+      <div className="p-5 border-b-2 border-[var(--line)] bg-gradient-to-br from-[var(--canvas)] to-[var(--canvas)]">
         <div className="flex items-center gap-4">
           {/* 프로필 이미지 */}
           <img
             src={userAvatar}
             alt={t('profileAlt')}
-            className="w-14 h-14 rounded-[12px] object-cover border-2 border-[#262A38] bg-[#151823]"
+            className="w-14 h-14 rounded-[6px] object-cover border border-[var(--line)] bg-[var(--soft)]"
           />
 
           {/* 프로필 정보 */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-black text-[#E9E2D0] truncate">{userName}</h2>
-            <p className="text-xs lg:text-sm text-[#A69F8D] truncate">{userEmail || t('kakaoLogin')}</p>
-            <span className="inline-block mt-1 text-[10px] lg:text-[12px] px-2 py-0.5 bg-[#0C0E16] text-[#E9E2D0] rounded-full font-bold">
+            <h2 className="text-lg font-black text-[var(--ink)] truncate">{userName}</h2>
+            <p className="text-xs lg:text-sm text-[var(--muted-ink)] truncate">{userEmail || t('kakaoLogin')}</p>
+            <span className="inline-block mt-1 text-[10px] lg:text-[12px] px-2 py-0.5 bg-[var(--canvas)] text-[var(--ink)] rounded-full font-bold">
               {providerLabel} {t('loginSuffix')}
             </span>
           </div>
@@ -124,10 +124,10 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-sm lg:text-base transition-all ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-[6px] font-bold text-sm lg:text-base transition-all ${
                     isActive
-                      ? 'bg-[#F5EFE2] text-[#12141D] border-2 border-[#F5EFE2]'
-                      : 'text-[#E9E2D0] hover:bg-[#151823] border-2 border-transparent'
+                      ? 'bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)]'
+                      : 'text-[var(--ink)] hover:bg-[var(--soft)] border-2 border-transparent'
                   }`}
                 >
                   <item.icon size={18} />
@@ -141,10 +141,10 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
       </nav>
 
       {/* 로그아웃 버튼 */}
-      <div className="p-3 border-t-2 border-[#262A38]">
+      <div className="p-3 border-t-2 border-[var(--line)]">
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-sm lg:text-base text-[#A69F8D] hover:bg-red-50 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-200"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-[6px] font-bold text-sm lg:text-base text-[var(--muted-ink)] hover:bg-red-50 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-200"
         >
           <LogOut size={18} />
           <span>{t('logout')}</span>
@@ -198,21 +198,21 @@ function InviteFriendCard() {
   }
 
   return (
-    <div className="p-4 bg-gradient-to-br from-[#151823] to-[#151823] rounded-[12px] border-2 border-[#262A38]">
+    <div className="p-4 bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-[6px] border border-[var(--line)]">
       <div className="text-3xl mb-2">🎁</div>
       <p className="font-black text-sm lg:text-base mb-1">{tSidebar('inviteFriend')}</p>
-      <p className="text-xs lg:text-sm text-[#A69F8D] mb-3">{tSidebar('inviteDesc')}</p>
+      <p className="text-xs lg:text-sm text-[var(--muted-ink)] mb-3">{tSidebar('inviteDesc')}</p>
       <div className="flex gap-2">
         <button
           onClick={handleCopyLink}
-          className="flex-1 py-2 bg-[#12141D] text-[#E9E2D0] text-xs lg:text-sm font-bold rounded-[12px] border-2 border-[#262A38] hover:bg-[#151823] transition-colors flex items-center justify-center gap-1"
+          className="flex-1 py-2 bg-[var(--paper)] text-[var(--ink)] text-xs lg:text-sm font-bold rounded-[6px] border border-[var(--line)] hover:bg-[var(--soft)] transition-colors flex items-center justify-center gap-1"
         >
-          {copied ? <Check size={14} className="text-[#A69F8D]" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-[var(--muted-ink)]" /> : <Copy size={14} />}
           {copied ? tSidebar('linkCopied') : tSidebar('linkCopy')}
         </button>
         <button
           onClick={handleShare}
-          className="py-2 px-3 bg-[#F5EFE2] text-[#12141D] text-xs lg:text-sm font-bold rounded-[12px] hover:bg-[#FFFDF5] transition-colors"
+          className="py-2 px-3 bg-[var(--soft)] text-[var(--ink)] text-xs lg:text-sm font-bold rounded-[6px] hover:bg-[var(--soft)] transition-colors"
         >
           <Share2 size={14} />
         </button>

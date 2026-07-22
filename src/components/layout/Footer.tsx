@@ -70,7 +70,7 @@ export function Footer() {
   if (hideAtLg && viewportMode === 'desktop') return null
 
   return (
-    <footer className={`relative z-20 bg-[#0C0E16] text-[#E9E2D0] border-t-2 border-[#D4A017] font-wanted${hideAtLg ? ' lg:hidden' : ''}`}>
+    <footer className={`relative z-20 bg-[var(--dark-band)] text-white font-wanted${hideAtLg ? ' lg:hidden' : ''}`}>
       <div className="w-full px-4 py-8">
         {/* Main Footer Content */}
         <div className="grid grid-cols-2 gap-6 mb-6">
@@ -85,14 +85,14 @@ export function Footer() {
                 className="h-[19px] w-auto select-none"
               />
             </div>
-            <p className="text-xs lg:text-sm text-[#5C564A] leading-relaxed">
+            <p className="text-xs lg:text-sm text-[var(--dark-muted)] leading-relaxed">
               {t('footer.tagline')}
             </p>
           </div>
 
           {/* Programs Links */}
           <div>
-            <h3 className="text-xs lg:text-sm font-black tracking-wider uppercase text-[#D4A017] mb-3">
+            <h3 className="text-xs lg:text-sm font-black uppercase text-white mb-3">
               {t('footer.programs')}
             </h3>
             <ul className="space-y-1.5">
@@ -100,7 +100,7 @@ export function Footer() {
                 <li key={program.slug}>
                   <Link
                     href={program.href}
-                    className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
+                    className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
                   >
                     {program.name}
                   </Link>
@@ -111,14 +111,14 @@ export function Footer() {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-xs lg:text-sm font-black tracking-wider uppercase text-[#D4A017] mb-3">
+            <h3 className="text-xs lg:text-sm font-black uppercase text-white mb-3">
               {t('footer.support')}
             </h3>
             <ul className="space-y-1.5">
               <li>
                 <Link
                   href="/faq"
-                  className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
+                  className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
                 >
                   FAQ
                 </Link>
@@ -126,7 +126,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-xs lg:text-sm text-[#5C564A] hover:text-[#D4A017] inline-block transition-all"
+                  className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
                 >
                   {t('footer.privacy')}
                 </Link>
@@ -136,9 +136,9 @@ export function Footer() {
         </div>
 
         {/* Company Info */}
-        <div className="border-t border-[#262A38] pt-4 mb-4">
-          <p className="text-[10px] lg:text-[12px] text-[#8B8578] leading-relaxed">
-            <span className="font-bold text-[#5C564A]">NEANDER Co.,LTD</span>
+        <div className="border-t border-[var(--dark-line)] pt-4 mb-4">
+          <p className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] leading-relaxed">
+            <span className="font-bold text-white">NEANDER Co.,LTD</span>
             <br />
             {t('footer.companyInfo')}
             <br />
@@ -149,32 +149,32 @@ export function Footer() {
             {t('footer.companyContact')}
           </p>
           <div className="flex gap-3 mt-2">
-            <Link href="/terms" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
+            <Link href="/terms" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.terms')}
             </Link>
-            <Link href="/privacy" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
+            <Link href="/privacy" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.privacy')}
             </Link>
-            <Link href="/refund-policy" className="text-[10px] lg:text-[12px] text-[#8B8578] hover:text-[#D4A017] transition-colors">
+            <Link href="/refund-policy" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.cancelRefundExchange')}
             </Link>
           </div>
         </div>
 
         {/* Deposit Account */}
-        <div className="border-t border-[#262A38] pt-4 mb-4">
+        <div className="border-t border-[var(--dark-line)] pt-4 mb-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-sm lg:text-base md:text-base font-bold text-[#E9E2D0]">
+            <p className="text-sm lg:text-base md:text-base font-bold text-white">
               {t('footer.depositAccount')}
             </p>
             <button
               onClick={handleCopyAccount}
               title={copied ? t('footer.copied') : t('footer.copyAccount')}
               aria-label={copied ? t('footer.copied') : t('footer.copyAccount')}
-              className={`flex items-center justify-center w-9 h-9 rounded-[12px] border transition-colors shrink-0 ${
+              className={`flex items-center justify-center w-9 h-9 rounded-[4px] border transition-colors shrink-0 ${
                 copied
-                  ? 'border-[#D4A017] text-[#D4A017]'
-                  : 'border-[#343A4C] text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017]'
+                  ? 'border-white text-white'
+                  : 'border-[var(--dark-line)] text-[var(--dark-muted)] hover:border-white hover:text-white'
               }`}
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -183,27 +183,27 @@ export function Footer() {
         </div>
 
         {/* Social Media & Copyright */}
-        <div className="border-t border-[#262A38] pt-4 flex items-center justify-between gap-3">
+        <div className="border-t border-[var(--dark-line)] pt-4 flex items-center justify-between gap-3">
           {/* Social Links */}
           <div className="flex items-center gap-2">
             <Link
               href="https://www.instagram.com/acscent_id/"
               target="_blank"
-              className="w-8 h-8 rounded-full border border-[#343A4C] flex items-center justify-center text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017] transition-colors"
+              className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Instagram size={14} />
             </Link>
             <Link
               href="https://x.com/acscent_id"
               target="_blank"
-              className="w-8 h-8 rounded-full border border-[#343A4C] flex items-center justify-center text-[#8B8578] hover:border-[#D4A017] hover:text-[#D4A017] transition-colors"
+              className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Twitter size={14} />
             </Link>
           </div>
 
           {/* Copyright */}
-          <p className="text-[10px] lg:text-[12px] text-[#8B8578]">
+          <p className="text-[10px] lg:text-[12px] text-[var(--dark-muted)]">
             © {currentYear} NEANDER Co.,LTD
           </p>
         </div>

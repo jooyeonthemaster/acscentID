@@ -46,3 +46,10 @@ nul
 
 # tsc output
 tsc-result.txt
+
+# local raw assets / research images (too large for git)
+/상품사진/
+/실제상품사진/
+/분석보고서용/
+/docs/product-image-research/
+/scripts/.batch-analyze-progress.json

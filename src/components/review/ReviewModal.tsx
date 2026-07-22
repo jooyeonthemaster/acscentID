@@ -89,13 +89,13 @@ export function ReviewModal({
             exit={{ opacity: 0, y: 50 }}
             className="fixed inset-x-0 bottom-0 top-16 z-[60] overflow-hidden md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-4xl md:max-h-[85vh] md:w-[95vw]"
           >
-            <div className="h-full bg-[#FDFAF1] rounded-t-[12px] md:rounded-[12px] border-t-2 md:border-2 border-[#D8CFBB] shadow-2xl flex flex-col">
+            <div className="h-full bg-[var(--soft)] rounded-t-[6px] md:rounded-[6px] border-t-2 md:border border-[var(--line)] shadow-2xl flex flex-col">
               {/* Header */}
-              <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 border-b-2 border-[#D8CFBB] bg-[#F5EFE2] rounded-t-[12px] md:rounded-t-[12px]">
+              <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 border-b-2 border-[var(--line)] bg-[var(--soft)] rounded-t-[6px] md:rounded-t-[6px]">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-	                    <h2 className="text-lg md:text-xl font-black text-[#1A1610]">{t('review.totalReview')}</h2>
-                    <p className="text-xs lg:text-sm md:text-sm text-[#8B8578] truncate">{programName}</p>
+	                    <h2 className="text-lg md:text-xl font-black text-[var(--ink)]">{t('review.totalReview')}</h2>
+                    <p className="text-xs lg:text-sm md:text-sm text-[var(--muted-ink)] truncate">{programName}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {/* 리뷰 작성 버튼 */}
@@ -110,10 +110,10 @@ export function ReviewModal({
 	                            alert(t('review.purchaseRequiredAlert'))
 	                          }
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-[12px] font-bold text-xs lg:text-sm md:text-sm border-2 border-[#12141D] transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-[6px] font-bold text-xs lg:text-sm md:text-sm border border-[var(--line)] transition-all ${
                           canWriteReview
-                            ? 'bg-[#12141D] text-[#F5EFE2]'
-                            : 'bg-[#F5EFE2] text-[#1A1610]'
+                            ? 'bg-[var(--paper)] text-[var(--ink)]'
+                            : 'bg-[var(--soft)] text-[var(--ink)]'
                         }`}
                       >
                         <PenLine size={14} />
@@ -123,7 +123,7 @@ export function ReviewModal({
 
                     <button
                       onClick={onClose}
-                      className="p-1.5 md:p-2 hover:bg-[#EDE5D2] rounded-full transition-colors"
+                      className="p-1.5 md:p-2 hover:bg-[var(--soft)] rounded-full transition-colors"
                     >
                       <X size={20} className="md:w-6 md:h-6" />
                     </button>
@@ -135,7 +135,7 @@ export function ReviewModal({
               <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-36 md:pb-6 space-y-6 md:space-y-8">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-10 h-10 animate-spin text-[#8B8578]" />
+                    <Loader2 className="w-10 h-10 animate-spin text-[var(--muted-ink)]" />
                   </div>
                 ) : (
                   <>
@@ -188,16 +188,16 @@ export function ReviewTrigger({ averageRating, totalCount, onClick }: ReviewTrig
             key={star}
             size={20}
             className={star <= Math.round(averageRating)
-              ? "fill-[#1A1610] text-[#1A1610]"
-              : "text-[#5C564A]"
+              ? "fill-[var(--ink)] text-[var(--ink)]"
+              : "text-[var(--muted-ink)]"
             }
           />
         ))}
       </div>
-      <span className="text-sm lg:text-base font-bold text-[#5C564A] group-hover:text-[#1A1610] transition-colors">
+      <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)] group-hover:text-[var(--ink)] transition-colors">
         {averageRating.toFixed(1)} ({totalCount.toLocaleString()})
       </span>
-      <span className="text-xs lg:text-sm text-[#8B8578] group-hover:text-[#5C564A]">
+      <span className="text-xs lg:text-sm text-[var(--muted-ink)] group-hover:text-[var(--muted-ink)]">
         {t('review.viewReviews')}
       </span>
     </button>

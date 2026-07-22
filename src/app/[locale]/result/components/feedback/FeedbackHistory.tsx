@@ -167,10 +167,10 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] ${saju ? SJ.sheet : 'bg-[#12141D]'} rounded-t-[12px] shadow-2xl overflow-hidden flex flex-col`}
+            className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
           >
             {/* 헤더 */}
-            <div className={`flex items-center justify-between px-5 py-4 border-b flex-shrink-0 ${saju ? SJ.hairline : 'border-[#1E222E]'}`}>
+            <div className={`flex items-center justify-between px-5 py-4 border-b flex-shrink-0 ${saju ? SJ.hairline : 'border-[var(--line)]'}`}>
               {showRecipeConfirm && selectedFeedback ? (
                 <>
                   <button
@@ -178,13 +178,13 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                       setShowRecipeConfirm(false)
                       setSelectedFeedback(null)
                     }}
-                    className={`p-2 -ml-2 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-[#1B1F2C]'}`}
+                    className={`p-2 -ml-2 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-[var(--soft)]'}`}
                   >
-                    <ChevronLeft size={20} className={saju ? 'text-[#5C564A]' : 'text-[#A69F8D]'} />
+                    <ChevronLeft size={20} className={saju ? 'text-[#5C564A]' : 'text-[var(--muted-ink)]'} />
                   </button>
                   <div className="flex-1 text-center">
-                    <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>{t('confirmRecipe')}</h2>
-                    <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>{selectedFeedback.perfumeName}</p>
+                    <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--ink)]'}`}>{t('confirmRecipe')}</h2>
+                    <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{selectedFeedback.perfumeName}</p>
                   </div>
                   <div className="w-9" /> {/* 균형을 위한 spacer */}
                 </>
@@ -192,20 +192,20 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                 <>
                   <div className="flex items-center gap-3">
                     {saju ? (
-                      <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-[12px] border-[1.5px] border-[#C0392B] text-[#A93226] font-serif-kr text-lg leading-none">錄</span>
+                      <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-[6px] border-[1.5px] border-[#C0392B] text-[#A93226] font-serif-kr text-lg leading-none">錄</span>
                     ) : (
                       <span className="text-2xl">📋</span>
                     )}
                     <div>
-                      <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>{t('historyTitle')}</h2>
-                      <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>{t('historySubtitle')}</p>
+                      <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--ink)]'}`}>{t('historyTitle')}</h2>
+                      <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{t('historySubtitle')}</p>
                     </div>
                   </div>
                   <button
                     onClick={onClose}
-                    className={`p-2 -mr-2 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-[#1B1F2C]'}`}
+                    className={`p-2 -mr-2 rounded-full transition-colors ${saju ? SJ.iconHover : 'hover:bg-[var(--soft)]'}`}
                   >
-                    <X size={20} className={saju ? 'text-[#5C564A]' : 'text-[#8B8578]'} />
+                    <X size={20} className={saju ? 'text-[#5C564A]' : 'text-[var(--muted-ink)]'} />
                   </button>
                 </>
               )}
@@ -235,8 +235,8 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
               {/* 로딩 */}
               {!showRecipeConfirm && loading && (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 size={32} className={`animate-spin mb-3 ${saju ? 'text-[#C9A227]' : 'text-[#8B8578]'}`} />
-                  <p className={`text-sm lg:text-base ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>{t('historyLoading')}</p>
+                  <Loader2 size={32} className={`animate-spin mb-3 ${saju ? 'text-[#C9A227]' : 'text-[var(--muted-ink)]'}`} />
+                  <p className={`text-sm lg:text-base ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{t('historyLoading')}</p>
                 </div>
               )}
 
@@ -248,7 +248,7 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                   ) : (
                     <span className="text-4xl mb-3">😢</span>
                   )}
-                  <p className={`font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{error}</p>
+                  <p className={`font-medium ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{error}</p>
                 </div>
               )}
 
@@ -260,8 +260,8 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                   ) : (
                     <span className="text-5xl mb-4">✨</span>
                   )}
-                  <h3 className={`text-lg font-bold mb-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#A69F8D]'}`}>{t('historyEmptyTitle')}</h3>
-                  <p className={`text-sm lg:text-base text-center whitespace-pre-line ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>
+                  <h3 className={`text-lg font-bold mb-2 ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--muted-ink)]'}`}>{t('historyEmptyTitle')}</h3>
+                  <p className={`text-sm lg:text-base text-center whitespace-pre-line ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
                     {t('historyEmptyDescription')}
                   </p>
                 </div>
@@ -276,18 +276,18 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`rounded-[12px] overflow-hidden ${saju ? 'bg-[#EDE5D2]/70 border border-[#D8CFBB]' : 'bg-[#151823]'}`}
+                      className={`rounded-[6px] overflow-hidden ${saju ? 'bg-[#EDE5D2]/70 border border-[#D8CFBB]' : 'bg-[var(--soft)]'}`}
                     >
                       {/* 카드 헤더 */}
                       <button
                         onClick={() =>
                           setExpandedId(expandedId === feedback.id ? null : feedback.id)
                         }
-                        className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${saju ? 'hover:bg-[#EDE5D2]' : 'hover:bg-[#1B1F2C]'}`}
+                        className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${saju ? 'hover:bg-[#EDE5D2]' : 'hover:bg-[var(--soft)]'}`}
                       >
                         {/* 향수 아이콘 */}
                         <div
-                          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-[#E9E2D0] font-bold text-xs lg:text-sm shadow-md flex-shrink-0"
+                          className="w-10 h-10 rounded-[6px] flex items-center justify-center text-[var(--ink)] font-bold text-xs lg:text-sm shadow-md flex-shrink-0"
                           style={{ backgroundColor: getPerfumeColor(feedback.perfumeId) }}
                         >
                           {feedback.retentionPercentage}%
@@ -295,16 +295,16 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
 
                         {/* 정보 */}
                         <div className="flex-1 min-w-0">
-                          <h4 className={`font-bold truncate ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>
+                          <h4 className={`font-bold truncate ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--ink)]'}`}>
                             {feedback.perfumeName}
                           </h4>
-                          <div className={`flex items-center gap-2 text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>
+                          <div className={`flex items-center gap-2 text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
                             <Clock size={12} />
                             <span>{formatDate(feedback.createdAt)}</span>
                             {feedback.generatedRecipe && (
                               <>
                                 <span>•</span>
-                                <Droplet size={12} className={saju ? 'text-[#C9A227]' : 'text-[#8B8578]'} />
+                                <Droplet size={12} className={saju ? 'text-[#C9A227]' : 'text-[var(--muted-ink)]'} />
                                 <span>
                                   {t('totalDrops', { count: (feedback.generatedRecipe as GeneratedRecipe).totalDrops || 0 })}
                                 </span>
@@ -318,7 +318,7 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                           animate={{ rotate: expandedId === feedback.id ? 90 : 0 }}
                           className="flex-shrink-0"
                         >
-                          <ChevronRight size={20} className={saju ? 'text-[#8B8578]' : 'text-[#8B8578]'} />
+                          <ChevronRight size={20} className={saju ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'} />
                         </motion.div>
                       </button>
 
@@ -334,8 +334,8 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                           >
                             <div className="px-4 pb-4 space-y-3">
                               {/* 레시피 설명 */}
-                              <div className={`rounded-[12px] p-3 border ${saju ? 'bg-[#FDFAF1] border-[#C9A227]/40' : 'bg-gradient-to-br from-[#0C0E16] to-[#0C0E16] border-stone-200/50'}`}>
-                                <p className={`text-sm lg:text-base leading-relaxed ${saju ? SJ.ink : 'text-[#A69F8D]'}`}>
+                              <div className={`rounded-[6px] p-3 border ${saju ? 'bg-[#FDFAF1] border-[#C9A227]/40' : 'bg-gradient-to-br from-[var(--canvas)] to-[var(--canvas)] border-stone-200/50'}`}>
+                                <p className={`text-sm lg:text-base leading-relaxed ${saju ? SJ.ink : 'text-[var(--muted-ink)]'}`}>
                                   {(feedback.generatedRecipe as GeneratedRecipe).overallExplanation}
                                 </p>
                               </div>
@@ -343,24 +343,24 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                               {/* 레시피 구성 */}
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                  <Sparkles size={14} className={saju ? 'text-[#C9A227]' : 'text-[#8B8578]'} />
-                                  <span className={`text-xs lg:text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#A69F8D]'}`}>{t('recipeComposition')}</span>
+                                  <Sparkles size={14} className={saju ? 'text-[#C9A227]' : 'text-[var(--muted-ink)]'} />
+                                  <span className={`text-xs lg:text-sm font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--muted-ink)]'}`}>{t('recipeComposition')}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   {(feedback.generatedRecipe as GeneratedRecipe).granules.map(
                                     (granule, idx) => (
                                       <div
                                         key={idx}
-                                        className={`flex items-center gap-2 rounded-[12px] px-3 py-1.5 border ${saju ? SJ.card : 'bg-[#12141D] border-[#1E222E]'}`}
+                                        className={`flex items-center gap-2 rounded-[6px] px-3 py-1.5 border ${saju ? SJ.card : 'bg-[var(--paper)] border-[var(--line)]'}`}
                                       >
                                         <div
                                           className="w-4 h-4 rounded-full"
                                           style={{ backgroundColor: getPerfumeColor(granule.id) }}
                                         />
-                                        <span className={`text-xs lg:text-sm font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>
+                                        <span className={`text-xs lg:text-sm font-medium ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
                                           {getLocalizedName(granule.id, granule.name)}
                                         </span>
-                                        <span className={`text-xs lg:text-sm font-bold ${saju ? SJ.goldText : 'text-[#A69F8D]'}`}>
+                                        <span className={`text-xs lg:text-sm font-bold ${saju ? SJ.goldText : 'text-[var(--muted-ink)]'}`}>
                                           {granule.drops}{t('drops')}
                                         </span>
                                       </div>
@@ -371,8 +371,8 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
 
                               {/* 팬 메시지 */}
                               {(feedback.generatedRecipe as GeneratedRecipe).fanMessage && (
-                                <div className={`rounded-[12px] p-3 border ${saju ? 'bg-[#FDFAF1] border-[#D8CFBB]' : 'bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] border-stone-200/50'}`}>
-                                  <p className={`text-xs lg:text-sm leading-relaxed ${saju ? `${SJ.serif} ${SJ.inkMuted}` : 'text-[#A69F8D] italic'}`}>
+                                <div className={`rounded-[6px] p-3 border ${saju ? 'bg-[#FDFAF1] border-[#D8CFBB]' : 'bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] border-stone-200/50'}`}>
+                                  <p className={`text-xs lg:text-sm leading-relaxed ${saju ? `${SJ.serif} ${SJ.inkMuted}` : 'text-[var(--muted-ink)] italic'}`}>
                                     {saju ? '' : '💜 '}{(feedback.generatedRecipe as GeneratedRecipe).fanMessage}
                                   </p>
                                 </div>
@@ -387,8 +387,8 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                                     setSelectedFeedback(feedback)
                                     setShowRecipeConfirm(true)
                                   }}
-                                  className={`flex-1 h-9 rounded-[12px] font-medium shadow-md ${
-                                    saju ? SJ.ctaCinnabar : 'bg-[#F5EFE2] hover:from-[#161925] hover:to-[#161925] text-[#12141D] shadow-stone-500/20'
+                                  className={`flex-1 h-9 rounded-[6px] font-medium shadow-md ${
+                                    saju ? SJ.ctaCinnabar : 'bg-[#F5EFE2] hover:from-[var(--soft)] hover:to-[var(--soft)] text-[var(--ink)] shadow-stone-500/20'
                                   }`}
                                 >
                                   <Check size={14} className="mr-1" />
@@ -401,7 +401,7 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
                                   size="sm"
                                   onClick={() => handleDelete(feedback.id)}
                                   disabled={deletingId === feedback.id}
-                                  className={`h-9 px-3 rounded-[12px] ${
+                                  className={`h-9 px-3 rounded-[6px] ${
                                     saju
                                       ? 'border-[#C0392B]/30 text-[#A93226] bg-transparent hover:bg-[#C0392B]/5 hover:border-[#C0392B]/50'
                                       : 'border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300'
@@ -425,10 +425,10 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
             </div>
 
             {/* 푸터 */}
-            <div className={`px-5 py-4 border-t flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[#1E222E] bg-[#12141D]'}`}>
+            <div className={`px-5 py-4 border-t flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[var(--line)] bg-[var(--paper)]'}`}>
               <Button
                 onClick={onClose}
-                className={`w-full h-12 rounded-[12px] font-bold ${saju ? SJ.ctaInk : 'bg-[#161925] hover:bg-[#161925] text-[#E9E2D0]'}`}
+                className={`w-full h-12 rounded-[6px] font-bold ${saju ? SJ.ctaInk : 'bg-[var(--soft)] hover:bg-[var(--soft)] text-[var(--ink)]'}`}
               >
                 {t('closeButton')}
               </Button>

@@ -121,7 +121,7 @@ export function ShareModal({
             className="
               fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90]
               max-w-[400px] mx-auto
-              bg-[#12141D] rounded-[12px] shadow-2xl
+              bg-[var(--paper)] rounded-[6px] shadow-2xl
               overflow-hidden
             "
             style={{
@@ -129,14 +129,14 @@ export function ShareModal({
               maxHeight: 'calc(100dvh - 32px)'
             }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E222E]">
-              <h2 className="text-lg font-bold text-[#E9E2D0]">{t('title')}</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--line)]">
+              <h2 className="text-lg font-bold text-[var(--ink)]">{t('title')}</h2>
               <button
                 onClick={onClose}
-                className="p-2 -mr-2 rounded-full hover:bg-[#1B1F2C] transition-colors"
+                className="p-2 -mr-2 rounded-full hover:bg-[var(--soft)] transition-colors"
                 aria-label="Close"
               >
-                <X size={20} className="text-[#8B8578]" />
+                <X size={20} className="text-[var(--muted-ink)]" />
               </button>
             </div>
 
@@ -145,23 +145,23 @@ export function ShareModal({
                 onClick={handleLinkShare}
                 className="
                   w-full flex items-center gap-4 p-4
-                  bg-gradient-to-r from-[#151823] to-[#151823]
-                  hover:from-[#151823] hover:to-[#232838]
-                  rounded-[12px] transition-all
+                  bg-gradient-to-r from-[var(--soft)] to-[var(--soft)]
+                  hover:from-[var(--soft)] hover:to-[var(--soft)]
+                  rounded-[6px] transition-all
                 "
               >
-                <div className="w-12 h-12 bg-[#161925] rounded-[12px] flex items-center justify-center">
+                <div className="w-12 h-12 bg-[var(--soft)] rounded-[6px] flex items-center justify-center">
                   {copied ? (
-                    <Check size={22} className="text-[#E9E2D0]" />
+                    <Check size={22} className="text-[var(--ink)]" />
                   ) : (
-                    <Link2 size={22} className="text-[#E9E2D0]" />
+                    <Link2 size={22} className="text-[var(--ink)]" />
                   )}
                 </div>
                 <div className="text-left">
-                  <p className="font-bold text-[#E9E2D0]">
+                  <p className="font-bold text-[var(--ink)]">
                     {copied ? t('linkCopied') : t('linkShare')}
                   </p>
-                  <p className="text-xs lg:text-sm text-[#8B8578]">
+                  <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                     {t('linkShareDesc')}
                   </p>
                 </div>
@@ -174,11 +174,11 @@ export function ShareModal({
                   disabled={cardBusy}
                   className="
                     w-full flex items-center gap-4 p-4
-                    bg-[#0C0E16] hover:bg-[#171C28]
-                    rounded-[12px] transition-all disabled:opacity-60
+                    bg-[var(--canvas)] hover:bg-[#171C28]
+                    rounded-[6px] transition-all disabled:opacity-60
                   "
                 >
-                  <div className="w-12 h-12 rounded-[12px] flex items-center justify-center border border-[#C9A227]/50 bg-[#12141D]">
+                  <div className="w-12 h-12 rounded-[6px] flex items-center justify-center border border-[#C9A227]/50 bg-[var(--paper)]">
                     {cardBusy ? (
                       <Loader2 size={22} className="animate-spin text-[#C9A227]" />
                     ) : (
@@ -186,15 +186,15 @@ export function ShareModal({
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="font-serif-kr font-bold text-[#E9E2D0]">{t('sajuCardSave')}</p>
-                    <p className="text-xs lg:text-sm text-[#A69F8D]">{t('sajuCardSaveDesc')}</p>
+                    <p className="font-serif-kr font-bold text-[var(--ink)]">{t('sajuCardSave')}</p>
+                    <p className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('sajuCardSaveDesc')}</p>
                   </div>
                 </button>
               )}
             </div>
 
             <div className="px-5 pb-5">
-              <p className="text-center text-xs lg:text-sm text-[#8B8578]">
+              <p className="text-center text-xs lg:text-sm text-[var(--muted-ink)]">
                 {t('shareHint')}
               </p>
             </div>

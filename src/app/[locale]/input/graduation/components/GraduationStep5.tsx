@@ -57,13 +57,13 @@ export function GraduationStep5({
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="mb-4 p-3 rounded-[12px] bg-gradient-to-br from-[#f8f4e8] to-[#151823] border-2 border-[#B3B3B3]/30"
+                                    className="mb-4 p-3 rounded-[6px] bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] border-2 border-[#B3B3B3]/30"
                                 >
                                     <div className="flex items-start gap-2">
                                         <span className="text-lg">💡</span>
-                                        <div className="text-xs lg:text-sm text-[#A69F8D]">
+                                        <div className="text-xs lg:text-sm text-[var(--muted-ink)]">
                                             <p className="font-semibold mb-1">{t('step5.guideTitle')}</p>
-                                            <ul className="space-y-0.5 text-[#8B8578]">
+                                            <ul className="space-y-0.5 text-[var(--muted-ink)]">
                                                 <li>• {t('step5.guideItem1')}</li>
                                                 <li>• {t('step5.guideItem2')}</li>
                                                 <li>• {t('step5.guideItem3')}</li>
@@ -71,7 +71,7 @@ export function GraduationStep5({
                                         </div>
                                         <button
                                             onClick={() => setShowImageGuide(false)}
-                                            className="text-[#8B8578] hover:text-[#A69F8D]"
+                                            className="text-[var(--muted-ink)] hover:text-[var(--muted-ink)]"
                                         >
                                             <X size={14} />
                                         </button>
@@ -85,12 +85,12 @@ export function GraduationStep5({
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => inputRef.current?.click()}
                                 disabled={isCompressing}
-                                className="w-full aspect-[4/5] rounded-[12px] border-2 border-dashed border-[#393939]/30 bg-[#12141D]/60 backdrop-blur-md flex flex-col items-center justify-center gap-3 transition-all hover:border-[#393939]/50 hover:bg-[#12141D]/80 disabled:opacity-50"
+                                className="w-full aspect-[4/5] rounded-[6px] border-2 border-dashed border-[#393939]/30 bg-[var(--paper)]/60 backdrop-blur-md flex flex-col items-center justify-center gap-3 transition-all hover:border-[#393939]/50 hover:bg-[var(--paper)]/80 disabled:opacity-50"
                             >
                                 {isCompressing ? (
                                     <>
                                         <Loader2 size={40} className="text-[#393939] animate-spin" />
-                                        <span className="text-sm lg:text-base text-[#8B8578]">{t('step5.processing')}</span>
+                                        <span className="text-sm lg:text-base text-[var(--muted-ink)]">{t('step5.processing')}</span>
                                     </>
                                 ) : (
                                     <>
@@ -98,13 +98,13 @@ export function GraduationStep5({
                                             className="w-16 h-16 rounded-full flex items-center justify-center"
                                             style={{ backgroundColor: GRADUATION_THEME.primary }}
                                         >
-                                            <Camera size={28} className="text-[#E9E2D0]" />
+                                            <Camera size={28} className="text-[var(--ink)]" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-sm lg:text-base font-semibold text-[#A69F8D]">
+                                            <p className="text-sm lg:text-base font-semibold text-[var(--muted-ink)]">
                                                 {t('step5.uploadButton')}
                                             </p>
-                                            <p className="text-xs lg:text-sm text-[#8B8578] mt-1">
+                                            <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-1">
                                                 {t('step5.uploadHint')}
                                             </p>
                                         </div>
@@ -129,7 +129,7 @@ export function GraduationStep5({
                             className="w-full max-w-xs"
                         >
                             {/* 이미지 미리보기 */}
-                            <div className="relative aspect-[4/5] rounded-[12px] overflow-hidden border-2 border-[#B3B3B3] shadow-lg">
+                            <div className="relative aspect-[4/5] rounded-[6px] overflow-hidden border-2 border-[#B3B3B3] shadow-lg">
                                 <Image
                                     src={imagePreview}
                                     alt={t('step5.uploadedAlt')}
@@ -141,12 +141,12 @@ export function GraduationStep5({
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={removeImage}
-                                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-red-500 text-[#E9E2D0] flex items-center justify-center shadow-lg"
+                                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-red-500 text-[var(--ink)] flex items-center justify-center shadow-lg"
                                 >
                                     <X size={18} />
                                 </motion.button>
                                 {/* 성공 배지 */}
-                                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-[12px] bg-[#393939] text-[#E9E2D0] text-xs lg:text-sm font-semibold flex items-center gap-1.5">
+                                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-[6px] bg-[#393939] text-[var(--ink)] text-xs lg:text-sm font-semibold flex items-center gap-1.5">
                                     <ImageIcon size={14} />
                                     <span>{t('step5.uploadComplete')}</span>
                                 </div>
@@ -156,7 +156,7 @@ export function GraduationStep5({
                             <motion.button
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => inputRef.current?.click()}
-                                className="w-full mt-3 py-2.5 rounded-[12px] border-2 border-[#262A38] bg-[#12141D]/80 text-sm lg:text-base font-medium text-[#A69F8D] hover:bg-[#12141D] hover:border-[#262A38] transition-all"
+                                className="w-full mt-3 py-2.5 rounded-[6px] border border-[var(--line)] bg-[var(--paper)]/80 text-sm lg:text-base font-medium text-[var(--muted-ink)] hover:bg-[var(--paper)] hover:border-[var(--line)] transition-all"
                             >
                                 {t('step5.selectOther')}
                             </motion.button>

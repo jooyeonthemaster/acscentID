@@ -56,7 +56,7 @@ export function SummonPhase({
         animate={{ opacity: 1, y: 0 }}
         className="space-y-1.5"
       >
-        <label className="block text-xs lg:text-sm font-black text-[#8B8578] uppercase tracking-wider px-1">
+        <label className="block text-xs lg:text-sm font-black text-[var(--muted-ink)] uppercase tracking-wider px-1">
           {t('target.label')}
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -70,10 +70,10 @@ export function SummonPhase({
                 key={key}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
                   isActive
-                    ? "border-[#A87B10] bg-[#FBF3DF] text-[#1A1610]"
-                    : "border-[#D8CFBB] bg-[#F5EFE2] text-[#5C564A] hover:border-[#C9BFA8]"
+                    ? "border-[var(--line)] bg-[var(--soft)] text-[var(--ink)]"
+                    : "border-[var(--line)] bg-[var(--soft)] text-[var(--muted-ink)] hover:border-[var(--line)]"
                 }`}
                 style={isActive ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
               >
@@ -81,7 +81,7 @@ export function SummonPhase({
                   <span className="text-base">{emoji}</span>
                   <span className="text-base font-black">{label}</span>
                 </div>
-                <span className={`text-[9px] font-medium leading-tight ${isActive ? "text-[#5C564A]" : "text-[#8B8578]"}`}>
+                <span className={`text-[9px] font-medium leading-tight ${isActive ? "text-[var(--muted-ink)]" : "text-[var(--muted-ink)]"}`}>
                   {desc}
                 </span>
               </motion.button>
@@ -97,15 +97,15 @@ export function SummonPhase({
           animate={{ opacity: 1, y: 0 }}
           className="space-y-2"
         >
-          <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-3">
-            <label className="block text-xs lg:text-sm font-black text-[#5C564A] mb-2">{t('pin.label')}</label>
+          <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
+            <label className="block text-xs lg:text-sm font-black text-[var(--muted-ink)] mb-2">{t('pin.label')}</label>
             <input
               type="tel"
               inputMode="numeric"
               maxLength={4}
               value={formData.pin}
               onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value.replace(/\D/g, '') }))}
-              className="w-full h-11 px-4 text-center text-2xl font-bold tracking-[0.5em] bg-[#FDFAF1] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] focus:border-[#C9BFA8] focus:ring-2 focus:ring-[#D8CFBB] outline-none"
+              className="w-full h-11 px-4 text-center text-2xl font-bold tracking-[0.5em] bg-[var(--soft)] text-[var(--ink)] placeholder:text-[var(--muted-ink)] border border-[var(--line)] rounded-[6px] focus:border-[var(--line)] focus:ring-2 focus:ring-[var(--line)] outline-none"
               placeholder="0000"
             />
           </div>
@@ -115,16 +115,16 @@ export function SummonPhase({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-start gap-2 bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] px-3 py-2.5"
+            className="flex items-start gap-2 bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] border border-[var(--line)] rounded-[6px] px-3 py-2.5"
           >
-            <div className="flex-shrink-0 w-6 h-6 rounded-[12px] bg-[#EFE4C8] border-2 border-[#C9BFA8] flex items-center justify-center mt-0.5">
-              <KeyRound size={12} className="text-[#1A1610]" />
+            <div className="flex-shrink-0 w-6 h-6 rounded-[6px] bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center mt-0.5">
+              <KeyRound size={12} className="text-[var(--ink)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] lg:text-[13px] font-black text-[#5C564A] leading-tight">
+              <p className="text-[11px] lg:text-[13px] font-black text-[var(--muted-ink)] leading-tight">
                 {t('pin.helpTitle')}
               </p>
-              <p className="text-[10px] lg:text-[12px] text-[#8B8578] mt-0.5 leading-snug">
+              <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] mt-0.5 leading-snug">
                 {t('pin.helpDesc')}
               </p>
             </div>
@@ -142,12 +142,12 @@ export function SummonPhase({
             transition={{ type: "spring", bounce: 0.4, duration: 0.6 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
           >
-            <div className="bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] rounded-[12px] p-4 shadow-2xl shadow-stone-500/30 border-2 border-[#C9BFA8]">
+            <div className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 shadow-2xl shadow-stone-500/30 border border-[var(--line)]">
               <div className="text-center">
-                <p className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('pin.toastLabel')}</p>
-                <p className="text-[#1A1610] text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
+                <p className="text-[var(--muted-ink)] text-xs lg:text-sm font-medium">{t('pin.toastLabel')}</p>
+                <p className="text-[var(--ink)] text-2xl font-black tracking-[0.4em] mt-1">{formData.pin}</p>
               </div>
-              <p className="text-[#5C564A] text-[11px] lg:text-[13px] mt-2 text-center">{t('pin.toastHelp')}</p>
+              <p className="text-[var(--muted-ink)] text-[11px] lg:text-[13px] mt-2 text-center">{t('pin.toastHelp')}</p>
             </div>
           </motion.div>
         )}
@@ -193,9 +193,9 @@ export function SummonPhase({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className={`${isOffline ? 'bg-[#F5EFE2]/85 border-[#D8CFBB] p-2.5' : 'bg-[#FDFAF1] border-[#D8CFBB] p-4'} border-2 rounded-[12px] text-center`}
+        className={`${isOffline ? 'bg-[var(--soft)]/85 border-[var(--line)] p-2.5' : 'bg-[var(--soft)] border-[var(--line)] p-4'} border-2 rounded-[6px] text-center`}
       >
-        <p className={`${isOffline ? 'text-[11px] lg:text-[13px] text-[#8B8578]' : 'text-xs lg:text-sm text-[#5C564A]'} font-medium leading-relaxed`}>
+        <p className={`${isOffline ? 'text-[11px] lg:text-[13px] text-[var(--muted-ink)]' : 'text-xs lg:text-sm text-[var(--muted-ink)]'} font-medium leading-relaxed`}>
           {t('summon.imageGuideMain')}
           {!isOffline && <><br />{t('summon.imageGuideSub')}</>}
         </p>
@@ -221,20 +221,20 @@ function CharacterCard({
   accentColor: 'violet' | 'pink'
 }) {
   const t = useTranslations('chemistry.summon')
-  const borderColor = accentColor === 'violet' ? 'border-[#C9BFA8]' : 'border-[#C9BFA8]'
-  const bgColor = accentColor === 'violet' ? 'bg-[#FDFAF1]' : 'bg-[#FDFAF1]'
-  const focusBorder = accentColor === 'violet' ? 'focus:border-[#C9BFA8]' : 'focus:border-[#C9BFA8]'
+  const borderColor = accentColor === 'violet' ? 'border-[var(--line)]' : 'border-[var(--line)]'
+  const bgColor = accentColor === 'violet' ? 'bg-[var(--soft)]' : 'bg-[var(--soft)]'
+  const focusBorder = accentColor === 'violet' ? 'focus:border-[var(--line)]' : 'focus:border-[var(--line)]'
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] overflow-hidden`}
+      className={`bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden`}
     >
       {/* 헤더 */}
-      <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-[#D8CFBB]`}>
+      <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-[var(--line)]`}>
         {icon}
-        <span className="text-xs lg:text-sm font-black text-[#1A1610]">{emoji} {label}</span>
+        <span className="text-xs lg:text-sm font-black text-[var(--ink)]">{emoji} {label}</span>
       </div>
 
       {/* 이미지 영역 */}
@@ -246,25 +246,25 @@ function CharacterCard({
           role={!imageBase64 ? "button" : undefined}
           tabIndex={!imageBase64 ? 0 : undefined}
           aria-label={!imageBase64 ? t('selectImageAria', { character: label }) : undefined}
-          className={`relative w-full aspect-[4/3] rounded-[12px] border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
+          className={`relative w-full aspect-[4/3] rounded-[6px] border-2 border-dashed ${borderColor} overflow-hidden cursor-pointer flex items-center justify-center ${bgColor} transition-all hover:opacity-80`}
         >
           {isCompressing ? (
-            <Loader2 className="w-8 h-8 text-[#8B8578] animate-spin" />
+            <Loader2 className="w-8 h-8 text-[var(--muted-ink)] animate-spin" />
           ) : imageBase64 ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageBase64} alt={label} className="w-full h-full object-cover" />
               <button
                 onClick={(e) => { e.stopPropagation(); onRemoveImage() }}
-                className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[#1A1610]"
+                className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[var(--ink)]"
               >
                 <X size={12} />
               </button>
             </>
           ) : (
             <div className="text-center">
-              <Camera className="w-8 h-8 text-[#5C564A] mx-auto mb-1" />
-              <span className="text-[10px] lg:text-[12px] text-[#8B8578] font-medium">{t('uploadImage')}</span>
+              <Camera className="w-8 h-8 text-[var(--muted-ink)] mx-auto mb-1" />
+              <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{t('uploadImage')}</span>
             </div>
           )}
         </div>
@@ -274,7 +274,7 @@ function CharacterCard({
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center bg-[#FDFAF1] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] ${focusBorder} focus:ring-2 focus:ring-[#D8CFBB] outline-none`}
+          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center bg-[var(--soft)] text-[var(--ink)] placeholder:text-[var(--muted-ink)] border border-[var(--line)] rounded-[6px] ${focusBorder} focus:ring-2 focus:ring-[var(--line)] outline-none`}
           placeholder={t('namePlaceholder')}
           maxLength={20}
         />

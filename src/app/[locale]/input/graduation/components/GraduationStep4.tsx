@@ -46,9 +46,9 @@ export function GraduationStep4({
 
             <div className="flex-1 mt-4 overflow-y-auto">
                 <div className="space-y-3">
-                    <label className="text-xs lg:text-sm font-bold text-[#8B8578] uppercase tracking-wider flex items-center justify-between">
+                    <label className="text-xs lg:text-sm font-bold text-[var(--muted-ink)] uppercase tracking-wider flex items-center justify-between">
                         <span>{t('step4.keywordLabel')}</span>
-                        <span className="text-[10px] lg:text-[12px] text-[#8B8578] normal-case font-normal">
+                        <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] normal-case font-normal">
                             {t('step4.maxItems')}
                         </span>
                     </label>
@@ -62,12 +62,12 @@ export function GraduationStep4({
                                     whileTap={{ scale: isDisabled ? 1 : 0.95 }}
                                     onClick={() => !isDisabled && toggleFutureDream(key)}
                                     disabled={isDisabled}
-                                    className={`relative py-3.5 px-3 rounded-[12px] text-sm lg:text-base font-medium transition-all duration-300 overflow-hidden backdrop-blur-md border text-left ${
+                                    className={`relative py-3.5 px-3 rounded-[6px] text-sm lg:text-base font-medium transition-all duration-300 overflow-hidden backdrop-blur-md border text-left ${
                                         isSelected
-                                            ? "text-[#E9E2D0] shadow-lg border-[#B3B3B3]"
+                                            ? "text-[var(--ink)] shadow-lg border-[#B3B3B3]"
                                             : isDisabled
-                                            ? "bg-stone-100/50 text-[#5C564A] border-stone-200/50 cursor-not-allowed"
-                                            : "bg-[#12141D]/80 text-[#A69F8D] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[#12141D]/90"
+                                            ? "bg-stone-100/50 text-[var(--muted-ink)] border-stone-200/50 cursor-not-allowed"
+                                            : "bg-[var(--paper)]/80 text-[var(--muted-ink)] border-white/60 shadow-md shadow-stone-900/5 hover:bg-[var(--paper)]/90"
                                     }`}
                                 >
                                     {isSelected && (

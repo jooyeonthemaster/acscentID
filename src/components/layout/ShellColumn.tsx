@@ -20,11 +20,11 @@ export function ShellColumn({ children }: { children: ReactNode }) {
   return (
     <div
       className={cn(
-        'w-full max-w-[455px] mx-auto min-h-screen bg-[#0C0E16] shadow-xl relative flex flex-col',
-        wide && 'lg:max-w-none lg:shadow-none',
+        'w-full max-w-[455px] mx-auto min-h-screen bg-[var(--canvas)] relative flex flex-col',
+        wide && 'lg:max-w-none',
       )}
     >
-      <main className="flex-1 md:pb-0 relative z-10 bg-[#0C0E16]">
+      <main className="flex-1 md:pb-0 relative z-10 bg-[var(--canvas)]">
         {children}
       </main>
       <Footer />

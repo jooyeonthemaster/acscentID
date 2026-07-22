@@ -640,3 +640,97 @@
   transition: background-color 0s 600000s, color 0s 600000s;
   caret-color: #E9E2D0;
 }
+
+/* ============================================================
+   공개 사이트 에디토리얼 테마 (.public-editorial)
+   [locale] 레이아웃의 공개 셸에만 적용되는 밝은 커머스 토큰.
+   /admin 트리는 이 클래스 밖에 있으므로 영향을 받지 않는다.
+   shadcn 시맨틱 변수(--background 등)도 함께 재정의해
+   bg-background / text-foreground / border-border 유틸이
+   이 래퍼 안에서는 밝은 값으로 해석되도록 한다.
+   ============================================================ */
+.public-editorial {
+  /* 에디토리얼 기준 색 */
+  --ink: #191918;
+  --muted-ink: #686863;
+  --line: #D9D9D3;
+  --line-soft: #ECECE8;
+  --paper: #FFFFFF;
+  --canvas: #F6F6F2;
+  --soft: #F0F0EB;
+  --dark-band: #181918;
+  --dark-line: #4B4C49;
+  --dark-muted: #ADAEAA;
+  /* AI 이미지 분석 퍼퓸 포인트 */
+  --accent-ai: #E9B82E;
+  --accent-ai-soft: #FFF4C8;
+  --accent-ai-deep: #9A6800;
+  /* 레이어링(케미) 퍼퓸 포인트 */
+  --accent-chem: #D65D69;
+  --accent-chem-soft: #FFF0F1;
+  --accent-chem-deep: #9F3542;
+
+  /* shadcn 시맨틱 변수 재정의 — 공개 셸 한정 */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--soft);
+  --secondary-foreground: var(--ink);
+  --muted: var(--soft);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--soft);
+  --accent-foreground: var(--ink);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
+
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-heading-serif), var(--font-wanted), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  letter-spacing: 0;
+  line-height: 1.55;
+}
+
+.public-editorial *,
+.public-editorial *::before,
+.public-editorial *::after {
+  letter-spacing: 0;
+}
+
+.public-editorial :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.public-editorial ::selection {
+  background: var(--ink);
+  color: #FFFFFF;
+}
+
+/* 상품별 포인트 스코프 — 섹션/페이지 단위로 얹어서 사용 */
+.public-editorial .accent-ai,
+.public-editorial.accent-ai {
+  --accent-strong: var(--accent-ai);
+  --accent-soft: var(--accent-ai-soft);
+  --accent-deep: var(--accent-ai-deep);
+}
+
+.public-editorial .accent-chem,
+.public-editorial.accent-chem {
+  --accent-strong: var(--accent-chem);
+  --accent-soft: var(--accent-chem-soft);
+  --accent-deep: var(--accent-chem-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-editorial * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

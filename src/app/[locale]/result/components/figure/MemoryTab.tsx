@@ -67,10 +67,10 @@ export function MemoryTab({ displayedAnalysis, memoryImage, isDesktop }: MemoryT
           variants={fadeInUp}
           className={`col-span-full ${isDesktop ? '' : ''}`}
         >
-          <div className="bg-[#F5EFE2] rounded-[12px] p-5 border-2 border-[#D8CFBB]">
+          <div className="bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)]">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">💭</span>
-              <h3 className="text-lg font-black text-[#1A1610]">감정 분석</h3>
+              <h3 className="text-lg font-black text-[var(--ink)]">감정 분석</h3>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -88,12 +88,12 @@ export function MemoryTab({ displayedAnalysis, memoryImage, isDesktop }: MemoryT
                   intensity: '강렬함'
                 };
                 return (
-                  <div key={key} className="bg-[#EDE5D2] rounded-[12px] p-3 text-center">
-                    <div className="text-xs lg:text-sm text-[#8B8578] font-bold mb-1">{labels[key] || key}</div>
-                    <div className="text-lg font-black text-[#1A1610]">{value as number}/10</div>
-                    <div className="w-full bg-[#D8CFBB] rounded-full h-1.5 mt-2">
+                  <div key={key} className="bg-[var(--soft)] rounded-[6px] p-3 text-center">
+                    <div className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold mb-1">{labels[key] || key}</div>
+                    <div className="text-lg font-black text-[var(--ink)]">{value as number}/10</div>
+                    <div className="w-full bg-[var(--line)] rounded-full h-1.5 mt-2">
                       <div
-                        className="bg-gradient-to-r from-[#EFE4C8] to-[#EFE4C8] h-1.5 rounded-full"
+                        className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] h-1.5 rounded-full"
                         style={{ width: `${(value as number) * 10}%` }}
                       />
                     </div>

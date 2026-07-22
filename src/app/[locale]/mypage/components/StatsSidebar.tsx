@@ -77,11 +77,11 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-5 animate-pulse">
-          <div className="h-6 bg-[#232838] rounded-[12px] w-1/2 mb-4" />
+        <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-5 animate-pulse">
+          <div className="h-6 bg-[var(--soft)] rounded-[6px] w-1/2 mb-4" />
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-20 bg-[#1B1F2C] rounded-[12px]" />
-            <div className="h-20 bg-[#1B1F2C] rounded-[12px]" />
+            <div className="h-20 bg-[var(--soft)] rounded-[6px]" />
+            <div className="h-20 bg-[var(--soft)] rounded-[6px]" />
           </div>
         </div>
       </div>
@@ -91,8 +91,8 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
   return (
     <div className="space-y-4">
       {/* 통계 카드 */}
-      <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-[#262A38] bg-gradient-to-r from-[#161925] to-[#161925]">
+      <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-[var(--line)] bg-gradient-to-r from-[var(--soft)] to-[var(--soft)]">
           <h3 className="font-black flex items-center gap-2">
             <TrendingUp size={18} />
             {t('myStats')}
@@ -102,44 +102,44 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
         <div className="p-4">
           <div className="grid grid-cols-2 gap-3">
             {/* 총 분석 */}
-            <div className="p-4 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]">
+            <div className="p-4 bg-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={16} className="text-[#A69F8D]" />
-                <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('totalAnalyses')}</span>
+                <Sparkles size={16} className="text-[var(--muted-ink)]" />
+                <span className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('totalAnalyses')}</span>
               </div>
               <p className="text-2xl font-black">{analyses.length}</p>
             </div>
 
             {/* 확정 레시피 */}
-            <div className="p-4 bg-[#0C0E16] rounded-[12px] border-2 border-[#262A38]">
+            <div className="p-4 bg-[var(--canvas)] rounded-[6px] border border-[var(--line)]">
               <div className="flex items-center gap-2 mb-2">
-                <Beaker size={16} className="text-[#A69F8D]" />
-                <span className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('confirmedRecipes')}</span>
+                <Beaker size={16} className="text-[var(--muted-ink)]" />
+                <span className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('confirmedRecipes')}</span>
               </div>
               <p className="text-2xl font-black">{analyses.filter(a => a.confirmed_recipe !== null).length}</p>
             </div>
           </div>
 
           {/* 이번 달 활동 */}
-          <div className="mt-4 p-4 bg-[#151823] rounded-[12px] border-2 border-[#262A38]">
+          <div className="mt-4 p-4 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
             <div className="flex items-center gap-2 mb-3">
               <Calendar size={16} />
               <span className="text-xs lg:text-sm font-bold">{t('thisMonthActivity')}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="text-center">
-                <p className="text-lg font-black text-[#A69F8D]">{thisMonthAnalyses}</p>
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('analysisLabel')}</p>
+                <p className="text-lg font-black text-[var(--muted-ink)]">{thisMonthAnalyses}</p>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{t('analysisLabel')}</p>
               </div>
               <div className="text-2xl">+</div>
               <div className="text-center">
-                <p className="text-lg font-black text-[#A69F8D]">{thisMonthRecipes}</p>
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('recipeLabel')}</p>
+                <p className="text-lg font-black text-[var(--muted-ink)]">{thisMonthRecipes}</p>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{t('recipeLabel')}</p>
               </div>
               <div className="text-2xl">=</div>
               <div className="text-center">
                 <p className="text-lg font-black">{thisMonthAnalyses + thisMonthRecipes}</p>
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('totalActivity')}</p>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{t('totalActivity')}</p>
               </div>
             </div>
           </div>
@@ -147,8 +147,8 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
       </div>
 
       {/* 최근 활동 */}
-      <div className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-[#262A38]">
+      <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-[var(--line)]">
           <h3 className="font-black flex items-center gap-2">
             <Clock size={18} />
             {t('recentActivity')}
@@ -158,10 +158,10 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
         <div className="p-3">
           {recentActivities.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm lg:text-base text-[#8B8578]">{t('noActivity')}</p>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)]">{t('noActivity')}</p>
               <Link
                 href="/"
-                className="inline-block mt-3 px-4 py-2 bg-[#F5EFE2] text-[#12141D] text-xs lg:text-sm font-bold rounded-[12px] border-2 border-[#F5EFE2] transition-all"
+                className="inline-block mt-3 px-4 py-2 bg-[var(--soft)] text-[var(--ink)] text-xs lg:text-sm font-bold rounded-[6px] border border-[var(--line)] transition-all"
               >
                 {t('startFirstAnalysis')}
               </Link>
@@ -177,23 +177,23 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
                 >
                   <Link
                     href={`/result?id=${activity.id}`}
-                    className="flex items-center gap-3 p-3 rounded-[12px] hover:bg-[#151823] transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-[6px] hover:bg-[var(--soft)] transition-colors group"
                   >
                     {/* 아이콘/이미지 */}
                     {activity.image ? (
                       <img
                         src={activity.image}
                         alt=""
-                        className="w-10 h-10 rounded-[12px] object-cover border-2 border-[#262A38]"
+                        className="w-10 h-10 rounded-[6px] object-cover border border-[var(--line)]"
                       />
                     ) : (
-                      <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center border-2 border-[#262A38] ${
-                        activity.hasRecipe ? 'bg-[#151823]' : 'bg-[#151823]'
+                      <div className={`w-10 h-10 rounded-[6px] flex items-center justify-center border border-[var(--line)] ${
+                        activity.hasRecipe ? 'bg-[var(--soft)]' : 'bg-[var(--soft)]'
                       }`}>
                         {activity.hasRecipe ? (
-                          <Beaker size={16} className="text-[#A69F8D]" />
+                          <Beaker size={16} className="text-[var(--muted-ink)]" />
                         ) : (
-                          <Sparkles size={16} className="text-[#A69F8D]" />
+                          <Sparkles size={16} className="text-[var(--muted-ink)]" />
                         )}
                       </div>
                     )}
@@ -201,7 +201,7 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
                     {/* 정보 */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm lg:text-base font-bold truncate">{activity.name}</p>
-                      <p className="text-[10px] lg:text-[12px] text-[#8B8578]">
+                      <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">
                         {activity.hasRecipe ? t('recipeSaved') : t('analysisComplete')}
                         {' · '}
                         {formatRelativeTime(activity.date)}
@@ -209,7 +209,7 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
                     </div>
 
                     {/* 화살표 */}
-                    <ArrowRight size={16} className="text-[#5C564A] group-hover:text-[#8B8578] group-hover:translate-x-1 transition-all" />
+                    <ArrowRight size={16} className="text-[var(--muted-ink)] group-hover:text-[var(--muted-ink)] group-hover:translate-x-1 transition-all" />
                   </Link>
                 </motion.li>
               ))}
@@ -219,12 +219,12 @@ export function StatsSidebar({ analyses, loading }: StatsSidebarProps) {
       </div>
 
       {/* 빠른 액션 */}
-      <div className="bg-gradient-to-br from-[#0C0E16] to-[#161925] border-2 border-[#262A38] rounded-[12px] p-5 text-[#E9E2D0]">
+      <div className="bg-gradient-to-br from-[var(--canvas)] to-[var(--soft)] border border-[var(--line)] rounded-[6px] p-5 text-[var(--ink)]">
         <h3 className="font-black text-lg mb-2">{t('startNewAnalysis')}</h3>
-        <p className="text-xs lg:text-sm text-[#5C564A] mb-4">{t('aiFindsScent')}</p>
+        <p className="text-xs lg:text-sm text-[var(--muted-ink)] mb-4">{t('aiFindsScent')}</p>
         <Link
           href="/"
-          className="block w-full py-3 bg-[#F5EFE2] text-[#12141D] text-center font-bold rounded-[12px] border-2 border-[#F5EFE2] hover:bg-[#FFFDF5] transition-colors"
+          className="block w-full py-3 bg-[var(--soft)] text-[var(--ink)] text-center font-bold rounded-[6px] border border-[var(--line)] hover:bg-[var(--soft)] transition-colors"
         >
           {t('goAnalyze')}
         </Link>

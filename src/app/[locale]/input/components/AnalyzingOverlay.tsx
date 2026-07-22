@@ -78,7 +78,7 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                     animate={{ x: doorPosition.left }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                     onAnimationComplete={handleDoorAnimationComplete}
-                    className="relative h-full w-1/2 overflow-hidden border-r border-[#12141D]"
+                    className="relative h-full w-1/2 overflow-hidden border-r border-[var(--line)]"
                 >
                     <ImageReportDoorHalf side="left" />
                 </motion.div>
@@ -87,7 +87,7 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                     initial={{ x: "100%" }}
                     animate={{ x: doorPosition.right }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="relative h-full w-1/2 overflow-hidden border-l border-[#12141D]"
+                    className="relative h-full w-1/2 overflow-hidden border-l border-[var(--line)]"
                 >
                     <ImageReportDoorHalf side="right" />
                 </motion.div>
@@ -107,9 +107,9 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]"
+                        className="overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]"
                     >
-                        <div className="bg-[#12141D] px-6 py-5 text-center">
+                        <div className="bg-[var(--paper)] px-6 py-5 text-center">
                             <Image
                                 src="/images/logo/acscent-wordmark-cream.png"
                                 alt="AC'SCENT"
@@ -123,22 +123,22 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
 
                         <div className="px-6 py-7">
                             <div className="mb-6 flex justify-center">
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--soft)] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--muted-ink)]">
                                     <ImageIcon size={12} strokeWidth={2} className="text-[#9A8B5E]" />
                                     {t('footer.aiImageAnalysis')}
                                 </span>
                             </div>
 
                             <div className="mb-7 text-center">
-                                <p className="font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+                                <p className="font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[var(--ink)]">
                                     {t('input.analyzing.userName', { name: userName })}
                                 </p>
-                                <p className="mt-0.5 font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+                                <p className="mt-0.5 font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[var(--ink)]">
                                     {t('input.analyzing.perfumeAnalyzing')}
                                 </p>
                             </div>
 
-                            <div className="mb-6 overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF] px-5 py-6">
+                            <div className="mb-6 overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] px-5 py-6">
                                 <AnimatePresence mode="wait">
                                     <motion.p
                                         key={currentQuoteIndex}
@@ -146,16 +146,16 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.4 }}
-                                        className="min-h-[52px] text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[#6E6659]"
+                                        className="min-h-[52px] text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)]"
                                     >
                                         &ldquo;{currentQuote}&rdquo;
                                     </motion.p>
                                 </AnimatePresence>
                             </div>
 
-                            <div className="relative h-1.5 overflow-hidden rounded-full bg-[#12141D]/10">
+                            <div className="relative h-1.5 overflow-hidden rounded-full bg-[var(--paper)]/10">
                                 <motion.div
-                                    className="h-full rounded-full bg-[#12141D]"
+                                    className="h-full rounded-full bg-[var(--paper)]"
                                     initial={{ width: "0%" }}
                                     animate={{ width: isComplete ? "100%" : "90%" }}
                                     transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
@@ -184,7 +184,7 @@ function ImageReportDoorHalf({ side }: { side: 'left' | 'right' }) {
                 style={{ background: 'linear-gradient(160deg, #FBF7EF 0%, #ECE3D0 100%)' }}
             />
             <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
-                <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-[var(--line)] bg-[var(--soft)]/70">
                     <ImageIcon size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
                 </span>
                 <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">Photo</span>
@@ -192,11 +192,11 @@ function ImageReportDoorHalf({ side }: { side: 'left' | 'right' }) {
             {[34, 50, 66, 82].map((top) => (
                 <div
                     key={top}
-                    className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+                    className={`absolute h-px w-16 bg-[var(--ink)]/10 ${lineClassName}`}
                     style={{ top: `${top}%` }}
                 />
             ))}
-            <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+            <div className={`absolute inset-y-0 w-px bg-[var(--line)] ${spineClassName}`} />
         </>
     )
 }

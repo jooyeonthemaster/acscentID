@@ -223,22 +223,22 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-[#12141D] border-2 border-[#262A38] rounded-[12px] p-5 space-y-5"
+      className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-5 space-y-5"
     >
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-[#151823] border-2 border-[#262A38] flex items-center justify-center">
-          <MapPin size={16} className="text-[#E9E2D0]" />
+        <div className="w-8 h-8 rounded-full bg-[var(--soft)] border border-[var(--line)] flex items-center justify-center">
+          <MapPin size={16} className="text-[var(--ink)]" />
         </div>
-        <h3 className="font-black text-lg text-[#E9E2D0]">{t('checkout.shippingInfo')}</h3>
+        <h3 className="font-black text-lg text-[var(--ink)]">{t('checkout.shippingInfo')}</h3>
       </div>
 
       <div className="space-y-4">
         {/* 받는 분 */}
         <div>
-          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[#E9E2D0] mb-2">
+          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[var(--ink)] mb-2">
             <User size={14} />
-            {t('checkout.recipient')} <span className="text-[#9F9F9F]">*</span>
+            {t('checkout.recipient')} <span className="text-[var(--muted-ink)]">*</span>
           </label>
           <input
             type="text"
@@ -247,15 +247,15 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             placeholder={t('checkout.namePlaceholder')}
             autoComplete="name"
             enterKeyHint="next"
-            className="w-full px-3 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] placeholder:text-[#8B8578] bg-[#12141D] hover:bg-[#151823] font-medium text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] bg-[var(--paper)] hover:bg-[var(--soft)] font-medium text-sm lg:text-base"
           />
         </div>
 
         {/* 연락처 - 3개 필드 */}
         <div>
-          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[#E9E2D0] mb-2">
+          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[var(--ink)] mb-2">
             <Phone size={14} />
-            {t('checkout.phone')} <span className="text-[#9F9F9F]">*</span>
+            {t('checkout.phone')} <span className="text-[var(--muted-ink)]">*</span>
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -268,9 +268,9 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               maxLength={3}
               autoComplete="tel-area-code"
               enterKeyHint="next"
-              className="flex-1 min-w-0 px-2 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] placeholder:text-[#8B8578] text-center font-bold bg-[#12141D] hover:bg-[#151823]"
+              className="flex-1 min-w-0 px-2 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] text-center font-bold bg-[var(--paper)] hover:bg-[var(--soft)]"
             />
-            <span className="text-[#E9E2D0] font-bold text-sm lg:text-base">-</span>
+            <span className="text-[var(--ink)] font-bold text-sm lg:text-base">-</span>
             <input
               ref={phone2Ref}
               type="tel"
@@ -282,9 +282,9 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               maxLength={4}
               autoComplete="tel-local-prefix"
               enterKeyHint="next"
-              className="flex-1 min-w-0 px-2 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] placeholder:text-[#8B8578] text-center font-bold bg-[#12141D] hover:bg-[#151823]"
+              className="flex-1 min-w-0 px-2 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] text-center font-bold bg-[var(--paper)] hover:bg-[var(--soft)]"
             />
-            <span className="text-[#E9E2D0] font-bold text-sm lg:text-base">-</span>
+            <span className="text-[var(--ink)] font-bold text-sm lg:text-base">-</span>
             <input
               ref={phone3Ref}
               type="tel"
@@ -296,16 +296,16 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               maxLength={4}
               autoComplete="tel-local-suffix"
               enterKeyHint="done"
-              className="flex-1 min-w-0 px-2 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] placeholder:text-[#8B8578] text-center font-bold bg-[#12141D] hover:bg-[#151823]"
+              className="flex-1 min-w-0 px-2 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] text-center font-bold bg-[var(--paper)] hover:bg-[var(--soft)]"
             />
           </div>
         </div>
 
         {/* 우편번호 + 주소 검색 */}
         <div>
-          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[#E9E2D0] mb-2">
+          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[var(--ink)] mb-2">
             <Home size={14} />
-            {t('checkout.address')} <span className="text-[#9F9F9F]">*</span>
+            {t('checkout.address')} <span className="text-[var(--muted-ink)]">*</span>
           </label>
           <div className="flex gap-2 mb-2">
             <input
@@ -316,17 +316,17 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
               onClick={manualAddressMode ? undefined : openAddressSearch}
               inputMode="numeric"
               placeholder={manualAddressMode ? t('checkout.manualZipcodePlaceholder') : t('checkout.zipcode')}
-              className={`flex-1 min-w-0 px-3 py-3 rounded-[12px] border-2 text-[#E9E2D0] placeholder:text-[#8B8578] font-medium text-sm lg:text-base ${
+              className={`flex-1 min-w-0 px-3 py-3 rounded-[6px] border-2 text-[var(--ink)] placeholder:text-[var(--muted-ink)] font-medium text-sm lg:text-base ${
                 manualAddressMode
-                  ? "border-[#262A38] bg-[#12141D]"
-                  : "border-[#262A38] bg-[#1B1F2C] cursor-pointer"
+                  ? "border-[var(--line)] bg-[var(--paper)]"
+                  : "border-[var(--line)] bg-[var(--soft)] cursor-pointer"
               }`}
             />
             <button
               type="button"
               onClick={openAddressSearch}
               disabled={postcodeLoading}
-              className="flex-shrink-0 bg-[#151823] text-[#E9E2D0] px-3 py-3 rounded-[12px] border-2 border-[#262A38] font-bold flex items-center gap-1.5 hover:bg-[#1B1F2C] transition-colors text-sm lg:text-base disabled:opacity-60"
+              className="flex-shrink-0 bg-[var(--soft)] text-[var(--ink)] px-3 py-3 rounded-[6px] border border-[var(--line)] font-bold flex items-center gap-1.5 hover:bg-[var(--soft)] transition-colors text-sm lg:text-base disabled:opacity-60"
             >
               <Search size={14} />
               {postcodeLoading ? "로딩..." : t('checkout.addressSearch')}
@@ -339,14 +339,14 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             onChange={(e) => handleChange("address", e.target.value)}
             onClick={manualAddressMode ? undefined : openAddressSearch}
             placeholder={manualAddressMode ? t('checkout.manualAddressPlaceholder') : t('checkout.addressSearchPlaceholder')}
-            className={`w-full px-3 py-3 rounded-[12px] border-2 text-[#E9E2D0] placeholder:text-[#8B8578] mb-2 font-medium text-sm lg:text-base ${
+            className={`w-full px-3 py-3 rounded-[6px] border-2 text-[var(--ink)] placeholder:text-[var(--muted-ink)] mb-2 font-medium text-sm lg:text-base ${
               manualAddressMode
-                ? "border-[#262A38] bg-[#12141D]"
-                : "border-[#262A38] bg-[#1B1F2C] cursor-pointer"
+                ? "border-[var(--line)] bg-[var(--paper)]"
+                : "border-[var(--line)] bg-[var(--soft)] cursor-pointer"
             }`}
           />
-          <div className="mb-2 rounded-[12px] border border-[#262A38] bg-[#151823] px-3 py-2 flex items-start justify-between gap-3">
-            <p className="text-[11px] lg:text-[13px] leading-relaxed text-[#8B8578]">
+          <div className="mb-2 rounded-[6px] border border-[var(--line)] bg-[var(--soft)] px-3 py-2 flex items-start justify-between gap-3">
+            <p className="text-[11px] lg:text-[13px] leading-relaxed text-[var(--muted-ink)]">
               {postcodeNotice || t('checkout.manualAddressHint')}
             </p>
             <button
@@ -355,7 +355,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
                 setManualAddressMode((prev) => !prev)
                 setPostcodeNotice("")
               }}
-              className="shrink-0 text-[11px] lg:text-[13px] font-black text-[#E9E2D0] underline underline-offset-2"
+              className="shrink-0 text-[11px] lg:text-[13px] font-black text-[var(--ink)] underline underline-offset-2"
             >
               {manualAddressMode ? t('checkout.useAddressSearch') : t('checkout.enterAddressManually')}
             </button>
@@ -367,7 +367,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
             placeholder={t('checkout.addressDetailPlaceholder')}
             autoComplete="address-line2"
             enterKeyHint="done"
-            className="w-full px-3 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] placeholder:text-[#8B8578] bg-[#12141D] hover:bg-[#151823] font-medium text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] bg-[var(--paper)] hover:bg-[var(--soft)] font-medium text-sm lg:text-base"
           />
 
           {/* 기본 배송지로 저장 (로그인 시) */}
@@ -377,10 +377,10 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
                 type="button"
                 onClick={handleSaveDefault}
                 disabled={savingDefault || savedDefault}
-                className={`w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[12px] border-2 font-bold text-sm lg:text-base transition-colors ${
+                className={`w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[6px] border-2 font-bold text-sm lg:text-base transition-colors ${
                   savedDefault
-                    ? "border-[#343A4C] bg-[#0C0E16] text-[#A69F8D]"
-                    : "border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:bg-[#151823]"
+                    ? "border-[var(--line)] bg-[var(--canvas)] text-[var(--muted-ink)]"
+                    : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)]"
                 } disabled:opacity-70`}
               >
                 {savingDefault ? (
@@ -393,7 +393,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
                 {savedDefault ? t('checkout.savedAsDefault') : t('checkout.saveAsDefaultAddress')}
               </button>
               {defaultNotice && (
-                <p className="mt-1 text-[11px] lg:text-[13px] text-[#9F9F9F] font-bold">{defaultNotice}</p>
+                <p className="mt-1 text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-bold">{defaultNotice}</p>
               )}
             </div>
           )}
@@ -401,14 +401,14 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
 
         {/* 배송 메모 */}
         <div>
-          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[#E9E2D0] mb-2">
+          <label className="flex items-center gap-2 text-sm lg:text-base font-bold text-[var(--ink)] mb-2">
             <MessageSquare size={14} />
-            {t('checkout.shippingMemo')} <span className="text-[#8B8578] font-normal">{t('checkout.shippingMemoOptional')}</span>
+            {t('checkout.shippingMemo')} <span className="text-[var(--muted-ink)] font-normal">{t('checkout.shippingMemoOptional')}</span>
           </label>
           <select
             value={formData.memo}
             onChange={(e) => handleChange("memo", e.target.value)}
-            className="w-full px-3 py-3 rounded-[12px] border-2 border-[#262A38] focus:border-[#9F9F9F] focus:ring-0 outline-none transition-all text-[#E9E2D0] bg-[#12141D] hover:bg-[#151823] font-medium cursor-pointer appearance-none text-sm lg:text-base"
+            className="w-full px-3 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] bg-[var(--paper)] hover:bg-[var(--soft)] font-medium cursor-pointer appearance-none text-sm lg:text-base"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
               backgroundPosition: 'right 0.75rem center',

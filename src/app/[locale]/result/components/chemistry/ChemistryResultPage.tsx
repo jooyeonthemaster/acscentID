@@ -182,50 +182,50 @@ function CharacterProfileHeader({ name, icon: Icon, imagePreview, analysis }: {
   // 케미 플로우는 성별을 입력받지 않으므로 그 자리에 추천 향수를 넣는다.
   return (
     <div className="px-4 mb-5">
-      <div className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border border-[#D8CFBB]">
+      <div className="bg-[var(--soft)] rounded-[6px] p-4 space-y-4 border border-[var(--line)]">
         {/* 업로드 이미지 */}
-        <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border border-[#D8CFBB]">
+        <div className="relative w-full aspect-[5/6] rounded-[6px] overflow-hidden bg-[var(--soft)] border border-[var(--line)]">
           {imagePreview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imagePreview} alt={name} className="w-full h-full object-contain" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#8B8578]"><Icon size={40} strokeWidth={1.5} /></div>
+            <div className="w-full h-full flex items-center justify-center text-[var(--muted-ink)]"><Icon size={40} strokeWidth={1.5} /></div>
           )}
         </div>
 
         {/* 분석 대상 정보 */}
-        <div className="relative overflow-hidden rounded-[12px] border border-[#D8CFBB] bg-[#FDFAF1]">
+        <div className="relative overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)]">
           <div className="relative z-10 p-4">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#EDE5D2]">
-              <Icon size={16} className="text-[#8B8578]" strokeWidth={2} />
-              <p className="text-[#5C564A] font-bold text-sm lg:text-base">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-[var(--line)]">
+              <Icon size={16} className="text-[var(--muted-ink)]" strokeWidth={2} />
+              <p className="text-[var(--muted-ink)] font-bold text-sm lg:text-base">
                 {t('result.analysisSubjectInfo')}
               </p>
             </div>
 
             <div className="space-y-2 text-sm lg:text-base">
               <div className="flex items-start gap-2">
-                <span className="text-[#8B8578] font-medium min-w-[64px]">{t('result.nameLabel')}</span>
-                <span className="text-[#1A1610] font-bold">{name || '-'}</span>
+                <span className="text-[var(--muted-ink)] font-medium min-w-[64px]">{t('result.nameLabel')}</span>
+                <span className="text-[var(--ink)] font-bold">{name || '-'}</span>
               </div>
               {localizedPerfumeName && (
                 <div className="flex items-start gap-2">
-                  <span className="text-[#8B8578] font-medium min-w-[64px]">{t('result.recommendedPerfume')}</span>
-                  <span className="text-[#1A1610] font-bold">{localizedPerfumeName}</span>
+                  <span className="text-[var(--muted-ink)] font-medium min-w-[64px]">{t('result.recommendedPerfume')}</span>
+                  <span className="text-[var(--ink)] font-bold">{localizedPerfumeName}</span>
                 </div>
               )}
             </div>
 
             {mood && (
-              <div className="mt-3 pt-3 border-t-2 border-[#EDE5D2]">
-                <p className="text-[#1A1610] font-bold leading-snug break-keep whitespace-pre-line text-sm lg:text-base">
+              <div className="mt-3 pt-3 border-t-2 border-[var(--line)]">
+                <p className="text-[var(--ink)] font-bold leading-snug break-keep whitespace-pre-line text-sm lg:text-base">
                   &quot;{mood}&quot;
                 </p>
               </div>
             )}
           </div>
 
-          <div className="h-2 bg-[#EFE4C8]" />
+          <div className="h-2 bg-[var(--soft)]" />
         </div>
       </div>
     </div>
@@ -665,10 +665,10 @@ export default function ChemistryResultPage() {
 
   if (loading || isTranslatingLocale) {
     return (
-      <div className="min-h-[100svh] bg-[#0C0E16] flex items-center justify-center">
-        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB] text-center">
-          <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
-          <p className="text-[#1A1610] font-bold">{t('result.loading')}</p>
+      <div className="min-h-[100svh] bg-[var(--canvas)] flex items-center justify-center">
+        <div className="bg-[var(--soft)] rounded-[6px] p-8 border border-[var(--line)] text-center">
+          <div className="w-16 h-16 border-4 border-[var(--line)] border-t-[var(--line)] rounded-[6px] animate-spin mx-auto mb-4" />
+          <p className="text-[var(--ink)] font-bold">{t('result.loading')}</p>
         </div>
       </div>
     )
@@ -676,12 +676,12 @@ export default function ChemistryResultPage() {
 
   if (!result || !formMeta) {
     return (
-      <div className="min-h-[100svh] bg-[#0C0E16] flex flex-col items-center justify-center gap-4">
-        <div className="bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB] text-center">
-          <p className="text-[#8B8578] mb-4">{t('chemistry.buttons.noResult')}</p>
+      <div className="min-h-[100svh] bg-[var(--canvas)] flex flex-col items-center justify-center gap-4">
+        <div className="bg-[var(--soft)] rounded-[6px] p-8 border border-[var(--line)] text-center">
+          <p className="text-[var(--muted-ink)] mb-4">{t('chemistry.buttons.noResult')}</p>
           <button
             onClick={() => router.push('/')}
-            className="px-6 py-3 bg-[#12141D] text-[#F5EFE2] font-bold rounded-[12px] border border-[#12141D] transition-all"
+            className="px-6 py-3 bg-[var(--paper)] text-[var(--ink)] font-bold rounded-[6px] border border-[var(--line)] transition-all"
           >
             {t('buttons.goHome')}
           </button>
@@ -702,14 +702,14 @@ export default function ChemistryResultPage() {
     : characterBPerfume?.persona?.name || ''
 
   return (
-    <div className="min-h-[100svh] bg-[#0C0E16]">
+    <div className="min-h-[100svh] bg-[var(--canvas)]">
       {/* 배경 */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[var(--canvas)]">
         <div className="absolute inset-0 z-0 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
         <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate" />
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
         </div>
       </div>
 
@@ -720,17 +720,17 @@ export default function ChemistryResultPage() {
 
         {/* 통합 스티키 네비게이션 */}
         <div className="sticky top-[84px] z-40">
-        <div className="w-full bg-[#F5EFE2]/95 backdrop-blur-md border-b border-stone-200/60 shadow-sm">
+        <div className="w-full bg-[var(--soft)]/95 backdrop-blur-md border-b border-stone-200/60 shadow-sm">
           {/* 메인 탭 */}
           <div className="px-4 pt-2 pb-1.5 space-y-1">
             {/* 인물 A / 인물 B / 케미 분석 — 3열 */}
-            <div className="grid grid-cols-3 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
+            <div className="grid grid-cols-3 gap-1 bg-[var(--soft)] p-1 rounded-[6px]">
               <button
                 onClick={() => handleTabChange('characterA')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'characterA'
-                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
-                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
+                    ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
+                    : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
                 }`}
               >
                 <Moon size={13} strokeWidth={2} />
@@ -738,10 +738,10 @@ export default function ChemistryResultPage() {
               </button>
               <button
                 onClick={() => handleTabChange('characterB')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'characterB'
-                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
-                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
+                    ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
+                    : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
                 }`}
               >
                 <Sun size={13} strokeWidth={2} />
@@ -749,10 +749,10 @@ export default function ChemistryResultPage() {
               </button>
               <button
                 onClick={() => handleTabChange('chemistry')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[12px] ${
+                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'chemistry'
-                    ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
-                    : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
+                    ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
+                    : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
                 }`}
               >
                 <Zap size={13} strokeWidth={2} />
@@ -764,13 +764,13 @@ export default function ChemistryResultPage() {
           {/* 하위 탭 - 캐릭터 탭일 때 */}
           {(mainTab === 'characterA' || mainTab === 'characterB') && (
             <div className="px-4 pb-2">
-              <div className="grid grid-cols-2 gap-1 bg-[#EDE5D2] p-1 rounded-[12px]">
+              <div className="grid grid-cols-2 gap-1 bg-[var(--soft)] p-1 rounded-[6px]">
                 <button
                   onClick={() => setCharSubTab('perfume')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[12px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
                     charSubTab === 'perfume'
-                      ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
-                      : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
+                      ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
+                      : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
                   }`}
                 >
                   <Gem size={13} strokeWidth={2} />
@@ -778,10 +778,10 @@ export default function ChemistryResultPage() {
                 </button>
                 <button
                   onClick={() => setCharSubTab('analysis')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[12px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
                     charSubTab === 'analysis'
-                      ? 'text-[#1A1610] bg-[#F5EFE2] border border-[#A87B10]'
-                      : 'text-[#6E6659] bg-transparent border border-transparent hover:bg-[#F5EFE2]/70'
+                      ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
+                      : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
                   }`}
                 >
                   <Search size={13} strokeWidth={2} />
@@ -799,7 +799,7 @@ export default function ChemistryResultPage() {
                   <button
                     key={section.id}
                     onClick={() => scrollToChemistrySection(section.id)}
-                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[#F5EFE2]/80 border border-[#D8CFBB] rounded-[12px] text-[10px] lg:text-[12px] font-medium text-[#6E6659] hover:border-[#A87B10] hover:text-[#1A1610] hover:bg-[#FDFAF1] transition-all active:scale-95 whitespace-nowrap"
+                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[var(--soft)]/80 border border-[var(--line)] rounded-[6px] text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] hover:border-[var(--line)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-all active:scale-95 whitespace-nowrap"
                   >
                     <section.icon size={12} strokeWidth={2} />
                     <span>{t(section.labelKey)}</span>
@@ -816,22 +816,22 @@ export default function ChemistryResultPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="text-center px-4 pt-2 pb-4"
+          className="text-center px-4 pt-8 pb-4"
         >
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border border-[#B8880F]">
-              <span className="text-[#1A1610] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--ink)] rounded-[6px] border border-[var(--line)]">
+              <span className="text-[var(--ink)] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
             </div>
             {savedSessionId && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#C9BFA8]">
-                <CheckCircle2 size={12} className="text-[#5C564A]" />
-                <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
+                <CheckCircle2 size={12} className="text-[var(--muted-ink)]" />
+                <span className="text-[var(--muted-ink)] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-[#E9E2D0] leading-tight">
+          <h1 className="text-2xl font-bold text-[var(--ink)] leading-tight">
             {t('chemistry.result.meetingTitle')}<br />
-            <span className="text-[#8B8578]">{t('chemistry.result.meetingSubtitle')}</span>
+            <span className="text-[var(--muted-ink)]">{t('chemistry.result.meetingSubtitle')}</span>
           </h1>
         </motion.div>
 

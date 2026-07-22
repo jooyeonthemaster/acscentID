@@ -49,16 +49,16 @@ export function Step5({
                     {/* ===== 2열 그리드: AI 이미지 + 모델링 이미지 ===== */}
                     <div className="grid grid-cols-2 gap-3">
                         {/* ===== AI 향 추천용 이미지 ===== */}
-                        <div className="bg-[#F5EFE2] backdrop-blur-md rounded-[12px] p-3 border border-[#D8CFBB] shadow-md">
+                        <div className="bg-[var(--soft)] backdrop-blur-md rounded-[6px] p-3 border border-[var(--line)] shadow-md">
                             <div className="flex items-center gap-1.5 mb-2">
-                                <div className="w-6 h-6 rounded-full bg-[#E5DCC6] flex items-center justify-center">
-                                    <Sparkles size={12} className="text-[#5C564A]" />
+                                <div className="w-6 h-6 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                                    <Sparkles size={12} className="text-[var(--muted-ink)]" />
                                 </div>
-                                <h3 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('input.step5.aiRecommendation')}</h3>
+                                <h3 className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('input.step5.aiRecommendation')}</h3>
                             </div>
 
                             {imagePreview ? (
-                                <div className="relative aspect-square w-full rounded-[12px] overflow-hidden bg-[#E5DCC6]">
+                                <div className="relative aspect-square w-full rounded-[6px] overflow-hidden bg-[var(--soft)]">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                         src={imagePreview}
@@ -67,13 +67,13 @@ export function Step5({
                                     />
                                     {isCompressing && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                            <Loader2 size={16} className="animate-spin text-[#E9E2D0]" />
+                                            <Loader2 size={16} className="animate-spin text-[var(--ink)]" />
                                         </div>
                                     )}
                                     <button
                                         onClick={removeImage}
                                         disabled={isCompressing}
-                                        className="absolute top-1 right-1 w-5 h-5 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[#E9E2D0] hover:bg-black/70 transition-colors disabled:opacity-50"
+                                        className="absolute top-1 right-1 w-5 h-5 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--ink)] hover:bg-black/70 transition-colors disabled:opacity-50"
                                     >
                                         <X size={10} />
                                     </button>
@@ -81,12 +81,12 @@ export function Step5({
                             ) : (
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="w-full aspect-square rounded-[12px] border-2 border-dashed border-[#D8CFBB] bg-[#EDE5D2] hover:bg-[#EDE5D2] hover:border-[#C9BFA8] transition-all flex flex-col items-center justify-center gap-1 group"
+                                    className="w-full aspect-square rounded-[6px] border-2 border-dashed border-[var(--line)] bg-[var(--soft)] hover:bg-[var(--soft)] hover:border-[var(--line)] transition-all flex flex-col items-center justify-center gap-1 group"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-[#E5DCC6] group-hover:bg-[#E5DCC6] flex items-center justify-center transition-colors">
-                                        <ImageIcon size={14} className="text-[#5C564A]" />
+                                    <div className="w-8 h-8 rounded-full bg-[var(--soft)] group-hover:bg-[var(--soft)] flex items-center justify-center transition-colors">
+                                        <ImageIcon size={14} className="text-[var(--muted-ink)]" />
                                     </div>
-                                    <span className="text-[10px] lg:text-[12px] font-medium text-[#6E6659]">{t('input.step5.upload')}</span>
+                                    <span className="text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)]">{t('input.step5.upload')}</span>
                                 </button>
                             )}
                             <input
@@ -99,16 +99,16 @@ export function Step5({
                         </div>
 
                         {/* ===== 3D 모델링용 이미지 ===== */}
-                        <div className="bg-[#F5EFE2] backdrop-blur-md rounded-[12px] p-3 border border-[#D8CFBB] shadow-md">
+                        <div className="bg-[var(--soft)] backdrop-blur-md rounded-[6px] p-3 border border-[var(--line)] shadow-md">
                             <div className="flex items-center gap-1.5 mb-2">
-                                <div className="w-6 h-6 rounded-full bg-[#E5DCC6] flex items-center justify-center">
-                                    <Palette size={12} className="text-[#5C564A]" />
+                                <div className="w-6 h-6 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                                    <Palette size={12} className="text-[var(--muted-ink)]" />
                                 </div>
-                                <h3 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('input.step5.modeling3d')}</h3>
+                                <h3 className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('input.step5.modeling3d')}</h3>
                             </div>
 
                             {modelingImagePreview ? (
-                                <div className="relative aspect-square w-full rounded-[12px] overflow-hidden bg-[#E5DCC6]">
+                                <div className="relative aspect-square w-full rounded-[6px] overflow-hidden bg-[var(--soft)]">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                         src={modelingImagePreview}
@@ -117,13 +117,13 @@ export function Step5({
                                     />
                                     {isModelingCompressing && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                            <Loader2 size={16} className="animate-spin text-[#E9E2D0]" />
+                                            <Loader2 size={16} className="animate-spin text-[var(--ink)]" />
                                         </div>
                                     )}
                                     <button
                                         onClick={removeModelingImage}
                                         disabled={isModelingCompressing}
-                                        className="absolute top-1 right-1 w-5 h-5 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[#E9E2D0] hover:bg-black/70 transition-colors disabled:opacity-50"
+                                        className="absolute top-1 right-1 w-5 h-5 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--ink)] hover:bg-black/70 transition-colors disabled:opacity-50"
                                     >
                                         <X size={10} />
                                     </button>
@@ -131,12 +131,12 @@ export function Step5({
                             ) : (
                                 <button
                                     onClick={() => setShowModelingWarning(true)}
-                                    className="w-full aspect-square rounded-[12px] border-2 border-dashed border-[#D8CFBB] bg-[#EDE5D2] hover:bg-[#EDE5D2] hover:border-[#C9BFA8] transition-all flex flex-col items-center justify-center gap-1 group"
+                                    className="w-full aspect-square rounded-[6px] border-2 border-dashed border-[var(--line)] bg-[var(--soft)] hover:bg-[var(--soft)] hover:border-[var(--line)] transition-all flex flex-col items-center justify-center gap-1 group"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-[#E5DCC6] group-hover:bg-[#E5DCC6] flex items-center justify-center transition-colors">
-                                        <ImageIcon size={14} className="text-[#5C564A]" />
+                                    <div className="w-8 h-8 rounded-full bg-[var(--soft)] group-hover:bg-[var(--soft)] flex items-center justify-center transition-colors">
+                                        <ImageIcon size={14} className="text-[var(--muted-ink)]" />
                                     </div>
-                                    <span className="text-[10px] lg:text-[12px] font-medium text-[#6E6659]">{t('input.step5.upload')}</span>
+                                    <span className="text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)]">{t('input.step5.upload')}</span>
                                 </button>
                             )}
                             <input
@@ -150,13 +150,13 @@ export function Step5({
                     </div>
 
                     {/* ===== 모델링 요청사항 (3D 모델링 섹션에 통합) ===== */}
-                    <div className="bg-[#F5EFE2] backdrop-blur-md rounded-[12px] p-3 border border-[#D8CFBB] shadow-md">
+                    <div className="bg-[var(--soft)] backdrop-blur-md rounded-[6px] p-3 border border-[var(--line)] shadow-md">
                         <div className="flex items-center gap-1.5 mb-2">
-                            <div className="w-6 h-6 rounded-full bg-[#E5DCC6] flex items-center justify-center">
-                                <MessageSquare size={12} className="text-[#5C564A]" />
+                            <div className="w-6 h-6 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                                <MessageSquare size={12} className="text-[var(--muted-ink)]" />
                             </div>
-                            <h3 className="text-xs lg:text-sm font-bold text-[#1A1610]">
-                                {t('input.step5.modelingRequest')} <span className="text-[10px] lg:text-[12px] font-normal text-[#6E6659]">{t('input.step5.optional')}</span>
+                            <h3 className="text-xs lg:text-sm font-bold text-[var(--ink)]">
+                                {t('input.step5.modelingRequest')} <span className="text-[10px] lg:text-[12px] font-normal text-[var(--muted-ink)]">{t('input.step5.optional')}</span>
                             </h3>
                         </div>
 
@@ -164,12 +164,12 @@ export function Step5({
                             value={modelingRequest}
                             onChange={(e) => setModelingRequest?.(e.target.value)}
                             placeholder={t('input.step5.modelingPlaceholder')}
-                            className="w-full h-16 px-2.5 py-2 text-xs lg:text-sm rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2] text-[#1A1610] focus:outline-none focus:ring-2 focus:ring-[#B8880F] focus:border-transparent resize-none placeholder:text-[#6E6659]"
+                            className="w-full h-16 px-2.5 py-2 text-xs lg:text-sm rounded-[6px] border border-[var(--line)] bg-[var(--soft)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--line)] focus:border-transparent resize-none placeholder:text-[var(--muted-ink)]"
                             maxLength={200}
                         />
                         <div className="flex justify-between items-center mt-1">
-                            <p className="text-[9px] text-[#6E6659]">{t('input.step5.modelingNote')}</p>
-                            <span className="text-[9px] text-[#6E6659]">{modelingRequest.length}/200</span>
+                            <p className="text-[9px] text-[var(--muted-ink)]">{t('input.step5.modelingNote')}</p>
+                            <span className="text-[9px] text-[var(--muted-ink)]">{modelingRequest.length}/200</span>
                         </div>
                     </div>
                 </div>
@@ -189,31 +189,31 @@ export function Step5({
                                 animate={{ scale: 1, opacity: 1 }}
                                 exit={{ scale: 0.9, opacity: 0 }}
                                 onClick={(e) => e.stopPropagation()}
-                                className="bg-[#F5EFE2] rounded-[12px] p-4 max-w-xs w-full shadow-2xl"
+                                className="bg-[var(--soft)] rounded-[6px] p-4 max-w-xs w-full shadow-2xl"
                             >
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#E5DCC6] flex items-center justify-center">
-                                        <AlertTriangle size={16} className="text-[#5C564A]" />
+                                    <div className="w-8 h-8 rounded-full bg-[var(--soft)] flex items-center justify-center">
+                                        <AlertTriangle size={16} className="text-[var(--muted-ink)]" />
                                     </div>
-                                    <h3 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('input.step5.modelingImageGuide')}</h3>
+                                    <h3 className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('input.step5.modelingImageGuide')}</h3>
                                 </div>
 
                                 <div className="space-y-2 mb-4">
-                                    <div className="flex items-start gap-2 p-2 bg-[#E5DCC6] rounded-[12px]">
+                                    <div className="flex items-start gap-2 p-2 bg-[var(--soft)] rounded-[6px]">
                                         <span className="text-xs lg:text-sm">🎨</span>
-                                        <p className="text-xs lg:text-sm text-[#5C564A]">
+                                        <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                                             {t('input.step5.modelingWhite')}
                                         </p>
                                     </div>
-                                    <div className="flex items-start gap-2 p-2 bg-[#E5DCC6] rounded-[12px]">
+                                    <div className="flex items-start gap-2 p-2 bg-[var(--soft)] rounded-[6px]">
                                         <span className="text-xs lg:text-sm">✨</span>
-                                        <p className="text-xs lg:text-sm text-[#5C564A]">
+                                        <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                                             {t('input.step5.modelingSimplified')}
                                         </p>
                                     </div>
-                                    <div className="flex items-start gap-2 p-2 bg-[#E5DCC6] rounded-[12px]">
+                                    <div className="flex items-start gap-2 p-2 bg-[var(--soft)] rounded-[6px]">
                                         <span className="text-xs lg:text-sm">📸</span>
-                                        <p className="text-xs lg:text-sm text-[#5C564A]">
+                                        <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                                             {t('input.step5.modelingAngle')}
                                         </p>
                                     </div>
@@ -222,7 +222,7 @@ export function Step5({
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setShowModelingWarning(false)}
-                                        className="flex-1 py-2.5 rounded-[12px] border border-[#D8CFBB] text-xs lg:text-sm font-medium text-[#5C564A] hover:bg-[#E5DCC6] transition-colors"
+                                        className="flex-1 py-2.5 rounded-[6px] border border-[var(--line)] text-xs lg:text-sm font-medium text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors"
                                     >
                                         {t('buttons.cancel')}
                                     </button>
@@ -231,7 +231,7 @@ export function Step5({
                                             setShowModelingWarning(false)
                                             modelingFileInputRef.current?.click()
                                         }}
-                                        className="flex-1 py-2.5 rounded-[12px] bg-[#E5DCC6] text-xs lg:text-sm font-bold text-[#1A1610] hover:bg-[#E5DCC6] transition-colors"
+                                        className="flex-1 py-2.5 rounded-[6px] bg-[var(--soft)] text-xs lg:text-sm font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                                     >
                                         {t('buttons.confirm')}
                                     </button>
@@ -271,12 +271,12 @@ export function Step5({
                             {!showImageGuide && (
                                 <button
                                     onClick={() => setShowImageGuide(true)}
-                                    className="text-xs lg:text-sm text-[#5C564A] font-medium hover:underline"
+                                    className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium hover:underline"
                                 >
                                     {t('input.step5.reviewGuide')}
                                 </button>
                             )}
-                            <div className="relative aspect-[5/6] max-h-[260px] w-full rounded-[12px] overflow-hidden bg-[#E5DCC6]">
+                            <div className="relative aspect-[5/6] max-h-[260px] w-full rounded-[6px] overflow-hidden bg-[var(--soft)]">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={imagePreview}
@@ -285,7 +285,7 @@ export function Step5({
                                 />
                                 {isCompressing && (
                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                        <div className="flex flex-col items-center gap-2 text-[#E9E2D0]">
+                                        <div className="flex flex-col items-center gap-2 text-[var(--ink)]">
                                             <Loader2 size={24} className="animate-spin" />
                                             <span className="text-xs lg:text-sm">{t('input.step5.optimizing')}</span>
                                         </div>
@@ -294,24 +294,24 @@ export function Step5({
                                 <button
                                     onClick={removeImage}
                                     disabled={isCompressing}
-                                    className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[#E9E2D0] hover:bg-black/70 transition-colors disabled:opacity-50"
+                                    className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-[var(--ink)] hover:bg-black/70 transition-colors disabled:opacity-50"
                                 >
                                     <X size={16} />
                                 </button>
                             </div>
-                            <p className="text-[11px] lg:text-[13px] text-[#6E6659] text-center">
+                            <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center">
                                 {t('input.step5.autoOptimize')}
                             </p>
                         </div>
                     ) : (
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full aspect-[5/6] max-h-[220px] rounded-[12px] border-2 border-dashed border-[#D8CFBB] bg-[#F5EFE2] backdrop-blur-md shadow-lg shadow-stone-900/5 hover:bg-[#F5EFE2] hover:border-[#C9BFA8] transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
+                            className="w-full aspect-[5/6] max-h-[220px] rounded-[6px] border-2 border-dashed border-[var(--line)] bg-[var(--soft)] backdrop-blur-md shadow-lg shadow-stone-900/5 hover:bg-[var(--soft)] hover:border-[var(--line)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
                         >
-                            <div className="w-14 h-14 rounded-full bg-[#E5DCC6] group-hover:bg-[#E5DCC6] flex items-center justify-center transition-colors">
-                                <ImageIcon size={24} className="text-[#6E6659] group-hover:text-[#5C564A] transition-colors" />
+                            <div className="w-14 h-14 rounded-full bg-[var(--soft)] group-hover:bg-[var(--soft)] flex items-center justify-center transition-colors">
+                                <ImageIcon size={24} className="text-[var(--muted-ink)] group-hover:text-[var(--muted-ink)] transition-colors" />
                             </div>
-                            <span className="text-sm lg:text-base font-medium text-[#6E6659] group-hover:text-[#5C564A]">
+                            <span className="text-sm lg:text-base font-medium text-[var(--muted-ink)] group-hover:text-[var(--muted-ink)]">
                                 {t('input.step5.uploadImage')}
                             </span>
                         </button>
@@ -332,21 +332,21 @@ export function Step5({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="mt-4 bg-[#F5EFE2] rounded-[12px] p-5 border border-[#D8CFBB] shadow-lg shadow-stone-900/5"
+                            className="mt-4 bg-[var(--soft)] rounded-[6px] p-5 border border-[var(--line)] shadow-lg shadow-stone-900/5"
                         >
                             <div className="flex items-center gap-2 mb-3">
-                                <Camera size={18} className="text-[#5C564A]" />
-                                <span className="text-sm lg:text-base font-bold text-[#5C564A]">{t('input.step5.imageGuide')}</span>
+                                <Camera size={18} className="text-[var(--muted-ink)]" />
+                                <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">{t('input.step5.imageGuide')}</span>
                             </div>
-                            <p className="text-sm lg:text-base text-[#5C564A] leading-relaxed mb-3">
+                            <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed mb-3">
                                 {t('input.step5.imageRatioDesc')}
                             </p>
-                            <p className="text-xs lg:text-sm text-[#6E6659] mb-3">
+                            <p className="text-xs lg:text-sm text-[var(--muted-ink)] mb-3">
                                 {t('input.step5.imageRatioHint')}
                             </p>
-                            <div className="flex items-start gap-2 p-3 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB]">
-                                <Sparkles size={14} className="text-[#6E6659] mt-0.5 flex-shrink-0" />
-                                <p className="text-xs lg:text-sm text-[#5C564A]">
+                            <div className="flex items-start gap-2 p-3 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
+                                <Sparkles size={14} className="text-[var(--muted-ink)] mt-0.5 flex-shrink-0" />
+                                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
                                     <span className="font-semibold">{t('input.step5.tip')}</span> {isIdol ? t('input.step5.tipIdol') : t('input.step5.tipPersonal')}
                                 </p>
                             </div>

@@ -49,11 +49,11 @@ export function ScentRecommendationCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 border border-[#D8CFBB]"
+        className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 border border-[var(--line)]"
       >
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">🌿</span>
-          <h5 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('recommendedSeason')}</h5>
+          <h5 className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('recommendedSeason')}</h5>
         </div>
         <div className="flex justify-between gap-2">
           {seasons.map((season) => {
@@ -62,10 +62,10 @@ export function ScentRecommendationCard({
             return (
               <div
                 key={season}
-                className={`flex-1 flex flex-col items-center py-2.5 px-1 rounded-[12px] transition-all ${
+                className={`flex-1 flex flex-col items-center py-2.5 px-1 rounded-[6px] transition-all ${
                   isActive
-                    ? 'bg-[#EFE4C8] text-[#1A1610] border border-[#C9BFA8] shadow-md'
-                    : 'bg-[#EDE5D2] text-[#8B8578] border border-[#D8CFBB]'
+                    ? 'bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] shadow-md'
+                    : 'bg-[var(--soft)] text-[var(--muted-ink)] border border-[var(--line)]'
                 }`}
               >
                 <span className={`text-lg ${!isActive && 'grayscale opacity-50'}`}>{icon}</span>
@@ -75,7 +75,7 @@ export function ScentRecommendationCard({
           })}
         </div>
         {season_reason && (
-          <p className="text-sm lg:text-sm text-[#5C564A] mt-3 italic leading-relaxed bg-[#EDE5D2]/50 rounded-[12px] p-2">
+          <p className="text-sm lg:text-sm text-[var(--muted-ink)] mt-3 italic leading-relaxed bg-[var(--soft)]/50 rounded-[6px] p-2">
             {season_reason}
           </p>
         )}
@@ -86,11 +86,11 @@ export function ScentRecommendationCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-gradient-to-r from-[#FDFAF1] to-[#FDFAF1] rounded-[12px] p-4 border border-[#D8CFBB]"
+        className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-[6px] p-4 border border-[var(--line)]"
       >
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">🕰️</span>
-          <h5 className="text-sm lg:text-base font-bold text-[#1A1610]">{t('recommendedTime')}</h5>
+          <h5 className="text-sm lg:text-base font-bold text-[var(--ink)]">{t('recommendedTime')}</h5>
         </div>
         <div className="flex justify-between gap-2">
           {times.map((time) => {
@@ -99,10 +99,10 @@ export function ScentRecommendationCard({
             return (
               <div
                 key={time}
-                className={`flex-1 flex flex-col items-center py-2.5 px-1 rounded-[12px] transition-all ${
+                className={`flex-1 flex flex-col items-center py-2.5 px-1 rounded-[6px] transition-all ${
                   isActive
-                    ? 'bg-[#EFE4C8] text-[#1A1610] border border-[#C9BFA8] shadow-md'
-                    : 'bg-[#EDE5D2] text-[#8B8578] border border-[#D8CFBB]'
+                    ? 'bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] shadow-md'
+                    : 'bg-[var(--soft)] text-[var(--muted-ink)] border border-[var(--line)]'
                 }`}
               >
                 <span className={`text-lg ${!isActive && 'grayscale opacity-50'}`}>{icon}</span>
@@ -112,7 +112,7 @@ export function ScentRecommendationCard({
           })}
         </div>
         {time_reason && (
-          <p className="text-sm lg:text-sm text-[#5C564A] mt-3 italic leading-relaxed bg-[#EDE5D2]/50 rounded-[12px] p-2">
+          <p className="text-sm lg:text-sm text-[var(--muted-ink)] mt-3 italic leading-relaxed bg-[var(--soft)]/50 rounded-[6px] p-2">
             {time_reason}
           </p>
         )}

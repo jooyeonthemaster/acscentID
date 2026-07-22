@@ -24,11 +24,11 @@ interface PaymentOption {
 function BankIcon({ active }: { active: boolean }) {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <rect x="4" y="20" width="20" height="2.5" rx="1" fill={active ? "#404040" : "#262A38"} />
-      <rect x="6" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#262A38"} />
-      <rect x="12.75" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#262A38"} />
-      <rect x="19.5" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#262A38"} />
-      <path d="M14 4L3 11H25L14 4Z" fill={active ? "#404040" : "#262A38"} />
+      <rect x="4" y="20" width="20" height="2.5" rx="1" fill={active ? "#404040" : "#A2A2A2"} />
+      <rect x="6" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#A2A2A2"} />
+      <rect x="12.75" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#A2A2A2"} />
+      <rect x="19.5" y="12" width="2.5" height="8" rx="1" fill={active ? "#545454" : "#A2A2A2"} />
+      <path d="M14 4L3 11H25L14 4Z" fill={active ? "#404040" : "#A2A2A2"} />
       <circle cx="14" cy="8.5" r="1.5" fill={active ? "#F8FAFC" : "#F1F5F9"} />
     </svg>
   )
@@ -37,7 +37,7 @@ function BankIcon({ active }: { active: boolean }) {
 function CardIcon({ active }: { active: boolean }) {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <rect x="3" y="6" width="22" height="16" rx="3" fill={active ? "#858585" : "#262A38"} />
+      <rect x="3" y="6" width="22" height="16" rx="3" fill={active ? "#858585" : "#A2A2A2"} />
       <rect x="3" y="10" width="22" height="3.5" fill={active ? "#5C5C5C" : "#A2A2A2"} />
       <rect x="6" y="16" width="7" height="2" rx="1" fill={active ? "#D8D8D8" : "#E2E8F0"} />
       <rect x="15" y="16" width="4" height="2" rx="1" fill={active ? "#D8D8D8" : "#E2E8F0"} />
@@ -61,7 +61,7 @@ function KakaoIcon({ active }: { active: boolean }) {
 function NaverIcon({ active }: { active: boolean }) {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <rect x="3" y="3" width="22" height="22" rx="6" fill={active ? "#03C75A" : "#262A38"} />
+      <rect x="3" y="3" width="22" height="22" rx="6" fill={active ? "#03C75A" : "#A2A2A2"} />
       <path
         d="M15.8 14.7L12 9H9v10h3.2v-5.7l3.8 5.7H19V9h-3.2v5.7z"
         fill="white"
@@ -165,21 +165,20 @@ export function PaymentMethodSelector({
               whileHover={isDisabled ? undefined : { y: -2 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               className={[
-                "relative flex flex-col items-center gap-2.5 p-5 rounded-[12px] border-2 transition-colors",
+                "relative flex flex-col items-center gap-2.5 p-5 rounded-[6px] border transition-colors",
                 isDisabled
-                  ? "border-[#1E222E] bg-stone-50/50 cursor-not-allowed opacity-50"
+                  ? "border-[var(--line)] bg-[var(--soft)] cursor-not-allowed opacity-50"
                   : isSelected
-                    ? "border-[#262A38] bg-[#12141D] shadow-[0_4px_12px_rgba(0,0,0,0.08)] cursor-pointer"
-                    : "border-[#262A38] bg-[#151823] shadow-sm hover:border-[#343A4C] hover:bg-[#12141D] cursor-pointer",
+                    ? "border-[var(--ink)] ring-1 ring-inset ring-[var(--ink)] bg-[var(--soft)] cursor-pointer"
+                    : "border-[var(--line)] bg-white hover:border-[var(--muted-ink)] cursor-pointer",
               ].join(" ")}
-              style={isSelected ? { backgroundColor: option.accentBg } : undefined}
               disabled={isDisabled}
               aria-pressed={isSelected}
               aria-label={isDisabled ? t('payment.selectPaymentLabelPreparing', { label: t(option.label) }) : t('payment.selectPaymentLabel', { label: t(option.label) })}
             >
               {/* 준비중 뱃지 */}
               {isDisabled && (
-                <span className="absolute top-2 right-2 text-[9px] font-bold text-[#8B8578] bg-[#232838] px-1.5 py-0.5 rounded-full">
+                <span className="absolute top-2 right-2 text-[9px] font-bold text-[var(--muted-ink)] bg-white border border-[var(--line)] px-1.5 py-0.5 rounded-[3px]">
                   {t('payment.preparing')}
                 </span>
               )}
@@ -190,8 +189,8 @@ export function PaymentMethodSelector({
                   className={[
                     "absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center transition-all",
                     isSelected
-                      ? "bg-[#161925]"
-                      : "border-2 border-[#343A4C] bg-[#12141D]",
+                      ? "bg-[var(--ink)]"
+                      : "border border-[var(--line)] bg-white",
                   ].join(" ")}
                 >
                   {isSelected && (
@@ -221,16 +220,16 @@ export function PaymentMethodSelector({
                   className={[
                     "text-[13px] lg:text-[15px] leading-tight",
                     isDisabled
-                      ? "font-semibold text-[#5C564A]"
+                      ? "font-semibold text-[var(--muted-ink)]"
                       : isSelected
-                        ? "font-extrabold text-[#E9E2D0]"
-                        : "font-bold text-[#A69F8D]",
+                        ? "font-extrabold text-[var(--ink)]"
+                        : "font-bold text-[var(--muted-ink)]",
                   ].join(" ")}
                 >
                   {t(option.label)}
                 </span>
                 {option.sublabel && (
-                  <span className="text-[10px] lg:text-[12px] font-medium text-[#8B8578]">
+                  <span className="text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)]">
                     {t(option.sublabel)}
                   </span>
                 )}
@@ -242,7 +241,7 @@ export function PaymentMethodSelector({
 
       {/* 안내 문구 */}
       {disabledMethods.size > 0 && (
-        <p className="text-[11px] lg:text-[13px] text-[#8B8578] text-center leading-relaxed">
+        <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center leading-relaxed">
           {t('payment.cardAndEasyPaySoon')}
         </p>
       )}

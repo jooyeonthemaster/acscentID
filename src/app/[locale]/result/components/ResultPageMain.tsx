@@ -328,25 +328,25 @@ export default function ResultPageMain() {
   // 로딩 상태 - 키치 스타일
   if (loading) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#0C0E16] font-wanted">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[var(--canvas)] font-wanted">
         {/* 배경 */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
-            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob animation-delay-4000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 border border-[#D8CFBB]"
+          className="relative z-10 text-center bg-[var(--soft)] rounded-[6px] p-8 border border-[var(--line)]"
         >
-          <div className="w-16 h-16 border-4 border-[#C9BFA8] border-t-[#D8CFBB] rounded-[12px] animate-spin mx-auto mb-4" />
-          <p className="text-[#1A1610] font-bold">{t('result.loading')}</p>
-          <p className="text-[#8B8578] text-sm lg:text-base mt-1 font-medium">{t('result.loadingHintEmoji')}</p>
+          <div className="w-16 h-16 border-4 border-[var(--line)] border-t-[var(--line)] rounded-[6px] animate-spin mx-auto mb-4" />
+          <p className="text-[var(--ink)] font-bold">{t('result.loading')}</p>
+          <p className="text-[var(--muted-ink)] text-sm lg:text-base mt-1 font-medium">{t('result.loadingHintEmoji')}</p>
         </motion.div>
       </div>
     )
@@ -355,29 +355,29 @@ export default function ResultPageMain() {
   // 에러 상태 - 키치 스타일
   if (error) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[#0C0E16] font-wanted">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-[var(--canvas)] font-wanted">
         {/* 배경 */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
           <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob" />
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob animation-delay-2000" />
           </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-center bg-[#F5EFE2] rounded-[12px] p-8 max-w-sm border border-[#D8CFBB]"
+          className="relative z-10 text-center bg-[var(--soft)] rounded-[6px] p-8 max-w-sm border border-[var(--line)]"
         >
-          <div className="w-16 h-16 bg-red-100 rounded-[12px] border border-[#D8CFBB] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-[6px] border border-[var(--line)] flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">😢</span>
           </div>
-          <h2 className="text-xl font-bold text-[#1A1610] mb-2">{t('errors.generic')}</h2>
-          <p className="text-[#8B8578] text-sm lg:text-base mb-6 font-medium">{error}</p>
+          <h2 className="text-xl font-bold text-[var(--ink)] mb-2">{t('errors.generic')}</h2>
+          <p className="text-[var(--muted-ink)] text-sm lg:text-base mb-6 font-medium">{error}</p>
           <Button
             onClick={handleRestart}
-            className="bg-[#12141D] text-[#F5EFE2] hover:bg-[#FFFDF5] rounded-[12px] px-6 py-3 font-bold border border-[#D8CFBB] transition-all"
+            className="bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)] rounded-[6px] px-6 py-3 font-bold border border-[var(--line)] transition-all"
           >
             {t('result.goBack')}
           </Button>
@@ -388,43 +388,43 @@ export default function ResultPageMain() {
 
   // ===== 모바일/데스크탑 공유 블록 (문자 그대로 호이스팅) =====
   const titleSection = (
-                <motion.div variants={fadeInUp} className="text-center pt-2">
+                <motion.div variants={fadeInUp} className="text-center pt-8">
                   <div className="flex items-center justify-center gap-2 mb-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EEB62B] rounded-[12px] border border-[#B8880F]">
-                      <span className="text-[#1A1610] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--ink)] rounded-[6px] border border-[var(--line)]">
+                      <span className="text-[var(--ink)] text-xs lg:text-sm font-medium">{t('result.analysisComplete')}</span>
                     </div>
                     {isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB]">
-                        <Loader2 size={12} className="text-[#5C564A] animate-spin" />
-                        <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saving')}</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
+                        <Loader2 size={12} className="text-[var(--muted-ink)] animate-spin" />
+                        <span className="text-[var(--muted-ink)] text-xs lg:text-sm font-medium">{t('result.saving')}</span>
                       </div>
                     )}
                     {isAutoSaved && !isAutoSaving && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDE5D2] rounded-[12px] border border-[#C9BFA8]">
-                        <CheckCircle2 size={12} className="text-[#5C564A]" />
-                        <span className="text-[#5C564A] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--soft)] rounded-[6px] border border-[var(--line)]">
+                        <CheckCircle2 size={12} className="text-[var(--muted-ink)]" />
+                        <span className="text-[var(--muted-ink)] text-xs lg:text-sm font-medium">{t('result.saved')}</span>
                       </div>
                     )}
                   </div>
-                  <h1 className="text-2xl font-bold text-[#E9E2D0] leading-tight">
+                  <h1 className="text-2xl font-bold text-[var(--ink)] leading-tight">
                     {isGraduationMode ? (
                       <>
                         {t('result.graduationTitle')}<br />
-                        <span className="text-[#8B8578]">
+                        <span className="text-[var(--muted-ink)]">
                           {t('result.graduationSubtitle')}
                         </span>
                       </>
                     ) : isFigureMode ? (
                       <>
                         {t('result.figureTitle')}<br />
-                        <span className="text-[#8B8578]">
+                        <span className="text-[var(--muted-ink)]">
                           {t('result.figureSubtitle')}
                         </span>
                       </>
                     ) : (
                       <>
                         {t('result.defaultTitle')}<br />
-                        <span className="text-[#8B8578]">
+                        <span className="text-[var(--muted-ink)]">
                           {t('result.defaultSubtitle')}
                         </span>
                       </>
@@ -434,9 +434,9 @@ export default function ResultPageMain() {
   )
 
   const imageSection = (
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] p-4 space-y-4 border border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-[var(--soft)] rounded-[6px] p-4 space-y-4 border border-[var(--line)]">
                   {userImage && (
-                    <div className="relative w-full aspect-[5/6] rounded-[12px] overflow-hidden bg-[#EDE5D2] border border-[#D8CFBB]">
+                    <div className="relative w-full aspect-[5/6] rounded-[6px] overflow-hidden bg-[var(--soft)] border border-[var(--line)]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={userImage}
@@ -475,7 +475,7 @@ export default function ResultPageMain() {
                 {imageSection}
 
                 {/* 탭 네비게이션 + 콘텐츠 - 모바일 키치 스타일 */}
-                <motion.div variants={fadeInUp} className="bg-[#F5EFE2] rounded-[12px] overflow-hidden border border-[#D8CFBB]">
+                <motion.div variants={fadeInUp} className="bg-[var(--soft)] rounded-[6px] overflow-hidden border border-[var(--line)]">
                   <TabNavigation
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -565,7 +565,7 @@ export default function ResultPageMain() {
           </div>
 
           {/* 우측: 탭 카드 — 휴면 isDesktop 레이아웃 활성 */}
-          <motion.div variants={fadeInUp} className="min-w-0 overflow-hidden rounded-[12px] border border-[#D8CFBB] bg-[#F5EFE2]">
+          <motion.div variants={fadeInUp} className="min-w-0 overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)]">
             <TabNavigation
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -603,14 +603,14 @@ export default function ResultPageMain() {
   )
 
   return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[#0C0E16] font-wanted">
+    <div className="relative flex flex-col min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
       {/* 배경 - CSS 애니메이션으로 성능 최적화 (뷰포트 모드 무관 단일 인스턴스) */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0C0E16]">
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none bg-[var(--canvas)]">
         <div className="absolute inset-0 z-40 bg-noise opacity-[0.4] mix-blend-overlay pointer-events-none" />
         <div className="absolute top-[-20%] left-[-10%] w-[140%] h-[140%] opacity-40 blur-[100px] saturate-150">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate" />
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[#D8CFBB] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate-reverse" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-[var(--line)] rounded-full mix-blend-multiply animate-blob-rotate-fast" />
         </div>
       </div>
 

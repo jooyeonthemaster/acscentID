@@ -242,10 +242,10 @@ export function FeedbackModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] ${saju ? SJ.sheet : 'bg-[#12141D]'} rounded-t-[12px] shadow-2xl overflow-hidden flex flex-col`}
+            className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
           >
             {/* 헤더 */}
-            <div className={`flex items-center justify-between px-5 py-4 border-b ${saju ? SJ.hairline : 'border-[#1E222E]'} flex-shrink-0`}>
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${saju ? SJ.hairline : 'border-[var(--line)]'} flex-shrink-0`}>
               <div className="flex items-center gap-3">
                 {saju ? (
                   <span aria-hidden className={SJ_SEAL_TILE}>{SAJU_STEP_HANJA[step - 1]}</span>
@@ -253,17 +253,17 @@ export function FeedbackModal({
                   <span className="text-2xl">{currentStepInfo.icon}</span>
                 )}
                 <div>
-                  <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#E9E2D0]'}`}>
+                  <h2 className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--ink)]'}`}>
                     {currentStepInfo.title}
                   </h2>
-                  <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>{currentStepInfo.subtitle}</p>
+                  <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{currentStepInfo.subtitle}</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
-                className={`p-2 -mr-2 rounded-full ${saju ? SJ.iconHover : 'hover:bg-[#1B1F2C]'} transition-colors`}
+                className={`p-2 -mr-2 rounded-full ${saju ? SJ.iconHover : 'hover:bg-[var(--soft)]'} transition-colors`}
               >
-                <X size={20} className={saju ? 'text-[#5C564A]' : 'text-[#8B8578]'} />
+                <X size={20} className={saju ? 'text-[#5C564A]' : 'text-[var(--muted-ink)]'} />
               </button>
             </div>
 
@@ -275,8 +275,8 @@ export function FeedbackModal({
                     key={s}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
                       s <= step
-                        ? saju ? SJ.progressActive : 'bg-[#161925]'
-                        : saju ? SJ.progressInactive : 'bg-[#232838]'
+                        ? saju ? SJ.progressActive : 'bg-[var(--soft)]'
+                        : saju ? SJ.progressInactive : 'bg-[var(--soft)]'
                     }`}
                     initial={s === step ? { scaleX: 0 } : {}}
                     animate={{ scaleX: 1 }}
@@ -288,51 +288,51 @@ export function FeedbackModal({
 
             {/* Step 2: 현재 비율 상태 고정 표시 */}
             {step === 2 && (
-              <div className={`px-5 pb-2 flex-shrink-0 sticky top-0 z-10 border-b shadow-sm ${saju ? `bg-[#F5EFE2] ${SJ.hairline}` : 'bg-[#12141D] border-[#1E222E]'}`}>
-                <div className={`rounded-[12px] p-3 border ${saju ? SJ.cardSoft : 'bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] border-stone-200/50'}`}>
+              <div className={`px-5 pb-2 flex-shrink-0 sticky top-0 z-10 border-b shadow-sm ${saju ? `bg-[#F5EFE2] ${SJ.hairline}` : 'bg-[var(--paper)] border-[var(--line)]'}`}>
+                <div className={`rounded-[6px] p-3 border ${saju ? SJ.cardSoft : 'bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] border-stone-200/50'}`}>
                   <div className="flex justify-between items-center text-xs lg:text-sm mb-2">
-                    <span className={`font-medium ${saju ? SJ.inkMuted : 'text-[#A69F8D]'}`}>{saju ? t('ratioStatus') : `📊 ${t('ratioStatus')}`}</span>
+                    <span className={`font-medium ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{saju ? t('ratioStatus') : `📊 ${t('ratioStatus')}`}</span>
                     <span className={`font-bold ${
                       isOverLimit
                         ? saju ? SJ.cinnabarText : 'text-red-500'
                         : currentTotalRatio === 100
-                          ? saju ? SJ.goldText : 'text-[#A69F8D]'
-                          : saju ? SJ.inkMuted : 'text-[#A69F8D]'
+                          ? saju ? SJ.goldText : 'text-[var(--muted-ink)]'
+                          : saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'
                     }`}>
                       {currentTotalRatio}% / 100%
                     </span>
                   </div>
-                  <div className={`h-2.5 rounded-full overflow-hidden shadow-inner ${saju ? 'bg-[#FDFAF1]' : 'bg-[#12141D]'}`}>
+                  <div className={`h-2.5 rounded-full overflow-hidden shadow-inner ${saju ? 'bg-[#FDFAF1]' : 'bg-[var(--paper)]'}`}>
                     <div className="h-full flex">
                       <div
-                        className={`transition-all duration-300 ${saju ? SJ.fillGold : 'bg-[#161925]'}`}
+                        className={`transition-all duration-300 ${saju ? SJ.fillGold : 'bg-[var(--soft)]'}`}
                         style={{ width: `${Math.min(feedback.retentionPercentage, 100)}%` }}
                       />
                       <div
                         className={`transition-all duration-300 ${
                           isOverLimit
                             ? saju ? SJ.fillCinnabar : 'bg-red-400'
-                            : saju ? SJ.fillBlue : 'bg-[#161925]'
+                            : saju ? SJ.fillBlue : 'bg-[var(--soft)]'
                         }`}
                         style={{ width: `${Math.min(totalAdditionalRatio, 100 - feedback.retentionPercentage)}%` }}
                       />
                     </div>
                   </div>
-                  <div className={`flex justify-between text-[10px] lg:text-[12px] mt-1.5 ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>
+                  <div className={`flex justify-between text-[10px] lg:text-[12px] mt-1.5 ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
                     <span className="flex items-center gap-1">
-                      <span className={`w-2 h-2 rounded-full ${saju ? SJ.fillGold : 'bg-[#161925]'}`}></span>
+                      <span className={`w-2 h-2 rounded-full ${saju ? SJ.fillGold : 'bg-[var(--soft)]'}`}></span>
                       {t('recommendedScent')} {feedback.retentionPercentage}%
                     </span>
                     <span className="flex items-center gap-1">
                       <span className={`w-2 h-2 rounded-full ${
                         isOverLimit
                           ? saju ? SJ.fillCinnabar : 'bg-red-400'
-                          : saju ? SJ.fillBlue : 'bg-[#161925]'
+                          : saju ? SJ.fillBlue : 'bg-[var(--soft)]'
                       }`}></span>
                       {t('additionalScent')} {totalAdditionalRatio}%
                     </span>
                     {currentTotalRatio < 100 && (
-                      <span className={saju ? SJ.inkFaint : 'text-[#5C564A]'}>{t('unset')} {100 - currentTotalRatio}%</span>
+                      <span className={saju ? SJ.inkFaint : 'text-[var(--muted-ink)]'}>{t('unset')} {100 - currentTotalRatio}%</span>
                     )}
                   </div>
                   {isOverLimit && (
@@ -353,14 +353,14 @@ export function FeedbackModal({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className={`mb-4 p-3 border rounded-[12px] flex items-center justify-between ${saju ? SJ.cardSoft : 'bg-[#0C0E16] border-[#262A38]'}`}
+                    className={`mb-4 p-3 border rounded-[6px] flex items-center justify-between ${saju ? SJ.cardSoft : 'bg-[var(--canvas)] border-[var(--line)]'}`}
                   >
-                    <p className={`text-sm lg:text-base ${saju ? SJ.blueInk : 'text-[#A69F8D]'}`}>
+                    <p className={`text-sm lg:text-base ${saju ? SJ.blueInk : 'text-[var(--muted-ink)]'}`}>
                       {t('restoredNotice')}
                     </p>
                     <button
                       onClick={() => setShowRestoredNotice(false)}
-                      className={saju ? 'text-[#8B8578] hover:text-[#3C3C3C]' : 'text-[#8B8578] hover:text-[#A69F8D]'}
+                      className={saju ? 'text-[var(--muted-ink)] hover:text-[#3C3C3C]' : 'text-[var(--muted-ink)] hover:text-[var(--muted-ink)]'}
                     >
                       <X size={16} />
                     </button>
@@ -375,7 +375,7 @@ export function FeedbackModal({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className={`mb-4 p-3 border rounded-[12px] flex items-center justify-between ${saju ? SJ.cardCinnabar : 'bg-red-50 border-red-200'}`}
+                    className={`mb-4 p-3 border rounded-[6px] flex items-center justify-between ${saju ? SJ.cardCinnabar : 'bg-red-50 border-red-200'}`}
                   >
                     <p className={`text-sm lg:text-base ${saju ? SJ.cinnabarText : 'text-red-600'}`}>{error}</p>
                     <button
@@ -395,7 +395,7 @@ export function FeedbackModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className={`absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center ${saju ? 'bg-[#F5EFE2]/95' : 'bg-[#12141D]/90'}`}
+                    className={`absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center ${saju ? 'bg-[#F5EFE2]/95' : 'bg-[var(--paper)]/90'}`}
                   >
                     {saju ? (
                       // 운문 로딩 — 구름 사이로 금달이 차오른다 (상품 아트 모티프, SAJU_CLOUDS)
@@ -433,9 +433,9 @@ export function FeedbackModal({
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                        className="w-16 h-16 bg-gradient-to-br from-[#161925] to-[#161925] rounded-full flex items-center justify-center shadow-lg shadow-stone-400/40 mb-4"
+                        className="w-16 h-16 bg-gradient-to-br from-[var(--soft)] to-[var(--soft)] rounded-full flex items-center justify-center shadow-lg shadow-stone-400/40 mb-4"
                       >
-                        <Sparkles size={28} className="text-[#E9E2D0]" />
+                        <Sparkles size={28} className="text-[var(--ink)]" />
                       </motion.div>
                     )}
                     <motion.p
@@ -443,11 +443,11 @@ export function FeedbackModal({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[#A69F8D]'}`}
+                      className={`text-lg font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--muted-ink)]'}`}
                     >
                       {LOADING_MESSAGES[loadingMessageIndex]}
                     </motion.p>
-                    <p className={`text-sm lg:text-base mt-2 ${saju ? SJ.inkMuted : 'text-[#8B8578]'}`}>
+                    <p className={`text-sm lg:text-base mt-2 ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
                       {t('loadingWait')}
                     </p>
                   </motion.div>
@@ -538,13 +538,13 @@ export function FeedbackModal({
 
             {/* 푸터 (폼 뷰에서만 표시) */}
             {modalView === 'form' && step < 4 && (
-              <div className={`px-5 pt-4 pb-20 md:pb-4 border-t flex gap-3 flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[#1E222E] bg-[#12141D]'}`}>
+              <div className={`px-5 pt-4 pb-20 md:pb-4 border-t flex gap-3 flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[var(--line)] bg-[var(--paper)]'}`}>
                 {step > 1 && (
                   <Button
                     variant="outline"
                     onClick={prevStep}
                     disabled={isSubmitting}
-                    className={`flex-1 h-12 rounded-[12px] font-semibold border-2 ${saju ? SJ.ctaOutline : ''}`}
+                    className={`flex-1 h-12 rounded-[6px] font-semibold border-2 ${saju ? SJ.ctaOutline : ''}`}
                   >
                     <ChevronLeft size={18} />
                     {t('prevButton')}
@@ -553,16 +553,16 @@ export function FeedbackModal({
                 <Button
                   onClick={handleNext}
                   disabled={isSubmitting || (step === 2 && currentTotalRatio !== 100)}
-                  className={`flex-1 h-12 rounded-[12px] font-bold transition-all ${
+                  className={`flex-1 h-12 rounded-[6px] font-bold transition-all ${
                     step === 2 && currentTotalRatio !== 100
-                      ? saju ? SJ.ctaDisabled : 'text-[#12141D] bg-[#F5EFE2] cursor-not-allowed'
+                      ? saju ? SJ.ctaDisabled : 'text-[var(--muted-ink)] bg-[var(--soft)] cursor-not-allowed'
                       : saju
                         ? SJ.ctaCinnabar
                         : step === 3
-                          ? 'text-[#12141D] bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] hover:from-[#161925] hover:to-[#161925] shadow-lg shadow-stone-500/30'
+                          ? 'text-[var(--ink)] bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] hover:from-[var(--soft)] hover:to-[var(--soft)] shadow-lg shadow-stone-500/30'
                           : step === 2
-                            ? 'text-[#12141D] bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] hover:from-[#161925] hover:to-[#161925] shadow-lg shadow-stone-500/30'
-                            : 'text-[#12141D] bg-[#161925] hover:bg-[#FFFDF5]'
+                            ? 'text-[var(--ink)] bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] hover:from-[var(--soft)] hover:to-[var(--soft)] shadow-lg shadow-stone-500/30'
+                            : 'text-[var(--ink)] bg-[var(--soft)] hover:bg-[var(--line-soft)]'
                   }`}
                 >
                   {isSubmitting ? (

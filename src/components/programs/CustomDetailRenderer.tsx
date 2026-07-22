@@ -18,7 +18,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
   }, [html])
 
   return (
-    <section className="py-8 px-4 bg-[#12141D]">
+    <section className="py-8 px-4 bg-[var(--paper)]">
       <div className="w-full max-w-[455px] mx-auto">
         <div
           className="custom-detail-content"

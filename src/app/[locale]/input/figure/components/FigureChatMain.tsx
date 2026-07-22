@@ -56,7 +56,7 @@ export function FigureChatMain({ userName }: FigureChatMainProps) {
   const showFigureNotice = currentPhase === 'figure_intro' && !isAiTyping;
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-[#0C0E16] to-[#0C0E16]">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-[var(--canvas)] to-[var(--canvas)]">
       {/* 헤더 + 진행률 */}
       <ProgressHeader progress={progress} />
 
@@ -111,7 +111,7 @@ export function FigureChatMain({ userName }: FigureChatMainProps) {
             <Button
               onClick={confirmAnalysis}
               disabled={isSubmitting}
-              className="px-8 py-6 bg-[#F5EFE2] text-[#12141D] font-bold text-lg border-2 border-[#F5EFE2] transition-all rounded-[12px]"
+              className="px-8 py-6 bg-[var(--soft)] text-[var(--ink)] font-bold text-lg border border-[var(--line)] transition-all rounded-[6px]"
             >
               {isSubmitting ? (
                 <>
@@ -140,12 +140,12 @@ export function FigureChatMain({ userName }: FigureChatMainProps) {
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               className="w-16 h-16 mb-4"
             >
-              <div className="w-full h-full rounded-full border-4 border-[#343A4C] border-t-transparent" />
+              <div className="w-full h-full rounded-full border-4 border-[var(--line)] border-t-transparent" />
             </motion.div>
-            <p className="text-[#A69F8D] text-center">
+            <p className="text-[var(--muted-ink)] text-center">
               {t('analyzingMessage')}
               <br />
-              <span className="text-sm lg:text-base text-[#8B8578]">{t('analyzingSubMessage')}</span>
+              <span className="text-sm lg:text-base text-[var(--muted-ink)]">{t('analyzingSubMessage')}</span>
             </p>
           </motion.div>
         )}
@@ -165,7 +165,7 @@ export function FigureChatMain({ userName }: FigureChatMainProps) {
 
       {/* 이미지 업로드 단계일 때 하단 안내 */}
       {showImageUploader && (
-        <div className="bg-[#12141D] border-t-2 border-[#262A38] p-4 text-center text-sm lg:text-base text-[#8B8578]">
+        <div className="bg-[var(--paper)] border-t-2 border-[var(--line)] p-4 text-center text-sm lg:text-base text-[var(--muted-ink)]">
           {t('uploadHint')}
         </div>
       )}

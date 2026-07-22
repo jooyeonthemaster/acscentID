@@ -18,12 +18,12 @@ const CATEGORY_KEY_MAP: Record<string, string> = {
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; bar: string }> = {
-  citrus: { bg: 'bg-[#151823]', bar: 'bg-[#161925]' },
-  floral: { bg: 'bg-[#151823]', bar: 'bg-[#161925]' },
-  woody: { bg: 'bg-[#151823]', bar: 'bg-[#161925]' },
-  musky: { bg: 'bg-[#151823]', bar: 'bg-[#161925]' },
+  citrus: { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' },
+  floral: { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' },
+  woody: { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' },
+  musky: { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' },
   fruity: { bg: 'bg-red-100', bar: 'bg-red-400' },
-  spicy: { bg: 'bg-[#151823]', bar: 'bg-[#161925]' },
+  spicy: { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' },
 }
 
 // ─── 카테고리 변화 차트 ────────────────────────────────────────────
@@ -44,29 +44,29 @@ export function CategoryChangeChart({
   const displayTitle = title ?? t('balanceChange')
 
   const renderChangeIcon = (change: CategoryChange['change']) => {
-    if (change === 'increased') return <TrendingUp size={12} className="text-[#A69F8D]" />
+    if (change === 'increased') return <TrendingUp size={12} className="text-[var(--muted-ink)]" />
     if (change === 'decreased') return <TrendingDown size={12} className="text-red-500" />
-    return <Minus size={12} className="text-[#8B8578]" />
+    return <Minus size={12} className="text-[var(--muted-ink)]" />
   }
 
   const renderScoreChange = (original: number, newScore: number) => {
     const diff = Math.round((newScore - original) * 10) / 10
-    if (diff === 0) return <span className="text-[#8B8578] text-[10px] lg:text-[12px]">±0</span>
-    if (diff > 0) return <span className="text-[#A69F8D] text-[10px] lg:text-[12px] font-medium">+{diff.toFixed(1)}</span>
+    if (diff === 0) return <span className="text-[var(--muted-ink)] text-[10px] lg:text-[12px]">±0</span>
+    if (diff > 0) return <span className="text-[var(--muted-ink)] text-[10px] lg:text-[12px] font-medium">+{diff.toFixed(1)}</span>
     return <span className="text-red-500 text-[10px] lg:text-[12px] font-medium">{diff.toFixed(1)}</span>
   }
 
   return (
-    <div className={`bg-[#151823] rounded-[12px] ${compact ? 'p-3' : 'p-4'} space-y-3 border border-[#262A38]`}>
+    <div className={`bg-[var(--soft)] rounded-[6px] ${compact ? 'p-3' : 'p-4'} space-y-3 border border-[var(--line)]`}>
       <div className="flex items-center justify-between">
-        <h4 className="text-xs lg:text-sm font-bold text-[#A69F8D]">{displayTitle}</h4>
-        <div className="flex items-center gap-2 text-[9px] text-[#8B8578]">
+        <h4 className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{displayTitle}</h4>
+        <div className="flex items-center gap-2 text-[9px] text-[var(--muted-ink)]">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#232838]"></span>
+            <span className="w-2 h-2 rounded-full bg-[var(--soft)]"></span>
             {t('existing')}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#161925]"></span>
+            <span className="w-2 h-2 rounded-full bg-[var(--soft)]"></span>
             {t('changed')}
           </span>
         </div>
@@ -76,7 +76,7 @@ export function CategoryChangeChart({
         {categoryChanges.map((change, index) => {
           const categoryKey = CATEGORY_KEY_MAP[change.category] || CATEGORY_KEY_MAP[change.category.toLowerCase()] || 'citrus'
           const categoryName = tLabels(`categories.${categoryKey}`)
-          const colors = CATEGORY_COLORS[categoryKey] || { bg: 'bg-[#1B1F2C]', bar: 'bg-[#161925]' }
+          const colors = CATEGORY_COLORS[categoryKey] || { bg: 'bg-[var(--soft)]', bar: 'bg-[var(--soft)]' }
           const originalScore = Math.round(Math.max(0, Math.min(10, change.originalScore || 0)) * 10) / 10
           const newScore = Math.round(Math.max(0, Math.min(10, change.newScore || 0)) * 10) / 10
           // 0~10 스케일을 바 너비(%)로 변환
@@ -93,21 +93,21 @@ export function CategoryChangeChart({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] lg:text-[13px] font-medium text-[#A69F8D] w-12">{categoryName}</span>
+                  <span className="text-[11px] lg:text-[13px] font-medium text-[var(--muted-ink)] w-12">{categoryName}</span>
                   {renderChangeIcon(change.change)}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] text-[#8B8578]">{originalScore.toFixed(1)}</span>
-                  <span className="text-[9px] text-[#8B8578]">→</span>
-                  <span className="text-[9px] font-medium text-[#A69F8D]">{newScore.toFixed(1)}</span>
+                  <span className="text-[9px] text-[var(--muted-ink)]">{originalScore.toFixed(1)}</span>
+                  <span className="text-[9px] text-[var(--muted-ink)]">→</span>
+                  <span className="text-[9px] font-medium text-[var(--muted-ink)]">{newScore.toFixed(1)}</span>
                   {renderScoreChange(originalScore, newScore)}
                 </div>
               </div>
 
               {/* 듀얼 바 차트 (0~10 스케일을 100%로 변환) */}
-              <div className="relative h-2.5 bg-[#12141D] rounded-full overflow-hidden border border-[#262A38]">
+              <div className="relative h-2.5 bg-[var(--paper)] rounded-full overflow-hidden border border-[var(--line)]">
                 <div
-                  className="absolute top-0 left-0 h-full bg-[#232838] transition-all"
+                  className="absolute top-0 left-0 h-full bg-[var(--soft)] transition-all"
                   style={{ width: `${originalWidth}%` }}
                 />
                 <div
@@ -139,27 +139,27 @@ export function TestingInstructionsBox({
   return (
     <div className={compact ? 'space-y-2' : 'space-y-2.5'}>
       <div className="flex items-center gap-2">
-        <TestTube2 size={13} className="text-[#8B8578]" />
-        <h4 className="text-xs lg:text-sm font-bold text-[#A69F8D]">{t('testMethod')}</h4>
+        <TestTube2 size={13} className="text-[var(--muted-ink)]" />
+        <h4 className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('testMethod')}</h4>
       </div>
 
-      <div className="bg-[#0C0E16] rounded-[12px] p-3 space-y-2 border border-[#151823]">
+      <div className="bg-[var(--canvas)] rounded-[6px] p-3 space-y-2 border border-[var(--line)]">
         {[instructions.step1, instructions.step2, instructions.step3].map((step, index) =>
           step ? (
             <div key={index} className="flex gap-2">
-              <span className="w-5 h-5 bg-[#232838] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-black text-[#A69F8D] flex-shrink-0">
+              <span className="w-5 h-5 bg-[var(--soft)] rounded-full flex items-center justify-center text-[10px] lg:text-[12px] font-black text-[var(--muted-ink)] flex-shrink-0">
                 {index + 1}
               </span>
-              <p className="text-[11px] lg:text-[13px] text-[#A69F8D] flex-1 leading-relaxed">{step}</p>
+              <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] flex-1 leading-relaxed">{step}</p>
             </div>
           ) : null
         )}
       </div>
 
       {instructions.caution && (
-        <div className="flex items-start gap-2 bg-[#0C0E16] rounded-[12px] p-2.5 border border-[#262A38]">
-          <AlertTriangle size={12} className="text-[#8B8578] flex-shrink-0 mt-0.5" />
-          <p className="text-[10px] lg:text-[12px] text-[#A69F8D] leading-relaxed">{instructions.caution}</p>
+        <div className="flex items-start gap-2 bg-[var(--canvas)] rounded-[6px] p-2.5 border border-[var(--line)]">
+          <AlertTriangle size={12} className="text-[var(--muted-ink)] flex-shrink-0 mt-0.5" />
+          <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] leading-relaxed">{instructions.caution}</p>
         </div>
       )}
     </div>
@@ -183,21 +183,21 @@ export function OriginalPerfumeCard({
   const t = useTranslations('feedback')
   const displayLabel = label ?? t('existing')
   return (
-    <div className="bg-gradient-to-r from-[#0C0E16] to-[#0C0E16] border-2 border-[#262A38] rounded-[12px] p-3">
+    <div className="bg-gradient-to-r from-[var(--canvas)] to-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-[9px] font-black text-[#A69F8D] uppercase tracking-wider flex-shrink-0">
+          <span className="text-[9px] font-black text-[var(--muted-ink)] uppercase tracking-wider flex-shrink-0">
             {displayLabel}
           </span>
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-xs lg:text-sm font-black text-[#E9E2D0] truncate">{perfumeName}</span>
-            <span className="text-[9px] text-[#8B8578] flex-shrink-0">{perfumeId}</span>
+            <span className="text-xs lg:text-sm font-black text-[var(--ink)] truncate">{perfumeName}</span>
+            <span className="text-[9px] text-[var(--muted-ink)] flex-shrink-0">{perfumeId}</span>
           </div>
         </div>
         {typeof retentionPercentage === 'number' && (
           <div className="flex-shrink-0 flex items-center gap-1">
-            <span className="text-[9px] text-[#A69F8D] font-bold">{t('prefMaintain')}</span>
-            <span className="text-sm lg:text-base font-black text-[#A69F8D]">{retentionPercentage}%</span>
+            <span className="text-[9px] text-[var(--muted-ink)] font-bold">{t('prefMaintain')}</span>
+            <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">{retentionPercentage}%</span>
           </div>
         )}
       </div>

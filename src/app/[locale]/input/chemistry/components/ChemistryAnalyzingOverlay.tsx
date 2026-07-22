@@ -85,7 +85,7 @@ export function ChemistryAnalyzingOverlay({
           animate={{ x: doorPosition.left }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           onAnimationComplete={handleDoorAnimationComplete}
-          className="relative h-full w-1/2 overflow-hidden border-r border-[#12141D]"
+          className="relative h-full w-1/2 overflow-hidden border-r border-[var(--line)]"
         >
           <ChemistryBlotterDoorHalf side="left" />
         </motion.div>
@@ -94,7 +94,7 @@ export function ChemistryAnalyzingOverlay({
           initial={{ x: "100%" }}
           animate={{ x: doorPosition.right }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="relative h-full w-1/2 overflow-hidden border-l border-[#12141D]"
+          className="relative h-full w-1/2 overflow-hidden border-l border-[var(--line)]"
         >
           <ChemistryBlotterDoorHalf side="right" />
         </motion.div>
@@ -108,8 +108,8 @@ export function ChemistryAnalyzingOverlay({
         transition={{ duration: 0.4 }}
         className="relative z-30 w-full max-w-[360px] px-6"
       >
-        <div className="overflow-hidden rounded-[18px] border border-[#E5DCC9] bg-[#FBF7EF] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]">
-          <div className="bg-[#12141D] px-6 py-5 text-center">
+        <div className="overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]">
+          <div className="bg-[var(--paper)] px-6 py-5 text-center">
             <Image
               src="/images/logo/acscent-wordmark-cream.png"
               alt="AC'SCENT"
@@ -122,16 +122,16 @@ export function ChemistryAnalyzingOverlay({
           </div>
 
           <div className="px-6 py-7">
-            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[#D8CFBB] bg-[#F3EDDF] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6E6659]">
+            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--soft)] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--muted-ink)]">
               <Layers size={12} strokeWidth={2} className="text-[#9A8B5E]" />
               {tRoot('chemistry.title')}
             </div>
 
-            <p className="mb-6 text-left font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1A1610]">
+            <p className="mb-6 text-left font-heading text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[var(--ink)]">
               {t('title')}
             </p>
 
-            <div className="relative mb-6 h-[170px] overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF]">
+            <div className="relative mb-6 h-[170px] overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)]">
               <svg className="absolute inset-x-4 bottom-6 h-24 w-[calc(100%-2rem)]" viewBox="0 0 280 92" aria-hidden>
                 <path d="M16 34C58 -6 98 66 139 38C188 4 226 20 264 56" fill="none" stroke="#B7B39E" strokeWidth="8" strokeLinecap="round" opacity="0.5" />
                 <path d="M16 70C70 24 112 88 162 60C206 36 238 48 264 76" fill="none" stroke="#C7A98C" strokeWidth="8" strokeLinecap="round" opacity="0.45" />
@@ -146,17 +146,17 @@ export function ChemistryAnalyzingOverlay({
                   transition={{ duration: 1.5, ease: "easeInOut" }}
                   className="relative z-10 text-center"
                 >
-                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[#D8CFBB] bg-[#FBF7EF]">
+                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[var(--line)] bg-[var(--soft)]">
                     {image1Preview ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={image1Preview} alt={character1Name} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[#1A1610]">
+                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[var(--ink)]">
                         {character1Name.charAt(0) || 'A'}
                       </div>
                     )}
                   </div>
-                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[#6E6659]">
+                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[var(--muted-ink)]">
                     {character1Name || 'A'}
                   </span>
                 </motion.div>
@@ -170,7 +170,7 @@ export function ChemistryAnalyzingOverlay({
                     repeat: mergePhase === 2 ? Infinity : 0,
                     ease: "easeInOut",
                   }}
-                  className="relative z-20 mx-[-2px] flex h-11 w-11 items-center justify-center rounded-full border border-[#D8CFBB] bg-[#12141D] text-base font-medium text-[#F5EFE2]"
+                  className="relative z-20 mx-[-2px] flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper)] text-base font-medium text-[var(--ink)]"
                 >
                   ×
                 </motion.div>
@@ -183,24 +183,24 @@ export function ChemistryAnalyzingOverlay({
                   transition={{ duration: 1.5, ease: "easeInOut" }}
                   className="relative z-10 text-center"
                 >
-                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[#D8CFBB] bg-[#FBF7EF]">
+                  <div className="h-[76px] w-[76px] overflow-hidden rounded-full border border-[var(--line)] bg-[var(--soft)]">
                     {image2Preview ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={image2Preview} alt={character2Name} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[#1A1610]">
+                      <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-[var(--ink)]">
                         {character2Name.charAt(0) || 'B'}
                       </div>
                     )}
                   </div>
-                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[#6E6659]">
+                  <span className="mt-2 block max-w-[84px] truncate text-xs lg:text-sm font-medium text-[var(--muted-ink)]">
                     {character2Name || 'B'}
                   </span>
                 </motion.div>
               </div>
             </div>
 
-            <div className="mb-6 overflow-hidden rounded-[12px] border border-[#E5DCC9] bg-[#F3EDDF] px-5 py-6">
+            <div className="mb-6 overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] px-5 py-6">
               <div className="flex min-h-[48px] items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.p
@@ -209,7 +209,7 @@ export function ChemistryAnalyzingOverlay({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.4 }}
-                    className="text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[#6E6659]"
+                    className="text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)]"
                   >
                     &ldquo;{shuffledQuotes[currentQuoteIndex]}&rdquo;
                   </motion.p>
@@ -217,9 +217,9 @@ export function ChemistryAnalyzingOverlay({
               </div>
             </div>
 
-            <div className="relative h-1.5 overflow-hidden rounded-full bg-[#12141D]/10">
+            <div className="relative h-1.5 overflow-hidden rounded-full bg-[var(--paper)]/10">
               <motion.div
-                className="h-full rounded-full bg-[#12141D]"
+                className="h-full rounded-full bg-[var(--paper)]"
                 initial={{ width: "0%" }}
                 animate={{ width: isComplete ? "100%" : "90%" }}
                 transition={{ duration: isComplete ? 0.3 : 25, ease: "linear" }}
@@ -249,7 +249,7 @@ function ChemistryBlotterDoorHalf({ side }: { side: 'left' | 'right' }) {
     <>
       <div className="absolute inset-0" style={{ background }} />
       <div className="absolute left-1/2 top-[15%] flex -translate-x-1/2 flex-col items-center gap-2.5">
-        <span className="grid h-12 w-12 place-items-center rounded-full border border-[#D8CFBB] bg-[#FBF7EF]/70">
+        <span className="grid h-12 w-12 place-items-center rounded-full border border-[var(--line)] bg-[var(--soft)]/70">
           <Layers size={20} strokeWidth={1.6} className="text-[#9A8B5E]" />
         </span>
         <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#9A9179]">{label}</span>
@@ -257,11 +257,11 @@ function ChemistryBlotterDoorHalf({ side }: { side: 'left' | 'right' }) {
       {[34, 50, 66, 82].map((top) => (
         <div
           key={top}
-          className={`absolute h-px w-16 bg-[#1A1610]/10 ${lineClassName}`}
+          className={`absolute h-px w-16 bg-[var(--ink)]/10 ${lineClassName}`}
           style={{ top: `${top}%` }}
         />
       ))}
-      <div className={`absolute inset-y-0 w-px bg-[#D8CFBB] ${spineClassName}`} />
+      <div className={`absolute inset-y-0 w-px bg-[var(--line)] ${spineClassName}`} />
     </>
   )
 }

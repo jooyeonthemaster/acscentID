@@ -1,11 +1,7 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
-import { motion } from "framer-motion"
-import {
-  Sparkles, Palette, FileCheck,
-  Heart, Camera, FlaskConical
-} from "lucide-react"
+import { FlaskConical } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTransition } from "@/contexts/TransitionContext"
@@ -17,7 +13,7 @@ import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
-import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { getReviewStats } from "@/lib/supabase/reviews"
@@ -25,24 +21,18 @@ import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { formatPrice, isScentPaperSize } from "@/types/cart"
 import { useProductDisplayName } from '@/hooks/useAdminContent'
+import { useCuratedGallery } from '@/hooks/useCuratedGallery'
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
-  }
-}
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
-  }
-}
+import { cn } from "@/lib/utils"
+import { FeatureStrip } from "@/components/public/FeatureStrip"
+import { SectionHeading } from "@/components/public/SectionHeading"
+import { ProcessSteps } from "@/components/public/ProcessSteps"
+import { EvidenceMediaGrid } from "@/components/public/EvidenceMediaGrid"
+import { MediaCopySection } from "@/components/public/MediaCopySection"
+import { SizeComparison } from "@/components/public/SizeComparison"
+import { DeliveryPackageSection } from "@/components/public/DeliveryPackageSection"
+import { FAQSection } from "@/components/public/FAQSection"
+import { ClosingCta } from "@/components/public/ClosingCta"
 
 export default function ChemistryProgramPage() {
   const { user, unifiedUser, loading } = useAuth()
@@ -59,6 +49,8 @@ export default function ChemistryProgramPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const t = useTranslations()
+  const te = useTranslations('editorialDetail')
+  const tg = useTranslations('detailGallery')
   const productName = useProductDisplayName('chemistry', t('products.chemistry'))
 
   // 리뷰 통계 (히어로 ReviewTrigger용)
@@ -95,6 +87,17 @@ export default function ChemistryProgramPage() {
     }
   }
 
+  // 큐레이션 갤러리 — 승인 이미지 우선, 관리자 이미지는 중복 제거 후 뒤에
+  const gallery = useCuratedGallery('chemistry')
+  const galleryMeta: DetailHeroImageMeta[] = gallery.images.map((image) =>
+    image.curated
+      ? {
+          badge: image.curated.provenance === 'actual' ? te('common.badgeActual') : te('common.badgeVisual'),
+          caption: tg(`${image.curated.id}.caption`),
+        }
+      : {},
+  )
+
   const handleStartClick = () => {
     if (loading) return
     if (isLoggedIn) {
@@ -109,6 +112,9 @@ export default function ChemistryProgramPage() {
     setShowAuthModal(true)
   }
 
+  const priceSet10 = chemSet10?.price ?? 38000
+  const priceSet50 = chemSet50?.price ?? 60000
+
   const heroProps = {
     productSlug: "chemistry",
     title: productName,
@@ -120,6 +126,12 @@ export default function ChemistryProgramPage() {
       { label: t('programs.breadcrumbPrograms'), href: '/' },
       { label: productName },
     ],
+    images: gallery.controlled,
+    imageMeta: galleryMeta,
+    badgeClassName: "bg-[var(--accent-chem)] text-white",
+    secondaryBadges: (
+      <span className="text-xs font-bold text-[var(--muted-ink)]">{te('chemistry.eyebrowNote')}</span>
+    ),
     meta: (
       <ReviewTrigger
         averageRating={reviewStats?.average_rating || 4.9}
@@ -130,25 +142,90 @@ export default function ChemistryProgramPage() {
       />
     ),
     price: (
-      <>
-        <div className="flex items-end gap-2">
-          <span className="text-xl font-black text-[#1A1610]">{t('currency.symbol')}{formatPrice(chemMin ?? 38000)}~</span>
-          <span className="text-xs lg:text-sm text-[#8B8578]">{t('programs.detail.chemistry.price.setBasis')}</span>
-        </div>
-        <div className="mt-1 text-xs lg:text-sm text-[#8B8578]">
-          {t('programs.detail.chemistry.price.setLine', { p10: `${t('currency.symbol')}${formatPrice(chemSet10?.price ?? 38000)}`, p50: `${t('currency.symbol')}${formatPrice(chemSet50?.price ?? 60000)}` })}
-        </div>
-      </>
+      <div className="flex items-baseline gap-2">
+        <span className="text-[26px] font-black leading-none text-[var(--ink)] lg:text-[29px]">
+          {t('currency.symbol')}{formatPrice(chemMin ?? 38000)}
+        </span>
+        <span className="text-[13px] text-[var(--muted-ink)]">{te('common.priceFromSet')}</span>
+      </div>
     ),
-    infoIcon: <FlaskConical size={14} className="text-[#1A1610]" />,
-    infoItems: [t('programs.detail.chemistry.info.volumeOptions'), t('shipping.estimated')],
+    infoIcon: <FlaskConical size={14} className="text-[var(--ink)]" />,
+    // 프로그램은 분석 후 구매 흐름 — 세트 용량은 결과 확인 뒤 선택하므로 정보성 표로만 안내
+    panelExtra: (
+      <SizeComparison
+        headers={[te('common.sizeHeaderOption'), te('chemistry.sizeHeaderNote'), te('common.sizeHeaderPrice')]}
+        rows={[
+          { option: '10ml × 2', note: te('chemistry.sizeTenNote'), price: `${t('currency.symbol')}${formatPrice(priceSet10)}` },
+          { option: '50ml × 2', note: te('chemistry.sizeFiftyNote'), price: `${t('currency.symbol')}${formatPrice(priceSet50)}` },
+        ]}
+        className="mt-5 border-t border-[var(--line)] [&>div:first-child]:min-h-0"
+      />
+    ),
     cta: {
       onClick: handleStartClick,
       disabled: loading,
       label: pageContent.ctaLabel,
-      hint: t('programs.hint'),
+      hint: te('chemistry.ctaHint'),
     },
   }
+
+  const evidence = {
+    reportPackage: {
+      src: '/images/product-detail/chemistry-report-package-square.png',
+      alt: tg('chemReportPackage.alt'),
+      badge: te('common.badgeActual'),
+      caption: te('chemistry.reportEvidence1'),
+    },
+    reportDetail: {
+      src: '/images/product-detail/chemistry-report-detail-visual.png',
+      alt: tg('chemReportDetail.alt'),
+      badge: te('common.badgeVisual'),
+      caption: te('chemistry.reportEvidence2'),
+    },
+    tenSet: {
+      src: '/images/product-detail/chemistry-10ml-set-square.png',
+      alt: tg('chemTenSet.alt'),
+      badge: te('chemistry.sizeEvidence1Badge'),
+      caption: te('chemistry.sizeEvidence1'),
+    },
+    fiftySet: {
+      src: '/images/product-detail/chemistry-50ml-set-square.png',
+      alt: tg('chemFiftySet.alt'),
+      badge: te('chemistry.sizeEvidence2Badge'),
+      caption: te('chemistry.sizeEvidence2'),
+    },
+    outerBox: {
+      src: '/images/product-detail/shipping-outer-box-square.png',
+      alt: tg('shippingOuterBox.alt'),
+      badge: te('common.outerBoxTitle'),
+      caption: te('common.outerBoxCaption'),
+    },
+    whiteOpen: {
+      src: '/images/product-detail/shipping-white-open-square.png',
+      alt: tg('shippingWhiteOpen.alt'),
+      badge: te('common.innerBoxTitle'),
+      caption: te('chemistry.innerBoxCaption'),
+    },
+  }
+
+  const usageCards = [
+    { tag: 'A', title: te('chemistry.usageATitle'), description: te('chemistry.usageADesc'), cardClass: 'bg-[#EDF3F9]', tagClass: 'text-[#426B98]' },
+    { tag: 'B', title: te('chemistry.usageBTitle'), description: te('chemistry.usageBDesc'), cardClass: 'bg-[var(--accent-chem-soft)]', tagClass: 'text-[var(--accent-chem-deep)]' },
+    { tag: 'A+B', title: te('chemistry.usageMixTitle'), description: te('chemistry.usageMixDesc'), cardClass: 'bg-[#EEF4E9]', tagClass: 'text-[#557744]' },
+  ]
+
+  const chemistryTypes = [
+    { title: te('chemistry.chemType1Title'), description: te('chemistry.chemType1Desc') },
+    { title: te('chemistry.chemType2Title'), description: te('chemistry.chemType2Desc') },
+    { title: te('chemistry.chemType3Title'), description: te('chemistry.chemType3Desc') },
+    { title: te('chemistry.chemType4Title'), description: te('chemistry.chemType4Desc') },
+  ]
+
+  const relationships = [
+    { tag: te('chemistry.relation1Tag'), title: te('chemistry.relation1Title'), description: te('chemistry.relation1Desc'), cardClass: 'bg-[#F4F5F1]' },
+    { tag: te('chemistry.relation2Tag'), title: te('chemistry.relation2Title'), description: te('chemistry.relation2Desc'), cardClass: 'bg-[#EDF3F7]' },
+    { tag: te('chemistry.relation3Tag'), title: te('chemistry.relation3Title'), description: te('chemistry.relation3Desc'), cardClass: 'bg-[var(--accent-chem-soft)]' },
+  ]
 
   const detailBody = (
     <>
@@ -156,108 +233,138 @@ export default function ChemistryProgramPage() {
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
         <div data-admin-editable="detail_html">
-          {/* ============================================
-              Feature Bar - 검은 배경
-          ============================================ */}
-          <section className="py-6 px-4 bg-[#FDFAF1]">
-            <div className="w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-[#1A1610]">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.chemistry.featureBar.aiAnalysis')}</span>
+          {/* 핵심 특징 스트립 — 다크 대비 밴드 */}
+          <FeatureStrip
+            items={[te('chemistry.feature1'), te('chemistry.feature2'), te('chemistry.feature3')]}
+          />
+
+          {/* 소개 + A/B/레이어링 사용법 + 진행 과정 */}
+          <section className="bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
+            <SectionHeading
+              kicker={te('chemistry.introKicker')}
+              title={<span className="whitespace-pre-line">{te('chemistry.introTitle')}</span>}
+              lead={te('chemistry.introLead')}
+            />
+            <div className="mx-auto mb-12 grid w-full max-w-[1080px] grid-cols-1 gap-3 lg:mb-16 lg:grid-cols-3">
+              {usageCards.map((card, index) => (
+                <div
+                  key={index}
+                  className={cn('min-h-[160px] rounded-[6px] border border-[#191918]/15 p-6 lg:min-h-[196px]', card.cardClass)}
+                >
+                  <span className={cn('inline-grid h-[34px] min-w-[40px] place-items-center rounded-[3px] border border-current px-2 text-[13px] font-black', card.tagClass)}>
+                    {card.tag}
+                  </span>
+                  <h3 className="mt-6 break-keep text-[17px] font-black text-[var(--ink)] lg:mt-8 lg:text-[19px]">{card.title}</h3>
+                  <p className="mt-2 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">{card.description}</p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Palette size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.chemistry.featureBar.layeringSet')}</span>
+              ))}
+            </div>
+            <ProcessSteps
+              steps={[
+                { title: te('chemistry.step1Title'), description: te('chemistry.step1Desc') },
+                { title: te('chemistry.step2Title'), description: te('chemistry.step2Desc') },
+                { title: te('chemistry.step3Title'), description: te('chemistry.step3Desc') },
+                { title: te('chemistry.step4Title'), description: te('chemistry.step4Desc') },
+              ]}
+            />
+          </section>
+
+          {/* 케미 리포트 — 연회색 밴드 */}
+          <section className="border-y border-[var(--line)] bg-[#F1F1EC] px-5 py-16 lg:px-6 lg:py-28">
+            <MediaCopySection
+              media={<EvidenceMediaGrid items={[evidence.reportPackage, evidence.reportDetail]} />}
+              kicker={te('chemistry.reportKicker')}
+              title={<span className="whitespace-pre-line">{te('chemistry.reportTitle')}</span>}
+              lead={te('chemistry.reportLead')}
+              detailList={[
+                { term: te('chemistry.reportItem1Term'), description: te('chemistry.reportItem1Desc') },
+                { term: te('chemistry.reportItem2Term'), description: te('chemistry.reportItem2Desc') },
+                { term: te('chemistry.reportItem3Term'), description: te('chemistry.reportItem3Desc') },
+              ]}
+            />
+            <div
+              className="mx-auto mt-12 grid w-full max-w-[1080px] grid-cols-1 gap-3 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4"
+              aria-label={te('chemistry.chemTypesLabel')}
+            >
+              {chemistryTypes.map((type, index) => (
+                <div key={index} className="min-h-[126px] rounded-[5px] border border-[#CFD0CA] bg-white/60 p-5 lg:min-h-[150px]">
+                  <span className="block text-[11px] font-black text-[var(--accent-chem-deep)]">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <strong className="mt-4 block text-[15px] font-black text-[var(--ink)] lg:mt-6">{type.title}</strong>
+                  <p className="mt-1.5 break-keep text-[11px] leading-[1.55] text-[var(--muted-ink)]">{type.description}</p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <FileCheck size={14} className="text-[#8B8578]" />
-                  <span className="font-bold text-xs lg:text-sm">{t('programs.detail.chemistry.featureBar.profileCard')}</span>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 
-          {/* ============================================
-              진행 과정
-          ============================================ */}
-          <section className="py-12 px-4 bg-[#FDFAF1]">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-              className="w-full"
+          {/* 세트 용량 비교 */}
+          <section className="bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
+            <MediaCopySection
+              reverse
+              media={<EvidenceMediaGrid items={[evidence.tenSet, evidence.fiftySet]} />}
+              kicker={te('chemistry.sizeKicker')}
+              title={<span className="whitespace-pre-line">{te('chemistry.sizeTitle')}</span>}
+              lead={te('chemistry.sizeLead')}
             >
-              <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
-                  {t('programs.process.badge')}
-                </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-2xl font-black text-[#1A1610] break-keep">
-                  {t('programs.process.title')}
-                </motion.h2>
-              </div>
+              <SizeComparison
+                headers={[te('common.sizeHeaderOption'), te('chemistry.sizeHeaderNote'), te('common.sizeHeaderPrice')]}
+                rows={[
+                  { option: '10ml × 2', note: te('chemistry.sizeTenNote'), price: `${t('currency.symbol')}${formatPrice(priceSet10)}` },
+                  { option: '50ml × 2', note: te('chemistry.sizeFiftyNote'), price: `${t('currency.symbol')}${formatPrice(priceSet50)}` },
+                ]}
+              />
+            </MediaCopySection>
+          </section>
 
-              <div className="relative">
-                <div className="grid grid-cols-2 gap-4 relative z-10">
-                  {[
-                    { step: "01", title: t('programs.detail.chemistry.process.step1Title'), desc: t('programs.detail.chemistry.process.step1Desc'), icon: Camera, color: "bg-[#EFE4C8]" },
-                    { step: "02", title: t('programs.detail.chemistry.process.step2Title'), desc: t('programs.detail.chemistry.process.step2Desc'), icon: Heart, color: "bg-[#EFE4C8]" },
-                    { step: "03", title: t('programs.detail.chemistry.process.step3Title'), desc: t('programs.detail.chemistry.process.step3Desc'), icon: Sparkles, color: "bg-[#EFE4C8]" },
-                    { step: "04", title: t('programs.detail.chemistry.process.step4Title'), desc: t('programs.detail.chemistry.process.step4Desc'), icon: FlaskConical, color: "bg-[#EFE4C8]" },
-                  ].map((item, idx) => (
-                    <motion.div key={idx} variants={fadeInUp} className="flex flex-col items-center text-center">
-                      <div className={`w-14 h-14 ${item.color} border-2 border-[#D8CFBB] rounded-[12px] flex items-center justify-center mb-2`}>
-                        <item.icon size={24} className="text-[#1A1610]" />
-                      </div>
-                      <span className="text-xl font-black text-[#B5A582] mb-1">{item.step}</span>
-                      <h3 className="text-sm lg:text-base font-black text-[#1A1610] mb-0.5">{item.title}</h3>
-                      <p className="text-[11px] lg:text-[13px] text-[#5C564A]">{item.desc}</p>
-                    </motion.div>
-                  ))}
+          {/* 배송 안내 — 다크 밴드 */}
+          <DeliveryPackageSection
+            media={[evidence.outerBox, evidence.whiteOpen]}
+            kicker={te('common.deliveryKicker')}
+            title={<span className="whitespace-pre-line">{te('chemistry.deliveryTitle')}</span>}
+            lead={te('chemistry.deliveryLead')}
+            packageList={[
+              { title: te('chemistry.package1Title'), description: te('chemistry.package1Desc') },
+              { title: te('chemistry.package2Title'), description: te('chemistry.package2Desc') },
+              { title: te('chemistry.package3Title'), description: te('chemistry.package3Desc') },
+            ]}
+            deliveryFlow={[
+              { title: te('chemistry.flow1Title'), description: te('chemistry.flow1Desc') },
+              { title: te('chemistry.flow2Title'), description: te('chemistry.flow2Desc') },
+              { title: te('chemistry.flow3Title'), description: te('chemistry.flow3Desc') },
+              { title: te('chemistry.flow4Title'), description: te('chemistry.flow4Desc') },
+            ]}
+          />
+
+          {/* 관계 유형 */}
+          <section className="bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
+            <SectionHeading
+              kicker={te('chemistry.relationKicker')}
+              title={<span className="whitespace-pre-line">{te('chemistry.relationTitle')}</span>}
+              lead={te('chemistry.relationLead')}
+            />
+            <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 gap-3 lg:grid-cols-3">
+              {relationships.map((relation, index) => (
+                <div key={index} className={cn('min-h-[160px] rounded-[6px] border border-[var(--line)] p-6 lg:min-h-[190px]', relation.cardClass)}>
+                  <span className="text-[10px] font-black text-[var(--accent-chem-deep)]">{relation.tag}</span>
+                  <strong className="mt-5 block break-keep text-[17px] font-black text-[var(--ink)] lg:mt-7 lg:text-lg">{relation.title}</strong>
+                  <p className="mt-2 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">{relation.description}</p>
                 </div>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </section>
 
-          {/* ============================================
-              레이어링 퍼퓸만의 특별함
-          ============================================ */}
-          <section className="py-12 px-4 bg-[#F5EFE2] border-y-2 border-[#D8CFBB]">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-              className="w-full"
-            >
-              <div className="text-center mb-8">
-                <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[#EEB62B] text-[#1A1610] text-xs lg:text-sm font-black rounded-full border-2 border-[#B8880F] mb-3">
-                  ✨ SPECIAL
-                </motion.div>
-                <motion.h2 variants={fadeInUp} className="text-xl font-black text-[#1A1610] mb-3 break-keep">
-                  {t('programs.detail.chemistry.special.heading')}
-                </motion.h2>
-              </div>
-
-              <motion.div variants={staggerContainer} className="space-y-4">
-                <motion.div variants={fadeInUp} className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-5">
-                  <h3 className="text-sm lg:text-base font-black text-[#1A1610] mb-1.5">🧪 {t('programs.detail.chemistry.special.card1Title')}</h3>
-                  <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed">{t('programs.detail.chemistry.special.card1Desc')}</p>
-                </motion.div>
-
-                <motion.div variants={fadeInUp} className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-5">
-                  <h3 className="text-sm lg:text-base font-black text-[#1A1610] mb-1.5">🎭 {t('programs.detail.chemistry.special.card2Title')}</h3>
-                  <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed">{t('programs.detail.chemistry.special.card2Desc')}</p>
-                </motion.div>
-
-                <motion.div variants={fadeInUp} className="bg-[#FDFAF1] border-2 border-[#D8CFBB] rounded-[12px] p-5">
-                  <h3 className="text-sm lg:text-base font-black text-[#1A1610] mb-1.5">💜 {t('programs.detail.chemistry.special.card3Title')}</h3>
-                  <p className="text-[11px] lg:text-[13px] text-[#5C564A] leading-relaxed">{t('programs.detail.chemistry.special.card3Desc')}</p>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </section>
+          {/* FAQ */}
+          <FAQSection
+            kicker={te('common.faqKicker')}
+            title={te('common.faqTitle')}
+            items={[
+              { question: te('chemistry.faq1Q'), answer: te('chemistry.faq1A') },
+              { question: te('chemistry.faq2Q'), answer: te('chemistry.faq2A') },
+              { question: te('chemistry.faq3Q'), answer: te('chemistry.faq3A') },
+              { question: te('common.faqShippingQ'), answer: te('common.faqShippingA') },
+            ]}
+          />
         </div>
       )}
     </>
@@ -273,23 +380,35 @@ export default function ChemistryProgramPage() {
     />
   )
 
+  const closingCta = (
+    <ClosingCta
+      kicker={te('chemistry.closingKicker')}
+      title={<span className="whitespace-pre-line">{te('chemistry.closingTitle')}</span>}
+      buttonLabel={te('chemistry.closingButton')}
+      onClick={handleStartClick}
+      disabled={loading}
+    />
+  )
+
   return (
     <InactiveProductGuard productSlug="chemistry">
     <ViewportSwitch
       mobile={
-        <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+        <main className="accent-chem relative min-h-screen bg-[var(--canvas)]">
           <Header />
           <ProgramAdminBridge productSlug="chemistry" />
           <UnifiedDetailHero {...heroProps} />
           {detailBody}
           {reviewSection}
+          {!isCustomMode && closingCta}
         </main>
       }
       desktop={
-        <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+        <main className="accent-chem relative min-h-screen bg-[var(--canvas)]">
           <DesktopDetailHero {...heroProps} />
-          <div className="mx-auto w-full max-w-[960px]">{detailBody}</div>
-          <div className="mx-auto w-full max-w-[960px]">{reviewSection}</div>
+          {detailBody}
+          <div className="mx-auto w-full max-w-[1240px]">{reviewSection}</div>
+          {!isCustomMode && closingCta}
         </main>
       }
     />

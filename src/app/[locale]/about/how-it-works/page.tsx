@@ -33,14 +33,11 @@ export default function HowItWorksPage() {
   const t = useTranslations('about.howItWorks')
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#10131C] lg:bg-[#FBF7EF] font-wanted">
+    <main className="relative min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
       <Header />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.3] pointer-events-none" />
-        <div className="absolute top-20 right-0 w-96 h-96 bg-[#232838] lg:bg-[#EEB62B] rounded-full blur-3xl opacity-20 animate-pulse" />
-
         <motion.div
           initial="hidden"
           animate="visible"
@@ -48,28 +45,26 @@ export default function HowItWorksPage() {
           className="relative z-10 max-w-4xl mx-auto text-center"
         >
           {/* Tag */}
-          <div className="inline-block px-4 py-2 rounded-full border-2 border-[#262A38] lg:border-[#B8880F]/45 bg-[#12141D] lg:bg-[#F5EFE2] mb-8 transform -rotate-1">
-            <span className="text-xs lg:text-sm font-black text-[#E9E2D0] lg:text-[#1A1610] tracking-widest uppercase flex items-center gap-2">
-              <Brain size={14} className="text-[#8B8578]" />
+          <div className="inline-block px-4 py-2 rounded-[4px] border border-[var(--line)] bg-white mb-8">
+            <span className="text-xs lg:text-sm font-black text-[var(--ink)] tracking-widest uppercase flex items-center gap-2">
+              <Brain size={14} className="text-[var(--muted-ink)]" />
               {t('tag')}
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-[#E9E2D0] lg:text-[#1A1610] leading-[1.1] tracking-tight mb-6">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#161925] via-[#161925] to-[#161925]">
-              {t('headline')}
-            </span>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-[var(--ink)] leading-[1.1] mb-6 break-keep">
+            {t('headline')}
           </h1>
 
-          <p className="text-xl text-[#A69F8D] lg:text-[#6E6659] font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-[var(--muted-ink)] font-medium max-w-2xl mx-auto leading-relaxed break-keep">
             {t('heroDesc')}
           </p>
         </motion.div>
       </section>
 
       {/* Overview */}
-      <section className="relative py-20 px-6 bg-[#12141D] lg:bg-[#F5EFE2] border-y-2 border-[#262A38] lg:border-[#B8880F]/45">
+      <section className="relative py-20 px-6 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -78,13 +73,13 @@ export default function HowItWorksPage() {
           className="max-w-4xl mx-auto"
         >
           <div className="text-center mb-12">
-            <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-8">
+            <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-8 break-keep">
               {t('overviewTitle')}
             </h2>
           </div>
 
-          <div className="p-8 bg-gradient-to-br from-[#0C0E16] to-[#0C0E16] lg:bg-none lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-            <p className="text-xl text-[#A69F8D] lg:text-[#6E6659] leading-relaxed text-center">
+          <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
+            <p className="text-xl text-[var(--muted-ink)] leading-relaxed text-center break-keep">
               {t('overviewDesc')}
             </p>
           </div>
@@ -101,52 +96,52 @@ export default function HowItWorksPage() {
           className="max-w-6xl mx-auto"
         >
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-4">
+            <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-4 break-keep">
               {t('techTitle')}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Tech 1 */}
-            <motion.div variants={fadeInUp} className="p-6 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-              <div className="w-12 h-12 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center mb-4">
-                <Brain size={24} className="text-[#E9E2D0] lg:text-[#1A1610]" />
+            <motion.div variants={fadeInUp} className="p-6 bg-white border border-[var(--line)] rounded-[6px]">
+              <div className="w-12 h-12 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center mb-4">
+                <Brain size={24} className="text-[var(--ink)]" />
               </div>
-              <h3 className="text-xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-2">{t('tech1Title')}</h3>
-              <p className="text-sm lg:text-base text-[#A69F8D] lg:text-[#6E6659] leading-relaxed">
+              <h3 className="text-xl font-black text-[var(--ink)] mb-2 break-keep">{t('tech1Title')}</h3>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed break-keep">
                 {t('tech1Desc')}
               </p>
             </motion.div>
 
             {/* Tech 2 */}
-            <motion.div variants={fadeInUp} className="p-6 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-              <div className="w-12 h-12 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center mb-4">
-                <Sparkles size={24} className="text-[#E9E2D0] lg:text-[#1A1610]" />
+            <motion.div variants={fadeInUp} className="p-6 bg-white border border-[var(--line)] rounded-[6px]">
+              <div className="w-12 h-12 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center mb-4">
+                <Sparkles size={24} className="text-[var(--ink)]" />
               </div>
-              <h3 className="text-xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-2">{t('tech2Title')}</h3>
-              <p className="text-sm lg:text-base text-[#A69F8D] lg:text-[#6E6659] leading-relaxed">
+              <h3 className="text-xl font-black text-[var(--ink)] mb-2 break-keep">{t('tech2Title')}</h3>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed break-keep">
                 {t('tech2Desc')}
               </p>
             </motion.div>
 
             {/* Tech 3 */}
-            <motion.div variants={fadeInUp} className="p-6 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-              <div className="w-12 h-12 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center mb-4">
-                <Database size={24} className="text-[#E9E2D0] lg:text-[#1A1610]" />
+            <motion.div variants={fadeInUp} className="p-6 bg-white border border-[var(--line)] rounded-[6px]">
+              <div className="w-12 h-12 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center mb-4">
+                <Database size={24} className="text-[var(--ink)]" />
               </div>
-              <h3 className="text-xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-2">{t('tech3Title')}</h3>
-              <p className="text-sm lg:text-base text-[#A69F8D] lg:text-[#6E6659] leading-relaxed">
+              <h3 className="text-xl font-black text-[var(--ink)] mb-2 break-keep">{t('tech3Title')}</h3>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed break-keep">
                 {t('tech3Desc')}
               </p>
             </motion.div>
 
             {/* Tech 4 */}
-            <motion.div variants={fadeInUp} className="p-6 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-              <div className="w-12 h-12 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center mb-4">
-                <Zap size={24} className="text-[#E9E2D0] lg:text-[#1A1610]" />
+            <motion.div variants={fadeInUp} className="p-6 bg-white border border-[var(--line)] rounded-[6px]">
+              <div className="w-12 h-12 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center mb-4">
+                <Zap size={24} className="text-[var(--ink)]" />
               </div>
-              <h3 className="text-xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-2">{t('tech4Title')}</h3>
-              <p className="text-sm lg:text-base text-[#A69F8D] lg:text-[#6E6659] leading-relaxed">
+              <h3 className="text-xl font-black text-[var(--ink)] mb-2 break-keep">{t('tech4Title')}</h3>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed break-keep">
                 {t('tech4Desc')}
               </p>
             </motion.div>
@@ -155,7 +150,7 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Process Detail */}
-      <section className="relative py-20 px-6 bg-[#12141D] lg:bg-[#F5EFE2] border-y-2 border-[#262A38] lg:border-[#B8880F]/45">
+      <section className="relative py-20 px-6 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -164,65 +159,65 @@ export default function HowItWorksPage() {
           className="max-w-4xl mx-auto"
         >
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-4">
+            <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-4 break-keep">
               {t('processTitle')}
             </h2>
-            <p className="text-lg text-[#A69F8D] lg:text-[#6E6659]">
+            <p className="text-lg text-[var(--muted-ink)] break-keep">
               {t('processSubtitle')}
             </p>
           </div>
 
           <div className="space-y-8">
             {/* Step 1 */}
-            <div className="p-8 bg-[#0C0E16] lg:bg-[#FDFAF1] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
+            <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
               <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-16 h-16 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610]">1</span>
+                <div className="flex-shrink-0 w-16 h-16 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-black text-[var(--ink)]">1</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-3">{t('step1Title')}</h3>
-                  <p className="text-[#A69F8D] lg:text-[#6E6659] leading-relaxed text-lg mb-4">
+                  <h3 className="text-2xl font-black text-[var(--ink)] mb-3 break-keep">{t('step1Title')}</h3>
+                  <p className="text-[var(--muted-ink)] leading-relaxed text-lg mb-4 break-keep">
                     {t('step1Desc')}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step1Tag1')}</span>
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step1Tag2')}</span>
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step1Tag3')}</span>
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step1Tag4')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step1Tag1')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step1Tag2')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step1Tag3')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step1Tag4')}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="p-8 bg-[#0C0E16] lg:bg-[#FDFAF1] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
+            <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
               <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-16 h-16 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610]">2</span>
+                <div className="flex-shrink-0 w-16 h-16 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-black text-[var(--ink)]">2</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-3">{t('step2Title')}</h3>
-                  <p className="text-[#A69F8D] lg:text-[#6E6659] leading-relaxed text-lg mb-4">
+                  <h3 className="text-2xl font-black text-[var(--ink)] mb-3 break-keep">{t('step2Title')}</h3>
+                  <p className="text-[var(--muted-ink)] leading-relaxed text-lg mb-4 break-keep">
                     {t('step2Desc')}
                   </p>
-                  <div className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
+                  <div className="p-4 bg-[var(--soft)] border border-[var(--line)] rounded-[6px]">
                     <div className="flex items-center gap-4 mb-2">
                       <div className="flex-1">
-                        <div className="text-sm lg:text-base font-bold text-[#A69F8D] lg:text-[#6E6659] mb-1">{t('step2ImageLabel')}</div>
-                        <div className="h-3 bg-[#232838] lg:bg-[#EEB62B] border border-[#262A38] lg:border-[#B8880F]/45 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#161925] lg:bg-[#EFE4C8] border-r border-[#262A38] lg:border-[#B8880F]/45" style={{ width: '70%' }} />
+                        <div className="text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-1">{t('step2ImageLabel')}</div>
+                        <div className="h-3 bg-white border border-[var(--line)] rounded-[3px] overflow-hidden">
+                          <div className="h-full bg-[var(--ink)]" style={{ width: '70%' }} />
                         </div>
                       </div>
-                      <span className="text-sm lg:text-base font-black text-[#A69F8D] lg:text-[#6E6659]">70%</span>
+                      <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">70%</span>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
-                        <div className="text-sm lg:text-base font-bold text-[#A69F8D] lg:text-[#6E6659] mb-1">{t('step2SelectionLabel')}</div>
-                        <div className="h-3 bg-[#232838] lg:bg-[#EEB62B] border border-[#262A38] lg:border-[#B8880F]/45 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#161925] lg:bg-[#EFE4C8] border-r border-[#262A38] lg:border-[#B8880F]/45" style={{ width: '30%' }} />
+                        <div className="text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-1">{t('step2SelectionLabel')}</div>
+                        <div className="h-3 bg-white border border-[var(--line)] rounded-[3px] overflow-hidden">
+                          <div className="h-full bg-[var(--ink)]" style={{ width: '30%' }} />
                         </div>
                       </div>
-                      <span className="text-sm lg:text-base font-black text-[#A69F8D] lg:text-[#6E6659]">30%</span>
+                      <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">30%</span>
                     </div>
                   </div>
                 </div>
@@ -230,28 +225,28 @@ export default function HowItWorksPage() {
             </div>
 
             {/* Step 3 */}
-            <div className="p-8 bg-[#0C0E16] lg:bg-[#FDFAF1] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
+            <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
               <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-16 h-16 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-black">3</span>
+                <div className="flex-shrink-0 w-16 h-16 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-black text-[var(--ink)]">3</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-3">{t('step3Title')}</h3>
-                  <p className="text-[#A69F8D] lg:text-[#6E6659] leading-relaxed text-lg mb-4">
+                  <h3 className="text-2xl font-black text-[var(--ink)] mb-3 break-keep">{t('step3Title')}</h3>
+                  <p className="text-[var(--muted-ink)] leading-relaxed text-lg mb-4 break-keep">
                     {t('step3Desc')}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <div className="px-3 py-2 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
-                      <div className="text-xs lg:text-sm font-bold text-[#8B8578]">{t('step3Traits')}</div>
-                      <div className="text-sm lg:text-base font-black">{t('step3TraitsCount')}</div>
+                    <div className="px-3 py-2 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-center">
+                      <div className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('step3Traits')}</div>
+                      <div className="text-sm lg:text-base font-black text-[var(--ink)]">{t('step3TraitsCount')}</div>
                     </div>
-                    <div className="px-3 py-2 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
-                      <div className="text-xs lg:text-sm font-bold text-[#8B8578]">{t('step3Categories')}</div>
-                      <div className="text-sm lg:text-base font-black">{t('step3CategoriesCount')}</div>
+                    <div className="px-3 py-2 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-center">
+                      <div className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('step3Categories')}</div>
+                      <div className="text-sm lg:text-base font-black text-[var(--ink)]">{t('step3CategoriesCount')}</div>
                     </div>
-                    <div className="px-3 py-2 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
-                      <div className="text-xs lg:text-sm font-bold text-[#8B8578]">{t('step3Custom')}</div>
-                      <div className="text-sm lg:text-base font-black">{t('step3Recipe')}</div>
+                    <div className="px-3 py-2 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-center">
+                      <div className="text-xs lg:text-sm font-bold text-[var(--muted-ink)]">{t('step3Custom')}</div>
+                      <div className="text-sm lg:text-base font-black text-[var(--ink)]">{t('step3Recipe')}</div>
                     </div>
                   </div>
                 </div>
@@ -259,20 +254,20 @@ export default function HowItWorksPage() {
             </div>
 
             {/* Step 4 */}
-            <div className="p-8 bg-[#0C0E16] lg:bg-[#FDFAF1] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
+            <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
               <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-16 h-16 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610]">4</span>
+                <div className="flex-shrink-0 w-16 h-16 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-black text-[var(--ink)]">4</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-3">{t('step4Title')}</h3>
-                  <p className="text-[#A69F8D] lg:text-[#6E6659] leading-relaxed text-lg mb-4">
+                  <h3 className="text-2xl font-black text-[var(--ink)] mb-3 break-keep">{t('step4Title')}</h3>
+                  <p className="text-[var(--muted-ink)] leading-relaxed text-lg mb-4 break-keep">
                     {t('step4Desc')}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step4Tag1')}</span>
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step4Tag2')}</span>
-                    <span className="px-3 py-1 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full text-sm lg:text-base font-bold">{t('step4Tag3')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step4Tag1')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step4Tag2')}</span>
+                    <span className="px-3 py-1 bg-[var(--soft)] border border-[var(--line)] rounded-[4px] text-sm lg:text-base font-bold text-[var(--ink)]">{t('step4Tag3')}</span>
                   </div>
                 </div>
               </div>
@@ -291,55 +286,55 @@ export default function HowItWorksPage() {
           className="max-w-6xl mx-auto"
         >
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-4">
+            <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-4 break-keep">
               {t('categoriesTitle')}
             </h2>
-            <p className="text-lg text-[#A69F8D] lg:text-[#6E6659]">
+            <p className="text-lg text-[var(--muted-ink)] break-keep">
               {t('categoriesSubtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Scent Categories */}
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🍋</div>
-              <div className="text-sm lg:text-base font-black">Citrus</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryCitrus')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Citrus</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryCitrus')}</div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🌸</div>
-              <div className="text-sm lg:text-base font-black">Floral</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryFloral')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Floral</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryFloral')}</div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🌲</div>
-              <div className="text-sm lg:text-base font-black">Woody</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryWoody')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Woody</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryWoody')}</div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🍓</div>
-              <div className="text-sm lg:text-base font-black">Fruity</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryFruity')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Fruity</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryFruity')}</div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🌿</div>
-              <div className="text-sm lg:text-base font-black">Fresh</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryFresh')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Fresh</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryFresh')}</div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="p-4 bg-[#12141D] lg:bg-[#F5EFE2] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px] text-center">
+            <motion.div variants={fadeInUp} className="p-4 bg-white border border-[var(--line)] rounded-[6px] text-center">
               <div className="text-3xl mb-2">🌹</div>
-              <div className="text-sm lg:text-base font-black">Oriental</div>
-              <div className="text-xs lg:text-sm text-[#A69F8D] lg:text-[#6E6659]">{t('categoryOriental')}</div>
+              <div className="text-sm lg:text-base font-black text-[var(--ink)]">Oriental</div>
+              <div className="text-xs lg:text-sm text-[var(--muted-ink)]">{t('categoryOriental')}</div>
             </motion.div>
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-[#A69F8D] lg:text-[#6E6659] text-lg">
+            <p className="text-[var(--muted-ink)] text-lg break-keep">
               {t('categoriesFooter')}
             </p>
           </div>
@@ -347,7 +342,7 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Privacy */}
-      <section className="relative py-20 px-6 bg-[#12141D] lg:bg-[#F5EFE2] border-y-2 border-[#262A38] lg:border-[#B8880F]/45">
+      <section className="relative py-20 px-6 bg-[var(--soft)] border-y border-[var(--line)]">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -356,36 +351,36 @@ export default function HowItWorksPage() {
           className="max-w-4xl mx-auto"
         >
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full mb-6">
-              <Shield size={32} className="text-[#E9E2D0] lg:text-[#1A1610]" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white border border-[var(--line)] rounded-full mb-6">
+              <Shield size={32} className="text-[var(--ink)]" />
             </div>
-            <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-4">
+            <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-4 break-keep">
               {t('privacyTitle')}
             </h2>
           </div>
 
-          <div className="p-8 bg-[#0C0E16] lg:bg-[#FDFAF1] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-[12px]">
-            <p className="text-lg text-[#A69F8D] lg:text-[#6E6659] leading-relaxed mb-6">
+          <div className="p-8 bg-white border border-[var(--line)] rounded-[6px]">
+            <p className="text-lg text-[var(--muted-ink)] leading-relaxed mb-6 break-keep">
               {t('privacyDesc')}
             </p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-xs lg:text-sm font-black text-[#E9E2D0] lg:text-[#1A1610]">✓</span>
+                <div className="flex-shrink-0 w-6 h-6 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-xs lg:text-sm font-black text-[var(--ink)]">✓</span>
                 </div>
-                <p className="text-[#A69F8D] lg:text-[#6E6659]">{t('privacyCheck1')}</p>
+                <p className="text-[var(--muted-ink)] break-keep">{t('privacyCheck1')}</p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-xs lg:text-sm font-black text-[#E9E2D0] lg:text-[#1A1610]">✓</span>
+                <div className="flex-shrink-0 w-6 h-6 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-xs lg:text-sm font-black text-[var(--ink)]">✓</span>
                 </div>
-                <p className="text-[#A69F8D] lg:text-[#6E6659]">{t('privacyCheck2')}</p>
+                <p className="text-[var(--muted-ink)] break-keep">{t('privacyCheck2')}</p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-[#161925] lg:bg-[#EFE4C8] border-2 border-[#262A38] lg:border-[#B8880F]/45 rounded-full flex items-center justify-center">
-                  <span className="text-xs lg:text-sm font-black text-[#E9E2D0] lg:text-[#1A1610]">✓</span>
+                <div className="flex-shrink-0 w-6 h-6 bg-[var(--soft)] border border-[var(--line)] rounded-full flex items-center justify-center">
+                  <span className="text-xs lg:text-sm font-black text-[var(--ink)]">✓</span>
                 </div>
-                <p className="text-[#A69F8D] lg:text-[#6E6659]">{t('privacyCheck3')}</p>
+                <p className="text-[var(--muted-ink)] break-keep">{t('privacyCheck3')}</p>
               </div>
             </div>
           </div>
@@ -401,24 +396,24 @@ export default function HowItWorksPage() {
           variants={fadeInUp}
           className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-4xl sm:text-5xl font-black text-[#E9E2D0] lg:text-[#1A1610] mb-6">
+          <h2 className="text-4xl sm:text-5xl font-black text-[var(--ink)] mb-6 break-keep">
             {t('ctaTitle')}
           </h2>
-          <p className="text-lg text-[#A69F8D] lg:text-[#6E6659] mb-8">
+          <p className="text-lg text-[var(--muted-ink)] mb-8 break-keep">
             {t('ctaDesc')}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-[#F5EFE2] lg:bg-[#EEB62B] text-[#12141D] rounded-[12px] font-black text-lg transition-all border-2 border-[#F5EFE2] lg:border-[#B8880F]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-[var(--ink)] text-white rounded-[5px] font-black text-lg transition-all hover:bg-black"
             >
               <Sparkles size={20} />
               {t('ctaButton')}
             </Link>
             <Link
               href="/about/brand"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-[#12141D] lg:bg-[#F5EFE2] text-[#E9E2D0] lg:text-[#1A1610] rounded-[12px] font-bold text-lg border-2 border-[#262A38] lg:border-[#B8880F]/45 hover:bg-[#151823] transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-white text-[var(--ink)] rounded-[5px] font-bold text-lg border border-[var(--ink)] hover:bg-[var(--soft)] transition-all"
             >
               {t('ctaBrandStory')}
             </Link>

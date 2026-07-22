@@ -106,27 +106,27 @@ AC'SCENT IDENTITY`
   }
 
   const themeColors = {
-    green: { headerBg: 'bg-[#151823]', headerText: 'text-[#A69F8D]', accentText: 'text-[#A69F8D]', accentBg: 'bg-[#0C0E16]', accentBorder: 'border-[#343A4C]', ratioBg: 'bg-[#151823]', ratioText: 'text-[#A69F8D]' },
-    violet: { headerBg: 'bg-[#151823]', headerText: 'text-[#A69F8D]', accentText: 'text-[#A69F8D]', accentBg: 'bg-[#0C0E16]', accentBorder: 'border-[#343A4C]', ratioBg: 'bg-[#151823]', ratioText: 'text-[#A69F8D]' },
-    pink: { headerBg: 'bg-[#151823]', headerText: 'text-[#A69F8D]', accentText: 'text-[#A69F8D]', accentBg: 'bg-[#0C0E16]', accentBorder: 'border-[#343A4C]', ratioBg: 'bg-[#151823]', ratioText: 'text-[#A69F8D]' },
+    green: { headerBg: 'bg-[var(--soft)]', headerText: 'text-[var(--muted-ink)]', accentText: 'text-[var(--muted-ink)]', accentBg: 'bg-[var(--canvas)]', accentBorder: 'border-[var(--line)]', ratioBg: 'bg-[var(--soft)]', ratioText: 'text-[var(--muted-ink)]' },
+    violet: { headerBg: 'bg-[var(--soft)]', headerText: 'text-[var(--muted-ink)]', accentText: 'text-[var(--muted-ink)]', accentBg: 'bg-[var(--canvas)]', accentBorder: 'border-[var(--line)]', ratioBg: 'bg-[var(--soft)]', ratioText: 'text-[var(--muted-ink)]' },
+    pink: { headerBg: 'bg-[var(--soft)]', headerText: 'text-[var(--muted-ink)]', accentText: 'text-[var(--muted-ink)]', accentBg: 'bg-[var(--canvas)]', accentBorder: 'border-[var(--line)]', ratioBg: 'bg-[var(--soft)]', ratioText: 'text-[var(--muted-ink)]' },
   }[headerColor]
 
   return (
-    <div className="border-2 border-[#262A38] rounded-[12px] overflow-hidden">
+    <div className="border border-[var(--line)] rounded-[6px] overflow-hidden">
       {/* 헤더 */}
       {titleLabel && (
-        <div className={`px-4 py-3 ${themeColors.headerBg} border-b-2 border-[#262A38] flex items-center gap-2`}>
+        <div className={`px-4 py-3 ${themeColors.headerBg} border-b-2 border-[var(--line)] flex items-center gap-2`}>
           {headerEmoji && <span className="text-lg">{headerEmoji}</span>}
           <span className={`text-sm lg:text-base font-black ${themeColors.headerText}`}>{titleLabel}</span>
         </div>
       )}
 
-      <div className="p-4 bg-[#12141D] space-y-4">
+      <div className="p-4 bg-[var(--paper)] space-y-4">
         {/* 제품 타입 선택 */}
         {showProductSelector && (
           <div className="space-y-2">
-            <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-2">
-              <Beaker size={14} className="text-[#8B8578]" />
+            <h3 className="text-sm lg:text-base font-bold text-[var(--muted-ink)] flex items-center gap-2">
+              <Beaker size={14} className="text-[var(--muted-ink)]" />
               {t('sizeSelection')}
             </h3>
 
@@ -137,14 +137,14 @@ AC'SCENT IDENTITY`
                   <button
                     key={product.id}
                     onClick={() => setSelectedProduct(product.id)}
-                    className={`p-2.5 rounded-[12px] border-2 transition-all text-center ${
+                    className={`p-2.5 rounded-[6px] border-2 transition-all text-center ${
                       isSelected
                         ? `${themeColors.accentBorder} ${themeColors.accentBg} shadow-md`
-                        : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38]'
+                        : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                     }`}
                   >
                     <span className="text-xl block mb-0.5">{product.icon}</span>
-                    <p className={`text-[11px] lg:text-[13px] font-bold ${isSelected ? themeColors.headerText : 'text-[#A69F8D]'}`}>
+                    <p className={`text-[11px] lg:text-[13px] font-bold ${isSelected ? themeColors.headerText : 'text-[var(--muted-ink)]'}`}>
                       {product.id === 'perfume_10ml' ? t('productPerfume10Label') : product.id === 'perfume_50ml' ? t('productPerfume50Label') : t('productDiffuser5Label')}
                     </p>
                   </button>
@@ -159,25 +159,25 @@ AC'SCENT IDENTITY`
           key={selectedProduct}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`bg-gradient-to-br from-[#0C0E16] to-[#0C0E16] rounded-[12px] p-3 border border-stone-200/50`}
+          className={`bg-gradient-to-br from-[var(--canvas)] to-[var(--canvas)] rounded-[6px] p-3 border border-stone-200/50`}
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xl">{productInfo.icon}</span>
               <div>
-                <p className="font-bold text-[#E9E2D0] text-sm lg:text-base">
+                <p className="font-bold text-[var(--ink)] text-sm lg:text-base">
                   {productInfo.id === 'perfume_10ml' ? t('productPerfume10Label') : productInfo.id === 'perfume_50ml' ? t('productPerfume50Label') : t('productDiffuser5Label')}
                 </p>
-                <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}</p>
+                <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] lg:text-[12px] text-[#8B8578]">{t('totalIngredient')}</p>
-              <p className="text-lg font-black text-[#A69F8D]">{productInfo.fragranceVolumeMl}g</p>
+              <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)]">{t('totalIngredient')}</p>
+              <p className="text-lg font-black text-[var(--muted-ink)]">{productInfo.fragranceVolumeMl}g</p>
             </div>
           </div>
 
-          <div className="bg-[#12141D]/60 rounded-[12px] px-2.5 py-1.5 text-[10px] lg:text-[12px] text-[#A69F8D]">
+          <div className="bg-[var(--paper)]/60 rounded-[6px] px-2.5 py-1.5 text-[10px] lg:text-[12px] text-[var(--muted-ink)]">
             {productInfo.id === 'perfume_10ml' && <p>{t('formulaPerfume10')}</p>}
             {productInfo.id === 'perfume_50ml' && <p>{t('formulaPerfume50')}</p>}
             {productInfo.id === 'diffuser_5ml' && <p>{t('formulaDiffuser5')}</p>}
@@ -185,20 +185,20 @@ AC'SCENT IDENTITY`
         </motion.div>
 
         {/* 소수점 경고 배너 */}
-        <div className="relative overflow-hidden rounded-[12px] border-2 border-red-400 bg-gradient-to-r from-red-50 via-red-50 to-[#0C0E16] p-3">
+        <div className="relative overflow-hidden rounded-[6px] border-2 border-red-400 bg-gradient-to-r from-red-50 via-red-50 to-[var(--canvas)] p-3">
           <div className="flex items-start gap-2.5">
-            <div className="w-8 h-8 bg-red-500 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-md">
-              <AlertTriangle size={16} className="text-[#E9E2D0]" />
+            <div className="w-8 h-8 bg-red-500 rounded-[6px] flex items-center justify-center flex-shrink-0 shadow-md">
+              <AlertTriangle size={16} className="text-[var(--ink)]" />
             </div>
             <div className="flex-1 space-y-1.5">
               <p className="text-xs lg:text-sm font-black text-red-700">{t('scaleWarningTitle')}</p>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-red-100 rounded-[12px] p-1.5 text-center border border-red-300">
+                <div className="flex-1 bg-red-100 rounded-[6px] p-1.5 text-center border border-red-300">
                   <p className="text-sm lg:text-base text-red-400 font-bold line-through">0.08g</p>
                 </div>
-                <span className="text-sm lg:text-base font-black text-[#8B8578]">&rarr;</span>
-                <div className="flex-1 bg-[#151823] rounded-[12px] p-1.5 text-center border-2 border-[#343A4C]">
-                  <p className="text-base font-black text-[#A69F8D]">0.80g</p>
+                <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">&rarr;</span>
+                <div className="flex-1 bg-[var(--soft)] rounded-[6px] p-1.5 text-center border border-[var(--line)]">
+                  <p className="text-base font-black text-[var(--muted-ink)]">0.80g</p>
                 </div>
               </div>
               <p className="text-[10px] lg:text-[12px] text-red-600 font-medium">{t('scaleWarningDesc2')}</p>
@@ -209,18 +209,18 @@ AC'SCENT IDENTITY`
         {/* 향료별 계량 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-2">
-              <Sparkles size={14} className="text-[#8B8578]" />
+            <h3 className="text-sm lg:text-base font-bold text-[var(--muted-ink)] flex items-center gap-2">
+              <Sparkles size={14} className="text-[var(--muted-ink)]" />
               {t('ingredientMeasurement')}
             </h3>
             <button
               onClick={handleCopyRecipe}
-              className="flex items-center gap-1 text-[11px] lg:text-[13px] text-[#8B8578] hover:text-[#A69F8D] transition-colors"
+              className="flex items-center gap-1 text-[11px] lg:text-[13px] text-[var(--muted-ink)] hover:text-[var(--muted-ink)] transition-colors"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 size={12} className="text-[#8B8578]" />
-                  <span className="text-[#A69F8D]">{t('recipeCopied')}</span>
+                  <CheckCircle2 size={12} className="text-[var(--muted-ink)]" />
+                  <span className="text-[var(--muted-ink)]">{t('recipeCopied')}</span>
                 </>
               ) : (
                 <>
@@ -241,7 +241,7 @@ AC'SCENT IDENTITY`
             >
               {granuleAmounts.map((granule, index) => {
                 const bgColor = getGranuleColor(granule.id)
-                const textColorClass = isLightColor(bgColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
+                const textColorClass = isLightColor(bgColor) ? 'text-[var(--ink)]' : 'text-[var(--ink)]'
 
                 return (
                   <motion.div
@@ -249,11 +249,11 @@ AC'SCENT IDENTITY`
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-[#12141D] rounded-[12px] p-3 border border-[#1E222E] shadow-sm"
+                    className="bg-[var(--paper)] rounded-[6px] p-3 border border-[var(--line)] shadow-sm"
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-12 h-12 rounded-[12px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass} ${isLightColor(bgColor) ? 'border border-[#262A38]' : ''}`}
+                        className={`w-12 h-12 rounded-[6px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass} ${isLightColor(bgColor) ? 'border border-[var(--line)]' : ''}`}
                         style={{ backgroundColor: bgColor }}
                       >
                         <span className="text-sm lg:text-base font-black">{granule.amountMl.toFixed(1)}</span>
@@ -262,14 +262,14 @@ AC'SCENT IDENTITY`
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#E9E2D0] text-sm lg:text-base">
+                          <span className="font-bold text-[var(--ink)] text-sm lg:text-base">
                             {getLocalizedName(granule.id, granule.name)}
                           </span>
                           <span className={`text-[10px] lg:text-[12px] px-1.5 py-0.5 ${themeColors.ratioBg} ${themeColors.ratioText} rounded-full`}>
                             {granule.ratio}%
                           </span>
                         </div>
-                        <p className="text-[11px] lg:text-[13px] text-[#8B8578] font-medium">{granule.id}</p>
+                        <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-medium">{granule.id}</p>
                       </div>
 
                       <div className="text-right flex-shrink-0">
@@ -284,19 +284,19 @@ AC'SCENT IDENTITY`
         </div>
 
         {/* 합계 */}
-        <div className="bg-[#1B1F2C] rounded-[12px] p-3">
+        <div className="bg-[var(--soft)] rounded-[6px] p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-1.5">
+            <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)] flex items-center gap-1.5">
               <Scale size={13} />
               {t('totalIngredient')}
             </span>
-            <p className="text-lg font-black text-[#E9E2D0]">{totalAmount.ml.toFixed(2)}g</p>
+            <p className="text-lg font-black text-[var(--ink)]">{totalAmount.ml.toFixed(2)}g</p>
           </div>
         </div>
 
         {/* 안내 */}
-        <div className="bg-[#0C0E16] rounded-[12px] p-2.5 border border-stone-200/50">
-          <p className="text-[11px] lg:text-[13px] text-[#A69F8D] leading-relaxed">{t('measurementTipFull')}</p>
+        <div className="bg-[var(--canvas)] rounded-[6px] p-2.5 border border-stone-200/50">
+          <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] leading-relaxed">{t('measurementTipFull')}</p>
         </div>
       </div>
     </div>

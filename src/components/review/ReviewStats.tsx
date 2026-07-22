@@ -17,7 +17,7 @@ export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewSta
   const maxCount = Math.max(...Object.values(rating_distribution), 1)
 
   return (
-    <div className="bg-[#F5EFE2] border-2 border-[#D8CFBB] rounded-[12px] p-4">
+    <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4">
       {/* 상단: 평균 별점 */}
       <div className="mb-4">
         <div className="flex items-center gap-1 mb-1">
@@ -26,17 +26,17 @@ export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewSta
               key={star}
               size={18}
               className={star <= Math.round(average_rating)
-                ? "fill-[#1A1610] text-[#1A1610]"
-                : "text-[#5C564A]"
+                ? "fill-[var(--ink)] text-[var(--ink)]"
+                : "text-[var(--muted-ink)]"
               }
             />
           ))}
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-black text-[#1A1610]">{average_rating.toFixed(1)}</span>
-          <span className="text-[#8B8578] text-sm lg:text-base font-medium">/ 5.0</span>
+          <span className="text-3xl font-black text-[var(--ink)]">{average_rating.toFixed(1)}</span>
+          <span className="text-[var(--muted-ink)] text-sm lg:text-base font-medium">/ 5.0</span>
         </div>
-        <p className="text-xs lg:text-sm text-[#8B8578] mt-0.5">
+        <p className="text-xs lg:text-sm text-[var(--muted-ink)] mt-0.5">
           {t('review.totalReviews', { count: total_count })}
         </p>
       </div>
@@ -53,20 +53,20 @@ export function ReviewStats({ stats, onRatingFilter, selectedRating }: ReviewSta
             <button
               key={rating}
               onClick={() => onRatingFilter?.(isSelected ? null : rating)}
-              className={`w-full flex items-center gap-2 p-1.5 rounded-[12px] transition-all ${
+              className={`w-full flex items-center gap-2 p-1.5 rounded-[6px] transition-all ${
                 isSelected
-                  ? 'bg-[#EDE5D2] border border-[#C9BFA8]'
-                  : 'hover:bg-[#EDE5D2]'
+                  ? 'bg-[var(--soft)] border border-[var(--line)]'
+                  : 'hover:bg-[var(--soft)]'
               }`}
             >
-              <span className="text-xs lg:text-sm font-bold text-[#5C564A] w-6 flex-shrink-0">{t('review.star', { rating })}</span>
-              <div className="flex-1 h-3 bg-[#EDE5D2] rounded-full overflow-hidden">
+              <span className="text-xs lg:text-sm font-bold text-[var(--muted-ink)] w-6 flex-shrink-0">{t('review.star', { rating })}</span>
+              <div className="flex-1 h-3 bg-[var(--soft)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#EFE4C8] rounded-full transition-all duration-500"
+                  className="h-full bg-[var(--soft)] rounded-full transition-all duration-500"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
-              <span className="text-[10px] lg:text-[12px] text-[#8B8578] w-14 text-right flex-shrink-0">
+              <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] w-14 text-right flex-shrink-0">
                 {count} ({percentage.toFixed(0)}%)
               </span>
             </button>

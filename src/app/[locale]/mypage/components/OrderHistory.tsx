@@ -89,27 +89,27 @@ interface OrderHistoryProps {
 
 const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
   awaiting_payment: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: Loader2,
   },
   pending: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: Clock,
   },
   paid: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: CreditCard,
   },
   preparing: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: PackageCheck,
   },
   shipping: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: Truck,
   },
   delivered: {
-    color: 'bg-[#151823] text-[#A69F8D] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: CheckCircle,
   },
   cancel_requested: {
@@ -117,7 +117,7 @@ const statusConfig: Record<string, { color: string; icon: typeof Clock }> = {
     icon: XCircle,
   },
   cancelled: {
-    color: 'bg-[#1B1F2C] text-[#8B8578] border-[#262A38]',
+    color: 'bg-[var(--soft)] text-[var(--muted-ink)] border-[var(--line)]',
     icon: Ban,
   }
 }
@@ -136,13 +136,13 @@ const STATUS_KEYS: Record<string, { labelKey: string; descKey: string }> = {
 function getPaymentMethodBadge(paymentMethod: string | undefined, tPayment: (key: string) => string) {
   switch (paymentMethod) {
     case 'card':
-      return { label: tPayment('card'), className: 'bg-[#151823] text-[#A69F8D]' }
+      return { label: tPayment('card'), className: 'bg-[var(--soft)] text-[var(--muted-ink)]' }
     case 'kakao_pay':
-      return { label: tPayment('kakaoPay'), className: 'bg-[#151823] text-[#E9E2D0]' }
+      return { label: tPayment('kakaoPay'), className: 'bg-[var(--soft)] text-[var(--ink)]' }
     case 'naver_pay':
-      return { label: tPayment('naverPay'), className: 'bg-[#151823] text-[#A69F8D]' }
+      return { label: tPayment('naverPay'), className: 'bg-[var(--soft)] text-[var(--muted-ink)]' }
     default:
-      return { label: tPayment('bankTransferShort'), className: 'bg-[#1B1F2C] text-[#A69F8D]' }
+      return { label: tPayment('bankTransferShort'), className: 'bg-[var(--soft)] text-[var(--muted-ink)]' }
   }
 }
 
@@ -173,7 +173,7 @@ function TrackingInfoCard({
         href={url}
         {...EXTERNAL_LINK_SAFE_ATTRS}
         aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs lg:text-sm font-bold text-[#5C564A] bg-[#E9E2D0] border border-[#262A38] rounded-[12px] hover:bg-[#F5EFE2] transition-colors"
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs lg:text-sm font-bold text-[var(--muted-ink)] bg-[var(--soft)] border border-[var(--line)] rounded-[6px] hover:bg-[var(--soft)] transition-colors"
       >
         <Truck size={12} />
         <span className="font-mono">{trackingNumber}</span>
@@ -183,26 +183,26 @@ function TrackingInfoCard({
   }
 
   return (
-    <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
+    <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
       <div className="flex items-start gap-2">
-        <Truck size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+        <Truck size={16} className="text-[var(--muted-ink)] mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-xs lg:text-sm font-bold text-[#12141D]">{carrierLabel} 배송 시작</p>
+          <p className="text-xs lg:text-sm font-bold text-[var(--ink)]">{carrierLabel} 배송 시작</p>
           <a
             href={url}
             {...EXTERNAL_LINK_SAFE_ATTRS}
             aria-label={`${carrierLabel} 운송장 ${trackingNumber} 외부 사이트에서 배송조회 (새 창)`}
-            className="inline-flex items-center gap-1 mt-1 font-mono text-sm lg:text-base text-[#12141D] hover:text-[#12141D] hover:underline break-all"
+            className="inline-flex items-center gap-1 mt-1 font-mono text-sm lg:text-base text-[var(--ink)] hover:text-[var(--ink)] hover:underline break-all"
           >
             {trackingNumber}
             <ExternalLink size={12} aria-hidden />
           </a>
           {shippedAt && (
-            <p className="text-[11px] lg:text-[13px] text-[#5C564A] mt-0.5">
+            <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] mt-0.5">
               발송: {new Date(shippedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           )}
-          <p className="text-[11px] lg:text-[13px] text-[#5C564A] mt-1">클릭 시 외부 사이트(CJ대한통운)에서 자동 조회됩니다.</p>
+          <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] mt-1">클릭 시 외부 사이트(CJ대한통운)에서 자동 조회됩니다.</p>
         </div>
       </div>
     </div>
@@ -410,13 +410,13 @@ function OrderCard({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] p-4"
+          className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* 이미지 + 정보 */}
             <div className="flex items-center gap-4 flex-1 min-w-0">
               {/* 이미지 썸네일 */}
-              <div className="w-14 h-14 flex-shrink-0 rounded-[12px] overflow-hidden bg-[#151823] border-2 border-[#262A38]">
+              <div className="w-14 h-14 flex-shrink-0 rounded-[6px] overflow-hidden bg-[var(--soft)] border border-[var(--line)]">
                 {order.user_image_url ? (
                   <img
                     src={order.user_image_url}
@@ -425,14 +425,14 @@ function OrderCard({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Star size={20} className="text-[#8B8578]" />
+                    <Star size={20} className="text-[var(--muted-ink)]" />
                   </div>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-xs lg:text-sm text-[#5C564A]">{order.order_number}</span>
+                  <span className="font-mono text-xs lg:text-sm text-[var(--muted-ink)]">{order.order_number}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs lg:text-sm font-bold border ${status.color}`}>
                     {statusLabel}
                   </span>
@@ -440,8 +440,8 @@ function OrderCard({
                     {paymentBadge.label}
                   </span>
                 </div>
-                <h4 className="font-bold text-[#12141D] truncate">{order.perfume_name}</h4>
-                <p className="text-sm lg:text-base text-[#5C564A]">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
+                <h4 className="font-bold text-[var(--ink)] truncate">{order.perfume_name}</h4>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)]">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
               </div>
             </div>
 
@@ -451,7 +451,7 @@ function OrderCard({
               {hasAnalysisData && !isSignatureProduct && (
                 <button
                   onClick={() => setShowRecipeModal(true)}
-                  className="px-3 py-1.5 text-xs lg:text-sm font-bold bg-[#E9E2D0] text-[#12141D] border-2 border-[#262A38] rounded-[12px] transition-all"
+                  className="px-3 py-1.5 text-xs lg:text-sm font-bold bg-[var(--soft)] text-[var(--ink)] border border-[var(--line)] rounded-[6px] transition-all"
                 >
                   {t('recipe')}
                 </button>
@@ -459,7 +459,7 @@ function OrderCard({
               {canCancel && (
                 <button
                   onClick={() => setShowCancelConfirm(true)}
-                  className="px-3 py-1.5 text-xs lg:text-sm font-bold text-red-600 bg-red-50 border-2 border-red-300 rounded-[12px] hover:bg-red-100 transition-all"
+                  className="px-3 py-1.5 text-xs lg:text-sm font-bold text-red-600 bg-red-50 border-2 border-red-300 rounded-[6px] hover:bg-red-100 transition-all"
                 >
                   {t('cancelOrder')}
                 </button>
@@ -471,7 +471,7 @@ function OrderCard({
             <button
               onClick={handleBuyAsPerfume}
               disabled={isLoadingBuyPerfume}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-black border-2 border-[#12141D] bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C] transition-all disabled:opacity-50"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-[6px] text-sm lg:text-base font-black border border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)] transition-all disabled:opacity-50"
             >
               {isLoadingBuyPerfume ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
               {t('buyAsPerfume')}
@@ -495,10 +495,10 @@ function OrderCard({
           )}
           {/* 상품 단종 안내 */}
           {isProductDiscontinued && (
-            <div className="mt-3 bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-2.5">
+            <div className="mt-3 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-2.5">
               <div className="flex items-center gap-2 text-xs lg:text-sm">
-                <AlertTriangle size={14} className="text-[#5C564A] flex-shrink-0" />
-                <span className="text-[#5C564A]">{t('productDiscontinuedTitle')}</span>
+                <AlertTriangle size={14} className="text-[var(--muted-ink)] flex-shrink-0" />
+                <span className="text-[var(--muted-ink)]">{t('productDiscontinuedTitle')}</span>
               </div>
             </div>
           )}
@@ -532,13 +532,13 @@ function OrderCard({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px] overflow-hidden"
+        className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden"
       >
         {/* 상단 헤더 */}
-        <div className="bg-[#E9E2D0] border-b-2 border-[#262A38] px-4 py-3">
+        <div className="bg-[var(--soft)] border-b-2 border-[var(--line)] px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs lg:text-sm text-[#5C564A]">{order.order_number}</span>
+              <span className="font-mono text-xs lg:text-sm text-[var(--muted-ink)]">{order.order_number}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs lg:text-sm font-bold ${paymentBadge.className}`}>
                 {paymentBadge.label}
               </span>
@@ -555,7 +555,7 @@ function OrderCard({
           {/* 이미지 + 상품명 */}
           <div className="flex gap-4">
             {/* 이미지 썸네일 */}
-            <div className="w-20 h-24 flex-shrink-0 rounded-[12px] overflow-hidden bg-[#151823] border-2 border-[#262A38]">
+            <div className="w-20 h-24 flex-shrink-0 rounded-[6px] overflow-hidden bg-[var(--soft)] border border-[var(--line)]">
               {order.user_image_url ? (
                 <img
                   src={order.user_image_url}
@@ -564,17 +564,17 @@ function OrderCard({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Star size={24} className="text-[#8B8578]" />
+                  <Star size={24} className="text-[var(--muted-ink)]" />
                 </div>
               )}
             </div>
 
             {/* 정보 */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs lg:text-sm text-[#5C564A] font-bold mb-0.5">{order.perfume_brand}</p>
-              <h4 className="font-black text-lg text-[#12141D] leading-tight mb-1">{order.perfume_name}</h4>
-              <p className="text-sm lg:text-base text-[#5C564A] font-bold">{sizeLabel}</p>
-              <p className="font-black text-lg text-[#12141D] mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
+              <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold mb-0.5">{order.perfume_brand}</p>
+              <h4 className="font-black text-lg text-[var(--ink)] leading-tight mb-1">{order.perfume_name}</h4>
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold">{sizeLabel}</p>
+              <p className="font-black text-lg text-[var(--ink)] mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
             </div>
           </div>
 
@@ -584,7 +584,7 @@ function OrderCard({
               {order.keywords.slice(0, 4).map((keyword, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 text-xs lg:text-sm font-bold text-[#5C564A] bg-[#E9E2D0] rounded-full border border-[#262A38]"
+                  className="px-2 py-0.5 text-xs lg:text-sm font-bold text-[var(--muted-ink)] bg-[var(--soft)] rounded-full border border-[var(--line)]"
                 >
                   #{keyword}
                 </span>
@@ -593,21 +593,21 @@ function OrderCard({
           )}
 
           {/* 배송 정보 */}
-          <div className="bg-[#E9E2D0] rounded-[12px] p-3 space-y-2 border border-[#262A38]">
+          <div className="bg-[var(--soft)] rounded-[6px] p-3 space-y-2 border border-[var(--line)]">
             <div className="flex items-center gap-2 text-sm lg:text-base">
-              <MapPin size={14} className="text-[#5C564A] flex-shrink-0" />
-              <span className="text-[#5C564A] truncate">
+              <MapPin size={14} className="text-[var(--muted-ink)] flex-shrink-0" />
+              <span className="text-[var(--muted-ink)] truncate">
                 {order.address} {order.address_detail}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm lg:text-base">
-              <Package size={14} className="text-[#5C564A] flex-shrink-0" />
-              <span className="text-[#5C564A]">{order.recipient_name} • {order.phone}</span>
+              <Package size={14} className="text-[var(--muted-ink)] flex-shrink-0" />
+              <span className="text-[var(--muted-ink)]">{order.recipient_name} • {order.phone}</span>
             </div>
           </div>
 
           {/* 상태 설명 */}
-          <div className="flex items-center gap-2 text-xs lg:text-sm text-[#5C564A] bg-[#E9E2D0] rounded-[12px] px-3 py-2">
+          <div className="flex items-center gap-2 text-xs lg:text-sm text-[var(--muted-ink)] bg-[var(--soft)] rounded-[6px] px-3 py-2">
             <StatusIcon size={14} />
             <span>{tStatus(statusKeys.descKey)}</span>
           </div>
@@ -628,12 +628,12 @@ function OrderCard({
 
           {/* 상품 단종 안내 — 재구매/분석상세 차단 사유 명시 */}
           {isProductDiscontinued && (
-            <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
+            <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+                <AlertTriangle size={16} className="text-[var(--muted-ink)] mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0 text-xs lg:text-sm">
-                  <p className="font-bold text-[#5C564A]">{t('productDiscontinuedTitle')}</p>
-                  <p className="text-[#5C564A] mt-0.5 leading-relaxed">{t('productDiscontinuedDesc')}</p>
+                  <p className="font-bold text-[var(--muted-ink)]">{t('productDiscontinuedTitle')}</p>
+                  <p className="text-[var(--muted-ink)] mt-0.5 leading-relaxed">{t('productDiscontinuedDesc')}</p>
                 </div>
               </div>
             </div>
@@ -647,10 +647,10 @@ function OrderCard({
                 onClick={handleViewAnalysis}
                 disabled={!hasAnalysisData || isProductDiscontinued}
                 title={isProductDiscontinued ? t('productDiscontinued') : undefined}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-all ${
                   hasAnalysisData && !isProductDiscontinued
-                    ? 'bg-[#12141D] border-[#262A38] text-[#E9E2D0] hover:bg-[#151823]'
-                    : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
+                    ? 'bg-[var(--paper)] border-[var(--line)] text-[var(--ink)] hover:bg-[var(--soft)]'
+                    : 'bg-[var(--soft)] border-[var(--line)] text-[var(--muted-ink)] cursor-not-allowed'
                 }`}
               >
                 <Eye size={16} />
@@ -663,10 +663,10 @@ function OrderCard({
               <button
                 onClick={() => setShowRecipeModal(true)}
                 disabled={!hasAnalysisData}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-all ${
                   hasAnalysisData
-                    ? 'bg-[#151823] border-[#262A38] text-[#E9E2D0]'
-                    : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
+                    ? 'bg-[var(--soft)] border-[var(--line)] text-[var(--ink)]'
+                    : 'bg-[var(--soft)] border-[var(--line)] text-[var(--muted-ink)] cursor-not-allowed'
                 }`}
               >
                 <FlaskConical size={16} />
@@ -679,10 +679,10 @@ function OrderCard({
               onClick={handleRepurchase}
               disabled={isProductDiscontinued}
               title={isProductDiscontinued ? t('productDiscontinued') : undefined}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-all ${
                 isProductDiscontinued
-                  ? 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
-                  : 'bg-[#1B1F2C] border-[#262A38] text-[#E9E2D0]'
+                  ? 'bg-[var(--soft)] border-[var(--line)] text-[var(--muted-ink)] cursor-not-allowed'
+                  : 'bg-[var(--soft)] border-[var(--line)] text-[var(--ink)]'
               }`}
             >
               <RefreshCw size={16} />
@@ -693,10 +693,10 @@ function OrderCard({
             <button
               onClick={() => setShowCancelConfirm(true)}
               disabled={!canCancel}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-sm lg:text-base font-bold border-2 transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-all ${
                 canCancel
-                  ? 'bg-[#12141D] border-red-400 text-red-600 hover:bg-red-50'
-                  : 'bg-[#E9E2D0] border-[#262A38] text-[#8B8578] cursor-not-allowed'
+                  ? 'bg-[var(--paper)] border-red-400 text-red-600 hover:bg-red-50'
+                  : 'bg-[var(--soft)] border-[var(--line)] text-[var(--muted-ink)] cursor-not-allowed'
               }`}
             >
               <XCircle size={16} />
@@ -710,7 +710,7 @@ function OrderCard({
               <button
                 onClick={handleBuyAsPerfume}
                 disabled={isLoadingBuyPerfume}
-                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-[12px] text-sm lg:text-base font-black border-2 border-[#12141D] bg-[#12141D] text-[#F5EFE2] hover:bg-[#1B1F2C] transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-[6px] text-sm lg:text-base font-black border border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)] transition-all disabled:opacity-50"
               >
                 {isLoadingBuyPerfume ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -719,12 +719,12 @@ function OrderCard({
                 )}
                 {t('buyAsPerfume')}
               </button>
-              <p className="text-[11px] lg:text-[13px] text-[#5C564A] text-center mt-1.5">{t('buyAsPerfumeHint')}</p>
+              <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center mt-1.5">{t('buyAsPerfumeHint')}</p>
             </div>
           )}
 
           {/* 주문일시 */}
-          <p className="text-xs lg:text-sm text-[#5C564A] text-right pt-1 border-t border-[#1E222E]">
+          <p className="text-xs lg:text-sm text-[var(--muted-ink)] text-right pt-1 border-t border-[var(--line)]">
             {t('orderDate', { date: formatDate(order.created_at) })}
           </p>
         </div>
@@ -813,24 +813,24 @@ function CancelConfirmDialog({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[90vh] overflow-y-auto bg-[#12141D] rounded-[12px] border-2 border-[#262A38] z-50 p-6"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[90vh] overflow-y-auto bg-[var(--paper)] rounded-[6px] border border-[var(--line)] z-50 p-6"
           >
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 border-2 border-red-300">
                 <AlertTriangle size={32} className="text-red-500" />
               </div>
-              <h3 className="font-black text-xl text-[#E9E2D0] mb-2">
+              <h3 className="font-black text-xl text-[var(--ink)] mb-2">
                 {t('cancelTitle')}
               </h3>
-              <p className="text-sm lg:text-base text-[#8B8578] font-bold mb-1">
+              <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold mb-1">
                 {t('cancelOrderNum', { orderNumber })}
               </p>
-              <p className="text-xs lg:text-sm text-[#8B8578] mb-6">
+              <p className="text-xs lg:text-sm text-[var(--muted-ink)] mb-6">
                 {t('cancelDesc')}
               </p>
 
               <div className="w-full text-left mb-4">
-                <label className="block text-sm lg:text-base font-black text-[#E9E2D0] mb-1">
+                <label className="block text-sm lg:text-base font-black text-[var(--ink)] mb-1">
                   {t('cancelReasonLabel')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -838,22 +838,22 @@ function CancelConfirmDialog({
                   onChange={(e) => setReason(e.target.value)}
                   rows={4}
                   maxLength={500}
-                  className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38] resize-none"
+                  className="w-full rounded-[6px] border border-[var(--line)] px-3 py-2 text-sm lg:text-base outline-none focus:border-[var(--line)] resize-none"
                   placeholder={t('cancelReasonPlaceholder')}
                   disabled={isLoading}
                 />
-                <p className={`mt-1 text-xs lg:text-sm ${reasonValid ? 'text-[#8B8578]' : 'text-red-500'}`}>
+                <p className={`mt-1 text-xs lg:text-sm ${reasonValid ? 'text-[var(--muted-ink)]' : 'text-red-500'}`}>
                   {reasonValid ? t('cancelReasonHelp') : t('cancelReasonRequired')}
                 </p>
               </div>
 
               {/* 계좌이체: 환불받을 계좌 입력 */}
               {isBankTransfer && (
-                <div className="w-full text-left mb-4 rounded-[12px] border-2 border-[#262A38] bg-[#0C0E16] p-3 space-y-2">
-                  <p className="text-sm lg:text-base font-black text-[#E9E2D0]">
+                <div className="w-full text-left mb-4 rounded-[6px] border border-[var(--line)] bg-[var(--canvas)] p-3 space-y-2">
+                  <p className="text-sm lg:text-base font-black text-[var(--ink)]">
                     환불받을 계좌 <span className="text-red-500">*</span>
                   </p>
-                  <p className="text-xs lg:text-sm text-[#E9E2D0] mb-1">
+                  <p className="text-xs lg:text-sm text-[var(--ink)] mb-1">
                     계좌이체(무통장입금)로 결제하셨습니다. 입력하신 계좌로 환불해 드립니다.
                   </p>
                   <input
@@ -862,7 +862,7 @@ function CancelConfirmDialog({
                     onChange={(e) => setBankName(e.target.value)}
                     disabled={isLoading}
                     placeholder="은행명 (예: 국민은행)"
-                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
+                    className="w-full rounded-[6px] border border-[var(--line)] px-3 py-2 text-sm lg:text-base outline-none focus:border-[var(--line)]"
                   />
                   <input
                     type="text"
@@ -871,7 +871,7 @@ function CancelConfirmDialog({
                     onChange={(e) => setAccountNumber(e.target.value)}
                     disabled={isLoading}
                     placeholder="계좌번호 (- 없이 숫자만)"
-                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
+                    className="w-full rounded-[6px] border border-[var(--line)] px-3 py-2 text-sm lg:text-base outline-none focus:border-[var(--line)]"
                   />
                   <input
                     type="text"
@@ -879,7 +879,7 @@ function CancelConfirmDialog({
                     onChange={(e) => setAccountHolder(e.target.value)}
                     disabled={isLoading}
                     placeholder="예금주"
-                    className="w-full rounded-[12px] border-2 border-[#262A38] px-3 py-2 text-sm lg:text-base outline-none focus:border-[#262A38]"
+                    className="w-full rounded-[6px] border border-[var(--line)] px-3 py-2 text-sm lg:text-base outline-none focus:border-[var(--line)]"
                   />
                   {!accountValid && (
                     <p className="text-xs lg:text-sm text-red-500">은행, 계좌번호, 예금주를 모두 입력해 주세요.</p>
@@ -891,18 +891,18 @@ function CancelConfirmDialog({
                 <button
                   onClick={onClose}
                   disabled={isLoading}
-                  className="flex-1 py-3 rounded-[12px] font-bold bg-[#1B1F2C] border-2 border-[#262A38] text-[#E9E2D0] hover:bg-[#232838] transition-colors"
+                  className="flex-1 py-3 rounded-[6px] font-bold bg-[var(--soft)] border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   {t('no')}
                 </button>
                 <button
                   onClick={handleConfirm}
                   disabled={isLoading || !canSubmit}
-                  className="flex-1 py-3 rounded-[12px] font-bold bg-red-500 border-2 border-[#262A38] text-[#E9E2D0] hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 rounded-[6px] font-bold bg-red-500 border border-[var(--line)] text-[var(--ink)] hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-[#5C564A] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border border-[var(--line)] border-t-transparent rounded-full animate-spin" />
                       {t('processing')}
                     </span>
                   ) : (
@@ -922,14 +922,14 @@ function CancelConfirmDialog({
 function CustomerServiceBanner() {
   const t = useTranslations('mypage')
   return (
-    <div className="bg-gradient-to-r from-[#151823] to-[#1B1F2C] border-2 border-[#262A38] rounded-[12px] p-4 mb-4">
+    <div className="bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4 mb-4">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-[#12141D] rounded-full flex items-center justify-center border-2 border-[#262A38]">
-          <Headphones size={20} className="text-[#E9E2D0]" />
+        <div className="w-10 h-10 bg-[var(--paper)] rounded-full flex items-center justify-center border border-[var(--line)]">
+          <Headphones size={20} className="text-[var(--ink)]" />
         </div>
         <div>
-          <h3 className="font-black text-[#E9E2D0]">{t('customerService')}</h3>
-          <p className="text-xs lg:text-sm text-[#A69F8D] font-bold">{t('customerServiceDesc')}</p>
+          <h3 className="font-black text-[var(--ink)]">{t('customerService')}</h3>
+          <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">{t('customerServiceDesc')}</p>
         </div>
       </div>
 
@@ -937,36 +937,36 @@ function CustomerServiceBanner() {
         {/* 전화번호 */}
         <a
           href="tel:02-336-3368"
-          className="flex items-center gap-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] px-3 py-2.5 transition-all"
+          className="flex items-center gap-3 bg-[var(--paper)] border border-[var(--line)] rounded-[6px] px-3 py-2.5 transition-all"
         >
-          <div className="w-8 h-8 bg-[#12141D] rounded-[12px] flex items-center justify-center border border-[#262A38]">
-            <Phone size={16} className="text-[#E9E2D0]" />
+          <div className="w-8 h-8 bg-[var(--paper)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+            <Phone size={16} className="text-[var(--ink)]" />
           </div>
           <div className="flex-1">
-            <p className="font-black text-[#E9E2D0]">02-336-3368</p>
-            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{t('tapToCall')}</p>
+            <p className="font-black text-[var(--ink)]">02-336-3368</p>
+            <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-bold">{t('tapToCall')}</p>
           </div>
         </a>
 
         {/* 이메일 */}
         <a
           href="mailto:nadr110619@gmail.com"
-          className="flex items-center gap-3 bg-[#12141D] border-2 border-[#262A38] rounded-[12px] px-3 py-2.5 transition-all"
+          className="flex items-center gap-3 bg-[var(--paper)] border border-[var(--line)] rounded-[6px] px-3 py-2.5 transition-all"
         >
-          <div className="w-8 h-8 bg-[#12141D] rounded-[12px] flex items-center justify-center border border-[#262A38]">
-            <Mail size={16} className="text-[#E9E2D0]" />
+          <div className="w-8 h-8 bg-[var(--paper)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
+            <Mail size={16} className="text-[var(--ink)]" />
           </div>
           <div className="flex-1">
-            <p className="font-black text-[#E9E2D0] text-sm lg:text-base">nadr110619@gmail.com</p>
-            <p className="text-[10px] lg:text-[12px] text-[#8B8578] font-bold">{t('tapToEmail')}</p>
+            <p className="font-black text-[var(--ink)] text-sm lg:text-base">nadr110619@gmail.com</p>
+            <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-bold">{t('tapToEmail')}</p>
           </div>
         </a>
       </div>
 
       {/* 운영시간 안내 */}
-      <div className="mt-3 bg-[#12141D]/60 rounded-[12px] px-3 py-2 border border-[#262A38]">
-        <p className="text-xs lg:text-sm text-[#A69F8D] font-bold text-center">
-          <span className="text-[#E9E2D0]">{t('serviceHours')}</span> · {t('serviceTime')}
+      <div className="mt-3 bg-[var(--paper)]/60 rounded-[6px] px-3 py-2 border border-[var(--line)]">
+        <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold text-center">
+          <span className="text-[var(--ink)]">{t('serviceHours')}</span> · {t('serviceTime')}
         </p>
       </div>
     </div>
@@ -977,9 +977,9 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
   const t = useTranslations('mypage')
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
-        <div className="w-12 h-12 border-4 border-[#262A38] border-t-[#9F9F9F] rounded-full animate-spin mb-4" />
-        <p className="font-bold text-[#5C564A]">{t('loadingOrders')}</p>
+      <div className="flex flex-col items-center justify-center py-20 bg-[var(--soft)] border border-[var(--line)] rounded-[6px]">
+        <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--line)] rounded-full animate-spin mb-4" />
+        <p className="font-bold text-[var(--muted-ink)]">{t('loadingOrders')}</p>
       </div>
     )
   }
@@ -988,16 +988,16 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
     return (
       <div>
         <CustomerServiceBanner />
-        <div className="text-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
+        <div className="text-center py-20 bg-[var(--soft)] border border-[var(--line)] rounded-[6px]">
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
             <AlertTriangle size={32} className="text-red-500" />
           </div>
-          <h3 className="text-xl font-black text-[#12141D] mb-2">{t('ordersLoadFailed')}</h3>
-          <p className="text-sm lg:text-base text-[#5C564A] font-bold mb-5">{error}</p>
+          <h3 className="text-xl font-black text-[var(--ink)] mb-2">{t('ordersLoadFailed')}</h3>
+          <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold mb-5">{error}</p>
           {onOrderUpdate && (
             <button
               onClick={onOrderUpdate}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#12141D] text-[#F5EFE2] rounded-[12px] border-2 border-[#262A38] font-black hover:bg-[#1B1F2C] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[var(--paper)] text-[var(--ink)] rounded-[6px] border border-[var(--line)] font-black hover:bg-[var(--soft)] transition-all"
             >
               <RefreshCw size={16} />
               {t('retry')}
@@ -1012,12 +1012,12 @@ export function OrderHistory({ orders, loading, error, viewMode, onOrderUpdate }
     return (
       <div>
         <CustomerServiceBanner />
-        <div className="text-center py-20 bg-[#F5EFE2] border-2 border-[#262A38] rounded-[12px]">
-          <div className="w-20 h-20 bg-[#151823] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#262A38]">
-            <Package size={32} className="text-[#8B8578]" />
+        <div className="text-center py-20 bg-[var(--soft)] border border-[var(--line)] rounded-[6px]">
+          <div className="w-20 h-20 bg-[var(--soft)] rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--line)]">
+            <Package size={32} className="text-[var(--muted-ink)]" />
           </div>
-          <h3 className="text-xl font-black text-[#12141D] mb-2">{t('noOrders')}</h3>
-          <p className="text-[#5C564A] font-bold">{t('noOrdersHint')}</p>
+          <h3 className="text-xl font-black text-[var(--ink)] mb-2">{t('noOrders')}</h3>
+          <p className="text-[var(--muted-ink)] font-bold">{t('noOrdersHint')}</p>
         </div>
       </div>
     )
@@ -1074,24 +1074,24 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancel_requested: 환불 처리 중
   if (order.status === 'cancel_requested') {
     return (
-      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
         <div className="flex items-start gap-2">
-          <Loader2 size={16} className="text-[#5C564A] mt-0.5 animate-spin flex-shrink-0" />
+          <Loader2 size={16} className="text-[var(--muted-ink)] mt-0.5 animate-spin flex-shrink-0" />
           <div className="flex-1 min-w-0 text-xs lg:text-sm">
-            <p className="font-bold text-[#12141D]">환불 처리 중</p>
-            <p className="text-[#12141D] mt-1 leading-relaxed">
+            <p className="font-bold text-[var(--ink)]">환불 처리 중</p>
+            <p className="text-[var(--ink)] mt-1 leading-relaxed">
               취소 요청이 접수되어 관리자가 검토·처리 중입니다. {isBank ? '입금하신 계좌로 영업일 기준 3~5일 내 환불됩니다.' : '포트원을 통해 자동 환불되며, 결제 수단별 반영 기간은 아래와 같습니다.'}
             </p>
             {!isBank && (
-              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">{methodGuide}</p>
+              <p className="text-[var(--muted-ink)] mt-1 text-[11px] lg:text-[13px]">{methodGuide}</p>
             )}
             {isBank && order.refund_account_number && (
-              <p className="text-[#12141D] mt-1 text-[11px] lg:text-[13px]">
+              <p className="text-[var(--ink)] mt-1 text-[11px] lg:text-[13px]">
                 환불 계좌: {order.refund_bank_name} {order.refund_account_number} ({order.refund_account_holder})
               </p>
             )}
             {order.cancel_reason && (
-              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">
+              <p className="text-[var(--muted-ink)] mt-1 text-[11px] lg:text-[13px]">
                 사유: {order.cancel_reason}
               </p>
             )}
@@ -1104,28 +1104,28 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 환불 완료
   if (order.status === 'cancelled' && isRefunded) {
     return (
-      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
         <div className="flex items-start gap-2">
-          <CheckCircle size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+          <CheckCircle size={16} className="text-[var(--muted-ink)] mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0 text-xs lg:text-sm">
-            <p className="font-bold text-[#12141D]">
+            <p className="font-bold text-[var(--ink)]">
               환불 완료
               {typeof order.refund_amount === 'number' && order.refund_amount > 0 && (
-                <span className="ml-2 text-[#5C564A]">
+                <span className="ml-2 text-[var(--muted-ink)]">
                   {order.refund_amount.toLocaleString()}원
                 </span>
               )}
             </p>
             {order.refunded_at && (
-              <p className="text-[#12141D] mt-0.5">
+              <p className="text-[var(--ink)] mt-0.5">
                 {formatDateTime(order.refunded_at)}
               </p>
             )}
-            <p className="text-[#5C564A] mt-1 leading-relaxed">
+            <p className="text-[var(--muted-ink)] mt-1 leading-relaxed">
               {methodGuide}
             </p>
             {(order.refund_reason || order.cancel_reason) && (
-              <p className="text-[#5C564A] mt-1 text-[11px] lg:text-[13px]">
+              <p className="text-[var(--muted-ink)] mt-1 text-[11px] lg:text-[13px]">
                 사유: {order.refund_reason || order.cancel_reason}
               </p>
             )}
@@ -1138,7 +1138,7 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 미환불 (오염된 상태) — 고객에게 문제를 숨기지 않고 명확히 안내
   if (order.status === 'cancelled' && !isRefunded && hasPaymentId) {
     return (
-      <div className="bg-red-50 border-2 border-red-400 rounded-[12px] p-3">
+      <div className="bg-red-50 border-2 border-red-400 rounded-[6px] p-3">
         <div className="flex items-start gap-2">
           <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0 text-xs lg:text-sm">
@@ -1155,12 +1155,12 @@ function RefundStatusCard({ order }: { order: Order }) {
   // cancelled + 계좌이체 + 미환불 (수동 송금 대기)
   if (order.status === 'cancelled' && !isRefunded && isBank) {
     return (
-      <div className="bg-[#E9E2D0] border-2 border-[#262A38] rounded-[12px] p-3">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-3">
         <div className="flex items-start gap-2">
-          <Clock size={16} className="text-[#5C564A] mt-0.5 flex-shrink-0" />
+          <Clock size={16} className="text-[var(--muted-ink)] mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0 text-xs lg:text-sm">
-            <p className="font-bold text-[#12141D]">환불 준비 중</p>
-            <p className="text-[#12141D] mt-1 leading-relaxed">
+            <p className="font-bold text-[var(--ink)]">환불 준비 중</p>
+            <p className="text-[var(--ink)] mt-1 leading-relaxed">
               입금하신 계좌로 수동 송금 준비 중입니다. 영업일 기준 3~5일 내 완료됩니다.
             </p>
           </div>

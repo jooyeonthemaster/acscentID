@@ -48,18 +48,18 @@ export default function GenericProgramPage() {
 
   if (!productsLoading && !product) {
     return (
-      <main className="min-h-screen bg-[#0C0E16] font-wanted">
+      <main className="min-h-screen bg-[var(--canvas)] font-wanted">
         <Header />
         <section className="flex min-h-screen items-center justify-center px-4 pt-24">
-          <div className="w-full max-w-sm rounded-[12px] border-2 border-[#262A38] bg-[#12141D] p-8 text-center">
-            <Package className="mx-auto mb-4 h-12 w-12 text-[#5C564A]" />
-            <h1 className="text-xl font-black text-[#E9E2D0]">{t('programs.detail.generic.notFoundTitle')}</h1>
-            <p className="mt-2 text-sm lg:text-base font-medium text-[#8B8578]">
+          <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
+            <Package className="mx-auto mb-4 h-12 w-12 text-[var(--muted-ink)]" />
+            <h1 className="text-xl font-black text-[var(--ink)]">{t('programs.detail.generic.notFoundTitle')}</h1>
+            <p className="mt-2 text-sm lg:text-base font-medium text-[var(--muted-ink)]">
               {t('programs.detail.generic.notRegistered')}
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex min-h-11 items-center rounded-[12px] bg-[#0C0E16] px-5 text-sm lg:text-base font-black text-[#E9E2D0] ring-2 ring-[#262A38]"
+              className="mt-6 inline-flex min-h-11 items-center rounded-[5px] bg-[var(--ink)] px-5 text-sm lg:text-base font-black text-white"
             >
               {t('programs.detail.generic.backHome')}
             </Link>
@@ -80,7 +80,7 @@ export default function GenericProgramPage() {
       { label: t('programs.breadcrumbPrograms'), href: '/' },
       { label: productName },
     ],
-    infoIcon: <Sparkles className="h-4 w-4 text-[#E9E2D0]" />,
+    infoIcon: <Sparkles className="h-4 w-4 text-[var(--ink)]" />,
     cta: {
       label: pageContent.ctaLabel,
       disabled: true,
@@ -90,17 +90,17 @@ export default function GenericProgramPage() {
   const detailBody = (
     <>
       {detailLoading ? (
-        <section className="bg-[#12141D] px-4 py-8">
-          <div className="mx-auto h-64 w-full max-w-[455px] animate-pulse rounded-[12px] bg-[#1B1F2C]" />
+        <section className="bg-[var(--paper)] px-4 py-8">
+          <div className="mx-auto h-64 w-full max-w-[455px] animate-pulse rounded-[6px] bg-[var(--soft)]" />
         </section>
       ) : isCustomMode ? (
         <CustomDetailRenderer html={detail?.custom_html ?? ''} />
       ) : (
-        <section className="bg-[#12141D] px-4 py-8">
+        <section className="bg-[var(--paper)] px-4 py-8">
           <div className="mx-auto w-full max-w-[455px]" data-admin-editable="detail_html">
-            <section className="rounded-[12px] border-2 border-dashed border-[#262A38] bg-[#151823] p-8 text-center">
-              <h2 className="text-xl font-black text-[#E9E2D0]">{t('programs.detail.generic.prepareTitle')}</h2>
-              <p className="mt-3 text-sm lg:text-base font-medium leading-relaxed text-[#8B8578]">
+            <section className="rounded-[6px] border border-dashed border-[var(--line)] bg-[var(--soft)] p-8 text-center">
+              <h2 className="text-xl font-black text-[var(--ink)]">{t('programs.detail.generic.prepareTitle')}</h2>
+              <p className="mt-3 text-sm lg:text-base font-medium leading-relaxed text-[var(--muted-ink)]">
                 {t('programs.detail.generic.prepareDesc')}
               </p>
             </section>
@@ -114,7 +114,7 @@ export default function GenericProgramPage() {
     <InactiveProductGuard productSlug={slug}>
       <ViewportSwitch
         mobile={
-          <main className="relative min-h-screen bg-[#0C0E16] font-wanted">
+          <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
             <Header />
             <ProgramAdminBridge productSlug={slug} />
             <UnifiedDetailHero {...heroProps} />
@@ -122,7 +122,7 @@ export default function GenericProgramPage() {
           </main>
         }
         desktop={
-          <main className="relative min-h-screen bg-[#0C0E16] pb-16 font-wanted">
+          <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
             <DesktopDetailHero {...heroProps} />
             <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
           </main>

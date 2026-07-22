@@ -187,7 +187,7 @@ function InputForm() {
                         className="object-cover"
                         priority
                     />
-                    <div className="absolute inset-0 bg-[#0C0E16]/80" />
+                    <div className="absolute inset-0 bg-[var(--canvas)]/80" />
                 </div>
 
                 {/* compact 헤더 높이만큼 여백 */}
@@ -203,8 +203,8 @@ function InputForm() {
                         priority
                         className="h-[11px] w-auto select-none opacity-90"
                     />
-                    <span aria-hidden className="h-3 w-px bg-[#A69F8D]/40" />
-                    <span className="text-[11px] lg:text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[#A69F8D]">
+                    <span aria-hidden className="h-3 w-px bg-[var(--muted-ink)]/40" />
+                    <span className="text-[11px] lg:text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[var(--muted-ink)]">
                         {programTitle}
                     </span>
                 </div>
@@ -242,18 +242,19 @@ function InputForm() {
                     className="object-cover"
                     priority
                 />
-                <div className="absolute inset-0 bg-[#0C0E16]/85" />
+                <div className="absolute inset-0 bg-[var(--canvas)]/85" />
             </div>
 
-            <div className="relative z-10 mx-auto grid w-full max-w-[1060px] grid-cols-[340px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-10">
+            {/* pt: 고정 데스크탑 헤더(84px) 아래로 콘텐츠 시작 */}
+            <div className="relative z-10 mx-auto grid w-full max-w-[1060px] grid-cols-[340px_minmax(0,1fr)] gap-12 px-8 pb-16 pt-[116px]">
                 {/* 좌측 레일: 브랜드 + 스텝 진행 + 입력 요약 */}
-                <aside className="sticky top-10 self-start">
+                <aside className="sticky top-[116px] self-start">
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
                             onClick={() => window.history.back()}
                             aria-label={t('buttons.prev')}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#262A38] text-[#A69F8D] transition-colors hover:border-[#3A4051] hover:text-[#E9E2D0]"
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)] text-[var(--muted-ink)] transition-colors hover:border-[var(--line)] hover:text-[var(--ink)]"
                         >
                             <ArrowLeft size={16} />
                         </button>
@@ -269,8 +270,8 @@ function InputForm() {
                     </div>
 
                     <div className="mt-8 flex items-center gap-2">
-                        <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-[#E9E2D0]/70" />
-                        <span className="text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[#A69F8D]">
+                        <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-[var(--soft)]/70" />
+                        <span className="text-[13px] font-semibold leading-[1.4] tracking-[0.14em] text-[var(--muted-ink)]">
                             {programTitle}
                         </span>
                     </div>
@@ -286,7 +287,7 @@ function InputForm() {
                                     {stepNo < TOTAL_STEPS && (
                                         <span
                                             aria-hidden
-                                            className={`absolute left-[5px] top-5 bottom-0 w-px ${state === 'done' ? 'bg-[#A69F8D]' : 'bg-[#262A38]'}`}
+                                            className={`absolute left-[5px] top-5 bottom-0 w-px ${state === 'done' ? 'bg-[var(--muted-ink)]' : 'bg-[var(--soft)]'}`}
                                         />
                                     )}
                                     {/* 매듭 */}
@@ -294,25 +295,25 @@ function InputForm() {
                                         aria-hidden
                                         className={`absolute left-0 top-1.5 ${
                                             state === 'done'
-                                                ? 'h-[11px] w-[11px] rounded-full bg-[#E9E2D0]'
+                                                ? 'h-[11px] w-[11px] rounded-full bg-[var(--soft)]'
                                                 : state === 'now'
-                                                    ? 'h-[11px] w-[11px] rounded-full border-[1.5px] border-[#E9E2D0] bg-[#0C0E16]'
-                                                    : 'ml-[2px] mt-[2px] h-[7px] w-[7px] rounded-full border border-[#3A4051] bg-[#0C0E16]'
+                                                    ? 'h-[11px] w-[11px] rounded-full border-[1.5px] border-[var(--line)] bg-[var(--canvas)]'
+                                                    : 'ml-[2px] mt-[2px] h-[7px] w-[7px] rounded-full border border-[var(--line)] bg-[var(--canvas)]'
                                         }`}
                                     />
                                     <span
                                         className={`text-[14px] leading-tight ${
                                             state === 'now'
-                                                ? 'font-semibold text-[#E9E2D0]'
+                                                ? 'font-semibold text-[var(--ink)]'
                                                 : state === 'done'
-                                                    ? 'text-[#A69F8D]'
-                                                    : 'text-[#5C564A]'
+                                                    ? 'text-[var(--muted-ink)]'
+                                                    : 'text-[var(--muted-ink)]'
                                         }`}
                                     >
                                         {label}
                                     </span>
                                     {state === 'done' && railStepValues[i] && (
-                                        <p className="mt-1 truncate text-[12px] leading-snug text-[#8B8578]">
+                                        <p className="mt-1 truncate text-[12px] leading-snug text-[var(--muted-ink)]">
                                             {railStepValues[i]}
                                         </p>
                                     )}
@@ -321,7 +322,7 @@ function InputForm() {
                                         <img
                                             src={imagePreview}
                                             alt=""
-                                            className="mt-1.5 h-12 w-12 rounded-[8px] border border-[#262A38] object-cover"
+                                            className="mt-1.5 h-12 w-12 rounded-[8px] border border-[var(--line)] object-cover"
                                         />
                                     )}
                                 </li>
@@ -332,17 +333,17 @@ function InputForm() {
 
                 {/* 우측 입력 패널 */}
                 <section className="min-w-0">
-                    <div className="max-w-[640px] rounded-[12px] border border-[#262A38] bg-[#12141D]/70 p-8">
+                    <div className="max-w-[640px] rounded-[6px] border border-[var(--line)] bg-[var(--paper)]/70 p-8">
                         {stepContent}
 
                         {/* 인라인 내비 — 고정 바 대신 폼 하단 */}
-                        <div className="mt-10 flex items-center gap-4 border-t border-[#262A38] pt-6">
+                        <div className="mt-10 flex items-center gap-4 border-t border-[var(--line)] pt-6">
                             {currentStep > 1 && (
                                 <button
                                     type="button"
                                     onClick={handlePrev}
                                     disabled={isSubmitting}
-                                    className="flex flex-shrink-0 items-center gap-1 px-2 py-3 text-[14px] text-[#A69F8D] transition-colors hover:text-[#E9E2D0]"
+                                    className="flex flex-shrink-0 items-center gap-1 px-2 py-3 text-[14px] text-[var(--muted-ink)] transition-colors hover:text-[var(--ink)]"
                                 >
                                     <ArrowLeft size={15} />
                                     {t('buttons.prev')}
@@ -353,10 +354,10 @@ function InputForm() {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={currentStep === TOTAL_STEPS ? handleComplete : handleNext}
                                 disabled={!isStepValid(currentStep) || isSubmitting}
-                                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[12px] text-[16px] font-semibold transition-colors duration-300 ${
+                                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[6px] text-[16px] font-semibold transition-colors duration-300 ${
                                     isStepValid(currentStep) && !isSubmitting
-                                        ? "bg-[#EEB62B] text-[#1A1610] ring-1 ring-[#EEB62B]/40 hover:bg-[#F2C24A]"
-                                        : "bg-[#1E2129] text-[#5C564A] cursor-not-allowed"
+                                        ? "bg-[var(--ink)] text-white ring-1 ring-[var(--ink)]/40 hover:bg-[#F2C24A]"
+                                        : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed"
                                 }`}
                             >
                                 <span>{currentStep === TOTAL_STEPS ? t('buttons.complete') : t('buttons.next')}</span>
@@ -370,7 +371,7 @@ function InputForm() {
     )
 
     return (
-        <div className="min-h-screen bg-[#0C0E16] font-wanted text-[#E9E2D0]">
+        <div className="min-h-screen bg-[var(--canvas)] font-wanted text-[var(--ink)]">
             {/* 분석 중 로딩 오버레이 — 뷰포트 모드 무관 단일 인스턴스 */}
             <AnalyzingOverlay
                 isVisible={isSubmitting}
@@ -413,11 +414,11 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
                 }
             `}</style>
             {/* 미도달 구간 — 헤어라인 */}
-            <div aria-hidden className="absolute inset-x-0 bg-[#262A38]" style={{ top: 23.5, height: 1 }} />
+            <div aria-hidden className="absolute inset-x-0 bg-[var(--soft)]" style={{ top: 23.5, height: 1 }} />
             {/* 아이보리 실 — 현재 매듭까지 채움 */}
             <motion.div
                 aria-hidden
-                className="absolute inset-x-0 bg-gradient-to-r from-[#A69F8D] to-[#E9E2D0]"
+                className="absolute inset-x-0 bg-gradient-to-r from-[var(--muted-ink)] to-[var(--soft)]"
                 style={{ top: 23.25, height: 1.5, transformOrigin: 'left' }}
                 initial={false}
                 animate={{ scaleX: fraction }}
@@ -435,17 +436,17 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
                         style={{ left: `${pos}%`, top: 24, transform: 'translate(-50%, -50%)' }}
                     >
                         {state === 'now' && (
-                            <span className="absolute -top-[18px] left-1/2 -translate-x-1/2 text-[10px] lg:text-[12px] font-bold tracking-widest text-[#E9E2D0]">
+                            <span className="absolute -top-[18px] left-1/2 -translate-x-1/2 text-[10px] lg:text-[12px] font-bold tracking-widest text-[var(--ink)]">
                                 {i + 1}
                             </span>
                         )}
                         <span
                             className={
                                 state === 'done'
-                                    ? 'block h-2 w-2 rounded-full bg-[#E9E2D0]'
+                                    ? 'block h-2 w-2 rounded-full bg-[var(--soft)]'
                                     : state === 'now'
-                                        ? 'block h-[11px] w-[11px] rounded-full border-[1.5px] border-[#E9E2D0] bg-[#0C0E16]'
-                                        : 'block h-1.5 w-1.5 rounded-full border border-[#3A4051] bg-[#0C0E16]'
+                                        ? 'block h-[11px] w-[11px] rounded-full border-[1.5px] border-[var(--line)] bg-[var(--canvas)]'
+                                        : 'block h-1.5 w-1.5 rounded-full border border-[var(--line)] bg-[var(--canvas)]'
                             }
                             style={state === 'now' ? { animation: 'input-knot-pulse 1.8s ease-out infinite' } : undefined}
                         />
@@ -470,7 +471,7 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50">
             <div
-                className="mx-auto w-full max-w-[455px] border-t border-[#262A38] bg-[#12141D]/95 px-6 py-4 backdrop-blur"
+                className="mx-auto w-full max-w-[455px] border-t border-[var(--line)] bg-[var(--paper)]/95 px-6 py-4 backdrop-blur"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
             >
                 <div className="flex items-center gap-4">
@@ -479,7 +480,7 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                             type="button"
                             onClick={onPrev}
                             disabled={isSubmitting}
-                            className="flex-shrink-0 px-2 py-3 text-[14px] text-[#A69F8D] flex items-center gap-1"
+                            className="flex-shrink-0 px-2 py-3 text-[14px] text-[var(--muted-ink)] flex items-center gap-1"
                         >
                             <ArrowLeft size={15} />
                             {t('buttons.prev')}
@@ -490,10 +491,10 @@ function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext 
                         whileTap={{ scale: 0.98 }}
                         onClick={onNext}
                         disabled={!isValid || isSubmitting}
-                        className={`h-[52px] flex-1 rounded-[12px] text-[16px] font-semibold flex items-center justify-center gap-2 transition-colors duration-300 ${
+                        className={`h-[52px] flex-1 rounded-[6px] text-[16px] font-semibold flex items-center justify-center gap-2 transition-colors duration-300 ${
                             isValid && !isSubmitting
-                                ? "bg-[#EEB62B] text-[#1A1610] ring-1 ring-[#EEB62B]/40"
-                                : "bg-[#1E2129] text-[#5C564A] cursor-not-allowed"
+                                ? "bg-[var(--ink)] text-white ring-1 ring-[var(--ink)]/40"
+                                : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed"
                         }`}
                     >
                         <span>{currentStep === TOTAL_STEPS ? t('buttons.complete') : t('buttons.next')}</span>
@@ -548,7 +549,7 @@ function InputPageContent() {
 
 export default function InputPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#0C0E16]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--canvas)]" />}>
             <InputPageContent />
         </Suspense>
     )

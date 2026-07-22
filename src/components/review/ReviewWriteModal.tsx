@@ -169,18 +169,18 @@ export function ReviewWriteModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-lg mx-auto"
           >
-            <div className="bg-[#FDFAF1] rounded-[12px] border-2 border-[#D8CFBB] overflow-hidden">
+            <div className="bg-[var(--soft)] rounded-[6px] border border-[var(--line)] overflow-hidden">
               {/* Header */}
-              <div className="px-6 py-4 border-b-2 border-[#D8CFBB] bg-[#F5EFE2]">
+              <div className="px-6 py-4 border-b-2 border-[var(--line)] bg-[var(--soft)]">
                 <div className="flex items-center justify-between">
                   <div>
-	                    <h2 className="text-xl font-black text-[#1A1610]">{t('review.writeTitle')}</h2>
-                    <p className="text-sm lg:text-base text-[#8B8578]">{programName}</p>
+	                    <h2 className="text-xl font-black text-[var(--ink)]">{t('review.writeTitle')}</h2>
+                    <p className="text-sm lg:text-base text-[var(--muted-ink)]">{programName}</p>
                   </div>
                   <button
                     onClick={handleClose}
                     disabled={isSubmitting}
-                    className="p-2 hover:bg-[#EDE5D2] rounded-full transition-colors disabled:opacity-50"
+                    className="p-2 hover:bg-[var(--soft)] rounded-full transition-colors disabled:opacity-50"
                   >
                     <X size={24} />
                   </button>
@@ -193,19 +193,19 @@ export function ReviewWriteModal({
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="w-20 h-20 mx-auto mb-4 bg-[#EFE4C8] rounded-full flex items-center justify-center border-2 border-[#D8CFBB]"
+                    className="w-20 h-20 mx-auto mb-4 bg-[var(--soft)] rounded-full flex items-center justify-center border border-[var(--line)]"
                   >
-                    <CheckCircle size={40} className="text-[#1A1610]" />
+                    <CheckCircle size={40} className="text-[var(--ink)]" />
                   </motion.div>
-	                  <h3 className="text-xl font-black text-[#1A1610] mb-2">{t('review.writeCompleteTitle')}</h3>
-	                  <p className="text-[#5C564A]">{t('review.writeCompleteDesc')}</p>
+	                  <h3 className="text-xl font-black text-[var(--ink)] mb-2">{t('review.writeCompleteTitle')}</h3>
+	                  <p className="text-[var(--muted-ink)]">{t('review.writeCompleteDesc')}</p>
                 </div>
               ) : (
                 <div className="p-6 space-y-6">
                   {/* 주문 정보 */}
                   {(optionInfo || idolName) && (
-                    <div className="px-4 py-3 bg-[#F5EFE2] rounded-[12px] border border-[#D8CFBB] text-sm lg:text-base text-[#5C564A]">
-                      {idolName && <span className="font-bold text-[#1A1610]">{idolName}</span>}
+                    <div className="px-4 py-3 bg-[var(--soft)] rounded-[6px] border border-[var(--line)] text-sm lg:text-base text-[var(--muted-ink)]">
+                      {idolName && <span className="font-bold text-[var(--ink)]">{idolName}</span>}
                       {idolName && optionInfo && <span className="mx-2">·</span>}
                       {optionInfo && <span>{optionInfo}</span>}
                     </div>
@@ -213,7 +213,7 @@ export function ReviewWriteModal({
 
                   {/* 별점 선택 */}
                   <div className="text-center">
-	                    <p className="text-sm lg:text-base font-bold text-[#5C564A] mb-3">{t('review.ratingQuestion')}</p>
+	                    <p className="text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-3">{t('review.ratingQuestion')}</p>
                     <div className="flex items-center justify-center gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -227,37 +227,37 @@ export function ReviewWriteModal({
                             size={36}
                             className={`transition-colors ${
                               star <= (hoverRating || rating)
-                                ? "fill-[#1A1610] text-[#1A1610]"
-                                : "text-[#5C564A]"
+                                ? "fill-[var(--ink)] text-[var(--ink)]"
+                                : "text-[var(--muted-ink)]"
                             }`}
                           />
                         </button>
                       ))}
                     </div>
-                    <p className="text-sm lg:text-base text-[#8B8578] mt-2 h-5">
+                    <p className="text-sm lg:text-base text-[var(--muted-ink)] mt-2 h-5">
                       {ratingLabels[hoverRating || rating]}
                     </p>
                   </div>
 
                   {/* 리뷰 내용 */}
                   <div>
-                    <label className="block text-sm lg:text-base font-bold text-[#5C564A] mb-2">
+                    <label className="block text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-2">
 	                      {t('review.contentLabel')}
                     </label>
                     <textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
 	                      placeholder={t('review.contentPlaceholder')}
-                      className="w-full h-28 px-4 py-3 bg-[#F5EFE2] text-[#1A1610] placeholder:text-[#8B8578] border-2 border-[#D8CFBB] rounded-[12px] resize-none focus:outline-none focus:ring-2 focus:ring-[#C9BFA8] focus:ring-offset-2"
+                      className="w-full h-28 px-4 py-3 bg-[var(--soft)] text-[var(--ink)] placeholder:text-[var(--muted-ink)] border border-[var(--line)] rounded-[6px] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--line)] focus:ring-offset-2"
                     />
-                    <p className="text-xs lg:text-sm text-[#8B8578] text-right mt-1">
+                    <p className="text-xs lg:text-sm text-[var(--muted-ink)] text-right mt-1">
                       {content.length}/{MAX_CONTENT_LENGTH}
                     </p>
                   </div>
 
                   {/* 이미지 첨부 */}
                   <div>
-                    <label className="block text-sm lg:text-base font-bold text-[#5C564A] mb-2">
+                    <label className="block text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-2">
 	                      {t('review.imageAttachLabel', { count: MAX_IMAGES })}
                     </label>
 
@@ -266,7 +266,7 @@ export function ReviewWriteModal({
                       {previews.map((preview, idx) => (
                         <div
                           key={idx}
-                          className="relative w-20 h-20 rounded-[12px] overflow-hidden border-2 border-[#D8CFBB]"
+                          className="relative w-20 h-20 rounded-[6px] overflow-hidden border border-[var(--line)]"
                         >
                           <img
                             src={preview}
@@ -275,7 +275,7 @@ export function ReviewWriteModal({
                           />
                           <button
                             onClick={() => removeImage(idx)}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center border-2 border-[#D8CFBB]"
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center border border-[var(--line)]"
                           >
                             <X size={12} />
                           </button>
@@ -286,7 +286,7 @@ export function ReviewWriteModal({
                       {images.length < MAX_IMAGES && (
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="w-20 h-20 rounded-[12px] border-2 border-dashed border-[#D8CFBB] flex flex-col items-center justify-center text-[#8B8578] hover:border-[#C9BFA8] hover:text-[#5C564A] transition-colors"
+                          className="w-20 h-20 rounded-[6px] border-2 border-dashed border-[var(--line)] flex flex-col items-center justify-center text-[var(--muted-ink)] hover:border-[var(--line)] hover:text-[var(--muted-ink)] transition-colors"
                         >
                           <Camera size={24} />
                           <span className="text-xs lg:text-sm mt-1">{images.length}/{MAX_IMAGES}</span>
@@ -306,7 +306,7 @@ export function ReviewWriteModal({
 
                   {/* 에러 메시지 */}
                   {error && (
-                    <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-[12px] text-red-600 text-sm lg:text-base">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-[6px] text-red-600 text-sm lg:text-base">
                       <AlertCircle size={16} />
                       {error}
                     </div>
@@ -316,7 +316,7 @@ export function ReviewWriteModal({
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || rating === 0}
-                    className="w-full py-4 bg-[#12141D] text-[#F5EFE2] font-black text-lg rounded-[12px] border-2 border-[#12141D] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-[var(--paper)] text-[var(--ink)] font-black text-lg rounded-[6px] border border-[var(--line)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>

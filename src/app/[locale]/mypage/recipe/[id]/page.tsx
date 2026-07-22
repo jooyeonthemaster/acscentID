@@ -209,8 +209,8 @@ AC'SCENT IDENTITY에서 생성됨`
   // 로딩 상태
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10131C]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#8B8578]" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)]">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-ink)]" />
       </div>
     )
   }
@@ -218,12 +218,12 @@ AC'SCENT IDENTITY에서 생성됨`
   // 에러 상태
   if (error || !recipe) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10131C] px-5">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)] px-5">
         <div className="text-center">
-          <p className="text-[#A69F8D] mb-4">{error || '레시피를 찾을 수 없습니다'}</p>
+          <p className="text-[var(--muted-ink)] mb-4">{error || '레시피를 찾을 수 없습니다'}</p>
           <Link
             href="/mypage"
-            className="text-[#A69F8D] font-semibold hover:underline"
+            className="text-[var(--muted-ink)] font-semibold hover:underline"
           >
             Back to My Page
           </Link>
@@ -233,26 +233,26 @@ AC'SCENT IDENTITY에서 생성됨`
   }
 
   return (
-    <div className="min-h-screen bg-[#10131C] pb-20">
+    <div className="min-h-screen bg-[var(--canvas)] pb-20">
       <div className="relative z-10 px-5 py-6 max-w-md mx-auto">
         {/* 헤더 */}
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/mypage"
-            className="p-2 rounded-[12px] hover:bg-[#1B1F2C] transition-colors"
+            className="p-2 rounded-[6px] hover:bg-[var(--soft)] transition-colors"
           >
-            <ChevronLeft size={20} className="text-[#A69F8D]" />
+            <ChevronLeft size={20} className="text-[var(--muted-ink)]" />
           </Link>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-[#E9E2D0]">{recipe.perfume_name}</h1>
-            <p className="text-xs lg:text-sm text-[#8B8578] flex items-center gap-1">
+            <h1 className="text-lg font-bold text-[var(--ink)]">{recipe.perfume_name}</h1>
+            <p className="text-xs lg:text-sm text-[var(--muted-ink)] flex items-center gap-1">
               <Calendar size={11} />
               {new Date(recipe.created_at).toLocaleDateString('ko-KR')}
             </p>
           </div>
           <button
             onClick={handleDelete}
-            className="p-2 rounded-[12px] hover:bg-red-50 text-[#8B8578] hover:text-red-500 transition-colors"
+            className="p-2 rounded-[6px] hover:bg-red-50 text-[var(--muted-ink)] hover:text-red-500 transition-colors"
             title="삭제"
           >
             <Trash2 size={20} />
@@ -261,8 +261,8 @@ AC'SCENT IDENTITY에서 생성됨`
 
         {/* 제품 타입 선택 */}
         <div className="space-y-3 mb-5">
-          <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-2">
-            <Beaker size={14} className="text-[#8B8578]" />
+          <h3 className="text-sm lg:text-base font-bold text-[var(--muted-ink)] flex items-center gap-2">
+            <Beaker size={14} className="text-[var(--muted-ink)]" />
             제품 용량 선택
           </h3>
 
@@ -273,14 +273,14 @@ AC'SCENT IDENTITY에서 생성됨`
                 <button
                   key={product.id}
                   onClick={() => setSelectedProduct(product.id)}
-                  className={`p-3 rounded-[12px] border-2 transition-all text-center ${
+                  className={`p-3 rounded-[6px] border-2 transition-all text-center ${
                     isSelected
-                      ? 'border-[#343A4C] bg-[#0C0E16] shadow-md'
-                      : 'border-[#262A38] bg-[#12141D] hover:border-[#262A38] hover:bg-[#0C0E16]/50'
+                      ? 'border-[var(--line)] bg-[var(--canvas)] shadow-md'
+                      : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)] hover:bg-[var(--canvas)]/50'
                   }`}
                 >
                   <span className="text-2xl block mb-1">{product.icon}</span>
-                  <p className={`text-xs lg:text-sm font-bold ${isSelected ? 'text-[#A69F8D]' : 'text-[#A69F8D]'}`}>
+                  <p className={`text-xs lg:text-sm font-bold ${isSelected ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>
                     {product.label}
                   </p>
                 </button>
@@ -290,18 +290,18 @@ AC'SCENT IDENTITY에서 생성됨`
         </div>
 
         {/* 용량 정보 */}
-        <div className="bg-gradient-to-br from-[#0C0E16] to-[#0C0E16] rounded-[12px] p-4 border border-stone-200/50 mb-5">
+        <div className="bg-gradient-to-br from-[var(--canvas)] to-[var(--canvas)] rounded-[6px] p-4 border border-stone-200/50 mb-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-2xl">{productInfo.icon}</span>
               <div>
-                <p className="font-bold text-[#E9E2D0]">{productInfo.label}</p>
-                <p className="text-xs lg:text-sm text-[#8B8578]">전체 {productInfo.totalVolumeMl}ml</p>
+                <p className="font-bold text-[var(--ink)]">{productInfo.label}</p>
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">전체 {productInfo.totalVolumeMl}ml</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs lg:text-sm text-[#8B8578]">총 향료량</p>
-              <p className="text-xl font-black text-[#A69F8D]">{productInfo.fragranceVolumeMl}ml</p>
+              <p className="text-xs lg:text-sm text-[var(--muted-ink)]">총 향료량</p>
+              <p className="text-xl font-black text-[var(--muted-ink)]">{productInfo.fragranceVolumeMl}ml</p>
             </div>
           </div>
         </div>
@@ -309,18 +309,18 @@ AC'SCENT IDENTITY에서 생성됨`
         {/* 향료별 계량 */}
         <div className="space-y-2 mb-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] flex items-center gap-2">
-              <Scale size={14} className="text-[#8B8578]" />
+            <h3 className="text-sm lg:text-base font-bold text-[var(--muted-ink)] flex items-center gap-2">
+              <Scale size={14} className="text-[var(--muted-ink)]" />
               향료별 계량
             </h3>
             <button
               onClick={handleCopyRecipe}
-              className="flex items-center gap-1 text-xs lg:text-sm text-[#8B8578] hover:text-[#A69F8D] transition-colors"
+              className="flex items-center gap-1 text-xs lg:text-sm text-[var(--muted-ink)] hover:text-[var(--muted-ink)] transition-colors"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 size={14} className="text-[#8B8578]" />
-                  <span className="text-[#A69F8D]">복사됨!</span>
+                  <CheckCircle2 size={14} className="text-[var(--muted-ink)]" />
+                  <span className="text-[var(--muted-ink)]">복사됨!</span>
                 </>
               ) : (
                 <>
@@ -334,7 +334,7 @@ AC'SCENT IDENTITY에서 생성됨`
           <div className="space-y-2">
             {granuleAmounts.map((granule, index) => {
               const bgColor = getGranuleColor(granule.id)
-              const textColorClass = isLightColor(bgColor) ? 'text-[#E9E2D0]' : 'text-[#E9E2D0]'
+              const textColorClass = isLightColor(bgColor) ? 'text-[var(--ink)]' : 'text-[var(--ink)]'
 
               return (
                 <motion.div
@@ -342,11 +342,11 @@ AC'SCENT IDENTITY에서 생성됨`
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-[#12141D] rounded-[12px] p-3 border border-[#1E222E] shadow-sm"
+                  className="bg-[var(--paper)] rounded-[6px] p-3 border border-[var(--line)] shadow-sm"
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-12 h-12 rounded-[12px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass}`}
+                      className={`w-12 h-12 rounded-[6px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass}`}
                       style={{ backgroundColor: bgColor }}
                     >
                       <span className="text-sm lg:text-base font-black">{granule.amountMl.toFixed(1)}</span>
@@ -354,15 +354,15 @@ AC'SCENT IDENTITY에서 생성됨`
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#E9E2D0] text-sm lg:text-base">{getLocalizedName(granule.id, granule.name)}</span>
-                        <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[#151823] text-[#A69F8D] rounded-full">
+                        <span className="font-bold text-[var(--ink)] text-sm lg:text-base">{getLocalizedName(granule.id, granule.name)}</span>
+                        <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[var(--soft)] text-[var(--muted-ink)] rounded-full">
                           {granule.ratio}%
                         </span>
                       </div>
-                      <p className="text-[11px] lg:text-[13px] text-[#8B8578] font-medium">{granule.id}</p>
+                      <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-medium">{granule.id}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-lg font-bold text-[#A69F8D]">{granule.amountMl.toFixed(2)}ml</p>
+                      <p className="text-lg font-bold text-[var(--muted-ink)]">{granule.amountMl.toFixed(2)}ml</p>
                     </div>
                   </div>
                 </motion.div>
@@ -372,18 +372,18 @@ AC'SCENT IDENTITY에서 생성됨`
         </div>
 
         {/* 합계 */}
-        <div className="bg-[#1B1F2C] rounded-[12px] p-4 mb-5">
+        <div className="bg-[var(--soft)] rounded-[6px] p-4 mb-5">
           <div className="flex items-center justify-between">
-            <span className="text-sm lg:text-base font-bold text-[#A69F8D]">총 향료량</span>
-            <p className="text-xl font-black text-[#E9E2D0]">{totalAmount.ml.toFixed(2)}ml</p>
+            <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">총 향료량</span>
+            <p className="text-xl font-black text-[var(--ink)]">{totalAmount.ml.toFixed(2)}ml</p>
           </div>
         </div>
 
         {/* 레시피 설명 */}
         {recipe.generated_recipe.overallExplanation && (
-          <div className="bg-[#12141D] rounded-[12px] p-4 border border-[#1E222E] shadow-sm">
-            <h3 className="text-sm lg:text-base font-bold text-[#A69F8D] mb-2">레시피 설명</h3>
-            <p className="text-sm lg:text-base text-[#A69F8D] leading-relaxed whitespace-pre-wrap">
+          <div className="bg-[var(--paper)] rounded-[6px] p-4 border border-[var(--line)] shadow-sm">
+            <h3 className="text-sm lg:text-base font-bold text-[var(--muted-ink)] mb-2">레시피 설명</h3>
+            <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed whitespace-pre-wrap">
               {recipe.generated_recipe.overallExplanation}
             </p>
           </div>
