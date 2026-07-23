@@ -92,7 +92,7 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       programLabel: 'Programs',
     },
     chemistry: {
-      title: 'Chemistry Perfume Set',
+      title: 'Layering Perfume Set',
       description: 'Capture the chemistry of two characters in scent. AI analyzes their images and relationship to recommend a chemistry profile and perfume set.',
       productDescription: 'A custom scent set for two characters, including a chemistry profile card.',
       keywords: ['chemistry perfume', 'couple perfume', 'character perfume', 'AI chemistry analysis', 'layering perfume'],
@@ -143,14 +143,14 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       programLabel: 'プログラム',
     },
     chemistry: {
-      title: 'ケミ香水セット',
+      title: 'レイヤリングパフュームセット',
       description: '二人のケミを香りで表現。AIが画像と関係性を分析し、ケミプロフィールと香水セットを提案します。',
       productDescription: '二人のためのカスタム香りセット。ケミプロフィールカード付き。',
       keywords: ['ケミ香水', 'カップル香水', 'キャラクター香水', 'AIケミ分析', 'レイヤリング香水'],
       programLabel: 'プログラム',
     },
     'le-quack': {
-      title: 'SIGNATURE ップドゥックパフューム LE QUACK',
+      title: 'SIGNATURE プドゥックパフューム LE QUACK',
       description: "AC'SCENT IDENTITYのシグニチャーパフュームLE QUACK。アヒルキャラクターキーリング付き。",
       productDescription: "AC'SCENT IDENTITYシグニチャーパフューム。アヒルキャラクターキーリング付き。",
       keywords: ['シグニチャー香水', 'LE QUACK', 'アヒルキーリング', 'キャラクター香水'],
@@ -194,7 +194,7 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       programLabel: '项目',
     },
     chemistry: {
-      title: '化学香水套装',
+      title: '叠香香水套装',
       description: '用香气呈现两个人的化学反应。AI分析图片与关系，推荐化学档案和香水套装。',
       productDescription: '为两个人定制的香气套装，包含化学档案卡。',
       keywords: ['化学香水', '情侣香水', '角色香水', 'AI化学分析', '叠香香水'],
@@ -245,7 +245,7 @@ const PROGRAM_SEO: Record<Locale, Record<ProgramSeoSlug, ProgramSeoText>> = {
       programLabel: 'Programas',
     },
     chemistry: {
-      title: 'Set de Perfume Química',
+      title: 'Set de Perfume Layering',
       description: 'Captura la química de dos personajes en aroma. La IA analiza imágenes y relación para recomendar un perfil y set de perfumes.',
       productDescription: 'Set aromático personalizado para dos personajes, con tarjeta de perfil de química.',
       keywords: ['perfume química', 'perfume de pareja', 'perfume de personaje', 'análisis de química IA'],
