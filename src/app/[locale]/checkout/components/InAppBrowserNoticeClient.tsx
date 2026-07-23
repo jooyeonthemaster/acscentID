@@ -60,7 +60,7 @@ export function InAppBrowserNoticeClient() {
           {info.canAutoEscape ? (
             <button
               onClick={handleOpenExternal}
-              className="mt-3 w-full h-12 bg-red-500 text-[var(--ink)] rounded-[6px] font-black border border-[var(--line)] transition-all flex items-center justify-center gap-2"
+              className="mt-3 w-full h-12 bg-red-500 text-white rounded-[6px] font-black transition-all flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
               외부 브라우저로 열기

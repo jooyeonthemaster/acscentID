@@ -92,28 +92,28 @@ export default function ChemistryProgramPage() {
   const galleryMeta: DetailHeroImageMeta[] = gallery.images.map((image) =>
     image.curated
       ? {
-          badge: image.curated.provenance === 'actual' ? te('common.badgeActual') : te('common.badgeVisual'),
           caption: tg(`${image.curated.id}.caption`),
         }
       : {},
   )
 
-  const handleStartClick = () => {
+  const startAnalysis = (target?: 'idol' | 'self') => {
     if (loading) return
     if (isLoggedIn) {
-      startTransition("/input?type=chemistry&mode=online")
+      startTransition(`/input?type=chemistry&mode=online${target ? `&target=${target}` : ''}`)
     } else {
       setShowLoginPrompt(true)
     }
   }
+  const handleStartClick = () => startAnalysis()
 
   const handleLoginClick = () => {
     setShowLoginPrompt(false)
     setShowAuthModal(true)
   }
 
-  const priceSet10 = chemSet10?.price ?? 38000
-  const priceSet50 = chemSet50?.price ?? 60000
+  const priceSet10 = chemSet10?.price ?? 44000
+  const priceSet50 = chemSet50?.price ?? 88000
 
   const heroProps = {
     productSlug: "chemistry",
@@ -123,7 +123,7 @@ export default function ChemistryProgramPage() {
     pagePositionStyle,
     breadcrumbs: [
       { label: t('programs.breadcrumbHome'), href: '/' },
-      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
       { label: productName },
     ],
     images: gallery.controlled,
@@ -144,7 +144,7 @@ export default function ChemistryProgramPage() {
     price: (
       <div className="flex items-baseline gap-2">
         <span className="text-[26px] font-black leading-none text-[var(--ink)] lg:text-[29px]">
-          {t('currency.symbol')}{formatPrice(chemMin ?? 38000)}
+          {t('currency.symbol')}{formatPrice(chemMin ?? 44000)}
         </span>
         <span className="text-[13px] text-[var(--muted-ink)]">{te('common.priceFromSet')}</span>
       </div>
@@ -173,37 +173,26 @@ export default function ChemistryProgramPage() {
     reportPackage: {
       src: '/images/product-detail/chemistry-report-package-square.png',
       alt: tg('chemReportPackage.alt'),
-      badge: te('common.badgeActual'),
       caption: te('chemistry.reportEvidence1'),
-    },
-    reportDetail: {
-      src: '/images/product-detail/chemistry-report-detail-visual.png',
-      alt: tg('chemReportDetail.alt'),
-      badge: te('common.badgeVisual'),
-      caption: te('chemistry.reportEvidence2'),
     },
     tenSet: {
       src: '/images/product-detail/chemistry-10ml-set-square.png',
       alt: tg('chemTenSet.alt'),
-      badge: te('chemistry.sizeEvidence1Badge'),
       caption: te('chemistry.sizeEvidence1'),
     },
     fiftySet: {
       src: '/images/product-detail/chemistry-50ml-set-square.png',
       alt: tg('chemFiftySet.alt'),
-      badge: te('chemistry.sizeEvidence2Badge'),
       caption: te('chemistry.sizeEvidence2'),
     },
     outerBox: {
       src: '/images/product-detail/shipping-outer-box-square.png',
       alt: tg('shippingOuterBox.alt'),
-      badge: te('common.outerBoxTitle'),
       caption: te('common.outerBoxCaption'),
     },
     whiteOpen: {
       src: '/images/product-detail/shipping-white-open-square.png',
       alt: tg('shippingWhiteOpen.alt'),
-      badge: te('common.innerBoxTitle'),
       caption: te('chemistry.innerBoxCaption'),
     },
   }
@@ -222,9 +211,9 @@ export default function ChemistryProgramPage() {
   ]
 
   const relationships = [
-    { tag: te('chemistry.relation1Tag'), title: te('chemistry.relation1Title'), description: te('chemistry.relation1Desc'), cardClass: 'bg-[#F4F5F1]' },
-    { tag: te('chemistry.relation2Tag'), title: te('chemistry.relation2Title'), description: te('chemistry.relation2Desc'), cardClass: 'bg-[#EDF3F7]' },
-    { tag: te('chemistry.relation3Tag'), title: te('chemistry.relation3Title'), description: te('chemistry.relation3Desc'), cardClass: 'bg-[var(--accent-chem-soft)]' },
+    { tag: te('chemistry.relation1Tag'), title: te('chemistry.relation1Title'), description: te('chemistry.relation1Desc'), cardClass: 'bg-[#F4F5F1]', target: 'self' as const },
+    { tag: te('chemistry.relation2Tag'), title: te('chemistry.relation2Title'), description: te('chemistry.relation2Desc'), cardClass: 'bg-[#EDF3F7]', target: 'idol' as const },
+    { tag: te('chemistry.relation3Tag'), title: te('chemistry.relation3Title'), description: te('chemistry.relation3Desc'), cardClass: 'bg-[var(--accent-chem-soft)]', target: 'idol' as const },
   ]
 
   const detailBody = (
@@ -249,13 +238,15 @@ export default function ChemistryProgramPage() {
               {usageCards.map((card, index) => (
                 <div
                   key={index}
-                  className={cn('min-h-[160px] rounded-[6px] border border-[#191918]/15 p-6 lg:min-h-[196px]', card.cardClass)}
+                  className={cn('rounded-[6px] border border-[#191918]/15 p-5 lg:min-h-[150px] lg:p-6', card.cardClass)}
                 >
-                  <span className={cn('inline-grid h-[34px] min-w-[40px] place-items-center rounded-[3px] border border-current px-2 text-[13px] font-black', card.tagClass)}>
-                    {card.tag}
-                  </span>
-                  <h3 className="mt-6 break-keep text-[17px] font-black text-[var(--ink)] lg:mt-8 lg:text-[19px]">{card.title}</h3>
-                  <p className="mt-2 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">{card.description}</p>
+                  <div className="flex items-center gap-3">
+                    <span className={cn('inline-grid h-[34px] min-w-[40px] shrink-0 place-items-center rounded-[3px] border border-current px-2 text-[13px] font-black', card.tagClass)}>
+                      {card.tag}
+                    </span>
+                    <h3 className="break-keep text-[17px] font-black text-[var(--ink)] lg:text-[19px]">{card.title}</h3>
+                  </div>
+                  <p className="mt-3 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">{card.description}</p>
                 </div>
               ))}
             </div>
@@ -272,7 +263,7 @@ export default function ChemistryProgramPage() {
           {/* 케미 리포트 — 연회색 밴드 */}
           <section className="border-y border-[var(--line)] bg-[#F1F1EC] px-5 py-16 lg:px-6 lg:py-28">
             <MediaCopySection
-              media={<EvidenceMediaGrid items={[evidence.reportPackage, evidence.reportDetail]} />}
+              media={<EvidenceMediaGrid items={[evidence.reportPackage]} />}
               kicker={te('chemistry.reportKicker')}
               title={<span className="whitespace-pre-line">{te('chemistry.reportTitle')}</span>}
               lead={te('chemistry.reportLead')}
@@ -287,11 +278,13 @@ export default function ChemistryProgramPage() {
               aria-label={te('chemistry.chemTypesLabel')}
             >
               {chemistryTypes.map((type, index) => (
-                <div key={index} className="min-h-[126px] rounded-[5px] border border-[#CFD0CA] bg-white/60 p-5 lg:min-h-[150px]">
-                  <span className="block text-[11px] font-black text-[var(--accent-chem-deep)]">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <strong className="mt-4 block text-[15px] font-black text-[var(--ink)] lg:mt-6">{type.title}</strong>
+                <div key={index} className="rounded-[5px] border border-[#CFD0CA] bg-white/60 p-4 lg:min-h-[112px] lg:p-5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="shrink-0 text-[11px] font-black text-[var(--accent-chem-deep)]">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <strong className="text-[15px] font-black text-[var(--ink)]">{type.title}</strong>
+                  </div>
                   <p className="mt-1.5 break-keep text-[11px] leading-[1.55] text-[var(--muted-ink)]">{type.description}</p>
                 </div>
               ))}
@@ -345,11 +338,23 @@ export default function ChemistryProgramPage() {
             />
             <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 gap-3 lg:grid-cols-3">
               {relationships.map((relation, index) => (
-                <div key={index} className={cn('min-h-[160px] rounded-[6px] border border-[var(--line)] p-6 lg:min-h-[190px]', relation.cardClass)}>
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => startAnalysis(relation.target)}
+                  disabled={loading}
+                  className={cn(
+                    'group min-h-[150px] rounded-[6px] border border-[var(--line)] p-6 text-left transition-colors hover:border-[var(--ink)] lg:min-h-[180px]',
+                    relation.cardClass,
+                  )}
+                >
                   <span className="text-[10px] font-black text-[var(--accent-chem-deep)]">{relation.tag}</span>
                   <strong className="mt-5 block break-keep text-[17px] font-black text-[var(--ink)] lg:mt-7 lg:text-lg">{relation.title}</strong>
                   <p className="mt-2 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">{relation.description}</p>
-                </div>
+                  <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-black text-[var(--ink)] underline underline-offset-4 group-hover:no-underline">
+                    {te('chemistry.relationStartCta')}
+                  </span>
+                </button>
               ))}
             </div>
           </section>

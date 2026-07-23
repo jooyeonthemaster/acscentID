@@ -84,11 +84,6 @@
     "terms": "使用条款",
     "refundPolicy": "退款政策",
     "companyName": "株式会社 NEANDER",
-    "ceo": "代表：李承镇",
-    "businessNumber": "营业执照号：522-87-03351",
-    "address": "首尔特别市麻浦区卧牛山路112-1 1楼",
-    "phone": "电话：02-336-3368",
-    "email": "邮箱：neander@neander.co.kr",
     "aiImageAnalysis": "AI图像分析",
     "figureDiffuser": "手办香薰器",
     "cancelRefundExchange": "取消/退款/换货",
@@ -154,7 +149,7 @@
     "personal": "个人香氛",
     "leQuack": "SIGNATURE 鸭子香水",
     "customDuck": "定制小鸭",
-    "chemistry": "化学香水套装",
+    "chemistry": "叠香香水套装",
     "saju": "四柱八字香水"
   },
   "labels": {
@@ -239,11 +234,11 @@
       "saju": "用出生年月日时读出的命运之香"
     },
     "includes": {
-      "idolImage": "鸭子香水(10ml/50ml) + 实物分析报告",
+      "idolImage": "AI图像分析香水(10ml/50ml) + 实物分析报告 + 试香纸",
       "figure": "3D手办 + 香薰器(5ml) + 实物分析报告",
-      "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告",
-      "chemistry": "化学香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡",
-      "saju": "四柱定制香水(10ml/50ml) + 命式分析报告"
+      "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告 + 试香纸",
+      "chemistry": "叠香香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡 + 试香纸",
+      "saju": "四柱定制香水(10ml/50ml) + 命式分析报告 + 试香纸"
     },
     "features": {
       "aiAnalysis": "AI定制分析",
@@ -380,7 +375,8 @@
         "loginSignup": "登录 / 注册",
         "guestPurchase": "以非会员身份购买",
         "cartAddSuccess": "已加入购物车 🛒",
-        "cartAddFailed": "加入购物车失败"
+        "cartAddFailed": "加入购物车失败",
+        "paperItem": "附赠试香纸"
       },
       "chemistry": {
         "info": {
@@ -430,7 +426,7 @@
       "leQuack": {
         "productNameFallback": "招牌噗嘟鸭香水",
         "heroSubtitle": "AC'SCENT 招牌香水 + 可爱小鸭香水钥匙扣",
-        "heroInfoTitle": "噗嘟鸭香水(10ml) + 噗嘟鸭香水钥匙扣",
+        "heroInfoTitle": "噗嘟鸭香水(10ml) + 噗嘟鸭香水钥匙扣 + 试香纸",
         "heroInfoBody": "下单后2~3天内发货 / 含可爱小鸭香水钥匙扣 / 高级包装 / 满5万韩元免运费",
         "ctaLabel": "立即购买",
         "breadcrumbSignature": "招牌系列",
@@ -470,7 +466,7 @@
       "personal": {
         "productName": "专属香氛",
         "heroSubtitle": "由AI分析、契合你独特个性的专属签名香水",
-        "heroInfoTitle": "定制香水 10ml（喷雾型）",
+        "heroInfoTitle": "定制香水 10ml（喷雾型） + 试香纸",
         "heroInfoBody": "制作后2~3天发货（运费3,000韩元）／免费赠送个性报告",
         "heroCtaLabel": "开始个性分析",
         "ctaHint": "只需输入描述你的关键词，就这么简单！",
@@ -2353,7 +2349,7 @@
     "privacy": "隐私政策"
   },
   "chemistry": {
-    "title": "Chemistry香水",
+    "title": "叠香香水",
     "description": "将两个角色的化学反应融入香氛",
     "progress": {
       "summon": "召唤",
@@ -2451,7 +2447,7 @@
       "dialogues": "代表台词",
       "story": "化学故事",
       "future": "未来展望",
-      "purchase": "Chemistry香水套装",
+      "purchase": "叠香香水套装",
       "analysisTab": "化学反应分析",
       "faceMatch": "颜值相性",
       "chemistryType": "化学反应类型",
@@ -2664,6 +2660,7 @@
         "included": [
           "所选香味 50ml喷雾香水",
           "高级包装",
+          "附赠试香纸",
           "下单后2〜3日内配送"
         ]
       },
@@ -2674,6 +2671,7 @@
         "included": [
           "所选香味 10ml喷雾香水",
           "便携包装",
+          "附赠试香纸",
           "下单后2〜3日内配送"
         ]
       },
@@ -2737,7 +2735,8 @@
       "addedToast": "已将{count}种香味加入购物车",
       "requestOnlyLabel": "指定香料请求",
       "requestAddedToast": "“{note}”请求已加入购物车",
-      "addFailed": "加入购物车失败"
+      "addFailed": "加入购物车失败",
+      "photoSectionTitle": "商品图片"
     }
   },
   "saju": {
@@ -3235,6 +3234,62 @@
     "chemReportDetail": {
       "alt": "呈现两种香气档案与CP感类型的印刷版报告细节",
       "caption": "此为示意CP感报告内页内容的生成图片，实际分析数值与文案因订单而异。"
+    },
+    "storeFiftyHero": {
+      "alt": "哑光黑50ml香水瓶与白色包装",
+      "caption": "尽情享受心仪香气的AC'SCENT正装容量香水。"
+    },
+    "storeFiftyUnboxing": {
+      "alt": "白色包装中的50ml香水开箱图",
+      "caption": "哑光黑瓶身装入白色包装、安全送达。"
+    },
+    "storeFiftySprayer": {
+      "alt": "50ml香水喷头细节",
+      "caption": "打开瓶盖即可使用的喷雾类型。"
+    },
+    "storeFiftySize": {
+      "alt": "手持50ml香水的大小参考",
+      "caption": "50ml正装容量、握感稳定。"
+    },
+    "storeFiftyPackage": {
+      "alt": "AC'SCENT高级包装氛围图",
+      "caption": "简洁大方的AC'SCENT高级包装、送礼也合适。"
+    },
+    "storeTenHero": {
+      "alt": "透明玻璃瓶的10ml迷你香水",
+      "caption": "轻松随身携带喜欢香气的10ml迷你喷雾。"
+    },
+    "storeTenPackage": {
+      "alt": "便携包装中的10ml香水构成",
+      "caption": "将您选择的香气装入便携包装送达。"
+    },
+    "storeTenSprayer": {
+      "alt": "10ml香水喷头细节",
+      "caption": "打开瓶盖即可使用的喷雾类型。"
+    },
+    "storeTenSize": {
+      "alt": "单手可握的10ml香水大小参考",
+      "caption": "一手掌握的大小、第一次选香也没有负担。"
+    },
+    "storeTenCarry": {
+      "alt": "放入化妆包携带的10ml香水",
+      "caption": "放进化妆包或小包、随时随地轻松使用。"
+    },
+    "storePaperHero": {
+      "alt": "AC'SCENT试香纸套组、报告与信封全套",
+      "caption": "集中展示试香卡、横向更宽的分析报告、信封与透明套等组成内容。"
+    },
+    "storePaperNoteCard": {
+      "alt": "试香卡与分析报告摆放在一起",
+      "caption": "包含所选香气试香卡与基于 A.I. 图像的香气推荐报告。"
+    },
+    "storePaperUse": {
+      "alt": "试香卡与分析报告细节图",
+      "caption": "近距离展示套组中的香气信息卡与分析报告。"
+    },
+    "storePaperHandLight": {
+      "alt": "手持试香卡的明亮氛围图",
+      "caption": "展示试香卡拿在手中的尺寸感，以及背景中的完整套组氛围。"
     }
   },
   "editorialDetail": {
@@ -3256,7 +3311,8 @@
       "factShipping": "预计配送",
       "factShippingValue": "下单后2至3天",
       "faqShippingQ": "配送需要多长时间？",
-      "faqShippingA": "下单后预计需要2至3天。具体时间可能因订单量与快递公司情况而有所变动。"
+      "faqShippingA": "下单后预计需要2至3天。具体时间可能因订单量与快递公司情况而有所变动。",
+      "badgeProductVisual": "商品示意图"
     },
     "idol": {
       "eyebrowNote": "AI专属分析 · 附实体报告",
@@ -3334,7 +3390,7 @@
       "feature2": "可单独使用亦可叠香",
       "feature3": "双人CP感印刷报告",
       "introKicker": "TWO SCENTS, ONE CHEMISTRY",
-      "introTitle": "各自的香已足够好，\n相遇时更加特别",
+      "introTitle": "各有各的个性，\n在一起时更加特别",
       "introLead": "我们把两个人各自不同的氛围调成两瓶香水，并进一步分析两种香气相遇时的平衡。",
       "usageATitle": "第一支香",
       "usageADesc": "承载第一位人物性格与氛围的单人香水",
@@ -3418,7 +3474,8 @@
       "closingKicker": "TWO SCENTS, ONE STORY",
       "closingTitle": "让两个人的CP感\n在香气中交叠",
       "closingButton": "开始免费CP感分析",
-      "ctaHint": "确认两种香气的结果与CP感类型后即可购买。"
+      "ctaHint": "确认两种香气的结果与CP感类型后即可购买。",
+      "relationStartCta": "以这个组合开始"
     }
   }
 }

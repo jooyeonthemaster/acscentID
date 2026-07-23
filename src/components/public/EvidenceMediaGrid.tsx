@@ -4,8 +4,6 @@ import { cn } from '@/lib/utils'
 export interface EvidenceMediaItem {
   src: string
   alt: string
-  /** "실제 상품 사진 기반" | "내부 구성 시각화" 등 출처 라벨 */
-  badge: string
   caption: string
 }
 
@@ -32,7 +30,8 @@ export function EvidenceMediaGrid({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 items-start gap-5 sm:grid-cols-2 sm:gap-3',
+        'grid grid-cols-1 items-start gap-5 sm:gap-3',
+        items.length > 1 && 'sm:grid-cols-2',
         '-mx-5 sm:mx-0',
         framed && 'sm:rounded-[6px] sm:border sm:border-[var(--dark-line)] sm:bg-[#282927] sm:p-2.5',
         className,
@@ -56,14 +55,6 @@ export function EvidenceMediaGrid({
               dark ? 'text-[var(--dark-muted)]' : 'text-[var(--muted-ink)]',
             )}
           >
-            <strong
-              className={cn(
-                'mb-0.5 block text-[10px] font-black',
-                dark ? 'text-white' : 'text-[var(--ink)]',
-              )}
-            >
-              {item.badge}
-            </strong>
             {item.caption}
           </figcaption>
         </figure>

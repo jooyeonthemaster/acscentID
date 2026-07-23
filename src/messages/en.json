@@ -84,11 +84,6 @@
     "terms": "Terms of Service",
     "refundPolicy": "Refund Policy",
     "companyName": "Neander Inc.",
-    "ceo": "CEO: Seungjin Lee",
-    "businessNumber": "Business Registration No.: 522-87-03351",
-    "address": "1F, 112-1 Wausan-ro, Mapo-gu, Seoul",
-    "phone": "Phone: 02-336-3368",
-    "email": "Email: neander@neander.co.kr",
     "aiImageAnalysis": "AI Image Analysis",
     "figureDiffuser": "Figure Diffuser",
     "cancelRefundExchange": "Cancel/Refund/Exchange",
@@ -154,7 +149,7 @@
     "personal": "Personal Scent",
     "leQuack": "SIGNATURE PPUDUCK Perfume",
     "customDuck": "Custom Duck Builder",
-    "chemistry": "Chemistry Perfume Set",
+    "chemistry": "Layering Perfume Set",
     "saju": "Saju (Four Pillars) Perfume"
   },
   "labels": {
@@ -239,11 +234,11 @@
       "saju": "A destiny scent read from your date and hour of birth"
     },
     "includes": {
-      "idolImage": "PPUDUCK Perfume (10ml/50ml) + printed analysis report",
+      "idolImage": "AI Image Analysis Perfume (10ml/50ml) + printed analysis report + Scent Paper",
       "figure": "3D Figure + Diffuser (5ml) + printed analysis report",
-      "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report",
-      "chemistry": "Chemistry Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card",
-      "saju": "Saju custom perfume (10ml/50ml) + printed 命式 chart report"
+      "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report + Scent Paper",
+      "chemistry": "Layering Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card + Scent Paper",
+      "saju": "Saju custom perfume (10ml/50ml) + printed 命式 chart report + Scent Paper"
     },
     "features": {
       "aiAnalysis": "AI Custom Analysis",
@@ -380,7 +375,8 @@
         "loginSignup": "Log In / Sign Up",
         "guestPurchase": "Purchase as Guest",
         "cartAddSuccess": "Added to cart 🛒",
-        "cartAddFailed": "Failed to add to cart"
+        "cartAddFailed": "Failed to add to cart",
+        "paperItem": "Scent paper included"
       },
       "chemistry": {
         "info": {
@@ -430,7 +426,7 @@
       "leQuack": {
         "productNameFallback": "Signature Ppuduck Perfume",
         "heroSubtitle": "AC'SCENT Signature Perfume + Adorable Duck Perfume Keyring",
-        "heroInfoTitle": "Ppuduck Perfume (10ml) + Ppuduck Perfume Keyring",
+        "heroInfoTitle": "Ppuduck Perfume (10ml) + Ppuduck Perfume Keyring + Scent Paper",
         "heroInfoBody": "Ships within 2-3 days of ordering / Includes adorable duck perfume keyring / Premium packaging / Free shipping over 50,000 KRW",
         "ctaLabel": "Buy Now",
         "breadcrumbSignature": "Signature",
@@ -470,7 +466,7 @@
       "personal": {
         "productName": "Personal Scent",
         "heroSubtitle": "A signature perfume tailored to your unique personality, analyzed by AI",
-        "heroInfoTitle": "Custom Perfume 10ml (Spray Type)",
+        "heroInfoTitle": "Custom Perfume 10ml (Spray Type) + Scent Paper",
         "heroInfoBody": "Ships in 2-3 days after crafting (₩3,000 shipping) / Free personality report included",
         "heroCtaLabel": "Start Personality Analysis",
         "ctaHint": "Just enter the keywords that describe you—that's it!",
@@ -2353,7 +2349,7 @@
     "privacy": "Privacy Policy"
   },
   "chemistry": {
-    "title": "Chemistry Perfume",
+    "title": "Layering Perfume",
     "description": "Capturing the chemistry of two characters in scent",
     "progress": {
       "summon": "Summon",
@@ -2451,7 +2447,7 @@
       "dialogues": "Signature Lines",
       "story": "Chemistry Story",
       "future": "Future Vision",
-      "purchase": "Chemistry Perfume Set",
+      "purchase": "Layering Perfume Set",
       "analysisTab": "Chemistry Analysis",
       "faceMatch": "Face Match",
       "chemistryType": "Chemistry Type",
@@ -2664,6 +2660,7 @@
         "included": [
           "Selected scent 50ml spray perfume",
           "Premium packaging",
+          "Scent paper included",
           "Delivered within 2–3 days after order"
         ]
       },
@@ -2674,6 +2671,7 @@
         "included": [
           "Selected scent 10ml spray perfume",
           "Portable packaging",
+          "Scent paper included",
           "Delivered within 2–3 days after order"
         ]
       },
@@ -2737,7 +2735,8 @@
       "addedToast": "Added {count} scents to your cart",
       "requestOnlyLabel": "Specific fragrance request",
       "requestAddedToast": "\"{note}\" request has been added to your cart",
-      "addFailed": "Failed to add to cart"
+      "addFailed": "Failed to add to cart",
+      "photoSectionTitle": "Product photos"
     }
   },
   "saju": {
@@ -3235,6 +3234,62 @@
     "chemReportDetail": {
       "alt": "Printed report detail showing two scent profiles and the chemistry type",
       "caption": "A generated image illustrating the chemistry report contents; actual analysis values and text vary by order."
+    },
+    "storeFiftyHero": {
+      "alt": "Matte black 50ml perfume bottle with white package",
+      "caption": "Our full-size perfume for enjoying the scent you love, generously."
+    },
+    "storeFiftyUnboxing": {
+      "alt": "Unboxing view of the 50ml perfume in white packaging",
+      "caption": "The matte black bottle arrives neatly arranged in white packaging."
+    },
+    "storeFiftySprayer": {
+      "alt": "Close-up of the 50ml perfume sprayer",
+      "caption": "A spray type you can use right away — just open the cap."
+    },
+    "storeFiftySize": {
+      "alt": "50ml perfume held in a hand for scale",
+      "caption": "The 50ml full size sits comfortably in your hand."
+    },
+    "storeFiftyPackage": {
+      "alt": "AC'SCENT premium package mood shot",
+      "caption": "A clean premium package that also works as a gift."
+    },
+    "storeTenHero": {
+      "alt": "10ml mini perfume in a clear glass bottle",
+      "caption": "A 10ml mini spray for carrying your favorite scent lightly."
+    },
+    "storeTenPackage": {
+      "alt": "10ml perfume arranged in its portable package",
+      "caption": "Your chosen scent arrives neatly arranged in a portable package."
+    },
+    "storeTenSprayer": {
+      "alt": "Close-up of the 10ml perfume sprayer",
+      "caption": "A spray type you can use right away — just open the cap."
+    },
+    "storeTenSize": {
+      "alt": "10ml perfume held in a hand for scale",
+      "caption": "A palm-size bottle that makes trying a first scent easy."
+    },
+    "storeTenCarry": {
+      "alt": "10ml perfume carried in a pouch",
+      "caption": "Slip it into a pouch or small bag and use it anywhere."
+    },
+    "storePaperHero": {
+      "alt": "Full AC'SCENT scent paper kit with report and envelope",
+      "caption": "Shows the kit pieces together: scent card, wider analysis report, envelope and sleeve."
+    },
+    "storePaperNoteCard": {
+      "alt": "Scent card and analysis report arranged together",
+      "caption": "Includes the selected scent card and an A.I. image based scent recommendation report."
+    },
+    "storePaperUse": {
+      "alt": "Detail view of the scent card and analysis report",
+      "caption": "A closer look at the scent information card and report included in the kit."
+    },
+    "storePaperHandLight": {
+      "alt": "Bright mood shot of a hand holding the scent card",
+      "caption": "Shows how the scent card feels in hand with the full kit softly in the background."
     }
   },
   "editorialDetail": {
@@ -3256,7 +3311,8 @@
       "factShipping": "Estimated delivery",
       "factShippingValue": "2–3 days after ordering",
       "faqShippingQ": "How long does delivery take?",
-      "faqShippingA": "Delivery takes an estimated 2–3 days after ordering. Times may vary depending on order volume and courier conditions."
+      "faqShippingA": "Delivery takes an estimated 2–3 days after ordering. Times may vary depending on order volume and courier conditions.",
+      "badgeProductVisual": "Product visualization"
     },
     "idol": {
       "eyebrowNote": "AI personalized analysis · Printed report included",
@@ -3334,7 +3390,7 @@
       "feature2": "Wear solo or layered",
       "feature3": "Printed chemistry report for two",
       "introKicker": "TWO SCENTS, ONE CHEMISTRY",
-      "introTitle": "Beautiful on their own,\neven more special together",
+      "introTitle": "Each with its own character,\neven more special together",
       "introLead": "We craft each person's distinct mood into its own perfume, then analyze the balance the two scents strike when they meet.",
       "usageATitle": "First scent",
       "usageADesc": "A standalone perfume holding the first person's character and mood",
@@ -3418,7 +3474,8 @@
       "closingKicker": "TWO SCENTS, ONE STORY",
       "closingTitle": "Layer the chemistry between you\ninto scent",
       "closingButton": "Start free chemistry analysis",
-      "ctaHint": "You can purchase after reviewing both scent results and your chemistry type."
+      "ctaHint": "You can purchase after reviewing both scent results and your chemistry type.",
+      "relationStartCta": "Start with this pair"
     }
   }
 }

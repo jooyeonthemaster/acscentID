@@ -135,11 +135,6 @@ export function DesktopDetailHero({
                 </div>
               )}
 
-              {selectedMeta?.badge && (
-                <span className="absolute left-3.5 top-3.5 z-20 rounded-[3px] border border-white/75 bg-[#191918]/80 px-2 py-1.5 text-[10px] font-extrabold leading-none text-white">
-                  {selectedMeta.badge}
-                </span>
-              )}
 
               {showArrows && (
                 <>
@@ -239,7 +234,7 @@ export function DesktopDetailHero({
             </h1>
             <p className="mt-3.5 max-w-[500px] break-keep text-[17px] leading-[1.65] text-[var(--muted-ink)]">
               <span
-                className="inline-block"
+                className="inline-block whitespace-pre-line"
                 data-admin-page-field="subtitle"
                 data-admin-page-position-field="subtitle"
                 style={pagePositionStyle?.("subtitle")}

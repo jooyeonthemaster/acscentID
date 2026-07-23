@@ -84,11 +84,6 @@
     "terms": "利用規約",
     "refundPolicy": "返金ポリシー",
     "companyName": "株式会社ネアンダー",
-    "ceo": "代表: イ・スンジン",
-    "businessNumber": "事業者登録番号: 522-87-03351",
-    "address": "ソウル特別市 麻浦区 ワウサンロ 112-1 1階",
-    "phone": "電話: 02-336-3368",
-    "email": "メール: neander@neander.co.kr",
     "aiImageAnalysis": "AIイメージ分析",
     "figureDiffuser": "フィギュアディフューザー",
     "cancelRefundExchange": "キャンセル/返金/交換",
@@ -152,9 +147,9 @@
     "figureDiffuser": "フィギュア花鉢ディフューザー",
     "graduation": "卒業記念パフューム",
     "personal": "パーソナルセント",
-    "leQuack": "SIGNATURE ップドゥックパフューム",
+    "leQuack": "SIGNATURE プドゥックパフューム",
     "customDuck": "カスタムダックビルダー",
-    "chemistry": "ケミ香水セット",
+    "chemistry": "レイヤリングパフュームセット",
     "saju": "四柱推命パフューム"
   },
   "labels": {
@@ -239,11 +234,11 @@
       "saju": "生年月日時から読み解く運命の香り"
     },
     "includes": {
-      "idolImage": "ップドゥックパフューム(10ml/50ml) + 分析レポート",
+      "idolImage": "AI イメージ分析パフューム(10ml/50ml) + 分析レポート + 試香紙",
       "figure": "3Dフィギュア + ディフューザー(5ml) + 分析レポート",
-      "graduation": "ップドゥックパフューム(10ml) + 学帽パフュームキーリング + 卒業証書風分析レポート",
-      "chemistry": "ケミ香水セット(10ml x 2 / 50ml x 2) + ケミプロフィールカード",
-      "saju": "四柱オーダーメイドパフューム(10ml/50ml) + 命式分析レポート"
+      "graduation": "プドゥックパフューム(10ml) + 学帽パフュームキーリング + 卒業証書風分析レポート + 試香紙",
+      "chemistry": "レイヤリングパフュームセット(10ml x 2 / 50ml x 2) + ケミプロフィールカード + 試香紙",
+      "saju": "四柱オーダーメイドパフューム(10ml/50ml) + 命式分析レポート + 試香紙"
     },
     "features": {
       "aiAnalysis": "AIカスタム分析",
@@ -380,7 +375,8 @@
         "loginSignup": "ログイン / 会員登録",
         "guestPurchase": "非会員として購入",
         "cartAddSuccess": "カートに入れました 🛒",
-        "cartAddFailed": "カートへの追加に失敗しました"
+        "cartAddFailed": "カートへの追加に失敗しました",
+        "paperItem": "試香紙同梱"
       },
       "chemistry": {
         "info": {
@@ -430,7 +426,7 @@
       "leQuack": {
         "productNameFallback": "シグネチャー プドゥックパフューム",
         "heroSubtitle": "AC'SCENT シグネチャーパフューム + かわいいアヒルのパフュームキーリング",
-        "heroInfoTitle": "プドゥックパフューム(10ml) + プドゥック パフュームキーリング",
+        "heroInfoTitle": "プドゥックパフューム(10ml) + プドゥック パフュームキーリング + 試香紙",
         "heroInfoBody": "ご注文後2～3日以内に発送 / かわいいアヒルのパフュームキーリング付き / プレミアムパッケージ / 5万ウォン以上で送料無料",
         "ctaLabel": "今すぐ購入する",
         "breadcrumbSignature": "シグネチャー",
@@ -470,7 +466,7 @@
       "personal": {
         "productName": "パーソナルセント",
         "heroSubtitle": "AIが分析した、あなただけのパーソナリティに合うシグネチャーパフューム",
-        "heroInfoTitle": "オーダーメイドパフューム 10ml（スプレータイプ）",
+        "heroInfoTitle": "オーダーメイドパフューム 10ml（スプレータイプ） + 試香紙",
         "heroInfoBody": "製作後2~3日でお届け（送料3,000ウォン）／パーソナリティレポート無料プレゼント",
         "heroCtaLabel": "パーソナリティ分析を始める",
         "ctaHint": "自分を表すキーワードを入力するだけ！",
@@ -838,7 +834,7 @@
     "optionImageAnalysisPaper": "AIイメージ分析ムエット",
     "optionFigureSet": "フィギュア + ディフューザーセット",
     "optionGraduation10": "卒業パフューム 10ml",
-    "optionSignature10": "SIGNATURE ップドゥックパフューム 10ml",
+    "optionSignature10": "SIGNATURE プドゥックパフューム 10ml",
     "optionChemistrySet10": "レイヤリングパフュームセット 10ml x 2",
     "optionChemistrySet50": "レイヤリングパフュームセット 50ml x 2",
     "optionPaymentTest": "決済テスト商品",
@@ -851,9 +847,9 @@
     "figureSetTitle": "フィギュア + ディフューザーセット",
     "figureSetDesc": "3Dプリンティングフィギュア + カスタム香料 5ml",
     "graduationPerfumeTitle": "卒業パフューム 10ml",
-    "graduationPerfumeDesc": "ップドゥックパフューム + 分析レポート",
-    "signaturePerfumeTitle": "シグネチャー ップドゥックパフューム 10ml",
-    "signaturePerfumeDesc": "シグネチャーパフューム + ップドゥックパフュームキーリング",
+    "graduationPerfumeDesc": "プドゥックパフューム + 分析レポート",
+    "signaturePerfumeTitle": "シグネチャー プドゥックパフューム 10ml",
+    "signaturePerfumeDesc": "シグネチャーパフューム + プドゥックパフュームキーリング",
     "sprayType": "スプレータイプ",
     "includeFigure": "AI分析ベース3Dフィギュア（カスタム制作）",
     "includeEssence": "カスタム香料（5ml）",
@@ -863,8 +859,8 @@
     "includeGradPerfume": "卒業記念カスタム香水（10ml）",
     "includeReport": "分析レポート",
     "includeGradCard": "卒業お祝いメッセージカード 🎓",
-    "includeSignaturePerfume": "シグネチャー ップドゥックパフューム（10ml）",
-    "includeKeyring": "かわいいップドゥックパフュームキーリング 🦆",
+    "includeSignaturePerfume": "シグネチャー プドゥックパフューム（10ml）",
+    "includeKeyring": "かわいいプドゥックパフュームキーリング 🦆",
     "includePremiumPackage": "プレミアムパッケージ",
     "freeShippingOverInfo": "5万ウォン以上で送料無料",
     "includeAnalysisPerfume": "AIカスタム分析香水（{size}）",
@@ -2353,7 +2349,7 @@
     "privacy": "プライバシーポリシー"
   },
   "chemistry": {
-    "title": "ケミ香水",
+    "title": "レイヤリングパフューム",
     "description": "二人のキャラクターのケミを香りに込めて",
     "progress": {
       "summon": "召喚",
@@ -2451,7 +2447,7 @@
       "dialogues": "代表セリフ",
       "story": "ケミストーリー",
       "future": "未来予測",
-      "purchase": "ケミ香水セット",
+      "purchase": "レイヤリングパフュームセット",
       "analysisTab": "ケミ分析",
       "faceMatch": "顔相性",
       "chemistryType": "ケミタイプ",
@@ -2664,6 +2660,7 @@
         "included": [
           "選択した香り 50mlスプレー香水",
           "プレミアムパッケージ",
+          "試香紙同梱",
           "ご注文後2〜3日以内に配送"
         ]
       },
@@ -2674,6 +2671,7 @@
         "included": [
           "選択した香り 10mlスプレー香水",
           "携帯用パッケージ",
+          "試香紙同梱",
           "ご注文後2〜3日以内に配送"
         ]
       },
@@ -2737,7 +2735,8 @@
       "addedToast": "{count}種の香りをカートに入れました",
       "requestOnlyLabel": "特定香料リクエスト",
       "requestAddedToast": "「{note}」のリクエストをカートに追加しました",
-      "addFailed": "カートへの追加に失敗しました"
+      "addFailed": "カートへの追加に失敗しました",
+      "photoSectionTitle": "商品写真"
     }
   },
   "saju": {
@@ -3235,6 +3234,62 @@
     "chemReportDetail": {
       "alt": "2つの香りのプロフィールとケミタイプを掲載した印刷レポートの詳細",
       "caption": "ケミレポートの内容を説明するための生成画像で、実際の分析値と文言はご注文ごとに異なります。"
+    },
+    "storeFiftyHero": {
+      "alt": "マットブラックの50ml香水ボトルとホワイトパッケージ",
+      "caption": "気に入った香りをたっぷり楽しむAC'SCENTの定番容量です。"
+    },
+    "storeFiftyUnboxing": {
+      "alt": "ホワイトパッケージに入った50ml香水の開封イメージ",
+      "caption": "マットブラックのボトルをホワイトパッケージに整えて安全にお届けします。"
+    },
+    "storeFiftySprayer": {
+      "alt": "50ml香水のスプレー部分のディテール",
+      "caption": "キャップを開けてすぐ使えるスプレータイプです。"
+    },
+    "storeFiftySize": {
+      "alt": "手に持った50ml香水のサイズ感",
+      "caption": "手に安定して収まる50mlの定番容量です。"
+    },
+    "storeFiftyPackage": {
+      "alt": "AC'SCENTプレミアムパッケージのムードカット",
+      "caption": "ギフトにもきれいなAC'SCENTプレミアムパッケージです。"
+    },
+    "storeTenHero": {
+      "alt": "透明ガラスボトルの10mlミニ香水",
+      "caption": "好きな香りを気軽に持ち歩ける10mlミニスプレーです。"
+    },
+    "storeTenPackage": {
+      "alt": "携帯用パッケージに入った10ml香水の構成",
+      "caption": "選んだ香りを携帯用パッケージに整えてお届けします。"
+    },
+    "storeTenSprayer": {
+      "alt": "10ml香水のスプレー部分のディテール",
+      "caption": "キャップを開けてすぐ使えるスプレータイプです。"
+    },
+    "storeTenSize": {
+      "alt": "手のひらに収まる10ml香水のサイズ感",
+      "caption": "手のひらサイズで、初めての香り選びにも気軽です。"
+    },
+    "storeTenCarry": {
+      "alt": "ポーチに入れて持ち歩く10ml香水",
+      "caption": "ポーチや小さいバッグに入れてどこでも気軽に使えます。"
+    },
+    "storePaperHero": {
+      "alt": "AC'SCENT試香紙キット一式とレポート、封筒",
+      "caption": "試香カード、横幅を広く見せた分析レポート、封筒、スリーブをまとめて見せます。"
+    },
+    "storePaperNoteCard": {
+      "alt": "試香カードと分析レポートを並べたキット",
+      "caption": "選んだ香りの試香カードと、A.I.画像ベースの香り推薦レポートが含まれます。"
+    },
+    "storePaperUse": {
+      "alt": "試香カードと分析レポートのディテール",
+      "caption": "カードの香り情報とレポートを近くで確認できる構成です。"
+    },
+    "storePaperHandLight": {
+      "alt": "手で試香カードを持った明るいムードカット",
+      "caption": "手に持ったときの試香カードのサイズ感とキット全体の雰囲気を見せます。"
     }
   },
   "editorialDetail": {
@@ -3256,7 +3311,8 @@
       "factShipping": "お届け目安",
       "factShippingValue": "ご注文後2〜3日",
       "faqShippingQ": "配送にはどのくらいかかりますか？",
-      "faqShippingA": "ご注文後、目安として2〜3日かかります。注文量や配送会社の状況により前後する場合があります。"
+      "faqShippingA": "ご注文後、目安として2〜3日かかります。注文量や配送会社の状況により前後する場合があります。",
+      "badgeProductVisual": "商品イメージカット"
     },
     "idol": {
       "eyebrowNote": "AIパーソナル分析 · 印刷レポート付き",
@@ -3334,7 +3390,7 @@
       "feature2": "単独使いもレイヤリングも",
       "feature3": "2人のケミ印刷レポート",
       "introKicker": "TWO SCENTS, ONE CHEMISTRY",
-      "introTitle": "それぞれの香りも良く、\n重なるともっと特別に",
+      "introTitle": "それぞれの個性、\nふたつ重なればもっと特別に",
       "introLead": "2人の異なる雰囲気をそれぞれのパフュームに仕立て、2つの香りが出会ったときのバランスまで分析します。",
       "usageATitle": "1本目の香り",
       "usageADesc": "1人目の性格とムードを込めた単独パフューム",
@@ -3418,7 +3474,8 @@
       "closingKicker": "TWO SCENTS, ONE STORY",
       "closingTitle": "2人のケミを\n香りで重ねてみませんか",
       "closingButton": "無料ケミ分析をはじめる",
-      "ctaHint": "2つの香りの結果とケミタイプを確認してから購入できます。"
+      "ctaHint": "2つの香りの結果とケミタイプを確認してから購入できます。",
+      "relationStartCta": "この組み合わせで始める"
     }
   }
 }

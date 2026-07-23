@@ -84,11 +84,6 @@
     "terms": "이용약관",
     "refundPolicy": "환불 정책",
     "companyName": "주식회사 네안더",
-    "ceo": "대표: 이승진",
-    "businessNumber": "사업자등록번호: 522-87-03351",
-    "address": "서울특별시 마포구 와우산로 112-1 1층",
-    "phone": "전화: 02-336-3368",
-    "email": "이메일: neander@neander.co.kr",
     "aiImageAnalysis": "AI 이미지 분석",
     "figureDiffuser": "피규어 디퓨저",
     "cancelRefundExchange": "취소/환불/교환",
@@ -239,11 +234,11 @@
       "saju": "생년월일시로 읽는 운명의 향"
     },
     "includes": {
-      "idolImage": "뿌덕퍼퓸(10ml/50ml) + 실물 분석보고서",
+      "idolImage": "AI 이미지 분석 퍼퓸(10ml/50ml) + 실물 분석보고서 + 시향지",
       "figure": "3D 피규어 + 디퓨저(5ml) + 실물 분석보고서",
-      "graduation": "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서",
-      "chemistry": "레이어링 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드",
-      "saju": "사주 맞춤 퍼퓸(10ml/50ml) + 命式 분석보고서"
+      "graduation": "뿌덕퍼퓸(10ml) + 학사모퍼퓸키링 + 졸업장st 분석보고서 + 시향지",
+      "chemistry": "레이어링 퍼퓸 세트(10ml x 2 / 50ml x 2) + 케미 프로필 카드 + 시향지",
+      "saju": "사주 맞춤 퍼퓸(10ml/50ml) + 命式 분석보고서 + 시향지"
     },
     "features": {
       "aiAnalysis": "AI 맞춤 분석",
@@ -265,7 +260,7 @@
     "resultPreview": {
       "badge": "📊 RESULT PREVIEW",
       "title": "이런 분석 결과를 받아보실 수 있어요",
-      "description": "AI가 이미지의 색감, 분위기, 감정을 분석하여 어울리는 퍼퓸 레시피를 만들어드려요"
+      "description": "AI가 이미지의 색감, 분위기, 감정을 분석하여\n어울리는 퍼퓸 레시피를 만들어드려요"
     },
     "reviews": {
       "badge": "💬 REAL REVIEWS",
@@ -380,7 +375,8 @@
         "loginSignup": "로그인 / 회원가입",
         "guestPurchase": "비회원으로 구매하기",
         "cartAddSuccess": "장바구니에 담았어요 🛒",
-        "cartAddFailed": "장바구니 추가에 실패했습니다"
+        "cartAddFailed": "장바구니 추가에 실패했습니다",
+        "paperItem": "시향지 동봉"
       },
       "chemistry": {
         "info": {
@@ -430,7 +426,7 @@
       "leQuack": {
         "productNameFallback": "시그니처 뿌덕퍼퓸",
         "heroSubtitle": "AC'SCENT 시그니처 퍼퓸 + 귀여운 오리 퍼퓸키링",
-        "heroInfoTitle": "뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링",
+        "heroInfoTitle": "뿌덕퍼퓸(10ml) + 뿌덕 퍼퓸 키링 + 시향지",
         "heroInfoBody": "주문 후 2~3일 내 배송 / 귀여운 오리 퍼퓸키링 포함 / 프리미엄 패키지 / 5만원 이상 무료배송",
         "ctaLabel": "지금 바로 구매하기",
         "breadcrumbSignature": "시그니처",
@@ -470,7 +466,7 @@
       "personal": {
         "productName": "퍼스널 센트",
         "heroSubtitle": "AI가 분석한 당신만의 퍼스널리티에 맞는 시그니처 퍼퓸",
-        "heroInfoTitle": "맞춤 퍼퓸 10ml (스프레이 타입)",
+        "heroInfoTitle": "맞춤 퍼퓸 10ml (스프레이 타입) + 시향지",
         "heroInfoBody": "제작 후 2~3일 배송 (배송비 3,000원) / 퍼스널리티 리포트 무료 증정",
         "heroCtaLabel": "퍼스널리티 분석 시작하기",
         "ctaHint": "나를 표현하는 키워드만 입력하면 끝!",
@@ -2705,7 +2701,8 @@
       "addedToast": "{count}가지 향을 장바구니에 담았어요",
       "requestOnlyLabel": "특정 향료 요청",
       "requestAddedToast": "\"{note}\" 요청이 장바구니에 담겼습니다",
-      "addFailed": "장바구니 추가에 실패했습니다"
+      "addFailed": "장바구니 추가에 실패했습니다",
+      "photoSectionTitle": "제품 사진"
     }
   },
   "saju": {
@@ -3203,6 +3200,62 @@
     "chemReportDetail": {
       "alt": "두 향 프로필과 케미 타입이 담긴 인쇄 리포트 상세",
       "caption": "케미 리포트 내부 항목을 설명하기 위한 생성 이미지이며 실제 분석값과 문구는 주문마다 달라집니다."
+    },
+    "storeFiftyHero": {
+      "alt": "무광 블랙 50ml 향수 보틀과 화이트 패키지 연출 컷",
+      "caption": "마음에 든 향을 넉넉하게 즐기는 AC'SCENT 정규 용량 향수입니다."
+    },
+    "storeFiftyUnboxing": {
+      "alt": "화이트 패키지에 담긴 50ml 향수 언박싱 연출 컷",
+      "caption": "무광 블랙 보틀을 화이트 패키지에 정돈해 안전하게 보내드려요."
+    },
+    "storeFiftySprayer": {
+      "alt": "50ml 향수 스프레이 분사구 디테일 연출 컷",
+      "caption": "캡을 열어 바로 사용하는 스프레이 타입입니다."
+    },
+    "storeFiftySize": {
+      "alt": "손에 쥔 50ml 향수 크기감 연출 컷",
+      "caption": "손에 안정적으로 잡히는 50ml 정규 용량입니다."
+    },
+    "storeFiftyPackage": {
+      "alt": "AC'SCENT 프리미엄 패키지 무드 연출 컷",
+      "caption": "선물용으로도 깔끔한 AC'SCENT 프리미엄 패키지입니다."
+    },
+    "storeTenHero": {
+      "alt": "투명 유리 보틀의 10ml 미니 향수 연출 컷",
+      "caption": "좋아하는 향을 가볍게 들고 다니는 10ml 미니 스프레이입니다."
+    },
+    "storeTenPackage": {
+      "alt": "휴대용 패키지에 담긴 10ml 향수 구성 연출 컷",
+      "caption": "선택한 향을 휴대용 패키지에 정돈해 보내드려요."
+    },
+    "storeTenSprayer": {
+      "alt": "10ml 향수 분사구 디테일 연출 컷",
+      "caption": "캡을 열어 바로 사용하는 스프레이 타입입니다."
+    },
+    "storeTenSize": {
+      "alt": "한 손에 들어오는 10ml 향수 크기감 연출 컷",
+      "caption": "한 손에 쏙 들어오는 크기로, 처음 향을 고를 때도 부담이 적어요."
+    },
+    "storeTenCarry": {
+      "alt": "파우치에 넣어 휴대하는 10ml 향수 연출 컷",
+      "caption": "파우치나 작은 가방에 넣어 어디서든 편하게 사용하세요."
+    },
+    "storePaperHero": {
+      "alt": "AC'SCENT 시향지 키트 전체 구성 연출 컷",
+      "caption": "시향 카드, 넓은 분석 리포트, 봉투까지 구성품을 한 번에 보여줍니다."
+    },
+    "storePaperNoteCard": {
+      "alt": "시향 카드와 분석 리포트가 함께 놓인 시향지 키트",
+      "caption": "선택한 향의 시향 카드와 A.I. 이미지 기반 향 추천 리포트가 함께 제공됩니다."
+    },
+    "storePaperUse": {
+      "alt": "시향 카드와 분석 리포트 디테일 연출 컷",
+      "caption": "카드의 향 정보와 리포트를 함께 확인할 수 있는 구성입니다."
+    },
+    "storePaperHandLight": {
+      "alt": "손으로 시향 카드를 들고 있는 밝은 무드 연출 컷",
+      "caption": "손에 들었을 때의 시향 카드 크기감과 구성품 분위기를 보여줍니다."
     }
   },
   "editorialDetail": {
@@ -3224,7 +3277,8 @@
       "factShipping": "예상 배송",
       "factShippingValue": "주문 후 2~3일",
       "faqShippingQ": "배송은 얼마나 걸리나요?",
-      "faqShippingA": "주문 후 예상 2~3일이 소요됩니다. 주문량과 택배사 사정에 따라 달라질 수 있습니다."
+      "faqShippingA": "주문 후 예상 2~3일이 소요됩니다. 주문량과 택배사 사정에 따라 달라질 수 있습니다.",
+      "badgeProductVisual": "제품 연출 이미지"
     },
     "idol": {
       "eyebrowNote": "AI 맞춤 분석 · 실물 리포트 포함",
@@ -3236,7 +3290,7 @@
       "feature3": "소장 가능한 인쇄 리포트",
       "introKicker": "FROM IMAGE TO SCENT",
       "introTitle": "보이는 분위기를\n기억에 남는 향으로",
-      "introLead": "좋아하는 사진, 최애의 이미지, 나를 잘 보여주는 한 장 모두 가능합니다. 이미지 속 단서를 향의 언어로 바꿔 한 병에 담습니다.",
+      "introLead": "좋아하는 사진, 최애의 사진 한 장 모두 가능합니다.\n이미지 속 단서를 향의 언어로 바꿔 한 병에 담습니다.",
       "step1Title": "이미지 업로드",
       "step1Desc": "향으로 만들고 싶은 사진 한 장을 선택합니다.",
       "step2Title": "정보 입력",
@@ -3302,7 +3356,7 @@
       "feature2": "단독 사용과 레이어링",
       "feature3": "2인 케미 인쇄 리포트",
       "introKicker": "TWO SCENTS, ONE CHEMISTRY",
-      "introTitle": "각자의 향도 좋고,\n함께일 때는 더 특별하게",
+      "introTitle": "각자의 개성,\n함께일 때는 더욱 특별하게",
       "introLead": "두 인물의 서로 다른 분위기를 각각의 퍼퓸으로 만들고, 두 향이 만났을 때의 균형까지 분석합니다.",
       "usageATitle": "첫 번째 향",
       "usageADesc": "첫 번째 인물의 성향과 무드를 담은 단독 퍼퓸",
@@ -3386,7 +3440,8 @@
       "closingKicker": "TWO SCENTS, ONE STORY",
       "closingTitle": "두 사람의 케미를\n향으로 겹쳐보세요",
       "closingButton": "무료 케미 분석 시작하기",
-      "ctaHint": "두 향의 결과와 케미 타입을 확인한 뒤 구매할 수 있어요."
+      "ctaHint": "두 향의 결과와 케미 타입을 확인한 뒤 구매할 수 있어요.",
+      "relationStartCta": "이 조합으로 시작하기"
     }
   }
 }

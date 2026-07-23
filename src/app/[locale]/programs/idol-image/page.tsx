@@ -88,7 +88,6 @@ export default function IdolImagePage() {
   const galleryMeta: DetailHeroImageMeta[] = gallery.images.map((image) =>
     image.curated
       ? {
-          badge: image.curated.provenance === 'actual' ? te('common.badgeActual') : te('common.badgeVisual'),
           caption: tg(`${image.curated.id}.caption`),
         }
       : {},
@@ -119,7 +118,7 @@ export default function IdolImagePage() {
     pagePositionStyle,
     breadcrumbs: [
       { label: t('programs.breadcrumbHome'), href: '/' },
-      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
       { label: productName },
     ],
     images: gallery.controlled,
@@ -181,37 +180,21 @@ export default function IdolImagePage() {
     tenPouch: {
       src: '/images/product-detail/ai-10ml-pouch-bright.png',
       alt: tg('aiTenPouch.alt'),
-      badge: te('common.badgeActual'),
       caption: te('idol.reportEvidence1'),
     },
     fiftyFullSet: {
       src: '/images/product-detail/ai-50ml-full-set-8056-square.png',
       alt: tg('aiFiftyFullSet.alt'),
-      badge: te('common.badgeActual'),
       caption: te('idol.reportEvidence2'),
-    },
-    tenReport: {
-      src: '/images/product-detail/ai-10ml-report-square.png',
-      alt: tg('aiTenReport.alt'),
-      badge: te('idol.sizeEvidence1Badge'),
-      caption: te('idol.sizeEvidence1'),
-    },
-    fiftyReport: {
-      src: '/images/product-detail/ai-50ml-report-square.png',
-      alt: tg('aiFiftyReport.alt'),
-      badge: te('idol.sizeEvidence2Badge'),
-      caption: te('idol.sizeEvidence2'),
     },
     outerBox: {
       src: '/images/product-detail/shipping-outer-box-square.png',
       alt: tg('shippingOuterBox.alt'),
-      badge: te('common.outerBoxTitle'),
       caption: te('common.outerBoxCaption'),
     },
     whiteOpen: {
       src: '/images/product-detail/shipping-white-open-square.png',
       alt: tg('shippingWhiteOpen.alt'),
-      badge: te('common.innerBoxTitle'),
       caption: te('common.innerBoxCaption'),
     },
   }
@@ -232,7 +215,7 @@ export default function IdolImagePage() {
             <SectionHeading
               kicker={te('idol.introKicker')}
               title={<span className="whitespace-pre-line">{te('idol.introTitle')}</span>}
-              lead={te('idol.introLead')}
+              lead={<span className="whitespace-pre-line">{te('idol.introLead')}</span>}
             />
             <ProcessSteps
               steps={[
@@ -288,13 +271,12 @@ export default function IdolImagePage() {
 
           {/* 용량 비교 */}
           <section className="border-t border-[var(--line)] bg-[var(--paper)] px-5 py-16 lg:px-6 lg:py-28">
-            <MediaCopySection
-              reverse
-              media={<EvidenceMediaGrid items={[evidence.tenReport, evidence.fiftyReport]} />}
+            <SectionHeading
               kicker={te('idol.sizeKicker')}
               title={<span className="whitespace-pre-line">{te('idol.sizeTitle')}</span>}
               lead={te('idol.sizeLead')}
-            >
+            />
+            <div className="mx-auto w-full max-w-[720px]">
               <SizeComparison
                 headers={[te('common.sizeHeaderOption'), te('idol.sizeHeaderNote'), te('common.sizeHeaderPrice')]}
                 rows={[
@@ -302,7 +284,7 @@ export default function IdolImagePage() {
                   { option: '50ml', note: te('idol.sizeFiftyNote'), price: `${t('currency.symbol')}${formatPrice(price50)}` },
                 ]}
               />
-            </MediaCopySection>
+            </div>
           </section>
 
           {/* 배송 안내 — 다크 밴드 */}

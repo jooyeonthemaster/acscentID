@@ -112,7 +112,7 @@ const EMPTY_CHECKOUT_FORM_DATA: CheckoutFormData = {
 function CheckoutLoading() {
   return (
     <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--line)] rounded-full animate-spin" />
+      <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--ink)] rounded-full animate-spin" />
     </div>
   )
 }
@@ -352,7 +352,7 @@ function CheckoutContent() {
     if (isPaymentTest) {
       setProductType("payment_test")
       setSelectedSize("10ml")
-      setUserImage("/images/logo/logo.avif")
+      setUserImage("/images/logo/acscent-wordmark-ink.png")
       setIdolName("결제 테스트")
       setAnalysisResult({
         matchingPerfumes: [{
@@ -945,7 +945,7 @@ function CheckoutContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--line)] rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[var(--line)] border-t-[var(--ink)] rounded-full animate-spin" />
       </div>
     )
   }

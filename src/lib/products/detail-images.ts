@@ -35,14 +35,38 @@ export const CHEMISTRY_GALLERY: CuratedDetailImage[] = [
   { id: 'chemTenSet', src: '/images/product-detail/chemistry-10ml-set-square.png', provenance: 'actual' },
   { id: 'chemFiftySet', src: '/images/product-detail/chemistry-50ml-set-square.png', provenance: 'actual' },
   { id: 'chemReportPackage', src: '/images/product-detail/chemistry-report-package-square.png', provenance: 'actual' },
-  { id: 'chemReportDetail', src: '/images/product-detail/chemistry-report-detail-visual.png', provenance: 'visualization' },
   { id: 'shippingWhiteOpen', src: '/images/product-detail/shipping-white-open-square.png', provenance: 'actual' },
   { id: 'shippingOuterBox', src: '/images/product-detail/shipping-outer-box-square.png', provenance: 'actual' },
+]
+
+/**
+ * 단품 상품 — 승인된 갤러리 순서 (01_상세페이지_23장_선정가이드.md 기준).
+ * 생성 이미지이므로 provenance는 'visualization' (제품 연출 이미지 배지).
+ */
+export const PERFUME_FIFTY_GALLERY: CuratedDetailImage[] = [
+  { id: 'storeFiftyHero', src: '/images/products/generated/perfume-50ml/perfume-50ml-01.png', provenance: 'visualization' },
+  { id: 'storeFiftySprayer', src: '/images/products/generated/perfume-50ml/perfume-50ml-03.png', provenance: 'visualization' },
+  { id: 'storeFiftySize', src: '/images/products/generated/perfume-50ml/perfume-50ml-04.png', provenance: 'visualization' },
+  { id: 'storeFiftyPackage', src: '/images/products/generated/perfume-50ml/perfume-50ml-05.png', provenance: 'visualization' },
+]
+
+export const PERFUME_TEN_GALLERY: CuratedDetailImage[] = [
+  { id: 'storeTenHero', src: '/images/products/generated/perfume-10ml/perfume-10ml-01.png', provenance: 'visualization' },
+  { id: 'storeTenSprayer', src: '/images/products/generated/perfume-10ml/perfume-10ml-03.png', provenance: 'visualization' },
+  { id: 'storeTenSize', src: '/images/products/generated/perfume-10ml/perfume-10ml-04.png', provenance: 'visualization' },
+  { id: 'storeTenCarry', src: '/images/products/generated/perfume-10ml/perfume-10ml-05.png', provenance: 'visualization' },
+]
+
+export const SCENT_PAPER_GALLERY: CuratedDetailImage[] = [
+  { id: 'storePaperHandLight', src: '/images/products/generated/scent-paper/scent-paper-hand-light-01.png', provenance: 'visualization' },
 ]
 
 export const CURATED_GALLERIES: Record<string, CuratedDetailImage[]> = {
   'idol-image': IDOL_IMAGE_GALLERY,
   chemistry: CHEMISTRY_GALLERY,
+  'perfume-50ml': PERFUME_FIFTY_GALLERY,
+  'perfume-10ml': PERFUME_TEN_GALLERY,
+  'scent-paper': SCENT_PAPER_GALLERY,
 }
 
 export interface MergedGalleryImage {

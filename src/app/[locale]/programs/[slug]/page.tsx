@@ -14,7 +14,7 @@ import { DesktopDetailHero } from '@/components/desktop/DesktopDetailHero'
 import { ViewportSwitch } from '@/components/desktop/ViewportSwitch'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
-import { extractProductPageContent, type ProductPagePositionField } from '@/lib/products/page-content'
+import { extractProductPageContent, getDefaultProductPageContent, type ProductPagePositionField } from '@/lib/products/page-content'
 
 function decodeSlug(value: string | string[] | undefined) {
   const raw = Array.isArray(value) ? value[0] : value
@@ -77,14 +77,14 @@ export default function GenericProgramPage() {
     pagePositionStyle,
     breadcrumbs: [
       { label: t('programs.breadcrumbHome'), href: '/' },
-      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
       { label: productName },
     ],
     infoIcon: <Sparkles className="h-4 w-4 text-[var(--ink)]" />,
-    cta: {
-      label: pageContent.ctaLabel,
-      disabled: true,
-    },
+    // 관리자가 버튼 문구를 설정한 경우에만 (비활성) CTA 노출 — 기본 플레이스홀더는 내부용 문구라 숨긴다
+    ...(pageContent.ctaLabel !== getDefaultProductPageContent().ctaLabel
+      ? { cta: { label: pageContent.ctaLabel, disabled: true } }
+      : {}),
   }
 
   const detailBody = (

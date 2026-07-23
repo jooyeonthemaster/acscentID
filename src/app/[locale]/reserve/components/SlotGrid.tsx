@@ -97,7 +97,7 @@ export function SlotGrid({ date, refreshKey, selectedStartIso, onSelect }: SlotG
             onClick={() => onSelect({ time: slot.time, startIso: slot.startIso })}
             className={`rounded-[12px] border-2 py-2.5 text-sm lg:text-base font-black transition-all ${
               selected
-                ? "border-[#262A38] bg-[#D7D7D7] text-[#E9E2D0]"
+                ? "border-[#262A38] bg-[#D7D7D7] text-[#0C0E16]"
                 : slot.available
                   ? "border-[#262A38] bg-[#12141D] text-[#E9E2D0]"
                   : "cursor-not-allowed border-[#262A38] bg-[#1B1F2C] text-[#5C564A] line-through shadow-none"

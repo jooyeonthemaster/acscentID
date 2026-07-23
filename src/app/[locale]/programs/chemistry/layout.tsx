@@ -51,8 +51,8 @@ export default async function ChemistryLayout({ children, params }: ProgramLayou
   const productJsonLd = productSchema({
     name: seo.title,
     description: seo.productDescription,
-    price: opt?.price ?? 38000,
-    originalPrice: opt?.original_price ?? 38000,
+    price: opt?.price ?? 44000,
+    originalPrice: opt?.original_price ?? 58000,
     image: '/images/product-placeholder.svg',
     path,
     availability: opt?.is_active === false ? 'SoldOut' : 'InStock',

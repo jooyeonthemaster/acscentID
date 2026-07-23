@@ -727,6 +727,36 @@
   --accent-deep: var(--accent-chem-deep);
 }
 
+/* 구매 CTA → 향 선택 섹션 스크롤 시 "여기서 고르세요" 힌트 글로우 (더블 펄스) */
+/* 정적 하이라이트를 base로 두어 prefers-reduced-motion 에서도 힌트가 보이게 한다 */
+.scent-hint-glow {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.12), 0 0 28px 6px rgba(23, 23, 23, 0.18);
+  animation: scentHintGlow 2s ease-in-out 1;
+}
+@keyframes scentHintGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(23, 23, 23, 0);
+    border-color: var(--line);
+  }
+  15% {
+    box-shadow: 0 0 0 4px rgba(23, 23, 23, 0.18), 0 0 36px 9px rgba(23, 23, 23, 0.24);
+    border-color: var(--ink);
+  }
+  42% {
+    box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.06), 0 0 16px 3px rgba(23, 23, 23, 0.08);
+    border-color: var(--muted-ink);
+  }
+  68% {
+    box-shadow: 0 0 0 4px rgba(23, 23, 23, 0.18), 0 0 36px 9px rgba(23, 23, 23, 0.24);
+    border-color: var(--ink);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(23, 23, 23, 0);
+    border-color: var(--line);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .public-editorial * {
     animation-duration: 0.01ms !important;

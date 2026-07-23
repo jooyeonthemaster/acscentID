@@ -22,14 +22,16 @@ export function ProcessSteps({ steps, className }: ProcessStepsProps) {
       {steps.map((step, index) => (
         <div
           key={index}
-          className="min-h-[150px] rounded-[6px] border border-[var(--line)] border-t-4 border-t-[var(--accent-strong,#E9B82E)] bg-white p-5 lg:min-h-[205px] lg:p-6"
+          className="rounded-[6px] border border-[var(--line)] border-t-4 border-t-[var(--accent-strong,#E9B82E)] bg-white p-5 lg:p-6"
         >
-          <span className="text-xs font-black text-[var(--accent-deep,#686863)]">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <h3 className="mt-5 break-keep text-[15px] font-black text-[var(--ink)] lg:mt-10 lg:text-[17px]">
-            {step.title}
-          </h3>
+          <div className="flex items-baseline gap-2.5">
+            <span className="shrink-0 text-xs font-black text-[var(--accent-deep,#686863)]">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h3 className="break-keep text-[15px] font-black text-[var(--ink)] lg:text-[17px]">
+              {step.title}
+            </h3>
+          </div>
           <p className="mt-2 break-keep text-[13px] leading-[1.65] text-[var(--muted-ink)]">
             {step.description}
           </p>

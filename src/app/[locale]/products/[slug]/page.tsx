@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import {
+  Camera,
   Check,
   Droplets,
   Loader2,
@@ -22,8 +23,9 @@ import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer"
 import { ProgramAdminBridge } from "@/components/programs/ProgramAdminBridge"
-import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
+import { EvidenceMediaGrid } from "@/components/public/EvidenceMediaGrid"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useAuth } from "@/contexts/AuthContext"
 import { useProductPricing, type PricingRow } from "@/hooks/useProductPricing"
@@ -40,6 +42,7 @@ import {
   getStoreProductName,
   type StoreProduct,
 } from "@/lib/products/store-products"
+import { CURATED_GALLERIES, mergeCuratedWithAdmin, type MergedGalleryImage } from "@/lib/products/detail-images"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { emitCartChanged } from "@/lib/cart-events"
@@ -219,16 +222,51 @@ function ProductDetailInner({
   const purchasePath = `/checkout?product=store-multi&type=${STORE_PRODUCT_TYPE}&item=${product.slug}`
   const [authRedirectPath, setAuthRedirectPath] = useState<string | undefined>(undefined)
   const scentSectionRef = useRef<HTMLElement>(null)
+  // 구매 CTA로 향 선택 섹션으로 스크롤할 때 "여기서 고르세요" 글로우 힌트
+  const [scentGlow, setScentGlow] = useState(false)
+  const scentGlowTimerRef = useRef<number | null>(null)
+  useEffect(() => () => {
+    if (scentGlowTimerRef.current) window.clearTimeout(scentGlowTimerRef.current)
+  }, [])
   const { imageUrls, loading: imagesLoading } = useProductImages(product.slug)
-  const productImages = useMemo(() => {
+  // 큐레이션 갤러리(승인 순서) 우선 노출, 관리자/대표 이미지는 중복 제거 후 뒤에 병합
+  const curatedGallery = useMemo(() => CURATED_GALLERIES[product.slug] ?? [], [product.slug])
+  const galleryImages = useMemo<MergedGalleryImage[]>(() => {
     const savedImages = imageUrls.filter(Boolean)
     const representativeImages = product.image && product.image !== STORE_PRODUCT_IMAGE ? [product.image] : []
-    const fallbackImages = savedImages.length > 0 ? [] : [product.image].filter(Boolean)
-    return Array.from(new Set([...representativeImages, ...savedImages, ...fallbackImages]))
-  }, [product.image, imageUrls])
+    const fallbackImages = savedImages.length > 0 || curatedGallery.length > 0 ? [] : [product.image].filter(Boolean)
+    const adminUrls = Array.from(new Set([...representativeImages, ...savedImages, ...fallbackImages]))
+    if (product.slug === SCENT_PAPER_PRODUCT_SLUG) {
+      const curatedUrls = new Set(curatedGallery.map((image) => image.src))
+      const adminFirst = adminUrls
+        .filter((src) => !curatedUrls.has(src))
+        .map((src) => ({ src }))
+      const curatedImages = curatedGallery.map((image) => ({
+        src: image.src,
+        curated: image,
+      }))
+      return [...adminFirst, ...curatedImages]
+    }
+    return mergeCuratedWithAdmin(curatedGallery, adminUrls)
+  }, [curatedGallery, product.image, product.slug, imageUrls])
+  const productImages = useMemo(() => galleryImages.map((image) => image.src), [galleryImages])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [fragranceRequestNote, setFragranceRequestNote] = useState("")
   const firstProductImage = productImages[0]
+
+  const tg = useTranslations('detailGallery')
+  const galleryMeta: DetailHeroImageMeta[] = useMemo(() => galleryImages.map((image) =>
+    image.curated
+      ? { caption: tg(`${image.curated.id}.caption`) }
+      : {},
+  ), [galleryImages, tg])
+
+  // 본문 제품 사진 밴드 — 히어로 대표컷(첫 장)을 제외한 큐레이션 컷
+  const detailPhotos = useMemo(() => curatedGallery.slice(1).map((image) => ({
+    src: image.src,
+    alt: tg(`${image.id}.alt`),
+    caption: tg(`${image.id}.caption`),
+  })), [curatedGallery, tg])
 
   useEffect(() => {
     setSelectedImageIndex(0)
@@ -304,7 +342,8 @@ function ProductDetailInner({
   const requireSelectedItems = () => {
     if (selectedItems.length > 0) return selectedItems
     if (trimmedRequestNote) return [] // 요청 메모만으로 구매 진행
-    alert(t('store.detail.selectScentAlert'))
+    // 향 미선택 상태로 구매를 시도하면 향 선택 섹션으로 스크롤하고 글로우 힌트를 준다
+    scrollToScentSelection()
     return null
   }
 
@@ -451,6 +490,13 @@ function ProductDetailInner({
 
   const scrollToScentSelection = () => {
     scentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    // 글로우 재시작 후, 스크롤이 도착할 즈음 시작해 사용자가 확실히 인지하게 한다
+    setScentGlow(false)
+    if (scentGlowTimerRef.current) window.clearTimeout(scentGlowTimerRef.current)
+    scentGlowTimerRef.current = window.setTimeout(() => {
+      setScentGlow(true)
+      scentGlowTimerRef.current = window.setTimeout(() => setScentGlow(false), 2000)
+    }, 320)
   }
 
   const handleTryScentPaperFirst = () => {
@@ -479,10 +525,12 @@ function ProductDetailInner({
     ],
     images: {
       urls: productImages,
-      loading: imagesLoading,
+      // 큐레이션 이미지는 로컬 자산이라 즉시 준비됨 — 로딩 스켈레톤 생략
+      loading: curatedGallery.length > 0 ? false : imagesLoading,
       selectedIndex: selectedImageIndex,
       onSelect: setSelectedImageIndex,
     },
+    imageMeta: galleryMeta,
     badgeClassName: "bg-[var(--ink)] text-white",
     secondaryBadges: (
       <span className="inline-flex items-center rounded-[3px] border border-[var(--line)] bg-[var(--soft)] px-2.5 py-1 text-xs font-extrabold text-[var(--ink)]">
@@ -533,6 +581,22 @@ function ProductDetailInner({
 
       {desktopFrame ? <DesktopDetailHero {...heroProps} /> : <UnifiedDetailHero {...heroProps} />}
 
+      {/* 제품 사진 — 모바일은 풀블리드(EvidenceMediaGrid -mx-5), sm+는 2열 카드 */}
+      {detailPhotos.length > 0 && (
+        <section className="px-5 pt-6">
+          <div className={desktopFrame ? "mx-auto w-full max-w-[760px]" : "mx-auto w-full max-w-[455px]"}>
+            <div className="mb-3 flex items-center gap-2">
+              <Camera size={16} className="text-[var(--ink)]" />
+              <h2 className="text-sm font-extrabold text-[var(--ink)]">{t('store.detail.photoSectionTitle')}</h2>
+            </div>
+            <EvidenceMediaGrid
+              items={detailPhotos}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 370px"
+            />
+          </div>
+        </section>
+      )}
+
       <section className="px-4 pb-8 pt-6">
         <div className={desktopFrame ? "mx-auto w-full max-w-[760px]" : "mx-auto w-full max-w-[455px]"}>
           <section
@@ -556,7 +620,7 @@ function ProductDetailInner({
             </ul>
           </section>
 
-          <section ref={scentSectionRef} id="scent-selector" className="mb-4 scroll-mt-24 rounded-[6px] border border-[var(--line)] bg-white p-4">
+          <section ref={scentSectionRef} id="scent-selector" className={`mb-4 scroll-mt-24 rounded-[6px] border border-[var(--line)] bg-white p-4 ${scentGlow ? "scent-hint-glow" : ""}`}>
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="mb-1 flex items-center gap-2">

@@ -995,11 +995,11 @@ export function PrintableReport({
                 {/* Image Section */}
                 <div className="flex justify-center items-center gap-4 mb-2 mt-0 px-6">
                   <div className={`w-[125px] h-[145px] overflow-hidden border-[3px] shadow-md bg-slate-100 flex-shrink-0 ${isSelfChemistry ? 'rounded-[4px] border-slate-950 shadow-none' : 'rounded-2xl border-white'}`}>
-                    <img src={charAInfo?.user_image_url || '/placeholder.jpg'} alt={nameA} className="w-full h-full object-cover" />
+                    <img src={charAInfo?.user_image_url || '/images/product-placeholder.svg'} alt={nameA} className="w-full h-full object-cover" />
                   </div>
                   <div className={`text-4xl font-black ${isSelfChemistry ? 'text-slate-950' : 'text-slate-800'}`}>X</div>
                   <div className={`w-[125px] h-[145px] overflow-hidden border-[3px] shadow-md bg-slate-100 flex-shrink-0 ${isSelfChemistry ? 'rounded-[4px] border-slate-950 shadow-none' : 'rounded-2xl border-white'}`}>
-                    <img src={charBInfo?.user_image_url || '/placeholder.jpg'} alt={nameB} className="w-full h-full object-cover" />
+                    <img src={charBInfo?.user_image_url || '/images/product-placeholder.svg'} alt={nameB} className="w-full h-full object-cover" />
                   </div>
                 </div>
 

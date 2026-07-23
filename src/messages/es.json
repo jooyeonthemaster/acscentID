@@ -84,11 +84,6 @@
     "terms": "Términos de uso",
     "refundPolicy": "Política de reembolso",
     "companyName": "Neander Co., Ltd.",
-    "ceo": "CEO: Lee Seungjin",
-    "businessNumber": "Nº de registro: 522-87-03351",
-    "address": "112-1, Wausan-ro, Mapo-gu, Seúl, 1er piso",
-    "phone": "Teléfono: 02-336-3368",
-    "email": "Email: neander@neander.co.kr",
     "aiImageAnalysis": "Análisis de imagen IA",
     "figureDiffuser": "Difusor de figura",
     "cancelRefundExchange": "Cancelación/Reembolso/Cambio",
@@ -154,7 +149,7 @@
     "personal": "Aroma Personal",
     "leQuack": "SIGNATURE Perfume PPUDUCK",
     "customDuck": "Constructor de Pato Personalizado",
-    "chemistry": "Set de Perfume Química",
+    "chemistry": "Set de Perfume Layering",
     "saju": "Perfume de Saju (Cuatro Pilares)"
   },
   "labels": {
@@ -239,11 +234,11 @@
       "saju": "Un aroma del destino leído en tu fecha y hora de nacimiento"
     },
     "includes": {
-      "idolImage": "Perfume PPUDUCK (10ml/50ml) + Informe de análisis impreso",
+      "idolImage": "Perfume con Análisis de Imagen IA (10ml/50ml) + Informe de análisis impreso + Papel de prueba",
       "figure": "Figura 3D + Difusor (5ml) + Informe de análisis impreso",
-      "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma",
-      "chemistry": "Set de perfume química (10ml x 2 / 50ml x 2) + Tarjeta de perfil química",
-      "saju": "Perfume personalizado Saju (10ml/50ml) + informe impreso de la carta 命式"
+      "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma + Papel de prueba",
+      "chemistry": "Set de perfume layering (10ml x 2 / 50ml x 2) + Tarjeta de perfil química + Papel de prueba",
+      "saju": "Perfume personalizado Saju (10ml/50ml) + informe impreso de la carta 命式 + Papel de prueba"
     },
     "features": {
       "aiAnalysis": "Análisis personalizado con IA",
@@ -380,7 +375,8 @@
         "loginSignup": "Iniciar Sesión / Registrarse",
         "guestPurchase": "Comprar como Invitado",
         "cartAddSuccess": "Añadido al carrito 🛒",
-        "cartAddFailed": "Error al añadir al carrito"
+        "cartAddFailed": "Error al añadir al carrito",
+        "paperItem": "Incluye papel de prueba"
       },
       "chemistry": {
         "info": {
@@ -430,7 +426,7 @@
       "leQuack": {
         "productNameFallback": "Perfume Ppuduck Signature",
         "heroSubtitle": "Perfume Signature de AC'SCENT + adorable llavero perfumado de pato",
-        "heroInfoTitle": "Perfume Ppuduck (10ml) + llavero perfumado Ppuduck",
+        "heroInfoTitle": "Perfume Ppuduck (10ml) + llavero perfumado Ppuduck + Papel de prueba",
         "heroInfoBody": "Envío en 2-3 días tras el pedido / Incluye adorable llavero perfumado de pato / Empaque premium / Envío gratis en compras superiores a 50.000 KRW",
         "ctaLabel": "Comprar ahora",
         "breadcrumbSignature": "Signature",
@@ -470,7 +466,7 @@
       "personal": {
         "productName": "Aroma Personal",
         "heroSubtitle": "Un perfume exclusivo adaptado a tu personalidad única, analizado por IA",
-        "heroInfoTitle": "Perfume Personalizado 10ml (Tipo Spray)",
+        "heroInfoTitle": "Perfume Personalizado 10ml (Tipo Spray) + Papel de prueba",
         "heroInfoBody": "Envío en 2-3 días tras la elaboración (envío 3.000 KRW) / Informe de personalidad gratis incluido",
         "heroCtaLabel": "Iniciar análisis de personalidad",
         "ctaHint": "¡Solo escribe las palabras clave que te describen y listo!",
@@ -2353,7 +2349,7 @@
     "privacy": "Política de privacidad"
   },
   "chemistry": {
-    "title": "Perfume Chemistry",
+    "title": "Perfume layering",
     "description": "Capturando la química de dos personajes en un aroma",
     "progress": {
       "summon": "Invocar",
@@ -2451,7 +2447,7 @@
       "dialogues": "Líneas representativas",
       "story": "Historia de química",
       "future": "Visión futura",
-      "purchase": "Set de perfume Chemistry",
+      "purchase": "Set de perfume layering",
       "analysisTab": "Análisis de química",
       "faceMatch": "Match visual",
       "chemistryType": "Tipo de química",
@@ -2664,6 +2660,7 @@
         "included": [
           "Perfume en spray de 50ml del aroma elegido",
           "Empaque premium",
+          "Incluye papel de prueba",
           "Entrega en 2 a 3 días tras el pedido"
         ]
       },
@@ -2674,6 +2671,7 @@
         "included": [
           "Perfume en spray de 10ml del aroma elegido",
           "Empaque portátil",
+          "Incluye papel de prueba",
           "Entrega en 2 a 3 días tras el pedido"
         ]
       },
@@ -2737,7 +2735,8 @@
       "addedToast": "Se añadieron {count} aromas a tu carrito",
       "requestOnlyLabel": "Solicitud de ingrediente específico",
       "requestAddedToast": "La solicitud \"{note}\" se añadió a tu carrito",
-      "addFailed": "No se pudo añadir al carrito"
+      "addFailed": "No se pudo añadir al carrito",
+      "photoSectionTitle": "Fotos del producto"
     }
   },
   "saju": {
@@ -3235,6 +3234,62 @@
     "chemReportDetail": {
       "alt": "Detalle del informe impreso con los dos perfiles de aroma y el tipo de química",
       "caption": "Imagen generada para ilustrar el contenido del informe de química; los valores y textos reales del análisis varían según el pedido."
+    },
+    "storeFiftyHero": {
+      "alt": "Frasco de perfume de 50ml negro mate con empaque blanco",
+      "caption": "El perfume de tamaño completo de AC'SCENT para disfrutar sin límites del aroma que te gusta."
+    },
+    "storeFiftyUnboxing": {
+      "alt": "Unboxing del perfume de 50ml en empaque blanco",
+      "caption": "El frasco negro mate llega ordenado y protegido en su empaque blanco."
+    },
+    "storeFiftySprayer": {
+      "alt": "Detalle del atomizador del perfume de 50ml",
+      "caption": "Tipo spray listo para usar: solo abre la tapa."
+    },
+    "storeFiftySize": {
+      "alt": "Perfume de 50ml en la mano como referencia de tamaño",
+      "caption": "El tamaño completo de 50ml se siente estable en la mano."
+    },
+    "storeFiftyPackage": {
+      "alt": "Empaque premium de AC'SCENT",
+      "caption": "Un empaque premium impecable, ideal también para regalo."
+    },
+    "storeTenHero": {
+      "alt": "Mini perfume de 10ml en frasco de vidrio transparente",
+      "caption": "Un mini spray de 10ml para llevar tu aroma favorito a todas partes."
+    },
+    "storeTenPackage": {
+      "alt": "Perfume de 10ml en su empaque portátil",
+      "caption": "Tu aroma elegido llega ordenado en un empaque portátil."
+    },
+    "storeTenSprayer": {
+      "alt": "Detalle del atomizador del perfume de 10ml",
+      "caption": "Tipo spray listo para usar: solo abre la tapa."
+    },
+    "storeTenSize": {
+      "alt": "Perfume de 10ml en la mano como referencia de tamaño",
+      "caption": "Cabe en la palma de la mano, ideal para elegir tu primer aroma."
+    },
+    "storeTenCarry": {
+      "alt": "Perfume de 10ml dentro de un estuche",
+      "caption": "Guárdalo en un estuche o bolso pequeño y úsalo donde quieras."
+    },
+    "storePaperHero": {
+      "alt": "Kit completo de papel de prueba AC'SCENT con reporte y sobre",
+      "caption": "Muestra el kit completo: tarjeta de aroma, reporte más ancho, sobre y funda."
+    },
+    "storePaperNoteCard": {
+      "alt": "Tarjeta de aroma y reporte de análisis juntos",
+      "caption": "Incluye la tarjeta del aroma elegido y un reporte de recomendación basado en imagen A.I."
+    },
+    "storePaperUse": {
+      "alt": "Detalle de la tarjeta de aroma y el reporte de análisis",
+      "caption": "Una vista cercana de la información de aroma y el reporte incluidos en el kit."
+    },
+    "storePaperHandLight": {
+      "alt": "Toma luminosa de una mano sosteniendo la tarjeta de aroma",
+      "caption": "Muestra la escala de la tarjeta en la mano con el kit completo suavemente al fondo."
     }
   },
   "editorialDetail": {
@@ -3256,7 +3311,8 @@
       "factShipping": "Entrega estimada",
       "factShippingValue": "2 a 3 días tras el pedido",
       "faqShippingQ": "¿Cuánto tarda la entrega?",
-      "faqShippingA": "La entrega tarda entre 2 y 3 días estimados tras el pedido. Puede variar según el volumen de pedidos y la empresa de mensajería."
+      "faqShippingA": "La entrega tarda entre 2 y 3 días estimados tras el pedido. Puede variar según el volumen de pedidos y la empresa de mensajería.",
+      "badgeProductVisual": "Imagen ilustrativa del producto"
     },
     "idol": {
       "eyebrowNote": "Análisis personalizado con IA · Incluye informe impreso",
@@ -3334,7 +3390,7 @@
       "feature2": "Para usar solos o en layering",
       "feature3": "Informe de química impreso para dos",
       "introKicker": "TWO SCENTS, ONE CHEMISTRY",
-      "introTitle": "Cada aroma es especial,\ny juntos lo son aún más",
+      "introTitle": "Cada uno con su carácter,\naún más especial juntos",
       "introLead": "Convertimos las atmósferas distintas de dos personas en sendos perfumes y analizamos incluso el equilibrio cuando ambos aromas se encuentran.",
       "usageATitle": "Primer aroma",
       "usageADesc": "Perfume individual con el carácter y el mood de la primera persona",
@@ -3418,7 +3474,8 @@
       "closingKicker": "TWO SCENTS, ONE STORY",
       "closingTitle": "Superpón la química de dos personas\nen un aroma",
       "closingButton": "Comenzar análisis de química gratis",
-      "ctaHint": "Puedes comprar después de revisar ambos resultados y el tipo de química."
+      "ctaHint": "Puedes comprar después de revisar ambos resultados y el tipo de química.",
+      "relationStartCta": "Empezar con esta combinación"
     }
   }
 }

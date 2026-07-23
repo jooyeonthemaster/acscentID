@@ -118,8 +118,8 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   chemistry_set: [
-    { size: 'set_10ml', price: 38000, label: '레이어링 퍼퓸 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
-    { size: 'set_50ml', price: 60000, label: '레이어링 퍼퓸 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: 'set_10ml', price: 44000, label: '레이어링 퍼퓸 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: 'set_50ml', price: 88000, label: '레이어링 퍼퓸 세트 50ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지 2매', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   payment_test: [
@@ -264,7 +264,7 @@ export function getDefaultPrice(productType: ProductType): number {
     case 'signature':
       return 34000
     case 'chemistry_set':
-      return 38000
+      return 44000
     case 'saju_perfume':
       return 48000
     default:

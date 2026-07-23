@@ -484,7 +484,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
         </p>
         <Link
           href="/"
-          className="inline-block px-8 py-3 bg-[var(--paper)] text-[#F5EFE2] font-bold rounded-[6px] border border-[var(--line)] transition-all"
+          className="inline-block px-8 py-3 bg-[var(--ink)] text-white font-bold rounded-[6px] transition-colors hover:bg-black"
         >
           {t('startAnalysis')}
         </Link>
@@ -660,7 +660,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[6px] sm:rounded-[6px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
                               isChemistryDiscontinued
                                 ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
-                                : 'bg-[var(--paper)] text-[#F5EFE2] hover:bg-[var(--soft)]'
+                                : 'bg-[var(--ink)] text-white hover:bg-black'
                             }`}
                           >
                             <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -805,7 +805,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                           className={`w-full py-1.5 sm:py-2 text-[10px] lg:text-[12px] sm:text-xs font-bold rounded-[6px] sm:rounded-[6px] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors ${
                             discontinued
                               ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
-                              : 'bg-[var(--paper)] text-[#F5EFE2] hover:bg-[var(--soft)]'
+                              : 'bg-[var(--ink)] text-white hover:bg-black'
                           }`}
                         >
                           <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />

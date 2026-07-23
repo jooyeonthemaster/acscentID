@@ -356,7 +356,7 @@ function InputForm() {
                                 disabled={!isStepValid(currentStep) || isSubmitting}
                                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[6px] text-[16px] font-semibold transition-colors duration-300 ${
                                     isStepValid(currentStep) && !isSubmitting
-                                        ? "bg-[var(--ink)] text-white ring-1 ring-[var(--ink)]/40 hover:bg-[#F2C24A]"
+                                        ? "bg-[var(--ink)] text-white ring-1 ring-[var(--ink)]/40 hover:bg-black"
                                         : "bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed"
                                 }`}
                             >

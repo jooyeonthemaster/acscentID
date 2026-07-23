@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   Star, X, ChevronRight, ShoppingCart, Sparkles,
-  Package, Truck, Droplets, Share2,
+  Package, Truck, Droplets, Share2, FileText,
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
@@ -193,7 +193,7 @@ function TodayScentProductContent() {
             <div className="flex items-center gap-1.5 text-xs lg:text-sm text-[var(--muted-ink)] mb-3">
               <Link href="/" className="hover:text-[var(--ink)]">{t('programs.breadcrumbHome')}</Link>
               <ChevronRight size={12} />
-              <span className="hover:text-[var(--ink)]">{t('programs.detail.todayScent.todayScentLabel')}</span>
+              <span>{t('programs.detail.todayScent.todayScentLabel')}</span>
               <ChevronRight size={12} />
               <span className="text-[var(--ink)] font-bold">{scent.name}</span>
             </div>
@@ -275,6 +275,10 @@ function TodayScentProductContent() {
                 <div className="flex items-center gap-2 text-[var(--muted-ink)]">
                   <Droplets size={16} className="text-[var(--ink)]" />
                   <span>{t('programs.detail.todayScent.perfumeItem', { name: scent.name, size: selectedSize })}</span>
+                </div>
+                <div className="flex items-center gap-2 text-[var(--muted-ink)]">
+                  <FileText size={16} className="text-[var(--ink)]" />
+                  <span>{t('programs.detail.todayScent.paperItem')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[var(--muted-ink)]">
                   <Truck size={16} className="text-[var(--ink)]" />

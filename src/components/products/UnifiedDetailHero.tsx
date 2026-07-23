@@ -24,7 +24,6 @@ interface ControlledImages {
 
 /** 이미지별 출처 배지/설명 — images.urls와 인덱스로 정렬 */
 export interface DetailHeroImageMeta {
-  badge?: string
   caption?: string
 }
 
@@ -135,12 +134,6 @@ export function UnifiedDetailHero({
                 </div>
               )}
 
-              {selectedMeta?.badge && (
-                <span className="absolute left-3 top-3 z-20 rounded-[3px] border border-white/75 bg-[#191918]/80 px-2 py-1.5 text-[10px] font-extrabold leading-none text-white">
-                  {selectedMeta.badge}
-                </span>
-              )}
-
               {showArrows && (
                 <>
                   <button
@@ -243,7 +236,7 @@ export function UnifiedDetailHero({
             </h1>
             <p className="max-w-[500px] break-keep text-[15px] leading-[1.65] text-[var(--muted-ink)]">
               <span
-                className="inline-block"
+                className="inline-block whitespace-pre-line"
                 data-admin-page-field="subtitle"
                 data-admin-page-position-field="subtitle"
                 style={pagePositionStyle?.("subtitle")}

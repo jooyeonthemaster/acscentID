@@ -608,12 +608,12 @@ export const ARCHETYPE_OPTIONS = [
 
 // 장면/분위기 옵션
 export const SCENE_OPTIONS = [
-  { id: 'cafe', label: '비 오는 날 카페', emoji: '☕', image: '/images/chemistry/scene_cafe.jpg' },
-  { id: 'rooftop', label: '옥상 위 별빛', emoji: '🌃', image: '/images/chemistry/scene_rooftop.jpg' },
-  { id: 'ocean', label: '해변의 일몰', emoji: '🌅', image: '/images/chemistry/scene_ocean.jpg' },
-  { id: 'forest', label: '안개 낀 숲', emoji: '🌲', image: '/images/chemistry/scene_forest.jpg' },
-  { id: 'city', label: '도시의 밤거리', emoji: '🏙️', image: '/images/chemistry/scene_city.jpg' },
-  { id: 'library', label: '오래된 도서관', emoji: '📖', image: '/images/chemistry/scene_library.jpg' },
+  { id: 'cafe', label: '비 오는 날 카페', emoji: '☕' },
+  { id: 'rooftop', label: '옥상 위 별빛', emoji: '🌃' },
+  { id: 'ocean', label: '해변의 일몰', emoji: '🌅' },
+  { id: 'forest', label: '안개 낀 숲', emoji: '🌲' },
+  { id: 'city', label: '도시의 밤거리', emoji: '🏙️' },
+  { id: 'library', label: '오래된 도서관', emoji: '📖' },
 ] as const;
 
 // 감정 키워드 옵션

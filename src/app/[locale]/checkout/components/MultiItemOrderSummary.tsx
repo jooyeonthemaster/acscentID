@@ -267,7 +267,7 @@ export function MultiItemOrderSummary({
       </div>
 
       {/* 안내 */}
-      <div className="bg-[#DDDDDD] border border-[var(--line)] rounded-[6px] p-4">
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4">
         <p className="text-sm lg:text-base font-black text-[var(--ink)] mb-2">{t('checkout.orderGuide')}</p>
         <ul className="space-y-1.5 text-xs lg:text-sm text-[var(--muted-ink)] font-bold">
           <li className="flex items-center gap-1.5">

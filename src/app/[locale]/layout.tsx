@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { ShellColumn } from "@/components/layout/ShellColumn";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { DesktopHeader } from "@/components/desktop/DesktopHeader";
 import { DesktopFooter } from "@/components/desktop/DesktopFooter";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -130,6 +131,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider messages={messages}>
       <SetHtmlLang locale={locale} />
+      <ScrollToTop />
       <JsonLd data={organizationSchema(locale as Locale)} />
       <JsonLd data={webSiteSchema(locale as Locale)} />
       <div className="public-editorial w-full min-h-screen relative flex flex-col">

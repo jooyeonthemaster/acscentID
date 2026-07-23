@@ -434,7 +434,7 @@ function OrderCompleteContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-[#DDDDDD] border border-[var(--line)] rounded-[6px] p-6 mb-8"
+            className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-6 mb-8"
           >
             <h3 className="font-black text-lg text-[var(--ink)] mb-4 flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center">
@@ -495,7 +495,7 @@ export default function OrderCompletePage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-[var(--line)] border-t-[var(--line)] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[var(--line)] border-t-[var(--ink)] rounded-full animate-spin" />
         </div>
       }
     >

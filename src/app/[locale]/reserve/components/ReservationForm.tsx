@@ -251,7 +251,7 @@ export function ReservationForm({
       <button
         type="submit"
         disabled={!isValid || submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:"
+        className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#B8880F] bg-[#EEB62B] py-3.5 text-base font-black text-[#1A1610] transition-all disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? (
           <>

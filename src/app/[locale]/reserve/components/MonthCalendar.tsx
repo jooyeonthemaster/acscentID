@@ -141,7 +141,7 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
               onClick={() => onSelect(date)}
               className={`relative mx-auto grid h-10 w-10 place-items-center rounded-[12px] text-sm lg:text-base font-black transition-all sm:h-11 sm:w-11 ${
                 selected
-                  ? "border-2 border-[#262A38] bg-[#D7D7D7] text-[#E9E2D0]"
+                  ? "border-2 border-[#262A38] bg-[#D7D7D7] text-[#0C0E16]"
                   : bookable
                     ? `border-2 border-[#262A38] bg-[#12141D] text-[#E9E2D0] hover:border-[#262A38] ${
                         weekday === 0 ? "text-red-500" : weekday === 6 ? "text-[#8B8578]" : ""

@@ -70,6 +70,8 @@ export function useChemistryForm() {
   const serviceMode = searchParams.get("service_mode")
   // [FIX] CRITICAL #11: QR 코드 파라미터 추출
   const qrCode = searchParams.get("qr_code")
+  // 랜딩의 관계 유형 카드에서 넘어온 분석 대상 프리셋 (?target=idol|self)
+  const targetParam = searchParams.get("target")
 
   // 인증 상태 — 케미는 온라인/오프라인 무관하게 로그인 필수
   const { user, unifiedUser, loading: authLoading } = useAuth()
@@ -78,7 +80,11 @@ export function useChemistryForm() {
 
   const [phase, setPhase] = useState<ChemistryPhase>('summon')
   const [currentCard, setCurrentCard] = useState(0)
-  const [formData, setFormData] = useState<ChemistryFormState>(INITIAL_FORM_DATA)
+  const [formData, setFormData] = useState<ChemistryFormState>(() =>
+    targetParam === 'idol' || targetParam === 'self'
+      ? { ...INITIAL_FORM_DATA, targetType: targetParam }
+      : INITIAL_FORM_DATA,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAnalysisComplete, setIsAnalysisComplete] = useState(false)
   const [isCompressing1, setIsCompressing1] = useState(false)

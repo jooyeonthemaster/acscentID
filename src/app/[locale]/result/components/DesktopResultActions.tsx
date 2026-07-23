@@ -47,7 +47,7 @@ export function DesktopResultActions({
           )}
           <button
             onClick={onCheckout}
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--ink)] py-3.5 text-base font-black text-white transition-colors hover:bg-[#F2C24A]"
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--ink)] py-3.5 text-base font-black text-white transition-colors hover:bg-black"
           >
             <CreditCard size={17} />
             <span>{t('buy')}</span>

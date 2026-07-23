@@ -29,8 +29,8 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     fallbackPrice: 48000,
     image: STORE_PRODUCT_IMAGE,
     badge: 'FULL SIZE',
-    description: '마음에 드는 AC\'SCENT 향을 넉넉하게 사용하는 정규 용량 향수입니다.',
-    included: ['선택 향 50ml 스프레이 향수', '프리미엄 패키지', '주문 후 2~3일 내 배송'],
+    description: '마음에 드는 AC\'SCENT 향을\n넉넉하게 사용하는 정규 용량 퍼퓸입니다.',
+    included: ['선택 향 50ml 스프레이 퍼퓸', '프리미엄 패키지', '시향지 동봉', '주문 후 2~3일 내 배송'],
   },
   {
     slug: 'perfume-10ml',
@@ -41,7 +41,7 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     image: STORE_PRODUCT_IMAGE,
     badge: 'MINI',
     description: '가볍게 휴대하며 쓰기 좋은 미니 사이즈 향수입니다.',
-    included: ['선택 향 10ml 스프레이 향수', '휴대용 패키지', '주문 후 2~3일 내 배송'],
+    included: ['선택 향 10ml 스프레이 퍼퓸', '휴대용 패키지', '시향지 동봉', '주문 후 2~3일 내 배송'],
   },
   {
     slug: 'scent-paper',

@@ -359,8 +359,7 @@ export function OrderSummary({
       </div>
 
       {/* 포함 사항 */}
-      {/* [FIX] CRITICAL #2: chemistry_set 포함 사항 색상 분기 */}
-      <div className={`${isScentPaper ? 'bg-[var(--soft)]' : isFigureDiffuser ? 'bg-[var(--soft)]' : isGraduation ? 'bg-[var(--soft)]' : isSignature ? 'bg-[var(--soft)]' : isStoreProduct ? 'bg-[var(--soft)]' : isChemistrySet ? 'bg-[var(--soft)]' : 'bg-[#DDDDDD]'} border border-[var(--line)] rounded-[6px] p-4`}>
+      <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] p-4">
         <p className="text-sm lg:text-base font-black text-[var(--ink)] mb-3">{t('checkout.included')}</p>
         <ul className="space-y-2 text-sm lg:text-base text-[var(--ink)] font-bold">
           {isScentPaper ? (

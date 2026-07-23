@@ -135,7 +135,7 @@ export default function GraduationPage() {
         pagePositionStyle={pagePositionStyle}
         breadcrumbs={[
           { label: t('programs.breadcrumbHome'), href: '/' },
-          { label: t('programs.breadcrumbPrograms'), href: '/' },
+          { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
           { label: productName },
         ]}
         images={{
@@ -428,7 +428,7 @@ export default function GraduationPage() {
             pagePositionStyle={pagePositionStyle}
             breadcrumbs={[
               { label: t('programs.breadcrumbHome'), href: '/' },
-              { label: t('programs.breadcrumbPrograms'), href: '/' },
+              { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
               { label: productName },
             ]}
             images={{

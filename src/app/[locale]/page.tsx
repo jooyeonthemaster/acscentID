@@ -130,7 +130,7 @@ export default function Home() {
       title: t('products.chemistry'),
       subtitle: t('programs.subtitle.chemistry'),
       image: thumbnailsLoading ? null : (thumbnails["chemistry"] || null),
-      price: chemistryPrice?.price ?? 38000,
+      price: chemistryPrice?.price ?? 44000,
       originalPrice: chemistryPrice?.original_price ?? null,
       priceRange: true,
       delivery: t('shipping.estimated'),

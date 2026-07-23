@@ -180,7 +180,7 @@ export default function SajuProgramPage() {
     badgeClassName: "bg-[#0C0E16] text-[#E8C766]",
     breadcrumbs: [
       { label: t('programs.breadcrumbHome'), href: '/' },
-      { label: t('programs.breadcrumbPrograms'), href: '/' },
+      { label: t('programs.breadcrumbPrograms'), href: '/#programs-section' },
       { label: productName },
     ],
     meta: (
