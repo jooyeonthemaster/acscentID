@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         analysis_period_end: periodEnd,
         total_feedbacks_analyzed: allFeedbacks.length,
         sentiment_summary: sentimentSummary,
-        model_used: 'gemini-3-flash-preview',
+        model_used: 'gemini-3.6-flash',
         raw_feedbacks_sample: feedbackSample.slice(0, 20).map((fb) => ({
           text: fb.natural_language_feedback,
           perfume: fb.perfume_name,

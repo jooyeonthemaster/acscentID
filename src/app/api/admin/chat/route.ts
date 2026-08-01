@@ -448,7 +448,7 @@ export async function POST(request: NextRequest) {
     // 4. Gemini로 SQL 생성 + 분석
     const genAI = initializeGemini()
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3.6-flash',
       generationConfig: {
         temperature: 0.3,
         topP: 0.9,
@@ -524,7 +524,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: 결과 해석 + 답변 생성
     const answerModel = genAI.getGenerativeModel({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3.6-flash',
       generationConfig: {
         temperature: 0.5,
         maxOutputTokens: 4096,

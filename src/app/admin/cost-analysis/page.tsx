@@ -142,7 +142,7 @@ const DEFAULT_ASSUMPTIONS: CostAssumptions = {
 const ASSUMPTION_NOTES = [
   `기본값은 ${RESEARCHED_AT} 공개 요금표 기준이며, USD 비용은 1달러=${USD_TO_KRW.toLocaleString('ko-KR')}원으로 환산했습니다.`,
   '호스팅은 Vercel Pro 1석, DB는 Supabase Pro 1개 조직/프로젝트의 기본 유료 운영 기준입니다.',
-  'AI 단가는 Gemini 3 Flash 텍스트/이미지 분석 토큰 단가에 평균 입출력 토큰과 재시도 여지를 더해 1회당 원화로 둥글게 잡았습니다.',
+  'AI 단가는 Gemini 3.6 Flash 텍스트/이미지 분석 토큰 단가에 평균 입출력 토큰과 재시도 여지를 더해 1회당 원화로 둥글게 잡았습니다.',
   '졸업 이미지 변환은 Gemini 3 Pro Image 1K 출력 이미지 1장 기준 공식 이미지 출력 단가를 반영했습니다.',
   'PG 수수료율은 국내 PG 일반 카드 3.20%에 VAT 10%를 더한 3.52%입니다. 영세/중소 우대 수수료 계약이면 낮춰야 합니다.',
   '포장비, 실배송비, 상품 원가율은 공개 포장재/운임과 소형 커스텀 향수 판매가를 바탕으로 한 추정치라 실제 BOM으로 교체하는 것이 좋습니다.',
