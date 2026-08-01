@@ -13,6 +13,7 @@ import {
 } from '@/types/feedback'
 import { ScentCategoryScores } from '@/types/analysis'
 import { getPerfumeById } from '@/data/perfumes'
+import { getOrCreateFingerprint } from '@/lib/user/fingerprint'
 
 interface UseFeedbackFormProps {
   perfumeId: string
@@ -50,20 +51,6 @@ interface UseFeedbackFormReturn {
   submit: () => Promise<void>
   reset: () => void
   clearError: () => void
-}
-
-/**
- * 사용자 fingerprint 생성/조회
- */
-function getOrCreateFingerprint(): string {
-  if (typeof window === 'undefined') return ''
-
-  let fp = localStorage.getItem('user_fingerprint')
-  if (!fp) {
-    fp = `fp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    localStorage.setItem('user_fingerprint', fp)
-  }
-  return fp
 }
 
 /**
