@@ -3,6 +3,7 @@ import { Outfit, Jua, Kirang_Haerang, Noto_Serif_KR } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
+import { getBaseUrl } from "@/lib/seo/metadata";
 import { ToastProvider } from "@/components/ui/toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CouponProvider } from "@/contexts/CouponContext";
@@ -71,6 +72,9 @@ const notoSerifKR = Noto_Serif_KR({
 });
 
 export const metadata: Metadata = {
+  // [locale] 밖 라우트(admin/auth/coupon 등)의 OG 이미지 URL이 localhost로
+  // 해석되지 않도록 루트에서 기준 URL을 지정한다. [locale] 레이아웃과 동일 소스.
+  metadataBase: new URL(getBaseUrl()),
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
