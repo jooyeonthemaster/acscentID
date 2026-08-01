@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Loader2, Sparkles } from 'lucide-react'
@@ -176,6 +176,13 @@ export function FeedbackModal({
     }
   }, [step, userDirectRecipe])
 
+  // 단계/뷰 전환 시 콘텐츠 스크롤을 맨 위로 — 이전 단계에서 내려둔 스크롤 위치가
+  // 다음 단계에 그대로 남아 화면 중간부터 보이는 문제 방지
+  const contentRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 })
+  }, [step, modalView])
+
   // 레시피 확정 버튼 핸들러 (선택된 레시피와 타입을 받음)
   const handleConfirmRecipe = (recipe: NonNullable<typeof userDirectRecipe>, recipeType: 'user_direct' | 'ai_recommended') => {
     setSelectedRecipe(recipe)
@@ -345,7 +352,7 @@ export function FeedbackModal({
             )}
 
             {/* 콘텐츠 */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div ref={contentRef} className="flex-1 overflow-y-auto px-5 py-4">
               {/* 이전 작업 복원 알림 */}
               <AnimatePresence>
                 {showRestoredNotice && (

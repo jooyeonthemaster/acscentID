@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronLeft, Scale, Beaker, Sparkles, Copy, CheckCircle2, LogIn, AlertTriangle } from 'lucide-react'
+import { Check, ChevronLeft, Scale, Beaker, Sparkles, Copy, CheckCircle2, LogIn, AlertTriangle, Droplets } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   GeneratedRecipe,
@@ -100,6 +100,20 @@ export function RecipeConfirm({
     return calculateGranuleAmounts(recipe, selectedProduct)
   }, [recipe, selectedProduct])
 
+  // 방울 모드 — 사주 프로그램의 디퓨저는 저울(g/ml) 계량 대신 총 10방울로 처방한다.
+  // 레시피 생성 단계(useFeedbackForm·customize API)에서 granules[].drops 합이
+  // 정확히 totalDrops(10)로 보정되므로 여기서는 그 값을 그대로 표시만 한다.
+  const dropsMode = saju && selectedProduct === 'diffuser_5ml'
+  const totalDrops = recipe.totalDrops || 10
+  const dropsById = useMemo(() => {
+    const map = new Map<string, number>()
+    recipe.granules.forEach((g) => map.set(g.id, g.drops))
+    return map
+  }, [recipe])
+  // 과거 저장분 등 drops가 비어 있으면 비율로 환산(합 보정 없이 근사)
+  const dropsOf = (id: string, ratio: number) =>
+    dropsById.get(id) ?? Math.round((ratio / 100) * totalDrops)
+
   // 총 용량 계산
   const totalAmount = useMemo(() => {
     return {
@@ -131,11 +145,15 @@ export function RecipeConfirm({
   // 레시피 텍스트 복사
   const handleCopyRecipe = async () => {
     const localizedMainName = recipe.granules[0] ? getLocalizedName(recipe.granules[0].id, perfumeName) : perfumeName
+    const amountLine = (g: (typeof granuleAmounts)[number]) =>
+      dropsMode
+        ? `- ${g.name} (${g.id}): ${t('dropsCount', { count: dropsOf(g.id, g.ratio) })} (${g.ratio}%)`
+        : `- ${g.name} (${g.id}): ${g.amountMl.toFixed(2)}g (${g.ratio}%)`
     const recipeText = `[${localizedMainName} ${t('customRecipeOf', { name: '' }).trim()} - ${productLabel}]
 
-${t('totalIngredient')}: ${totalAmount.ml.toFixed(2)}g
+${t('totalIngredient')}: ${dropsMode ? t('dropsCount', { count: totalDrops }) : `${totalAmount.ml.toFixed(2)}g`}
 
-${granuleAmounts.map((g) => `- ${g.name} (${g.id}): ${g.amountMl.toFixed(2)}g (${g.ratio}%)`).join('\n')}
+${granuleAmounts.map(amountLine).join('\n')}
 
 AC'SCENT IDENTITY`
 
@@ -232,12 +250,17 @@ AC'SCENT IDENTITY`
               <p className={`font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--ink)]'}`}>
                 {productInfo.id === 'perfume_10ml' ? t('productPerfume10Label') : productInfo.id === 'perfume_50ml' ? t('productPerfume50Label') : t('productDiffuser5Label')}
               </p>
-              <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}</p>
+              {/* 방울 모드에서는 ml 단위를 일체 노출하지 않는다 — "전체 5ml 중" 대신 제품 설명 */}
+              <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
+                {dropsMode ? t('productDiffuser5Desc') : t('totalVolumeOf', { volume: productInfo.totalVolumeMl })}
+              </p>
             </div>
           </div>
           <div className="text-right">
             <p className={`text-xs lg:text-sm ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>{t('totalIngredient')}</p>
-            <p className={`text-xl font-black ${saju ? SJ.goldText : 'text-[var(--muted-ink)]'}`}>{productInfo.fragranceVolumeMl}g</p>
+            <p className={`text-xl font-black ${saju ? SJ.goldText : 'text-[var(--muted-ink)]'}`}>
+              {dropsMode ? t('dropsCount', { count: totalDrops }) : `${productInfo.fragranceVolumeMl}g`}
+            </p>
           </div>
         </div>
 
@@ -249,12 +272,32 @@ AC'SCENT IDENTITY`
             <p>{t('formulaPerfume50')}</p>
           )}
           {productInfo.id === 'diffuser_5ml' && (
-            <p>{t('formulaDiffuser5')}</p>
+            <p>{dropsMode ? t('formulaDiffuser5Drops') : t('formulaDiffuser5')}</p>
           )}
         </div>
       </motion.div>
 
-      {/* 소수점 주의 경고 배너 */}
+      {/* 방울 안내 배너 — 방울 모드에서는 저울이 필요 없으므로 소수점 경고 대신 표시 */}
+      {dropsMode ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="relative overflow-hidden rounded-[6px] border-2 border-[#C9A227] bg-[#C9A227]/10 p-4 shadow-lg shadow-[#C9A227]/15"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#C9A227]" />
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-[6px] flex items-center justify-center flex-shrink-0 shadow-md bg-[#C9A227]">
+              <Droplets size={20} className="text-[#1A1610]" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className={`text-sm lg:text-base font-black ${SJ.serif} ${SJ.goldText}`}>{t('dropGuideTitle')}</p>
+              <p className={`text-xs lg:text-sm font-medium ${SJ.inkMuted}`}>{t('dropGuideDesc')}</p>
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+      /* 소수점 주의 경고 배너 */
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -290,6 +333,7 @@ AC'SCENT IDENTITY`
           </div>
         </div>
       </motion.div>
+      )}
 
       {/* 향료별 계산 결과 */}
       <div className="space-y-2">
@@ -342,8 +386,12 @@ AC'SCENT IDENTITY`
                     className={`w-12 h-12 rounded-[6px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass} ${isLightColor(bgColor) ? 'border border-[var(--line)]' : ''}`}
                     style={{ backgroundColor: bgColor }}
                   >
-                    <span className="text-sm lg:text-base font-black">{granule.amountMl.toFixed(1)}</span>
-                    <span className={`text-[8px] ${isLightColor(bgColor) ? 'opacity-60' : 'opacity-80'}`}>g</span>
+                    <span className="text-sm lg:text-base font-black">
+                      {dropsMode ? dropsOf(granule.id, granule.ratio) : granule.amountMl.toFixed(1)}
+                    </span>
+                    <span className={`text-[8px] ${isLightColor(bgColor) ? 'opacity-60' : 'opacity-80'}`}>
+                      {dropsMode ? t('drops') : 'g'}
+                    </span>
                   </div>
 
                   {/* 향료 정보 */}
@@ -359,7 +407,9 @@ AC'SCENT IDENTITY`
 
                   {/* 용량 표시 */}
                   <div className="text-right flex-shrink-0">
-                    <p className={`text-lg font-bold ${saju ? SJ.goldText : 'text-[var(--muted-ink)]'}`}>{granule.amountMl.toFixed(2)}g</p>
+                    <p className={`text-lg font-bold ${saju ? SJ.goldText : 'text-[var(--muted-ink)]'}`}>
+                      {dropsMode ? t('dropsCount', { count: dropsOf(granule.id, granule.ratio) }) : `${granule.amountMl.toFixed(2)}g`}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -373,7 +423,9 @@ AC'SCENT IDENTITY`
         <div className="flex items-center justify-between">
           <span className={`text-sm lg:text-base font-bold ${saju ? `${SJ.serif} ${SJ.ink}` : 'text-[var(--muted-ink)]'}`}>{t('totalIngredient')}</span>
           <div className="text-right">
-            <p className={`text-xl font-black ${saju ? SJ.ink : 'text-[var(--ink)]'}`}>{totalAmount.ml.toFixed(2)}g</p>
+            <p className={`text-xl font-black ${saju ? SJ.ink : 'text-[var(--ink)]'}`}>
+              {dropsMode ? t('dropsCount', { count: totalDrops }) : `${totalAmount.ml.toFixed(2)}g`}
+            </p>
           </div>
         </div>
       </div>
@@ -381,7 +433,7 @@ AC'SCENT IDENTITY`
       {/* 안내 메시지 */}
       <div className={`rounded-[6px] p-3 border ${saju ? 'bg-[#EDE5D2] border-[#C9A227]/40' : 'bg-[var(--canvas)] border-stone-200/50'}`}>
         <p className={`text-xs lg:text-sm leading-relaxed ${saju ? SJ.inkMuted : 'text-[var(--muted-ink)]'}`}>
-          {t('measurementTipFull')}
+          {dropsMode ? t('dropMeasurementTip') : t('measurementTipFull')}
         </p>
       </div>
 

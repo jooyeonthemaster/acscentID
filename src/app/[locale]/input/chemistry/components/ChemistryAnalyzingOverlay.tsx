@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { Layers } from "lucide-react"
+import { quoteText, quoteWrapClass } from "@/lib/typography"
 
 interface ChemistryAnalyzingOverlayProps {
   isVisible: boolean
@@ -23,6 +24,7 @@ export function ChemistryAnalyzingOverlay({
 }: ChemistryAnalyzingOverlayProps) {
   const t = useTranslations('chemistry.analyzing')
   const tRoot = useTranslations()
+  const locale = useLocale()
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
   const [doorState, setDoorState] = useState<'closed' | 'opening'>('closed')
   const [mergePhase, setMergePhase] = useState(0) // 0: 떨어짐, 1: 접근, 2: 합체
@@ -209,9 +211,9 @@ export function ChemistryAnalyzingOverlay({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.4 }}
-                    className="text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)]"
+                    className={`text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)] ${quoteWrapClass(locale)}`}
                   >
-                    &ldquo;{shuffledQuotes[currentQuoteIndex]}&rdquo;
+                    &ldquo;{quoteText(shuffledQuotes[currentQuoteIndex])}&rdquo;
                   </motion.p>
                 </AnimatePresence>
               </div>

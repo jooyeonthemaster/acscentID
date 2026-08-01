@@ -334,7 +334,7 @@ export function PrologueStars({ result, targetType }: PrologueStarsProps) {
             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
           }}
         >
-          <span className="font-serif-kr text-[12px] leading-[1.6] text-[#A69F8D]">
+          <span className="font-serif-kr text-[16px] font-bold leading-[1.6] text-[#A69F8D]">
             {t('scrollCue')}
           </span>
           <span

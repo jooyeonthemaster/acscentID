@@ -180,7 +180,8 @@ export function MobileMenuSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[300px] border-l border-[var(--line)] bg-white p-0">
+      {/* Sheet는 body로 portal되어 .public-editorial 밖 — portal 클래스로 에디토리얼 토큰 공급 */}
+      <SheetContent side="right" className="public-editorial-portal w-[300px] border-l border-[var(--line)] bg-white p-0">
         <SheetHeader className="p-6 border-b border-[var(--line)] bg-white">
           <SheetTitle className="text-left text-xs lg:text-sm font-black text-[var(--ink)] uppercase flex items-center gap-2">
             {t('nav.menu')}

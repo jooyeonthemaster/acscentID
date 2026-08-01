@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { ImageIcon } from "lucide-react"
+import { quoteText, quoteWrapClass } from "@/lib/typography"
 
 interface AnalyzingOverlayProps {
     isVisible: boolean
@@ -15,6 +16,7 @@ interface AnalyzingOverlayProps {
 
 export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDoorOpened }: AnalyzingOverlayProps) {
     const t = useTranslations()
+    const locale = useLocale()
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
     const [doorState, setDoorState] = useState<'closed' | 'opening'>('closed')
 
@@ -146,9 +148,9 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.4 }}
-                                        className="min-h-[52px] text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)]"
+                                        className={`min-h-[52px] text-center text-sm lg:text-[15px] font-normal italic leading-relaxed text-[var(--muted-ink)] ${quoteWrapClass(locale)}`}
                                     >
-                                        &ldquo;{currentQuote}&rdquo;
+                                        &ldquo;{quoteText(currentQuote)}&rdquo;
                                     </motion.p>
                                 </AnimatePresence>
                             </div>

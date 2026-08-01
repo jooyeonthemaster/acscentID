@@ -648,8 +648,14 @@
    shadcn 시맨틱 변수(--background 등)도 함께 재정의해
    bg-background / text-foreground / border-border 유틸이
    이 래퍼 안에서는 밝은 값으로 해석되도록 한다.
+
+   .public-editorial-portal: Radix Sheet/Dialog·createPortal처럼
+   body 직속으로 빠져나가는 오버레이는 셸 래퍼 밖이라 토큰이
+   비어 있고, body의 다크 테마 글자색(#E9E2D0)을 상속받는다.
+   portal 루트 요소에 이 클래스를 붙여 같은 토큰을 공급한다.
    ============================================================ */
-.public-editorial {
+.public-editorial,
+.public-editorial-portal {
   /* 에디토리얼 기준 색 */
   --ink: #191918;
   --muted-ink: #686863;
@@ -689,11 +695,15 @@
   --input: var(--line);
   --ring: var(--ink);
 
-  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-heading-serif), var(--font-wanted), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   letter-spacing: 0;
   line-height: 1.55;
+}
+
+/* 배경은 셸 래퍼에만 — portal 오버레이는 자체 배경(bg-white 등)을 유지한다 */
+.public-editorial {
+  background: var(--canvas);
 }
 
 .public-editorial *,

@@ -24,6 +24,7 @@ interface RecipeData {
   generated_recipe: GeneratedRecipe
   retention_percentage: number
   selected_product: string | null
+  result_id: string | null
 }
 
 export default function RecipeDetailPage() {
@@ -40,6 +41,8 @@ export default function RecipeDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('perfume_10ml')
   const [copied, setCopied] = useState(false)
+  // 사주 프로그램 레시피 여부 — 디퓨저는 ml 대신 방울(총 10방울) 기준, 명칭 '디퓨저 클리커'
+  const [isSaju, setIsSaju] = useState(false)
 
   useEffect(() => {
     if (!recipeId || !currentUser) return
@@ -96,6 +99,16 @@ export default function RecipeDetailPage() {
         if (data.selected_product && ['perfume_10ml', 'perfume_50ml', 'diffuser_5ml'].includes(data.selected_product)) {
           setSelectedProduct(data.selected_product as ProductType)
         }
+
+        // 연결된 분석 결과로 사주 프로그램 여부 판별
+        if (data.result_id) {
+          const { data: analysis } = await supabase
+            .from('analysis_results')
+            .select('product_type')
+            .eq('id', data.result_id)
+            .single()
+          setIsSaju(analysis?.product_type === 'saju_perfume')
+        }
       } catch (err) {
         console.error('Fetch error:', err)
         setError('로딩 중 오류가 발생했습니다')
@@ -125,6 +138,17 @@ export default function RecipeDetailPage() {
     }
   }, [granuleAmounts])
 
+  // 방울 모드 — 사주 + 디퓨저 조합은 ml 일체 미노출, 방울 수만 표시
+  const dropsMode = isSaju && selectedProduct === 'diffuser_5ml'
+  const totalDrops = recipe?.generated_recipe?.totalDrops || 10
+  const dropsOf = (id: string, ratio: number) => {
+    const g = recipe?.generated_recipe?.granules.find((x) => x.id === id)
+    return g?.drops ?? Math.round((ratio / 100) * totalDrops)
+  }
+  // 사주에서 디퓨저 제품명은 '디퓨저 클리커'
+  const productLabelOf = (p: { id: ProductType; label: string }) =>
+    isSaju && p.id === 'diffuser_5ml' ? '디퓨저 클리커' : p.label
+
   // 향수 색상 가져오기
   const getGranuleColor = (id: string) => {
     const perfume = perfumes.find((p) => p.id === id)
@@ -145,11 +169,15 @@ export default function RecipeDetailPage() {
   const handleCopyRecipe = async () => {
     if (!recipe) return
 
-    const recipeText = `[${recipe.perfume_name} 커스텀 레시피 - ${productInfo.label}]
+    const amountLine = (g: (typeof granuleAmounts)[number]) =>
+      dropsMode
+        ? `- ${g.name} (${g.id}): ${dropsOf(g.id, g.ratio)}방울 (${g.ratio}%)`
+        : `- ${g.name} (${g.id}): ${g.amountMl.toFixed(2)}ml (${g.ratio}%)`
+    const recipeText = `[${recipe.perfume_name} 커스텀 레시피 - ${productLabelOf(productInfo)}]
 
-총 향료량: ${totalAmount.ml.toFixed(2)}ml
+총 향료량: ${dropsMode ? `${totalDrops}방울` : `${totalAmount.ml.toFixed(2)}ml`}
 
-${granuleAmounts.map((g) => `- ${g.name} (${g.id}): ${g.amountMl.toFixed(2)}ml (${g.ratio}%)`).join('\n')}
+${granuleAmounts.map(amountLine).join('\n')}
 
 AC'SCENT IDENTITY에서 생성됨`
 
@@ -281,7 +309,7 @@ AC'SCENT IDENTITY에서 생성됨`
                 >
                   <span className="text-2xl block mb-1">{product.icon}</span>
                   <p className={`text-xs lg:text-sm font-bold ${isSelected ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>
-                    {product.label}
+                    {productLabelOf(product)}
                   </p>
                 </button>
               )
@@ -295,13 +323,18 @@ AC'SCENT IDENTITY에서 생성됨`
             <div className="flex items-center gap-2">
               <span className="text-2xl">{productInfo.icon}</span>
               <div>
-                <p className="font-bold text-[var(--ink)]">{productInfo.label}</p>
-                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">전체 {productInfo.totalVolumeMl}ml</p>
+                <p className="font-bold text-[var(--ink)]">{productLabelOf(productInfo)}</p>
+                {/* 방울 모드에서는 ml 단위를 일체 노출하지 않는다 */}
+                <p className="text-xs lg:text-sm text-[var(--muted-ink)]">
+                  {dropsMode ? productInfo.description : `전체 ${productInfo.totalVolumeMl}ml`}
+                </p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-xs lg:text-sm text-[var(--muted-ink)]">총 향료량</p>
-              <p className="text-xl font-black text-[var(--muted-ink)]">{productInfo.fragranceVolumeMl}ml</p>
+              <p className="text-xl font-black text-[var(--muted-ink)]">
+                {dropsMode ? `${totalDrops}방울` : `${productInfo.fragranceVolumeMl}ml`}
+              </p>
             </div>
           </div>
         </div>
@@ -349,8 +382,10 @@ AC'SCENT IDENTITY에서 생성됨`
                       className={`w-12 h-12 rounded-[6px] flex flex-col items-center justify-center font-bold shadow-md flex-shrink-0 ${textColorClass}`}
                       style={{ backgroundColor: bgColor }}
                     >
-                      <span className="text-sm lg:text-base font-black">{granule.amountMl.toFixed(1)}</span>
-                      <span className="text-[8px] opacity-80">ml</span>
+                      <span className="text-sm lg:text-base font-black">
+                        {dropsMode ? dropsOf(granule.id, granule.ratio) : granule.amountMl.toFixed(1)}
+                      </span>
+                      <span className="text-[8px] opacity-80">{dropsMode ? '방울' : 'ml'}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -362,7 +397,9 @@ AC'SCENT IDENTITY에서 생성됨`
                       <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-medium">{granule.id}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-lg font-bold text-[var(--muted-ink)]">{granule.amountMl.toFixed(2)}ml</p>
+                      <p className="text-lg font-bold text-[var(--muted-ink)]">
+                        {dropsMode ? `${dropsOf(granule.id, granule.ratio)}방울` : `${granule.amountMl.toFixed(2)}ml`}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
@@ -375,7 +412,9 @@ AC'SCENT IDENTITY에서 생성됨`
         <div className="bg-[var(--soft)] rounded-[6px] p-4 mb-5">
           <div className="flex items-center justify-between">
             <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">총 향료량</span>
-            <p className="text-xl font-black text-[var(--ink)]">{totalAmount.ml.toFixed(2)}ml</p>
+            <p className="text-xl font-black text-[var(--ink)]">
+              {dropsMode ? `${totalDrops}방울` : `${totalAmount.ml.toFixed(2)}ml`}
+            </p>
           </div>
         </div>
 

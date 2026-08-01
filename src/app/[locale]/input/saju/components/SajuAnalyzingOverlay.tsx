@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { SajuChartSnapshot } from '@/types/analysis'
 import {
     CloudDrift,
@@ -35,6 +35,7 @@ import {
     tilesOf,
     type TileDatum,
 } from './SajuOverlayParts'
+import { quoteText, quoteWrapClass } from '@/lib/typography'
 
 export interface SajuAnalyzingOverlayProps {
     isVisible: boolean
@@ -56,6 +57,7 @@ export function SajuAnalyzingOverlay({
     onDoorOpened,
 }: SajuAnalyzingOverlayProps) {
     const t = useTranslations('saju.analyzing')
+    const locale = useLocale()
     const reduce = useReducedMotion()
 
     // 타임라인 상태
@@ -74,7 +76,11 @@ export function SajuAnalyzingOverlay({
     // 도킹 상승량 — 화면 높이에 따라 계산해 헤드라인(top 10%)과 원국 패가 겹치지 않게 한다.
     // 짧은 화면에서는 고정 -96px가 헤드라인을 침범했다(피드백: "겹쳐서 나타나요").
     const stageRef = useRef<HTMLDivElement>(null)
+    const tilesRef = useRef<HTMLDivElement>(null)
     const [dockY, setDockY] = useState(-96)
+    // 앰비언트 링 배치 — 도킹된 8패 아래 ~ 격언 블록 위 사이의 빈 띠에 정확히 앉힌다.
+    // (고정 top-1/2 / -38%는 짧은 화면에서 패와 겹쳤다 — 피드백: "원이 카드와 겹쳐요")
+    const [ringGeom, setRingGeom] = useState<{ top: number; size: number } | null>(null)
     useEffect(() => {
         if (!docked) return
         const compute = () => {
@@ -84,8 +90,25 @@ export function SajuAnalyzingOverlay({
             // 헤드라인 블록(10% + 2줄 + 부제 ≈ 100px) 아래 16px에 도킹된 원국(scale 0.82) 상단을 맞춘다
             const targetTop = h * 0.1 + 116
             const scaledHalf = (stageH * 0.82) / 2
-            const y = Math.round(targetTop + scaledHalf - h / 2)
-            setDockY(Math.min(0, Math.max(y, -96)))
+            const y = Math.min(0, Math.max(Math.round(targetTop + scaledHalf - h / 2), -96))
+            setDockY(y)
+
+            // 도킹 후 실제 좌표 (stage는 h-full 컨테이너 정중앙 → 중심 = h/2 + y, scale 0.82)
+            const tilesH = tilesRef.current?.offsetHeight ?? 0
+            if (!tilesH) {
+                setRingGeom(null)
+                return
+            }
+            const stageTop = h / 2 + y - scaledHalf
+            const bandTop = stageTop + tilesH * 0.82 + 20 // 패 아래 20px 여백
+            const bandBottom = h - 130 - 64 - 12 // 격언 블록(bottom 130px, 2줄 ≈ 64px) 위 12px
+            const band = bandBottom - bandTop
+            if (band < 120) {
+                setRingGeom(null)
+                return
+            }
+            const size = Math.round(Math.min(180, band))
+            setRingGeom({ top: Math.round(bandTop + (band - size) / 2), size })
         }
         compute()
         window.addEventListener('resize', compute)
@@ -289,7 +312,7 @@ export function SajuAnalyzingOverlay({
                     >
                         {/* 8패 4×2 (열 = 년월일시 좌→우, 간 위/지 아래) */}
                         {chart && (
-                            <div className="mb-6 grid grid-flow-col grid-cols-4 grid-rows-2 gap-3">
+                            <div ref={tilesRef} className="mb-6 grid grid-flow-col grid-cols-4 grid-rows-2 gap-3">
                                 {knownTiles.map((tile) => (
                                     <GanjiTile
                                         key={tile.key}
@@ -354,9 +377,10 @@ export function SajuAnalyzingOverlay({
                     </motion.div>
 
                     {/* 대기 루프: ElementRing 앰비언트 (점화는 결과 페이지의 것 — 여기서 소진 금지) */}
-                    {chart && (
+                    {chart && ringGeom && (
                         <motion.div
-                            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[38%]"
+                            className="pointer-events-none absolute left-1/2 -translate-x-1/2"
+                            style={{ top: ringGeom.top }}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: quotesOn && !dimmed ? 1 : quotesOn && dimmed ? 0.3 : 0 }}
                             transition={{ duration: 0.8, ease: SAJU_EASE_INK }}
@@ -365,7 +389,7 @@ export function SajuAnalyzingOverlay({
                                 <ElementRing
                                     counts={chart.elementCount}
                                     yongsin={chart.yongsin.element}
-                                    size={180}
+                                    size={ringGeom.size}
                                 />
                             )}
                         </motion.div>
@@ -378,6 +402,7 @@ export function SajuAnalyzingOverlay({
                         transition={{ duration: 0.4 }}
                     >
                         <AnimatePresence mode="wait">
+                            {/* text-balance: 줄 길이를 고르게 나눠 "…기질의 / 지도입니다." 같은 꼬리 한 단어 줄을 막는다 */}
                             {quotesOn && quotes.length > 0 && (
                                 <motion.p
                                     key={quoteIndex}
@@ -385,10 +410,10 @@ export function SajuAnalyzingOverlay({
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0, transition: { duration: 0.4 } }}
                                     transition={{ duration: 0.8, ease: SAJU_EASE_INK }}
-                                    className="font-serif-kr break-keep text-[15px] leading-[1.85] text-[#A69F8D]"
+                                    className={`font-serif-kr mx-auto max-w-[21em] text-[15px] leading-[1.85] text-[#A69F8D] ${quoteWrapClass(locale)}`}
                                 >
                                     <span aria-hidden className="mr-1.5 text-[#C9A227]">·</span>
-                                    {quotes[quoteIndex]}
+                                    {quoteText(quotes[quoteIndex])}
                                     <span aria-hidden className="ml-1.5 text-[#C9A227]">·</span>
                                 </motion.p>
                             )}

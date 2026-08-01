@@ -74,6 +74,8 @@ interface RecipeGranule {
   id: string
   name: string
   ratio: number
+  /** 방울 수 — 사주 프로그램 레시피에만 존재 (총 10방울 기준) */
+  drops?: number
 }
 
 interface ConfirmedRecipe {
@@ -169,6 +171,8 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
   const [deleteTarget, setDeleteTarget] = useState<Analysis | null>(null)
   const [recipeModalTarget, setRecipeModalTarget] = useState<Analysis | null>(null)
   const [recipeProductTab, setRecipeProductTab] = useState<'10ml' | '50ml' | '5ml'>('10ml')
+  // 사주 프로그램 레시피 — 디퓨저는 g 대신 방울(총 10방울) 기준, 명칭도 '디퓨저 클리커'
+  const isSajuRecipeModal = recipeModalTarget?.product_type === 'saju_perfume'
 
   // 다중 선택 관련 상태 (체크박스는 상시 노출 — 별도 선택 모드 없음)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -1279,7 +1283,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                         {([
                           { key: '10ml' as const, label: t('perfumePerfumeLabel'), sub: t('perfumeSub10') },
                           { key: '50ml' as const, label: t('perfumeLabel50'), sub: t('perfumeSub50') },
-                          { key: '5ml' as const, label: t('oilLabel'), sub: t('oilSub') },
+                          isSajuRecipeModal
+                            ? { key: '5ml' as const, label: t('clickerLabel'), sub: t('clickerSub') }
+                            : { key: '5ml' as const, label: t('oilLabel'), sub: t('oilSub') },
                         ]).map((tab) => (
                           <button
                             key={tab.key}
@@ -1299,6 +1305,8 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                       {/* 레시피 카드들 */}
                       {(() => {
                         const totalGrams = recipeProductTab === '10ml' ? 2 : recipeProductTab === '50ml' ? 10 : 5
+                        // 사주 + 디퓨저 탭: g 대신 방울 표기 (레시피의 drops 값, 없으면 비율 환산)
+                        const sajuDropsTab = isSajuRecipeModal && recipeProductTab === '5ml'
                         return (
                           <div className="space-y-2.5">
                             {recipeModalTarget.confirmed_recipe!.granules.map((granule, idx) => {
@@ -1306,6 +1314,7 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                               const isLight = isLightColor(color)
                               const grams = totalGrams * (granule.ratio / 100)
                               const gramsDisplay = grams < 0.1 ? grams.toFixed(2) : grams.toFixed(1)
+                              const dropsVal = granule.drops ?? Math.round((granule.ratio / 100) * 10)
 
                               return (
                                 <motion.div
@@ -1347,9 +1356,11 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                                       <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{granule.id}</p>
                                     </div>
 
-                                    {/* 그램 수 표시 */}
+                                    {/* 그램/방울 수 표시 */}
                                     <div className="flex flex-col items-center flex-shrink-0 bg-[var(--paper)]/80 rounded-[6px] px-2 py-1 border border-[var(--line)]">
-                                      <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">{gramsDisplay}g</span>
+                                      <span className="text-sm lg:text-base font-black text-[var(--muted-ink)]">
+                                        {sajuDropsTab ? t('dropsCount', { count: dropsVal }) : `${gramsDisplay}g`}
+                                      </span>
                                       <Droplets size={12} className="text-[var(--muted-ink)]" />
                                     </div>
                                   </div>
@@ -1368,7 +1379,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
                             {recipeModalTarget.confirmed_recipe.granules.reduce((sum, g) => sum + g.ratio, 0)}%
                           </span>
                           <span className="text-lg font-black text-[var(--muted-ink)]">
-                            {recipeProductTab === '10ml' ? '2' : recipeProductTab === '50ml' ? '10' : '5'}g
+                            {isSajuRecipeModal && recipeProductTab === '5ml'
+                              ? t('dropsCount', { count: 10 })
+                              : `${recipeProductTab === '10ml' ? '2' : recipeProductTab === '50ml' ? '10' : '5'}g`}
                           </span>
                         </div>
                       </div>

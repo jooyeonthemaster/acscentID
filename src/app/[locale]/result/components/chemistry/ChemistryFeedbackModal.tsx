@@ -557,7 +557,8 @@ export function ChemistryFeedbackModal({
   }
 
   const modal = (
-    <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+    // body로 portal되어 .public-editorial 밖 — portal 클래스로 에디토리얼 토큰 공급
+    <div className="public-editorial-portal fixed inset-0 z-[9999] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ y: "100%" }}

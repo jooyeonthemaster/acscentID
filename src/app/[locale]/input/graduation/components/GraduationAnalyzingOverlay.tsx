@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { GRADUATION_THEME } from "../constants"
+import { quoteText, quoteWrapClass } from "@/lib/typography"
 
 interface GraduationAnalyzingOverlayProps {
     isVisible: boolean
@@ -17,6 +18,7 @@ export function GraduationAnalyzingOverlay({
     onDoorOpened
 }: GraduationAnalyzingOverlayProps) {
     const t = useTranslations('graduationInput')
+    const locale = useLocale()
     const quotes = t.raw('analyzing.quotes') as string[]
     const [progress, setProgress] = useState(0)
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
@@ -161,9 +163,9 @@ export function GraduationAnalyzingOverlay({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.5 }}
-                                className="text-[var(--ink)] text-[15px] font-medium leading-relaxed italic"
+                                className={`text-[var(--ink)] text-[15px] font-medium leading-relaxed italic ${quoteWrapClass(locale)}`}
                             >
-                                &ldquo;{quotes[currentQuoteIndex % quotes.length]}&rdquo;
+                                &ldquo;{quoteText(quotes[currentQuoteIndex % quotes.length])}&rdquo;
                             </motion.p>
                         </AnimatePresence>
 
