@@ -243,13 +243,15 @@ export function FeedbackModal({
             className={`fixed inset-0 z-50 ${saju ? SJ.backdrop : 'bg-black/60 backdrop-blur-sm'}`}
           />
 
-          {/* 모달 */}
+          {/* 모달 — iOS Safari에서 vh(큰 뷰포트) 기준 90vh는 URL바가 보일 때 시트 상단이
+              잘렸다. svh(작은 뷰포트) 기반 계산으로 항상 화면 안에 들어오게 한다
+              (ChemistryFeedbackModal과 동일 패턴) */}
           <motion.div
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
+            className={`fixed inset-x-0 bottom-0 z-50 max-h-[calc(100svh_-_env(safe-area-inset-top)_-_24px)] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
           >
             {/* 헤더 */}
             <div className={`flex items-center justify-between px-5 py-4 border-b ${saju ? SJ.hairline : 'border-[var(--line)]'} flex-shrink-0`}>
@@ -543,9 +545,9 @@ export function FeedbackModal({
               </AnimatePresence>
             </div>
 
-            {/* 푸터 (폼 뷰에서만 표시) */}
+            {/* 푸터 (폼 뷰에서만 표시) — pb-20은 90vh 시절 잘림 보정이었다, svh 전환 후엔 safe-area만 반영 */}
             {modalView === 'form' && step < 4 && (
-              <div className={`px-5 pt-4 pb-20 md:pb-4 border-t flex gap-3 flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[var(--line)] bg-[var(--paper)]'}`}>
+              <div className={`px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4 border-t flex gap-3 flex-shrink-0 ${saju ? `${SJ.hairline} bg-transparent` : 'border-[var(--line)] bg-[var(--paper)]'}`}>
                 {step > 1 && (
                   <Button
                     variant="outline"

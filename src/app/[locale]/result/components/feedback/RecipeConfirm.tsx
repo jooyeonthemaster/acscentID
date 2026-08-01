@@ -438,7 +438,7 @@ AC'SCENT IDENTITY`
       </div>
 
       {/* 확정 버튼 */}
-      <div className="space-y-2 pb-16 md:pb-0">
+      <div className="space-y-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:pb-0">
         {unifiedUser ? (
           // 로그인된 경우
           <Button

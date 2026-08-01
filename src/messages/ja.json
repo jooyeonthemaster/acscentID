@@ -1705,6 +1705,7 @@
     "sajuDropGuideDesc": "秤は必要ございません。合計10滴で処方が完成いたします。",
     "sajuDropMeasurementTip": "滴数を数えるだけゆえ、秤がなくとも正確です。香料は瓶口の中央にゆっくりお垂らしください。",
     "sajuProductDiffuser5Label": "ディフューザークリッカー",
+    "sajuConfirmThisRecipe": "完了",
     "sajuConfirmNote": "確定の後も、いつでも処方を仕立て直せます",
     "sajuLoginNote": "ログインされれば、処方を大切に保管いたします",
     "sajuSaveRecipeDesc": "ログインされれば、結果と処方を大切に保管いたします",
