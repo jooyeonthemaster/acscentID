@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocale } from 'next-intl'
 import { ImageAnalysisResult } from '@/types/analysis'
+import { getOrCreateFingerprint } from '@/lib/user/fingerprint'
 
 interface UseAutoSaveProps {
   analysisResult: ImageAnalysisResult | null
@@ -37,20 +38,6 @@ interface UseAutoSaveReturn {
   showLoginPrompt: boolean
   setShowLoginPrompt: (show: boolean) => void
   retryCount: number
-}
-
-/**
- * fingerprint 가져오기 또는 생성
- */
-function getOrCreateFingerprint(): string {
-  if (typeof window === 'undefined') return ''
-
-  let fp = localStorage.getItem('user_fingerprint')
-  if (!fp) {
-    fp = `fp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    localStorage.setItem('user_fingerprint', fp)
-  }
-  return fp
 }
 
 /**

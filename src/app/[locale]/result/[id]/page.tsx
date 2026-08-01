@@ -34,6 +34,7 @@ async function getResult(id: string) {
     perfumeBrand: data.perfume_brand,
     matchingKeywords: data.matching_keywords,
     viewCount: data.view_count,
+    productType: data.product_type || 'image_analysis',
   }
 }
 

@@ -277,8 +277,13 @@ export const useResultData = () => {
             setTimeout(() => setIsLoaded(true), 100)
             return
           } else {
+            // id로 조회했는데 실패하면 명확히 에러로 종료.
+            // localStorage의 '최근 분석'으로 폴백하면 전혀 다른 분석(다른 캐릭터)이
+            // 그 결과인 것처럼 표시되는 사고가 난다 — 절대 폴백하지 않는다.
             console.error('[useResultData] Failed to fetch from DB:', data.error)
-            // DB에서 못 가져오면 localStorage 시도
+            setError('분석 결과를 찾을 수 없습니다. 링크가 만료되었거나 삭제된 결과일 수 있습니다.')
+            setLoading(false)
+            return
           }
         }
 

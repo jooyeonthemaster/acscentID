@@ -88,20 +88,26 @@ export async function getSession() {
 }
 
 /**
- * Fingerprint 데이터를 유저 계정에 연동
+ * Fingerprint 데이터를 유저 계정에 연동.
+ * 서버 API가 최근 24시간 내 생성분만 귀속한다 — 공용 기기(매장 태블릿)에서
+ * 다른 손님의 과거 게스트 분석까지 흡수하던 사고 방지.
+ * 반환: { analyses, layeringSessions, feedbacks, total } 귀속 건수.
  */
-export async function linkFingerprintData(userId: string, fingerprint: string) {
-  const { data, error } = await supabase.rpc('link_fingerprint_data', {
-    p_user_id: userId,
-    p_fingerprint: fingerprint
+export async function linkFingerprintData(_userId: string, fingerprint: string) {
+  const response = await fetch('/api/user/link-fingerprint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fingerprint })
   })
 
-  if (error) {
-    console.error('Link fingerprint error:', error)
-    throw error
+  const data = await response.json()
+
+  if (!response.ok) {
+    console.error('Link fingerprint error:', data.error)
+    throw new Error(data.error || 'Fingerprint link failed')
   }
 
-  return data
+  return data.linked as { analyses: number; layeringSessions: number; feedbacks: number; total: number }
 }
 
 /**

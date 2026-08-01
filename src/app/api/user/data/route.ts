@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
+import { linkFingerprintRows, fingerprintLinkCutoffISO } from '@/lib/user/fingerprint-link'
 
 const ANALYSIS_SELECT = [
   'id',
@@ -61,13 +62,11 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient()
 
     // fingerprint 연동은 로그인 직후 등 명시 요청에서만 실행.
-    // 마이페이지 조회 때마다 RPC를 호출하면 보호 페이지 진입이 느려진다.
+    // 마이페이지 조회 때마다 실행하면 보호 페이지 진입이 느려진다.
+    // 24시간 윈도우 제한 — 공용 기기에서 다른 손님의 분석 흡수 방지.
     if (fingerprint && shouldLinkFingerprint) {
       try {
-        await supabase.rpc('link_fingerprint_data', {
-          p_user_id: userId,
-          p_fingerprint: fingerprint
-        })
+        await linkFingerprintRows(supabase, userId, fingerprint)
       } catch (linkError) {
         console.error('[UserData] Fingerprint link failed:', linkError)
       }
@@ -84,6 +83,8 @@ export async function GET(request: NextRequest) {
     ]
 
     // fingerprint가 있으면 추가 조회
+    // 미귀속 게스트 행은 24시간 윈도우 내 생성분만 병합 표시 —
+    // 공용 기기에서 다른 손님의 게스트 분석이 목록에 섞이는 것 방지.
     if (fingerprint) {
       queries.push(
         // fingerprint로 분석 결과 조회 (user_id가 NULL인 것만)
@@ -92,6 +93,7 @@ export async function GET(request: NextRequest) {
           .select(ANALYSIS_SELECT)
           .eq('user_fingerprint', fingerprint)
           .is('user_id', null)
+          .gte('created_at', fingerprintLinkCutoffISO())
           .order('created_at', { ascending: false }),
       )
     }

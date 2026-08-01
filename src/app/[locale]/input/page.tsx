@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl"
 
 import { useInputForm } from "./hooks/useInputForm"
 import { Step1, Step2, Step3, Step4, Step5, AnalyzingOverlay } from "./components"
+import { OfflineAccountBanner } from "./components/OfflineAccountBanner"
 import { TOTAL_STEPS, GENDER_OPTIONS } from "./constants"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { GraduationInputForm } from "./graduation/GraduationInputForm"
@@ -86,6 +87,8 @@ function InputForm() {
 
     // 스텝 본문 — 모바일/데스크탑 두 트리가 동일 JSX를 공유 (하이드레이션 후 한쪽만 마운트)
     const stepContent = (
+            <>
+                <OfflineAccountBanner />
                 <AnimatePresence mode="wait">
                     {currentStep === 1 && (
                         <Step1
@@ -146,6 +149,7 @@ function InputForm() {
                         />
                     )}
                 </AnimatePresence>
+            </>
     )
 
     // 데스크탑 레일용 스텝 라벨 (각 StepN이 StepHeader에 넘기는 타이틀 키 재사용)

@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback,
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import { signInWithGoogle, signInWithKakao, linkFingerprintData } from '@/lib/supabase/auth'
+import { rotateFingerprint } from '@/lib/user/fingerprint'
 
 // 통합 사용자 타입 (Supabase Auth + 카카오 커스텀)
 interface UnifiedUser {
@@ -47,8 +48,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!fingerprint) return
 
     try {
-      await linkFingerprintData(userId, fingerprint)
-      console.log('Fingerprint data linked successfully')
+      const linked = await linkFingerprintData(userId, fingerprint)
+      console.log('Fingerprint data linked successfully', linked)
+      // 귀속이 일어났으면 fingerprint의 역할은 끝 — 즉시 새로 발급해서
+      // 같은 기기의 다음 게스트 분석이 이 계정으로 딸려 오지 않게 한다.
+      if (linked?.total > 0) {
+        rotateFingerprint()
+      }
     } catch (error) {
       console.error('Failed to link fingerprint data:', error)
     }
@@ -228,6 +234,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null)
       setUnifiedUser(null)
       setSession(null)
+      // 공용 기기 대비: 로그아웃하면 기기 게스트 식별자도 새로 발급해
+      // 다음 사용자의 분석이 이전 사용자와 엮이지 않게 한다.
+      rotateFingerprint()
     } catch (error) {
       console.error('Sign out failed:', error)
       throw error

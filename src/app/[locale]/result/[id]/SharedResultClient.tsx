@@ -50,6 +50,7 @@ export interface SharedResultData {
   perfumeBrand: string
   matchingKeywords: string[]
   viewCount: number
+  productType?: string
 }
 
 interface SharedResultClientProps {
@@ -61,6 +62,16 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
   const [activeTab, setActiveTab] = useState<'analysis' | 'perfume' | 'comparison'>('analysis')
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
+  // 이 화면은 이미지 분석 레이아웃 전용이다. 사주/케미/피규어/졸업 결과를
+  // 그대로 렌더하면 본문이 비어 보이므로, 타입별 분기가 있는 메인 결과
+  // 페이지(/result?id=)로 넘긴다.
+  const needsTypedLayout = Boolean(result.productType && result.productType !== 'image_analysis')
+  React.useEffect(() => {
+    if (needsTypedLayout) {
+      router.replace(`/result?id=${result.id}`)
+    }
+  }, [needsTypedLayout, result.id, router])
+
   const handleStartAnalysis = () => {
     router.push('/')
   }
@@ -68,6 +79,14 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
   const handleShare = useCallback(() => {
     setIsShareModalOpen(true)
   }, [])
+
+  if (needsTypedLayout) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[var(--canvas)]">
+        <div className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   const { analysisData, userImageUrl, twitterName, perfumeName, perfumeBrand } = result
 
