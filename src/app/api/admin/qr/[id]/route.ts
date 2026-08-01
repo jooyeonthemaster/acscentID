@@ -109,7 +109,8 @@ export async function PATCH(
   }
 }
 
-// QR 코드 삭제 (비활성화)
+// QR 코드 삭제
+// analysis_results.qr_code_id는 FK 없는 문자열 컬럼이라 행을 지워도 기존 분석 기록은 유지된다.
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -123,13 +124,9 @@ export async function DELETE(
     const { id } = await params
     const supabase = await createServerSupabaseClientWithCookies()
 
-    // 실제 삭제 대신 비활성화
     const { error } = await supabase
       .from('qr_codes')
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', id)
 
     if (error) {
@@ -138,7 +135,7 @@ export async function DELETE(
     }
 
     return NextResponse.json({
-      message: 'QR 코드가 비활성화되었습니다',
+      message: 'QR 코드가 삭제되었습니다',
     })
   } catch (error) {
     console.error('Error in admin QR DELETE:', error)

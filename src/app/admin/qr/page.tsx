@@ -227,7 +227,7 @@ function QRDetailModal({ qr, isOpen, onClose, onUpdate, onDelete }: QRDetailModa
   }
 
   const handleDelete = async () => {
-    if (!qr || !confirm('정말로 이 QR 코드를 비활성화하시겠습니까?')) return
+    if (!qr || !confirm('정말로 이 QR 코드를 삭제하시겠습니까?\n삭제하면 복구할 수 없고, 인쇄된 QR도 더 이상 작동하지 않습니다.\n잠시 중단만 하려면 삭제 대신 비활성화를 사용하세요.')) return
     setLoading(true)
     try {
       await onDelete(qr.id)
