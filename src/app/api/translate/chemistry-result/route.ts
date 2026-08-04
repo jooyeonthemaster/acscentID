@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json<TranslateChemistryResultResponse>(
         { success: false, error: 'API key not configured' },
         { status: 500 }

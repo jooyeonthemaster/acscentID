@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getKakaoSession } from '@/lib/auth-session'
-import { initializeGemini, withTimeout } from '@/lib/gemini/client'
+import { getModelWithConfig, withTimeout } from '@/lib/gemini/client'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
@@ -446,15 +446,9 @@ export async function POST(request: NextRequest) {
     const schema = await getDbSchemaViaSql(supabase)
 
     // 4. Gemini로 SQL 생성 + 분석
-    const genAI = initializeGemini()
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3.6-flash',
-      generationConfig: {
-        temperature: 0.3,
-        topP: 0.9,
-        maxOutputTokens: 8192,
-        responseMimeType: 'application/json',
-      },
+    const model = getModelWithConfig({
+      temperature: 0.3,
+      maxOutputTokens: 8192,
     })
 
     // Step 1: SQL 생성
@@ -522,13 +516,11 @@ export async function POST(request: NextRequest) {
       sqlQuery = sqlResponse.sql_queries.join('\n\n')
     }
 
-    // Step 2: 결과 해석 + 답변 생성
-    const answerModel = genAI.getGenerativeModel({
-      model: 'gemini-3.6-flash',
-      generationConfig: {
-        temperature: 0.5,
-        maxOutputTokens: 4096,
-      },
+    // Step 2: 결과 해석 + 답변 생성 (일반 텍스트 응답 — JSON 강제 해제)
+    const answerModel = getModelWithConfig({
+      temperature: 0.5,
+      maxOutputTokens: 4096,
+      json: false,
     })
 
     const answerPrompt = buildAnswerPrompt(message, sqlResponse, queryResults)

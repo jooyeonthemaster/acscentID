@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { openRouterChat, OPENROUTER_IMAGE_MODEL, extractResponseText } from '@/lib/gemini/client'
 
 // ===== 과거 스타일 → 배경 스타일/질감 매핑 =====
 const PAST_STYLE_BACKGROUNDS: Record<string, string> = {
@@ -136,29 +136,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
-      console.error('[Graduation Image] GEMINI_API_KEY not set')
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error('[Graduation Image] OPENROUTER_API_KEY not set')
       return NextResponse.json(
         { success: false, error: 'API 키가 설정되지 않았습니다.' },
         { status: 500 }
       )
     }
-
-    const genAI = new GoogleGenerativeAI(apiKey)
-
-    // Gemini 3 Pro Image Preview 모델 사용 (참조 이미지 기반 이미지 생성)
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-image-preview',
-      generationConfig: {
-        // @ts-expect-error - Gemini 3 Pro Image 설정
-        responseModalities: ['TEXT', 'IMAGE'],
-        imageConfig: {
-          aspectRatio: '3:4',
-          imageSize: '1K'
-        }
-      },
-    })
 
     // base64에서 데이터 부분만 추출
     const base64Data = originalImageBase64.replace(/^data:image\/\w+;base64,/, '')
@@ -175,33 +159,34 @@ export async function POST(request: NextRequest) {
     console.log(`[Graduation Image] Processing with personalized prompt`)
     console.log(`[Graduation Image] Past: ${pastStyles.join(', ')} | Feeling: ${currentFeeling} | Future: ${futureDreams.join(', ')}`)
 
-    // Gemini 3 Pro에 참조 이미지와 프롬프트 전송
-    // 참조 이미지 기능을 활용하여 인물의 얼굴을 유지
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: base64Data,
+    // Gemini 3 Pro Image(OpenRouter 경유)에 참조 이미지와 프롬프트 전송
+    // 참조 이미지 기능을 활용하여 인물의 얼굴을 유지. 종횡비(3:4)는 프롬프트로 지시한다.
+    const result = await openRouterChat(
+      [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } },
+          ],
         },
-      },
-    ])
+      ],
+      {
+        model: OPENROUTER_IMAGE_MODEL,
+        modalities: ['image', 'text'],
+        json: false,
+      }
+    )
 
-    const response = await result.response
-
-    // candidates에서 이미지 데이터 확인
-    const candidates = response.candidates
+    // 생성된 이미지는 message.images[].image_url.url(data URL)로 내려온다
+    const images = result.choices?.[0]?.message?.images
     let generatedImageBase64: string | null = null
 
-    if (candidates && candidates.length > 0) {
-      const parts = candidates[0].content?.parts || []
-      for (const part of parts) {
-        // inline_data가 있는 경우 (이미지 생성됨)
-        if ('inlineData' in part && part.inlineData?.data) {
-          generatedImageBase64 = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`
-          console.log('[Graduation Image] Successfully generated transformed image with Gemini 3 Pro')
-          break
-        }
+    for (const image of images ?? []) {
+      if (image.image_url?.url) {
+        generatedImageBase64 = image.image_url.url
+        console.log('[Graduation Image] Successfully generated transformed image via OpenRouter')
+        break
       }
     }
 
@@ -214,12 +199,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 텍스트 응답 확인 (이미지가 생성되지 않은 경우)
-    let textResponse = ''
-    try {
-      textResponse = response.text()
-    } catch {
-      textResponse = ''
-    }
+    const textResponse = extractResponseText(result)
 
     // 이미지가 생성되지 않은 경우
     console.log('[Graduation Image] No image generated, text response:', textResponse)
