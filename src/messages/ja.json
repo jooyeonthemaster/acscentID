@@ -152,7 +152,7 @@
     "leQuack": "SIGNATURE プドゥックパフューム",
     "customDuck": "カスタムダックビルダー",
     "chemistry": "レイヤリングパフュームセット",
-    "saju": "四柱推命パフューム"
+    "saju": "四柱分析パフューム&ディフューザークリッカーキーリング"
   },
   "labels": {
     "traits": {
@@ -240,7 +240,7 @@
       "figure": "3Dフィギュア + ディフューザー(5ml) + 分析レポート",
       "graduation": "プドゥックパフューム(10ml) + 学帽パフュームキーリング + 卒業証書風分析レポート + 試香紙",
       "chemistry": "レイヤリングパフュームセット(10ml x 2 / 50ml x 2) + ケミプロフィールカード + 試香紙",
-      "saju": "四柱オーダーメイドパフューム(10ml/50ml) + 命式分析レポート + 試香紙"
+      "saju": "四柱オーダーメイドパフューム(10ml/50ml)または五行ディフューザークリッカーキーリング + 命式分析レポート"
     },
     "features": {
       "aiAnalysis": "AIカスタム分析",
@@ -866,6 +866,8 @@
     "includePremiumPackage": "プレミアムパッケージ",
     "freeShippingOverInfo": "5万ウォン以上で送料無料",
     "includeAnalysisPerfume": "AIカスタム分析香水（{size}）",
+    "includeSajuClicker": "五行ディフューザークリッカーキーリング",
+    "includeSajuClickerFragrance": "カスタム香料10滴",
     "includeAnalysisCard": "分析結果カード",
     "includeScentPaper": "ムエット（試香紙・香りを先に試せます）",
     "setProduct": "セット商品",
@@ -876,7 +878,11 @@
     "repurchaseBannerSubtitle": "下の10%割引クーポンを選択して適用してください",
     "firstPurchasePromoTitle": "次回以降、ずっと10%オフ！💝",
     "firstPurchasePromoSubtitle": "再購入クーポンが自動発行され、回数制限なく使えます",
-    "storeProductPerfumeIncluded": "{product}（スプレータイプ）"
+    "storeProductPerfumeIncluded": "{product}（スプレータイプ）",
+    "optionSaju10": "四柱香水 10ml",
+    "optionSaju50": "四柱香水 50ml",
+    "optionSajuClicker": "ディフューザークリッカーキーリング",
+    "sajuElementNote": "分析が導いた五行で刻印・ステッカーを製作します"
   },
   "checkoutComplete": {
     "title": "注文完了",
@@ -2756,7 +2762,7 @@
   },
   "saju": {
     "common": {
-      "programName": "四柱分析パフューム",
+      "programName": "四柱分析パフューム&ディフューザークリッカーキーリング",
       "elements": {
         "wood": "木(もく)",
         "fire": "火(か)",
@@ -2852,9 +2858,25 @@
         "a2": "節気の境界時刻まで反映した万歳暦をもとにコードが正確に計算し、AIは解釈のみを担います。夜11時以降の子時(ねのとき)生まれは流派によって日柱が変わることがあるため、結果の中でご案内します。"
       },
       "cta": "私の八字の香りを探す",
-      "price": "10ml / 50ml 同一価格",
+      "price": "クリッカー 12,900 · 10ml 24,000 · 50ml 48,000",
       "info1": "AI四柱分析レポート + オーダーメイド香水",
-      "info2": "ご注文後3〜5日以内に発送"
+      "info2": "ご注文後3〜5日以内に発送",
+      "lineup": {
+        "kicker": "分析の先に届く実物",
+        "title": "処方された香り、三つのかたち",
+        "desc": "分析を終えると、処方された香りを香水またはディフューザークリッカーキーリングで受け取れます。",
+        "itemClicker": "ディフューザークリッカーキーリング",
+        "itemClickerSub": "分析が導いた五行を刻んだキーリングディフューザー · 香料10滴",
+        "item10": "10ml 香水",
+        "item10Sub": "軽やかに持ち歩ける携帯用",
+        "item50": "50ml 香水",
+        "item50Sub": "長く手元に置く本品",
+        "elementNote": "刻印の五行は選びません。分析が導いた用神のまま製作されます。",
+        "stickerNote": "すべてのご注文の箱には、該当する五行のステッカーが封のように貼られます。",
+        "clickerAlt": "五行が刻印されたディフューザークリッカーキーリング5種",
+        "engravingAlt": "金の五行刻印クローズアップ",
+        "bothSidesAlt": "太極面と五行面 — クリッカーの両面"
+      }
     },
     "input": {
       "gate": {
@@ -3305,6 +3327,30 @@
     "storePaperHandLight": {
       "alt": "手で試香カードを持った明るいムードカット",
       "caption": "手に持ったときの試香カードのサイズ感とキット全体の雰囲気を見せます。"
+    },
+    "sajuLineup": {
+      "alt": "四柱香水10ml・50mlと五行ディフューザークリッカーキーリング",
+      "caption": "四柱ラインナップ — 香水と五行クリッカー"
+    },
+    "sajuFiftyReport": {
+      "alt": "50mlブラックボトルと四柱分析レポート",
+      "caption": "50mlボトル — 四柱分析レポートと共に"
+    },
+    "sajuTenReport": {
+      "alt": "10ml香水と四柱分析レポート",
+      "caption": "10ml携帯用 — 四柱分析レポートと共に"
+    },
+    "sajuClickerFive": {
+      "alt": "五行が刻印されたディフューザークリッカーキーリング5種",
+      "caption": "五行クリッカー5種 — 火・水・木・金・土"
+    },
+    "sajuClickerEngraving": {
+      "alt": "金の五行刻印クローズアップ",
+      "caption": "メタリックパールに刻んだ五行の刻印"
+    },
+    "sajuClickerBothSides": {
+      "alt": "クリッカー両面 — 太極面と五行面",
+      "caption": "片面は太極、片面は五行"
     }
   },
   "editorialDetail": {

@@ -607,7 +607,7 @@ function SajuPrintReport({ analysis, rootId, standalonePrintStyles }: {
         {/* L1 프로그램 낙관 — 사주 분석 로고 */}
         <img
           src="/images/saju/saju-logo.png"
-          alt="사주 분석 퍼퓸"
+          alt="사주 분석 퍼퓸&디퓨저 클리커 키링"
           className="absolute object-contain"
           style={{ left: 36, top: 36, width: 44, height: 44 }}
         />

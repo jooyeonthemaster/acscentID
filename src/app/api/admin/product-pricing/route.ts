@@ -10,7 +10,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { invalidatePricingCache } from '@/lib/products/pricing'
-import type { ProductType } from '@/types/cart'
+import { STANDARD_PERFUME_10ML_PRICE, type ProductType } from '@/types/cart'
+
+function violatesStandard10mlPrice(productType: ProductType, size: string, price: number): boolean {
+  return (
+    size === '10ml' &&
+    productType !== 'payment_test' &&
+    price !== STANDARD_PERFUME_10ML_PRICE
+  )
+}
 
 export async function GET() {
   const admin = await requireAdmin()
@@ -66,6 +74,12 @@ export async function POST(request: NextRequest) {
   }
   if (!Number.isInteger(body.price) || body.price < 0) {
     return NextResponse.json({ error: 'price 는 0 이상의 정수여야 합니다' }, { status: 400 })
+  }
+  if (violatesStandard10mlPrice(product_type, size, body.price)) {
+    return NextResponse.json(
+      { error: '실판매 단품 10ml 가격은 24,000원으로 고정됩니다' },
+      { status: 400 },
+    )
   }
   let originalPrice: number | null = null
   if (body.original_price !== undefined && body.original_price !== null) {
@@ -168,6 +182,12 @@ export async function PATCH(request: NextRequest) {
   if (typeof body.price === 'number') {
     if (body.price < 0 || !Number.isFinite(body.price) || !Number.isInteger(body.price)) {
       return NextResponse.json({ error: 'price 는 0 이상의 정수여야 합니다' }, { status: 400 })
+    }
+    if (violatesStandard10mlPrice(product_type, size, body.price)) {
+      return NextResponse.json(
+        { error: '실판매 단품 10ml 가격은 24,000원으로 고정됩니다' },
+        { status: 400 },
+      )
     }
     updates.price = body.price
   }

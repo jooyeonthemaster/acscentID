@@ -86,7 +86,7 @@ export const ADMIN_PROGRAMS: AdminProgramDefinition[] = [
   },
   {
     slug: 'saju',
-    name: '사주 분석 퍼퓸',
+    name: '사주 분석 퍼퓸&디퓨저 클리커 키링',
     description: '생년월일시 기반 사주 분석으로 부족한 기운을 채우는 향을 추천합니다.',
     publicHref: '/programs/saju',
     inputHref: '/input?type=saju&mode=online',

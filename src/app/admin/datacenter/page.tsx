@@ -69,7 +69,7 @@ const PROGRAM_LABELS: Record<ProgramType, { label: string; icon: React.ReactNode
   figure: { label: '피규어 디퓨저', icon: <Box className="w-4 h-4" />, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: <GraduationCap className="w-4 h-4" />, color: 'bg-amber-500' },
   chemistry: { label: '레이어링 퍼퓸', icon: <Users className="w-4 h-4" />, color: 'bg-violet-500' },
-  saju: { label: '사주 분석 퍼퓸', icon: <Moon className="w-4 h-4" />, color: 'bg-red-700' },
+  saju: { label: '사주 분석 퍼퓸&디퓨저 클리커 키링', icon: <Moon className="w-4 h-4" />, color: 'bg-red-700' },
 }
 
 // 키워드 클라우드 컴포넌트

@@ -223,7 +223,7 @@ export function HomeDesktop({
                     )}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col border-l border-[var(--line-soft)] px-5 py-5">
-                    <h3 className="truncate break-keep text-[17px] font-bold text-[var(--ink)]">
+                    <h3 className="break-keep text-[17px] font-bold leading-snug text-[var(--ink)]">
                       {product.title}
                     </h3>
                     <p className="mt-1 line-clamp-2 whitespace-pre-line break-keep text-[13px] leading-snug text-[var(--muted-ink)]">

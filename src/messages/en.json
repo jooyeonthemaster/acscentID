@@ -152,7 +152,7 @@
     "leQuack": "SIGNATURE PPUDUCK Perfume",
     "customDuck": "Custom Duck Builder",
     "chemistry": "Layering Perfume Set",
-    "saju": "Saju (Four Pillars) Perfume"
+    "saju": "Saju Analysis Perfume & Diffuser Clicker Keyring"
   },
   "labels": {
     "traits": {
@@ -240,7 +240,7 @@
       "figure": "3D Figure + Diffuser (5ml) + printed analysis report",
       "graduation": "PPUDUCK Perfume (10ml) + graduation cap perfume keyring + diploma-style analysis report + Scent Paper",
       "chemistry": "Layering Perfume Set (10ml x 2 / 50ml x 2) + Chemistry Profile Card + Scent Paper",
-      "saju": "Saju custom perfume (10ml/50ml) + printed 命式 chart report + Scent Paper"
+      "saju": "Saju custom perfume (10ml/50ml) or five-element diffuser clicker keyring + printed 命式 chart report"
     },
     "features": {
       "aiAnalysis": "AI Custom Analysis",
@@ -866,6 +866,8 @@
     "includePremiumPackage": "Premium package",
     "freeShippingOverInfo": "Free shipping over 50,000 KRW",
     "includeAnalysisPerfume": "AI custom analysis perfume ({size})",
+    "includeSajuClicker": "Five-element diffuser clicker keyring",
+    "includeSajuClickerFragrance": "10 drops of custom fragrance",
     "includeAnalysisCard": "Analysis result card",
     "includeScentPaper": "Scent paper (try the fragrance first)",
     "setProduct": "Set Product",
@@ -876,7 +878,11 @@
     "repurchaseBannerSubtitle": "Select your 10% discount coupon below",
     "firstPurchasePromoTitle": "Get 10% off on every future order! 💝",
     "firstPurchasePromoSubtitle": "A repurchase coupon is auto-issued with no usage limit",
-    "storeProductPerfumeIncluded": "{product} (spray type)"
+    "storeProductPerfumeIncluded": "{product} (spray type)",
+    "optionSaju10": "Saju Perfume 10ml",
+    "optionSaju50": "Saju Perfume 50ml",
+    "optionSajuClicker": "Diffuser Clicker Keyring",
+    "sajuElementNote": "Engraving & box sticker are made with the element prescribed by your analysis"
   },
   "checkoutComplete": {
     "title": "Order Complete",
@@ -2756,7 +2762,7 @@
   },
   "saju": {
     "common": {
-      "programName": "Saju Analysis Perfume",
+      "programName": "Saju Analysis Perfume & Diffuser Clicker Keyring",
       "elements": {
         "wood": "Wood (木)",
         "fire": "Fire (火)",
@@ -2852,9 +2858,25 @@
         "a2": "Our code calculates precisely on a manseryeok (萬歲曆) that reflects exact solar-term boundaries; the AI only interprets. For births after 11 p.m. — the Ja hour (子時) — the day pillar may differ by school, and we note this in your result."
       },
       "cta": "Find the scent of my destiny",
-      "price": "Same price for 10ml / 50ml",
+      "price": "Clicker 12,900 · 10ml 24,000 · 50ml 48,000",
       "info1": "AI Saju (四柱) reading report + personalized perfume",
-      "info2": "Ships within 3–5 days of your order"
+      "info2": "Ships within 3–5 days of your order",
+      "lineup": {
+        "kicker": "What you receive after the reading",
+        "title": "Your prescribed scent, three forms",
+        "desc": "After the analysis, receive your prescribed scent as a perfume or a diffuser clicker keyring.",
+        "itemClicker": "Diffuser Clicker Keyring",
+        "itemClickerSub": "Keyring diffuser engraved with your element · 10 drops of fragrance",
+        "item10": "10ml Perfume",
+        "item10Sub": "A light companion for every day",
+        "item50": "50ml Perfume",
+        "item50Sub": "The full bottle to keep close",
+        "elementNote": "You do not choose the engraving — it is made with the yongsin (用神) element your analysis prescribes.",
+        "stickerNote": "Every order box is sealed with a sticker of your element.",
+        "clickerAlt": "Five diffuser clicker keyrings engraved with the five elements",
+        "engravingAlt": "Close-up of the Metal (金) engraving",
+        "bothSidesAlt": "Taegeuk face and element face — both sides of the clicker"
+      }
     },
     "input": {
       "gate": {
@@ -3305,6 +3327,30 @@
     "storePaperHandLight": {
       "alt": "Bright mood shot of a hand holding the scent card",
       "caption": "Shows how the scent card feels in hand with the full kit softly in the background."
+    },
+    "sajuLineup": {
+      "alt": "Saju perfume 10ml/50ml with five-element diffuser clicker keyrings",
+      "caption": "Saju lineup — perfume and element clickers"
+    },
+    "sajuFiftyReport": {
+      "alt": "50ml black bottle with saju analysis report",
+      "caption": "50ml bottle — with your saju report"
+    },
+    "sajuTenReport": {
+      "alt": "10ml perfume with saju analysis report",
+      "caption": "10ml travel size — with your saju report"
+    },
+    "sajuClickerFive": {
+      "alt": "Five diffuser clicker keyrings engraved with the five elements",
+      "caption": "Five element clickers — Fire·Water·Wood·Metal·Earth"
+    },
+    "sajuClickerEngraving": {
+      "alt": "Close-up of the Metal (金) element engraving",
+      "caption": "Element engraving on metallic pearl"
+    },
+    "sajuClickerBothSides": {
+      "alt": "Both sides of the clicker — taegeuk and element faces",
+      "caption": "Taegeuk on one side, your element on the other"
     }
   },
   "editorialDetail": {

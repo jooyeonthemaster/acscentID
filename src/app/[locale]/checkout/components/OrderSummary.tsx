@@ -4,8 +4,10 @@ import { motion } from "framer-motion"
 import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift, ShoppingBag } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
-import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
+import type { SajuElement } from "@/types/analysis"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { SajuClickerElementBadge } from "@/components/saju"
 
 // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적. selectedSize 는 임의 옵션 코드 허용.
 interface OrderSummaryProps {
@@ -21,6 +23,8 @@ interface OrderSummaryProps {
   quantity: number
   onQuantityChange: (quantity: number) => void
   isRepurchaser?: boolean
+  // 사주 분석의 용신 오행 — 클리커 각인·박스 스티커가 이 오행으로 제작된다는 안내 배지용
+  sajuElement?: SajuElement | null
 }
 
 export function OrderSummary({
@@ -36,6 +40,7 @@ export function OrderSummary({
   quantity = 1,
   onQuantityChange,
   isRepurchaser,
+  sajuElement = null,
 }: OrderSummaryProps) {
   const t = useTranslations()
   const { getOptions } = useProductPricing()
@@ -43,10 +48,12 @@ export function OrderSummary({
   const isGraduation = productType === "graduation"
   const isSignature = productType === "signature"
   const isStoreProduct = productType === "store_product"
+  const isSajuProduct = productType === "saju_perfume"
   // [FIX] CRITICAL #2: chemistry_set 분기 추가
   const isChemistrySet = productType === "chemistry_set"
   // 시향지 애드온 선택 시 — 포함 사항을 시향지 전용으로 표기 (퍼퓸/세트 구성 안내가 맞지 않으므로)
   const isScentPaper = isScentPaperSize(selectedSize)
+  const isSajuClicker = isSajuProduct && isSajuClickerSize(selectedSize)
   const getOptionLabel = (option: { size: string; label: string; product_type?: ProductType }) => {
     const optionProductType = option.product_type || productType
 
@@ -66,6 +73,9 @@ export function OrderSummary({
     if (option.size === '50ml') {
       if (optionProductType === 'saju_perfume' && t.has('checkout.optionSaju50')) return t('checkout.optionSaju50')
       return t('checkout.optionPerfume50')
+    }
+    if (isSajuClickerSize(option.size)) {
+      return t.has('checkout.optionSajuClicker') ? t('checkout.optionSajuClicker') : option.label
     }
     if (option.size === 'set') {
       if (optionProductType === 'image_analysis_paper') return t('checkout.optionImageAnalysisPaper')
@@ -153,6 +163,16 @@ export function OrderSummary({
               <>{price.toLocaleString()}{t('currency.suffix')}</>
             )}
           </p>
+
+          {/* 사주 — 분석이 추천한 용신 오행 (클리커 각인 · 박스 스티커 기준) */}
+          {productType === 'saju_perfume' && sajuElement && (
+            <div className="flex items-center gap-2">
+              <SajuClickerElementBadge element={sajuElement} />
+              <span className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-bold break-keep">
+                {t.has('checkout.sajuElementNote') ? t('checkout.sajuElementNote') : '분석이 추천한 오행으로 각인·스티커가 제작됩니다'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -183,6 +203,11 @@ export function OrderSummary({
             <>
               <Heart size={14} className="text-[var(--muted-ink)]" />
               {t('chemistry.result.purchase')}
+            </>
+          ) : isSajuProduct ? (
+            <>
+              <Sparkles size={14} className="text-[var(--muted-ink)]" />
+              {t('checkout.productSelection')}
             </>
           ) : (
             <>
@@ -482,6 +507,28 @@ export function OrderSummary({
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
                   : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+              </li>
+            </>
+          ) : isSajuClicker ? (
+            /* 사주 디퓨저 클리커 키링 포함 사항 */
+            <>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
+                {t('checkout.includeSajuClicker')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
+                {t('checkout.includeSajuClickerFragrance')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
+                {t('checkout.includeAnalysisCard')}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
+                {isFreeShippingPromo
+                  ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
+                  : t('checkout.shippingFeeAmount')}
               </li>
             </>
           ) : (

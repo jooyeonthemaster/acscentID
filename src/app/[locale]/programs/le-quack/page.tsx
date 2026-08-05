@@ -24,7 +24,7 @@ import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useProductPricing } from "@/hooks/useProductPricing"
-import { formatPrice } from "@/types/cart"
+import { formatPrice, STANDARD_PERFUME_10ML_PRICE } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 
 const fadeInUp = {
@@ -165,7 +165,7 @@ export default function LeQuackPage() {
           {t('programs.detail.leQuack.signaturePerfumeLabel')}
         </div>
         <div className="flex items-end gap-2">
-          <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? 34000)}</span>
+          <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(sigOpt?.price ?? STANDARD_PERFUME_10ML_PRICE)}</span>
           {sigOpt?.original_price && sigOpt.original_price > sigOpt.price && (
             <>
               <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(sigOpt.original_price)}</span>

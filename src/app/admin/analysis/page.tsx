@@ -282,7 +282,7 @@ export default function AnalysisPage() {
               <option value="graduation">졸업 퍼퓸</option>
               <option value="signature">시그니처</option>
               <option value="chemistry_set">레이어링 퍼퓸</option>
-              <option value="saju_perfume">사주 분석 퍼퓸</option>
+              <option value="saju_perfume">사주 분석 퍼퓸&디퓨저 클리커 키링</option>
               <option value="today_scent">오늘의 향</option>
               <option value="store_product">상품</option>
             </select>

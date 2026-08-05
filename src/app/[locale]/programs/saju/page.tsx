@@ -9,6 +9,7 @@
 // ============================================================
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { ScrollText } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -22,14 +23,15 @@ import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
-import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
+import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
 import { useProductPricing } from "@/hooks/useProductPricing"
-import { formatPrice } from "@/types/cart"
-import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
+import { formatPrice, SAJU_CLICKER_PRICE, STANDARD_PERFUME_10ML_PRICE } from "@/types/cart"
+import { useProductDisplayName } from '@/hooks/useAdminContent'
+import { useCuratedGallery } from '@/hooks/useCuratedGallery'
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { BrushDivider, HanjiCard, SealStamp, SAJU_EASE_INK, SAJU_ELEMENTS, SAJU_VIEWPORT } from "@/components/saju"
 import { SAJU_ELEMENT_INFO, type SajuElement } from "@/types/analysis"
@@ -73,7 +75,7 @@ const ELEMENT_SENSE_FALLBACK: Record<SajuElement, string> = {
 export default function SajuProgramPage() {
   const { user, unifiedUser, loading } = useAuth()
   const { getOptions } = useProductPricing()
-  // 10ml/50ml 동일가(₩48,000) — 최소가 계산은 기존 문법 유지 (관리자 조정 대비)
+  // 클리커·10ml·50ml 활성 옵션 중 최소가 (관리자 조정 대비)
   const sajuMin = getOptions('saju_perfume')
     .reduce<number | null>(
       (acc, o) => (acc === null || o.price < acc ? o.price : acc),
@@ -81,13 +83,17 @@ export default function SajuProgramPage() {
     )
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [selectedProductImage, setSelectedProductImage] = useState(0)
   const t = useTranslations()
+  const tg = useTranslations('detailGallery')
   const productName = useProductDisplayName('saju', t('products.saju'))
-  const { imageUrls: sajuImageUrls, loading: sajuImagesLoading } = useProductImages('saju')
-  const productImages = useMemo(
-    () => (sajuImagesLoading ? [] : (sajuImageUrls.length > 0 ? sajuImageUrls : ['/images/perfume/saju-50ml.png'])),
-    [sajuImageUrls, sajuImagesLoading],
+  // 큐레이션 갤러리 — 승인 실사 이미지 우선, 관리자 업로드 이미지는 중복 제거 후 뒤에 (idol-image 문법)
+  const gallery = useCuratedGallery('saju')
+  const galleryMeta: DetailHeroImageMeta[] = gallery.images.map((image) =>
+    image.curated
+      ? {
+          caption: tg(`${image.curated.id}.caption`),
+        }
+      : {},
   )
 
   // i18n 키가 아직 없으면 ko 폴백으로 우아하게 강등 (Footer.tsx 관례)
@@ -169,12 +175,8 @@ export default function SajuProgramPage() {
     productSlug: "saju",
     title: productName,
     imageAlt: t('programs.productImage'),
-    images: {
-      urls: productImages,
-      loading: sajuImagesLoading,
-      selectedIndex: selectedProductImage,
-      onSelect: setSelectedProductImage,
-    },
+    images: gallery.controlled,
+    imageMeta: galleryMeta,
     pageContent,
     pagePositionStyle,
     badgeClassName: "bg-[#0C0E16] text-[#E8C766]",
@@ -194,7 +196,7 @@ export default function SajuProgramPage() {
     ),
     price: (
       <div className="flex items-end gap-2">
-        <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sajuMin ?? 48000)}~</span>
+        <span className="text-xl font-black text-black">{t('currency.symbol')}{formatPrice(sajuMin ?? SAJU_CLICKER_PRICE)}~</span>
         <span className="text-xs text-slate-400">{t('saju.landing.price')}</span>
       </div>
     ),
@@ -408,6 +410,143 @@ export default function SajuProgramPage() {
                 </div>
               </motion.div>
             </div>
+          </section>
+
+          {/* ============================================
+              상품 라인업 — 클리커 키링 · 10ml · 50ml (실사)
+              각인 오행은 분석의 용신 그대로 — 고객 선택 없음
+          ============================================ */}
+          <section className="saju-ink-grain bg-[#0C0E16] px-4 py-16">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={SAJU_VIEWPORT}
+              variants={staggerContainer}
+              className="mx-auto w-full max-w-[455px]"
+            >
+              <div className="mb-8 text-center">
+                <motion.div variants={fadeInUp} className="mb-4 flex justify-center">
+                  <BrushDivider width={180} label="物" tone="gold" />
+                </motion.div>
+                <motion.p variants={fadeInUp} className="mb-3 font-serif-kr text-[11px] font-semibold tracking-[0.14em] text-[#A69F8D]">
+                  {tf('saju.landing.lineup.kicker', '분석의 끝에서 받는 실물')}
+                </motion.p>
+                <motion.h2 variants={fadeInUp} className="break-keep font-serif-kr text-[24px] font-semibold leading-[1.45] text-[#E9E2D0]">
+                  {tf('saju.landing.lineup.title', '처방된 향, 세 가지 모습')}
+                </motion.h2>
+                <motion.p variants={fadeInUp} className="mt-3 break-keep font-serif-kr text-[15px] leading-[1.85] text-[#A69F8D]">
+                  {tf('saju.landing.lineup.desc', '분석을 마치면 처방된 향을 향수 또는 디퓨저 클리커 키링으로 받아볼 수 있습니다.')}
+                </motion.p>
+              </div>
+
+              {/* 클리커 5종 실사 */}
+              <motion.div variants={fadeInUp} className="mb-5 overflow-hidden rounded-lg border border-[#262A38]">
+                <Image
+                  src="/images/product-detail/saju-clicker-five-square.png"
+                  alt={tf('saju.landing.lineup.clickerAlt', '오행 문양이 각인된 디퓨저 클리커 키링 5종')}
+                  width={910}
+                  height={910}
+                  sizes="(max-width: 680px) 100vw, 455px"
+                  className="h-auto w-full"
+                  data-pin-nopin="true"
+                />
+              </motion.div>
+
+              {/* 옵션 3종 — 가격은 admin_product_pricing 동적, 코드 상수 폴백 */}
+              <div className="space-y-3">
+                {([
+                  { size: 'clicker', fallbackPrice: SAJU_CLICKER_PRICE, label: tf('saju.landing.lineup.itemClicker', '디퓨저 클리커 키링'), sub: tf('saju.landing.lineup.itemClickerSub', '분석이 찾은 오행을 새긴 키링 디퓨저 · 향료 10방울'), hanja: '五' },
+                  { size: '10ml', fallbackPrice: STANDARD_PERFUME_10ML_PRICE, label: tf('saju.landing.lineup.item10', '10ml 향수'), sub: tf('saju.landing.lineup.item10Sub', '가볍게 곁에 두는 휴대용'), hanja: '香' },
+                  { size: '50ml', fallbackPrice: 48000, label: tf('saju.landing.lineup.item50', '50ml 향수'), sub: tf('saju.landing.lineup.item50Sub', '오래 곁에 두는 본품'), hanja: '香' },
+                ] as const).map((item) => {
+                  const dbPrice = getOptions('saju_perfume').find((o) => o.size === item.size)?.price
+                  return (
+                    <motion.div
+                      key={item.size}
+                      variants={fadeInUp}
+                      className="flex items-center gap-4 rounded-lg border border-[#262A38] bg-[#12141D] px-4 py-3.5"
+                    >
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#0C0E16]"
+                        style={{ borderRadius: '18%', transform: 'rotate(-3deg)' }}
+                        aria-hidden
+                      >
+                        <span className="font-serif-kr text-[18px] font-black leading-none text-[#C9A227]">{item.hanja}</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="break-keep font-serif-kr text-[15px] font-semibold text-[#E9E2D0]">{item.label}</span>
+                        <p className="mt-0.5 break-keep font-serif-kr text-[12px] leading-[1.6] text-[#A69F8D]">{item.sub}</p>
+                      </div>
+                      <span className="shrink-0 font-serif-kr text-[15px] font-black text-[#E8C766]">
+                        {t('currency.symbol')}{formatPrice(dbPrice ?? item.fallbackPrice)}
+                      </span>
+                    </motion.div>
+                  )
+                })}
+              </div>
+
+              {/* 각인·스티커 안내 — 용신은 분석이 정한다 */}
+              <motion.div
+                variants={fadeInUp}
+                className="mt-5 rounded-lg border border-[#C9A227]/40 bg-[#12141D] p-5"
+              >
+                <div className="flex items-start gap-4">
+                  <SealStamp chars="用神" size="md" tone="cinnabar" className="mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="break-keep font-serif-kr text-[13px] leading-[1.85] text-[#A69F8D]">
+                      {tf('saju.landing.lineup.elementNote', '각인 오행은 고르지 않습니다. 분석이 찾은 용신(用神) 그대로 제작됩니다.')}
+                    </p>
+                    <p className="mt-1.5 break-keep font-serif-kr text-[13px] leading-[1.85] text-[#A69F8D]">
+                      {tf('saju.landing.lineup.stickerNote', '모든 주문의 상자에는 해당 오행의 스티커가 봉인처럼 붙습니다.')}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  {SAJU_ELEMENTS.map((el) => {
+                    const info = SAJU_ELEMENT_INFO[el]
+                    return (
+                      <div
+                        key={el}
+                        className="flex h-8 w-8 items-center justify-center"
+                        style={{ borderRadius: '18%', backgroundColor: info.color, transform: 'rotate(-3deg)' }}
+                        role="img"
+                        aria-label={t(`saju.common.elements.${ELEMENT_I18N_KEY[el]}`)}
+                      >
+                        <span className="font-serif-kr text-[14px] font-black leading-none" style={{ color: el === '금' ? '#1A1610' : '#F5EFE2' }}>
+                          {info.hanja}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </motion.div>
+
+              {/* 디테일 2컷 — 각인 · 양면(태극/오행) */}
+              <motion.div variants={fadeInUp} className="mt-5 grid grid-cols-2 gap-3">
+                <div className="overflow-hidden rounded-lg border border-[#262A38]">
+                  <Image
+                    src="/images/product-detail/saju-clicker-engraving-square.png"
+                    alt={tf('saju.landing.lineup.engravingAlt', '금(金) 오행 각인 클로즈업')}
+                    width={455}
+                    height={455}
+                    sizes="(max-width: 680px) 50vw, 224px"
+                    className="h-auto w-full"
+                    data-pin-nopin="true"
+                  />
+                </div>
+                <div className="overflow-hidden rounded-lg border border-[#262A38]">
+                  <Image
+                    src="/images/product-detail/saju-clicker-both-sides-square.png"
+                    alt={tf('saju.landing.lineup.bothSidesAlt', '태극 면과 오행 면 — 클리커 양면')}
+                    width={455}
+                    height={455}
+                    sizes="(max-width: 680px) 50vw, 224px"
+                    className="h-auto w-full"
+                    data-pin-nopin="true"
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
           </section>
 
           {/* ============================================

@@ -3,6 +3,7 @@ import { createMetadata } from '@/lib/seo/metadata'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productSchema, breadcrumbSchema } from '@/lib/seo/schemas'
 import { getServerOption } from '@/lib/products/pricing'
+import { STANDARD_PERFUME_10ML_PRICE } from '@/types/cart'
 import { getLocalizedProgramPath, getProgramSeo, resolveProgramLocale } from '@/lib/programs/program-seo'
 
 interface ProgramLayoutProps {
@@ -48,7 +49,7 @@ export default async function GraduationLayout({ children, params }: ProgramLayo
   const productJsonLd = productSchema({
     name: seo.title,
     description: seo.productDescription,
-    price: opt?.price ?? 34000,
+    price: opt?.price ?? STANDARD_PERFUME_10ML_PRICE,
     originalPrice: opt?.original_price ?? 49000,
     image: '/images/product-placeholder.svg',
     path,

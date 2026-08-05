@@ -152,7 +152,7 @@
     "leQuack": "SIGNATURE Perfume PPUDUCK",
     "customDuck": "Constructor de Pato Personalizado",
     "chemistry": "Set de Perfume Layering",
-    "saju": "Perfume de Saju (Cuatro Pilares)"
+    "saju": "Perfume de Análisis Saju & Llavero Difusor Clicker"
   },
   "labels": {
     "traits": {
@@ -240,7 +240,7 @@
       "figure": "Figura 3D + Difusor (5ml) + Informe de análisis impreso",
       "graduation": "Perfume PPUDUCK (10ml) + Llavero de birrete + Informe estilo diploma + Papel de prueba",
       "chemistry": "Set de perfume layering (10ml x 2 / 50ml x 2) + Tarjeta de perfil química + Papel de prueba",
-      "saju": "Perfume personalizado Saju (10ml/50ml) + informe impreso de la carta 命式 + Papel de prueba"
+      "saju": "Perfume personalizado Saju (10ml/50ml) o llavero difusor clicker de cinco elementos + informe impreso de la carta 命式"
     },
     "features": {
       "aiAnalysis": "Análisis personalizado con IA",
@@ -866,6 +866,8 @@
     "includePremiumPackage": "Paquete premium",
     "freeShippingOverInfo": "Envío gratis en pedidos de +50,000 KRW",
     "includeAnalysisPerfume": "Perfume personalizado con análisis IA ({size})",
+    "includeSajuClicker": "Llavero difusor clicker de los cinco elementos",
+    "includeSajuClickerFragrance": "10 gotas de fragancia personalizada",
     "includeAnalysisCard": "Tarjeta de resultados del análisis",
     "includeScentPaper": "Tira de prueba (prueba la fragancia primero)",
     "setProduct": "Producto en set",
@@ -876,7 +878,11 @@
     "repurchaseBannerSubtitle": "Selecciona tu cupón de 10% de descuento abajo",
     "firstPurchasePromoTitle": "¡10% de descuento en cada pedido futuro! 💝",
     "firstPurchasePromoSubtitle": "Se emite automáticamente un cupón sin límite de uso",
-    "storeProductPerfumeIncluded": "{product} (tipo spray)"
+    "storeProductPerfumeIncluded": "{product} (tipo spray)",
+    "optionSaju10": "Perfume Saju 10ml",
+    "optionSaju50": "Perfume Saju 50ml",
+    "optionSajuClicker": "Llavero difusor clicker",
+    "sajuElementNote": "El grabado y la pegatina se hacen con el elemento recomendado por tu análisis"
   },
   "checkoutComplete": {
     "title": "Pedido completado",
@@ -2756,7 +2762,7 @@
   },
   "saju": {
     "common": {
-      "programName": "Perfume de Análisis Saju",
+      "programName": "Perfume de Análisis Saju & Llavero Difusor Clicker",
       "elements": {
         "wood": "Madera (木)",
         "fire": "Fuego (火)",
@@ -2852,9 +2858,25 @@
         "a2": "El código calcula con precisión sobre un calendario Manseryeok (萬歲曆) que refleja los límites exactos de los términos solares; la IA solo interpreta. Para nacimientos después de las 23:00 — la hora Ja (子時) — el pilar del día puede variar según la escuela, y lo indicamos en el resultado."
       },
       "cta": "Encontrar el aroma de mi destino",
-      "price": "Mismo precio 10ml / 50ml",
+      "price": "Clicker 12.900 · 10ml 24.000 · 50ml 48.000",
       "info1": "Informe de lectura Saju (四柱) por IA + perfume personalizado",
-      "info2": "Envío en 3–5 días tras el pedido"
+      "info2": "Envío en 3–5 días tras el pedido",
+      "lineup": {
+        "kicker": "Lo que recibes tras la lectura",
+        "title": "Tu aroma prescrito, en tres formas",
+        "desc": "Al terminar el análisis, recibe tu aroma prescrito como perfume o como llavero difusor clicker.",
+        "itemClicker": "Llavero difusor clicker",
+        "itemClickerSub": "Difusor de llavero grabado con tu elemento · 10 gotas de fragancia",
+        "item10": "Perfume 10ml",
+        "item10Sub": "Ligero, para llevar contigo",
+        "item50": "Perfume 50ml",
+        "item50Sub": "La botella completa para conservar",
+        "elementNote": "El grabado no se elige: se fabrica con el elemento yongsin (用神) que prescribe tu análisis.",
+        "stickerNote": "Cada caja se sella con la pegatina de tu elemento.",
+        "clickerAlt": "Cinco llaveros difusores grabados con los cinco elementos",
+        "engravingAlt": "Primer plano del grabado de Metal (金)",
+        "bothSidesAlt": "Cara taegeuk y cara del elemento — ambos lados del clicker"
+      }
     },
     "input": {
       "gate": {
@@ -3305,6 +3327,30 @@
     "storePaperHandLight": {
       "alt": "Toma luminosa de una mano sosteniendo la tarjeta de aroma",
       "caption": "Muestra la escala de la tarjeta en la mano con el kit completo suavemente al fondo."
+    },
+    "sajuLineup": {
+      "alt": "Perfume saju 10ml/50ml con llaveros difusores de los cinco elementos",
+      "caption": "Línea saju — perfume y clickers de elementos"
+    },
+    "sajuFiftyReport": {
+      "alt": "Botella negra de 50ml con informe de análisis saju",
+      "caption": "Botella 50ml — con tu informe saju"
+    },
+    "sajuTenReport": {
+      "alt": "Perfume de 10ml con informe de análisis saju",
+      "caption": "Formato viaje 10ml — con tu informe saju"
+    },
+    "sajuClickerFive": {
+      "alt": "Cinco llaveros difusores grabados con los cinco elementos",
+      "caption": "Cinco clickers — Fuego·Agua·Madera·Metal·Tierra"
+    },
+    "sajuClickerEngraving": {
+      "alt": "Primer plano del grabado del elemento Metal (金)",
+      "caption": "Grabado del elemento sobre perla metálica"
+    },
+    "sajuClickerBothSides": {
+      "alt": "Ambas caras del clicker — taegeuk y elemento",
+      "caption": "Taegeuk por un lado, tu elemento por el otro"
     }
   },
   "editorialDetail": {

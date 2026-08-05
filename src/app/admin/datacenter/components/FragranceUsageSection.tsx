@@ -89,7 +89,7 @@ const PROGRAM_INFO = {
   figure: { label: '피규어 디퓨저', icon: Box, color: 'bg-cyan-500' },
   graduation: { label: '졸업 퍼퓸', icon: GraduationCap, color: 'bg-amber-500' },
   chemistry: { label: '레이어링 퍼퓸', icon: Users, color: 'bg-violet-500' },
-  saju: { label: '사주 분석 퍼퓸', icon: Moon, color: 'bg-red-700' },
+  saju: { label: '사주 분석 퍼퓸&디퓨저 클리커 키링', icon: Moon, color: 'bg-red-700' },
 }
 
 const VIEW_MODE_INFO = {

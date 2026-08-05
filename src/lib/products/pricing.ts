@@ -56,7 +56,7 @@ function buildFallbackMap(): PricingMap {
       label: opt.label,
       sort_order: i,
       is_active: true,
-      image_url: null,
+      image_url: opt.image_url ?? null,
       updated_at: new Date(0).toISOString(),
       updated_by: 'fallback:constant',
     }))

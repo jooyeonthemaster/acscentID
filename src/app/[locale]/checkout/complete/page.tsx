@@ -21,7 +21,7 @@ import Link from "next/link"
 import { useTranslations } from 'next-intl'
 
 import { Header } from "@/components/layout/Header"
-import { isScentPaperSize } from "@/types/cart"
+import { isSajuClickerSize, isScentPaperSize } from "@/types/cart"
 
 // 계좌 정보
 const BANK_INFO = {
@@ -63,6 +63,7 @@ function OrderCompleteContent() {
     perfumeName: string
   } | null>(null)
   const getOrderSizeLabel = (size: string) => {
+    if (isSajuClickerSize(size)) return t('checkout.optionSajuClicker')
     if (isScentPaperSize(size)) return t('checkout.optionScentPaper')
     if (size === 'set_10ml') return t('checkout.optionChemistrySet10')
     if (size === 'set_50ml') return t('checkout.optionChemistrySet50')

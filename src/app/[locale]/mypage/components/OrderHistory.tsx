@@ -31,7 +31,7 @@ import { RecipeModal } from './RecipeModal'
 import { getTrackingUrl, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS, type CarrierId } from '@/lib/shipping/cj'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
-import { isScentPaperSize } from '@/types/cart'
+import { isSajuClickerSize, isScentPaperSize } from '@/types/cart'
 import { getEffectiveProductType } from '@/lib/products/store-products'
 
 interface RefundAccountInput {
@@ -243,6 +243,7 @@ function OrderCard({
   const tStatus = useTranslations('status')
   const tPayment = useTranslations('payment')
   const tCurrency = useTranslations('currency')
+  const tCheckout = useTranslations('checkout')
   const [showRecipeModal, setShowRecipeModal] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -264,7 +265,9 @@ function OrderCard({
   // 시향지(샘플) 상품 — "향수로 구매하기" 업셀 노출 대상
   const isPaperSample = displayProductType === 'image_analysis_paper'
   // size 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
-  const sizeLabel = isScentPaperSize(order.size)
+  const sizeLabel = isSajuClickerSize(order.size)
+    ? tCheckout('optionSajuClicker')
+    : isScentPaperSize(order.size)
     ? (displayProductType === 'chemistry_set' ? '시향지 2매' : '시향지')
     : displayProductType === 'store_product' && order.size === '50ml'
       ? '50ml 향수'

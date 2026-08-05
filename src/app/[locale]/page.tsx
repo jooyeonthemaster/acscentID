@@ -17,8 +17,9 @@ import { useBanners, useActiveProducts, useProductThumbnailMap } from "@/hooks/u
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
-import { isScentPaperSize, type ProductType } from "@/types/cart"
+import { isScentPaperSize, SAJU_CLICKER_PRICE, STANDARD_PERFUME_10ML_PRICE, type ProductType } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
+import { SAJU_PRIMARY_IMAGE } from "@/lib/products/detail-images"
 
 const VISIT_RESERVATION_URL = "https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
 const subscribeToHydration = () => () => {}
@@ -105,7 +106,7 @@ export default function Home() {
       title: t('products.graduation'),
       subtitle: t('programs.subtitle.graduation'),
       image: thumbnailsLoading ? null : (thumbnails["graduation"] || null),
-      price: graduationPrice?.price ?? 34000,
+      price: graduationPrice?.price ?? STANDARD_PERFUME_10ML_PRICE,
       originalPrice: graduationPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(graduationPrice, "LIMITED"),
@@ -142,8 +143,8 @@ export default function Home() {
       id: "saju",
       title: t('products.saju'),
       subtitle: t('programs.subtitle.saju'),
-      image: thumbnailsLoading ? null : (thumbnails["saju"] || null),
-      price: sajuPrice?.price ?? 48000,
+      image: thumbnailsLoading ? null : (thumbnails["saju"] || SAJU_PRIMARY_IMAGE),
+      price: sajuPrice?.price ?? SAJU_CLICKER_PRICE,
       originalPrice: sajuPrice?.original_price ?? null,
       priceRange: true,
       delivery: t('shipping.estimated'),
@@ -156,7 +157,7 @@ export default function Home() {
       title: t('products.leQuack'),
       subtitle: t('home.signaturePerfumDesc'),
       image: thumbnailsLoading ? null : (thumbnails["le-quack"] || null),
-      price: leQuackPrice?.price ?? 34000,
+      price: leQuackPrice?.price ?? STANDARD_PERFUME_10ML_PRICE,
       originalPrice: leQuackPrice?.original_price ?? null,
       delivery: t('shipping.estimated'),
       badge: computeBadge(leQuackPrice, "SIGNATURE"),
@@ -368,7 +369,7 @@ export default function Home() {
                     </div>
                     {/* 카드 타이틀 */}
                     <div className="flex flex-1 flex-col border-t border-[var(--line-soft)] px-3 py-3">
-                      <h3 className="truncate break-keep text-[clamp(13px,3.6vw,15px)] font-bold text-[var(--ink)]">
+                      <h3 className="break-keep text-[clamp(13px,3.6vw,15px)] font-bold leading-snug text-[var(--ink)]">
                         {product.title}
                       </h3>
                       <p className="mt-1 line-clamp-2 whitespace-pre-line break-keep text-[clamp(10px,2.8vw,11.5px)] leading-snug text-[var(--muted-ink)]">

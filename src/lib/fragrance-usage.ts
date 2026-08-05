@@ -124,6 +124,8 @@ export const FRAGRANCE_VOLUME_MAP: Record<string, number> = {
   // 레이어링 퍼퓸 세트 (2병 기준이므로 개별 향수 용량)
   'set_10ml': 2,
   'set_50ml': 10,
+  // 사주 디퓨저 클리커 키링 — 향료 10방울(≈0.5ml). 미등록 시 default 2ml로 오차감되므로 명시 필수.
+  'clicker': 0.5,
   // 기본값
   'default': 2,
 }

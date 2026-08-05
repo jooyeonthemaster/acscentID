@@ -37,7 +37,7 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   payment_test: '결제 테스트',
   today_scent: '오늘의 향',
   store_product: '상품',
-  saju_perfume: '사주 분석 퍼퓸',
+  saju_perfume: '사주 분석 퍼퓸&디퓨저 클리커 키링',
   etc: '기타',
 }
 

@@ -325,7 +325,7 @@ export function Prescription({ result, targetType, onShare }: PrescriptionProps)
           >
             <Image
               src="/images/saju/saju-logo.png"
-              alt={tt('s7.closingSealAlt', '사주 분석 퍼퓸')}
+              alt={tt('s7.closingSealAlt', '사주 분석 퍼퓸&디퓨저 클리커 키링')}
               width={72}
               height={72}
               className="h-[72px] w-[72px] select-none object-contain"

@@ -61,12 +61,25 @@ export const SCENT_PAPER_GALLERY: CuratedDetailImage[] = [
   { id: 'storePaperHandLight', src: '/images/products/generated/scent-paper/scent-paper-hand-light-01.png', provenance: 'visualization' },
 ]
 
+/** 사주 분석 퍼퓸&디퓨저 클리커 키링 — 승인된 갤러리 순서 (원본: 사주상품사진/, 실사) */
+export const SAJU_PRIMARY_IMAGE = '/images/product-detail/saju-lineup-square.png'
+
+export const SAJU_GALLERY: CuratedDetailImage[] = [
+  { id: 'sajuLineup', src: SAJU_PRIMARY_IMAGE, provenance: 'actual' },
+  { id: 'sajuFiftyReport', src: '/images/product-detail/saju-50ml-report-square.png', provenance: 'actual' },
+  { id: 'sajuTenReport', src: '/images/product-detail/saju-10ml-report-square.png', provenance: 'actual' },
+  { id: 'sajuClickerFive', src: '/images/product-detail/saju-clicker-five-square.png', provenance: 'actual' },
+  { id: 'sajuClickerEngraving', src: '/images/product-detail/saju-clicker-engraving-square.png', provenance: 'actual' },
+  { id: 'sajuClickerBothSides', src: '/images/product-detail/saju-clicker-both-sides-square.png', provenance: 'actual' },
+]
+
 export const CURATED_GALLERIES: Record<string, CuratedDetailImage[]> = {
   'idol-image': IDOL_IMAGE_GALLERY,
   chemistry: CHEMISTRY_GALLERY,
   'perfume-50ml': PERFUME_FIFTY_GALLERY,
   'perfume-10ml': PERFUME_TEN_GALLERY,
   'scent-paper': SCENT_PAPER_GALLERY,
+  saju: SAJU_GALLERY,
 }
 
 export interface MergedGalleryImage {

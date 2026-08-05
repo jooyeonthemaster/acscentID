@@ -254,7 +254,7 @@ export async function deductInventoryForOrder(
                 perfumeName: analysisRef.perfume_name,
                 productType: 'chemistry_set',
                 size: order.size || 'set_10ml',
-                quantity: 1,
+                quantity: order.item_count || order.quantity || 1,
               })
               if (usageItems.length > 0) {
                 const result = await deductFromInventory(supabase, usageItems, 'online', 'order', orderId, createdBy)
@@ -281,7 +281,9 @@ export async function deductInventoryForOrder(
         perfumeName: order.perfume_name,
         productType: order.product_type || 'image_analysis',
         size: order.size || '10ml',
-        quantity: 1,
+        // 단일 주문은 order_items 대신 orders.item_count에 수량을 스냅샷한다.
+        // 클리커 등 여러 개를 구매했을 때도 향료가 정확히 차감되게 한다.
+        quantity: order.item_count || order.quantity || 1,
       })
 
       if (usageItems.length > 0) {

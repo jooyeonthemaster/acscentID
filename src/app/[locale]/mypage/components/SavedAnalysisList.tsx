@@ -320,6 +320,9 @@ export function SavedAnalysisList({ analyses, chemistryAnalyses = [], loading, o
 
     // 분석 결과를 localStorage에 저장 (checkout 페이지에서 사용)
     const analysisResult = {
+      // 사주의 sajuChart.yongsin 등 전체 분석 데이터를 유지해
+      // 클리커 각인·박스 스티커 오행이 체크아웃까지 전달되게 한다.
+      ...analysis.analysis_data,
       matchingPerfumes: [{
         perfumeId: getAnalysisPerfumeId(analysis) || analysis.id,
         persona: {

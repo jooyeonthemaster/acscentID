@@ -16,7 +16,7 @@ import {
   Loader2,
   PackageCheck
 } from 'lucide-react'
-import { isScentPaperSize } from '@/types/cart'
+import { isSajuClickerSize, isScentPaperSize } from '@/types/cart'
 import { getEffectiveProductType } from '@/lib/products/store-products'
 
 function getDisplayProductType(productType?: string | null, analysisData?: unknown): string {
@@ -26,6 +26,7 @@ function getDisplayProductType(productType?: string | null, analysisData?: unkno
 // 사이즈 표시 라벨 — 시향지 애드온(scent_paper)은 raw 코드 대신 '시향지'로 표기
 function formatSizeLabel(productType: string | null | undefined, size: string): string {
   if (productType === 'image_analysis_paper') return '시향지'
+  if (isSajuClickerSize(size)) return '디퓨저 클리커'
   if (isScentPaperSize(size)) return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
   if (productType === 'store_product' && size === '50ml') return '50ml 향수'
   if (productType === 'store_product' && size === '10ml') return '10ml 향수'

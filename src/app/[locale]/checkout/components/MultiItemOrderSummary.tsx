@@ -4,10 +4,12 @@ import { motion } from "framer-motion"
 import { Package, Star, Minus, Plus, Trash2, Check, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { CartItem, ProductType } from "@/types/cart"
-import { PRODUCT_TYPE_BADGES, formatPrice, isScentPaperSize } from "@/types/cart"
+import { PRODUCT_TYPE_BADGES, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { getEffectiveProductType } from "@/lib/products/store-products"
+import { getSajuYongsinElement } from "@/lib/saju"
+import { SajuClickerElementBadge } from "@/components/saju"
 
 interface MultiItemOrderSummaryProps {
   items: CartItem[]
@@ -64,6 +66,9 @@ export function MultiItemOrderSummary({
     if (option.size === '50ml') {
       if (optionProductType === 'saju_perfume' && t.has('checkout.optionSaju50')) return t('checkout.optionSaju50')
       return t('checkout.optionPerfume50')
+    }
+    if (isSajuClickerSize(option.size)) {
+      return t.has('checkout.optionSajuClicker') ? t('checkout.optionSajuClicker') : option.label
     }
     if (option.size === 'set') {
       if (optionProductType === 'image_analysis_paper') return t('checkout.optionImageAnalysisPaper')
@@ -156,6 +161,9 @@ export function MultiItemOrderSummary({
           const imageAlt = storeMeta && storeProductTitle
             ? `${storeMeta.scentName || item.perfume_name} · ${storeProductTitle}`
             : item.perfume_name
+          const sajuElement = effectiveProductType === 'saju_perfume'
+            ? getSajuYongsinElement(item.analysis_data)
+            : null
 
           return (
           <motion.div
@@ -186,6 +194,9 @@ export function MultiItemOrderSummary({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     {renderProductTypeBadge(effectiveProductType)}
+                    {sajuElement && (
+                      <SajuClickerElementBadge element={sajuElement} size="compact" />
+                    )}
                   </div>
                   <p className="font-black text-sm lg:text-base truncate text-[var(--ink)]">
                     {storeMeta?.scentName || item.perfume_name}

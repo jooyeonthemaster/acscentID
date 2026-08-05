@@ -36,6 +36,8 @@ import { ORDER_STATUS_COLORS, OrderStatus } from '@/types/admin'
 import { RefundModal } from '../components/RefundModal'
 import { getTrackingUrl, isValidTrackingNumber, normalizeTrackingNumber, EXTERNAL_LINK_SAFE_ATTRS, CARRIER_LABELS } from '@/lib/shipping/cj'
 import { getEffectiveProductType } from '@/lib/products/store-products'
+import { getSajuYongsinElement } from '@/lib/saju'
+import { SajuClickerElementBadge } from '@/components/saju'
 
 interface OrderAnalysis {
   id: string
@@ -180,9 +182,24 @@ function getDisplayProductType(source: {
 function formatSizeLabel(productType: string | null | undefined, size: string): string {
   if (productType === 'image_analysis_paper') return '시향지'
   if (size === 'scent_paper') return productType === 'chemistry_set' ? '시향지 2매' : '시향지'
+  if (size === 'clicker') return '디퓨저 클리커'
   if (productType === 'store_product' && size === '50ml') return '50ml 향수'
   if (productType === 'store_product' && size === '10ml') return '10ml 향수'
   return size
+}
+
+// 사주 상품이면 용신 배지 렌더 (포장 시 클리커/스티커 오행 확인용)
+function renderSajuElementBadge(productType: string | null | undefined, analysisData: unknown) {
+  if (productType !== 'saju_perfume') return null
+  const element = getSajuYongsinElement(analysisData)
+  if (!element) return null
+  return (
+    <SajuClickerElementBadge
+      element={element}
+      size="compact"
+      title={`용신 ${element} — 클리커 각인·박스 스티커`}
+    />
+  )
 }
 
 type StoreOrderSummarySource = {
@@ -1224,6 +1241,7 @@ export default function AdminOrdersPage() {
                           <div className="text-slate-900">{order.perfume_name}</div>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-sm text-slate-500">{formatSizeLabel(getDisplayProductType(order), order.size)}</span>
+                            {renderSajuElementBadge(getDisplayProductType(order), order.analysis_data)}
                             {(() => {
                               const badge = getProductBadge(getDisplayProductType(order))
                               return badge ? (
@@ -1446,6 +1464,7 @@ export default function AdminOrdersPage() {
                                 <span className="text-slate-900 text-right">
                                   {order.perfume_name}
                                   <span className="ml-1 text-xs text-slate-500">{formatSizeLabel(getDisplayProductType(order), order.size)}</span>
+                                  <span className="ml-1">{renderSajuElementBadge(getDisplayProductType(order), order.analysis_data)}</span>
                                 </span>
                               </div>
                               <div className="flex items-center justify-between gap-3">
@@ -1575,9 +1594,12 @@ export default function AdminOrdersPage() {
                                                   </span>
                                                 )}
                                               </div>
-                                              <p className="text-xs text-slate-500 mt-0.5">
-                                                {formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}
-                                                {item.quantity > 1 && ` = ${formatPrice(item.subtotal)}`}
+                                              <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                                <span>
+                                                  {formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}
+                                                  {item.quantity > 1 && ` = ${formatPrice(item.subtotal)}`}
+                                                </span>
+                                                {renderSajuElementBadge(itemProductType, item.analysis_data)}
                                               </p>
                                               {storeSummary && (
                                                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1982,7 +2004,10 @@ export default function AdminOrdersPage() {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500">{formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}</p>
+                                  <p className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+                                    <span>{formatSizeLabel(itemProductType, item.size)} · {item.quantity}개 · {formatPrice(item.unit_price)}</span>
+                                    {renderSajuElementBadge(itemProductType, item.analysis_data)}
+                                  </p>
                                   {storeSummary && (
                                     <div className="mt-2 flex flex-wrap gap-1.5">
                                       <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-black text-lime-800">
@@ -2047,6 +2072,7 @@ export default function AdminOrdersPage() {
                           <label className="text-sm text-slate-500">용량/타입</label>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-900">{formatSizeLabel(getDisplayProductType(selectedOrder), selectedOrder.size)}</span>
+                            {renderSajuElementBadge(getDisplayProductType(selectedOrder), selectedOrder.analysis_data)}
                             {(() => {
                               const badge = getProductBadge(getDisplayProductType(selectedOrder))
                               return badge ? <span className={`px-2 py-0.5 text-xs rounded-full ${badge.className}`}>{badge.label}</span> : null

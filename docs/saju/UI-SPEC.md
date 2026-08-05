@@ -970,7 +970,7 @@ const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", 
 ### 6.1 UnifiedDetailHero 파라미터
 
 - `badgeClassName="bg-[#0C0E16] text-[#E8C766]"`, 배지 텍스트 기본값 `"命"` (admin 편집 가능 필드).
-- 가격 블록: 기존 문법(`₩48,000~`), `price.setBasis` 대응 카피: `"10ml / 50ml 동일가"`.
+- 가격 블록: 활성 옵션 중 최저가 문법, 대응 카피: `"10ml ₩24,000 / 50ml ₩48,000"`.
 - `infoItems`: `["AI 사주 분석 리포트 + 맞춤 향수", "주문 후 3~5일 내 발송"]`, `infoIcon`: lucide `ScrollText`.
 - CTA: `label: "내 팔자의 향 찾기"`, onClick → `/input?type=saju&mode=online` (로그인 게이트 기존 패턴).
 - 제목/브레드크럼: 기존 관례(`useProductDisplayName('saju', ...)`).

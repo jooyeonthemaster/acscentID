@@ -14,5 +14,6 @@ export * from './HanjiCard';
 export * from './VerticalLabel';
 export * from './ProgressThread';
 export * from './SajuBottle';
+export * from './SajuClickerElementBadge';
 export * from './GoldDust';
 export * from './clouds';

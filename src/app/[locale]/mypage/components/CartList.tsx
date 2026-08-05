@@ -7,7 +7,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
-import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals } from '@/types/cart'
+import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals, isSajuClickerSize } from '@/types/cart'
 import { useProductPricing } from '@/hooks/useProductPricing'
 import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
@@ -25,6 +25,7 @@ export function CartList({ viewMode }: CartListProps) {
   const router = useRouter()
   const t = useTranslations('mypage.cart')
   const tCurrency = useTranslations('currency')
+  const tCheckout = useTranslations('checkout')
   const locale = useLocale()
   const tButtons = useTranslations('buttons')
   const { getLocalizedName } = useLocalizedPerfumes()
@@ -413,7 +414,7 @@ export function CartList({ viewMode }: CartListProps) {
                     >
                       {getOptions(effectiveProductType).map(option => (
                         <option key={option.size} value={option.size}>
-                          {option.label} - {formatPrice(option.price)}{tCurrency('suffix')}
+                          {isSajuClickerSize(option.size) ? tCheckout('optionSajuClicker') : option.label} - {formatPrice(option.price)}{tCurrency('suffix')}
                         </option>
                       ))}
                     </select>

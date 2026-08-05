@@ -27,6 +27,7 @@ import { InAppBrowserNotice } from "./components/InAppBrowserNotice"
 import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon, calculateCouponDiscount } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
+import type { SajuElement } from "@/types/analysis"
 import { formatPrice, calculateCartTotals, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
@@ -458,6 +459,12 @@ function CheckoutContent() {
           const normalizedItems = items.map((item: CartItem) => ({
             ...item,
             product_type: getEffectiveProductType(item.product_type, item.analysis_data),
+            // 장바구니 이후 가격이 변경된 경우에도 체크아웃은 현재 서버 가격표를 사용한다.
+            // 오래 열린 탭/localStorage의 10ml 옛 가격으로 price_mismatch가 나는 것을 방지한다.
+            price: getOption(
+              getEffectiveProductType(item.product_type, item.analysis_data),
+              item.size,
+            )?.price ?? item.price,
           }))
           setCheckoutItems(normalizedItems)
           setIsMultiItemMode(true)
@@ -583,6 +590,11 @@ function CheckoutContent() {
   // 단일 상품 정보
   const perfumeName = analysisResult?.matchingPerfumes?.[0]?.persona?.name || t('result.customPerfume')
   const displayIdolName = idolName || "AC'SCENT"
+
+  // 사주 — 분석이 추천한 용신 오행 (클리커 각인·박스 스티커 안내 배지)
+  const sajuElement = productType === 'saju_perfume'
+    ? ((analysisResult as { sajuChart?: { yongsin?: { element?: SajuElement } } } | null)?.sajuChart?.yongsin?.element ?? null)
+    : null
 
   // 다중 상품: 수량 변경
   const handleUpdateQuantity = (itemId: string, delta: number) => {
@@ -1012,6 +1024,7 @@ function CheckoutContent() {
                     quantity={singleQuantity}
                     onQuantityChange={setSingleQuantity}
                     isRepurchaser={isRepurchaser}
+                    sajuElement={sajuElement}
                   />
                   {/* 확정 레시피 배지 (재주문 시) */}
                   {confirmedRecipe && (

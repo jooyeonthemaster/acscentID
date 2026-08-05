@@ -53,7 +53,7 @@ const PROGRAM_TYPES = [
   { value: 'idol_image', label: 'AI 이미지 분석 퍼퓸' },
   { value: 'figure', label: '피규어 화분 디퓨저' },
   { value: 'chemistry_set', label: '레이어링 퍼퓸 세트' },
-  { value: 'saju_perfume', label: '사주 분석 퍼퓸' },
+  { value: 'saju_perfume', label: '사주 분석 퍼퓸&디퓨저 클리커 키링' },
   { value: 'graduation', label: '졸업 기념 퍼퓸' },
   { value: 'personal', label: '퍼스널 센트' },
   { value: 'le-quack', label: 'LE QUACK 시그니처' },

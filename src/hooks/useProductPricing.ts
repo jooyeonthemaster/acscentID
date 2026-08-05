@@ -86,7 +86,7 @@ function buildFallbackMap(): PricingMap {
       label: opt.label,
       sort_order: i,
       is_active: true,
-      image_url: null,
+      image_url: opt.image_url ?? null,
     }))
   }
   return out

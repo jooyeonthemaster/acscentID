@@ -152,7 +152,7 @@
     "leQuack": "SIGNATURE 鸭子香水",
     "customDuck": "定制小鸭",
     "chemistry": "叠香香水套装",
-    "saju": "四柱八字香水"
+    "saju": "四柱分析香水&扩香点击器钥匙扣"
   },
   "labels": {
     "traits": {
@@ -240,7 +240,7 @@
       "figure": "3D手办 + 香薰器(5ml) + 实物分析报告",
       "graduation": "鸭子香水(10ml) + 学士帽香水钥匙扣 + 毕业证风格分析报告 + 试香纸",
       "chemistry": "叠香香水套装(10ml x 2 / 50ml x 2) + 化学反应档案卡 + 试香纸",
-      "saju": "四柱定制香水(10ml/50ml) + 命式分析报告 + 试香纸"
+      "saju": "四柱定制香水(10ml/50ml)或五行扩香点击器钥匙扣 + 命式分析报告"
     },
     "features": {
       "aiAnalysis": "AI定制分析",
@@ -866,6 +866,8 @@
     "includePremiumPackage": "高级包装",
     "freeShippingOverInfo": "满50,000韩元免运费",
     "includeAnalysisPerfume": "AI定制分析香水（{size}）",
+    "includeSajuClicker": "五行扩香点击器钥匙扣",
+    "includeSajuClickerFragrance": "定制香料10滴",
     "includeAnalysisCard": "分析结果卡片",
     "includeScentPaper": "试香纸（可先闻香）",
     "setProduct": "套装商品",
@@ -876,7 +878,11 @@
     "repurchaseBannerSubtitle": "请在下方选择并使用10%折扣券",
     "firstPurchasePromoTitle": "首购后每次下单都享10%折扣！💝",
     "firstPurchasePromoSubtitle": "自动发放回购券，无使用次数限制",
-    "storeProductPerfumeIncluded": "{product}（喷雾型）"
+    "storeProductPerfumeIncluded": "{product}（喷雾型）",
+    "optionSaju10": "四柱香水 10ml",
+    "optionSaju50": "四柱香水 50ml",
+    "optionSajuClicker": "扩香点击器钥匙扣",
+    "sajuElementNote": "将按分析推荐的五行制作刻印与贴纸"
   },
   "checkoutComplete": {
     "title": "订单完成",
@@ -2756,7 +2762,7 @@
   },
   "saju": {
     "common": {
-      "programName": "四柱分析香水",
+      "programName": "四柱分析香水&扩香点击器钥匙扣",
       "elements": {
         "wood": "木",
         "fire": "火",
@@ -2852,9 +2858,25 @@
         "a2": "代码基于精确到节气交界时刻的万年历进行计算，AI只负责解读。晚上11点之后的子时(子時)出生，日柱可能因流派而异，结果中会一并说明。"
       },
       "cta": "寻找我八字的香",
-      "price": "10ml / 50ml 同价",
+      "price": "点击器 12,900 · 10ml 24,000 · 50ml 48,000",
       "info1": "AI四柱分析报告 + 定制香水",
-      "info2": "下单后3~5天内发货"
+      "info2": "下单后3~5天内发货",
+      "lineup": {
+        "kicker": "分析之后收到的实物",
+        "title": "被处方的香气，三种形态",
+        "desc": "完成分析后，可将处方香气制成香水或扩香点击器钥匙扣。",
+        "itemClicker": "扩香点击器钥匙扣",
+        "itemClickerSub": "刻有分析所定五行的钥匙扣扩香器 · 香料10滴",
+        "item10": "10ml 香水",
+        "item10Sub": "轻便随行的便携装",
+        "item50": "50ml 香水",
+        "item50Sub": "长伴身边的正装",
+        "elementNote": "刻印五行无需选择，将按分析找到的用神原样制作。",
+        "stickerNote": "每份订单的包装盒都会贴上对应五行的贴纸，如同封印。",
+        "clickerAlt": "刻有五行纹样的扩香点击器钥匙扣5款",
+        "engravingAlt": "金之五行刻印特写",
+        "bothSidesAlt": "太极面与五行面 — 点击器双面"
+      }
     },
     "input": {
       "gate": {
@@ -3305,6 +3327,30 @@
     "storePaperHandLight": {
       "alt": "手持试香卡的明亮氛围图",
       "caption": "展示试香卡拿在手中的尺寸感，以及背景中的完整套组氛围。"
+    },
+    "sajuLineup": {
+      "alt": "四柱香水10ml·50ml与五行扩香点击器钥匙扣",
+      "caption": "四柱产品线 — 香水与五行点击器"
+    },
+    "sajuFiftyReport": {
+      "alt": "50ml黑色瓶身与四柱分析报告",
+      "caption": "50ml正装 — 附四柱分析报告"
+    },
+    "sajuTenReport": {
+      "alt": "10ml香水与四柱分析报告",
+      "caption": "10ml便携装 — 附四柱分析报告"
+    },
+    "sajuClickerFive": {
+      "alt": "刻有五行的扩香点击器钥匙扣5款",
+      "caption": "五行点击器5款 — 火·水·木·金·土"
+    },
+    "sajuClickerEngraving": {
+      "alt": "金之五行刻印特写",
+      "caption": "金属珠光上的五行刻印"
+    },
+    "sajuClickerBothSides": {
+      "alt": "点击器双面 — 太极面与五行面",
+      "caption": "一面太极，一面五行"
     }
   },
   "editorialDetail": {

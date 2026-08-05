@@ -6,9 +6,20 @@ export type ProductType = 'image_analysis' | 'image_analysis_paper' | 'figure_di
 // 10ml 대신 선택할 수 있는 4,000원 저가 옵션. size 코드는 상품 공통으로 'scent_paper'.
 export const SCENT_PAPER_SIZE = 'scent_paper'
 export const SCENT_PAPER_PRICE = 4000
+// 모든 실판 단품 퍼퓸 10ml의 통일 판매가.
+// payment_test(1,000원)과 10ml×2 세트는 서로 다른 SKU이므로 제외한다.
+export const STANDARD_PERFUME_10ML_PRICE = 24000
 // size 코드가 시향지 옵션인지 판정 (관리자 주문/체크아웃 라벨링용)
 export function isScentPaperSize(size: string): boolean {
   return size === SCENT_PAPER_SIZE
+}
+
+// 사주 디퓨저 클리커 키링 — saju_perfume 결제 단계에서 10ml/50ml 대신 선택하는 12,900원 진입 옵션.
+// 각인 오행은 고객이 고르지 않고 분석 결과의 용신(analysis_data.sajuChart.yongsin.element)으로 제작된다.
+export const SAJU_CLICKER_SIZE = 'clicker'
+export const SAJU_CLICKER_PRICE = 12900
+export function isSajuClickerSize(size: string): boolean {
+  return size === SAJU_CLICKER_SIZE
 }
 
 // AI 분석 없이 판매되는 카탈로그 상품 - analysis_id / layering_session_id 가 필요 없다.
@@ -31,7 +42,7 @@ export interface CartItem {
   perfume_name: string
   perfume_brand: string | null
   twitter_name: string | null
-  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper' | 'clicker'
   price: number
   quantity: number
   image_url: string | null
@@ -50,7 +61,7 @@ export interface AddToCartRequest {
   perfume_name: string
   perfume_brand?: string
   twitter_name?: string
-  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
+  size: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper' | 'clicker'
   price: number
   quantity?: number
   image_url?: string
@@ -59,7 +70,7 @@ export interface AddToCartRequest {
 
 // 장바구니 수정 요청 타입
 export interface UpdateCartItemRequest {
-  size?: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper'
+  size?: '10ml' | '50ml' | 'set' | 'set_10ml' | 'set_50ml' | 'scent_paper' | 'clicker'
   price?: number
   quantity?: number
 }
@@ -89,6 +100,7 @@ export interface PricingOption {
   price: number
   label: string
   shippingFee: number
+  image_url?: string
 }
 
 // 배송비 정책: 5만원 이상 무료배송, 미만 시 3,000원
@@ -97,7 +109,7 @@ export const DEFAULT_SHIPPING_FEE = 3000
 
 export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   image_analysis: [
-    { size: '10ml', price: 24000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
@@ -108,14 +120,14 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
     { size: 'set', price: 48000, label: '피규어+디퓨저 세트', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   personal_scent: [
-    { size: '10ml', price: 24000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   graduation: [
-    { size: '10ml', price: 34000, label: '졸업 퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '졸업 퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   signature: [
-    { size: '10ml', price: 34000, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: 'SIGNATURE 뿌덕퍼퓸 10ml', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   chemistry_set: [
     { size: 'set_10ml', price: 44000, label: '레이어링 퍼퓸 세트 10ml x 2', shippingFee: DEFAULT_SHIPPING_FEE },
@@ -127,19 +139,27 @@ export const PRODUCT_PRICING: Record<ProductType, PricingOption[]> = {
   ],
   // 오늘의 향 — AI 분석 없이 판매되는 카탈로그 상품. 가격/용량은 image_analysis와 동일.
   today_scent: [
-    { size: '10ml', price: 24000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
   // 상품 — AI 분석 없이 향을 직접 골라 구매하는 일반 카탈로그 상품.
   store_product: [
     { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
-    { size: '10ml', price: 24000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: SCENT_PAPER_SIZE, price: SCENT_PAPER_PRICE, label: '시향지', shippingFee: DEFAULT_SHIPPING_FEE },
   ],
-  // 사주 분석 퍼퓸 — 생년월일시 기반 분석 프로그램. DB admin_product_pricing이 우선, 코드는 폴백.
+  // 사주 분석 퍼퓸&디퓨저 클리커 키링 — 생년월일시 기반 분석 프로그램. DB admin_product_pricing이 우선, 코드는 폴백.
   saju_perfume: [
-    { size: '10ml', price: 48000, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    { size: '10ml', price: STANDARD_PERFUME_10ML_PRICE, label: '10ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
     { size: '50ml', price: 48000, label: '50ml 향수', shippingFee: DEFAULT_SHIPPING_FEE },
+    // 가격은 DB(admin_product_pricing)와 반드시 일치 — 불일치 시 폴백 모드에서 price_mismatch 거절
+    {
+      size: SAJU_CLICKER_SIZE,
+      price: SAJU_CLICKER_PRICE,
+      label: '디퓨저 클리커 키링',
+      shippingFee: DEFAULT_SHIPPING_FEE,
+      image_url: '/images/product-detail/saju-clicker-five-square.png',
+    },
   ],
 }
 
@@ -224,7 +244,7 @@ export const PRODUCT_TYPE_BADGES: Record<ProductType, ProductTypeBadge> = {
     border: 'border-lime-300',
   },
   saju_perfume: {
-    label: '사주 분석 퍼퓸',
+    label: '사주 분석 퍼퓸&디퓨저 클리커 키링',
     labelShort: '사주',
     bg: 'bg-[#0C0E16]',
     text: 'text-[#C9A227]',
@@ -262,13 +282,13 @@ export function getDefaultPrice(productType: ProductType): number {
       return 48000
     case 'graduation':
     case 'signature':
-      return 34000
+      return STANDARD_PERFUME_10ML_PRICE
     case 'chemistry_set':
       return 44000
     case 'saju_perfume':
-      return 48000
+      return STANDARD_PERFUME_10ML_PRICE
     default:
-      return 24000
+      return STANDARD_PERFUME_10ML_PRICE
   }
 }
 

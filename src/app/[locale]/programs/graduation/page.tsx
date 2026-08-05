@@ -22,7 +22,7 @@ import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
 import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { useProductPricing } from "@/hooks/useProductPricing"
-import { formatPrice } from "@/types/cart"
+import { formatPrice, STANDARD_PERFUME_10ML_PRICE } from "@/types/cart"
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { GraduationDesktop } from "./_desktop/GraduationDesktop"
@@ -163,7 +163,7 @@ export default function GraduationPage() {
               {t('programs.graduation.limitedBanner')}
             </div>
             <div className="flex items-end gap-2">
-              <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? 34000)}</span>
+              <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? STANDARD_PERFUME_10ML_PRICE)}</span>
               {gradOpt?.original_price && gradOpt.original_price > gradOpt.price && (
                 <>
                   <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(gradOpt.original_price)}</span>
@@ -456,7 +456,7 @@ export default function GraduationPage() {
                   {t('programs.graduation.limitedBanner')}
                 </div>
                 <div className="flex items-end gap-2">
-                  <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? 34000)}</span>
+                  <span className="text-xl font-black text-[var(--ink)]">{t('currency.symbol')}{formatPrice(gradOpt?.price ?? STANDARD_PERFUME_10ML_PRICE)}</span>
                   {gradOpt?.original_price && gradOpt.original_price > gradOpt.price && (
                     <>
                       <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{t('currency.symbol')}{formatPrice(gradOpt.original_price)}</span>

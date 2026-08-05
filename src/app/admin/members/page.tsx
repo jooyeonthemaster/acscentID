@@ -19,7 +19,7 @@ const PRODUCT_TYPE_LABELS: Record<string, string> = {
   personal_scent: '퍼스널 센트',
   graduation: '졸업 기념',
   chemistry_set: '레이어링 퍼퓸',
-  saju_perfume: '사주 분석 퍼퓸',
+  saju_perfume: '사주 분석 퍼퓸&디퓨저 클리커 키링',
   etc: '기타',
 }
 

@@ -14,6 +14,7 @@ import {
   type StoreProductRow,
 } from '@/lib/products/store-products'
 import { readLocalStoreProducts, writeLocalStoreProducts } from '@/lib/products/store-products-local'
+import { STANDARD_PERFUME_10ML_PRICE } from '@/types/cart'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -25,6 +26,10 @@ function cleanInteger(value: unknown): number | null {
   if (value === undefined || value === null || value === '') return null
   const numberValue = Number(value)
   return Number.isInteger(numberValue) && numberValue >= 0 ? numberValue : null
+}
+
+function violatesStandard10mlPrice(size: string, price: number): boolean {
+  return size === '10ml' && price !== STANDARD_PERFUME_10ML_PRICE
 }
 
 function isMissingStoreProductsTable(error: unknown): boolean {
@@ -163,6 +168,12 @@ export async function POST(request: NextRequest) {
   if (!title) return NextResponse.json({ error: '상품명은 필수입니다' }, { status: 400 })
   if (!size) return NextResponse.json({ error: '옵션/사이즈 코드는 필수입니다' }, { status: 400 })
   if (fallbackPrice === null) return NextResponse.json({ error: '가격은 0 이상의 정수여야 합니다' }, { status: 400 })
+  if (violatesStandard10mlPrice(size, fallbackPrice)) {
+    return NextResponse.json(
+      { error: '단품 10ml 상품 가격은 24,000원으로 고정됩니다' },
+      { status: 400 },
+    )
+  }
 
   const client = createServiceRoleClient()
   const now = new Date().toISOString()
@@ -280,6 +291,29 @@ export async function PATCH(request: NextRequest) {
   const title = cleanText(body.title)
   const size = cleanText(body.size).toLowerCase()
   const fallbackPrice = body.fallback_price !== undefined ? cleanInteger(body.fallback_price) : undefined
+  const client = createServiceRoleClient()
+
+  // size 또는 가격 한쪽만 수정해도 최종 조합이 10ml=24,000원 정책을 지키는지 확인한다.
+  if (body.size !== undefined || body.fallback_price !== undefined) {
+    const { data: currentProduct, error: currentProductError } = await client
+      .from('admin_store_products')
+      .select('size, fallback_price')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!currentProductError && currentProduct) {
+      const nextSize = body.size !== undefined ? size : currentProduct.size
+      const nextPrice = body.fallback_price !== undefined
+        ? fallbackPrice
+        : currentProduct.fallback_price
+      if (nextPrice !== undefined && nextPrice !== null && violatesStandard10mlPrice(nextSize, nextPrice)) {
+        return NextResponse.json(
+          { error: '단품 10ml 상품 가격은 24,000원으로 고정됩니다' },
+          { status: 400 },
+        )
+      }
+    }
+  }
 
   if (body.title !== undefined) {
     if (!title) return NextResponse.json({ error: '상품명은 비워둘 수 없습니다' }, { status: 400 })
@@ -309,7 +343,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: '수정할 항목이 없습니다' }, { status: 400 })
   }
 
-  const client = createServiceRoleClient()
   const { data, error } = await client
     .from('admin_store_products')
     .update(updates)
@@ -330,6 +363,13 @@ export async function PATCH(request: NextRequest) {
       const nextDisplayOrder = body.display_order !== undefined
         ? cleanInteger(body.display_order) ?? current.displayOrder ?? 0
         : current.displayOrder ?? 0
+
+      if (violatesStandard10mlPrice(nextSize, nextFallbackPrice)) {
+        return NextResponse.json(
+          { error: '단품 10ml 상품 가격은 24,000원으로 고정됩니다' },
+          { status: 400 },
+        )
+      }
 
       const duplicate = localProducts.find((product) => (
         product.slug !== slug && (product.slug === slug || product.size === nextSize)

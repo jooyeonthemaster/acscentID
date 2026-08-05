@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
 
       // [FIX] HIGH: CSV productLabels에 chemistry_set, signature 추가
       const productLabels: Record<string, string> = {
-        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '레이어링 퍼퓸', saju_perfume: '사주 분석 퍼퓸', etc: '기타',
+        image_analysis: '최애 이미지', figure_diffuser: '피규어', personal_scent: '퍼스널', graduation: '졸업 퍼퓸', signature: '시그니처', chemistry_set: '레이어링 퍼퓸', saju_perfume: '사주 분석 퍼퓸&디퓨저 클리커 키링', etc: '기타',
       }
       const modeLabels: Record<string, string> = { online: '온라인', offline: '오프라인 QR' }
 

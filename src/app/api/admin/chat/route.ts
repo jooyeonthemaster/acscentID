@@ -300,7 +300,7 @@ function getHardcodedSchema(): string {
 - "캐릭터명", "분석된 이름" → analysis_results.twitter_name (character_name 아님!)
 - "아이돌" → analysis_results.idol_name
 - "프로그램 유형" → analysis_results.product_type (idol_image|figure_diffuser|graduation|chemistry_set|saju_perfume)
-  - saju_perfume = 사주 분석 퍼퓸 (생년월일시 기반 사주 분석 향수)
+  - saju_perfume = 사주 분석 퍼퓸&디퓨저 클리커 키링 (생년월일시 기반 사주 분석 향수·클리커)
   - ⚠️ program_type 컬럼은 존재하지 않음
 
 ### 재고 관련

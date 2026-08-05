@@ -9,7 +9,7 @@ const productTypeLabel: Record<string, string> = {
   graduation: '졸업 에디션',
   signature: '시그니처',
   chemistry_set: '레이어링 퍼퓸 세트',
-  saju_perfume: '사주 분석 퍼퓸',
+  saju_perfume: '사주 분석 퍼퓸&디퓨저 클리커 키링',
 }
 
 const paymentMethodLabel: Record<string, string> = {

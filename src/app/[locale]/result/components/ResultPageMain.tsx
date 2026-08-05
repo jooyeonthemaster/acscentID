@@ -33,7 +33,7 @@ import { GraduationTab } from './graduation'
 
 import { useProductPricing } from '@/hooks/useProductPricing'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
-import { SCENT_PAPER_SIZE, type ProductType } from '@/types/cart'
+import { SCENT_PAPER_SIZE, STANDARD_PERFUME_10ML_PRICE, type ProductType } from '@/types/cart'
 import type { GraduationAnalysisResult } from '@/types/analysis'
 
 // 애니메이션 variants
@@ -214,7 +214,7 @@ export default function ResultPageMain() {
         cartPrice = getOption('figure_diffuser', 'set')?.price ?? 48000
       } else if (currentProductType === 'graduation') {
         cartSize = '10ml'
-        cartPrice = getOption('graduation', '10ml')?.price ?? 34000
+        cartPrice = getOption('graduation', '10ml')?.price ?? STANDARD_PERFUME_10ML_PRICE
       } else {
         // image_analysis, personal_scent 등 — 기본 50ml
         cartSize = '50ml'
