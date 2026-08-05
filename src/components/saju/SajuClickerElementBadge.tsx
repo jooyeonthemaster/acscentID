@@ -2,7 +2,7 @@ import { SAJU_ELEMENT_INFO, type SajuElement } from '@/types/analysis'
 
 interface SajuClickerElementBadgeProps {
   element: SajuElement
-  size?: 'compact' | 'default'
+  size?: 'compact' | 'default' | 'large'
   showLabel?: boolean
   className?: string
   title?: string
@@ -72,7 +72,12 @@ export function SajuClickerElementBadge({
   if (!info) return null
 
   const isCompact = size === 'compact'
-  const faceClass = isCompact ? 'h-7 w-7' : 'h-11 w-11 lg:h-12 lg:w-12'
+  const faceClass =
+    size === 'large'
+      ? 'h-16 w-16 lg:h-[72px] lg:w-[72px]'
+      : isCompact
+        ? 'h-7 w-7'
+        : 'h-11 w-11 lg:h-12 lg:w-12'
   const labelClass = isCompact ? 'text-[10px]' : 'text-[11px] lg:text-[13px]'
   const accessibleLabel = `용신 ${element}, 한자 ${info.hanja}`
 

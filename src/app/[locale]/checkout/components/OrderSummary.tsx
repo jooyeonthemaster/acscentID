@@ -96,6 +96,11 @@ export function OrderSummary({
   // 동적 가격 옵션 — DB(admin_product_pricing) 기반. 추가/삭제/순서변경 즉시 반영.
   const options = getOptions(productType)
 
+  // 사주 — 선택된 옵션의 실제 상품 사진 (옵션 전환 시 함께 바뀜)
+  const selectedSajuOptionImage = isSajuProduct
+    ? options.find((option) => option.size === selectedSize)?.image_url ?? null
+    : null
+
   const computeDiscount = (price?: number, original?: number | null): number | null => {
     if (!price || !original || original <= price) return null
     return Math.round(((original - price) / original) * 100)
@@ -116,9 +121,19 @@ export function OrderSummary({
 
       {/* 상품 정보 */}
       <div className="flex gap-4">
-        {/* 이미지 */}
+        {/* 이미지 — 사주는 선택된 옵션의 실제 상품 사진, 사진이 없으면 추천 오행 상판 */}
         <div className="w-24 h-28 flex-shrink-0 rounded-[6px] overflow-hidden bg-[var(--soft)] border border-[var(--line)]">
-          {userImage ? (
+          {isSajuProduct && selectedSajuOptionImage ? (
+            <img
+              src={selectedSajuOptionImage}
+              alt={perfumeName}
+              className="w-full h-full object-cover"
+            />
+          ) : isSajuProduct && sajuElement ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <SajuClickerElementBadge element={sajuElement} size="large" showLabel={false} />
+            </div>
+          ) : userImage ? (
             <img
               src={userImage}
               alt={t('checkout.analysisImage')}
@@ -164,8 +179,8 @@ export function OrderSummary({
             )}
           </p>
 
-          {/* 사주 — 분석이 추천한 용신 오행 (클리커 각인 · 박스 스티커 기준) */}
-          {productType === 'saju_perfume' && sajuElement && (
+          {/* 사주 — 각인 안내 배지는 디퓨저 클리커 옵션을 선택했을 때만 */}
+          {isSajuClicker && sajuElement && (
             <div className="flex items-center gap-2">
               <SajuClickerElementBadge element={sajuElement} />
               <span className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] font-bold break-keep">

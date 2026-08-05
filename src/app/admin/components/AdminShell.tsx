@@ -10,7 +10,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     // fixed position으로 부모의 455px 제한을 벗어남
-    <div className="admin-shell fixed inset-0 min-h-screen bg-slate-50 overflow-auto z-[9999]">
+    // text-slate-900: body의 다크 테마 기본색(#E9E2D0 베이지)을 admin 트리에서 차단.
+    // preflight상 input/textarea는 색을 상속하므로, 명시 색이 없는 입력창 전부가 이 기본색을 받는다.
+    <div className="admin-shell fixed inset-0 min-h-screen bg-slate-50 text-slate-900 overflow-auto z-[9999]">
       {/* 모바일 상단바 (lg 미만에서만 노출) */}
       <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 bg-slate-900 text-white">
         <button
