@@ -29,6 +29,20 @@
 
 ---
 
+## 2026-08-05 - [UPDATE] AI 호출 전면 OpenRouter 이전 + Gemini 3.0 Flash 통일
+
+**Scope**: 구글 직접 호출(@google/generative-ai SDK, GEMINI_API_KEY) 전면 폐지 → 모든 AI 호출을 OpenRouter로 이전
+
+**Changes**:
+- `src/lib/gemini/client.ts`: OpenRouter chat/completions 기반으로 재작성 — 기존 `model.generateContent(...)→result.response.text()` 어댑터 인터페이스 유지로 호출부 변경 최소화. 텍스트 분석 모델 `google/gemini-3-flash-preview`(Gemini 3.0 Flash)로 통일 (기존 gemini-3.6-flash 대체)
+- 이미지 생성(graduation-image): OpenRouter 경유 `google/gemini-3-pro-image-preview` — 응답의 `message.images[].image_url.url`(data URL) 파싱, 3:4 종횡비는 프롬프트 지시로 유지 (구 SDK의 imageConfig 제거)
+- admin/chat: `initializeGemini`+`getGenerativeModel` 직접 사용 → `getModelWithConfig`로 전환 (답변 생성은 `json: false`로 JSON 강제 해제 — 기존 동작 보존)
+- safetySettings 제거(saju 라우트, batch-analyze/saju-demo 스크립트): OpenRouter의 Google 라우팅은 기본이 최완화 안전 설정이라 별도 완화 옵션 불필요
+- env: `GEMINI_API_KEY` → `OPENROUTER_API_KEY` (라우트 사전 체크 6곳 교체). **Vercel 환경변수에 OPENROUTER_API_KEY 추가 필요**
+- deps: `@google/generative-ai` 제거
+
+---
+
 ## 2026-07-08 - [FIX] 사주 로딩 오버레이 레이아웃 붕괴 (CSS 레이어 충돌)
 
 **Root cause**: globals.css의 비레이어 커스텀 클래스 `.saju-ink-grain`/`.saju-hanji`의 `position: relative`가 Tailwind v4 레이어드 유틸리티 `.absolute`를 덮어씀 → 오버레이 캔버스(`absolute inset-0`)가 콘텐츠 높이(372px)로 접혀 상단 띠만 남고, 제목·8패 타일 충돌 + 뒷페이지/네비 노출 (모바일·PC 공통).

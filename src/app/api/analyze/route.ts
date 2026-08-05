@@ -194,8 +194,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. API 키 확인
-    if (!process.env.GEMINI_API_KEY) {
-      console.error(`[${requestId}] ❌ 오류: GEMINI_API_KEY 미설정`);
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error(`[${requestId}] ❌ 오류: OPENROUTER_API_KEY 미설정`);
       return NextResponse.json<AnalyzeResponse>(
         {
           success: false,

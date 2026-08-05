@@ -33,8 +33,7 @@ loadEnv(path.join(__dirname, '..', '.env.local'))
 
 import { buildGeminiPrompt, type FormDataInput } from '../src/lib/gemini/prompt-builder'
 import { parseGeminiResponse } from '../src/lib/gemini/response-parser'
-import { getModel, getModelWithConfig, withTimeout } from '../src/lib/gemini/client'
-import { HarmCategory, HarmBlockThreshold, type SafetySetting } from '@google/generative-ai'
+import { getModel, withTimeout } from '../src/lib/gemini/client'
 import { createServiceRoleClient } from '../src/lib/supabase/service'
 import { perfumes } from '../src/data/perfumes'
 
@@ -53,13 +52,6 @@ interface Person {
   /** 분석에 사용할 이미지 경로 오버라이드 (안전 필터 오탐 시 재인코딩본 사용) */
   srcPath?: string
 }
-
-const RELAXED_SAFETY: SafetySetting[] = [
-  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-]
 
 /** 응답 앞뒤 잉여 텍스트가 붙는 경우 첫 번째 완결 JSON 객체만 추출 */
 function extractFirstJson(text: string): string {
@@ -167,7 +159,7 @@ async function analyzeOne(person: Person, imageBase64: string, usedCounts: Map<s
     customCharm: '',
   }
 
-  let model = getModel()
+  const model = getModel()
   let hard = false
   let lastError: unknown = null
 
@@ -206,11 +198,7 @@ async function analyzeOne(person: Person, imageBase64: string, usedCounts: Map<s
       lastError = error
       const message = error instanceof Error ? error.message : String(error)
       console.warn(`    ⚠ ${person.name} 시도 ${attempt} 실패:`, message)
-      // 안전 필터 차단 시 다음 시도부터 완화된 safetySettings 적용
-      if (message.includes('PROHIBITED_CONTENT') || message.includes('SAFETY')) {
-        console.log(`    ↻ ${person.name}: 안전 설정 완화 모델로 전환`)
-        model = getModelWithConfig({ safetySettings: RELAXED_SAFETY })
-      }
+      // OpenRouter의 Google 라우팅은 기본이 최완화 안전 설정이라 별도 완화 모델 전환이 필요 없다
       await sleep(3000)
     }
   }

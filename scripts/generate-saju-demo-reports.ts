@@ -16,11 +16,6 @@
 
 import fs from 'fs'
 import path from 'path'
-import {
-  HarmBlockThreshold,
-  HarmCategory,
-  type SafetySetting,
-} from '@google/generative-ai'
 
 function loadEnv(filePath: string) {
   if (!fs.existsSync(filePath)) return
@@ -80,25 +75,6 @@ const FINGERPRINT = 'detail_page_saju_demo_20260723_v1'
 const SERVICE_MODE = 'online'
 const GEMINI_TIMEOUT_MS = 120000
 const MAX_RETRIES = 1
-
-const SAJU_SAFETY_SETTINGS: SafetySetting[] = [
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-]
 
 type TargetType = 'self' | 'idol'
 
@@ -217,7 +193,6 @@ async function analyzeScenario(scenario: SajuScenario): Promise<SajuAnalysisResu
   const model = getModelWithConfig({
     maxOutputTokens: 16384,
     temperature: 0.85,
-    safetySettings: SAJU_SAFETY_SETTINGS,
   })
 
   let parsed: ReturnType<typeof parseSajuGeminiResponse> | null = null

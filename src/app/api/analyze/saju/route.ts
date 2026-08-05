@@ -3,7 +3,6 @@
 // AI는 해석(sajuAnalysis + 유니버설 코어)만 생성하고, sajuChart는 항상 엔진 스냅샷으로 덮어쓴다.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { HarmBlockThreshold, HarmCategory, type SafetySetting } from '@google/generative-ai';
 import { getModelWithConfig, withTimeout } from '@/lib/gemini/client';
 import {
   buildSajuPrompt, buildSajuRetryPrompt, parseApiBirthInput, toEngineBirthInput,
@@ -32,17 +31,6 @@ interface SajuAnalyzeResponse {
 
 const GEMINI_TIMEOUT_MS = 60000;
 const MAX_RETRIES = 1;
-
-// 안전 설정 결정: 사주(운세) 서사는 강약·충(沖)·재물·연애·"스스로를 태우는 불" 같은 표현이
-// 기본(미지정) 필터의 중간 임계에 걸려 응답이 통째로 비어버릴 위험이 있다(맵 문서의 알려진 리스크).
-// → 이 라우트에 한해 4개 카테고리를 BLOCK_ONLY_HIGH로 완화한다. BLOCK_NONE은 쓰지 않는다(안전 하한 유지).
-// getModelWithConfig의 safetySettings는 선택 파라미터이므로 다른 라우트의 기본 동작은 변하지 않는다.
-const SAJU_SAFETY_SETTINGS: SafetySetting[] = [
-  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-];
 
 function normalizeLocale(value: unknown): Locale | null {
   return typeof value === 'string' && locales.includes(value as Locale)
@@ -242,7 +230,7 @@ export async function POST(request: NextRequest) {
     console.log(`  - locale: ${locale} / serviceMode: ${body.serviceMode ?? 'online'}`);
 
     // 2. API 키 확인
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       console.error(`[${requestId}] API 키 미설정`);
       return NextResponse.json<SajuAnalyzeResponse>(
         { success: false, error: 'API key not configured', fallback: generateSajuMockResult() },
@@ -335,10 +323,11 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] 📝 프롬프트 길이: ${wrappedPrompt.length}자`);
 
     // 7. Gemini 호출 — 검증 실패 시 오류를 프롬프트에 주입해 1회 교정 재시도 (feedback-customize 패턴)
+    // 운세 서사가 안전 필터 중간 임계에 걸리는 문제는 OpenRouter의 Google 라우팅이
+    // 가장 완화된 안전 설정을 기본 적용하므로 별도 safetySettings 없이 해소된다.
     const model = getModelWithConfig({
       maxOutputTokens: 16384,
       temperature: 0.85,
-      safetySettings: SAJU_SAFETY_SETTINGS,
     });
 
     const attempt = async (prompt: string) => {

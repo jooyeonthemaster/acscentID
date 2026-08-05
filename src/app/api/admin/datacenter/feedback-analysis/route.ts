@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { getKakaoSession } from '@/lib/auth-session'
-import { getModel, withTimeout } from '@/lib/gemini/client'
+import { getModel, withTimeout, OPENROUTER_TEXT_MODEL } from '@/lib/gemini/client'
 
 // 관리자 이메일 목록
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         analysis_period_end: periodEnd,
         total_feedbacks_analyzed: allFeedbacks.length,
         sentiment_summary: sentimentSummary,
-        model_used: 'gemini-3.6-flash',
+        model_used: OPENROUTER_TEXT_MODEL,
         raw_feedbacks_sample: feedbackSample.slice(0, 20).map((fb) => ({
           text: fb.natural_language_feedback,
           perfume: fb.perfume_name,

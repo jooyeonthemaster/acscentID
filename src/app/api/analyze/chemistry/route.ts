@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     console.log(`  - 이미지 B: ${character2ImageBase64 ? 'YES' : 'NO'}`);
 
     // 2. API 키 확인
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       console.error(`[${requestId}] API 키 미설정`);
       return NextResponse.json<ChemistryAnalyzeResponse>(
         { success: false, error: 'API key not configured' },
