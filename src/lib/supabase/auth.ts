@@ -1,4 +1,5 @@
 import { supabase } from './client'
+import { withLocalePrefix } from '@/lib/locale-path'
 
 /**
  * Google OAuth 로그인
@@ -7,9 +8,12 @@ export async function signInWithGoogle(nextPath?: string) {
   // nextPath: 로그인 후 이동할 경로 (예: /input?type=idol_image, /mypage)
   const callbackUrl = new URL('/auth/callback', window.location.origin)
   if (nextPath) {
-    callbackUrl.searchParams.set('next', nextPath)
+    // /auth/callback은 intl 미들웨어 밖이라 로케일을 모른다 —
+    // 접두사 없는 next로 착지하면 쿠키/브라우저 언어로 재판정되어 언어가 바뀔 수 있다
+    const localizedNext = withLocalePrefix(nextPath)
+    callbackUrl.searchParams.set('next', localizedNext)
     // OAuth 리다이렉트 중 next 파라미터 유실 대비 localStorage 백업
-    localStorage.setItem('auth_redirect_after_login', nextPath)
+    localStorage.setItem('auth_redirect_after_login', localizedNext)
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -36,7 +40,8 @@ export async function signInWithGoogle(nextPath?: string) {
  */
 export async function signInWithKakao(redirectTo?: string) {
   const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
-  const next = redirectTo || currentPath
+  // redirectTo는 접두사 없는 경로로 넘어오므로 현재 로케일 접두사를 붙여 언어를 보존한다
+  const next = redirectTo ? withLocalePrefix(redirectTo) : currentPath
 
   // OAuth 리다이렉트 중 next 파라미터 유실 대비 localStorage 백업
   if (typeof window !== 'undefined') {

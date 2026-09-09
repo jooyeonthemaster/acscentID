@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { Link, useRouter } from '@/i18n/routing'
 import { motion } from 'framer-motion'
 import { User, ChevronLeft, Star, ShoppingCart } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -112,7 +112,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
               </Link>
             ) : null}
             {/* Language Switcher — 로고 중앙 정렬을 위해 좌측 배치 */}
-            <LanguageSwitcher dark={dark} />
+            <LanguageSwitcher dark={dark} align="left" />
           </div>
 
           {/* Center: 항상 홈으로 가는 로고 버튼 (absolute 정중앙) */}

@@ -54,7 +54,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="bg-[var(--paper)] border-t-2 border-[var(--line)] p-4">
+    <div className="bg-[var(--paper)] border-t-2 border-[var(--line)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="flex items-end gap-2">
         {/* 이미지 업로드 버튼 */}
         {showImageButton && (

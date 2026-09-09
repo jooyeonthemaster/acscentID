@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { withLocalePrefix } from "@/lib/locale-path"
 import { motion } from "framer-motion"
 import { ImageIcon, FileText, Layers } from "lucide-react"
 
@@ -64,7 +65,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     const onDoorClosed = () => {
         console.log('Door closed, navigating to:', targetUrl)
         if (targetUrl) {
-            router.push(targetUrl)
+            // TransitionProvider는 NextIntlClientProvider 바깥(루트 레이아웃)에 있어
+            // @/i18n/routing useRouter를 쓸 수 없다 — withLocalePrefix로 현재 로케일 유지.
+            router.push(withLocalePrefix(targetUrl))
             // setTargetUrl(null) // 주석 처리: 라우팅이 비동기라 바로 null하면 안될수도 있음, 하지만 일단 유지
             // stage는 그대로 'closed' 유지 -> pathname 변경 감지 후 'opening'으로 전환
             // 단, 같은 페이지로 이동하거나 router.push가 즉시 완료되지 않을 수 있으므로

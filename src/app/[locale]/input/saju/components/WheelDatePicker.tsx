@@ -46,11 +46,22 @@ function WheelColumn({
     const ref = useRef<HTMLDivElement>(null)
     const rafRef = useRef<number | null>(null)
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const programmatic = useRef(false)
+    // 프로그램적 정렬의 목표 scrollTop. iOS는 scrollTop 대입 후 scroll 이벤트를
+    // 다음 프레임 이후에 비동기로 발화하므로, rAF 한 프레임 뒤 플래그 해제 방식은
+    // 그 이벤트를 사용자 스크롤로 오인한다 — 목표 도달을 기준으로 해제한다.
+    const programmaticTarget = useRef<number | null>(null)
     const [active, setActive] = useState(() => {
         const i = items.findIndex((it) => it.value === value)
         return i < 0 ? 0 : i
     })
+
+    // 언마운트 시 대기 중인 타이머 정리
+    useEffect(() => {
+        return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current)
+            if (settleRef.current) clearTimeout(settleRef.current)
+        }
+    }, [])
 
     // 외부 value/목록 변경 시 스크롤 위치를 동기화 (애니메이션 없이)
     useEffect(() => {
@@ -61,11 +72,8 @@ function WheelColumn({
         setActive(idx)
         const target = idx * ITEM_H
         if (Math.abs(el.scrollTop - target) > 1) {
-            programmatic.current = true
+            programmaticTarget.current = target
             el.scrollTop = target
-            requestAnimationFrame(() => {
-                programmatic.current = false
-            })
         }
     }, [value, items])
 
@@ -80,17 +88,31 @@ function WheelColumn({
             const idx = clamp(Math.round(el2.scrollTop / ITEM_H), 0, items.length - 1)
             setActive(idx)
         })
-        // 프로그램적 정렬 중에는 커밋하지 않는다
-        if (programmatic.current) return
-        // 스크롤이 멈춘 뒤(스냅 완료) 값 커밋
-        if (settleRef.current) clearTimeout(settleRef.current)
-        settleRef.current = setTimeout(() => {
+        // 프로그램적 정렬 스크롤: 목표에 도달할 때까지는 커밋 판정을 하지 않는다
+        if (programmaticTarget.current !== null) {
+            if (Math.abs(el.scrollTop - programmaticTarget.current) <= 1) {
+                programmaticTarget.current = null
+            }
+            return
+        }
+        // 스크롤이 멈춘 뒤 값 커밋 — 스냅 위치에 정착했을 때만.
+        // iOS 관성 스크롤은 감속이 길어 정지 판정이 도중에 발화할 수 있는데,
+        // 미정착 상태에서 커밋하면 되돌림 스크롤과 손가락이 싸우는 현상이 생긴다.
+        const trySettle = () => {
             const el2 = ref.current
             if (!el2) return
-            const idx = clamp(Math.round(el2.scrollTop / ITEM_H), 0, items.length - 1)
+            const top = el2.scrollTop
+            const idx = clamp(Math.round(top / ITEM_H), 0, items.length - 1)
+            if (Math.abs(top - idx * ITEM_H) > 2) {
+                // 아직 스냅 전(관성/스냅 애니메이션 진행 중) — 재확인 예약
+                settleRef.current = setTimeout(trySettle, 150)
+                return
+            }
             const picked = items[idx]
             if (picked && picked.value !== value) onChange(picked.value)
-        }, 120)
+        }
+        if (settleRef.current) clearTimeout(settleRef.current)
+        settleRef.current = setTimeout(trySettle, 150)
     }
 
     return (

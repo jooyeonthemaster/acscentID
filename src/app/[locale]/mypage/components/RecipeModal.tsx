@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Droplets, FlaskConical, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { ImageAnalysisResult, PerfumePersona, CATEGORY_INFO } from '@/types/analysis'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 interface RecipeModalProps {
   isOpen: boolean
@@ -22,6 +23,8 @@ export function RecipeModal({
 }: RecipeModalProps) {
   const t = useTranslations('mypage.recipeModal')
   const tButtons = useTranslations('buttons')
+
+  useBodyScrollLock(isOpen)
 
   if (!isOpen) return null
 
@@ -51,7 +54,7 @@ export function RecipeModal({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-[var(--canvas)] rounded-t-[6px] border-t-2 border-x-2 border-[var(--line)] shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-[9999] max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-[var(--canvas)] rounded-t-[6px] border-t-2 border-x-2 border-[var(--line)] shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-[9999] max-h-[85svh] flex flex-col"
           >
             {/* 드래그 핸들 */}
             <div className="flex justify-center pt-3 pb-2">
@@ -78,7 +81,7 @@ export function RecipeModal({
             </div>
 
             {/* 콘텐츠 */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-5">
               {hasFullData ? (
                 <>
                   {/* 추천 향수 정보 */}

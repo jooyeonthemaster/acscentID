@@ -89,6 +89,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: "#08090F",
+  // cover가 없으면 iOS에서 env(safe-area-inset-*)이 전부 0으로 평가되어
+  // safe-area-bottom 등 하단 바 여백 코드가 무효가 된다
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

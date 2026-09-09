@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { ArrowLeft, Check, RotateCcw, ShoppingBag, Sparkles } from "lucide-react"
 import { DuckScene } from "@/components/canvas/DuckScene"
 

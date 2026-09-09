@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import Image from "next/image"
 import { CreditCard, ShieldCheck, Loader2, AlertCircle, Wallet } from "lucide-react"
 

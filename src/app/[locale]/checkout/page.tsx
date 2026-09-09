@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, Suspense, useMemo, useCallback } from "react"
-import { useRouter, useSearchParams, useParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { motion } from "framer-motion"
 import {
   Package,
@@ -323,16 +324,6 @@ function CheckoutContent() {
       router.replace('/programs/le-quack')
     }
   }, [isProductActive, isSignatureProduct, productsLoading, router])
-
-  // 현재 locale (PortOne redirectUrl에 전달)
-  const routeParams = useParams<{ locale?: string }>()
-  const currentLocale = routeParams?.locale ?? 'ko'
-  const completePath = useMemo(() => {
-    // localePrefix: 'as-needed' — ko는 prefix 없이 기본 경로 사용
-    return currentLocale && currentLocale !== 'ko'
-      ? `/${currentLocale}/checkout/complete`
-      : '/checkout/complete'
-  }, [currentLocale])
 
   // 로그인 확인 및 데이터 로드
   useEffect(() => {
@@ -873,7 +864,6 @@ function CheckoutContent() {
           customerName: formData.name,
           customerPhone: `${formData.phone1}-${formData.phone2}-${formData.phone3}`,
           customerEmail: userEmail,
-          completePath,
         })
 
         // 모바일 리디렉션 진행 중 — 페이지가 곧 PG로 이탈하므로 아무 것도 하지 않음

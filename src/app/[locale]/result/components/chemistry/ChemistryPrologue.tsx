@@ -54,9 +54,9 @@ export function ChemistryPrologue({
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="flex-1 flex flex-col items-center"
+              className="flex-1 min-w-0 flex flex-col items-center"
             >
-              <div className="w-[156px] h-[156px] rounded-[6px] border-3 border-[var(--line)] overflow-hidden">
+              <div className="w-full max-w-[156px] aspect-square rounded-[6px] border-3 border-[var(--line)] overflow-hidden">
                 {image1Preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={image1Preview} alt={character1Name} className="w-full h-full object-cover" />
@@ -84,9 +84,9 @@ export function ChemistryPrologue({
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="flex-1 flex flex-col items-center"
+              className="flex-1 min-w-0 flex flex-col items-center"
             >
-              <div className="w-[156px] h-[156px] rounded-[6px] border-3 border-[var(--line)] overflow-hidden">
+              <div className="w-full max-w-[156px] aspect-square rounded-[6px] border-3 border-[var(--line)] overflow-hidden">
                 {image2Preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={image2Preview} alt={character2Name} className="w-full h-full object-cover" />

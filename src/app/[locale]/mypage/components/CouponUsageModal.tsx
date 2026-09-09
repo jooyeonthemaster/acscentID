@@ -5,6 +5,7 @@ import { X, ShoppingCart, Copy, Check, Gift, Cake, Users, ShoppingBag, ArrowRigh
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { getCouponDiscountLabel, type CouponDiscountType } from '@/types/coupon'
+import { withLocalePrefix } from '@/lib/locale-path'
 
 interface CouponUsageModalProps {
   isOpen: boolean
@@ -177,7 +178,7 @@ export function CouponUsageModal({ isOpen, onClose, coupon }: CouponUsageModalPr
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     onClose()
-                    window.location.href = '/'
+                    window.location.href = withLocalePrefix('/')
                   }}
                   className="w-full py-3 bg-[var(--soft)] hover:bg-[var(--soft)] text-[var(--ink)] font-black rounded-[6px] transition-colors border border-[var(--line)] flex items-center justify-center gap-2"
                 >

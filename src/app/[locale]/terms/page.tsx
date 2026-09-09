@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Header } from "@/components/layout/Header"
 import { Scale, ShieldCheck, FileText, AlertTriangle, Ban, Gavel } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 
 const fadeInUp = {

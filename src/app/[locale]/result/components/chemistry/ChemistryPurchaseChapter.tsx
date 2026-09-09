@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { ShoppingCart, Package, CreditCard } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
 import { apiFetch } from "@/lib/api-client"

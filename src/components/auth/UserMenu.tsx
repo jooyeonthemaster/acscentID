@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogOut, BookMarked, ChevronDown } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // 기본 아바타 URL 생성 (DiceBear API 사용)

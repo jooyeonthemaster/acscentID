@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/routing'
 import { Instagram, Twitter, Copy, Check } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useState } from 'react'
@@ -186,20 +186,22 @@ export function Footer() {
         <div className="border-t border-[var(--dark-line)] pt-4 flex items-center justify-between gap-3">
           {/* Social Links */}
           <div className="flex items-center gap-2">
-            <Link
+            <a
               href="https://www.instagram.com/acscent_id/"
               target="_blank"
+              rel="noopener noreferrer"
               className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Instagram size={14} />
-            </Link>
-            <Link
+            </a>
+            <a
               href="https://x.com/acscent_id"
               target="_blank"
+              rel="noopener noreferrer"
               className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Twitter size={14} />
-            </Link>
+            </a>
           </div>
 
           {/* Copyright */}

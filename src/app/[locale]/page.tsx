@@ -2,8 +2,7 @@
 
 import { useState, useRef, useSyncExternalStore } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { Link, useRouter } from "@/i18n/routing"
 import { ChevronRight, ChevronLeft, Handshake, MapPin } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import Image from "next/image"
@@ -183,6 +182,11 @@ export default function Home() {
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
 
   const handleCardClick = (href: string) => {
+    // DB에서 온 링크가 외부 URL이면 하드 이동, 내부 경로면 i18n 라우터(로케일 접두사 자동 부착)
+    if (href.startsWith('http')) {
+      window.location.href = href
+      return
+    }
     router.push(href)
   }
 
@@ -249,7 +253,7 @@ export default function Home() {
                 className="relative h-full w-full cursor-grab active:cursor-grabbing"
                 onClick={() => {
                   if (!isDragging && currentBanner?.link_url) {
-                    router.push(currentBanner.link_url)
+                    handleCardClick(currentBanner.link_url)
                   }
                 }}
               >
@@ -520,7 +524,7 @@ export default function Home() {
             onNextSlide={nextSlide}
             onSelectSlide={setCurrentSlide}
             onBannerClick={() => {
-              if (currentBanner?.link_url) router.push(currentBanner.link_url)
+              if (currentBanner?.link_url) handleCardClick(currentBanner.link_url)
             }}
             products={PRODUCTS}
             storeProducts={desktopStoreProducts}

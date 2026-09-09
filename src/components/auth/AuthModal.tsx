@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sparkles } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -41,6 +42,8 @@ export function AuthModal({
     setMobileOverlayOpen('auth-modal', isOpen)
     return () => setMobileOverlayOpen('auth-modal', false)
   }, [isOpen])
+
+  useBodyScrollLock(isOpen)
 
   const handleGoogleLogin = async () => {
     try {

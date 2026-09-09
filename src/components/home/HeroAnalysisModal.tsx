@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, Sparkles } from "lucide-react"
 import { useMemo, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock"
 
 // ==================== TYPES ====================
 export interface HeroAnalysisData {
@@ -302,6 +303,8 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
         return () => setMounted(false)
     }, [])
 
+    useBodyScrollLock(isOpen)
+
     if (!data || !mounted) return null
 
     // Portal로 document.body에 직접 렌더링하여 stacking context 문제 해결
@@ -324,7 +327,7 @@ export function HeroAnalysisModal({ isOpen, onClose, data, onDetailClick }: Hero
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-[10000] max-h-[85vh] overflow-y-auto"
+                        className="fixed bottom-0 left-0 right-0 z-[10000] max-h-[85svh] overflow-y-auto overscroll-contain"
                     >
                         <div className="bg-[#0C0E16] rounded-t-[12px] border-t-4 border-x-4 border-[#262A38] shadow-2xl">
                             {/* 핸들 바 */}

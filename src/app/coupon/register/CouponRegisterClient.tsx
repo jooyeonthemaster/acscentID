@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight, Loader2, LogIn, QrCode, Ticket } from 'lucide-react'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/contexts/AuthContext'
+import { withLocalePrefix } from '@/lib/locale-path'
 
 const COUPON_BOX_PATH = '/mypage?tab=coupons'
 
@@ -16,7 +17,7 @@ export function CouponRegisterClient() {
 
   useEffect(() => {
     if (!loading && hasUser) {
-      router.replace(COUPON_BOX_PATH)
+      router.replace(withLocalePrefix(COUPON_BOX_PATH))
     }
   }, [hasUser, loading, router])
 
@@ -87,7 +88,7 @@ export function CouponRegisterClient() {
           </button>
 
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push(withLocalePrefix('/'))}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-4 py-3 font-black text-slate-500 transition hover:border-slate-300 hover:bg-slate-50"
           >
             <Ticket className="h-4 w-4" />

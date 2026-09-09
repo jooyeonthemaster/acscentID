@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { Sparkles, Heart, Star } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useTranslations } from "next-intl"

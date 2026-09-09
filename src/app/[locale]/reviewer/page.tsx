@@ -1,10 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { withLocalePrefix } from "@/lib/locale-path"
 
 export default function ReviewerLoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -30,7 +29,7 @@ export default function ReviewerLoginPage() {
       }
 
       // 로그인 성공 → 결제 테스트 상품 체크아웃으로 바로 이동 (full reload로 세션 확실히 반영)
-      window.location.href = "/checkout?product=payment-test&type=payment_test"
+      window.location.href = withLocalePrefix("/checkout?product=payment-test&type=payment_test")
     } catch {
       setError("네트워크 오류가 발생했습니다.")
       setLoading(false)

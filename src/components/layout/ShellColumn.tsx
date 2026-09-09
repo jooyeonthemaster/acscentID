@@ -24,7 +24,9 @@ export function ShellColumn({ children }: { children: ReactNode }) {
         wide && 'lg:max-w-none',
       )}
     >
-      <main className="flex-1 md:pb-0 relative z-10 bg-[var(--canvas)]">
+      {/* main에 z-index를 주면 스택 컨텍스트가 생겨 페이지 내부의 모든 fixed 모달/팝오버가
+          z값과 무관하게 형제인 MobileBottomNav(z-40)·Footer(z-20) 아래에 깔린다 — z 금지 */}
+      <main className="flex-1 md:pb-0 relative bg-[var(--canvas)]">
         {children}
       </main>
       <Footer />

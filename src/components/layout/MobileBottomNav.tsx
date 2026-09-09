@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Sparkles, User, Menu, X, ChevronRight, ShoppingBag } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,7 +12,7 @@ import { MobileMenuSheet } from './MobileMenuSheet'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'
-import { isFocusedExperiencePath, stripLocaleFromPathname } from '@/lib/route-visibility'
+import { isFocusedExperiencePath, stripLocaleFromPathname, hasOwnBottomBar } from '@/lib/route-visibility'
 import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
 import { useViewportMode } from '@/hooks/useViewportMode'
 import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
@@ -186,7 +186,8 @@ export function MobileBottomNav() {
   const isAdminPage = normalizedPathname.startsWith('/admin')
   const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
   // 자체 하단 고정 구매바를 가진 페이지 — 전역 네비와 겹쳐 스크롤 시 깜빡이는 문제 방지
-  const hasOwnBottomBar = normalizedPathname === '/programs/today-scent' || normalizedPathname.startsWith('/products/')
+  // Footer와 목록이 어긋나지 않도록 route-visibility의 단일 정의를 사용한다
+  const pageHasOwnBottomBar = hasOwnBottomBar(pathname)
 
   const isIdolImagePage = normalizedPathname === '/programs/idol-image'
   const isFigurePage = normalizedPathname === '/programs/figure'
@@ -243,7 +244,7 @@ export function MobileBottomNav() {
     return subscribeMobileOverlayChange(setHasMobileOverlay)
   }, [])
 
-  if (isAdminPage || shouldHideForFocusedExperience || hasOwnBottomBar) return null
+  if (isAdminPage || shouldHideForFocusedExperience || pageHasOwnBottomBar) return null
 
   // 하이드레이션 후 데스크탑으로 확정되면 하단 네비는 언마운트 (lg 미만 동작 불변)
   if (hideAtLg && viewportMode === 'desktop') return null

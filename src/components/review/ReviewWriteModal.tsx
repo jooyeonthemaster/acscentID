@@ -6,6 +6,7 @@ import { X, Star, Camera, Loader2, AlertCircle, CheckCircle } from "lucide-react
 import { useTranslations } from "next-intl"
 import { createReview } from "@/lib/supabase/reviews"
 import type { CreateReviewInput } from "@/lib/supabase/reviews"
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock"
 
 interface ReviewWriteModalProps {
   isOpen: boolean
@@ -42,6 +43,8 @@ export function ReviewWriteModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  useBodyScrollLock(isOpen)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 

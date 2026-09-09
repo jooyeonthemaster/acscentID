@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
-import { usePathname, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { usePathname } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { isFocusedExperiencePath } from '@/lib/route-visibility'
 import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
@@ -11,7 +12,6 @@ const STORAGE_KEY = 'acscent-cookie-consent'
 
 export function CookieConsentBanner() {
   const t = useTranslations('cookieConsent')
-  const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
@@ -74,7 +74,7 @@ export function CookieConsentBanner() {
             <p className="text-[13px] lg:text-[15px] text-[var(--muted-ink)] leading-relaxed">
               {t('message')}{' '}
               <button
-                onClick={() => router.push(`/${locale}/privacy`)}
+                onClick={() => router.push('/privacy')}
                 className="underline hover:text-[var(--ink)] transition-colors cursor-pointer"
               >
                 {t('privacy')}

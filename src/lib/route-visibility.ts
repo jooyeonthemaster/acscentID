@@ -26,5 +26,9 @@ export function isFocusedExperiencePath(pathname?: string | null) {
 export function hasOwnBottomBar(pathname?: string | null) {
   const path = stripLocaleFromPathname(pathname)
 
-  return path === '/programs/today-scent' || path.startsWith('/products/')
+  return (
+    path === '/programs/today-scent' ||
+    path === '/programs/le-quack' ||
+    path.startsWith('/products/')
+  )
 }

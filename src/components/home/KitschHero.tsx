@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft, Camera, Sparkles, ImageIcon, X } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import Image from "next/image"
 import { StickerCartridge, StickerStar } from "./Stickers"
 import { useAuth } from "@/contexts/AuthContext"

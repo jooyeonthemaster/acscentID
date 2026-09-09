@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { motion } from "framer-motion"
 import {
   CheckCircle,
@@ -17,7 +18,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { useTranslations } from 'next-intl'
 
 import { Header } from "@/components/layout/Header"

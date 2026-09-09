@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Beaker, Calendar, Trash2, ChevronRight, Droplets, ChevronDown, FolderOpen, Folder, User, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 interface RecipeGranule {
   id: string

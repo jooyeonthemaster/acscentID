@@ -212,12 +212,22 @@ export function SajuAnalyzingOverlay({
         return () => timers.forEach((id) => window.clearTimeout(id))
     }, [isComplete, isVisible, reduce, onDoorOpened])
 
-    // 오버레이 표시 중 뒷페이지 스크롤 잠금 (스크롤바 갭·배경 스크롤 방지)
+    // 오버레이 표시 중 뒷페이지 스크롤 잠금 — iOS는 overflow:hidden만으로 막히지 않아
+    // position:fixed + 스크롤 복원 방식(FeedbackModal 패턴)을 사용한다
     useEffect(() => {
         if (!isVisible) return
-        const prev = document.body.style.overflow
-        document.body.style.overflow = 'hidden'
-        return () => { document.body.style.overflow = prev }
+        const scrollY = window.scrollY
+        document.body.style.position = 'fixed'
+        document.body.style.top = `-${scrollY}px`
+        document.body.style.left = '0'
+        document.body.style.right = '0'
+        return () => {
+            document.body.style.position = ''
+            document.body.style.top = ''
+            document.body.style.left = ''
+            document.body.style.right = ''
+            window.scrollTo(0, scrollY)
+        }
     }, [isVisible])
 
     if (!isVisible) return null

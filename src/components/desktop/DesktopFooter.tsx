@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/routing'
 import { Instagram, Twitter, Copy, Check } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { ADMIN_PROGRAMS } from '@/lib/admin/catalog'
@@ -72,20 +72,22 @@ export function DesktopFooter() {
               {t('footer.tagline')}
             </p>
             <div className="mt-5 flex items-center gap-2">
-              <Link
+              <a
                 href="https://www.instagram.com/acscent_id/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--dark-line)] text-[var(--dark-muted)] transition-colors hover:border-white hover:text-white"
               >
                 <Instagram size={14} />
-              </Link>
-              <Link
+              </a>
+              <a
                 href="https://x.com/acscent_id"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--dark-line)] text-[var(--dark-muted)] transition-colors hover:border-white hover:text-white"
               >
                 <Twitter size={14} />
-              </Link>
+              </a>
             </div>
           </div>
 

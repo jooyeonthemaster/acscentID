@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'

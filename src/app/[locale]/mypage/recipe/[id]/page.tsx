@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import { Link, useRouter } from '@/i18n/routing'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Beaker, Scale, Copy, CheckCircle2, Trash2, Calendar, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -14,7 +15,6 @@ import {
 } from '@/types/feedback'
 import { perfumes } from '@/data/perfumes'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
-import Link from 'next/link'
 
 interface RecipeData {
   id: string

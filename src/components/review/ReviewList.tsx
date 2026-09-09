@@ -117,14 +117,14 @@ export function ReviewList({
               <>
                 {/* 모바일 오버레이 */}
                 <div
-                  className="fixed inset-0 z-40 md:hidden"
+                  className="fixed inset-0 z-[55] md:hidden"
                   onClick={() => setShowSortDropdown(false)}
                 />
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="fixed left-4 right-4 bottom-4 md:absolute md:bottom-auto md:top-full md:left-0 md:right-auto md:mt-2 w-auto md:w-40 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden z-50"
+                  className="fixed left-4 right-4 bottom-4 md:absolute md:bottom-auto md:top-full md:left-0 md:right-auto md:mt-2 w-auto md:w-40 bg-[var(--soft)] border border-[var(--line)] rounded-[6px] overflow-hidden z-[60]"
                 >
                   <div className="p-2 border-b border-[var(--line)] md:hidden">
                     <p className="text-xs lg:text-sm font-bold text-[var(--muted-ink)] text-center">{t('review.sortLabel')}</p>

@@ -50,7 +50,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
     return (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-[calc(100%-2rem)] sm:max-w-[420px] md:max-w-[380px] lg:max-w-[340px] px-4">
+        // z-[10010]: 쿠키 배너(z-[9999])·모달 위에서도 항상 보여야 하는 일시 알림.
+        // bottom-32: 하단 네비(bottom-0~64px) + 프로그램 CTA 바(bottom-16~약 126px)를 피한 위치
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[10010] flex flex-col gap-2 w-full max-w-[calc(100%-2rem)] sm:max-w-[420px] md:max-w-[380px] lg:max-w-[340px] px-4">
             <AnimatePresence>
                 {toasts.map(toast => (
                     <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />

@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogOut, ChevronDown, HelpCircle, MapPin } from 'lucide-react'
 import { useActiveProducts, useProductThumbnailMap } from '@/hooks/useAdminContent'

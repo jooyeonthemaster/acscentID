@@ -54,16 +54,24 @@ export function ReviewModal({
     }
   }, [currentUserId, programType])
 
+  // iOS Safari는 body overflow:hidden만으로 배경 스크롤이 막히지 않아
+  // FeedbackModal과 동일한 position:fixed + 스크롤 복원 방식을 사용한다
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-      loadData()
-    } else {
-      document.body.style.overflow = ''
-    }
+    if (!isOpen) return
+    loadData()
+
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
 
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      window.scrollTo(0, scrollY)
     }
   }, [isOpen, loadData])
 
@@ -132,7 +140,7 @@ export function ReviewModal({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-36 md:pb-6 space-y-6 md:space-y-8">
+              <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 pb-36 md:pb-6 space-y-6 md:space-y-8">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-10 h-10 animate-spin text-[var(--muted-ink)]" />

@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation'
 import { createServiceRoleClient } from '@/lib/supabase/service'
+import { defaultLocale } from '@/i18n/config'
 
 interface PageProps {
-  params: Promise<{ code: string }>
+  params: Promise<{ code: string; locale: string }>
 }
 
 export default async function QRRedirectPage({ params }: PageProps) {
-  const { code } = await params
+  const { code, locale } = await params
+  // 접두사 없는 redirect는 미들웨어가 쿠키/브라우저 언어로 재판정한다 — 현재 로케일 보존
+  const p = locale === defaultLocale ? '' : `/${locale}`
 
   // 서비스 계정으로 Supabase 클라이언트 생성 (RLS 우회)
   const supabase = createServiceRoleClient()
@@ -21,7 +24,7 @@ export default async function QRRedirectPage({ params }: PageProps) {
 
   if (error || !qrCode) {
     // QR 코드가 없거나 비활성화된 경우 메인 페이지로
-    redirect('/')
+    redirect(p || '/')
   }
 
   // 스캔 카운트 증가
@@ -58,7 +61,7 @@ export default async function QRRedirectPage({ params }: PageProps) {
     .single()
 
   if (product && product.is_enabled === false) {
-    redirect('/')
+    redirect(p || '/')
   }
 
   // 상품 타입에 따라 적절한 경로로 리다이렉트
@@ -72,21 +75,21 @@ export default async function QRRedirectPage({ params }: PageProps) {
 
   switch (productType) {
     case 'image_analysis':
-      redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'figure_diffuser':
-      redirect(`/input?type=figure&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=figure&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'graduation':
-      redirect(`/input?type=graduation&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=graduation&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'personal_scent':
-      redirect(`/input?type=personal&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=personal&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'signature':
       // 시그니처 퍼퓸은 입력 플로우가 없고 바로 상품 페이지로 이동
-      redirect(`/programs/le-quack?mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/programs/le-quack?mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'chemistry_set':
-      redirect(`/input?type=chemistry&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=chemistry&mode=${modeParam}&qr_code=${qrCodeId}`)
     case 'saju_perfume':
-      redirect(`/input?type=saju&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=saju&mode=${modeParam}&qr_code=${qrCodeId}`)
     default:
-      redirect(`/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
+      redirect(`${p}/input?type=idol_image&mode=${modeParam}&qr_code=${qrCodeId}`)
   }
 }

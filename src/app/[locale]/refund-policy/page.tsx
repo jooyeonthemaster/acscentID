@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Header } from "@/components/layout/Header"
 import { RotateCcw, XCircle, RefreshCw, Truck, CreditCard, Phone } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 
 const fadeInUp = {
@@ -57,10 +57,11 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article1Title')}</h2>
               </div>
-              <div className="pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
                 <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38]">
                   <p className="font-bold text-[#E9E2D0] mb-3">{t('cancelConditions')}</p>
-                  <table className="w-full text-sm lg:text-base">
+                  <div className="overflow-x-auto">
+                  <table className="w-full min-w-[320px] text-sm lg:text-base">
                     <thead>
                       <tr className="border-b border-[#262A38]">
                         <th className="text-left py-2 font-bold">{t('cancelTableStatus')}</th>
@@ -91,6 +92,7 @@ export default function RefundPolicyPage() {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
                 <p className="text-sm lg:text-base text-[#8B8578]">
                   {t('cancelNote1')}
@@ -109,7 +111,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article2Title')}</h2>
               </div>
-              <div className="pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
                 <p className="font-bold">{t('refundReasonTitle')}</p>
                 <ul className="list-disc list-inside space-y-1 text-sm lg:text-base ml-2">
                   <li>{t('refundReason1')}</li>
@@ -119,7 +121,8 @@ export default function RefundPolicyPage() {
 
                 <p className="font-bold mt-4">{t('refundMethodTitle')}</p>
                 <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38]">
-                  <table className="w-full text-sm lg:text-base">
+                  <div className="overflow-x-auto">
+                  <table className="w-full min-w-[320px] text-sm lg:text-base">
                     <thead>
                       <tr className="border-b border-[#262A38]">
                         <th className="text-left py-2 font-bold">{t('refundTableMethod')}</th>
@@ -150,6 +153,7 @@ export default function RefundPolicyPage() {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 <p className="font-bold mt-4">{t('refundAmountTitle')}</p>
@@ -170,7 +174,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article3Title')}</h2>
               </div>
-              <div className="pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-4 text-[#A69F8D] leading-relaxed">
                 <p className="font-bold">{t('exchangeConditionTitle')}</p>
                 <div className="bg-[#0C0E16] rounded-[12px] p-4 border border-[#262A38]">
                   <ul className="list-disc list-inside space-y-1 text-sm lg:text-base">
@@ -211,7 +215,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article4Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38] text-sm lg:text-base space-y-2">
                   <p><span className="font-bold">{t('shippingPeriodLabel')}</span> {t('shippingPeriodValue')}</p>
                   <p><span className="font-bold">{t('shippingFeeLabel')}</span> {t('shippingFeeValue')}</p>
@@ -232,7 +236,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article5Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article5Intro')}</p>
                 <div className="bg-[#0C0E16] rounded-[12px] p-4 border-2 border-[#262A38]">
                   <div className="space-y-2 text-sm lg:text-base">
@@ -255,7 +259,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <h2 className="text-xl font-black text-[#E9E2D0]">{t('article6Title')}</h2>
               </div>
-              <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
+              <div className="md:pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <p>{t('article6Desc1')}</p>
                 <p>{t('article6Desc2')}</p>
                 <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38]">

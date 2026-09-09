@@ -14,7 +14,7 @@ import {
   saveLocaleFormDomSnapshot,
 } from '@/hooks/useLocaleSwitchState'
 
-export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
+export function LanguageSwitcher({ dark = false, align = 'right' }: { dark?: boolean; align?: 'left' | 'right' }) {
   const locale = useLocale() as Locale
   const router = useRouter()
   const pathname = usePathname()
@@ -82,7 +82,10 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 bg-white border border-[var(--line)] rounded-[6px] shadow-sm overflow-hidden z-50 min-w-[140px]"
+            className={cn(
+              "absolute top-full mt-1 bg-white border border-[var(--line)] rounded-[6px] shadow-sm overflow-hidden z-50 min-w-[140px]",
+              align === 'left' ? "left-0" : "right-0"
+            )}
           >
             {locales.map((l) => (
               <button

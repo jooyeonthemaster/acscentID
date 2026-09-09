@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Link, useRouter } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Trash2, X, Calendar, ShoppingBag, Eye, ChevronRight, Beaker, Droplets, Check, CheckSquare, Square, ShoppingCart, Heart } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'

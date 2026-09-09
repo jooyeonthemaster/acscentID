@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, Share2, Sparkles } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 // Components
 import { TwitterNameDisplay } from '../components/TwitterNameDisplay'

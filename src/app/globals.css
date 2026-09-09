@@ -132,6 +132,11 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  /* RecipeModal 등에서 사용 — 홈 인디케이터 영역 확보 (최소 1.25rem 유지) */
+  .pb-safe {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+
   .bg-noise {
     position: relative;
     isolation: isolate;
@@ -176,6 +181,30 @@
 
   body {
     @apply bg-[#0C0E16] text-[#E9E2D0];
+  }
+
+  /* 개별 요소가 몇 px 넘쳐도 페이지 전체 가로 스크롤로 번지지 않게 차단.
+     clip은 hidden과 달리 스크롤 컨테이너를 만들지 않아 position: sticky를 깨지 않는다 */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  /* 터치 기기 전용: 16px 미만 입력 필드는 iOS Safari가 포커스 시 강제 줌인한다.
+     Android는 줌인이 없어 기기 간 체감이 크게 갈리는 지점 — 시각 크기만 한 단계 키워 통일 */
+  @media (hover: none) and (pointer: coarse) {
+    input,
+    textarea,
+    select {
+      font-size: max(16px, 1em);
+    }
+  }
+
+  /* iOS 탭 시 회색 하이라이트 박스 제거 (Android는 원래 미미함) */
+  @media (hover: none) and (pointer: coarse) {
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
   }
 
   /* Smooth text */

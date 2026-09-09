@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
+import { withLocalePrefix } from "@/lib/locale-path"
 import { useLocale } from "next-intl"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
@@ -133,7 +135,7 @@ export function useInputForm() {
         const handlePopState = () => {
             if (currentStepRef.current <= 1) {
                 // Step 1에서 뒤로가기 → 홈으로 이동 (QR 루프 차단)
-                window.location.replace('/')
+                window.location.replace(withLocalePrefix('/'))
             }
         }
 

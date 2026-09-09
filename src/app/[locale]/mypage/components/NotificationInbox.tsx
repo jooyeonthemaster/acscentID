@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useLocale, useTranslations } from 'next-intl'
 import { X, Bell, Truck, RotateCcw, Package, Trash2 } from 'lucide-react'
 import { formatRelativeTime, type UserNotification, type NotificationType } from '@/lib/user/notifications'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 function TypeIcon({ type }: { type: NotificationType }) {
   const cls = 'w-5 h-5'
@@ -32,9 +33,15 @@ export function NotificationInbox({
   const locale = useLocale()
   const router = useRouter()
 
+  // 열려 있는 동안에만 마운트되는 모달 — 마운트 시점부터 배경 스크롤 잠금
+  useBodyScrollLock(true)
+
   const handleClick = (n: UserNotification) => {
-    if (n.link) {
-      onClose()
+    if (!n.link) return
+    onClose()
+    if (n.link.startsWith('http')) {
+      window.location.assign(n.link)
+    } else {
       router.push(n.link)
     }
   }
@@ -42,7 +49,7 @@ export function NotificationInbox({
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div
-        className="bg-[var(--paper)] border border-[var(--line)] rounded-t-[6px] sm:rounded-[6px] w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]"
+        className="bg-[var(--paper)] border border-[var(--line)] rounded-t-[6px] sm:rounded-[6px] w-full max-w-md overflow-hidden flex flex-col max-h-[85svh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -69,7 +76,7 @@ export function NotificationInbox({
         </div>
 
         {/* List */}
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto overscroll-contain">
           {notifications.length === 0 ? (
             <div className="py-16 text-center">
               <Bell size={40} className="text-[var(--muted-ink)] mx-auto mb-3" />

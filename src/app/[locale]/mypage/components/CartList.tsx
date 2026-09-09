@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Link, useRouter } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare, Beaker, X, Droplets, Clock } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
-import Link from 'next/link'
 import type { CartItem, ProductType } from '@/types/cart'
 import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals, isSajuClickerSize } from '@/types/cart'
 import { useProductPricing } from '@/hooks/useProductPricing'

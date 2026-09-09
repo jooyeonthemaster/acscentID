@@ -1,9 +1,10 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
+import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from "framer-motion"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import {
   Star, X,
   ShoppingCart,
@@ -56,6 +57,11 @@ export default function LeQuackPage() {
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  // 로그인 안내 모달 표시 중 전역 하단 네비/CTA 숨김 — ProgramLoginPrompt와 동일 계약
+  useEffect(() => {
+    setMobileOverlayOpen('program-login-prompt', showLoginPrompt)
+    return () => setMobileOverlayOpen('program-login-prompt', false)
+  }, [showLoginPrompt])
   const [selectedImage, setSelectedImage] = useState(0)
   const productName = useProductDisplayName('le-quack', t('programs.detail.leQuack.productNameFallback'))
 

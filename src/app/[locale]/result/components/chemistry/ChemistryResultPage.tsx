@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { motion, AnimatePresence } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { CheckCircle2, Moon, Sun, Zap, Gem, Search, Camera, FlaskConical, BarChart3, Sparkles, Users } from "lucide-react"
@@ -727,7 +727,7 @@ export default function ChemistryResultPage() {
             <div className="grid grid-cols-3 gap-1 bg-[var(--soft)] p-1 rounded-[6px]">
               <button
                 onClick={() => handleTabChange('characterA')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
+                className={`flex items-center justify-center gap-1 py-2.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'characterA'
                     ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
                     : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
@@ -738,7 +738,7 @@ export default function ChemistryResultPage() {
               </button>
               <button
                 onClick={() => handleTabChange('characterB')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
+                className={`flex items-center justify-center gap-1 py-2.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'characterB'
                     ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
                     : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
@@ -749,7 +749,7 @@ export default function ChemistryResultPage() {
               </button>
               <button
                 onClick={() => handleTabChange('chemistry')}
-                className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
+                className={`flex items-center justify-center gap-1 py-2.5 px-2 text-[11px] lg:text-[13px] font-medium transition-all rounded-[6px] ${
                   mainTab === 'chemistry'
                     ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
                     : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
@@ -767,7 +767,7 @@ export default function ChemistryResultPage() {
               <div className="grid grid-cols-2 gap-1 bg-[var(--soft)] p-1 rounded-[6px]">
                 <button
                   onClick={() => setCharSubTab('perfume')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-2.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
                     charSubTab === 'perfume'
                       ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
                       : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
@@ -778,7 +778,7 @@ export default function ChemistryResultPage() {
                 </button>
                 <button
                   onClick={() => setCharSubTab('analysis')}
-                  className={`flex items-center justify-center gap-1 py-1.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
+                  className={`flex items-center justify-center gap-1 py-2.5 text-[11px] lg:text-[13px] font-medium rounded-[6px] transition-all ${
                     charSubTab === 'analysis'
                       ? 'text-[var(--ink)] bg-[var(--soft)] border border-[var(--line)]'
                       : 'text-[var(--muted-ink)] bg-transparent border border-transparent hover:bg-[var(--soft)]/70'
@@ -799,7 +799,7 @@ export default function ChemistryResultPage() {
                   <button
                     key={section.id}
                     onClick={() => scrollToChemistrySection(section.id)}
-                    className="flex items-center gap-0.5 px-2.5 py-1 bg-[var(--soft)]/80 border border-[var(--line)] rounded-[6px] text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] hover:border-[var(--line)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-all active:scale-95 whitespace-nowrap"
+                    className="flex items-center gap-0.5 px-2.5 py-2 bg-[var(--soft)]/80 border border-[var(--line)] rounded-[6px] text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] hover:border-[var(--line)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-all active:scale-95 whitespace-nowrap"
                   >
                     <section.icon size={12} strokeWidth={2} />
                     <span>{t(section.labelKey)}</span>

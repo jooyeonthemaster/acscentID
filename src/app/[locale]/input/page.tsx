@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense } from "react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, ArrowLeft } from "lucide-react"

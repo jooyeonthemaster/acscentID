@@ -1,8 +1,8 @@
 "use client"
 
 import { Suspense, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react"
-import Link from "next/link"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
+import { Link, useRouter } from "@/i18n/routing"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   Camera,
@@ -712,7 +712,7 @@ function ProductDetailInner({
                               <button
                                 type="button"
                                 onClick={() => setScentQuantity(scent.id, quantity - 1)}
-                                className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
+                                className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
                                 aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                               >
                                 <Minus size={14} />
@@ -722,7 +722,7 @@ function ProductDetailInner({
                                 type="button"
                                 onClick={() => setScentQuantity(scent.id, quantity + 1)}
                                 disabled={quantity >= MAX_SCENT_QUANTITY}
-                                className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
+                                className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
                                 aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                               >
                                 <Plus size={14} />
@@ -791,7 +791,7 @@ function ProductDetailInner({
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity - 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
+                        className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
                         aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
                       >
                         <Minus size={14} />
@@ -801,7 +801,7 @@ function ProductDetailInner({
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity + 1)}
                         disabled={quantity >= MAX_SCENT_QUANTITY}
-                        className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
+                        className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
                         aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
                       >
                         <Plus size={14} />
@@ -809,7 +809,7 @@ function ProductDetailInner({
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, 0)}
-                        className="ml-1 min-h-8 rounded-[4px] border border-[var(--line)] bg-white px-3 text-xs font-extrabold text-[var(--muted-ink)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                        className="ml-1 min-h-10 rounded-[4px] border border-[var(--line)] bg-white px-3 text-xs font-extrabold text-[var(--muted-ink)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
                       >
                         {t('store.detail.delete')}
                       </button>

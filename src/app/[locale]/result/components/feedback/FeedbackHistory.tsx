@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocale } from 'next-intl'
 import { X, Clock, Droplet, ChevronRight, Trash2, Loader2, Sparkles, Check, ChevronLeft } from 'lucide-react'
@@ -167,7 +167,7 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
+            className={`fixed inset-x-0 bottom-0 z-50 max-h-[85svh] ${saju ? SJ.sheet : 'bg-[var(--paper)]'} rounded-t-[6px] shadow-2xl overflow-hidden flex flex-col`}
           >
             {/* 헤더 */}
             <div className={`flex items-center justify-between px-5 py-4 border-b flex-shrink-0 ${saju ? SJ.hairline : 'border-[var(--line)]'}`}>
@@ -212,7 +212,7 @@ export function FeedbackHistory({ isOpen, onClose, theme = 'default' }: Feedback
             </div>
 
             {/* 콘텐츠 */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               {/* RecipeConfirm 뷰 */}
               {showRecipeConfirm && selectedFeedback && selectedFeedback.generatedRecipe && (
                 <RecipeConfirm

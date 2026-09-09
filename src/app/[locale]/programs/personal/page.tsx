@@ -1,8 +1,9 @@
 "use client"
 
-import { type CSSProperties, useMemo, useState } from "react"
+import { type CSSProperties, useEffect, useMemo, useState } from "react"
+import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { motion, AnimatePresence } from "framer-motion"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 import {
   Sparkles, User, Star, CheckCircle2, X, AlertTriangle,
@@ -54,6 +55,11 @@ export default function PersonalPage() {
   const { user, unifiedUser, loading } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  // 로그인 안내 모달 표시 중 전역 하단 네비/CTA 숨김 — ProgramLoginPrompt와 동일 계약
+  useEffect(() => {
+    setMobileOverlayOpen('program-login-prompt', showLoginPrompt)
+    return () => setMobileOverlayOpen('program-login-prompt', false)
+  }, [showLoginPrompt])
   const [selectedImage, setSelectedImage] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const productName = useProductDisplayName('personal', t('programs.detail.personal.productName'))

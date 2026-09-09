@@ -12,7 +12,9 @@
 // ============================================================
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
+import { withLocalePrefix } from "@/lib/locale-path"
 import { useLocale } from "next-intl"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/contexts/AuthContext"
@@ -181,7 +183,7 @@ export function useSajuForm() {
         const handlePopState = () => {
             if (phaseIndexRef.current <= 0) {
                 // 첫 페이즈에서 뒤로가기 → 홈으로 (QR 루프 차단)
-                window.location.replace('/')
+                window.location.replace(withLocalePrefix('/'))
             }
         }
 

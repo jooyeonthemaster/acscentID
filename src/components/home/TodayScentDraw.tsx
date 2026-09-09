@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { Share2, Wand2, Gift, X } from 'lucide-react'
 import { drawToday, getDrawnToday, todayKey } from '@/lib/today-scent/draw'
 import { getScentById, type TodayScent } from '@/lib/today-scent/scents'

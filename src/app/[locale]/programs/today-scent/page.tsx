@@ -3,8 +3,8 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { Link, useRouter } from "@/i18n/routing"
 import {
   Star, X, ChevronRight, ShoppingCart, Sparkles,
   Package, Truck, Droplets, Share2, FileText,

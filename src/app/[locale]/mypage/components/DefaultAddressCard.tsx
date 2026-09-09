@@ -183,7 +183,7 @@ export function DefaultAddressCard() {
           onClick={() => !saving && setEditing(false)}
         >
           <div
-            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
+            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] w-full max-w-md overflow-hidden flex flex-col max-h-[90svh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b-2 border-[var(--line)] shrink-0">

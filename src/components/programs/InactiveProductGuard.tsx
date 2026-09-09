@@ -1,7 +1,7 @@
 'use client'
 
 import { useActiveProducts } from '@/hooks/useAdminContent'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { AlertTriangle } from 'lucide-react'
 
 interface InactiveProductGuardProps {

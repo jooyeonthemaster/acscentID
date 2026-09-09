@@ -1,6 +1,7 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
+import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Sparkles, X, AlertTriangle,
@@ -53,6 +54,11 @@ export default function FigurePage() {
     : null
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  // 로그인 안내 모달 표시 중 전역 하단 네비/CTA 숨김 — ProgramLoginPrompt와 동일 계약
+  useEffect(() => {
+    setMobileOverlayOpen('program-login-prompt', showLoginPrompt)
+    return () => setMobileOverlayOpen('program-login-prompt', false)
+  }, [showLoginPrompt])
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
   const productName = useProductDisplayName('figure', t('products.figureDiffuser'))

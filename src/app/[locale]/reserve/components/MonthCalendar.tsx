@@ -95,7 +95,7 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
           onClick={() => setMonthIdx((i) => Math.max(0, i - 1))}
           disabled={monthIdx <= 0}
           aria-label={t("prevMonth")}
-          className="grid h-9 w-9 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
+          className="grid h-11 w-11 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
         >
           <ChevronLeft size={17} strokeWidth={2.8} />
         </button>
@@ -105,7 +105,7 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
           onClick={() => setMonthIdx((i) => Math.min(months.length - 1, i + 1))}
           disabled={monthIdx >= months.length - 1}
           aria-label={t("nextMonth")}
-          className="grid h-9 w-9 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
+          className="grid h-11 w-11 place-items-center rounded-[12px] border-2 border-[#262A38] bg-[#12141D] transition-all disabled:cursor-not-allowed disabled:border-[#262A38] disabled:text-[#5C564A]"
         >
           <ChevronRight size={17} strokeWidth={2.8} />
         </button>
@@ -139,7 +139,7 @@ export function MonthCalendar({ policy, selectedDate, onSelect }: MonthCalendarP
               type="button"
               disabled={!bookable}
               onClick={() => onSelect(date)}
-              className={`relative mx-auto grid h-10 w-10 place-items-center rounded-[12px] text-sm lg:text-base font-black transition-all sm:h-11 sm:w-11 ${
+              className={`relative grid h-10 w-full place-items-center rounded-[12px] text-sm lg:text-base font-black transition-all sm:h-11 ${
                 selected
                   ? "border-2 border-[#262A38] bg-[#D7D7D7] text-[#0C0E16]"
                   : bookable

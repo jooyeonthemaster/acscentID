@@ -56,7 +56,8 @@ export function FigureChatMain({ userName }: FigureChatMainProps) {
   const showFigureNotice = currentPhase === 'figure_intro' && !isAiTyping;
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-[var(--canvas)] to-[var(--canvas)]">
+    // h-screen(100vh)은 iOS에서 주소창 표시 시 실제 가시영역보다 커져 하단 입력창이 잘린다 — dvh 사용
+    <div className="flex flex-col h-dvh bg-gradient-to-b from-[var(--canvas)] to-[var(--canvas)]">
       {/* 헤더 + 진행률 */}
       <ProgressHeader progress={progress} />
 
