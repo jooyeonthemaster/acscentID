@@ -30,6 +30,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/c/') ||
+    pathname === '/ship' ||
     pathname === '/coupon/claim' ||
     pathname === '/coupon/register' ||
     pathname.startsWith('/_next') ||

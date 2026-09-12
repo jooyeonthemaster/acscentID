@@ -25,6 +25,7 @@ import {
   HelpCircle,
   CreditCard,
   CalendarDays,
+  Truck,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -108,6 +109,12 @@ const navGroups: NavGroup[] = [
         label: '주문 관리',
         icon: ShoppingCart,
         description: '주문 상태 관리',
+      },
+      {
+        href: '/admin/offline-shipping',
+        label: '오프라인 배송 접수',
+        icon: Truck,
+        description: '매장 QR 택배 접수',
       },
       {
         href: '/admin/reservations',
