@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import {
   AlertCircle,
   Check,
@@ -119,25 +118,10 @@ export function OfflineShippingFormClient() {
     }
   }
 
-  const wordmark = (
-    <div className="mb-3 flex flex-col items-center">
-      <Image
-        src="/images/logo/acscent-wordmark-ink.png"
-        alt="AC'SCENT"
-        width={2053}
-        height={285}
-        priority
-        className="h-4 w-auto select-none"
-      />
-    </div>
-  )
-
   if (doneNumber !== null) {
     return (
       <div className="public-editorial flex min-h-[100svh] flex-col justify-center bg-[var(--canvas)] px-5 py-4">
         <main className="mx-auto w-full max-w-md">
-          {wordmark}
-
           <section className="rounded-[6px] border border-[var(--line)] bg-[var(--paper)] p-6 text-center shadow-sm">
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--dark-band)]">
               <Check size={22} className="text-white" strokeWidth={3} />
@@ -179,8 +163,6 @@ export function OfflineShippingFormClient() {
   return (
     <div className="public-editorial flex min-h-[100svh] flex-col justify-center bg-[var(--canvas)] px-5 py-4">
       <main className="mx-auto w-full max-w-md">
-        {wordmark}
-
         <section className="rounded-[6px] border border-[var(--line)] bg-[var(--paper)] p-5 shadow-sm">
           <h1 className="mb-3.5 text-xl font-black leading-snug text-[var(--ink)] lg:text-2xl">
             받으실 주소를 입력해주세요
