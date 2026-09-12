@@ -539,6 +539,7 @@ export default function AdminOrdersPage() {
 
   // 엑셀 다운로드 로딩
   const [excelLoading, setExcelLoading] = useState(false)
+  const [salesExcelLoading, setSalesExcelLoading] = useState(false)
 
   // 체크박스 선택 (삭제용)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -969,6 +970,58 @@ export default function AdminOrdersPage() {
   }
 
 
+  // 매출 엑셀 다운로드 — 「페이히어 온라인 매출 데이터」 형식
+  //  선택된 주문이 있으면 그 주문만, 없으면 현재 필터(상태·인플루언서·검색어·기간) 전체
+  const downloadSalesExcel = async () => {
+    setSalesExcelLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (selectedIds.size > 0) {
+        params.set('ids', Array.from(selectedIds).join(','))
+      } else {
+        if (statusFilter) params.set('status', statusFilter)
+        if (influencerFilter) params.set('influencer', influencerFilter)
+        if (search) params.set('search', search)
+        if (dateFrom) params.set('date_from', dateFrom)
+        if (dateTo) params.set('date_to', dateTo)
+      }
+
+      const response = await fetch(`/api/admin/orders/export?${params}`)
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || '엑셀 생성에 실패했습니다')
+      }
+
+      if (response.headers.get('X-Order-Count') === '0') {
+        alert('조건에 해당하는 주문이 없습니다.')
+        return
+      }
+
+      // 서버가 지정한 파일명(UTF-8 인코딩) 사용, 실패 시 기본값
+      const disposition = response.headers.get('Content-Disposition') || ''
+      const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/)?.[1]
+      const fileName = encodedName
+        ? decodeURIComponent(encodedName)
+        : '페이히어_온라인_매출.xlsx'
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Sales excel download failed:', err)
+      alert(err instanceof Error ? err.message : '엑셀 다운로드에 실패했습니다.')
+    } finally {
+      setSalesExcelLoading(false)
+    }
+  }
+
   const formatPrice = (price: number) => {
     return `₩${price.toLocaleString()}`
   }
@@ -1103,6 +1156,24 @@ export default function AdminOrdersPage() {
               출고대상 엑셀
             </button>
 
+            <button
+              onClick={downloadSalesExcel}
+              disabled={salesExcelLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg border-2 border-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              title={
+                selectedIds.size > 0
+                  ? `선택한 ${selectedIds.size}건을 매출 엑셀로 다운로드`
+                  : '현재 필터(상태·검색어·기간)에 해당하는 주문 전체를 매출 엑셀로 다운로드'
+              }
+            >
+              {salesExcelLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              매출 엑셀{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+            </button>
+
             {selectedIds.size > 0 && (
               <button
                 onClick={handleDeleteSelected}
@@ -1144,6 +1215,9 @@ export default function AdminOrdersPage() {
                 <X className="w-4 h-4" />
                 필터 초기화
               </button>
+              <p className="text-xs text-slate-500">
+                기간을 목록에 적용하려면 <span className="font-bold">검색</span>을 누르세요. <span className="font-bold">매출 엑셀</span>은 여기 입력한 기간이 바로 반영됩니다.
+              </p>
             </div>
           )}
         </div>

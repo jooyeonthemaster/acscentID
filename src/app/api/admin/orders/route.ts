@@ -5,6 +5,7 @@ import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
+import { applyAdminOrderFilters, parseAdminOrderFilters } from '@/lib/admin/order-filters'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com').split(',').map(e => e.trim().toLowerCase())
@@ -49,9 +50,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') // pending, paid, shipping, delivered
     const exportAll = searchParams.get('export') === 'true' // 엑셀 다운로드용 전체 조회
-    const influencerFilter = searchParams.get('influencer') // 'true', 'false', or null (all)
+    // 상태/인플루언서/검색어/기간 필터 — 매출 엑셀 내보내기와 동일 로직 공유
+    const filters = parseAdminOrderFilters(searchParams)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
@@ -70,25 +71,7 @@ export async function GET(request: NextRequest) {
       query = query.range(offset, offset + limit - 1)
     }
 
-    // 상태 필터 — 단일/다중(쉼표구분) 모두 허용
-    //   ?status=paid          → eq
-    //   ?status=paid,preparing → in (출고 대상 다중 조회 케이스)
-    if (status) {
-      const allowedStatuses = ['pending', 'paid', 'preparing', 'shipping', 'delivered', 'cancel_requested']
-      const requested = status.split(',').map(s => s.trim()).filter(s => allowedStatuses.includes(s))
-      if (requested.length === 1) {
-        query = query.eq('status', requested[0])
-      } else if (requested.length > 1) {
-        query = query.in('status', requested)
-      }
-    }
-
-    // 인플루언서 필터
-    if (influencerFilter === 'true') {
-      query = query.eq('is_influencer', true)
-    } else if (influencerFilter === 'false') {
-      query = query.eq('is_influencer', false)
-    }
+    query = applyAdminOrderFilters(query, filters)
 
     const { data: orders, error, count } = await query
 
