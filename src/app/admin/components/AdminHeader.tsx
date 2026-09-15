@@ -16,6 +16,7 @@ const pathTitles: Record<string, string> = {
   '/admin/reservations': '방문 예약',
   '/admin/members': '회원 관리',
   '/admin/qr': 'QR 관리',
+  '/admin/photobooth': '포토부스 관리',
   '/admin/coupons': '쿠폰 관리',
   '/admin/popups': '팝업 관리',
   '/admin/banners': '배너 관리',

@@ -26,6 +26,7 @@ import {
   CreditCard,
   CalendarDays,
   Truck,
+  Camera,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -98,6 +99,12 @@ const navGroups: NavGroup[] = [
         label: 'QR 관리',
         icon: QrCode,
         description: 'QR 코드 생성',
+      },
+      {
+        href: '/admin/photobooth',
+        label: '포토부스 관리',
+        icon: Camera,
+        description: '매장 부스 프레임 · 템플릿',
       },
     ],
   },

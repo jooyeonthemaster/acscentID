@@ -56,3 +56,5 @@ tsc-result.txt
 /scripts/.batch-analyze-progress.json
 backups
 /사주상품사진/
+/artifacts/
+/docs/research/
