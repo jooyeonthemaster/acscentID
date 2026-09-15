@@ -12,6 +12,7 @@ import {
   SAJU_PURPOSES, SAJU_RELATION_OPTIONS,
   type SajuAnalysisResult, type SajuAnalyzeRequest, type SajuPurpose,
 } from '@/types/analysis';
+import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 
 // 키오스크 전용 사주 분석 — /api/analyze/saju와 동일한 엔진·프롬프트·파서를 쓰되
 // 인증(401)과 일일 한도 두 블록만 제거했다. 무인 기기는 로그인 주체가 없다.
@@ -28,17 +29,6 @@ interface KioskSajuResponse {
   mocked?: boolean;
 }
 
-function kioskEnabled(request: NextRequest): boolean {
-  if (process.env.NODE_ENV !== 'production') return true;
-  if (process.env.KIOSK_ENABLED !== '1') return false;
-  if (process.env.KIOSK_ALLOW_REMOTE === '1') return true;
-  const host = (request.headers.get('host') ?? '').split(':')[0];
-  return host === 'localhost' || host === '127.0.0.1';
-}
-
-function mockAllowed(): boolean {
-  return process.env.NODE_ENV !== 'production' || process.env.KIOSK_DEMO === '1';
-}
 
 function normalizePurpose(value: unknown): SajuPurpose | null {
   return SAJU_PURPOSES.some((p) => p.id === value) ? (value as SajuPurpose) : null;

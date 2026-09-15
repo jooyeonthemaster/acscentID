@@ -7,7 +7,7 @@
 // 현재 AC'SCENT WOW 운영 기준 — PROGRAMS의 enabled로 프로그램을 켜고 끈다.
 // window.kiosk(Electron 셸)가 있으면 감열 프린터로 인쇄, 없으면 미리보기/다운로드로 동작한다.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { STYLES, PERSONALITIES, CHARM_POINTS, GENDER_OPTIONS } from '@/app/[locale]/input/constants'
 import {
   ImageAnalysisResult,
@@ -80,6 +80,87 @@ type Step =
 
 /** 어트랙트에서 터치했을 때 들어갈 첫 단계 */
 const FIRST_STEP: Step = SHOW_PROGRAM_STEP ? 'program' : 'info'
+
+const KIOSK_BACKGROUND_STORAGE_KEY = 'acscent-wow-kiosk-background'
+const KIOSK_BACKGROUND_ADMIN_PASSWORD = '110619'
+
+/** 포토부스와 시각 언어를 공유하되 키오스크 기기에는 별도로 저장되는 생카 테마. */
+const KIOSK_BACKGROUNDS = [
+  {
+    id: 'gingham',
+    title: '파스텔 깅엄',
+    image: '/assets/photobooth/concepts/01-gingham-stationery.png',
+    displayFont: 'var(--font-noto-serif-kr), "Noto Serif KR", serif',
+    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
+    paper: '#fffaf0',
+    ink: '#263d59',
+    inkSoft: '#617087',
+    line: 'rgba(38, 61, 89, 0.22)',
+    accent: '#de665f',
+    accentSoft: '#f7c9ce',
+    surface: 'rgba(255, 252, 244, 0.91)',
+    surfaceStrong: '#fffdf8',
+    shadow: '0 18px 50px rgba(68, 86, 110, 0.16)',
+    radius: '24px',
+    tracking: '-0.035em',
+  },
+  {
+    id: 'scrapbook',
+    title: '스크랩북 티켓',
+    image: '/assets/photobooth/concepts/02-scrapbook-ticket.png',
+    displayFont: 'var(--font-kirang), "Kirang Haerang", cursive',
+    bodyFont: 'var(--font-wanted), "Wanted Sans", sans-serif',
+    paper: '#f7f0e2',
+    ink: '#173e68',
+    inkSoft: '#647181',
+    line: 'rgba(23, 62, 104, 0.24)',
+    accent: '#d94842',
+    accentSoft: '#ffd76a',
+    surface: 'rgba(255, 251, 240, 0.92)',
+    surfaceStrong: '#fffcf4',
+    shadow: '8px 9px 0 rgba(23, 62, 104, 0.14)',
+    radius: '12px',
+    tracking: '0.01em',
+  },
+  {
+    id: 'airy',
+    title: '에어리 그라데이션',
+    image: '/assets/photobooth/concepts/03-airy-gradient.png',
+    displayFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
+    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
+    paper: '#eefaff',
+    ink: '#244a68',
+    inkSoft: '#557589',
+    line: 'rgba(36, 74, 104, 0.2)',
+    accent: '#e96e65',
+    accentSoft: '#bdefff',
+    surface: 'rgba(255, 255, 255, 0.76)',
+    surfaceStrong: 'rgba(255, 255, 255, 0.9)',
+    shadow: '0 22px 54px rgba(48, 124, 158, 0.17)',
+    radius: '28px',
+    tracking: '-0.025em',
+  },
+  {
+    id: 'retro',
+    title: '레트로 체크',
+    image: '/assets/photobooth/concepts/04-retro-check.png',
+    displayFont: 'var(--font-jua), "Jua", "Apple SD Gothic Neo", sans-serif',
+    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
+    paper: '#fff6df',
+    ink: '#164b7e',
+    inkSoft: '#5f6c78',
+    line: 'rgba(22, 75, 126, 0.27)',
+    accent: '#dc3d37',
+    accentSoft: '#ffd457',
+    surface: 'rgba(255, 250, 237, 0.93)',
+    surfaceStrong: '#fffaf0',
+    shadow: '8px 9px 0 #ffd457',
+    radius: '18px',
+    tracking: '-0.04em',
+  },
+] as const
+
+type KioskBackgroundId = (typeof KIOSK_BACKGROUNDS)[number]['id']
 
 /**
  * 촬영 단계의 기본 입력. 최애 이미지 분석은 손님 폰 갤러리에 있는 사진을 쓰므로
@@ -248,17 +329,48 @@ export function KioskClient() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrState, setQrState] = useState<'idle' | 'creating' | 'waiting' | 'expired' | 'failed'>('idle')
   const [qrUnreachable, setQrUnreachable] = useState(false)
+  const [backgroundId, setBackgroundId] = useState<KioskBackgroundId>('retro')
+  const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
+  const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
+  const [backgroundPassword, setBackgroundPassword] = useState('')
+  const [backgroundPasswordError, setBackgroundPasswordError] = useState('')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const ticketRef = useRef<string | null>(null)
   const idleDeadline = useRef<number>(0)
   const savedRef = useRef(false)
+  // DB 기록(kiosk_analyses) 한 건의 id — 영수증 출력 시 printed 갱신에 쓴다
+  const recordIdRef = useRef<string | null>(null)
+  const recordedRef = useRef(false)
   const countdownTimer = useRef<number | undefined>(undefined)
   const toastTimer = useRef<number | undefined>(undefined)
   const qrGeneration = useRef(0)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
+  const activeBackground =
+    KIOSK_BACKGROUNDS.find((background) => background.id === backgroundId) ??
+    KIOSK_BACKGROUNDS[KIOSK_BACKGROUNDS.length - 1]
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(KIOSK_BACKGROUND_STORAGE_KEY)
+      if (KIOSK_BACKGROUNDS.some((background) => background.id === saved)) {
+        setBackgroundId(saved as KioskBackgroundId)
+      }
+    } catch {
+      // 저장소에 접근하지 못하면 레트로 체크 기본값을 유지한다.
+    }
+  }, [])
+
+  const selectBackground = useCallback((id: KioskBackgroundId) => {
+    setBackgroundId(id)
+    try {
+      window.localStorage.setItem(KIOSK_BACKGROUND_STORAGE_KEY, id)
+    } catch {
+      // 저장 실패 시에도 현재 세션에는 선택값을 유지한다.
+    }
+  }, [])
 
   const showToast = useCallback((msg: string) => {
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
@@ -320,6 +432,8 @@ export function KioskClient() {
     setQrCode(null)
     ticketRef.current = null
     savedRef.current = false
+    recordIdRef.current = null
+    recordedRef.current = false
     // Electron 셸에선 다음 손님을 위해 카메라 스트림 유지, 웹에선 해제
     if (!kiosk) stopStream()
   }, [kiosk, stopStream, clearCountdown])
@@ -761,6 +875,53 @@ export function KioskClient() {
       .catch(() => {})
   }, [step, result, kiosk, name, productType, persona, photo])
 
+  // ── 분석 기록 (관리자 /admin/kiosk) ─────────────────────────
+  // 결과 화면에 도달한 건만 남긴다. 실패해도 손님 플로우는 그대로 진행한다 —
+  // 기록은 운영 통계용이지 손님이 기다릴 이유가 없다.
+  useEffect(() => {
+    if (step !== 'result' || !result || !persona || !match || recordedRef.current) return
+    recordedRef.current = true
+
+    const saju = isSajuResult(result) ? buildReceiptSaju(result) : null
+    fetch('/api/kiosk/record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        program,
+        customer_name: name.trim() || '게스트',
+        gender,
+        // 사주는 사진을 쓰지 않는다
+        photo_source: isSajuResult(result) ? null : photoSource,
+        product_type: productType,
+        product_label: productInfo.label,
+        perfume_id: persona.id,
+        perfume_no: perfumeNoFromId(persona.id),
+        perfume_name: persona.name,
+        category_en: scentCategoryEn(persona.id),
+        match_score: match.score,
+        keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords)?.slice(0, 5),
+        traits: topTraits,
+        personal_color: result.personalColor
+          ? `${SEASON_LABELS[result.personalColor.season]} ${TONE_LABELS[result.personalColor.tone]}`
+          : null,
+        analysis_text: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
+        recipe: recipeRows,
+        saju,
+        ticket: ticketRef.current,
+        mocked,
+        device: kiosk ? `shell ${kiosk.version}` : 'web',
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.id) recordIdRef.current = data.id
+      })
+      .catch((e) => console.error('[kiosk] 분석 기록 실패:', e))
+  }, [
+    step, result, persona, match, program, name, gender, photoSource, productType,
+    productInfo, topTraits, recipeRows, mocked, kiosk,
+  ])
+
   // ── 영수증 ────────────────────────────────────────────────
   const buildReceipt = useCallback(async (): Promise<{ dataUrl: string; base64: string } | null> => {
     if (!result || !persona || !match) return null
@@ -847,6 +1008,18 @@ export function KioskClient() {
         ticket: ticketRef.current ?? undefined,
       })
       if (res.success) {
+        // 출력 성공을 기록에 반영 — 분석만 하고 안 받아간 건과 구분된다
+        if (recordIdRef.current) {
+          fetch('/api/kiosk/record', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: recordIdRef.current,
+              printed: true,
+              ticket: res.ticket ?? ticketRef.current,
+            }),
+          }).catch((e) => console.error('[kiosk] 출력 기록 실패:', e))
+        }
         if (res.ticket && !ticketRef.current) {
           ticketRef.current = res.ticket
           // 구형 셸(선채번 미지원) 경로: 채번된 번호를 반영해 재인쇄용 원판만 갱신
@@ -865,14 +1038,33 @@ export function KioskClient() {
     }
   }, [receipt, kiosk, buildReceipt, showToast])
 
-  // ── 관리자 종료 핫스팟 (어트랙트 화면 한정, 우하단 3초 홀드) ────
+  // ── 관리자 핫스팟 (짧게: 배경 설정 / Electron 3초 홀드: 앱 종료) ────
   const exitHold = useRef<number | undefined>(undefined)
+  const exitTriggered = useRef(false)
+  const openBackgroundAdmin = useCallback(() => {
+    if (exitTriggered.current) return
+    setBackgroundAdminOpen(true)
+    setBackgroundAdminUnlocked(false)
+    setBackgroundPassword('')
+    setBackgroundPasswordError('')
+  }, [])
+  const closeBackgroundAdmin = useCallback(() => {
+    setBackgroundAdminOpen(false)
+    setBackgroundAdminUnlocked(false)
+    setBackgroundPassword('')
+    setBackgroundPasswordError('')
+  }, [])
   const onExitDown = useCallback(() => {
+    exitTriggered.current = false
     if (!kiosk) return
-    exitHold.current = window.setTimeout(() => kiosk.quitApp(), 3000)
+    exitHold.current = window.setTimeout(() => {
+      exitTriggered.current = true
+      kiosk.quitApp()
+    }, 3000)
   }, [kiosk])
   const onExitUp = useCallback(() => {
     if (exitHold.current) window.clearTimeout(exitHold.current)
+    exitHold.current = undefined
   }, [])
 
   // ── 렌더 ─────────────────────────────────────────────────
@@ -880,12 +1072,31 @@ export function KioskClient() {
   const showHeader = stepIdx >= 0
 
   return (
-    <div className="ksk-root">
+    <div
+      className="ksk-root"
+      data-background={activeBackground.id}
+      style={{
+        '--ksk-background-image': `url("${activeBackground.image}")`,
+        '--ksk-display-font': activeBackground.displayFont,
+        '--ksk-body-font': activeBackground.bodyFont,
+        '--ksk-display-tracking': activeBackground.tracking,
+        '--paper': activeBackground.paper,
+        '--ink': activeBackground.ink,
+        '--ink-soft': activeBackground.inkSoft,
+        '--line': activeBackground.line,
+        '--accent': activeBackground.accent,
+        '--accent-soft': activeBackground.accentSoft,
+        '--surface': activeBackground.surface,
+        '--surface-strong': activeBackground.surfaceStrong,
+        '--ksk-shadow': activeBackground.shadow,
+        '--ksk-radius': activeBackground.radius,
+      } as CSSProperties}
+    >
       <div className="ksk-stage">
         {showHeader && (
           <header>
             <div className="ksk-top">
-              <span className="ksk-top-brand">AC&rsquo;SCENT</span>
+              <span className="ksk-top-brand">AC&rsquo;SCENT WOW</span>
               <span className="ksk-top-step ksk-mono">
                 STEP {String(stepIdx + 1).padStart(2, '0')}/{String(steps.length).padStart(2, '0')} ·{' '}
                 {STEP_LABELS[step]}
@@ -1420,27 +1631,125 @@ export function KioskClient() {
               setStep(FIRST_STEP)
             }}
           >
-            <div>
+            <div className="ksk-attract-head">
+              <span className="ksk-attract-ticket">FOR YOUR BIAS · HONGDAE</span>
               <div className="ksk-attract-wordmark">
-                AC&rsquo;SCENT
-                <br />
-                WOW
+                <span>AC&rsquo;SCENT</span>
+                <strong>WOW!</strong>
               </div>
-              <p className="ksk-attract-sub ksk-mono">AI SCENT ANALYSIS KIOSK</p>
+              <p className="ksk-attract-sub">최애를 닮은 향을 만드는 AI 조향사</p>
             </div>
-            <p className="ksk-attract-mid">
-              최애 사진 한 장으로
-              <br />
-              그 사람을 닮은 향을 찾아드립니다.
-              <br />
-              분석 리포트는 영수증으로 출력되고,
-              <br />
-              카운터에 제출하시면 제품으로 준비해 드립니다.
-            </p>
-            <div className="ksk-attract-cta">화면을 터치해 시작하세요</div>
+            <div className="ksk-attract-card">
+              <span className="ksk-attract-card-no">01 PHOTO → 01 SCENT</span>
+              <p className="ksk-attract-mid">
+                <strong>오늘의 최애,</strong>
+                <br />
+                어떤 향으로 기억할까요?
+              </p>
+              <p className="ksk-attract-detail">
+                사진 속 분위기를 읽어 어울리는 향을 찾고,
+                <br />
+                리포트를 영수증으로 뽑아드려요.
+              </p>
+              <div className="ksk-attract-tags">
+                <span>#최애향</span><span>#AI조향</span><span>#홍대생카</span>
+              </div>
+            </div>
+            <div className="ksk-attract-cta"><span>✦</span> 화면을 터치해 시작하기 <span>✦</span></div>
           </div>
         )}
       </div>
+
+      {backgroundAdminOpen && (
+        <div
+          className="ksk-admin-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="키오스크 배경 관리"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) closeBackgroundAdmin()
+          }}
+        >
+          <div className="ksk-admin-panel">
+            <div className="ksk-admin-head">
+              <div>
+                <p>AC&rsquo;SCENT WOW · STORE ADMIN</p>
+                <h2>키오스크 배경 설정</h2>
+              </div>
+              <button type="button" aria-label="닫기" onClick={closeBackgroundAdmin}>×</button>
+            </div>
+
+            {!backgroundAdminUnlocked ? (
+              <div className="ksk-admin-lock">
+                <p>관리자 비밀번호 6자리를 입력해주세요.</p>
+                <div className="ksk-admin-dots" aria-label={`${backgroundPassword.length}자리 입력됨`}>
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <i key={index} data-filled={index < backgroundPassword.length} />
+                  ))}
+                </div>
+                {backgroundPasswordError && <strong>{backgroundPasswordError}</strong>}
+                <div className="ksk-admin-pad">
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '지우기', '0', '확인'].map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      data-action={key === '확인' || key === '지우기'}
+                      disabled={key === '확인' && backgroundPassword.length !== 6}
+                      onClick={() => {
+                        setBackgroundPasswordError('')
+                        if (key === '지우기') {
+                          setBackgroundPassword((value) => value.slice(0, -1))
+                          return
+                        }
+                        if (key === '확인') {
+                          if (backgroundPassword === KIOSK_BACKGROUND_ADMIN_PASSWORD) {
+                            setBackgroundAdminUnlocked(true)
+                            setBackgroundPassword('')
+                          } else {
+                            setBackgroundPassword('')
+                            setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
+                          }
+                          return
+                        }
+                        setBackgroundPassword((value) => `${value}${key}`.slice(0, 6))
+                      }}
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="ksk-admin-themes">
+                <p>선택한 배경과 글꼴은 모든 단계에 적용되고 이 기기에 저장됩니다.</p>
+                <div className="ksk-admin-grid">
+                  {KIOSK_BACKGROUNDS.map((background) => (
+                    <button
+                      key={background.id}
+                      type="button"
+                      data-selected={background.id === backgroundId}
+                      onClick={() => selectBackground(background.id)}
+                    >
+                      <span className="ksk-admin-preview">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={background.image} alt="" />
+                        <b style={{ fontFamily: background.displayFont }}>오늘의 최애향</b>
+                      </span>
+                      <span className="ksk-admin-theme-name">
+                        <b>{background.title}</b>
+                        <em>{background.id === backgroundId ? '✓ 적용 중' : '선택'}</em>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
+                  적용하고 닫기
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {receipt && (
         <div className="ksk-modal">
@@ -1464,9 +1773,18 @@ export function KioskClient() {
 
       {toast && <div className="ksk-toast">{toast}</div>}
       {idleLeft !== null && <div className="ksk-idle">{idleLeft}초 후 처음 화면으로 돌아갑니다</div>}
-      {/* 셸 모드 + 어트랙트 화면에서만 — 손님 동선의 버튼을 덮거나 앱을 종료시키지 않도록 */}
-      {kiosk && step === 'attract' && (
-        <div className="ksk-exit-hotspot" onPointerDown={onExitDown} onPointerUp={onExitUp} onPointerLeave={onExitUp} />
+      {/* 어트랙트 우하단: 짧게 누르면 배경 설정, Electron에서 3초 홀드하면 앱 종료 */}
+      {step === 'attract' && !backgroundAdminOpen && (
+        <button
+          type="button"
+          aria-label="관리자 설정 열기"
+          className="ksk-exit-hotspot"
+          onPointerDown={onExitDown}
+          onPointerUp={onExitUp}
+          onPointerLeave={onExitUp}
+          onPointerCancel={onExitUp}
+          onClick={openBackgroundAdmin}
+        />
       )}
     </div>
   )
@@ -1508,4 +1826,3 @@ function SelectScreen(props: {
     </div>
   )
 }
-

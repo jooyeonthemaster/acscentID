@@ -27,6 +27,7 @@ import {
   CalendarDays,
   Truck,
   Camera,
+  Monitor,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -105,6 +106,12 @@ const navGroups: NavGroup[] = [
         label: '포토부스 관리',
         icon: Camera,
         description: '매장 부스 프레임 · 템플릿',
+      },
+      {
+        href: '/admin/kiosk',
+        label: '키오스크 관리',
+        icon: Monitor,
+        description: '무인 기기 분석 기록',
       },
     ],
   },

@@ -5,6 +5,7 @@ import { parseGeminiResponse } from '@/lib/gemini/response-parser';
 import { sanitizeSelfAnalysisTone } from '@/lib/gemini/self-tone';
 import { ImageAnalysisResult } from '@/types/analysis';
 import { perfumes } from '@/data/perfumes';
+import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 
 // 키오스크 전용 분석 라우트 — /api/analyze와 동일한 파이프라인(프롬프트→Gemini→파서)이되
 // 인증·일일한도 게이트가 없다. 무인 기기에서 로그인 없이 돌아야 하기 때문.
@@ -25,20 +26,6 @@ interface KioskAnalyzeResponse {
   mocked?: boolean;
 }
 
-// 프로덕션에서는 KIOSK_ENABLED=1 + 로컬호스트 요청만 허용 (키오스크 셸의 로컬 Next 서버 시나리오).
-// 원격 배포에서 의도적으로 열려면 KIOSK_ALLOW_REMOTE=1을 함께 설정해야 한다 —
-// 이 엔드포인트는 무인증이므로 공개 인터넷에 열리면 OpenRouter 과금 릴레이가 된다.
-function kioskEnabled(request: NextRequest): boolean {
-  if (process.env.NODE_ENV !== 'production') return true;
-  if (process.env.KIOSK_ENABLED !== '1') return false;
-  if (process.env.KIOSK_ALLOW_REMOTE === '1') return true;
-  const host = (request.headers.get('host') ?? '').split(':')[0];
-  return host === 'localhost' || host === '127.0.0.1';
-}
-
-function mockAllowed(): boolean {
-  return process.env.NODE_ENV !== 'production' || process.env.KIOSK_DEMO === '1';
-}
 
 const MAX_IMAGE_BASE64_CHARS = 4_000_000; // ≈3MB 이미지 — 키오스크 캡처(720x960 q0.8)의 10배 여유
 const MAX_LIST_ITEMS = 8;
