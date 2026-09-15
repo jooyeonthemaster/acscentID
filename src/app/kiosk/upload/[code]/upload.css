@@ -90,3 +90,15 @@
 .kup-btn:active {
   background: #55524d;
 }
+
+/* 확정 화면의 보조 버튼 — '다른 사진 고르기' */
+.kup-btn + .kup-btn {
+  margin-top: 10px;
+}
+.kup-btn-ghost {
+  background: transparent;
+  color: #141414;
+}
+.kup-btn-ghost:active {
+  background: #e3ded6;
+}

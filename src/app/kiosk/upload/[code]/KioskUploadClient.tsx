@@ -2,7 +2,9 @@
 
 /**
  * 키오스크 QR 사진 업로드 (고객 폰 전용 화면)
- * 키오스크 화면의 QR → /kiosk/upload/[code] → 갤러리에서 사진 선택 → 압축 후 업로드
+ * 키오스크 화면의 QR → /kiosk/upload/[code] → 갤러리에서 사진 선택 → 미리보기 확정 → 업로드
+ * 사진을 고르는 즉시 보내지 않는다 — 잘못 고른 사진이 키오스크 큰 화면에 바로 뜨는 것을 막기 위해
+ * 손님이 '이 사진으로 확정하기'를 눌러야 전송된다.
  * 업로드되면 키오스크가 폴링으로 받아 분석 단계로 자동 진행한다.
  * 세션·업로드 API는 포토부스와 공유한다(photobooth_sessions).
  */
@@ -10,7 +12,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { compressImage } from '@/lib/image/compressor'
 
-type Status = 'checking' | 'ready' | 'invalid' | 'uploading' | 'done' | 'error'
+type Status =
+  | 'checking'
+  | 'ready'
+  | 'preparing' // 고른 사진을 압축하는 중
+  | 'confirm' // 미리보기 — 손님이 확정해야 업로드된다
+  | 'invalid'
+  | 'uploading'
+  | 'done'
+  | 'error'
 
 export function KioskUploadClient({ code }: { code: string }) {
   const [status, setStatus] = useState<Status>('checking')
@@ -52,31 +62,43 @@ export function KioskUploadClient({ code }: { code: string }) {
     }
   }, [code])
 
-  const handleFile = useCallback(
-    async (file: File) => {
-      setStatus('uploading')
-      setErrorMessage('')
-      try {
-        // 분석용이라 인화 품질까지는 필요 없다 — 긴 변 1280px
-        const base64 = await compressImage(file, { maxWidth: 1280, maxHeight: 1280, quality: 0.85 })
-        setPreview(base64)
+  // 고른 사진은 압축해서 미리보기로만 띄운다 — 전송은 confirmUpload에서
+  const handleFile = useCallback(async (file: File) => {
+    setStatus('preparing')
+    setErrorMessage('')
+    try {
+      // 분석용이라 인화 품질까지는 필요 없다 — 긴 변 1280px
+      const base64 = await compressImage(file, { maxWidth: 1280, maxHeight: 1280, quality: 0.85 })
+      setPreview(base64)
+      setStatus('confirm')
+    } catch (error) {
+      console.error('키오스크 사진 처리 실패:', error)
+      setPreview(null)
+      setStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : '사진을 불러오지 못했습니다')
+    }
+  }, [])
 
-        const res = await fetch('/api/photobooth/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, imageBase64: base64 }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || '업로드에 실패했습니다')
-        setStatus('done')
-      } catch (error) {
-        console.error('키오스크 업로드 실패:', error)
-        setStatus('error')
-        setErrorMessage(error instanceof Error ? error.message : '업로드에 실패했습니다')
-      }
-    },
-    [code]
-  )
+  const confirmUpload = useCallback(async () => {
+    if (!preview) return
+    setStatus('uploading')
+    setErrorMessage('')
+    try {
+      const res = await fetch('/api/photobooth/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, imageBase64: preview }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '업로드에 실패했습니다')
+      setStatus('done')
+    } catch (error) {
+      console.error('키오스크 업로드 실패:', error)
+      // 사진은 그대로 두고 확정 화면으로 되돌린다 — 같은 사진으로 바로 재시도할 수 있게
+      setStatus('confirm')
+      setErrorMessage(error instanceof Error ? error.message : '업로드에 실패했습니다')
+    }
+  }, [code, preview])
 
   return (
     <div className="kup-root">
@@ -84,6 +106,19 @@ export function KioskUploadClient({ code }: { code: string }) {
         <span className="kup-brand">AC&rsquo;SCENT</span>
         <span className="kup-code">{code}</span>
       </header>
+
+      {/* 선택 화면과 확정 화면 양쪽에서 쓰므로 항상 렌더한다 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) handleFile(file)
+          e.target.value = ''
+        }}
+      />
 
       {status === 'checking' && <p className="kup-msg">연결 중입니다...</p>}
 
@@ -94,28 +129,37 @@ export function KioskUploadClient({ code }: { code: string }) {
         </div>
       )}
 
+      {status === 'preparing' && <p className="kup-msg">사진을 불러오는 중입니다...</p>}
+
       {(status === 'ready' || status === 'error') && (
         <div className="kup-block">
           <h1 className="kup-title">사진 올리기</h1>
           <p className="kup-desc">
             갤러리에서 얼굴이 잘 나온 사진 한 장을 골라 주세요.
             <br />
-            향 분석에만 사용되며 키오스크 화면에 바로 나타납니다.
+            향 분석에만 사용되며, 확정하신 뒤 키오스크 화면에 나타납니다.
           </p>
           {status === 'error' && <p className="kup-error">{errorMessage}</p>}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFile(file)
-              e.target.value = ''
-            }}
-          />
           <button className="kup-btn" onClick={() => fileInputRef.current?.click()}>
             {status === 'error' ? '다시 선택하기' : '갤러리에서 사진 선택'}
+          </button>
+        </div>
+      )}
+
+      {status === 'confirm' && (
+        <div className="kup-block">
+          <h1 className="kup-title">이 사진으로 할까요?</h1>
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="kup-preview" src={preview} alt="선택한 사진" />
+          )}
+          {errorMessage && <p className="kup-error">{errorMessage}</p>}
+          <p className="kup-desc">확정하면 키오스크 화면으로 전송됩니다.</p>
+          <button className="kup-btn" onClick={confirmUpload}>
+            {errorMessage ? '다시 올리기' : '이 사진으로 확정하기'}
+          </button>
+          <button className="kup-btn kup-btn-ghost" onClick={() => fileInputRef.current?.click()}>
+            다른 사진 고르기
           </button>
         </div>
       )}
