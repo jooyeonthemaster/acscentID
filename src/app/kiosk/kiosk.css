@@ -1,0 +1,1159 @@
+/* AC'SCENT 키오스크 — 모노톤 에디토리얼. 560px CSS 폭 기준(1080x1920 실기에서 zoom≈1.93로 확대).
+   전역 토큰에 기대지 않는 자체 완결 스타일(.ksk- 접두) — 이후 독립 앱 추출을 대비. */
+
+.ksk-root {
+  --paper: #f4f1ec;
+  --ink: #141414;
+  --ink-soft: #55524d;
+  --line: #d8d3cb;
+  --accent: #141414;
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-score-dream), 'Apple SD Gothic Neo', sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.ksk-stage {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 560px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 26px 26px;
+  box-sizing: border-box;
+}
+
+.ksk-mono {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+  letter-spacing: 0.14em;
+}
+
+/* ── 상단 헤더 ─────────────────────────── */
+.ksk-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--ink);
+}
+.ksk-top-brand {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 0.22em;
+}
+.ksk-top-step {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.ksk-progress {
+  height: 3px;
+  background: var(--line);
+  margin-top: 10px;
+}
+.ksk-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.4s ease;
+}
+
+/* ── 본문 공통 ─────────────────────────── */
+.ksk-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 26px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ksk-eyebrow {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.ksk-title {
+  font-size: 34px;
+  line-height: 1.25;
+  font-weight: 800;
+  margin: 0 0 8px;
+  word-break: keep-all;
+}
+.ksk-desc {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 22px;
+  word-break: keep-all;
+}
+
+/* ── 버튼 ─────────────────────────────── */
+.ksk-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 18px;
+}
+.ksk-btn {
+  flex: 1;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: transform 0.06s ease;
+}
+.ksk-btn:active {
+  transform: scale(0.98);
+}
+.ksk-btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ── 어트랙트 ─────────────────────────── */
+.ksk-attract {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 60px 34px 54px;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: var(--paper);
+}
+.ksk-attract-wordmark {
+  font-size: 62px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.05;
+  border-bottom: 4px solid var(--ink);
+  padding-bottom: 26px;
+}
+.ksk-attract-sub {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.ksk-attract-mid {
+  font-size: 24px;
+  line-height: 1.5;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.ksk-attract-cta {
+  border: 2px solid var(--ink);
+  padding: 22px;
+  text-align: center;
+  font-size: 21px;
+  font-weight: 800;
+  animation: ksk-pulse 1.8s ease-in-out infinite;
+}
+@keyframes ksk-pulse {
+  0%, 100% { background: transparent; color: var(--ink); }
+  50% { background: var(--ink); color: var(--paper); }
+}
+
+/* ── 칩 선택 ─────────────────────────── */
+.ksk-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ksk-chip {
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 20px 12px;
+  cursor: pointer;
+  text-align: center;
+}
+.ksk-chip[data-on='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ── 입력 (이름/성별) ──────────────────── */
+/* 터치 입력 필드 — 실제로는 버튼이다 (네이티브 키보드 대신 자체 OSK를 연다) */
+.ksk-input {
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  text-align: left;
+  border: 2px solid var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  padding: 18px 16px;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  min-height: 64px;
+}
+.ksk-input[data-empty='true'] {
+  color: #9a968f;
+}
+
+/* ── 터치 키보드 (OSK) ────────────────────── */
+.ksk-osk {
+  border-top: 2px solid var(--ink);
+  padding-top: 12px;
+  margin-top: 10px;
+}
+.ksk-osk-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+.ksk-osk-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ksk-osk-value em {
+  font-style: normal;
+  color: #9a968f;
+  font-weight: 500;
+}
+.ksk-osk-caret {
+  display: inline-block;
+  width: 2px;
+  height: 28px;
+  background: var(--ink);
+  margin-left: 3px;
+  animation: ksk-blink 1.1s step-end infinite;
+}
+@keyframes ksk-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.ksk-osk-count {
+  font-size: 13px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.ksk-osk-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ksk-osk-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+/* 키 하나 = 560px 폭에서 약 48px → 실기(zoom 1.93)에서 약 93px. 터치 권장치 이상. */
+.ksk-key {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 58px;
+  border: 2px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: none;
+}
+.ksk-key:active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-key[data-on='true'] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.ksk-key:disabled {
+  opacity: 0.32;
+}
+.ksk-key-wide {
+  flex: 1.5 1 0;
+  font-size: 20px;
+}
+.ksk-key-mode {
+  flex: 1.6 1 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.ksk-key-space {
+  flex: 4 1 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+.ksk-key-done {
+  flex: 2 1 0;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-size: 19px;
+  font-weight: 700;
+}
+.ksk-key-done:active {
+  background: var(--ink-soft);
+}
+.ksk-field-label {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 22px 0 8px;
+}
+
+/* ── 제품 카드 ─────────────────────────── */
+.ksk-products {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ksk-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+  padding: 20px 18px;
+  cursor: pointer;
+  text-align: left;
+}
+.ksk-product[data-on='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-product b {
+  font-size: 21px;
+  font-weight: 800;
+  display: block;
+}
+.ksk-product span {
+  font-size: 14px;
+  opacity: 0.75;
+}
+.ksk-product em {
+  font-style: normal;
+  font-size: 13px;
+}
+
+/* ── 촬영 ─────────────────────────────── */
+.ksk-cam {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: #101010;
+  overflow: hidden;
+}
+.ksk-cam video,
+.ksk-cam img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ksk-cam video {
+  transform: scaleX(-1);
+}
+.ksk-cam-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 3px solid #fff;
+  pointer-events: none;
+}
+.ksk-cam-corner:nth-child(2) { top: 14px; left: 14px; border-right: 0; border-bottom: 0; }
+.ksk-cam-corner:nth-child(3) { top: 14px; right: 14px; border-left: 0; border-bottom: 0; }
+.ksk-cam-corner:nth-child(4) { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
+.ksk-cam-corner:nth-child(5) { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
+.ksk-cam-count {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 140px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.ksk-cam-nocam {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  padding: 0 30px;
+}
+
+/* ── 보조 액션 (QR 진입 등) ─────────────── */
+.ksk-alt {
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px dashed var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 16px 12px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+.ksk-alt:active {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.ksk-alt:disabled {
+  opacity: 0.35;
+}
+
+/* ── 폰 QR 업로드 대기 ──────────────────── */
+.ksk-qr {
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ksk-qr-img {
+  width: 260px;
+  height: 260px;
+  display: block;
+}
+.ksk-qr-code {
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin: 12px 0 0;
+}
+.ksk-qr-steps {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: qr;
+  text-align: left;
+  width: 100%;
+}
+.ksk-qr-steps li {
+  counter-increment: qr;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 7px 0 7px 32px;
+  position: relative;
+  word-break: keep-all;
+}
+.ksk-qr-steps li::before {
+  content: counter(qr);
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ksk-qr-warn {
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  margin: 14px 0 0;
+  text-align: left;
+  word-break: keep-all;
+}
+.ksk-qr-msg {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 40px 0;
+  word-break: keep-all;
+}
+
+/* ── 분석 중 ──────────────────────────── */
+.ksk-analyzing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 26px;
+}
+.ksk-analyzing-pct {
+  font-size: 76px;
+  font-weight: 800;
+}
+.ksk-analyzing-bar {
+  height: 6px;
+  background: var(--line);
+}
+.ksk-analyzing-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.5s ease;
+}
+.ksk-analyzing-status {
+  font-size: 17px;
+  color: var(--ink-soft);
+  min-height: 1.6em;
+}
+
+/* ── 결과 ─────────────────────────────── */
+.ksk-result {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 10px;
+}
+.ksk-scent-card {
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 26px 22px;
+  position: relative;
+}
+.ksk-scent-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: var(--scent-color, var(--ink));
+}
+.ksk-scent-no {
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+.ksk-scent-name {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 6px 0;
+  word-break: keep-all;
+}
+.ksk-scent-meta {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.ksk-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ksk-keyword {
+  border: 1.5px solid var(--ink);
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ksk-notes {
+  border-top: 2px solid var(--ink);
+}
+.ksk-note-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.ksk-note-row b {
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ksk-note-row span {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.ksk-section-label {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.ksk-trait {
+  display: grid;
+  grid-template-columns: 92px 1fr 30px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 15px;
+}
+.ksk-trait-bar {
+  height: 10px;
+  border: 1.5px solid var(--ink);
+}
+.ksk-trait-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.ksk-analysis-text {
+  font-size: 16px;
+  line-height: 1.65;
+  word-break: keep-all;
+  color: var(--ink);
+}
+
+/* ── 영수증 모달 ───────────────────────── */
+.ksk-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 14, 12, 0.82);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 24px;
+  box-sizing: border-box;
+  z-index: 30;
+}
+.ksk-modal-paper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+.ksk-modal-paper img {
+  display: block;
+  width: 100%;
+}
+.ksk-modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding-top: 18px;
+}
+.ksk-modal-actions .ksk-btn {
+  border-color: #fff;
+  color: #fff;
+}
+.ksk-modal-actions .ksk-btn-primary {
+  background: #fff;
+  color: var(--ink);
+}
+.ksk-modal-note {
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  padding-top: 12px;
+}
+
+/* ── 토스트/유휴 ───────────────────────── */
+.ksk-toast {
+  position: absolute;
+  left: 50%;
+  /* 하단 액션 버튼(패딩 26 + 버튼 ~58)을 피해서 띄운다 */
+  bottom: 110px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 22px;
+  z-index: 40;
+  white-space: nowrap;
+}
+.ksk-idle {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  padding: 10px 18px;
+  z-index: 40;
+}
+
+/* 우하단 관리자 종료 핫스팟 (Electron 셸에서만 의미) */
+.ksk-exit-hotspot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 76px;
+  height: 76px;
+  z-index: 50;
+  opacity: 0;
+}
+
+/* ── 프로그램 선택 ────────────────────────── */
+.ksk-programs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ksk-program {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+  padding: 20px 18px;
+  cursor: pointer;
+  text-align: left;
+}
+.ksk-program[data-on='true'] {
+  border-color: var(--ink);
+}
+.ksk-program-hanja {
+  font-size: 34px;
+  font-weight: 800;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ksk-program-body {
+  flex: 1;
+  min-width: 0;
+}
+.ksk-program-body b {
+  display: block;
+  font-size: 21px;
+  font-weight: 800;
+}
+.ksk-program-body span {
+  font-size: 14px;
+  color: var(--ink-soft);
+  word-break: keep-all;
+}
+.ksk-program em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ── 사주 목적 ────────────────────────────── */
+.ksk-purposes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ksk-purpose {
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+  padding: 18px 14px;
+  cursor: pointer;
+  text-align: center;
+}
+.ksk-purpose:first-child {
+  grid-column: 1 / -1;
+}
+.ksk-purpose[data-on='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-purpose-hanja {
+  display: block;
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.ksk-purpose b {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+}
+.ksk-purpose span {
+  font-size: 13px;
+  opacity: 0.72;
+  word-break: keep-all;
+}
+
+/* ── 양력/음력 세그먼트 ────────────────────── */
+.ksk-seg {
+  display: flex;
+  gap: 0;
+  border: 2px solid var(--ink);
+  margin-bottom: 16px;
+}
+.ksk-seg-btn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 14px 8px;
+  cursor: pointer;
+}
+.ksk-seg-btn[data-on='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ── 생년월일 표시 + 숫자 패드 ─────────────── */
+.ksk-birth-display {
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ksk-birth-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.ksk-birth-value {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.ksk-birth-hint {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 8px 0 12px;
+  min-height: 1.3em;
+  word-break: keep-all;
+}
+.ksk-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ksk-check i {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--ink);
+  flex: 0 0 22px;
+}
+.ksk-check[data-on='true'] {
+  border-color: var(--ink);
+}
+.ksk-check[data-on='true'] i {
+  background: var(--ink);
+}
+.ksk-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ksk-pad-key {
+  height: 66px;
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ksk-pad-key:active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-pad-key:disabled {
+  opacity: 0.32;
+}
+.ksk-pad-fn {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ── 12지시 ──────────────────────────────── */
+.ksk-branches {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.ksk-branch {
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+  padding: 12px 6px;
+  cursor: pointer;
+  text-align: center;
+}
+.ksk-branch[data-on='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-branch-hanja {
+  display: block;
+  font-size: 26px;
+  font-weight: 800;
+}
+.ksk-branch b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+.ksk-branch span {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.ksk-alt[data-on='true'] {
+  border-style: solid;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-input-tall {
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+/* ── 결과 장(chapter) ─────────────────────── */
+.ksk-chapter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ksk-chapter-count {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.ksk-chapter-dots {
+  display: flex;
+  gap: 5px;
+  margin: 10px 0 4px;
+}
+.ksk-chapter-dots i {
+  flex: 1;
+  height: 3px;
+  background: var(--line);
+}
+.ksk-chapter-dots i[data-on='true'] {
+  background: var(--ink);
+}
+.ksk-sec {
+  display: flex;
+  flex-direction: column;
+}
+.ksk-chapter-title {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0 0 10px;
+  word-break: keep-all;
+}
+.ksk-chapter-title em {
+  font-style: normal;
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-left: 8px;
+}
+.ksk-kv {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ksk-kv:last-child {
+  border-bottom: 0;
+}
+.ksk-kv b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.ksk-kv p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+  word-break: keep-all;
+}
+.ksk-note-block {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ksk-note-block:last-child {
+  border-bottom: 0;
+}
+.ksk-note-block b {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.ksk-note-block span {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  word-break: keep-all;
+}
+.ksk-steps {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+.ksk-steps li {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  padding: 4px 0;
+  word-break: keep-all;
+}
+.ksk-color-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+.ksk-palette {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ksk-swatch {
+  flex: 1;
+  text-align: center;
+}
+.ksk-swatch i {
+  display: block;
+  height: 44px;
+  border: 1.5px solid var(--ink);
+}
+.ksk-swatch em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+/* ── 사주 명식 ────────────────────────────── */
+.ksk-saju-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+}
+.ksk-saju-purpose {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.ksk-pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.ksk-pillar-head {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 0;
+  margin-bottom: 6px;
+}
+.ksk-pillar[data-day='true'] .ksk-pillar-head {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ksk-pillar-tile {
+  position: relative;
+  border: 2px solid var(--line);
+  background: #fff;
+  text-align: center;
+  padding: 10px 4px 8px;
+  margin-bottom: 6px;
+}
+.ksk-pillar[data-day='true'] .ksk-pillar-tile {
+  border-color: var(--ink);
+  border-width: 3px;
+}
+.ksk-pillar-tile em {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.ksk-pillar-hanja {
+  display: block;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.ksk-pillar-read {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.ksk-pillar-unknown {
+  border-style: dashed;
+}
+.ksk-saju-facts {
+  margin-top: 16px;
+}
+.ksk-trait[data-yongsin='true'] span:first-child {
+  font-weight: 800;
+}
