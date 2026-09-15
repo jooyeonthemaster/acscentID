@@ -1,26 +1,33 @@
 /**
  * 포토카드 인쇄용 원판 렌더러.
  *
- * 인쇄소는 재단선 바깥으로 여유(도련)가 있는 파일을 요구한다. 도련 없이 넘기면
- * 재단 오차만큼 흰 테두리가 생긴다. 여기서 앞/뒷면 모두 도련 포함으로 뽑는다.
+ * 규격 (세로형, 300dpi)
+ * - 재단영역 52 x 86 mm — 실제로 제작되어 손에 쥐는 크기
+ * - 작업영역 54 x 88 mm — 디자인 파일 크기. 재단 오차를 흡수할 사방 1mm 여백 포함
  *
- * 규격: 재단 54x86mm, 도련 3mm, 300dpi
+ * 작업영역까지 이미지를 채워야 재단이 밀려도 흰 테두리가 생기지 않는다.
+ * 반대로 중요한 요소(QR·번호)는 재단선에서 더 안쪽(안전영역)에 둬야 잘리지 않는다.
  */
 
 const MM = 300 / 25.4
+const px = (mm: number) => Math.round(mm * MM)
 
 export const CARD_PRINT = {
-  /** 재단 크기 (실제 카드 크기) */
-  trimW: Math.round(54 * MM), // 638
-  trimH: Math.round(86 * MM), // 1016
-  /** 도련 — 재단선 바깥 여유 */
-  bleed: Math.round(3 * MM), // 35
-  /** 중요한 요소가 들어가면 안 되는 재단선 안쪽 여백 */
-  safe: Math.round(3 * MM),
+  /** 재단영역 52 x 86 mm */
+  trimW: px(52), // 614
+  trimH: px(86), // 1016
+  /** 도련 — 작업영역과 재단영역의 차이 (사방 1mm) */
+  bleed: px(1), // 12
+  /** 재단선 안쪽 안전 여백 — 도련이 1mm뿐이라 여기를 넉넉히 잡는다 */
+  safe: px(3), // 35
+  /** 화면 표기용 */
+  trimLabel: '52 × 86 mm',
+  workLabel: '54 × 88 mm',
 } as const
 
-export const CARD_FULL_W = CARD_PRINT.trimW + CARD_PRINT.bleed * 2 // 708
-export const CARD_FULL_H = CARD_PRINT.trimH + CARD_PRINT.bleed * 2 // 1086
+/** 작업영역 = 디자인 파일 크기 (54 x 88 mm) */
+export const CARD_FULL_W = CARD_PRINT.trimW + CARD_PRINT.bleed * 2 // 638
+export const CARD_FULL_H = CARD_PRINT.trimH + CARD_PRINT.bleed * 2 // 1040
 
 function createCanvas(): HTMLCanvasElement {
   const canvas = document.createElement('canvas')

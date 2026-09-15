@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import { CardManager } from './CardManager'
+import { ShotStats } from './ShotStats'
 import { supabase } from '@/lib/supabase/client'
 import QRCode from 'qrcode'
 import {
@@ -525,6 +526,9 @@ export default function AdminPhotoboothPage() {
                 </div>
               )}
             </section>
+
+            {/* ---------- 촬영 내역 ---------- */}
+            <ShotStats onToast={showToast} />
 
             {/* ---------- 포토카드 ---------- */}
             <CardManager

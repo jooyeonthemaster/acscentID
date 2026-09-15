@@ -305,6 +305,8 @@ export function BoothClient() {
   const [cutCount, setCutCount] = useState<CutCount>(1)
   const [shots, setShots] = useState<string[]>([])
   const activeShotRef = useRef(1)
+  /** 이번 촬영의 기록 id — 인쇄·저장 시 같은 건을 갱신한다 */
+  const shotIdRef = useRef<string | null>(null)
 
   // 합성
   const composeCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -456,6 +458,7 @@ export function BoothClient() {
     setGuestFit(DEFAULT_FIT)
     setShots([])
     setCutCount(1)
+    shotIdRef.current = null
     setResultUrl(null)
     setComposeError(null)
     setCameraError(null)
@@ -1090,6 +1093,41 @@ export function BoothClient() {
   }, [])
 
   // ---------- 완료 / 인쇄 ----------
+  /** 촬영 내역 기록 — 사진은 보내지 않고 메타데이터만. 실패해도 손님 흐름을 막지 않는다 */
+  const logShot = useCallback(async () => {
+    try {
+      const res = await fetch('/api/photobooth/shot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode,
+          cut_count: mode === 'template' ? 2 : cutCount,
+          card_code: scannedCard?.code ?? null,
+          frame_title: selectedFrame?.title ?? null,
+          template_title: selectedTemplate?.title ?? null,
+          cutout_used: useCutout && !!cutout,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.id) shotIdRef.current = data.id
+    } catch (error) {
+      console.error('[photobooth] 촬영 기록 실패:', error)
+    }
+  }, [mode, cutCount, scannedCard, selectedFrame, selectedTemplate, useCutout, cutout])
+
+  const markShot = useCallback(async (payload: { printed?: boolean; downloaded?: boolean }) => {
+    if (!shotIdRef.current) return
+    try {
+      await fetch('/api/photobooth/shot', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: shotIdRef.current, ...payload }),
+      })
+    } catch (error) {
+      console.error('[photobooth] 촬영 기록 갱신 실패:', error)
+    }
+  }, [])
+
   const finishCompose = useCallback(() => {
     const canvas = composeCanvasRef.current
     if (!canvas) return
@@ -1097,6 +1135,7 @@ export function BoothClient() {
     try {
       setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
       setStep('result')
+      logShot()
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
@@ -1104,19 +1143,21 @@ export function BoothClient() {
     } finally {
       setFinishing(false)
     }
-  }, [])
+  }, [logShot])
 
   const handlePrint = useCallback(() => {
+    markShot({ printed: true })
     window.print()
-  }, [])
+  }, [markShot])
 
   const handleDownload = useCallback(() => {
     if (!resultUrl) return
+    markShot({ downloaded: true })
     const link = document.createElement('a')
     link.href = resultUrl
     link.download = `acscent-photo-${Date.now()}.jpg`
     link.click()
-  }, [resultUrl])
+  }, [resultUrl, markShot])
 
   const eventPeriod = event ? formatPeriod(event) : null
   const templateLabel = event?.artist ? `${event.artist}와 찍기` : '최애와 찍기'

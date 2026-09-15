@@ -4,7 +4,7 @@ import { KioskClient } from './KioskClient'
 // 웹 초안 단계: 브라우저에서 그대로 동작하며(영수증은 미리보기/다운로드),
 // Electron 셸(window.kiosk)에 올리면 감열 프린터 인쇄·결과 아카이브가 활성화된다.
 export const metadata = {
-  title: "AC'SCENT 키오스크",
+  title: "AC'SCENT WOW AI 조향사",
   robots: { index: false, follow: false },
 }
 

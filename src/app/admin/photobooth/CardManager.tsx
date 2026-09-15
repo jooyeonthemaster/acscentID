@@ -20,6 +20,8 @@ import {
   renderCardBack,
   withPrintGuides,
   CARD_PRINT,
+  CARD_FULL_W,
+  CARD_FULL_H,
 } from '@/lib/photobooth/card-print'
 import {
   IdCard,
@@ -202,9 +204,9 @@ export function CardManager({
       const readme = [
         'AC\'SCENT WOW 포토카드 인쇄 파일',
         '',
-        `재단 크기: 54 x 86 mm`,
-        `도련(bleed): 3 mm — 파일은 60 x 92 mm 로 출력되어 있습니다`,
-        `해상도: 300 dpi (${CARD_PRINT.trimW + CARD_PRINT.bleed * 2} x ${CARD_PRINT.trimH + CARD_PRINT.bleed * 2} px)`,
+        `재단영역(실제 제작 크기): ${CARD_PRINT.trimLabel}`,
+        `작업영역(파일 크기): ${CARD_PRINT.workLabel} — 사방 1mm 재단 여백 포함`,
+        `해상도: 300 dpi (${CARD_FULL_W} x ${CARD_FULL_H} px)`,
         '',
         '각 카드는 <코드>_앞면.png / <코드>_뒷면.png 두 장입니다.',
         '뒷면 QR은 매장 포토부스에서 스캔됩니다. 축소하거나 덮지 마세요.',
@@ -306,7 +308,7 @@ export function CardManager({
             >
               <button
                 onClick={() => setPreview(card)}
-                className="block w-full aspect-[54/86] bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:16px_16px]"
+                className="block w-full aspect-[52/86] bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:16px_16px]"
                 title="인쇄 미리보기"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -446,10 +448,12 @@ function PrintPreviewModal({ card, onClose }: { card: BoothCard; onClose: () => 
           </button>
         </div>
         <p className="text-xs text-slate-500 mb-4">
-          <span className="text-red-500 font-semibold">빨간 선</span> = 재단선(54x86mm) ·{' '}
-          <span className="text-blue-600 font-semibold">파란 선</span> = 안전영역. 파란 선 안쪽에만
-          중요한 요소가 들어가야 재단 오차에도 잘리지 않습니다. 실제 내려받는 파일에는 이 선이
-          없습니다.
+          파일 크기는 작업영역 <span className="font-semibold">{CARD_PRINT.workLabel}</span>이고,{' '}
+          <span className="text-red-500 font-semibold">빨간 선</span>이 재단영역(
+          {CARD_PRINT.trimLabel})입니다. 도련이 사방 1mm뿐이라 배경은 파일 끝까지 채워야 하고,
+          QR·번호 같은 중요한 요소는{' '}
+          <span className="text-blue-600 font-semibold">파란 선</span>(안전영역) 안쪽에 있어야
+          재단 오차에도 잘리지 않습니다. 실제 내려받는 파일에는 이 선이 없습니다.
         </p>
 
         {error ? (
@@ -466,7 +470,7 @@ function PrintPreviewModal({ card, onClose }: { card: BoothCard; onClose: () => 
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={src} alt={label} className="w-full rounded-lg border border-slate-200" />
                 ) : (
-                  <div className="aspect-[60/92] flex items-center justify-center bg-slate-50 rounded-lg">
+                  <div className="aspect-[54/88] flex items-center justify-center bg-slate-50 rounded-lg">
                     <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
                   </div>
                 )}
@@ -562,13 +566,13 @@ function CardFormModal({
         reader.onload = (e) => resolve(e.target?.result as string)
         reader.readAsDataURL(file)
       })
-      // 카드 비율(54:86 = 0.63)과 크게 다르면 앞면 cover 시 많이 잘려나간다
+      // 카드 비율(52:86 = 0.60)과 크게 다르면 앞면 cover 시 많이 잘려나간다
       const probe = await loadImage(preview)
       const ratio = (probe.naturalWidth || probe.width) / (probe.naturalHeight || probe.height)
       const aspectWarning =
-        ratio > 0.85
+        ratio > 0.82
           ? '가로가 넓은 이미지예요. 카드 앞면에서 좌우가 크게 잘립니다'
-          : ratio < 0.45
+          : ratio < 0.43
             ? '세로가 매우 긴 이미지예요. 카드 앞면에서 위아래가 잘립니다'
             : undefined
 
