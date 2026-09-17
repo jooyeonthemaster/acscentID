@@ -6,6 +6,7 @@ import { getPortOnePayment, cancelPortOnePayment } from '@/lib/portone/verify'
 import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
+import { notifyErp } from '@/lib/erp/signal'
 
 function getOrderIdFromPaymentCustomData(customData: unknown): string | null {
   if (!customData) return null
@@ -219,6 +220,9 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
       })
     }
+
+    // 본사 ERP 에 "가져가라" 신호 (내용은 싣지 않는다 — lib/erp/signal.ts)
+    notifyErp('결제 확정')
 
     return NextResponse.json({
       success: true,

@@ -8,6 +8,7 @@ import {
 } from '@/lib/portone/verify'
 import { notifyCustomerRefundCompleted } from '@/lib/email/customer-notify'
 import { addUserNotification } from '@/lib/user/notifications.server'
+import { notifyErp } from '@/lib/erp/signal'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
@@ -364,6 +365,9 @@ export async function POST(request: NextRequest) {
     console.log(
       `[Admin Refund] Refund completed: ${orderId} (${refundAmount}원)`
     )
+
+    // 본사 ERP 에 "가져가라" 신호 — 환불은 이미 적재된 판매 줄을 바꾼다
+    notifyErp('환불')
 
     // 12. 고객에게 환불 완료 이메일 (fire-and-forget)
     //     고객 이메일은 orders 행에 저장되어 있지 않을 수 있어 users 테이블 경유 조회 시도

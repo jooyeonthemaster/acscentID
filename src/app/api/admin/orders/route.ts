@@ -6,6 +6,7 @@ import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 import { applyAdminOrderFilters, parseAdminOrderFilters } from '@/lib/admin/order-filters'
+import { notifyErp } from '@/lib/erp/signal'
 
 // 관리자 이메일 목록 (환경변수 또는 하드코딩)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com').split(',').map(e => e.trim().toLowerCase())
@@ -206,6 +207,8 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
+      // 인플루언서 증정으로 바꾸면 매출에서 빠진다
+      notifyErp('인플루언서 설정 변경')
       return NextResponse.json({ success: true, order })
     }
 
@@ -245,7 +248,7 @@ export async function PATCH(request: NextRequest) {
     // 기존 주문 상태 조회 (재고 차감 및 스탬프 중복 방지)
     const { data: existingOrder } = await serviceClient
       .from('orders')
-      .select('id, status, user_id, item_count, user_coupon_id')
+      .select('id, status, user_id, item_count, user_coupon_id, paid_at')
       .eq('id', orderId)
       .single()
 
@@ -258,6 +261,13 @@ export async function PATCH(request: NextRequest) {
     }
     if (typeof is_influencer === 'boolean') {
       updateData.is_influencer = is_influencer
+    }
+    // 무통장 입금 확인(pending → paid) 때 결제 시각을 남긴다. 카드·간편결제는
+    // 결제 검증 라우트가 paid_at 을 넣지만 무통장은 이 자리밖에 없다. 비어 있으면
+    // 매출 날짜가 입금일이 아니라 주문일로 잡혀, 월말에 주문하고 월초에 입금한
+    // 건이 앞 달로 간다 (본사 ERP 는 paid_at 을 매출일로 쓴다).
+    if (previousStatus === 'pending' && status === 'paid' && !existingOrder?.paid_at) {
+      updateData.paid_at = updateData.updated_at
     }
 
     const { data: order, error } = await serviceClient
@@ -274,6 +284,9 @@ export async function PATCH(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // 상태가 바뀌면 본사 ERP 매출도 바뀐다 (입금 확인·되돌리기·취소 요청)
+    if (previousStatus !== status) notifyErp('주문 상태 변경')
 
     // 결제 완료(paid) 상태로 변경될 때 재고 자동 차감 + 재구매 쿠폰 발급
     // (기존 상태가 pending이고 새 상태가 paid인 경우에만 - 중복 차감 방지)
@@ -378,6 +391,10 @@ export async function DELETE(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // 지운 주문은 피드에 다시 나타나지 않는다. ERP 에 이미 들어간 매출 줄을
+    // 치우려면 ERP 가 「아직 있나」를 되물어야 한다 — 그걸 지금 하라고 알린다.
+    notifyErp('주문 삭제', { reconcile: true })
 
     return NextResponse.json({
       success: true,

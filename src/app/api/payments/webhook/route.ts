@@ -5,6 +5,7 @@ import { deductInventoryForOrder } from '@/lib/inventory-deduction'
 import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
 import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
 import { notifyNewOrder } from '@/lib/email/admin-notify'
+import { notifyErp } from '@/lib/erp/signal'
 
 type PortOneV2WebhookBody = {
   type?: string
@@ -254,6 +255,9 @@ export async function POST(request: NextRequest) {
           orderId: order.id,
         })
 
+        // 본사 ERP 에 "가져가라" 신호
+        notifyErp('결제 확정 (웹훅)')
+
         const couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order, now)
         if (!couponUsageResult.success) {
           console.error('[Payments Webhook] Coupon usage finalization failed:', couponUsageResult)
@@ -353,6 +357,8 @@ export async function POST(request: NextRequest) {
           console.error('[Payments Webhook] Cancellation update failed:', updateError)
         } else {
           console.log('[Payments Webhook] Order cancelled:', order.id)
+          // 취소도 ERP 가 알아야 한다 — 이미 적재된 판매 줄을 지워야 하므로
+          notifyErp('결제 취소 (웹훅)')
         }
 
         // refund_logs 감사 기록 (테이블 없으면 조용히 스킵)

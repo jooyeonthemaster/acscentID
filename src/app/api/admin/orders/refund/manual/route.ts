@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
 import { notifyCustomerRefundCompleted } from '@/lib/email/customer-notify'
+import { notifyErp } from '@/lib/erp/signal'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'nadr110619@gmail.com')
   .split(',')
@@ -138,6 +139,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // 본사 ERP 에 "가져가라" 신호 — 환불은 이미 적재된 판매 줄을 바꾼다
+    notifyErp('무통장 환불')
 
     // 감사 로그
     try {
