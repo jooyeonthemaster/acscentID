@@ -225,6 +225,11 @@ const STATUS_LINES = [
 // 폰으로 QR을 찍고 갤러리를 뒤지는 동안은 화면 터치가 없다 — 유휴 한도를 따로 길게 잡는다
 const QR_IDLE_LIMIT = 420
 
+/* 영수증 미리보기·발권 후: 손님은 이미 볼일을 마쳤다. 20초 조용하면 10초짜리
+   안내 팝업을 띄우고, 그래도 아무도 없으면 처음 화면으로 돌아간다. */
+const RECEIPT_IDLE_SILENT = 20
+const RECEIPT_IDLE_WARN = 10
+
 const IDLE_LIMIT: Partial<Record<Step, number>> = {
   program: 120,
   info: 120,
@@ -500,12 +505,19 @@ export function KioskClient() {
   }, [step, clearCountdown])
 
   // ── 유휴 리셋 ─────────────────────────────────────────────
+  const receiptOpen = Boolean(receipt)
+
   useEffect(() => {
-    const limit = step === 'capture' && photoSource === 'qr' ? QR_IDLE_LIMIT : IDLE_LIMIT[step]
+    const limit = receiptOpen
+      ? RECEIPT_IDLE_SILENT + RECEIPT_IDLE_WARN
+      : step === 'capture' && photoSource === 'qr'
+        ? QR_IDLE_LIMIT
+        : IDLE_LIMIT[step]
     if (!limit) {
       setIdleLeft(null)
       return
     }
+    const warnFrom = receiptOpen ? RECEIPT_IDLE_WARN : 15
     idleDeadline.current = Date.now() + limit * 1000
     const bump = () => {
       idleDeadline.current = Date.now() + limit * 1000
@@ -514,11 +526,17 @@ export function KioskClient() {
     window.addEventListener('pointerdown', bump)
     window.addEventListener('keydown', bump)
     const timer = window.setInterval(() => {
+      // 인쇄 중에는 기다리는 게 정상이다 — 세지 않는다
+      if (printing) {
+        idleDeadline.current = Date.now() + limit * 1000
+        setIdleLeft(null)
+        return
+      }
       const left = Math.ceil((idleDeadline.current - Date.now()) / 1000)
       if (left <= 0) {
         resetAll()
       } else {
-        setIdleLeft(left <= 15 ? left : null)
+        setIdleLeft(left <= warnFrom ? left : null)
       }
     }, 1000)
     return () => {
@@ -527,7 +545,7 @@ export function KioskClient() {
       window.clearInterval(timer)
       setIdleLeft(null)
     }
-  }, [step, photoSource, resetAll])
+  }, [step, photoSource, resetAll, receiptOpen, printing])
 
   // ── 카메라 ────────────────────────────────────────────────
   useEffect(() => {
@@ -1167,17 +1185,58 @@ export function KioskClient() {
     const body = document.querySelector<HTMLElement>('.ksk-body')
     if (!body) return
 
-    let back: number | undefined
+    /* 내려갔다 올라오는 걸 한 번의 연속 곡선으로 그린다 — 네이티브 smooth 스크롤을
+       두 번 이어 붙이면 꼭짓점에서 멈칫한다. 구간마다 속도가 0에서 시작해 0으로
+       끝나므로(ease-in-out) 이음매가 없다: 내려감 → 잠깐 머묾 → 되돌아옴. */
+    const DURATION = 1900
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+    const curve = (t: number) => {
+      if (t < 0.42) return ease(t / 0.42)
+      if (t < 0.56) return 1
+      return 1 - ease((t - 0.56) / 0.44)
+    }
+
+    let raf = 0
+    let running = false
+    const stop = () => {
+      running = false
+      cancelAnimationFrame(raf)
+    }
+
     const hint = window.setTimeout(() => {
-      if (body.scrollTop > 4) return
-      if (body.scrollHeight - body.clientHeight < 40) return
-      body.scrollTo({ top: 76, behavior: 'smooth' })
-      back = window.setTimeout(() => body.scrollTo({ top: 0, behavior: 'smooth' }), 850)
+      if (body.scrollTop > 4) return // 이미 스스로 내려 봤다
+      const room = body.scrollHeight - body.clientHeight
+      if (room < 40) return
+      const depth = Math.min(140, room)
+      const prevBehavior = body.style.scrollBehavior
+      body.style.scrollBehavior = 'auto' // CSS smooth 가 매 프레임 값을 또 보간하면 끊긴다
+      const start = performance.now()
+      running = true
+      const frame = (now: number) => {
+        if (!running) return
+        const t = Math.min(1, (now - start) / DURATION)
+        body.scrollTop = depth * curve(t)
+        if (t < 1) raf = requestAnimationFrame(frame)
+        else {
+          running = false
+          body.style.scrollBehavior = prevBehavior
+        }
+      }
+      raf = requestAnimationFrame(frame)
     }, 3000)
+
+    // 손님이 만지는 순간 힌트는 물러난다 — 손가락과 스크롤을 두고 다투지 않게
+    const interrupt = () => stop()
+    body.addEventListener('pointerdown', interrupt)
+    body.addEventListener('wheel', interrupt, { passive: true })
+    body.addEventListener('touchstart', interrupt, { passive: true })
 
     return () => {
       window.clearTimeout(hint)
-      if (back) window.clearTimeout(back)
+      stop()
+      body.removeEventListener('pointerdown', interrupt)
+      body.removeEventListener('wheel', interrupt)
+      body.removeEventListener('touchstart', interrupt)
     }
   }, [scrollChapter, chapterIdx])
 
@@ -1906,7 +1965,21 @@ export function KioskClient() {
       )}
 
       {toast && <div className="ksk-toast">{toast}</div>}
-      {idleLeft !== null && <div className="ksk-idle">{idleLeft}초 후 처음 화면으로 돌아갑니다</div>}
+      {idleLeft !== null && receiptOpen ? (
+        // 화면 어디를 눌러도(pointerdown) 대기 시간이 다시 채워지고 팝업은 닫힌다
+        <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive">
+          <div className="ksk-idle-card">
+            <span className="ksk-idle-count ksk-mono">{idleLeft}</span>
+            <h2>잠시 후 처음 화면으로 돌아갑니다</h2>
+            <p>계속 보시려면 화면을 터치해 주세요.</p>
+            <button type="button" className="ksk-btn ksk-btn-primary">
+              계속 보기
+            </button>
+          </div>
+        </div>
+      ) : (
+        idleLeft !== null && <div className="ksk-idle">{idleLeft}초 후 처음 화면으로 돌아갑니다</div>
+      )}
       {/* 어트랙트 우하단: 짧게 누르면 배경 설정, 1.5초 길게 누르면 종료 */}
       {step === 'attract' && !backgroundAdminOpen && (
         <button

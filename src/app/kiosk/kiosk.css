@@ -1784,3 +1784,64 @@
 .ksk-modal-home:active {
   background: rgba(255, 255, 255, 0.16);
 }
+
+/* 영수증 단계 대기 안내 — 영수증 모달(z 30)과 관리자 패널 위에 뜬다 */
+.ksk-idle-popup {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(10, 10, 12, 0.55);
+  animation: ksk-idle-in 0.25s ease-out;
+}
+.ksk-idle-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px 26px 24px;
+  border-radius: calc(var(--ksk-radius) + 6px);
+  background: var(--surface-strong);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+.ksk-idle-count {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  font-size: 34px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ksk-idle-card h2 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  word-break: keep-all;
+}
+.ksk-idle-card p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.ksk-idle-card .ksk-btn {
+  width: 100%;
+  flex: none;
+}
+@keyframes ksk-idle-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ksk-idle-popup { animation: none; }
+}

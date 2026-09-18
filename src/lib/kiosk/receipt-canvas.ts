@@ -235,6 +235,16 @@ class ReceiptBuilder {
     return this.width - MARGIN * 2
   }
 
+  /** str 이 줄바꿈 없이 한 줄에 들어가는 가장 큰 크기 (maxSize 부터 1px씩 내린다) */
+  fitOneLine(str: string, maxSize: number, weight: number, family: 'sans' | 'display' | 'mono' = 'sans', minSize = 12): number {
+    const maxW = this.innerWidth()
+    for (let size = maxSize; size > minSize; size -= 1) {
+      this.measure.font = this.font(size, weight, this.fonts[family])
+      if (this.measure.measureText(str).width <= maxW) return size
+    }
+    return minSize
+  }
+
   private font(size: number, weight: number, family: string): string {
     return `${weight} ${size}px ${family}`
   }
@@ -691,13 +701,17 @@ export async function renderKioskReceipt(
   b.rule(1.5, true)
   b.space(12)
 
-  // ── 카운터 제출 안내 (크게)
+  // ── 카운터 제출 안내
+  //   첫 줄(제출 안내)은 손님이 꼭 읽어야 한다 — 향 번호(No.) 크기를 상한으로 폭에 맞춘다.
+  //   두 줄째부터(준비 안내)는 보조 문장이라 작게. 둘 다 반드시 한 줄로 끊김 없이.
   if (data.counterNotice?.length) {
-    for (const line of data.counterNotice) {
-      b.text(line, { size: 30, weight: 700, align: 'center', lineHeight: 1.35 })
+    const [headline, ...rest] = data.counterNotice
+    b.text(headline, { size: b.fitOneLine(headline, 30, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    for (const line of rest) {
       b.space(4)
+      b.text(line, { size: b.fitOneLine(line, 17, 500), weight: 500, align: 'center', lineHeight: 1.5 })
     }
-    b.space(10)
+    b.space(12)
   }
 
   // ── 푸터
