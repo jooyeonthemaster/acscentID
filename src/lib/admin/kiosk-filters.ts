@@ -22,6 +22,8 @@ export interface KioskFilters {
   dateTo: string | null
   /** 'real' = 실제 분석만, 'mock' = 데모 결과만, null = 전체 */
   mock: 'real' | 'mock' | null
+  /** true = 영수증 출력분만, false = 미출력만(= 카운터에 오지 않은 손님), null = 전체 */
+  printed: boolean | null
 }
 
 export function parseKioskFilters(searchParams: URLSearchParams): KioskFilters {
@@ -30,6 +32,7 @@ export function parseKioskFilters(searchParams: URLSearchParams): KioskFilters {
   const dateFrom = searchParams.get('date_from')
   const dateTo = searchParams.get('date_to')
   const mock = searchParams.get('mock')
+  const printed = searchParams.get('printed')
 
   return {
     programs: program
@@ -42,6 +45,7 @@ export function parseKioskFilters(searchParams: URLSearchParams): KioskFilters {
     dateFrom: dateFrom && DATE_PATTERN.test(dateFrom) ? dateFrom : null,
     dateTo: dateTo && DATE_PATTERN.test(dateTo) ? dateTo : null,
     mock: mock === 'real' || mock === 'mock' ? mock : null,
+    printed: printed === 'yes' ? true : printed === 'no' ? false : null,
   }
 }
 
@@ -80,6 +84,8 @@ export function applyKioskFilters<T>(query: T, filters: KioskFilters): T {
 
   if (filters.mock === 'real') result = result.eq('mocked', false)
   if (filters.mock === 'mock') result = result.eq('mocked', true)
+
+  if (filters.printed !== null) result = result.eq('printed', filters.printed)
 
   if (filters.search) {
     const term = sanitizeSearchTerm(filters.search)

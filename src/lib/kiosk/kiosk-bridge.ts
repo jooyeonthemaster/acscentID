@@ -15,7 +15,8 @@ export interface KioskSaveResult {
 }
 
 export interface KioskBridge {
-  isElectron: true
+  /** 네이티브 셸(Electron)인지 — 로컬 인쇄 브리지로 붙은 경우 false */
+  isElectron: boolean
   locked: boolean
   autoPrint: boolean
   hasPrinter: boolean
@@ -38,9 +39,81 @@ declare global {
   }
 }
 
+/**
+ * 로컬 인쇄 브리지 — Electron 셸 없이 매장 PC에서 영수증을 뽑기 위한 경로.
+ * 같은 PC에서 tools/kiosk-print-bridge/server.mjs 를 띄우고,
+ * NEXT_PUBLIC_KIOSK_PRINT_BRIDGE=http://127.0.0.1:9110 로 주소를 알려주면 켜진다.
+ * (일회성 테스트는 주소창에 ?printer=http://127.0.0.1:9110 을 붙여도 된다)
+ *
+ * 셸(window.kiosk)이 있으면 항상 그쪽이 우선이다.
+ */
+function localPrintBridge(baseUrl: string): KioskBridge {
+  const url = baseUrl.replace(/\/$/, '')
+
+  const post = async (pathname: string, body?: unknown) => {
+    const res = await fetch(`${url}${pathname}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body ?? {}),
+    })
+    return res.json()
+  }
+
+  return {
+    isElectron: false,
+    locked: false,
+    autoPrint: false,
+    hasPrinter: true,
+    receiptMode: 'image',
+    receiptDetail: 'full',
+    version: 'print-bridge',
+    async printReceipt(data) {
+      try {
+        return await post('/print', {
+          receiptImageBase64: data.receiptImageBase64,
+          ticket: data.ticket,
+        })
+      } catch (error) {
+        // 서비스가 꺼져 있으면 여기로 온다 — 화면은 '인쇄 실패' 토스트를 띄운다
+        console.error('[kiosk] 인쇄 브리지 연결 실패:', error)
+        return { success: false, error: '인쇄 서비스에 연결할 수 없습니다' }
+      }
+    },
+    async nextTicket() {
+      try {
+        return await post('/ticket')
+      } catch {
+        return { success: false }
+      }
+    },
+    // 결과 아카이브·종료는 셸 기능이라 브리지에서는 하는 일이 없다
+    async saveResult() {
+      return { success: true }
+    },
+    async quitApp() {
+      /* no-op */
+    },
+  }
+}
+
+function printBridgeUrl(): string | null {
+  const fromQuery =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('printer') : null
+  const url = fromQuery || process.env.NEXT_PUBLIC_KIOSK_PRINT_BRIDGE || ''
+  return url.startsWith('http') ? url : null
+}
+
+let cachedBridge: KioskBridge | undefined
+
 export function getKioskBridge(): KioskBridge | undefined {
   if (typeof window === 'undefined') return undefined
-  return window.kiosk
+  if (window.kiosk) return window.kiosk
+
+  const url = printBridgeUrl()
+  if (!url) return undefined
+  // 매 렌더마다 새 객체를 만들면 이펙트 의존성이 계속 바뀐다
+  if (!cachedBridge) cachedBridge = localPrintBridge(url)
+  return cachedBridge
 }
 
 export function isKioskShell(): boolean {

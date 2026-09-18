@@ -320,6 +320,8 @@ export function KioskClient() {
   const [partnerOskOpen, setPartnerOskOpen] = useState(false)
   const [receipt, setReceipt] = useState<{ dataUrl: string; base64: string } | null>(null)
   const [printing, setPrinting] = useState(false)
+  // 실제로 한 번 뽑았는지 — 선채번 때문에 ticketRef 유무로는 판단할 수 없다
+  const [printedOnce, setPrintedOnce] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [idleLeft, setIdleLeft] = useState<number | null>(null)
   const [oskOpen, setOskOpen] = useState(false)
@@ -434,6 +436,7 @@ export function KioskClient() {
     savedRef.current = false
     recordIdRef.current = null
     recordedRef.current = false
+    setPrintedOnce(false)
     // Electron 셸에선 다음 손님을 위해 카메라 스트림 유지, 웹에선 해제
     if (!kiosk) stopStream()
   }, [kiosk, stopStream, clearCountdown])
@@ -1008,6 +1011,7 @@ export function KioskClient() {
         ticket: ticketRef.current ?? undefined,
       })
       if (res.success) {
+        setPrintedOnce(true)
         // 출력 성공을 기록에 반영 — 분석만 하고 안 받아간 건과 구분된다
         if (recordIdRef.current) {
           fetch('/api/kiosk/record', {
@@ -1533,7 +1537,7 @@ export function KioskClient() {
                     직접 촬영하기
                   </button>
                   <button
-                    className="ksk-btn ksk-btn-primary"
+                    className="ksk-btn"
                     disabled={qrState === 'creating'}
                     onClick={startQrSession}
                   >
@@ -1765,7 +1769,7 @@ export function KioskClient() {
               닫기
             </button>
             <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
-              {printing ? '인쇄 중...' : kiosk?.hasPrinter ? (ticketRef.current ? '한 장 더 출력' : '인쇄하기') : 'PNG 저장'}
+              {printing ? '인쇄 중...' : kiosk?.hasPrinter ? (printedOnce ? '한 장 더 출력' : '인쇄하기') : 'PNG 저장'}
             </button>
           </div>
         </div>
@@ -1806,13 +1810,28 @@ function SelectScreen(props: {
     <div className="ksk-body">
       <p className="ksk-eyebrow ksk-mono">{props.eyebrow}</p>
       <h1 className="ksk-title">{props.title}</h1>
-      <p className="ksk-desc">{props.desc}</p>
+      <p className="ksk-desc">
+        {props.desc}
+        <span className="ksk-count ksk-mono" data-full={props.selected.length >= MAX_PICK}>
+          {props.selected.length} / {MAX_PICK}
+        </span>
+      </p>
       <div className="ksk-chips">
-        {props.options.map((o) => (
-          <button key={o} className="ksk-chip" data-on={props.selected.includes(o)} onClick={() => props.onToggle(o)}>
-            {o}
-          </button>
-        ))}
+        {props.options.map((o) => {
+          const on = props.selected.includes(o)
+          return (
+            <button
+              key={o}
+              className="ksk-chip"
+              data-on={on}
+              // 3개를 채운 뒤 새 항목을 누르면 아무 일도 안 일어난다 — 눌러도 되는지 눈으로 보이게
+              data-muted={!on && props.selected.length >= MAX_PICK}
+              onClick={() => props.onToggle(o)}
+            >
+              {o}
+            </button>
+          )
+        })}
       </div>
       <div style={{ flex: 1 }} />
       <div className="ksk-actions">

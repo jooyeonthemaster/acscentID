@@ -132,8 +132,12 @@ export default function AdminKioskPage() {
   const [dateTo, setDateTo] = useState('')
   const [appliedRange, setAppliedRange] = useState({ from: '', to: '' })
   const [includeMock, setIncludeMock] = useState(false)
+  const [printedFilter, setPrintedFilter] = useState<'' | 'yes' | 'no'>('')
   const [showFilters, setShowFilters] = useState(false)
   const [exporting, setExporting] = useState(false)
+  // 매장 운영 중에는 화면을 띄워 두고 쌓이는 걸 본다 — 30초 폴링
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
   const buildParams = useCallback(
     (overrides: Record<string, string> = {}) => {
@@ -143,10 +147,11 @@ export default function AdminKioskPage() {
       if (appliedRange.from) params.set('date_from', appliedRange.from)
       if (appliedRange.to) params.set('date_to', appliedRange.to)
       if (!includeMock) params.set('mock', 'real')
+      if (printedFilter) params.set('printed', printedFilter)
       for (const [key, value] of Object.entries(overrides)) params.set(key, value)
       return params
     },
-    [programFilter, appliedSearch, appliedRange, includeMock]
+    [programFilter, appliedSearch, appliedRange, includeMock, printedFilter]
   )
 
   const fetchAll = useCallback(async () => {
@@ -167,8 +172,11 @@ export default function AdminKioskPage() {
       setTotalPages(listData.pagination?.totalPages ?? 1)
       setTotal(listData.pagination?.total ?? 0)
 
-      const statData = await statRes.json()
-      setStats(statRes.ok ? statData : null)
+      // 통계는 목록보다 부수적이다 — 응답이 비거나 모양이 다르면 통계만 접고 목록은 살린다
+      const statData = await statRes.json().catch(() => null)
+      const usable =
+        statRes.ok && statData?.summary && Array.isArray(statData.daily) && Array.isArray(statData.byPerfume)
+      setStats(usable ? (statData as Stats) : null)
     } catch (err) {
       console.error('키오스크 기록 조회 실패:', err)
       setError(err instanceof Error ? err.message : '기록 조회에 실패했습니다')
@@ -176,6 +184,7 @@ export default function AdminKioskPage() {
       setStats(null)
     } finally {
       setLoading(false)
+      setLastFetched(new Date())
     }
   }, [buildParams, page])
 
@@ -183,11 +192,48 @@ export default function AdminKioskPage() {
     fetchAll()
   }, [fetchAll])
 
+  // 자동 새로고침 — 켠 동안만 30초마다
+  useEffect(() => {
+    if (!autoRefresh) return
+    const timer = window.setInterval(fetchAll, 30_000)
+    return () => window.clearInterval(timer)
+  }, [autoRefresh, fetchAll])
+
   const applySearch = () => {
     setAppliedSearch(search.trim())
     setAppliedRange({ from: dateFrom, to: dateTo })
     setPage(1)
   }
+
+  /** 오늘(KST) 기준 n일 전 ~ 오늘 — 날짜 두 칸을 직접 채우는 수고를 없앤다 */
+  const applyQuickRange = (days: number | null) => {
+    if (days === null) {
+      setDateFrom('')
+      setDateTo('')
+      setAppliedRange({ from: '', to: '' })
+      setPage(1)
+      return
+    }
+    const kstNow = new Date(Date.now() + 9 * 3600_000)
+    const to = kstNow.toISOString().slice(0, 10)
+    const from = new Date(kstNow.getTime() - (days - 1) * 86_400_000).toISOString().slice(0, 10)
+    setDateFrom(from)
+    setDateTo(to)
+    setAppliedRange({ from, to })
+    setPage(1)
+  }
+
+  const activeQuickRange = (() => {
+    if (!appliedRange.from && !appliedRange.to) return 'all'
+    const kstNow = new Date(Date.now() + 9 * 3600_000)
+    const today = kstNow.toISOString().slice(0, 10)
+    if (appliedRange.to !== today) return null
+    for (const days of [1, 7, 30]) {
+      const from = new Date(kstNow.getTime() - (days - 1) * 86_400_000).toISOString().slice(0, 10)
+      if (appliedRange.from === from) return String(days)
+    }
+    return null
+  })()
 
   const clearFilters = () => {
     setSearch('')
@@ -196,6 +242,7 @@ export default function AdminKioskPage() {
     setDateTo('')
     setAppliedRange({ from: '', to: '' })
     setProgramFilter('')
+    setPrintedFilter('')
     setPage(1)
   }
 
@@ -266,19 +313,7 @@ export default function AdminKioskPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminHeader
-        title="키오스크 관리"
-        subtitle={`분석 기록 ${total.toLocaleString()}건`}
-        actions={
-          <button
-            onClick={fetchAll}
-            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:border-slate-300"
-          >
-            <RefreshCw className="w-4 h-4" />
-            새로고침
-          </button>
-        }
-      />
+      <AdminHeader title="키오스크 관리" subtitle={`분석 기록 ${total.toLocaleString()}건`} />
 
       <div className="p-6 space-y-6">
         {/* 요약 */}
@@ -317,15 +352,27 @@ export default function AdminKioskPage() {
           <div className="grid lg:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
               <p className="text-sm font-bold text-slate-900 mb-4">최근 14일 분석 수</p>
-              <div className="flex items-end gap-1 h-32">
+              <div className="flex items-stretch gap-1.5 h-40">
                 {stats.daily.map((d) => (
-                  <div key={d.day} className="flex-1 flex flex-col items-center gap-1" title={`${d.day} · ${d.count}건`}>
-                    <span className="text-[10px] font-bold text-slate-400">{d.count || ''}</span>
-                    <div
-                      className="w-full bg-yellow-400 rounded-t border border-slate-900"
-                      style={{ height: `${(d.count / dailyMax) * 92}%`, minHeight: d.count ? 4 : 1 }}
-                    />
-                    <span className="text-[9px] text-slate-400">{d.day.slice(8)}</span>
+                  <div
+                    key={d.day}
+                    className="flex-1 flex flex-col items-center gap-1"
+                    title={`${d.day} · ${d.count}건`}
+                  >
+                    <span className="text-[11px] font-bold text-slate-500 leading-none">{d.count || ''}</span>
+                    {/* 막대가 자랄 공간을 flex-1로 확보해야 아래 height:%가 해석된다 */}
+                    <div className="flex-1 w-full flex items-end">
+                      <div
+                        className="w-full bg-yellow-400 rounded-t border border-slate-900"
+                        style={{
+                          height: `${Math.max(d.count / dailyMax, 0) * 100}%`,
+                          minHeight: d.count ? 6 : 2,
+                          background: d.count ? undefined : '#e2e8f0',
+                          borderColor: d.count ? undefined : '#e2e8f0',
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 leading-none">{d.day.slice(5).replace('-', '.')}</span>
                   </div>
                 ))}
               </div>
@@ -427,9 +474,77 @@ export default function AdminKioskPage() {
               className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900"
             >
               <Calendar className="w-5 h-5" />
-              <span>날짜 필터</span>
+              <span>직접 지정</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
+
+            <button
+              onClick={applySearch}
+              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900"
+            >
+              검색
+            </button>
+
+            <button
+              onClick={downloadExcel}
+              disabled={exporting || total === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg border-2 border-blue-800 disabled:opacity-50"
+              title="현재 필터에 해당하는 기록을 엑셀로 (최대 1,000건)"
+            >
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              엑셀 내보내기{total > 0 ? ` (${Math.min(total, 1000).toLocaleString()})` : ''}
+            </button>
+          </div>
+
+          {/* 운영 중 자주 쓰는 조건 — 기간·출력여부는 누르는 즉시 적용된다 */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-400 mr-1">기간</span>
+              {[
+                { key: '1', label: '오늘', days: 1 },
+                { key: '7', label: '7일', days: 7 },
+                { key: '30', label: '30일', days: 30 },
+                { key: 'all', label: '전체', days: null },
+              ].map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => applyQuickRange(r.days)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
+                    activeQuickRange === r.key
+                      ? 'bg-slate-900 border-slate-900 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            <span className="h-6 w-px bg-slate-200" aria-hidden />
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-400 mr-1">영수증</span>
+              {[
+                { key: '' as const, label: '전체' },
+                { key: 'yes' as const, label: '출력함' },
+                { key: 'no' as const, label: '미출력' },
+              ].map((r) => (
+                <button
+                  key={r.key || 'all'}
+                  onClick={() => {
+                    setPrintedFilter(r.key)
+                    setPage(1)
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
+                    printedFilter === r.key
+                      ? 'bg-slate-900 border-slate-900 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
 
             <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
               <input
@@ -444,22 +559,36 @@ export default function AdminKioskPage() {
               데모 포함
             </label>
 
-            <button
-              onClick={applySearch}
-              className="px-6 py-2 bg-yellow-400 text-slate-900 font-medium rounded-lg border-2 border-slate-900"
-            >
-              검색
-            </button>
-
-            <button
-              onClick={downloadExcel}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg border-2 border-blue-800 disabled:opacity-50"
-              title="현재 필터에 해당하는 기록을 엑셀로 (최대 1,000건)"
-            >
-              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              엑셀 내보내기
-            </button>
+            <div className="ml-auto flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-600" title="30초마다 자동으로 다시 불러옵니다">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                자동 새로고침
+              </label>
+              <button
+                onClick={fetchAll}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-slate-200 text-sm font-medium text-slate-600 hover:border-slate-300 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                새로고침
+              </button>
+              {lastFetched && (
+                <span className="text-xs text-slate-400 tabular-nums">
+                  {lastFetched.toLocaleTimeString('ko-KR', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  })}{' '}
+                  기준
+                </span>
+              )}
+            </div>
           </div>
 
           {showFilters && (
@@ -484,7 +613,7 @@ export default function AdminKioskPage() {
                 필터 초기화
               </button>
               <p className="text-xs text-slate-500">
-                기간을 적용하려면 <span className="font-bold">검색</span>을 누르세요.
+                직접 지정한 기간은 <span className="font-bold">검색</span>을 눌러야 적용됩니다.
               </p>
             </div>
           )}
@@ -516,7 +645,8 @@ export default function AdminKioskPage() {
           <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                {/* 목록이 길어지면 어느 열이 무엇인지 놓친다 — 헤더를 붙여 둔다 */}
+                <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0 z-10">
                   <tr className="text-left text-xs font-bold text-slate-500">
                     <th className="px-4 py-3 w-8" />
                     <th className="px-4 py-3">일시</th>
