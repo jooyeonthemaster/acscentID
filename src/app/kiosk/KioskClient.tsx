@@ -160,7 +160,32 @@ const KIOSK_BACKGROUNDS = [
   },
 ] as const
 
-type KioskBackgroundId = (typeof KIOSK_BACKGROUNDS)[number]['id']
+interface KioskBackgroundTheme {
+  id: string
+  title: string
+  image: string
+  displayFont: string
+  bodyFont: string
+  paper: string
+  ink: string
+  inkSoft: string
+  line: string
+  accent: string
+  accentSoft: string
+  surface: string
+  surfaceStrong: string
+  shadow: string
+  radius: string
+  tracking: string
+}
+
+/** 관리자가 올린 배경 — 이미지만 바뀌고 색·글꼴은 palette 테마를 물려받는다 */
+interface UploadedBackground {
+  id: string
+  title: string
+  image_url: string
+  palette: string
+}
 
 /**
  * 촬영 단계의 기본 입력. 최애 이미지 분석은 손님 폰 갤러리에 있는 사진을 쓰므로
@@ -331,7 +356,8 @@ export function KioskClient() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrState, setQrState] = useState<'idle' | 'creating' | 'waiting' | 'expired' | 'failed'>('idle')
   const [qrUnreachable, setQrUnreachable] = useState(false)
-  const [backgroundId, setBackgroundId] = useState<KioskBackgroundId>('retro')
+  const [backgroundId, setBackgroundId] = useState<string>('retro')
+  const [uploadedBackgrounds, setUploadedBackgrounds] = useState<UploadedBackground[]>([])
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
   const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
   const [backgroundPassword, setBackgroundPassword] = useState('')
@@ -350,22 +376,46 @@ export function KioskClient() {
   const qrGeneration = useRef(0)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
+  /* 내장 배경 + 관리자가 올린 배경. 올린 것은 palette 테마의 색·글꼴을 그대로 쓰고
+     배경 이미지만 갈아 끼운다 — 관리자가 색 토큰을 직접 정하면 읽히지 않는 조합이 나온다. */
+  const allBackgrounds = useMemo<KioskBackgroundTheme[]>(() => {
+    const uploaded = uploadedBackgrounds.map((item) => {
+      const base =
+        KIOSK_BACKGROUNDS.find((background) => background.id === item.palette) ??
+        KIOSK_BACKGROUNDS[KIOSK_BACKGROUNDS.length - 1]
+      return { ...base, id: item.id, title: item.title, image: item.image_url }
+    })
+    return [...uploaded, ...KIOSK_BACKGROUNDS]
+  }, [uploadedBackgrounds])
+
   const activeBackground =
-    KIOSK_BACKGROUNDS.find((background) => background.id === backgroundId) ??
+    allBackgrounds.find((background) => background.id === backgroundId) ??
     KIOSK_BACKGROUNDS[KIOSK_BACKGROUNDS.length - 1]
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(KIOSK_BACKGROUND_STORAGE_KEY)
-      if (KIOSK_BACKGROUNDS.some((background) => background.id === saved)) {
-        setBackgroundId(saved as KioskBackgroundId)
-      }
+      if (saved) setBackgroundId(saved)
     } catch {
       // 저장소에 접근하지 못하면 레트로 체크 기본값을 유지한다.
     }
   }, [])
 
-  const selectBackground = useCallback((id: KioskBackgroundId) => {
+  // 관리자 페이지에서 올린 배경을 가져온다 (실패해도 내장 배경으로 정상 동작)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/kiosk/backgrounds', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && Array.isArray(data?.backgrounds)) setUploadedBackgrounds(data.backgrounds)
+      })
+      .catch((e) => console.error('[kiosk] 배경 목록 조회 실패:', e))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const selectBackground = useCallback((id: string) => {
     setBackgroundId(id)
     try {
       window.localStorage.setItem(KIOSK_BACKGROUND_STORAGE_KEY, id)
@@ -1046,7 +1096,6 @@ export function KioskClient() {
   const exitHold = useRef<number | undefined>(undefined)
   const exitTriggered = useRef(false)
   const openBackgroundAdmin = useCallback(() => {
-    if (exitTriggered.current) return
     setBackgroundAdminOpen(true)
     setBackgroundAdminUnlocked(false)
     setBackgroundPassword('')
@@ -1060,12 +1109,12 @@ export function KioskClient() {
   }, [])
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
-    if (!kiosk) return
     exitHold.current = window.setTimeout(() => {
+      // 홀드로 열렸으면 손을 뗄 때 따라오는 click 은 무시한다
       exitTriggered.current = true
-      kiosk.quitApp()
-    }, 3000)
-  }, [kiosk])
+      openBackgroundAdmin()
+    }, 1500)
+  }, [openBackgroundAdmin])
   const onExitUp = useCallback(() => {
     if (exitHold.current) window.clearTimeout(exitHold.current)
     exitHold.current = undefined
@@ -1759,7 +1808,7 @@ export function KioskClient() {
               <div className="ksk-admin-themes">
                 <p>선택한 배경과 글꼴은 모든 단계에 적용되고 이 기기에 저장됩니다.</p>
                 <div className="ksk-admin-grid">
-                  {KIOSK_BACKGROUNDS.map((background) => (
+                  {allBackgrounds.map((background) => (
                     <button
                       key={background.id}
                       type="button"
@@ -1778,9 +1827,25 @@ export function KioskClient() {
                     </button>
                   ))}
                 </div>
-                <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
-                  적용하고 닫기
-                </button>
+                <div className="ksk-admin-actions">
+                  <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
+                    적용하고 닫기
+                  </button>
+                  {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
+                  <button
+                    type="button"
+                    className="ksk-admin-quit"
+                    onClick={() => {
+                      if (kiosk) kiosk.quitApp()
+                      else {
+                        closeBackgroundAdmin()
+                        showToast('키오스크 앱에서만 종료할 수 있습니다')
+                      }
+                    }}
+                  >
+                    앱 종료
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1810,11 +1875,11 @@ export function KioskClient() {
 
       {toast && <div className="ksk-toast">{toast}</div>}
       {idleLeft !== null && <div className="ksk-idle">{idleLeft}초 후 처음 화면으로 돌아갑니다</div>}
-      {/* 어트랙트 우하단: 짧게 누르면 배경 설정, Electron에서 3초 홀드하면 앱 종료 */}
+      {/* 어트랙트 우하단: 짧게 누르면 배경 설정, 1.5초 길게 누르면 종료 */}
       {step === 'attract' && !backgroundAdminOpen && (
         <button
           type="button"
-          aria-label="관리자 설정 열기"
+          aria-label="관리자 설정 열기 (길게 누르면 종료)"
           className="ksk-exit-hotspot"
           onPointerDown={onExitDown}
           onPointerUp={onExitUp}

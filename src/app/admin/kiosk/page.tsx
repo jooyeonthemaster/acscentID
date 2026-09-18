@@ -7,7 +7,7 @@
  * - 데이터 원본은 kiosk_analyses 테이블 하나 (supabase/migrations/20260917_kiosk_analyses.sql)
  */
 
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { AdminHeader } from '../components/AdminHeader'
 import {
   Monitor,
@@ -25,8 +25,12 @@ import {
   FlaskConical,
   X,
   RefreshCw,
+  ImagePlus,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { supabase } from '@/lib/supabase/client'
 import { KIOSK_PROGRAM_LABELS, type KioskProgram } from '@/lib/admin/kiosk-filters'
 
 interface RecipeRow {
@@ -68,6 +72,24 @@ interface KioskRecord {
   mocked: boolean
   device: string | null
 }
+
+interface KioskBackground {
+  id: string
+  title: string
+  image_url: string
+  palette: string
+  is_active: boolean
+  display_order: number
+  created_at: string
+}
+
+/** 키오스크 내장 테마 — 업로드한 배경은 이 중 하나의 색·글꼴을 물려받는다 */
+const PALETTES: { id: string; label: string }[] = [
+  { id: 'retro', label: '레트로 체크' },
+  { id: 'gingham', label: '파스텔 깅엄' },
+  { id: 'scrapbook', label: '스크랩북 티켓' },
+  { id: 'airy', label: '에어리 그라데이션' },
+]
 
 interface Stats {
   truncated: boolean
@@ -138,6 +160,89 @@ export default function AdminKioskPage() {
   // 매장 운영 중에는 화면을 띄워 두고 쌓이는 걸 본다 — 30초 폴링
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
+
+  // ── 키오스크 배경 ──────────────────────────────────────
+  const [backgrounds, setBackgrounds] = useState<KioskBackground[]>([])
+  const [bgTitle, setBgTitle] = useState('')
+  const [bgPalette, setBgPalette] = useState('retro')
+  const [bgUploading, setBgUploading] = useState(false)
+  const bgFileRef = useRef<HTMLInputElement>(null)
+
+  const fetchBackgrounds = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/kiosk/backgrounds', { cache: 'no-store' })
+      const data = await res.json()
+      if (res.ok) setBackgrounds(data.backgrounds ?? [])
+    } catch (err) {
+      console.error('배경 목록 조회 실패:', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchBackgrounds()
+  }, [fetchBackgrounds])
+
+  /** 이미지는 admin-content 버킷에 직접 올리고, 메타데이터만 API로 저장한다 */
+  const uploadBackground = async (file: File) => {
+    if (!bgTitle.trim()) {
+      alert('배경 이름을 먼저 입력해주세요')
+      return
+    }
+    setBgUploading(true)
+    try {
+      const ext = file.name.split('.').pop() || 'png'
+      const path = `kiosk/backgrounds/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const { data, error } = await supabase.storage
+        .from('admin-content')
+        .upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('admin-content').getPublicUrl(data.path)
+
+      const res = await fetch('/api/admin/kiosk/backgrounds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: bgTitle.trim(),
+          image_url: urlData.publicUrl,
+          palette: bgPalette,
+          display_order: backgrounds.length,
+        }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error || '등록에 실패했습니다')
+      setBgTitle('')
+      fetchBackgrounds()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '업로드에 실패했습니다')
+    } finally {
+      setBgUploading(false)
+      if (bgFileRef.current) bgFileRef.current.value = ''
+    }
+  }
+
+  const patchBackground = async (id: string, patch: Record<string, unknown>) => {
+    try {
+      const res = await fetch('/api/admin/kiosk/backgrounds', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...patch }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error || '수정에 실패했습니다')
+      fetchBackgrounds()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '수정에 실패했습니다')
+    }
+  }
+
+  const deleteBackground = async (id: string, title: string) => {
+    if (!confirm(`'${title}' 배경을 삭제할까요?`)) return
+    try {
+      const res = await fetch(`/api/admin/kiosk/backgrounds?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error((await res.json()).error || '삭제에 실패했습니다')
+      fetchBackgrounds()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '삭제에 실패했습니다')
+    }
+  }
 
   const buildParams = useCallback(
     (overrides: Record<string, string> = {}) => {
@@ -433,6 +538,113 @@ export default function AdminKioskPage() {
             </div>
           </div>
         )}
+
+        {/* 키오스크 배경 */}
+        <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">키오스크 배경</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                올린 배경은 키오스크 화면 <span className="font-bold">우측 하단을 길게 눌러</span> 관리자
+                비밀번호를 입력하면 그 자리에서 바꿀 수 있습니다. 색과 글꼴은 고른 팔레트를 따릅니다.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-end gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">배경 이름</label>
+              <input
+                type="text"
+                value={bgTitle}
+                onChange={(e) => setBgTitle(e.target.value)}
+                placeholder="예: 10월 생카 · 핑크 리본"
+                maxLength={60}
+                className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-yellow-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">색·글꼴 팔레트</label>
+              <select
+                value={bgPalette}
+                onChange={(e) => setBgPalette(e.target.value)}
+                className="px-3 py-2 border-2 border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-yellow-400"
+              >
+                {PALETTES.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              ref={bgFileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) uploadBackground(file)
+              }}
+            />
+            <button
+              onClick={() => bgFileRef.current?.click()}
+              disabled={bgUploading}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white font-medium rounded-lg disabled:opacity-50"
+            >
+              {bgUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+              이미지 올리기
+            </button>
+            <p className="w-full text-xs text-slate-400">
+              세로 화면(1080 × 1920)에 꽉 차게 잘립니다. 인물·글자가 가운데 몰리지 않은 이미지가 좋습니다.
+            </p>
+          </div>
+
+          {backgrounds.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {backgrounds.map((bg) => (
+                <div
+                  key={bg.id}
+                  className={`rounded-lg border-2 overflow-hidden ${bg.is_active ? 'border-slate-900' : 'border-slate-200 opacity-60'}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={bg.image_url} alt={bg.title} className="w-full aspect-[9/16] object-cover bg-slate-100" />
+                  <div className="p-2">
+                    <p className="text-xs font-bold text-slate-900 truncate" title={bg.title}>
+                      {bg.title}
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {PALETTES.find((p) => p.id === bg.palette)?.label ?? bg.palette}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <button
+                        onClick={() => patchBackground(bg.id, { is_active: !bg.is_active })}
+                        className="flex-1 flex items-center justify-center gap-1 py-1 rounded border border-slate-200 text-[11px] font-medium text-slate-600 hover:border-slate-300"
+                        title={bg.is_active ? '키오스크에서 숨기기' : '키오스크에 노출'}
+                      >
+                        {bg.is_active ? <Eye size={12} /> : <EyeOff size={12} />}
+                        {bg.is_active ? '노출' : '숨김'}
+                      </button>
+                      <button
+                        onClick={() => deleteBackground(bg.id, bg.title)}
+                        className="p-1 rounded border border-slate-200 text-slate-300 hover:text-red-500 hover:border-red-200"
+                        title="삭제"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {backgrounds.length === 0 && (
+            <p className="mt-4 text-sm text-slate-400">
+              아직 올린 배경이 없습니다. 키오스크는 내장 배경 5종으로 동작합니다.
+            </p>
+          )}
+        </div>
 
         {/* 필터 */}
         <div className="bg-white rounded-xl border-2 border-slate-200 p-5 space-y-4">

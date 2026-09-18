@@ -1739,3 +1739,30 @@
 .ksk-chip[data-muted='true'] {
   opacity: 0.45;
 }
+
+/* 관리자 패널 하단 — 적용/종료 */
+.ksk-admin-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.ksk-admin-actions .ksk-admin-apply {
+  flex: 1;
+  margin-top: 0;
+}
+.ksk-admin-quit {
+  flex: 0 0 34%;
+  border: 2px solid var(--accent);
+  border-radius: var(--ksk-radius);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 16px 12px;
+  cursor: pointer;
+}
+.ksk-admin-quit:active {
+  background: var(--accent);
+  color: #fff;
+}
