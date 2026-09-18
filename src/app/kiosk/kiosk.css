@@ -1766,3 +1766,21 @@
   background: var(--accent);
   color: #fff;
 }
+
+/* 영수증 미리보기 맨 아래 — 다음 손님을 위한 복귀 */
+.ksk-modal-home {
+  width: 100%;
+  margin-top: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--ksk-radius);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 16px;
+  cursor: pointer;
+}
+.ksk-modal-home:active {
+  background: rgba(255, 255, 255, 0.16);
+}

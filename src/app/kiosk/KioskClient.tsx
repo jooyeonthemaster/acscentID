@@ -866,22 +866,26 @@ export function KioskClient() {
     } else setStep(steps[i - 1])
   }, [steps, step, resetAll])
 
+  /* scroll: true 인 장은 글이 길다. 한 화면에 욱여넣으려고 축소하면 글씨가 읽을 수
+     없을 만큼 작아지므로, 원래 크기로 두고 스크롤한다 (들어오면 힌트 애니메이션이 돈다). */
   const chapters = useMemo(() => {
     if (!result) return []
     if (isSajuResult(result)) {
       return [
-        { label: '命式 · 명식', render: () => <ChapterMyeongsik result={result} /> },
-        { label: '解 · 풀이', render: () => <ChapterSajuReading result={result} /> },
-        { label: '望 · 물음', render: () => <ChapterPurpose result={result} /> },
-        { label: '香 · 처방', render: () => <ChapterPrescription result={result} /> },
+        { label: '命式 · 명식', render: () => <ChapterMyeongsik result={result} />, scroll: false },
+        { label: '解 · 풀이', render: () => <ChapterSajuReading result={result} />, scroll: true },
+        { label: '望 · 물음', render: () => <ChapterPurpose result={result} />, scroll: true },
+        { label: '香 · 처방', render: () => <ChapterPrescription result={result} />, scroll: false },
       ]
     }
     return [
-      { label: 'SCENT · 당신의 향', render: () => <ChapterScent result={result} /> },
-      { label: 'PROFILE · 프로필', render: () => <ChapterProfile result={result} /> },
-      { label: 'READING · 해석', render: () => <ChapterReading result={result} /> },
+      { label: 'SCENT · 당신의 향', render: () => <ChapterScent result={result} />, scroll: false },
+      { label: 'PROFILE · 프로필', render: () => <ChapterProfile result={result} />, scroll: false },
+      { label: 'READING · 해석', render: () => <ChapterReading result={result} />, scroll: true },
     ]
   }, [result])
+
+  const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
   // ── 결과 파생 데이터 ───────────────────────────────────────
   const match = result?.matchingPerfumes?.[0]
@@ -1131,6 +1135,8 @@ export function KioskClient() {
       const body = document.querySelector<HTMLElement>('.ksk-body')
       if (!body) return
       body.style.setProperty('--ksk-fit', '1')
+      // 글이 긴 장은 축소 대신 스크롤 — 줄이면 읽을 수 없는 크기가 된다
+      if (scrollChapter) return
       // scrollHeight 를 읽는 순간 레이아웃이 확정된다 (zoom 1 기준 실측)
       const avail = body.clientHeight
       const content = body.scrollHeight
@@ -1150,7 +1156,30 @@ export function KioskClient() {
       window.clearTimeout(t2)
       window.removeEventListener('resize', fit)
     }
-  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms])
+  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter])
+
+  /* ── 스크롤 힌트 ──────────────────────────────────────────
+     스크롤바를 숨겨 둔 터치 화면에서는 "아래에 더 있다"를 알 방법이 없다.
+     들어온 지 3초 뒤 살짝 내려갔다 돌아와서 움직일 수 있다는 걸 보여준다.
+     손님이 이미 스크롤했다면 건드리지 않는다. */
+  useEffect(() => {
+    if (!scrollChapter) return
+    const body = document.querySelector<HTMLElement>('.ksk-body')
+    if (!body) return
+
+    let back: number | undefined
+    const hint = window.setTimeout(() => {
+      if (body.scrollTop > 4) return
+      if (body.scrollHeight - body.clientHeight < 40) return
+      body.scrollTo({ top: 76, behavior: 'smooth' })
+      back = window.setTimeout(() => body.scrollTo({ top: 0, behavior: 'smooth' }), 850)
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(hint)
+      if (back) window.clearTimeout(back)
+    }
+  }, [scrollChapter, chapterIdx])
 
   // ── 렌더 ─────────────────────────────────────────────────
   const stepIdx = steps.indexOf(step)
@@ -1862,14 +1891,17 @@ export function KioskClient() {
             실제 출력은 80mm 감열지(512dot) 흑백으로 인쇄됩니다 — 이 이미지가 인쇄 원판입니다.
           </p>
           <div className="ksk-modal-actions">
-            {/* 발권까지 끝났으면 손님은 떠난다 — 다음 손님을 위해 처음으로 되돌린다 */}
-            <button className="ksk-btn" onClick={() => (printedOnce ? resetAll() : setReceipt(null))}>
-              {printedOnce ? '처음으로' : '닫기'}
+            <button className="ksk-btn" onClick={() => setReceipt(null)}>
+              닫기
             </button>
             <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
               {printing ? '인쇄 중...' : kiosk?.hasPrinter ? (printedOnce ? '한 장 더 출력' : '인쇄하기') : 'PNG 저장'}
             </button>
           </div>
+          {/* 손님이 떠난 자리를 다음 손님이 바로 쓸 수 있게 — 발권 여부와 무관하게 항상 */}
+          <button className="ksk-modal-home" onClick={resetAll}>
+            처음으로
+          </button>
         </div>
       )}
 
