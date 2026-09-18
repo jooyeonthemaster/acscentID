@@ -93,6 +93,10 @@
   display: flex;
   flex-direction: column;
   padding-top: 26px;
+  /* 한 화면에 다 들어가야 한다 — 넘치면 KioskClient 가 --ksk-fit 을 내려 축소한다.
+     transform 대신 zoom 을 쓰는 이유: 리플로우되므로 글자가 뭉개지지 않고
+     스티키 액션 바 위치도 그대로 유지된다. */
+  zoom: var(--ksk-fit, 1);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }

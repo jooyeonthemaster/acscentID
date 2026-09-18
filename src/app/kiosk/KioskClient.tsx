@@ -963,10 +963,10 @@ export function KioskClient() {
         '베이스와 혼합한 뒤 가볍게 흔든다.',
         '어두운 곳에서 24시간 이상 숙성한다.',
       ],
+      // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
+      counterNotice: ['이 영수증을 카운터에 제출해 주세요.', '적힌 레시피 그대로 제품을 준비해 드립니다.'],
       footerLines: [
         ...(mocked ? ['※ 데모 결과입니다 — 실제 제조용이 아닙니다.'] : []),
-        '이 영수증을 카운터에 제출해 주세요.',
-        '적힌 레시피 그대로 제품을 준비해 드립니다.',
         "AC'SCENT · www.acscent.co.kr",
       ],
       ...(isSajuResult(result) ? { saju: buildReceiptSaju(result) } : {}),
@@ -1070,6 +1070,38 @@ export function KioskClient() {
     if (exitHold.current) window.clearTimeout(exitHold.current)
     exitHold.current = undefined
   }, [])
+
+  /* ── 한 화면에 맞추기 ──────────────────────────────────────
+     터치 키오스크에서 스크롤은 손님이 알아채기 어렵다(스크롤바도 숨겼다).
+     내용이 넘치면 그만큼 zoom 을 내려 항상 한 눈에 들어오게 한다.
+     영수증 미리보기(.ksk-modal-paper)는 원판을 원래 크기로 봐야 하므로 제외. */
+  useEffect(() => {
+    // 실기(1080x1920)에서는 1.0 근처다. 하한은 세로가 짧은 임시 모니터 대비용.
+    const MIN_FIT = 0.5
+    const fit = () => {
+      const body = document.querySelector<HTMLElement>('.ksk-body')
+      if (!body) return
+      body.style.setProperty('--ksk-fit', '1')
+      // scrollHeight 를 읽는 순간 레이아웃이 확정된다 (zoom 1 기준 실측)
+      const avail = body.clientHeight
+      const content = body.scrollHeight
+      if (!avail || !content) return
+      // 내림으로 잡아야 반올림 때문에 1px 넘치는 일이 없다
+      const ratio = content > avail + 1 ? Math.max(MIN_FIT, Math.floor((avail / content) * 1000) / 1000) : 1
+      body.style.setProperty('--ksk-fit', String(ratio))
+    }
+
+    fit()
+    // 폰트·이미지가 늦게 올라오면 높이가 바뀐다 — 두 번 더 재본다
+    const t1 = window.setTimeout(fit, 150)
+    const t2 = window.setTimeout(fit, 600)
+    window.addEventListener('resize', fit)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      window.removeEventListener('resize', fit)
+    }
+  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms])
 
   // ── 렌더 ─────────────────────────────────────────────────
   const stepIdx = steps.indexOf(step)
@@ -1765,8 +1797,9 @@ export function KioskClient() {
             실제 출력은 80mm 감열지(512dot) 흑백으로 인쇄됩니다 — 이 이미지가 인쇄 원판입니다.
           </p>
           <div className="ksk-modal-actions">
-            <button className="ksk-btn" onClick={() => setReceipt(null)}>
-              닫기
+            {/* 발권까지 끝났으면 손님은 떠난다 — 다음 손님을 위해 처음으로 되돌린다 */}
+            <button className="ksk-btn" onClick={() => (printedOnce ? resetAll() : setReceipt(null))}>
+              {printedOnce ? '처음으로' : '닫기'}
             </button>
             <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
               {printing ? '인쇄 중...' : kiosk?.hasPrinter ? (printedOnce ? '한 장 더 출력' : '인쇄하기') : 'PNG 저장'}

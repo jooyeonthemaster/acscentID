@@ -58,6 +58,8 @@ export interface ReceiptData {
   recipeRows: ReceiptRecipeRow[]
   baseText: string // 예: 퍼퓸 베이스 8.0ml
   steps: string[]
+  /** 카운터 제출 안내 — 손님이 놓치면 안 되는 문장이라 향 번호(No.)와 같은 크기로 찍는다 */
+  counterNotice?: string[]
   footerLines: string[]
   /** 사주 프로그램일 때만 — 명식·용신·처방 섹션이 추가된다 */
   saju?: ReceiptSaju
@@ -393,7 +395,12 @@ class ReceiptBuilder {
 
   /** 사진 삽입 — 감열지용 톤매핑(2%/98% 스트레치 + 감마) 후 Floyd-Steinberg로 미리 1비트화.
    *  셸의 임계값 170 패스는 0/255 픽셀을 건드리지 않으므로, 어두운 셀피도 원판 그대로 인쇄된다. */
-  photo(img: HTMLImageElement, maxH = 360) {
+  /**
+   * 촬영본. 폭을 꽉 채우는 것이 기준이고, maxH 는 세로로 극단적인 사진이
+   * 용지를 통째로 먹는 것을 막는 안전장치다 (예전 360px 은 3:4 사진의 폭을
+   * 절반으로 줄여 버렸다).
+   */
+  photo(img: HTMLImageElement, maxH = 900) {
     const w = this.innerWidth()
     const scale = Math.min(w / img.naturalWidth, maxH / img.naturalHeight)
     const dw = Math.round(img.naturalWidth * scale)
@@ -683,6 +690,15 @@ export async function renderKioskReceipt(
   b.space(14)
   b.rule(1.5, true)
   b.space(12)
+
+  // ── 카운터 제출 안내 (크게)
+  if (data.counterNotice?.length) {
+    for (const line of data.counterNotice) {
+      b.text(line, { size: 30, weight: 700, align: 'center', lineHeight: 1.35 })
+      b.space(4)
+    }
+    b.space(10)
+  }
 
   // ── 푸터
   for (const line of data.footerLines) {
