@@ -779,26 +779,13 @@ export async function renderKioskReceipt(
   b.rule(1.5, true)
   b.space(12)
 
-  // ── 카운터 제출 안내
-  //   첫 줄(제출 안내)은 손님이 꼭 읽어야 한다 — 향 번호(No.) 크기를 상한으로 폭에 맞춘다.
-  //   두 줄째부터(준비 안내)는 보조 문장이라 작게. 둘 다 반드시 한 줄로 끊김 없이.
-  if (data.counterNotice?.length) {
-    const [headline, ...rest] = data.counterNotice
-    b.text(headline, { size: b.fitOneLine(headline, 30, 800), weight: 800, align: 'center', lineHeight: 1.3 })
-    for (const line of rest) {
-      b.space(4)
-      b.text(line, { size: b.fitOneLine(line, 17, 500), weight: 500, align: 'center', lineHeight: 1.5 })
-    }
-    b.space(12)
-  }
-
   // ── 푸터
   for (const line of data.footerLines) {
     b.text(line, { size: 17, weight: 500, align: 'center', lineHeight: 1.6 })
   }
   b.space(16)
 
-  // ── 주의사항 — 맨 아래 (실물 라벨 PRECAUTION과 동일 문구)
+  // ── 주의사항 (실물 라벨 PRECAUTION과 동일 문구)
   b.rule(1.5, true)
   b.space(12)
   b.text('PRECAUTION', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
@@ -808,6 +795,23 @@ export async function renderKioskReceipt(
     // 넘친 줄은 불릿 아래가 아니라 글 시작점에 맞춘다 (일본어·중국어는 길어서 자주 넘친다)
     b.text(line, { size: 17, weight: 500, lineHeight: 1.5, bullet: '·' })
     b.space(3)
+  }
+  b.space(16)
+
+  // ── 카운터 제출 안내 — 맨 아래.
+  //   손님이 영수증을 떼어 들었을 때 마지막으로 눈에 들어와야 하는 행동 지시라서
+  //   주의사항보다 뒤에 둔다.
+  //   첫 줄(제출 안내)은 손님이 꼭 읽어야 한다 — 향 번호(No.) 크기를 상한으로 폭에 맞춘다.
+  //   두 줄째부터(준비 안내)는 보조 문장이라 작게. 둘 다 반드시 한 줄로 끊김 없이.
+  if (data.counterNotice?.length) {
+    b.rule(1.5, true)
+    b.space(14)
+    const [headline, ...rest] = data.counterNotice
+    b.text(headline, { size: b.fitOneLine(headline, 30, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    for (const line of rest) {
+      b.space(4)
+      b.text(line, { size: b.fitOneLine(line, 17, 500), weight: 500, align: 'center', lineHeight: 1.5 })
+    }
   }
   b.space(30)
 
