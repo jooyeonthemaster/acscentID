@@ -20,6 +20,7 @@ import {
   type SajuElement,
 } from '@/types/analysis'
 import { getPerfumeById } from '@/data/perfumes'
+import type { KioskText } from '@/lib/kiosk/i18n'
 
 export function perfumeNoFromId(id: string): string {
   const m = id.match(/(\d+)\s*$/)
@@ -110,31 +111,31 @@ export function ChapterScent({ result }: { result: ImageAnalysisResult }) {
   )
 }
 
-export function ChapterProfile({ result }: { result: ImageAnalysisResult }) {
+export function ChapterProfile({ result, t }: { result: ImageAnalysisResult; t: KioskText }) {
   const traits = useMemo(
     () =>
       (Object.entries(result.traits) as [keyof TraitScores, number][])
         .sort((a, b) => b[1] - a[1])
-        .map(([key, value]) => ({ label: TRAIT_LABELS[key], value })),
-    [result.traits]
+        .map(([key, value]) => ({ label: t.traits[key] ?? TRAIT_LABELS[key], value })),
+    [result.traits, t]
   )
   const categories = useMemo(
     () =>
       (Object.entries(result.scentCategories) as [keyof ScentCategoryScores, number][])
         .sort((a, b) => b[1] - a[1])
-        .map(([key, value]) => ({ label: CATEGORY_INFO[key]?.name ?? key, value })),
-    [result.scentCategories]
+        .map(([key, value]) => ({ label: t.categories[key] ?? CATEGORY_INFO[key]?.name ?? key, value })),
+    [result.scentCategories, t]
   )
 
   return (
     <>
-      <Section label="SIGNALS · 10가지 특성">
+      <Section label={t.signalsLabel}>
         {traits.map((t) => (
           <Bar key={t.label} label={t.label} value={t.value} />
         ))}
       </Section>
 
-      <Section label="SCENT PROFILE · 향 계열">
+      <Section label={t.scentProfileLabel}>
         {categories.map((c, i) => (
           <Bar key={c.label} label={i === 0 ? `★ ${c.label}` : c.label} value={c.value} />
         ))}
@@ -143,7 +144,10 @@ export function ChapterProfile({ result }: { result: ImageAnalysisResult }) {
       {result.personalColor && (
         <Section label="PERSONAL COLOR">
           <p className="ksk-color-name">
-            {SEASON_LABELS[result.personalColor.season]} {TONE_LABELS[result.personalColor.tone]}
+            {t.personalColor(
+              t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
+              t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
+            )}
           </p>
           <div className="ksk-palette">
             {result.personalColor.palette?.slice(0, 5).map((c) => (
@@ -160,7 +164,7 @@ export function ChapterProfile({ result }: { result: ImageAnalysisResult }) {
   )
 }
 
-export function ChapterReading({ result }: { result: ImageAnalysisResult }) {
+export function ChapterReading({ result, t }: { result: ImageAnalysisResult; t: KioskText }) {
   const a = result.analysis
   const guide = result.matchingPerfumes[0]?.persona?.usageGuide
   const rec = result.scentRecommendation
@@ -170,10 +174,10 @@ export function ChapterReading({ result }: { result: ImageAnalysisResult }) {
       {a && (
         <Section label="ANALYSIS">
           {([
-            ['분위기', a.mood],
-            ['스타일', a.style],
-            ['표정', a.expression],
-            ['컨셉', a.concept],
+            [t.analysisKeys.mood, a.mood],
+            [t.analysisKeys.style, a.style],
+            [t.analysisKeys.expression, a.expression],
+            [t.analysisKeys.concept, a.concept],
           ] as const)
             .filter(([, v]) => Boolean(v))
             .map(([k, v]) => (
@@ -200,24 +204,28 @@ export function ChapterReading({ result }: { result: ImageAnalysisResult }) {
         <Section label="BEST MOMENT">
           {/* 아이콘은 이모지라 영수증에서 뭉개지므로 화면에서도 라벨만 쓴다 */}
           <div className="ksk-kv">
-            <b>계절 · {BEST_SEASON_LABELS[rec.best_season]?.label ?? rec.best_season}</b>
+            <b>
+              {t.bestSeason} · {t.seasons[rec.best_season] ?? BEST_SEASON_LABELS[rec.best_season]?.label ?? rec.best_season}
+            </b>
             {rec.season_reason && <p>{rec.season_reason}</p>}
           </div>
           <div className="ksk-kv">
-            <b>시간 · {BEST_TIME_LABELS[rec.best_time]?.label ?? rec.best_time}</b>
+            <b>
+              {t.bestTime} · {t.times[rec.best_time] ?? BEST_TIME_LABELS[rec.best_time]?.label ?? rec.best_time}
+            </b>
             {rec.time_reason && <p>{rec.time_reason}</p>}
           </div>
         </Section>
       )}
 
       {result.comparisonAnalysis && (
-        <Section label="AI가 본 것 vs 내가 고른 것">
+        <Section label={t.comparisonLabel}>
           <div className="ksk-kv">
-            <b>AI 해석</b>
+            <b>{t.comparisonAi}</b>
             <p>{result.comparisonAnalysis.imageInterpretation}</p>
           </div>
           <div className="ksk-kv">
-            <b>내 선택</b>
+            <b>{t.comparisonMine}</b>
             <p>{result.comparisonAnalysis.userInputSummary}</p>
           </div>
         </Section>

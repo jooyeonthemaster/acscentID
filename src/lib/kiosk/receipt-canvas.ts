@@ -60,6 +60,10 @@ export interface ReceiptData {
   steps: string[]
   /** 카운터 제출 안내 — 손님이 놓치면 안 되는 문장이라 향 번호(No.)와 같은 크기로 찍는다 */
   counterNotice?: string[]
+  /** '퍼퓸 10ml 제조 레시피' — 화면 언어로 만들어 넘긴다 */
+  recipeTitle?: string
+  /** 주의사항 — 화면 언어 버전. 없으면 한국어 기본값 */
+  precautions?: string[]
   footerLines: string[]
   /** 사주 프로그램일 때만 — 명식·용신·처방 섹션이 추가된다 */
   saju?: ReceiptSaju
@@ -68,6 +72,8 @@ export interface ReceiptData {
 export interface ReceiptRenderOptions {
   width?: number // 기본 512 (프린터 헤드 도트 폭)
   photoSrc?: string | null // 촬영 사진 dataURL — 있으면 흑백으로 삽입
+  /** 화면 언어 — 한자권이면 본문 글꼴을 그 언어 웹폰트로 바꾼다 */
+  lang?: 'ko' | 'en' | 'ja' | 'zh-Hans' | 'zh-Hant'
 }
 
 interface Fonts {
@@ -100,11 +106,32 @@ export const RECEIPT_PRECAUTIONS: string[] = [
 
 function cssFontFamily(varName: string, fallback: string): string {
   if (typeof document === 'undefined') return fallback
-  const v = getComputedStyle(document.body).getPropertyValue(varName).trim()
+  /* next/font 변수는 그 폰트를 쓰는 엘리먼트(.ksk-root)에 걸린다 — body 에서 읽으면
+     빈 값이 나와 시스템 폰트로 떨어지고, CJK 폰트가 없는 매장 PC에서는 두부가 된다. */
+  const scope = document.querySelector('.ksk-root') ?? document.body
+  const v = getComputedStyle(scope).getPropertyValue(varName).trim()
   return v ? `${v}, ${fallback}` : fallback
 }
 
-function resolveFonts(): Fonts {
+/** 한자권 글꼴 변수 — src/app/kiosk/fonts.ts 가 심는 next/font 변수와 같은 이름 */
+const CJK_FONT_VAR: Record<string, { varName: string; fallback: string }> = {
+  ja: { varName: '--font-noto-jp', fallback: "'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif" },
+  'zh-Hans': { varName: '--font-noto-sc', fallback: "'PingFang SC', 'Microsoft YaHei', sans-serif" },
+  'zh-Hant': { varName: '--font-noto-tc', fallback: "'PingFang TC', 'Microsoft JhengHei', sans-serif" },
+}
+
+function resolveFonts(lang?: string): Fonts {
+  // 한국어 전용 글꼴로 가나·간체를 그리면 빈칸이 된다 — 언어 글꼴을 앞에 세운다
+  const cjk = lang ? CJK_FONT_VAR[lang] : undefined
+  if (cjk) {
+    const family = cssFontFamily(cjk.varName, cjk.fallback)
+    return {
+      sans: family,
+      display: family,
+      mono: "ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace",
+      hanja: family,
+    }
+  }
   const sans = cssFontFamily('--font-score-dream', "'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif")
   const serif = cssFontFamily('--font-noto-serif-kr', "'Noto Serif KR', serif")
   return {
@@ -527,17 +554,33 @@ class ReceiptBuilder {
   }
 }
 
+/** 영수증에 실제로 찍히는 글자를 한 문자열로 모은다 (웹폰트 조각 선로딩용) */
+function collectReceiptText(data: ReceiptData): string {
+  const parts: string[] = []
+  const walk = (v: unknown) => {
+    if (typeof v === 'string') parts.push(v)
+    else if (Array.isArray(v)) v.forEach(walk)
+    else if (v && typeof v === 'object') Object.values(v).forEach(walk)
+  }
+  walk(data)
+  return parts.join(' ')
+}
+
 export async function renderKioskReceipt(
   data: ReceiptData,
   opts: ReceiptRenderOptions = {}
 ): Promise<{ base64: string; dataUrl: string; width: number; height: number }> {
   const width = opts.width ?? 512
-  const fonts = resolveFonts()
+  const fonts = resolveFonts(opts.lang)
   if (typeof document !== 'undefined' && document.fonts) {
     try {
       // fonts.ready는 '이미 요청된' 페이스만 기다린다 — 캔버스가 쓰는 웨이트를 명시적으로 로드
+      /* CJK 웹폰트는 unicode-range 로 잘게 쪼개져 있다 — 실제로 찍을 글자를 넘겨야
+         그 글자가 든 조각만 받아온다. 안 넘기면 캔버스가 빈칸(두부)으로 그려진다. */
+      const sampleText = collectReceiptText(data)
       await Promise.all([
-        ...[500, 600, 700, 800].map((w) => document.fonts.load(`${w} 20px ${fonts.sans}`)),
+        ...[500, 600, 700, 800].map((w) => document.fonts.load(`${w} 20px ${fonts.sans}`, sampleText)),
+        document.fonts.load(`800 44px ${fonts.display}`, sampleText),
         // 명식 한자는 unicode-range 분할 서브셋이라 쓰일 글자를 명시해야 실제로 받아온다
         document.fonts.load(`800 52px ${fonts.hanja}`, '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥木火土金水柱時日月年'),
       ])
@@ -681,7 +724,7 @@ export async function renderKioskReceipt(
   // ── 제조 레시피
   b.text('RECIPE', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
   b.space(4)
-  b.text(`${data.productLabel} 제조 레시피`, { size: 22, weight: 700 })
+  b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 22, weight: 700 })
   b.space(10)
   for (const r of data.recipeRows) {
     b.row(`${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
@@ -725,7 +768,7 @@ export async function renderKioskReceipt(
   b.space(12)
   b.text('PRECAUTION', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   b.space(10)
-  for (const line of RECEIPT_PRECAUTIONS) {
+  for (const line of data.precautions ?? RECEIPT_PRECAUTIONS) {
     // 감열 인쇄에서 체크 글리프는 뭉개지므로 가운뎃점으로 대신한다
     b.text(`· ${line}`, { size: 14, weight: 500, lineHeight: 1.5 })
     b.space(3)

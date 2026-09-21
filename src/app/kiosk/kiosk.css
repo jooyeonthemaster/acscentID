@@ -1845,3 +1845,94 @@
 @media (prefers-reduced-motion: reduce) {
   .ksk-idle-popup { animation: none; }
 }
+
+/* ── 언어 전환 ───────────────────────────────────────── */
+.ksk-lang {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 60;
+}
+.ksk-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.ksk-lang-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+.ksk-lang[data-open='true'] .ksk-lang-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* 메뉴 밖을 누르면 닫히게 — 화면 전체를 덮는 투명 버튼 */
+.ksk-lang-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+.ksk-lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  min-width: 190px;
+  border: 2px solid var(--line);
+  border-radius: var(--ksk-radius);
+  background: var(--surface-strong);
+  box-shadow: var(--ksk-shadow);
+  animation: ksk-lang-in 0.16s ease-out;
+}
+.ksk-lang-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: calc(var(--ksk-radius) - 6px);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ksk-lang-menu button[data-on='true'] {
+  background: var(--accent);
+  color: #fff;
+}
+.ksk-lang-menu button em {
+  font-style: normal;
+}
+@keyframes ksk-lang-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ksk-lang-menu { animation: none; }
+}
+/* 칩이 헤더 오른쪽 글자(STEP …)와 겹치지 않게 자리를 비운다 */
+.ksk-top { padding-right: 96px; }
+.ksk-attract { padding-top: 96px; }

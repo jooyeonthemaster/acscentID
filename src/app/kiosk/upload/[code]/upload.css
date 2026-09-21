@@ -102,3 +102,8 @@
 .kup-btn-ghost:active {
   background: #e3ded6;
 }
+
+/* 한자권 언어 — 한국어 전용 글꼴에는 가나·간체 글리프가 없다 */
+.kup-root[lang='ja'] { font-family: var(--font-noto-jp), 'Hiragino Sans', sans-serif; }
+.kup-root[lang='zh-Hans'] { font-family: var(--font-noto-sc), 'PingFang SC', sans-serif; }
+.kup-root[lang='zh-Hant'] { font-family: var(--font-noto-tc), 'PingFang TC', sans-serif; }

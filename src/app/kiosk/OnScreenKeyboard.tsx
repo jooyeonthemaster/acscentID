@@ -47,10 +47,22 @@ interface Props {
   maxLength?: number
   /** 키보드 상단에 표시할 안내 문구 */
   hint?: string
+  /** 화면 언어 라벨 — 없으면 한국어 기본값 */
+  labels?: { aria: string; placeholder: string; space: string; done: string }
+  initialMode?: Mode
 }
 
-export function OnScreenKeyboard({ value, onChange, onClose, maxLength = 12, hint }: Props) {
-  const [mode, setMode] = useState<Mode>('ko')
+export function OnScreenKeyboard({
+  value,
+  onChange,
+  onClose,
+  maxLength = 12,
+  hint,
+  labels,
+  initialMode = 'ko',
+}: Props) {
+  // 한국어가 아니면 알파벳 자판으로 시작한다 — 한글 자모는 쓸 일이 없다
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [shift, setShift] = useState(false)
   // 조합 상태는 키보드가 소유한다. 외부 value가 바뀌어도(초기화 등) 동기화된다.
   const [state, setState] = useState<HangulState>(() => fromText(value))
@@ -94,10 +106,10 @@ export function OnScreenKeyboard({ value, onChange, onClose, maxLength = 12, hin
   const full = hangulValue(state).length >= maxLength
 
   return (
-    <div className="ksk-osk" role="group" aria-label="터치 키보드">
+    <div className="ksk-osk" role="group" aria-label={labels?.aria ?? '터치 키보드'}>
       <div className="ksk-osk-preview">
         <span className="ksk-osk-value">
-          {value || <em>{hint ?? '입력해 주세요'}</em>}
+          {value || <em>{hint ?? labels?.placeholder ?? '입력해 주세요'}</em>}
           <i className="ksk-osk-caret" />
         </span>
         <span className="ksk-osk-count ksk-mono">
@@ -153,7 +165,7 @@ export function OnScreenKeyboard({ value, onChange, onClose, maxLength = 12, hin
             {mode === 'ko' ? 'ABC' : mode === 'en' ? '123' : '한글'}
           </button>
           <button className="ksk-key ksk-key-space" onClick={() => apply(pushChar(state, ' ', maxLength))}>
-            공백
+            {labels?.space ?? '공백'}
           </button>
           <button
             className="ksk-key ksk-key-done"
@@ -164,7 +176,7 @@ export function OnScreenKeyboard({ value, onChange, onClose, maxLength = 12, hin
               onClose()
             }}
           >
-            완료
+            {labels?.done ?? '완료'}
           </button>
         </div>
       </div>

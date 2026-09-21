@@ -23,6 +23,8 @@ import {
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData, ReceiptSaju } from '@/lib/kiosk/receipt-canvas'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
+import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from './fonts'
 import { OnScreenKeyboard } from './OnScreenKeyboard'
 import {
   SajuPurposeGrid, SajuBirthPad, SajuHourGrid, SajuRelationGrid,
@@ -214,14 +216,6 @@ const STEP_LABELS: Record<string, string> = {
 const MAX_PICK = 3
 const FRAGRANCE_DENSITY = 0.9 // g/ml — types/feedback.ts calculateGranuleAmounts와 동일 계수
 
-const STATUS_LINES = [
-  '사진의 분위기를 읽는 중...',
-  '컬러 톤을 분석하는 중...',
-  '선택한 키워드를 대조하는 중...',
-  '30가지 AC’SCENT 향과 비교하는 중...',
-  '당신의 향을 고르는 중...',
-]
-
 // 폰으로 QR을 찍고 갤러리를 뒤지는 동안은 화면 터치가 없다 — 유휴 한도를 따로 길게 잡는다
 const QR_IDLE_LIMIT = 420
 
@@ -361,6 +355,10 @@ export function KioskClient() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrState, setQrState] = useState<'idle' | 'creating' | 'waiting' | 'expired' | 'failed'>('idle')
   const [qrUnreachable, setQrUnreachable] = useState(false)
+  // 화면 언어 — 손님이 우상단에서 고른다. 분석을 시작하면 그 언어로 고정되고,
+  // 처음 화면으로 돌아갈 때(다음 손님) 한국어로 되돌아간다.
+  const [lang, setLang] = useState<KioskLang>('ko')
+  const [langOpen, setLangOpen] = useState(false)
   const [backgroundId, setBackgroundId] = useState<string>('retro')
   const [uploadedBackgrounds, setUploadedBackgrounds] = useState<UploadedBackground[]>([])
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
@@ -392,6 +390,8 @@ export function KioskClient() {
     })
     return [...uploaded, ...KIOSK_BACKGROUNDS]
   }, [uploadedBackgrounds])
+
+  const t = kioskText(lang)
 
   const activeBackground =
     allBackgrounds.find((background) => background.id === backgroundId) ??
@@ -492,6 +492,8 @@ export function KioskClient() {
     recordIdRef.current = null
     recordedRef.current = false
     setPrintedOnce(false)
+    setLang('ko')
+    setLangOpen(false)
     // Electron 셸에선 다음 손님을 위해 카메라 스트림 유지, 웹에선 해제
     if (!kiosk) stopStream()
   }, [kiosk, stopStream, clearCountdown])
@@ -595,7 +597,7 @@ export function KioskClient() {
     if (!video || video.videoWidth === 0) {
       // 스트림이 아직 준비 전 — countdown을 고착시키지 않고 재시도 안내
       setCountdown(null)
-      showToast('카메라 준비 중입니다. 잠시 후 다시 시도해 주세요.')
+      showToast(t.toastCamNotReady)
       return
     }
     // 미리보기(3:4 cover)와 동일한 중앙 크롭 + 좌우반전, 최대 720x960 JPEG
@@ -619,7 +621,7 @@ export function KioskClient() {
     ctx.drawImage(video, sx, sy, cw, ch, 0, 0, outW, outH)
     setPhoto(canvas.toDataURL('image/jpeg', 0.8))
     setCountdown(null)
-  }, [showToast])
+  }, [showToast, t])
 
   const startCountdown = useCallback(() => {
     if (countdownTimer.current) window.clearInterval(countdownTimer.current)
@@ -652,7 +654,8 @@ export function KioskClient() {
       // QR은 고객 폰이 접속하는 주소다 — 키오스크의 로컬 주소로는 폰이 닿을 수 없으므로
       // 배포된 사이트 주소(NEXT_PUBLIC_SITE_URL)를 쓴다. 웹 초안에서는 현재 주소로 폴백.
       const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}`
+      // 손님 폰도 키오스크와 같은 언어로 열리게 한다
+      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}`
       const QRCode = (await import('qrcode')).default
       const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 1 })
       if (gen !== qrGeneration.current) return
@@ -666,7 +669,7 @@ export function KioskClient() {
       console.error('[kiosk] QR 세션 생성 실패:', e)
       setQrState('failed')
     }
-  }, [])
+  }, [lang])
 
   /** 진행 중인 QR 세션만 버린다 (입력 소스는 그대로) — 늦게 도착한 응답은 세대 번호로 무효화 */
   const clearQr = useCallback(() => {
@@ -735,7 +738,7 @@ export function KioskClient() {
         setQrCode(null)
         setQrDataUrl(null)
         setQrUnreachable(false)
-        showToast('사진을 받았습니다')
+        showToast(t.toastPhotoReceived)
       } catch (e) {
         if (cancelled) return
         failures += 1
@@ -753,7 +756,7 @@ export function KioskClient() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [step, photo, photoSource, qrState, qrCode, showToast])
+  }, [step, photo, photoSource, qrState, qrCode, showToast, t])
 
   const onUploadFallback = useCallback((file: File) => {
     const reader = new FileReader()
@@ -782,10 +785,10 @@ export function KioskClient() {
     // 가짜 진행률: 사주는 서사가 길어 응답이 더 느리다(시상수를 늘림)
     const started = Date.now()
     const tau = isSaju ? 22000 : 12000
-    const lines = isSaju ? SAJU_STATUS_LINES : STATUS_LINES
+    const lines = isSaju ? SAJU_STATUS_LINES : t.statusLines
     const progTimer = window.setInterval(() => {
-      const t = (Date.now() - started) / tau
-      setProgress(Math.min(90, Math.round(90 * (1 - Math.exp(-t)))))
+      const elapsed = (Date.now() - started) / tau
+      setProgress(Math.min(90, Math.round(90 * (1 - Math.exp(-elapsed)))))
     }, 400)
     const statusTimer = window.setInterval(() => {
       setStatusIdx((i) => (i + 1) % lines.length)
@@ -816,7 +819,7 @@ export function KioskClient() {
         }
         : {
           formData: {
-            name: name.trim() || '게스트',
+            name: name.trim() || t.guest,
             gender: gender || 'Other',
             // 최애 분석은 사이트와 동일하게 idol 톤으로 간다
             targetType: program === 'idol' ? 'idol' : 'self',
@@ -829,6 +832,7 @@ export function KioskClient() {
           },
           imageBase64: photo,
           mock: isMockRequested(),
+          lang,
         }
 
       const res = await fetch(url, {
@@ -847,7 +851,7 @@ export function KioskClient() {
       setMocked(Boolean(json.mocked))
     } catch (e) {
       console.error('[kiosk] 분석 실패:', e)
-      showToast('분석 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      showToast(t.toastAnalyzeFailed)
       setStep(backStep)
       return
     } finally {
@@ -861,6 +865,7 @@ export function KioskClient() {
     program, name, gender, styles, personalities, charms, photo, showToast,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
+    t, lang,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -897,11 +902,11 @@ export function KioskClient() {
       ]
     }
     return [
-      { label: 'SCENT · 당신의 향', render: () => <ChapterScent result={result} />, scroll: false },
-      { label: 'PROFILE · 프로필', render: () => <ChapterProfile result={result} />, scroll: false },
-      { label: 'READING · 해석', render: () => <ChapterReading result={result} />, scroll: true },
+      { label: t.chapterScent, render: () => <ChapterScent result={result} />, scroll: false },
+      { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
+      { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result])
+  }, [result, t])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -915,8 +920,8 @@ export function KioskClient() {
     return (Object.entries(result.traits) as [keyof TraitScores, number][])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
-      .map(([key, value]) => ({ label: TRAIT_LABELS[key], value }))
-  }, [result])
+      .map(([key, value]) => ({ label: t.traits[key] ?? TRAIT_LABELS[key], value }))
+  }, [result, t])
 
   const recipeRows = useMemo(() => {
     if (!persona) return []
@@ -1009,9 +1014,9 @@ export function KioskClient() {
       ticket: ticketRef.current,
       date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())}`,
       time: `${two(now.getHours())}:${two(now.getMinutes())}`,
-      customerName: name.trim() || '게스트',
+      customerName: name.trim() || t.guest,
       gender,
-      productLabel: productInfo.label,
+      productLabel: t.products[productInfo.id]?.label ?? productInfo.label,
       perfumeNo: perfumeNoFromId(persona.id),
       perfumeName: persona.name,
       categoryEn,
@@ -1024,21 +1029,22 @@ export function KioskClient() {
       },
       analysisText: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
       personalColorText: result.personalColor
-        ? `${SEASON_LABELS[result.personalColor.season]} ${TONE_LABELS[result.personalColor.tone]}`
+        ? t.personalColor(
+            t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
+            t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
+          )
         : '',
       palette: result.personalColor?.palette?.slice(0, 4) ?? [],
       signals: topTraits,
       recipeRows,
-      baseText: baseMl > 0 ? `퍼퓸 베이스 ${baseMl.toFixed(1)}ml` : '디퓨저 원액 (베이스 없음)',
-      steps: [
-        '레시피의 향료를 순서대로 계량한다.',
-        '베이스와 혼합한 뒤 가볍게 흔든다.',
-        '어두운 곳에서 24시간 이상 숙성한다.',
-      ],
+      baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
+      steps: t.receipt.steps,
       // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
-      counterNotice: ['이 영수증을 카운터에 제출해 주세요.', '적힌 레시피 그대로 제품을 준비해 드립니다.'],
+      counterNotice: t.receipt.counterNotice,
+      recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
+      precautions: t.receipt.precautions,
       footerLines: [
-        ...(mocked ? ['※ 데모 결과입니다 — 실제 제조용이 아닙니다.'] : []),
+        ...(mocked ? [t.receipt.demoNote] : []),
         "AC'SCENT · www.acscent.co.kr",
       ],
       ...(isSajuResult(result) ? { saju: buildReceiptSaju(result) } : {}),
@@ -1046,9 +1052,10 @@ export function KioskClient() {
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
       photoSrc: isSajuResult(result) ? null : photo,
+      lang,
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang])
 
   const openReceipt = useCallback(async () => {
     try {
@@ -1061,9 +1068,9 @@ export function KioskClient() {
       if (r) setReceipt(r)
     } catch (e) {
       console.error('[kiosk] 영수증 렌더 실패:', e)
-      showToast('영수증 생성에 실패했습니다. 다시 시도해 주세요.')
+      showToast(t.toastReceiptFailed)
     }
-  }, [buildReceipt, kiosk, showToast])
+  }, [buildReceipt, kiosk, showToast, t])
 
   const printReceipt = useCallback(async () => {
     if (!receipt) return
@@ -1073,7 +1080,7 @@ export function KioskClient() {
       a.href = receipt.dataUrl
       a.download = `acscent-receipt-${Date.now()}.png`
       a.click()
-      showToast('영수증 이미지를 저장했습니다')
+      showToast(t.toastPngSaved)
       return
     }
     setPrinting(true)
@@ -1102,17 +1109,17 @@ export function KioskClient() {
           const again = await buildReceipt()
           if (again) setReceipt(again)
         }
-        showToast(`TICKET #${res.ticket ?? ''} 발권 완료`)
+        showToast(t.toastTicketIssued(res.ticket ?? ''))
       } else {
-        showToast(`인쇄 실패: ${res.error ?? '프린터 오류'}`)
+        showToast(t.toastPrintFailed(res.error ?? t.printerError))
       }
     } catch (e) {
       console.error('[kiosk] 인쇄 실패:', e)
-      showToast('인쇄에 실패했습니다. 직원에게 문의해 주세요.')
+      showToast(t.toastPrintFailedStaff)
     } finally {
       setPrinting(false)
     }
-  }, [receipt, kiosk, buildReceipt, showToast])
+  }, [receipt, kiosk, buildReceipt, showToast, t])
 
   // ── 관리자 핫스팟 (짧게: 배경 설정 / Electron 3초 홀드: 앱 종료) ────
   const exitHold = useRef<number | undefined>(undefined)
@@ -1246,12 +1253,15 @@ export function KioskClient() {
 
   return (
     <div
-      className="ksk-root"
+      className={`ksk-root ${KIOSK_FONT_CLASS}`}
       data-background={activeBackground.id}
+      data-lang={lang}
+      lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
       style={{
         '--ksk-background-image': `url("${activeBackground.image}")`,
-        '--ksk-display-font': activeBackground.displayFont,
-        '--ksk-body-font': activeBackground.bodyFont,
+        // 테마 글꼴은 한국어 전용이라 한자권에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다
+        '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.displayFont,
+        '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.bodyFont,
         '--ksk-display-tracking': activeBackground.tracking,
         '--paper': activeBackground.paper,
         '--ink': activeBackground.ink,
@@ -1266,6 +1276,56 @@ export function KioskClient() {
       } as CSSProperties}
     >
       <div className="ksk-stage">
+        {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
+        {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && (
+          <div className="ksk-lang" data-open={langOpen}>
+            <button
+              type="button"
+              className="ksk-lang-btn"
+              aria-haspopup="listbox"
+              aria-expanded={langOpen}
+              aria-label={t.langMenuLabel}
+              onClick={() => setLangOpen((open) => !open)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3c2.6 2.6 2.6 15 0 18M12 3c-2.6 2.6-2.6 15 0 18" />
+              </svg>
+              {KIOSK_LANGS.find((l) => l.id === lang)?.code}
+            </button>
+            {langOpen && (
+              <>
+                <button
+                  type="button"
+                  className="ksk-lang-scrim"
+                  aria-label={t.close}
+                  onClick={() => setLangOpen(false)}
+                />
+                <ul className="ksk-lang-menu" role="listbox" aria-label={t.langMenuLabel}>
+                  {KIOSK_LANGS.map((option) => (
+                    <li key={option.id}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={option.id === lang}
+                        data-on={option.id === lang}
+                        lang={option.htmlLang}
+                        onClick={() => {
+                          setLang(option.id)
+                          setLangOpen(false)
+                        }}
+                      >
+                        <span>{option.label}</span>
+                        {option.id === lang && <em>✓</em>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+
         {showHeader && (
           <header>
             <div className="ksk-top">
@@ -1476,19 +1536,19 @@ export function KioskClient() {
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">01 · PROFILE</p>
             <h1 className="ksk-title">
-              {program === 'idol' ? '최애를 어떻게 부르세요?' : '어떻게 불러드릴까요?'}
+              {program === 'idol' ? t.infoTitleIdol : t.infoTitleSelf}
             </h1>
-            <p className="ksk-desc">이름은 영수증 리포트에 함께 인쇄됩니다.</p>
-            <label className="ksk-field-label ksk-mono">NAME (선택)</label>
+            <p className="ksk-desc">{t.infoDesc}</p>
+            <label className="ksk-field-label ksk-mono">NAME {t.nameOptional}</label>
             {/* 터치 전용: 네이티브 키보드를 띄우지 않고 자체 OSK를 연다 */}
             <button className="ksk-input" data-empty={!name} onClick={() => setOskOpen(true)}>
-              {name || '이름 또는 별명'}
+              {name || t.namePlaceholder}
             </button>
             <label className="ksk-field-label ksk-mono">GENDER</label>
             <div className="ksk-chips" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               {GENDER_OPTIONS.map((g) => (
                 <button key={g.key} className="ksk-chip" data-on={gender === g.key} onClick={() => setGender(g.key)}>
-                  {g.label}
+                  {t.gender[g.key] ?? g.label}
                 </button>
               ))}
             </div>
@@ -1499,15 +1559,17 @@ export function KioskClient() {
                 onChange={setName}
                 onClose={() => setOskOpen(false)}
                 maxLength={12}
-                hint="이름 또는 별명"
+                hint={t.namePlaceholder}
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={lang === 'ko' ? 'ko' : 'en'}
               />
             ) : (
               <div className="ksk-actions">
                 <button className="ksk-btn" onClick={resetAll}>
-                  처음으로
+                  {t.home}
                 </button>
                 <button className="ksk-btn ksk-btn-primary" disabled={!gender} onClick={goNext}>
-                  다음
+                  {t.next}
                 </button>
               </div>
             )}
@@ -1517,8 +1579,11 @@ export function KioskClient() {
         {step === 'style' && (
           <SelectScreen
             eyebrow="02 · STYLE"
-            title="평소 스타일에 가까운 것은?"
-            desc={`최대 ${MAX_PICK}개까지 고를 수 있어요.`}
+            title={t.styleTitle}
+            desc={t.pickUpTo(MAX_PICK)}
+            labels={t.styles}
+            prevLabel={t.prev}
+            nextLabel={t.next}
             options={[...STYLES]}
             selected={styles}
             onToggle={(v) => setStyles((s) => toggleIn(s, v, MAX_PICK))}
@@ -1530,8 +1595,11 @@ export function KioskClient() {
         {step === 'personality' && (
           <SelectScreen
             eyebrow="03 · PERSONALITY"
-            title="나의 성격과 가까운 것은?"
-            desc={`최대 ${MAX_PICK}개까지 고를 수 있어요.`}
+            title={t.personalityTitle}
+            desc={t.pickUpTo(MAX_PICK)}
+            labels={t.personalities}
+            prevLabel={t.prev}
+            nextLabel={t.next}
             options={[...PERSONALITIES]}
             selected={personalities}
             onToggle={(v) => setPersonalities((s) => toggleIn(s, v, MAX_PICK))}
@@ -1543,8 +1611,11 @@ export function KioskClient() {
         {step === 'charm' && (
           <SelectScreen
             eyebrow="04 · CHARM"
-            title="나만의 매력 포인트는?"
-            desc={`최대 ${MAX_PICK}개까지 고를 수 있어요.`}
+            title={t.charmTitle}
+            desc={t.pickUpTo(MAX_PICK)}
+            labels={t.charms}
+            prevLabel={t.prev}
+            nextLabel={t.next}
             options={[...CHARM_POINTS]}
             selected={charms}
             onToggle={(v) => setCharms((s) => toggleIn(s, v, MAX_PICK))}
@@ -1556,8 +1627,8 @@ export function KioskClient() {
         {step === 'product' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">05 · PRODUCT</p>
-            <h1 className="ksk-title">어떤 제품으로 만들까요?</h1>
-            <p className="ksk-desc">분석 결과 레시피가 선택한 제품 기준으로 인쇄됩니다.</p>
+            <h1 className="ksk-title">{t.productTitle}</h1>
+            <p className="ksk-desc">{t.productDesc}</p>
             <div className="ksk-products">
               {PRODUCT_TYPES.map((p) => (
                 <button
@@ -1567,20 +1638,20 @@ export function KioskClient() {
                   onClick={() => setProductType(p.id)}
                 >
                   <span>
-                    <b>{p.label}</b>
-                    <span>{p.description}</span>
+                    <b>{t.products[p.id]?.label ?? p.label}</b>
+                    <span>{t.products[p.id]?.description ?? p.description}</span>
                   </span>
-                  <em className="ksk-mono">향료 {p.fragranceVolumeMl}ml</em>
+                  <em className="ksk-mono">{t.fragranceMl(p.fragranceVolumeMl)}</em>
                 </button>
               ))}
             </div>
             <div style={{ flex: 1 }} />
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
-                이전
+                {t.prev}
               </button>
               <button className="ksk-btn ksk-btn-primary" onClick={goNext}>
-                {program === 'saju' ? '분석 시작' : '다음'}
+                {program === 'saju' ? t.analyzeStart : t.next}
               </button>
             </div>
           </div>
@@ -1590,39 +1661,33 @@ export function KioskClient() {
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">06 · PHOTO</p>
             <h1 className="ksk-title">
-              {photo
-                ? '이 사진으로 분석할까요?'
-                : photoSource === 'qr'
-                  ? '폰으로 사진을 올려 주세요'
-                  : '카메라를 바라봐 주세요'}
+              {photo ? t.captureConfirm : photoSource === 'qr' ? t.captureQrTitle : t.captureCamTitle}
             </h1>
             <p className="ksk-desc">
-              {!photo && photoSource === 'qr'
-                ? '올리신 사진은 이 화면으로 전달된 즉시 서버에서 삭제되며, 향 분석 외의 용도로 쓰이지 않습니다.'
-                : '사진은 향 분석을 위해 AI 분석 서버로만 전송되며, 웹 계정에는 저장되지 않습니다.'}
+              {!photo && photoSource === 'qr' ? t.captureQrDesc : t.captureCamDesc}
             </p>
 
             {!photo && photoSource === 'qr' ? (
               <div className="ksk-qr">
-                {qrState === 'creating' && <p className="ksk-qr-msg">QR을 만드는 중입니다...</p>}
+                {qrState === 'creating' && <p className="ksk-qr-msg">{t.qrCreating}</p>}
                 {qrState === 'failed' && (
                   <p className="ksk-qr-msg">
-                    연결이 불안정해 사진을 받지 못했습니다.
+                    {t.qrFailed[0]}
                     <br />
-                    QR을 다시 만들거나 카메라로 촬영해 주세요.
+                    {t.qrFailed[1]}
                   </p>
                 )}
                 {qrState === 'expired' && (
                   <p className="ksk-qr-msg">
-                    시간이 만료되었습니다.
+                    {t.qrExpired[0]}
                     <br />
-                    QR을 다시 만들어 주세요.
+                    {t.qrExpired[1]}
                   </p>
                 )}
                 {qrState === 'waiting' && qrDataUrl && (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="ksk-qr-img" src={qrDataUrl} alt="사진 업로드 QR" />
+                    <img className="ksk-qr-img" src={qrDataUrl} alt={t.qrAlt} />
                     <p className="ksk-qr-code ksk-mono">{qrCode}</p>
                     {qrUnreachable && (
                       <p className="ksk-qr-warn">
@@ -1632,9 +1697,9 @@ export function KioskClient() {
                       </p>
                     )}
                     <ol className="ksk-qr-steps">
-                      <li>폰 카메라로 QR을 스캔합니다.</li>
-                      <li>갤러리에서 사진 한 장을 고릅니다.</li>
-                      <li>이 화면에 자동으로 나타납니다.</li>
+                      {t.qrSteps.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
                     </ol>
                   </>
                 )}
@@ -1643,7 +1708,7 @@ export function KioskClient() {
               <div className="ksk-cam">
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt="선택된 사진" />
+                  <img src={photo} alt={t.selectedPhotoAlt} />
                 ) : (
                   <video ref={videoRef} playsInline muted />
                 )}
@@ -1654,13 +1719,13 @@ export function KioskClient() {
               {countdown !== null && <div className="ksk-cam-count">{countdown}</div>}
               {camError && !photo && (
                 <div className="ksk-cam-nocam">
-                  <span>카메라를 찾을 수 없습니다. 연결을 확인하는 중...</span>
+                  <span>{t.camNotFound}</span>
                   {/* 파일 선택은 OS 탐색기를 연다 — 잠긴 키오스크에서는 노출하지 않는다 */}
                   {kiosk ? (
-                    <span>계속 반복되면 직원을 불러 주세요.</span>
+                    <span>{t.callStaff}</span>
                   ) : (
                     <label className="ksk-btn" style={{ borderColor: '#fff', color: '#fff' }}>
-                      사진 파일로 대신하기
+                      {t.useFile}
                       <input
                         type="file"
                         accept="image/*"
@@ -1684,10 +1749,10 @@ export function KioskClient() {
                     if (photoSource === 'qr') clearQr()
                   }}
                 >
-                  다시 하기
+                  {t.retake}
                 </button>
                 <button className="ksk-btn ksk-btn-primary" onClick={startAnalysis}>
-                  분석 시작
+                  {t.analyzeStart}
                 </button>
               </div>
             ) : photoSource === 'qr' ? (
@@ -1699,36 +1764,36 @@ export function KioskClient() {
                     setStep('product')
                   }}
                 >
-                  이전 단계로 돌아가기
+                  {t.backStep}
                 </button>
                 <div className="ksk-actions">
                   <button className="ksk-btn" onClick={useCamera}>
-                    직접 촬영하기
+                    {t.useCamera}
                   </button>
                   <button
                     className="ksk-btn"
                     disabled={qrState === 'creating'}
                     onClick={startQrSession}
                   >
-                    QR 다시 만들기
+                    {t.regenQr}
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <button className="ksk-alt" onClick={startQrSession} disabled={countdown !== null}>
-                  QR로 폰 사진 올리기
+                  {t.useQr}
                 </button>
                 <div className="ksk-actions">
                   <button className="ksk-btn" onClick={() => setStep('product')}>
-                    이전
+                    {t.prev}
                   </button>
                   <button
                     className="ksk-btn ksk-btn-primary"
                     disabled={camError || countdown !== null}
                     onClick={startCountdown}
                   >
-                    {countdown !== null ? '촬영 중...' : '촬영하기'}
+                    {countdown !== null ? t.shooting : t.shoot}
                   </button>
                 </div>
               </>
@@ -1745,12 +1810,12 @@ export function KioskClient() {
                 <i style={{ width: `${progress}%` }} />
               </div>
               <p className="ksk-analyzing-status">
-                {(program === 'saju' ? SAJU_STATUS_LINES : STATUS_LINES)[
-                  statusIdx % (program === 'saju' ? SAJU_STATUS_LINES : STATUS_LINES).length
+                {(program === 'saju' ? SAJU_STATUS_LINES : t.statusLines)[
+                  statusIdx % (program === 'saju' ? SAJU_STATUS_LINES : t.statusLines).length
                 ]}
               </p>
               <p className="ksk-desc">
-                {program === 'saju' ? '명식을 풀이하는 데 40~80초쯤 걸립니다.' : '보통 20~40초 정도 걸립니다.'}
+                {program === 'saju' ? '명식을 풀이하는 데 40~80초쯤 걸립니다.' : t.analyzingEta}
               </p>
             </div>
           </div>
@@ -1781,15 +1846,15 @@ export function KioskClient() {
                   className="ksk-btn"
                   onClick={() => (chapterIdx > 0 ? setChapterIdx((i) => i - 1) : resetAll())}
                 >
-                  {chapterIdx > 0 ? '이전' : '처음으로'}
+                  {chapterIdx > 0 ? t.prev : t.home}
                 </button>
                 {chapterIdx < chapters.length - 1 ? (
                   <button className="ksk-btn ksk-btn-primary" onClick={() => setChapterIdx((i) => i + 1)}>
-                    다음
+                    {t.next}
                   </button>
                 ) : (
                   <button className="ksk-btn ksk-btn-primary" onClick={openReceipt}>
-                    {kiosk?.hasPrinter ? '영수증 출력' : '영수증 미리보기'}
+                    {kiosk?.hasPrinter ? t.receiptPrint : t.receiptPreview}
                   </button>
                 )}
               </div>
@@ -1810,25 +1875,27 @@ export function KioskClient() {
                 <span>AC&rsquo;SCENT</span>
                 <strong>WOW!</strong>
               </div>
-              <p className="ksk-attract-sub">최애를 닮은 향을 만드는 AI 조향사</p>
+              <p className="ksk-attract-sub">{t.attractSub}</p>
             </div>
             <div className="ksk-attract-card">
               <span className="ksk-attract-card-no">01 PHOTO → 01 SCENT</span>
               <p className="ksk-attract-mid">
-                <strong>오늘의 최애,</strong>
+                <strong>{t.attractTitle1}</strong>
                 <br />
-                어떤 향으로 기억할까요?
+                {t.attractTitle2}
               </p>
               <p className="ksk-attract-detail">
-                사진 속 분위기를 읽어 어울리는 향을 찾고,
+                {t.attractBody1}
                 <br />
-                리포트를 영수증으로 뽑아드려요.
+                {t.attractBody2}
               </p>
               <div className="ksk-attract-tags">
-                <span>#최애향</span><span>#AI조향</span><span>#홍대생카</span>
+                {t.attractTags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
               </div>
             </div>
-            <div className="ksk-attract-cta"><span>✦</span> 화면을 터치해 시작하기 <span>✦</span></div>
+            <div className="ksk-attract-cta"><span>✦</span> {t.attractCta} <span>✦</span></div>
           </div>
         )}
       </div>
@@ -1944,22 +2011,20 @@ export function KioskClient() {
         <div className="ksk-modal">
           <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={receipt.dataUrl} alt="영수증 미리보기" />
+            <img src={receipt.dataUrl} alt={t.receiptAlt} />
           </div>
-          <p className="ksk-modal-note">
-            실제 출력은 80mm 감열지(512dot) 흑백으로 인쇄됩니다 — 이 이미지가 인쇄 원판입니다.
-          </p>
+          <p className="ksk-modal-note">{t.receiptNote}</p>
           <div className="ksk-modal-actions">
             <button className="ksk-btn" onClick={() => setReceipt(null)}>
-              닫기
+              {t.close}
             </button>
             <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
-              {printing ? '인쇄 중...' : kiosk?.hasPrinter ? (printedOnce ? '한 장 더 출력' : '인쇄하기') : 'PNG 저장'}
+              {printing ? t.printing : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
             </button>
           </div>
           {/* 손님이 떠난 자리를 다음 손님이 바로 쓸 수 있게 — 발권 여부와 무관하게 항상 */}
           <button className="ksk-modal-home" onClick={resetAll}>
-            처음으로
+            {t.home}
           </button>
         </div>
       )}
@@ -1970,15 +2035,15 @@ export function KioskClient() {
         <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive">
           <div className="ksk-idle-card">
             <span className="ksk-idle-count ksk-mono">{idleLeft}</span>
-            <h2>잠시 후 처음 화면으로 돌아갑니다</h2>
-            <p>계속 보시려면 화면을 터치해 주세요.</p>
+            <h2>{t.idleTitle}</h2>
+            <p>{t.idleDesc}</p>
             <button type="button" className="ksk-btn ksk-btn-primary">
-              계속 보기
+              {t.idleContinue}
             </button>
           </div>
         </div>
       ) : (
-        idleLeft !== null && <div className="ksk-idle">{idleLeft}초 후 처음 화면으로 돌아갑니다</div>
+        idleLeft !== null && <div className="ksk-idle">{t.idleBanner(idleLeft)}</div>
       )}
       {/* 어트랙트 우하단: 짧게 누르면 배경 설정, 1.5초 길게 누르면 종료 */}
       {step === 'attract' && !backgroundAdminOpen && (
@@ -2004,7 +2069,11 @@ function SelectScreen(props: {
   title: string
   desc: string
   options: string[]
+  /** 표시용 번역 — 값 자체는 한국어 원본을 유지한다(분석 프롬프트 입력) */
+  labels: Record<string, string>
   selected: string[]
+  prevLabel: string
+  nextLabel: string
   onToggle: (v: string) => void
   onPrev: () => void
   onNext: () => void
@@ -2031,7 +2100,7 @@ function SelectScreen(props: {
               data-muted={!on && props.selected.length >= MAX_PICK}
               onClick={() => props.onToggle(o)}
             >
-              {o}
+              {props.labels[o] ?? o}
             </button>
           )
         })}
@@ -2039,10 +2108,10 @@ function SelectScreen(props: {
       <div style={{ flex: 1 }} />
       <div className="ksk-actions">
         <button className="ksk-btn" onClick={props.onPrev}>
-          이전
+          {props.prevLabel}
         </button>
         <button className="ksk-btn ksk-btn-primary" disabled={props.selected.length === 0} onClick={props.onNext}>
-          다음
+          {props.nextLabel}
         </button>
       </div>
     </div>

@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { compressImage } from '@/lib/image/compressor'
+import { kioskText, isKioskLang, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 
 type Status =
   | 'checking'
@@ -22,7 +23,10 @@ type Status =
   | 'done'
   | 'error'
 
-export function KioskUploadClient({ code }: { code: string }) {
+export function KioskUploadClient({ code, lang: langProp }: { code: string; lang?: string }) {
+  // 키오스크가 QR 주소에 ?lang= 을 실어 보낸다 — 손님 폰도 같은 언어로 열린다
+  const lang: KioskLang = isKioskLang(langProp) ? langProp : 'ko'
+  const t = kioskText(lang).upload
   const [status, setStatus] = useState<Status>('checking')
   const [errorMessage, setErrorMessage] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
@@ -31,7 +35,7 @@ export function KioskUploadClient({ code }: { code: string }) {
   useEffect(() => {
     if (!/^PB-[A-Z2-9]{6}$/.test(code)) {
       setStatus('invalid')
-      setErrorMessage('잘못된 주소입니다. 키오스크 화면의 QR을 다시 스캔해 주세요.')
+      setErrorMessage(t.invalidUrl)
       return
     }
     let cancelled = false
@@ -41,10 +45,10 @@ export function KioskUploadClient({ code }: { code: string }) {
         if (cancelled) return
         if (!ok) {
           setStatus('invalid')
-          setErrorMessage(data.error || '세션을 확인할 수 없습니다.')
+          setErrorMessage(data.error || t.sessionCheckFailed)
         } else if (data.status === 'expired') {
           setStatus('invalid')
-          setErrorMessage('시간이 만료되었습니다. 키오스크에서 QR을 다시 만들어 주세요.')
+          setErrorMessage(t.expired)
         } else if (data.status === 'uploaded') {
           setStatus('done')
         } else {
@@ -54,13 +58,13 @@ export function KioskUploadClient({ code }: { code: string }) {
       .catch(() => {
         if (!cancelled) {
           setStatus('invalid')
-          setErrorMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+          setErrorMessage(t.networkError)
         }
       })
     return () => {
       cancelled = true
     }
-  }, [code])
+  }, [code, t])
 
   // 고른 사진은 압축해서 미리보기로만 띄운다 — 전송은 confirmUpload에서
   const handleFile = useCallback(async (file: File) => {
@@ -75,9 +79,9 @@ export function KioskUploadClient({ code }: { code: string }) {
       console.error('키오스크 사진 처리 실패:', error)
       setPreview(null)
       setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : '사진을 불러오지 못했습니다')
+      setErrorMessage(error instanceof Error ? error.message : t.photoLoadFailed)
     }
-  }, [])
+  }, [t])
 
   const confirmUpload = useCallback(async () => {
     if (!preview) return
@@ -90,18 +94,18 @@ export function KioskUploadClient({ code }: { code: string }) {
         body: JSON.stringify({ code, imageBase64: preview }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '업로드에 실패했습니다')
+      if (!res.ok) throw new Error(data.error || t.uploadFailed)
       setStatus('done')
     } catch (error) {
       console.error('키오스크 업로드 실패:', error)
       // 사진은 그대로 두고 확정 화면으로 되돌린다 — 같은 사진으로 바로 재시도할 수 있게
       setStatus('confirm')
-      setErrorMessage(error instanceof Error ? error.message : '업로드에 실패했습니다')
+      setErrorMessage(error instanceof Error ? error.message : t.uploadFailed)
     }
-  }, [code, preview])
+  }, [code, preview, t])
 
   return (
-    <div className="kup-root">
+    <div className="kup-root" lang={lang} data-cjk={isCjkLang(lang)}>
       <header className="kup-top">
         <span className="kup-brand">AC&rsquo;SCENT</span>
         <span className="kup-code">{code}</span>
@@ -120,72 +124,72 @@ export function KioskUploadClient({ code }: { code: string }) {
         }}
       />
 
-      {status === 'checking' && <p className="kup-msg">연결 중입니다...</p>}
+      {status === 'checking' && <p className="kup-msg">{t.connecting}</p>}
 
       {status === 'invalid' && (
         <div className="kup-block">
-          <h1 className="kup-title">접속할 수 없습니다</h1>
+          <h1 className="kup-title">{t.cannotConnect}</h1>
           <p className="kup-desc">{errorMessage}</p>
         </div>
       )}
 
-      {status === 'preparing' && <p className="kup-msg">사진을 불러오는 중입니다...</p>}
+      {status === 'preparing' && <p className="kup-msg">{t.loadingPhoto}</p>}
 
       {(status === 'ready' || status === 'error') && (
         <div className="kup-block">
-          <h1 className="kup-title">사진 올리기</h1>
+          <h1 className="kup-title">{t.title}</h1>
           <p className="kup-desc">
-            갤러리에서 얼굴이 잘 나온 사진 한 장을 골라 주세요.
+            {t.desc1}
             <br />
-            향 분석에만 사용되며, 확정하신 뒤 키오스크 화면에 나타납니다.
+            {t.desc2}
           </p>
           {status === 'error' && <p className="kup-error">{errorMessage}</p>}
           <button className="kup-btn" onClick={() => fileInputRef.current?.click()}>
-            {status === 'error' ? '다시 선택하기' : '갤러리에서 사진 선택'}
+            {status === 'error' ? t.reselect : t.pickFromGallery}
           </button>
         </div>
       )}
 
       {status === 'confirm' && (
         <div className="kup-block">
-          <h1 className="kup-title">이 사진으로 할까요?</h1>
+          <h1 className="kup-title">{t.confirmTitle}</h1>
           {preview && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="kup-preview" src={preview} alt="선택한 사진" />
+            <img className="kup-preview" src={preview} alt={t.selectedAlt} />
           )}
           {errorMessage && <p className="kup-error">{errorMessage}</p>}
-          <p className="kup-desc">확정하면 키오스크 화면으로 전송됩니다.</p>
+          <p className="kup-desc">{t.confirmDesc}</p>
           <button className="kup-btn" onClick={confirmUpload}>
-            {errorMessage ? '다시 올리기' : '이 사진으로 확정하기'}
+            {errorMessage ? t.reupload : t.confirm}
           </button>
           <button className="kup-btn kup-btn-ghost" onClick={() => fileInputRef.current?.click()}>
-            다른 사진 고르기
+            {t.pickAnother}
           </button>
         </div>
       )}
 
       {status === 'uploading' && (
         <div className="kup-block">
-          <h1 className="kup-title">올리는 중...</h1>
+          <h1 className="kup-title">{t.uploading}</h1>
           {preview && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="kup-preview" src={preview} alt="업로드 중인 사진" />
+            <img className="kup-preview" src={preview} alt={t.uploadingAlt} />
           )}
-          <p className="kup-desc">잠시만 기다려 주세요.</p>
+          <p className="kup-desc">{t.pleaseWait}</p>
         </div>
       )}
 
       {status === 'done' && (
         <div className="kup-block">
-          <h1 className="kup-title">업로드 완료</h1>
+          <h1 className="kup-title">{t.done}</h1>
           {preview && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="kup-preview" src={preview} alt="업로드한 사진" />
+            <img className="kup-preview" src={preview} alt={t.doneAlt} />
           )}
           <p className="kup-desc">
-            키오스크 화면을 확인해 주세요.
+            {t.checkKiosk}
             <br />
-            이 창은 닫으셔도 됩니다.
+            {t.canClose}
           </p>
         </div>
       )}
