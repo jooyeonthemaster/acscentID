@@ -37,6 +37,14 @@ import {
 } from './ResultView'
 import './kiosk.css'
 
+/** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
+function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
+  if (lang === 'ko') return 'ko'
+  if (lang === 'ja') return 'ja'
+  if (lang === 'zh-Hans' || lang === 'zh-Hant') return 'zh'
+  return 'en'
+}
+
 /** 사이트의 세 분석 프로그램을 키오스크로 옮긴 것 */
 export type Program = 'personal' | 'idol' | 'saju'
 
@@ -1561,7 +1569,8 @@ export function KioskClient() {
                 maxLength={12}
                 hint={t.namePlaceholder}
                 labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
-                initialMode={lang === 'ko' ? 'ko' : 'en'}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
               />
             ) : (
               <div className="ksk-actions">

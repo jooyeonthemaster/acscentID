@@ -415,6 +415,49 @@
   color: var(--ink-soft);
   white-space: nowrap;
 }
+/* 아직 가나·한자로 확정되지 않은 로마자·병음 — 밑줄로 "변환 중"임을 보인다 */
+.ksk-osk-pending {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* 병음 후보줄 — 자판 높이가 흔들리지 않게 자리는 항상 잡아둔다 */
+.ksk-osk-cands {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-height: 56px;
+  align-items: stretch;
+  overflow: hidden;
+}
+.ksk-osk-cands[data-open='false'] {
+  visibility: hidden;
+}
+.ksk-cand {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 2px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.ksk-cand:active {
+  background: var(--ink);
+  color: #fff;
+}
+.ksk-cand:disabled {
+  opacity: 0.35;
+}
+.ksk-cand-more {
+  flex: 0 0 48px;
+  font-size: 20px;
+}
 
 .ksk-osk-keys {
   display: flex;
