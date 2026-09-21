@@ -310,12 +310,32 @@ class ReceiptBuilder {
       lineHeight?: number
       letterSpacing?: number
       maxLines?: number
+      /** 둘째 줄부터 들여쓸 폭(px) */
+      hangingIndent?: number
+      /**
+       * 첫 줄 앞에 붙는 기호(·, ※ 등). 본문과 함께 한 문자열로 넘기면 기호가 어절로 쪼개져
+       * 혼자 한 줄을 차지하므로, 기호는 따로 그리고 본문 전체를 기호 폭만큼 들여쓴다.
+       */
+      bullet?: string
     }
   ): number {
-    const { size, weight = 500, family = 'sans', align = 'left', lineHeight = 1.45, letterSpacing = 0, maxLines } = opts
+    const {
+      size,
+      weight = 500,
+      family = 'sans',
+      align = 'left',
+      lineHeight = 1.45,
+      letterSpacing = 0,
+      maxLines,
+      hangingIndent = 0,
+      bullet,
+    } = opts
     const fontStr = this.font(size, weight, this.fonts[family])
     this.measure.font = fontStr
     const maxW = this.innerWidth()
+    const bulletW = bullet ? Math.ceil(this.measure.measureText(bullet + ' ').width) : 0
+    // 기호가 있으면 모든 줄이 같은 폭(기호 자리만큼 좁게), 없으면 둘째 줄부터 좁아진다
+    const widthAt = (count: number) => maxW - (bullet ? bulletW : count === 0 ? 0 : hangingIndent)
 
     const lines: string[] = []
     for (const paragraph of String(str).split('\n')) {
@@ -327,15 +347,19 @@ class ReceiptBuilder {
       let cur = ''
       for (const w of words) {
         const cand = cur ? cur + ' ' + w : w
-        if (this.measure.measureText(cand).width + letterSpacing * cand.length <= maxW) {
+        const avail = widthAt(lines.length)
+        if (this.measure.measureText(cand).width + letterSpacing * cand.length <= avail) {
           cur = cand
         } else {
           if (cur) lines.push(cur)
-          // 한 어절이 폭을 넘으면 글자 단위로 강제 분할
-          if (this.measure.measureText(w).width + letterSpacing * w.length > maxW) {
+          // 한 어절이 폭을 넘으면 글자 단위로 강제 분할 (띄어쓰기 없는 일본어·중국어가 여기로 온다)
+          if (this.measure.measureText(w).width + letterSpacing * w.length > widthAt(lines.length)) {
             let chunk = ''
             for (const ch of w) {
-              if (this.measure.measureText(chunk + ch).width + letterSpacing * (chunk.length + 1) <= maxW) {
+              if (
+                this.measure.measureText(chunk + ch).width + letterSpacing * (chunk.length + 1) <=
+                widthAt(lines.length)
+              ) {
                 chunk += ch
               } else {
                 lines.push(chunk)
@@ -357,23 +381,34 @@ class ReceiptBuilder {
     }
 
     const lh = Math.round(size * lineHeight)
-    for (const line of shown) {
+    for (const [i, line] of shown.entries()) {
       const yLine = this.y + lh / 2
+      const indent = bullet ? bulletW : i === 0 ? 0 : hangingIndent
+      const drawBullet = Boolean(bullet) && i === 0
       this.ops.push((ctx) => {
         ctx.font = fontStr
         ctx.fillStyle = INK
         ctx.textBaseline = 'middle'
+        if (drawBullet) {
+          ctx.textAlign = 'left'
+          ctx.fillText(bullet as string, MARGIN, yLine)
+        }
         if (letterSpacing > 0) {
           // letterSpacing 수동 구현 (워드마크용)
           const total = [...line].reduce((acc, ch) => acc + ctx.measureText(ch).width + letterSpacing, -letterSpacing)
-          let x = align === 'center' ? (this.width - total) / 2 : align === 'right' ? this.width - MARGIN - total : MARGIN
+          let x =
+            align === 'center'
+              ? (this.width - total) / 2
+              : align === 'right'
+                ? this.width - MARGIN - total
+                : MARGIN + indent
           for (const ch of line) {
             ctx.fillText(ch, x, yLine)
             x += ctx.measureText(ch).width + letterSpacing
           }
         } else {
           ctx.textAlign = align
-          const x = align === 'center' ? this.width / 2 : align === 'right' ? this.width - MARGIN : MARGIN
+          const x = align === 'center' ? this.width / 2 : align === 'right' ? this.width - MARGIN : MARGIN + indent
           ctx.fillText(line, x, yLine)
           ctx.textAlign = 'left'
         }
@@ -769,8 +804,9 @@ export async function renderKioskReceipt(
   b.text('PRECAUTION', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   b.space(10)
   for (const line of data.precautions ?? RECEIPT_PRECAUTIONS) {
-    // 감열 인쇄에서 체크 글리프는 뭉개지므로 가운뎃점으로 대신한다
-    b.text(`· ${line}`, { size: 14, weight: 500, lineHeight: 1.5 })
+    // 감열 인쇄에서 체크 글리프는 뭉개지므로 가운뎃점으로 대신한다.
+    // 넘친 줄은 불릿 아래가 아니라 글 시작점에 맞춘다 (일본어·중국어는 길어서 자주 넘친다)
+    b.text(line, { size: 14, weight: 500, lineHeight: 1.5, bullet: '·' })
     b.space(3)
   }
   b.space(30)
