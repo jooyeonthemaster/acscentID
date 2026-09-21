@@ -630,7 +630,7 @@ export async function renderKioskReceipt(
   b.space(34)
   b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
   b.space(6)
-  b.text('WOW · SCENT REPORT', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  b.text('WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   b.space(18)
   b.rule(3)
   b.space(10)
@@ -653,14 +653,14 @@ export async function renderKioskReceipt(
 
   // ── 매칭 향
   b.space(22)
-  b.text('YOUR SCENT', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  b.text('YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   b.space(8)
   b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
   b.space(4)
   b.text(data.perfumeName, { size: 44, weight: 800, align: 'center', lineHeight: 1.2 })
   b.space(6)
   b.text(`${data.categoryEn.toUpperCase()} · MATCH ${(data.score * 100).toFixed(0)}%`, {
-    size: 16,
+    size: 17,
     weight: 600,
     family: 'mono',
     align: 'center',
@@ -668,7 +668,7 @@ export async function renderKioskReceipt(
   })
   if (data.keywords.length > 0) {
     b.space(10)
-    b.text(data.keywords.map((k) => `#${k}`).join('  '), { size: 17, weight: 500, align: 'center', maxLines: 2 })
+    b.text(data.keywords.map((k) => `#${k}`).join('  '), { size: 18, weight: 500, align: 'center', maxLines: 2 })
   }
   b.space(16)
   b.rule(1.5, true)
@@ -685,16 +685,16 @@ export async function renderKioskReceipt(
   // ── 사주: 명식 · 용신 · 처방 (사주 프로그램일 때만)
   if (data.saju) {
     const sj = data.saju
-    b.text('四柱命式 · 명식', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('四柱命式 · 명식', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(10)
     b.pillars(sj.pillars)
     b.space(14)
-    b.row('日干 일간', sj.dayMaster, { size: 17 })
-    b.row('用神 용신', sj.yongsin, { size: 17 })
-    b.row('生時 생시', sj.birth, { size: 17, mono: true })
+    b.row('日干 일간', sj.dayMaster, { size: 18 })
+    b.row('用神 용신', sj.yongsin, { size: 18 })
+    b.row('生時 생시', sj.birth, { size: 18, mono: true })
     b.space(12)
 
-    b.text('오행 분포', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('오행 분포', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     for (const el of sj.elements) {
       // 용신 행만 ◀ 마커로 표시 — 색 없이도 처방의 근거가 읽힌다
@@ -704,42 +704,42 @@ export async function renderKioskReceipt(
     b.rule(1.5, true)
     b.space(14)
 
-    b.text('命과 香 · 처방의 연유', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('命과 香 · 처방의 연유', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     if (sj.bridge) {
-      b.text(sj.bridge, { size: 19, weight: 700, lineHeight: 1.4 })
+      b.text(sj.bridge, { size: 20, weight: 700, lineHeight: 1.4 })
       b.space(6)
     }
-    b.text(sj.why, { size: 17, weight: 500, lineHeight: 1.55, maxLines: 5 })
+    b.text(sj.why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 5 })
     b.space(14)
 
     for (const t of sj.tiers) {
-      b.row(t.tier, t.name, { size: 17 })
-      b.text(t.meaning, { size: 15, weight: 500, lineHeight: 1.5, maxLines: 2 })
+      b.row(t.tier, t.name, { size: 18 })
+      b.text(t.meaning, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
       b.space(8)
     }
     b.space(6)
     if (sj.ritual) {
-      b.text('處方 · 쓰는 법', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.text('處方 · 쓰는 법', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
       b.space(8)
-      b.text(sj.ritual, { size: 17, weight: 500, lineHeight: 1.55, maxLines: 3 })
+      b.text(sj.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
       b.space(14)
     }
   }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
   if (!data.saju && data.analysisText) {
-    b.text('ANALYSIS', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('ANALYSIS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
-    b.text(data.analysisText, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 6 })
+    b.text(data.analysisText, { size: 19, weight: 500, lineHeight: 1.55, maxLines: 6 })
     b.space(14)
   }
 
   // ── 퍼스널 컬러
   if (!data.saju && data.personalColorText) {
-    b.text('PERSONAL COLOR', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('PERSONAL COLOR', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
-    b.text(data.personalColorText, { size: 20, weight: 700 })
+    b.text(data.personalColorText, { size: 21, weight: 700 })
     b.space(8)
     b.palette(data.palette)
     b.space(14)
@@ -747,7 +747,7 @@ export async function renderKioskReceipt(
 
   // ── 시그널 (사주판은 오행 분포가 그 역할을 한다)
   if (!data.saju && data.signals.length > 0) {
-    b.text('SIGNALS', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+    b.text('SIGNALS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     for (const s of data.signals) b.bar(s.label, s.value)
     b.space(14)
@@ -757,23 +757,23 @@ export async function renderKioskReceipt(
   b.space(14)
 
   // ── 제조 레시피
-  b.text('RECIPE', { size: 15, weight: 600, family: 'mono', letterSpacing: 3 })
+  b.text('RECIPE', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
   b.space(4)
-  b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 22, weight: 700 })
+  b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 23, weight: 700 })
   b.space(10)
   for (const r of data.recipeRows) {
     b.row(`${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
-      size: 18,
+      size: 19,
       weightL: 700,
       mono: true,
     })
-    b.text(r.name, { size: 16, weight: 500 })
+    b.text(r.name, { size: 18, weight: 500 })
     b.space(6)
   }
-  b.row('BASE', data.baseText, { size: 18, mono: true })
+  b.row('BASE', data.baseText, { size: 19, mono: true })
   b.space(10)
   for (let i = 0; i < data.steps.length; i++) {
-    b.text(`${i + 1}. ${data.steps[i]}`, { size: 16, weight: 500, lineHeight: 1.5 })
+    b.text(`${i + 1}. ${data.steps[i]}`, { size: 18, weight: 500, lineHeight: 1.5 })
   }
   b.space(14)
   b.rule(1.5, true)
@@ -794,19 +794,19 @@ export async function renderKioskReceipt(
 
   // ── 푸터
   for (const line of data.footerLines) {
-    b.text(line, { size: 15, weight: 500, align: 'center', lineHeight: 1.6 })
+    b.text(line, { size: 17, weight: 500, align: 'center', lineHeight: 1.6 })
   }
   b.space(16)
 
   // ── 주의사항 — 맨 아래 (실물 라벨 PRECAUTION과 동일 문구)
   b.rule(1.5, true)
   b.space(12)
-  b.text('PRECAUTION', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  b.text('PRECAUTION', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   b.space(10)
   for (const line of data.precautions ?? RECEIPT_PRECAUTIONS) {
     // 감열 인쇄에서 체크 글리프는 뭉개지므로 가운뎃점으로 대신한다.
     // 넘친 줄은 불릿 아래가 아니라 글 시작점에 맞춘다 (일본어·중국어는 길어서 자주 넘친다)
-    b.text(line, { size: 14, weight: 500, lineHeight: 1.5, bullet: '·' })
+    b.text(line, { size: 17, weight: 500, lineHeight: 1.5, bullet: '·' })
     b.space(3)
   }
   b.space(30)
