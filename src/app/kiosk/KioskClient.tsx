@@ -36,6 +36,8 @@ import {
   perfumeNoFromId, scentCategoryEn,
 } from './ResultView'
 import './kiosk.css'
+import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
+import { toKioskTheme } from '@/lib/screen-backgrounds/theme'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
 function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
@@ -91,111 +93,6 @@ type Step =
 /** 어트랙트에서 터치했을 때 들어갈 첫 단계 */
 const FIRST_STEP: Step = SHOW_PROGRAM_STEP ? 'program' : 'info'
 
-const KIOSK_BACKGROUND_STORAGE_KEY = 'acscent-wow-kiosk-background'
-const KIOSK_BACKGROUND_ADMIN_PASSWORD = '110619'
-
-/** 포토부스와 시각 언어를 공유하되 키오스크 기기에는 별도로 저장되는 생카 테마. */
-const KIOSK_BACKGROUNDS = [
-  {
-    id: 'gingham',
-    title: '파스텔 깅엄',
-    image: '/assets/photobooth/concepts/01-gingham-stationery.png',
-    displayFont: 'var(--font-noto-serif-kr), "Noto Serif KR", serif',
-    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
-    paper: '#fffaf0',
-    ink: '#263d59',
-    inkSoft: '#617087',
-    line: 'rgba(38, 61, 89, 0.22)',
-    accent: '#de665f',
-    accentSoft: '#f7c9ce',
-    surface: 'rgba(255, 252, 244, 0.91)',
-    surfaceStrong: '#fffdf8',
-    shadow: '0 18px 50px rgba(68, 86, 110, 0.16)',
-    radius: '24px',
-    tracking: '-0.035em',
-  },
-  {
-    id: 'scrapbook',
-    title: '스크랩북 티켓',
-    image: '/assets/photobooth/concepts/02-scrapbook-ticket.png',
-    displayFont: 'var(--font-kirang), "Kirang Haerang", cursive',
-    bodyFont: 'var(--font-wanted), "Wanted Sans", sans-serif',
-    paper: '#f7f0e2',
-    ink: '#173e68',
-    inkSoft: '#647181',
-    line: 'rgba(23, 62, 104, 0.24)',
-    accent: '#d94842',
-    accentSoft: '#ffd76a',
-    surface: 'rgba(255, 251, 240, 0.92)',
-    surfaceStrong: '#fffcf4',
-    shadow: '8px 9px 0 rgba(23, 62, 104, 0.14)',
-    radius: '12px',
-    tracking: '0.01em',
-  },
-  {
-    id: 'airy',
-    title: '에어리 그라데이션',
-    image: '/assets/photobooth/concepts/03-airy-gradient.png',
-    displayFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
-    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
-    paper: '#eefaff',
-    ink: '#244a68',
-    inkSoft: '#557589',
-    line: 'rgba(36, 74, 104, 0.2)',
-    accent: '#e96e65',
-    accentSoft: '#bdefff',
-    surface: 'rgba(255, 255, 255, 0.76)',
-    surfaceStrong: 'rgba(255, 255, 255, 0.9)',
-    shadow: '0 22px 54px rgba(48, 124, 158, 0.17)',
-    radius: '28px',
-    tracking: '-0.025em',
-  },
-  {
-    id: 'retro',
-    title: '레트로 체크',
-    image: '/assets/photobooth/concepts/04-retro-check.png',
-    displayFont: 'var(--font-jua), "Jua", "Apple SD Gothic Neo", sans-serif',
-    bodyFont: 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif',
-    paper: '#fff6df',
-    ink: '#164b7e',
-    inkSoft: '#5f6c78',
-    line: 'rgba(22, 75, 126, 0.27)',
-    accent: '#dc3d37',
-    accentSoft: '#ffd457',
-    surface: 'rgba(255, 250, 237, 0.93)',
-    surfaceStrong: '#fffaf0',
-    shadow: '8px 9px 0 #ffd457',
-    radius: '18px',
-    tracking: '-0.04em',
-  },
-] as const
-
-interface KioskBackgroundTheme {
-  id: string
-  title: string
-  image: string
-  displayFont: string
-  bodyFont: string
-  paper: string
-  ink: string
-  inkSoft: string
-  line: string
-  accent: string
-  accentSoft: string
-  surface: string
-  surfaceStrong: string
-  shadow: string
-  radius: string
-  tracking: string
-}
-
-/** 관리자가 올린 배경 — 이미지만 바뀌고 색·글꼴은 palette 테마를 물려받는다 */
-interface UploadedBackground {
-  id: string
-  title: string
-  image_url: string
-  palette: string
-}
 
 /**
  * 촬영 단계의 기본 입력. 최애 이미지 분석은 손님 폰 갤러리에 있는 사진을 쓰므로
@@ -367,12 +264,25 @@ export function KioskClient() {
   // 처음 화면으로 돌아갈 때(다음 손님) 한국어로 되돌아간다.
   const [lang, setLang] = useState<KioskLang>('ko')
   const [langOpen, setLangOpen] = useState(false)
-  const [backgroundId, setBackgroundId] = useState<string>('retro')
-  const [uploadedBackgrounds, setUploadedBackgrounds] = useState<UploadedBackground[]>([])
+  const {
+    backgrounds,
+    activeBackground: backgroundRecord,
+    selectedId: backgroundId,
+    loading: backgroundsLoading,
+    error: backgroundsError,
+    refresh: refreshBackgrounds,
+    selectBackground,
+    unlock: unlockBackgroundAdmin,
+  } = useScreenBackgrounds('kiosk')
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
   const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
   const [backgroundPassword, setBackgroundPassword] = useState('')
   const [backgroundPasswordError, setBackgroundPasswordError] = useState('')
+  const [backgroundUnlocking, setBackgroundUnlocking] = useState(false)
+  const [backgroundSaving, setBackgroundSaving] = useState<string | null>(null)
+  const [backgroundActionError, setBackgroundActionError] = useState('')
+  const backgroundAuthRequest = useRef(0)
+  const backgroundDialogRef = useRef<HTMLDivElement>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -387,55 +297,21 @@ export function KioskClient() {
   const qrGeneration = useRef(0)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
-  /* 내장 배경 + 관리자가 올린 배경. 올린 것은 palette 테마의 색·글꼴을 그대로 쓰고
-     배경 이미지만 갈아 끼운다 — 관리자가 색 토큰을 직접 정하면 읽히지 않는 조합이 나온다. */
-  const allBackgrounds = useMemo<KioskBackgroundTheme[]>(() => {
-    const uploaded = uploadedBackgrounds.map((item) => {
-      const base =
-        KIOSK_BACKGROUNDS.find((background) => background.id === item.palette) ??
-        KIOSK_BACKGROUNDS[KIOSK_BACKGROUNDS.length - 1]
-      return { ...base, id: item.id, title: item.title, image: item.image_url }
-    })
-    return [...uploaded, ...KIOSK_BACKGROUNDS]
-  }, [uploadedBackgrounds])
-
   const t = kioskText(lang)
+  const activeBackground = toKioskTheme(backgroundRecord)
 
-  const activeBackground =
-    allBackgrounds.find((background) => background.id === backgroundId) ??
-    KIOSK_BACKGROUNDS[KIOSK_BACKGROUNDS.length - 1]
-
-  useEffect(() => {
+  const chooseBackground = useCallback(async (id: string) => {
+    if (!backgroundAdminUnlocked || backgroundSaving) return
+    setBackgroundSaving(id)
+    setBackgroundActionError('')
     try {
-      const saved = window.localStorage.getItem(KIOSK_BACKGROUND_STORAGE_KEY)
-      if (saved) setBackgroundId(saved)
-    } catch {
-      // 저장소에 접근하지 못하면 레트로 체크 기본값을 유지한다.
+      await selectBackground(id)
+    } catch (error) {
+      setBackgroundActionError(error instanceof Error ? error.message : '배경을 저장하지 못했습니다. 다시 시도해주세요.')
+    } finally {
+      setBackgroundSaving(null)
     }
-  }, [])
-
-  // 관리자 페이지에서 올린 배경을 가져온다 (실패해도 내장 배경으로 정상 동작)
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/kiosk/backgrounds', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data?.backgrounds)) setUploadedBackgrounds(data.backgrounds)
-      })
-      .catch((e) => console.error('[kiosk] 배경 목록 조회 실패:', e))
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const selectBackground = useCallback((id: string) => {
-    setBackgroundId(id)
-    try {
-      window.localStorage.setItem(KIOSK_BACKGROUND_STORAGE_KEY, id)
-    } catch {
-      // 저장 실패 시에도 현재 세션에는 선택값을 유지한다.
-    }
-  }, [])
+  }, [backgroundAdminUnlocked, backgroundSaving, selectBackground])
 
   const showToast = useCallback((msg: string) => {
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
@@ -523,7 +399,7 @@ export function KioskClient() {
       : step === 'capture' && photoSource === 'qr'
         ? QR_IDLE_LIMIT
         : IDLE_LIMIT[step]
-    if (!limit) {
+    if (!limit || backgroundAdminOpen) {
       setIdleLeft(null)
       return
     }
@@ -555,7 +431,7 @@ export function KioskClient() {
       window.clearInterval(timer)
       setIdleLeft(null)
     }
-  }, [step, photoSource, resetAll, receiptOpen, printing])
+  }, [step, photoSource, resetAll, receiptOpen, printing, backgroundAdminOpen])
 
   // ── 카메라 ────────────────────────────────────────────────
   useEffect(() => {
@@ -1129,23 +1005,30 @@ export function KioskClient() {
     }
   }, [receipt, kiosk, buildReceipt, showToast, t])
 
-  // ── 관리자 핫스팟 (짧게: 배경 설정 / Electron 3초 홀드: 앱 종료) ────
+  // ── 관리자 핫스팟 (짧게 누르기 / 1.5초 홀드 모두 서버 인증 후 설정) ────
   const exitHold = useRef<number | undefined>(undefined)
   const exitTriggered = useRef(false)
   const openBackgroundAdmin = useCallback(() => {
+    backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(true)
     setBackgroundAdminUnlocked(false)
     setBackgroundPassword('')
     setBackgroundPasswordError('')
-  }, [])
+    setBackgroundActionError('')
+    setBackgroundUnlocking(false)
+    void refreshBackgrounds()
+  }, [refreshBackgrounds])
   const closeBackgroundAdmin = useCallback(() => {
+    backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(false)
     setBackgroundAdminUnlocked(false)
     setBackgroundPassword('')
     setBackgroundPasswordError('')
+    setBackgroundUnlocking(false)
   }, [])
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
+    if (exitHold.current) window.clearTimeout(exitHold.current)
     exitHold.current = window.setTimeout(() => {
       // 홀드로 열렸으면 손을 뗄 때 따라오는 click 은 무시한다
       exitTriggered.current = true
@@ -1155,6 +1038,80 @@ export function KioskClient() {
   const onExitUp = useCallback(() => {
     if (exitHold.current) window.clearTimeout(exitHold.current)
     exitHold.current = undefined
+  }, [])
+
+  const pressBackgroundAdminKey = useCallback(async (key: string) => {
+    if (backgroundUnlocking) return
+    setBackgroundPasswordError('')
+    if (key === '지우기') {
+      setBackgroundPassword((value) => value.slice(0, -1))
+      return
+    }
+    if (key !== '확인') {
+      setBackgroundPassword((value) => `${value}${key}`.slice(0, 6))
+      return
+    }
+    if (backgroundPassword.length !== 6) return
+    setBackgroundUnlocking(true)
+    const requestId = ++backgroundAuthRequest.current
+    try {
+      const unlocked = await unlockBackgroundAdmin(backgroundPassword)
+      if (requestId !== backgroundAuthRequest.current) return
+      setBackgroundPassword('')
+      if (unlocked) setBackgroundAdminUnlocked(true)
+      else setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
+    } catch (error) {
+      if (requestId === backgroundAuthRequest.current) {
+        setBackgroundPassword('')
+        setBackgroundPasswordError(error instanceof Error ? error.message : '관리자 인증에 실패했습니다. 연결을 확인해주세요.')
+      }
+    } finally {
+      if (requestId === backgroundAuthRequest.current) setBackgroundUnlocking(false)
+    }
+  }, [backgroundPassword, backgroundUnlocking, unlockBackgroundAdmin])
+
+  useEffect(() => {
+    if (!backgroundAdminOpen) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeBackgroundAdmin()
+      } else if (!backgroundAdminUnlocked && (/^[0-9]$/.test(event.key) || event.key === 'Backspace' || event.key === 'Enter')) {
+        event.preventDefault()
+        void pressBackgroundAdminKey(event.key === 'Backspace' ? '지우기' : event.key === 'Enter' ? '확인' : event.key)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [backgroundAdminOpen, backgroundAdminUnlocked, pressBackgroundAdminKey, closeBackgroundAdmin])
+
+  useEffect(() => {
+    if (!backgroundAdminOpen) return
+    const previous = document.activeElement as HTMLElement | null
+    const dialog = backgroundDialogRef.current
+    dialog?.querySelector<HTMLButtonElement>('button')?.focus()
+    const keepFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !dialog) return
+      const controls = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])'))
+      const first = controls[0], last = controls[controls.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+    dialog?.addEventListener('keydown', keepFocus)
+    return () => {
+      dialog?.removeEventListener('keydown', keepFocus)
+      previous?.focus()
+    }
+  }, [backgroundAdminOpen])
+
+  useEffect(() => () => {
+    if (exitHold.current) window.clearTimeout(exitHold.current)
+    backgroundAuthRequest.current += 1
   }, [])
 
   /* ── 한 화면에 맞추기 ──────────────────────────────────────
@@ -1276,6 +1233,7 @@ export function KioskClient() {
         '--ink-soft': activeBackground.inkSoft,
         '--line': activeBackground.line,
         '--accent': activeBackground.accent,
+        '--on-accent': activeBackground.onAccent,
         '--accent-soft': activeBackground.accentSoft,
         '--surface': activeBackground.surface,
         '--surface-strong': activeBackground.surfaceStrong,
@@ -1919,7 +1877,7 @@ export function KioskClient() {
             if (event.target === event.currentTarget) closeBackgroundAdmin()
           }}
         >
-          <div className="ksk-admin-panel">
+          <div className="ksk-admin-panel" ref={backgroundDialogRef}>
             <div className="ksk-admin-head">
               <div>
                 <p>AC&rsquo;SCENT WOW · STORE ADMIN</p>
@@ -1936,32 +1894,15 @@ export function KioskClient() {
                     <i key={index} data-filled={index < backgroundPassword.length} />
                   ))}
                 </div>
-                {backgroundPasswordError && <strong>{backgroundPasswordError}</strong>}
+                <strong role="status">{backgroundUnlocking ? '인증 확인 중…' : backgroundPasswordError}</strong>
                 <div className="ksk-admin-pad">
                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', '지우기', '0', '확인'].map((key) => (
                     <button
                       key={key}
                       type="button"
                       data-action={key === '확인' || key === '지우기'}
-                      disabled={key === '확인' && backgroundPassword.length !== 6}
-                      onClick={() => {
-                        setBackgroundPasswordError('')
-                        if (key === '지우기') {
-                          setBackgroundPassword((value) => value.slice(0, -1))
-                          return
-                        }
-                        if (key === '확인') {
-                          if (backgroundPassword === KIOSK_BACKGROUND_ADMIN_PASSWORD) {
-                            setBackgroundAdminUnlocked(true)
-                            setBackgroundPassword('')
-                          } else {
-                            setBackgroundPassword('')
-                            setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
-                          }
-                          return
-                        }
-                        setBackgroundPassword((value) => `${value}${key}`.slice(0, 6))
-                      }}
+                      disabled={backgroundUnlocking || (key === '확인' && backgroundPassword.length !== 6)}
+                      onClick={() => void pressBackgroundAdminKey(key)}
                     >
                       {key}
                     </button>
@@ -1970,30 +1911,46 @@ export function KioskClient() {
               </div>
             ) : (
               <div className="ksk-admin-themes">
-                <p>선택한 배경과 글꼴은 모든 단계에 적용되고 이 기기에 저장됩니다.</p>
+                <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
+                <div className="ksk-admin-toolbar">
+                  <b>화면 배경 · {backgrounds.length}개</b>
+                  <button type="button" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>
+                    {backgroundsLoading ? '불러오는 중…' : '새로고침'}
+                  </button>
+                </div>
+                {(backgroundActionError || backgroundsError) && (
+                  <p className="ksk-admin-error" role="alert">{backgroundActionError || backgroundsError}</p>
+                )}
+                <p className="ksk-admin-status" role="status">
+                  {backgroundSaving ? '서버에 배경을 저장하고 있습니다…' : backgroundsLoading ? '배경 목록을 불러오고 있습니다…' : ''}
+                </p>
                 <div className="ksk-admin-grid">
-                  {allBackgrounds.map((background) => (
+                  {backgrounds.map((record) => {
+                    const background = toKioskTheme(record)
+                    return (
                     <button
                       key={background.id}
                       type="button"
                       data-selected={background.id === backgroundId}
-                      onClick={() => selectBackground(background.id)}
+                      aria-pressed={background.id === backgroundId}
+                      disabled={!!backgroundSaving}
+                      onClick={() => void chooseBackground(background.id)}
                     >
                       <span className="ksk-admin-preview">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={background.image} alt="" />
-                        <b style={{ fontFamily: background.displayFont }}>오늘의 최애향</b>
+                        <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
+                        <b style={{ fontFamily: background.displayFont, color: background.ink }}>오늘의 최애향</b>
                       </span>
                       <span className="ksk-admin-theme-name">
                         <b>{background.title}</b>
                         <em>{background.id === backgroundId ? '✓ 적용 중' : '선택'}</em>
                       </span>
                     </button>
-                  ))}
+                  )})}
                 </div>
                 <div className="ksk-admin-actions">
                   <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
-                    적용하고 닫기
+                    닫기
                   </button>
                   {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
                   <button
@@ -2054,17 +2011,20 @@ export function KioskClient() {
       ) : (
         idleLeft !== null && <div className="ksk-idle">{t.idleBanner(idleLeft)}</div>
       )}
-      {/* 어트랙트 우하단: 짧게 누르면 배경 설정, 1.5초 길게 누르면 종료 */}
-      {step === 'attract' && !backgroundAdminOpen && (
+      {/* 안전한 모든 단계의 우하단에서 동일한 관리자 인증창을 연다. */}
+      {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
         <button
           type="button"
-          aria-label="관리자 설정 열기 (길게 누르면 종료)"
+          aria-label="매장 관리자 설정 열기"
           className="ksk-exit-hotspot"
           onPointerDown={onExitDown}
           onPointerUp={onExitUp}
           onPointerLeave={onExitUp}
           onPointerCancel={onExitUp}
-          onClick={openBackgroundAdmin}
+          onClick={() => {
+            if (!exitTriggered.current) openBackgroundAdmin()
+            exitTriggered.current = false
+          }}
         />
       )}
     </div>

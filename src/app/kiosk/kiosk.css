@@ -41,10 +41,8 @@
   overflow: hidden;
   border: 2px solid var(--line);
   border-radius: calc(var(--ksk-radius) + 8px);
-  background: var(--surface);
-  box-shadow: var(--ksk-shadow);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* 중앙 여백이 있는 배경 원화를 그대로 보여주고 개별 입력 카드만 바탕을 둔다. */
+  background: transparent;
 }
 
 .ksk-mono {
@@ -153,7 +151,7 @@
 .ksk-btn-primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
   box-shadow: 0 7px 0 color-mix(in srgb, var(--accent) 24%, transparent);
 }
 .ksk-btn:disabled {
@@ -309,7 +307,7 @@
   border: 2px solid var(--accent);
   border-radius: 999px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
   padding: 20px 24px;
   text-align: center;
   font-size: 20px;
@@ -449,7 +447,11 @@
 }
 .ksk-cand:active {
   background: var(--ink);
-  color: #fff;
+  color: var(--paper);
+}
+.ksk-cand:not(:active) {
+  background: var(--surface-strong);
+  color: var(--ink);
 }
 .ksk-cand:disabled {
   opacity: 0.35;
@@ -878,7 +880,7 @@
 }
 .ksk-modal-actions .ksk-btn-primary {
   background: #fff;
-  color: var(--ink);
+  color: #173e68;
 }
 .ksk-modal-note {
   width: 100%;
@@ -1381,14 +1383,14 @@
 :is(.ksk-chip, .ksk-product, .ksk-program, .ksk-purpose, .ksk-check, .ksk-branch)[data-on='true'] {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
   box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 :is(.ksk-key, .ksk-pad-key):active {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 
 .ksk-input,
@@ -1410,7 +1412,7 @@
 .ksk-alt[data-on='true'] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 .ksk-alt {
   border-radius: var(--ksk-radius);
@@ -1593,8 +1595,12 @@
 }
 .ksk-admin-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  max-height: min(52dvh, 840px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
 }
 .ksk-admin-grid > button {
   overflow: hidden;
@@ -1613,7 +1619,7 @@
 .ksk-admin-preview {
   position: relative;
   display: block;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 9 / 16;
   overflow: hidden;
 }
 .ksk-admin-preview img {
@@ -1628,17 +1634,19 @@
   color: #173e68;
   font-size: 18px;
   line-height: 1.1;
-  text-shadow: 0 1px 9px rgba(255, 255, 255, 0.9);
+  text-align: center;
 }
 .ksk-admin-theme-name {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
   justify-content: space-between;
   gap: 8px;
   padding: 12px;
 }
 .ksk-admin-theme-name b {
   font-size: 14px;
+  word-break: keep-all;
 }
 .ksk-admin-theme-name em {
   color: rgba(255, 255, 255, 0.48);
@@ -1661,6 +1669,43 @@
   font-weight: 800;
   cursor: pointer;
 }
+.ksk-admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ksk-admin-toolbar button {
+  min-height: 44px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ksk-admin-panel button:disabled { opacity: 0.45; cursor: wait; }
+.ksk-admin-themes > .ksk-admin-error {
+  color: #ffb7b7;
+  border: 1px solid rgba(255, 157, 157, 0.4);
+  border-radius: 12px;
+  padding: 12px;
+}
+.ksk-admin-themes > .ksk-admin-status {
+  min-height: 22px;
+  margin: 6px 0;
+  color: #ffd457;
+}
+.ksk-admin-panel button:focus-visible {
+  outline: 3px solid #ffd457;
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .ksk-admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 /* 우하단 숨김 관리자 영역 */
 .ksk-exit-hotspot {
@@ -1674,6 +1719,12 @@
   background: transparent;
   opacity: 0;
   cursor: default;
+}
+.ksk-exit-hotspot:focus-visible {
+  opacity: 1;
+  outline: 3px solid var(--ink);
+  outline-offset: -6px;
+  border-radius: 14px;
 }
 
 @media (max-height: 720px) {
@@ -1704,12 +1755,12 @@
 .ksk-osk .ksk-key-done {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
   font-weight: 800;
 }
 .ksk-osk .ksk-key-done:active {
   background: color-mix(in srgb, var(--accent) 80%, #000);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 
 /* 영수증 모달의 '닫기' — 어두운 오버레이 위 아웃라인 버튼이어야 한다
@@ -1748,7 +1799,7 @@
 /* 선택된 제품 카드의 설명·용량 — 진한 배경 위 opacity 0.75는 흐리다 */
 .ksk-product[data-on='true'] span,
 .ksk-product[data-on='true'] em {
-  color: #fff;
+  color: var(--on-accent, #fff);
   opacity: 0.92;
 }
 
@@ -1776,7 +1827,7 @@
 .ksk-count[data-full='true'] {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 /* 상한을 채운 뒤의 미선택 항목 — 눌러도 반응이 없으므로 눌러도 되는지 눈으로 구분되게 */
 .ksk-chip[data-muted='true'] {
@@ -1807,7 +1858,7 @@
 }
 .ksk-admin-quit:active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 
 /* 영수증 미리보기 맨 아래 — 다음 손님을 위한 복귀 */
@@ -1964,7 +2015,7 @@
 }
 .ksk-lang-menu button[data-on='true'] {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 .ksk-lang-menu button em {
   font-style: normal;

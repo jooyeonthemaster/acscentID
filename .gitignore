@@ -58,3 +58,6 @@ backups
 /사주상품사진/
 /artifacts/
 /docs/research/
+/birthday-posters/
+# 배경 시안 검토 원본(478MB) — 웹 에셋은 public/assets/screen-backgrounds 로 변환해 커밋한다
+/design-review/

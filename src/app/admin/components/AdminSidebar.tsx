@@ -113,6 +113,12 @@ const navGroups: NavGroup[] = [
         icon: Monitor,
         description: '무인 기기 분석 기록',
       },
+      {
+        href: '/admin/backgrounds',
+        label: '화면 배경 관리',
+        icon: ImageIcon,
+        description: '포토부스 · 키오스크 배경',
+      },
     ],
   },
   {

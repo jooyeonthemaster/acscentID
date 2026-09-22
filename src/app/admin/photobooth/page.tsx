@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
 import { CardManager } from './CardManager'
 import { ShotStats } from './ShotStats'
@@ -32,6 +33,7 @@ import {
   Pencil,
   Ban,
   KeyRound,
+  ImageIcon,
 } from 'lucide-react'
 
 // ======================
@@ -375,6 +377,8 @@ export default function AdminPhotoboothPage() {
           liveEvent ? `진행 중 생카: ${liveEvent.title}` : '진행 중인 생카 이벤트 없음'
         }
         actions={
+          <>
+          <Link href="/admin/backgrounds?target=booth" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50"><ImageIcon className="h-4 w-4" />화면 배경 관리</Link>
           <a
             href="/booth"
             target="_blank"
@@ -384,6 +388,7 @@ export default function AdminPhotoboothPage() {
             <ExternalLink className="w-4 h-4" />
             부스 화면 열기
           </a>
+          </>
         }
       />
 
