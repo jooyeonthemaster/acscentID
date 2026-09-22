@@ -8,6 +8,9 @@
 
 // 혼동되는 글자(0/O, 1/I/L) 제외 — 사람이 보고 입력하는 코드라서
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+
+/** 부스 온스크린 키패드에 그대로 쓰는 문자 집합 */
+export const CARD_ALPHABET = ALPHABET
 export const CARD_CODE_LENGTH = 5
 const CARD_CODE_PATTERN = new RegExp(`^[${ALPHABET}]{${CARD_CODE_LENGTH}}$`)
 

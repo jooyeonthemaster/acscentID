@@ -23,11 +23,12 @@ import http from 'node:http'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { execFile } from 'node:child_process'
+import { execFile, exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import { createRequire } from 'node:module'
 
 const execFileAsync = promisify(execFile)
+const execAsync = promisify(exec)
 const require = createRequire(import.meta.url)
 const sharp = require('sharp')
 
@@ -40,6 +41,8 @@ const DOTS = Number(process.env.KIOSK_PRINTER_DOTS || 512)
 const THRESHOLD = Number(process.env.KIOSK_PRINT_THRESHOLD || 170)
 /** 한 번에 보낼 래스터 밴드 높이 (큰 이미지를 통째로 보내면 버퍼가 작은 기종이 토한다) */
 const BAND_ROWS = 128
+/** 전송 명령을 직접 지정하고 싶을 때 ({file}이 파일 경로로 치환된다) */
+const PRINT_CMD = process.env.KIOSK_PRINT_CMD || ''
 /** 인쇄를 실제로 보내지 않고 파일만 남기는 점검 모드 */
 const DRY_RUN = process.env.KIOSK_PRINT_DRY_RUN === '1'
 
@@ -144,9 +147,12 @@ async function sendToPrinter(raw) {
   }
   if (!PRINTER) throw new Error('KIOSK_PRINTER 환경변수가 비어 있습니다')
 
-  if (process.platform === 'win32') {
-    // 공유 이름 또는 포트로 바이트 그대로 복사
-    await execFileAsync('cmd', ['/c', 'copy', '/b', file, PRINTER])
+  if (PRINT_CMD) {
+    // 탈출구 — 기종 전용 유틸이 있으면 그대로 쓴다 ({file} 자리에 경로가 들어간다)
+    await execAsync(PRINT_CMD.replace('{file}', `"${file}"`))
+  } else if (process.platform === 'win32') {
+    // 공유 프린터로 바이트 그대로 복사 — 경로에 공백이 있을 수 있어 따옴표로 감싼다
+    await execAsync(`copy /b "${file}" "${PRINTER}"`)
   } else {
     await execFileAsync('lp', ['-d', PRINTER, '-o', 'raw', file])
   }
@@ -227,7 +233,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, '127.0.0.1', () => {
   log(`키오스크 인쇄 브리지 — http://127.0.0.1:${PORT}`)
   log(`프린터: ${PRINTER || '(미설정)'} · 헤드 ${DOTS}dot · 임계 ${THRESHOLD}${DRY_RUN ? ' · DRY_RUN' : ''}`)
-  if (!PRINTER && !DRY_RUN) {
-    log('⚠ KIOSK_PRINTER가 비어 있습니다. macOS는 `lpstat -p`로 이름을 확인하세요.')
+  if (!PRINTER && !PRINT_CMD && !DRY_RUN) {
+    log('⚠ KIOSK_PRINTER가 비어 있습니다.')
+    log('   Windows: 프린터를 공유한 뒤 \\\\localhost\\<공유이름> 형태로,  macOS: `lpstat -p`의 이름으로 지정하세요.')
   }
 })

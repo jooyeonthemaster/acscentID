@@ -1,0 +1,8 @@
+{
+  "name": "acscent-wow-booth",
+  "productName": "ACSCENT WOW Booth",
+  "version": "1.0.0",
+  "description": "AC'SCENT WOW 매장 포토부스 (Canon DSLR + DNP DS-RX1)",
+  "main": "main.js",
+  "private": true
+}

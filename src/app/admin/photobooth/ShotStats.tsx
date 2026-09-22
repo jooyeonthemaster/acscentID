@@ -236,11 +236,11 @@ export function ShotStats({ onToast }: { onToast: (msg: string) => void }) {
           {/* 일별 추이 */}
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <h3 className="text-sm font-bold text-slate-900 mb-3">일별 추이</h3>
-            <div className="flex items-end gap-[3px] h-28">
+            <div className="flex items-stretch gap-[3px] h-28">
               {data.daily.map((d) => (
                 <div
                   key={d.date}
-                  className="flex-1 flex flex-col justify-end group relative"
+                  className="flex-1 flex h-full flex-col justify-end group relative"
                   title={`${d.date} · ${d.count}건 (인쇄 ${d.printed})`}
                 >
                   <div

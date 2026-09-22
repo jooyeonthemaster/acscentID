@@ -41,6 +41,7 @@
     "dompurify": "^3.3.3",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.23.25",
+    "jsqr": "^1.4.0",
     "jszip": "^3.10.2",
     "lucide-react": "^0.556.0",
     "manseryeok": "^2.0.0",

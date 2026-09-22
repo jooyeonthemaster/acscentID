@@ -15,10 +15,11 @@ const PUBLIC_METADATA_PATHS = new Set([
   '/apple-icon',
 ])
 
-// wasm/tflite/js = 부스 인물 오려내기용 MediaPipe 런타임·모델 (public/mediapipe, public/models).
+// wasm/tflite/onnx/js = 부스 인물 오려내기용 MediaPipe·ONNX 런타임과 모델
+// (public/mediapipe, public/onnxruntime, public/models).
 // 여기에 없으면 i18n 미들웨어가 로케일 경로로 재작성해 404가 난다.
 const PUBLIC_FILE_PATTERN =
-  /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest|wasm|tflite|task|js|mjs)$/
+  /\.(png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest|wasm|tflite|task|onnx|js|mjs|ps1)$/
 
 /**
  * Middleware - 다국어 라우팅 + 쿠키 정리 및 세션 관리

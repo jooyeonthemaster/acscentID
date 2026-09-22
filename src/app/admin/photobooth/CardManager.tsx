@@ -183,9 +183,9 @@ export function CardManager({
   const downloadOne = async (card: BoothCard) => {
     try {
       const { front, back } = await buildPrintFiles(card, window.location.origin)
-      downloadBlob(await canvasToBlob(front), `${card.code}_앞면.png`)
+      downloadBlob(await canvasToBlob(front), `${card.code}_front.png`)
       setTimeout(async () => {
-        downloadBlob(await canvasToBlob(back), `${card.code}_뒷면.png`)
+        downloadBlob(await canvasToBlob(back), `${card.code}_back.png`)
       }, 400)
       onToast(`${card.code} 인쇄 파일을 저장했습니다.`)
     } catch (err) {
@@ -208,18 +208,19 @@ export function CardManager({
         `작업영역(파일 크기): ${CARD_PRINT.workLabel} — 사방 1mm 재단 여백 포함`,
         `해상도: 300 dpi (${CARD_FULL_W} x ${CARD_FULL_H} px)`,
         '',
-        '각 카드는 <코드>_앞면.png / <코드>_뒷면.png 두 장입니다.',
+        '각 카드는 <코드>_front.png(앞면) / <코드>_back.png(뒷면) 두 장입니다.',
+        '(파일명이 깨지지 않도록 영문으로 지었습니다)',
         '뒷면 QR은 매장 포토부스에서 스캔됩니다. 축소하거나 덮지 마세요.',
         '',
         '수록 카드:',
         ...targets.map((c) => `  ${c.code}  ${c.title}${c.source_credit ? `  (제공 ${c.source_credit})` : ''}`),
       ].join('\n')
-      zip.file('읽어주세요.txt', readme)
+      zip.file('README.txt', readme)
 
       for (const card of targets) {
         const { front, back } = await buildPrintFiles(card, origin)
-        zip.file(`${card.code}_앞면.png`, await canvasToBlob(front))
-        zip.file(`${card.code}_뒷면.png`, await canvasToBlob(back))
+        zip.file(`${card.code}_front.png`, await canvasToBlob(front))
+        zip.file(`${card.code}_back.png`, await canvasToBlob(back))
       }
 
       const blob = await zip.generateAsync({ type: 'blob' })

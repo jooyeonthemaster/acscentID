@@ -15,6 +15,20 @@ import {
 } from './utils'
 
 /**
+ * UUID v4 — crypto.randomUUID 는 보안 컨텍스트(https·localhost)에서만 있다.
+ * 매장 부스처럼 http://사설IP 로 연 페이지(폰 QR 페이지 포함)에서는 undefined 라 터진다.
+ * getRandomValues 는 어디서나 되므로 그걸로 같은 형식을 만든다.
+ */
+function newUuid(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6] & 0x0f) | 0x40
+  b[8] = (b[8] & 0x3f) | 0x80
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
+/**
  * Analytics 클라이언트
  * Supabase와 통신하여 분석 데이터 수집
  */
@@ -116,7 +130,7 @@ class AnalyticsClient {
     }
 
     try {
-      const newPageViewId = crypto.randomUUID()
+      const newPageViewId = newUuid()
       const { error } = await supabase
         .from('analytics_page_views')
         .insert({
