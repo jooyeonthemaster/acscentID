@@ -31,6 +31,10 @@ export interface KioskBridge {
   nextTicket?(): Promise<{ success: boolean; ticket?: string }>
   saveResult(data: Record<string, unknown>): Promise<KioskSaveResult>
   quitApp(): Promise<void>
+  /** 관리자 PIN을 기기(셸 config.json)에서 확인한다 — 인터넷이 끊겨 서버 확인이 안 될 때
+   *  앱 종료만이라도 열어 주기 위한 것. PIN이 공개되는 웹 코드에 들어가지 않는다.
+   *  (2026-09 셸 패치로 추가 — 없는 셸이면 오프라인 종료는 불가) */
+  checkAdminPin?(pin: string): Promise<boolean>
 }
 
 declare global {

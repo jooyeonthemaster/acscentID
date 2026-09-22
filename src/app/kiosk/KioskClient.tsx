@@ -276,6 +276,8 @@ export function KioskClient() {
   } = useScreenBackgrounds('kiosk')
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
   const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
+  /** 인터넷이 끊겨 기기에서만 PIN을 확인한 상태 — 앱 종료만 연다 */
+  const [backgroundAdminOffline, setBackgroundAdminOffline] = useState(false)
   const [backgroundPassword, setBackgroundPassword] = useState('')
   const [backgroundPasswordError, setBackgroundPasswordError] = useState('')
   const [backgroundUnlocking, setBackgroundUnlocking] = useState(false)
@@ -1012,6 +1014,7 @@ export function KioskClient() {
     backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(true)
     setBackgroundAdminUnlocked(false)
+    setBackgroundAdminOffline(false)
     setBackgroundPassword('')
     setBackgroundPasswordError('')
     setBackgroundActionError('')
@@ -1022,10 +1025,18 @@ export function KioskClient() {
     backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(false)
     setBackgroundAdminUnlocked(false)
+    setBackgroundAdminOffline(false)
     setBackgroundPassword('')
     setBackgroundPasswordError('')
     setBackgroundUnlocking(false)
   }, [])
+  const quitKioskApp = useCallback(() => {
+    if (kiosk) void kiosk.quitApp()
+    else {
+      closeBackgroundAdmin()
+      showToast('키오스크 앱에서만 종료할 수 있습니다')
+    }
+  }, [kiosk, closeBackgroundAdmin, showToast])
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
     if (exitHold.current) window.clearTimeout(exitHold.current)
@@ -1052,23 +1063,45 @@ export function KioskClient() {
       return
     }
     if (backgroundPassword.length !== 6) return
+    const pin = backgroundPassword
     setBackgroundUnlocking(true)
     const requestId = ++backgroundAuthRequest.current
+
+    /* 서버에 닿지 못하면 기기(셸)에 PIN을 확인받아 앱 종료만 연다.
+       배경 선택은 서버가 있어야 하니 열지 않는다. 처리했으면 true. */
+    const unlockOffline = async () => {
+      if (!kiosk?.checkAdminPin) return false
+      const ok = await kiosk.checkAdminPin(pin).catch(() => false)
+      if (requestId !== backgroundAuthRequest.current) return true
+      setBackgroundPassword('')
+      if (ok) setBackgroundAdminOffline(true)
+      else setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
+      return true
+    }
+
     try {
-      const unlocked = await unlockBackgroundAdmin(backgroundPassword)
+      // 끊긴 게 확실하면 서버 응답(최대 12초)을 기다리지 않는다
+      if (navigator.onLine === false && (await unlockOffline())) return
+      const unlocked = await unlockBackgroundAdmin(pin)
       if (requestId !== backgroundAuthRequest.current) return
       setBackgroundPassword('')
       if (unlocked) setBackgroundAdminUnlocked(true)
       else setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
     } catch (error) {
-      if (requestId === backgroundAuthRequest.current) {
+      if (requestId === backgroundAuthRequest.current && !(await unlockOffline())) {
         setBackgroundPassword('')
-        setBackgroundPasswordError(error instanceof Error ? error.message : '관리자 인증에 실패했습니다. 연결을 확인해주세요.')
+        // fetch 자체가 실패하면 브라우저 원문('Failed to fetch')이 오므로 안내 문구로 바꾼다
+        const unreachable = error instanceof TypeError || navigator.onLine === false
+        setBackgroundPasswordError(
+          unreachable
+            ? '인터넷에 연결되어 있지 않습니다. 연결을 확인해주세요.'
+            : error instanceof Error ? error.message : '관리자 인증에 실패했습니다. 연결을 확인해주세요.'
+        )
       }
     } finally {
       if (requestId === backgroundAuthRequest.current) setBackgroundUnlocking(false)
     }
-  }, [backgroundPassword, backgroundUnlocking, unlockBackgroundAdmin])
+  }, [backgroundPassword, backgroundUnlocking, unlockBackgroundAdmin, kiosk])
 
   useEffect(() => {
     if (!backgroundAdminOpen) return
@@ -1076,14 +1109,14 @@ export function KioskClient() {
       if (event.key === 'Escape') {
         event.preventDefault()
         closeBackgroundAdmin()
-      } else if (!backgroundAdminUnlocked && (/^[0-9]$/.test(event.key) || event.key === 'Backspace' || event.key === 'Enter')) {
+      } else if (!backgroundAdminUnlocked && !backgroundAdminOffline && (/^[0-9]$/.test(event.key) || event.key === 'Backspace' || event.key === 'Enter')) {
         event.preventDefault()
         void pressBackgroundAdminKey(event.key === 'Backspace' ? '지우기' : event.key === 'Enter' ? '확인' : event.key)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [backgroundAdminOpen, backgroundAdminUnlocked, pressBackgroundAdminKey, closeBackgroundAdmin])
+  }, [backgroundAdminOpen, backgroundAdminUnlocked, backgroundAdminOffline, pressBackgroundAdminKey, closeBackgroundAdmin])
 
   useEffect(() => {
     if (!backgroundAdminOpen) return
@@ -1886,7 +1919,23 @@ export function KioskClient() {
               <button type="button" aria-label="닫기" onClick={closeBackgroundAdmin}>×</button>
             </div>
 
-            {!backgroundAdminUnlocked ? (
+            {backgroundAdminOffline ? (
+              <div className="ksk-admin-offline">
+                <p>
+                  인터넷에 연결되어 있지 않아 배경은 바꿀 수 없습니다.
+                  <br />
+                  연결이 돌아오면 다시 열어 주세요. 앱 종료는 지금 할 수 있습니다.
+                </p>
+                <div className="ksk-admin-actions">
+                  <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
+                    닫기
+                  </button>
+                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
+                    앱 종료
+                  </button>
+                </div>
+              </div>
+            ) : !backgroundAdminUnlocked ? (
               <div className="ksk-admin-lock">
                 <p>관리자 비밀번호 6자리를 입력해주세요.</p>
                 <div className="ksk-admin-dots" aria-label={`${backgroundPassword.length}자리 입력됨`}>
@@ -1953,17 +2002,7 @@ export function KioskClient() {
                     닫기
                   </button>
                   {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
-                  <button
-                    type="button"
-                    className="ksk-admin-quit"
-                    onClick={() => {
-                      if (kiosk) kiosk.quitApp()
-                      else {
-                        closeBackgroundAdmin()
-                        showToast('키오스크 앱에서만 종료할 수 있습니다')
-                      }
-                    }}
-                  >
+                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
                     앱 종료
                   </button>
                 </div>

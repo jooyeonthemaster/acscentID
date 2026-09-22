@@ -1587,6 +1587,18 @@
 .ksk-admin-pad button:disabled {
   opacity: 0.3;
 }
+/* 인터넷이 끊겨 기기에서만 PIN을 확인한 상태 — 앱 종료만 연다 */
+.ksk-admin-offline {
+  padding: 26px 0 4px;
+}
+.ksk-admin-offline > p {
+  margin: 0 0 22px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 16px;
+  line-height: 1.65;
+  text-align: center;
+  word-break: keep-all;
+}
 .ksk-admin-themes > p {
   margin: 20px 0 16px;
   color: rgba(255, 255, 255, 0.65);
