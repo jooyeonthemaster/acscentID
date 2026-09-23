@@ -4,7 +4,8 @@
 // 미리보기를 확인해 '기간 중 자동 적용'을 켜면 그 기간에만 두 기기에 적용된다(docs/screen-events.md).
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CalendarClock, Check, ImagePlus, Loader2, Plus, RefreshCw, Sparkles, EyeOff, Eye, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { AlertCircle, CalendarClock, Check, ChevronLeft, ChevronRight, ExternalLink, ImagePlus, Loader2, Maximize2, Plus, RefreshCw, Sparkles, EyeOff, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { ScreenBackground } from '@/lib/screen-backgrounds/types'
 import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
@@ -50,21 +51,101 @@ const dateLabel = (event: ScreenEvent) => {
 }
 
 /** 이미지 칸 — 포스터·키오스크·부스를 같은 높이로 맞춰 나란히(좁으면 줄바꿈) */
-function Frame({ ratio, label, className = '', children }: { ratio: string; label: string; className?: string; children?: React.ReactNode }) {
+function Frame({ ratio, label, className = '', onOpen, children }: { ratio: string; label: string; className?: string; onOpen?: () => void; children?: React.ReactNode }) {
+  const box = 'relative block w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50'
+  const inner = children ?? <span className="absolute inset-0 flex items-center justify-center px-1 text-center text-[11px] text-slate-400">{label}</span>
   return (
     <figure className={`flex min-w-0 flex-col gap-1 ${className}`}>
-      <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50" style={{ aspectRatio: ratio }}>
-        {children ?? <span className="absolute inset-0 flex items-center justify-center px-1 text-center text-[11px] text-slate-400">{label}</span>}
-      </div>
+      {onOpen ? (
+        <button type="button" onClick={onOpen} aria-label={`${label} 크게 보기`} style={{ aspectRatio: ratio }}
+          className={`${box} group cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900`}>
+          {inner}
+          <span className="absolute right-1.5 top-1.5 rounded-md bg-slate-900/70 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100">
+            <Maximize2 size={12} />
+          </span>
+        </button>
+      ) : <div className={box} style={{ aspectRatio: ratio }}>{inner}</div>}
       <figcaption className="text-center text-[11px] text-slate-500">{label}</figcaption>
     </figure>
   )
 }
 
-function ScreenPreview({ background, font, portrait, className }: { background: ScreenBackground | null; font: string | null; portrait: boolean; className?: string }) {
+type PreviewItem = { key: 'poster' | 'kiosk' | 'booth'; label: string; src: string; size: string; background?: ScreenBackground }
+
+/** 크게 보기 — 포스터·키오스크·부스를 오가며 본다. 기기 화면은 창이 올라갈 자리와 글꼴을 겹쳐 볼 수 있다 */
+function PreviewDialog({ title, items, start, font, onClose }: { title: string; items: PreviewItem[]; start: number; font: string | null; onClose: () => void }) {
+  const [index, setIndex] = useState(start)
+  const [overlay, setOverlay] = useState(true)
+  const item = items[index]
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+      if (event.key === 'ArrowRight') setIndex(i => (i + 1) % items.length)
+      if (event.key === 'ArrowLeft') setIndex(i => (i - 1 + items.length) % items.length)
+    }
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = overflow }
+  }, [items.length, onClose])
+  if (!item) return null
+  const screen = item.background
+  const portrait = item.key === 'kiosk'
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex flex-col bg-slate-950/90 text-white" role="dialog" aria-modal="true" aria-label={`${title} ${item.label} 미리보기`} onClick={onClose}>
+      <header className="flex shrink-0 flex-wrap items-center gap-2 px-3 py-3 sm:px-5" onClick={e => e.stopPropagation()}>
+        <p className="mr-auto min-w-0 truncate text-sm font-bold">{title}</p>
+        <div className="order-3 flex w-full gap-1 rounded-lg bg-white/10 p-1 sm:order-none sm:w-auto" role="tablist">
+          {items.map((it, i) => (
+            <button key={it.key} type="button" role="tab" aria-selected={i === index} onClick={() => setIndex(i)}
+              className={`h-10 flex-1 rounded-md px-4 text-sm font-semibold sm:flex-none ${i === index ? 'bg-white text-slate-900' : 'text-white/80 hover:bg-white/10'}`}>{it.label}</button>
+          ))}
+        </div>
+        <a href={item.src} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-sm font-semibold hover:bg-white/20"><ExternalLink size={15} /><span className="hidden sm:inline">원본</span></a>
+        <button type="button" onClick={onClose} aria-label="닫기" className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><X size={18} /></button>
+      </header>
+
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-2 sm:px-16">
+        {items.length > 1 && (
+          <>
+            <button type="button" aria-label="이전" onClick={e => { e.stopPropagation(); setIndex(i => (i - 1 + items.length) % items.length) }}
+              className="absolute left-2 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:flex"><ChevronLeft size={22} /></button>
+            <button type="button" aria-label="다음" onClick={e => { e.stopPropagation(); setIndex(i => (i + 1) % items.length) }}
+              className="absolute right-2 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:flex"><ChevronRight size={22} /></button>
+          </>
+        )}
+        {/* 그림 비율 그대로 화면에 맞춘다 — 세로(키오스크)는 높이, 가로(부스)는 폭 기준 */}
+        <div className="relative max-h-full max-w-full" onClick={e => e.stopPropagation()}
+          style={{ aspectRatio: item.key === 'poster' ? undefined : portrait ? '9 / 16' : '16 / 9', height: portrait ? '100%' : undefined, width: item.key === 'booth' ? '100%' : undefined }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img key={item.src} src={item.src} alt={`${title} ${item.label}`} className={`block rounded-lg shadow-2xl ${item.key === 'poster' ? 'max-h-[calc(100svh-9.5rem)] max-w-full object-contain sm:max-h-[calc(100svh-7rem)]' : 'h-full w-full object-cover'}`} />
+          {screen && overlay && (
+            <div className="pointer-events-none absolute inset-x-[16%] top-1/2 -translate-y-1/2 rounded-xl bg-white/92 px-4 py-4 text-center shadow-lg" style={{ fontFamily: screenFontFamily(font) }}>
+              <p className="whitespace-pre-line text-[clamp(14px,2.6vmin,30px)] font-bold leading-snug" style={{ color: screen.ink }}>{portrait ? '오늘의 최애,\n어떤 향으로 기억할까요?' : '어떤 사진을 찍을까요?'}</p>
+              <p className="mt-1 text-[clamp(10px,1.4vmin,16px)]" style={{ color: screen.ink, opacity: 0.7 }}>{findScreenFont(font)?.label ?? '기기 평소 글꼴'}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <footer className="flex shrink-0 flex-wrap items-center justify-center gap-3 px-3 pb-4 text-xs text-white/70" onClick={e => e.stopPropagation()}>
+        <span>{item.size}</span>
+        {screen && (
+          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-white/10 px-3 font-semibold text-white">
+            <input type="checkbox" checked={overlay} onChange={e => setOverlay(e.target.checked)} className="h-4 w-4 accent-white" />창·글꼴 겹쳐 보기
+          </label>
+        )}
+        <span className="hidden sm:inline">← → 로 넘기기 · Esc 닫기</span>
+      </footer>
+    </div>,
+    document.body,
+  )
+}
+
+function ScreenPreview({ background, font, portrait, className, onOpen }: { background: ScreenBackground | null; font: string | null; portrait: boolean; className?: string; onOpen?: () => void }) {
   const label = portrait ? '키오스크' : '포토부스'
   return (
-    <Frame ratio={portrait ? '9 / 16' : '16 / 9'} label={label} className={className}>
+    <Frame ratio={portrait ? '9 / 16' : '16 / 9'} label={label} className={className} onOpen={background ? onOpen : undefined}>
       {background && (
         <div className="absolute inset-0" style={{ backgroundColor: background.base }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -89,6 +170,15 @@ function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
 }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [viewing, setViewing] = useState<number | null>(null)
+  const previewItems = useMemo(() => {
+    const out: PreviewItem[] = []
+    if (event.poster) out.push({ key: 'poster', label: '포스터', src: event.poster, size: '포스터 원본' })
+    if (event.backgrounds.kiosk) out.push({ key: 'kiosk', label: '키오스크', src: event.backgrounds.kiosk.image_url, size: '키오스크 세로 1080×1920', background: event.backgrounds.kiosk })
+    if (event.backgrounds.booth) out.push({ key: 'booth', label: '포토부스', src: event.backgrounds.booth.image_url, size: '포토부스 가로 1920×1080', background: event.backgrounds.booth })
+    return out
+  }, [event.poster, event.backgrounds.kiosk, event.backgrounds.booth])
+  const open = (key: PreviewItem['key']) => { const i = previewItems.findIndex(it => it.key === key); if (i >= 0) setViewing(i) }
   const live = isEventLive(event, today)
   const ended = event.ends_on < today
   const hasScreens = !!(event.backgrounds.kiosk || event.backgrounds.booth)
@@ -127,15 +217,16 @@ function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
         {/* 포스터 · 만든 배경 — 열 비율을 각 그림 비율(2:3·9:16·16:9)에 맞춰 세 칸 높이가 같다.
             모바일은 포스터·키오스크 한 줄 + 부스 아래 전체 폭 */}
         <div className="grid max-w-[16rem] grid-cols-[0.667fr_0.5625fr] items-start gap-3 sm:max-w-2xl sm:grid-cols-[0.667fr_0.5625fr_1.778fr]">
-          <Frame ratio="2 / 3" label={event.poster ? '포스터' : '포스터 없음'}>
+          <Frame ratio="2 / 3" label={event.poster ? '포스터' : '포스터 없음'} onOpen={event.poster ? () => open('poster') : undefined}>
             {event.poster && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={event.poster} alt={`${event.title} 포스터`} loading="lazy" className="h-full w-full object-cover" />
             )}
           </Frame>
-          <ScreenPreview background={event.backgrounds.kiosk} font={event.font} portrait />
-          <ScreenPreview background={event.backgrounds.booth} font={event.font} portrait={false} className="col-span-2 sm:col-span-1" />
+          <ScreenPreview background={event.backgrounds.kiosk} font={event.font} portrait onOpen={() => open('kiosk')} />
+          <ScreenPreview background={event.backgrounds.booth} font={event.font} portrait={false} onOpen={() => open('booth')} className="col-span-2 sm:col-span-1" />
         </div>
+        {viewing !== null && <PreviewDialog title={`${dateLabel(event)} ${event.title}`} items={previewItems} start={viewing} font={event.font} onClose={() => setViewing(null)} />}
 
         {/* 포스터 고르기·올리기 */}
         <div className="flex flex-wrap items-center gap-2">
