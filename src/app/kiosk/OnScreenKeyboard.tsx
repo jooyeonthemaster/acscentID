@@ -18,6 +18,7 @@ import {
 } from '@/lib/kiosk/hangul'
 import { pushRomaji, flushRomaji, toKatakana } from '@/lib/kiosk/ime-kana'
 import { pinyinCandidates } from '@/lib/kiosk/ime'
+import { PixelIcon } from '@/components/retro'
 
 type Mode = 'ko' | 'en' | 'num' | 'ja' | 'zh'
 
@@ -231,7 +232,7 @@ export function OnScreenKeyboard({
               onClick={() => setPage((p) => (p + 1) % pageCount)}
               aria-label="다음 후보"
             >
-              ▸
+              <PixelIcon name="arrowRight" size={28} />
             </button>
           )}
         </div>
@@ -248,7 +249,7 @@ export function OnScreenKeyboard({
                 onClick={() => setShift((s) => !s)}
                 aria-pressed={shift}
               >
-                ⇧
+                <PixelIcon name="shift" size={28} label="Shift" />
               </button>
             )}
             {i === rows.length - 1 && mode === 'ja' && (
@@ -272,8 +273,8 @@ export function OnScreenKeyboard({
               </button>
             ))}
             {i === rows.length - 1 && (
-              <button className="ksk-key ksk-key-wide" onClick={onBackspace}>
-                ⌫
+              <button className="ksk-key ksk-key-wide" onClick={onBackspace} aria-label="Backspace">
+                <PixelIcon name="backspace" size={30} />
               </button>
             )}
           </div>

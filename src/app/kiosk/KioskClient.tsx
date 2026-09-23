@@ -35,9 +35,20 @@ import {
   ChapterMyeongsik, ChapterSajuReading, ChapterPurpose, ChapterPrescription,
   perfumeNoFromId, scentCategoryEn,
 } from './ResultView'
+import '@/components/retro/retro.css'
 import './kiosk.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
-import { toKioskTheme } from '@/lib/screen-backgrounds/theme'
+import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
+import {
+  PixelIcon,
+  RetroProgress,
+  RetroSteps,
+  RetroWindow,
+  RetroDesktopIcons,
+  RetroStickers,
+  RETRO_FONT_CLASS,
+  type PixelIconName,
+} from '@/components/retro'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
 function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
@@ -117,6 +128,26 @@ const STEP_LABELS: Record<string, string> = {
   product: 'PRODUCT',
   capture: 'PHOTO',
 }
+
+/** 타이틀바 아이콘 — 단계마다 다른 프로그램 창을 연 것처럼 */
+const STEP_ICONS: Partial<Record<Step, PixelIconName>> = {
+  info: 'person',
+  style: 'palette',
+  personality: 'heart',
+  charm: 'star',
+  product: 'bottle',
+  capture: 'camera',
+  analyzing: 'hourglass',
+  result: 'file',
+}
+
+/** 대기 화면 바탕화면 아이콘 — 장식 */
+const DESK_ITEMS: { icon: PixelIconName; label: string }[] = [
+  { icon: 'file', label: 'REPORT' },
+  { icon: 'folder', label: 'SCENTS' },
+  { icon: 'window', label: 'LAB' },
+  { icon: 'computer', label: 'WOW PC' },
+]
 
 const MAX_PICK = 3
 const FRAGRANCE_DENSITY = 0.9 // g/ml — types/feedback.ts calculateGranuleAmounts와 동일 계수
@@ -227,7 +258,8 @@ export function KioskClient() {
   const [photo, setPhoto] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [camError, setCamError] = useState(false)
-  const [progress, setProgress] = useState(0)
+  /** 분석 응답을 실제로 받았는지 — 받기 전에는 진행률을 모르므로 퍼센트를 만들지 않는다 */
+  const [analysisDone, setAnalysisDone] = useState(false)
   const [statusIdx, setStatusIdx] = useState(0)
   const [result, setResult] = useState<ImageAnalysisResult | SajuAnalysisResult | null>(null)
   const [mocked, setMocked] = useState(false)
@@ -301,6 +333,8 @@ export function KioskClient() {
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
   const activeBackground = toKioskTheme(backgroundRecord)
+  // 레트로 UI에서 배경은 바탕화면·장식색·제목 글꼴만 맡는다 (창·버튼 색은 retro.css 고정)
+  const retroDesk = toRetroDesktop(backgroundRecord)
 
   const chooseBackground = useCallback(async (id: string) => {
     if (!backgroundAdminUnlocked || backgroundSaving) return
@@ -363,7 +397,7 @@ export function KioskClient() {
     setPartnerOskOpen(false)
     setProductType('perfume_10ml')
     setPhoto(null)
-    setProgress(0)
+    setAnalysisDone(false)
     setResult(null)
     setMocked(false)
     setReceipt(null)
@@ -665,17 +699,11 @@ export function KioskClient() {
   const startAnalysis = useCallback(async () => {
     const isSaju = program === 'saju'
     setStep('analyzing')
-    setProgress(0)
+    setAnalysisDone(false)
     setChapterIdx(0)
 
-    // 가짜 진행률: 사주는 서사가 길어 응답이 더 느리다(시상수를 늘림)
-    const started = Date.now()
-    const tau = isSaju ? 22000 : 12000
+    // 응답 한 번으로 끝나는 요청이라 진행률을 알 수 없다 — 상태 문구만 돌린다
     const lines = isSaju ? SAJU_STATUS_LINES : t.statusLines
-    const progTimer = window.setInterval(() => {
-      const elapsed = (Date.now() - started) / tau
-      setProgress(Math.min(90, Math.round(90 * (1 - Math.exp(-elapsed)))))
-    }, 400)
     const statusTimer = window.setInterval(() => {
       setStatusIdx((i) => (i + 1) % lines.length)
     }, 2600)
@@ -741,11 +769,11 @@ export function KioskClient() {
       setStep(backStep)
       return
     } finally {
-      window.clearInterval(progTimer)
       window.clearInterval(statusTimer)
     }
 
-    setProgress(100)
+    // 끝난 건 사실이므로 블록을 다 채워 보여 주고 넘어간다
+    setAnalysisDone(true)
     window.setTimeout(() => setStep('result'), 450)
   }, [
     program, name, gender, styles, personalities, charms, photo, showToast,
@@ -1187,6 +1215,8 @@ export function KioskClient() {
      손님이 이미 스크롤했다면 건드리지 않는다. */
   useEffect(() => {
     if (!scrollChapter) return
+    // 모션 감소 설정이면 움직이지 않는다 — 하단 버튼 위 흐림 띠가 '아래에 더 있음'을 알린다
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const body = document.querySelector<HTMLElement>('.ksk-body')
     if (!body) return
 
@@ -1249,97 +1279,121 @@ export function KioskClient() {
   const stepIdx = steps.indexOf(step)
   const showHeader = stepIdx >= 0
 
-  return (
-    <div
-      className={`ksk-root ${KIOSK_FONT_CLASS}`}
-      data-background={activeBackground.id}
-      data-lang={lang}
-      lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
-      style={{
-        '--ksk-background-image': `url("${activeBackground.image}")`,
-        // 테마 글꼴은 한국어 전용이라 한자권에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다
-        '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.displayFont,
-        '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.bodyFont,
-        '--ksk-display-tracking': activeBackground.tracking,
-        '--paper': activeBackground.paper,
-        '--ink': activeBackground.ink,
-        '--ink-soft': activeBackground.inkSoft,
-        '--line': activeBackground.line,
-        '--accent': activeBackground.accent,
-        '--on-accent': activeBackground.onAccent,
-        '--accent-soft': activeBackground.accentSoft,
-        '--surface': activeBackground.surface,
-        '--surface-strong': activeBackground.surfaceStrong,
-        '--ksk-shadow': activeBackground.shadow,
-        '--ksk-radius': activeBackground.radius,
-      } as CSSProperties}
-    >
-      <div className="ksk-stage">
-        {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
-        {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && (
-          <div className="ksk-lang" data-open={langOpen}>
+  // 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다
+  const langControl =
+    step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen ? (
+      <div className="ksk-lang" data-open={langOpen}>
+        <button
+          type="button"
+          className="ksk-lang-btn rt-btn"
+          aria-haspopup="listbox"
+          aria-expanded={langOpen}
+          aria-label={t.langMenuLabel}
+          onClick={(event) => {
+            event.stopPropagation()
+            setLangOpen((open) => !open)
+          }}
+        >
+          <PixelIcon name="globe" size={24} />
+          <span className="rt-pixel">{KIOSK_LANGS.find((l) => l.id === lang)?.code}</span>
+        </button>
+        {langOpen && (
+          <>
             <button
               type="button"
-              className="ksk-lang-btn"
-              aria-haspopup="listbox"
-              aria-expanded={langOpen}
-              aria-label={t.langMenuLabel}
-              onClick={() => setLangOpen((open) => !open)}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3 12h18M12 3c2.6 2.6 2.6 15 0 18M12 3c-2.6 2.6-2.6 15 0 18" />
-              </svg>
-              {KIOSK_LANGS.find((l) => l.id === lang)?.code}
-            </button>
-            {langOpen && (
-              <>
-                <button
-                  type="button"
-                  className="ksk-lang-scrim"
-                  aria-label={t.close}
-                  onClick={() => setLangOpen(false)}
-                />
-                <ul className="ksk-lang-menu" role="listbox" aria-label={t.langMenuLabel}>
-                  {KIOSK_LANGS.map((option) => (
-                    <li key={option.id}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={option.id === lang}
-                        data-on={option.id === lang}
-                        lang={option.htmlLang}
-                        onClick={() => {
-                          setLang(option.id)
-                          setLangOpen(false)
-                        }}
-                      >
-                        <span>{option.label}</span>
-                        {option.id === lang && <em>✓</em>}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
+              className="ksk-lang-scrim"
+              aria-label={t.close}
+              onClick={(event) => {
+                event.stopPropagation()
+                setLangOpen(false)
+              }}
+            />
+            <ul className="ksk-lang-menu rt-menu" role="listbox" aria-label={t.langMenuLabel}>
+              {KIOSK_LANGS.map((option) => (
+                <li key={option.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={option.id === lang}
+                    data-on={option.id === lang}
+                    lang={option.htmlLang}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setLang(option.id)
+                      setLangOpen(false)
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    {option.id === lang && <PixelIcon name="check" size={24} />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
+      </div>
+    ) : null
 
-        {showHeader && (
-          <header>
-            <div className="ksk-top">
-              <span className="ksk-top-brand">AC&rsquo;SCENT WOW</span>
-              <span className="ksk-top-step ksk-mono">
-                STEP {String(stepIdx + 1).padStart(2, '0')}/{String(steps.length).padStart(2, '0')} ·{' '}
-                {STEP_LABELS[step]}
-              </span>
-            </div>
-            <div className="ksk-progress">
-              <i style={{ width: `${((stepIdx + 1) / steps.length) * 100}%` }} />
-            </div>
+  const stepCode = showHeader
+    ? `${String(stepIdx + 1).padStart(2, '0')}/${String(steps.length).padStart(2, '0')}`
+    : ''
+  const titleExtra =
+    step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
+
+  return (
+    <div
+      className={`ksk-root rt rt--kiosk rt-desktop ${KIOSK_FONT_CLASS} ${RETRO_FONT_CLASS}`}
+      data-background={activeBackground.id}
+      data-tone={retroDesk.tone}
+      data-lang={lang}
+      lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
+      style={
+        {
+          ...retroDesktopVars(
+            retroDesk,
+            // 테마 글꼴은 한국어 전용이라 한자권에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다
+            isCjkLang(lang) ? { display: CJK_FONT_STACK[lang], body: CJK_FONT_STACK[lang] } : undefined
+          ),
+          '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.displayFont,
+          '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.bodyFont,
+          '--ksk-display-tracking': retroDesk.displayTracking,
+        } as CSSProperties
+      }
+    >
+      {step !== 'attract' && (
+      <div className="ksk-stage rt-stack">
+        <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
+        <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
+        <section className="ksk-window rt-win">
+          <header className="rt-win-title">
+            <PixelIcon name={STEP_ICONS[step] ?? 'window'} size={20} className="rt-win-title-icon" />
+            <span className="rt-win-title-text">AC&rsquo;SCENT WOW</span>
+            {titleExtra && <span className="rt-win-title-extra">{titleExtra}</span>}
           </header>
-        )}
 
+          {/* 메뉴바 — 현재 단계(블록)와 언어 전환 */}
+          <div className="ksk-menubar">
+            {showHeader ? (
+              <div className="ksk-menubar-step">
+                <span className="rt-pixel">STEP {stepCode}</span>
+                <RetroSteps current={stepIdx} total={steps.length} label={`STEP ${stepCode}`} />
+              </div>
+            ) : step === 'result' && result ? (
+              <div className="ksk-menubar-step">
+                <span className="rt-pixel">
+                  REPORT {chapterIdx + 1}/{chapters.length}
+                </span>
+                <RetroSteps current={chapterIdx} total={chapters.length} label={`REPORT ${chapterIdx + 1}/${chapters.length}`} />
+              </div>
+            ) : (
+              <div className="ksk-menubar-step">
+                <span className="rt-pixel">PLEASE WAIT</span>
+              </div>
+            )}
+            {langControl}
+          </div>
+
+          <div className="ksk-winbody">
         {step === 'program' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">PROGRAM</p>
@@ -1533,7 +1587,6 @@ export function KioskClient() {
 
         {step === 'info' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">01 · PROFILE</p>
             <h1 className="ksk-title">
               {program === 'idol' ? t.infoTitleIdol : t.infoTitleSelf}
             </h1>
@@ -1578,7 +1631,6 @@ export function KioskClient() {
 
         {step === 'style' && (
           <SelectScreen
-            eyebrow="02 · STYLE"
             title={t.styleTitle}
             desc={t.pickUpTo(MAX_PICK)}
             labels={t.styles}
@@ -1594,7 +1646,6 @@ export function KioskClient() {
 
         {step === 'personality' && (
           <SelectScreen
-            eyebrow="03 · PERSONALITY"
             title={t.personalityTitle}
             desc={t.pickUpTo(MAX_PICK)}
             labels={t.personalities}
@@ -1610,7 +1661,6 @@ export function KioskClient() {
 
         {step === 'charm' && (
           <SelectScreen
-            eyebrow="04 · CHARM"
             title={t.charmTitle}
             desc={t.pickUpTo(MAX_PICK)}
             labels={t.charms}
@@ -1626,7 +1676,6 @@ export function KioskClient() {
 
         {step === 'product' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">05 · PRODUCT</p>
             <h1 className="ksk-title">{t.productTitle}</h1>
             <p className="ksk-desc">{t.productDesc}</p>
             <div className="ksk-products">
@@ -1637,11 +1686,12 @@ export function KioskClient() {
                   data-on={productType === p.id}
                   onClick={() => setProductType(p.id)}
                 >
-                  <span>
+                  <PixelIcon name={p.id.startsWith('diffuser') ? 'sparkle' : 'bottle'} size={48} />
+                  <span className="ksk-product-text">
                     <b>{t.products[p.id]?.label ?? p.label}</b>
                     <span>{t.products[p.id]?.description ?? p.description}</span>
                   </span>
-                  <em className="ksk-mono">{t.fragranceMl(p.fragranceVolumeMl)}</em>
+                  <em>{t.fragranceMl(p.fragranceVolumeMl)}</em>
                 </button>
               ))}
             </div>
@@ -1659,7 +1709,6 @@ export function KioskClient() {
 
         {step === 'capture' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">06 · PHOTO</p>
             <h1 className="ksk-title">
               {photo ? t.captureConfirm : photoSource === 'qr' ? t.captureQrTitle : t.captureCamTitle}
             </h1>
@@ -1669,16 +1718,23 @@ export function KioskClient() {
 
             {!photo && photoSource === 'qr' ? (
               <div className="ksk-qr">
-                {qrState === 'creating' && <p className="ksk-qr-msg">{t.qrCreating}</p>}
+                {qrState === 'creating' && (
+                  <div className="ksk-qr-msg" role="status">
+                    <p>{t.qrCreating}</p>
+                    <RetroProgress label={t.qrCreating} />
+                  </div>
+                )}
                 {qrState === 'failed' && (
-                  <p className="ksk-qr-msg">
+                  <p className="ksk-qr-msg" role="alert">
+                    <PixelIcon name="warning" size={48} className="ksk-qr-msg-icon" />
                     {t.qrFailed[0]}
                     <br />
                     {t.qrFailed[1]}
                   </p>
                 )}
                 {qrState === 'expired' && (
-                  <p className="ksk-qr-msg">
+                  <p className="ksk-qr-msg" role="alert">
+                    <PixelIcon name="hourglass" size={48} className="ksk-qr-msg-icon" />
                     {t.qrExpired[0]}
                     <br />
                     {t.qrExpired[1]}
@@ -1724,7 +1780,7 @@ export function KioskClient() {
                   {kiosk ? (
                     <span>{t.callStaff}</span>
                   ) : (
-                    <label className="ksk-btn" style={{ borderColor: '#fff', color: '#fff' }}>
+                    <label className="ksk-btn">
                       {t.useFile}
                       <input
                         type="file"
@@ -1804,19 +1860,24 @@ export function KioskClient() {
         {step === 'analyzing' && (
           <div className="ksk-body">
             <div className="ksk-analyzing">
-              <p className="ksk-eyebrow ksk-mono">ANALYZING</p>
-              <div className="ksk-analyzing-pct ksk-mono">{progress}%</div>
-              <div className="ksk-analyzing-bar">
-                <i style={{ width: `${progress}%` }} />
-              </div>
-              <p className="ksk-analyzing-status">
-                {(program === 'saju' ? SAJU_STATUS_LINES : t.statusLines)[
-                  statusIdx % (program === 'saju' ? SAJU_STATUS_LINES : t.statusLines).length
+              <RetroWindow className="ksk-loading" ghosts icon="hourglass" title={analysisDone ? 'DONE' : 'ANALYZING...'}>
+                <p className="ksk-analyzing-status" role="status" aria-live="polite">
+                  {(program === 'saju' ? SAJU_STATUS_LINES : t.statusLines)[
+                    statusIdx % (program === 'saju' ? SAJU_STATUS_LINES : t.statusLines).length
+                  ]}
+                </p>
+                <RetroProgress value={analysisDone ? 1 : null} blocks={14} label="ANALYZING" />
+                <p className="ksk-analyzing-eta">
+                  {program === 'saju' ? '명식을 풀이하는 데 40~80초쯤 걸립니다.' : t.analyzingEta}
+                </p>
+              </RetroWindow>
+              <RetroStickers
+                items={[
+                  { icon: 'heart', top: '26%', left: '8%', size: 40, tilt: -8 },
+                  { icon: 'sparkle', top: '24%', left: '84%', size: 32 },
+                  { icon: 'heart', top: '70%', left: '82%', size: 32, tilt: 8 },
                 ]}
-              </p>
-              <p className="ksk-desc">
-                {program === 'saju' ? '명식을 풀이하는 데 40~80초쯤 걸립니다.' : t.analyzingEta}
-              </p>
+              />
             </div>
           </div>
         )}
@@ -1825,21 +1886,15 @@ export function KioskClient() {
           <div className="ksk-body">
             <div className="ksk-result">
               <div className="ksk-chapter-head">
-                <p className="ksk-eyebrow ksk-mono">
+                <PixelIcon name="file" size={24} />
+                <p className="ksk-chapter-file rt-pixel">
                   {chapters[chapterIdx]?.label ?? 'RESULT'}
                   {mocked ? ' · DEMO DATA' : ''}
                 </p>
-                <span className="ksk-chapter-count ksk-mono">
-                  {chapterIdx + 1} / {chapters.length}
-                </span>
-              </div>
-              <div className="ksk-chapter-dots">
-                {chapters.map((c, i) => (
-                  <i key={c.label} data-on={i <= chapterIdx} />
-                ))}
+                <span className="ksk-chapter-count rt-pixel">.TXT</span>
               </div>
 
-              {chapters[chapterIdx]?.render()}
+              <div className="ksk-doc">{chapters[chapterIdx]?.render()}</div>
 
               <div className="ksk-actions" style={{ paddingBottom: 6 }}>
                 <button
@@ -1862,43 +1917,73 @@ export function KioskClient() {
           </div>
         )}
 
-        {step === 'attract' && (
+          </div>
+        </section>
+      </div>
+      )}
+
+      {step === 'attract' && (
+        <>
+          {/* 대기 화면 — 레퍼런스처럼 바탕화면 아이콘 줄 + 겹친 창 + 작은 시작 창. 어디를 눌러도 시작 */}
           <div
             className="ksk-attract"
-            onClick={() => {
-              setStep(FIRST_STEP)
+            role="button"
+            tabIndex={0}
+            aria-label={t.attractCta}
+            onClick={() => setStep(FIRST_STEP)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') setStep(FIRST_STEP)
             }}
           >
-            <div className="ksk-attract-head">
-              <span className="ksk-attract-ticket">FOR YOUR BIAS · HONGDAE</span>
-              <div className="ksk-attract-wordmark">
+            <RetroDesktopIcons items={DESK_ITEMS} className="ksk-attract-desk" />
+            <RetroWindow className="ksk-attract-main" ghosts icon="heart" title="WELCOME" bodyClassName="ksk-attract-body">
+              <span className="ksk-attract-ticket rt-tag rt-pixel">FOR YOUR BIAS · HONGDAE</span>
+              <div className="ksk-attract-wordmark rt-pixel">
                 <span>AC&rsquo;SCENT</span>
                 <strong>WOW!</strong>
               </div>
               <p className="ksk-attract-sub">{t.attractSub}</p>
-            </div>
-            <div className="ksk-attract-card">
-              <span className="ksk-attract-card-no">01 PHOTO → 01 SCENT</span>
-              <p className="ksk-attract-mid">
-                <strong>{t.attractTitle1}</strong>
-                <br />
-                {t.attractTitle2}
-              </p>
-              <p className="ksk-attract-detail">
-                {t.attractBody1}
-                <br />
-                {t.attractBody2}
-              </p>
-              <div className="ksk-attract-tags">
-                {t.attractTags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
+              <div className="ksk-attract-card rt-group">
+                <span className="ksk-attract-card-no rt-group-label rt-pixel">01 PHOTO &gt; 01 SCENT</span>
+                <p className="ksk-attract-mid">
+                  <strong>{t.attractTitle1}</strong>
+                  <br />
+                  {t.attractTitle2}
+                </p>
+                <p className="ksk-attract-detail">
+                  {t.attractBody1}
+                  <br />
+                  {t.attractBody2}
+                </p>
+                <div className="ksk-attract-tags">
+                  {t.attractTags.map((tag) => (
+                    <span key={tag} className="rt-tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
+            </RetroWindow>
+            <div className="ksk-attract-start">
+              <RetroWindow icon="sparkle" title="START">
+                <span className="ksk-attract-cta rt-btn rt-btn--pink rt-btn--block">
+                  <PixelIcon name="heart" size={32} />
+                  <span>{t.attractCta}</span>
+                </span>
+              </RetroWindow>
+              <RetroStickers
+                items={[
+                  { icon: 'heart', top: '-26px', left: '18px', size: 40, tilt: -8 },
+                  { icon: 'heart', top: '-12px', left: '58px', size: 32, tilt: 6 },
+                  { icon: 'heart', top: '72%', left: '96%', size: 36, tilt: 10 },
+                ]}
+              />
             </div>
-            <div className="ksk-attract-cta"><span>✦</span> {t.attractCta} <span>✦</span></div>
+            <RetroStickers items={[{ icon: 'sparkle', top: '12px', left: 'calc(100% - 54px)', size: 32 }]} />
           </div>
-        )}
-      </div>
+          <div className="ksk-attract-tray">{langControl}</div>
+        </>
+      )}
 
       {backgroundAdminOpen && (
         <div
@@ -1911,13 +1996,15 @@ export function KioskClient() {
           }}
         >
           <div className="ksk-admin-panel" ref={backgroundDialogRef}>
-            <div className="ksk-admin-head">
-              <div>
-                <p>AC&rsquo;SCENT WOW · STORE ADMIN</p>
-                <h2>키오스크 배경 설정</h2>
-              </div>
-              <button type="button" aria-label="닫기" onClick={closeBackgroundAdmin}>×</button>
-            </div>
+            <RetroWindow
+              className="ksk-admin-win"
+              bodyClassName="ksk-admin-body"
+              icon="lock"
+              title="STORE ADMIN"
+              onClose={closeBackgroundAdmin}
+              closeLabel="닫기"
+            >
+            <h2 className="ksk-admin-title">키오스크 배경 설정</h2>
 
             {backgroundAdminOffline ? (
               <div className="ksk-admin-offline">
@@ -1927,10 +2014,10 @@ export function KioskClient() {
                   연결이 돌아오면 다시 열어 주세요. 앱 종료는 지금 할 수 있습니다.
                 </p>
                 <div className="ksk-admin-actions">
-                  <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
+                  <button type="button" className="ksk-admin-apply rt-btn" onClick={closeBackgroundAdmin}>
                     닫기
                   </button>
-                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={quitKioskApp}>
                     앱 종료
                   </button>
                 </div>
@@ -1938,7 +2025,7 @@ export function KioskClient() {
             ) : !backgroundAdminUnlocked ? (
               <div className="ksk-admin-lock">
                 <p>관리자 비밀번호 6자리를 입력해주세요.</p>
-                <div className="ksk-admin-dots" aria-label={`${backgroundPassword.length}자리 입력됨`}>
+                <div className="ksk-admin-dots rt-field" aria-label={`${backgroundPassword.length}자리 입력됨`}>
                   {Array.from({ length: 6 }, (_, index) => (
                     <i key={index} data-filled={index < backgroundPassword.length} />
                   ))}
@@ -1949,6 +2036,7 @@ export function KioskClient() {
                     <button
                       key={key}
                       type="button"
+                      className={key === '확인' ? 'rt-btn rt-btn--primary' : 'rt-btn'}
                       data-action={key === '확인' || key === '지우기'}
                       disabled={backgroundUnlocking || (key === '확인' && backgroundPassword.length !== 6)}
                       onClick={() => void pressBackgroundAdminKey(key)}
@@ -1963,7 +2051,7 @@ export function KioskClient() {
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
                 <div className="ksk-admin-toolbar">
                   <b>화면 배경 · {backgrounds.length}개</b>
-                  <button type="button" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>
+                  <button type="button" className="rt-btn" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>
                     {backgroundsLoading ? '불러오는 중…' : '새로고침'}
                   </button>
                 </div>
@@ -1973,13 +2061,14 @@ export function KioskClient() {
                 <p className="ksk-admin-status" role="status">
                   {backgroundSaving ? '서버에 배경을 저장하고 있습니다…' : backgroundsLoading ? '배경 목록을 불러오고 있습니다…' : ''}
                 </p>
-                <div className="ksk-admin-grid">
+                <div className="ksk-admin-grid rt-scroll">
                   {backgrounds.map((record) => {
                     const background = toKioskTheme(record)
                     return (
                     <button
                       key={background.id}
                       type="button"
+                      className="rt-choice"
                       data-selected={background.id === backgroundId}
                       aria-pressed={background.id === backgroundId}
                       disabled={!!backgroundSaving}
@@ -1988,67 +2077,84 @@ export function KioskClient() {
                       <span className="ksk-admin-preview">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
-                        <b style={{ fontFamily: background.displayFont, color: background.ink }}>오늘의 최애향</b>
+                        <b style={{ fontFamily: background.displayFont }}>오늘의 최애향</b>
                       </span>
                       <span className="ksk-admin-theme-name">
                         <b>{background.title}</b>
-                        <em>{background.id === backgroundId ? '✓ 적용 중' : '선택'}</em>
+                        <em>{background.id === backgroundId ? '적용 중' : '선택'}</em>
                       </span>
                     </button>
                   )})}
                 </div>
                 <div className="ksk-admin-actions">
-                  <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
+                  <button type="button" className="ksk-admin-apply rt-btn" onClick={closeBackgroundAdmin}>
                     닫기
                   </button>
                   {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
-                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={quitKioskApp}>
                     앱 종료
                   </button>
                 </div>
               </div>
             )}
+            </RetroWindow>
           </div>
         </div>
       )}
 
       {receipt && (
-        <div className="ksk-modal">
-          <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={receipt.dataUrl} alt={t.receiptAlt} />
-          </div>
-          <p className="ksk-modal-note">{t.receiptNote}</p>
-          <div className="ksk-modal-actions">
-            <button className="ksk-btn" onClick={() => setReceipt(null)}>
-              {t.close}
+        <div className="ksk-modal" role="dialog" aria-modal="true" aria-label={t.receiptAlt}>
+          <RetroWindow className="ksk-modal-win" bodyClassName="ksk-modal-body" icon="printer" title="RECEIPT">
+            <div className="ksk-modal-paper rt-viewer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={receipt.dataUrl} alt={t.receiptAlt} />
+            </div>
+            <p className="ksk-modal-note">{t.receiptNote}</p>
+            <div className="ksk-modal-actions">
+              <button className="ksk-btn" onClick={() => setReceipt(null)}>
+                {t.close}
+              </button>
+              <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
+                <PixelIcon name="printer" size={28} />
+                <span>{printing ? t.printing : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}</span>
+              </button>
+            </div>
+            {printing && <RetroProgress className="ksk-modal-busy" label={t.printing} />}
+            {/* 손님이 떠난 자리를 다음 손님이 바로 쓸 수 있게 — 발권 여부와 무관하게 항상 */}
+            <button className="ksk-modal-home rt-btn" onClick={resetAll}>
+              <PixelIcon name="home" size={28} />
+              <span>{t.home}</span>
             </button>
-            <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
-              {printing ? t.printing : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
-            </button>
-          </div>
-          {/* 손님이 떠난 자리를 다음 손님이 바로 쓸 수 있게 — 발권 여부와 무관하게 항상 */}
-          <button className="ksk-modal-home" onClick={resetAll}>
-            {t.home}
-          </button>
+          </RetroWindow>
         </div>
       )}
 
-      {toast && <div className="ksk-toast">{toast}</div>}
+      {toast && (
+        <div className="ksk-toast rt-toast" role="status">
+          <PixelIcon name="warning" size={28} />
+          <span>{toast}</span>
+        </div>
+      )}
       {idleLeft !== null && receiptOpen ? (
         // 화면 어디를 눌러도(pointerdown) 대기 시간이 다시 채워지고 팝업은 닫힌다
-        <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive">
-          <div className="ksk-idle-card">
-            <span className="ksk-idle-count ksk-mono">{idleLeft}</span>
+        <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive" aria-label={t.idleTitle}>
+          <RetroWindow className="ksk-idle-win" bodyClassName="ksk-idle-card" icon="hourglass" title="STANDBY">
+            <span className="ksk-idle-count rt-pixel">{idleLeft}</span>
+            <RetroProgress value={idleLeft / RECEIPT_IDLE_WARN} blocks={RECEIPT_IDLE_WARN} label={t.idleTitle} />
             <h2>{t.idleTitle}</h2>
             <p>{t.idleDesc}</p>
             <button type="button" className="ksk-btn ksk-btn-primary">
               {t.idleContinue}
             </button>
-          </div>
+          </RetroWindow>
         </div>
       ) : (
-        idleLeft !== null && <div className="ksk-idle">{t.idleBanner(idleLeft)}</div>
+        idleLeft !== null && (
+          <div className="ksk-idle rt-toast" role="status">
+            <PixelIcon name="hourglass" size={24} />
+            <span>{t.idleBanner(idleLeft)}</span>
+          </div>
+        )
       )}
       {/* 안전한 모든 단계의 우하단에서 동일한 관리자 인증창을 연다. */}
       {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
@@ -2073,7 +2179,6 @@ export function KioskClient() {
 // ── 하위 컴포넌트/헬퍼 ─────────────────────────────────────────
 
 function SelectScreen(props: {
-  eyebrow: string
   title: string
   desc: string
   options: string[]
@@ -2088,7 +2193,6 @@ function SelectScreen(props: {
 }) {
   return (
     <div className="ksk-body">
-      <p className="ksk-eyebrow ksk-mono">{props.eyebrow}</p>
       <h1 className="ksk-title">{props.title}</h1>
       <p className="ksk-desc">
         {props.desc}

@@ -21,6 +21,7 @@ import {
 } from '@/types/analysis'
 import { getPerfumeById } from '@/data/perfumes'
 import type { KioskText } from '@/lib/kiosk/i18n'
+import { PixelIcon, RetroProgress } from '@/components/retro'
 
 export function perfumeNoFromId(id: string): string {
   const m = id.match(/(\d+)\s*$/)
@@ -41,14 +42,16 @@ export function Section({ label, children }: { label: string; children: React.Re
   )
 }
 
-function Bar({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
+/** 점수 막대 — 실제 점수(0~max)라 칸 수 그대로 채운다 */
+function Bar({ label, value, max = 10, top = false }: { label: string; value: number; max?: number; top?: boolean }) {
   return (
-    <div className="ksk-trait">
-      <span>{label}</span>
-      <span className="ksk-trait-bar">
-        <i style={{ width: `${Math.max(0, Math.min(1, value / max)) * 100}%` }} />
+    <div className="ksk-trait" data-top={top}>
+      <span className="ksk-trait-label">
+        {top && <PixelIcon name="star" size={20} />}
+        {label}
       </span>
-      <span className="ksk-mono">{value}</span>
+      <RetroProgress className="ksk-trait-bar" value={value / max} blocks={max} label={`${label} ${value}/${max}`} />
+      <span className="ksk-trait-value rt-pixel">{value}</span>
     </div>
   )
 }
@@ -137,7 +140,7 @@ export function ChapterProfile({ result, t }: { result: ImageAnalysisResult; t: 
 
       <Section label={t.scentProfileLabel}>
         {categories.map((c, i) => (
-          <Bar key={c.label} label={i === 0 ? `★ ${c.label}` : c.label} value={c.value} />
+          <Bar key={c.label} label={c.label} value={c.value} top={i === 0} />
         ))}
       </Section>
 

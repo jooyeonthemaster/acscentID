@@ -18,25 +18,8 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import QRCode from 'qrcode'
-import {
-  Camera,
-  Smartphone,
-  Sparkles,
-  RefreshCw,
-  Printer,
-  Download,
-  ChevronLeft,
-  Loader2,
-  Check,
-  X,
-  Delete,
-  Ticket,
-  Users,
-  QrCode,
-  Power,
-} from 'lucide-react'
 import {
   BUNDLED_TEMPLATES,
   BUNDLED_FRAMES,
@@ -60,7 +43,18 @@ import { probeDslrBridge, fetchDslrFrame, captureDslrStill } from '@/lib/photobo
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
-import { contrast, toBoothTheme } from '@/lib/screen-backgrounds/theme'
+import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
+import {
+  PixelIcon,
+  RetroProgress,
+  RetroWindow,
+  RetroDesktopIcons,
+  RetroStickers,
+  RETRO_FONT_CLASS,
+  type PixelIconName,
+} from '@/components/retro'
+import '@/components/retro/retro.css'
+import './booth.css'
 
 /** 브라우저 내장 QR 인식 API (지원하지 않는 환경이 있어 직접 좁게 선언) */
 type BarcodeDetectorLike = new (options?: { formats?: string[] }) => {
@@ -76,6 +70,27 @@ const POLL_INTERVAL_MS = 2500
 const ADMIN_HOLD_MS = 1500
 /** 부스 앱 화면 배율 선택지 — 큰 모니터일수록 키운다 (매장 1920x1080 모니터는 150%) */
 const SCREEN_ZOOM_OPTIONS = [1, 1.25, 1.5, 1.75] as const
+
+/** 타이틀바 — 단계마다 다른 프로그램 창을 연 것처럼(아이콘 + 짧은 영문 이름) */
+const BOOTH_STEP_META: Record<Step, { icon: PixelIconName; label: string }> = {
+  home: { icon: 'window', label: 'SELECT' },
+  pass: { icon: 'file', label: 'TICKET' },
+  qr: { icon: 'phone', label: 'UPLOAD' },
+  scan: { icon: 'qr', label: 'CARD SCAN' },
+  template: { icon: 'folder', label: 'CUTS' },
+  camera: { icon: 'camera', label: 'CAMERA' },
+  compose: { icon: 'palette', label: 'EDIT' },
+  result: { icon: 'printer', label: 'PRINT' },
+}
+
+/** 바탕화면 아이콘 줄 — 장식(터치를 받지 않는다) */
+const BOOTH_DESK_ITEMS: { icon: PixelIconName; label: string }[] = [
+  { icon: 'camera', label: 'PHOTO' },
+  { icon: 'folder', label: 'FRAMES' },
+  { icon: 'printer', label: 'PRINT' },
+  { icon: 'heart', label: 'BIAS' },
+  { icon: 'computer', label: 'WOW PC' },
+]
 /* 처음 화면 복귀 — 키오스크(/kiosk)와 같은 규칙: 30초 조용하면 10초 안내 팝업, 그래도 없으면 처음으로.
    두 기기가 한 공간에 있어 손님이 같은 방식으로 겪게 한다. */
 const IDLE_SILENT_S = 30
@@ -389,14 +404,10 @@ export function BoothClient() {
   const overlayAdjustable =
     (mode === 'together' && !!guestPhotoUrl) || (mode === 'card' && !!cutout)
   const activeBackground = toBoothTheme(backgroundRecord)
-  // 화면 테마만 사용하며 사진 합성·인화 캔버스의 이벤트 색은 별도로 유지한다.
+  // 레트로 UI에서 배경은 바탕화면·장식색·제목 글꼴만 맡는다 (창·버튼 색은 retro.css 고정).
+  // 이벤트 색은 장식에만 싣고, 사진 합성·인화 캔버스의 이벤트 색은 별도로 유지한다.
+  const retroDesk = toRetroDesktop(backgroundRecord)
   const accent = event?.theme_color || activeBackground.accent
-  const onAccent = event?.theme_color
-    ? contrast(accent, '#ffffff') >= contrast(accent, '#18222d') ? '#ffffff' : '#18222d'
-    : activeBackground.onAccent
-  const lightHome = activeBackground.tone === 'light'
-  /** 복귀 안내도 현재 화면의 읽기 쉬운 강조색을 사용한다. */
-  const idleAccent = accent
   /** 촬영 화면에 오려낸 인물을 겹쳐 보여주고 옮길 수 있는가 */
   const showLiveCutout = !!cutoutPreviewUrl && useCutout && overlayAdjustable
 
@@ -1388,22 +1399,25 @@ export function BoothClient() {
   const renderCameraStatus = () => (
     <>
       {!liveReady && !cameraError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-white/70">
-          <Loader2 className="w-9 h-9 animate-spin" style={{ color: accent }} />
-          <span className="text-sm">카메라 준비 중</span>
+        <div className="bth-overlay-center bth-overlay-dim">
+          <RetroWindow className="bth-mini" icon="camera" title="CAMERA">
+            <span>카메라 준비 중</span>
+            <RetroProgress label="카메라 준비 중" />
+          </RetroWindow>
         </div>
       )}
       {capturing && cameraSource === 'dslr' && (
-        <div className="absolute inset-x-0 bottom-6 flex justify-center">
-          <div className="flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-base font-bold text-white">
-            <Loader2 className="w-4 h-4 animate-spin" style={{ color: accent }} />
-            찰칵! 그대로 잠깐만요
-          </div>
+        <div className="bth-live-toast rt-toast" role="status">
+          <PixelIcon name="camera" size={28} />
+          찰칵! 그대로 잠깐만요
         </div>
       )}
       {shotNotice && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <p className="rounded-2xl bg-black/80 px-6 py-4 text-lg font-bold text-white">{shotNotice}</p>
+        <div className="bth-overlay-center">
+          <p className="rt-toast bth-notice" role="status">
+            <PixelIcon name="warning" size={32} />
+            {shotNotice}
+          </p>
         </div>
       )}
     </>
@@ -1713,21 +1727,20 @@ export function BoothClient() {
   // ======================
   // Render
   // ======================
+  const stepMeta = BOOTH_STEP_META[step]
+  // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
+  const deskVars = retroDesktopVars(
+    event?.theme_color ? { ...retroDesk, deco: accent, decoSoft: mixColor(accent, '#ffffff', 0.78) } : retroDesk
+  )
+  const startAttract = () => setIsAttract(false)
+
   return (
+    <MotionConfig reducedMotion="user">
     <div
-      className={`relative min-h-screen overflow-hidden bg-neutral-950 text-white flex flex-col select-none ${lightHome ? 'booth-tone-light' : 'booth-tone-dark'}`}
+      className={`bth-root rt rt--booth rt-desktop ${RETRO_FONT_CLASS}`}
       data-background={activeBackground.id}
-      style={{
-        fontFamily: activeBackground.bodyFont,
-        backgroundColor: activeBackground.base,
-        color: activeBackground.ink,
-        '--booth-ink': activeBackground.ink,
-        '--booth-accent': accent,
-        '--booth-on-accent': onAccent,
-        '--booth-display-font': activeBackground.displayFont,
-        '--booth-display-weight': String(activeBackground.displayWeight),
-        '--booth-display-tracking': activeBackground.displayTracking,
-      } as React.CSSProperties}
+      data-tone={retroDesk.tone}
+      style={deskVars as React.CSSProperties}
     >
       {/* 4x6 인쇄 전용 영역 */}
       <style>{`
@@ -1736,68 +1749,6 @@ export function BoothClient() {
           src: url('/fonts/pretendard/PretendardVariable.woff2') format('woff2');
           font-weight: 100 900;
           font-display: swap;
-        }
-        .booth-primary {
-          background: var(--booth-accent);
-          color: var(--booth-on-accent);
-        }
-        @keyframes booth-shimmer {
-          from { transform: translateX(-120%); }
-          to { transform: translateX(320%); }
-        }
-        .booth-shimmer {
-          animation: booth-shimmer 1.6s ease-in-out infinite;
-          will-change: transform;
-        }
-        .booth-display {
-          font-family: var(--booth-display-font);
-          font-weight: var(--booth-display-weight);
-          letter-spacing: var(--booth-display-tracking);
-          word-break: keep-all;
-        }
-        .booth-tone-light .booth-stage-ui {
-          color: var(--booth-ink);
-        }
-        .booth-tone-light .booth-stage-ui [class~="text-white"] {
-          color: var(--booth-ink);
-        }
-        .booth-tone-light .booth-stage-ui [class~="text-white/25"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/30"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/35"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/40"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/45"] {
-          color: color-mix(in srgb, var(--booth-ink) 52%, transparent);
-        }
-        .booth-tone-light .booth-stage-ui [class~="text-white/50"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/55"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/60"] {
-          color: color-mix(in srgb, var(--booth-ink) 66%, transparent);
-        }
-        .booth-tone-light .booth-stage-ui [class~="text-white/65"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/70"],
-        .booth-tone-light .booth-stage-ui [class~="text-white/80"] {
-          color: color-mix(in srgb, var(--booth-ink) 82%, transparent);
-        }
-        .booth-tone-light .booth-stage-ui [class~="border-white"],
-        .booth-tone-light .booth-stage-ui [class~="hover:border-white"]:hover {
-          border-color: var(--booth-ink);
-        }
-        .booth-tone-light .booth-stage-ui [class~="border-white/10"],
-        .booth-tone-light .booth-stage-ui [class~="border-white/15"],
-        .booth-tone-light .booth-stage-ui [class~="border-white/20"],
-        .booth-tone-light .booth-stage-ui [class~="border-white/25"] {
-          border-color: color-mix(in srgb, var(--booth-ink) 22%, transparent);
-        }
-        .booth-tone-light .booth-stage-ui [class~="border-white/40"],
-        .booth-tone-light .booth-stage-ui [class~="border-white/50"],
-        .booth-tone-light .booth-stage-ui [class~="border-white/60"] {
-          border-color: color-mix(in srgb, var(--booth-ink) 50%, transparent);
-        }
-        .booth-tone-light .booth-stage-ui [class~="hover:text-white"]:hover {
-          color: var(--booth-ink);
-        }
-        .booth-stage-ui [class~="accent-white"] {
-          accent-color: var(--booth-accent);
         }
         .booth-print-area { display: none; }
         @media print {
@@ -1820,54 +1771,69 @@ export function BoothClient() {
           }
         }
       `}</style>
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+      <div className="bth-wallpaper">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={activeBackground.image}
-          alt=""
-          className="h-full w-full object-cover"
-        />
+        <img src={activeBackground.image} alt="" />
       </div>
+      <RetroDesktopIcons items={BOOTH_DESK_ITEMS} className="bth-desk" />
+
       <AnimatePresence>
         {isAttract && (
-          <motion.button
-            type="button"
+          <motion.div
+            role="button"
+            tabIndex={0}
             aria-label="포토부스 시작하기"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsAttract(false)}
-            style={{ backgroundColor: activeBackground.base, color: activeBackground.ink }}
-            className={`fixed inset-0 z-50 overflow-hidden ${lightHome ? 'bg-[#f8f2e7] text-[var(--booth-ink)]' : 'bg-[#0b0b0a] text-white'}`}
+            onClick={startAttract}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') startAttract()
+            }}
+            className="bth-attract"
           >
             <motion.img
               src={activeBackground.image}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="bth-attract-wall"
               animate={{ scale: [1, 1.045, 1] }}
               transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <motion.div
-              className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-10 text-center"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/photobooth/decor/wordmark.svg" alt="AC'SCENT WOW PHOTO" className={`mb-12 w-80 max-w-[55vw] ${lightHome ? 'invert' : ''}`} />
-              <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>4×6 PHOTO BENEFIT</p>
-              <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">
-                {event?.greeting || '오늘의 최애와, 한 장에'}
-              </h1>
-              {event?.hashtag && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{event.hashtag}</p>}
-              <motion.span
-                className={`mt-16 rounded-full px-10 py-5 text-xl font-bold backdrop-blur-md ${lightHome ? 'border border-[var(--booth-ink)]/25 bg-white/65' : 'border border-white/40 bg-black/25'}`}
-                animate={{ boxShadow: ['0 0 0 0 rgba(255,255,255,.15)', '0 0 0 16px rgba(255,255,255,0)', '0 0 0 0 rgba(255,255,255,0)'] }}
-                transition={{ duration: 2.2, repeat: Infinity }}
-              >
-                화면을 터치해 시작하기
-              </motion.span>
-            </motion.div>
-          </motion.button>
+            <RetroDesktopIcons items={BOOTH_DESK_ITEMS} className="bth-desk" />
+            <div className="bth-attract-stage">
+              <div className="bth-attract-group">
+                <RetroWindow ghosts icon="heart" title="WELCOME" bodyClassName="bth-attract-body">
+                  <div className="bth-wordmark rt-pixel" aria-label="AC'SCENT WOW PHOTO">
+                    <b>AC&apos;SCENT WOW</b>
+                    <span>PHOTO</span>
+                  </div>
+                  <span className="bth-attract-tag rt-tag rt-pixel">4×6 PHOTO BENEFIT</span>
+                  <h1 className="bth-display bth-h1 bth-attract-h1">{event?.greeting || '오늘의 최애와, 한 장에'}</h1>
+                  {event?.hashtag && <p className="bth-hashtag-text">{event.hashtag}</p>}
+                </RetroWindow>
+                <div className="bth-attract-start">
+                  <RetroWindow icon="sparkle" title="START">
+                    <span className="bth-attract-cta rt-btn rt-btn--pink rt-btn--block">
+                      <PixelIcon name="camera" size={48} />
+                      <span>화면을 터치해 시작하기</span>
+                    </span>
+                  </RetroWindow>
+                  <RetroStickers
+                    items={[
+                      { icon: 'heart', top: 'calc(100% - 26px)', left: '-30px', size: 48, tilt: -8 },
+                      { icon: 'heart', top: 'calc(100% - 4px)', left: '26px', size: 36, tilt: 8 },
+                    ]}
+                  />
+                </div>
+                <RetroStickers
+                  items={[
+                    { icon: 'sparkle', top: '-22px', left: 'calc(100% - 40px)', size: 48 },
+                    { icon: 'heart', top: '38%', left: '-30px', size: 44, tilt: -10 },
+                  ]}
+                />
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
       {resultUrl && (
@@ -1877,52 +1843,51 @@ export function BoothClient() {
         </div>
       )}
 
-      {/* 헤더 */}
-      <header className={`booth-stage-ui relative z-10 flex min-h-16 items-center justify-between gap-5 border-b px-8 py-2.5 backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/35 text-[var(--booth-ink)]' : 'border-white/10'}`}>
-        <div className="flex min-w-0 items-center gap-5">
-          {step !== 'home' && (
-            <button
-              type="button"
-              onClick={goBack}
-              disabled={shooting || passLoading || finishing}
-              aria-label="이전 단계로 돌아가기"
-              className="flex min-h-12 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-full px-5 text-base font-bold shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98] disabled:opacity-40"
-              style={{
-                backgroundColor: accent,
-                color: onAccent,
-              }}
-            >
-              <ChevronLeft className="h-5 w-5" />
-              뒤로
-            </button>
-          )}
-          <button
-            onClick={resetAll}
-            className={`booth-display truncate text-lg tracking-[0.25em] transition-opacity hover:opacity-70 ${step === 'home' ? '' : 'hidden sm:block'}`}
-          >
-            AC&apos;SCENT PHOTO
-          </button>
-        </div>
-        <div className="flex items-center gap-5">
-          {event && (
-            <span
-              className="hidden sm:inline text-xs font-semibold tracking-widest uppercase"
-              style={{ color: accent }}
-            >
-              {event.title}
-            </span>
-          )}
-          {step !== 'home' && (
-            <button
-              onClick={resetAll}
-              className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" /> 처음으로
-            </button>
-          )}
-        </div>
-      </header>
+      <div className="bth-frame rt-stack">
+        <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
+        <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
+        <section className="bth-window rt-win">
+          <header className="rt-win-title">
+            <PixelIcon name={stepMeta.icon} size={24} className="rt-win-title-icon" />
+            <span className="rt-win-title-text">AC&apos;SCENT PHOTO</span>
+            <span className="rt-win-title-extra">{stepMeta.label}</span>
+          </header>
 
+          {/* 도구줄 — 뒤로·처음으로는 늘 같은 자리 */}
+          <div className="bth-toolbar">
+            <div className="bth-toolbar-side">
+              {step !== 'home' ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={shooting || passLoading || finishing}
+                  aria-label="이전 단계로 돌아가기"
+                  className="rt-btn bth-tool-btn"
+                >
+                  <PixelIcon name="arrowLeft" size={32} />
+                  <span>뒤로</span>
+                </button>
+              ) : (
+                <span className="bth-toolbar-brand rt-pixel">AC&apos;SCENT WOW · 4X6 PHOTO BOOTH</span>
+              )}
+            </div>
+            {event && (
+              <span className="bth-event-tag rt-tag">
+                <PixelIcon name="sparkle" size={20} />
+                {event.title}
+              </span>
+            )}
+            <div className="bth-toolbar-side bth-toolbar-end">
+              {step !== 'home' && (
+                <button type="button" onClick={resetAll} className="rt-btn bth-tool-btn">
+                  <PixelIcon name="home" size={32} />
+                  <span>처음으로</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="bth-body rt-scroll">
       <AnimatePresence mode="wait">
       <motion.main
         key={step}
@@ -1930,36 +1895,28 @@ export function BoothClient() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="booth-stage-ui relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-5"
+        className="bth-main"
       >
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
         {step === 'home' && (
-          <div className="w-full max-w-6xl" style={{ color: activeBackground.ink }}>
+          <div className="bth-home">
             {event ? (
-              <div className="mb-10 text-center">
+              <div className="bth-event">
                 {event.cover_image_url && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={event.cover_image_url}
-                    alt={event.title}
-                    className="w-full max-h-44 object-cover rounded-3xl mb-6 border"
-                    style={{ borderColor: accent }}
-                  />
+                  <div className="rt-viewer bth-event-cover">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={event.cover_image_url} alt={event.title} />
+                  </div>
                 )}
-                <p
-                  className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.3em] uppercase rounded-full border px-4 py-1.5 mb-4"
-                  style={{ color: accent, borderColor: accent }}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
+                <p className="bth-event-label rt-tag">
+                  <PixelIcon name="sparkle" size={20} />
                   Birthday Cafe{eventPeriod ? ` · ${eventPeriod}` : ''}
                 </p>
-                <h1 className="booth-display text-3xl md:text-5xl leading-tight">
-                  {event.greeting || event.title}
-                </h1>
-                <p className="mt-3 text-white/50 text-sm">
+                <h1 className="bth-display bth-h1">{event.greeting || event.title}</h1>
+                <p className="bth-sub bth-event-by">
                   {event.artist && (
                     <>
-                      with <span style={{ color: accent }}>{event.artist}</span>
+                      with <b>{event.artist}</b>
                     </>
                   )}
                   {event.artist && event.organizer && ' · '}
@@ -1967,68 +1924,66 @@ export function BoothClient() {
                 </p>
               </div>
             ) : (
-              <div className="mb-10 text-center">
-                <h1 className="booth-display text-3xl md:text-4xl mb-2">어떤 사진을 찍을까요?</h1>
-                <p className={lightHome ? 'text-[var(--booth-ink)]/65' : 'text-white/50'}>4x6인치 인화 사진으로 출력됩니다</p>
+              <div className="bth-heading">
+                <h1 className="bth-display bth-h1">어떤 사진을 찍을까요?</h1>
+                <p className="bth-sub">4x6인치 인화 사진으로 출력됩니다</p>
               </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              <button
-                onClick={() => startMode('card')}
-                className={`group min-h-60 rounded-3xl p-7 text-left text-lg transition-all ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950'}`}
-              >
-                <QrCode className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">포토카드로 찍기</p>
-                <p className="text-lg opacity-60 leading-relaxed break-keep">
+            <div className="bth-tiles">
+              <button type="button" onClick={() => startMode('card')} className="bth-tile">
+                <span className="bth-tile-icon">
+                  <PixelIcon name="qr" size={80} />
+                </span>
+                <span className="bth-display bth-tile-name">포토카드로 찍기</span>
+                <span className="bth-tile-desc">
                   매장 포토카드를
                   <br />
                   카메라에 보여주세요
-                </p>
+                </span>
               </button>
               <button
+                type="button"
                 onClick={() => startMode('template')}
                 disabled={templates.length === 0}
-                className={`group min-h-60 rounded-3xl p-7 text-left text-lg transition-all disabled:opacity-30 ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950 disabled:hover:bg-white/5 disabled:hover:text-white'}`}
+                className="bth-tile"
               >
-                <Users className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">{templateLabel}</p>
-                <p className="text-lg opacity-60 leading-relaxed break-keep">
+                <span className="bth-tile-icon">
+                  <PixelIcon name="duo" size={80} />
+                </span>
+                <span className="bth-display bth-tile-name">{templateLabel}</span>
+                <span className="bth-tile-desc">
                   준비된 컷의 빈자리에
                   <br />
                   옆에 선 것처럼 합성돼요
-                </p>
+                </span>
               </button>
-              <button
-                onClick={() => startMode('together')}
-                className={`group min-h-60 rounded-3xl p-7 text-left transition-all ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950'}`}
-              >
-                <Smartphone className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">
-                  {event ? '내 포카·직찍과 찍기' : '같이 찍기'}
-                </p>
-                <p className="text-lg opacity-60 leading-relaxed break-keep">
+              <button type="button" onClick={() => startMode('together')} className="bth-tile">
+                <span className="bth-tile-icon">
+                  <PixelIcon name="phone" size={80} />
+                </span>
+                <span className="bth-display bth-tile-name">{event ? '내 포카·직찍과 찍기' : '같이 찍기'}</span>
+                <span className="bth-tile-desc">
                   폰 속 사진을 올려서
                   <br />
                   함께 찍은 것처럼 합성해요
-                </p>
+                </span>
               </button>
-              <button
-                onClick={() => startMode('solo')}
-                className={`group min-h-60 rounded-3xl p-7 text-left transition-all ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950'}`}
-              >
-                <Camera className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">일반 촬영</p>
-                <p className="text-lg opacity-60 leading-relaxed break-keep">
+              <button type="button" onClick={() => startMode('solo')} className="bth-tile">
+                <span className="bth-tile-icon">
+                  <PixelIcon name="camera" size={80} />
+                </span>
+                <span className="bth-display bth-tile-name">일반 촬영</span>
+                <span className="bth-tile-desc">
                   1컷 또는 네컷으로
                   <br />
                   지금 이 순간을 담아요
-                </p>
+                </span>
               </button>
             </div>
 
-            <p className={`mt-8 text-center text-base flex items-center justify-center gap-1.5 ${lightHome ? 'text-[var(--booth-ink)]/55' : 'text-white/35'}`}>
-              <Ticket className="w-3.5 h-3.5" />
+            <p className="bth-note">
+              <PixelIcon name="file" size={28} />
               포토부스는 상품 구매 시 드리는 이용권으로 이용할 수 있어요
             </p>
           </div>
@@ -2036,230 +1991,225 @@ export function BoothClient() {
 
         {/* ---------- 이용권 코드 입력 ---------- */}
         {step === 'pass' && (
-          <div className="w-full max-w-sm text-center">
-            <Ticket className="w-10 h-10 mx-auto mb-4" style={{ color: accent }} />
-            <h2 className="booth-display text-2xl md:text-3xl mb-2">이용권 번호 입력</h2>
-            <p className="text-white/50 text-sm mb-8">
-              상품 구매 시 받은 6자리 번호를 입력해주세요
-            </p>
+          <div className="bth-pass">
+            <RetroWindow className="bth-panel" icon="file" title="TICKET">
+              <h2 className="bth-display bth-h2">이용권 번호 입력</h2>
+              <p className="bth-sub">상품 구매 시 받은 6자리 번호를 입력해주세요</p>
 
-            {/* 코드 표시 */}
-            <div className="flex justify-center gap-2.5 mb-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-11 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold"
-                  style={{
-                    borderColor:
-                      i === passDigits.length && !passLoading
-                        ? accent
-                        : lightHome
-                          ? 'rgba(23,58,94,0.22)'
-                          : 'rgba(255,255,255,0.2)',
-                  }}
-                >
-                  {passLoading && i === 5 ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-white/50" />
-                  ) : (
-                    passDigits[i] ?? ''
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="h-5 text-sm text-red-400 mb-4">{passError}</p>
+              {/* 코드 표시 */}
+              <div className="bth-code">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bth-code-cell rt-field"
+                    data-current={i === passDigits.length && !passLoading}
+                  >
+                    {passDigits[i] ?? ''}
+                  </div>
+                ))}
+              </div>
+              {passLoading && <RetroProgress className="bth-inline-busy" label="이용권 확인 중" />}
+              <p className="bth-error" role="alert">
+                {passError}
+              </p>
 
-            {/* 키패드 */}
-            <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
-                <button
-                  key={digit}
-                  onClick={() => pressKeypad(digit)}
-                  disabled={passLoading}
-                  className="h-16 rounded-2xl bg-white/5 border border-white/10 text-2xl font-bold hover:bg-white/15 active:bg-white/25 transition-colors disabled:opacity-40"
-                >
-                  {digit}
+              {/* 키패드 */}
+              <div className="bth-keypad">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                  <button
+                    key={digit}
+                    type="button"
+                    onClick={() => pressKeypad(digit)}
+                    disabled={passLoading}
+                    className="rt-btn"
+                  >
+                    {digit}
+                  </button>
+                ))}
+                <div />
+                <button type="button" onClick={() => pressKeypad('0')} disabled={passLoading} className="rt-btn">
+                  0
                 </button>
-              ))}
-              <div />
-              <button
-                onClick={() => pressKeypad('0')}
-                disabled={passLoading}
-                className="h-16 rounded-2xl bg-white/5 border border-white/10 text-2xl font-bold hover:bg-white/15 active:bg-white/25 transition-colors disabled:opacity-40"
-              >
-                0
-              </button>
-              <button
-                onClick={() => pressKeypad('back')}
-                disabled={passLoading}
-                className="h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/15 active:bg-white/25 transition-colors disabled:opacity-40"
-              >
-                <Delete className="w-6 h-6" />
-              </button>
-            </div>
-
+                <button
+                  type="button"
+                  onClick={() => pressKeypad('back')}
+                  disabled={passLoading}
+                  aria-label="지우기"
+                  className="rt-btn"
+                >
+                  <PixelIcon name="backspace" size={40} />
+                </button>
+              </div>
+            </RetroWindow>
           </div>
         )}
 
         {/* ---------- QR: 폰 사진 업로드 대기 ---------- */}
         {step === 'qr' && (
-          <div className="text-center">
-            <h2 className="booth-display text-2xl md:text-3xl mb-2">
-              {guestPhotoUrl ? '사진을 받았어요' : '폰으로 사진 올리기'}
-            </h2>
-            <p className="text-white/50 mb-8">
-              {guestPhotoUrl
-                ? '함께 찍을 수 있게 인물만 오려내고 있어요'
-                : 'QR을 스캔해 합성할 포카·직찍 한 장을 올려주세요'}
-            </p>
-            {guestPhotoUrl ? (
-              <div className="flex flex-col items-center gap-6">
-                <div className="relative overflow-hidden rounded-3xl border-4 shadow-2xl" style={{ borderColor: accent }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={guestPhotoUrl} alt="받은 사진" className="h-72 w-auto max-w-[70vw] object-contain" />
-                  {/* 훑고 지나가는 빛 — 처리 중임을 보여준다. 오려내기 계산이 화면 스레드를 잠깐씩 막아도
-                      멈추지 않도록 JS 가 아닌 CSS 애니메이션(컴포지터에서 돈다)으로 */}
-                  <div className="booth-shimmer pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+          <div className="bth-split">
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                {guestPhotoUrl ? (
+                  <div className="rt-viewer bth-photo-view">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={guestPhotoUrl} alt="받은 사진" />
+                  </div>
+                ) : sessionExpired ? (
+                  <div className="bth-empty">
+                    <PixelIcon name="hourglass" size={96} />
+                    <p className="bth-error">세션이 만료되었어요</p>
+                  </div>
+                ) : qrDataUrl ? (
+                  <div className="bth-qr rt-field">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={qrDataUrl} alt="사진 업로드 QR" />
+                  </div>
+                ) : (
+                  <div className="bth-empty">
+                    <RetroProgress label="QR 준비 중" className="bth-inline-busy" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bth-split-side">
+              <h2 className="bth-display bth-h2">{guestPhotoUrl ? '사진을 받았어요' : '폰으로 사진 올리기'}</h2>
+              <p className="bth-sub">
+                {guestPhotoUrl
+                  ? '함께 찍을 수 있게 인물만 오려내고 있어요'
+                  : 'QR을 스캔해 합성할 포카·직찍 한 장을 올려주세요'}
+              </p>
+              {guestPhotoUrl ? (
+                <div className="bth-status" role="status">
+                  <RetroProgress label="인물 오려내는 중" />
+                  <p>인물만 오려내는 중… 곧 카메라가 켜져요</p>
                 </div>
-                <p className="flex items-center gap-2 text-white/60">
-                  <Loader2 className="w-4 h-4 animate-spin" /> 인물만 오려내는 중… 곧 카메라가 켜져요
-                </p>
-              </div>
-            ) : sessionExpired ? (
-              <div className="flex flex-col items-center gap-5">
-                <p className="text-red-400">세션이 만료되었어요</p>
-                <button
-                  onClick={() => proceedToMode('together')}
-                  className="flex items-center gap-2 rounded-full booth-primary px-6 py-3 font-semibold hover:opacity-80 transition-opacity"
-                >
-                  <RefreshCw className="w-4 h-4" /> QR 다시 만들기
-                </button>
-              </div>
-            ) : qrDataUrl ? (
-              <div className="flex flex-col items-center gap-6">
-                <div className="bg-white rounded-3xl p-5 border-4" style={{ borderColor: accent }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrDataUrl} alt="사진 업로드 QR" className="w-56 h-56 md:w-64 md:h-64" />
+              ) : sessionExpired ? (
+                <div className="bth-side-actions">
+                  <button
+                    type="button"
+                    onClick={() => proceedToMode('together')}
+                    className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
+                  >
+                    <PixelIcon name="qr" size={40} /> QR 다시 만들기
+                  </button>
                 </div>
-                <p className="font-mono text-white/40 tracking-widest">{sessionCode}</p>
-                <p className="flex items-center gap-2 text-white/60">
-                  <Loader2 className="w-4 h-4 animate-spin" /> 업로드를 기다리는 중...
-                </p>
-              </div>
-            ) : (
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-white/40" />
-            )}
+              ) : qrDataUrl ? (
+                <>
+                  <p className="bth-session rt-pixel">{sessionCode}</p>
+                  <div className="bth-status" role="status">
+                    <RetroProgress label="업로드를 기다리는 중" />
+                    <p>업로드를 기다리는 중...</p>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </div>
         )}
 
         {/* ---------- 매장 포토카드 스캔 ---------- */}
         {step === 'scan' && (
           // 키오스크라 스크롤이 생기면 안 된다. 카메라와 키패드를 좌우로 나눠 한 화면에 담는다
-          <div className="w-full max-w-6xl flex flex-col items-center">
-            <h2 className="text-xl md:text-2xl font-bold mb-1">카드를 카메라에 보여주세요</h2>
-            <p className="text-sm opacity-50 mb-4">
-              포토카드 뒷면의 QR을 화면 쪽으로 향하게 해주세요
-            </p>
-
-            <div className="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
-              {cameraError ? (
-                <p className="text-red-400 text-center py-16">{cameraError}</p>
-              ) : (
-                <div className="relative w-full lg:w-[52%] max-w-2xl rounded-3xl overflow-hidden bg-black shrink-0">
-                  {renderLiveView('block w-full aspect-video object-cover scale-x-[-1]')}
-                  {renderCameraStatus()}
-                  {/* 조준 가이드 */}
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <div
-                      className="w-40 h-40 rounded-2xl border-4"
-                      style={{ borderColor: accent, opacity: 0.85 }}
-                    />
+          <div className="bth-split">
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                {cameraError ? (
+                  <div className="bth-empty">
+                    <PixelIcon name="warning" size={96} />
+                    <p className="bth-error">{cameraError}</p>
                   </div>
-                  {scanBusy && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <Loader2 className="w-10 h-10 animate-spin" style={{ color: accent }} />
+                ) : (
+                  <div className="rt-viewer bth-live bth-live--wide">
+                    {renderLiveView('bth-live-media bth-mirror')}
+                    {renderCameraStatus()}
+                    {/* 조준 가이드 */}
+                    <div className="bth-aim" aria-hidden="true">
+                      <span />
                     </div>
-                  )}
-                </div>
-              )}
+                    {scanBusy && (
+                      <div className="bth-overlay-center">
+                        <RetroWindow className="bth-mini" icon="qr" title="SCANNING">
+                          <RetroProgress label="카드 확인 중" />
+                        </RetroWindow>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* QR이 안 읽힐 때 — 카드에 인쇄된 번호로 진행.
                 부스는 터치스크린이라 물리 키보드가 없을 수 있어 화면 키패드를 제공한다. */}
-            <div className="flex flex-col items-center">
-              <p className="text-sm opacity-50 mb-3">QR이 안 읽히면 카드의 번호를 눌러주세요</p>
-
-              {/* 입력 칸 — 몇 자 들어갔는지 한눈에 보이게 */}
-              <div className="flex gap-2 mb-4">
-                {Array.from({ length: CARD_CODE_LENGTH }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-12 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold"
-                    style={{
-                      borderColor:
-                        i === manualCode.length && !scanBusy ? accent : 'rgba(128,128,128,0.35)',
-                    }}
-                  >
-                    {manualCode[i] ?? ''}
-                  </div>
-                ))}
-              </div>
-
-              {/* 화면 키패드 */}
-              <div className="grid grid-cols-8 gap-1.5 max-w-lg">
-                {CARD_ALPHABET.split('').map((ch) => (
+            <div className="bth-split-side">
+              <h2 className="bth-display bth-h2">카드를 카메라에 보여주세요</h2>
+              <p className="bth-sub bth-scan-sub">포토카드 뒷면의 QR을 화면 쪽으로 향하게 해주세요</p>
+              <div className="rt-group bth-manual">
+                <span className="rt-group-label">QR이 안 읽히면 카드의 번호를 눌러주세요</span>
+                {/* 입력 칸 — 몇 자 들어갔는지 한눈에 보이게 */}
+                <div className="bth-code">
+                  {Array.from({ length: CARD_CODE_LENGTH }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bth-code-cell rt-field"
+                      data-current={i === manualCode.length && !scanBusy}
+                    >
+                      {manualCode[i] ?? ''}
+                    </div>
+                  ))}
+                </div>
+                {/* 화면 키패드 */}
+                <div className="bth-alpha">
+                  {CARD_ALPHABET.split('').map((ch) => (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => pressCardKey(ch)}
+                      disabled={scanBusy}
+                      className="rt-btn"
+                    >
+                      {ch}
+                    </button>
+                  ))}
                   <button
-                    key={ch}
-                    onClick={() => pressCardKey(ch)}
+                    type="button"
+                    onClick={() => pressCardKey('back')}
                     disabled={scanBusy}
-                    className="h-11 w-11 rounded-lg border border-current/20 bg-current/5 text-base font-bold hover:bg-current/15 active:bg-current/25 transition-colors disabled:opacity-30"
+                    aria-label="지우기"
+                    className="rt-btn"
                   >
-                    {ch}
+                    <PixelIcon name="backspace" size={32} />
                   </button>
-                ))}
-                <button
-                  onClick={() => pressCardKey('back')}
-                  disabled={scanBusy}
-                  className="h-11 w-11 rounded-lg border border-current/20 bg-current/5 flex items-center justify-center hover:bg-current/15 active:bg-current/25 transition-colors disabled:opacity-30"
-                  title="지우기"
-                >
-                  <Delete className="w-5 h-5" />
+                </div>
+                <p className="bth-error" role="alert">
+                  {scanError}
+                </p>
+              </div>
+              <div className="bth-side-actions">
+                <button type="button" onClick={resetAll} className="rt-btn rt-btn--block">
+                  <PixelIcon name="arrowLeft" size={32} /> 뒤로
                 </button>
               </div>
-              <p className="h-5 mt-3 text-sm text-red-500">{scanError}</p>
             </div>
-            </div>
-
-            <button
-              onClick={resetAll}
-              className="mt-4 flex items-center gap-1 mx-auto text-sm opacity-40 hover:opacity-100 transition-opacity"
-            >
-              <ChevronLeft className="w-4 h-4" /> 뒤로
-            </button>
           </div>
         )}
 
         {/* ---------- 템플릿(최애 컷) 선택 ---------- */}
         {step === 'template' && (
-          <div className="w-full max-w-6xl">
-            <h2 className="booth-display text-center text-2xl md:text-3xl mb-2">
-              함께 찍을 컷을 골라주세요
-            </h2>
-            <p className="text-center text-white/50 text-sm mb-8">
-              빈 자리에 손님이 합성돼 옆에 선 한 장이 됩니다
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bth-templates">
+            <div className="bth-heading">
+              <h2 className="bth-display bth-h2">함께 찍을 컷을 골라주세요</h2>
+              <p className="bth-sub">빈 자리에 손님이 합성돼 옆에 선 한 장이 됩니다</p>
+            </div>
+            <div className="bth-files">
               {templates.map((tpl) => (
-                <button
-                  key={tpl.id}
-                  onClick={() => selectTemplate(tpl)}
-                  className="group rounded-2xl overflow-hidden border-2 border-white/15 hover:border-white transition-colors"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={tpl.image_url}
-                    alt={tpl.title}
-                    className="w-full aspect-[4/3] object-cover"
-                  />
-                  <p className="py-3 text-base font-medium bg-white/5">{tpl.title}</p>
+                <button key={tpl.id} type="button" onClick={() => selectTemplate(tpl)} className="bth-file">
+                  <span className="rt-viewer bth-file-thumb">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={tpl.image_url} alt={tpl.title} />
+                  </span>
+                  <span className="bth-file-name">
+                    <PixelIcon name="photo" size={28} />
+                    {tpl.title}
+                  </span>
                 </button>
               ))}
             </div>
@@ -2267,126 +2217,123 @@ export function BoothClient() {
         )}
 
         {/* ---------- 카메라 촬영 ---------- */}
-        {/* 가로 모니터: 미리보기는 화면 높이를 꽉 채우고, 안내·버튼은 오른쪽 열 */}
+        {/* 가로 모니터: 미리보기는 남는 높이를 꽉 채우고, 안내·버튼은 오른쪽 열 */}
         {step === 'camera' && (
-          <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10">
-            {cameraError ? (
-              <p className="text-red-400 text-center py-16 lg:w-[28rem] break-keep">{cameraError}</p>
-            ) : (
-              <div
-                className={`relative shrink-0 rounded-3xl overflow-hidden bg-black ${
-                  liveComposeReady
-                    ? 'w-full max-w-3xl aspect-[4/3] lg:w-auto lg:max-w-none lg:h-[calc(100svh-9.5rem)]'
-                    : 'aspect-[2/3] h-[min(66vh,660px)] max-h-[calc(100vh-370px)] lg:h-[calc(100svh-9.5rem)] lg:max-h-none'
-                }`}
-              >
-                  {/* 최애와 찍기는 합성 결과를, 나머지는 인화 비율(2:3) 그대로 보여준다 */}
-                  {renderLiveView(
-                    liveComposeReady
-                      ? 'absolute opacity-0 pointer-events-none w-px h-px'
-                      : 'block h-full w-full object-cover scale-x-[-1]'
-                  )}
-                  {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
-                      위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
-                  {showLiveCutout && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={cutoutPreviewUrl ?? undefined}
-                      alt="함께 찍을 인물 (끌어서 옮기기)"
-                      draggable={false}
-                      onPointerDown={(event) => {
-                        if (shooting) return
-                        event.currentTarget.setPointerCapture(event.pointerId)
-                        overlayDragRef.current = {
-                          pointerId: event.pointerId,
-                          lastX: event.clientX,
-                          lastY: event.clientY,
-                        }
-                      }}
-                      onPointerMove={(event) => {
-                        const drag = overlayDragRef.current
-                        const box = event.currentTarget.parentElement
-                        if (!drag || drag.pointerId !== event.pointerId || !box) return
-                        // 미리보기(2:3)는 인화 캔버스와 같은 비율 — 화면 이동량을 캔버스 좌표로 바꾼다
-                        const dx = ((event.clientX - drag.lastX) * CANVAS_W) / box.clientWidth
-                        const dy = ((event.clientY - drag.lastY) * CANVAS_H) / box.clientHeight
-                        drag.lastX = event.clientX
-                        drag.lastY = event.clientY
-                        setGuestLayer((prev) => ({
-                          ...prev,
-                          x: Math.min(CANVAS_W, Math.max(0, prev.x + dx)),
-                          y: Math.min(CANVAS_H, Math.max(0, prev.y + dy)),
-                        }))
-                      }}
-                      onPointerUp={(event) => {
-                        if (overlayDragRef.current?.pointerId === event.pointerId) overlayDragRef.current = null
-                      }}
-                      onPointerCancel={() => {
-                        overlayDragRef.current = null
-                      }}
-                      className={`absolute drop-shadow-2xl select-none touch-none ${
-                        shooting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'
-                      }`}
-                      style={{
-                        left: `${(guestLayer.x / CANVAS_W) * 100}%`,
-                        top: `${(guestLayer.y / CANVAS_H) * 100}%`,
-                        width: `${guestLayer.scale * 100}%`,
-                        transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)`,
-                      }}
-                    />
-                  )}
-                  {liveComposeReady && (
-                    <canvas
-                      ref={attachLivePreview}
-                      width={PREVIEW_W}
-                      height={PREVIEW_H}
-                      className="block h-full w-full bg-black"
-                    />
-                  )}
-                  {mode === 'template' && !templateGeometry && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                      <Loader2 className="w-8 h-8 animate-spin text-white/60" />
-                    </div>
-                  )}
-                  {countdown !== null && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                      <motion.span
-                        key={countdown}
-                        initial={{ scale: 1.6, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="text-9xl font-black drop-shadow-lg"
-                        style={{ color: accent }}
-                      >
-                        {countdown}
-                      </motion.span>
-                    </div>
-                  )}
-                  {renderCameraStatus()}
-                  {flash && <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} className="pointer-events-none absolute inset-0 bg-white" />}
-                  {shotProgress && (
-                    <div className="absolute top-4 left-4 rounded-full bg-black/60 px-4 py-1.5 text-sm font-bold">
-                      {shotProgress.current} / {shotProgress.total}
-                    </div>
-                  )}
-                  {mode === 'card' && scannedCard && (
-                    <div
-                      className="absolute top-4 right-4 rounded-full bg-black/60 px-4 py-1.5 text-sm font-bold"
-                      style={{ color: accent }}
-                    >
-                      {scannedCard.title}
-                    </div>
-                  )}
-                  {mode === 'together' && guestPhotoUrl && (
-                    <div className="absolute top-4 right-4 w-20 rounded-lg overflow-hidden border-2 border-white shadow-lg">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={guestPhotoUrl} alt="업로드된 사진" className="w-full" />
-                    </div>
-                  )}
+          <div className="bth-split">
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                {cameraError ? (
+                  <div className="bth-empty">
+                    <PixelIcon name="warning" size={96} />
+                    <p className="bth-error">{cameraError}</p>
+                  </div>
+                ) : (
+                  <div className={`rt-viewer bth-live ${liveComposeReady ? 'bth-live--compose' : 'bth-live--print'}`}>
+                    {/* 최애와 찍기는 합성 결과를, 나머지는 인화 비율(2:3) 그대로 보여준다 */}
+                    {renderLiveView(
+                      liveComposeReady
+                        ? 'absolute opacity-0 pointer-events-none w-px h-px'
+                        : 'bth-live-media bth-mirror'
+                    )}
+                    {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
+                        위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
+                    {showLiveCutout && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={cutoutPreviewUrl ?? undefined}
+                        alt="함께 찍을 인물 (끌어서 옮기기)"
+                        draggable={false}
+                        onPointerDown={(event) => {
+                          if (shooting) return
+                          event.currentTarget.setPointerCapture(event.pointerId)
+                          overlayDragRef.current = {
+                            pointerId: event.pointerId,
+                            lastX: event.clientX,
+                            lastY: event.clientY,
+                          }
+                        }}
+                        onPointerMove={(event) => {
+                          const drag = overlayDragRef.current
+                          const box = event.currentTarget.parentElement
+                          if (!drag || drag.pointerId !== event.pointerId || !box) return
+                          // 미리보기(2:3)는 인화 캔버스와 같은 비율 — 화면 이동량을 캔버스 좌표로 바꾼다
+                          const dx = ((event.clientX - drag.lastX) * CANVAS_W) / box.clientWidth
+                          const dy = ((event.clientY - drag.lastY) * CANVAS_H) / box.clientHeight
+                          drag.lastX = event.clientX
+                          drag.lastY = event.clientY
+                          setGuestLayer((prev) => ({
+                            ...prev,
+                            x: Math.min(CANVAS_W, Math.max(0, prev.x + dx)),
+                            y: Math.min(CANVAS_H, Math.max(0, prev.y + dy)),
+                          }))
+                        }}
+                        onPointerUp={(event) => {
+                          if (overlayDragRef.current?.pointerId === event.pointerId) overlayDragRef.current = null
+                        }}
+                        onPointerCancel={() => {
+                          overlayDragRef.current = null
+                        }}
+                        className={`absolute drop-shadow-2xl select-none touch-none ${
+                          shooting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'
+                        }`}
+                        style={{
+                          left: `${(guestLayer.x / CANVAS_W) * 100}%`,
+                          top: `${(guestLayer.y / CANVAS_H) * 100}%`,
+                          width: `${guestLayer.scale * 100}%`,
+                          transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)`,
+                        }}
+                      />
+                    )}
+                    {liveComposeReady && (
+                      <canvas
+                        ref={attachLivePreview}
+                        width={PREVIEW_W}
+                        height={PREVIEW_H}
+                        className="bth-live-media"
+                      />
+                    )}
+                    {mode === 'template' && !templateGeometry && (
+                      <div className="bth-overlay-center bth-overlay-dim">
+                        <RetroWindow className="bth-mini" icon="folder" title="LOADING">
+                          <RetroProgress label="컷 준비 중" />
+                        </RetroWindow>
+                      </div>
+                    )}
+                    {countdown !== null && (
+                      <div className="bth-overlay-center">
+                        <motion.span
+                          key={countdown}
+                          initial={{ scale: 1.6, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="bth-count"
+                        >
+                          {countdown}
+                        </motion.span>
+                      </div>
+                    )}
+                    {renderCameraStatus()}
+                    {flash && <div className="bth-flash" />}
+                    {shotProgress && (
+                      <div className="bth-live-tag bth-live-tag--left rt-pixel">
+                        {shotProgress.current} / {shotProgress.total}
+                      </div>
+                    )}
+                    {mode === 'card' && scannedCard && (
+                      <div className="bth-live-tag bth-live-tag--right">{scannedCard.title}</div>
+                    )}
+                    {mode === 'together' && guestPhotoUrl && (
+                      <div className="bth-guest-thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={guestPhotoUrl} alt="업로드된 사진" />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            <div className="flex flex-col items-center text-center lg:w-72 lg:shrink-0 lg:items-start lg:text-left">
-              <h2 className="booth-display text-2xl md:text-3xl mb-2 break-keep">
+            <div className="bth-split-side">
+              <h2 className="bth-display bth-h2">
                 {mode === 'together'
                   ? '이제 현장 사진을 찍어요'
                   : mode === 'template'
@@ -2395,25 +2342,21 @@ export function BoothClient() {
                       : `${standSideText}에 서주세요`
                     : '카메라를 봐주세요'}
               </h2>
-              <p className="text-white/45 text-base mb-6 min-h-6 break-keep">
-                {mode === 'template' && shotProgress?.current !== 2
-                  ? '화면에 보이는 그대로 인화됩니다'
-                  : ''}
-              </p>
+              {mode === 'template' && shotProgress?.current !== 2 && (
+                <p className="bth-sub">화면에 보이는 그대로 인화됩니다</p>
+              )}
 
               {/* 컷 수 선택 (일반 촬영만) */}
               {mode === 'solo' && (
-                <div className="flex gap-2 mb-6">
+                <div className="bth-seg" role="group" aria-label="컷 수">
                   {([1, 4] as const).map((count) => (
                     <button
                       key={count}
+                      type="button"
                       onClick={() => setCutCount(count)}
                       disabled={shooting}
-                      className={`rounded-full px-6 py-2.5 text-base font-bold border-2 transition-colors ${
-                        cutCount === count
-                          ? 'booth-primary border-transparent'
-                          : 'border-white/25 text-white/60 hover:border-white/60'
-                      }`}
+                      aria-pressed={cutCount === count}
+                      className="rt-choice"
                     >
                       {count === 1 ? '1컷' : '네컷'}
                     </button>
@@ -2422,7 +2365,7 @@ export function BoothClient() {
               )}
 
               {shooting && shots.length > 0 && (
-                <div className="mb-6 grid grid-cols-2 gap-3">
+                <div className="bth-shots">
                   {shots.map((shot, index) => (
                     <motion.img
                       key={shot}
@@ -2430,18 +2373,16 @@ export function BoothClient() {
                       animate={{ opacity: 1, scale: 1, rotate: index % 2 ? 3 : -2 }}
                       src={shot}
                       alt={`촬영된 ${index + 1}번째 컷`}
-                      className="h-20 w-28 rounded-lg border-4 border-white object-cover shadow-xl"
+                      className="bth-shot"
                     />
                   ))}
                 </div>
               )}
 
               {showLiveCutout && !shooting && (
-                <div className="mb-6 w-full max-w-72">
-                  <p className="mb-3 text-base text-white/60 break-keep">
-                    사진 속 인물을 손가락으로 끌어 자리를 잡아 보세요
-                  </p>
-                  <label className="block text-sm text-white/60">
+                <div className="bth-adjust">
+                  <p className="bth-sub">사진 속 인물을 손가락으로 끌어 자리를 잡아 보세요</p>
+                  <label className="bth-range-label">
                     인물 크기
                     <input
                       type="range"
@@ -2450,129 +2391,117 @@ export function BoothClient() {
                       step={0.01}
                       value={guestLayer.scale}
                       onChange={(e) => setGuestLayer((prev) => ({ ...prev, scale: Number(e.target.value) }))}
-                      className="mt-2 w-full accent-white"
+                      className="rt-range"
                     />
                   </label>
                 </div>
               )}
 
-              <button
-                onClick={startShooting}
-                disabled={!!cameraError || shooting || !liveReady}
-                className="flex items-center gap-3 rounded-full booth-primary px-10 py-4 text-lg font-bold hover:opacity-80 transition-opacity disabled:opacity-40"
-              >
-                <Camera className="w-5 h-5" />
-                {mode === 'template'
-                  ? '촬영 시작 (2컷)'
-                  : cutCount === 4
-                    ? '네컷 촬영 시작'
-                    : '촬영하기'}
-              </button>
+              <div className="bth-side-actions">
+                <button
+                  type="button"
+                  onClick={startShooting}
+                  disabled={!!cameraError || shooting || !liveReady}
+                  className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
+                >
+                  <PixelIcon name="camera" size={44} />
+                  {mode === 'template'
+                    ? '촬영 시작 (2컷)'
+                    : cutCount === 4
+                      ? '네컷 촬영 시작'
+                      : '촬영하기'}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* ---------- 합성 · 프레임 편집 ---------- */}
         {step === 'compose' && (
-          <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
-            <div className="flex flex-col items-center lg:shrink-0">
-              <canvas
-                ref={attachComposeCanvas}
-                width={CANVAS_W}
-                height={CANVAS_H}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-                className="w-[min(56vw,320px)] md:w-[min(30vw,420px)] lg:w-auto lg:h-[calc(100svh-12rem)] rounded-xl shadow-2xl bg-white touch-none"
-                style={{ touchAction: 'none' }}
-              />
+          <div className="bth-split">
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                <div className="rt-viewer bth-canvas-wrap">
+                  <canvas
+                    ref={attachComposeCanvas}
+                    width={CANVAS_W}
+                    height={CANVAS_H}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerUp}
+                    className="bth-canvas"
+                    style={{ touchAction: 'none' }}
+                  />
+                </div>
+              </div>
               {(overlayAdjustable || mode === 'template') && (
-                <p className="mt-3 text-sm text-white/40">
-                  {mode === 'template' ? '사진' : '인물'}을 드래그해 위치를 옮길 수 있어요
+                <p className="bth-hint">{mode === 'template' ? '사진' : '인물'}을 드래그해 위치를 옮길 수 있어요</p>
+              )}
+              {composeError && (
+                <p className="bth-error" role="alert">
+                  {composeError}
                 </p>
               )}
-              {composeError && <p className="mt-3 text-sm text-red-400">{composeError}</p>}
             </div>
 
-            <div className="w-full max-w-sm flex flex-col gap-6">
+            <div className="bth-split-side">
               {/* 프레임 선택 */}
-              <div>
-                <p className="text-sm font-semibold text-white/60 mb-3">프레임</p>
-                <div className="flex gap-3 flex-wrap">
+              <div className="rt-group">
+                <span className="rt-group-label">프레임</span>
+                <div className="bth-frames">
                   <button
+                    type="button"
                     onClick={() => setSelectedFrame(null)}
-                    className={`w-16 h-24 rounded-lg border-2 flex items-center justify-center text-xs transition-colors ${
-                      selectedFrame === null
-                        ? 'border-white bg-white/10'
-                        : 'border-white/20 text-white/40 hover:border-white/50'
-                    }`}
+                    aria-pressed={selectedFrame === null}
+                    className="rt-choice bth-frame-btn"
                   >
                     없음
                   </button>
                   {frames.map((frame) => (
                     <button
                       key={frame.id}
+                      type="button"
                       onClick={() => setSelectedFrame(frame)}
                       title={frame.title}
-                      className="w-16 h-24 rounded-lg border-2 overflow-hidden bg-white/5 transition-colors"
-                      style={{
-                        borderColor:
-                          selectedFrame?.id === frame.id
-                            ? frame.event_id
-                              ? accent
-                              : lightHome
-                                ? activeBackground.ink
-                                : '#ffffff'
-                            : lightHome
-                              ? 'rgba(23,58,94,0.22)'
-                              : 'rgba(255,255,255,0.2)',
-                      }}
+                      aria-label={frame.title}
+                      aria-pressed={selectedFrame?.id === frame.id}
+                      className="rt-choice bth-frame-btn"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={frame.image_url}
-                        alt={frame.title}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={frame.image_url} alt="" />
                     </button>
                   ))}
                 </div>
                 {frames.length === 0 && (
-                  <p className="mt-2 text-xs text-white/30">
-                    등록된 프레임이 없어요 (관리자 페이지에서 추가)
-                  </p>
+                  <p className="bth-group-text">등록된 프레임이 없어요 (관리자 페이지에서 추가)</p>
                 )}
               </div>
 
               {/* 최애와 찍기: 합성 위치·크기 */}
               {mode === 'template' && templateGeometry && (
-                <div className="flex flex-col gap-4">
+                <div className="bth-stack">
                   {selectedTemplate?.foreground_url ? (
-                    <div className="rounded-2xl border border-white/15 p-4">
-                      <p className="text-sm font-semibold">같은 공간 합성</p>
-                      <p className="mt-1.5 text-xs text-white/45 leading-relaxed">
-                        카메라 배경 전체 위에 아티스트가 자연스럽게 합성됩니다
-                      </p>
+                    <div className="rt-group">
+                      <span className="rt-group-label">같은 공간 합성</span>
+                      <p className="bth-group-text">카메라 배경 전체 위에 아티스트가 자연스럽게 합성됩니다</p>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-white/15 p-4">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-sm font-semibold">배경 지우기</span>
+                    <div className="rt-group">
+                      <label className="bth-toggle">
+                        <span>배경 지우기</span>
                         <input
                           type="checkbox"
                           checked={keying.enabled}
-                          onChange={(e) =>
-                            setKeying((prev) => ({ ...prev, enabled: e.target.checked }))
-                          }
-                          className="w-5 h-5 accent-white"
+                          onChange={(e) => setKeying((prev) => ({ ...prev, enabled: e.target.checked }))}
+                          className="rt-checkbox"
                         />
                       </label>
-                      <p className="mt-1.5 text-xs text-white/35 leading-relaxed">
+                      <p className="bth-group-text">
                         그린·블루 배경지 앞에서 찍을 때 켜세요. 설정은 이 부스에 저장됩니다
                       </p>
                       {keying.enabled && (
-                        <label className="block mt-3 text-xs text-white/50">
+                        <label className="bth-range-label">
                           지우는 정도
                           <input
                             type="range"
@@ -2580,18 +2509,16 @@ export function BoothClient() {
                             max={0.45}
                             step={0.01}
                             value={keying.tolerance}
-                            onChange={(e) =>
-                              setKeying((prev) => ({ ...prev, tolerance: Number(e.target.value) }))
-                            }
-                            className="w-full mt-2 accent-white"
+                            onChange={(e) => setKeying((prev) => ({ ...prev, tolerance: Number(e.target.value) }))}
+                            className="rt-range"
                           />
                         </label>
                       )}
                     </div>
                   )}
                   {/* 슬라이더는 가로로 나란히 — 줌 150% 에서 아래 버튼이 화면 밖으로 밀리지 않게 */}
-                  <div className="grid grid-cols-3 gap-x-4">
-                    <label className="text-sm text-white/60">
+                  <div className="bth-sliders">
+                    <label className="bth-range-label">
                       확대
                       <input
                         type="range"
@@ -2599,13 +2526,11 @@ export function BoothClient() {
                         max={2}
                         step={0.01}
                         value={guestFit.zoom}
-                        onChange={(e) =>
-                          setGuestFit((prev) => ({ ...prev, zoom: Number(e.target.value) }))
-                        }
-                        className="w-full mt-2 accent-white"
+                        onChange={(e) => setGuestFit((prev) => ({ ...prev, zoom: Number(e.target.value) }))}
+                        className="rt-range"
                       />
                     </label>
-                    <label className="text-sm text-white/60">
+                    <label className="bth-range-label">
                       좌우 위치
                       <input
                         type="range"
@@ -2613,13 +2538,11 @@ export function BoothClient() {
                         max={1}
                         step={0.01}
                         value={guestFit.focalX}
-                        onChange={(e) =>
-                          setGuestFit((prev) => ({ ...prev, focalX: Number(e.target.value) }))
-                        }
-                        className="w-full mt-2 accent-white"
+                        onChange={(e) => setGuestFit((prev) => ({ ...prev, focalX: Number(e.target.value) }))}
+                        className="rt-range"
                       />
                     </label>
-                    <label className="text-sm text-white/60">
+                    <label className="bth-range-label">
                       상하 위치
                       <input
                         type="range"
@@ -2627,10 +2550,8 @@ export function BoothClient() {
                         max={1}
                         step={0.01}
                         value={guestFit.focalY}
-                        onChange={(e) =>
-                          setGuestFit((prev) => ({ ...prev, focalY: Number(e.target.value) }))
-                        }
-                        className="w-full mt-2 accent-white"
+                        onChange={(e) => setGuestFit((prev) => ({ ...prev, focalY: Number(e.target.value) }))}
+                        className="rt-range"
                       />
                     </label>
                   </div>
@@ -2639,31 +2560,31 @@ export function BoothClient() {
 
               {/* 포카·직찍 합성: 배경 지우기 + 크기·기울기 */}
               {overlayAdjustable && (
-                <div className="flex flex-col gap-4">
+                <div className="bth-stack">
                   {mode === 'together' && (
-                  <div className="rounded-2xl border border-white/15 p-4">
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <span className="text-sm font-semibold">인물만 오려내기</span>
-                      <input
-                        type="checkbox"
-                        checked={useCutout && cutoutStatus === 'done'}
-                        disabled={cutoutStatus !== 'done'}
-                        onChange={(e) => setUseCutout(e.target.checked)}
-                        className="w-5 h-5 accent-white disabled:opacity-30"
-                      />
-                    </label>
-                    <p className="mt-1.5 text-xs text-white/35 leading-relaxed">
-                      {cutoutStatus === 'processing' && '올린 사진에서 인물을 찾는 중...'}
-                      {cutoutStatus === 'done' &&
-                        '배경을 지우고 옆에 함께 선 것처럼 합성했어요'}
-                      {cutoutStatus === 'failed' &&
-                        '인물을 찾지 못해 사진 그대로 올렸어요 (인물이 크게 나온 사진일수록 잘 돼요)'}
-                      {cutoutStatus === 'idle' && '사진을 올리면 배경을 지워드려요'}
-                    </p>
-                  </div>
+                    <div className="rt-group">
+                      <label className="bth-toggle">
+                        <span>인물만 오려내기</span>
+                        <input
+                          type="checkbox"
+                          checked={useCutout && cutoutStatus === 'done'}
+                          disabled={cutoutStatus !== 'done'}
+                          onChange={(e) => setUseCutout(e.target.checked)}
+                          className="rt-checkbox"
+                        />
+                      </label>
+                      <p className="bth-group-text">
+                        {cutoutStatus === 'processing' && '올린 사진에서 인물을 찾는 중...'}
+                        {cutoutStatus === 'done' && '배경을 지우고 옆에 함께 선 것처럼 합성했어요'}
+                        {cutoutStatus === 'failed' &&
+                          '인물을 찾지 못해 사진 그대로 올렸어요 (인물이 크게 나온 사진일수록 잘 돼요)'}
+                        {cutoutStatus === 'idle' && '사진을 올리면 배경을 지워드려요'}
+                      </p>
+                      {cutoutStatus === 'processing' && <RetroProgress label="인물 찾는 중" />}
+                    </div>
                   )}
-                  <div className="grid grid-cols-2 gap-x-5">
-                    <label className="text-sm text-white/60">
+                  <div className="bth-sliders bth-sliders--2">
+                    <label className="bth-range-label">
                       {useCutout && cutoutStatus === 'done' ? '인물 크기' : '사진 크기'}
                       <input
                         type="range"
@@ -2671,13 +2592,11 @@ export function BoothClient() {
                         max={0.9}
                         step={0.01}
                         value={guestLayer.scale}
-                        onChange={(e) =>
-                          setGuestLayer((prev) => ({ ...prev, scale: Number(e.target.value) }))
-                        }
-                        className="w-full mt-2 accent-white"
+                        onChange={(e) => setGuestLayer((prev) => ({ ...prev, scale: Number(e.target.value) }))}
+                        className="rt-range"
                       />
                     </label>
-                    <label className="text-sm text-white/60">
+                    <label className="bth-range-label">
                       기울기
                       <input
                         type="range"
@@ -2685,32 +2604,33 @@ export function BoothClient() {
                         max={30}
                         step={1}
                         value={guestLayer.rotation}
-                        onChange={(e) =>
-                          setGuestLayer((prev) => ({ ...prev, rotation: Number(e.target.value) }))
-                        }
-                        className="w-full mt-2 accent-white"
+                        onChange={(e) => setGuestLayer((prev) => ({ ...prev, rotation: Number(e.target.value) }))}
+                        className="rt-range"
                       />
                     </label>
                   </div>
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 mt-2">
+              <div className="bth-side-actions">
+                {finishing && <RetroProgress label="사진을 만드는 중" />}
                 <button
+                  type="button"
                   onClick={finishCompose}
                   disabled={finishing}
-                  className="flex items-center justify-center gap-2 rounded-full booth-primary px-8 py-4 text-lg font-bold hover:opacity-80 transition-opacity disabled:opacity-40"
+                  className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
                 >
-                  <Check className="w-5 h-5" /> 완성하기
+                  <PixelIcon name="check" size={44} /> 완성하기
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShots([])
                     setStep('camera')
                   }}
-                  className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-3.5 font-semibold text-white/80 hover:bg-white/10 transition-colors"
+                  className="rt-btn rt-btn--block"
                 >
-                  <RefreshCw className="w-4 h-4" /> 다시 찍기
+                  <PixelIcon name="camera" size={32} /> 다시 찍기
                 </button>
               </div>
             </div>
@@ -2719,97 +2639,97 @@ export function BoothClient() {
 
         {/* ---------- 결과 ---------- */}
         {step === 'result' && resultUrl && (
-          <div className="flex flex-col lg:flex-row gap-10 items-center justify-center">
-            {/* 사진 칸은 줄어들지 않게 — 버튼 열(w-full)에 밀리면 높이는 그대로인 채 가로만 눌린다.
-                aspect 로 자리를 미리 잡아 둬야 큰 사진을 늦게 그려도 옆 버튼이 밀리지 않는다 */}
-            <div className="flex flex-col items-center lg:shrink-0">
-              <motion.img
-                src={resultUrl}
-                alt="완성된 사진"
-                className="aspect-[2/3] w-[min(60vw,340px)] md:w-[min(34vw,470px)] lg:w-auto lg:max-w-none lg:h-[calc(100svh-12rem)] rounded-xl shadow-2xl"
-                initial={{ opacity: 0, y: 80, rotate: -4, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 110, damping: 14 }}
-              />
-              {event?.organizer && (
-                <p className="mt-3 text-xs text-white/35">
-                  AC&apos;SCENT WOW × {event.organizer}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-3 w-full max-w-xs lg:w-80 lg:max-w-none">
-              <button
-                onClick={handlePrint}
-                disabled={printStatus === 'printing'}
-                className="flex items-center justify-center gap-2 rounded-full booth-primary px-8 py-4 text-lg font-bold hover:opacity-80 transition-opacity disabled:opacity-50"
-              >
-                {printStatus === 'printing' ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Printer className="w-5 h-5" />
-                )}
-                {printStatus === 'printing' ? '인쇄 보내는 중' : '인쇄하기'}
-              </button>
-              {printStatus === 'sent' && (
-                <p className="text-center text-sm font-semibold" style={{ color: accent }}>
-                  {printWaitLeft !== null
-                    ? `사진이 나오고 있어요 · 약 ${printWaitLeft}초`
-                    : '프린터에서 사진을 챙겨 가세요'}
-                </p>
-              )}
-              {printStatus === 'failed' && (
-                <p className="text-center text-sm font-semibold text-red-400">
-                  인쇄가 되지 않았어요. 직원에게 알려주세요
-                </p>
-              )}
-              <button
-                onClick={handleDownload}
-                disabled={saveStatus === 'uploading'}
-                className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-3.5 font-semibold text-white/80 hover:bg-white/10 transition-colors disabled:opacity-60"
-              >
-                {saveStatus === 'uploading' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                {saveStatus === 'uploading' ? 'QR 만드는 중' : '이미지 저장'}
-              </button>
-              {saveStatus === 'failed' && (
-                <p className="text-center text-sm font-semibold text-red-400">
-                  QR을 만들지 못했어요. 잠시 후 다시 눌러주세요
-                </p>
-              )}
-              <button
-                onClick={() => setStep('compose')}
-                className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-3.5 font-semibold text-white/80 hover:bg-white/10 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" /> 다시 편집
-              </button>
-
-              {/* 생카 인증 문화: 해시태그 안내 */}
-              {event?.hashtag && (
-                <div
-                  className="mt-3 rounded-2xl border p-4 text-center"
-                  style={{ borderColor: accent }}
-                >
-                  <p className="text-xs text-white/50 mb-1">X(트위터) 인증 태그</p>
-                  <p className="font-bold text-lg" style={{ color: accent }}>
-                    {event.hashtag}
-                  </p>
+          <div className="bth-split">
+            {/* 사진 칸은 남는 높이만큼 — aspect 로 자리를 미리 잡아 둬야 큰 사진을 늦게 그려도 옆 버튼이 밀리지 않는다 */}
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                <div className="rt-viewer bth-result-view">
+                  <motion.img
+                    src={resultUrl}
+                    alt="완성된 사진"
+                    className="bth-result-img"
+                    initial={{ opacity: 0, y: 80, rotate: -4, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 110, damping: 14 }}
+                  />
                 </div>
-              )}
+              </div>
+              {event?.organizer && <p className="bth-hint">AC&apos;SCENT WOW × {event.organizer}</p>}
+            </div>
+            <div className="bth-split-side">
+              <div className="bth-side-actions bth-side-actions--top">
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  disabled={printStatus === 'printing'}
+                  className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
+                >
+                  <PixelIcon name={printStatus === 'printing' ? 'hourglass' : 'printer'} size={44} />
+                  {printStatus === 'printing' ? '인쇄 보내는 중' : '인쇄하기'}
+                </button>
+                {printStatus === 'printing' && <RetroProgress label="인쇄 보내는 중" />}
+                {printStatus === 'sent' && (
+                  <div className="bth-print-status" role="status">
+                    <p>
+                      <PixelIcon name="printer" size={32} />
+                      {printWaitLeft !== null
+                        ? `사진이 나오고 있어요 · 약 ${printWaitLeft}초`
+                        : '프린터에서 사진을 챙겨 가세요'}
+                    </p>
+                    {printWaitLeft !== null && <RetroProgress label="사진 인화 중" />}
+                  </div>
+                )}
+                {printStatus === 'failed' && (
+                  <p className="bth-error" role="alert">
+                    <PixelIcon name="warning" size={28} /> 인쇄가 되지 않았어요. 직원에게 알려주세요
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={saveStatus === 'uploading'}
+                  className="rt-btn rt-btn--block"
+                >
+                  <PixelIcon name={saveStatus === 'uploading' ? 'hourglass' : 'floppy'} size={32} />
+                  {saveStatus === 'uploading' ? 'QR 만드는 중' : '이미지 저장'}
+                </button>
+                {saveStatus === 'uploading' && <RetroProgress label="QR 만드는 중" />}
+                {saveStatus === 'failed' && (
+                  <p className="bth-error" role="alert">
+                    QR을 만들지 못했어요. 잠시 후 다시 눌러주세요
+                  </p>
+                )}
+                <button type="button" onClick={() => setStep('compose')} className="rt-btn rt-btn--block">
+                  <PixelIcon name="palette" size={32} /> 다시 편집
+                </button>
 
-              <button
-                onClick={resetAll}
-                className="mt-2 text-sm text-white/40 hover:text-white transition-colors"
-              >
-                처음으로 돌아가기
-              </button>
+                {/* 생카 인증 문화: 해시태그 안내 */}
+                {event?.hashtag && (
+                  <div className="rt-group bth-hashtag">
+                    <p>X(트위터) 인증 태그</p>
+                    <b>{event.hashtag}</b>
+                  </div>
+                )}
+              </div>
+              <div className="bth-side-actions">
+                <button type="button" onClick={resetAll} className="rt-btn rt-btn--block">
+                  <PixelIcon name="home" size={32} /> 처음으로 돌아가기
+                </button>
+              </div>
             </div>
           </div>
         )}
       </motion.main>
       </AnimatePresence>
+          </div>
+
+          <footer className="rt-win-status">
+            <span className="rt-status-cell rt-status-cell--grow rt-pixel">AC&apos;SCENT WOW — 4X6 PHOTO BOOTH</span>
+            {eventPeriod && <span className="rt-status-cell">{eventPeriod}</span>}
+            <span className="rt-status-cell rt-pixel">{stepMeta.label}</span>
+          </footer>
+        </section>
+      </div>
 
       {/* [이미지 저장] QR — 손님이 폰으로 찍어 갤러리에 저장한다 */}
       <AnimatePresence>
@@ -2822,43 +2742,38 @@ export function BoothClient() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[62] flex items-center justify-center bg-black/55 p-8 backdrop-blur-sm"
+            className="rt-scrim"
+            style={{ zIndex: 62 }}
             onPointerDown={(event) => {
               if (event.target === event.currentTarget) setSaveQrOpen(false)
             }}
           >
-            <motion.div
-              initial={{ y: 16, scale: 0.97 }}
-              animate={{ y: 0, scale: 1 }}
-              className={`flex w-full max-w-2xl items-center gap-8 rounded-[28px] p-8 shadow-2xl ${
-                lightHome ? 'bg-white text-[var(--booth-ink)]' : 'border border-white/10 bg-neutral-900 text-white'
-              }`}
-            >
-              <div className="shrink-0 rounded-2xl bg-white p-3 shadow-inner">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={saveQr.qrDataUrl} alt="사진 받기 QR" className="h-56 w-56" />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col text-left">
-                <h2 className="text-2xl font-black break-keep">폰으로 QR을 찍어 저장하세요</h2>
-                <ol className="mt-4 space-y-2 text-base opacity-75 break-keep">
-                  <li>
-                    <span className="font-bold">1.</span> 폰 카메라로 QR을 비춰요
-                  </li>
-                  <li>
-                    <span className="font-bold">2.</span> 열린 페이지에서 <span className="font-bold">사진 저장하기</span>를 눌러요
-                  </li>
-                </ol>
-                <p className="mt-4 text-sm opacity-50 break-keep">
-                  사진은 {RESULT_PHOTO_TTL_HOURS}시간 뒤 자동으로 삭제돼요
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setSaveQrOpen(false)}
-                  className="booth-primary mt-6 min-h-14 w-full rounded-2xl text-lg font-black"
-                >
-                  닫기
-                </button>
-              </div>
+            <motion.div initial={{ y: 16 }} animate={{ y: 0 }} className="bth-dialog bth-dialog--wide">
+              <RetroWindow icon="phone" title="SAVE TO PHONE" onClose={() => setSaveQrOpen(false)} closeLabel="닫기">
+                <div className="bth-saveqr">
+                  <div className="bth-qr rt-field">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={saveQr.qrDataUrl} alt="사진 받기 QR" />
+                  </div>
+                  <div className="bth-saveqr-text">
+                    <h2 className="bth-h2">폰으로 QR을 찍어 저장하세요</h2>
+                    <ol className="bth-steps">
+                      <li>폰 카메라로 QR을 비춰요</li>
+                      <li>
+                        열린 페이지에서 <b>사진 저장하기</b>를 눌러요
+                      </li>
+                    </ol>
+                    <p className="bth-sub">사진은 {RESULT_PHOTO_TTL_HOURS}시간 뒤 자동으로 삭제돼요</p>
+                    <button
+                      type="button"
+                      onClick={() => setSaveQrOpen(false)}
+                      className="rt-btn rt-btn--primary rt-btn--block"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </div>
+              </RetroWindow>
             </motion.div>
           </motion.div>
         )}
@@ -2875,61 +2790,49 @@ export function BoothClient() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[65] flex items-center justify-center bg-black/55 p-8 backdrop-blur-sm"
+            className="rt-scrim"
+            style={{ zIndex: 65 }}
           >
-            <motion.div
-              initial={{ y: 16, scale: 0.97 }}
-              animate={{ y: 0, scale: 1 }}
-              className={`flex w-full max-w-md flex-col items-center gap-3 rounded-[28px] px-8 pb-7 pt-9 text-center shadow-2xl ${
-                lightHome ? 'bg-white text-[var(--booth-ink)]' : 'border border-white/10 bg-neutral-900 text-white'
-              }`}
-            >
-              <span
-                className="grid h-24 w-24 place-items-center rounded-full border-4 text-4xl font-black tabular-nums"
-                style={{ borderColor: idleAccent, color: idleAccent }}
-              >
-                {idleLeft}
-              </span>
-              <h2 className="mt-2 text-2xl font-black break-keep">
-                {sessionDone ? '사진을 챙겨 가세요' : '잠시 후 처음 화면으로 돌아갑니다'}
-              </h2>
-              <p className="mb-2 text-base opacity-60 break-keep">
-                {sessionDone ? (
-                  <>
-                    인쇄가 끝났어요. 프린터에서 사진을 가져가세요.
-                    <br />
-                    잠시 후 처음 화면으로 돌아갑니다.
-                  </>
-                ) : (
-                  '계속하시려면 화면을 터치해 주세요.'
-                )}
-              </p>
-              {sessionDone ? (
-                <div className="grid w-full grid-cols-2 gap-3">
-                  {/* 누르는 순간(pointerdown) 팝업이 닫히며 결과 화면에 남는다 */}
-                  <button
-                    type="button"
-                    className={`min-h-14 rounded-2xl border-2 text-lg font-bold ${
-                      lightHome ? 'border-[var(--booth-ink)]/20' : 'border-white/20 text-white/80'
-                    }`}
-                  >
-                    계속 보기
-                  </button>
-                  <button
-                    type="button"
-                    // 이 버튼만은 '시간 채우기'로 삼키지 않고 바로 처음으로 보낸다
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onClick={resetAll}
-                    className="booth-primary min-h-14 rounded-2xl text-lg font-black"
-                  >
-                    처음으로
-                  </button>
+            <motion.div initial={{ y: 16 }} animate={{ y: 0 }} className="bth-dialog">
+              <RetroWindow icon="hourglass" title="STANDBY">
+                <div className="bth-idle">
+                  <span className="bth-idle-count rt-pixel">{idleLeft}</span>
+                  <RetroProgress value={idleLeft / IDLE_WARN_S} blocks={IDLE_WARN_S} label="처음 화면 복귀까지 남은 시간" />
+                  <h2 className="bth-h2">{sessionDone ? '사진을 챙겨 가세요' : '잠시 후 처음 화면으로 돌아갑니다'}</h2>
+                  <p className="bth-sub">
+                    {sessionDone ? (
+                      <>
+                        인쇄가 끝났어요. 프린터에서 사진을 가져가세요.
+                        <br />
+                        잠시 후 처음 화면으로 돌아갑니다.
+                      </>
+                    ) : (
+                      '계속하시려면 화면을 터치해 주세요.'
+                    )}
+                  </p>
+                  {sessionDone ? (
+                    <div className="bth-idle-actions">
+                      {/* 누르는 순간(pointerdown) 팝업이 닫히며 결과 화면에 남는다 */}
+                      <button type="button" className="rt-btn">
+                        계속 보기
+                      </button>
+                      <button
+                        type="button"
+                        // 이 버튼만은 '시간 채우기'로 삼키지 않고 바로 처음으로 보낸다
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onClick={resetAll}
+                        className="rt-btn rt-btn--primary"
+                      >
+                        처음으로
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" className="rt-btn rt-btn--primary rt-btn--block">
+                      계속하기
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <button type="button" className="booth-primary min-h-14 w-full rounded-2xl text-lg font-black">
-                  계속하기
-                </button>
-              )}
+              </RetroWindow>
             </motion.div>
           </motion.div>
         )}
@@ -2948,12 +2851,12 @@ export function BoothClient() {
           adminHoldTriggered.current = false
         }}
         onContextMenu={(event) => event.preventDefault()}
-        className="fixed bottom-0 right-0 z-[60] h-20 w-20 select-none opacity-0 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:ring-yellow-300 [touch-action:none] [-webkit-touch-callout:none]"
+        className="fixed bottom-0 right-0 z-[60] h-20 w-20 select-none opacity-0 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:ring-pink-300 [touch-action:none] [-webkit-touch-callout:none]"
       />
       {adminHolding && (
         <div className="pointer-events-none fixed bottom-3 right-3 z-[61] h-14 w-14">
           <svg viewBox="0 0 56 56" className="h-full w-full -rotate-90">
-            <circle cx="28" cy="28" r="23" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
+            <circle cx="28" cy="28" r="23" fill="rgba(28,36,85,0.55)" stroke="rgba(255,255,255,0.3)" strokeWidth="4" />
             <motion.circle
               cx="28"
               cy="28"
@@ -2961,7 +2864,7 @@ export function BoothClient() {
               fill="none"
               stroke="#ffffff"
               strokeWidth="4"
-              strokeLinecap="round"
+              strokeLinecap="square"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: ADMIN_HOLD_MS / 1000, ease: 'linear' }}
@@ -2979,207 +2882,178 @@ export function BoothClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-6 backdrop-blur-md"
+            className="rt-scrim"
+            style={{ zIndex: 70 }}
             onPointerDown={(event) => {
               if (event.target === event.currentTarget) closeAdmin()
             }}
           >
             <motion.div
               ref={backgroundDialogRef}
-              initial={{ y: 24, scale: 0.97 }}
-              animate={{ y: 0, scale: 1 }}
-              exit={{ y: 20, scale: 0.97 }}
-              className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-white/15 bg-neutral-950 p-7 text-white shadow-2xl"
+              initial={{ y: 24 }}
+              animate={{ y: 0 }}
+              exit={{ y: 20 }}
+              className={`bth-dialog ${backgroundAdminUnlocked ? 'bth-dialog--admin' : ''}`}
             >
-              <div className="mb-5 flex shrink-0 items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold tracking-[0.18em] text-white/40">매장 관리자</p>
-                  <h2 className="mt-1 text-2xl font-black">
-                    {backgroundAdminUnlocked ? '부스 설정' : '비밀번호 입력'}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  aria-label="닫기"
-                  onClick={closeAdmin}
-                  className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 text-white/65 hover:bg-white/10 hover:text-white"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
+              <RetroWindow
+                icon="lock"
+                title="STORE ADMIN"
+                onClose={closeAdmin}
+                closeLabel="닫기"
+                bodyClassName="bth-admin-body"
+              >
+                <h2 className="bth-h2">{backgroundAdminUnlocked ? '부스 설정' : '비밀번호 입력'}</h2>
 
-              {!backgroundAdminUnlocked ? (
-                <div className="mx-auto max-w-sm pb-2 text-center">
-                  <p className="mb-5 text-lg text-white/60">관리자 비밀번호 6자리를 눌러주세요</p>
-                  <div className="mb-3 flex justify-center gap-3" aria-label={`${backgroundPassword.length}자리 입력됨`}>
-                    {Array.from({ length: 6 }, (_, i) => (
-                      <span
-                        key={i}
-                        className={`h-4 w-4 rounded-full border-2 transition-colors ${
-                          i < backgroundPassword.length ? 'border-white bg-white' : 'border-white/30'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="mb-4 min-h-6 text-base font-semibold text-red-400" role="status">
-                    {backgroundUnlocking ? '인증 확인 중…' : backgroundPasswordError}
-                  </p>
-                  <div className="mx-auto grid max-w-[300px] grid-cols-3 gap-3">
-                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                {!backgroundAdminUnlocked ? (
+                  <div className="bth-pin">
+                    <p className="bth-sub">관리자 비밀번호 6자리를 눌러주세요</p>
+                    <div
+                      className="bth-pin-dots rt-field"
+                      aria-label={`${backgroundPassword.length}자리 입력됨`}
+                      style={{ marginTop: 14 }}
+                    >
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <i key={i} data-filled={i < backgroundPassword.length} />
+                      ))}
+                    </div>
+                    <p className="bth-error" role="status">
+                      {backgroundUnlocking ? '인증 확인 중…' : backgroundPasswordError}
+                    </p>
+                    <div className="bth-keypad">
+                      {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                        <button
+                          key={digit}
+                          type="button"
+                          disabled={backgroundUnlocking}
+                          onClick={() => pressAdminKey(digit)}
+                          className="rt-btn"
+                        >
+                          {digit}
+                        </button>
+                      ))}
+                      <div />
                       <button
-                        key={digit}
                         type="button"
                         disabled={backgroundUnlocking}
-                        onClick={() => pressAdminKey(digit)}
-                        className="h-16 rounded-2xl border border-white/10 bg-white/5 text-2xl font-bold transition-colors hover:bg-white/15 active:bg-white/25"
+                        onClick={() => pressAdminKey('0')}
+                        className="rt-btn"
                       >
-                        {digit}
+                        0
                       </button>
-                    ))}
-                    <div />
-                    <button
-                      type="button"
-                      disabled={backgroundUnlocking}
-                      onClick={() => pressAdminKey('0')}
-                      className="h-16 rounded-2xl border border-white/10 bg-white/5 text-2xl font-bold transition-colors hover:bg-white/15 active:bg-white/25"
-                    >
-                      0
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="지우기"
-                      disabled={backgroundUnlocking}
-                      onClick={() => pressAdminKey('back')}
-                      className="flex h-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition-colors hover:bg-white/15 active:bg-white/25"
-                    >
-                      <Delete className="h-6 w-6" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
-                <div className="flex min-h-0 flex-1 flex-col">
-                  {screenZoom !== null && (
-                    <div className="mb-4 flex shrink-0 items-center gap-4">
-                      <p className="shrink-0 text-lg font-bold">화면 크기</p>
-                      <div className="grid flex-1 grid-cols-4 gap-2">
-                        {SCREEN_ZOOM_OPTIONS.map((factor) => (
-                          <button
-                            key={factor}
-                            type="button"
-                            onClick={() => selectScreenZoom(factor)}
-                            className={`min-h-11 rounded-xl border-2 text-base font-bold transition-colors ${
-                              Math.abs(screenZoom - factor) < 0.01
-                                ? 'border-yellow-300 bg-yellow-300/10 text-yellow-200'
-                                : 'border-white/15 text-white/70 hover:border-white/45'
-                            }`}
-                          >
-                            {Math.round(factor * 100)}%
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="mb-1 flex shrink-0 items-center justify-between gap-3">
-                    <p className="text-lg font-bold">
-                      화면 배경 · {backgrounds.length}개
-                      <span role="status" className="ml-3 text-sm font-normal text-yellow-200">
-                        {backgroundSaving ? '서버에 저장하는 중…' : backgroundsLoading ? '불러오는 중…' : ''}
-                      </span>
-                    </p>
-                    <button type="button" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}
-                      className="flex min-h-11 items-center gap-2 rounded-xl border border-white/20 px-3 text-sm disabled:opacity-40">
-                      <RefreshCw className={`h-4 w-4 ${backgroundsLoading ? 'animate-spin' : ''}`} /> 새로고침
-                    </button>
-                  </div>
-                  <p className="mb-3 shrink-0 text-sm text-white/50">
-                    선택하면 바로 적용돼요. 관리자 페이지와 같은 목록이며 변경 사항은 자동 반영됩니다.
-                  </p>
-                  {(backgroundActionError || backgroundsError) && (
-                    <p role="alert" className="mb-3 shrink-0 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">
-                      {backgroundActionError || backgroundsError}
-                    </p>
-                  )}
-                  <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-2 content-start gap-3 overflow-y-auto overscroll-contain p-1 sm:grid-cols-3 md:grid-cols-5">
-                    {backgrounds.map((record) => {
-                      const background = toBoothTheme(record)
-                      return (
                       <button
-                        key={background.id}
                         type="button"
-                        disabled={!!backgroundSaving}
-                        aria-pressed={backgroundId === background.id}
-                        onClick={() => void chooseBackground(background.id)}
-                        className={`overflow-hidden rounded-2xl border-2 text-left transition-all ${
-                          backgroundId === background.id
-                            ? 'border-yellow-300 ring-4 ring-yellow-300/15'
-                            : 'border-white/15 hover:border-white/45'
-                        }`}
+                        aria-label="지우기"
+                        disabled={backgroundUnlocking}
+                        onClick={() => pressAdminKey('back')}
+                        className="rt-btn"
                       >
-                        <span className="relative block aspect-video overflow-hidden">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={record.thumbnail_url || background.image}
-                            alt=""
-                            loading="lazy"
-                            decoding="async"
-                            className="h-full w-full object-cover"
-                          />
-                          <span
-                            className={`absolute inset-x-2 bottom-2 line-clamp-2 text-sm leading-tight drop-shadow-sm ${background.tone === 'light' ? 'text-[var(--booth-ink)]' : 'text-white'}`}
-                            style={{
-                              fontFamily: background.displayFont,
-                              fontWeight: background.displayWeight,
-                              letterSpacing: background.displayTracking,
-                              color: background.ink,
-                            }}
-                          >
-                            어떤 사진을 찍을까요?
-                          </span>
-                        </span>
-                        <span className="flex min-h-14 items-center justify-between gap-1 bg-white/5 px-3">
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-bold">{background.title}</span>
-                            <span className="mt-0.5 block text-[11px] tracking-wide text-white/40">
-                              {background.fontLabel}
-                            </span>
-                          </span>
-                          {backgroundId === background.id && (
-                            <Check className="h-5 w-5 shrink-0 text-yellow-300" />
-                          )}
-                        </span>
+                        <PixelIcon name="backspace" size={40} />
                       </button>
-                    )})}
+                    </div>
                   </div>
-                  <div className="mt-4 grid shrink-0 grid-cols-[1fr_2fr] gap-3 border-t border-white/10 pt-4">
-                    <button
-                      type="button"
-                      onClick={quitBooth}
-                      className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border-2 border-red-400/60 px-4 text-lg font-black text-red-300 transition-colors hover:bg-red-500/10 active:bg-red-500/20"
-                    >
-                      <Power className="h-5 w-5" /> 앱 종료
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeAdmin}
-                      className="min-h-14 rounded-2xl bg-white px-6 text-lg font-black text-neutral-950"
-                    >
-                      닫기
-                    </button>
-                  </div>
-                  <p className="mt-2 min-h-5 shrink-0 text-center text-sm text-white/50">
-                    {exitNotice ?? '앱을 종료하면 카메라 연결도 풀려 다른 촬영 프로그램을 바로 쓸 수 있어요'}
-                  </p>
-                </div>
-              )}
+                ) : (
+                  // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
+                  <>
+                    {screenZoom !== null && (
+                      <div className="bth-zoom">
+                        <b>화면 크기</b>
+                        <div className="bth-zoom-opts">
+                          {SCREEN_ZOOM_OPTIONS.map((factor) => (
+                            <button
+                              key={factor}
+                              type="button"
+                              onClick={() => selectScreenZoom(factor)}
+                              aria-pressed={Math.abs(screenZoom - factor) < 0.01}
+                              className="rt-choice"
+                            >
+                              {Math.round(factor * 100)}%
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="bth-admin-toolbar">
+                      <b>
+                        화면 배경 · {backgrounds.length}개
+                        <em role="status">
+                          {backgroundSaving ? '서버에 저장하는 중…' : backgroundsLoading ? '불러오는 중…' : ''}
+                        </em>
+                      </b>
+                      <button
+                        type="button"
+                        className="rt-btn"
+                        disabled={backgroundsLoading || !!backgroundSaving}
+                        onClick={() => void refreshBackgrounds()}
+                      >
+                        새로고침
+                      </button>
+                    </div>
+                    <p className="bth-admin-desc">
+                      선택하면 바로 적용돼요. 관리자 페이지와 같은 목록이며 변경 사항은 자동 반영됩니다.
+                    </p>
+                    {(backgroundActionError || backgroundsError) && (
+                      <p role="alert" className="bth-admin-error">
+                        {backgroundActionError || backgroundsError}
+                      </p>
+                    )}
+                    <div className="bth-bg-grid rt-scroll">
+                      {backgrounds.map((record) => {
+                        const background = toBoothTheme(record)
+                        return (
+                          <button
+                            key={background.id}
+                            type="button"
+                            disabled={!!backgroundSaving}
+                            aria-pressed={backgroundId === background.id}
+                            onClick={() => void chooseBackground(background.id)}
+                            className="rt-choice bth-bg-tile"
+                          >
+                            <span className="bth-bg-thumb">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={record.thumbnail_url || background.image}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              <span
+                                className="bth-bg-sample"
+                                style={{
+                                  fontFamily: background.displayFont,
+                                  fontWeight: background.displayWeight,
+                                  letterSpacing: background.displayTracking,
+                                }}
+                              >
+                                어떤 사진을 찍을까요?
+                              </span>
+                            </span>
+                            <span className="bth-bg-name">
+                              <b>{background.title}</b>
+                              <em>{background.fontLabel}</em>
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="bth-admin-actions">
+                      <button type="button" onClick={quitBooth} className="rt-btn rt-btn--danger">
+                        <PixelIcon name="close" size={28} /> 앱 종료
+                      </button>
+                      <button type="button" onClick={closeAdmin} className="rt-btn rt-btn--primary">
+                        닫기
+                      </button>
+                    </div>
+                    <p className="bth-admin-note">
+                      {exitNotice ?? '앱을 종료하면 카메라 연결도 풀려 다른 촬영 프로그램을 바로 쓸 수 있어요'}
+                    </p>
+                  </>
+                )}
+              </RetroWindow>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <footer className={`booth-stage-ui relative z-10 px-8 py-2 text-center text-xs border-t backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/30 text-[var(--booth-ink)]/45' : 'border-white/10 text-white/25'}`}>
-        AC&apos;SCENT WOW — 4x6 PHOTO BOOTH
-      </footer>
     </div>
+    </MotionConfig>
   )
 }

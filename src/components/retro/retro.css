@@ -1,0 +1,808 @@
+/* ============================================================
+   AC'SCENT 레트로 데스크톱 UI — /booth(가로)·/kiosk(세로) 공통 디자인 시스템
+   ------------------------------------------------------------
+   · 모든 규칙은 .rt 스코프 안에서만 동작한다 → 일반 웹사이트로 새지 않는다.
+   · 창·버튼·입력란·진행 표시의 색은 여기 토큰으로 고정한다. 관리자가 고른 배경
+     그림은 '바탕화면'일 뿐이라, 어떤 배경이 와도 기능 UI의 대비는 같다.
+     배경이 맡는 몫(바탕색·장식색·한글 제목 글꼴·바탕화면 글자)은 --rt-desk-* / --rt-deco* /
+     --rt-display-* 로만 들어온다 (src/lib/screen-backgrounds/theme.ts toRetroDesktop).
+   · 대비(본문 기준): ink 13.9:1, ink-soft 7.7:1, ink-faint 5.0:1 이상, 타이틀바 흰 글자 3.7:1 이상(큰 글자)
+   · 기기 차이는 .rt--booth / .rt--kiosk 가 크기 토큰만 바꾼다 — 한쪽을 늘려 쓰지 않는다.
+   ============================================================ */
+
+.rt {
+  /* ── 바탕 팔레트 ── */
+  --rt-sky-50: #f4f8ff;
+  --rt-sky-100: #e6f0ff;
+  --rt-sky-200: #cfe0ff;
+  --rt-sky-300: #a8c6ff;
+  --rt-lilac-100: #f3ecff;
+  --rt-lilac-200: #e2d8ff;
+  --rt-lilac-300: #c9b8f7;
+  --rt-blue-400: #6f9cf2;
+  --rt-blue-500: #4a7fe6;
+  --rt-blue-600: #2f5fcf;
+  --rt-blue-700: #23449f;
+  /* 포인트 — 제한적으로 */
+  --rt-pink: #ff78b8;
+  --rt-pink-soft: #ffe0f0;
+  --rt-purple: #b85ee0;
+  --rt-purple-deep: #8a3dc0;
+  --rt-mint: #3fc9a8;
+  --rt-mint-deep: #1f7d6a;
+  --rt-mint-soft: #d4f7ee;
+
+  /* ── 글자 ── */
+  --rt-ink: #1c2455;
+  --rt-ink-soft: #434c7e;
+  --rt-ink-faint: #5a6392;
+  --rt-danger: #b3261e;
+  --rt-danger-soft: #fff4f4;
+
+  /* ── 면 ── */
+  --rt-face: #f7f9ff; /* 창 본문 */
+  --rt-face-alt: #e9efff; /* 버튼 아랫면·보조 패널 */
+  --rt-paper: #ffffff; /* 입력란·문서 */
+  --rt-well: #dfe8ff; /* 오목한 트랙 */
+
+  /* ── 입체 테두리: 밝은 상단·좌측 / 어두운 하단·우측 ── */
+  --rt-edge: #28336f;
+  --rt-hi: #ffffff;
+  --rt-hi-2: #d9e4ff;
+  --rt-lo: #8e9dd6;
+  --rt-lo-2: #56639f;
+  --rt-raised: inset 1px 1px 0 var(--rt-hi), inset -1px -1px 0 var(--rt-lo-2), inset 2px 2px 0 var(--rt-hi-2),
+    inset -2px -2px 0 var(--rt-lo);
+  --rt-sunken: inset 1px 1px 0 var(--rt-lo-2), inset -1px -1px 0 var(--rt-hi), inset 2px 2px 0 var(--rt-lo),
+    inset -2px -2px 0 var(--rt-hi-2);
+  --rt-drop: 6px 6px 0 rgba(40, 51, 111, 0.2);
+
+  /* ── 타이틀바 ── */
+  --rt-title-bg: linear-gradient(90deg, #2c58c8 0%, #4f82e6 58%, #8db8ff 100%);
+  --rt-title-ink: #ffffff;
+  --rt-focus: #ff5fae;
+  /* 체크 배지 — pixel-icons.ts 의 check 와 같은 격자 */
+  --rt-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='12' y='2' width='2' height='1' fill='%2326306b'/%3E%3Crect x='11' y='3' width='1' height='1' fill='%2326306b'/%3E%3Crect x='12' y='3' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='14' y='3' width='1' height='1' fill='%2326306b'/%3E%3Crect x='10' y='4' width='1' height='1' fill='%2326306b'/%3E%3Crect x='11' y='4' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='13' y='4' width='1' height='1' fill='%2326306b'/%3E%3Crect x='9' y='5' width='1' height='1' fill='%2326306b'/%3E%3Crect x='10' y='5' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='12' y='5' width='1' height='1' fill='%2326306b'/%3E%3Crect x='2' y='6' width='2' height='1' fill='%2326306b'/%3E%3Crect x='8' y='6' width='1' height='1' fill='%2326306b'/%3E%3Crect x='9' y='6' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='11' y='6' width='1' height='1' fill='%2326306b'/%3E%3Crect x='1' y='7' width='1' height='1' fill='%2326306b'/%3E%3Crect x='2' y='7' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='4' y='7' width='1' height='1' fill='%2326306b'/%3E%3Crect x='7' y='7' width='1' height='1' fill='%2326306b'/%3E%3Crect x='8' y='7' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='10' y='7' width='1' height='1' fill='%2326306b'/%3E%3Crect x='2' y='8' width='1' height='1' fill='%2326306b'/%3E%3Crect x='3' y='8' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='5' y='8' width='2' height='1' fill='%2326306b'/%3E%3Crect x='7' y='8' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='9' y='8' width='1' height='1' fill='%2326306b'/%3E%3Crect x='3' y='9' width='1' height='1' fill='%2326306b'/%3E%3Crect x='4' y='9' width='4' height='1' fill='%233fc9a8'/%3E%3Crect x='8' y='9' width='1' height='1' fill='%2326306b'/%3E%3Crect x='4' y='10' width='1' height='1' fill='%2326306b'/%3E%3Crect x='5' y='10' width='2' height='1' fill='%233fc9a8'/%3E%3Crect x='7' y='10' width='1' height='1' fill='%2326306b'/%3E%3Crect x='5' y='11' width='2' height='1' fill='%2326306b'/%3E%3C/svg%3E");
+
+  /* ── 간격 ── */
+  --rt-gap-1: 4px;
+  --rt-gap-2: 8px;
+  --rt-gap-3: 12px;
+  --rt-gap-4: 16px;
+  --rt-gap-5: 24px;
+  --rt-gap-6: 32px;
+
+  /* ── 서체 ── */
+  --rt-font-body: var(--rt-body-font, var(--font-wanted), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif);
+  --rt-font-display: var(--rt-display-font, var(--rt-font-body));
+  /* 픽셀체에 한글이 없으면 본문 서체가 이어받는다 */
+  --rt-font-pixel: var(--font-pixel), 'Silkscreen', var(--rt-font-body);
+
+  /* ── 크기(기기별로 .rt--booth/.rt--kiosk 가 덮어쓴다) ── */
+  --rt-hit: 48px;
+  --rt-title-h: 36px;
+  --rt-title-size: 17px;
+  --rt-btn-size: 18px;
+  --rt-btn-pad: 12px 22px;
+  --rt-body-pad: 18px;
+
+  font-family: var(--rt-font-body);
+  color: var(--rt-ink);
+}
+
+.rt--booth {
+  --rt-hit: 64px;
+  --rt-title-h: 44px;
+  --rt-title-size: 21px;
+  --rt-btn-size: 22px;
+  --rt-btn-pad: 14px 30px;
+  --rt-body-pad: 28px;
+}
+
+.rt--kiosk {
+  --rt-hit: 52px;
+  --rt-title-h: 34px;
+  --rt-title-size: 16px;
+  --rt-btn-size: 19px;
+  --rt-btn-pad: 14px 18px;
+  --rt-body-pad: 18px;
+}
+
+.rt *,
+.rt *::before,
+.rt *::after {
+  box-sizing: border-box;
+}
+
+.rt .rt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.rt .rt-icon {
+  display: block;
+  flex: none;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.rt .rt-pixel {
+  font-family: var(--rt-font-pixel);
+  letter-spacing: 0;
+}
+
+/* ── 바탕화면 ───────────────────────────────────────────── */
+.rt.rt-desktop,
+.rt .rt-desktop {
+  background-color: var(--rt-desk-base, #e6f0ff);
+  background-image: var(--rt-wallpaper, linear-gradient(160deg, #d7e8ff 0%, #f5f3ff 52%, #e4d9ff 100%));
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.rt .rt-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  user-select: none;
+}
+.rt .rt-desk-icon {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 104px;
+}
+.rt .rt-desk-icon span {
+  max-width: 100%;
+  padding: 2px 7px;
+  background: color-mix(in srgb, var(--rt-desk-base, #e6f0ff) 70%, transparent);
+  color: var(--rt-desk-ink, var(--rt-ink));
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.rt .rt-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.rt .rt-sticker {
+  position: absolute;
+  display: block;
+  filter: drop-shadow(2px 2px 0 rgba(40, 51, 111, 0.25));
+}
+
+/* ── 창 ─────────────────────────────────────────────────── */
+.rt .rt-win {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px;
+  background: var(--rt-face);
+  border: 1px solid var(--rt-edge);
+  border-radius: 3px;
+  box-shadow: var(--rt-raised), var(--rt-drop);
+}
+.rt .rt-win-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  min-height: var(--rt-title-h);
+  padding: 0 4px 0 10px;
+  background: var(--rt-title-bg);
+  color: var(--rt-title-ink);
+  font-family: var(--rt-font-pixel);
+  font-size: var(--rt-title-size);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-shadow: 1px 1px 0 rgba(14, 26, 92, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(14, 26, 92, 0.35);
+  user-select: none;
+}
+.rt .rt-win-title-icon {
+  filter: drop-shadow(1px 1px 0 rgba(14, 26, 92, 0.35));
+}
+.rt .rt-win-title-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 0;
+}
+/* 타이틀바 오른쪽 밝은 끝 위 정보 — 짙은 글자 칩으로 대비를 지킨다 */
+.rt .rt-win-title-extra {
+  flex: none;
+  padding: 4px 9px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--rt-blue-700);
+  border: 1px solid rgba(35, 68, 159, 0.4);
+  font-size: calc(var(--rt-title-size) * 0.82);
+  letter-spacing: 0;
+  text-shadow: none;
+}
+.rt .rt-win-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--rt-hit);
+  height: calc(var(--rt-title-h) - 6px);
+  min-height: 30px;
+  margin: 3px 0;
+  padding: 0;
+  background: linear-gradient(#fdfdff, var(--rt-face-alt));
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-raised);
+  cursor: pointer;
+  /* 보이는 크기는 타이틀바에 맞추되 누르는 범위는 위아래로 넉넉히 */
+  position: relative;
+}
+.rt .rt-win-close::after {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+.rt .rt-win-close:active {
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-win-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: var(--rt-body-pad);
+  background: var(--rt-face);
+}
+.rt .rt-win-status {
+  display: flex;
+  gap: 4px;
+  flex: none;
+  padding-top: 4px;
+  font-size: 13px;
+  color: var(--rt-ink-soft);
+}
+.rt .rt-status-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 10px;
+  box-shadow: var(--rt-sunken);
+  background: var(--rt-face);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rt .rt-status-cell--grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 창 뒤로 겹쳐 보이는 창 — 장식 */
+.rt .rt-stack {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.rt .rt-stack > .rt-win {
+  flex: 1;
+  z-index: 1;
+}
+.rt .rt-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 2px solid;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.rt .rt-ghost-1 {
+  transform: translate(-12px, 12px);
+  background: color-mix(in srgb, var(--rt-deco-soft, #ffe0f0) 88%, white);
+  border-color: var(--rt-deco, var(--rt-pink));
+}
+.rt .rt-ghost-2 {
+  transform: translate(-24px, 24px);
+  background: var(--rt-sky-100);
+  border-color: #7fd8e8;
+}
+
+/* ── 버튼 ───────────────────────────────────────────────── */
+.rt .rt-btn {
+  appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: var(--rt-hit);
+  min-height: var(--rt-hit);
+  padding: var(--rt-btn-pad);
+  margin: 0;
+  font: inherit;
+  font-size: var(--rt-btn-size);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--rt-ink);
+  text-align: center;
+  word-break: keep-all;
+  background: linear-gradient(#ffffff, var(--rt-face-alt));
+  border: 1px solid var(--rt-edge);
+  border-radius: 3px;
+  box-shadow: var(--rt-raised);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.rt .rt-btn:active:not(:disabled),
+.rt .rt-btn[aria-pressed='true'] {
+  background: var(--rt-face-alt);
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-btn:active:not(:disabled) > * {
+  transform: translate(1px, 1px);
+}
+.rt .rt-btn--primary {
+  color: #fff;
+  background: linear-gradient(#4f7fe6, #2a52bd);
+  border-color: #172f7a;
+  text-shadow: 1px 1px 0 rgba(10, 20, 80, 0.4);
+  box-shadow: inset 1px 1px 0 #b8d0ff, inset -1px -1px 0 #142a70, inset 2px 2px 0 #7ea6f7, inset -2px -2px 0 #2446a6;
+}
+.rt .rt-btn--primary:active:not(:disabled) {
+  background: #2a52bd;
+  box-shadow: inset 1px 1px 0 #142a70, inset -1px -1px 0 #b8d0ff, inset 2px 2px 0 #2446a6, inset -2px -2px 0 #7ea6f7;
+}
+/* 강조 한 곳에만 — 시작하기처럼 첫 행동 */
+.rt .rt-btn--pink {
+  color: #5a0e39;
+  background: linear-gradient(#ffd0e7, #ff9dcb);
+  border-color: #7a2352;
+  box-shadow: inset 1px 1px 0 #fff3f9, inset -1px -1px 0 #a5376f, inset 2px 2px 0 #ffe3f1, inset -2px -2px 0 #e56aa6;
+}
+.rt .rt-btn--pink:active:not(:disabled) {
+  background: #ff9dcb;
+  box-shadow: inset 1px 1px 0 #a5376f, inset -1px -1px 0 #fff3f9, inset 2px 2px 0 #e56aa6, inset -2px -2px 0 #ffe3f1;
+}
+.rt .rt-btn--danger {
+  color: var(--rt-danger);
+}
+.rt .rt-btn--lg {
+  font-size: calc(var(--rt-btn-size) * 1.2);
+  min-height: calc(var(--rt-hit) * 1.2);
+}
+.rt .rt-btn--block {
+  display: flex;
+  width: 100%;
+}
+.rt .rt-btn:disabled,
+.rt .rt-btn[aria-disabled='true'] {
+  color: #858cb3;
+  background: #eef1fa;
+  border-color: #9aa3c9;
+  text-shadow: 1px 1px 0 #ffffff;
+  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b9c1df;
+  cursor: not-allowed;
+}
+.rt .rt-btn:focus-visible,
+.rt .rt-choice:focus-visible,
+.rt .rt-field:focus-visible,
+.rt .rt-win-close:focus-visible,
+.rt .rt-menu button:focus-visible {
+  outline: 3px dashed var(--rt-focus);
+  outline-offset: 3px;
+}
+
+/* ── 선택 항목: 볼록 → 고르면 오목 + 보라 테두리 + 체크 (색에만 기대지 않는다) ── */
+.rt .rt-choice {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--rt-hit);
+  padding: 14px 16px;
+  margin: 0;
+  font: inherit;
+  font-size: var(--rt-btn-size);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--rt-ink);
+  text-align: center;
+  word-break: keep-all;
+  background: linear-gradient(#ffffff, var(--rt-face-alt));
+  border: 1px solid var(--rt-edge);
+  border-radius: 3px;
+  box-shadow: var(--rt-raised);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.rt .rt-choice[data-on='true'],
+.rt .rt-choice[aria-pressed='true'],
+.rt .rt-choice[aria-checked='true'],
+.rt .rt-choice[aria-selected='true'] {
+  background: var(--rt-lilac-100);
+  /* 눌린 모양 + 안쪽 보라 테두리 — 바깥으로 번지지 않아 스크롤 영역 끝에서도 잘리지 않는다 */
+  box-shadow: inset 0 0 0 3px var(--rt-purple), inset 5px 5px 0 rgba(86, 99, 159, 0.28);
+  color: var(--rt-purple-deep);
+}
+/* 체크 배지 — 픽셀 체크를 데이터 URI 로 (DOM 을 바꾸지 않고 어디에나 붙는다) */
+.rt .rt-choice[data-on='true']::after,
+.rt .rt-choice[aria-pressed='true']::after,
+.rt .rt-choice[aria-checked='true']::after,
+.rt .rt-choice[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  background: var(--rt-mint-soft)
+    var(--rt-check-icon) center / 18px no-repeat;
+  border: 1px solid var(--rt-edge);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.rt .rt-choice:disabled,
+.rt .rt-choice[aria-disabled='true'] {
+  color: #858cb3;
+  background: #eef1fa;
+  border-color: #9aa3c9;
+  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b9c1df;
+  cursor: not-allowed;
+}
+
+/* ── 입력란: 오목 ─────────────────────────────────────────── */
+.rt .rt-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: calc(var(--rt-hit) + 8px);
+  padding: 10px 16px;
+  font: inherit;
+  font-size: calc(var(--rt-btn-size) * 1.05);
+  color: var(--rt-ink);
+  text-align: left;
+  background: var(--rt-paper);
+  border: 1px solid var(--rt-edge);
+  border-radius: 2px;
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-field[data-empty='true'],
+.rt .rt-field::placeholder {
+  color: var(--rt-ink-faint);
+}
+
+/* 사진·카메라 보는 칸 — 오목한 액자. 영상 자체에는 효과를 넣지 않는다 */
+.rt .rt-viewer {
+  position: relative;
+  overflow: hidden;
+  background: #1a2150;
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+  padding: 3px;
+}
+.rt .rt-viewer > video,
+.rt .rt-viewer > img,
+.rt .rt-viewer > canvas {
+  display: block;
+}
+
+/* 묶음 상자 — 얇은 홈 테두리 + 이름표 */
+.rt .rt-group {
+  position: relative;
+  padding: 18px 14px 14px;
+  border: 1px solid var(--rt-lo);
+  box-shadow: 1px 1px 0 var(--rt-hi) inset, 1px 1px 0 var(--rt-hi);
+}
+.rt .rt-group-label {
+  position: absolute;
+  top: -0.75em;
+  left: 10px;
+  padding: 0 6px;
+  background: var(--rt-face);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rt-ink-soft);
+}
+
+/* 짧은 이름표 */
+.rt .rt-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--rt-paper);
+  border: 1px solid var(--rt-lo);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rt-ink-soft);
+  word-break: keep-all;
+}
+
+/* 체크박스 — 오목한 칸 + 픽셀 체크. 누르는 범위는 감싸는 label 이 넉넉히 가진다 */
+.rt .rt-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  background: var(--rt-paper);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+  cursor: pointer;
+}
+.rt .rt-checkbox:checked {
+  background: var(--rt-mint-soft) var(--rt-check-icon) center / 26px no-repeat;
+}
+.rt .rt-checkbox:disabled {
+  background-color: #eef1fa;
+  cursor: not-allowed;
+}
+.rt .rt-checkbox:focus-visible {
+  outline: 3px dashed var(--rt-focus);
+  outline-offset: 3px;
+}
+
+/* ── 진행 표시 ─────────────────────────────────────────────── */
+.rt .rt-progress {
+  position: relative;
+  height: 30px;
+  padding: 4px;
+  background: var(--rt-well);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+  overflow: hidden;
+}
+.rt .rt-progress-cells {
+  display: flex;
+  gap: 3px;
+  height: 100%;
+}
+.rt .rt-progress-cells i {
+  flex: 1;
+  background: transparent;
+}
+.rt .rt-progress-cells i[data-on='true'] {
+  background: linear-gradient(#d68af0, var(--rt-purple));
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.55), inset -1px -1px 0 var(--rt-purple-deep);
+}
+/* 진행률을 모르는 작업 — 블록 묶음이 칸 단위로 지나간다 */
+.rt .rt-progress-run {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  display: flex;
+  gap: 3px;
+  width: 30%;
+  animation: rt-run 2.4s steps(24, end) infinite;
+}
+.rt .rt-progress-run i {
+  flex: 1;
+  background: linear-gradient(#d68af0, var(--rt-purple));
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.55), inset -1px -1px 0 var(--rt-purple-deep);
+}
+@keyframes rt-run {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+/* 단계 표시 */
+.rt .rt-steps {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  background: var(--rt-well);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-steps li {
+  flex: 1;
+  height: 12px;
+  /* 아직 안 간 칸도 칸으로 보여야 몇 단계인지 읽힌다 */
+  background: var(--rt-paper);
+  box-shadow: inset 0 0 0 1px var(--rt-lo);
+}
+.rt .rt-steps li[data-state='done'] {
+  background: var(--rt-blue-500);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.45), inset -1px -1px 0 var(--rt-blue-700);
+}
+.rt .rt-steps li[data-state='now'] {
+  background: linear-gradient(#d68af0, var(--rt-purple));
+  box-shadow: inset 0 0 0 2px var(--rt-purple-deep);
+}
+
+/* ── 대화상자 ─────────────────────────────────────────────── */
+.rt .rt-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  /* 칸 하나를 화면 크기로 고정 — 그래야 대화상자의 height:100% 가 화면 기준으로 풀린다 */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px;
+  /* 흐림 없이 옅게 덮는다 */
+  background: rgba(34, 44, 102, 0.42);
+}
+.rt .rt-dialog-wrap {
+  width: min(560px, 100%);
+  max-height: 100%;
+  display: flex;
+}
+.rt .rt-dialog {
+  width: 100%;
+  max-height: 100%;
+}
+.rt .rt-dialog > .rt-win-body {
+  overflow-y: auto;
+}
+
+/* ── 메뉴(드롭다운) ────────────────────────────────────────── */
+.rt .rt-menu {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--rt-face);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-raised), var(--rt-drop);
+}
+.rt .rt-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  min-height: var(--rt-hit);
+  padding: 8px 14px;
+  font: inherit;
+  font-size: var(--rt-btn-size);
+  font-weight: 700;
+  color: var(--rt-ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.rt .rt-menu button[aria-selected='true'],
+.rt .rt-menu button[data-on='true'] {
+  background: var(--rt-blue-600);
+  color: #fff;
+}
+.rt .rt-menu button:active {
+  background: var(--rt-sky-200);
+  color: var(--rt-ink);
+}
+
+/* ── 알림 ─────────────────────────────────────────────────── */
+.rt .rt-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--rt-face);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-raised), var(--rt-drop);
+  color: var(--rt-ink);
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+/* ── 슬라이더: 오목한 홈 + 볼록한 손잡이(누르는 범위 48px 이상) ── */
+.rt .rt-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--rt-hit);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.rt .rt-range::-webkit-slider-runnable-track {
+  height: 14px;
+  background: var(--rt-well);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px;
+  height: 44px;
+  margin-top: -16px;
+  background: linear-gradient(#ffffff, var(--rt-face-alt));
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-raised);
+}
+.rt .rt-range::-moz-range-track {
+  height: 14px;
+  background: var(--rt-well);
+  border: 1px solid var(--rt-edge);
+}
+.rt .rt-range::-moz-range-thumb {
+  width: 30px;
+  height: 44px;
+  background: #fff;
+  border: 1px solid var(--rt-edge);
+  border-radius: 0;
+}
+.rt .rt-range:focus-visible {
+  outline: 3px dashed var(--rt-focus);
+  outline-offset: 2px;
+}
+
+/* 스크롤이 필요한 목록(관리자 배경 목록 등) — 레트로 스크롤바 */
+.rt .rt-scroll {
+  overflow-y: auto;
+  scrollbar-color: var(--rt-blue-500) var(--rt-well);
+}
+.rt .rt-scroll::-webkit-scrollbar {
+  width: 18px;
+}
+.rt .rt-scroll::-webkit-scrollbar-track {
+  background: var(--rt-well);
+  box-shadow: var(--rt-sunken);
+}
+.rt .rt-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #ffffff, var(--rt-face-alt));
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-raised);
+}
+
+/* 부드러운 둥실 — 장식 전용(시작 버튼 등). 반복 점멸 대신 위아래 2px */
+@keyframes rt-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.rt .rt-bob {
+  animation: rt-bob 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rt *,
+  .rt *::before,
+  .rt *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* 움직이지 않는 대신 블록 묶음을 가운데 멈춰 둔다 — 상태 문구가 진행을 알린다 */
+  .rt .rt-progress-run {
+    transform: translateX(120%) !important;
+  }
+}

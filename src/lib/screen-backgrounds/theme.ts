@@ -56,3 +56,49 @@ export function toKioskTheme(background: ScreenBackground) {
     radius: background.palette === 'kirang' ? '12px' : '24px',
   }
 }
+
+/**
+ * 레트로 UI(/booth·/kiosk)에서 배경이 맡는 몫.
+ *
+ * 창·버튼·입력란·진행 표시 같은 기능 UI의 색은 src/components/retro/retro.css 토큰으로 고정한다.
+ * 관리자가 고른 배경이 어떤 그림이든 기능 UI의 대비가 같아야 하기 때문이다. 배경 설정은 이렇게만 쓰인다:
+ *   image_url → 바탕화면 그림          base  → 그림이 뜨기 전·빈 곳의 바탕색, 바탕화면 글자 받침
+ *   ink       → 바탕화면에 바로 놓인 글자(아이콘 이름) — base 대비 4.5:1 로 보정
+ *   accent    → 장식색: 창 뒤 겹친 창 테두리 등 (기능 UI에는 쓰지 않는다)
+ *   palette   → 창 안 한글 큰 제목 글꼴 + 본문 글꼴 (픽셀체는 짧은 영문·숫자 전용으로 따로)
+ *   tone      → 바탕화면 글자 받침의 밝기
+ */
+export function toRetroDesktop(background: ScreenBackground) {
+  const font = fonts[background.palette] || fonts.wanted
+  const { ink } = toKioskTheme(background)
+  return {
+    id: background.id,
+    title: background.title,
+    image: background.image_url,
+    tone: background.tone,
+    deskBase: background.base,
+    deskInk: ink,
+    deco: background.accent,
+    decoSoft: mixColor(background.accent, '#ffffff', 0.78),
+    displayFont: font.display,
+    bodyFont: font.body,
+    displayWeight: font.weight,
+    displayTracking: font.tracking,
+    fontLabel: font.label,
+  }
+}
+
+/** toRetroDesktop 결과를 .rt 루트에 거는 CSS 변수로 — 두 기기가 같은 이름을 쓴다 */
+export function retroDesktopVars(desk: ReturnType<typeof toRetroDesktop>, fontOverride?: { display?: string; body?: string }) {
+  return {
+    '--rt-wallpaper': desk.image ? `url("${desk.image}")` : undefined,
+    '--rt-desk-base': desk.deskBase,
+    '--rt-desk-ink': desk.deskInk,
+    '--rt-deco': desk.deco,
+    '--rt-deco-soft': desk.decoSoft,
+    '--rt-display-font': fontOverride?.display ?? desk.displayFont,
+    '--rt-body-font': fontOverride?.body ?? desk.bodyFont,
+    '--rt-display-weight': String(desk.displayWeight),
+    '--rt-display-tracking': desk.displayTracking,
+  } as Record<string, string | undefined>
+}
