@@ -11,8 +11,7 @@ import { useState, useEffect, useCallback, Fragment } from 'react'
 import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
 import { AdminTabs, useHashTab } from '../components/AdminTabs'
-import { ScreenBackgroundManager } from '@/components/admin/ScreenBackgroundManager'
-import { ScreenEventManager } from '@/components/admin/ScreenEventManager'
+import { ScreenManagerTabs } from '@/components/admin/ScreenManagerTabs'
 import {
   Monitor,
   Search,
@@ -458,7 +457,7 @@ export default function AdminKioskPage() {
         )}
 
         {/* 키오스크 화면 — 화면 디자인(기존/레트로)·글꼴·배경 */}
-        {tab === 'screen' && <><ScreenEventManager /><ScreenBackgroundManager initialTarget="kiosk" /></>}
+        {tab === 'screen' && <ScreenManagerTabs initialTarget="kiosk" />}
 
         {tab === 'records' && (
         <>

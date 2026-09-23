@@ -14,8 +14,7 @@ import { AdminHeader } from '../components/AdminHeader'
 import { AdminTabs, useHashTab } from '../components/AdminTabs'
 import { CardManager } from './CardManager'
 import { ShotStats } from './ShotStats'
-import { ScreenBackgroundManager } from '@/components/admin/ScreenBackgroundManager'
-import { ScreenEventManager } from '@/components/admin/ScreenEventManager'
+import { ScreenManagerTabs } from '@/components/admin/ScreenManagerTabs'
 import { supabase } from '@/lib/supabase/client'
 import QRCode from 'qrcode'
 import {
@@ -442,8 +441,7 @@ export default function AdminPhotoboothPage() {
           </button>
         </section>
         {/* 화면 디자인(기존/레트로)·글꼴·배경 — 키오스크 관리와 같은 부품 */}
-        <ScreenEventManager />
-        <ScreenBackgroundManager initialTarget="booth" />
+        <ScreenManagerTabs initialTarget="booth" />
         </>
         )}
 
