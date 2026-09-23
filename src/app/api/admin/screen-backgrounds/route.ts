@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
-import { BackgroundError, readBackgroundSnapshot, saveBackground, deleteBackground, selectSharedBackground } from '@/lib/screen-backgrounds/store'
+import { BackgroundError, readBackgroundSnapshot, saveBackground, deleteBackground, selectSharedBackground, saveDeviceSettings } from '@/lib/screen-backgrounds/store'
 import { isScreenTarget } from '@/lib/screen-backgrounds/types'
 import { sameOrigin } from '@/lib/screen-backgrounds/device-auth'
 
@@ -46,6 +46,10 @@ export async function DELETE(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try { const denied = await authorize(request); if (denied) return denied
     const body = await bodyOf(request)
+    if (isScreenTarget(body.target) && (Object.hasOwn(body, 'ui') || Object.hasOwn(body, 'font'))) {
+      const settings = await saveDeviceSettings(body.target, body as { ui?: never; font?: never })
+      return NextResponse.json({ success: true, settings }, { headers })
+    }
     if (!isScreenTarget(body.target) || typeof body.id !== 'string') throw new BackgroundError('기기와 배경을 확인해주세요.')
     await selectSharedBackground(body.target, body.id)
     return NextResponse.json({ success: true }, { headers })

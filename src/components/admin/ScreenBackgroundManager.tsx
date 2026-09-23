@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, Check, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
-import type { BackgroundSnapshot, ScreenBackground, ScreenTarget } from '@/lib/screen-backgrounds/types'
+import { DEFAULT_DEVICE_SETTINGS, type BackgroundSnapshot, type DeviceSettings, type ScreenBackground, type ScreenTarget } from '@/lib/screen-backgrounds/types'
+import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
+import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
+import { ScreenFontSelect } from '@/lib/screen-fonts/FontSelect'
 import { toBoothTheme } from '@/lib/screen-backgrounds/theme'
 
 const API = '/api/admin/screen-backgrounds'
@@ -16,7 +19,7 @@ const PALETTES: { id: ScreenBackground['palette']; label: string }[] = [
   { id: 'wanted', label: 'Wanted Sans · 또렷한 산세리프' },
   { id: 'jua', label: 'Jua · 둥글고 귀여운 제목' },
   { id: 'kirang', label: 'Kirang Haerang · 자유로운 손글씨' },
-  { id: 'serif', label: 'Noto Serif KR · 감성적인 명조' },
+  { id: 'serif', label: 'S-Core Dream Bold · 굵은 고딕' },
   { id: 'soft', label: 'S-Core Dream · 부드러운 고딕' },
 ]
 const inputClass = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10'
@@ -224,7 +227,7 @@ function BackgroundEditor({ background, draft: initialDraft, onClose, onSaved, o
             <label className="block space-y-1.5 text-sm font-semibold">글꼴 조합<select value={draft.palette} disabled={busy} onChange={event => update('palette', event.target.value as Draft['palette'])} className={inputClass}>{PALETTES.map(palette => <option key={palette.id} value={palette.id}>{palette.label}</option>)}</select></label>
             <fieldset disabled={busy} className="space-y-2"><legend className="mb-2 text-sm font-semibold">화면 색상</legend>
               {([{ key: 'ink', label: '글자색' }, { key: 'accent', label: '강조색' }, { key: 'base', label: '바탕색' }] as const).map(({ key, label }) => <label key={key} className="flex items-center gap-3 text-sm"><span className="w-14 shrink-0 text-slate-600">{label}</span><input type="color" aria-label={`${label} 선택`} value={/^#[0-9a-f]{6}$/i.test(draft[key]) ? draft[key] : '#ffffff'} onChange={event => update(key, event.target.value)} className="h-10 w-12 cursor-pointer rounded border border-slate-200 p-1" /><input aria-label={`${label} HEX`} value={draft[key]} maxLength={7} onChange={event => update(key, event.target.value)} className={`${inputClass} font-mono`} /></label>)}
-            <p className="pt-1 text-xs leading-relaxed text-slate-500">포토부스·키오스크 화면은 레트로 UI로 고정되어 창·버튼 색은 바뀌지 않습니다. 글자색은 바탕화면 아이콘 이름, 강조색은 창 뒤 겹친 창 같은 장식, 바탕색은 그림이 없는 빈 바탕에 쓰이고, 글꼴 조합은 창 안의 한글 제목·본문에 적용됩니다.</p></fieldset>
+            <p className="pt-1 text-xs leading-relaxed text-slate-500">기존 디자인에서는 글꼴 조합·색상이 화면 전체에 적용됩니다. 레트로 디자인에서는 창·버튼 색이 고정되고, 글자색은 바탕화면 아이콘 이름, 강조색은 창 뒤 겹친 창 같은 장식, 바탕색은 그림이 없는 빈 바탕에 쓰입니다(레트로 글꼴은 위 기기 카드의 ‘글꼴’에서 고릅니다). 기기 카드에서 글꼴을 고르면 두 디자인 모두 그 글꼴이 우선합니다.</p></fieldset>
             <label className="block space-y-1.5 text-sm font-semibold">표시 순서<input type="number" min={-100000} max={100000} step={1} required value={Number.isNaN(draft.display_order) ? '' : draft.display_order} disabled={busy} onChange={event => update('display_order', event.target.valueAsNumber)} className={inputClass} /><span className="block text-xs font-normal text-slate-500">작은 숫자부터 목록에 표시됩니다.</span></label>
             <label className="flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-sm"><input type="checkbox" checked={draft.is_active} disabled={busy} onChange={event => update('is_active', event.target.checked)} className="h-4 w-4 accent-slate-900" />기기 배경 선택 목록에 노출</label>
             {background && <p className="text-xs text-slate-500">현재 적용 중인 배경을 숨기면 같은 화면의 다른 노출 배경으로 전환됩니다.</p>}
@@ -238,7 +241,7 @@ function BackgroundEditor({ background, draft: initialDraft, onClose, onSaved, o
 }
 
 export function ScreenBackgroundManager({ initialTarget }: { initialTarget?: ScreenTarget }) {
-  const [snapshot, setSnapshot] = useState<BackgroundSnapshot>({ backgrounds: [], selected: { booth: null, kiosk: null } })
+  const [snapshot, setSnapshot] = useState<BackgroundSnapshot>({ backgrounds: [], selected: { booth: null, kiosk: null }, settings: { booth: DEFAULT_DEVICE_SETTINGS, kiosk: DEFAULT_DEVICE_SETTINGS } })
   const [target, setTarget] = useState<ScreenTarget | 'all'>(initialTarget || 'all')
   const [search, setSearch] = useState('')
   const [visibility, setVisibility] = useState('all')
@@ -345,7 +348,24 @@ export function ScreenBackgroundManager({ initialTarget }: { initialTarget?: Scr
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {(['booth', 'kiosk'] as const).map(key => {
           const selected = snapshot.backgrounds.find(item => item.id === snapshot.selected[key])
-          return <div key={key} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"><p className="text-xs font-medium text-slate-500">{TARGETS[key].label} 현재 적용 · {TARGETS[key].size}</p><p className="mt-1 truncate text-sm font-bold text-slate-900">{loading && !snapshot.backgrounds.length ? '불러오는 중…' : selected?.title || '선택 가능한 배경 없음 · 기본 바탕'}</p></div>
+          const settings: DeviceSettings = snapshot.settings?.[key] ?? DEFAULT_DEVICE_SETTINGS
+          const save = (patch: Partial<DeviceSettings>, message: string) => void mutate('PUT', { target: key, ...patch }, message)
+          const previewFont = settings.font ?? (settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null)
+          return <div key={key} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs font-medium text-slate-500">{TARGETS[key].label} 현재 적용 · {TARGETS[key].size}</p><p className="mt-1 truncate text-sm font-bold text-slate-900">{loading && !snapshot.backgrounds.length ? '불러오는 중…' : selected?.title || '선택 가능한 배경 없음 · 기본 바탕'}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+              <span className="w-16 shrink-0 text-xs font-semibold text-slate-600">화면 디자인</span>
+              <div className="flex gap-1 rounded-lg bg-white p-1 ring-1 ring-slate-200" role="group" aria-label={`${TARGETS[key].label} 화면 디자인`}>
+                {([['classic', '기존'], ['retro', '레트로']] as const).map(([ui, label]) => <button key={ui} type="button" aria-pressed={settings.ui === ui} disabled={busy || loading || settings.ui === ui} onClick={() => save({ ui }, `${TARGETS[key].label} 화면 디자인을 ‘${label}’(으)로 바꿨습니다.`)} className={`rounded-md px-3 py-1.5 text-xs font-bold ${settings.ui === ui ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} disabled:cursor-default`}>{label}</button>)}
+              </div>
+            </div>
+            <label className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="w-16 shrink-0 text-xs font-semibold text-slate-600">글꼴</span>
+              <ScreenFontSelect value={settings.font} disabled={busy || loading} defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} onChange={font => save({ font }, `${TARGETS[key].label} 글꼴을 ‘${findScreenFont(font)?.label ?? '기본'}’(으)로 바꿨습니다.`)} className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800" />
+            </label>
+            <ScreenFontFace ids={[previewFont]} />
+            <p className="mt-2 truncate rounded-md bg-white px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200" style={{ fontFamily: screenFontFamily(previewFont) }}>오늘의 최애, 어떤 향으로 기억할까요? ACSCENT 123</p>
+          </div>
         })}
       </div>
 

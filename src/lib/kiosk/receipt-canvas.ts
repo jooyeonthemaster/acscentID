@@ -133,12 +133,13 @@ function resolveFonts(lang?: string): Fonts {
     }
   }
   const sans = cssFontFamily('--font-score-dream', "'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif")
-  const serif = cssFontFamily('--font-noto-serif-kr', "'Noto Serif KR', serif")
+  // 명식 한자도 고딕으로 — 명조는 쓰지 않는다. 에스코어드림엔 한자가 없어 맑은 고딕(키오스크 Windows)이 받는다
+  const hanjaSans = cssFontFamily('--font-noto-tc', "'Microsoft JhengHei', sans-serif")
   return {
     sans,
     display: sans,
     mono: "ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace",
-    hanja: `${serif}, 'Apple SD Gothic Neo', 'Malgun Gothic', serif`,
+    hanja: `'Malgun Gothic', 'Apple SD Gothic Neo', ${hanjaSans}`,
   }
 }
 

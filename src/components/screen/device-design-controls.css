@@ -1,0 +1,16 @@
+/* 기존·레트로 두 관리자 패널 안에 들어가므로 어느 쪽 토큰에도 기대지 않는다 — 중립 회색 */
+.sdc.sdc { display: grid; gap: 10px; padding: 14px; margin-bottom: 14px; border: 1px solid rgba(40, 51, 80, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.92); color: #1f2937; font-family: var(--font-score-dream), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+.sdc-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.sdc-row > b { flex: 0 0 5.5em; font-size: 15px; font-weight: 700; }
+.sdc-seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: #eef0f4; }
+.sdc-seg button { min-height: 48px; min-width: 96px; padding: 0 18px; border: 0; border-radius: 6px; background: transparent; color: #475569; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.sdc .sdc-seg button[aria-pressed='true'], .sdc .sdc-seg button[aria-pressed='true']:disabled { background: #1f2937; color: #ffffff; cursor: default; opacity: 1; }
+.sdc-seg button:disabled:not([aria-pressed='true']) { opacity: 0.5; }
+.sdc-select { flex: 1; min-width: 0; min-height: 48px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; color: #1f2937; font: inherit; font-size: 16px; }
+.sdc-sample { margin: 0; padding: 10px 12px; overflow: hidden; border-radius: 8px; background: #f8fafc; font-size: 22px; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
+.sdc-status { margin: 0; min-height: 1.3em; font-size: 13px; color: #64748b; }
+/* 부스(가로): 디자인 · 글꼴 · 미리보기를 한 줄에 — 화면 배율 150% 이상에서도 배경 목록이 보이게 */
+.sdc.sdc--compact { grid-template-columns: auto minmax(220px, 1fr) minmax(0, 1fr); align-items: center; gap: 8px 14px; padding: 10px 12px; margin-bottom: 10px; }
+.sdc--compact .sdc-row > b { flex-basis: auto; }
+.sdc--compact .sdc-sample { font-size: 18px; padding: 8px 10px; }
+.sdc--compact .sdc-status { grid-column: 1 / -1; }

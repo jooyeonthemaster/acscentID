@@ -3,7 +3,9 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import catalog from './catalog.json'
 import { mergeBackgroundRecords, type BackgroundRecord } from './merge'
 import { EDITABLE_BACKGROUND_FIELDS, validateBackground } from './validation'
-import type { BackgroundSnapshot, ScreenBackground, ScreenTarget } from './types'
+import type { BackgroundSnapshot, DeviceSettings, ScreenBackground, ScreenTarget } from './types'
+import { isScreenUi } from './types'
+import { SCREEN_FONT_IDS } from '@/lib/screen-fonts/catalog'
 
 // Private server-only configuration bucket; no manual SQL migration or device-local metadata.
 // One object per background avoids overwriting unrelated edits from another administrator.
@@ -74,4 +76,20 @@ export async function selectSharedBackground(target: ScreenTarget, id: string) {
   const background = snapshot.backgrounds.find(item => item.id === id && item.target === target && item.is_active)
   if (!background) throw new BackgroundError('선택할 수 없는 배경입니다. 목록을 새로고침해주세요.', 409)
   await writeRecord(`selection-${target}`, { kind: 'selection', target, id })
+}
+
+/** 기기 화면 디자인·글꼴 — 기기 종류별로 하나. 바꾸지 않은 항목은 그대로 둔다 */
+export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<DeviceSettings>) {
+  const snapshot = await readBackgroundSnapshot()
+  const next: DeviceSettings = { ...snapshot.settings[target] }
+  if (Object.hasOwn(patch, 'ui')) {
+    if (!isScreenUi(patch.ui)) throw new BackgroundError('화면 디자인을 확인해주세요.')
+    next.ui = patch.ui
+  }
+  if (Object.hasOwn(patch, 'font')) {
+    if (patch.font !== null && !SCREEN_FONT_IDS.includes(patch.font as string)) throw new BackgroundError('글꼴을 찾을 수 없습니다.')
+    next.font = patch.font ?? null
+  }
+  await writeRecord(`settings-${target}`, { kind: 'settings', target, ui: next.ui, font: next.font })
+  return next
 }

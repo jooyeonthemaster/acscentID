@@ -1,4 +1,4 @@
-import { BoothClient } from './BoothClient'
+import { BoothScreen } from './BoothScreen'
 
 // 매장 포토부스 화면 — 매장 태블릿/PC 전용, 로케일 라우팅 제외(미들웨어 skip), 검색 노출 금지
 export const metadata = {
@@ -7,5 +7,5 @@ export const metadata = {
 }
 
 export default function BoothPage() {
-  return <BoothClient />
+  return <BoothScreen />
 }

@@ -2,19 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import catalog from './catalog.json'
-import { neutralBackground, resolveSelected, type BackgroundSnapshot, type ScreenBackground, type ScreenTarget } from './types'
+import { DEFAULT_DEVICE_SETTINGS, isFontId, isScreenUi, neutralBackground, resolveSelected, type BackgroundSnapshot, type DeviceSettings, type ScreenBackground, type ScreenTarget } from './types'
 import { validateBackground } from './validation'
 
 const POLL_MS = 15000
 function initialSnapshot(target: ScreenTarget): BackgroundSnapshot {
   const backgrounds = (catalog as ScreenBackground[]).filter(item => item.target === target)
-  return { backgrounds, selected: resolveSelected(backgrounds, {}) }
+  return { backgrounds, selected: resolveSelected(backgrounds, {}), settings: { booth: DEFAULT_DEVICE_SETTINGS, kiosk: DEFAULT_DEVICE_SETTINGS } }
+}
+/** 예전 서버·캐시에는 settings 가 없다 — 없거나 이상하면 기본값(레트로·기본 글꼴) */
+function parseSettings(value: unknown): DeviceSettings {
+  const raw = (value ?? {}) as Partial<DeviceSettings>
+  return { ui: isScreenUi(raw.ui) ? raw.ui : DEFAULT_DEVICE_SETTINGS.ui, font: isFontId(raw.font) ? raw.font : null }
 }
 function parseSnapshot(value: unknown, target: ScreenTarget): BackgroundSnapshot {
   const snapshot = value as BackgroundSnapshot
   if (!snapshot || !Array.isArray(snapshot.backgrounds) || !snapshot.backgrounds.every(validateBackground) || !snapshot.selected) throw new Error('배경 설정을 읽지 못했습니다.')
   const backgrounds = snapshot.backgrounds.filter(item => item.target === target && item.is_active)
-  return { backgrounds, selected: resolveSelected(backgrounds, snapshot.selected) }
+  const settings = snapshot.settings as Partial<Record<ScreenTarget, unknown>> | undefined
+  return { backgrounds, selected: resolveSelected(backgrounds, snapshot.selected), settings: { booth: parseSettings(settings?.booth), kiosk: parseSettings(settings?.kiosk) } }
 }
 async function readResponse(response: Response) {
   const result = await response.json().catch(() => null)
@@ -25,6 +31,8 @@ async function readResponse(response: Response) {
 export function useScreenBackgrounds(target: ScreenTarget) {
   const [snapshot, setSnapshot] = useState<BackgroundSnapshot>(() => initialSnapshot(target))
   const [loading, setLoading] = useState(true)
+  /** 서버에서 한 번이라도 받았는가 — 화면 디자인 전환은 서버 값으로만 한다 */
+  const [synced, setSynced] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const sequence = useRef(0)
   const alive = useRef(false)
@@ -37,6 +45,7 @@ export function useScreenBackgrounds(target: ScreenTarget) {
       const next = parseSnapshot(await readResponse(response), target)
       if (!alive.current || current !== sequence.current) return
       setSnapshot(next)
+      setSynced(true)
       setError(null)
       try { localStorage.setItem(cacheKey, JSON.stringify(next)) } catch { /* offline cache is optional */ }
     } catch (cause) {
@@ -97,7 +106,21 @@ export function useScreenBackgrounds(target: ScreenTarget) {
     }
   }, [target, refresh])
 
+  const saveSettings = useCallback(async (patch: Partial<DeviceSettings>) => {
+    sequence.current++
+    try {
+      await readResponse(await fetch('/api/screen-backgrounds', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, ...patch }),
+        signal: AbortSignal.timeout(12000),
+      }))
+      await refresh()
+    } catch (cause) {
+      if (alive.current) setError(cause instanceof Error ? cause.message : '화면 설정을 저장하지 못했습니다.')
+      throw cause
+    }
+  }, [target, refresh])
+
   const selectedId = snapshot.selected[target] || ''
   const activeBackground = useMemo(() => snapshot.backgrounds.find(item => item.id === selectedId) || neutralBackground(target), [snapshot.backgrounds, selectedId, target])
-  return { backgrounds: snapshot.backgrounds, activeBackground, selectedId, loading, error, refresh, selectBackground, unlock }
+  return { backgrounds: snapshot.backgrounds, activeBackground, selectedId, settings: snapshot.settings[target], synced, loading, error, refresh, selectBackground, saveSettings, unlock }
 }

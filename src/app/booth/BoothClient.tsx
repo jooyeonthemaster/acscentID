@@ -44,6 +44,9 @@ import { getBoothShell } from '@/lib/photobooth/booth-shell'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
+import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
+import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import {
   PixelIcon,
   RetroProgress,
@@ -382,6 +385,9 @@ export function BoothClient() {
     error: backgroundsError,
     refresh: refreshBackgrounds,
     selectBackground,
+    settings: deviceSettings,
+    saveSettings,
+    synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
   } = useScreenBackgrounds('booth')
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
@@ -406,7 +412,7 @@ export function BoothClient() {
   const activeBackground = toBoothTheme(backgroundRecord)
   // 레트로 UI에서 배경은 바탕화면·장식색·제목 글꼴만 맡는다 (창·버튼 색은 retro.css 고정).
   // 이벤트 색은 장식에만 싣고, 사진 합성·인화 캔버스의 이벤트 색은 별도로 유지한다.
-  const retroDesk = toRetroDesktop(backgroundRecord)
+  const retroDesk = toRetroDesktop(backgroundRecord, deviceSettings.font)
   const accent = event?.theme_color || activeBackground.accent
   /** 촬영 화면에 오려낸 인물을 겹쳐 보여주고 옮길 수 있는가 */
   const showLiveCutout = !!cutoutPreviewUrl && useCutout && overlayAdjustable
@@ -1727,6 +1733,7 @@ export function BoothClient() {
   // ======================
   // Render
   // ======================
+  useScreenUiSwitch('retro', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
   const stepMeta = BOOTH_STEP_META[step]
   // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
   const deskVars = retroDesktopVars(
@@ -1742,6 +1749,7 @@ export function BoothClient() {
       data-tone={retroDesk.tone}
       style={deskVars as React.CSSProperties}
     >
+      <ScreenFontFace ids={[retroDesk.fontId]} />
       {/* 4x6 인쇄 전용 영역 */}
       <style>{`
         @font-face {
@@ -2972,6 +2980,13 @@ export function BoothClient() {
                         </div>
                       </div>
                     )}
+                    <DeviceDesignControls
+                      settings={deviceSettings}
+                      onSave={saveSettings}
+                      disabled={!!backgroundSaving}
+                      sample="어떤 사진을 찍을까요? ACSCENT PHOTO"
+                      compact
+                    />
                     <div className="bth-admin-toolbar">
                       <b>
                         화면 배경 · {backgrounds.length}개
@@ -3019,9 +3034,9 @@ export function BoothClient() {
                               <span
                                 className="bth-bg-sample"
                                 style={{
-                                  fontFamily: background.displayFont,
-                                  fontWeight: background.displayWeight,
-                                  letterSpacing: background.displayTracking,
+                                  fontFamily: retroDesk.displayFont,
+                                  fontWeight: retroDesk.displayWeight,
+                                  letterSpacing: retroDesk.displayTracking,
                                 }}
                               >
                                 어떤 사진을 찍을까요?
@@ -3029,7 +3044,7 @@ export function BoothClient() {
                             </span>
                             <span className="bth-bg-name">
                               <b>{background.title}</b>
-                              <em>{background.fontLabel}</em>
+                              <em>{background.id === backgroundId ? '적용 중' : '선택'}</em>
                             </span>
                           </button>
                         )

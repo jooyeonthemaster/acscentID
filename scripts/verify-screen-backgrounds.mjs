@@ -148,7 +148,7 @@ test('all presets have readable kiosk text and buttons, including dark themes', 
 });
 
 test('fonts cover all five palettes in booth and kiosk themes', () => {
-  const expected = { wanted: 'Wanted Sans', jua: 'Jua', kirang: 'Kirang Haerang', serif: 'Noto Serif KR', soft: 'S-Core Dream' };
+  const expected = { wanted: 'Wanted Sans', jua: 'Jua', kirang: 'Kirang Haerang', serif: 'S-Core Dream Bold', soft: 'S-Core Dream' };
   for (const palette of types.BACKGROUND_PALETTES) {
     const background = clone(booth[0], { palette });
     const boothTheme = theme.toBoothTheme(background);
@@ -204,7 +204,8 @@ test('tombstones persist across fresh merges without resurrecting bundled preset
     assert.equal(snapshot.selected.kiosk, kiosk[0].id);
   }
   const empty = merge.mergeBackgroundRecords(catalog, catalog.map(item => ({ kind: 'deleted', id: item.id })));
-  assert.deepEqual(empty, { backgrounds: [], selected: { booth: null, kiosk: null } });
+  const defaults = { ui: 'retro', font: null };
+  assert.deepEqual(empty, { backgrounds: [], selected: { booth: null, kiosk: null }, settings: { booth: defaults, kiosk: defaults } });
 });
 
 test('merge honors custom edits/order and rejects damaged remote records', () => {
@@ -219,6 +220,43 @@ test('merge honors custom edits/order and rejects damaged remote records', () =>
   assert.equal(snapshot.backgrounds[1].title, '수정한 배경');
   assert.equal(snapshot.selected.booth, edited.id);
   for (const record of [null, {}, { kind: 'deleted', id: '../escape' }, { kind: 'background', background: { id: booth[0].id, is_active: false } }, { kind: 'selection', target: 'wrong', id: booth[0].id }]) {
+    assert.throws(() => merge.mergeBackgroundRecords(catalog, [record]));
+  }
+});
+
+test('no palette or retro screen font falls back to a serif (명조) face', () => {
+  for (const palette of types.BACKGROUND_PALETTES) {
+    const resolved = theme.toKioskTheme(clone(kiosk[0], { palette }));
+    assert.doesNotMatch(`${resolved.displayFont} ${resolved.bodyFont}`, /serif-kr|Serif KR|(^|[ ,])serif($|[ ,])/);
+  }
+  const retro = theme.toRetroDesktop(clone(kiosk[0], { palette: 'serif' }));
+  assert.equal(retro.fontId, 'score-dream');
+  assert.match(retro.displayFont, /--font-score-dream/);
+  assert.equal(theme.toRetroDesktop(kiosk[0], 'bm-jua').fontId, 'bm-jua');
+  assert.match(theme.toRetroDesktop(kiosk[0], 'bm-jua').displayFont, /^'acs-ui-bm-jua'/);
+  assert.equal(theme.toRetroDesktop(kiosk[0], 'not-a-font').fontId, 'score-dream');
+});
+
+test('every catalog screen font ships its woff2 files and a well-formed @font-face', () => {
+  const fonts = loadTs('src/lib/screen-fonts/catalog.ts');
+  assert.ok(fonts.SCREEN_FONTS.length >= 50);
+  assert.equal(new Set(fonts.SCREEN_FONT_IDS).size, fonts.SCREEN_FONTS.length);
+  for (const font of fonts.SCREEN_FONTS) {
+    assert.ok(types.isFontId(font.id), font.id);
+    assert.ok(Object.hasOwn(fonts.SCREEN_FONT_CATEGORIES, font.category), font.id);
+    if (font.cssVar) { assert.equal(fonts.screenFontFaceCss(font.id), ''); continue; }
+    for (const weight of font.weights) assert.ok(existsSync(path.join(root, 'public/fonts/ui', font.id, `${weight}.woff2`)), `${font.id} ${weight}`);
+    const css = fonts.screenFontFaceCss(font.id);
+    assert.equal(css.match(/@font-face/g).length, font.weights.length);
+    assert.match(css, new RegExp(`/fonts/ui/${font.id}/`));
+  }
+  assert.equal(fonts.screenFontFamily(null), undefined);
+});
+
+test('device settings merge per target and reject damaged records', () => {
+  const snapshot = merge.mergeBackgroundRecords(catalog, [{ kind: 'settings', target: 'kiosk', ui: 'classic', font: 'bm-jua' }]);
+  assert.deepEqual(snapshot.settings, { booth: { ui: 'retro', font: null }, kiosk: { ui: 'classic', font: 'bm-jua' } });
+  for (const record of [{ kind: 'settings', target: 'kiosk', ui: 'modern', font: null }, { kind: 'settings', target: 'nope', ui: 'retro', font: null }, { kind: 'settings', target: 'booth', ui: 'retro', font: '../x' }]) {
     assert.throws(() => merge.mergeBackgroundRecords(catalog, [record]));
   }
 });
@@ -302,6 +340,20 @@ test('overwritten selections and edits are read fresh through a caching CDN', as
   await store.readBackgroundSnapshot();
   await store.saveBackground({ id: kiosk[2].id, title: '바꾼 이름' }, false);
   assert.equal((await store.readBackgroundSnapshot()).backgrounds.find(item => item.id === kiosk[2].id).title, '바꾼 이름');
+});
+
+test('store saves device UI and font independently per target and refuses unknown values', async () => {
+  const { store, records } = isolatedStore();
+  assert.deepEqual(await store.saveDeviceSettings('booth', { ui: 'classic' }), { ui: 'classic', font: null });
+  assert.deepEqual(await store.saveDeviceSettings('booth', { font: 'galmuri11' }), { ui: 'classic', font: 'galmuri11' });
+  const snapshot = await store.readBackgroundSnapshot();
+  assert.deepEqual(snapshot.settings.booth, { ui: 'classic', font: 'galmuri11' });
+  assert.deepEqual(snapshot.settings.kiosk, { ui: 'retro', font: null });
+  assert.deepEqual(await store.saveDeviceSettings('booth', { font: null }), { ui: 'classic', font: null });
+  const count = records.size;
+  await assert.rejects(store.saveDeviceSettings('kiosk', { ui: 'fancy' }), error => error.status === 400);
+  await assert.rejects(store.saveDeviceSettings('kiosk', { font: 'noto-serif-kr' }), error => error.status === 400);
+  assert.equal(records.size, count);
 });
 
 test('store creates fresh IDs, resolves all-deleted targets and fails closed on storage errors', async () => {

@@ -39,6 +39,9 @@ import '@/components/retro/retro.css'
 import './kiosk.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
+import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
+import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import {
   PixelIcon,
   RetroProgress,
@@ -304,6 +307,9 @@ export function KioskClient() {
     error: backgroundsError,
     refresh: refreshBackgrounds,
     selectBackground,
+    settings: deviceSettings,
+    saveSettings,
+    synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
   } = useScreenBackgrounds('kiosk')
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
@@ -333,8 +339,9 @@ export function KioskClient() {
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
   const activeBackground = toKioskTheme(backgroundRecord)
-  // 레트로 UI에서 배경은 바탕화면·장식색·제목 글꼴만 맡는다 (창·버튼 색은 retro.css 고정)
-  const retroDesk = toRetroDesktop(backgroundRecord)
+  // 레트로 UI에서 배경은 바탕화면·장식색만 맡는다 (창·버튼 색은 retro.css 고정).
+  // 글꼴은 기기 설정(관리자가 고름) — 없으면 고딕 에스코어드림. 명조는 쓰지 않는다.
+  const retroDesk = toRetroDesktop(backgroundRecord, deviceSettings.font)
 
   const chooseBackground = useCallback(async (id: string) => {
     if (!backgroundAdminUnlocked || backgroundSaving) return
@@ -1337,6 +1344,7 @@ export function KioskClient() {
   const stepCode = showHeader
     ? `${String(stepIdx + 1).padStart(2, '0')}/${String(steps.length).padStart(2, '0')}`
     : ''
+  useScreenUiSwitch('retro', deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
   const titleExtra =
     step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
 
@@ -1360,6 +1368,7 @@ export function KioskClient() {
         } as CSSProperties
       }
     >
+      <ScreenFontFace ids={[retroDesk.fontId]} />
       {step !== 'attract' && (
       <div className="ksk-stage rt-stack">
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
@@ -2049,6 +2058,7 @@ export function KioskClient() {
             ) : (
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
+                <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" />
                 <div className="ksk-admin-toolbar">
                   <b>화면 배경 · {backgrounds.length}개</b>
                   <button type="button" className="rt-btn" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>
@@ -2077,7 +2087,7 @@ export function KioskClient() {
                       <span className="ksk-admin-preview">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
-                        <b style={{ fontFamily: background.displayFont }}>오늘의 최애향</b>
+                        <b style={{ fontFamily: retroDesk.displayFont }}>오늘의 최애향</b>
                       </span>
                       <span className="ksk-admin-theme-name">
                         <b>{background.title}</b>
@@ -2105,9 +2115,12 @@ export function KioskClient() {
       {receipt && (
         <div className="ksk-modal" role="dialog" aria-modal="true" aria-label={t.receiptAlt}>
           <RetroWindow className="ksk-modal-win" bodyClassName="ksk-modal-body" icon="printer" title="RECEIPT">
-            <div className="ksk-modal-paper rt-viewer">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={receipt.dataUrl} alt={t.receiptAlt} />
+            {/* 프린터에서 나온 종이처럼 — 길어서 아래로 밀어 본다(스크롤바를 보여 준다) */}
+            <div className="ksk-modal-paper rt-scroll">
+              <div className="ksk-modal-sheet">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={receipt.dataUrl} alt={t.receiptAlt} />
+              </div>
             </div>
             <p className="ksk-modal-note">{t.receiptNote}</p>
             <div className="ksk-modal-actions">

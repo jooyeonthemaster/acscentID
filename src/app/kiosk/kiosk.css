@@ -1107,16 +1107,27 @@
   min-height: 0;
   padding: 14px;
 }
-.ksk-modal-paper {
+/* 영수증 받침 — 오목한 칸 안에서 종이가 스크롤된다 */
+.rt .ksk-modal-paper {
+  position: relative;
   flex: 1;
   min-height: 0;
-  align-self: center;
-  width: min(400px, 100%);
+  padding: 16px 12px 24px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
+  overscroll-behavior: contain;
+  background: var(--rt-well);
+  border: 1px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
 }
-.ksk-modal-paper img {
+.ksk-modal-sheet {
+  width: min(380px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid var(--rt-lo);
+  box-shadow: 4px 4px 0 rgba(40, 51, 111, 0.18);
+}
+.ksk-modal-sheet img {
   display: block;
   width: 100%;
 }

@@ -1,4 +1,5 @@
 import type { BackgroundPalette, ScreenBackground } from './types'
+import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 
 const wanted = 'var(--font-wanted), "Wanted Sans", sans-serif'
 const score = 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif'
@@ -6,7 +7,8 @@ const fonts: Record<BackgroundPalette, { display: string; body: string; weight: 
   wanted: { display: wanted, body: wanted, weight: 800, tracking: '-0.04em', label: 'Wanted Sans' },
   jua: { display: 'var(--font-jua), "Jua", sans-serif', body: score, weight: 400, tracking: '-0.035em', label: 'Jua' },
   kirang: { display: 'var(--font-kirang), "Kirang Haerang", cursive', body: wanted, weight: 400, tracking: '0.01em', label: 'Kirang Haerang' },
-  serif: { display: 'var(--font-noto-serif-kr), "Noto Serif KR", serif', body: score, weight: 600, tracking: '-0.035em', label: 'Noto Serif KR' },
+  // 'serif'는 옛 명조 조합의 저장값 — 명조를 쓰지 않기로 해 굵은 고딕으로 바꿔 보여준다(저장값은 호환용으로 유지)
+  serif: { display: score, body: score, weight: 700, tracking: '-0.035em', label: 'S-Core Dream Bold' },
   soft: { display: score, body: score, weight: 500, tracking: '-0.025em', label: 'S-Core Dream' },
 }
 const channels = (hex: string) => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16))
@@ -65,11 +67,12 @@ export function toKioskTheme(background: ScreenBackground) {
  *   image_url → 바탕화면 그림          base  → 그림이 뜨기 전·빈 곳의 바탕색, 바탕화면 글자 받침
  *   ink       → 바탕화면에 바로 놓인 글자(아이콘 이름) — base 대비 4.5:1 로 보정
  *   accent    → 장식색: 창 뒤 겹친 창 테두리 등 (기능 UI에는 쓰지 않는다)
- *   palette   → 창 안 한글 큰 제목 글꼴 + 본문 글꼴 (픽셀체는 짧은 영문·숫자 전용으로 따로)
+ *   (글꼴은 배경의 palette 가 아니라 기기 설정 settings.font — 없으면 고딕 에스코어드림. 픽셀체는 짧은 영문·숫자 전용)
  *   tone      → 바탕화면 글자 받침의 밝기
  */
-export function toRetroDesktop(background: ScreenBackground) {
-  const font = fonts[background.palette] || fonts.wanted
+export function toRetroDesktop(background: ScreenBackground, fontId?: string | null) {
+  const fontKey = findScreenFont(fontId) ? fontId! : DEFAULT_RETRO_FONT
+  const family = screenFontFamily(fontKey)!
   const { ink } = toKioskTheme(background)
   return {
     id: background.id,
@@ -80,11 +83,12 @@ export function toRetroDesktop(background: ScreenBackground) {
     deskInk: ink,
     deco: background.accent,
     decoSoft: mixColor(background.accent, '#ffffff', 0.78),
-    displayFont: font.display,
-    bodyFont: font.body,
-    displayWeight: font.weight,
-    displayTracking: font.tracking,
-    fontLabel: font.label,
+    fontId: fontKey,
+    displayFont: family,
+    bodyFont: family,
+    displayWeight: 700,
+    displayTracking: '-0.03em',
+    fontLabel: findScreenFont(fontKey)!.label,
   }
 }
 

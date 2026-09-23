@@ -19,9 +19,30 @@ export interface ScreenBackground {
   is_active: boolean
 }
 
+/** 기기 화면 디자인 — 레트로 컴퓨터 UI 또는 레트로 이전의 기존 UI. 관리자가 기기 종류별로 고른다 */
+export const SCREEN_UIS = ['retro', 'classic'] as const
+export type ScreenUi = (typeof SCREEN_UIS)[number]
+
+export interface DeviceSettings {
+  ui: ScreenUi
+  /** src/lib/screen-fonts/catalog.ts 의 id. null 이면 화면 디자인의 기본 글꼴 */
+  font: string | null
+}
+
+export const DEFAULT_DEVICE_SETTINGS: DeviceSettings = { ui: 'retro', font: null }
+
+export function isScreenUi(value: unknown): value is ScreenUi {
+  return value === 'retro' || value === 'classic'
+}
+
+export function isFontId(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-z0-9-]{1,40}$/.test(value)
+}
+
 export interface BackgroundSnapshot {
   backgrounds: ScreenBackground[]
   selected: Record<ScreenTarget, string | null>
+  settings: Record<ScreenTarget, DeviceSettings>
 }
 
 export function isScreenTarget(value: unknown): value is ScreenTarget {
