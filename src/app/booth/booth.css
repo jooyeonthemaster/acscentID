@@ -338,6 +338,19 @@
   margin-top: auto;
   padding-top: 14px;
 }
+/* 오른쪽 열은 옵션이 많으면 스크롤된다(같이 찍기·최애와 찍기 편집).
+   손님이 눌러야 할 버튼은 열 바닥에 붙여 둬야 첫 화면에서 보인다 — 예전엔 '완성하기'가 화면 밖으로 밀렸다 */
+.bth-split-side > .bth-side-actions {
+  position: sticky;
+  bottom: 0;
+  padding-bottom: 6px;
+  background: var(--rt-face);
+  box-shadow: 0 -12px 14px -10px rgba(26, 33, 80, 0.3);
+}
+.bth-split-side > .bth-side-actions--top {
+  position: static;
+  box-shadow: none;
+}
 .bth-side-actions--top {
   margin-top: 0;
   padding-top: 0;
