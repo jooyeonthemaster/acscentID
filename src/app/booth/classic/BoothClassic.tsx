@@ -58,6 +58,16 @@ import { cutoutPerson, warmupSegmentation } from '@/lib/photobooth/segmentation'
 import { parseCardCode, CARD_CODE_LENGTH, CARD_ALPHABET } from '@/lib/photobooth/card-code'
 import { probeDslrBridge, fetchDslrFrame, captureDslrStill } from '@/lib/photobooth/dslr-bridge'
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
+import {
+  useLayerGestures,
+  clamp,
+  wrapAngle,
+  LAYER_SCALE_MIN,
+  LAYER_SCALE_MAX,
+  FIT_ZOOM_MIN,
+  FIT_ZOOM_MAX,
+  type GestureDelta,
+} from '@/lib/photobooth/use-layer-gestures'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { contrast, toBoothTheme } from '@/lib/screen-backgrounds/theme'
@@ -341,9 +351,6 @@ export function BoothClassic() {
   const [manualCode, setManualCode] = useState('')
   const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
   const renderTokenRef = useRef(0)
-  const dragRef = useRef<{ pointerId: number; lastX: number; lastY: number } | null>(null)
-  /** 촬영 전 카메라 화면에서 오려낸 인물을 끌어 옮길 때 */
-  const overlayDragRef = useRef<{ pointerId: number; lastX: number; lastY: number } | null>(null)
 
   // 결과
   const [resultUrl, setResultUrl] = useState<string | null>(null)
@@ -1560,48 +1567,37 @@ export function BoothClassic() {
   ])
 
   // ---------- 캔버스 드래그 ----------
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!overlayAdjustable && mode !== 'template') return
-      e.currentTarget.setPointerCapture(e.pointerId)
-      dragRef.current = { pointerId: e.pointerId, lastX: e.clientX, lastY: e.clientY }
-    },
-    [mode, overlayAdjustable]
-  )
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent<HTMLCanvasElement>) => {
-      const drag = dragRef.current
-      if (!drag || drag.pointerId !== e.pointerId) return
-      const canvas = e.currentTarget
-      const factor = CANVAS_W / canvas.clientWidth
-      const dx = (e.clientX - drag.lastX) * factor
-      const dy = (e.clientY - drag.lastY) * factor
-      drag.lastX = e.clientX
-      drag.lastY = e.clientY
+  /**
+   * 편집·촬영 화면의 손가락 조작 — 한 손가락은 옮기기, 두 손가락은 크기·각도.
+   * (폰에서 사진 다루듯. 슬라이더로도 같은 값을 바꿀 수 있다)
+   */
+  const applyLayerGesture = useCallback(
+    (gesture: GestureDelta) => {
+      // 미리보기는 인화 캔버스와 같은 비율 — 화면에서 움직인 만큼을 캔버스 좌표로 바꾼다
+      const factor = CANVAS_W / gesture.width
 
       if (mode === 'template') {
-        // 사진을 끄는 방향과 반대로 크롭 기준점이 움직여야 직관적이다
         setGuestFit((prev) => ({
           ...prev,
-          focalX: Math.min(1, Math.max(0, prev.focalX - dx / TEMPLATE_LAYOUT.contentW)),
-          focalY: Math.min(1, Math.max(0, prev.focalY - dy / TEMPLATE_LAYOUT.togetherH)),
+          zoom: clamp(prev.zoom * gesture.scale, FIT_ZOOM_MIN, FIT_ZOOM_MAX),
+          // 사진을 끄는 방향과 반대로 크롭 기준점이 움직여야 직관적이다
+          focalX: clamp(prev.focalX - (gesture.dx * factor) / TEMPLATE_LAYOUT.contentW, 0, 1),
+          focalY: clamp(prev.focalY - (gesture.dy * factor) / TEMPLATE_LAYOUT.togetherH, 0, 1),
         }))
         return
       }
 
       setGuestLayer((prev) => ({
-        ...prev,
-        x: Math.min(CANVAS_W, Math.max(0, prev.x + dx)),
-        y: Math.min(CANVAS_H, Math.max(0, prev.y + dy)),
+        x: clamp(prev.x + gesture.dx * factor, 0, CANVAS_W),
+        y: clamp(prev.y + gesture.dy * factor, 0, CANVAS_H),
+        scale: clamp(prev.scale * gesture.scale, LAYER_SCALE_MIN, LAYER_SCALE_MAX),
+        rotation: wrapAngle(prev.rotation + gesture.rotation),
       }))
     },
     [mode]
   )
-
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (dragRef.current?.pointerId === e.pointerId) dragRef.current = null
-  }, [])
+  const composeGestures = useLayerGestures(applyLayerGesture, overlayAdjustable || mode === 'template')
+  const liveGestures = useLayerGestures(applyLayerGesture, showLiveCutout && !shooting)
 
   // ---------- 완료 / 인쇄 ----------
   /** 촬영 내역 기록 — 사진은 보내지 않고 메타데이터만. 실패해도 손님 흐름을 막지 않는다 */
@@ -2286,6 +2282,8 @@ export function BoothClassic() {
               <p className="text-red-400 text-center py-16 lg:w-[28rem] break-keep">{cameraError}</p>
             ) : (
               <div
+                {...liveGestures}
+                style={{ touchAction: 'none' }}
                 className={`relative shrink-0 rounded-3xl overflow-hidden bg-black ${
                   liveComposeReady
                     ? 'w-full max-w-3xl aspect-[4/3] lg:w-auto lg:max-w-none lg:h-[calc(100svh-9.5rem)]'
@@ -2304,41 +2302,9 @@ export function BoothClassic() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={cutoutPreviewUrl ?? undefined}
-                      alt="함께 찍을 인물 (끌어서 옮기기)"
+                      alt="함께 찍을 인물"
                       draggable={false}
-                      onPointerDown={(event) => {
-                        if (shooting) return
-                        event.currentTarget.setPointerCapture(event.pointerId)
-                        overlayDragRef.current = {
-                          pointerId: event.pointerId,
-                          lastX: event.clientX,
-                          lastY: event.clientY,
-                        }
-                      }}
-                      onPointerMove={(event) => {
-                        const drag = overlayDragRef.current
-                        const box = event.currentTarget.parentElement
-                        if (!drag || drag.pointerId !== event.pointerId || !box) return
-                        // 미리보기(2:3)는 인화 캔버스와 같은 비율 — 화면 이동량을 캔버스 좌표로 바꾼다
-                        const dx = ((event.clientX - drag.lastX) * CANVAS_W) / box.clientWidth
-                        const dy = ((event.clientY - drag.lastY) * CANVAS_H) / box.clientHeight
-                        drag.lastX = event.clientX
-                        drag.lastY = event.clientY
-                        setGuestLayer((prev) => ({
-                          ...prev,
-                          x: Math.min(CANVAS_W, Math.max(0, prev.x + dx)),
-                          y: Math.min(CANVAS_H, Math.max(0, prev.y + dy)),
-                        }))
-                      }}
-                      onPointerUp={(event) => {
-                        if (overlayDragRef.current?.pointerId === event.pointerId) overlayDragRef.current = null
-                      }}
-                      onPointerCancel={() => {
-                        overlayDragRef.current = null
-                      }}
-                      className={`absolute drop-shadow-2xl select-none touch-none ${
-                        shooting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'
-                      }`}
+                      className="pointer-events-none absolute drop-shadow-2xl select-none"
                       style={{
                         left: `${(guestLayer.x / CANVAS_W) * 100}%`,
                         top: `${(guestLayer.y / CANVAS_H) * 100}%`,
@@ -2451,14 +2417,14 @@ export function BoothClassic() {
               {showLiveCutout && !shooting && (
                 <div className="mb-6 w-full max-w-72">
                   <p className="mb-3 text-base text-white/60 break-keep">
-                    사진 속 인물을 손가락으로 끌어 자리를 잡아 보세요
+                    손가락으로 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
                   </p>
                   <label className="block text-sm text-white/60">
                     인물 크기
                     <input
                       type="range"
-                      min={0.15}
-                      max={0.9}
+                      min={LAYER_SCALE_MIN}
+                      max={LAYER_SCALE_MAX}
                       step={0.01}
                       value={guestLayer.scale}
                       onChange={(e) => setGuestLayer((prev) => ({ ...prev, scale: Number(e.target.value) }))}
@@ -2492,16 +2458,13 @@ export function BoothClassic() {
                 ref={attachComposeCanvas}
                 width={CANVAS_W}
                 height={CANVAS_H}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
+                {...composeGestures}
                 className="w-[min(56vw,320px)] md:w-[min(30vw,420px)] lg:w-auto lg:h-[calc(100svh-12rem)] rounded-xl shadow-2xl bg-white touch-none"
                 style={{ touchAction: 'none' }}
               />
               {(overlayAdjustable || mode === 'template') && (
                 <p className="mt-3 text-sm text-white/40">
-                  {mode === 'template' ? '사진' : '인물'}을 드래그해 위치를 옮길 수 있어요
+                  {mode === 'template' ? '사진' : '인물'}을 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
                 </p>
               )}
               {composeError && <p className="mt-3 text-sm text-red-400">{composeError}</p>}
@@ -2607,8 +2570,8 @@ export function BoothClassic() {
                       확대
                       <input
                         type="range"
-                        min={1}
-                        max={2}
+                        min={FIT_ZOOM_MIN}
+                        max={FIT_ZOOM_MAX}
                         step={0.01}
                         value={guestFit.zoom}
                         onChange={(e) =>
@@ -2679,8 +2642,8 @@ export function BoothClassic() {
                       {useCutout && cutoutStatus === 'done' ? '인물 크기' : '사진 크기'}
                       <input
                         type="range"
-                        min={0.15}
-                        max={0.9}
+                        min={LAYER_SCALE_MIN}
+                        max={LAYER_SCALE_MAX}
                         step={0.01}
                         value={guestLayer.scale}
                         onChange={(e) =>
@@ -2693,8 +2656,8 @@ export function BoothClassic() {
                       기울기
                       <input
                         type="range"
-                        min={-30}
-                        max={30}
+                        min={-180}
+                        max={180}
                         step={1}
                         value={guestLayer.rotation}
                         onChange={(e) =>
