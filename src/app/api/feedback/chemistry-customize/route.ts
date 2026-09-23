@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getModelWithConfig, withTimeout } from '@/lib/gemini/client'
 import { buildChemistryTastePrompt } from '@/lib/gemini/chemistry-feedback-prompt'
 import { getApiLocale } from '@/lib/api-locale'
-import type { ChemistryTasteData, ChemistryRecipeResult, GeneratedRecipe } from '@/types/feedback'
+import type { ChemistryTasteData, GeneratedRecipe } from '@/types/feedback'
 
 interface RequestBody {
   taste: ChemistryTasteData & { satisfied?: boolean; retention?: number }
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       characterBName,
       locale
     )
-    const model = getModelWithConfig({ maxOutputTokens: 10240, temperature: 0.7 })
+    const model = getModelWithConfig({ maxOutputTokens: 20480, temperature: 0.7 })
 
     const apiResult = await withTimeout(
       model.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
@@ -153,6 +153,29 @@ export async function POST(request: NextRequest) {
     const recipeA2 = correctRecipe(parsed.recipeA2, perfumeA.id, dropsA)
     const recipeB1 = correctRecipe(parsed.recipeB1, perfumeB.id, dropsB)
     const recipeB2 = correctRecipe(parsed.recipeB2, perfumeB.id, dropsB)
+
+    // 모델이 일부 레시피를 비우고 보내는 경우가 있다. 시안이 필요한 쪽이 비었으면
+    // 빈 카드를 띄우는 대신 실패로 처리해 다시 생성하게 한다.
+    const needsOptionsA = taste.satisfied !== true
+    const needsOptionsB = (tasteB ?? taste).satisfied !== true
+    const incomplete = [
+      ...(needsOptionsA ? [['recipeA1', recipeA1], ['recipeA2', recipeA2]] as const : []),
+      ...(needsOptionsB ? [['recipeB1', recipeB1], ['recipeB2', recipeB2]] as const : []),
+    ]
+      .filter(([, recipe]) => !recipe.granules.length)
+      .map(([name]) => name)
+
+    if (incomplete.length > 0) {
+      console.error(`[${requestId}] 레시피 누락:`, incomplete.join(', '))
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'incomplete_recipes',
+          error: `레시피 생성이 일부 누락됐습니다 (${incomplete.join(', ')}).`,
+        },
+        { status: 502 }
+      )
+    }
 
     // ChemistryRecipeResult 형태로 반환 (1안 = recipeA/B, 2안은 별도)
     const result = {

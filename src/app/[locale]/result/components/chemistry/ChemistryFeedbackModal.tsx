@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Sparkles, ChevronRight, Check, ChevronDown } from "lucide-react"
+import { X, Sparkles, ChevronRight, ChevronLeft, Check, ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { perfumes } from "@/data/perfumes"
 import {
@@ -46,7 +46,8 @@ export interface ChemistryConfirmedRecipesPayload {
 
 // 한 캐릭터의 취향 데이터
 export interface SingleTasteState {
-  satisfied: boolean // 만족해서 변경 불필요
+  // null = 아직 답하지 않음. 무응답이 '만족'으로 흘러가면 시안 없이 원본으로 확정돼버린다.
+  satisfied: boolean | null
   retention: number // 기존 향 유지 비율 0-100
   intensity: ScentIntensity
   feedbackGood: string // 기존 향에서 좋았던/싫었던 점
@@ -54,7 +55,7 @@ export interface SingleTasteState {
 }
 
 const createInitialTaste = (): SingleTasteState => ({
-  satisfied: true,
+  satisfied: null,
   retention: 70,
   intensity: 'moderate',
   feedbackGood: '',
@@ -124,10 +125,14 @@ const buildOriginalRecipe = (
   }
 }
 
+const isKeepingOriginal = (taste: SingleTasteState) => taste.satisfied === true
+const wantsChange = (taste: SingleTasteState) => taste.satisfied === false
+const isAnswered = (taste: SingleTasteState) => taste.satisfied !== null
+
 type ModalStep = 'formA' | 'formB' | 'generating' | 'result' | 'confirmed' | 'success'
 
 interface ChemistryFeedbackDraft {
-  version: 1
+  version: 2
   updatedAt: number
   step: Exclude<ModalStep, 'generating' | 'success'>
   tasteA: SingleTasteState
@@ -149,7 +154,7 @@ function readFeedbackDraft(storageKey: string): ChemistryFeedbackDraft | null {
     if (!raw) return null
 
     const parsed = JSON.parse(raw) as ChemistryFeedbackDraft
-    if (parsed.version !== 1 || Date.now() - parsed.updatedAt > FEEDBACK_DRAFT_TTL_MS) {
+    if (parsed.version !== 2 || Date.now() - parsed.updatedAt > FEEDBACK_DRAFT_TTL_MS) {
       localStorage.removeItem(storageKey)
       return null
     }
@@ -185,10 +190,10 @@ function resolveVisibleResultTab(
   tasteB: SingleTasteState,
   preferred: 'A' | 'B' = 'A'
 ): 'A' | 'B' {
-  if (preferred === 'A' && !tasteA.satisfied) return 'A'
-  if (preferred === 'B' && !tasteB.satisfied) return 'B'
-  if (!tasteA.satisfied) return 'A'
-  if (!tasteB.satisfied) return 'B'
+  if (preferred === 'A' && wantsChange(tasteA)) return 'A'
+  if (preferred === 'B' && wantsChange(tasteB)) return 'B'
+  if (wantsChange(tasteA)) return 'A'
+  if (wantsChange(tasteB)) return 'B'
   return 'A'
 }
 
@@ -318,7 +323,7 @@ export function ChemistryFeedbackModal({
   const applySatisfiedOriginalRecipes = useCallback((nextResult: ChemistryRecipeResult): ChemistryRecipeResult => {
     let patchedResult = nextResult
 
-    if (tasteA.satisfied) {
+    if (isKeepingOriginal(tasteA)) {
       const originalA = buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics, originalRecipeCopy)
       patchedResult = {
         ...patchedResult,
@@ -327,7 +332,7 @@ export function ChemistryFeedbackModal({
       }
     }
 
-    if (tasteB.satisfied) {
+    if (isKeepingOriginal(tasteB)) {
       const originalB = buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics, originalRecipeCopy)
       patchedResult = {
         ...patchedResult,
@@ -338,8 +343,8 @@ export function ChemistryFeedbackModal({
 
     return patchedResult
   }, [
-    tasteA.satisfied,
-    tasteB.satisfied,
+    tasteA,
+    tasteB,
     perfumeAId,
     perfumeAName,
     perfumeACharacteristics,
@@ -354,7 +359,7 @@ export function ChemistryFeedbackModal({
     if (step === 'generating' || step === 'success') return
 
     writeFeedbackDraft(storageKey, {
-      version: 1,
+      version: 2,
       updatedAt: Date.now(),
       step,
       tasteA,
@@ -406,9 +411,9 @@ export function ChemistryFeedbackModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          taste: { ...tasteData, satisfied: tasteA.satisfied, retention: tasteA.retention },
+          taste: { ...tasteData, satisfied: isKeepingOriginal(tasteA), retention: tasteA.retention },
           tasteB: {
-            satisfied: tasteB.satisfied, retention: tasteB.retention,
+            satisfied: isKeepingOriginal(tasteB), retention: tasteB.retention,
             intensity: tasteB.intensity,
             freeText: `${tasteB.feedbackGood ? `${t('chemistry.feedbackModal.freeTextGoodPrefix')}: ${tasteB.feedbackGood}. ` : ''}${tasteB.feedbackWish ? `${t('chemistry.feedbackModal.freeTextWishPrefix')}: ${tasteB.feedbackWish}` : ''}`.trim(),
           },
@@ -418,12 +423,22 @@ export function ChemistryFeedbackModal({
         }),
       })
       const data = await response.json()
-      if (data.success && data.result) {
-        setResult(applySatisfiedOriginalRecipes(data.result))
-        setResultTab(resolveVisibleResultTab(tasteA, tasteB))
-        setStep('result')
+      if (!data.success || !data.result) {
+        if (data.code === 'incomplete_recipes') throw new Error(t('chemistry.feedbackModal.recipeIncompleteRetry'))
+        throw new Error(data.error || t('chemistry.feedbackModal.recipeGenerateFailed'))
       }
-      else throw new Error(data.error || t('chemistry.feedbackModal.recipeGenerateFailed'))
+
+      const nextResult = applySatisfiedOriginalRecipes(data.result)
+
+      // 고를 시안이 비어 있으면 빈 카드를 띄우지 않고 재시도를 안내한다
+      const hasEmptyOption =
+        (wantsChange(tasteA) && (!nextResult.recipeA1?.granules?.length || !nextResult.recipeA2?.granules?.length)) ||
+        (wantsChange(tasteB) && (!nextResult.recipeB1?.granules?.length || !nextResult.recipeB2?.granules?.length))
+      if (hasEmptyOption) throw new Error(t('chemistry.feedbackModal.recipeIncompleteRetry'))
+
+      setResult(nextResult)
+      setResultTab(resolveVisibleResultTab(tasteA, tasteB))
+      setStep('result')
     } catch (err) {
       setError(err instanceof Error ? err.message : t('chemistry.feedbackModal.genericError'))
       setStep('formB')
@@ -431,7 +446,7 @@ export function ChemistryFeedbackModal({
   }, [sessionId, tasteA, tasteB, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, applySatisfiedOriginalRecipes, t])
 
   const handleNextFromB = useCallback(() => {
-    if (tasteA.satisfied && tasteB.satisfied) {
+    if (isKeepingOriginal(tasteA) && isKeepingOriginal(tasteB)) {
       // 둘 다 만족 → API 호출 없이 원본 100% 레시피로 confirmed 단계 이동
       const syntheticRecipeA = buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics, originalRecipeCopy)
       const syntheticRecipeB = buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics, originalRecipeCopy)
@@ -454,12 +469,30 @@ export function ChemistryFeedbackModal({
       return
     }
     handleGenerate()
-  }, [tasteA.satisfied, tasteB.satisfied, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, goToStep, handleGenerate, originalRecipeCopy, t])
+  }, [tasteA, tasteB, perfumeAId, perfumeAName, perfumeBId, perfumeBName, perfumeACharacteristics, perfumeBCharacteristics, characterAName, characterBName, goToStep, handleGenerate, originalRecipeCopy, t])
+
+  // 결과/확정 단계에서 폼으로 되돌아가기 — 선택은 버리고 답변부터 다시 받는다
+  const handleEditAnswers = useCallback(() => {
+    setSelectedA(null)
+    setSelectedB(null)
+    setError(null)
+    goToStep('formA')
+  }, [goToStep])
+
+  // 확정 화면에서 한 단계 뒤로 — 고를 시안이 있으면 결과, 없으면 폼
+  const handleBackFromConfirmed = useCallback(() => {
+    if (result && (wantsChange(tasteA) || wantsChange(tasteB))) {
+      setError(null)
+      goToStep('result')
+      return
+    }
+    handleEditAnswers()
+  }, [result, tasteA, tasteB, goToStep, handleEditAnswers])
 
   const buildConfirmedPayload = useCallback((): ChemistryConfirmedRecipesPayload | null => {
     if (!result) return null
 
-    const recipeA = tasteA.satisfied
+    const recipeA = isKeepingOriginal(tasteA)
       ? buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics, originalRecipeCopy)
       : selectedA === 1
         ? result.recipeA1
@@ -467,7 +500,7 @@ export function ChemistryFeedbackModal({
           ? result.recipeA2
           : null
 
-    const recipeB = tasteB.satisfied
+    const recipeB = isKeepingOriginal(tasteB)
       ? buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics, originalRecipeCopy)
       : selectedB === 1
         ? result.recipeB1
@@ -517,14 +550,14 @@ export function ChemistryFeedbackModal({
   const currentTaste = isFormA ? tasteA : tasteB
   const setCurrentTaste = isFormA ? setTasteA : setTasteB
   const confirmedRecipeA = result
-    ? tasteA.satisfied
+    ? isKeepingOriginal(tasteA)
       ? buildOriginalRecipe(perfumeAId, perfumeAName, perfumeACharacteristics, originalRecipeCopy)
       : selectedA === 2
         ? result.recipeA2
         : result.recipeA1
     : null
   const confirmedRecipeB = result
-    ? tasteB.satisfied
+    ? isKeepingOriginal(tasteB)
       ? buildOriginalRecipe(perfumeBId, perfumeBName, perfumeBCharacteristics, originalRecipeCopy)
       : selectedB === 2
         ? result.recipeB2
@@ -587,7 +620,7 @@ export function ChemistryFeedbackModal({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-base">🌙</span>
-                  {!isFormA && <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium">✓ {t('chemistry.feedbackModal.completedShort')}</span>}
+                  {isAnswered(tasteA) && <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium">✓ {t('chemistry.feedbackModal.completedShort')}</span>}
                 </div>
                 <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormA ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{characterAName}</span>
                 <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormA ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{perfumeAName || perfumeAId || "AC'SCENT"}</span>
@@ -598,6 +631,7 @@ export function ChemistryFeedbackModal({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-base">☀️</span>
+                  {isAnswered(tasteB) && <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-medium">✓ {t('chemistry.feedbackModal.completedShort')}</span>}
                 </div>
                 <span className={`text-xs lg:text-sm font-medium block mt-1 truncate ${isFormB ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{characterBName}</span>
                 <span className={`text-[10px] lg:text-[12px] block mt-0.5 truncate ${isFormB ? 'text-[var(--muted-ink)]' : 'text-[var(--muted-ink)]'}`}>{perfumeBName || perfumeBId || "AC'SCENT"}</span>
@@ -618,14 +652,31 @@ export function ChemistryFeedbackModal({
                 exit={{ opacity: 0, x: isFormA ? -20 : 20 }}
                 className="px-4 py-4 space-y-4"
               >
+                {/* 지금 누구의 향에 답하는 중인지 — 두 폼이 같은 화면으로 보이지 않도록 */}
+                <div className="bg-[var(--soft)] border border-[var(--line)] rounded-[6px] px-3 py-2.5">
+                  <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">
+                    ({isFormA ? 1 : 2}/2) {t('chemistry.feedbackModal.answeringNow')}
+                  </p>
+                  <p className="text-sm lg:text-base font-bold text-[var(--ink)] mt-0.5">
+                    {isFormA ? '🌙' : '☀️'} {t('chemistry.feedbackModal.scentTitle', { name: isFormA ? characterAName : characterBName })}
+                  </p>
+                  <p className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] mt-0.5">
+                    {(isFormA ? perfumeAName : perfumeBName) || (isFormA ? perfumeAId : perfumeBId) || "AC'SCENT"}
+                    {(isFormA ? perfumeAId : perfumeBId) && (isFormA ? perfumeAName : perfumeBName) ? ` · ${isFormA ? perfumeAId : perfumeBId}` : ''}
+                  </p>
+                </div>
+
                 {/* 만족 여부 — 첫 질문 */}
                 <div>
-                  <p className="text-sm lg:text-base font-bold text-[var(--ink)] mb-2.5">{t('chemistry.feedbackModal.question')}</p>
+                  <p className="text-sm lg:text-base font-bold text-[var(--ink)] mb-2.5">
+                    {t('chemistry.feedbackModal.questionFor', { name: isFormA ? characterAName : characterBName })}
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: true }))}
+                      aria-pressed={currentTaste.satisfied === true}
                       className={`p-3 rounded-[6px] border text-center transition-all ${
-                        currentTaste.satisfied
+                        currentTaste.satisfied === true
                           ? 'border-[var(--line)] bg-[var(--soft)] -translate-x-[1px] -translate-y-[1px]'
                           : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                       }`}
@@ -635,8 +686,9 @@ export function ChemistryFeedbackModal({
                     </button>
                     <button
                       onClick={() => setCurrentTaste(prev => ({ ...prev, satisfied: false }))}
+                      aria-pressed={currentTaste.satisfied === false}
                       className={`p-3 rounded-[6px] border text-center transition-all ${
-                        !currentTaste.satisfied
+                        currentTaste.satisfied === false
                           ? 'border-[var(--line)] bg-[var(--soft)] -translate-x-[1px] -translate-y-[1px]'
                           : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
                       }`}
@@ -649,7 +701,7 @@ export function ChemistryFeedbackModal({
 
                 {/* 바꾸고 싶을 때만 상세 폼 펼침 */}
                 <AnimatePresence>
-                  {!currentTaste.satisfied && (
+                  {currentTaste.satisfied === false && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -745,8 +797,15 @@ export function ChemistryFeedbackModal({
               <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                 {/* A/B 탭 — sticky로 헤더 아래 고정 */}
                 <div className="sticky top-0 z-20 bg-[var(--paper)] border-b-2 border-[var(--line)] px-5 pt-3 pb-3 -mx-0">
+                  {/* 답변으로 되돌아가는 길 — 이게 없으면 잘못 답한 사람은 시안을 영영 못 본다 */}
+                  <button
+                    onClick={handleEditAnswers}
+                    className="mb-2 inline-flex items-center gap-1 text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] underline underline-offset-2"
+                  >
+                    <ChevronLeft size={12} /> {t('chemistry.feedbackModal.editAnswers')}
+                  </button>
                   <div className="flex gap-2">
-                    {!tasteA.satisfied && (
+                    {wantsChange(tasteA) && (
                       <button
                         onClick={() => { setResultTab('A'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
                         className={`flex-1 py-2.5 rounded-[6px] border text-center transition-all ${
@@ -759,7 +818,7 @@ export function ChemistryFeedbackModal({
                         {selectedA && <span className="text-[var(--muted-ink)] ml-1 text-[10px] lg:text-[12px]">✓</span>}
                       </button>
                     )}
-                    {!tasteB.satisfied && (
+                    {wantsChange(tasteB) && (
                       <button
                         onClick={() => { setResultTab('B'); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}
                         className={`flex-1 py-2.5 rounded-[6px] border text-center transition-all ${
@@ -777,9 +836,26 @@ export function ChemistryFeedbackModal({
 
                 <div className="px-5 space-y-4">
 
+                {/* 한쪽이 '그대로 좋아요'라 시안이 없다는 사실을 숨기지 않는다 */}
+                {(isKeepingOriginal(tasteA) || isKeepingOriginal(tasteB)) && (
+                  <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
+                    <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] leading-relaxed">
+                      {t('chemistry.feedbackModal.keptOriginalNotice', {
+                        name: isKeepingOriginal(tasteA) ? characterAName : characterBName,
+                      })}
+                    </p>
+                    <button
+                      onClick={handleEditAnswers}
+                      className="mt-1.5 text-[11px] lg:text-[13px] font-bold text-[var(--ink)] underline underline-offset-2"
+                    >
+                      {t('chemistry.feedbackModal.keptOriginalNoticeAction')}
+                    </button>
+                  </div>
+                )}
+
                 <AnimatePresence mode="wait">
                   {/* A 레시피 선택 */}
-                  {resultTab === 'A' && !tasteA.satisfied && (
+                  {resultTab === 'A' && wantsChange(tasteA) && (
                     <motion.div key="recA" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                       {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
                       <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
@@ -813,7 +889,7 @@ export function ChemistryFeedbackModal({
                     </motion.div>
                   )}
                   {/* B 레시피 선택 */}
-                  {resultTab === 'B' && !tasteB.satisfied && (
+                  {resultTab === 'B' && wantsChange(tasteB) && (
                     <motion.div key="recB" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                       {/* 상단 안내 — 선택 행동을 메인 메시지로 */}
                       <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
@@ -854,6 +930,16 @@ export function ChemistryFeedbackModal({
             {/* 최종 확정 — 실제 제조용 그람 단위 안내 */}
             {step === 'confirmed' && result && (
               <motion.div key="confirmed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-4 space-y-4">
+                <button
+                  onClick={handleBackFromConfirmed}
+                  className="inline-flex items-center gap-1 text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] underline underline-offset-2"
+                >
+                  <ChevronLeft size={12} />
+                  {result && (wantsChange(tasteA) || wantsChange(tasteB))
+                    ? t('chemistry.feedbackModal.backToOptions')
+                    : t('chemistry.feedbackModal.editAnswers')}
+                </button>
+
                 <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] p-3">
                   <p className="text-sm lg:text-base font-bold text-[var(--ink)]">⚖️ {t('chemistry.feedbackModal.finalRecipeTitle')}</p>
                   <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] leading-relaxed mt-1">
@@ -884,7 +970,7 @@ export function ChemistryFeedbackModal({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {confirmedRecipeA && (tasteA.satisfied || selectedA) && (
+                  {confirmedRecipeA && (isKeepingOriginal(tasteA) || selectedA) && (
                     <RecipePreviewCard
                       label={characterAName}
                       emoji="🌙"
@@ -892,7 +978,7 @@ export function ChemistryFeedbackModal({
                       accentColor="violet"
                     />
                   )}
-                  {confirmedRecipeB && (tasteB.satisfied || selectedB) && (
+                  {confirmedRecipeB && (isKeepingOriginal(tasteB) || selectedB) && (
                     <RecipePreviewCard
                       label={characterBName}
                       emoji="☀️"
@@ -910,7 +996,7 @@ export function ChemistryFeedbackModal({
                 )}
 
                 {/* 확정된 A 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
-                {confirmedRecipeA && (tasteA.satisfied || selectedA) && (
+                {confirmedRecipeA && (isKeepingOriginal(tasteA) || selectedA) && (
                   <RecipeGramDisplay
                     recipe={confirmedRecipeA}
                     perfumeName={perfumeAName}
@@ -924,7 +1010,7 @@ export function ChemistryFeedbackModal({
                 )}
 
                 {/* 확정된 B 레시피 — 그람 단위 (만족 시 원본 100%, 아니면 선택된 안) */}
-                {confirmedRecipeB && (tasteB.satisfied || selectedB) && (
+                {confirmedRecipeB && (isKeepingOriginal(tasteB) || selectedB) && (
                   <RecipeGramDisplay
                     recipe={confirmedRecipeB}
                     perfumeName={perfumeBName}
@@ -993,40 +1079,73 @@ export function ChemistryFeedbackModal({
             </div>
           )}
           {isFormA && (
-            <button
-              onClick={handleNextFromA}
-              className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex flex-col items-center justify-center gap-0.5"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-[10px] lg:text-[12px] opacity-80 font-medium">(1/2)</span>
-                <span>{t('chemistry.feedbackModal.completeNext', { name: characterAName })}</span>
-                <ChevronRight size={16} />
-              </span>
-              <span className="text-[10px] lg:text-[12px] opacity-70 font-medium">{t('chemistry.feedbackModal.nextStepScent', { name: characterBName })}</span>
-            </button>
+            <>
+              {!isAnswered(tasteA) && (
+                <p className="mb-2 text-center text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)]">
+                  {t('chemistry.feedbackModal.answerFirst', { name: characterAName })}
+                </p>
+              )}
+              <button
+                onClick={handleNextFromA}
+                disabled={!isAnswered(tasteA)}
+                className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all disabled:opacity-40 flex flex-col items-center justify-center gap-0.5"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="text-[10px] lg:text-[12px] opacity-80 font-medium">(1/2)</span>
+                  <span>{t('chemistry.feedbackModal.completeNext', { name: characterAName })}</span>
+                  <ChevronRight size={16} />
+                </span>
+                <span className="text-[10px] lg:text-[12px] opacity-70 font-medium">{t('chemistry.feedbackModal.nextStepScent', { name: characterBName })}</span>
+              </button>
+            </>
           )}
-          {isFormB && (
-            <button
-              onClick={handleNextFromB}
-              className={`w-full py-3.5 font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all flex flex-col items-center justify-center gap-0.5 ${
-                tasteA.satisfied && tasteB.satisfied
-                  ? 'bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] text-[var(--ink)]'
-                  : 'bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] text-[var(--ink)]'
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-[10px] lg:text-[12px] opacity-80 font-medium">(2/2)</span>
-                {tasteA.satisfied && tasteB.satisfied ? (
-                  <><Check size={16} /> <span>{t('chemistry.feedbackModal.confirmOriginal')}</span></>
-                ) : (
-                  <><Sparkles size={16} /> <span>{t('chemistry.feedbackModal.generateCustom', { name: characterBName })}</span></>
+          {isFormB && (() => {
+            // 두 사람 답이 모두 있어야 다음으로 — 무응답이 '만족'으로 흘러가지 않게
+            const missing = !isAnswered(tasteA) ? 'A' : !isAnswered(tasteB) ? 'B' : null
+            const keepA = isKeepingOriginal(tasteA)
+            const keepB = isKeepingOriginal(tasteB)
+            const bothKeep = keepA && keepB
+            const onlyOneCustom = keepA !== keepB
+            const customName = keepA ? characterBName : characterAName
+            const keptName = keepA ? characterAName : characterBName
+
+            return (
+              <>
+                {missing && (
+                  <button
+                    onClick={() => goToStep(missing === 'A' ? 'formA' : 'formB')}
+                    className="mb-2 w-full text-center text-[10px] lg:text-[12px] font-medium text-[var(--muted-ink)] underline underline-offset-2"
+                  >
+                    {t('chemistry.feedbackModal.answerFirst', { name: missing === 'A' ? characterAName : characterBName })}
+                  </button>
                 )}
-              </span>
-            </button>
-          )}
+                <button
+                  onClick={handleNextFromB}
+                  disabled={Boolean(missing)}
+                  className="w-full py-3.5 bg-[var(--soft)] text-[var(--ink)] font-bold text-sm lg:text-base rounded-[6px] border border-[var(--line)] transition-all disabled:opacity-40 flex flex-col items-center justify-center gap-0.5"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[10px] lg:text-[12px] opacity-80 font-medium">(2/2)</span>
+                    {bothKeep ? (
+                      <><Check size={16} /> <span>{t('chemistry.feedbackModal.confirmOriginal')}</span></>
+                    ) : onlyOneCustom ? (
+                      <><Sparkles size={16} /> <span>{t('chemistry.feedbackModal.generateCustomOne', { name: customName })}</span></>
+                    ) : (
+                      <><Sparkles size={16} /> <span>{t('chemistry.feedbackModal.generateCustomBoth')}</span></>
+                    )}
+                  </span>
+                  {onlyOneCustom && (
+                    <span className="text-[10px] lg:text-[12px] opacity-70 font-medium">
+                      {t('chemistry.feedbackModal.keepsOriginalHint', { name: keptName })}
+                    </span>
+                  )}
+                </button>
+              </>
+            )
+          })()}
           {step === 'result' && (() => {
-            const needA = !tasteA.satisfied
-            const needB = !tasteB.satisfied
+            const needA = wantsChange(tasteA)
+            const needB = wantsChange(tasteB)
             const allSelected = (!needA || selectedA !== null) && (!needB || selectedB !== null)
             // A 선택 후 B로 자동 전환
             if (resultTab === 'A' && selectedA && needB && !selectedB) {
@@ -1167,10 +1286,14 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
           : 'border-[var(--line)] bg-[var(--paper)] hover:border-[var(--line)]'
       }`}
     >
-      {/* 선택 라디오 인디케이터 — 우상단 큰 원 */}
-      <div className="absolute top-3 right-3 z-10">
+      <div className={`pl-4 pr-3 py-2 border-b ${selected ? 'border-[var(--line)]' : 'border-[var(--line)]'} flex items-center gap-2`}>
+        <span className={`text-base font-bold ${selected ? st.text : 'text-[var(--muted-ink)]'}`}>{label}</span>
+        {!selected && <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{t('chemistry.feedbackModal.tapToSelect')}</span>}
+        {selected && <span className={`text-[10px] lg:text-[12px] font-medium ${st.text}`}>· {t('chemistry.feedbackModal.selected')}</span>}
+
+        {/* 선택 라디오 인디케이터 — 헤더 우측, 세로 중앙 */}
         <div
-          className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
+          className={`ml-auto flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
             selected
               ? `${st.accent} border-[var(--line)]`
               : 'bg-[var(--paper)] border-[var(--line)]'
@@ -1182,12 +1305,6 @@ function SelectableRecipeCard({ label, recipe, selected, onSelect, accentColor, 
             <span className="w-2 h-2 rounded-full bg-[var(--soft)]" />
           )}
         </div>
-      </div>
-
-      <div className={`px-4 py-2 border-b ${selected ? 'border-[var(--line)]' : 'border-[var(--line)]'} flex items-center gap-2 pr-12`}>
-        <span className={`text-base font-bold ${selected ? st.text : 'text-[var(--muted-ink)]'}`}>{label}</span>
-        {!selected && <span className="text-[10px] lg:text-[12px] text-[var(--muted-ink)] font-medium">{t('chemistry.feedbackModal.tapToSelect')}</span>}
-        {selected && <span className={`text-[10px] lg:text-[12px] font-medium ${st.text}`}>· {t('chemistry.feedbackModal.selected')}</span>}
       </div>
 
       {/* 원본 향 표시 */}

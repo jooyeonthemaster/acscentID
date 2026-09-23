@@ -22,6 +22,43 @@ function retentionToDrops(retention: number): number {
   return Math.max(1, Math.min(9, Math.round(clamped / 10)))
 }
 
+// 응답 템플릿 — 4개 레시피를 전부 같은 형태로 펼쳐 준다.
+// "...": 같은 생략 표기를 템플릿에 두면 모델이 그대로 따라 써서 recipeB1/B2가 비거나 JSON이 깨진다.
+function buildRecipeTemplate(
+  slot: string,
+  perfume: PerfumeInfo,
+  drops: number,
+  retention: number,
+  remainingDrops: number,
+  conceptHint: string,
+): string {
+  return `  "${slot}": {
+    "granules": [
+      { "id": "${perfume.id}", "name": "${perfume.name}", "mainCategory": "카테고리", "drops": ${drops}, "ratio": ${retention}, "reason": "원본이라 유지! 주접톤", "fanComment": "광기톤" },
+      { "id": "AC'SCENT XX", "name": "향이름", "mainCategory": "카테고리", "drops": 숫자, "ratio": 숫자, "reason": "선택 이유 주접톤", "fanComment": "광기톤" },
+      { "id": "AC'SCENT YY", "name": "향이름", "mainCategory": "카테고리", "drops": 숫자, "ratio": 숫자, "reason": "선택 이유 주접톤", "fanComment": "광기톤" }
+    ],
+    "overallExplanation": "${conceptHint} (주접+광기, 2문장)",
+    "categoryChanges": [
+      { "category": "citrus", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
+      { "category": "floral", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
+      { "category": "woody", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
+      { "category": "musky", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
+      { "category": "fruity", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
+      { "category": "spicy", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" }
+    ],
+    "testingInstructions": {
+      "step1": "깨끗한 테스팅 스트립/블랑 베이스에 향료를 준비해",
+      "step2": "비율대로 섞어 — 원본 ${drops}방울 + 추가 향료들 총 ${remainingDrops}방울 (총 10방울)",
+      "step3": "손목이나 스트립에 찍어서 10분 후 맡아봐",
+      "caution": "주의사항 (반말)"
+    },
+    "fanMessage": "응원 (광기)",
+    "totalDrops": 10,
+    "estimatedStrength": "light|medium|strong"
+  }`
+}
+
 export function buildChemistryTastePrompt(
   tasteA: TasteWithMeta,
   tasteB: TasteWithMeta,
@@ -118,35 +155,14 @@ ${fragranceDB}
 
 # 응답 (JSON ONLY)
 
+⚠️ 아래 4개 레시피(recipeA1, recipeA2, recipeB1, recipeB2)를 **하나도 빠짐없이 전부** 실제 값으로 채워.
+"..." 같은 생략 표기, 주석, 빈 객체는 절대 쓰지 마 — 4개 중 하나라도 비면 그 사람은 고를 시안이 사라져.
+
 {
-  "recipeA1": {
-    "granules": [
-      { "id": "${perfumeA.id}", "name": "${perfumeA.name}", "mainCategory": "카테고리", "drops": ${dropsA}, "ratio": ${retentionA}, "reason": "원본이라 유지! 주접톤", "fanComment": "광기톤" },
-      { "id": "AC'SCENT XX", "name": "향이름", "mainCategory": "카테고리", "drops": 숫자, "ratio": 숫자, "reason": "선택 이유 주접톤", "fanComment": "광기톤" },
-      { "id": "AC'SCENT YY", "name": "향이름", "mainCategory": "카테고리", "drops": 숫자, "ratio": 숫자, "reason": "선택 이유 주접톤", "fanComment": "광기톤" }
-    ],
-    "overallExplanation": "1안의 컨셉/무드 설명 (주접+광기, 2문장)",
-    "categoryChanges": [
-      { "category": "citrus", "change": "increased|decreased|maintained", "originalScore": 숫자, "newScore": 숫자, "reason": "주접톤" },
-      { "category": "floral", ... },
-      { "category": "woody", ... },
-      { "category": "musky", ... },
-      { "category": "fruity", ... },
-      { "category": "spicy", ... }
-    ],
-    "testingInstructions": {
-      "step1": "깨끗한 테스팅 스트립/블랑 베이스에 향료를 준비해",
-      "step2": "비율대로 섞어 — 원본 ${dropsA}방울 + 추가 향료들 총 ${remainingDropsA}방울 (총 10방울)",
-      "step3": "손목이나 스트립에 찍어서 10분 후 맡아봐",
-      "caution": "주의사항 (반말)"
-    },
-    "fanMessage": "응원 (광기)",
-    "totalDrops": 10,
-    "estimatedStrength": "light|medium|strong"
-  },
-  "recipeA2": { ...1안과 다른 방향성 & 다른 추가 향료 2개... },
-  "recipeB1": { ...원본 ${perfumeB.id} ${dropsB}방울 고정... },
-  "recipeB2": { ...1안과 다른 방향성 & 다른 추가 향료 2개... },
+${buildRecipeTemplate('recipeA1', perfumeA, dropsA, retentionA, remainingDropsA, `${characterAName} 1안의 컨셉/무드 설명`)},
+${buildRecipeTemplate('recipeA2', perfumeA, dropsA, retentionA, remainingDropsA, `${characterAName} 2안의 컨셉/무드 설명 — 1안과 다른 방향성 & 추가 향료 2개 완전히 다르게`)},
+${buildRecipeTemplate('recipeB1', perfumeB, dropsB, retentionB, remainingDropsB, `${characterBName} 1안의 컨셉/무드 설명`)},
+${buildRecipeTemplate('recipeB2', perfumeB, dropsB, retentionB, remainingDropsB, `${characterBName} 2안의 컨셉/무드 설명 — 1안과 다른 방향성 & 추가 향료 2개 완전히 다르게`)},
   "layeringNote": "A와 B 레이어링 가이드 (반말+이모지, 2문장)",
   "pairExplanation": "이 페어가 왜 좋은지 (반말+이모지, 3문장)"
 }
@@ -159,6 +175,7 @@ ${fragranceDB}
 - [ ] A1과 A2는 원본 제외 2개 향료가 완전히 다름
 - [ ] B1과 B2는 원본 제외 2개 향료가 완전히 다름
 - [ ] categoryChanges 6개 카테고리(citrus/floral/woody/musky/fruity/spicy) 모두 포함
+- [ ] recipeA1/recipeA2/recipeB1/recipeB2 4개 모두 실제 JSON으로 작성 — 생략(...)·주석·빈 객체 없음
 - [ ] 모든 텍스트: 반말+이모지+주접/광기 톤!
 `
 

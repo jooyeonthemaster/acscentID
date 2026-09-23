@@ -641,6 +641,8 @@ export default function ChemistryResultPage() {
         selectedA: payload.selectedA,
         selectedB: payload.selectedB,
         productType: payload.productType,
+        tasteA: payload.tasteA,
+        tasteB: payload.tasteB,
       }),
     })
     const data = await response.json()

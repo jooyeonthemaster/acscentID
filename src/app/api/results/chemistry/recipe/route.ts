@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import type { GeneratedRecipe, ProductType } from '@/types/feedback'
 
+// 확정 당시 손님이 실제로 답한 내용 — '만족'을 고른 건지 무응답이었는지 사후에 가려낼 수 있어야 한다
+interface ConfirmedTasteInput {
+  satisfied?: boolean | null
+  retention?: number | null
+  intensity?: string | null
+  feedbackGood?: string | null
+  feedbackWish?: string | null
+}
+
 interface ChemistryRecipeSaveRequest {
   sessionId?: string | null
   analysisAId?: string | null
@@ -11,6 +20,23 @@ interface ChemistryRecipeSaveRequest {
   selectedA?: 1 | 2 | null
   selectedB?: 1 | 2 | null
   productType?: ProductType
+  tasteA?: ConfirmedTasteInput | null
+  tasteB?: ConfirmedTasteInput | null
+}
+
+function normalizeTaste(taste?: ConfirmedTasteInput | null) {
+  if (!taste || typeof taste !== 'object') return null
+
+  const text = (value: unknown) =>
+    typeof value === 'string' ? value.trim().slice(0, 500) : ''
+
+  return {
+    satisfied: typeof taste.satisfied === 'boolean' ? taste.satisfied : null,
+    retention: typeof taste.retention === 'number' ? taste.retention : null,
+    intensity: typeof taste.intensity === 'string' ? taste.intensity : null,
+    feedbackGood: text(taste.feedbackGood),
+    feedbackWish: text(taste.feedbackWish),
+  }
 }
 
 function mergeFinalRecipe(analysisData: unknown, recipe: GeneratedRecipe, meta: Record<string, unknown>) {
@@ -37,6 +63,9 @@ export async function POST(request: NextRequest) {
       selectedB = null,
       productType = 'perfume_10ml',
     } = body
+
+    const tasteA = normalizeTaste(body.tasteA)
+    const tasteB = normalizeTaste(body.tasteB)
 
     let { analysisAId, analysisBId } = body
 
@@ -112,7 +141,7 @@ export async function POST(request: NextRequest) {
     const { error: updateAError } = await supabase
       .from('analysis_results')
       .update({
-        analysis_data: mergeFinalRecipe(analysisA.analysis_data, recipeA, { ...meta, role: 'A' }),
+        analysis_data: mergeFinalRecipe(analysisA.analysis_data, recipeA, { ...meta, role: 'A', taste: tasteA }),
       })
       .eq('id', analysisAId)
 
@@ -127,7 +156,7 @@ export async function POST(request: NextRequest) {
     const { error: updateBError } = await supabase
       .from('analysis_results')
       .update({
-        analysis_data: mergeFinalRecipe(analysisB.analysis_data, recipeB, { ...meta, role: 'B' }),
+        analysis_data: mergeFinalRecipe(analysisB.analysis_data, recipeB, { ...meta, role: 'B', taste: tasteB }),
       })
       .eq('id', analysisBId)
 
@@ -152,6 +181,8 @@ export async function POST(request: NextRequest) {
               selectedB,
               productType,
               confirmedAt,
+              tasteA,
+              tasteB,
             },
           },
         })
