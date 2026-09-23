@@ -1415,3 +1415,62 @@
     display: none;
   }
 }
+
+/* 함께 찍는 대상 좌우 반전 — 켜져 있으면 눌린 선택 버튼으로 보인다 */
+.bth-flip.rt-choice {
+  align-self: flex-start;
+  min-height: 52px;
+  /* 눌림 체크 표시가 오른쪽 위에 붙는다 — 글자를 가리지 않게 오른쪽을 넉넉히 */
+  padding: 0 56px 0 24px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── 프레임 고르기 (기본 56종 + 업로드) — 분류 필터 + 썸네일 4열, 고정 높이 안에서만 스크롤 ── */
+.bth-frame-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bth-frame-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rt-ink);
+}
+.bth-frame-filter select {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--rt-ink);
+  background: var(--rt-paper);
+  border: 2px solid var(--rt-edge);
+  box-shadow: var(--rt-sunken);
+}
+.bth-frame-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* 선택 체크 표시(위 오른쪽)와 포커스 테두리가 스크롤 가장자리에 잘리지 않게 */
+  padding: 6px 8px 6px 4px;
+}
+.bth-frame-grid .bth-frame-btn.rt-choice {
+  width: auto;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  min-height: 0;
+  padding: 4px;
+  font-size: 15px;
+}
+.bth-frame-grid .bth-frame-btn img {
+  object-fit: contain;
+  background: var(--rt-well);
+}

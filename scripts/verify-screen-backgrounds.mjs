@@ -253,6 +253,17 @@ test('every catalog screen font ships its woff2 files and a well-formed @font-fa
   assert.equal(fonts.screenFontFamily(null), undefined);
 });
 
+test('mac theme survives settings merge and uses the system font without changing explicit choices', () => {
+  assert.equal(types.isScreenUi('mac'), true);
+  assert.equal(types.isScreenUi('macos'), false);
+  const snapshot = merge.mergeBackgroundRecords(catalog, [{ kind: 'settings', target: 'booth', ui: 'mac', font: null }]);
+  assert.deepEqual(snapshot.settings.booth, { ui: 'mac', font: null });
+  assert.deepEqual(snapshot.settings.kiosk, { ui: 'retro', font: null });
+  const mac = loadTs('src/components/mac/theme.ts');
+  assert.match(mac.macFontVars()['--rt-body-font'], /-apple-system/);
+  assert.equal(mac.macFontVars('Custom CJK')['--ksk-body-font'], 'Custom CJK');
+});
+
 test('device settings merge per target and reject damaged records', () => {
   const snapshot = merge.mergeBackgroundRecords(catalog, [{ kind: 'settings', target: 'kiosk', ui: 'classic', font: 'bm-jua' }]);
   assert.deepEqual(snapshot.settings, { booth: { ui: 'retro', font: null }, kiosk: { ui: 'classic', font: 'bm-jua' } });
@@ -350,6 +361,8 @@ test('store saves device UI and font independently per target and refuses unknow
   assert.deepEqual(snapshot.settings.booth, { ui: 'classic', font: 'galmuri11' });
   assert.deepEqual(snapshot.settings.kiosk, { ui: 'retro', font: null });
   assert.deepEqual(await store.saveDeviceSettings('booth', { font: null }), { ui: 'classic', font: null });
+  assert.deepEqual(await store.saveDeviceSettings('kiosk', { ui: 'mac' }), { ui: 'mac', font: null });
+  assert.deepEqual((await store.readBackgroundSnapshot()).settings.kiosk, { ui: 'mac', font: null });
   const count = records.size;
   await assert.rejects(store.saveDeviceSettings('kiosk', { ui: 'fancy' }), error => error.status === 400);
   await assert.rejects(store.saveDeviceSettings('kiosk', { font: 'noto-serif-kr' }), error => error.status === 400);

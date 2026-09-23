@@ -444,6 +444,8 @@ export interface CutoutPersonOptions {
   toneStrength?: number
   /** 바닥에 붙어 보이도록 그림자를 깐다 */
   shadow?: boolean
+  /** 좌우 반전 — 함께 찍는 대상이 손님 쪽을 보게 돌릴 때 */
+  flip?: boolean
 }
 
 /**
@@ -459,7 +461,7 @@ export function drawCutoutPerson(
   centerY: number,
   width: number,
   rotationDeg: number,
-  { toneColor, toneStrength = 0.14, shadow = true }: CutoutPersonOptions = {}
+  { toneColor, toneStrength = 0.14, shadow = true, flip = false }: CutoutPersonOptions = {}
 ) {
   const { w: cw, h: ch } = sourceSize(cutout)
   if (!cw || !ch || width <= 0) return
@@ -490,6 +492,7 @@ export function drawCutoutPerson(
   ctx.save()
   ctx.translate(centerX, centerY)
   ctx.rotate((rotationDeg * Math.PI) / 180)
+  if (flip) ctx.scale(-1, 1)
   if (shadow) {
     ctx.shadowColor = 'rgba(0, 0, 0, 0.38)'
     ctx.shadowBlur = Math.max(8, drawW * 0.05)

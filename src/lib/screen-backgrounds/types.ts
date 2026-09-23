@@ -19,9 +19,10 @@ export interface ScreenBackground {
   is_active: boolean
 }
 
-/** 기기 화면 디자인 — 레트로 컴퓨터 UI 또는 레트로 이전의 기존 UI. 관리자가 기기 종류별로 고른다 */
-export const SCREEN_UIS = ['retro', 'classic'] as const
+/** 기기 화면 디자인 — 기존·레트로·맥 스타일. 관리자가 기기 종류별로 고른다 */
+export const SCREEN_UIS = ['retro', 'classic', 'mac'] as const
 export type ScreenUi = (typeof SCREEN_UIS)[number]
+export const SCREEN_UI_LABELS: Record<ScreenUi, string> = { classic: '기존', retro: '레트로', mac: '맥' }
 
 export interface DeviceSettings {
   ui: ScreenUi
@@ -32,7 +33,7 @@ export interface DeviceSettings {
 export const DEFAULT_DEVICE_SETTINGS: DeviceSettings = { ui: 'retro', font: null }
 
 export function isScreenUi(value: unknown): value is ScreenUi {
-  return value === 'retro' || value === 'classic'
+  return value === 'retro' || value === 'classic' || value === 'mac'
 }
 
 export function isFontId(value: unknown): value is string {

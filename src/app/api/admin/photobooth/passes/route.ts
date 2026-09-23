@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { createServiceRoleClient } from '@/lib/supabase/service'
-import { resolveCurrentEvent, todayKst } from '@/lib/photobooth/current-event'
-import { MASTER_PASS_CODE, isMasterPass } from '@/lib/photobooth/master-pass'
+import { MASTER_PASS_CODE } from '@/lib/photobooth/master-pass'
+import { issuePasses, kstMidnightIso } from '@/lib/photobooth/passes'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000
-
-/** KST 오늘 0시의 UTC ISO 문자열 */
-function kstMidnightIso(): string {
-  return new Date(new Date(`${todayKst()}T00:00:00.000Z`).getTime() - KST_OFFSET_MS).toISOString()
-}
-
-/** 마스터 번호와 겹치면 사용 불가능한 죽은 이용권이 되므로 다시 뽑는다 */
-function generatePassCode(): string {
-  let code: string
-  do {
-    code = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0')
-  } while (isMasterPass(code))
-  return code
-}
 
 /**
  * 포토부스 이용권 관리 (관리자/직원 — 상품 구매 시 발급)
@@ -89,35 +73,11 @@ export async function POST(request: NextRequest) {
   const note =
     typeof body?.note === 'string' && body.note.trim() ? body.note.trim().slice(0, 100) : null
 
-  const serviceClient = createServiceRoleClient()
-  const currentEvent = await resolveCurrentEvent(serviceClient)
+  // 관리자 발급분은 기한 없음 (행사 사전 배포 등) — 카운터 발급분만 당일 자정 만료
+  const result = await issuePasses(createServiceRoleClient(), { count, note, via: 'admin' })
+  if ('error' in result) return NextResponse.json({ error: result.error }, { status: 500 })
 
-  const codes: string[] = []
-  for (let i = 0; i < count; i++) {
-    // 코드 유니크 충돌(23505) 시 재시도
-    let inserted = false
-    for (let attempt = 0; attempt < 5 && !inserted; attempt++) {
-      const code = generatePassCode()
-      const { error } = await serviceClient.from('photobooth_passes').insert({
-        code,
-        status: 'issued',
-        event_id: currentEvent?.id ?? null,
-        note,
-      })
-      if (!error) {
-        codes.push(code)
-        inserted = true
-      } else if (error.code !== '23505') {
-        console.error('Admin photobooth pass insert failed:', error)
-        return NextResponse.json({ error: '발급에 실패했습니다' }, { status: 500 })
-      }
-    }
-    if (!inserted) {
-      return NextResponse.json({ error: '발급에 실패했습니다' }, { status: 500 })
-    }
-  }
-
-  return NextResponse.json({ success: true, codes, event: currentEvent?.title ?? null })
+  return NextResponse.json({ success: true, codes: result.passes.map((pass) => pass.code), event: result.event })
 }
 
 export async function PATCH(request: NextRequest) {

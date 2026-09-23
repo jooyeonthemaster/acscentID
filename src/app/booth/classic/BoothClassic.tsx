@@ -17,6 +17,9 @@
  * - 추후 Electron 등 앱 전환을 고려해 이 라우트는 독립적으로 동작 (로그인·로케일 무관)
  */
 
+import { FramePicker } from '@/components/photobooth/FramePicker'
+import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
+import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import QRCode from 'qrcode'
@@ -39,7 +42,6 @@ import {
 } from 'lucide-react'
 import {
   BUNDLED_TEMPLATES,
-  BUNDLED_FRAMES,
   resolveTemplateGeometry,
   type TemplateGeometry,
 } from '@/lib/photobooth/templates'
@@ -130,7 +132,22 @@ interface BoothAsset {
   foreground_url?: string | null
   display_order: number
   event_id: string | null
+  /** 기본 카탈로그 프레임의 분류·썸네일 (업로드 소재에는 없다) */
+  category?: string
+  thumbnail_url?: string
 }
+
+/** 설정 API 를 받기 전·못 받을 때의 프레임 목록 — 기본 카탈로그 (관리자 숨김은 첫 응답에서 반영된다) */
+const FALLBACK_FRAMES: BoothAsset[] = DEFAULT_FRAMES.filter((frame) => frame.is_active).map((frame) => ({
+  id: frame.id,
+  kind: 'frame',
+  title: frame.title,
+  image_url: frame.image_url,
+  display_order: frame.display_order,
+  event_id: frame.event_id,
+  category: frame.category,
+  thumbnail_url: frame.thumbnail_url,
+}))
 
 interface BoothEvent {
   id: string
@@ -150,9 +167,11 @@ interface GuestLayer {
   y: number
   scale: number // 캔버스 너비 대비 비율
   rotation: number // degree
+  /** 좌우 반전 */
+  flip: boolean
 }
 
-const DEFAULT_GUEST_LAYER: GuestLayer = { x: 850, y: 1300, scale: 0.42, rotation: -6 }
+const DEFAULT_GUEST_LAYER: GuestLayer = { x: 850, y: 1300, scale: 0.42, rotation: -6, flip: false }
 
 /**
  * 오려낸 인물의 기본 배치.
@@ -172,6 +191,7 @@ function cutoutLayerFor(canvas: HTMLCanvasElement): GuestLayer {
     y: Math.round(PRINT.H - drawnH / 2 + drawnH * 0.05),
     scale,
     rotation: 0,
+    flip: false,
   }
 }
 // 템플릿 인물과 얼굴 크기가 크게 벌어지지 않도록 기본값만 살짝 확대한다.
@@ -258,7 +278,12 @@ export function BoothClassic() {
 
   // 이벤트 + 관리자 소재
   const [event, setEvent] = useState<BoothEvent | null>(null)
-  const [frames, setFrames] = useState<BoothAsset[]>(BUNDLED_FRAMES)
+  const [frames, setFrames] = useState<BoothAsset[]>(FALLBACK_FRAMES)
+  /** 설정 갱신 콜백에서 지금 단계를 읽기 위한 값 (아래 step 선언 뒤에 채운다) */
+  const stepRef = useRef<Step>('home')
+  useEffect(() => {
+    stepRef.current = step
+  }, [step])
   const [templates, setTemplates] = useState<BoothAsset[]>(BUNDLED_TEMPLATES)
 
   // 이용권 (상품 구매 특전)
@@ -418,25 +443,20 @@ export function BoothClassic() {
   const showLiveCutout = !!cutoutPreviewUrl && useCutout && overlayAdjustable
 
   // ---------- 설정(이벤트 + 소재) 로드 ----------
-  const loadConfig = useCallback(async () => {
-    try {
-      const res = await fetch('/api/photobooth/config', { cache: 'no-store' })
-      const data = await res.json()
-      if (res.ok) {
-        setEvent(data.event ?? null)
-        setFrames([...(data.frames ?? []), ...BUNDLED_FRAMES])
-        const remoteTemplates = data.templates ?? []
-        // 관리자 템플릿이 있으면 앞에, 번들 상시 템플릿은 뒤에 붙여 항상 선택지가 있게
-        setTemplates([...remoteTemplates, ...BUNDLED_TEMPLATES])
-      }
-    } catch (error) {
-      console.error('부스 설정 로드 실패:', error)
+  const loadConfig = useLiveBoothConfig<{
+    event: BoothEvent | null
+    frames: BoothAsset[]
+    templates: BoothAsset[]
+  }>((data) => {
+    setEvent(data.event ?? null)
+    setFrames(data.frames)
+    // 편집·결과 화면에서는 손님이 고른 프레임을 그대로 둔다 — 관리자가 그 사이 숨기거나 지워도
+    // 진행 중인 사진이 바뀌지 않게. 목록에서는 바로 빠지고, 다음 손님부터 보이지 않는다.
+    if (stepRef.current !== 'compose' && stepRef.current !== 'result') {
+      setSelectedFrame((current) => (current ? data.frames.find((frame) => frame.id === current.id) ?? null : null))
     }
-  }, [])
-
-  useEffect(() => {
-    loadConfig()
-  }, [loadConfig])
+    setTemplates([...data.templates, ...BUNDLED_TEMPLATES])
+  })
 
   const chooseBackground = useCallback(async (id: string) => {
     if (!backgroundAdminUnlocked || backgroundSaving) return
@@ -653,6 +673,8 @@ export function BoothClassic() {
   // ---------- 처음으로 ----------
   const resetAll = useCallback(() => {
     setStep('home')
+    // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
+    setSelectedFrame(null)
     setPassVerified(false)
     setPendingMode(null)
     setPassDigits('')
@@ -1515,7 +1537,7 @@ export function BoothClassic() {
             guestLayer.y,
             guestLayer.scale * CANVAS_W,
             guestLayer.rotation,
-            { toneColor: averageColor(shotImages[0]) }
+            { toneColor: averageColor(shotImages[0]), flip: guestLayer.flip }
           )
         } else if (guest) {
           // 폴백(오려내기 실패·끄기): 폰 사진을 폴라로이드 스타일로 올림
@@ -1533,6 +1555,7 @@ export function BoothClassic() {
           ctx.shadowColor = 'transparent'
           ctx.shadowBlur = 0
           ctx.shadowOffsetY = 0
+          if (guestLayer.flip) ctx.scale(-1, 1)
           ctx.drawImage(guest, -w / 2, -h / 2, w, h)
           ctx.restore()
         }
@@ -1588,6 +1611,7 @@ export function BoothClassic() {
       }
 
       setGuestLayer((prev) => ({
+        ...prev,
         x: clamp(prev.x + gesture.dx * factor, 0, CANVAS_W),
         y: clamp(prev.y + gesture.dy * factor, 0, CANVAS_H),
         scale: clamp(prev.scale * gesture.scale, LAYER_SCALE_MIN, LAYER_SCALE_MAX),
@@ -2309,7 +2333,7 @@ export function BoothClassic() {
                         left: `${(guestLayer.x / CANVAS_W) * 100}%`,
                         top: `${(guestLayer.y / CANVAS_H) * 100}%`,
                         width: `${guestLayer.scale * 100}%`,
-                        transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)${guestLayer.flip ? ' scaleX(-1)' : ''}`,
                       }}
                     />
                   )}
@@ -2431,6 +2455,16 @@ export function BoothClassic() {
                       className="mt-2 w-full accent-white"
                     />
                   </label>
+                  <button
+                    type="button"
+                    aria-pressed={guestLayer.flip}
+                    onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
+                    className={`mt-4 rounded-full px-6 py-2.5 text-base font-bold border-2 transition-colors ${
+                      guestLayer.flip ? 'booth-primary border-transparent' : 'border-white/25 text-white/70 hover:border-white/60'
+                    }`}
+                  >
+                    좌우 반전
+                  </button>
                 </div>
               )}
 
@@ -2470,49 +2504,13 @@ export function BoothClassic() {
               {composeError && <p className="mt-3 text-sm text-red-400">{composeError}</p>}
             </div>
 
-            <div className="w-full max-w-sm flex flex-col gap-6">
+            {/* 옵션이 많아도(프레임 56종·같이 찍기 조정) 페이지가 넘치지 않게 열 안에서만 스크롤하고,
+                완성·다시 찍기는 열 바닥에 붙여 늘 보이게 한다 */}
+            <div className="w-full max-w-sm flex flex-col gap-6 lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
               {/* 프레임 선택 */}
               <div>
                 <p className="text-sm font-semibold text-white/60 mb-3">프레임</p>
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => setSelectedFrame(null)}
-                    className={`w-16 h-24 rounded-lg border-2 flex items-center justify-center text-xs transition-colors ${
-                      selectedFrame === null
-                        ? 'border-white bg-white/10'
-                        : 'border-white/20 text-white/40 hover:border-white/50'
-                    }`}
-                  >
-                    없음
-                  </button>
-                  {frames.map((frame) => (
-                    <button
-                      key={frame.id}
-                      onClick={() => setSelectedFrame(frame)}
-                      title={frame.title}
-                      className="w-16 h-24 rounded-lg border-2 overflow-hidden bg-white/5 transition-colors"
-                      style={{
-                        borderColor:
-                          selectedFrame?.id === frame.id
-                            ? frame.event_id
-                              ? accent
-                              : lightHome
-                                ? activeBackground.ink
-                                : '#ffffff'
-                            : lightHome
-                              ? 'rgba(23,58,94,0.22)'
-                              : 'rgba(255,255,255,0.2)',
-                      }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={frame.image_url}
-                        alt={frame.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                <FramePicker frames={frames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" />
                 {frames.length === 0 && (
                   <p className="mt-2 text-xs text-white/30">
                     등록된 프레임이 없어요 (관리자 페이지에서 추가)
@@ -2667,10 +2665,24 @@ export function BoothClassic() {
                       />
                     </label>
                   </div>
+                  <button
+                    type="button"
+                    aria-pressed={guestLayer.flip}
+                    onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
+                    className={`self-start rounded-full px-6 py-2.5 text-base font-bold border-2 transition-colors ${
+                      guestLayer.flip ? 'booth-primary border-transparent' : 'border-white/25 text-white/70 hover:border-white/60'
+                    }`}
+                  >
+                    좌우 반전
+                  </button>
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 mt-2">
+              <div
+                className={`sticky bottom-0 -mx-1 mt-2 flex flex-col gap-3 rounded-2xl px-1 pb-1 pt-3 backdrop-blur-md ${
+                  lightHome ? 'bg-white/90' : 'bg-black/70'
+                }`}
+              >
                 <button
                   onClick={finishCompose}
                   disabled={finishing}

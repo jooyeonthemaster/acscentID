@@ -1,5 +1,6 @@
 'use client'
 
+import { MAC_SYSTEM_FONT } from '@/components/mac/theme'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, Check, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
@@ -227,7 +228,7 @@ function BackgroundEditor({ background, draft: initialDraft, onClose, onSaved, o
             <label className="block space-y-1.5 text-sm font-semibold">글꼴 조합<select value={draft.palette} disabled={busy} onChange={event => update('palette', event.target.value as Draft['palette'])} className={inputClass}>{PALETTES.map(palette => <option key={palette.id} value={palette.id}>{palette.label}</option>)}</select></label>
             <fieldset disabled={busy} className="space-y-2"><legend className="mb-2 text-sm font-semibold">화면 색상</legend>
               {([{ key: 'ink', label: '글자색' }, { key: 'accent', label: '강조색' }, { key: 'base', label: '바탕색' }] as const).map(({ key, label }) => <label key={key} className="flex items-center gap-3 text-sm"><span className="w-14 shrink-0 text-slate-600">{label}</span><input type="color" aria-label={`${label} 선택`} value={/^#[0-9a-f]{6}$/i.test(draft[key]) ? draft[key] : '#ffffff'} onChange={event => update(key, event.target.value)} className="h-10 w-12 cursor-pointer rounded border border-slate-200 p-1" /><input aria-label={`${label} HEX`} value={draft[key]} maxLength={7} onChange={event => update(key, event.target.value)} className={`${inputClass} font-mono`} /></label>)}
-            <p className="pt-1 text-xs leading-relaxed text-slate-500">기존 디자인에서는 글꼴 조합·색상이 화면 전체에 적용됩니다. 레트로 디자인에서는 창·버튼 색이 고정되고, 글자색은 바탕화면 아이콘 이름, 강조색은 창 뒤 겹친 창 같은 장식, 바탕색은 그림이 없는 빈 바탕에 쓰입니다(레트로 글꼴은 위 기기 카드의 ‘글꼴’에서 고릅니다). 기기 카드에서 글꼴을 고르면 두 디자인 모두 그 글꼴이 우선합니다.</p></fieldset>
+            <p className="pt-1 text-xs leading-relaxed text-slate-500">기존 디자인은 배경의 글꼴·색상을 화면 전체에 적용합니다. 레트로는 창·버튼 색을 유지하고 배경 색상을 바탕화면 장식에 사용합니다. 맥은 배경 그림 위에 옅은 색을 더하며 밝은 창과 파란 버튼을 유지합니다. 화면 글꼴은 위 기기 카드에서 선택하며, 맥의 기본값은 시스템 글꼴입니다.</p></fieldset>
             <label className="block space-y-1.5 text-sm font-semibold">표시 순서<input type="number" min={-100000} max={100000} step={1} required value={Number.isNaN(draft.display_order) ? '' : draft.display_order} disabled={busy} onChange={event => update('display_order', event.target.valueAsNumber)} className={inputClass} /><span className="block text-xs font-normal text-slate-500">작은 숫자부터 목록에 표시됩니다.</span></label>
             <label className="flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-sm"><input type="checkbox" checked={draft.is_active} disabled={busy} onChange={event => update('is_active', event.target.checked)} className="h-4 w-4 accent-slate-900" />기기 배경 선택 목록에 노출</label>
             {background && <p className="text-xs text-slate-500">현재 적용 중인 배경을 숨기면 같은 화면의 다른 노출 배경으로 전환됩니다.</p>}
@@ -356,15 +357,15 @@ export function ScreenBackgroundManager({ initialTarget }: { initialTarget?: Scr
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
               <span className="w-16 shrink-0 text-xs font-semibold text-slate-600">화면 디자인</span>
               <div className="flex gap-1 rounded-lg bg-white p-1 ring-1 ring-slate-200" role="group" aria-label={`${TARGETS[key].label} 화면 디자인`}>
-                {([['classic', '기존'], ['retro', '레트로']] as const).map(([ui, label]) => <button key={ui} type="button" aria-pressed={settings.ui === ui} disabled={busy || loading || settings.ui === ui} onClick={() => save({ ui }, `${TARGETS[key].label} 화면 디자인을 ‘${label}’(으)로 바꿨습니다.`)} className={`rounded-md px-3 py-1.5 text-xs font-bold ${settings.ui === ui ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} disabled:cursor-default`}>{label}</button>)}
+                {([['classic', '기존'], ['retro', '레트로'], ['mac', '맥']] as const).map(([ui, label]) => <button key={ui} type="button" aria-pressed={settings.ui === ui} disabled={busy || loading || settings.ui === ui} onClick={() => save({ ui }, `${TARGETS[key].label} 화면 디자인을 ‘${label}’(으)로 바꿨습니다.`)} className={`rounded-md px-3 py-1.5 text-xs font-bold ${settings.ui === ui ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} disabled:cursor-default`}>{label}</button>)}
               </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="w-16 shrink-0 text-xs font-semibold text-slate-600">글꼴</span>
-              <ScreenFontPicker value={settings.font} disabled={busy || loading} defaultFont={settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null} defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} onChange={font => save({ font }, `${TARGETS[key].label} 글꼴을 ‘${findScreenFont(font)?.label ?? '기본'}’(으)로 바꿨습니다.`)} className="sfp-trigger--sm" />
+              <ScreenFontPicker value={settings.font} disabled={busy || loading} defaultFont={settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null} defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : settings.ui === 'mac' ? '기본 (시스템 글꼴)' : '기본 (배경의 글꼴 조합)'} onChange={font => save({ font }, `${TARGETS[key].label} 글꼴을 ‘${findScreenFont(font)?.label ?? '기본'}’(으)로 바꿨습니다.`)} className="sfp-trigger--sm" />
             </div>
             <ScreenFontFace ids={[previewFont]} />
-            <p className="mt-2 truncate rounded-md bg-white px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200" style={{ fontFamily: screenFontFamily(previewFont) }}>오늘의 최애, 어떤 향으로 기억할까요? ACSCENT 123</p>
+            <p className="mt-2 truncate rounded-md bg-white px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200" style={{ fontFamily: settings.ui === 'mac' && !settings.font ? MAC_SYSTEM_FONT : screenFontFamily(previewFont) }}>오늘의 최애, 어떤 향으로 기억할까요? ACSCENT 123</p>
           </div>
         })}
       </div>

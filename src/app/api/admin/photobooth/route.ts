@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { mergeFrameCatalog, getDefaultFrame, frameOverrideRow, FRAME_TOMBSTONE } from '@/lib/photobooth/frame-catalog'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 
@@ -28,7 +29,7 @@ export async function GET() {
     console.error('Admin photobooth fetch failed:', error)
     return NextResponse.json({ error: '목록 조회에 실패했습니다' }, { status: 500 })
   }
-  return NextResponse.json({ success: true, assets: data ?? [] })
+  return NextResponse.json({ success: true, assets: mergeFrameCatalog(data ?? []).sort((a, b) => a.display_order - b.display_order) })
 }
 
 export async function POST(request: NextRequest) {
@@ -79,16 +80,25 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
   }
 
+  const defaultFrame = getDefaultFrame(body.id)
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (typeof body.title === 'string' && body.title.trim()) payload.title = body.title.trim()
   if (typeof body.is_active === 'boolean') payload.is_active = body.is_active
   if (Number.isInteger(body.display_order)) payload.display_order = body.display_order
-  if ('event_id' in body) {
+  // 기본 프레임은 행사에 묶지 않는다 — event_id 외래키가 ON DELETE CASCADE 라, 묶인 행사를 지우면
+  // 설정 행이 함께 사라져 숨겨 둔 기본 프레임이 상시 노출로 되살아난다.
+  if ('event_id' in body && !defaultFrame) {
     payload.event_id =
       typeof body.event_id === 'string' && body.event_id.trim() ? body.event_id.trim() : null
   }
 
   const serviceClient = createServiceRoleClient()
+  // Materialize defaults once, without overwriting any existing settings on another admin's save.
+  if (defaultFrame) {
+    const { error: seedError } = await serviceClient.from('photobooth_assets')
+      .upsert(frameOverrideRow(defaultFrame), { onConflict: 'id', ignoreDuplicates: true })
+    if (seedError) return NextResponse.json({ error: '프레임 설정 준비에 실패했습니다' }, { status: 500 })
+  }
   const { error } = await serviceClient
     .from('photobooth_assets')
     .update(payload)
@@ -109,7 +119,12 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
 
   const serviceClient = createServiceRoleClient()
-  const { error } = await serviceClient.from('photobooth_assets').delete().eq('id', id)
+  const defaultFrame = getDefaultFrame(id)
+  const { error } = defaultFrame
+    ? await serviceClient.from('photobooth_assets').upsert({
+        ...frameOverrideRow(defaultFrame), is_active: false, image_url: FRAME_TOMBSTONE,
+      }, { onConflict: 'id' })
+    : await serviceClient.from('photobooth_assets').delete().eq('id', id)
 
   if (error) {
     console.error('Admin photobooth delete failed:', error)

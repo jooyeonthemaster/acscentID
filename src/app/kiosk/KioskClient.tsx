@@ -7,6 +7,8 @@
 // 현재 AC'SCENT WOW 운영 기준 — PROGRAMS의 enabled로 프로그램을 켜고 끈다.
 // window.kiosk(Electron 셸)가 있으면 감열 프린터로 인쇄, 없으면 미리보기/다운로드로 동작한다.
 
+import '@/components/mac/mac.css'
+import { macFontVars } from '@/components/mac/theme'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { STYLES, PERSONALITIES, CHARM_POINTS, GENDER_OPTIONS } from '@/app/[locale]/input/constants'
 import {
@@ -249,7 +251,7 @@ function isSajuResult(r: ImageAnalysisResult | SajuAnalysisResult | null): r is 
   return Boolean(r && 'sajuChart' in r)
 }
 
-export function KioskClient() {
+export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) {
   const [step, setStep] = useState<Step>('attract')
   const [program, setProgram] = useState<Program>(DEFAULT_PROGRAM)
   const [name, setName] = useState('')
@@ -1344,13 +1346,14 @@ export function KioskClient() {
   const stepCode = showHeader
     ? `${String(stepIdx + 1).padStart(2, '0')}/${String(steps.length).padStart(2, '0')}`
     : ''
-  useScreenUiSwitch('retro', deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
+  useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
   const titleExtra =
     step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
 
   return (
     <div
       className={`ksk-root rt rt--kiosk rt-desktop ${KIOSK_FONT_CLASS} ${RETRO_FONT_CLASS}`}
+      data-ui={design}
       data-background={activeBackground.id}
       data-tone={retroDesk.tone}
       data-lang={lang}
@@ -1365,6 +1368,7 @@ export function KioskClient() {
           '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.displayFont,
           '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.bodyFont,
           '--ksk-display-tracking': retroDesk.displayTracking,
+          ...(design === 'mac' ? macFontVars(isCjkLang(lang) ? CJK_FONT_STACK[lang] : deviceSettings.font ? retroDesk.bodyFont : undefined) : {}),
         } as CSSProperties
       }
     >

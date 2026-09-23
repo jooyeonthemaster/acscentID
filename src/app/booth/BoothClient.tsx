@@ -17,12 +17,16 @@
  * - 추후 Electron 등 앱 전환을 고려해 이 라우트는 독립적으로 동작 (로그인·로케일 무관)
  */
 
+import '@/components/mac/mac.css'
+import { macFontVars } from '@/components/mac/theme'
+import { FramePicker } from '@/components/photobooth/FramePicker'
+import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
+import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import {
   BUNDLED_TEMPLATES,
-  BUNDLED_FRAMES,
   resolveTemplateGeometry,
   type TemplateGeometry,
 } from '@/lib/photobooth/templates'
@@ -144,7 +148,22 @@ interface BoothAsset {
   foreground_url?: string | null
   display_order: number
   event_id: string | null
+  /** 기본 카탈로그 프레임의 분류·썸네일 (업로드 소재에는 없다) */
+  category?: string
+  thumbnail_url?: string
 }
+
+/** 설정 API 를 받기 전·못 받을 때의 프레임 목록 — 기본 카탈로그 (관리자 숨김은 첫 응답에서 반영된다) */
+const FALLBACK_FRAMES: BoothAsset[] = DEFAULT_FRAMES.filter((frame) => frame.is_active).map((frame) => ({
+  id: frame.id,
+  kind: 'frame',
+  title: frame.title,
+  image_url: frame.image_url,
+  display_order: frame.display_order,
+  event_id: frame.event_id,
+  category: frame.category,
+  thumbnail_url: frame.thumbnail_url,
+}))
 
 interface BoothEvent {
   id: string
@@ -164,9 +183,11 @@ interface GuestLayer {
   y: number
   scale: number // 캔버스 너비 대비 비율
   rotation: number // degree
+  /** 좌우 반전 */
+  flip: boolean
 }
 
-const DEFAULT_GUEST_LAYER: GuestLayer = { x: 850, y: 1300, scale: 0.42, rotation: -6 }
+const DEFAULT_GUEST_LAYER: GuestLayer = { x: 850, y: 1300, scale: 0.42, rotation: -6, flip: false }
 
 /**
  * 오려낸 인물의 기본 배치.
@@ -186,6 +207,7 @@ function cutoutLayerFor(canvas: HTMLCanvasElement): GuestLayer {
     y: Math.round(PRINT.H - drawnH / 2 + drawnH * 0.05),
     scale,
     rotation: 0,
+    flip: false,
   }
 }
 // 템플릿 인물과 얼굴 크기가 크게 벌어지지 않도록 기본값만 살짝 확대한다.
@@ -266,13 +288,18 @@ function formatPeriod(event: BoothEvent): string | null {
 // ======================
 // Component
 // ======================
-export function BoothClient() {
+export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) {
   const [step, setStep] = useState<Step>('home')
   const [mode, setMode] = useState<Mode>('solo')
 
   // 이벤트 + 관리자 소재
   const [event, setEvent] = useState<BoothEvent | null>(null)
-  const [frames, setFrames] = useState<BoothAsset[]>(BUNDLED_FRAMES)
+  const [frames, setFrames] = useState<BoothAsset[]>(FALLBACK_FRAMES)
+  /** 설정 갱신 콜백에서 지금 단계를 읽기 위한 값 (아래 step 선언 뒤에 채운다) */
+  const stepRef = useRef<Step>('home')
+  useEffect(() => {
+    stepRef.current = step
+  }, [step])
   const [templates, setTemplates] = useState<BoothAsset[]>(BUNDLED_TEMPLATES)
 
   // 이용권 (상품 구매 특전)
@@ -425,25 +452,20 @@ export function BoothClient() {
   const showLiveCutout = !!cutoutPreviewUrl && useCutout && overlayAdjustable
 
   // ---------- 설정(이벤트 + 소재) 로드 ----------
-  const loadConfig = useCallback(async () => {
-    try {
-      const res = await fetch('/api/photobooth/config', { cache: 'no-store' })
-      const data = await res.json()
-      if (res.ok) {
-        setEvent(data.event ?? null)
-        setFrames([...(data.frames ?? []), ...BUNDLED_FRAMES])
-        const remoteTemplates = data.templates ?? []
-        // 관리자 템플릿이 있으면 앞에, 번들 상시 템플릿은 뒤에 붙여 항상 선택지가 있게
-        setTemplates([...remoteTemplates, ...BUNDLED_TEMPLATES])
-      }
-    } catch (error) {
-      console.error('부스 설정 로드 실패:', error)
+  const loadConfig = useLiveBoothConfig<{
+    event: BoothEvent | null
+    frames: BoothAsset[]
+    templates: BoothAsset[]
+  }>((data) => {
+    setEvent(data.event ?? null)
+    setFrames(data.frames)
+    // 편집·결과 화면에서는 손님이 고른 프레임을 그대로 둔다 — 관리자가 그 사이 숨기거나 지워도
+    // 진행 중인 사진이 바뀌지 않게. 목록에서는 바로 빠지고, 다음 손님부터 보이지 않는다.
+    if (stepRef.current !== 'compose' && stepRef.current !== 'result') {
+      setSelectedFrame((current) => (current ? data.frames.find((frame) => frame.id === current.id) ?? null : null))
     }
-  }, [])
-
-  useEffect(() => {
-    loadConfig()
-  }, [loadConfig])
+    setTemplates([...data.templates, ...BUNDLED_TEMPLATES])
+  })
 
   const chooseBackground = useCallback(async (id: string) => {
     if (!backgroundAdminUnlocked || backgroundSaving) return
@@ -660,6 +682,8 @@ export function BoothClient() {
   // ---------- 처음으로 ----------
   const resetAll = useCallback(() => {
     setStep('home')
+    // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
+    setSelectedFrame(null)
     setPassVerified(false)
     setPendingMode(null)
     setPassDigits('')
@@ -1525,7 +1549,7 @@ export function BoothClient() {
             guestLayer.y,
             guestLayer.scale * CANVAS_W,
             guestLayer.rotation,
-            { toneColor: averageColor(shotImages[0]) }
+            { toneColor: averageColor(shotImages[0]), flip: guestLayer.flip }
           )
         } else if (guest) {
           // 폴백(오려내기 실패·끄기): 폰 사진을 폴라로이드 스타일로 올림
@@ -1543,6 +1567,7 @@ export function BoothClient() {
           ctx.shadowColor = 'transparent'
           ctx.shadowBlur = 0
           ctx.shadowOffsetY = 0
+          if (guestLayer.flip) ctx.scale(-1, 1)
           ctx.drawImage(guest, -w / 2, -h / 2, w, h)
           ctx.restore()
         }
@@ -1598,6 +1623,7 @@ export function BoothClient() {
       }
 
       setGuestLayer((prev) => ({
+        ...prev,
         x: clamp(prev.x + gesture.dx * factor, 0, CANVAS_W),
         y: clamp(prev.y + gesture.dy * factor, 0, CANVAS_H),
         scale: clamp(prev.scale * gesture.scale, LAYER_SCALE_MIN, LAYER_SCALE_MAX),
@@ -1729,7 +1755,7 @@ export function BoothClient() {
   // ======================
   // Render
   // ======================
-  useScreenUiSwitch('retro', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
+  useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
   const stepMeta = BOOTH_STEP_META[step]
   // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
   const deskVars = retroDesktopVars(
@@ -1741,9 +1767,10 @@ export function BoothClient() {
     <MotionConfig reducedMotion="user">
     <div
       className={`bth-root rt rt--booth rt-desktop ${RETRO_FONT_CLASS}`}
+      data-ui={design}
       data-background={activeBackground.id}
       data-tone={retroDesk.tone}
-      style={deskVars as React.CSSProperties}
+      style={{ ...deskVars, ...(design === 'mac' ? macFontVars(deviceSettings.font ? retroDesk.bodyFont : undefined) : {}) } as React.CSSProperties}
     >
       <ScreenFontFace ids={[retroDesk.fontId]} />
       {/* 4x6 인쇄 전용 영역 */}
@@ -2256,7 +2283,7 @@ export function BoothClient() {
                           left: `${(guestLayer.x / CANVAS_W) * 100}%`,
                           top: `${(guestLayer.y / CANVAS_H) * 100}%`,
                           width: `${guestLayer.scale * 100}%`,
-                          transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)`,
+                          transform: `translate(-50%, -50%) rotate(${guestLayer.rotation}deg)${guestLayer.flip ? ' scaleX(-1)' : ''}`,
                         }}
                       />
                     )}
@@ -2372,6 +2399,14 @@ export function BoothClient() {
                       className="rt-range"
                     />
                   </label>
+                  <button
+                    type="button"
+                    className="rt-choice bth-flip"
+                    aria-pressed={guestLayer.flip}
+                    onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
+                  >
+                    좌우 반전
+                  </button>
                 </div>
               )}
 
@@ -2426,30 +2461,7 @@ export function BoothClient() {
               {/* 프레임 선택 */}
               <div className="rt-group">
                 <span className="rt-group-label">프레임</span>
-                <div className="bth-frames">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFrame(null)}
-                    aria-pressed={selectedFrame === null}
-                    className="rt-choice bth-frame-btn"
-                  >
-                    없음
-                  </button>
-                  {frames.map((frame) => (
-                    <button
-                      key={frame.id}
-                      type="button"
-                      onClick={() => setSelectedFrame(frame)}
-                      title={frame.title}
-                      aria-label={frame.title}
-                      aria-pressed={selectedFrame?.id === frame.id}
-                      className="rt-choice bth-frame-btn"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={frame.image_url} alt="" />
-                    </button>
-                  ))}
-                </div>
+                <FramePicker frames={frames} selected={selectedFrame} onSelect={setSelectedFrame} variant="retro" />
                 {frames.length === 0 && (
                   <p className="bth-group-text">등록된 프레임이 없어요 (관리자 페이지에서 추가)</p>
                 )}
@@ -2586,6 +2598,14 @@ export function BoothClient() {
                       />
                     </label>
                   </div>
+                  <button
+                    type="button"
+                    className="rt-choice bth-flip"
+                    aria-pressed={guestLayer.flip}
+                    onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
+                  >
+                    좌우 반전
+                  </button>
                 </div>
               )}
 

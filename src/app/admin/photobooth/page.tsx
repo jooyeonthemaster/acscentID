@@ -76,6 +76,8 @@ interface BoothAsset {
   display_order: number
   event_id: string | null
   created_at: string
+  /** 기본 카탈로그 프레임의 썸네일 (목록은 1200x1800 원본 대신 이걸로 그린다) */
+  thumbnail_url?: string
 }
 
 interface BoothPass {
@@ -86,6 +88,9 @@ interface BoothPass {
   used_at: string | null
   note: string | null
   event_id: string | null
+  /** 카운터 발급분만 있음 (당일 자정) — 마이그레이션 전 행은 없음 */
+  expires_at?: string | null
+  issued_via?: 'admin' | 'counter'
   photobooth_events: { title: string } | null
 }
 
@@ -148,6 +153,7 @@ export default function AdminPhotoboothPage() {
     open: false,
     editing: null,
   })
+  const [frameSearch, setFrameSearch] = useState('')
   const [addingKind, setAddingKind] = useState<'frame' | 'template' | null>(null)
   const [passModalOpen, setPassModalOpen] = useState(false)
   const [issuedCodes, setIssuedCodes] = useState<string[] | null>(null)
@@ -576,6 +582,7 @@ export default function AdminPhotoboothPage() {
                   <h2 className="text-lg font-bold text-slate-900">이용권 (구매 특전)</h2>
                   <p className="text-sm text-slate-500">
                     상품 결제 시 발급 → 손님이 부스 키패드에 6자리 번호 입력 → 1회 촬영·인화.
+                    매장 카운터에서는 <a href="/booth/counter" target="_blank" rel="noreferrer" className="font-semibold text-slate-700 underline">카운터 발급 화면</a>으로 바로 출력합니다(당일 자정까지 유효).
                     오늘 발급 {passStats?.issued_today ?? 0} · 사용 {passStats?.used_today ?? 0}
                   </p>
                 </div>
@@ -631,11 +638,16 @@ export default function AdminPhotoboothPage() {
                             {pass.code}
                           </td>
                           <td className="px-4 py-2.5">
-                            {pass.status === 'issued' && (
-                              <span className="text-[11px] font-bold bg-blue-50 text-blue-600 rounded-full px-2 py-0.5">
-                                미사용
-                              </span>
-                            )}
+                            {pass.status === 'issued' &&
+                              (pass.expires_at && Date.parse(pass.expires_at) <= Date.now() ? (
+                                <span className="text-[11px] font-bold bg-amber-50 text-amber-600 rounded-full px-2 py-0.5">
+                                  기간 만료
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-bold bg-blue-50 text-blue-600 rounded-full px-2 py-0.5">
+                                  미사용
+                                </span>
+                              ))}
                             {pass.status === 'used' && (
                               <span className="text-[11px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">
                                 사용됨
@@ -660,6 +672,9 @@ export default function AdminPhotoboothPage() {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
+                            <span className="ml-1.5 text-[11px] font-semibold text-slate-500">
+                              {pass.issued_via === 'counter' ? '카운터' : '관리자'}
+                            </span>
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             {pass.status === 'issued' && (
@@ -683,7 +698,7 @@ export default function AdminPhotoboothPage() {
 
             {/* ---------- 소재 (프레임/템플릿) ---------- */}
             {tab === 'assets' && (['frame', 'template'] as const).map((kind) => {
-              const list = (kind === 'frame' ? frames : templates).sort(
+              const list = (kind === 'frame' ? frames.filter(frame => frame.title.toLowerCase().includes(frameSearch.trim().toLowerCase())) : templates).sort(
                 (a, b) => a.display_order - b.display_order
               )
               return (
@@ -704,6 +719,14 @@ export default function AdminPhotoboothPage() {
                     </button>
                   </div>
 
+                  {kind === 'frame' && (
+                    <label className="mb-4 flex items-center gap-3 text-sm text-slate-600">
+                      <span>프레임 검색</span>
+                      <input value={frameSearch} onChange={e => setFrameSearch(e.target.value)}
+                        placeholder="생일, 리본, 레트로…" className="min-h-12 flex-1 rounded-lg border border-slate-300 bg-white px-3" />
+                      <span>{list.length}종</span>
+                    </label>
+                  )}
                   {list.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-dashed border-slate-300 py-10 text-center text-sm text-slate-400">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -723,7 +746,8 @@ export default function AdminPhotoboothPage() {
                           <div className="aspect-[2/3] bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:16px_16px] relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={asset.image_url}
+                              src={asset.thumbnail_url || asset.image_url}
+                              loading="lazy"
                               alt={asset.title}
                               className="w-full h-full object-contain"
                             />
@@ -761,7 +785,7 @@ export default function AdminPhotoboothPage() {
                               </button>
                               <button
                                 onClick={() => handleAssetMove(asset, -1)}
-                                disabled={index === 0}
+                                disabled={index === 0 || (kind === 'frame' && !!frameSearch.trim())}
                                 className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-30"
                                 title="위로"
                               >
@@ -769,7 +793,7 @@ export default function AdminPhotoboothPage() {
                               </button>
                               <button
                                 onClick={() => handleAssetMove(asset, 1)}
-                                disabled={index === list.length - 1}
+                                disabled={index === list.length - 1 || (kind === 'frame' && !!frameSearch.trim())}
                                 className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-30"
                                 title="아래로"
                               >

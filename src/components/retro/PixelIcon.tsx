@@ -1,3 +1,7 @@
+'use client'
+
+import { useScreenDesign } from '@/components/mac/design-context'
+import { MacIcon } from '@/components/mac/MacIcon'
 // 픽셀 아이콘 — 격자 문자열을 SVG 사각형으로 그린다. 같은 색이 가로로 이어지면 한 칸으로 합친다.
 // 장식이 기본이라 aria-hidden 이고 포인터를 받지 않는다(버튼 안에 넣으면 버튼이 받는다).
 
@@ -38,6 +42,8 @@ interface Props {
 }
 
 export const PixelIcon = memo(function PixelIcon({ name, size = 32, className, label }: Props) {
+  const design = useScreenDesign()
+  if (design === 'mac') return <MacIcon name={name} size={size} className={className} label={label} />
   return (
     <svg
       className={className ? `rt-icon ${className}` : 'rt-icon'}

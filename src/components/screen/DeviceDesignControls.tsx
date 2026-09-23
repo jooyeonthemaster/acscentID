@@ -1,8 +1,10 @@
 'use client'
 
-// 기기 관리자 패널(우측 하단 → PIN)의 '화면 디자인 · 글꼴' — 기존/레트로 두 UI가 같이 쓴다.
+// 기기 관리자 패널(우측 하단 → PIN)의 '화면 디자인 · 글꼴' — 기존/레트로/맥 UI가 같이 쓴다.
 // 같은 종류의 기기가 설정을 공유하고, 관리자 웹(ScreenBackgroundManager)과 같은 저장소를 쓴다.
 
+import { SCREEN_UI_LABELS } from '@/lib/screen-backgrounds/types'
+import { MAC_SYSTEM_FONT } from '@/components/mac/theme'
 import { useState } from 'react'
 import type { DeviceSettings } from '@/lib/screen-backgrounds/types'
 import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
@@ -33,7 +35,7 @@ export function DeviceDesignControls({ settings, onSave, disabled, sample, compa
       <div className="sdc-row">
         <b>화면 디자인</b>
         <div className="sdc-seg" role="group" aria-label="화면 디자인">
-          {([['classic', '기존'], ['retro', '레트로']] as const).map(([ui, label]) => (
+          {([['classic', '기존'], ['retro', '레트로'], ['mac', '맥']] as const).map(([ui, label]) => (
             <button key={ui} type="button" aria-pressed={settings.ui === ui} disabled={busy || settings.ui === ui} onClick={() => void save({ ui })}>{label}</button>
           ))}
         </div>
@@ -42,12 +44,12 @@ export function DeviceDesignControls({ settings, onSave, disabled, sample, compa
         <b>글꼴</b>
         <ScreenFontPicker value={settings.font} disabled={busy} onChange={font => void save({ font })}
           defaultFont={settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null}
-          defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} />
+          defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : settings.ui === 'mac' ? '기본 (시스템 글꼴)' : '기본 (배경의 글꼴 조합)'} />
       </div>
       <ScreenFontFace ids={[previewFont]} />
-      <p className="sdc-sample" style={{ fontFamily: screenFontFamily(previewFont) }}>{sample}</p>
+      <p className="sdc-sample" style={{ fontFamily: settings.ui === 'mac' && !settings.font ? MAC_SYSTEM_FONT : screenFontFamily(previewFont) }}>{sample}</p>
       <p className="sdc-status" role="status">
-        {error || (saving ? '저장하고 있습니다… 같은 종류의 기기에 모두 적용됩니다.' : `현재: ${settings.ui === 'retro' ? '레트로' : '기존'} · ${findScreenFont(settings.font)?.label ?? '기본 글꼴'}`)}
+        {error || (saving ? '저장하고 있습니다… 같은 종류의 기기에 모두 적용됩니다.' : `현재: ${SCREEN_UI_LABELS[settings.ui]} · ${findScreenFont(settings.font)?.label ?? '기본 글꼴'}`)}
       </p>
     </div>
   )
