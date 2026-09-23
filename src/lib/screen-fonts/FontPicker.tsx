@@ -39,13 +39,15 @@ function FontOption({ id, label, note, selected, onPick, root }: {
   )
 }
 
-export function ScreenFontPicker({ value, onChange, disabled, defaultLabel = '기본 글꼴', defaultFont }: {
+export function ScreenFontPicker({ value, onChange, disabled, defaultLabel = '기본 글꼴', defaultFont, className }: {
   value: string | null
   onChange: (font: string | null) => void
   disabled?: boolean
   defaultLabel?: string
   /** '기본' 항목을 그릴 글꼴 (레트로 기본은 에스코어드림) */
   defaultFont?: string | null
+  /** 관리자 웹처럼 작은 화면 — 'sfp-trigger--sm' */
+  className?: string
 }) {
   const [open, setOpen] = useState(false)
   const [list, setList] = useState<HTMLDivElement | null>(null)
@@ -61,7 +63,7 @@ export function ScreenFontPicker({ value, onChange, disabled, defaultLabel = '�
   const pick = (font: string | null) => { setOpen(false); if (font !== value) onChange(font) }
   return (
     <>
-      <button type="button" className="sfp-trigger" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
+      <button type="button" className={className ? `sfp-trigger ${className}` : 'sfp-trigger'} disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
         onClick={() => setOpen(true)} style={{ fontFamily: screenFontFamily(value ?? defaultFont) }}>
         <span>{current?.label ?? defaultLabel}</span>
         <i aria-hidden="true">▾</i>

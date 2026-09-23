@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 import { DEFAULT_DEVICE_SETTINGS, type BackgroundSnapshot, type DeviceSettings, type ScreenBackground, type ScreenTarget } from '@/lib/screen-backgrounds/types'
 import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
-import { ScreenFontSelect } from '@/lib/screen-fonts/FontSelect'
+import { ScreenFontPicker } from '@/lib/screen-fonts/FontPicker'
 import { toBoothTheme } from '@/lib/screen-backgrounds/theme'
 
 const API = '/api/admin/screen-backgrounds'
@@ -359,10 +359,10 @@ export function ScreenBackgroundManager({ initialTarget }: { initialTarget?: Scr
                 {([['classic', '기존'], ['retro', '레트로']] as const).map(([ui, label]) => <button key={ui} type="button" aria-pressed={settings.ui === ui} disabled={busy || loading || settings.ui === ui} onClick={() => save({ ui }, `${TARGETS[key].label} 화면 디자인을 ‘${label}’(으)로 바꿨습니다.`)} className={`rounded-md px-3 py-1.5 text-xs font-bold ${settings.ui === ui ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} disabled:cursor-default`}>{label}</button>)}
               </div>
             </div>
-            <label className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="w-16 shrink-0 text-xs font-semibold text-slate-600">글꼴</span>
-              <ScreenFontSelect value={settings.font} disabled={busy || loading} defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} onChange={font => save({ font }, `${TARGETS[key].label} 글꼴을 ‘${findScreenFont(font)?.label ?? '기본'}’(으)로 바꿨습니다.`)} className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800" />
-            </label>
+              <ScreenFontPicker value={settings.font} disabled={busy || loading} defaultFont={settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null} defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} onChange={font => save({ font }, `${TARGETS[key].label} 글꼴을 ‘${findScreenFont(font)?.label ?? '기본'}’(으)로 바꿨습니다.`)} className="sfp-trigger--sm" />
+            </div>
             <ScreenFontFace ids={[previewFont]} />
             <p className="mt-2 truncate rounded-md bg-white px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200" style={{ fontFamily: screenFontFamily(previewFont) }}>오늘의 최애, 어떤 향으로 기억할까요? ACSCENT 123</p>
           </div>
