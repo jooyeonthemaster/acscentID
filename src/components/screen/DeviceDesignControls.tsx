@@ -7,7 +7,7 @@ import { useState } from 'react'
 import type { DeviceSettings } from '@/lib/screen-backgrounds/types'
 import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
-import { ScreenFontSelect } from '@/lib/screen-fonts/FontSelect'
+import { ScreenFontPicker } from '@/lib/screen-fonts/FontPicker'
 import './device-design-controls.css'
 
 export function DeviceDesignControls({ settings, onSave, disabled, sample, compact }: {
@@ -38,11 +38,12 @@ export function DeviceDesignControls({ settings, onSave, disabled, sample, compa
           ))}
         </div>
       </div>
-      <label className="sdc-row">
+      <div className="sdc-row">
         <b>글꼴</b>
-        <ScreenFontSelect className="sdc-select" value={settings.font} disabled={busy} onChange={font => void save({ font })}
+        <ScreenFontPicker value={settings.font} disabled={busy} onChange={font => void save({ font })}
+          defaultFont={settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null}
           defaultLabel={settings.ui === 'retro' ? '기본 (에스코어드림)' : '기본 (배경의 글꼴 조합)'} />
-      </label>
+      </div>
       <ScreenFontFace ids={[previewFont]} />
       <p className="sdc-sample" style={{ fontFamily: screenFontFamily(previewFont) }}>{sample}</p>
       <p className="sdc-status" role="status">
