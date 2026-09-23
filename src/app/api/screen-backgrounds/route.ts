@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { BackgroundError, readBackgroundSnapshot, selectSharedBackground, saveDeviceSettings } from '@/lib/screen-backgrounds/store'
 import { isScreenTarget } from '@/lib/screen-backgrounds/types'
 import { sameOrigin, validDeviceSession } from '@/lib/screen-backgrounds/device-auth'
+import { readScreenEvents } from '@/lib/screen-events/store'
+import { liveOverride } from '@/lib/screen-events/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,8 +17,12 @@ export async function GET(request: NextRequest) {
   const target = request.nextUrl.searchParams.get('target')
   if (!isScreenTarget(target)) return NextResponse.json({ error: '기기를 확인해주세요.' }, { status: 400, headers })
   try {
-    const snapshot = await readBackgroundSnapshot()
-    return NextResponse.json({ ...snapshot, backgrounds: snapshot.backgrounds.filter(item => item.is_active && item.target === target) }, { headers })
+    // 이벤트 기간이면 그 이벤트 배경·글꼴을 함께 내려준다. 이벤트 저장소가 실패해도 평소 배경은 나가야 한다
+    const [snapshot, live] = await Promise.all([
+      readBackgroundSnapshot(),
+      readScreenEvents().then(events => liveOverride(events, target)).catch(() => null),
+    ])
+    return NextResponse.json({ ...snapshot, backgrounds: snapshot.backgrounds.filter(item => item.is_active && item.target === target), live }, { headers })
   } catch (error) { return failure(error) }
 }
 export async function PUT(request: NextRequest) {

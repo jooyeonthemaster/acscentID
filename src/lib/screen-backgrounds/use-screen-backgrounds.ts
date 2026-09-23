@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import catalog from './catalog.json'
 import { DEFAULT_DEVICE_SETTINGS, isFontId, isScreenUi, neutralBackground, resolveSelected, type BackgroundSnapshot, type DeviceSettings, type ScreenBackground, type ScreenTarget } from './types'
 import { validateBackground } from './validation'
+import { kstToday, type LiveEventOverride } from '@/lib/screen-events/types'
 
 const POLL_MS = 15000
 function initialSnapshot(target: ScreenTarget): BackgroundSnapshot {
@@ -22,6 +23,13 @@ function parseSnapshot(value: unknown, target: ScreenTarget): BackgroundSnapshot
   const settings = snapshot.settings as Partial<Record<ScreenTarget, unknown>> | undefined
   return { backgrounds, selected: resolveSelected(backgrounds, snapshot.selected), settings: { booth: parseSettings(settings?.booth), kiosk: parseSettings(settings?.kiosk) } }
 }
+/** 이벤트 기간 배경·글꼴(서버가 계산) — 이상하면 없는 것으로 */
+function parseLive(value: unknown, target: ScreenTarget): LiveEventOverride | null {
+  const live = value as LiveEventOverride | null
+  if (!live || typeof live !== 'object' || !validateBackground(live.background) || live.background.target !== target) return null
+  if (typeof live.ends_on !== 'string' || typeof live.title !== 'string') return null
+  return { event_id: String(live.event_id), title: live.title, ends_on: live.ends_on, background: live.background, font: isFontId(live.font) ? live.font : null }
+}
 async function readResponse(response: Response) {
   const result = await response.json().catch(() => null)
   if (!response.ok) throw new Error(result?.error || '서버에 연결하지 못했습니다.')
@@ -37,14 +45,20 @@ export function useScreenBackgrounds(target: ScreenTarget) {
   const sequence = useRef(0)
   const alive = useRef(false)
   const cacheKey = `acscent-shared-backgrounds-v1-${target}`
+  const liveKey = `acscent-screen-event-live-v1-${target}`
+  const [live, setLive] = useState<LiveEventOverride | null>(null)
 
   const refresh = useCallback(async () => {
     const current = ++sequence.current
     try {
       const response = await fetch(`/api/screen-backgrounds?target=${target}`, { cache: 'no-store', signal: AbortSignal.timeout(12000) })
-      const next = parseSnapshot(await readResponse(response), target)
+      const raw = await readResponse(response)
+      const next = parseSnapshot(raw, target)
+      const nextLive = parseLive(raw?.live, target)
       if (!alive.current || current !== sequence.current) return
       setSnapshot(next)
+      setLive(nextLive)
+      try { localStorage.setItem(liveKey, JSON.stringify(nextLive)) } catch { /* optional */ }
       setSynced(true)
       setError(null)
       try { localStorage.setItem(cacheKey, JSON.stringify(next)) } catch { /* offline cache is optional */ }
@@ -54,13 +68,16 @@ export function useScreenBackgrounds(target: ScreenTarget) {
     } finally {
       if (alive.current && current === sequence.current) setLoading(false)
     }
-  }, [target, cacheKey])
+  }, [target, cacheKey, liveKey])
 
   useEffect(() => {
     alive.current = true
     try {
       const cached = localStorage.getItem(cacheKey)
       if (cached) setSnapshot(parseSnapshot(JSON.parse(cached), target))
+      // 인터넷이 끊긴 채 켜져도 이벤트 기간이면 이벤트 화면으로(끝난 이벤트는 아래에서 날짜로 거른다)
+      const cachedLive = localStorage.getItem(liveKey)
+      if (cachedLive) setLive(parseLive(JSON.parse(cachedLive), target))
     } catch { /* invalid caches are replaced by the server snapshot */ }
     void refresh()
     const interval = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, POLL_MS)
@@ -78,7 +95,7 @@ export function useScreenBackgrounds(target: ScreenTarget) {
       window.removeEventListener('online', onFocus)
       document.removeEventListener('visibilitychange', onFocus)
     }
-  }, [cacheKey, target, refresh])
+  }, [cacheKey, liveKey, target, refresh])
 
   const unlock = useCallback(async (pin: string) => {
     const response = await fetch('/api/screen-backgrounds/unlock', {
@@ -121,6 +138,11 @@ export function useScreenBackgrounds(target: ScreenTarget) {
   }, [target, refresh])
 
   const selectedId = snapshot.selected[target] || ''
-  const activeBackground = useMemo(() => snapshot.backgrounds.find(item => item.id === selectedId) || neutralBackground(target), [snapshot.backgrounds, selectedId, target])
-  return { backgrounds: snapshot.backgrounds, activeBackground, selectedId, settings: snapshot.settings[target], synced, loading, error, refresh, selectBackground, saveSettings, unlock }
+  // 이벤트 기간이면 이벤트 배경·글꼴이 평소 선택보다 우선한다(docs/screen-events.md). 끝나면 저절로 평소 설정.
+  const liveEvent = live && kstToday() <= live.ends_on ? live : null
+  const selectedBackground = useMemo(() => snapshot.backgrounds.find(item => item.id === selectedId) || neutralBackground(target), [snapshot.backgrounds, selectedId, target])
+  const activeBackground = liveEvent?.background ?? selectedBackground
+  const baseSettings = snapshot.settings[target]
+  const settings = useMemo(() => liveEvent?.font ? { ...baseSettings, font: liveEvent.font } : baseSettings, [baseSettings, liveEvent?.font])
+  return { backgrounds: snapshot.backgrounds, activeBackground, selectedId, settings, liveEvent, synced, loading, error, refresh, selectBackground, saveSettings, unlock }
 }

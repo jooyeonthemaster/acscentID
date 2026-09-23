@@ -10,7 +10,9 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
+import { AdminTabs, useHashTab } from '../components/AdminTabs'
 import { ScreenBackgroundManager } from '@/components/admin/ScreenBackgroundManager'
+import { ScreenEventManager } from '@/components/admin/ScreenEventManager'
 import {
   Monitor,
   Search,
@@ -31,6 +33,15 @@ import {
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { KIOSK_PROGRAM_LABELS, type KioskProgram } from '@/lib/admin/kiosk-filters'
+
+// 탭 — 통계 / 분석 기록 / 화면 설정 (AdminTabs, 주소 #해시로 기억)
+const TABS = [
+  { id: 'stats', label: '통계', hint: '분석 수·추천 향·프로그램 분포' },
+  { id: 'records', label: '분석 기록', hint: '손님별 분석 결과 조회·필터' },
+  { id: 'screen', label: '키오스크 화면', hint: '화면 디자인·글꼴·배경' },
+] as const
+type TabId = (typeof TABS)[number]['id']
+const TAB_IDS = TABS.map((item) => item.id)
 
 interface RecipeRow {
   id?: string
@@ -314,11 +325,17 @@ export default function AdminKioskPage() {
       : null
   const dailyMax = stats ? Math.max(1, ...stats.daily.map((d) => d.count)) : 1
 
+  const tab = useHashTab<TabId>(TAB_IDS, 'stats')
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminHeader title="키오스크 관리" subtitle={`분석 기록 ${total.toLocaleString()}건`} actions={<Link href="/admin/backgrounds?target=kiosk" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50"><ImageIcon className="h-4 w-4" />전체 화면 배경 관리</Link>} />
 
       <div className="p-6 space-y-6">
+        <AdminTabs label="키오스크 관리 메뉴" current={tab} tabs={TABS.map((item) => ({ ...item, count: item.id === 'records' ? total : undefined }))} />
+
+        {tab === 'stats' && (
+        <>
         {/* 요약 */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
@@ -437,9 +454,14 @@ export default function AdminKioskPage() {
           </div>
         )}
 
-        {/* 키오스크 배경 */}
-        <ScreenBackgroundManager initialTarget="kiosk" />
+        </>
+        )}
 
+        {/* 키오스크 화면 — 화면 디자인(기존/레트로)·글꼴·배경 */}
+        {tab === 'screen' && <><ScreenEventManager /><ScreenBackgroundManager initialTarget="kiosk" /></>}
+
+        {tab === 'records' && (
+        <>
         {/* 필터 */}
         <div className="bg-white rounded-xl border-2 border-slate-200 p-5 space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -856,6 +878,8 @@ export default function AdminKioskPage() {
               </div>
             )}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

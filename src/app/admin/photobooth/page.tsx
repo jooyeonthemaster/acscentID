@@ -11,8 +11,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
+import { AdminTabs, useHashTab } from '../components/AdminTabs'
 import { CardManager } from './CardManager'
 import { ShotStats } from './ShotStats'
+import { ScreenBackgroundManager } from '@/components/admin/ScreenBackgroundManager'
+import { ScreenEventManager } from '@/components/admin/ScreenEventManager'
 import { supabase } from '@/lib/supabase/client'
 import QRCode from 'qrcode'
 import {
@@ -35,6 +38,17 @@ import {
   KeyRound,
   ImageIcon,
 } from 'lucide-react'
+
+// 탭 — 관련 있는 것끼리 묶는다 (AdminTabs, 주소 #해시로 기억)
+const TABS = [
+  { id: 'stats', label: '촬영 현황', hint: '얼마나 쓰였고 인화까지 갔는지' },
+  { id: 'events', label: '생카·이용권', hint: '생카 이벤트와 구매 특전 이용권' },
+  { id: 'cards', label: '포토카드', hint: '포토카드로 찍기 코드' },
+  { id: 'assets', label: '프레임·템플릿', hint: '인화 프레임과 템플릿 소재' },
+  { id: 'screen', label: '부스 화면', hint: '접속 안내·화면 디자인·배경' },
+] as const
+type TabId = (typeof TABS)[number]['id']
+const TAB_IDS = TABS.map((item) => item.id)
 
 // ======================
 // Types
@@ -368,6 +382,8 @@ export default function AdminPhotoboothPage() {
   const templates = assets.filter((a) => a.kind === 'template')
   const liveEvent = events.find(isEventLive) ?? null
   const eventTitleById = new Map(events.map((e) => [e.id, e.title]))
+  const tab = useHashTab<TabId>(TAB_IDS, 'stats')
+  const tabCounts: Partial<Record<TabId, number>> = { events: events.length, assets: assets.length }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -393,6 +409,10 @@ export default function AdminPhotoboothPage() {
       />
 
       <div className="p-6 max-w-7xl mx-auto space-y-8">
+        <AdminTabs label="포토부스 관리 메뉴" current={tab} tabs={TABS.map((item) => ({ ...item, count: tabCounts[item.id] }))} />
+
+        {tab === 'screen' && (
+        <>
         {/* 부스 접속 안내 */}
         <section className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-5">
           <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shrink-0">
@@ -421,14 +441,23 @@ export default function AdminPhotoboothPage() {
             <Download className="w-3.5 h-3.5" />
           </button>
         </section>
+        {/* 화면 디자인(기존/레트로)·글꼴·배경 — 키오스크 관리와 같은 부품 */}
+        <ScreenEventManager />
+        <ScreenBackgroundManager initialTarget="booth" />
+        </>
+        )}
 
-        {loading ? (
+        {/* 촬영 내역은 자체 로딩이 있어 이벤트 목록을 기다리지 않는다 */}
+        {tab === 'stats' && <ShotStats onToast={showToast} />}
+
+        {tab === 'screen' || tab === 'stats' ? null : loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
           </div>
         ) : (
           <>
             {/* ---------- 생카 이벤트 ---------- */}
+            {tab === 'events' && (
             <section>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -531,17 +560,18 @@ export default function AdminPhotoboothPage() {
                 </div>
               )}
             </section>
-
-            {/* ---------- 촬영 내역 ---------- */}
-            <ShotStats onToast={showToast} />
+            )}
 
             {/* ---------- 포토카드 ---------- */}
+            {tab === 'cards' && (
             <CardManager
               events={events.map((e) => ({ id: e.id, title: e.title }))}
               onToast={showToast}
             />
+            )}
 
             {/* ---------- 이용권 ---------- */}
+            {tab === 'events' && (
             <section>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -651,9 +681,10 @@ export default function AdminPhotoboothPage() {
                 </div>
               )}
             </section>
+            )}
 
             {/* ---------- 소재 (프레임/템플릿) ---------- */}
-            {(['frame', 'template'] as const).map((kind) => {
+            {tab === 'assets' && (['frame', 'template'] as const).map((kind) => {
               const list = (kind === 'frame' ? frames : templates).sort(
                 (a, b) => a.display_order - b.display_order
               )
