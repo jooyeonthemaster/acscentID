@@ -1372,6 +1372,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         setCountdown(null)
         let dataUrl: string | null = null
         let failed = false
+        let failReason = ''
         capturingRef.current = true
         setCapturing(true)
         try {
@@ -1379,22 +1380,25 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         } catch (error) {
           console.error('[photobooth] 촬영 실패:', error)
           failed = true
+          failReason = error instanceof Error ? error.message : ''
         } finally {
           capturingRef.current = false
           setCapturing(false)
         }
         if (failed) {
-          // 초점을 못 잡는 등 셔터가 안 눌린 경우 — 같은 컷을 다시 찍는다
+          // 초점을 못 잡는 등 셔터가 안 눌린 경우 — 같은 컷을 다시 찍는다.
+          // 카메라 설정 문제(전원 스위치가 동영상 칸 등)는 다시 찍어도 같다 — 바로 멈추고 이유를 보여 준다(직원용)
+          const settingProblem = /동영상 모드/.test(failReason)
           attempts++
-          if (attempts <= 2) {
+          if (attempts <= 2 && !settingProblem) {
             setShotNotice('다시 찍을게요. 카메라를 봐주세요')
             await sleep(1200)
             setShotNotice(null)
             shot--
             continue
           }
-          setShotNotice('카메라가 응답하지 않아요. 직원에게 알려주세요')
-          window.setTimeout(() => setShotNotice(null), 4000)
+          setShotNotice(settingProblem ? `직원에게 알려주세요 — ${failReason}` : '카메라가 응답하지 않아요. 직원에게 알려주세요')
+          window.setTimeout(() => setShotNotice(null), settingProblem ? 10000 : 4000)
           collected.length = 0
           break
         }

@@ -88,6 +88,9 @@ const CameraCommand_ExtendShutDownTimer = 0x00000001
 const CameraCommand_PressShutterButton = 0x00000004
 const ShutterButton_OFF = 0x00000000
 const ShutterButton_Completely = 0x00000003
+// 초점을 다시 잡지 않고 바로 셔터 — 초점을 못 잡아(어두움·민무늬 배경·너무 가까움) 셔터가 거부될 때 쓴다
+const ShutterButton_Completely_NonAF = 0x00010003
+const EDS_ERR_TAKE_PICTURE_AF_NG = 0x00008d01
 const EdsSaveTo_Host = 2
 const EvfOutputDevice_PC = 0x02
 const ObjectEvent_All = 0x00000200
@@ -132,6 +135,14 @@ const ERR_NAMES = {
   0x2003: 'SESSION_NOT_OPEN',
   0xa102: 'OBJECT_NOTREADY',
   0xa101: 'LOW_BATTERY',
+  // 촬영 거부 — 셔터를 눌렀지만 카메라가 찍지 않은 이유
+  0x8d01: 'TAKE_PICTURE_AF_NG(초점 실패)',
+  0x8d03: 'TAKE_PICTURE_MIRROR_UP_NG',
+  0x8d04: 'TAKE_PICTURE_SENSOR_CLEANING_NG',
+  0x8d06: 'TAKE_PICTURE_NO_CARD_NG(메모리 카드 없음)',
+  0x8d07: 'TAKE_PICTURE_CARD_NG(카드 오류)',
+  0x8d08: 'TAKE_PICTURE_CARD_PROTECT_NG(카드 잠김)',
+  0x8d0a: 'TAKE_PICTURE_LV_REL_PROHIBIT_MODE_NG(라이브뷰 촬영 불가 모드)',
 }
 const errName = (e) => ERR_NAMES[e] || `0x${e.toString(16)}`
 
@@ -210,6 +221,8 @@ const state = {
   frames: 0,
   /** 라이브뷰 진단 — 원격으로 "카메라가 느린지(skip 많음) USB 가 느린지(ms 큼)" 가른다 */
   evfStats: { ok: 0, skip: 0, ms: 0, since: Date.now() },
+  /** 라이브뷰 그림 크기 — 사진 모드 3:2(960x640), 동영상 모드 16:9(1024x576) */
+  evfSize: null,
   error: '',
   capture: null,
   timers: { pump: null, evf: null, keepAlive: null, retry: null },
@@ -405,6 +418,20 @@ function teardownInner(reason) {
   if (reason) state.error = reason
 }
 
+// 200D II 의 전원 스위치는 OFF · ON(사진) · 동영상 세 칸 — 끝까지 밀면 동영상 모드가 되고,
+// 그 상태에선 셔터 명령이 전부 TAKE_PICTURE_AF_NG 로 거부된다(2026-09-27 매장 장애). 라이브뷰가 16:9 면 동영상 모드로 본다.
+const MOVIE_MODE_MESSAGE = '카메라가 동영상 모드입니다 — 카메라 전원 스위치를 ON(사진) 칸으로 옮겨주세요'
+function jpegSize(buf) {
+  for (let i = 2; i + 9 < buf.length; ) {
+    if (buf[i] !== 0xff) return null
+    const marker = buf[i + 1]
+    if (marker >= 0xc0 && marker <= 0xc3) return { w: buf.readUInt16BE(i + 7), h: buf.readUInt16BE(i + 5) }
+    i += 2 + buf.readUInt16BE(i + 2)
+  }
+  return null
+}
+const inMovieMode = () => !!state.evfSize && Math.abs(state.evfSize.w / state.evfSize.h - 16 / 9) < 0.05
+
 // ── 라이브뷰
 function startLiveView() {
   if (state.liveView || !state.connected) return
@@ -480,7 +507,13 @@ function downloadEvf() {
       state.lastFrame = jpeg
       state.lastFrameAt = Date.now()
       state.frames++
-      if (state.frames === 1) log(`[bridge] 첫 라이브뷰 프레임 ${jpeg.length} bytes`)
+      if (state.frames === 1 || state.frames % 100 === 0) {
+        const size = jpegSize(jpeg)
+        const wasMovie = inMovieMode()
+        if (size) state.evfSize = size
+        if (state.frames === 1) log(`[bridge] 첫 라이브뷰 프레임 ${jpeg.length} bytes ${size ? `${size.w}x${size.h}` : ''}`)
+        if (inMovieMode() && !wasMovie) log(`[bridge] ${MOVIE_MODE_MESSAGE}`)
+      }
     }
   } catch {
     /* 프레임 하나 실패는 무시 */
@@ -495,21 +528,33 @@ function capture() {
   return new Promise((resolve, reject) => {
     if (!state.connected) return reject(new Error('카메라가 연결돼 있지 않습니다'))
     if (state.capture) return reject(new Error('이미 촬영 중입니다'))
+    if (inMovieMode()) {
+      log(`[bridge] 촬영 거부 — ${MOVIE_MODE_MESSAGE}`)
+      return reject(new Error(MOVIE_MODE_MESSAGE))
+    }
     const timeout = setTimeout(() => {
       state.capture = null
+      log('[bridge] 촬영 시간 초과 — 셔터 후 사진이 넘어오지 않았습니다')
       reject(new Error('촬영 시간 초과 — 초점을 못 잡았거나 셔터가 눌리지 않았습니다'))
     }, CAPTURE_TIMEOUT_MS)
     state.capture = { resolve, reject, timeout }
 
-    const err = state.eds.EdsSendCommand(
-      state.camera,
-      CameraCommand_PressShutterButton,
-      ShutterButton_Completely
-    )
-    state.eds.EdsSendCommand(state.camera, CameraCommand_PressShutterButton, ShutterButton_OFF)
+    const press = (mode) => {
+      const result = state.eds.EdsSendCommand(state.camera, CameraCommand_PressShutterButton, mode)
+      state.eds.EdsSendCommand(state.camera, CameraCommand_PressShutterButton, ShutterButton_OFF)
+      return result
+    }
+    let err = press(ShutterButton_Completely)
+    // 초점을 못 잡으면 카메라가 셔터를 거부한다(초점 우선) — 손님 촬영이 멈추지 않게 AF 없이 바로 다시 누른다.
+    // 부스는 서는 자리가 거의 같아 마지막 초점 그대로 찍어도 대개 선명하다.
+    if (err === EDS_ERR_TAKE_PICTURE_AF_NG) {
+      log('[bridge] 초점을 못 잡음 — AF 없이 다시 셔터')
+      err = press(ShutterButton_Completely_NonAF)
+    }
     if (err !== EDS_ERR_OK && err !== EDS_ERR_DEVICE_BUSY) {
       clearTimeout(timeout)
       state.capture = null
+      log('[bridge] 셔터 실패:', errName(err))
       reject(new Error(`셔터 실패: ${errName(err)}`))
     }
   })
@@ -617,7 +662,9 @@ const server = http.createServer(async (req, res) => {
         frames: state.frames,
         lastFrameAgeMs: state.lastFrameAt ? Date.now() - state.lastFrameAt : null,
         evf: evfReport(url.searchParams.has('reset')),
-        error: state.error || null,
+        evfSize: state.evfSize,
+        movieMode: inMovieMode(),
+        error: state.error || (inMovieMode() ? MOVIE_MODE_MESSAGE : null),
       })
     }
 
