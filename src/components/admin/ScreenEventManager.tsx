@@ -336,6 +336,8 @@ export function ScreenEventManager() {
   const [adding, setAdding] = useState(false)
   const [showPast, setShowPast] = useState(false)
   const [showHidden, setShowHidden] = useState(false)
+  /** 월별로 끊어 보기 — 'YYYY-MM' 또는 'all'. null 이면 이번 달(없으면 가장 가까운 달) */
+  const [month, setMonth] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try { setData(await call<ListResponse>(API)); setError('') } catch (cause) { setError(cause instanceof Error ? cause.message : '불러오지 못했습니다.') } finally { setLoading(false) }
@@ -359,6 +361,28 @@ export function ScreenEventManager() {
   const today = data?.today ?? ''
   const events = useMemo(() => (data?.events ?? [])
     .filter(e => (showPast || e.ends_on >= today) && (showHidden || !e.hidden)), [data, showPast, showHidden, today])
+  // 시작일 기준으로 달을 나눈다(월말에 시작해 다음 달로 넘어가는 행사는 시작한 달에)
+  const months = useMemo(() => {
+    const counts = new Map<string, { total: number; live: boolean }>()
+    for (const e of events) {
+      const key = e.starts_on.slice(0, 7)
+      const entry = counts.get(key) ?? { total: 0, live: false }
+      entry.total++
+      if (e.approved && isEventLive(e, today)) entry.live = true
+      counts.set(key, entry)
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, v]) => ({ key, ...v }))
+  }, [events, today])
+  const thisMonth = today.slice(0, 7)
+  const fallbackMonth = months.find(m => m.key >= thisMonth)?.key ?? months[months.length - 1]?.key ?? 'all'
+  const activeMonth = month === 'all' || months.some(m => m.key === month) ? month! : fallbackMonth
+  const monthLabel = (key: string) => {
+    const [y, m] = key.split('-')
+    return y === today.slice(0, 4) ? `${Number(m)}월` : `${y}년 ${Number(m)}월`
+  }
+  const groups = activeMonth === 'all'
+    ? months.map(m => ({ key: m.key, events: events.filter(e => e.starts_on.startsWith(m.key)) }))
+    : [{ key: activeMonth, events: events.filter(e => e.starts_on.startsWith(activeMonth)) }]
   const liveNow = (data?.events ?? []).find(e => e.approved && !e.hidden && isEventLive(e, today) && (e.backgrounds.kiosk || e.backgrounds.booth))
 
   return (
@@ -399,16 +423,42 @@ export function ScreenEventManager() {
             {value && <Check size={13} />}{label}
           </button>
         ))}
-        <span className="ml-auto text-xs text-slate-400">{events.length}건</span>
+        <span className="ml-auto text-xs text-slate-400">전체 {events.length}건</span>
       </div>
+
+      {/* 월 탭 — 좁은 화면에서는 옆으로 넘겨 본다 */}
+      {!loading && months.length > 0 && (
+        <div role="tablist" aria-label="월별 이벤트" className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          {[...months.map(m => ({ key: m.key, label: monthLabel(m.key), total: m.total, live: m.live })), { key: 'all', label: '전체', total: events.length, live: false }].map(tab => (
+            <button key={tab.key} type="button" role="tab" aria-selected={activeMonth === tab.key} onClick={() => setMonth(tab.key)}
+              className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 rounded-lg border px-3.5 text-sm font-bold transition-colors ${
+                activeMonth === tab.key ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+              }`}>
+              {tab.live && <span className="h-2 w-2 rounded-full bg-emerald-500" title="적용 중인 이벤트가 있는 달" />}
+              {tab.label}
+              {tab.key === thisMonth && <span className={`text-[10px] font-semibold ${activeMonth === tab.key ? 'text-white/70' : 'text-slate-400'}`}>이번 달</span>}
+              <span className={`rounded-full px-1.5 text-xs tabular-nums ${activeMonth === tab.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{tab.total}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
         : !events.length ? <p className="rounded-lg border border-dashed border-slate-300 py-12 text-center text-sm text-slate-500">표시할 이벤트가 없습니다. &lsquo;ERP·노션 불러오기&rsquo;를 눌러보세요.</p>
-          : <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">{events.map(event => (
-            <EventCard key={event.id} event={event} today={today} generator={!!data?.sources.generator} busy={busy[event.id] ?? null}
-              onPatch={patch => withBusy(event.id, 'patch', async () => { const { event: next } = await call<{ event: ScreenEvent }>(API, 'PATCH', { id: event.id, ...patch }); replace(next) })}
-              onGenerate={() => withBusy(event.id, 'generate', async () => { const { event: next } = await call<{ event: ScreenEvent }>(`${API}/generate`, 'POST', { id: event.id }); replace(next); setNotice(`“${event.title}” 배경을 만들었습니다. 미리보기를 확인하고 자동 적용을 켜주세요.`) })}
-            />
+          : <div className="space-y-6">{groups.map(group => (
+            <div key={group.key} role="tabpanel" aria-label={`${monthLabel(group.key)} 이벤트`} className="space-y-3">
+              {/* 달 제목 — '전체'에서 달마다 끊어 보이게, 한 달만 볼 때도 몇 건인지 */}
+              <div className="flex items-baseline gap-2 border-b border-slate-200 pb-2">
+                <h3 className="text-base font-bold text-slate-900">{monthLabel(group.key)}</h3>
+                <span className="text-xs text-slate-500">{group.events.length}건 · 배경 준비 {group.events.filter(e => e.backgrounds.kiosk || e.backgrounds.booth).length}건 · 자동 적용 {group.events.filter(e => e.approved).length}건</span>
+              </div>
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">{group.events.map(event => (
+                <EventCard key={event.id} event={event} today={today} generator={!!data?.sources.generator} busy={busy[event.id] ?? null}
+                  onPatch={patch => withBusy(event.id, 'patch', async () => { const { event: next } = await call<{ event: ScreenEvent }>(API, 'PATCH', { id: event.id, ...patch }); replace(next) })}
+                  onGenerate={() => withBusy(event.id, 'generate', async () => { const { event: next } = await call<{ event: ScreenEvent }>(`${API}/generate`, 'POST', { id: event.id }); replace(next); setNotice(`“${event.title}” 배경을 만들었습니다. 미리보기를 확인하고 자동 적용을 켜주세요.`) })}
+                />
+              ))}</div>
+            </div>
           ))}</div>}
     </section>
   )
