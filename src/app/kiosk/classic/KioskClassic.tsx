@@ -1070,12 +1070,15 @@ export function KioskClassic() {
       setBackgroundPassword((value) => value.slice(0, -1))
       return
     }
+    // 6자리가 차면 확인 버튼 없이 바로 인증한다(포토부스와 같은 방식). 확인 버튼은 다시 시도용으로 남겨 둔다
+    let pin = backgroundPassword
     if (key !== '확인') {
-      setBackgroundPassword((value) => `${value}${key}`.slice(0, 6))
-      return
+      if (backgroundPassword.length >= 6) return
+      pin = `${backgroundPassword}${key}`.slice(0, 6)
+      setBackgroundPassword(pin)
+      if (pin.length < 6) return
     }
-    if (backgroundPassword.length !== 6) return
-    const pin = backgroundPassword
+    if (pin.length !== 6) return
     setBackgroundUnlocking(true)
     const requestId = ++backgroundAuthRequest.current
 
