@@ -46,6 +46,8 @@ export interface ScreenEvent {
   analysis: EventAnalysis | null
   /** 미리보기를 확인하고 '기간 중 자동 적용'을 켰는가 */
   approved: boolean
+  /** 기기·관리자가 '지금 바로 적용'을 누른 시각 — 날짜와 상관없이 해제하거나 행사가 끝날 때까지 우선 적용 */
+  forced_at?: string | null
   hidden: boolean
   generated_at: string | null
   /** OpenRouter 가 알려준 누적 비용(USD) */
@@ -91,17 +93,27 @@ export function validateScreenEvent(value: unknown): value is ScreenEvent {
     Array.isArray(e.font_suggestions) && e.font_suggestions.every(s => isFontId(s?.id) && typeof s.reason === 'string') &&
     (e.font === null || isFontId(e.font)) &&
     (e.analysis === null || (!!e.analysis && [e.analysis.base, e.analysis.ink, e.analysis.accent].every(c => HEX.test(c)))) &&
-    typeof e.approved === 'boolean' && typeof e.hidden === 'boolean'
+    typeof e.approved === 'boolean' && typeof e.hidden === 'boolean' &&
+    (e.forced_at === undefined || e.forced_at === null || (typeof e.forced_at === 'string' && !Number.isNaN(Date.parse(e.forced_at))))
 }
 
 export function isEventLive(event: ScreenEvent, today: string): boolean {
   return event.starts_on <= today && today <= event.ends_on
 }
 
-/** 지금 이 기기에 적용할 이벤트 — 겹치면 늦게 시작한 쪽(더 최근에 준비한 행사)이 이긴다 */
+/** 수동 적용 중인가 — 행사 종료일이 지나면 저절로 풀린다 */
+export function isForced(event: ScreenEvent, today = kstToday()): boolean {
+  return !!event.forced_at && today <= event.ends_on
+}
+
+/** 지금 이 기기에 적용할 이벤트.
+ *  1) '지금 바로 적용'(수동)한 이벤트 — 가장 최근에 누른 것
+ *  2) 기간 중 자동 적용 — 겹치면 늦게 시작한 쪽(더 최근에 준비한 행사)이 이긴다 */
 export function liveOverride(events: ScreenEvent[], target: ScreenTarget, today = kstToday()): LiveEventOverride | null {
-  const live = events
-    .filter(e => e.approved && !e.hidden && (e.store === DEVICE_STORE || e.store === 'all') && isEventLive(e, today) && e.backgrounds[target])
+  const usable = events.filter(e => !e.hidden && (e.store === DEVICE_STORE || e.store === 'all') && e.backgrounds[target])
+  const forced = usable.filter(e => isForced(e, today)).sort((a, b) => String(b.forced_at).localeCompare(String(a.forced_at)))[0]
+  const live = forced ?? usable
+    .filter(e => e.approved && isEventLive(e, today))
     .sort((a, b) => b.starts_on.localeCompare(a.starts_on))[0]
   if (!live) return null
   return { event_id: live.id, title: live.title, ends_on: live.ends_on, background: live.backgrounds[target]!, font: live.font }

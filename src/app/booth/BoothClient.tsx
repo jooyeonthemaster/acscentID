@@ -61,6 +61,7 @@ import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
+import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import {
   PixelIcon,
   RetroProgress,
@@ -418,6 +419,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     loading: backgroundsLoading,
     error: backgroundsError,
     refresh: refreshBackgrounds,
+    liveEvent: screenLiveEvent,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -2976,6 +2978,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       sample="어떤 사진을 찍을까요? ACSCENT PHOTO"
                       compact
                     />
+                    <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                     <div className="bth-admin-toolbar">
                       <b>
                         화면 배경 · {backgrounds.length}개

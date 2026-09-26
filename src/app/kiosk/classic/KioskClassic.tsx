@@ -42,6 +42,7 @@ import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
+import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
 function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
@@ -275,6 +276,7 @@ export function KioskClassic() {
     loading: backgroundsLoading,
     error: backgroundsError,
     refresh: refreshBackgrounds,
+    liveEvent: screenLiveEvent,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -1974,6 +1976,7 @@ export function KioskClassic() {
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
                 <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" />
+                <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">
                   <b>화면 배경 · {backgrounds.length}개</b>
                   <button type="button" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>

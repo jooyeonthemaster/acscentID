@@ -44,6 +44,7 @@ import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-bac
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
+import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import {
   PixelIcon,
   RetroProgress,
@@ -308,6 +309,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     loading: backgroundsLoading,
     error: backgroundsError,
     refresh: refreshBackgrounds,
+    liveEvent: screenLiveEvent,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -2063,6 +2065,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
                 <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" />
+                <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">
                   <b>화면 배경 · {backgrounds.length}개</b>
                   <button type="button" className="rt-btn" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>

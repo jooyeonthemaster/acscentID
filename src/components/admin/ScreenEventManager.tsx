@@ -12,7 +12,7 @@ import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { ScreenFontPicker } from '@/lib/screen-fonts/FontPicker'
 import { ADMIN_HEADER_TOOLBAR_ID } from '@/app/admin/components/AdminHeader'
-import { EVENT_STORE_LABELS, EVENT_STORES, isEventLive, type EventStore, type ScreenEvent } from '@/lib/screen-events/types'
+import { EVENT_STORE_LABELS, EVENT_STORES, isEventLive, isForced, type EventStore, type ScreenEvent } from '@/lib/screen-events/types'
 
 const API = '/api/admin/screen-events'
 // 관리자 머리(스크롤해도 위에 고정) 안의 도구줄 — 있으면 월 필터를 거기에, 없으면 목록 위에 붙여 둔다
@@ -193,7 +193,8 @@ function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
     setUploading(true); setError('')
     try { await onPatch({ add_poster: await uploadPoster(event.id, file) }) } catch (cause) { setError(cause instanceof Error ? cause.message : '업로드 실패') } finally { setUploading(false) }
   }
-  const status = event.approved && hasScreens
+  const forced = isForced(event, today)
+  const status = forced && hasScreens ? { text: '지금 바로 적용 중', cls: 'bg-emerald-600 text-white' } : event.approved && hasScreens
     ? live ? { text: '지금 적용 중', cls: 'bg-emerald-600 text-white' } : ended ? { text: '적용 끝남', cls: 'bg-slate-100 text-slate-500' } : { text: '자동 적용 예약', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' }
     : hasScreens ? { text: '미리보기 확인', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' } : { text: '배경 없음', cls: 'bg-slate-100 text-slate-500' }
   const hint = !generator ? '이미지 AI 전용 키가 설정되면 쓸 수 있습니다.' : !event.poster ? '포스터를 먼저 올려주세요.' : generating ? '포스터를 분석하고 배경 2장을 그리는 중입니다.' : hasScreens ? '마음에 들지 않으면 다시 만들 수 있습니다(약 400원).' : '사람·글자 없는 배경 2장과 어울리는 글꼴 3개를 추천합니다.'
@@ -288,6 +289,15 @@ function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
             {event.hidden ? <Eye size={16} /> : <EyeOff size={16} />}
           </button>
         </div>
+        {hasScreens && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-500">{forced ? '기간과 상관없이 지금 적용 중입니다(해제하거나 행사가 끝나면 평소 배경).' : '기간 전에 미리 띄워 보려면'}</span>
+            <button type="button" disabled={disabled} onClick={() => void onPatch({ force: !forced })}
+              className={`inline-flex h-9 items-center rounded-lg px-3 font-bold disabled:opacity-40 ${forced ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+              {forced ? '수동 적용 해제' : '지금 바로 적용'}
+            </button>
+          </div>
+        )}
         <p className="text-[11px] leading-relaxed text-slate-500">
           {event.approved ? `${dateLabel(event)} 동안 키오스크·포토부스에 적용되고, 끝나면 평소 배경·글꼴로 돌아갑니다.` : hint}
           {event.generation_cost ? ` 누적 비용 약 $${event.generation_cost.toFixed(2)}.` : ''}
@@ -413,7 +423,8 @@ export function ScreenEventManager() {
           ))}
         </div>
   ) : null
-  const liveNow = (data?.events ?? []).find(e => e.approved && !e.hidden && isEventLive(e, today) && (e.backgrounds.kiosk || e.backgrounds.booth))
+  const liveNow = (data?.events ?? []).find(e => !e.hidden && isForced(e, today) && (e.backgrounds.kiosk || e.backgrounds.booth))
+    ?? (data?.events ?? []).find(e => e.approved && !e.hidden && isEventLive(e, today) && (e.backgrounds.kiosk || e.backgrounds.booth))
 
   return (
     <section aria-label="이벤트 배경" className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">

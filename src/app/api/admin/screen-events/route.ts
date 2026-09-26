@@ -58,6 +58,10 @@ export async function PATCH(request: NextRequest) {
       next.approved = body.approved === true
     }
     if (Object.hasOwn(body, 'hidden')) next.hidden = body.hidden === true
+    if (Object.hasOwn(body, 'force')) {
+      if (body.force === true && !next.backgrounds.kiosk && !next.backgrounds.booth) throw new BackgroundError('배경을 먼저 만들어주세요.')
+      next.forced_at = body.force === true ? new Date().toISOString() : null
+    }
     if (event.source === 'manual') {
       if (typeof body.title === 'string' && body.title.trim()) next.title = body.title.trim()
       if (isEventDate(body.starts_on)) next.starts_on = body.starts_on

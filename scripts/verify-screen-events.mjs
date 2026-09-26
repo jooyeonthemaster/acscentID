@@ -84,3 +84,15 @@ test('한국 시간 날짜와 저장 검증', () => {
   assert.equal(types.validateScreenEvent(event({ poster: 'https://example.com/p.jpg' })), false) // posters 에 없는 포스터
   assert.equal(types.validateScreenEvent(event({ backgrounds: { kiosk: background('booth'), booth: null } })), false)
 })
+
+test('지금 바로 적용(수동)은 기간·승인과 상관없이 우선하고, 종료일이 지나면 풀린다', () => {
+  const upcoming = event({ id: 'erp-next', starts_on: '2026-10-10', ends_on: '2026-10-12', approved: false, forced_at: '2026-10-01T10:00:00Z' })
+  const live = event({ id: 'erp-live', starts_on: '2026-10-01', ends_on: '2026-10-05' })
+  assert.equal(types.liveOverride([live, upcoming], 'kiosk', '2026-10-02').event_id, 'erp-next')
+  assert.equal(types.liveOverride([live, { ...upcoming, forced_at: null }], 'kiosk', '2026-10-02').event_id, 'erp-live')
+  assert.equal(types.liveOverride([upcoming], 'kiosk', '2026-10-13'), null) // 끝나면 풀림
+  const newer = event({ id: 'erp-newer', forced_at: '2026-10-02T09:00:00Z' })
+  assert.equal(types.liveOverride([upcoming, newer], 'kiosk', '2026-10-02').event_id, 'erp-newer')
+  assert.equal(types.liveOverride([event({ forced_at: '2026-10-02T09:00:00Z', hidden: true })], 'kiosk', '2026-10-02'), null)
+  assert.equal(types.validateScreenEvent(event({ forced_at: 'nope' })), false)
+})
