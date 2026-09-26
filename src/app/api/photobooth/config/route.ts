@@ -3,6 +3,7 @@ import { mergeFrameCatalog } from '@/lib/photobooth/frame-catalog'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { resolveCurrentEvent } from '@/lib/photobooth/current-event'
+import { inScope, screenEventScope } from '@/lib/photobooth/event-scope'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic'
 /**
  * 부스 화면용 설정 조회 — 진행 중 생카 이벤트 + 활성 소재(프레임/템플릿)
  * 소재는 현재 이벤트 귀속분 + 상시(event_id NULL)만 노출 (종료된 생카 소재 자동 미노출)
+ * 화면 이벤트(ERP·노션 행사)에 묶인 소재는 그 행사가 적용 중일 때만, 맨 앞에 (event-scope.ts)
  * GET /api/photobooth/config
  *
  * 부스가 화면이 켜져 있는 동안 1초마다 묻는다(useLiveBoothConfig). 바뀐 게 없으면 본문 없이 304 로 답한다 —
@@ -18,12 +20,13 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const serviceClient = createServiceRoleClient()
-    const event = await resolveCurrentEvent(serviceClient)
+    const [event, scope] = await Promise.all([resolveCurrentEvent(serviceClient), screenEventScope()])
 
     // Include inactive/event-bound overrides before merging; otherwise hidden defaults return.
+    // '*' — screen_event_id 칸이 생기기 전(마이그레이션 전)에도 읽기가 깨지지 않게
     const { data, error } = await serviceClient
       .from('photobooth_assets')
-      .select('id, kind, title, image_url, display_order, event_id, is_active')
+      .select('*')
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
 
@@ -34,13 +37,19 @@ export async function GET(request: NextRequest) {
 
     // 이벤트 귀속 소재를 상시 소재보다 앞에 배치 (생카 프레임이 첫 선택지)
     const assets = mergeFrameCatalog(data ?? [])
-      .filter(a => a.is_active && (!a.event_id || a.event_id === event?.id))
+      .filter(a => a.is_active && (!a.event_id || a.event_id === event?.id) && inScope(a.screen_event_id, scope))
       .sort((a, b) => {
-      const aEvent = a.event_id ? 0 : 1
-      const bEvent = b.event_id ? 0 : 1
+      const aEvent = a.event_id || a.screen_event_id ? 0 : 1
+      const bEvent = b.event_id || b.screen_event_id ? 0 : 1
       if (aEvent !== bEvent) return aEvent - bEvent
       return a.display_order - b.display_order
     })
+      // 부스에 필요한 칸만 — select('*') 의 생성·수정 시각 같은 내부 칸은 내보내지 않는다
+      .map(({ id, kind, title, image_url, display_order, event_id, is_active, category, thumbnail_url, screen_event_id }) => ({
+        id, kind, title, image_url, display_order, event_id, is_active,
+        ...(category ? { category } : {}), ...(thumbnail_url ? { thumbnail_url } : {}),
+        ...(screen_event_id ? { screen_event_id } : {}),
+      }))
 
     const body = {
       event: event

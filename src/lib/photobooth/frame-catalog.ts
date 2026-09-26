@@ -11,6 +11,8 @@ export interface ManagedFrame {
   is_active: boolean
   category?: string
   thumbnail_url?: string
+  /** 화면 이벤트(ERP·노션 행사)에 묶으면 그 행사가 적용 중일 때만 부스에 보인다 — event-scope.ts */
+  screen_event_id?: string | null
 }
 
 // Fixed UUIDs let the existing assets table store overrides without a schema change.

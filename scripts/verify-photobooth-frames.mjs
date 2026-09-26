@@ -77,7 +77,7 @@ test('every text in the frame sources stays inside the print trim safe area', ()
 });
 
 function apiHarness() {
-  const rows = new Map(); let admin = true; let event = null; let fail = false;
+  const rows = new Map(); let admin = true; let event = null; let fail = false; let screenEvents = [];
   const db = { from() {
     let action='select', value, id, ignore=false;
     const query = {
@@ -102,6 +102,7 @@ function apiHarness() {
     '@/lib/auth/require-admin':{requireAdmin:async()=>admin?{id:'admin'}:null},
     '@/lib/supabase/service':{createServiceRoleClient:()=>db},
     '@/lib/photobooth/current-event':{resolveCurrentEvent:async()=>event},
+    '@/lib/screen-events/store':{readScreenEvents:async()=>screenEvents},
     'next/server':{NextResponse:Object.assign(function(body,options={}){return {body,status:options.status||200,headers:options.headers}},{json:(body,options={})=>({body,status:options.status||200,headers:options.headers})})},
   };
   const modules=new Map();
@@ -109,6 +110,8 @@ function apiHarness() {
     rows, admin:loadTs('src/app/api/admin/photobooth/route.ts',mocks,modules),
     public:loadTs('src/app/api/photobooth/config/route.ts',mocks,modules),
     auth:value=>admin=value, event:value=>event=value, fail:value=>fail=value,
+    // 화면 이벤트(ERP·노션 행사) — 바꾼 뒤엔 인스턴스 기억(20초)을 비워야 바로 보인다
+    screenEvents:value=>{screenEvents=value;loadTs('src/lib/photobooth/event-scope.ts',mocks,modules).resetEventScopeCache();},
   };
 }
 const request=body=>({json:async()=>body,nextUrl:{searchParams:new URLSearchParams(body)}});
@@ -178,4 +181,34 @@ test('live refresh: 1-second updates, deduplication, no overlapping fetch, offli
     globalThis.document.hidden=false;listeners.get('online')();await settle();assert.equal(calls,before+1);
     cleanup();assert.equal(intervals.size,0);assert.equal(listeners.size,0);assert.equal(timeouts.size,0);
   } finally { Object.assign(globalThis,original) }
+});
+
+// 행사(화면 이벤트)에 묶인 프레임은 그 행사가 적용 중(기간 안·지금 바로 적용)일 때만, 맨 앞에 — 모르는 행사는 거절
+test('frames bound to a screen event show only while that event is live, first in order',async()=>{
+  const h=apiHarness(); const kst=offset=>new Date(Date.now()+9*3600_000+offset*86400_000).toISOString().slice(0,10);
+  const ev=(id,starts,ends,extra={})=>({id,source:'manual',erp_id:null,notion_block_id:null,store:'wow',title:id,starts_on:kst(starts),ends_on:kst(ends),
+    posters:[],poster:null,backgrounds:{booth:null,kiosk:null},font_suggestions:[],font:null,analysis:null,approved:false,hidden:false,generated_at:null,generation_cost:null,updated_at:new Date().toISOString(),...extra});
+  h.screenEvents([ev('now-fest',-1,1),ev('later-fest',5,6),ev('gone-fest',-1,1,{hidden:true}),ev('other-store',-1,1,{store:'id'})]);
+  const [first,second]=generated;
+  assert.equal((await h.admin.PATCH(request({id:first.id,screen_event_id:'later-fest'}))).status,200);
+  assert.equal((await h.public.GET()).body.frames.some(f=>f.id===first.id),false,'future event frame hidden');
+  assert.equal((await h.admin.PATCH(request({id:second.id,screen_event_id:'now-fest'}))).status,200);
+  const live=(await h.public.GET()).body.frames;
+  assert.equal(live[0].id,second.id,'live event frame comes first');
+  assert.equal(live[0].screen_event_id,'now-fest');
+  // '지금 바로 적용'을 누르면 기간 전이라도 보인다
+  h.screenEvents([ev('now-fest',-1,1),ev('later-fest',5,6,{forced_at:new Date().toISOString()})]);
+  assert.equal((await h.public.GET()).body.frames.some(f=>f.id===first.id),true,'forced event frame visible');
+  // 숨긴 행사·다른 매장 행사·모르는 id 는 고를 수 없다
+  for(const bad of ['gone-fest','other-store','nope','BAD ID'])
+    assert.equal((await h.admin.PATCH(request({id:first.id,screen_event_id:bad}))).status,400,bad);
+  // 행사가 지워지면(목록에서 사라지면) 묶인 프레임은 부스에 안 나온다 — 상시로 되살아나지 않는다
+  h.screenEvents([]);
+  assert.equal((await h.public.GET()).body.frames.some(f=>f.id===second.id),false,'deleted event frame hidden');
+  // 상시로 풀면 다시 보인다
+  assert.equal((await h.admin.PATCH(request({id:second.id,screen_event_id:null}))).status,200);
+  assert.equal((await h.public.GET()).body.frames.some(f=>f.id===second.id),true);
+  // 공개 응답은 부스에 필요한 칸만
+  const keys=new Set((await h.public.GET()).body.frames.flatMap(f=>Object.keys(f)));
+  for(const key of keys) assert.ok(['id','kind','title','image_url','display_order','event_id','is_active','category','thumbnail_url','screen_event_id'].includes(key),key);
 });

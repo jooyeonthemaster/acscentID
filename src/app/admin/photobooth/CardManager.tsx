@@ -38,6 +38,7 @@ import {
   Check,
   AlertTriangle,
 } from 'lucide-react'
+import { linkedEvent, matchesScreenEvent, ScreenEventFilter, ScreenEventSelect, type ScreenEventOption } from './screen-events'
 
 interface BoothCard {
   id: string
@@ -51,11 +52,8 @@ interface BoothCard {
   scan_count: number
   created_at: string
   photobooth_events: { title: string } | null
-}
-
-interface EventOption {
-  id: string
-  title: string
+  /** 화면 이벤트(ERP·노션 행사) — 행사별로 묶어 관리. 카드 인식은 켜기·끄기로만 정한다 */
+  screen_event_id?: string | null
 }
 
 // ======================
@@ -98,7 +96,7 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 /** 카드 한 장의 앞/뒷면 인쇄 원판 */
-async function buildPrintFiles(card: BoothCard, origin: string) {
+async function buildPrintFiles(card: BoothCard, origin: string, eventTitle: string | null) {
   const [frontSrc, qrDataUrl] = await Promise.all([
     loadImage(card.image_url),
     QRCode.toDataURL(cardUrl(origin, card.code), { width: 900, margin: 1 }),
@@ -110,7 +108,7 @@ async function buildPrintFiles(card: BoothCard, origin: string) {
     code: card.code,
     qrImage,
     cardTitle: card.title,
-    eventTitle: card.photobooth_events?.title ?? null,
+    eventTitle,
   })
   return { front, back }
 }
@@ -118,14 +116,10 @@ async function buildPrintFiles(card: BoothCard, origin: string) {
 // ======================
 // 목록
 // ======================
-export function CardManager({
-  events,
-  onToast,
-}: {
-  events: EventOption[]
-  onToast: (msg: string) => void
-}) {
+export function CardManager({ onToast }: { onToast: (msg: string) => void }) {
   const [cards, setCards] = useState<BoothCard[]>([])
+  const [events, setEvents] = useState<ScreenEventOption[]>([])
+  const [eventFilter, setEventFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
   const [deleting, setDeleting] = useState<BoothCard | null>(null)
@@ -140,6 +134,7 @@ export function CardManager({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setCards(data.cards ?? [])
+      setEvents(data.screen_events ?? [])
     } catch (err) {
       console.error('포토카드 목록 로드 실패:', err)
       onToast('포토카드 목록을 불러오지 못했습니다.')
@@ -166,6 +161,24 @@ export function CardManager({
     }
   }
 
+  /** 카드 뒷면·목록에 적을 행사 이름 — 화면 이벤트 우선, 없으면 예전 생카 이벤트 */
+  const eventTitleOf = (card: BoothCard) => linkedEvent(card, events)?.title ?? card.photobooth_events?.title ?? null
+
+  const handleEvent = async (card: BoothCard, screenEventId: string | null) => {
+    try {
+      const res = await fetch('/api/admin/photobooth/cards', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: card.id, screen_event_id: screenEventId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || '행사 연결에 실패했습니다.')
+      setCards((prev) => prev.map((c) => (c.id === card.id ? { ...c, screen_event_id: screenEventId } : c)))
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : '행사 연결에 실패했습니다.')
+    }
+  }
+
   const handleDelete = async () => {
     if (!deleting) return
     try {
@@ -182,7 +195,7 @@ export function CardManager({
   /** 카드 한 장의 인쇄 파일 다운로드 */
   const downloadOne = async (card: BoothCard) => {
     try {
-      const { front, back } = await buildPrintFiles(card, window.location.origin)
+      const { front, back } = await buildPrintFiles(card, window.location.origin, eventTitleOf(card))
       downloadBlob(await canvasToBlob(front), `${card.code}_front.png`)
       setTimeout(async () => {
         downloadBlob(await canvasToBlob(back), `${card.code}_back.png`)
@@ -218,7 +231,7 @@ export function CardManager({
       zip.file('README.txt', readme)
 
       for (const card of targets) {
-        const { front, back } = await buildPrintFiles(card, origin)
+        const { front, back } = await buildPrintFiles(card, origin, eventTitleOf(card))
         zip.file(`${card.code}_front.png`, await canvasToBlob(front))
         zip.file(`${card.code}_back.png`, await canvasToBlob(back))
       }
@@ -235,12 +248,13 @@ export function CardManager({
   }
 
   const filtered = cards.filter((c) => {
+    if (!matchesScreenEvent(c, eventFilter, events)) return false
     if (!query.trim()) return true
     const q = query.trim().toLowerCase()
     return (
       c.title.toLowerCase().includes(q) ||
       c.code.toLowerCase().includes(q) ||
-      (c.photobooth_events?.title ?? '').toLowerCase().includes(q) ||
+      (eventTitleOf(c) ?? '').toLowerCase().includes(q) ||
       (c.source_credit ?? '').toLowerCase().includes(q)
     )
   })
@@ -279,14 +293,17 @@ export function CardManager({
       </div>
 
       {cards.length > 0 && (
-        <div className="relative mb-4 max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="카드 이름 · 번호 · 이벤트 · 제공자 검색"
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-slate-900"
-          />
+        <div className="mb-4 grid gap-3 sm:grid-cols-2">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="카드 이름 · 번호 · 행사 · 제공자 검색"
+              className="w-full min-h-12 pl-9 pr-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-slate-900"
+            />
+          </div>
+          <ScreenEventFilter value={eventFilter} options={events} items={cards} onChange={setEventFilter} />
         </div>
       )}
 
@@ -296,7 +313,7 @@ export function CardManager({
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 py-12 text-center text-sm text-slate-400">
-          {cards.length === 0 ? '등록된 포토카드가 없습니다.' : '검색 결과가 없습니다.'}
+          {cards.length === 0 ? '등록된 포토카드가 없습니다.' : '조건에 맞는 카드가 없습니다.'}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -323,8 +340,11 @@ export function CardManager({
                 <p className="text-sm font-semibold text-slate-900 truncate">{card.title}</p>
                 <p className="font-mono text-xs text-slate-500 tracking-widest mt-0.5">{card.code}</p>
                 <p className="text-[11px] text-slate-400 mt-1 truncate">
-                  {card.photobooth_events?.title ?? '상시'} · 사용 {card.scan_count}
+                  {eventTitleOf(card) ?? '상시'} · 사용 {card.scan_count}
                 </p>
+                <div className="mt-2">
+                  <ScreenEventSelect value={card.screen_event_id} options={events} onChange={(id) => void handleEvent(card, id)} />
+                </div>
                 {card.source_credit && (
                   <p className="text-[11px] text-slate-400 truncate">제공 {card.source_credit}</p>
                 )}
@@ -369,6 +389,7 @@ export function CardManager({
       {adding && (
         <CardFormModal
           events={events}
+          defaultEventId={eventFilter !== 'all' && eventFilter !== 'none' && eventFilter !== 'orphan' ? eventFilter : ''}
           onClose={() => setAdding(false)}
           onSaved={async (msg) => {
             onToast(msg)
@@ -378,7 +399,7 @@ export function CardManager({
         />
       )}
 
-      {preview && <PrintPreviewModal card={preview} onClose={() => setPreview(null)} />}
+      {preview && <PrintPreviewModal card={preview} eventTitle={eventTitleOf(preview)} onClose={() => setPreview(null)} />}
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -412,7 +433,7 @@ export function CardManager({
 // ======================
 // 인쇄 미리보기 (재단선·안전영역 확인)
 // ======================
-function PrintPreviewModal({ card, onClose }: { card: BoothCard; onClose: () => void }) {
+function PrintPreviewModal({ card, eventTitle, onClose }: { card: BoothCard; eventTitle: string | null; onClose: () => void }) {
   const [front, setFront] = useState<string | null>(null)
   const [back, setBack] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -421,7 +442,7 @@ function PrintPreviewModal({ card, onClose }: { card: BoothCard; onClose: () => 
     let cancelled = false
     ;(async () => {
       try {
-        const files = await buildPrintFiles(card, window.location.origin)
+        const files = await buildPrintFiles(card, window.location.origin, eventTitle)
         if (cancelled) return
         setFront(withPrintGuides(files.front).toDataURL('image/png'))
         setBack(withPrintGuides(files.back).toDataURL('image/png'))
@@ -432,7 +453,7 @@ function PrintPreviewModal({ card, onClose }: { card: BoothCard; onClose: () => 
     return () => {
       cancelled = true
     }
-  }, [card])
+  }, [card, eventTitle])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -504,15 +525,17 @@ interface QueueItem {
 
 function CardFormModal({
   events,
+  defaultEventId,
   onClose,
   onSaved,
 }: {
-  events: EventOption[]
+  events: ScreenEventOption[]
+  defaultEventId: string
   onClose: () => void
   onSaved: (msg: string) => Promise<void>
 }) {
   const [items, setItems] = useState<QueueItem[]>([])
-  const [eventId, setEventId] = useState('')
+  const [eventId, setEventId] = useState(defaultEventId)
   const [credit, setCredit] = useState('')
   const [tighten, setTighten] = useState(0.5)
   const [saving, setSaving] = useState(false)
@@ -626,7 +649,7 @@ function CardFormModal({
             title: item.title.trim() || '무제 카드',
             image_url: imageUrl,
             cutout_url: cutoutUrl,
-            event_id: eventId || null,
+            screen_event_id: eventId || null,
             source_credit: credit.trim() || null,
           }),
         })
@@ -662,19 +685,13 @@ function CardFormModal({
 
         <div className="grid grid-cols-2 gap-3 mb-2">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">소속 이벤트</label>
-            <select
-              value={eventId}
-              onChange={(e) => setEventId(e.target.value)}
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">행사</label>
+            <ScreenEventSelect
+              value={eventId || null}
+              options={events}
+              onChange={(id) => setEventId(id ?? '')}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-base focus:outline-none focus:border-slate-900 bg-white"
-            >
-              <option value="">상시</option>
-              {events.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.title}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">

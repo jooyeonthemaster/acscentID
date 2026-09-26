@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { generateCardCode } from '@/lib/photobooth/card-code'
+import { checkScreenEvent } from '@/lib/photobooth/asset-admin'
+import { MISSING_EVENT_COLUMN_MESSAGE, missingEventColumn, screenEventScope } from '@/lib/photobooth/event-scope'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,8 +11,9 @@ export const dynamic = 'force-dynamic'
 /**
  * 포토카드 관리 (관리자 전용)
  * GET    /api/admin/photobooth/cards          목록
- * POST   /api/admin/photobooth/cards          등록 { title, image_url, cutout_url, event_id?, source_credit? }
- * PATCH  /api/admin/photobooth/cards          수정 { id, title?, is_active?, display_order?, source_credit?, cutout_url? }
+ * POST   /api/admin/photobooth/cards          등록 { title, image_url, cutout_url, event_id?, screen_event_id?, source_credit? }
+ * PATCH  /api/admin/photobooth/cards          수정 { id, title?, is_active?, display_order?, source_credit?, cutout_url?, screen_event_id? }
+ *        screen_event_id = 화면 이벤트(ERP·노션 행사)별로 묶어 관리. 카드 인식은 켜기·끄기로만 정한다(행사 뒤에 와도 쓸 수 있게)
  * DELETE /api/admin/photobooth/cards?id=...   삭제
  */
 export async function GET() {
@@ -27,7 +30,8 @@ export async function GET() {
     console.error('Admin photobooth cards fetch failed:', error)
     return NextResponse.json({ error: '목록 조회에 실패했습니다' }, { status: 500 })
   }
-  return NextResponse.json({ success: true, cards: data ?? [] })
+  const scope = await screenEventScope()
+  return NextResponse.json({ success: true, cards: data ?? [], screen_events: scope.options })
 }
 
 export async function POST(request: NextRequest) {
@@ -55,6 +59,8 @@ export async function POST(request: NextRequest) {
   if (!imageUrl.startsWith('https://')) {
     return NextResponse.json({ error: '카드 이미지를 먼저 업로드해주세요' }, { status: 400 })
   }
+  const screenEvent = await checkScreenEvent(body.screen_event_id ?? null)
+  if ('error' in screenEvent) return NextResponse.json({ error: screenEvent.error }, { status: 400 })
 
   const serviceClient = createServiceRoleClient()
 
@@ -70,11 +76,13 @@ export async function POST(request: NextRequest) {
         cutout_url: cutoutUrl || null,
         event_id: eventId,
         source_credit: sourceCredit,
+        ...(screenEvent.id ? { screen_event_id: screenEvent.id } : {}),
       })
       .select('*')
       .single()
 
     if (!error) return NextResponse.json({ success: true, card: data })
+    if (missingEventColumn(error)) return NextResponse.json({ error: MISSING_EVENT_COLUMN_MESSAGE }, { status: 409 })
     if (error.code !== '23505') {
       console.error('Admin photobooth card insert failed:', error)
       return NextResponse.json({ error: '등록에 실패했습니다' }, { status: 500 })
@@ -105,11 +113,17 @@ export async function PATCH(request: NextRequest) {
         ? body.source_credit.trim().slice(0, 200)
         : null
   }
+  if ('screen_event_id' in body) {
+    const checked = await checkScreenEvent(body.screen_event_id)
+    if ('error' in checked) return NextResponse.json({ error: checked.error }, { status: 400 })
+    payload.screen_event_id = checked.id
+  }
 
   const serviceClient = createServiceRoleClient()
   const { error } = await serviceClient.from('photobooth_cards').update(payload).eq('id', body.id)
 
   if (error) {
+    if (missingEventColumn(error)) return NextResponse.json({ error: MISSING_EVENT_COLUMN_MESSAGE }, { status: 409 })
     console.error('Admin photobooth card update failed:', error)
     return NextResponse.json({ error: '수정에 실패했습니다' }, { status: 500 })
   }

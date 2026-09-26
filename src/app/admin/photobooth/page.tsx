@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
 import { AdminTabs, useHashTab } from '../components/AdminTabs'
 import { CardManager } from './CardManager'
+import { linkedEvent, matchesScreenEvent, ScreenEventFilter, ScreenEventSelect, type ScreenEventOption } from './screen-events'
 import { ShotStats } from './ShotStats'
 import { ScreenManagerTabs } from '@/components/admin/ScreenManagerTabs'
 import { supabase } from '@/lib/supabase/client'
@@ -78,6 +79,8 @@ interface BoothAsset {
   created_at: string
   /** 기본 카탈로그 프레임의 썸네일 (목록은 1200x1800 원본 대신 이걸로 그린다) */
   thumbnail_url?: string
+  /** 화면 이벤트(ERP·노션 행사)에 묶으면 그 행사가 적용 중일 때만 부스에 보인다 */
+  screen_event_id?: string | null
 }
 
 interface BoothPass {
@@ -154,6 +157,8 @@ export default function AdminPhotoboothPage() {
     editing: null,
   })
   const [frameSearch, setFrameSearch] = useState('')
+  const [screenEvents, setScreenEvents] = useState<ScreenEventOption[]>([])
+  const [assetEventFilter, setAssetEventFilter] = useState('all')
   const [addingKind, setAddingKind] = useState<'frame' | 'template' | null>(null)
   const [passModalOpen, setPassModalOpen] = useState(false)
   const [issuedCodes, setIssuedCodes] = useState<string[] | null>(null)
@@ -183,7 +188,10 @@ export default function AdminPhotoboothPage() {
         passesRes.json(),
       ])
       if (eventsRes.ok) setEvents(eventsData.events ?? [])
-      if (assetsRes.ok) setAssets(assetsData.assets ?? [])
+      if (assetsRes.ok) {
+        setAssets(assetsData.assets ?? [])
+        setScreenEvents(assetsData.screen_events ?? [])
+      }
       if (passesRes.ok) {
         setPasses(passesData.passes ?? [])
         setPassStats(passesData.stats ?? null)
@@ -264,6 +272,16 @@ export default function AdminPhotoboothPage() {
     }
   }
 
+  /** 행사에 묶기·풀기 — 묶인 소재는 그 행사가 적용 중일 때만 부스에 보인다 */
+  const handleAssetEvent = async (asset: BoothAsset, screenEventId: string | null) => {
+    try {
+      await patchAsset(asset.id, { screen_event_id: screenEventId })
+      setAssets((prev) => prev.map((a) => (a.id === asset.id ? { ...a, screen_event_id: screenEventId } : a)))
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '행사 연결에 실패했습니다.')
+    }
+  }
+
   const handleAssetMove = async (asset: BoothAsset, direction: -1 | 1) => {
     const siblings = assets
       .filter((a) => a.kind === asset.kind)
@@ -286,7 +304,7 @@ export default function AdminPhotoboothPage() {
     kind: 'frame' | 'template',
     title: string,
     file: File,
-    eventId: string | null
+    screenEventId: string | null
   ) => {
     const imageUrl = await uploadBoothImage(`${kind}s`, file)
     const siblings = assets.filter((a) => a.kind === kind)
@@ -301,7 +319,7 @@ export default function AdminPhotoboothPage() {
         title,
         image_url: imageUrl,
         display_order: nextOrder,
-        event_id: eventId,
+        screen_event_id: screenEventId,
       }),
     })
     if (!res.ok) {
@@ -568,10 +586,7 @@ export default function AdminPhotoboothPage() {
 
             {/* ---------- 포토카드 ---------- */}
             {tab === 'cards' && (
-            <CardManager
-              events={events.map((e) => ({ id: e.id, title: e.title }))}
-              onToast={showToast}
-            />
+            <CardManager onToast={showToast} />
             )}
 
             {/* ---------- 이용권 ---------- */}
@@ -698,9 +713,11 @@ export default function AdminPhotoboothPage() {
 
             {/* ---------- 소재 (프레임/템플릿) ---------- */}
             {tab === 'assets' && (['frame', 'template'] as const).map((kind) => {
-              const list = (kind === 'frame' ? frames.filter(frame => frame.title.toLowerCase().includes(frameSearch.trim().toLowerCase())) : templates).sort(
-                (a, b) => a.display_order - b.display_order
-              )
+              const list = (kind === 'frame' ? frames.filter(frame => frame.title.toLowerCase().includes(frameSearch.trim().toLowerCase())) : templates)
+                .filter((asset) => matchesScreenEvent(asset, assetEventFilter, screenEvents))
+                .sort((a, b) => a.display_order - b.display_order)
+              // 검색·행사로 거른 목록에서는 순서를 바꾸지 않는다(보이지 않는 소재와 자리가 섞인다)
+              const narrowed = (kind === 'frame' && !!frameSearch.trim()) || assetEventFilter !== 'all'
               return (
                 <section key={kind}>
                   <div className="flex items-center justify-between mb-4">
@@ -719,14 +736,18 @@ export default function AdminPhotoboothPage() {
                     </button>
                   </div>
 
-                  {kind === 'frame' && (
-                    <label className="mb-4 flex items-center gap-3 text-sm text-slate-600">
-                      <span>프레임 검색</span>
-                      <input value={frameSearch} onChange={e => setFrameSearch(e.target.value)}
-                        placeholder="생일, 리본, 레트로…" className="min-h-12 flex-1 rounded-lg border border-slate-300 bg-white px-3" />
-                      <span>{list.length}종</span>
-                    </label>
-                  )}
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    {kind === 'frame' && (
+                      <label className="flex items-center gap-3 text-sm text-slate-600">
+                        <span className="shrink-0">프레임 검색</span>
+                        <input value={frameSearch} onChange={e => setFrameSearch(e.target.value)}
+                          placeholder="생일, 리본, 레트로…" className="min-h-12 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3" />
+                        <span className="shrink-0">{list.length}종</span>
+                      </label>
+                    )}
+                    <ScreenEventFilter value={assetEventFilter} options={screenEvents}
+                      items={kind === 'frame' ? frames : templates} onChange={setAssetEventFilter} />
+                  </div>
                   {list.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-dashed border-slate-300 py-10 text-center text-sm text-slate-400">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -751,22 +772,28 @@ export default function AdminPhotoboothPage() {
                               alt={asset.title}
                               className="w-full h-full object-contain"
                             />
-                            <span
-                              className={`absolute top-2 left-2 text-[10px] font-bold rounded-full px-2 py-0.5 ${
-                                asset.event_id
-                                  ? 'bg-pink-100 text-pink-700'
-                                  : 'bg-slate-100 text-slate-500'
-                              }`}
-                            >
-                              {asset.event_id
-                                ? eventTitleById.get(asset.event_id) ?? '이벤트'
-                                : '상시'}
-                            </span>
+                            {(() => {
+                              const linked = linkedEvent(asset, screenEvents)
+                              const legacy = asset.event_id ? eventTitleById.get(asset.event_id) ?? '생카 이벤트' : null
+                              return (
+                                <span
+                                  className={`absolute top-2 left-2 max-w-[calc(100%-1rem)] truncate text-[10px] font-bold rounded-full px-2 py-0.5 ${
+                                    linked?.live ? 'bg-pink-100 text-pink-700' : linked || legacy ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-500'
+                                  }`}
+                                >
+                                  {linked?.title ?? legacy ?? '상시'}
+                                </span>
+                              )
+                            })()}
                           </div>
                           <div className="p-3">
                             <p className="text-sm font-semibold text-slate-900 truncate">
                               {asset.title}
                             </p>
+                            <div className="mt-2">
+                              <ScreenEventSelect value={asset.screen_event_id} options={screenEvents}
+                                onChange={(id) => void handleAssetEvent(asset, id)} />
+                            </div>
                             <div className="flex items-center gap-1 mt-2">
                               <button
                                 onClick={() => handleAssetToggle(asset)}
@@ -785,7 +812,7 @@ export default function AdminPhotoboothPage() {
                               </button>
                               <button
                                 onClick={() => handleAssetMove(asset, -1)}
-                                disabled={index === 0 || (kind === 'frame' && !!frameSearch.trim())}
+                                disabled={index === 0 || narrowed}
                                 className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-30"
                                 title="위로"
                               >
@@ -793,7 +820,7 @@ export default function AdminPhotoboothPage() {
                               </button>
                               <button
                                 onClick={() => handleAssetMove(asset, 1)}
-                                disabled={index === list.length - 1 || (kind === 'frame' && !!frameSearch.trim())}
+                                disabled={index === list.length - 1 || narrowed}
                                 className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-30"
                                 title="아래로"
                               >
@@ -832,8 +859,8 @@ export default function AdminPhotoboothPage() {
       {addingKind && (
         <AssetFormModal
           kind={addingKind}
-          events={events}
-          defaultEventId={liveEvent?.id ?? null}
+          events={screenEvents}
+          defaultEventId={assetEventFilter !== 'all' && assetEventFilter !== 'none' && assetEventFilter !== 'orphan' ? assetEventFilter : null}
           onSave={handleAssetCreate}
           onClose={() => setAddingKind(null)}
         />
@@ -1110,13 +1137,13 @@ function AssetFormModal({
   onClose,
 }: {
   kind: 'frame' | 'template'
-  events: BoothEvent[]
+  events: ScreenEventOption[]
   defaultEventId: string | null
   onSave: (
     kind: 'frame' | 'template',
     title: string,
     file: File,
-    eventId: string | null
+    screenEventId: string | null
   ) => Promise<void>
   onClose: () => void
 }) {
@@ -1183,21 +1210,15 @@ function AssetFormModal({
           className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-base focus:outline-none focus:border-slate-900 mb-4"
         />
 
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">소속 이벤트</label>
-        <select
-          value={eventId}
-          onChange={(e) => setEventId(e.target.value)}
+        <label className="block text-sm font-semibold text-slate-700 mb-1.5">행사</label>
+        <ScreenEventSelect
+          value={eventId || null}
+          options={events}
+          onChange={(id) => setEventId(id ?? '')}
           className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-base focus:outline-none focus:border-slate-900 mb-1 bg-white"
-        >
-          <option value="">상시 (모든 기간 노출)</option>
-          {events.map((event) => (
-            <option key={event.id} value={event.id}>
-              {event.title}
-            </option>
-          ))}
-        </select>
+        />
         <p className="text-xs text-slate-400 mb-4">
-          이벤트에 귀속하면 해당 생카 기간에만 부스에 노출됩니다.
+          행사(이벤트 배경과 같은 목록)에 묶으면 그 행사 기간이나 &lsquo;지금 바로 적용&rsquo; 중에만 부스에 나옵니다.
         </p>
 
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">이미지</label>

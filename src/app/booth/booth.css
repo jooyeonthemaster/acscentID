@@ -1008,15 +1008,35 @@
 .bth-admin-bgs .bth-admin-toolbar {
   margin-bottom: 10px;
 }
-.bth-admin-bgs .bth-admin-toolbar > b {
-  flex: none;
-  white-space: nowrap;
-}
 .bth-admin-toolbar .dat-launch.dat-launch {
   flex: 1;
   min-width: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   margin: 0;
+}
+/* 버튼 세 개(이벤트 배경·프레임·포토카드 QR)가 좁은 제목 줄에 들어가게 — 이름만, 글자 폭만큼, 줄바꿈 없이.
+   자리가 모자라면 버튼 이름 대신 '화면 배경 · N개' 제목이 두 줄이 된다 */
+.bth-admin-toolbar .dat-launch.dat-launch {
+  flex: none;
+  grid-auto-columns: max-content;
+}
+.bth-admin-toolbar .dat-launch button {
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+.bth-admin-toolbar .dat-launch button b {
+  font-size: 15px;
+}
+.bth-admin-toolbar .dat-launch button span {
+  display: none;
+}
+.bth-admin-bgs .bth-admin-toolbar > b {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: keep-all;
 }
 .bth-admin-toolbar .dat-launch button {
   min-width: 0;

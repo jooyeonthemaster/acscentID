@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { mergeFrameCatalog, getDefaultFrame, frameOverrideRow, FRAME_TOMBSTONE } from '@/lib/photobooth/frame-catalog'
+import { checkScreenEvent, patchBoothAsset } from '@/lib/photobooth/asset-admin'
+import { MISSING_EVENT_COLUMN_MESSAGE, missingEventColumn, screenEventScope } from '@/lib/photobooth/event-scope'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 
@@ -9,8 +11,9 @@ export const dynamic = 'force-dynamic'
 /**
  * 포토부스 소재 관리 (관리자 전용)
  * GET    /api/admin/photobooth              전체 목록
- * POST   /api/admin/photobooth              소재 등록 { kind, title, image_url, display_order? }
- * PATCH  /api/admin/photobooth              수정 { id, title?, is_active?, display_order? }
+ * POST   /api/admin/photobooth              소재 등록 { kind, title, image_url, display_order?, screen_event_id? }
+ * PATCH  /api/admin/photobooth              수정 { id, title?, is_active?, display_order?, screen_event_id? }
+ *        screen_event_id = 화면 이벤트(ERP·노션 행사) — 그 행사가 적용 중일 때만 부스에 보인다. null = 상시
  * DELETE /api/admin/photobooth?id=...       삭제
  */
 export async function GET() {
@@ -29,7 +32,13 @@ export async function GET() {
     console.error('Admin photobooth fetch failed:', error)
     return NextResponse.json({ error: '목록 조회에 실패했습니다' }, { status: 500 })
   }
-  return NextResponse.json({ success: true, assets: mergeFrameCatalog(data ?? []).sort((a, b) => a.display_order - b.display_order) })
+  // 행사 선택지(이 매장의 진행 중·다가오는·지난 화면 이벤트)도 같이 — 소재마다 행사를 고른다
+  const scope = await screenEventScope()
+  return NextResponse.json({
+    success: true,
+    assets: mergeFrameCatalog(data ?? []).sort((a, b) => a.display_order - b.display_order),
+    screen_events: scope.options,
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -56,15 +65,22 @@ export async function POST(request: NextRequest) {
   if (!imageUrl.startsWith('https://')) {
     return NextResponse.json({ error: '이미지를 먼저 업로드해주세요' }, { status: 400 })
   }
+  const screenEvent = await checkScreenEvent(body.screen_event_id ?? null)
+  if ('error' in screenEvent) return NextResponse.json({ error: screenEvent.error }, { status: 400 })
 
   const serviceClient = createServiceRoleClient()
   const { data, error } = await serviceClient
     .from('photobooth_assets')
-    .insert({ kind, title, image_url: imageUrl, display_order: displayOrder, event_id: eventId })
+    .insert({
+      kind, title, image_url: imageUrl, display_order: displayOrder, event_id: eventId,
+      // 칸이 없는 DB(마이그레이션 전)에도 상시 등록은 되게 — 행사를 고른 경우에만 보낸다
+      ...(screenEvent.id ? { screen_event_id: screenEvent.id } : {}),
+    })
     .select('*')
     .single()
 
   if (error) {
+    if (missingEventColumn(error)) return NextResponse.json({ error: MISSING_EVENT_COLUMN_MESSAGE }, { status: 409 })
     console.error('Admin photobooth insert failed:', error)
     return NextResponse.json({ error: '등록에 실패했습니다' }, { status: 500 })
   }
@@ -80,34 +96,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
   }
 
-  const defaultFrame = getDefaultFrame(body.id)
-  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (typeof body.title === 'string' && body.title.trim()) payload.title = body.title.trim()
-  if (typeof body.is_active === 'boolean') payload.is_active = body.is_active
-  if (Number.isInteger(body.display_order)) payload.display_order = body.display_order
-  // 기본 프레임은 행사에 묶지 않는다 — event_id 외래키가 ON DELETE CASCADE 라, 묶인 행사를 지우면
-  // 설정 행이 함께 사라져 숨겨 둔 기본 프레임이 상시 노출로 되살아난다.
-  if ('event_id' in body && !defaultFrame) {
-    payload.event_id =
-      typeof body.event_id === 'string' && body.event_id.trim() ? body.event_id.trim() : null
-  }
-
-  const serviceClient = createServiceRoleClient()
-  // Materialize defaults once, without overwriting any existing settings on another admin's save.
-  if (defaultFrame) {
-    const { error: seedError } = await serviceClient.from('photobooth_assets')
-      .upsert(frameOverrideRow(defaultFrame), { onConflict: 'id', ignoreDuplicates: true })
-    if (seedError) return NextResponse.json({ error: '프레임 설정 준비에 실패했습니다' }, { status: 500 })
-  }
-  const { error } = await serviceClient
-    .from('photobooth_assets')
-    .update(payload)
-    .eq('id', body.id)
-
-  if (error) {
-    console.error('Admin photobooth update failed:', error)
-    return NextResponse.json({ error: '수정에 실패했습니다' }, { status: 500 })
-  }
+  const result = await patchBoothAsset(createServiceRoleClient(), body.id, body)
+  if (result.error) return NextResponse.json({ error: result.error }, { status: result.status ?? 500 })
   return NextResponse.json({ success: true })
 }
 

@@ -82,6 +82,27 @@
 .dat-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .dat-card-actions .dat-btn { min-height: 48px; padding: 0 8px; font-size: 14px; }
 
+/* 행사 거르기 칩 · 행사 고르기 · 행사 줄의 프레임/포토카드 바로가기 */
+/* 행사가 20개 가까이 되면 칩이 네 줄을 먹어 목록이 밀린다 — 한 줄로 두고 옆으로 밀어 본다 */
+.dat-filter--events { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; padding-bottom: 6px; scrollbar-width: thin; }
+.dat-filter--events button { flex: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.dat-filter--events button[data-live] { border-color: #10b981; }
+.dat-filter--events button[data-past] { color: #94a3b8; }
+.dat-filter--events button[aria-pressed='true'] { color: #ffffff; }
+.dat-chip-date { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; opacity: 0.75; }
+.dat-event-select { width: 100%; min-height: 44px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; color: #1f2937; font: inherit; font-size: 13px; }
+.dat-link { min-height: 36px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 999px; background: #ffffff; color: #1f2937; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.dat-link:active { background: #f1f5f9; }
+
+/* 프레임 */
+.dat-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.dat-frame { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; }
+.dat-frame[data-off] { opacity: 0.55; }
+.dat-frame-img { display: block; width: 100%; aspect-ratio: 2 / 3; padding: 0; overflow: hidden; border: 0; border-radius: 8px; background: repeating-conic-gradient(#f1f5f9 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px; cursor: zoom-in; }
+.dat-frame-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.dat-frame .dat-btn { min-height: 44px; font-size: 14px; }
+.dat-frame .dat-card-title { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
 /* 크게 보기 */
 .dat-zoom { position: fixed; inset: 0; z-index: 2147482500; display: flex; flex-direction: column; background: rgba(2, 6, 23, 0.92); color: #ffffff; }
 .dat-zoom-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; font-size: 16px; }
