@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, CalendarClock, Check, ChevronLeft, ChevronRight, ExternalLink, ImagePlus, Loader2, Maximize2, Plus, RefreshCw, Sparkles, EyeOff, Eye, X } from 'lucide-react'
+import { AlertCircle, CalendarClock, Check, ChevronLeft, ChevronRight, ExternalLink, Frame as FrameIcon, ImagePlus, Loader2, Maximize2, Plus, RefreshCw, Search, Sparkles, EyeOff, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { ScreenBackground } from '@/lib/screen-backgrounds/types'
 import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
@@ -47,6 +47,18 @@ async function uploadPoster(eventKey: string, file: File) {
   const { error } = await bucket.upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false })
   if (error) throw new Error(`포스터 업로드 실패: ${error.message}`)
   return bucket.getPublicUrl(path).data.publicUrl
+}
+
+/** 포토부스 프레임(기본 56종 + 직접 올린 것 + AI 로 만든 것) — /api/admin/photobooth 목록의 한 줄 */
+interface BoothFrame {
+  id: string
+  kind: 'frame' | 'template'
+  title: string
+  image_url: string
+  thumbnail_url?: string
+  is_active: boolean
+  category?: string
+  screen_event_id?: string | null
 }
 
 const dateLabel = (event: ScreenEvent) => {
@@ -96,7 +108,7 @@ function PreviewDialog({ title, items, start, font, onClose }: { title: string; 
   const screen = item.background
   const portrait = item.key === 'kiosk'
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex flex-col bg-slate-950/90 text-white" role="dialog" aria-modal="true" aria-label={`${title} ${item.label} 미리보기`} onClick={onClose}>
+    <div className="fixed inset-0 z-[10000] flex flex-col bg-slate-950/90 text-white" role="dialog" aria-modal="true" aria-label={`${title} ${item.label} 미리보기`} onClick={onClose}>
       <header className="flex shrink-0 flex-wrap items-center gap-2 px-3 py-3 sm:px-5" onClick={e => e.stopPropagation()}>
         <p className="mr-auto min-w-0 truncate text-sm font-bold">{title}</p>
         <div className="order-3 flex w-full gap-1 rounded-lg bg-white/10 p-1 sm:order-none sm:w-auto" role="tablist">
@@ -164,13 +176,123 @@ function ScreenPreview({ background, font, portrait, className, onOpen }: { back
   )
 }
 
-function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
+/** 기존 프레임 골라 이 행사에 넣기 — 다른 행사에 묶인 프레임은 옮겨 온다(표시) */
+function FramePickerDialog({ event, frames, onClose, onAdd }: {
+  event: ScreenEvent
+  frames: BoothFrame[]
+  onClose: () => void
+  onAdd: (ids: string[]) => Promise<void>
+}) {
+  const [query, setQuery] = useState('')
+  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const [saving, setSaving] = useState(false)
+  const candidates = frames.filter(f => f.screen_event_id !== event.id && f.title.toLowerCase().includes(query.trim().toLowerCase()))
+  const toggle = (id: string) => setPicked(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next })
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="기존 프레임 추가" onClick={onClose}>
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white" onClick={e => e.stopPropagation()}>
+        <header className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-slate-900">기존 프레임 추가</h3>
+            <p className="truncate text-xs text-slate-500">{dateLabel(event)} {event.title} — 고른 프레임은 이 행사 기간(또는 지금 바로 적용 중)에만 부스에 나옵니다.</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="닫기" className={`${buttonClass} h-10 w-10 px-0`}><X size={16} /></button>
+        </header>
+        <div className="flex items-center gap-2 px-5 pt-4">
+          <div className="relative min-w-0 flex-1">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="프레임 이름 검색 (생일, 리본…)" className={`${inputClass} pl-9`} />
+          </div>
+          <span className="shrink-0 text-xs text-slate-500">{candidates.length}종</span>
+        </div>
+        <div className="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-5 sm:grid-cols-5 lg:grid-cols-6">
+          {candidates.map(frame => {
+            const on = picked.has(frame.id)
+            return (
+              <button key={frame.id} type="button" onClick={() => toggle(frame.id)} aria-pressed={on}
+                className={`relative flex flex-col gap-1 rounded-lg border-2 p-1.5 text-left ${on ? 'border-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-400'} ${frame.is_active ? '' : 'opacity-50'}`}>
+                <span className="block aspect-[2/3] overflow-hidden rounded bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:12px_12px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={frame.thumbnail_url || frame.image_url} alt="" loading="lazy" className="h-full w-full object-contain" />
+                </span>
+                <span className="truncate text-[11px] font-semibold text-slate-700">{frame.title}</span>
+                {frame.screen_event_id && <span className="truncate text-[10px] text-violet-600">다른 행사에서 옮겨 옴</span>}
+                {on && <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white"><Check size={14} /></span>}
+              </button>
+            )
+          })}
+          {!candidates.length && <p className="col-span-full py-10 text-center text-sm text-slate-500">추가할 프레임이 없습니다.</p>}
+        </div>
+        <footer className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-3">
+          <button type="button" onClick={onClose} className={`${buttonClass} h-11`}>취소</button>
+          <button type="button" disabled={!picked.size || saving} onClick={async () => { setSaving(true); try { await onAdd([...picked]); onClose() } finally { setSaving(false) } }}
+            className="inline-flex h-11 items-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-bold text-white disabled:opacity-40">
+            {saving && <Loader2 size={14} className="animate-spin" />}{picked.size ? `${picked.size}개 추가` : '프레임을 고르세요'}
+          </button>
+        </footer>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+/** 행사 카드의 '포토부스 프레임' — 묶인 프레임, AI 로 만들기(약 200원), 기존 프레임 추가, 풀기 */
+function EventFrames({ event, frames, allFrames, generator, disabled, generating, onGenerate, onLink, onUnlink }: {
+  event: ScreenEvent
+  frames: BoothFrame[]
+  allFrames: BoothFrame[]
+  generator: boolean
+  disabled: boolean
+  generating: boolean
+  onGenerate: () => Promise<void>
+  onLink: (ids: string[]) => Promise<void>
+  onUnlink: (id: string) => Promise<void>
+}) {
+  const [picking, setPicking] = useState(false)
+  return (
+    <div className="space-y-2">
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><FrameIcon size={13} />포토부스 프레임 {frames.length}</p>
+      {frames.length > 0 && (
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          {frames.map(frame => (
+            <div key={frame.id} className={`relative w-20 shrink-0 ${frame.is_active ? '' : 'opacity-50'}`} title={frame.title}>
+              <a href={frame.image_url} target="_blank" rel="noreferrer" className="block aspect-[2/3] overflow-hidden rounded-md border border-slate-200 bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:10px_10px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={frame.thumbnail_url || frame.image_url} alt={frame.title} loading="lazy" className="h-full w-full object-contain" />
+              </a>
+              <p className="mt-1 truncate text-[10px] text-slate-500">{frame.title}</p>
+              <button type="button" disabled={disabled} onClick={() => void onUnlink(frame.id)} aria-label={`${frame.title} 이 행사에서 빼기`} title="이 행사에서 빼기(상시로)"
+                className="absolute -right-1.5 -top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:text-red-600 disabled:opacity-40"><X size={13} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" disabled={disabled || !event.poster || !generator}
+          onClick={() => { if (window.confirm(`${event.title} 프레임을 AI로 만들까요?\n30초~1분 걸리고 약 200원이 듭니다.`)) void onGenerate() }}
+          title={!generator ? '이미지 AI 전용 키가 설정되면 쓸 수 있습니다.' : !event.poster ? '포스터를 먼저 올려주세요.' : '포스터 스타일로 테두리를 그리고 사진·문구 자리는 비웁니다'}
+          className={`${buttonClass} h-11`}>
+          {generating ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}{generating ? '프레임 만드는 중…' : 'AI로 프레임 만들기'}
+        </button>
+        <button type="button" disabled={disabled || !allFrames.length} onClick={() => setPicking(true)} className={`${buttonClass} h-11`}><Plus size={15} />기존 프레임 추가</button>
+      </div>
+      {picking && <FramePickerDialog event={event} frames={allFrames} onClose={() => setPicking(false)} onAdd={onLink} />}
+    </div>
+  )
+}
+
+function EventCard({ event, today, generator, busy, onPatch, onGenerate, frames, allFrames, onFrameGenerate, onFrameLink, onFrameUnlink }: {
   event: ScreenEvent
   today: string
   generator: boolean
-  busy: 'patch' | 'generate' | null
+  busy: 'patch' | 'generate' | 'frame' | null
   onPatch: (patch: Record<string, unknown>) => Promise<void>
   onGenerate: () => Promise<void>
+  frames: BoothFrame[]
+  allFrames: BoothFrame[]
+  onFrameGenerate: () => Promise<void>
+  onFrameLink: (ids: string[]) => Promise<void>
+  onFrameUnlink: (id: string) => Promise<void>
 }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -269,6 +391,9 @@ function EventCard({ event, today, generator, busy, onPatch, onGenerate }: {
           </div>
         )}
 
+        <EventFrames event={event} frames={frames} allFrames={allFrames} generator={generator} disabled={disabled} generating={busy === 'frame'}
+          onGenerate={onFrameGenerate} onLink={onFrameLink} onUnlink={onFrameUnlink} />
+
         {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
       </div>
 
@@ -344,7 +469,9 @@ export function ScreenEventManager() {
   const [data, setData] = useState<ListResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
-  const [busy, setBusy] = useState<Record<string, 'patch' | 'generate'>>({})
+  const [busy, setBusy] = useState<Record<string, 'patch' | 'generate' | 'frame'>>({})
+  /** 포토부스 프레임 전체 — 행사 카드마다 묶인 것을 보여 주고 기존 것을 고른다 */
+  const [frames, setFrames] = useState<BoothFrame[]>([])
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [adding, setAdding] = useState(false)
@@ -357,9 +484,20 @@ export function ScreenEventManager() {
     try { setData(await call<ListResponse>(API)); setError('') } catch (cause) { setError(cause instanceof Error ? cause.message : '불러오지 못했습니다.') } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
+  const loadFrames = useCallback(async () => {
+    try {
+      const { assets } = await call<{ assets: BoothFrame[] }>('/api/admin/photobooth')
+      setFrames(assets.filter(a => a.kind === 'frame'))
+    } catch { /* 프레임 칸만 비어 보인다 — 배경 관리는 그대로 */ }
+  }, [])
+  useEffect(() => { void loadFrames() }, [loadFrames])
+  const linkFrames = async (ids: string[], screenEventId: string | null) => {
+    for (const id of ids) await call('/api/admin/photobooth', 'PATCH', { id, screen_event_id: screenEventId })
+    setFrames(prev => prev.map(f => ids.includes(f.id) ? { ...f, screen_event_id: screenEventId } : f))
+  }
 
   const replace = (event: ScreenEvent) => setData(prev => prev ? { ...prev, events: prev.events.map(e => e.id === event.id ? event : e) } : prev)
-  const withBusy = async (id: string, kind: 'patch' | 'generate', run: () => Promise<void>) => {
+  const withBusy = async (id: string, kind: 'patch' | 'generate' | 'frame', run: () => Promise<void>) => {
     setBusy(prev => ({ ...prev, [id]: kind })); setError(''); setNotice('')
     try { await run() } catch (cause) { setError(cause instanceof Error ? cause.message : '처리하지 못했습니다.') } finally { setBusy(prev => { const next = { ...prev }; delete next[id]; return next }) }
   }
@@ -483,6 +621,15 @@ export function ScreenEventManager() {
                 <EventCard key={event.id} event={event} today={today} generator={!!data?.sources.generator} busy={busy[event.id] ?? null}
                   onPatch={patch => withBusy(event.id, 'patch', async () => { const { event: next } = await call<{ event: ScreenEvent }>(API, 'PATCH', { id: event.id, ...patch }); replace(next) })}
                   onGenerate={() => withBusy(event.id, 'generate', async () => { const { event: next } = await call<{ event: ScreenEvent }>(`${API}/generate`, 'POST', { id: event.id }); replace(next); setNotice(`“${event.title}” 배경을 만들었습니다. 미리보기를 확인하고 자동 적용을 켜주세요.`) })}
+                  frames={frames.filter(f => f.screen_event_id === event.id)} allFrames={frames}
+                  onFrameGenerate={() => withBusy(event.id, 'frame', async () => {
+                    const { event: next, frame } = await call<{ event: ScreenEvent; frame: { id: string; title: string; image_url: string } }>(`${API}/frame`, 'POST', { id: event.id })
+                    replace(next)
+                    setFrames(prev => [{ ...frame, kind: 'frame', is_active: true, screen_event_id: event.id }, ...prev])
+                    setNotice(`“${event.title}” 프레임을 만들었습니다. 이 행사 기간(또는 지금 바로 적용 중)에 부스 맨 앞에 나옵니다.`)
+                  })}
+                  onFrameLink={ids => withBusy(event.id, 'patch', async () => { await linkFrames(ids, event.id); setNotice(`“${event.title}”에 프레임 ${ids.length}개를 넣었습니다.`) })}
+                  onFrameUnlink={id => withBusy(event.id, 'patch', async () => { await linkFrames([id], null) })}
                 />
               ))}</div>
             </div>

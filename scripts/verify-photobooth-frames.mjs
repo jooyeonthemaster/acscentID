@@ -212,3 +212,29 @@ test('frames bound to a screen event show only while that event is live, first i
   const keys=new Set((await h.public.GET()).body.frames.flatMap(f=>Object.keys(f)));
   for(const key of keys) assert.ok(['id','kind','title','image_url','display_order','event_id','is_active','category','thumbnail_url','screen_event_id'].includes(key),key);
 });
+
+// AI 프레임: 모델이 가운데에 무엇을 그려도 사진 창·하단 행사 문구 자리는 투명, 테두리는 불투명 — 인화 규격을 코드가 보장한다
+test('AI frame mask keeps only the border band (photo window and event footer are transparent)', async () => {
+  const sharp = require('sharp');
+  const mod = loadTs('src/lib/screen-events/frame-generate.ts', {
+    '@/lib/gemini/client': { OPENROUTER_IMAGE_MODEL: 'x' },
+    '@/lib/screen-backgrounds/store': { BackgroundError: Error },
+    '@/lib/supabase/service': { createServiceRoleClient: () => ({}) },
+    './generate': { call: async () => ({}), generatorConfigured: () => true, posterDataUrl: async () => '' },
+    './store': { uploadPublicImage: async () => '', writeScreenEvent: async e => e },
+  }, new Map());
+  // 모델이 2:3 이 아닌 크기에 가운데까지 빽빽하게 그린 경우를 흉내 낸다
+  const painting = await sharp({ create: { width: 832, height: 1248, channels: 3, background: '#e05a8a' } }).png().toBuffer();
+  const png = await mod.applyFrameMask(painting, '#ffffff');
+  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+  assert.equal(info.width, 1200); assert.equal(info.height, 1800); assert.equal(info.channels, 4);
+  const alpha = (x, y) => data[(y * info.width + x) * 4 + 3];
+  const { window: w, footer: f } = mod.FRAME_GEOMETRY;
+  for (const [x, y] of [[600, 800], [w.x + 30, w.y + 30], [w.x + w.w - 30, w.y + w.h - 30], [600, f.y + 100], [f.x + 30, f.y + 30], [f.x + f.w - 30, f.y + f.h - 30]])
+    assert.equal(alpha(x, y), 0, `transparent at ${x},${y}`);
+  for (const [x, y] of [[50, 900], [1150, 900], [600, 60], [10, 1700], [600, 1790], [600, 1555]])
+    assert.equal(alpha(x, y), 255, `opaque border at ${x},${y}`);
+  // 기존 규격과 같은 자리: 사진 창은 푸터와 겹치지 않고, 푸터는 compose 의 PRINT 와 같다
+  assert.ok(w.y + w.h <= f.y - 18);
+  assert.deepEqual([f.x, f.y, f.w, f.h], [36, 1800 - 36 - 200, 1200 - 72, 200]);
+});

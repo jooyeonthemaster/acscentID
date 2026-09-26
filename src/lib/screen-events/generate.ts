@@ -17,14 +17,14 @@ const SIZE: Record<ScreenTarget, { width: number; height: number; ratio: string;
   booth: { width: 1920, height: 1080, ratio: '16:9', label: 'wide landscape photo-booth screen (16:9)' },
 }
 
-type Content = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
+export type Content = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
 interface Completion {
   choices?: { message?: { content?: string | null; images?: { image_url?: { url?: string } }[] } }[]
   usage?: { cost?: number }
   error?: { message?: string }
 }
 
-async function call(body: Record<string, unknown>): Promise<Completion> {
+export async function call(body: Record<string, unknown>): Promise<Completion> {
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.OPENROUTER_SCREEN_API_KEY}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT screen events" },
@@ -94,7 +94,7 @@ Flat, clean, high quality, print-like illustration.`
 }
 
 /** 포스터를 작게 줄여 data URL 로 — 원본(최대 1600px)을 그대로 보내면 토큰이 많이 든다 */
-async function posterDataUrl(url: string) {
+export async function posterDataUrl(url: string) {
   const res = await fetch(url, { signal: AbortSignal.timeout(20000) })
   if (!res.ok) throw new BackgroundError('포스터 이미지를 불러오지 못했습니다.', 502)
   const jpeg = await sharp(Buffer.from(await res.arrayBuffer())).resize({ width: 1024, height: 1024, fit: 'inside' }).jpeg({ quality: 84 }).toBuffer()

@@ -255,6 +255,20 @@ function EventsView({ target, onApplied, onZoom, onOpen }: {
                       {working ? '처리 중…' : bg ? '배경 다시 만들기' : '배경 만들기'}
                     </button>
                   )}
+                  {/* 포토부스: 포스터로 AI 프레임 1장 — 이 행사에 묶여 행사 중 부스 맨 앞에 나온다 */}
+                  {onOpen && event.poster && generator && (
+                    <button type="button" className="dat-btn" disabled={working}
+                      onClick={() => {
+                        if (!window.confirm(`${event.title} 프레임을 AI로 만들까요?\n30초~1분 걸리고 약 200원이 듭니다. 만든 프레임은 이 행사에 묶여 행사 중에만 부스에 나옵니다.`)) return
+                        void run(event, `${event.title} 프레임을 만들었습니다. '프레임 N'을 눌러 확인하세요.`, async () => {
+                          const result = await call<{ event: ScreenEvent }>('/api/screen-backgrounds/events/frame', 'POST', { id: event.id }, 200_000)
+                          setCounts(prev => ({ ...prev, [event.id]: { frames: (prev[event.id]?.frames ?? 0) + 1, cards: prev[event.id]?.cards ?? 0 } }))
+                          return result
+                        })
+                      }}>
+                      {working ? '처리 중…' : '프레임 만들기'}
+                    </button>
+                  )}
                 </div>
               </div>
             </li>
