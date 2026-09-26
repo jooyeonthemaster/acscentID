@@ -941,6 +941,88 @@
   min-height: 60px;
   font-size: 20px;
 }
+/* 잠금 해제 후 좌우 2분할 — 왼쪽 설정(넘치면 자체 스크롤, 앱 종료·닫기는 바닥 고정) / 오른쪽 화면 배경(창 높이 전부) */
+.bth-admin-split {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 20px;
+}
+.bth-admin-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.bth-admin-settings {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+/* 화면 크기: 좁은 칸에서는 이름을 위에 두고 버튼 네 개가 칸 너비를 다 쓴다(선택 체크가 숫자를 가리지 않게) */
+.bth-admin-settings .bth-zoom {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.bth-admin-settings .bth-zoom > b {
+  font-size: 17px;
+}
+.bth-admin-settings .bth-zoom-opts .rt-choice {
+  padding-left: 6px;
+  padding-right: 30px;
+}
+/* 디자인·글꼴·미리보기는 좁은 왼쪽 칸에서 한 줄씩 쌓는다 */
+.bth-admin-settings .sdc.sdc--compact {
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 0;
+}
+.bth-admin-settings .sdc-seg {
+  display: flex;
+  flex: 1;
+}
+.bth-admin-settings .sdc-seg button {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.bth-admin-main > .bth-admin-actions {
+  margin-top: 12px;
+}
+.bth-admin-bgs {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--rt-lo);
+}
+.bth-admin-bgs .bth-bg-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1400px) {
+  .bth-admin-bgs .bth-bg-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* 세로로 좁은 창(이 부스에선 없지만 대비) — 예전처럼 위아래로, 배경 목록은 최소 높이를 지킨다 */
+@media (max-width: 900px) {
+  .bth-admin-split {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  .bth-admin-bgs {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .bth-admin-bgs .bth-bg-grid {
+    min-height: 260px;
+  }
+}
 .bth-admin-toolbar {
   display: flex;
   align-items: center;

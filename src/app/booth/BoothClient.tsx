@@ -2901,7 +2901,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 closeLabel="닫기"
                 bodyClassName="bth-admin-body"
               >
-                <h2 className="bth-h2">{backgroundAdminUnlocked ? '부스 설정' : '비밀번호 입력'}</h2>
+                {/* 잠금 해제 후엔 창 제목(STORE ADMIN)으로 충분 — 제목 줄 높이를 목록에 준다 */}
+                <h2 className={backgroundAdminUnlocked ? 'sr-only' : 'bth-h2'}>{backgroundAdminUnlocked ? '부스 설정' : '비밀번호 입력'}</h2>
 
                 {!backgroundAdminUnlocked ? (
                   <div className="bth-pin">
@@ -2951,8 +2952,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     </div>
                   </div>
                 ) : (
-                  // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
-                  <>
+                  // 가로 화면이라 좌우 2분할 — 왼쪽: 화면 크기·디자인·관리 도구(넘치면 스크롤) + 앱 종료·닫기(항상 보임),
+                  // 오른쪽: 화면 배경 목록이 창 높이를 다 쓴다(줌 150~175% 에서 위아래로 쌓으면 목록이 한 줄도 안 보였다)
+                  <div className="bth-admin-split">
+                  <div className="bth-admin-main">
+                  <div className="bth-admin-settings rt-scroll">
                     {screenZoom !== null && (
                       <div className="bth-zoom">
                         <b>화면 크기</b>
@@ -2971,6 +2975,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         </div>
                       </div>
                     )}
+                    {/* 자주 쓰는 관리 도구를 디자인 설정보다 위에 — 175% 에서도 스크롤 없이 보이게 */}
+                    <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                     <DeviceDesignControls
                       settings={deviceSettings}
                       onSave={saveSettings}
@@ -2978,7 +2984,20 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       sample="어떤 사진을 찍을까요? ACSCENT PHOTO"
                       compact
                     />
-                    <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
+                  </div>
+                    <div className="bth-admin-actions">
+                      <button type="button" onClick={quitBooth} className="rt-btn rt-btn--danger">
+                        <PixelIcon name="close" size={28} /> 앱 종료
+                      </button>
+                      <button type="button" onClick={closeAdmin} className="rt-btn rt-btn--primary">
+                        닫기
+                      </button>
+                    </div>
+                    <p className="bth-admin-note">
+                      {exitNotice ?? '앱을 종료하면 카메라 연결도 풀려 다른 촬영 프로그램을 바로 쓸 수 있어요'}
+                    </p>
+                  </div>
+                  <section className="bth-admin-bgs" aria-label="화면 배경">
                     <div className="bth-admin-toolbar">
                       <b>
                         화면 배경 · {backgrounds.length}개
@@ -3042,18 +3061,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         )
                       })}
                     </div>
-                    <div className="bth-admin-actions">
-                      <button type="button" onClick={quitBooth} className="rt-btn rt-btn--danger">
-                        <PixelIcon name="close" size={28} /> 앱 종료
-                      </button>
-                      <button type="button" onClick={closeAdmin} className="rt-btn rt-btn--primary">
-                        닫기
-                      </button>
-                    </div>
-                    <p className="bth-admin-note">
-                      {exitNotice ?? '앱을 종료하면 카메라 연결도 풀려 다른 촬영 프로그램을 바로 쓸 수 있어요'}
-                    </p>
-                  </>
+                  </section>
+                  </div>
                 )}
               </RetroWindow>
             </motion.div>
