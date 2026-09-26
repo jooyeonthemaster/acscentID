@@ -68,6 +68,37 @@
 .dat-overlay[data-target='booth'] .dat-pill { padding: 4px 12px; }
 .dat-overlay[data-target='booth'] .dat-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
 
+/* 키오스크(세로) — 행사 카드 가로 2열. 카드 위: 이 기기 배경(9:16)·포스터(2:3)를 같은 높이로 카드 폭 가득,
+   아래: 제목·상태 → 글꼴 → 버튼(지금 바로 적용 한 줄 + 나머지 반씩). 예전 한 줄 목록은 썸네일이 작고 창 아래가 비었다 */
+.dat-overlay[data-target='kiosk'] .dat-lead { margin-bottom: 14px; font-size: 15px; }
+.dat-overlay[data-target='kiosk'] .dat-events { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.dat-overlay[data-target='kiosk'] .dat-event { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 14px; padding: 14px; }
+.dat-overlay[data-target='kiosk'] .dat-thumbs { display: grid; grid-template-columns: 0.5625fr 0.667fr; gap: 10px; align-items: start; }
+.dat-overlay[data-target='kiosk'] .dat-thumb,
+.dat-overlay[data-target='kiosk'] .dat-thumb[data-portrait],
+.dat-overlay[data-target='kiosk'] .dat-thumb--poster { width: 100%; height: auto; border-radius: 10px; }
+.dat-overlay[data-target='kiosk'] .dat-thumb[data-portrait] { aspect-ratio: 9 / 16; }
+.dat-overlay[data-target='kiosk'] .dat-thumb--poster { aspect-ratio: 2 / 3; }
+.dat-overlay[data-target='kiosk'] div.dat-thumb--poster { border-style: dashed; background: #f8fafc; }
+.dat-overlay[data-target='kiosk'] .dat-thumb span { font-size: 14px; }
+.dat-overlay[data-target='kiosk'] .dat-info { gap: 12px; justify-content: space-between; }
+.dat-overlay[data-target='kiosk'] .dat-event-head { gap: 8px; }
+.dat-overlay[data-target='kiosk'] .dat-title { font-size: 19px; }
+.dat-overlay[data-target='kiosk'] .dat-date { font-size: 14px; padding: 3px 9px; }
+.dat-overlay[data-target='kiosk'] .dat-status { font-size: 13px; gap: 8px; }
+.dat-overlay[data-target='kiosk'] .dat-pill { padding: 4px 12px; }
+.dat-overlay[data-target='kiosk'] .dat-fonts { gap: 8px; }
+.dat-overlay[data-target='kiosk'] .dat-fonts > button { flex: 1 1 0; min-width: 0; min-height: 48px; padding: 0 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dat-overlay[data-target='kiosk'] .dat-font-picker { flex-basis: 100%; }
+.dat-overlay[data-target='kiosk'] .dat-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: auto; }
+.dat-overlay[data-target='kiosk'] .dat-actions > .dat-btn { width: 100%; min-height: 56px; padding: 0 10px; font-size: 16px; }
+.dat-overlay[data-target='kiosk'] .dat-actions > .dat-btn:first-child { grid-column: 1 / -1; }
+/* 버튼이 둘뿐이면(배경 만들기 없음) 둘째도 한 줄 전체 */
+.dat-overlay[data-target='kiosk'] .dat-actions > .dat-btn:nth-child(2):last-child { grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  .dat-overlay[data-target='kiosk'] .dat-events { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* 포토카드 */
 .dat-filter { display: flex; gap: 6px; margin-bottom: 12px; }
 .dat-filter button { min-height: 44px; padding: 0 16px; border: 1px solid #cbd5e1; border-radius: 999px; background: #ffffff; color: #475569; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }

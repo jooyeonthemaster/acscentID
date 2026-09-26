@@ -203,11 +203,14 @@ function EventsView({ target, onApplied, onZoom, onOpen }: {
                     ? <img src={bg.thumbnail_url || bg.image_url} alt="" loading="lazy" />
                     : <span>배경 없음</span>}
                 </button>
-                {event.poster && (
+                {event.poster ? (
                   <button type="button" className="dat-thumb dat-thumb--poster" onClick={() => onZoom(event.poster!, `${event.title} · 포스터`, true)} aria-label="포스터 크게 보기">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={event.poster} alt="" loading="lazy" />
                   </button>
+                ) : target === 'kiosk' && (
+                  // 키오스크 카드는 배경·포스터 두 칸을 늘 같은 크기로 — 포스터가 없어도 칸을 비워 둔다
+                  <div className="dat-thumb dat-thumb--poster" aria-hidden="true"><span>포스터 없음</span></div>
                 )}
               </div>
               <div className="dat-info">
