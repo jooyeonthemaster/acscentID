@@ -2952,8 +2952,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     </div>
                   </div>
                 ) : (
-                  // 가로 화면이라 좌우 2분할 — 왼쪽: 화면 크기·디자인·관리 도구(넘치면 스크롤) + 앱 종료·닫기(항상 보임),
-                  // 오른쪽: 화면 배경 목록이 창 높이를 다 쓴다(줌 150~175% 에서 위아래로 쌓으면 목록이 한 줄도 안 보였다)
+                  // 가로 화면이라 좌우 2분할 — 왼쪽: 화면 크기·디자인(넘치면 스크롤) + 앱 종료·닫기(항상 보임),
+                  // 오른쪽: 화면 배경 제목 줄(이벤트 배경·포토카드 QR·새로고침) + 목록이 창 높이를 다 쓴다(줌 150~175% 에서 위아래로 쌓으면 목록이 한 줄도 안 보였다)
                   <div className="bth-admin-split">
                   <div className="bth-admin-main">
                   <div className="bth-admin-settings rt-scroll">
@@ -2975,8 +2975,6 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         </div>
                       </div>
                     )}
-                    {/* 자주 쓰는 관리 도구를 디자인 설정보다 위에 — 175% 에서도 스크롤 없이 보이게 */}
-                    <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                     <DeviceDesignControls
                       settings={deviceSettings}
                       onSave={saveSettings}
@@ -2993,9 +2991,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         닫기
                       </button>
                     </div>
-                    <p className="bth-admin-note">
-                      {exitNotice ?? '앱을 종료하면 카메라 연결도 풀려 다른 촬영 프로그램을 바로 쓸 수 있어요'}
-                    </p>
+                    {exitNotice && <p className="bth-admin-note" role="status">{exitNotice}</p>}
                   </div>
                   <section className="bth-admin-bgs" aria-label="화면 배경">
                     <div className="bth-admin-toolbar">
@@ -3005,6 +3001,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                           {backgroundSaving ? '서버에 저장하는 중…' : backgroundsLoading ? '불러오는 중…' : ''}
                         </em>
                       </b>
+                      {/* 이벤트 배경·포토카드 QR — 제목과 새로고침 사이 */}
+                      <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                       <button
                         type="button"
                         className="rt-btn"
@@ -3014,9 +3012,6 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         새로고침
                       </button>
                     </div>
-                    <p className="bth-admin-desc">
-                      선택하면 바로 적용돼요. 관리자 페이지와 같은 목록이며 변경 사항은 자동 반영됩니다.
-                    </p>
                     {(backgroundActionError || backgroundsError) && (
                       <p role="alert" className="bth-admin-error">
                         {backgroundActionError || backgroundsError}

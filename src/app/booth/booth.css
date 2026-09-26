@@ -1004,6 +1004,28 @@
 .bth-admin-bgs .bth-bg-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+/* 제목 줄: 화면 배경 · N개 | 이벤트 배경 · 포토카드 QR | 새로고침 */
+.bth-admin-bgs .bth-admin-toolbar {
+  margin-bottom: 10px;
+}
+.bth-admin-bgs .bth-admin-toolbar > b {
+  flex: none;
+  white-space: nowrap;
+}
+.bth-admin-toolbar .dat-launch.dat-launch {
+  flex: 1;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+.bth-admin-toolbar .dat-launch button {
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 12px;
+}
+.bth-admin-toolbar .rt-btn {
+  flex: none;
+}
 @media (max-width: 1400px) {
   .bth-admin-bgs .bth-bg-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
