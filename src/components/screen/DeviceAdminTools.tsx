@@ -115,14 +115,17 @@ function EventsView({ target, onApplied, onZoom }: { target: ScreenTarget; onApp
                 )}
               </div>
               <div className="dat-info">
-                <p className="dat-title"><span className="dat-date">{dateLabel(event)}</span>{event.title}</p>
-                <p className="dat-status">
-                  {forced ? <b className="dat-pill dat-pill--on">지금 바로 적용 중</b>
-                    : applying ? <b className="dat-pill dat-pill--on">기간 중 적용 중</b>
-                      : event.approved ? <span className="dat-pill">기간 중 자동 적용 예약</span>
-                        : bg ? <span className="dat-pill dat-pill--warn">자동 적용 꺼짐</span> : <span className="dat-pill">배경 없음</span>}
-                  {live && <span className="dat-live">진행 중</span>}
-                </p>
+                {/* 부스(가로)는 제목·상태를 한 줄에, 키오스크(세로)는 위아래로 */}
+                <div className="dat-event-head">
+                  <p className="dat-title"><span className="dat-date">{dateLabel(event)}</span>{event.title}</p>
+                  <p className="dat-status">
+                    {live && <span className="dat-live">진행 중</span>}
+                    {forced ? <b className="dat-pill dat-pill--on">지금 바로 적용 중</b>
+                      : applying ? <b className="dat-pill dat-pill--on">기간 중 적용 중</b>
+                        : event.approved ? <span className="dat-pill">기간 중 자동 적용 예약</span>
+                          : bg ? <span className="dat-pill dat-pill--warn">자동 적용 꺼짐</span> : <span className="dat-pill">배경 없음</span>}
+                  </p>
+                </div>
                 {bg && (
                   <div className="dat-fonts">
                     {event.font_suggestions.map(s => (
