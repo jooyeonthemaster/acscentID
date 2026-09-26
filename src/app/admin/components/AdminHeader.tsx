@@ -30,6 +30,9 @@ const pathTitles: Record<string, string> = {
   '/admin/reviews': '리뷰 관리',
 }
 
+/** 머리 아래 고정 도구줄 — useAdminHeaderToolbar() 로 찾아 createPortal 로 넣는다 */
+export const ADMIN_HEADER_TOOLBAR_ID = 'admin-header-toolbar'
+
 interface AdminHeaderProps {
   title?: string
   subtitle?: string
@@ -101,6 +104,8 @@ export function AdminHeader({ title, subtitle, actions, breadcrumbs: customBread
           </div>
         </div>
       </div>
+      {/* 고정 도구줄 자리 — 페이지 안 부품이 portal 로 채운다(예: 이벤트 배경 월 필터). 비면 보이지 않는다 */}
+      <div id={ADMIN_HEADER_TOOLBAR_ID} className="empty:hidden border-t border-slate-100 px-4 py-2 lg:px-6" />
     </header>
   )
 }

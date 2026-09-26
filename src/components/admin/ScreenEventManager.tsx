@@ -3,7 +3,7 @@
 // 이벤트 배경 — ERP·노션에서 불러온 행사마다 포스터로 키오스크·포토부스 배경과 추천 글꼴을 만들고,
 // 미리보기를 확인해 '기간 중 자동 적용'을 켜면 그 기간에만 두 기기에 적용된다(docs/screen-events.md).
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertCircle, CalendarClock, Check, ChevronLeft, ChevronRight, ExternalLink, ImagePlus, Loader2, Maximize2, Plus, RefreshCw, Sparkles, EyeOff, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
@@ -11,9 +11,13 @@ import type { ScreenBackground } from '@/lib/screen-backgrounds/types'
 import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { ScreenFontPicker } from '@/lib/screen-fonts/FontPicker'
+import { ADMIN_HEADER_TOOLBAR_ID } from '@/app/admin/components/AdminHeader'
 import { EVENT_STORE_LABELS, EVENT_STORES, isEventLive, type EventStore, type ScreenEvent } from '@/lib/screen-events/types'
 
 const API = '/api/admin/screen-events'
+// 관리자 머리(스크롤해도 위에 고정) 안의 도구줄 — 있으면 월 필터를 거기에, 없으면 목록 위에 붙여 둔다
+const noopSubscribe = () => () => {}
+const useHeaderToolbar = () => useSyncExternalStore(noopSubscribe, () => document.getElementById(ADMIN_HEADER_TOOLBAR_ID), () => null)
 const buttonClass = 'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
 const inputClass = 'h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-900'
 
@@ -383,10 +387,37 @@ export function ScreenEventManager() {
   const groups = activeMonth === 'all'
     ? months.map(m => ({ key: m.key, events: events.filter(e => e.starts_on.startsWith(m.key)) }))
     : [{ key: activeMonth, events: events.filter(e => e.starts_on.startsWith(activeMonth)) }]
+  const toolbar = useHeaderToolbar()
+  const listTop = useRef<HTMLDivElement>(null)
+  // 아래로 내려 본 상태에서 다른 달을 고르면 목록 처음으로(고정된 머리에 가리지 않게 scroll-mt)
+  const pickMonth = (key: string) => {
+    setMonth(key)
+    requestAnimationFrame(() => {
+      const el = listTop.current
+      if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+  // 월 탭 — 좁은 화면에서는 옆으로 넘겨 본다
+  const monthTabs = !loading && months.length > 0 ? (
+        <div role="tablist" aria-label="월별 이벤트" className="flex snap-x items-center gap-1.5 overflow-x-auto pb-0.5">
+          {[...months.map(m => ({ key: m.key, label: monthLabel(m.key), total: m.total, live: m.live })), { key: 'all', label: '전체', total: events.length, live: false }].map(tab => (
+            <button key={tab.key} type="button" role="tab" aria-selected={activeMonth === tab.key} onClick={() => pickMonth(tab.key)}
+              className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 rounded-lg border px-3.5 text-sm font-bold transition-colors ${
+                activeMonth === tab.key ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+              }`}>
+              {tab.live && <span className="h-2 w-2 rounded-full bg-emerald-500" title="적용 중인 이벤트가 있는 달" />}
+              {tab.label}
+              {tab.key === thisMonth && <span className={`text-[10px] font-semibold ${activeMonth === tab.key ? 'text-white/70' : 'text-slate-400'}`}>이번 달</span>}
+              <span className={`rounded-full px-1.5 text-xs tabular-nums ${activeMonth === tab.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{tab.total}</span>
+            </button>
+          ))}
+        </div>
+  ) : null
   const liveNow = (data?.events ?? []).find(e => e.approved && !e.hidden && isEventLive(e, today) && (e.backgrounds.kiosk || e.backgrounds.booth))
 
   return (
     <section aria-label="이벤트 배경" className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      {toolbar && monthTabs && createPortal(<div className="flex items-center gap-3"><span className="hidden shrink-0 text-xs font-semibold text-slate-500 sm:inline">이벤트 월</span><div className="min-w-0 flex-1">{monthTabs}</div></div>, toolbar)}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
           <h2 className="text-lg font-bold text-slate-900">이벤트 배경</h2>
@@ -426,26 +457,11 @@ export function ScreenEventManager() {
         <span className="ml-auto text-xs text-slate-400">전체 {events.length}건</span>
       </div>
 
-      {/* 월 탭 — 좁은 화면에서는 옆으로 넘겨 본다 */}
-      {!loading && months.length > 0 && (
-        <div role="tablist" aria-label="월별 이벤트" className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-          {[...months.map(m => ({ key: m.key, label: monthLabel(m.key), total: m.total, live: m.live })), { key: 'all', label: '전체', total: events.length, live: false }].map(tab => (
-            <button key={tab.key} type="button" role="tab" aria-selected={activeMonth === tab.key} onClick={() => setMonth(tab.key)}
-              className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 rounded-lg border px-3.5 text-sm font-bold transition-colors ${
-                activeMonth === tab.key ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-              }`}>
-              {tab.live && <span className="h-2 w-2 rounded-full bg-emerald-500" title="적용 중인 이벤트가 있는 달" />}
-              {tab.label}
-              {tab.key === thisMonth && <span className={`text-[10px] font-semibold ${activeMonth === tab.key ? 'text-white/70' : 'text-slate-400'}`}>이번 달</span>}
-              <span className={`rounded-full px-1.5 text-xs tabular-nums ${activeMonth === tab.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{tab.total}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {!toolbar && monthTabs && <div className="sticky top-14 z-10 -mx-4 bg-white/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:top-0">{monthTabs}</div>}
 
       {loading ? <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
         : !events.length ? <p className="rounded-lg border border-dashed border-slate-300 py-12 text-center text-sm text-slate-500">표시할 이벤트가 없습니다. &lsquo;ERP·노션 불러오기&rsquo;를 눌러보세요.</p>
-          : <div className="space-y-6">{groups.map(group => (
+          : <div ref={listTop} className="scroll-mt-44 space-y-6">{groups.map(group => (
             <div key={group.key} role="tabpanel" aria-label={`${monthLabel(group.key)} 이벤트`} className="space-y-3">
               {/* 달 제목 — '전체'에서 달마다 끊어 보이게, 한 달만 볼 때도 몇 건인지 */}
               <div className="flex items-baseline gap-2 border-b border-slate-200 pb-2">
