@@ -879,6 +879,13 @@ export async function renderKioskReceipt(
       b.text(line, { size: b.fitOneLine(line, 17, 500), weight: 500, align: 'center', lineHeight: 1.5 })
     }
   }
+  // ── 티켓 번호 — 맨 아래에도 크게. 영수증을 떼어 들었을 때 직원이 바로 맞춰 볼 수 있게
+  b.space(16)
+  b.rule(3)
+  b.space(12)
+  b.text('TICKET', { size: 15, weight: 600, family: 'mono', align: 'center', letterSpacing: 4 })
+  b.space(2)
+  b.text(data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { size: data.ticket ? 44 : 28, weight: 800, family: 'mono', align: 'center', letterSpacing: 2, lineHeight: 1.2 })
   b.space(30)
 
   const { canvas, height } = b.render()
