@@ -40,7 +40,13 @@ export interface KioskMode {
     subtitle: string
     /** 맨 아래 행사 안내 줄 */
     eventLines: string[]
+    /** 제조 레시피를 상자로 감싼다 */
+    recipeBox?: boolean
+    /** 맨 아래 크게 찍는 안내(첫 줄 크게) — 없으면 매장 '카운터에 제출' 문구. 언어별, 없는 언어는 영어 */
+    counterNotice?: Partial<Record<KioskLang, string[]>>
   }
+  /** 이 모드로 바꿀 때 함께 고르는 키오스크 기본 배경(catalog.json id) */
+  defaultBackground?: string
 }
 
 export const KIOSK_MODES: KioskMode[] = [
@@ -122,7 +128,16 @@ export const KIOSK_MODES: KioskMode[] = [
       theme: 'saju',
       subtitle: 'SAJU SCENT · 四柱香 處方',
       eventLines: ['2026 K-WAVE DANCE FESTIVAL', '세계문화마을 · 이태원로 · 10.3~10.4'],
+      recipeBox: true,
+      counterNotice: {
+        ko: ['이 영수증을 직원에게 보여주세요.', '적힌 레시피 그대로 조향을 하시면 됩니다.'],
+        en: ['Please show this receipt to our staff.', 'Blend your perfume exactly as the recipe says.'],
+        ja: ['このレシートをスタッフにお見せください。', '書かれたレシピ通りに調香してください。'],
+        'zh-Hans': ['请把这张小票出示给工作人员。', '按照上面的配方调香即可。'],
+        'zh-Hant': ['請把這張收據出示給工作人員。', '依照上面的配方調香即可。'],
+      },
     },
+    defaultBackground: 'kiosk-event-kwave-2026',
   },
 ]
 
@@ -131,6 +146,12 @@ export const KIOSK_MODE_IDS = KIOSK_MODES.map((m) => m.id)
 
 export function findKioskMode(id: string | null | undefined): KioskMode {
   return KIOSK_MODES.find((m) => m.id === id) ?? DEFAULT_KIOSK_MODE
+}
+
+/** 영수증 맨 아래 안내 — 모드에 있으면 그 언어(없으면 영어), 없으면 매장 기본 */
+export function modeCounterNotice(mode: KioskMode, lang: KioskLang, fallback: string[] | undefined): string[] | undefined {
+  const notice = mode.receipt.counterNotice
+  return notice ? notice[lang] ?? notice.en ?? fallback : fallback
 }
 
 /** 이 모드·언어의 첫 화면 문구 — 없으면 영어 → 기본 문구 순으로 */

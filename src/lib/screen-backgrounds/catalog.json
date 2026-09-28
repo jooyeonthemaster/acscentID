@@ -1078,5 +1078,20 @@
     "base": "#fff6df",
     "display_order": 206,
     "is_active": true
+  },
+  {
+    "id": "kiosk-event-kwave-2026",
+    "target": "kiosk",
+    "title": "K-WAVE 댄스 페스티벌",
+    "image_url": "/assets/screen-backgrounds/kiosk/kiosk-event-kwave-2026.webp",
+    "thumbnail_url": "/assets/screen-backgrounds/kiosk/kiosk-event-kwave-2026-thumb.webp",
+    "collection": "event",
+    "palette": "soft",
+    "tone": "dark",
+    "ink": "#f4f5ff",
+    "accent": "#afb0d3",
+    "base": "#243266",
+    "display_order": 207,
+    "is_active": true
   }
 ]

@@ -47,13 +47,15 @@ const booth = catalog.filter(item => item.target === 'booth');
 const kiosk = catalog.filter(item => item.target === 'kiosk');
 const clone = (value, edits = {}) => ({ ...value, ...edits });
 
-test('catalog contains 72 valid unique entries and every required collection', () => {
-  assert.equal(catalog.length, 72);
-  assert.equal(new Set(catalog.map(item => item.id)).size, 72);
-  assert.equal(new Set(catalog.map(item => item.image_url)).size, 72);
+test('catalog contains 73 valid unique entries and every required collection', () => {
+  // 기본 36종씩 + 키오스크 행사 배경(K-WAVE 운영 모드 기본 배경) 1종
+  assert.equal(catalog.length, 73);
+  assert.equal(new Set(catalog.map(item => item.id)).size, 73);
+  assert.equal(new Set(catalog.map(item => item.image_url)).size, 73);
+  assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026']);
   for (const target of types.SCREEN_TARGETS) {
     const entries = catalog.filter(item => item.target === target);
-    assert.equal(entries.length, 36);
+    assert.equal(entries.length, target === 'kiosk' ? 37 : 36);
     assert.equal(entries.filter(item => item.collection === 'poster').length, 20);
     assert.equal(entries.filter(item => item.collection === 'study').length, 10);
     assert.equal(entries.filter(item => item.collection === 'legacy').length, 6);
@@ -197,7 +199,7 @@ test('tombstones persist across fresh merges without resurrecting bundled preset
   ];
   for (let reload = 0; reload < 2; reload++) {
     const snapshot = merge.mergeBackgroundRecords(catalog, records);
-    assert.equal(snapshot.backgrounds.length, 71);
+    assert.equal(snapshot.backgrounds.length, 72);
     assert.equal(snapshot.backgrounds.some(item => item.id === booth[0].id), false);
     assert.equal(snapshot.backgrounds.find(item => item.id === booth[1].id).is_active, false);
     assert.equal(snapshot.selected.booth, booth[2].id);
@@ -215,7 +217,7 @@ test('merge honors custom edits/order and rejects damaged remote records', () =>
     { kind: 'background', background: custom }, { kind: 'background', background: edited },
     { kind: 'selection', target: 'booth', id: edited.id },
   ]);
-  assert.equal(snapshot.backgrounds.length, 73);
+  assert.equal(snapshot.backgrounds.length, 74);
   assert.equal(snapshot.backgrounds[0].id, custom.id);
   assert.equal(snapshot.backgrounds[1].title, '수정한 배경');
   assert.equal(snapshot.selected.booth, edited.id);
@@ -305,7 +307,7 @@ function isolatedStore() {
 test('store keeps IDs/targets immutable and preserves original images when deleting', async () => {
   const { store, records } = isolatedStore();
   const initial = await store.readBackgroundSnapshot();
-  assert.equal(initial.backgrounds.length, 72);
+  assert.equal(initial.backgrounds.length, 73);
   const edited = await store.saveBackground({ id: booth[0].id, target: 'kiosk', title: '  이름 수정  ' }, false);
   assert.equal(edited.target, 'booth');
   assert.equal(edited.id, booth[0].id);
@@ -390,7 +392,7 @@ test('store creates fresh IDs, resolves all-deleted targets and fails closed on 
   const snapshot = await store.readBackgroundSnapshot();
   assert.equal(snapshot.selected.booth, null);
   assert.equal(snapshot.backgrounds.filter(item => item.target === 'booth').length, 0);
-  assert.equal(snapshot.backgrounds.filter(item => item.target === 'kiosk').length, 36);
+  assert.equal(snapshot.backgrounds.filter(item => item.target === 'kiosk').length, 37);
   behavior.failList = true;
   await assert.rejects(store.readBackgroundSnapshot(), error => error.status === 503);
   behavior.failList = false;

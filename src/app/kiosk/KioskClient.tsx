@@ -46,7 +46,7 @@ import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
-import { findKioskMode, modeAttract } from '@/lib/kiosk/modes'
+import { findKioskMode, modeAttract, modeCounterNotice } from '@/lib/kiosk/modes'
 import {
   PixelIcon,
   RetroProgress,
@@ -977,7 +977,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
       steps: t.receipt.steps,
       // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
-      counterNotice: t.receipt.counterNotice,
+      counterNotice: modeCounterNotice(kioskMode, lang, t.receipt.counterNotice),
       recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
       precautions: t.receipt.precautions,
       footerLines: [
@@ -2081,7 +2081,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             ) : (
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
-                <KioskModeControls value={deviceSettings.mode} onSave={saveSettings} disabled={!!backgroundSaving} />
+                <KioskModeControls value={deviceSettings.mode} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                 <DeviceDesignControls settings={deviceBaseSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null} />
                 <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">

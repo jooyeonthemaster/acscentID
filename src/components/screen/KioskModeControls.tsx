@@ -8,9 +8,11 @@ import './kiosk-mode-controls.css'
 
 const PROGRAM_LABELS = { idol: '최애 이미지 분석', personal: '내 이미지 분석', saju: '사주 분석' } as const
 
-export function KioskModeControls({ value, onSave, disabled }: {
+export function KioskModeControls({ value, onSave, onSelectBackground, disabled }: {
   value: string | null | undefined
   onSave: (patch: { mode: string | null }) => Promise<void>
+  /** 모드에 기본 배경이 있으면 함께 고른다(useScreenBackgrounds().selectBackground) */
+  onSelectBackground?: (id: string) => Promise<void>
   disabled?: boolean
 }) {
   const [saving, setSaving] = useState<string | null>(null)
@@ -19,7 +21,11 @@ export function KioskModeControls({ value, onSave, disabled }: {
   const pick = async (id: string) => {
     if (saving || id === current.id) return
     setSaving(id); setError('')
-    try { await onSave({ mode: id === KIOSK_MODES[0].id ? null : id }) } catch (cause) { setError(cause instanceof Error ? cause.message : '저장하지 못했습니다.') } finally { setSaving(null) }
+    try {
+      await onSave({ mode: id === KIOSK_MODES[0].id ? null : id })
+      const bg = findKioskMode(id).defaultBackground
+      if (bg && onSelectBackground) await onSelectBackground(bg)
+    } catch (cause) { setError(cause instanceof Error ? cause.message : '저장하지 못했습니다.') } finally { setSaving(null) }
   }
   return (
     <section className="kmc" aria-label="운영 모드">
@@ -33,7 +39,7 @@ export function KioskModeControls({ value, onSave, disabled }: {
             onClick={() => void pick(mode.id)}>
             <b>{mode.label}{saving === mode.id ? ' · 저장 중…' : ''}</b>
             <span>{mode.note}</span>
-            <em>{mode.programs.map(p => PROGRAM_LABELS[p]).join(' · ')}</em>
+            <em>{mode.programs.map(p => PROGRAM_LABELS[p]).join(' · ')}{mode.defaultBackground ? ' · 전용 배경으로 바뀜' : ''}</em>
           </button>
         ))}
       </div>

@@ -81,6 +81,8 @@ export interface ReceiptRenderOptions {
     subtitle?: string
     /** 맨 아래 행사 안내 줄 */
     eventLines?: string[]
+    /** 제조 레시피를 굵은 상자로 감싼다 — 손님이 직접 조향하는 행사장에서 레시피를 바로 찾게 */
+    recipeBox?: boolean
   }
 }
 
@@ -306,6 +308,20 @@ class ReceiptBuilder {
       }
     })
     this.y = yTop + t
+  }
+
+  /** 위(yTop)부터 지금까지를 굵은 테두리 상자로 감싼다 — 본문(MARGIN)보다 바깥으로 그려 안쪽 여백을 만든다 */
+  box(yTop: number, thickness = 3) {
+    const t = Math.max(1, Math.round(thickness))
+    const top = Math.round(yTop), bottom = Math.round(this.y)
+    const x = MARGIN - 14, w = this.width - x * 2
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      ctx.fillRect(x, top, w, t)
+      ctx.fillRect(x, bottom - t, w, t)
+      ctx.fillRect(x, top, t, bottom - top)
+      ctx.fillRect(x + w - t, top, t, bottom - top)
+    })
   }
 
   /** 어절 단위 줄바꿈 텍스트. 반환값은 그려진 줄 수 */
@@ -791,6 +807,9 @@ export async function renderKioskReceipt(
   b.space(14)
 
   // ── 제조 레시피
+  const recipeBox = !!opts.brand?.recipeBox
+  const recipeTop = b.y
+  if (recipeBox) b.space(16)
   b.text('RECIPE', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
   b.space(4)
   b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 23, weight: 700 })
@@ -809,9 +828,15 @@ export async function renderKioskReceipt(
   for (let i = 0; i < data.steps.length; i++) {
     b.text(`${i + 1}. ${data.steps[i]}`, { size: 18, weight: 500, lineHeight: 1.5 })
   }
-  b.space(14)
-  b.rule(1.5, true)
-  b.space(12)
+  if (recipeBox) {
+    b.space(16)
+    b.box(recipeTop, 3)
+    b.space(18)
+  } else {
+    b.space(14)
+    b.rule(1.5, true)
+    b.space(12)
+  }
 
   // ── 푸터
   for (const line of data.footerLines) {
