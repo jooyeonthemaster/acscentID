@@ -18,12 +18,10 @@ import {
   TraitScores,
   SEASON_LABELS,
   TONE_LABELS,
-  SAJU_ELEMENT_INFO,
   type SajuPurpose,
-  type SajuElement,
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
-import { renderKioskReceipt, ReceiptData, ReceiptSaju } from '@/lib/kiosk/receipt-canvas'
+import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from './fonts'
@@ -34,7 +32,6 @@ import {
 } from './SajuInput'
 import {
   ChapterScent, ChapterProfile, ChapterReading,
-  ChapterMyeongsik, ChapterSajuReading, ChapterPurpose, ChapterPrescription,
   perfumeNoFromId, scentCategoryEn,
 } from './ResultView'
 import '@/components/retro/retro.css'
@@ -47,6 +44,9 @@ import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
 import { findKioskMode, modeAttract, modeCounterNotice } from '@/lib/kiosk/modes'
+import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
+import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
+import { SajuChartView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
 import {
   PixelIcon,
   RetroProgress,
@@ -180,14 +180,6 @@ const IDLE_LIMIT: Partial<Record<Step, number>> = {
   result: 360, // 장이 여러 개라 읽는 시간이 길다
 }
 
-const SAJU_STATUS_LINES = [
-  '만세력에서 생시를 찾는 중...',
-  '네 기둥을 세우는 중...',
-  '오행의 균형을 재는 중...',
-  '용신을 정하는 중...',
-  '기운에 맞는 향을 고르는 중...',
-]
-
 function toggleIn(list: string[], value: string, max: number): string[] {
   if (list.includes(value)) return list.filter((v) => v !== value)
   if (list.length >= max) return list
@@ -199,51 +191,7 @@ function isMockRequested(): boolean {
   return new URLSearchParams(window.location.search).get('mock') === '1'
 }
 
-const PILLAR_KEYS = ['hour', 'day', 'month', 'year'] as const
-const PILLAR_HEADS: Record<(typeof PILLAR_KEYS)[number], string> = {
-  hour: '時柱', day: '日柱', month: '月柱', year: '年柱',
-}
-
 /** 사주 결과 → 영수증 명식/처방 데이터 */
-function buildReceiptSaju(r: SajuAnalysisResult): ReceiptSaju {
-  const chart = r.sajuChart
-  const d = r.sajuAnalysis.scentDestiny
-  const persona = r.matchingPerfumes[0]?.persona
-  const el = (e: SajuElement) => `${e}(${SAJU_ELEMENT_INFO[e]?.hanja ?? ''})`
-
-  return {
-    pillars: PILLAR_KEYS.map((k) => {
-      const p = chart.pillars[k]
-      if (!p) return null
-      return {
-        head: PILLAR_HEADS[k],
-        ganHanja: p.ganHanja,
-        ganRead: p.gan,
-        ganElement: SAJU_ELEMENT_INFO[p.ganElement]?.hanja ?? '',
-        jiHanja: p.jiHanja,
-        jiRead: p.ji,
-        jiElement: SAJU_ELEMENT_INFO[p.jiElement]?.hanja ?? '',
-        isDay: k === 'day',
-      }
-    }),
-    dayMaster: `${chart.dayMaster.gan}(${chart.dayMaster.hanja}) · ${chart.dayMaster.strength}`,
-    yongsin: `${el(chart.yongsin.element)} · ${SAJU_ELEMENT_INFO[chart.yongsin.element]?.noteFamily ?? ''}`,
-    birth: `${chart.birthDisplay.solarDate}${chart.birthDisplay.sijin ? ` ${chart.birthDisplay.sijin}` : ' 시 미상'}`,
-    elements: (Object.entries(chart.elementCount) as [SajuElement, number][]).map(([e, v]) => ({
-      label: el(e),
-      value: Math.round(v * 10) / 10,
-      isYongsin: e === chart.yongsin.element,
-    })),
-    bridge: d.elementBridge,
-    why: d.whyNarrative,
-    tiers: [
-      { tier: '겉향', name: persona?.mainScent?.name ?? '-', meaning: d.topMeaning },
-      { tier: '중심향', name: persona?.subScent1?.name ?? '-', meaning: d.middleMeaning },
-      { tier: '잔향', name: persona?.subScent2?.name ?? '-', meaning: d.baseMeaning },
-    ],
-    ritual: d.ritualGuide,
-  }
-}
 
 function isSajuResult(r: ImageAnalysisResult | SajuAnalysisResult | null): r is SajuAnalysisResult {
   return Boolean(r && 'sajuChart' in r)
@@ -349,6 +297,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
+  const sx = sajuText(lang)
   // 첫 화면 문구 — 운영 모드에 행사 문구가 있으면 그것, 없으면 매장 기본
   const attract = modeAttract(kioskMode, lang, {
     ticket: 'FOR YOUR BIAS · HONGDAE', wordmark: 'WOW!', sub: t.attractSub, cardNo: '01 PHOTO > 01 SCENT',
@@ -726,7 +675,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setChapterIdx(0)
 
     // 응답 한 번으로 끝나는 요청이라 진행률을 알 수 없다 — 상태 문구만 돌린다
-    const lines = isSaju ? SAJU_STATUS_LINES : t.statusLines
+    const lines = isSaju ? sx.statusLines : t.statusLines
     const statusTimer = window.setInterval(() => {
       setStatusIdx((i) => (i + 1) % lines.length)
     }, 2600)
@@ -736,10 +685,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       const url = isSaju ? '/api/kiosk/analyze/saju' : '/api/kiosk/analyze'
       const body = isSaju
         ? {
-          name: name.trim() || '게스트',
+          name: name.trim() || t.guest,
           gender: gender || '',
           targetType: 'self' as const,
           purpose,
+          // 화면 언어로 해석문을 받는다(행사장 외국인 손님)
+          locale: sajuLocale(lang),
           birth: digitsToBirth(birthDigits, calendar, isLeapMonth, hourIndex === 'unknown' ? null : hourIndex),
           ...(purpose === 'compatibility'
             ? {
@@ -802,7 +753,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     program, name, gender, styles, personalities, charms, photo, showToast,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang,
+    t, lang, sx.statusLines,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -831,11 +782,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const chapters = useMemo(() => {
     if (!result) return []
     if (isSajuResult(result)) {
+      // 그림·카드 중심 결과(SajuReport) — 모든 장이 길 수 있어 스크롤로 둔다
       return [
-        { label: '命式 · 명식', render: () => <ChapterMyeongsik result={result} />, scroll: false },
-        { label: '解 · 풀이', render: () => <ChapterSajuReading result={result} />, scroll: true },
-        { label: '望 · 물음', render: () => <ChapterPurpose result={result} />, scroll: true },
-        { label: '香 · 처방', render: () => <ChapterPrescription result={result} />, scroll: false },
+        { label: sx.chapters[0], render: () => <SajuChartView result={result} tx={sx} />, scroll: true },
+        { label: sx.chapters[1], render: () => <SajuReadingView result={result} tx={sx} />, scroll: true },
+        { label: sx.chapters[2], render: () => <SajuPurposeView result={result} tx={sx} />, scroll: true },
+        { label: sx.chapters[3], render: () => <SajuPrescriptionView result={result} tx={sx} />, scroll: true },
       ]
     }
     return [
@@ -843,7 +795,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t])
+  }, [result, t, sx])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -899,7 +851,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     if (step !== 'result' || !result || !persona || !match || recordedRef.current) return
     recordedRef.current = true
 
-    const saju = isSajuResult(result) ? buildReceiptSaju(result) : null
+    const saju = isSajuResult(result) ? buildReceiptSaju(result, sx, lang === 'ko') : null
     fetch('/api/kiosk/record', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -936,7 +888,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       .catch((e) => console.error('[kiosk] 분석 기록 실패:', e))
   }, [
     step, result, persona, match, program, name, gender, photoSource, productType,
-    productInfo, topTraits, recipeRows, mocked, kiosk,
+    productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx,
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
@@ -984,7 +936,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         ...(mocked ? [t.receipt.demoNote] : []),
         "AC'SCENT · www.acscent.co.kr",
       ],
-      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result) } : {}),
+      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko') } : {}),
     }
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
@@ -994,7 +946,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       brand: { ...kioskMode.receipt, theme: isSajuResult(result) ? 'saju' : 'scent' },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx])
 
   const openReceipt = useCallback(async () => {
     try {
@@ -1463,16 +1415,16 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'purpose' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.purpose}</p>
-            <h1 className="ksk-title">무엇이 궁금하세요?</h1>
-            <p className="ksk-desc">고르신 주제로 명식을 풀이합니다.</p>
-            <SajuPurposeGrid value={purpose} onChange={setPurpose} />
+            <h1 className="ksk-title">{sx.purposeTitle}</h1>
+            <p className="ksk-desc">{sx.purposeDesc}</p>
+            <SajuPurposeGrid value={purpose} onChange={setPurpose} tx={sx} />
             <div style={{ flex: 1 }} />
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
-                이전
+                {t.prev}
               </button>
               <button className="ksk-btn ksk-btn-primary" disabled={!purpose} onClick={goNext}>
-                다음
+                {t.next}
               </button>
             </div>
           </div>
@@ -1481,7 +1433,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'birth' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.birth}</p>
-            <h1 className="ksk-title">언제 태어나셨나요?</h1>
+            <h1 className="ksk-title">{sx.birthTitle}</h1>
             <SajuBirthPad
               digits={birthDigits}
               onDigits={setBirthDigits}
@@ -1489,18 +1441,19 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               onCalendar={setCalendar}
               isLeapMonth={isLeapMonth}
               onLeapMonth={setIsLeapMonth}
+              tx={sx}
             />
             <div style={{ flex: 1 }} />
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
-                이전
+                {t.prev}
               </button>
               <button
                 className="ksk-btn ksk-btn-primary"
                 disabled={birthDigits.length !== 8 || Boolean(validateBirthDigits(birthDigits, calendar))}
                 onClick={goNext}
               >
-                다음
+                {t.next}
               </button>
             </div>
           </div>
@@ -1509,16 +1462,16 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'hour' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.hour}</p>
-            <h1 className="ksk-title">태어난 시간은요?</h1>
-            <p className="ksk-desc">시간을 알면 네 기둥이 모두 서고, 모르면 세 기둥으로 봅니다.</p>
-            <SajuHourGrid value={hourIndex} onChange={setHourIndex} />
+            <h1 className="ksk-title">{sx.hourTitle}</h1>
+            <p className="ksk-desc">{sx.hourDesc}</p>
+            <SajuHourGrid value={hourIndex} onChange={setHourIndex} tx={sx} />
             <div style={{ flex: 1 }} />
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
-                이전
+                {t.prev}
               </button>
               <button className="ksk-btn ksk-btn-primary" disabled={hourIndex === null} onClick={goNext}>
-                다음
+                {t.next}
               </button>
             </div>
           </div>
@@ -1527,14 +1480,14 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'partner' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.partner}</p>
-            <h1 className="ksk-title">누구와의 궁합인가요?</h1>
-            <label className="ksk-field-label ksk-mono">관계</label>
-            <SajuRelationGrid value={partnerRelation} onChange={setPartnerRelation} />
-            <label className="ksk-field-label ksk-mono">상대 이름</label>
+            <h1 className="ksk-title">{sx.partnerTitle}</h1>
+            <label className="ksk-field-label ksk-mono">{sx.relation}</label>
+            <SajuRelationGrid value={partnerRelation} onChange={setPartnerRelation} tx={sx} />
+            <label className="ksk-field-label ksk-mono">{sx.partnerName}</label>
             <button className="ksk-input" data-empty={!partnerName} onClick={() => setPartnerOskOpen(true)}>
-              {partnerName || '이름 또는 별명'}
+              {partnerName || sx.partnerNamePh}
             </button>
-            <label className="ksk-field-label ksk-mono">상대 성별</label>
+            <label className="ksk-field-label ksk-mono">{sx.partnerGender}</label>
             <div className="ksk-chips" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               {GENDER_OPTIONS.map((g) => (
                 <button
@@ -1543,11 +1496,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   data-on={partnerGender === g.key}
                   onClick={() => setPartnerGender(g.key)}
                 >
-                  {g.label}
+                  {t.gender[g.key] ?? g.label}
                 </button>
               ))}
             </div>
-            <label className="ksk-field-label ksk-mono">상대 생년월일</label>
+            <label className="ksk-field-label ksk-mono">{sx.partnerBirth}</label>
             <SajuBirthPad
               digits={partnerDigits}
               onDigits={setPartnerDigits}
@@ -1555,7 +1508,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               onCalendar={setPartnerCalendar}
               isLeapMonth={partnerLeap}
               onLeapMonth={setPartnerLeap}
-              label="상대 생년월일"
+              label={sx.partnerBirth}
+              tx={sx}
             />
             <div style={{ flex: 1 }} />
             {partnerOskOpen ? (
@@ -1564,12 +1518,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 onChange={setPartnerName}
                 onClose={() => setPartnerOskOpen(false)}
                 maxLength={12}
-                hint="상대 이름"
+                hint={sx.partnerName}
               />
             ) : (
               <div className="ksk-actions">
                 <button className="ksk-btn" onClick={goPrev}>
-                  이전
+                  {t.prev}
                 </button>
                 <button
                   className="ksk-btn ksk-btn-primary"
@@ -1580,7 +1534,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   }
                   onClick={goNext}
                 >
-                  다음
+                  {t.next}
                 </button>
               </div>
             )}
@@ -1590,10 +1544,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'wish' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.wish}</p>
-            <h1 className="ksk-title">마음에 걸리는 것이 있나요?</h1>
-            <p className="ksk-desc">한 줄만 적어주시면 풀이에 함께 엮습니다. 건너뛰어도 됩니다.</p>
+            <h1 className="ksk-title">{sx.wishTitle}</h1>
+            <p className="ksk-desc">{sx.wishDesc}</p>
             <button className="ksk-input ksk-input-tall" data-empty={!wish} onClick={() => setWishOpen(true)}>
-              {wish || '예) 올해 이직을 해도 될까요'}
+              {wish || sx.wishPh}
             </button>
             <div style={{ flex: 1 }} />
             {wishOpen ? (
@@ -1602,15 +1556,15 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 onChange={setWish}
                 onClose={() => setWishOpen(false)}
                 maxLength={40}
-                hint="고민 한 줄"
+                hint={sx.wishHint}
               />
             ) : (
               <div className="ksk-actions">
                 <button className="ksk-btn" onClick={goPrev}>
-                  이전
+                  {t.prev}
                 </button>
                 <button className="ksk-btn ksk-btn-primary" onClick={goNext}>
-                  {wish.trim() ? '다음' : '건너뛰기'}
+                  {wish.trim() ? t.next : sx.skip}
                 </button>
               </div>
             )}
@@ -1894,13 +1848,13 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <div className="ksk-analyzing">
               <RetroWindow className="ksk-loading" ghosts icon="hourglass" title={analysisDone ? 'DONE' : 'ANALYZING...'}>
                 <p className="ksk-analyzing-status" role="status" aria-live="polite">
-                  {(program === 'saju' ? SAJU_STATUS_LINES : t.statusLines)[
-                    statusIdx % (program === 'saju' ? SAJU_STATUS_LINES : t.statusLines).length
+                  {(program === 'saju' ? sx.statusLines : t.statusLines)[
+                    statusIdx % (program === 'saju' ? sx.statusLines : t.statusLines).length
                   ]}
                 </p>
                 <RetroProgress value={analysisDone ? 1 : null} blocks={14} label="ANALYZING" />
                 <p className="ksk-analyzing-eta">
-                  {program === 'saju' ? '명식을 풀이하는 데 40~80초쯤 걸립니다.' : t.analyzingEta}
+                  {program === 'saju' ? sx.eta : t.analyzingEta}
                 </p>
               </RetroWindow>
               <RetroStickers

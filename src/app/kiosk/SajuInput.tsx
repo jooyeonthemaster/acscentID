@@ -5,6 +5,9 @@
 
 import { useCallback, useMemo } from 'react'
 import { SAJU_PURPOSES, SAJU_RELATION_OPTIONS, type SajuPurpose, type SajuBirthInput } from '@/types/analysis'
+import { sajuText, type SajuText } from '@/lib/kiosk/saju-i18n'
+
+const KO = sajuText('ko')
 
 export const SAJU_YEAR_MIN = 1930
 export const SAJU_YEAR_MAX = 2035
@@ -30,22 +33,22 @@ export function branchToHour(index: number): number {
 }
 
 /** 8자리 문자열(YYYYMMDD)을 검증한다. 유효하면 null, 아니면 오류 문구 */
-export function validateBirthDigits(digits: string, calendar: 'solar' | 'lunar'): string | null {
+export function validateBirthDigits(digits: string, calendar: 'solar' | 'lunar', tx: SajuText = KO): string | null {
   if (digits.length !== 8) return null // 아직 입력 중
   const year = Number(digits.slice(0, 4))
   const month = Number(digits.slice(4, 6))
   const day = Number(digits.slice(6, 8))
-  if (year < SAJU_YEAR_MIN || year > SAJU_YEAR_MAX) return `${SAJU_YEAR_MIN}년부터 ${SAJU_YEAR_MAX}년까지 가능합니다`
-  if (month < 1 || month > 12) return '월을 확인해 주세요'
-  if (day < 1 || day > 31) return '일을 확인해 주세요'
+  if (year < SAJU_YEAR_MIN || year > SAJU_YEAR_MAX) return tx.errYear(SAJU_YEAR_MIN, SAJU_YEAR_MAX)
+  if (month < 1 || month > 12) return tx.errMonth
+  if (day < 1 || day > 31) return tx.errDay
   if (calendar === 'solar') {
     const d = new Date(year, month - 1, day)
     if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
-      return '없는 날짜입니다'
+      return tx.errNoDate
     }
-    if (d.getTime() > Date.now()) return '아직 오지 않은 날짜입니다'
+    if (d.getTime() > Date.now()) return tx.errFuture
   } else if (day > 30) {
-    return '음력은 30일까지입니다'
+    return tx.errLunar30
   }
   return null
 }
@@ -78,17 +81,19 @@ export function formatBirthDigits(digits: string): string {
 export function SajuPurposeGrid({
   value,
   onChange,
+  tx = KO,
 }: {
   value: SajuPurpose | null
   onChange: (p: SajuPurpose) => void
+  tx?: SajuText
 }) {
   return (
     <div className="ksk-purposes">
       {SAJU_PURPOSES.map((p) => (
         <button key={p.id} className="ksk-purpose" data-on={value === p.id} onClick={() => onChange(p.id)}>
           <span className="ksk-purpose-hanja">{p.hanja}</span>
-          <b>{p.label}</b>
-          <span>{p.description}</span>
+          <b>{tx.purposes[p.id]?.label ?? p.label}</b>
+          <span>{tx.purposes[p.id]?.desc ?? p.description}</span>
         </button>
       ))}
     </div>
@@ -103,7 +108,8 @@ export function SajuBirthPad({
   onCalendar,
   isLeapMonth,
   onLeapMonth,
-  label = '생년월일',
+  label,
+  tx = KO,
 }: {
   digits: string
   onDigits: (next: string) => void
@@ -112,8 +118,9 @@ export function SajuBirthPad({
   isLeapMonth: boolean
   onLeapMonth: (v: boolean) => void
   label?: string
+  tx?: SajuText
 }) {
-  const error = useMemo(() => validateBirthDigits(digits, calendar), [digits, calendar])
+  const error = useMemo(() => validateBirthDigits(digits, calendar, tx), [digits, calendar, tx])
 
   const push = useCallback(
     (d: string) => {
@@ -127,23 +134,23 @@ export function SajuBirthPad({
     <>
       <div className="ksk-seg">
         <button className="ksk-seg-btn" data-on={calendar === 'solar'} onClick={() => onCalendar('solar')}>
-          양력
+          {tx.solar}
         </button>
         <button className="ksk-seg-btn" data-on={calendar === 'lunar'} onClick={() => onCalendar('lunar')}>
-          음력
+          {tx.lunar}
         </button>
       </div>
 
       <div className="ksk-birth-display">
-        <span className="ksk-birth-label ksk-mono">{label}</span>
+        <span className="ksk-birth-label ksk-mono">{label ?? tx.birthLabel}</span>
         <span className="ksk-birth-value ksk-mono">{formatBirthDigits(digits)}</span>
       </div>
-      <p className="ksk-birth-hint">{error ?? (digits.length < 8 ? '연도 4자리 → 월 2자리 → 일 2자리 순서로 눌러 주세요' : ' ')}</p>
+      <p className="ksk-birth-hint">{error ?? (digits.length < 8 ? tx.birthHint : ' ')}</p>
 
       {calendar === 'lunar' && (
         <button className="ksk-check" data-on={isLeapMonth} onClick={() => onLeapMonth(!isLeapMonth)}>
           <i />
-          윤달로 계산하기
+          {tx.leapMonth}
         </button>
       )}
 
@@ -154,7 +161,7 @@ export function SajuBirthPad({
           </button>
         ))}
         <button className="ksk-pad-key ksk-pad-fn" onClick={() => onDigits('')} disabled={!digits}>
-          전체 지움
+          {tx.clearAll}
         </button>
         <button className="ksk-pad-key" onClick={() => push('0')} disabled={digits.length >= 8}>
           0
@@ -171,9 +178,11 @@ export function SajuBirthPad({
 export function SajuHourGrid({
   value,
   onChange,
+  tx = KO,
 }: {
   value: number | null | 'unknown'
   onChange: (v: number | 'unknown') => void
+  tx?: SajuText
 }) {
   return (
     <>
@@ -181,13 +190,13 @@ export function SajuHourGrid({
         {BRANCH_HOURS.map((b, i) => (
           <button key={b.hanja} className="ksk-branch" data-on={value === i} onClick={() => onChange(i)}>
             <span className="ksk-branch-hanja">{b.hanja}</span>
-            <b>{b.label}</b>
+            <b>{tx.hours[i] ?? b.label}</b>
             <span className="ksk-mono">{b.range}</span>
           </button>
         ))}
       </div>
       <button className="ksk-alt" data-on={value === 'unknown'} onClick={() => onChange('unknown')}>
-        태어난 시간을 몰라요 (세 기둥으로 봅니다)
+        {tx.hourUnknown}
       </button>
     </>
   )
@@ -197,15 +206,17 @@ export function SajuHourGrid({
 export function SajuRelationGrid({
   value,
   onChange,
+  tx = KO,
 }: {
   value: string
   onChange: (v: string) => void
+  tx?: SajuText
 }) {
   return (
     <div className="ksk-chips" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
       {SAJU_RELATION_OPTIONS.map((r) => (
         <button key={r.id} className="ksk-chip" data-on={value === r.id} onClick={() => onChange(r.id)}>
-          {r.label}
+          {tx.relations[r.id] ?? r.label}
         </button>
       ))}
     </div>

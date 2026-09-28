@@ -36,6 +36,23 @@ export interface ReceiptSaju {
   why: string
   tiers: { tier: string; name: string; meaning: string }[]
   ritual: string
+  /** 사주 제목들 — 화면 언어(src/lib/kiosk/saju-i18n.ts receipt). 없으면 한국어 */
+  labels?: {
+    myeongsik: string
+    dayMaster: string
+    yongsin: string
+    born: string
+    elements: string
+    bridge: string
+    ritual: string
+    rxScent: string
+    title: string
+  }
+}
+
+const SAJU_LABELS_KO = {
+  myeongsik: '四柱命式 · 명식', dayMaster: '日干 일간', yongsin: '用神 용신', born: '生時 생시', elements: '오행 분포',
+  bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전',
 }
 
 export interface ReceiptData {
@@ -656,6 +673,7 @@ export async function renderKioskReceipt(
   b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
   b.space(6)
   const sajuFirst = opts.brand?.theme === 'saju' && !!data.saju
+  const L = data.saju?.labels ?? SAJU_LABELS_KO
   b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   if (sajuFirst) {
     // 사주 처방전 — 한약방 처방전처럼 큰 한자 제목을 두 줄 괘선 사이에
@@ -666,7 +684,7 @@ export async function renderKioskReceipt(
     b.space(14)
     b.text('四柱香 處方箋', { size: 40, weight: 800, family: 'hanja', align: 'center', letterSpacing: 4, lineHeight: 1.15 })
     b.space(4)
-    b.text('사주 향 처방전', { size: 18, weight: 600, align: 'center', letterSpacing: 6 })
+    b.text(L.title, { size: 18, weight: 600, align: 'center', letterSpacing: L.title === SAJU_LABELS_KO.title ? 6 : 2 })
     b.space(14)
     b.rule(1)
     b.space(4)
@@ -697,7 +715,7 @@ export async function renderKioskReceipt(
   const drawScent = () => {
     // ── 매칭 향
     b.space(22)
-    b.text(sajuFirst ? '處方 香 · 처방 향' : 'YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+    b.text(sajuFirst ? L.rxScent : 'YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
     b.space(8)
     b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
     b.space(4)
@@ -731,16 +749,16 @@ export async function renderKioskReceipt(
     // ── 사주: 명식 · 용신 · 처방 (사주 프로그램일 때만)
     if (data.saju) {
       const sj = data.saju
-      b.text('四柱命式 · 명식', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.text(L.myeongsik, { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
       b.space(10)
       b.pillars(sj.pillars)
       b.space(14)
-      b.row('日干 일간', sj.dayMaster, { size: 18 })
-      b.row('用神 용신', sj.yongsin, { size: 18 })
-      b.row('生時 생시', sj.birth, { size: 18, mono: true })
+      b.row(L.dayMaster, sj.dayMaster, { size: 18 })
+      b.row(L.yongsin, sj.yongsin, { size: 18 })
+      b.row(L.born, sj.birth, { size: 18, mono: true })
       b.space(12)
 
-      b.text('오행 분포', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.text(L.elements, { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
       b.space(8)
       for (const el of sj.elements) {
         // 용신 행만 ◀ 마커로 표시 — 색 없이도 처방의 근거가 읽힌다
@@ -750,7 +768,7 @@ export async function renderKioskReceipt(
       b.rule(1.5, true)
       b.space(14)
 
-      b.text('命과 香 · 처방의 연유', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.text(L.bridge, { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
       b.space(8)
       if (sj.bridge) {
         b.text(sj.bridge, { size: 20, weight: 700, lineHeight: 1.4 })
@@ -766,7 +784,7 @@ export async function renderKioskReceipt(
       }
       b.space(6)
       if (sj.ritual) {
-        b.text('處方 · 쓰는 법', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+        b.text(L.ritual, { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
         b.space(8)
         b.text(sj.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
         b.space(14)

@@ -13,6 +13,8 @@ import {
   type SajuAnalysisResult, type SajuAnalyzeRequest, type SajuPurpose,
 } from '@/types/analysis';
 import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
+import { wrapPromptWithLocale } from '@/lib/gemini/locale-prompt-wrapper';
+import type { Locale } from '@/i18n/config';
 
 // 키오스크 전용 사주 분석 — /api/analyze/saju와 동일한 엔진·프롬프트·파서를 쓰되
 // 인증(401)과 일일 한도 두 블록만 제거했다. 무인 기기는 로그인 주체가 없다.
@@ -134,7 +136,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = (await request.json()) as SajuAnalyzeRequest & { mock?: boolean };
+    const body = (await request.json()) as SajuAnalyzeRequest & { mock?: boolean; locale?: string };
+    // 키오스크 화면 언어로 해석한다(행사장 외국인 손님). 번체는 zh 지시에 '번체로'를 덧붙인다
+    const traditional = body.locale === 'zh-Hant';
+    const locale: Locale = traditional ? 'zh' : body.locale === 'en' || body.locale === 'ja' || body.locale === 'zh' ? body.locale : 'ko';
 
     const purpose = normalizePurpose(body.purpose);
     if (!purpose) {
@@ -192,11 +197,13 @@ export async function POST(request: NextRequest) {
 
     // ── 용신 → 후보 향 → 프롬프트 → AI 해석 (원 라우트와 동일) ──
     const candidates = getScentCandidates(chart.yongsin.element, chart.lackingElements);
-    const prompt = buildSajuPrompt({
+    const basePrompt = buildSajuPrompt({
       name, gender, targetType, purpose,
       wish: typeof body.wish === 'string' && body.wish.trim() ? body.wish.trim().slice(0, 100) : undefined,
       chart, candidates, partner: partnerPrompt,
     });
+    const prompt = locale === 'ko' ? basePrompt
+      : wrapPromptWithLocale(basePrompt, locale) + (traditional ? '\n\n# 所有輸出文字一律使用繁體中文（Traditional Chinese characters），不可使用簡體字。' : '');
 
     const model = getModelWithConfig({ maxOutputTokens: 16384, temperature: 0.85 });
     const attempt = async (text: string) => {
@@ -208,7 +215,7 @@ export async function POST(request: NextRequest) {
       );
       console.log(`[${requestId}] 응답 수신 (${Date.now() - started}ms)`);
       return parseSajuGeminiResponse(res.response.text(), {
-        locale: 'ko',
+        locale,
         purpose,
         isThreePillar: chart.isThreePillar,
         requireCompatibility: purpose === 'compatibility',
