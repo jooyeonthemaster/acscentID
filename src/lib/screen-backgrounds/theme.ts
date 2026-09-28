@@ -1,12 +1,13 @@
 import type { BackgroundPalette, ScreenBackground } from './types'
-import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
+import { DEFAULT_RETRO_FONT, HANJA_FONT, findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 
-const wanted = 'var(--font-wanted), "Wanted Sans", sans-serif'
-const score = 'var(--font-score-dream), "Apple SD Gothic Neo", sans-serif'
+// 한자는 Noto Sans TC 로 통일(HANJA_FONT) — 배경 글꼴 조합에도 한자가 없다
+const wanted = `var(--font-wanted), "Wanted Sans", ${HANJA_FONT}, sans-serif`
+const score = `var(--font-score-dream), "Apple SD Gothic Neo", ${HANJA_FONT}, sans-serif`
 const fonts: Record<BackgroundPalette, { display: string; body: string; weight: number; tracking: string; label: string }> = {
   wanted: { display: wanted, body: wanted, weight: 800, tracking: '-0.04em', label: 'Wanted Sans' },
-  jua: { display: 'var(--font-jua), "Jua", sans-serif', body: score, weight: 400, tracking: '-0.035em', label: 'Jua' },
-  kirang: { display: 'var(--font-kirang), "Kirang Haerang", cursive', body: wanted, weight: 400, tracking: '0.01em', label: 'Kirang Haerang' },
+  jua: { display: `var(--font-jua), "Jua", ${HANJA_FONT}, sans-serif`, body: score, weight: 400, tracking: '-0.035em', label: 'Jua' },
+  kirang: { display: `var(--font-kirang), "Kirang Haerang", ${HANJA_FONT}, cursive`, body: wanted, weight: 400, tracking: '0.01em', label: 'Kirang Haerang' },
   // 'serif'는 옛 명조 조합의 저장값 — 명조를 쓰지 않기로 해 굵은 고딕으로 바꿔 보여준다(저장값은 호환용으로 유지)
   serif: { display: score, body: score, weight: 700, tracking: '-0.035em', label: 'S-Core Dream Bold' },
   soft: { display: score, body: score, weight: 500, tracking: '-0.025em', label: 'S-Core Dream' },

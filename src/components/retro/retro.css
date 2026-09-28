@@ -73,7 +73,7 @@
   --rt-gap-6: 32px;
 
   /* ── 서체 ── */
-  --rt-font-body: var(--rt-body-font, var(--font-wanted), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif);
+  --rt-font-body: var(--rt-body-font, var(--font-wanted), var(--font-noto-tc, 'Noto Sans TC'), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif);
   --rt-font-display: var(--rt-display-font, var(--rt-font-body));
   /* 픽셀체에 한글이 없으면 본문 서체가 이어받는다 */
   --rt-font-pixel: var(--font-pixel), 'Silkscreen', var(--rt-font-body);

@@ -1783,7 +1783,8 @@
 }
 .ksk-modal-actions .ksk-btn-primary {
   background: #fff;
-  color: var(--ink);
+  /* 테마 글자색(--ink)은 짙은 배경에서 거의 흰색이라 흰 버튼 위에서 사라졌다 — 늘 짙은 글씨 */
+  color: #172554;
 }
 
 /* 스텝 하단 액션 바는 항상 화면에 붙여 둔다.

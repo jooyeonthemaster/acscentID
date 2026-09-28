@@ -546,7 +546,10 @@ export const SCREEN_FONT_IDS = SCREEN_FONTS.map((font) => font.id)
 /** 레트로 UI 기본 글꼴 — 고딕으로 통일(명조 없음) */
 export const DEFAULT_RETRO_FONT = 'score-dream'
 
-const FALLBACK = "var(--font-score-dream), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+// 한자 — 화면 글꼴은 한글 2,350자만 남긴 파일이라 한자가 없어 시스템 글꼴로 제각각 그려졌다.
+// 키오스크에 이미 실린 Noto Sans TC(번체 = 한국 한자 자형)를 한글·영문 뒤에 두어 한자만 이 글꼴로 통일한다
+export const HANJA_FONT = "var(--font-noto-tc, 'Noto Sans TC')"
+const FALLBACK = `var(--font-score-dream), ${HANJA_FONT}, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif`
 
 export function findScreenFont(id: string | null | undefined): ScreenFont | undefined {
   return id ? SCREEN_FONTS.find((font) => font.id === id) : undefined
