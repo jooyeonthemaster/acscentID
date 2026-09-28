@@ -14,6 +14,7 @@ import {
 } from '@/types/analysis';
 import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 import { wrapPromptWithLocale } from '@/lib/gemini/locale-prompt-wrapper';
+import { fixHangulDeep, HANGUL, setAtPath, type HangulLeftover } from '@/lib/kiosk/saju-hangul';
 import type { Locale } from '@/i18n/config';
 
 // 키오스크 전용 사주 분석 — /api/analyze/saju와 동일한 엔진·프롬프트·파서를 쓰되
@@ -203,7 +204,9 @@ export async function POST(request: NextRequest) {
       chart, candidates, partner: partnerPrompt,
     });
     const prompt = locale === 'ko' ? basePrompt
-      : wrapPromptWithLocale(basePrompt, locale) + (traditional ? '\n\n# 所有輸出文字一律使用繁體中文（Traditional Chinese characters），不可使用簡體字。' : '');
+      : wrapPromptWithLocale(basePrompt, locale)
+        + '\n\n# NO HANGUL: never write Korean (Hangul) characters anywhere in the output. Romanize Korean saju terms (e.g. "Byeong-o year", "Yongsin") and keep Chinese characters (漢字) only in parentheses.'
+        + (traditional ? '\n\n# 所有輸出文字一律使用繁體中文（Traditional Chinese characters），不可使用簡體字。' : '');
 
     const model = getModelWithConfig({ maxOutputTokens: 16384, temperature: 0.85 });
     const attempt = async (text: string) => {
@@ -226,7 +229,31 @@ export async function POST(request: NextRequest) {
     let lastError = '';
     for (let i = 0; i <= MAX_RETRIES && !parsed; i += 1) {
       try {
-        parsed = await attempt(i === 0 ? prompt : buildSajuRetryPrompt(prompt, lastError));
+        const next = await attempt(i === 0 ? prompt : buildSajuRetryPrompt(prompt, lastError));
+        if (locale !== 'ko') {
+          // 외국어 해석에 섞인 한글 — 고칠 수 있는 건 고치고, 그래도 남으면 한 번 다시 받는다(마지막 시도면 고친 그대로)
+          const leftovers: HangulLeftover[] = [];
+          next.sajuAnalysis = fixHangulDeep(next.sajuAnalysis, leftovers);
+          if (leftovers.length && i < MAX_RETRIES) {
+            throw new Error(`Output contained Korean Hangul characters (write them in the target language or 漢字 instead): ${leftovers.slice(0, 3).map(l => l.text.slice(0, 60)).join(' / ')}`);
+          }
+          if (leftovers.length) {
+            // 마지막 안전장치 — 한글이 남은 문장만 모아 그 언어로 고쳐 받는다(짧은 호출). 실패하면 고친 그대로 쓴다
+            const langName = traditional ? 'Traditional Chinese' : locale === 'zh' ? 'Simplified Chinese' : locale === 'ja' ? 'Japanese' : 'English';
+            try {
+              const fixer = getModelWithConfig({ maxOutputTokens: 4096, temperature: 0.2 });
+              const fixPrompt = `These ${langName} sentences accidentally contain Korean (Hangul) words. Rewrite each one fully in ${langName} with the same meaning, replacing every Hangul word with the ${langName} word (Chinese characters for saju terms are fine). Return ONLY JSON: {"items": ["...", ...]} in the same order and count.\n\n${JSON.stringify({ items: leftovers.map(l => l.text) })}`;
+              const res = await withTimeout(fixer.generateContent({ contents: [{ role: 'user', parts: [{ text: fixPrompt }] }] }), 20000, 'hangul fix timed out');
+              const items = (JSON.parse(res.response.text().replace(/^```(?:json)?|```$/g, '').trim()) as { items?: unknown }).items;
+              if (Array.isArray(items) && items.length === leftovers.length) {
+                items.forEach((t, k) => { if (typeof t === 'string' && t.trim() && !HANGUL.test(t)) setAtPath(next.sajuAnalysis, leftovers[k].path, t.trim()) });
+              }
+            } catch (fixError) {
+              console.warn(`[${requestId}] 한글 고침 실패(고친 그대로 사용): ${fixError instanceof Error ? fixError.message : fixError}`);
+            }
+          }
+        }
+        parsed = next;
       } catch (e) {
         lastError = e instanceof Error ? e.message : 'Unknown error';
         console.error(`[${requestId}] 시도 ${i + 1} 실패: ${lastError}`);

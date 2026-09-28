@@ -41,7 +41,7 @@ import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
-import { findKioskMode, modeAttract, modeCounterNotice } from '@/lib/kiosk/modes'
+import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
 import { SajuChartView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
@@ -914,7 +914,7 @@ export function KioskClassic() {
     const rendered = await renderKioskReceipt(data, {
       photoSrc: isSajuResult(result) ? null : photo,
       lang,
-      brand: { ...kioskMode.receipt, theme: isSajuResult(result) ? 'saju' : 'scent' },
+      brand: { ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent' },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
   }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx])

@@ -447,6 +447,7 @@ const zhHant: SajuText = {
   pillarHeads: { hour: '時', day: '日', month: '月', year: '年' },
   noHour: '時辰不明',
   lunarInput: '農曆輸入',
+  elementsTitle: '五行分佈',
   fill: '需補之氣',
   strongest: '最強之氣',
   noteFamily: { 목: '綠葉 · 草本', 화: '辛香 · 琥珀', 토: '木質 · 甜香', 금: '柑橘 · 清新', 수: '麝香 · 深沉' },

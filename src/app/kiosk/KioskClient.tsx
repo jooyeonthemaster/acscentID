@@ -43,7 +43,7 @@ import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
-import { findKioskMode, modeAttract, modeCounterNotice } from '@/lib/kiosk/modes'
+import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
 import { SajuChartView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
@@ -943,7 +943,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       photoSrc: isSajuResult(result) ? null : photo,
       lang,
       // 운영 모드의 영수증 머리말·행사 줄. 사주 결과면 명식이 맨 앞에 오는 처방전 모양
-      brand: { ...kioskMode.receipt, theme: isSajuResult(result) ? 'saju' : 'scent' },
+      brand: { ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent' },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
   }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx])
