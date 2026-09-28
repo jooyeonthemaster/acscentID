@@ -404,6 +404,7 @@ export function BoothClassic() {
     error: backgroundsError,
     refresh: refreshBackgrounds,
     liveEvent: screenLiveEvent,
+    baseSettings: deviceBaseSettings,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -3074,7 +3075,7 @@ export function BoothClassic() {
                     </div>
                   )}
                   <div className="mb-3 shrink-0">
-                    <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="어떤 사진을 찍을까요? ACSCENT PHOTO" compact />
+                    <DeviceDesignControls settings={deviceBaseSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="어떤 사진을 찍을까요? ACSCENT PHOTO" compact eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null} />
                     <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                   </div>
                   <div className="mb-1 flex shrink-0 items-center justify-between gap-3">

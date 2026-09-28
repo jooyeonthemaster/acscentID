@@ -14,3 +14,5 @@
 .sdc--compact .sdc-row > b { flex-basis: auto; }
 .sdc--compact .sdc-sample { font-size: 18px; padding: 8px 10px; }
 .sdc--compact .sdc-status { grid-column: 1 / -1; }
+.sdc-override { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fffbeb; color: #92400e; font-size: 13px; line-height: 1.5; }
+.sdc--compact .sdc-override { grid-column: 1 / -1; }

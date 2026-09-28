@@ -27,6 +27,8 @@ export interface KioskMode {
   note: string
   /** 화면 맨 위 제목줄 이름 */
   brandName: string
+  /** 매장 이벤트 배경·글꼴(생카 등, docs/screen-events.md)을 적용하는가 — 매장 밖 행사에서는 끈다 */
+  storeEvents: boolean
   /** 켜는 프로그램 — 둘 이상이면 프로그램 고르기 화면이 나온다 */
   programs: KioskProgramId[]
   /** 언어별 첫 화면 문구. 비면 매장 기본 문구 */
@@ -47,6 +49,7 @@ export const KIOSK_MODES: KioskMode[] = [
     label: "AC'SCENT WOW 매장",
     note: '상시 운영 · 최애 이미지 분석',
     brandName: "AC'SCENT WOW",
+    storeEvents: true,
     programs: ['idol'],
     attract: {},
     receipt: { theme: 'scent', subtitle: 'WOW · SCENT REPORT', eventLines: [] },
@@ -56,6 +59,7 @@ export const KIOSK_MODES: KioskMode[] = [
     label: 'K-WAVE 댄스 페스티벌',
     note: '2026.10.3~10.4 · 이태원로 세계문화마을 · 사주 분석',
     brandName: "AC'SCENT × K-WAVE",
+    storeEvents: false,
     programs: ['saju'],
     attract: {
       ko: {

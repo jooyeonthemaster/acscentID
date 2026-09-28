@@ -420,6 +420,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     error: backgroundsError,
     refresh: refreshBackgrounds,
     liveEvent: screenLiveEvent,
+    baseSettings: deviceBaseSettings,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -2980,11 +2981,12 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       </div>
                     )}
                     <DeviceDesignControls
-                      settings={deviceSettings}
+                      settings={deviceBaseSettings}
                       onSave={saveSettings}
                       disabled={!!backgroundSaving}
                       sample="어떤 사진을 찍을까요? ACSCENT PHOTO"
                       compact
+                      eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null}
                     />
                   </div>
                     <div className="bth-admin-actions">

@@ -12,13 +12,15 @@ import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { ScreenFontPicker } from '@/lib/screen-fonts/FontPicker'
 import './device-design-controls.css'
 
-export function DeviceDesignControls({ settings, onSave, disabled, sample, compact }: {
+export function DeviceDesignControls({ settings, onSave, disabled, sample, compact, eventFont }: {
   settings: DeviceSettings
   onSave: (patch: Partial<DeviceSettings>) => Promise<void>
   disabled?: boolean
   sample: string
   /** 가로 화면(부스) — 한 줄로 줄여 배경 목록 높이를 남긴다. 미리보기는 글꼴 목록 옆 */
   compact?: boolean
+  /** 지금 이벤트 글꼴이 기기 글꼴보다 우선 적용 중이면 — 여기서 고른 글꼴이 화면에 안 보이는 이유를 알린다 */
+  eventFont?: { title: string; font: string } | null
 }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -48,6 +50,12 @@ export function DeviceDesignControls({ settings, onSave, disabled, sample, compa
       </div>
       <ScreenFontFace ids={[previewFont]} />
       <p className="sdc-sample" style={{ fontFamily: settings.ui === 'mac' && !settings.font ? MAC_SYSTEM_FONT : screenFontFamily(previewFont) }}>{sample}</p>
+      {eventFont && (
+        <p className="sdc-override" role="note">
+          지금은 ‘{eventFont.title}’ 이벤트 글꼴({findScreenFont(eventFont.font)?.label ?? eventFont.font})이 우선 적용 중입니다.
+          여기서 고른 글꼴은 이벤트가 끝나거나 [이벤트 배경]에서 해제하면 보입니다.
+        </p>
+      )}
       <p className="sdc-status" role="status">
         {error || (saving ? '저장하고 있습니다… 같은 종류의 기기에 모두 적용됩니다.' : `현재: ${SCREEN_UI_LABELS[settings.ui]} · ${findScreenFont(settings.font)?.label ?? '기본 글꼴'}`)}
       </p>

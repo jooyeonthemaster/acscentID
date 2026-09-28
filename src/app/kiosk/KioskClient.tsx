@@ -307,6 +307,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     error: backgroundsError,
     refresh: refreshBackgrounds,
     liveEvent: screenLiveEvent,
+    baseSettings: deviceBaseSettings,
     selectBackground,
     settings: deviceSettings,
     saveSettings,
@@ -2081,7 +2082,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
                 <KioskModeControls value={deviceSettings.mode} onSave={saveSettings} disabled={!!backgroundSaving} />
-                <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" />
+                <DeviceDesignControls settings={deviceBaseSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null} />
                 <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">
                   <b>화면 배경 · {backgrounds.length}개</b>
