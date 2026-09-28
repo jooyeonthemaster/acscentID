@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
     if (raw.length > 1000) throw new BackgroundError('잘못된 요청입니다.')
     let body
     try { body = JSON.parse(raw) } catch { throw new BackgroundError('잘못된 요청입니다.') }
-    if (isScreenTarget(body?.target) && body && (Object.hasOwn(body, 'ui') || Object.hasOwn(body, 'font'))) {
+    if (isScreenTarget(body?.target) && body && (Object.hasOwn(body, 'ui') || Object.hasOwn(body, 'font') || Object.hasOwn(body, 'mode'))) {
       const settings = await saveDeviceSettings(body.target, body)
       return NextResponse.json({ success: true, settings }, { headers })
     }

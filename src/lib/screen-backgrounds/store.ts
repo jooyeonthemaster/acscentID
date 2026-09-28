@@ -6,6 +6,7 @@ import { EDITABLE_BACKGROUND_FIELDS, validateBackground } from './validation'
 import type { BackgroundSnapshot, DeviceSettings, ScreenBackground, ScreenTarget } from './types'
 import { isScreenUi } from './types'
 import { SCREEN_FONT_IDS } from '@/lib/screen-fonts/catalog'
+import { KIOSK_MODE_IDS } from '@/lib/kiosk/modes'
 
 // Private server-only configuration bucket; no manual SQL migration or device-local metadata.
 // One object per background avoids overwriting unrelated edits from another administrator.
@@ -90,6 +91,10 @@ export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<De
     if (patch.font !== null && !SCREEN_FONT_IDS.includes(patch.font as string)) throw new BackgroundError('글꼴을 찾을 수 없습니다.')
     next.font = patch.font ?? null
   }
-  await writeRecord(`settings-${target}`, { kind: 'settings', target, ui: next.ui, font: next.font })
+  if (Object.hasOwn(patch, 'mode')) {
+    if (target !== 'kiosk' || (patch.mode !== null && !KIOSK_MODE_IDS.includes(patch.mode as string))) throw new BackgroundError('운영 모드를 확인해주세요.')
+    next.mode = patch.mode ?? null
+  }
+  await writeRecord(`settings-${target}`, { kind: 'settings', target, ui: next.ui, font: next.font, ...(next.mode ? { mode: next.mode } : {}) })
   return next
 }

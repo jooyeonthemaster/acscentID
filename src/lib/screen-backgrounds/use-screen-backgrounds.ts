@@ -14,7 +14,7 @@ function initialSnapshot(target: ScreenTarget): BackgroundSnapshot {
 /** 예전 서버·캐시에는 settings 가 없다 — 없거나 이상하면 기본값(레트로·기본 글꼴) */
 function parseSettings(value: unknown): DeviceSettings {
   const raw = (value ?? {}) as Partial<DeviceSettings>
-  return { ui: isScreenUi(raw.ui) ? raw.ui : DEFAULT_DEVICE_SETTINGS.ui, font: isFontId(raw.font) ? raw.font : null }
+  return { ui: isScreenUi(raw.ui) ? raw.ui : DEFAULT_DEVICE_SETTINGS.ui, font: isFontId(raw.font) ? raw.font : null, ...(isFontId(raw.mode) ? { mode: raw.mode } : {}) }
 }
 function parseSnapshot(value: unknown, target: ScreenTarget): BackgroundSnapshot {
   const snapshot = value as BackgroundSnapshot

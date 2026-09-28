@@ -45,6 +45,8 @@ import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
+import { KioskModeControls } from '@/components/screen/KioskModeControls'
+import { findKioskMode, modeAttract } from '@/lib/kiosk/modes'
 import {
   PixelIcon,
   RetroProgress,
@@ -68,9 +70,8 @@ function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
 export type Program = 'personal' | 'idol' | 'saju'
 
 /**
- * enabled = 매장에서 실제로 운영하는 프로그램.
- * AC'SCENT WOW는 '최애 이미지 분석'만 돌리므로 나머지는 코드를 지우지 않고 false로 내려둔다.
- * 다시 true로 올리면 프로그램 선택 화면까지 자동으로 되살아난다.
+ * 켜는 프로그램은 운영 모드(src/lib/kiosk/modes.ts)가 정한다 — 매장은 최애 이미지 분석, K-WAVE 는 사주.
+ * 모드에 둘 이상이면 프로그램 고르기 화면이 나온다. enabled 는 예전 고정값(지금은 쓰지 않음).
  */
 const PROGRAMS: {
   id: Program
@@ -85,10 +86,7 @@ const PROGRAMS: {
   { id: 'saju', hanja: '命', title: '사주 향 분석', desc: '태어난 시각의 기운으로 향을 처방합니다', note: '생년월일시 필요', enabled: false },
 ]
 
-const ACTIVE_PROGRAMS = PROGRAMS.filter((p) => p.enabled)
-const DEFAULT_PROGRAM: Program = ACTIVE_PROGRAMS[0]?.id ?? 'idol'
-/** 운영 프로그램이 하나뿐이면 선택 화면은 탭만 늘리므로 건너뛴다 */
-const SHOW_PROGRAM_STEP = ACTIVE_PROGRAMS.length > 1
+const DEFAULT_PROGRAM: Program = 'idol'
 
 type Step =
   | 'attract'
@@ -108,7 +106,6 @@ type Step =
   | 'result'
 
 /** 어트랙트에서 터치했을 때 들어갈 첫 단계 */
-const FIRST_STEP: Step = SHOW_PROGRAM_STEP ? 'program' : 'info'
 
 
 /**
@@ -316,6 +313,15 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
   } = useScreenBackgrounds('kiosk')
+  // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다)
+  const kioskMode = findKioskMode(deviceSettings.mode)
+  const activePrograms = useMemo(() => PROGRAMS.filter((p) => kioskMode.programs.includes(p.id)), [kioskMode])
+  /** 운영 프로그램이 하나뿐이면 선택 화면은 탭만 늘리므로 건너뛴다 */
+  const showProgramStep = activePrograms.length > 1
+  const startSession = useCallback(() => {
+    setProgram(activePrograms[0]?.id ?? DEFAULT_PROGRAM)
+    setStep(showProgramStep ? 'program' : 'info')
+  }, [activePrograms, showProgramStep])
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
   const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
   /** 인터넷이 끊겨 기기에서만 PIN을 확인한 상태 — 앱 종료만 연다 */
@@ -342,6 +348,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
+  // 첫 화면 문구 — 운영 모드에 행사 문구가 있으면 그것, 없으면 매장 기본
+  const attract = modeAttract(kioskMode, lang, {
+    ticket: 'FOR YOUR BIAS · HONGDAE', wordmark: 'WOW!', sub: t.attractSub, cardNo: '01 PHOTO > 01 SCENT',
+    title1: t.attractTitle1, title2: t.attractTitle2, body1: t.attractBody1, body2: t.attractBody2, tags: t.attractTags,
+  })
   const activeBackground = toKioskTheme(backgroundRecord)
   // 레트로 UI에서 배경은 바탕화면·장식색만 맡는다 (창·버튼 색은 retro.css 고정).
   // 글꼴은 기기 설정(관리자가 고름) — 없으면 고딕 에스코어드림. 명조는 쓰지 않는다.
@@ -809,10 +820,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const goPrev = useCallback(() => {
     const i = steps.indexOf(step)
     if (i <= 0) {
-      if (SHOW_PROGRAM_STEP) setStep('program')
+      if (showProgramStep) setStep('program')
       else resetAll()
     } else setStep(steps[i - 1])
-  }, [steps, step, resetAll])
+  }, [steps, step, resetAll, showProgramStep])
 
   /* scroll: true 인 장은 글이 길다. 한 화면에 욱여넣으려고 축소하면 글씨가 읽을 수
      없을 만큼 작아지므로, 원래 크기로 두고 스크롤한다 (들어오면 힌트 애니메이션이 돈다). */
@@ -978,9 +989,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     const rendered = await renderKioskReceipt(data, {
       photoSrc: isSajuResult(result) ? null : photo,
       lang,
+      // 운영 모드의 영수증 머리말·행사 줄. 사주 결과면 명식이 맨 앞에 오는 처방전 모양
+      brand: { ...kioskMode.receipt, theme: isSajuResult(result) ? 'saju' : 'scent' },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode])
 
   const openReceipt = useCallback(async () => {
     try {
@@ -1385,7 +1398,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         <section className="ksk-window rt-win">
           <header className="rt-win-title">
             <PixelIcon name={STEP_ICONS[step] ?? 'window'} size={20} className="rt-win-title-icon" />
-            <span className="rt-win-title-text">AC&rsquo;SCENT WOW</span>
+            <span className="rt-win-title-text">{kioskMode.brandName}</span>
             {titleExtra && <span className="rt-win-title-extra">{titleExtra}</span>}
           </header>
 
@@ -1418,7 +1431,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <h1 className="ksk-title">어떤 분석을 해볼까요?</h1>
             <p className="ksk-desc">프로그램에 따라 물어보는 것이 달라집니다.</p>
             <div className="ksk-programs">
-              {ACTIVE_PROGRAMS.map((p) => (
+              {activePrograms.map((p) => (
                 <button
                   key={p.id}
                   className="ksk-program"
@@ -1948,33 +1961,33 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             role="button"
             tabIndex={0}
             aria-label={t.attractCta}
-            onClick={() => setStep(FIRST_STEP)}
+            onClick={startSession}
             onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') setStep(FIRST_STEP)
+              if (event.key === 'Enter' || event.key === ' ') startSession()
             }}
           >
             <RetroDesktopIcons items={DESK_ITEMS} className="ksk-attract-desk" />
             <RetroWindow className="ksk-attract-main" ghosts icon="heart" title="WELCOME" bodyClassName="ksk-attract-body">
-              <span className="ksk-attract-ticket rt-tag rt-pixel">FOR YOUR BIAS · HONGDAE</span>
+              <span className="ksk-attract-ticket rt-tag rt-pixel">{attract.ticket}</span>
               <div className="ksk-attract-wordmark rt-pixel">
                 <span>AC&rsquo;SCENT</span>
-                <strong>WOW!</strong>
+                <strong>{attract.wordmark}</strong>
               </div>
-              <p className="ksk-attract-sub">{t.attractSub}</p>
+              <p className="ksk-attract-sub">{attract.sub}</p>
               <div className="ksk-attract-card rt-group">
-                <span className="ksk-attract-card-no rt-group-label rt-pixel">01 PHOTO &gt; 01 SCENT</span>
+                <span className="ksk-attract-card-no rt-group-label rt-pixel">{attract.cardNo}</span>
                 <p className="ksk-attract-mid">
-                  <strong>{t.attractTitle1}</strong>
+                  <strong>{attract.title1}</strong>
                   <br />
-                  {t.attractTitle2}
+                  {attract.title2}
                 </p>
                 <p className="ksk-attract-detail">
-                  {t.attractBody1}
+                  {attract.body1}
                   <br />
-                  {t.attractBody2}
+                  {attract.body2}
                 </p>
                 <div className="ksk-attract-tags">
-                  {t.attractTags.map((tag) => (
+                  {attract.tags.map((tag) => (
                     <span key={tag} className="rt-tag">
                       {tag}
                     </span>
@@ -2067,6 +2080,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             ) : (
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
+                <KioskModeControls value={deviceSettings.mode} onSave={saveSettings} disabled={!!backgroundSaving} />
                 <DeviceDesignControls settings={deviceSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" />
                 <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">

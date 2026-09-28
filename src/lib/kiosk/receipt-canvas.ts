@@ -74,6 +74,14 @@ export interface ReceiptRenderOptions {
   photoSrc?: string | null // 촬영 사진 dataURL — 있으면 흑백으로 삽입
   /** 화면 언어 — 한자권이면 본문 글꼴을 그 언어 웹폰트로 바꾼다 */
   lang?: 'ko' | 'en' | 'ja' | 'zh-Hans' | 'zh-Hant'
+  /** 운영 모드(src/lib/kiosk/modes.ts)의 영수증 모양 — 없으면 매장 기본(WOW · SCENT REPORT) */
+  brand?: {
+    /** 'saju' 면 명식이 맨 앞에 오는 사주 처방전 순서(데이터에 saju 가 있을 때만) */
+    theme?: 'scent' | 'saju'
+    subtitle?: string
+    /** 맨 아래 행사 안내 줄 */
+    eventLines?: string[]
+  }
 }
 
 interface Fonts {
@@ -306,7 +314,7 @@ class ReceiptBuilder {
     opts: {
       size: number
       weight?: number
-      family?: 'sans' | 'display' | 'mono'
+      family?: 'sans' | 'display' | 'mono' | 'hanja'
       align?: 'left' | 'center' | 'right'
       lineHeight?: number
       letterSpacing?: number
@@ -618,7 +626,7 @@ export async function renderKioskReceipt(
         ...[500, 600, 700, 800].map((w) => document.fonts.load(`${w} 20px ${fonts.sans}`, sampleText)),
         document.fonts.load(`800 44px ${fonts.display}`, sampleText),
         // 명식 한자는 unicode-range 분할 서브셋이라 쓰일 글자를 명시해야 실제로 받아온다
-        document.fonts.load(`800 52px ${fonts.hanja}`, '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥木火土金水柱時日月年'),
+        document.fonts.load(`800 52px ${fonts.hanja}`, '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥木火土金水柱時日月年四香處方箋'),
       ])
       await document.fonts.ready
     } catch {
@@ -631,10 +639,28 @@ export async function renderKioskReceipt(
   b.space(34)
   b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
   b.space(6)
-  b.text('WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
-  b.space(18)
-  b.rule(3)
-  b.space(10)
+  const sajuFirst = opts.brand?.theme === 'saju' && !!data.saju
+  b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  if (sajuFirst) {
+    // 사주 처방전 — 한약방 처방전처럼 큰 한자 제목을 두 줄 괘선 사이에
+    b.space(16)
+    b.rule(3)
+    b.space(4)
+    b.rule(1)
+    b.space(14)
+    b.text('四柱香 處方箋', { size: 40, weight: 800, family: 'hanja', align: 'center', letterSpacing: 4, lineHeight: 1.15 })
+    b.space(4)
+    b.text('사주 향 처방전', { size: 18, weight: 600, align: 'center', letterSpacing: 6 })
+    b.space(14)
+    b.rule(1)
+    b.space(4)
+    b.rule(3)
+    b.space(10)
+  } else {
+    b.space(18)
+    b.rule(3)
+    b.space(10)
+  }
 
   // ── 발권 정보
   b.row(`${data.date}  ${data.time}`, data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { mono: true })
@@ -652,81 +678,88 @@ export async function renderKioskReceipt(
     }
   }
 
-  // ── 매칭 향
-  b.space(22)
-  b.text('YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
-  b.space(8)
-  b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
-  b.space(4)
-  b.text(data.perfumeName, { size: 44, weight: 800, align: 'center', lineHeight: 1.2 })
-  b.space(6)
-  b.text(`${data.categoryEn.toUpperCase()} · MATCH ${(data.score * 100).toFixed(0)}%`, {
-    size: 17,
-    weight: 600,
-    family: 'mono',
-    align: 'center',
-    letterSpacing: 1,
-  })
-  if (data.keywords.length > 0) {
-    b.space(10)
-    b.text(data.keywords.map((k) => `#${k}`).join('  '), { size: 18, weight: 500, align: 'center', maxLines: 2 })
-  }
-  b.space(16)
-  b.rule(1.5, true)
-  b.space(12)
-
-  // ── 노트
-  b.row('TOP', data.notes.top)
-  b.row('MIDDLE', data.notes.middle)
-  b.row('BASE', data.notes.base)
-  b.space(12)
-  b.rule(1.5, true)
-  b.space(14)
-
-  // ── 사주: 명식 · 용신 · 처방 (사주 프로그램일 때만)
-  if (data.saju) {
-    const sj = data.saju
-    b.text('四柱命式 · 명식', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
-    b.space(10)
-    b.pillars(sj.pillars)
-    b.space(14)
-    b.row('日干 일간', sj.dayMaster, { size: 18 })
-    b.row('用神 용신', sj.yongsin, { size: 18 })
-    b.row('生時 생시', sj.birth, { size: 18, mono: true })
+  const drawScent = () => {
+    // ── 매칭 향
+    b.space(22)
+    b.text(sajuFirst ? '處方 香 · 처방 향' : 'YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+    b.space(8)
+    b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
+    b.space(4)
+    b.text(data.perfumeName, { size: 44, weight: 800, align: 'center', lineHeight: 1.2 })
+    b.space(6)
+    b.text(`${data.categoryEn.toUpperCase()} · MATCH ${(data.score * 100).toFixed(0)}%`, {
+      size: 17,
+      weight: 600,
+      family: 'mono',
+      align: 'center',
+      letterSpacing: 1,
+    })
+    if (data.keywords.length > 0) {
+      b.space(10)
+      b.text(data.keywords.map((k) => `#${k}`).join('  '), { size: 18, weight: 500, align: 'center', maxLines: 2 })
+    }
+    b.space(16)
+    b.rule(1.5, true)
     b.space(12)
 
-    b.text('오행 분포', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
-    b.space(8)
-    for (const el of sj.elements) {
-      // 용신 행만 ◀ 마커로 표시 — 색 없이도 처방의 근거가 읽힌다
-      b.bar(`${el.label}${el.isYongsin ? ' ◀' : ''}`, el.value, 4)
-    }
-    b.space(14)
+    // ── 노트
+    b.row('TOP', data.notes.top)
+    b.row('MIDDLE', data.notes.middle)
+    b.row('BASE', data.notes.base)
+    b.space(12)
     b.rule(1.5, true)
     b.space(14)
 
-    b.text('命과 香 · 처방의 연유', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
-    b.space(8)
-    if (sj.bridge) {
-      b.text(sj.bridge, { size: 20, weight: 700, lineHeight: 1.4 })
-      b.space(6)
-    }
-    b.text(sj.why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 5 })
-    b.space(14)
-
-    for (const t of sj.tiers) {
-      b.row(t.tier, t.name, { size: 18 })
-      b.text(t.meaning, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
-      b.space(8)
-    }
-    b.space(6)
-    if (sj.ritual) {
-      b.text('處方 · 쓰는 법', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
-      b.space(8)
-      b.text(sj.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
-      b.space(14)
-    }
   }
+  const drawSaju = () => {
+    // ── 사주: 명식 · 용신 · 처방 (사주 프로그램일 때만)
+    if (data.saju) {
+      const sj = data.saju
+      b.text('四柱命式 · 명식', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.space(10)
+      b.pillars(sj.pillars)
+      b.space(14)
+      b.row('日干 일간', sj.dayMaster, { size: 18 })
+      b.row('用神 용신', sj.yongsin, { size: 18 })
+      b.row('生時 생시', sj.birth, { size: 18, mono: true })
+      b.space(12)
+
+      b.text('오행 분포', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.space(8)
+      for (const el of sj.elements) {
+        // 용신 행만 ◀ 마커로 표시 — 색 없이도 처방의 근거가 읽힌다
+        b.bar(`${el.label}${el.isYongsin ? ' ◀' : ''}`, el.value, 4)
+      }
+      b.space(14)
+      b.rule(1.5, true)
+      b.space(14)
+
+      b.text('命과 香 · 처방의 연유', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+      b.space(8)
+      if (sj.bridge) {
+        b.text(sj.bridge, { size: 20, weight: 700, lineHeight: 1.4 })
+        b.space(6)
+      }
+      b.text(sj.why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 5 })
+      b.space(14)
+
+      for (const t of sj.tiers) {
+        b.row(t.tier, t.name, { size: 18 })
+        b.text(t.meaning, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
+        b.space(8)
+      }
+      b.space(6)
+      if (sj.ritual) {
+        b.text('處方 · 쓰는 법', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
+        b.space(8)
+        b.text(sj.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
+        b.space(14)
+      }
+    }
+
+  }
+  // 매장: 향 → (사주) · 사주 처방전: 명식 → 향
+  if (sajuFirst) { drawSaju(); drawScent() } else { drawScent(); drawSaju() }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
   if (!data.saju && data.analysisText) {
@@ -783,6 +816,13 @@ export async function renderKioskReceipt(
   // ── 푸터
   for (const line of data.footerLines) {
     b.text(line, { size: 17, weight: 500, align: 'center', lineHeight: 1.6 })
+  }
+  // 행사 모드 — 어느 행사에서 뽑은 영수증인지
+  if (opts.brand?.eventLines?.length) {
+    b.space(8)
+    for (const [i, line] of opts.brand.eventLines.entries()) {
+      b.text(line, { size: i === 0 ? 18 : 16, weight: i === 0 ? 700 : 500, family: i === 0 ? 'mono' : 'sans', align: 'center', letterSpacing: i === 0 ? 1 : 0, lineHeight: 1.5 })
+    }
   }
   b.space(16)
 

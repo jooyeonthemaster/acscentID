@@ -369,6 +369,19 @@ test('store saves device UI and font independently per target and refuses unknow
   assert.equal(records.size, count);
 });
 
+test('kiosk operating mode saves only for the kiosk and only known modes', async () => {
+  const { store } = isolatedStore();
+  assert.deepEqual(await store.saveDeviceSettings('kiosk', { mode: 'kwave-2026' }), { ui: 'retro', font: null, mode: 'kwave-2026' });
+  assert.equal((await store.readBackgroundSnapshot()).settings.kiosk.mode, 'kwave-2026');
+  // 다른 설정을 바꿔도 모드는 남는다
+  assert.equal((await store.saveDeviceSettings('kiosk', { font: 'bm-jua' })).mode, 'kwave-2026');
+  assert.equal((await store.saveDeviceSettings('kiosk', { mode: null })).mode, null);
+  await assert.rejects(store.saveDeviceSettings('kiosk', { mode: 'nope' }), error => error.status === 400);
+  await assert.rejects(store.saveDeviceSettings('booth', { mode: 'kwave-2026' }), error => error.status === 400);
+  const merged = merge.mergeBackgroundRecords(catalog, [{ kind: 'settings', target: 'kiosk', ui: 'classic', font: null, mode: 'kwave-2026' }]);
+  assert.equal(merged.settings.kiosk.mode, 'kwave-2026');
+});
+
 test('store creates fresh IDs, resolves all-deleted targets and fails closed on storage errors', async () => {
   const { store, records, behavior } = isolatedStore();
   const created = await store.saveBackground(clone(booth[0], { id: 'attacker-chosen-id', title: '새 배경' }), true);
