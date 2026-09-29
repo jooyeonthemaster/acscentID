@@ -20,13 +20,13 @@
 import '@/components/mac/mac.css'
 import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
-import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
+import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import {
@@ -1322,6 +1322,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   // ---------- 최애와 찍기: 라이브 합성 프리뷰 ----------
   const liveComposeReady = step === 'camera' && mode === 'template' && !!templateGeometry
+  // 행사 무대 메이크업 — 첫 화면에서 고른 룩의 색을 촬영 화면에서도 미리 보여준다
+  const liveLook = stageMakeup ? findStageLook(stageLookId) : null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -1448,11 +1450,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const liveReady = cameraSource === 'webcam' || (cameraSource === 'dslr' && dslrLive)
 
   /** DSLR 이면 라이브뷰 캔버스, 웹캠이면 video — 둘 다 거울 모드로 보인다 */
-  const renderLiveView = (className: string) =>
+  const renderLiveView = (className: string, style?: CSSProperties) =>
     cameraSource === 'dslr' ? (
-      <canvas ref={dslrCanvasRef} className={className} />
+      <canvas ref={dslrCanvasRef} className={className} style={style} />
     ) : cameraSource === 'webcam' ? (
-      <video ref={attachVideo} autoPlay playsInline muted className={className} />
+      <video ref={attachVideo} autoPlay playsInline muted className={className} style={style} />
     ) : (
       <div className={className} />
     )
@@ -1987,7 +1989,23 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         className="bth-main"
       >
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
-        {step === 'home' && (
+        {/* ---------- 홈(행사 무대 메이크업 모드): 촬영 방식 없이 룩부터 고르고 바로 촬영 ---------- */}
+        {step === 'home' && stageMakeup && (
+          <div className="bth-home bth-home--stage">
+            <div className="bth-heading">
+              <h1 className="bth-display bth-h1">오늘의 무대 메이크업을 골라요</h1>
+              <p className="bth-sub">Pick your K-POP stage makeup look · 1컷 또는 네컷 / 1 or 4 cuts</p>
+            </div>
+            <RetroWindow className="bth-panel bth-stage-pick" icon="sparkle" title="STAGE MAKEUP">
+              <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" size="home" />
+            </RetroWindow>
+            <button type="button" onClick={() => startMode('solo')} className="rt-btn rt-btn--primary rt-btn--lg bth-stage-start">
+              <PixelIcon name="camera" size={40} /> 촬영 시작 · Start
+            </button>
+          </div>
+        )}
+
+        {step === 'home' && !stageMakeup && (
           <div className="bth-home">
             {event ? (
               <div className="bth-event">
@@ -2326,8 +2344,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {renderLiveView(
                       liveComposeReady
                         ? 'absolute opacity-0 pointer-events-none w-px h-px'
-                        : 'bth-live-media bth-mirror'
+                        : 'bth-live-media bth-mirror',
+                      { filter: lookPreviewFilter(liveLook) }
                     )}
+                    <StageLookLiveTint look={liveLook} />
                     {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
                         위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
                     {showLiveCutout && (
@@ -2403,6 +2423,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       : `${standSideText}에 서주세요`
                     : '카메라를 봐주세요'}
               </h2>
+              {liveLook && (
+                <p className="bth-sub">
+                  {liveLook.name.ko} · {liveLook.name.en}
+                </p>
+              )}
               {mode === 'template' && shotProgress?.current !== 2 && (
                 <p className="bth-sub">화면에 보이는 그대로 인화됩니다</p>
               )}

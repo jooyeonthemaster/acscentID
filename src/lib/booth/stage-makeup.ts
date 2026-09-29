@@ -93,6 +93,13 @@ export const STAGE_LAYOUT = { W: 1200, H: 1800, photoBottom: 1564 - 18, footer: 
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
+/** 촬영 화면 실시간 미리보기용 색 보정(CSS filter) — 인화물 applyLookGrade 의 가벼운 판. 틴트는 StageLookLiveTint 가 덧입힌다 */
+export function lookPreviewFilter(look: StageLook | null): string | undefined {
+  if (!look) return undefined
+  const g = look.grade
+  return `brightness(${g.brightness}) contrast(${g.contrast}) saturate(${g.saturate})`
+}
+
 /** 사진 칸들에 룩 색 보정 — 흰 바탕(여백)은 거의 그대로 남는다 */
 export function applyLookGrade(ctx: CanvasRenderingContext2D, look: StageLook, rects: Rect[]) {
   const g = look.grade

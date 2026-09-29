@@ -18,13 +18,13 @@
  */
 
 import { FramePicker } from '@/components/photobooth/FramePicker'
-import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
+import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import {
@@ -1313,6 +1313,8 @@ export function BoothClassic() {
 
   // ---------- 최애와 찍기: 라이브 합성 프리뷰 ----------
   const liveComposeReady = step === 'camera' && mode === 'template' && !!templateGeometry
+  // 행사 무대 메이크업 — 첫 화면에서 고른 룩의 색을 촬영 화면에서도 미리 보여준다
+  const liveLook = stageMakeup ? findStageLook(stageLookId) : null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -1439,11 +1441,11 @@ export function BoothClassic() {
   const liveReady = cameraSource === 'webcam' || (cameraSource === 'dslr' && dslrLive)
 
   /** DSLR 이면 라이브뷰 캔버스, 웹캠이면 video — 둘 다 거울 모드로 보인다 */
-  const renderLiveView = (className: string) =>
+  const renderLiveView = (className: string, style?: CSSProperties) =>
     cameraSource === 'dslr' ? (
-      <canvas ref={dslrCanvasRef} className={className} />
+      <canvas ref={dslrCanvasRef} className={className} style={style} />
     ) : cameraSource === 'webcam' ? (
-      <video ref={attachVideo} autoPlay playsInline muted className={className} />
+      <video ref={attachVideo} autoPlay playsInline muted className={className} style={style} />
     ) : (
       <div className={className} />
     )
@@ -2021,7 +2023,26 @@ export function BoothClassic() {
         className="booth-stage-ui relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-5"
       >
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
-        {step === 'home' && (
+        {/* ---------- 홈(행사 무대 메이크업 모드): 촬영 방식 없이 룩부터 고르고 바로 촬영 ---------- */}
+        {step === 'home' && stageMakeup && (
+          <div className="flex w-full max-w-5xl flex-col items-center gap-7" style={{ color: activeBackground.ink }}>
+            <div className="text-center">
+              <h1 className="booth-display text-3xl md:text-4xl mb-2">오늘의 무대 메이크업을 골라요</h1>
+              <p className="opacity-60">Pick your K-POP stage makeup look · 1컷 또는 네컷 / 1 or 4 cuts</p>
+            </div>
+            <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" size="home" />
+            <button
+              type="button"
+              onClick={() => startMode('solo')}
+              className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
+              style={{ background: accent }}
+            >
+              <Camera className="w-6 h-6" /> 촬영 시작 · Start
+            </button>
+          </div>
+        )}
+
+        {step === 'home' && !stageMakeup && (
           <div className="w-full max-w-6xl" style={{ color: activeBackground.ink }}>
             {event ? (
               <div className="mb-10 text-center">
@@ -2374,8 +2395,10 @@ export function BoothClassic() {
                   {renderLiveView(
                     liveComposeReady
                       ? 'absolute opacity-0 pointer-events-none w-px h-px'
-                      : 'block h-full w-full object-cover scale-x-[-1]'
+                      : 'block h-full w-full object-cover scale-x-[-1]',
+                    { filter: lookPreviewFilter(liveLook) }
                   )}
+                  <StageLookLiveTint look={liveLook} />
                   {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
                       위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
                   {showLiveCutout && (
@@ -2456,7 +2479,9 @@ export function BoothClassic() {
               <p className="text-white/45 text-base mb-6 min-h-6 break-keep">
                 {mode === 'template' && shotProgress?.current !== 2
                   ? '화면에 보이는 그대로 인화됩니다'
-                  : ''}
+                  : liveLook
+                    ? `${liveLook.name.ko} · ${liveLook.name.en}`
+                    : ''}
               </p>
 
               {/* 컷 수 선택 (일반 촬영만) */}
