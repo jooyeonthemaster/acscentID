@@ -1619,7 +1619,8 @@ export function KioskClassic() {
             <h1 className="ksk-title">{t.productTitle}</h1>
             <p className="ksk-desc">{t.productDesc}</p>
             <div className="ksk-products">
-              {PRODUCT_TYPES.map((p) => (
+              {/* 사주 프로그램은 향수만 — 디퓨저 5ml 는 매장 최애 분석에서만 */}
+              {PRODUCT_TYPES.filter((p) => program !== 'saju' || !p.id.startsWith('diffuser')).map((p) => (
                 <button
                   key={p.id}
                   className="ksk-product"
