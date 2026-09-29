@@ -281,12 +281,12 @@
 .ksk-attract-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 24px 18px 70px;
+  gap: 20px;
+  padding: 30px 20px 90px;
 }
 .ksk-attract-ticket {
   align-self: flex-start;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--rt-blue-700);
 }
 .ksk-attract-wordmark {
@@ -298,36 +298,36 @@
   color: var(--rt-blue-700);
 }
 .ksk-attract-wordmark span {
-  font-size: 40px;
+  font-size: 54px;
   font-weight: 700;
 }
 .ksk-attract-wordmark strong {
-  font-size: 60px;
+  font-size: 86px;
   font-weight: 700;
   color: var(--rt-pink);
   text-shadow: 2px 2px 0 var(--rt-lilac-300), 4px 4px 0 var(--rt-blue-700);
 }
 .ksk-attract-sub {
   margin: 0;
-  font-size: 16px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--rt-ink-soft);
   word-break: keep-all;
 }
 .ksk-attract-card {
-  margin-top: 14px;
-  padding: 24px 16px 18px;
+  margin-top: 18px;
+  padding: 34px 20px 28px;
   background: var(--rt-paper);
 }
 .ksk-attract-card .rt-group-label {
   background: var(--rt-face);
-  font-size: 13px;
+  font-size: 15px;
   color: var(--rt-blue-700);
 }
 .ksk-attract-mid {
-  margin: 0 0 10px;
+  margin: 0 0 16px;
   font-family: var(--rt-font-display);
-  font-size: 27px;
+  font-size: 42px;
   font-weight: var(--rt-display-weight, 800);
   line-height: 1.32;
   letter-spacing: var(--rt-display-tracking, -0.03em);
@@ -339,8 +339,8 @@
 }
 .ksk-attract-detail {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 20px;
+  line-height: 1.6;
   font-weight: 600;
   color: var(--rt-ink-soft);
   word-break: keep-all;
@@ -352,7 +352,7 @@
   margin-top: 14px;
 }
 .ksk-attract-tags .rt-tag {
-  font-size: 13px;
+  font-size: 17px;
 }
 .ksk-attract-start {
   position: relative;
@@ -366,8 +366,8 @@
   background: var(--rt-sky-100);
 }
 .ksk-attract-cta {
-  min-height: 76px;
-  font-size: 22px;
+  min-height: 90px;
+  font-size: 26px;
   pointer-events: none;
 }
 .ksk-attract-tray {
