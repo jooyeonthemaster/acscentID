@@ -1,0 +1,9 @@
+/* 앱 종료 확인 — 관리자 창·관리 도구보다 위, 어떤 화면 디자인에서도 같은 모양 */
+.qcf-scrim { position: fixed; inset: 0; z-index: 2147483600; display: grid; place-items: center; padding: 24px; background: rgba(15, 23, 42, 0.6); font-family: var(--font-score-dream), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+.qcf-box { width: min(440px, 100%); padding: 28px 24px 22px; border-radius: 16px; background: #ffffff; color: #111827; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.4); text-align: center; }
+.qcf-title { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.35; word-break: keep-all; }
+.qcf-desc { margin: 10px 0 0; font-size: 16px; line-height: 1.55; color: #4b5563; word-break: keep-all; }
+.qcf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.qcf-btn { min-height: 60px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #111827; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; }
+.qcf-btn--danger { border-color: #dc2626; background: #dc2626; color: #ffffff; }
+.qcf-btn:active { transform: translateY(1px); }

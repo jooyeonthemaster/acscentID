@@ -43,6 +43,7 @@ import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
+import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
@@ -1048,6 +1049,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       showToast('키오스크 앱에서만 종료할 수 있습니다')
     }
   }, [kiosk, closeBackgroundAdmin, showToast])
+  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
+  const [askQuitKiosk, quitConfirmNode] = useQuitConfirm(quitKioskApp)
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
     if (exitHold.current) window.clearTimeout(exitHold.current)
@@ -1352,6 +1355,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       }
     >
       {/* 관리자 창 배경 목록의 추천 글꼴 미리보기까지 — 창이 열렸을 때만 싣는다 */}
+      {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       {step !== 'attract' && (
       <div className="ksk-stage rt-stack">
@@ -2013,7 +2017,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <button type="button" className="ksk-admin-apply rt-btn" onClick={closeBackgroundAdmin}>
                     닫기
                   </button>
-                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={askQuitKiosk}>
                     앱 종료
                   </button>
                 </div>
@@ -2091,7 +2095,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     닫기
                   </button>
                   {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
-                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={askQuitKiosk}>
                     앱 종료
                   </button>
                 </div>

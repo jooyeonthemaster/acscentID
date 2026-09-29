@@ -213,21 +213,28 @@
   font-weight: 800;
   letter-spacing: 0.1em;
 }
+.ksk-attract-head { container-type: inline-size; }
+/* 로고 두 단어 — 글꼴마다 폭이 달라 한 줄에 억지로 두면 오른쪽으로 삐져나갔다.
+   폭이 모자라면 두 줄로 내려가고, 글자 크기도 머리 폭에 맞춰 줄어든다(cqw) */
 .ksk-attract-wordmark {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   margin-top: 22px;
   font-family: var(--ksk-display-font, inherit);
-  font-size: 66px;
+  font-size: min(66px, 13cqw);
+  white-space: nowrap;
+  /* 'SAJU!'·'WOW!'은 기울여 두어 모서리가 조금 밖으로 나온다 */
+  padding-right: 10px;
   font-weight: 800;
   letter-spacing: var(--ksk-display-tracking, -0.04em);
   line-height: 1;
 }
 .ksk-attract-wordmark strong {
   color: var(--accent);
-  font-size: 92px;
+  font-size: min(92px, 18cqw);
   font-weight: 800;
   transform: rotate(-5deg);
   transform-origin: center;

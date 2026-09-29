@@ -62,6 +62,7 @@ import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
+import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 import {
   PixelIcon,
   RetroProgress,
@@ -634,6 +635,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       400
     )
   }, [])
+  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
+  const [askQuitBooth, quitConfirmNode] = useQuitConfirm(quitBooth)
 
   // 홈에서 60초간 입력이 없으면 매장 어트랙트 화면으로 전환
   useEffect(() => {
@@ -1779,6 +1782,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       data-tone={retroDesk.tone}
       style={{ ...deskVars, ...(design === 'mac' ? macFontVars(deviceSettings.font ? retroDesk.bodyFont : undefined) : {}) } as React.CSSProperties}
     >
+      {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId]} />
       {/* 4x6 인쇄 전용 영역 */}
       <style>{`
@@ -2990,7 +2994,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     />
                   </div>
                     <div className="bth-admin-actions">
-                      <button type="button" onClick={quitBooth} className="rt-btn rt-btn--danger">
+                      <button type="button" onClick={askQuitBooth} className="rt-btn rt-btn--danger">
                         <PixelIcon name="close" size={28} /> 앱 종료
                       </button>
                       <button type="button" onClick={closeAdmin} className="rt-btn rt-btn--primary">

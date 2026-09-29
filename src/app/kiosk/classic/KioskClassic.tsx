@@ -40,6 +40,7 @@ import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
+import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
@@ -1018,6 +1019,8 @@ export function KioskClassic() {
       showToast('키오스크 앱에서만 종료할 수 있습니다')
     }
   }, [kiosk, closeBackgroundAdmin, showToast])
+  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
+  const [askQuitKiosk, quitConfirmNode] = useQuitConfirm(quitKioskApp)
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
     if (exitHold.current) window.clearTimeout(exitHold.current)
@@ -1260,6 +1263,7 @@ export function KioskClassic() {
         '--ksk-radius': activeBackground.radius,
       } as CSSProperties}
     >
+      {quitConfirmNode}
       <ScreenFontFace ids={[deviceSettings.font, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       <div className="ksk-stage">
         {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
@@ -1918,7 +1922,7 @@ export function KioskClassic() {
                   <button type="button" className="ksk-admin-apply" onClick={closeBackgroundAdmin}>
                     닫기
                   </button>
-                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit" onClick={askQuitKiosk}>
                     앱 종료
                   </button>
                 </div>
@@ -1993,7 +1997,7 @@ export function KioskClassic() {
                     닫기
                   </button>
                   {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
-                  <button type="button" className="ksk-admin-quit" onClick={quitKioskApp}>
+                  <button type="button" className="ksk-admin-quit" onClick={askQuitKiosk}>
                     앱 종료
                   </button>
                 </div>

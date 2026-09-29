@@ -78,6 +78,7 @@ import { screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
+import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 
 /** 브라우저 내장 QR 인식 API (지원하지 않는 환경이 있어 직접 좁게 선언) */
 type BarcodeDetectorLike = new (options?: { formats?: string[] }) => {
@@ -625,6 +626,8 @@ export function BoothClassic() {
       400
     )
   }, [])
+  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
+  const [askQuitBooth, quitConfirmNode] = useQuitConfirm(quitBooth)
 
   // 홈에서 60초간 입력이 없으면 매장 어트랙트 화면으로 전환
   useEffect(() => {
@@ -1767,6 +1770,7 @@ export function BoothClassic() {
         '--booth-display-tracking': activeBackground.displayTracking,
       } as React.CSSProperties}
     >
+      {quitConfirmNode}
       <ScreenFontFace ids={[deviceSettings.font]} />
       {/* 4x6 인쇄 전용 영역 */}
       <style>{`
@@ -3152,7 +3156,7 @@ export function BoothClassic() {
                   <div className="mt-4 grid shrink-0 grid-cols-[1fr_2fr] gap-3 border-t border-white/10 pt-4">
                     <button
                       type="button"
-                      onClick={quitBooth}
+                      onClick={askQuitBooth}
                       className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border-2 border-red-400/60 px-4 text-lg font-black text-red-300 transition-colors hover:bg-red-500/10 active:bg-red-500/20"
                     >
                       <Power className="h-5 w-5" /> 앱 종료
