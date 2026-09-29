@@ -38,10 +38,19 @@ function getLandmarker(mode: Mode): Promise<FaceLandmarker> {
   return landmarkers[mode]!
 }
 
-/** 행사 모드 첫 화면에서 미리 불러 둔다(첫 촬영 뒤 기다림을 줄인다) */
+/**
+ * 행사 모드 첫 화면에서 미리 불러 두고 빈 그림으로 한 번씩 돌려 둔다 — 부스 PC(Intel UHD)에서 첫 검출은
+ * GPU 준비로 2초쯤 걸리고 그다음부터 수십 ms. 손님이 찍은 뒤 기다리지 않게 첫 화면에서 미리 치른다.
+ */
+let warmed = false
 export function preloadFaceMakeup() {
-  void getLandmarker('IMAGE').catch(() => {})
-  void getLandmarker('VIDEO').catch(() => {})
+  if (warmed) return
+  warmed = true
+  const blank = document.createElement('canvas')
+  blank.width = blank.height = 64
+  blank.getContext('2d')!.fillRect(0, 0, 64, 64)
+  void getLandmarker('IMAGE').then((m) => { m.detect(blank) }).catch(() => { warmed = false })
+  void getLandmarker('VIDEO').then((m) => { m.detectForVideo(blank, performance.now()) }).catch(() => { warmed = false })
 }
 
 // ───────────────────────── 특징점 번호(MediaPipe face mesh) ─────────────────────────
