@@ -36,7 +36,7 @@ import './kiosk-classic.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { toKioskTheme } from '@/lib/screen-backgrounds/theme'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
-import { screenFontFamily } from '@/lib/screen-fonts/catalog'
+import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
@@ -1260,7 +1260,7 @@ export function KioskClassic() {
         '--ksk-radius': activeBackground.radius,
       } as CSSProperties}
     >
-      <ScreenFontFace ids={[deviceSettings.font]} />
+      <ScreenFontFace ids={[deviceSettings.font, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       <div className="ksk-stage">
         {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
         {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && (
@@ -1978,11 +1978,11 @@ export function KioskClassic() {
                       <span className="ksk-admin-preview">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
-                        <b style={{ fontFamily: background.displayFont, color: background.ink }}>오늘의 최애향</b>
+                        <b style={{ fontFamily: screenFontFamily(record.font) ?? background.displayFont, color: background.ink }}>오늘의 최애향</b>
                       </span>
                       <span className="ksk-admin-theme-name">
                         <b>{background.title}</b>
-                        <em>{background.id === backgroundId ? '✓ 적용 중' : '선택'}</em>
+                        <em>{background.id === backgroundId ? '✓ 적용 중' : findScreenFont(record.font)?.label ? `글꼴 · ${findScreenFont(record.font)?.label}` : '선택'}</em>
                       </span>
                     </button>
                   )})}

@@ -39,6 +39,7 @@ import './kiosk.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
+import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
@@ -1350,7 +1351,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         } as CSSProperties
       }
     >
-      <ScreenFontFace ids={[retroDesk.fontId]} />
+      {/* 관리자 창 배경 목록의 추천 글꼴 미리보기까지 — 창이 열렸을 때만 싣는다 */}
+      <ScreenFontFace ids={[retroDesk.fontId, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       {step !== 'attract' && (
       <div className="ksk-stage rt-stack">
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
@@ -2073,11 +2075,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       <span className="ksk-admin-preview">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
-                        <b style={{ fontFamily: retroDesk.displayFont }}>오늘의 최애향</b>
+                        {/* 추천 글꼴이 있는 배경은 그 글꼴로 미리 — 고르면 기기 글꼴도 그것으로 바뀐다 */}
+                        <b style={{ fontFamily: screenFontFamily(record.font) ?? retroDesk.displayFont }}>오늘의 최애향</b>
                       </span>
                       <span className="ksk-admin-theme-name">
                         <b>{background.title}</b>
-                        <em>{background.id === backgroundId ? '적용 중' : '선택'}</em>
+                        <em>{background.id === backgroundId ? '적용 중' : findScreenFont(record.font)?.label ? `글꼴 · ${findScreenFont(record.font)?.label}` : '선택'}</em>
                       </span>
                     </button>
                   )})}

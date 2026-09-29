@@ -59,6 +59,7 @@ export async function saveBackground(body: Record<string, unknown>, create: bool
   if (typeof background.title === 'string') background.title = background.title.trim()
   if (!background.thumbnail_url) background.thumbnail_url = background.image_url
   if (!validateBackground(background)) throw new BackgroundError('배경 이름·이미지 주소·색상·순서를 확인해주세요.')
+  if (background.font && !SCREEN_FONT_IDS.includes(background.font)) throw new BackgroundError('추천 글꼴을 찾을 수 없습니다.')
   // A replacement image without an explicit new thumbnail must not keep the old picture.
   if (existing && existing.image_url !== background.image_url && !Object.hasOwn(body, 'thumbnail_url')) background.thumbnail_url = background.image_url
   await writeRecord(background.id, { kind: 'background', background })
@@ -77,6 +78,8 @@ export async function selectSharedBackground(target: ScreenTarget, id: string) {
   const background = snapshot.backgrounds.find(item => item.id === id && item.target === target && item.is_active)
   if (!background) throw new BackgroundError('선택할 수 없는 배경입니다. 목록을 새로고침해주세요.', 409)
   await writeRecord(`selection-${target}`, { kind: 'selection', target, id })
+  // 배경의 추천 글꼴이 있으면 기기 글꼴도 함께 — 이후 기기·관리자 화면에서 다시 바꿀 수 있다
+  if (background.font && SCREEN_FONT_IDS.includes(background.font)) await saveDeviceSettings(target, { font: background.font })
 }
 
 /** 기기 화면 디자인·글꼴 — 기기 종류별로 하나. 바꾸지 않은 항목은 그대로 둔다 */

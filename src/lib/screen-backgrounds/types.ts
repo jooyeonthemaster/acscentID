@@ -17,6 +17,8 @@ export interface ScreenBackground {
   base: string
   display_order: number
   is_active: boolean
+  /** 추천 글꼴(src/lib/screen-fonts/catalog.ts id) — 이 배경을 고르면 기기 글꼴도 이것으로 바뀐다. 이후 기기에서 다시 바꿀 수 있다 */
+  font?: string | null
 }
 
 /** 기기 화면 디자인 — 기존·레트로·맥 스타일. 관리자가 기기 종류별로 고른다 */

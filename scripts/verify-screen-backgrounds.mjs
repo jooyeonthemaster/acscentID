@@ -47,15 +47,20 @@ const booth = catalog.filter(item => item.target === 'booth');
 const kiosk = catalog.filter(item => item.target === 'kiosk');
 const clone = (value, edits = {}) => ({ ...value, ...edits });
 
-test('catalog contains 73 valid unique entries and every required collection', () => {
-  // 기본 36종씩 + 키오스크 행사 배경(K-WAVE 운영 모드 기본 배경) 1종
-  assert.equal(catalog.length, 73);
-  assert.equal(new Set(catalog.map(item => item.id)).size, 73);
-  assert.equal(new Set(catalog.map(item => item.image_url)).size, 73);
+test('catalog contains 84 valid unique entries and every required collection', () => {
+  // 기본 36종씩 + 키오스크 행사 배경(K-WAVE 운영 모드 기본 배경) 1종 + 사주 프로그램 배경 11종
+  assert.equal(catalog.length, 84);
+  assert.equal(new Set(catalog.map(item => item.id)).size, 84);
+  assert.equal(new Set(catalog.map(item => item.image_url)).size, 84);
+  assert.equal(catalog.filter(item => item.collection === 'saju').length, 11);
+  // 사주 배경은 모두 추천 글꼴이 있고, 글꼴 목록에 있는 글꼴이다
+  const fontIds = loadTs('src/lib/screen-fonts/catalog.ts').SCREEN_FONT_IDS;
+  for (const item of catalog.filter(item => item.font)) assert.ok(fontIds.includes(item.font), item.id);
+  assert.ok(catalog.filter(item => item.collection === 'saju').every(item => item.font));
   assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026']);
   for (const target of types.SCREEN_TARGETS) {
     const entries = catalog.filter(item => item.target === target);
-    assert.equal(entries.length, target === 'kiosk' ? 37 : 36);
+    assert.equal(entries.length, target === 'kiosk' ? 48 : 36);
     assert.equal(entries.filter(item => item.collection === 'poster').length, 20);
     assert.equal(entries.filter(item => item.collection === 'study').length, 10);
     assert.equal(entries.filter(item => item.collection === 'legacy').length, 6);
@@ -199,7 +204,7 @@ test('tombstones persist across fresh merges without resurrecting bundled preset
   ];
   for (let reload = 0; reload < 2; reload++) {
     const snapshot = merge.mergeBackgroundRecords(catalog, records);
-    assert.equal(snapshot.backgrounds.length, 72);
+    assert.equal(snapshot.backgrounds.length, 83);
     assert.equal(snapshot.backgrounds.some(item => item.id === booth[0].id), false);
     assert.equal(snapshot.backgrounds.find(item => item.id === booth[1].id).is_active, false);
     assert.equal(snapshot.selected.booth, booth[2].id);
@@ -217,7 +222,7 @@ test('merge honors custom edits/order and rejects damaged remote records', () =>
     { kind: 'background', background: custom }, { kind: 'background', background: edited },
     { kind: 'selection', target: 'booth', id: edited.id },
   ]);
-  assert.equal(snapshot.backgrounds.length, 74);
+  assert.equal(snapshot.backgrounds.length, 85);
   assert.equal(snapshot.backgrounds[0].id, custom.id);
   assert.equal(snapshot.backgrounds[1].title, '수정한 배경');
   assert.equal(snapshot.selected.booth, edited.id);
@@ -307,7 +312,7 @@ function isolatedStore() {
 test('store keeps IDs/targets immutable and preserves original images when deleting', async () => {
   const { store, records } = isolatedStore();
   const initial = await store.readBackgroundSnapshot();
-  assert.equal(initial.backgrounds.length, 73);
+  assert.equal(initial.backgrounds.length, 84);
   const edited = await store.saveBackground({ id: booth[0].id, target: 'kiosk', title: '  이름 수정  ' }, false);
   assert.equal(edited.target, 'booth');
   assert.equal(edited.id, booth[0].id);
@@ -384,6 +389,21 @@ test('kiosk operating mode saves only for the kiosk and only known modes', async
   assert.equal(merged.settings.kiosk.mode, 'kwave-2026');
 });
 
+test('choosing a background with a recommended font switches the device font; it can be changed after', async () => {
+  const { store } = isolatedStore();
+  await store.saveDeviceSettings('kiosk', { font: 'suit' });
+  await store.selectSharedBackground('kiosk', 'kiosk-saju-04');
+  let snapshot = await store.readBackgroundSnapshot();
+  assert.equal(snapshot.selected.kiosk, 'kiosk-saju-04');
+  assert.equal(snapshot.settings.kiosk.font, catalog.find(item => item.id === 'kiosk-saju-04').font);
+  await store.saveDeviceSettings('kiosk', { font: 'pretendard' });
+  assert.equal((await store.readBackgroundSnapshot()).settings.kiosk.font, 'pretendard');
+  // 추천 글꼴이 없는 배경은 글꼴을 건드리지 않는다
+  await store.selectSharedBackground('kiosk', kiosk[1].id);
+  assert.equal((await store.readBackgroundSnapshot()).settings.kiosk.font, 'pretendard');
+  await assert.rejects(store.saveBackground({ id: kiosk[2].id, font: 'no-such-font' }, false), error => error.status === 400);
+});
+
 test('store creates fresh IDs, resolves all-deleted targets and fails closed on storage errors', async () => {
   const { store, records, behavior } = isolatedStore();
   const created = await store.saveBackground(clone(booth[0], { id: 'attacker-chosen-id', title: '새 배경' }), true);
@@ -392,7 +412,7 @@ test('store creates fresh IDs, resolves all-deleted targets and fails closed on 
   const snapshot = await store.readBackgroundSnapshot();
   assert.equal(snapshot.selected.booth, null);
   assert.equal(snapshot.backgrounds.filter(item => item.target === 'booth').length, 0);
-  assert.equal(snapshot.backgrounds.filter(item => item.target === 'kiosk').length, 37);
+  assert.equal(snapshot.backgrounds.filter(item => item.target === 'kiosk').length, 48);
   behavior.failList = true;
   await assert.rejects(store.readBackgroundSnapshot(), error => error.status === 503);
   behavior.failList = false;

@@ -15,7 +15,8 @@ export function validateBackground(value: unknown): value is ScreenBackground {
     typeof b.collection === 'string' && b.collection.length <= 80 &&
     BACKGROUND_PALETTES.includes(b.palette) && (b.tone === 'light' || b.tone === 'dark') &&
     [b.ink, b.accent, b.base].every(color => typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) &&
-    Number.isInteger(b.display_order) && Math.abs(b.display_order) <= 100000 && typeof b.is_active === 'boolean'
+    Number.isInteger(b.display_order) && Math.abs(b.display_order) <= 100000 && typeof b.is_active === 'boolean' &&
+    (b.font === undefined || b.font === null || (typeof b.font === 'string' && /^[a-z0-9-]{1,40}$/.test(b.font)))
 }
 
-export const EDITABLE_BACKGROUND_FIELDS = ['title', 'image_url', 'thumbnail_url', 'collection', 'palette', 'tone', 'ink', 'accent', 'base', 'display_order', 'is_active'] as const
+export const EDITABLE_BACKGROUND_FIELDS = ['title', 'image_url', 'thumbnail_url', 'collection', 'palette', 'tone', 'ink', 'accent', 'base', 'display_order', 'is_active', 'font'] as const
