@@ -19,6 +19,8 @@
 
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
+import { LiveFaceMakeup } from '@/components/photobooth/LiveFaceMakeup'
+import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
 import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
@@ -230,7 +232,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 /** 대상 영역을 비율 유지로 가득 채우기 (cover) */
 function drawCover(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: HTMLImageElement | HTMLCanvasElement,
   dx: number,
   dy: number,
   dw: number,
@@ -423,6 +425,12 @@ export function BoothClassic() {
   const stageMakeup = boothMode.stageMakeup ?? null
   /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
   const [stageLookId, setStageLookId] = useState<string | null>(null)
+  /** 얼굴 인식 메이크업 진행 — 편집 화면 룩 고르기 아래 안내 */
+  const [makeupStatus, setMakeupStatus] = useState<'idle' | 'busy' | 'noface'>('idle')
+  // 행사 모드 첫 화면에서 얼굴 인식 모델을 미리 불러 둔다(첫 손님이 기다리지 않게)
+  useEffect(() => {
+    if (stageMakeup) preloadFaceMakeup()
+  }, [stageMakeup])
   // 행사 모드는 매장 이벤트를 무시한다 — 와우 생카에 묶인 프레임도 목록에서 뺀다(배경·글꼴과 같은 규칙)
   const modeFrames = useMemo(() => (boothMode.storeEvents ? frames : frames.filter((f) => !f.screen_event_id)), [frames, boothMode.storeEvents])
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
@@ -1501,6 +1509,17 @@ export function BoothClassic() {
         const guest =
           mode === 'together' && guestPhotoUrl ? await getImage(guestPhotoUrl) : null
         const frame = selectedFrame ? await getImage(selectedFrame.image_url) : null
+        // 행사 모드: 얼굴을 찾아 룩 메이크업을 입힌 사진(같은 사진·룩은 캐시). 얼굴이 없으면 원본
+        const look = stageMakeup ? findStageLook(stageLookId) : null
+        let photos: (HTMLImageElement | HTMLCanvasElement)[] = shotImages
+        if (look && shotImages.length) {
+          setMakeupStatus('busy')
+          photos = await Promise.all(shotImages.map((img) => makeupShot(img, look)))
+          if (renderTokenRef.current !== token) return
+          setMakeupStatus(photos.every((p, i) => p === shotImages[i]) ? 'noface' : 'idle')
+        } else {
+          setMakeupStatus('idle')
+        }
 
         if (renderTokenRef.current !== token) return
 
@@ -1509,9 +1528,10 @@ export function BoothClassic() {
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
         // 행사 모드(무대 메이크업): 사진은 하단 띠 위까지만, 띠에 '오늘의 무대 메이크업'·행사 줄. 매장 모드는 예전 그대로
-        const look = stageMakeup ? findStageLook(stageLookId) : null
         const photoH = stageMakeup ? STAGE_LAYOUT.photoBottom : CANVAS_H
         const photoRects: Rect[] = []
+        /** 얼굴 인식 메이크업을 입힌 칸들 — 스티커가 얼굴을 비켜 가게 */
+        const faceCells: { img: HTMLImageElement; rect: Rect }[] = []
 
         if (templateImg && templateGeometry) {
           // 최애와 찍기 — 위: 카메라 배경을 공유하는 아티스트 합성 컷, 아래: 단독 컷, 맨 아래: 이벤트 밴드
@@ -1554,12 +1574,14 @@ export function BoothClassic() {
           for (let i = 0; i < 4; i++) {
             const col = i % 2
             const row = Math.floor(i / 2)
-            drawCover(ctx, shotImages[i], col * cellW, row * cellH, cellW, cellH)
+            drawCover(ctx, photos[i], col * cellW, row * cellH, cellW, cellH)
             photoRects.push({ x: col * cellW, y: row * cellH, w: cellW, h: cellH })
+            faceCells.push({ img: shotImages[i], rect: { x: col * cellW, y: row * cellH, w: cellW, h: cellH } })
           }
         } else {
-          drawCover(ctx, shotImages[0], 0, 0, CANVAS_W, photoH)
+          drawCover(ctx, photos[0], 0, 0, CANVAS_W, photoH)
           photoRects.push({ x: 0, y: 0, w: CANVAS_W, h: photoH })
+          faceCells.push({ img: shotImages[0], rect: { x: 0, y: 0, w: CANVAS_W, h: photoH } })
         }
 
         if ((mode === 'together' || mode === 'card') && useCutout && cutout) {
@@ -1602,7 +1624,11 @@ export function BoothClassic() {
 
         if (stageMakeup) {
           // 스티커는 프레임 위에(가려지지 않게), 하단 띠는 맨 마지막에
-          if (look) drawLookStickers(ctx, look, { x: 0, y: 0, w: CANVAS_W, h: STAGE_LAYOUT.photoBottom })
+          if (look) {
+            const faces = (await Promise.all(faceCells.map(({ img, rect }) => faceRectsInCell(img, rect.x, rect.y, rect.w, rect.h)))).flat()
+            if (renderTokenRef.current !== token) return
+            drawLookStickers(ctx, look, { x: 0, y: 0, w: CANVAS_W, h: STAGE_LAYOUT.photoBottom }, faces)
+          }
           drawStageMakeupFooter(ctx, look, stageMakeup.eventLines)
         }
       } catch (error) {
@@ -2398,6 +2424,10 @@ export function BoothClassic() {
                       : 'block h-full w-full object-cover scale-x-[-1]',
                     { filter: lookPreviewFilter(liveLook) }
                   )}
+                  {!liveComposeReady && (
+                    <LiveFaceMakeup getSource={getLiveSource} look={liveLook} className="absolute inset-0 block h-full w-full object-cover scale-x-[-1]"
+                      style={{ filter: lookPreviewFilter(liveLook) }} />
+                  )}
                   <StageLookLiveTint look={liveLook} />
                   {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
                       위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
@@ -2592,7 +2622,7 @@ export function BoothClassic() {
               {stageMakeup && (
                 <div>
                   <p className="text-sm font-semibold text-white/60 mb-3">무대 메이크업 · STAGE MAKEUP</p>
-                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" />
+                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" status={makeupStatus} />
                 </div>
               )}
               {/* 프레임 선택 */}

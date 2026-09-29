@@ -7,11 +7,13 @@
 
 import { STAGE_LOOKS, findStageLook, type StageLook } from '@/lib/booth/stage-makeup'
 
-export function StageLookPicker({ value, onChange, variant, size }: {
+export function StageLookPicker({ value, onChange, variant, size, status }: {
   value: string | null
   onChange: (id: string | null) => void
   variant: 'retro' | 'classic'
   size?: 'home'
+  /** 편집 화면 — 얼굴 인식 메이크업 진행(busy: 입히는 중, noface: 얼굴을 못 찾아 색 보정만) */
+  status?: 'idle' | 'busy' | 'noface'
 }) {
   const retro = variant === 'retro'
   const home = size === 'home'
@@ -45,8 +47,14 @@ export function StageLookPicker({ value, onChange, variant, size }: {
         })}
       </div>
       <p className={retro ? 'bth-group-text bth-look-desc' : `leading-snug opacity-75 ${home ? 'text-lg' : 'text-sm'}`} aria-live="polite">
-        {current ? <>{current.desc.ko}<br /><span>{current.desc.en}</span></> : <>룩을 고르면 사진 색·스티커·인화물 문구가 바뀌어요<br /><span>Pick a look to style your photo and print</span></>}
+        {current ? <>{current.desc.ko}<br /><span>{current.desc.en}</span></> : <>룩을 고르면 얼굴에 무대 메이크업이 입혀져요<br /><span>Pick a look to put stage makeup on your face</span></>}
       </p>
+      {current && status === 'busy' && (
+        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm font-bold'} role="status">얼굴을 찾아 메이크업하는 중… · Applying makeup…</p>
+      )}
+      {current && status === 'noface' && (
+        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm opacity-75'} role="status">얼굴을 찾지 못해 사진 색만 바꿨어요 — 카메라 쪽으로 가까이 서 주세요 · No face found</p>
+      )}
     </div>
   )
 }
