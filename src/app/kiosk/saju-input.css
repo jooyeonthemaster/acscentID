@@ -1,0 +1,6 @@
+/* 생년월일 자리 — 빈 자리는 속이 빈 원, 다음에 채울 자리는 굵은 원(기존·레트로 공통) */
+.ksk-birth-slots { display: inline-flex; align-items: center; justify-content: center; gap: 0.12em; letter-spacing: 0; }
+.ksk-birth-slot { display: inline-grid; place-items: center; width: 0.95em; height: 1.2em; font-variant-numeric: tabular-nums; }
+.ksk-birth-slot:not([data-filled])::before { content: ''; width: 0.56em; height: 0.56em; border: 0.08em solid currentColor; border-radius: 50%; opacity: 0.45; box-sizing: border-box; }
+.ksk-birth-slot[data-next]::before { opacity: 0.95; border-width: 0.11em; }
+.ksk-birth-sep { width: 0.45em; text-align: center; opacity: 0.7; }

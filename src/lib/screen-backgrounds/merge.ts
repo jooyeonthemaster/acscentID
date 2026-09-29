@@ -6,7 +6,7 @@ export type BackgroundRecord =
   | { kind: 'background'; background: ScreenBackground }
   | { kind: 'deleted'; id: string }
   | { kind: 'selection'; target: ScreenTarget; id: string }
-  | { kind: 'settings'; target: ScreenTarget; ui: DeviceSettings['ui']; font: string | null; mode?: string | null }
+  | { kind: 'settings'; target: ScreenTarget; ui: DeviceSettings['ui']; font: string | null; mode?: string | null; hanjaFont?: string; receiptStyle?: string }
 
 /** Tombstones must override bundled defaults, including after deployment or refresh. */
 export function mergeBackgroundRecords(bundled: ScreenBackground[], records: BackgroundRecord[]): BackgroundSnapshot {
@@ -22,7 +22,11 @@ export function mergeBackgroundRecords(bundled: ScreenBackground[], records: Bac
       selected[record.target] = record.id
     } else if (record.kind === 'settings' && isScreenTarget(record.target) && isScreenUi(record.ui)
       && (record.font === null || isFontId(record.font))) {
-      settings[record.target] = { ui: record.ui, font: record.font, ...(isFontId(record.mode) ? { mode: record.mode } : {}) }
+      settings[record.target] = {
+        ui: record.ui, font: record.font, ...(isFontId(record.mode) ? { mode: record.mode } : {}),
+        ...(record.hanjaFont === 'kaishu' || record.hanjaFont === 'gothic' ? { hanjaFont: record.hanjaFont } : {}),
+        ...(record.receiptStyle === 'sheet' || record.receiptStyle === 'prescription' ? { receiptStyle: record.receiptStyle } : {}),
+      }
     } else {
       // Never silently resurrect a hidden/deleted preset on damaged remote configuration.
       throw new Error('배경 설정 파일이 올바르지 않습니다. 관리자에게 문의해주세요.')

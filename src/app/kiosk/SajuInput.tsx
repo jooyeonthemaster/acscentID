@@ -6,6 +6,7 @@
 import { useCallback, useMemo } from 'react'
 import { SAJU_PURPOSES, SAJU_RELATION_OPTIONS, type SajuPurpose, type SajuBirthInput } from '@/types/analysis'
 import { sajuText, type SajuText } from '@/lib/kiosk/saju-i18n'
+import './saju-input.css'
 
 const KO = sajuText('ko')
 
@@ -143,7 +144,13 @@ export function SajuBirthPad({
 
       <div className="ksk-birth-display">
         <span className="ksk-birth-label ksk-mono">{label ?? tx.birthLabel}</span>
-        <span className="ksk-birth-value ksk-mono">{formatBirthDigits(digits)}</span>
+        {/* 숫자 자리 — 비어 있으면 속이 빈 원, 누르면 그 자리에 숫자. 연 4 · 월 2 · 일 2 */}
+        <span className="ksk-birth-value ksk-mono ksk-birth-slots" aria-label={formatBirthDigits(digits)}>
+          {[0, 1, 2, 3, -1, 4, 5, -1, 6, 7].map((i, k) =>
+            i < 0 ? <span key={k} className="ksk-birth-sep" aria-hidden="true">.</span>
+              : <span key={k} className="ksk-birth-slot" data-filled={i < digits.length || undefined} data-next={i === digits.length || undefined} aria-hidden="true">{digits[i] ?? ''}</span>
+          )}
+        </span>
       </div>
       <p className="ksk-birth-hint">{error ?? (digits.length < 8 ? tx.birthHint : ' ')}</p>
 

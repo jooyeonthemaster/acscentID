@@ -1,0 +1,4 @@
+/* 사주 한자 해서체 — 霞鶩文楷 TC(LXGW WenKai TC, SIL OFL 1.1, public/fonts/hanja/OFL.txt).
+   KS X 1001 한자 4,643자만 남긴 파일. 한자에만 쓰이도록 unicode-range 를 CJK 한자로 묶는다. 드문 한자는 Noto Sans TC 가 받는다 */
+@font-face { font-family: 'ACS WenKai TC'; src: url('/fonts/hanja/wenkai-tc-400.woff2') format('woff2'); font-weight: 100 599; font-display: swap; unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF; }
+@font-face { font-family: 'ACS WenKai TC'; src: url('/fonts/hanja/wenkai-tc-700.woff2') format('woff2'); font-weight: 600 900; font-display: swap; unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF; }

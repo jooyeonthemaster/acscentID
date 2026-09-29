@@ -6,9 +6,30 @@ import type { ReceiptSaju } from './receipt-canvas'
 import type { SajuText } from './saju-i18n'
 
 const PILLAR_KEYS = ['hour', 'day', 'month', 'year'] as const
+
+// ── 십성(十星) — 일간과 다른 글자의 오행·음양 관계. 감정서 명식표의 윗줄·아랫줄에 쓴다(지지는 본기 기준)
+const STEM_INFO: Record<string, { el: number; yang: boolean }> = {
+  甲: { el: 0, yang: true }, 乙: { el: 0, yang: false }, 丙: { el: 1, yang: true }, 丁: { el: 1, yang: false },
+  戊: { el: 2, yang: true }, 己: { el: 2, yang: false }, 庚: { el: 3, yang: true }, 辛: { el: 3, yang: false },
+  壬: { el: 4, yang: true }, 癸: { el: 4, yang: false },
+}
+/** 지지 본기(本氣) 천간 */
+const BRANCH_MAIN: Record<string, string> = { 子: '癸', 丑: '己', 寅: '甲', 卯: '乙', 辰: '戊', 巳: '丙', 午: '丁', 未: '己', 申: '庚', 酉: '辛', 戌: '戊', 亥: '壬' }
+/** 목0 화1 토2 금3 수4 — 상생 +1, 상극 +2 */
+export function tenGod(dayStem: string, other: string): string {
+  const d = STEM_INFO[dayStem], o = STEM_INFO[other] ?? STEM_INFO[BRANCH_MAIN[other] ?? '']
+  if (!d || !o) return ''
+  const same = d.yang === o.yang
+  const diff = (o.el - d.el + 5) % 5
+  if (diff === 0) return same ? '比肩' : '劫財'
+  if (diff === 1) return same ? '食神' : '傷官'   // 내가 낳음
+  if (diff === 2) return same ? '偏財' : '正財'   // 내가 극함
+  if (diff === 3) return same ? '偏官' : '正官'   // 나를 극함
+  return same ? '偏印' : '正印'                   // 나를 낳음
+}
 const PILLAR_HEADS: Record<(typeof PILLAR_KEYS)[number], string> = { hour: '時柱', day: '日柱', month: '月柱', year: '年柱' }
 
-export function buildReceiptSaju(r: SajuAnalysisResult, sx: SajuText, korean: boolean): ReceiptSaju {
+export function buildReceiptSaju(r: SajuAnalysisResult, sx: SajuText, korean: boolean, genderText = ''): ReceiptSaju {
   const chart = r.sajuChart
   const d = r.sajuAnalysis.scentDestiny
   const persona = r.matchingPerfumes[0]?.persona
@@ -30,6 +51,8 @@ export function buildReceiptSaju(r: SajuAnalysisResult, sx: SajuText, korean: bo
         jiRead: read(p.ji, p.jiElement),
         jiElement: hanja(p.jiElement),
         isDay: k === 'day',
+        ganGod: k === 'day' ? '日主' : tenGod(chart.dayMaster.hanja, p.ganHanja),
+        jiGod: tenGod(chart.dayMaster.hanja, p.jiHanja),
       }
     }),
     dayMaster: korean
@@ -51,5 +74,8 @@ export function buildReceiptSaju(r: SajuAnalysisResult, sx: SajuText, korean: bo
     ],
     ritual: d.ritualGuide,
     labels: sx.receipt,
+    genderText,
+    birthDate: `${chart.birthDisplay.solarDate.replace(/-/g, '.')}${chart.birthDisplay.calendar === 'lunar' ? ` (${sx.lunar})` : ` (${sx.solar})`}`,
+    birthTime: chart.birthDisplay.sijin ? (korean ? chart.birthDisplay.sijin : chart.birthDisplay.sijin.replace(/^[가-힣]+/, '').replace(/[()]/g, '')) : sx.noHour,
   }
 }

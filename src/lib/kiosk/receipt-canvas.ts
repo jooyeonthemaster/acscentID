@@ -24,6 +24,9 @@ export interface ReceiptPillar {
   jiRead: string
   jiElement: string
   isDay: boolean
+  /** 십성(十星) — 감정서형 명식표. 일주 천간은 '日主' */
+  ganGod?: string
+  jiGod?: string
 }
 
 export interface ReceiptSaju {
@@ -47,7 +50,15 @@ export interface ReceiptSaju {
     ritual: string
     rxScent: string
     title: string
+    sheetSub?: string
+    info?: [string, string, string, string, string]
+    rows?: [string, string, string, string]
+    seal?: [string, string]
   }
+  /** 감정서형 정보표 — 성별 표시·생년월일·생시 */
+  genderText?: string
+  birthDate?: string
+  birthTime?: string
 }
 
 const SAJU_LABELS_KO = {
@@ -100,6 +111,10 @@ export interface ReceiptRenderOptions {
     eventLines?: string[]
     /** 제조 레시피를 굵은 상자로 감싼다 — 손님이 직접 조향하는 행사장에서 레시피를 바로 찾게 */
     recipeBox?: boolean
+    /** 사주 영수증 양식 — 'sheet'(사주 감정서형, 기본) · 'prescription'(이전 처방전형 그대로) */
+    receiptStyle?: 'sheet' | 'prescription'
+    /** 한자 글꼴 — 'kaishu'(霞鶩文楷) · 'gothic'(Noto Sans TC, 이전) */
+    hanjaFont?: 'kaishu' | 'gothic'
   }
 }
 
@@ -147,7 +162,7 @@ const CJK_FONT_VAR: Record<string, { varName: string; fallback: string }> = {
   'zh-Hant': { varName: '--font-noto-tc', fallback: "'PingFang TC', 'Microsoft JhengHei', sans-serif" },
 }
 
-function resolveFonts(lang?: string): Fonts {
+function resolveFonts(lang?: string, kaishu = false): Fonts {
   // 한국어 전용 글꼴로 가나·간체를 그리면 빈칸이 된다 — 언어 글꼴을 앞에 세운다
   const cjk = lang ? CJK_FONT_VAR[lang] : undefined
   if (cjk) {
@@ -156,7 +171,7 @@ function resolveFonts(lang?: string): Fonts {
       sans: family,
       display: family,
       mono: "ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace",
-      hanja: family,
+      hanja: kaishu ? `'ACS WenKai TC', ${family}` : family,
     }
   }
   const sans = cssFontFamily('--font-score-dream', "'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif")
@@ -166,7 +181,10 @@ function resolveFonts(lang?: string): Fonts {
     sans,
     display: sans,
     mono: "ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace",
-    hanja: `'Malgun Gothic', 'Apple SD Gothic Neo', ${hanjaSans}`,
+    // 해서(霞鶩文楷) — 사주 감정서형 기본. 'gothic' 이면 이전 그대로(맑은 고딕·Noto Sans TC)
+    hanja: kaishu
+      ? `'ACS WenKai TC', 'Malgun Gothic', ${hanjaSans}`
+      : `'Malgun Gothic', 'Apple SD Gothic Neo', ${hanjaSans}`,
   }
 }
 
@@ -619,6 +637,162 @@ class ReceiptBuilder {
     this.y += h
   }
 
+  // ───────── 사주 감정서형 부품 ─────────
+
+  /** 테두리 상자 안 '항목 | 값' 표 (성명·생년월일 등). 왼쪽 칸은 한자 머리 */
+  infoTable(rows: [string, string][]) {
+    const x = MARGIN, w = this.width - MARGIN * 2
+    const rowH = 38, keyW = 124
+    const yTop = Math.round(this.y)
+    const h = rowH * rows.length
+    this.ops.push((ctx) => {
+      strokeRectCrisp(ctx, x, yTop, w, h, 2)
+      ctx.fillStyle = INK
+      ctx.fillRect(x + keyW, yTop, 2, h)
+      rows.forEach(([k, v], i) => {
+        const ry = yTop + i * rowH
+        if (i > 0) ctx.fillRect(x, ry, w, 1)
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'center'
+        ctx.font = this.font(18, 700, this.fonts.hanja)
+        ctx.fillText(k, x + keyW / 2, ry + rowH / 2)
+        ctx.textAlign = 'left'
+        ctx.font = this.font(18, 600, this.fonts.sans)
+        let value = v
+        while (value.length > 1 && ctx.measureText(value).width > w - keyW - 20) value = value.slice(0, -1)
+        ctx.fillText(value, x + keyW + 12, ry + rowH / 2)
+      })
+      ctx.textAlign = 'left'
+    })
+    this.y = yTop + h
+  }
+
+  /** 명식표 — 열: 時 日 月 年, 행: 十星 / 天干 / 地支 / 十星. 격자 선으로 감정서처럼 */
+  sheetPillars(list: (ReceiptPillar | null)[], rowLabels: [string, string, string, string]) {
+    const x0 = MARGIN, w = this.width - MARGIN * 2
+    const labelW = 52
+    const colW = Math.floor((w - labelW) / 4)
+    const heads = ['時柱', '日柱', '月柱', '年柱']
+    const hHead = 34, hGod = 30, hGlyph = 96
+    const rowsH = [hHead, hGod, hGlyph, hGlyph, hGod]
+    const yTop = Math.round(this.y)
+    const total = rowsH.reduce((a, b) => a + b, 0)
+    const tableW = labelW + colW * 4
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      strokeRectCrisp(ctx, x0, yTop, tableW, total, 3)
+      // 세로선
+      ctx.fillRect(x0 + labelW, yTop, 2, total)
+      for (let c = 1; c < 4; c++) ctx.fillRect(x0 + labelW + c * colW, yTop, 1, total)
+      // 가로선
+      let yy = yTop
+      rowsH.forEach((rh, r) => { if (r > 0) ctx.fillRect(x0, yy, tableW, r === 1 ? 2 : 1); yy += rh })
+      // 머리줄 — 일주 반전
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'center'
+      heads.forEach((hd, c) => {
+        const cx = x0 + labelW + c * colW
+        const isDay = list[c]?.isDay
+        if (isDay) { ctx.fillStyle = INK; ctx.fillRect(cx, yTop, colW, hHead) }
+        ctx.fillStyle = isDay ? '#ffffff' : INK
+        ctx.font = this.font(19, 700, this.fonts.hanja)
+        ctx.fillText(hd, cx + colW / 2, yTop + hHead / 2)
+      })
+      // 왼쪽 행 이름
+      ctx.fillStyle = INK
+      ctx.font = this.font(15, 700, this.fonts.hanja)
+      let ry = yTop + hHead
+      rowLabels.forEach((lb, r) => {
+        const rh = rowsH[r + 1]
+        // 두 글자 세로 쓰기(天/干)
+        const chars = [...lb]
+        if (chars.length === 2 && rh >= 60) {
+          ctx.font = this.font(20, 700, this.fonts.hanja)
+          ctx.fillText(chars[0], x0 + labelW / 2, ry + rh / 2 - 13)
+          ctx.fillText(chars[1], x0 + labelW / 2, ry + rh / 2 + 13)
+          ctx.font = this.font(15, 700, this.fonts.hanja)
+        } else ctx.fillText(lb, x0 + labelW / 2, ry + rh / 2)
+        ry += rh
+      })
+      // 칸 내용
+      list.forEach((p, c) => {
+        const cx = x0 + labelW + c * colW + colW / 2
+        let cy = yTop + hHead
+        const god = (t: string | undefined, rh: number) => { ctx.font = this.font(16, 700, this.fonts.hanja); ctx.fillText(t || '', cx, cy + rh / 2) }
+        const glyph = (g: string, el: string, rh: number) => {
+          ctx.font = this.font(58, 700, this.fonts.hanja)
+          ctx.fillText(g, cx, cy + rh / 2 - 8)
+          if (el) { ctx.font = this.font(15, 700, this.fonts.hanja); ctx.fillText(el, cx, cy + rh - 13) }
+        }
+        if (!p) {
+          ctx.font = this.font(30, 700, this.fonts.hanja)
+          ctx.fillText('—', cx, yTop + hHead + hGod + hGlyph)
+          return
+        }
+        god(p.ganGod, hGod); cy += hGod
+        glyph(p.ganHanja, p.ganElement, hGlyph); cy += hGlyph
+        glyph(p.jiHanja, p.jiElement, hGlyph); cy += hGlyph
+        god(p.jiGod, hGod)
+      })
+      ctx.textAlign = 'left'
+    })
+    this.y = yTop + total
+  }
+
+  /** 오행 다섯 칸 — 한자·개수·막대, 용신 칸은 반전 */
+  sheetElements(list: { hanja: string; value: number; isYongsin: boolean }[], yongsinLabel: string) {
+    const x0 = MARGIN, w = this.width - MARGIN * 2
+    const n = list.length || 5
+    const cw = Math.floor(w / n)
+    const h = 118
+    const yTop = Math.round(this.y)
+    const max = Math.max(1, ...list.map(e => e.value))
+    this.ops.push((ctx) => {
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'center'
+      list.forEach((e, i) => {
+        const x = x0 + i * cw
+        ctx.fillStyle = INK
+        if (e.isYongsin) ctx.fillRect(x + 3, yTop, cw - 6, h)
+        else strokeRectCrisp(ctx, x + 3, yTop, cw - 6, h, 2)
+        ctx.fillStyle = e.isYongsin ? '#ffffff' : INK
+        ctx.font = this.font(40, 700, this.fonts.hanja)
+        ctx.fillText(e.hanja, x + cw / 2, yTop + 34)
+        ctx.font = this.font(22, 800, this.fonts.mono)
+        ctx.fillText(String(e.value), x + cw / 2, yTop + 72)
+        // 막대 — 개수를 5칸 눈금으로
+        const cells = 5, cellW = Math.floor((cw - 26) / cells)
+        const filled = Math.round((e.value / max) * cells)
+        for (let k = 0; k < cells; k++) {
+          const bx = x + 13 + k * cellW, by = yTop + 92
+          if (k < filled) ctx.fillRect(bx, by, cellW - 3, 12)
+          else { ctx.fillRect(bx, by, cellW - 3, 2); ctx.fillRect(bx, by + 10, cellW - 3, 2); ctx.fillRect(bx, by, 2, 12); ctx.fillRect(bx + cellW - 5, by, 2, 12) }
+        }
+        if (e.isYongsin) { ctx.font = this.font(14, 700, this.fonts.hanja); ctx.fillText(yongsinLabel, x + cw / 2, yTop + 10) }
+      })
+      ctx.textAlign = 'left'
+    })
+    this.y = yTop + h
+  }
+
+  /** 도장 — 감정서 끝의 네모 인장(흑백). 오른쪽에 붙인다 */
+  seal(lines: [string, string]) {
+    const size = 92
+    const x = this.width - MARGIN - size, yTop = Math.round(this.y)
+    this.ops.push((ctx) => {
+      strokeRectCrisp(ctx, x, yTop, size, size, 4)
+      strokeRectCrisp(ctx, x + 7, yTop + 7, size - 14, size - 14, 2)
+      ctx.fillStyle = INK
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.font = this.font(30, 700, this.fonts.hanja)
+      ctx.fillText(lines[0], x + size / 2, yTop + size / 2 - 17)
+      ctx.fillText(lines[1], x + size / 2, yTop + size / 2 + 17)
+      ctx.textAlign = 'left'
+    })
+    return { x, yTop, size }
+  }
+
   render(): { canvas: HTMLCanvasElement; height: number } {
     const canvas = document.createElement('canvas')
     canvas.width = this.width
@@ -648,7 +822,7 @@ export async function renderKioskReceipt(
   opts: ReceiptRenderOptions = {}
 ): Promise<{ base64: string; dataUrl: string; width: number; height: number }> {
   const width = opts.width ?? 512
-  const fonts = resolveFonts(opts.lang)
+  const fonts = resolveFonts(opts.lang, opts.brand?.hanjaFont === 'kaishu')
   if (typeof document !== 'undefined' && document.fonts) {
     try {
       // fonts.ready는 '이미 요청된' 페이스만 기다린다 — 캔버스가 쓰는 웨이트를 명시적으로 로드
@@ -659,7 +833,7 @@ export async function renderKioskReceipt(
         ...[500, 600, 700, 800].map((w) => document.fonts.load(`${w} 20px ${fonts.sans}`, sampleText)),
         document.fonts.load(`800 44px ${fonts.display}`, sampleText),
         // 명식 한자는 unicode-range 분할 서브셋이라 쓰일 글자를 명시해야 실제로 받아온다
-        document.fonts.load(`800 52px ${fonts.hanja}`, '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥木火土金水柱時日月年四香處方箋'),
+        document.fonts.load(`800 52px ${fonts.hanja}`, '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥木火土金水柱時日月年四香處方箋比肩劫財食神傷官偏正印官主鑑定書室之姓名性別生時辰十星天干地支用神氏'),
       ])
       await document.fonts.ready
     } catch {
@@ -669,11 +843,33 @@ export async function renderKioskReceipt(
   const b = new ReceiptBuilder(width, fonts)
 
   // ── 헤더
+  const sajuFirst = opts.brand?.theme === 'saju' && !!data.saju
+  // 사주 감정서형 — 철학관 감정서처럼 정보표·명식 격자표·오행 칸·인장. 'prescription' 이면 아래 이전 처방전형 그대로
+  const sheet = sajuFirst && opts.brand?.receiptStyle !== 'prescription'
+  const L: NonNullable<ReceiptSaju['labels']> = data.saju?.labels ?? SAJU_LABELS_KO
+  if (sheet) {
+    b.space(30)
+    b.text("AC'SCENT", { size: 32, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
+    b.space(4)
+    b.text(opts.brand?.subtitle ?? 'SAJU SCENT', { size: 14, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+    b.space(14)
+    b.rule(3)
+    b.space(3)
+    b.rule(1)
+    b.space(16)
+    b.text('四柱鑑定書', { size: 56, weight: 700, family: 'hanja', align: 'center', letterSpacing: 6, lineHeight: 1.15 })
+    b.space(2)
+    b.text(L.sheetSub ?? '사주 향 감정서', { size: 18, weight: 600, align: 'center', letterSpacing: 4 })
+    b.space(16)
+    b.rule(1)
+    b.space(3)
+    b.rule(3)
+    b.space(16)
+  }
+  if (!sheet) {
   b.space(34)
   b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
   b.space(6)
-  const sajuFirst = opts.brand?.theme === 'saju' && !!data.saju
-  const L = data.saju?.labels ?? SAJU_LABELS_KO
   b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
   if (sajuFirst) {
     // 사주 처방전 — 한약방 처방전처럼 큰 한자 제목을 두 줄 괘선 사이에
@@ -702,6 +898,7 @@ export async function renderKioskReceipt(
   b.row('PRODUCT', data.productLabel, { mono: true })
   b.space(10)
   b.rule(1.5, true)
+  }
 
   // ── 사진
   if (opts.photoSrc) {
@@ -793,7 +990,69 @@ export async function renderKioskReceipt(
 
   }
   // 매장: 향 → (사주) · 사주 처방전: 명식 → 향
-  if (sajuFirst) { drawSaju(); drawScent() } else { drawScent(); drawSaju() }
+  const drawSheet = () => {
+    const sj = data.saju!
+    const info = L.info ?? ['姓名', '性別', '生年月日', '生時', '鑑定日']
+    b.infoTable([
+      [info[0], data.customerName || '-'],
+      [info[1], sj.genderText || '-'],
+      [info[2], sj.birthDate ?? sj.birth],
+      [info[3], sj.birthTime ?? '-'],
+      [info[4], `${data.date} ${data.time}${data.ticket ? `  · NO. ${data.ticket}` : ''}`],
+    ])
+    b.space(24)
+    b.text(L.myeongsik, { size: 16, weight: 700, family: 'mono', letterSpacing: 3 })
+    b.space(10)
+    b.sheetPillars(sj.pillars, L.rows ?? ['十星', '天干', '地支', '十星'])
+    b.space(12)
+    b.row(L.dayMaster, sj.dayMaster, { size: 18 })
+    b.row(L.yongsin, sj.yongsin, { size: 18 })
+    b.space(18)
+    b.text(L.elements, { size: 16, weight: 700, family: 'mono', letterSpacing: 3 })
+    b.space(10)
+    b.sheetElements(sj.elements.map(e => ({ hanja: e.label.match(/[木火土金水]/)?.[0] ?? e.label, value: e.value, isYongsin: e.isYongsin })), '用神')
+    b.space(22)
+
+    // 處方香 — 상자 안에 향 번호·이름·노트
+    const top = b.y
+    b.space(16)
+    b.text(L.rxScent, { size: 16, weight: 700, family: 'mono', align: 'center', letterSpacing: 3 })
+    b.space(6)
+    b.text(`No. ${data.perfumeNo}`, { size: 28, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
+    b.text(data.perfumeName, { size: 42, weight: 800, align: 'center', lineHeight: 1.2 })
+    b.space(4)
+    b.text(`${data.categoryEn.toUpperCase()} · ${data.productLabel}`, { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 1 })
+    b.space(12)
+    b.row('TOP', data.notes.top)
+    b.row('MIDDLE', data.notes.middle)
+    b.row('BASE', data.notes.base)
+    b.space(12)
+    b.box(top, 2)
+    b.space(22)
+
+    // 鑑定 — 처방의 연유·향 층·쓰는 법
+    b.text(L.bridge, { size: 16, weight: 700, family: 'mono', letterSpacing: 3 })
+    b.space(8)
+    if (sj.bridge) { b.text(sj.bridge, { size: 21, weight: 800, lineHeight: 1.4 }); b.space(6) }
+    b.text(sj.why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 5 })
+    b.space(14)
+    for (const t of sj.tiers) {
+      b.row(t.tier, t.name, { size: 18 })
+      b.text(t.meaning, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
+      b.space(8)
+    }
+    if (sj.ritual) {
+      b.space(6)
+      b.text(L.ritual, { size: 16, weight: 700, family: 'mono', letterSpacing: 3 })
+      b.space(8)
+      b.text(sj.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
+    }
+    b.space(16)
+    b.rule(3)
+    b.space(14)
+  }
+  if (sheet) drawSheet()
+  else if (sajuFirst) { drawSaju(); drawScent() } else { drawScent(); drawSaju() }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
   if (!data.saju && data.analysisText) {
@@ -866,6 +1125,12 @@ export async function renderKioskReceipt(
     for (const [i, line] of opts.brand.eventLines.entries()) {
       b.text(line, { size: i === 0 ? 18 : 16, weight: i === 0 ? 700 : 500, family: i === 0 ? 'mono' : 'sans', align: 'center', letterSpacing: i === 0 ? 1 : 0, lineHeight: 1.5 })
     }
+  }
+  // 감정서형 — 끝에 네모 인장(香室之印)
+  if (sheet) {
+    b.space(14)
+    const seal = b.seal(L.seal ?? ['香室', '之印'])
+    b.y = seal.yTop + seal.size
   }
   b.space(16)
 

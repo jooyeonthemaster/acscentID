@@ -4,13 +4,16 @@
 // 고르면 같은 종류의 키오스크 모두가 다음 손님부터 그 모드로 돈다. 목록은 src/lib/kiosk/modes.ts
 import { useState } from 'react'
 import { KIOSK_MODES, findKioskMode } from '@/lib/kiosk/modes'
+import type { DeviceSettings } from '@/lib/screen-backgrounds/types'
 import './kiosk-mode-controls.css'
 
 const PROGRAM_LABELS = { idol: '최애 이미지 분석', personal: '내 이미지 분석', saju: '사주 분석' } as const
 
-export function KioskModeControls({ value, onSave, onSelectBackground, disabled }: {
+export function KioskModeControls({ value, onSave, onSelectBackground, disabled, settings }: {
   value: string | null | undefined
-  onSave: (patch: { mode: string | null }) => Promise<void>
+  onSave: (patch: Partial<DeviceSettings>) => Promise<void>
+  /** 사주 표시(한자 글꼴·영수증 양식) — 새 디자인이 마음에 안 들면 이전으로 되돌린다 */
+  settings?: DeviceSettings
   /** 모드에 기본 배경이 있으면 함께 고른다(useScreenBackgrounds().selectBackground) */
   onSelectBackground?: (id: string) => Promise<void>
   disabled?: boolean
@@ -43,6 +46,27 @@ export function KioskModeControls({ value, onSave, onSelectBackground, disabled 
           </button>
         ))}
       </div>
+      {settings && current.programs.includes('saju') && (
+        <div className="kmc-saju">
+          <b>사주 표시</b>
+          {([
+            ['hanjaFont', '한자 글꼴', [['kaishu', '해서 (새)'], ['gothic', '고딕 (이전)']], settings.hanjaFont ?? 'kaishu'],
+            ['receiptStyle', '영수증', [['sheet', '감정서형 (새)'], ['prescription', '처방전형 (이전)']], settings.receiptStyle ?? 'sheet'],
+          ] as const).map(([key, label, options, now]) => (
+            <div key={key} className="kmc-row">
+              <span>{label}</span>
+              <div className="kmc-seg" role="group" aria-label={label}>
+                {options.map(([id, text]) => (
+                  <button key={id} type="button" aria-pressed={now === id} disabled={disabled || !!saving || now === id}
+                    onClick={() => { setSaving(key); setError(''); void onSave({ [key]: id } as Partial<DeviceSettings>).catch(cause => setError(cause instanceof Error ? cause.message : '저장하지 못했습니다.')).finally(() => setSaving(null)) }}>
+                    {text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {error && <p className="kmc-error" role="alert">{error}</p>}
     </section>
   )

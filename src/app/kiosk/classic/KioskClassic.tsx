@@ -22,7 +22,7 @@ import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
-import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from '../fonts'
+import { KIOSK_FONT_CLASS, CJK_FONT_STACK, hanjaFontVar } from '../fonts'
 import { OnScreenKeyboard } from './OnScreenKeyboard'
 import {
   SajuPurposeGrid, SajuBirthPad, SajuHourGrid, SajuRelationGrid,
@@ -823,7 +823,7 @@ export function KioskClassic() {
     if (step !== 'result' || !result || !persona || !match || recordedRef.current) return
     recordedRef.current = true
 
-    const saju = isSajuResult(result) ? buildReceiptSaju(result, sx, lang === 'ko') : null
+    const saju = isSajuResult(result) ? buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') : null
     fetch('/api/kiosk/record', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -861,6 +861,7 @@ export function KioskClassic() {
   }, [
     step, result, persona, match, program, name, gender, photoSource, productType,
     productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx,
+  t.gender,
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
@@ -908,16 +909,20 @@ export function KioskClassic() {
         ...(mocked ? [t.receipt.demoNote] : []),
         "AC'SCENT · www.acscent.co.kr",
       ],
-      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko') } : {}),
+      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
     }
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
       photoSrc: isSajuResult(result) ? null : photo,
       lang,
-      brand: { ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent' },
+      brand: {
+        ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent',
+        // STORE ADMIN 에서 고른 사주 영수증 양식·한자 글꼴(되돌리기용)
+        receiptStyle: deviceBaseSettings.receiptStyle ?? 'sheet', hanjaFont: deviceBaseSettings.hanjaFont ?? 'kaishu',
+      },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont])
 
   const openReceipt = useCallback(async () => {
     try {
@@ -1239,6 +1244,7 @@ export function KioskClassic() {
         '--ksk-background-image': `url("${activeBackground.image}")`,
         // 테마 글꼴은 한국어 전용이라 한자권에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다
         '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.displayFont,
+        '--ksk-hanja-font': hanjaFontVar(deviceBaseSettings.hanjaFont),
         '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.bodyFont,
         '--ksk-display-tracking': activeBackground.tracking,
         '--paper': activeBackground.paper,
@@ -1942,7 +1948,7 @@ export function KioskClassic() {
             ) : (
               <div className="ksk-admin-themes">
                 <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
-                <KioskModeControls value={deviceSettings.mode} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
+                <KioskModeControls value={deviceSettings.mode} settings={deviceBaseSettings} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                 <DeviceDesignControls settings={deviceBaseSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null} />
                 <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
                 <div className="ksk-admin-toolbar">

@@ -30,6 +30,10 @@ export interface DeviceSettings {
   font: string | null
   /** 키오스크 운영 모드(src/lib/kiosk/modes.ts) — 없으면 매장 기본. 포토부스는 쓰지 않는다 */
   mode?: string | null
+  /** 키오스크 사주 한자 글꼴 — 'kaishu'(霞鶩文楷 해서, 기본) · 'gothic'(Noto Sans TC, 이전) */
+  hanjaFont?: 'kaishu' | 'gothic'
+  /** 키오스크 사주 영수증 — 'sheet'(사주 감정서형, 기본) · 'prescription'(이전 처방전형) */
+  receiptStyle?: 'sheet' | 'prescription'
 }
 
 export const DEFAULT_DEVICE_SETTINGS: DeviceSettings = { ui: 'retro', font: null }

@@ -95,6 +95,17 @@ export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<De
     if (target !== 'kiosk' || (patch.mode !== null && !KIOSK_MODE_IDS.includes(patch.mode as string))) throw new BackgroundError('운영 모드를 확인해주세요.')
     next.mode = patch.mode ?? null
   }
-  await writeRecord(`settings-${target}`, { kind: 'settings', target, ui: next.ui, font: next.font, ...(next.mode ? { mode: next.mode } : {}) })
+  if (Object.hasOwn(patch, 'hanjaFont')) {
+    if (target !== 'kiosk' || (patch.hanjaFont !== 'kaishu' && patch.hanjaFont !== 'gothic')) throw new BackgroundError('한자 글꼴을 확인해주세요.')
+    next.hanjaFont = patch.hanjaFont
+  }
+  if (Object.hasOwn(patch, 'receiptStyle')) {
+    if (target !== 'kiosk' || (patch.receiptStyle !== 'sheet' && patch.receiptStyle !== 'prescription')) throw new BackgroundError('영수증 양식을 확인해주세요.')
+    next.receiptStyle = patch.receiptStyle
+  }
+  await writeRecord(`settings-${target}`, {
+    kind: 'settings', target, ui: next.ui, font: next.font, ...(next.mode ? { mode: next.mode } : {}),
+    ...(next.hanjaFont ? { hanjaFont: next.hanjaFont } : {}), ...(next.receiptStyle ? { receiptStyle: next.receiptStyle } : {}),
+  })
   return next
 }

@@ -86,6 +86,11 @@ export interface SajuText {
     ritual: string
     rxScent: string
     title: string
+    /** 감정서형 */
+    sheetSub: string
+    info: [string, string, string, string, string]
+    rows: [string, string, string, string]
+    seal: [string, string]
   }
 }
 
@@ -162,7 +167,7 @@ const ko: SajuText = {
   moment: '이런 순간에',
   why: '왜 이 향인가요',
   match: pct => `어울림 ${pct}%`,
-  receipt: { myeongsik: '四柱命式 · 명식', dayMaster: '日干 일간', yongsin: '用神 용신', born: '生時 생시', elements: '오행 분포', bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전' },
+  receipt: { myeongsik: '四柱命式 · 명식', dayMaster: '日干 일간', yongsin: '用神 용신', born: '生時 생시', elements: '오행 분포', bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전', sheetSub: '사주 향 감정서', info: ['姓名', '性別', '生年月日', '生時', '鑑定日'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
 const ELEMENTS_EN = { 목: 'Wood', 화: 'Fire', 토: 'Earth', 금: 'Metal', 수: 'Water' } as const
@@ -246,7 +251,7 @@ const en: SajuText = {
   moment: 'A moment for it',
   why: 'Why this scent',
   match: pct => `Match ${pct}%`,
-  receipt: { myeongsik: '四柱命式 · CHART', dayMaster: 'DAY MASTER', yongsin: 'NEEDED', born: 'BORN', elements: 'FIVE ELEMENTS', bridge: 'WHY THIS SCENT', ritual: 'HOW TO WEAR', rxScent: '處方 香 · YOUR SCENT', title: 'SAJU SCENT PRESCRIPTION' },
+  receipt: { myeongsik: '四柱命式 · CHART', dayMaster: 'DAY MASTER', yongsin: 'NEEDED', born: 'BORN', elements: 'FIVE ELEMENTS', bridge: 'WHY THIS SCENT', ritual: 'HOW TO WEAR', rxScent: '處方 香 · YOUR SCENT', title: 'SAJU SCENT PRESCRIPTION', sheetSub: 'SAJU SCENT READING', info: ['NAME', 'GENDER', 'BORN', 'HOUR', 'DATE'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
 const ja: SajuText = {
@@ -322,7 +327,7 @@ const ja: SajuText = {
   moment: 'こんな瞬間に',
   why: 'なぜこの香りか',
   match: pct => `相性 ${pct}%`,
-  receipt: { myeongsik: '四柱命式', dayMaster: '日干', yongsin: '用神', born: '生時', elements: '五行の分布', bridge: '命と香 · 処方の理由', ritual: '處方 · 使い方', rxScent: '處方 香 · 処方の香り', title: '四柱香 処方箋' },
+  receipt: { myeongsik: '四柱命式', dayMaster: '日干', yongsin: '用神', born: '生時', elements: '五行の分布', bridge: '命と香 · 処方の理由', ritual: '處方 · 使い方', rxScent: '處方 香 · 処方の香り', title: '四柱香 処方箋', sheetSub: '四柱香 鑑定書', info: ['氏名', '性別', '生年月日', '生時', '鑑定日'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
 const zhHans: SajuText = {
@@ -398,7 +403,7 @@ const zhHans: SajuText = {
   moment: '适合的瞬间',
   why: '为什么是这款香',
   match: pct => `契合 ${pct}%`,
-  receipt: { myeongsik: '四柱命式 · 命盘', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分布', bridge: '命与香 · 处方缘由', ritual: '處方 · 用法', rxScent: '處方 香 · 处方香气', title: '四柱香 处方笺' },
+  receipt: { myeongsik: '四柱命式 · 命盘', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分布', bridge: '命与香 · 处方缘由', ritual: '處方 · 用法', rxScent: '處方 香 · 处方香气', title: '四柱香 处方笺', sheetSub: '四柱香 鉴定书', info: ['姓名', '性别', '出生日期', '时辰', '鉴定日'], rows: ['十神', '天干', '地支', '十神'], seal: ['香室', '之印'] },
 }
 
 const zhHant: SajuText = {
@@ -470,7 +475,7 @@ const zhHant: SajuText = {
   moment: '適合的瞬間',
   why: '為什麼是這款香',
   match: pct => `契合 ${pct}%`,
-  receipt: { myeongsik: '四柱命式 · 命盤', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分佈', bridge: '命與香 · 處方緣由', ritual: '處方 · 用法', rxScent: '處方 香 · 處方香氣', title: '四柱香 處方箋' },
+  receipt: { myeongsik: '四柱命式 · 命盤', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分佈', bridge: '命與香 · 處方緣由', ritual: '處方 · 用法', rxScent: '處方 香 · 處方香氣', title: '四柱香 處方箋', sheetSub: '四柱香 鑑定書', info: ['姓名', '性別', '出生日期', '時辰', '鑑定日'], rows: ['十神', '天干', '地支', '十神'], seal: ['香室', '之印'] },
 }
 
 const TEXTS: Record<KioskLang, SajuText> = { ko, en, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant }

@@ -36,12 +36,20 @@ function Brief({ text, n = 2, tx, className = '' }: { text: string | undefined |
   )
 }
 
-const elColor = (e: SajuElement) => SAJU_ELEMENT_INFO[e]?.color ?? '#475569'
+/** 오행 색 — 원색 대신 먹·광물 안료 같은 가라앉은 색. deep = 칸·글자, tint = 옅은 바탕 */
+const PALETTE: Record<SajuElement, { deep: string; tint: string }> = {
+  목: { deep: '#3F5A48', tint: '#E6ECE5' }, // 청록 먹빛
+  화: { deep: '#8E3B2F', tint: '#F3E3DD' }, // 주사(朱砂)
+  토: { deep: '#86673A', tint: '#F1E8D8' }, // 황토
+  금: { deep: '#66645F', tint: '#ECEAE4' }, // 은회
+  수: { deep: '#1F2B45', tint: '#E2E6EE' }, // 먹 남색
+}
+const elColor = (e: SajuElement) => PALETTE[e]?.deep ?? '#3f3a33'
+const elTint = (e: SajuElement) => PALETTE[e]?.tint ?? '#efe9dd'
 const elHanja = (e: SajuElement) => SAJU_ELEMENT_INFO[e]?.hanja ?? ''
-/** 흰 카드 위 글자색 — 토·금의 기본색은 너무 밝아(대비 2) 짙은 변형을 쓴다 */
-const elInk = (e: SajuElement) => SAJU_ELEMENT_INFO[e]?.onCream ?? '#374151'
-/** 금(金)은 밝은 회색이라 흰 글자가 안 보인다 — 칸 글자색 */
-const onEl = (e: SajuElement) => (e === '금' || e === '토' ? '#1f2937' : '#ffffff')
+/** 짙은 칸 위 글자 — 한지색 */
+const onEl = (e: SajuElement) => (e ? '#FBF8F2' : '#FBF8F2')
+const elInk = (e: SajuElement) => elColor(e)
 
 // ─────────────────────────────── 1. 명식
 export function SajuChartView({ result, tx }: { result: SajuAnalysisResult; tx: SajuText }) {
@@ -72,11 +80,11 @@ export function SajuChartView({ result, tx }: { result: SajuAnalysisResult; tx: 
               <p className="sjr-pillar-head">{tx.pillarHeads[key]}{isDay && <b>{tx.me}</b>}</p>
               {p ? (
                 <>
-                  <div className="sjr-tile" style={{ background: elColor(p.ganElement), color: onEl(p.ganElement) }}>
+                  <div className="sjr-tile" style={{ background: elTint(p.ganElement), color: elColor(p.ganElement), borderColor: elColor(p.ganElement) }}>
                     <span className="sjr-tile-glyph">{p.ganHanja}</span>
                     <span className="sjr-tile-el">{elHanja(p.ganElement)} {tx.elements[p.ganElement] !== elHanja(p.ganElement) ? tx.elements[p.ganElement] : ''}</span>
                   </div>
-                  <div className="sjr-tile" style={{ background: elColor(p.jiElement), color: onEl(p.jiElement) }}>
+                  <div className="sjr-tile" style={{ background: elTint(p.jiElement), color: elColor(p.jiElement), borderColor: elColor(p.jiElement) }}>
                     <span className="sjr-tile-glyph">{p.jiHanja}</span>
                     <span className="sjr-tile-el">{tx.animals[p.jiAnimal] ?? p.jiAnimal}</span>
                   </div>
@@ -242,7 +250,7 @@ export function SajuPrescriptionView({ result, tx }: { result: SajuAnalysisResul
   ]
   return (
     <div className="sjr">
-      <section className="sjr-scent" style={{ background: elColor(y), color: onEl(y) }}>
+      <section className="sjr-scent" style={{ ['--sjr-el' as string]: elColor(y) }}>
         <p className="sjr-scent-kicker">{tx.scentTitle} · <span className="sjr-han">{elHanja(y)}</span> {tx.elements[y] !== elHanja(y) ? tx.elements[y] : ''}</p>
         <p className="sjr-scent-no">No. {no}</p>
         <p className="sjr-scent-name">{persona?.name ?? '-'}</p>
