@@ -19,8 +19,8 @@ const cache = new Map();
 function loadTs(relativePath, mocks = {}, contextCache = cache) {
   const filename = path.resolve(root, relativePath);
   if (contextCache.has(filename)) return contextCache.get(filename);
-  const module = { exports: {} };
-  contextCache.set(filename, module.exports);
+  const mod = { exports: {} };
+  contextCache.set(filename, mod.exports);
   const output = ts.transpileModule(readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
     fileName: filename,
@@ -34,9 +34,9 @@ function loadTs(relativePath, mocks = {}, contextCache = cache) {
     }
     return require(id);
   };
-  new Function('require', 'module', 'exports', 'process', output)(localRequire, module, module.exports, mocks.__process || process);
-  contextCache.set(filename, module.exports);
-  return module.exports;
+  new Function('require', 'module', 'exports', 'process', output)(localRequire, mod, mod.exports, mocks.__process || process);
+  contextCache.set(filename, mod.exports);
+  return mod.exports;
 }
 
 const types = loadTs('src/lib/screen-backgrounds/types.ts');
@@ -47,20 +47,20 @@ const booth = catalog.filter(item => item.target === 'booth');
 const kiosk = catalog.filter(item => item.target === 'kiosk');
 const clone = (value, edits = {}) => ({ ...value, ...edits });
 
-test('catalog contains 84 valid unique entries and every required collection', () => {
-  // 기본 36종씩 + 키오스크 행사 배경(K-WAVE 운영 모드 기본 배경) 1종 + 사주 프로그램 배경 11종
-  assert.equal(catalog.length, 84);
-  assert.equal(new Set(catalog.map(item => item.id)).size, 84);
-  assert.equal(new Set(catalog.map(item => item.image_url)).size, 84);
+test('catalog contains 85 valid unique entries and every required collection', () => {
+  // 기본 36종씩 + 행사 배경(K-WAVE 운영 모드 기본 배경 — 키오스크·포토부스 1종씩) + 사주 프로그램 배경 11종
+  assert.equal(catalog.length, 85);
+  assert.equal(new Set(catalog.map(item => item.id)).size, 85);
+  assert.equal(new Set(catalog.map(item => item.image_url)).size, 85);
   assert.equal(catalog.filter(item => item.collection === 'saju').length, 11);
   // 사주 배경은 모두 추천 글꼴이 있고, 글꼴 목록에 있는 글꼴이다
   const fontIds = loadTs('src/lib/screen-fonts/catalog.ts').SCREEN_FONT_IDS;
   for (const item of catalog.filter(item => item.font)) assert.ok(fontIds.includes(item.font), item.id);
   assert.ok(catalog.filter(item => item.collection === 'saju').every(item => item.font));
-  assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026']);
+  assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026', 'booth-event-kwave-2026']);
   for (const target of types.SCREEN_TARGETS) {
     const entries = catalog.filter(item => item.target === target);
-    assert.equal(entries.length, target === 'kiosk' ? 48 : 36);
+    assert.equal(entries.length, target === 'kiosk' ? 48 : 37);
     assert.equal(entries.filter(item => item.collection === 'poster').length, 20);
     assert.equal(entries.filter(item => item.collection === 'study').length, 10);
     assert.equal(entries.filter(item => item.collection === 'legacy').length, 6);
@@ -204,7 +204,7 @@ test('tombstones persist across fresh merges without resurrecting bundled preset
   ];
   for (let reload = 0; reload < 2; reload++) {
     const snapshot = merge.mergeBackgroundRecords(catalog, records);
-    assert.equal(snapshot.backgrounds.length, 83);
+    assert.equal(snapshot.backgrounds.length, 84);
     assert.equal(snapshot.backgrounds.some(item => item.id === booth[0].id), false);
     assert.equal(snapshot.backgrounds.find(item => item.id === booth[1].id).is_active, false);
     assert.equal(snapshot.selected.booth, booth[2].id);
@@ -222,7 +222,7 @@ test('merge honors custom edits/order and rejects damaged remote records', () =>
     { kind: 'background', background: custom }, { kind: 'background', background: edited },
     { kind: 'selection', target: 'booth', id: edited.id },
   ]);
-  assert.equal(snapshot.backgrounds.length, 85);
+  assert.equal(snapshot.backgrounds.length, 86);
   assert.equal(snapshot.backgrounds[0].id, custom.id);
   assert.equal(snapshot.backgrounds[1].title, '수정한 배경');
   assert.equal(snapshot.selected.booth, edited.id);
@@ -312,7 +312,7 @@ function isolatedStore() {
 test('store keeps IDs/targets immutable and preserves original images when deleting', async () => {
   const { store, records } = isolatedStore();
   const initial = await store.readBackgroundSnapshot();
-  assert.equal(initial.backgrounds.length, 84);
+  assert.equal(initial.backgrounds.length, 85);
   const edited = await store.saveBackground({ id: booth[0].id, target: 'kiosk', title: '  이름 수정  ' }, false);
   assert.equal(edited.target, 'booth');
   assert.equal(edited.id, booth[0].id);
@@ -384,7 +384,11 @@ test('kiosk operating mode saves only for the kiosk and only known modes', async
   assert.equal((await store.saveDeviceSettings('kiosk', { font: 'bm-jua' })).mode, 'kwave-2026');
   assert.equal((await store.saveDeviceSettings('kiosk', { mode: null })).mode, null);
   await assert.rejects(store.saveDeviceSettings('kiosk', { mode: 'nope' }), error => error.status === 400);
-  await assert.rejects(store.saveDeviceSettings('booth', { mode: 'kwave-2026' }), error => error.status === 400);
+  // 포토부스는 자기 모드 목록(src/lib/booth/modes.ts)으로 — 키오스크 설정과 따로 저장된다
+  assert.equal((await store.saveDeviceSettings('booth', { mode: 'kwave-2026' })).mode, 'kwave-2026');
+  assert.equal((await store.readBackgroundSnapshot()).settings.kiosk.mode ?? null, null, 'booth mode never leaks into kiosk');
+  await assert.rejects(store.saveDeviceSettings('booth', { mode: 'nope' }), error => error.status === 400);
+  assert.equal((await store.saveDeviceSettings('booth', { mode: null })).mode, null);
   const merged = merge.mergeBackgroundRecords(catalog, [{ kind: 'settings', target: 'kiosk', ui: 'classic', font: null, mode: 'kwave-2026' }]);
   assert.equal(merged.settings.kiosk.mode, 'kwave-2026');
 });

@@ -1598,3 +1598,63 @@
   object-fit: contain;
   background: var(--rt-well);
 }
+
+/* 행사 모드 — K-POP 무대 메이크업 룩 고르기(src/components/photobooth/StageLookPicker.tsx).
+   색 칩 + 한국어 이름 + 영어 이름, 3열 두 줄(원본 + 룩 5개) */
+.bth-look-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bth-look-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.bth-look-btn.rt-choice {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 64px;
+  padding: 8px 30px 8px 10px;
+  text-align: left;
+}
+.bth-look-swatch {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+.bth-look-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.bth-look-name b {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.2;
+  word-break: keep-all;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.bth-look-name em {
+  overflow: hidden;
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.72;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bth-look-desc span {
+  font-size: 0.86em;
+  opacity: 0.75;
+}
+
+/* 관리자 창 왼쪽 칸의 운영 모드 — 키오스크와 같은 부품을 좁은 칸에 맞춰 조금 줄인다 */
+.bth-admin-settings .kmc {
+  margin-bottom: 12px;
+}

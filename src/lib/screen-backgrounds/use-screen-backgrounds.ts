@@ -6,6 +6,7 @@ import { DEFAULT_DEVICE_SETTINGS, isFontId, isScreenUi, neutralBackground, resol
 import { validateBackground } from './validation'
 import { kstToday, type LiveEventOverride } from '@/lib/screen-events/types'
 import { findKioskMode } from '@/lib/kiosk/modes'
+import { findBoothMode } from '@/lib/booth/modes'
 
 const POLL_MS = 15000
 function initialSnapshot(target: ScreenTarget): BackgroundSnapshot {
@@ -145,8 +146,8 @@ export function useScreenBackgrounds(target: ScreenTarget) {
   const selectedId = snapshot.selected[target] || ''
   // 이벤트 기간이면 이벤트 배경·글꼴이 평소 선택보다 우선한다(docs/screen-events.md). 끝나면 저절로 평소 설정.
   const baseSettings = snapshot.settings[target]
-  // 매장 이벤트는 매장 운영 모드에서만 — 키오스크가 외부 행사(K-WAVE 등) 모드면 와우 생카 배경·글꼴을 띄우지 않는다
-  const storeEvents = target !== 'kiosk' || findKioskMode(baseSettings.mode).storeEvents
+  // 매장 이벤트는 매장 운영 모드에서만 — 키오스크·포토부스가 외부 행사(K-WAVE 등) 모드면 와우 생카 배경·글꼴을 띄우지 않는다
+  const storeEvents = target === 'kiosk' ? findKioskMode(baseSettings.mode).storeEvents : findBoothMode(baseSettings.mode).storeEvents
   const liveEvent = storeEvents && live && kstToday() <= live.ends_on ? live : null
   const selectedBackground = useMemo(() => snapshot.backgrounds.find(item => item.id === selectedId) || neutralBackground(target), [snapshot.backgrounds, selectedId, target])
   const activeBackground = liveEvent?.background ?? selectedBackground

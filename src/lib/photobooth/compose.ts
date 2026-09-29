@@ -41,7 +41,7 @@ function sourceSize(src: ImageSource): { w: number; h: number } {
   return { w: src.width, h: src.height }
 }
 
-function roundRectPath(
+export function roundRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -343,7 +343,7 @@ function readableTextColor(color: string): string {
   return luminance > 0.62 ? '#1f1a17' : '#ffffff'
 }
 
-const FONT_STACK = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif'
+export const FONT_STACK = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif'
 
 export interface EventFooterOptions {
   bgColor: string

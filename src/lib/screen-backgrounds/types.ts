@@ -30,7 +30,7 @@ export interface DeviceSettings {
   ui: ScreenUi
   /** src/lib/screen-fonts/catalog.ts 의 id. null 이면 화면 디자인의 기본 글꼴 */
   font: string | null
-  /** 키오스크 운영 모드(src/lib/kiosk/modes.ts) — 없으면 매장 기본. 포토부스는 쓰지 않는다 */
+  /** 운영 모드 — 키오스크 src/lib/kiosk/modes.ts, 포토부스 src/lib/booth/modes.ts. 없으면 매장 기본 */
   mode?: string | null
   /** 키오스크 사주 한자 글꼴 — 'kaishu'(霞鶩文楷 해서, 기본) · 'gothic'(Noto Sans TC, 이전) */
   hanjaFont?: 'kaishu' | 'gothic'

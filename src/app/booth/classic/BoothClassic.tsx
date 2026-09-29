@@ -18,9 +18,13 @@
  */
 
 import { FramePicker } from '@/components/photobooth/FramePicker'
+import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
+import { BoothModeControls } from '@/components/screen/BoothModeControls'
+import { findBoothMode } from '@/lib/booth/modes'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import {
@@ -137,6 +141,8 @@ interface BoothAsset {
   /** 기본 카탈로그 프레임의 분류·썸네일 (업로드 소재에는 없다) */
   category?: string
   thumbnail_url?: string
+  /** 매장 행사(화면 이벤트)에 묶인 프레임 — 행사 운영 모드에서는 빼고 보여 준다 */
+  screen_event_id?: string | null
 }
 
 /** 설정 API 를 받기 전·못 받을 때의 프레임 목록 — 기본 카탈로그 (관리자 숨김은 첫 응답에서 반영된다) */
@@ -412,6 +418,13 @@ export function BoothClassic() {
     synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
   } = useScreenBackgrounds('booth')
+  // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·편집 화면 무대 메이크업이 바뀐다
+  const boothMode = findBoothMode(deviceBaseSettings.mode)
+  const stageMakeup = boothMode.stageMakeup ?? null
+  /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
+  const [stageLookId, setStageLookId] = useState<string | null>(null)
+  // 행사 모드는 매장 이벤트를 무시한다 — 와우 생카에 묶인 프레임도 목록에서 뺀다(배경·글꼴과 같은 규칙)
+  const modeFrames = useMemo(() => (boothMode.storeEvents ? frames : frames.filter((f) => !f.screen_event_id)), [frames, boothMode.storeEvents])
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
   const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
   const [backgroundPassword, setBackgroundPassword] = useState('')
@@ -681,6 +694,7 @@ export function BoothClassic() {
     setStep('home')
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
+    setStageLookId(null)
     setPassVerified(false)
     setPendingMode(null)
     setPassDigits('')
@@ -1416,9 +1430,10 @@ export function BoothClassic() {
     }
     if (collected.length === 0) return
     setShots(collected)
-    setSelectedFrame((prev) => prev ?? (mode === 'template' ? null : frames[0] ?? null))
+    // 행사 모드(무대 메이크업)는 프레임 없이 시작 — 룩 스티커·하단 띠와 겹치지 않게(손님이 골라 올릴 수는 있다)
+    setSelectedFrame((prev) => prev ?? (mode === 'template' || stageMakeup ? null : modeFrames[0] ?? null))
     setStep('compose')
-  }, [shooting, mode, cutCount, captureShot, frames])
+  }, [shooting, mode, cutCount, captureShot, modeFrames, stageMakeup])
 
   // ---------- 카메라 미리보기 ----------
   const liveReady = cameraSource === 'webcam' || (cameraSource === 'dslr' && dslrLive)
@@ -1491,6 +1506,10 @@ export function BoothClassic() {
         ctx.imageSmoothingQuality = 'high'
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
+        // 행사 모드(무대 메이크업): 사진은 하단 띠 위까지만, 띠에 '오늘의 무대 메이크업'·행사 줄. 매장 모드는 예전 그대로
+        const look = stageMakeup ? findStageLook(stageLookId) : null
+        const photoH = stageMakeup ? STAGE_LAYOUT.photoBottom : CANVAS_H
+        const photoRects: Rect[] = []
 
         if (templateImg && templateGeometry) {
           // 최애와 찍기 — 위: 카메라 배경을 공유하는 아티스트 합성 컷, 아래: 단독 컷, 맨 아래: 이벤트 밴드
@@ -1506,13 +1525,14 @@ export function BoothClassic() {
           })
 
           drawPhotoCard(ctx, shotImages[1] ?? shotImages[0], x, soloY, contentW, soloH)
+          photoRects.push({ x, y: togetherY, w: contentW, h: togetherH }, { x, y: soloY, w: contentW, h: soloH })
 
           const dateText = new Date().toLocaleDateString('ko-KR', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
           })
-          drawEventFooter(ctx, x, footerY, contentW, PRINT.footerH, {
+          if (!stageMakeup) drawEventFooter(ctx, x, footerY, contentW, PRINT.footerH, {
             bgColor: event?.theme_color || templateGeometry.bgColor,
             title: event?.greeting || event?.title || "AC'SCENT WOW",
             subtitle: [event?.artist, event?.organizer && `주최 ${event.organizer}`]
@@ -1528,14 +1548,16 @@ export function BoothClassic() {
         } else if (shotImages.length >= 4) {
           // 4컷: 2x2 그리드 (인생네컷 감성)
           const cellW = CANVAS_W / 2
-          const cellH = CANVAS_H / 2
+          const cellH = photoH / 2
           for (let i = 0; i < 4; i++) {
             const col = i % 2
             const row = Math.floor(i / 2)
             drawCover(ctx, shotImages[i], col * cellW, row * cellH, cellW, cellH)
+            photoRects.push({ x: col * cellW, y: row * cellH, w: cellW, h: cellH })
           }
         } else {
-          drawCover(ctx, shotImages[0], 0, 0, CANVAS_W, CANVAS_H)
+          drawCover(ctx, shotImages[0], 0, 0, CANVAS_W, photoH)
+          photoRects.push({ x: 0, y: 0, w: CANVAS_W, h: photoH })
         }
 
         if ((mode === 'together' || mode === 'card') && useCutout && cutout) {
@@ -1570,8 +1592,16 @@ export function BoothClassic() {
           ctx.restore()
         }
 
+        if (look) applyLookGrade(ctx, look, photoRects)
+
         if (frame) {
           ctx.drawImage(frame, 0, 0, CANVAS_W, CANVAS_H)
+        }
+
+        if (stageMakeup) {
+          // 스티커는 프레임 위에(가려지지 않게), 하단 띠는 맨 마지막에
+          if (look) drawLookStickers(ctx, look, { x: 0, y: 0, w: CANVAS_W, h: STAGE_LAYOUT.photoBottom })
+          drawStageMakeupFooter(ctx, look, stageMakeup.eventLines)
         }
       } catch (error) {
         console.error('합성 렌더 실패:', error)
@@ -1597,6 +1627,8 @@ export function BoothClassic() {
     guestLayer,
     event,
     getImage,
+    stageMakeup,
+    stageLookId,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -1895,13 +1927,26 @@ export function BoothClassic() {
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/photobooth/decor/wordmark.svg" alt="AC'SCENT WOW PHOTO" className={`mb-12 w-80 max-w-[55vw] ${lightHome ? 'invert' : ''}`} />
-              <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>4×6 PHOTO BENEFIT</p>
-              <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">
-                {event?.greeting || '오늘의 최애와, 한 장에'}
-              </h1>
-              {event?.hashtag && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{event.hashtag}</p>}
+              {boothMode.attract ? (
+                // 행사 모드 — 외국인 손님이 많아 영어 한 줄을 곁들인다
+                <>
+                  <p className="mb-3 text-4xl font-black tracking-tight md:text-5xl">{boothMode.attract.wordmark}</p>
+                  <p className={`mb-10 text-lg font-bold tracking-[0.4em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>{boothMode.attract.sub}</p>
+                  <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>{boothMode.attract.badge}</p>
+                  <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">{boothMode.attract.headline}</h1>
+                  {boothMode.attract.headlineEn && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{boothMode.attract.headlineEn}</p>}
+                </>
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/assets/photobooth/decor/wordmark.svg" alt="AC'SCENT WOW PHOTO" className={`mb-12 w-80 max-w-[55vw] ${lightHome ? 'invert' : ''}`} />
+                  <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>4×6 PHOTO BENEFIT</p>
+                  <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">
+                    {event?.greeting || '오늘의 최애와, 한 장에'}
+                  </h1>
+                  {event?.hashtag && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{event.hashtag}</p>}
+                </>
+              )}
               <motion.span
                 className={`mt-16 rounded-full px-10 py-5 text-xl font-bold backdrop-blur-md ${lightHome ? 'border border-[var(--booth-ink)]/25 bg-white/65' : 'border border-white/40 bg-black/25'}`}
                 animate={{ boxShadow: ['0 0 0 0 rgba(255,255,255,.15)', '0 0 0 16px rgba(255,255,255,0)', '0 0 0 0 rgba(255,255,255,0)'] }}
@@ -2518,11 +2563,18 @@ export function BoothClassic() {
             {/* 옵션이 많아도(프레임 56종·같이 찍기 조정) 페이지가 넘치지 않게 열 안에서만 스크롤하고,
                 완성·다시 찍기는 열 바닥에 붙여 늘 보이게 한다 */}
             <div className="w-full max-w-sm flex flex-col gap-6 lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
+              {/* 행사 모드: K-POP 무대 메이크업 룩 */}
+              {stageMakeup && (
+                <div>
+                  <p className="text-sm font-semibold text-white/60 mb-3">무대 메이크업 · STAGE MAKEUP</p>
+                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" />
+                </div>
+              )}
               {/* 프레임 선택 */}
               <div>
                 <p className="text-sm font-semibold text-white/60 mb-3">프레임</p>
-                <FramePicker frames={frames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" />
-                {frames.length === 0 && (
+                <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" />
+                {modeFrames.length === 0 && (
                   <p className="mt-2 text-xs text-white/30">
                     등록된 프레임이 없어요 (관리자 페이지에서 추가)
                   </p>
@@ -3057,6 +3109,7 @@ export function BoothClassic() {
               ) : (
                 // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
                 <div className="flex min-h-0 flex-1 flex-col">
+                  <BoothModeControls value={deviceBaseSettings.mode} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                   {screenZoom !== null && (
                     <div className="mb-4 flex shrink-0 items-center gap-4">
                       <p className="shrink-0 text-lg font-bold">화면 크기</p>
@@ -3180,7 +3233,7 @@ export function BoothClassic() {
       </AnimatePresence>
 
       <footer className={`booth-stage-ui relative z-10 px-8 py-2 text-center text-xs border-t backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/30 text-[var(--booth-ink)]/45' : 'border-white/10 text-white/25'}`}>
-        AC&apos;SCENT WOW — 4x6 PHOTO BOOTH
+        {boothMode.brandLine.replace(' · ', ' — ')}
       </footer>
     </div>
   )

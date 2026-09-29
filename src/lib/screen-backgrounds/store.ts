@@ -7,6 +7,7 @@ import type { BackgroundSnapshot, DeviceSettings, ScreenBackground, ScreenTarget
 import { isScreenUi } from './types'
 import { SCREEN_FONT_IDS } from '@/lib/screen-fonts/catalog'
 import { KIOSK_MODE_IDS } from '@/lib/kiosk/modes'
+import { BOOTH_MODE_IDS } from '@/lib/booth/modes'
 
 // Private server-only configuration bucket; no manual SQL migration or device-local metadata.
 // One object per background avoids overwriting unrelated edits from another administrator.
@@ -95,7 +96,9 @@ export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<De
     next.font = patch.font ?? null
   }
   if (Object.hasOwn(patch, 'mode')) {
-    if (target !== 'kiosk' || (patch.mode !== null && !KIOSK_MODE_IDS.includes(patch.mode as string))) throw new BackgroundError('운영 모드를 확인해주세요.')
+    // 기기 종류마다 모드 목록이 따로 — 키오스크 src/lib/kiosk/modes.ts, 포토부스 src/lib/booth/modes.ts
+    const modeIds = target === 'kiosk' ? KIOSK_MODE_IDS : BOOTH_MODE_IDS
+    if (patch.mode !== null && !modeIds.includes(patch.mode as string)) throw new BackgroundError('운영 모드를 확인해주세요.')
     next.mode = patch.mode ?? null
   }
   if (Object.hasOwn(patch, 'hanjaFont')) {
