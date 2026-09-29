@@ -214,6 +214,19 @@
   letter-spacing: 0.1em;
 }
 .ksk-attract-head { container-type: inline-size; }
+/* 배경 그림이 제목 뒤에서 복잡하거나 글자색과 비슷해도 읽히게 — 글자색이 맞춰진 배경 기본색(--paper)을
+   제목 뒤에만 옅게 깔고 아래로 사라지게 한다(그림 전체를 어둡게 하지 않는다) */
+.ksk-attract-head::before {
+  content: '';
+  position: absolute;
+  inset: -42px -30px -56px;
+  z-index: -1;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--paper) 74%, transparent) 0%,
+    color-mix(in srgb, var(--paper) 62%, transparent) 62%,
+    transparent 100%);
+  pointer-events: none;
+}
 /* 로고 두 단어 — 글꼴마다 폭이 달라 한 줄에 억지로 두면 오른쪽으로 삐져나갔다.
    폭이 모자라면 두 줄로 내려가고, 글자 크기도 머리 폭에 맞춰 줄어든다(cqw) */
 .ksk-attract-wordmark {
@@ -243,7 +256,8 @@
   margin-top: 16px;
   font-size: 21px;
   font-weight: 700;
-  color: var(--ink-soft);
+  /* 흐린 글자색(--ink-soft)은 그림 위에서 읽기 어려워 본문 글자색을 옅게만 */
+  color: color-mix(in srgb, var(--ink) 88%, var(--paper));
 }
 .ksk-attract-card {
   position: relative;
