@@ -20,15 +20,14 @@
 import '@/components/mac/mac.css'
 import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
-import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
-import { LiveFaceMakeup } from '@/components/photobooth/LiveFaceMakeup'
+import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { IDOL_CONSENT, IdolConceptPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
@@ -1374,8 +1373,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   // ---------- 최애와 찍기: 라이브 합성 프리뷰 ----------
   const liveComposeReady = step === 'camera' && mode === 'template' && !!templateGeometry
-  // 행사 무대 메이크업 — 첫 화면에서 고른 룩의 색을 촬영 화면에서도 미리 보여준다
-  const liveLook = stageMakeup ? findStageLook(stageLookId) : null
+  // 행사 모드 — 촬영 화면은 필터·메이크업 없이 실제 모습 그대로 보여 주고, 고른 컨셉(룩) 이름만 적는다
+  // (메이크업은 찍은 뒤 결과에만 입힌다. AI 아이돌 사진은 원본 한 컷으로 만든다)
+  const liveLookName = !stageMakeup ? null : idolOn ? findIdolConcept(stageConceptId)?.name ?? null : findStageLook(stageLookId)?.name ?? null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -2470,14 +2470,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {renderLiveView(
                       liveComposeReady
                         ? 'absolute opacity-0 pointer-events-none w-px h-px'
-                        : 'bth-live-media bth-mirror',
-                      { filter: lookPreviewFilter(liveLook) }
+                        : 'bth-live-media bth-mirror'
                     )}
-                    {!liveComposeReady && (
-                      <LiveFaceMakeup getSource={getLiveSource} look={liveLook} className="bth-live-media bth-mirror"
-                        style={{ position: 'absolute', inset: 0, filter: lookPreviewFilter(liveLook) }} />
-                    )}
-                    <StageLookLiveTint look={liveLook} />
                     {/* 오려낸 인물을 실시간으로 겹쳐 보여준다 — 촬영 전에 손가락으로 끌어 자리를 잡는다.
                         위치는 편집 화면과 같은 guestLayer 라 찍은 뒤에도 그대로 이어진다 */}
                     {showLiveCutout && (
@@ -2553,9 +2547,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       : `${standSideText}에 서주세요`
                     : '카메라를 봐주세요'}
               </h2>
-              {liveLook && (
+              {liveLookName && (
                 <p className="bth-sub">
-                  {liveLook.name.ko} · {liveLook.name.en}
+                  {liveLookName.ko} · {liveLookName.en}
                 </p>
               )}
               {mode === 'template' && shotProgress?.current !== 2 && (
