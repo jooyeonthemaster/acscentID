@@ -22,10 +22,12 @@ import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { LiveFaceMakeup } from '@/components/photobooth/LiveFaceMakeup'
+import { IDOL_CONSENT, IdolConceptPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
@@ -440,7 +442,17 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const boothMode = findBoothMode(deviceBaseSettings.mode)
   const stageMakeup = boothMode.stageMakeup ?? null
   /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
-  const [stageLookId, setStageLookId] = useState<string | null>(null)
+  const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
+  // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
+  const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
+  const [idolConsent, setIdolConsent] = useState(false)
+  const [idolTicket, setIdolTicket] = useState<string | null>(null)
+  const [idolEnabled, setIdolEnabled] = useState(false)
+  const pickConcept = useCallback((id: string) => {
+    setStageConceptId(id)
+    setStageLookId(findIdolConcept(id)?.lookId ?? null)
+  }, [])
+  const idolOn = !!stageMakeup && idolConsent && idolEnabled
   /** 얼굴 인식 메이크업 진행 — 편집 화면 룩 고르기 아래 안내 */
   const [makeupStatus, setMakeupStatus] = useState<'idle' | 'busy' | 'noface'>('idle')
   // 행사 모드 첫 화면에서 얼굴 인식 모델을 미리 불러 둔다(첫 손님이 기다리지 않게)
@@ -481,8 +493,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     event: BoothEvent | null
     frames: BoothAsset[]
     templates: BoothAsset[]
+    idolStage?: boolean
   }>((data) => {
     setEvent(data.event ?? null)
+    setIdolEnabled(!!data.idolStage)
     setFrames(data.frames)
     // 편집·결과 화면에서는 손님이 고른 프레임을 그대로 둔다 — 관리자가 그 사이 숨기거나 지워도
     // 진행 중인 사진이 바뀌지 않게. 목록에서는 바로 빠지고, 다음 손님부터 보이지 않는다.
@@ -711,7 +725,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setStep('home')
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
-    setStageLookId(null)
+    setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
+    setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
+    setIdolConsent(false)
+    setIdolTicket(null)
     setPassVerified(false)
     setPendingMode(null)
     setPassDigits('')
@@ -805,6 +822,18 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     return () => window.clearInterval(timer)
   }, [printing])
 
+  // 행사 모드 AI 아이돌 사진 — 한 컷을 찍고 편집 화면에 오면 만든다(못 만들면 얼굴 인식 메이크업 사진)
+  const idolShot = idolOn && shots.length === 1 ? shots[0] : null
+  const idol = useIdolStage({
+    active: idolOn && (step === 'compose' || step === 'result'),
+    shot: idolShot,
+    conceptId: stageConceptId,
+    ticket: idolTicket,
+    getImage,
+  })
+  const idolImage = idol.image
+  const idolBusy = idol.busy
+
   // ---------- 처음 화면 복귀 (첫 화면 제외 모든 단계) ----------
   // 촬영 카운트다운·인쇄 전송·결과 만들기 중에는 기다리는 게 정상이라 세지 않는다.
   // 관리자 팝업이 열려 있을 때도 멈춘다 (직원이 설정 중).
@@ -817,6 +846,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     printStatus === 'printing' ||
     saveStatus === 'uploading' ||
     printing ||
+    idolBusy ||
     (step === 'qr' && !!guestPhotoUrl) ||
     backgroundAdminOpen
   useEffect(() => {
@@ -935,6 +965,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || '이용권 확인에 실패했어요')
         setPassVerified(true)
+        setIdolTicket(typeof data.idolTicket === 'string' ? data.idolTicket : null)
         const next = pendingMode ?? 'solo'
         setPendingMode(null)
         proceedToMode(next)
@@ -1535,6 +1566,16 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
         if (renderTokenRef.current !== token) return
 
+        // AI 아이돌 사진이 있으면 BEFORE(실물) / ON STAGE(AI) + 하단 '오늘의 아이돌 컨셉'
+        const concept = findIdolConcept(stageConceptId)
+        if (stageMakeup && look && idolImage && concept && shotImages.length === 1) {
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
+          drawOnStageLayout(ctx, idolImage, shotImages[0], look.accent)
+          drawStageMakeupFooter(ctx, { name: concept.name, desc: concept.desc, footer: look.footer, accent: look.accent }, stageMakeup.eventLines, "TODAY'S IDOL CONCEPT · 오늘의 아이돌 컨셉")
+          return
+        }
+
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
         ctx.fillStyle = '#ffffff'
@@ -1669,6 +1710,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     getImage,
     stageMakeup,
     stageLookId,
+    stageConceptId,
+    idolImage,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -2019,15 +2062,35 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'home' && stageMakeup && (
           <div className="bth-home bth-home--stage">
             <div className="bth-heading">
-              <h1 className="bth-display bth-h1">오늘의 무대 메이크업을 골라요</h1>
-              <p className="bth-sub">Pick your K-POP stage makeup look · 1컷 또는 네컷 / 1 or 4 cuts</p>
+              <h1 className="bth-display bth-h1">{idolEnabled ? '어떤 컨셉으로 데뷔할까요?' : '오늘의 무대 컨셉을 골라요'}</h1>
+              <p className="bth-sub">
+                {idolEnabled ? 'Pick your K-POP idol concept · AI가 나를 아이돌 사진으로' : 'Pick your K-POP stage concept · 무대 메이크업 사진'}
+              </p>
             </div>
-            <RetroWindow className="bth-panel bth-stage-pick" icon="sparkle" title="STAGE MAKEUP">
-              <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" size="home" />
+            <RetroWindow className="bth-panel bth-stage-pick" icon="sparkle" title={idolEnabled ? 'IDOL CONCEPT' : 'STAGE MAKEUP'}>
+              <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="retro" />
             </RetroWindow>
-            <button type="button" onClick={() => startMode('solo')} className="rt-btn rt-btn--primary rt-btn--lg bth-stage-start">
-              <PixelIcon name="camera" size={40} /> 촬영 시작 · Start
-            </button>
+            {idolEnabled && (
+              <p className="bth-idol-consent">
+                {IDOL_CONSENT.ko}
+                <br />
+                <span>{IDOL_CONSENT.en}</span>
+              </p>
+            )}
+            <div className="bth-stage-actions">
+              {idolEnabled && (
+                <button type="button" onClick={() => { setIdolConsent(true); startMode('solo') }} className="rt-btn rt-btn--primary rt-btn--lg bth-stage-start">
+                  <PixelIcon name="sparkle" size={40} /> 동의하고 아이돌 되기 · Agree &amp; Start
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setIdolConsent(false); startMode('solo') }}
+                className={idolEnabled ? 'rt-btn rt-btn--lg' : 'rt-btn rt-btn--primary rt-btn--lg bth-stage-start'}
+              >
+                <PixelIcon name="camera" size={40} /> {idolEnabled ? '메이크업만 · Makeup only' : '촬영 시작 · Start'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -2462,8 +2525,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <p className="bth-sub">화면에 보이는 그대로 인화됩니다</p>
               )}
 
-              {/* 컷 수 선택 (일반 촬영만) */}
-              {mode === 'solo' && (
+              {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
+              {mode === 'solo' && !idolOn && (
                 <div className="bth-seg" role="group" aria-label="컷 수">
                   {([1, 4] as const).map((count) => (
                     <button
@@ -2571,8 +2634,15 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             </div>
 
             <div className="bth-split-side">
-              {/* 행사 모드: K-POP 무대 메이크업 룩 */}
-              {stageMakeup && (
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {idolOn && idolShot && (
+                <div className="rt-group">
+                  <span className="rt-group-label">AI 아이돌 사진 · ON STAGE</span>
+                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="retro" />
+                </div>
+              )}
+              {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
+              {stageMakeup && !(idolOn && idolShot && (idol.busy || idol.status === 'done')) && (
                 <div className="rt-group">
                   <span className="rt-group-label">무대 메이크업 · STAGE MAKEUP</span>
                   <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" status={makeupStatus} />
@@ -2734,10 +2804,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <button
                   type="button"
                   onClick={finishCompose}
-                  disabled={finishing}
+                  disabled={finishing || idolBusy}
                   className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
                 >
-                  <PixelIcon name="check" size={44} /> 완성하기
+                  <PixelIcon name="check" size={44} /> {idolBusy ? 'AI 사진 기다리는 중…' : '완성하기'}
                 </button>
                 <button
                   type="button"

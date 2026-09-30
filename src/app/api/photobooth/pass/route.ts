@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { isMasterPass } from '@/lib/photobooth/master-pass'
 import { PASS_FAILURE_LIMIT, PASS_FAILURE_WINDOW_MS } from '@/lib/photobooth/passes'
+import { issueIdolTicket } from '@/lib/booth/idol-generate'
+
+/** 행사 모드 AI 아이돌 사진 생성 표(/api/photobooth/idol) — 못 만들어도 이용권 확인은 그대로 통과 */
+function idolTicket(pass: string) {
+  try { return issueIdolTicket(pass) } catch { return null }
+}
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -42,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // 마스터 번호는 사용 처리 없이 항상 통과 (직원·테스트용)
     if (isMasterPass(raw)) {
-      return NextResponse.json({ success: true, master: true })
+      return NextResponse.json({ success: true, master: true, idolTicket: idolTicket('master') })
     }
 
     // 발급 상태이고 기한이 남은 코드만 사용 처리 (status 조건으로 중복 사용 방지)
@@ -94,7 +100,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, idolTicket: idolTicket(data[0].id) })
   } catch (error) {
     console.error('Photobooth pass POST error:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })

@@ -432,6 +432,15 @@ function detectShot(src: Source) {
   return hit
 }
 
+/** 사진 속 얼굴 수(겹치는 조각까지 본 결과) — AI 아이돌 사진 인원 확인용. 모델을 못 쓰면 -1 */
+export async function countFaces(src: Source): Promise<number> {
+  try {
+    return (await detectShot(src)).faces.length
+  } catch {
+    return -1
+  }
+}
+
 /**
  * 사진 속 얼굴 자리 — 사진을 (dx,dy,dw,dh) 칸에 가운데 맞춰 꽉 채워 그렸을 때(drawCoverFocal 기본값)의 캔버스 좌표.
  * 스티커가 얼굴을 비켜 가게 쓴다. 아직 얼굴을 찾기 전이거나 못 찾으면 빈 배열

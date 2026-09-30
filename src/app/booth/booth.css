@@ -1716,3 +1716,72 @@
   font-weight: 700;
   text-align: center;
 }
+
+/* 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉 2×2, 동의 문구, 버튼 두 개 / 편집 화면 만드는 중 막대 */
+.bth-look-picker--home .bth-look-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bth-idol-consent {
+  margin: 0;
+  max-width: 880px;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+  opacity: 0.8;
+  word-break: keep-all;
+}
+.bth-idol-consent span {
+  opacity: 0.8;
+}
+.bth-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.bth-stage-actions .rt-btn {
+  gap: 12px;
+}
+.bth-idol-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bth-idol-concept {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.bth-idol-wait {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.bth-idol-bar {
+  height: 14px;
+  overflow: hidden;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+.bth-idol-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #c9b8ff, #ff9dbb);
+  transition: width 0.5s ease;
+}
+/* 컨셉 2×2 는 동의 문구·버튼 두 개까지 한 화면에 — 맥(1.5배)에서도 넘치지 않게 조금 더 촘촘히 */
+.bth-home--stage:has(.bth-look-grid--2) {
+  gap: 10px;
+}
+.bth-look-picker--home .bth-look-grid--2 .bth-look-btn.rt-choice {
+  min-height: 60px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.bth-look-picker--home:has(.bth-look-grid--2) .bth-look-desc {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.bth-home--stage .bth-idol-consent {
+  font-size: 13px;
+}

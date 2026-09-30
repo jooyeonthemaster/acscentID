@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { idolConfigured } from '@/lib/booth/idol-generate'
 import { mergeFrameCatalog } from '@/lib/photobooth/frame-catalog'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
@@ -52,6 +53,8 @@ export async function GET(request: NextRequest) {
       }))
 
     const body = {
+      // 행사 모드 AI 아이돌 사진을 쓸 수 있는가(전용 키 설정) — 없으면 부스는 얼굴 인식 메이크업만
+      idolStage: idolConfigured(),
       event: event
         ? {
             id: event.id,

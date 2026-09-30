@@ -309,7 +309,13 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, 
 }
 
 /** 인화물 하단 — 왼쪽 '오늘의 무대 메이크업'(룩 이름·설명, 한·영), 오른쪽 행사 줄 */
-export function drawStageMakeupFooter(ctx: CanvasRenderingContext2D, look: StageLook | null, eventLines: readonly [string, string]) {
+/** kicker: 맨 윗줄(AI 아이돌 사진은 'TODAY'S IDOL CONCEPT') — look 은 이름·설명·색만 쓴다 */
+export function drawStageMakeupFooter(
+  ctx: CanvasRenderingContext2D,
+  look: Pick<StageLook, 'name' | 'desc' | 'footer' | 'accent'> | null,
+  eventLines: readonly [string, string],
+  kicker = "TODAY'S STAGE MAKEUP · 오늘의 무대 메이크업",
+) {
   const { x, y, w, h } = STAGE_LAYOUT.footer
   const pad = 44
   const bg = look?.footer ?? '#1b1b3a'
@@ -341,7 +347,7 @@ export function drawStageMakeupFooter(ctx: CanvasRenderingContext2D, look: Stage
   ctx.fillStyle = accent
   ctx.font = `700 17px ${FONT_STACK}`
   ctx.letterSpacing = '4px'
-  ctx.fillText(look ? "TODAY'S STAGE MAKEUP · 오늘의 무대 메이크업" : 'K-POP STAGE MAKEUP PHOTO', x + pad, y + 50, leftW)
+  ctx.fillText(look ? kicker : 'K-POP STAGE MAKEUP PHOTO', x + pad, y + 50, leftW)
   ctx.letterSpacing = '0px'
   ctx.fillStyle = '#ffffff'
   const title = look ? look.name.ko : '무대 메이크업 포토부스'
@@ -386,5 +392,66 @@ export function drawStageMakeupFooter(ctx: CanvasRenderingContext2D, look: Stage
   ctx.globalAlpha = 0.78
   fitText(ctx, line2, rightW - 24, (px) => `500 ${px}px ${FONT_STACK}`, 19, 13)
   ctx.fillText(line2, right, y + 158)
+  ctx.restore()
+}
+
+// ───────────────────────── AI 아이돌 사진: BEFORE / ON STAGE ─────────────────────────
+
+type Picture = HTMLImageElement | HTMLCanvasElement
+const sizeOf = (p: Picture) => p instanceof HTMLImageElement ? { w: p.naturalWidth, h: p.naturalHeight } : { w: p.width, h: p.height }
+
+function cover(ctx: CanvasRenderingContext2D, pic: Picture, x: number, y: number, w: number, h: number, focalY = 0.5) {
+  const { w: iw, h: ih } = sizeOf(pic)
+  if (!iw || !ih) return
+  const k = Math.max(w / iw, h / ih)
+  const sw = w / k, sh = h / k
+  ctx.drawImage(pic, (iw - sw) / 2, (ih - sh) * focalY, sw, sh, x, y, w, h)
+}
+
+/**
+ * 인화물 사진 칸(하단 띠 위) — AI 로 만든 ON STAGE 사진을 꽉 채우고, 실물 BEFORE 는 왼쪽 아래에 폴라로이드처럼.
+ * 얼굴이 위쪽 가운데에 오게 만들라고 했으므로 위를 조금 더 남기고(focalY 0.3) 폴라로이드는 아래 구석에 둔다.
+ */
+export function drawOnStageLayout(ctx: CanvasRenderingContext2D, idol: Picture, before: Picture, accent: string) {
+  const { W, photoBottom } = STAGE_LAYOUT
+  cover(ctx, idol, 0, 0, W, photoBottom, 0.3)
+
+  // ON STAGE 딱지(오른쪽 위)
+  ctx.save()
+  ctx.font = `800 30px ${FONT_STACK}`
+  ctx.letterSpacing = '6px'
+  const label = 'ON STAGE'
+  const lw = ctx.measureText(label).width + 56
+  roundRectPath(ctx, W - lw - 40, 40, lw, 60, 30)
+  ctx.fillStyle = 'rgba(10, 8, 30, 0.72)'
+  ctx.fill()
+  ctx.strokeStyle = accent
+  ctx.lineWidth = 3
+  ctx.stroke()
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(label, W - lw / 2 - 40 + 3, 71)
+  ctx.restore()
+
+  // BEFORE 폴라로이드(왼쪽 아래, 살짝 기울여)
+  const pw = 300, ph = 400, border = 16, bottom = 62
+  ctx.save()
+  ctx.translate(56 + pw / 2, photoBottom - 60 - (ph + border + bottom) / 2)
+  ctx.rotate(-0.07)
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
+  ctx.shadowBlur = 28
+  ctx.shadowOffsetY = 10
+  ctx.fillStyle = '#ffffff'
+  const cardW = pw + border * 2, cardH = ph + border + bottom
+  ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH)
+  ctx.shadowColor = 'transparent'
+  cover(ctx, before, -pw / 2, -cardH / 2 + border, pw, ph, 0.4)
+  ctx.fillStyle = '#1a1530'
+  ctx.font = `800 28px ${FONT_STACK}`
+  ctx.letterSpacing = '5px'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('BEFORE', 3, cardH / 2 - bottom / 2)
   ctx.restore()
 }

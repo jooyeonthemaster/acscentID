@@ -20,10 +20,12 @@
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookLiveTint, StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { LiveFaceMakeup } from '@/components/photobooth/LiveFaceMakeup'
+import { IDOL_CONSENT, IdolConceptPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
@@ -424,7 +426,17 @@ export function BoothClassic() {
   const boothMode = findBoothMode(deviceBaseSettings.mode)
   const stageMakeup = boothMode.stageMakeup ?? null
   /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
-  const [stageLookId, setStageLookId] = useState<string | null>(null)
+  const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
+  // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
+  const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
+  const [idolConsent, setIdolConsent] = useState(false)
+  const [idolTicket, setIdolTicket] = useState<string | null>(null)
+  const [idolEnabled, setIdolEnabled] = useState(false)
+  const pickConcept = useCallback((id: string) => {
+    setStageConceptId(id)
+    setStageLookId(findIdolConcept(id)?.lookId ?? null)
+  }, [])
+  const idolOn = !!stageMakeup && idolConsent && idolEnabled
   /** 얼굴 인식 메이크업 진행 — 편집 화면 룩 고르기 아래 안내 */
   const [makeupStatus, setMakeupStatus] = useState<'idle' | 'busy' | 'noface'>('idle')
   // 행사 모드 첫 화면에서 얼굴 인식 모델을 미리 불러 둔다(첫 손님이 기다리지 않게)
@@ -472,8 +484,10 @@ export function BoothClassic() {
     event: BoothEvent | null
     frames: BoothAsset[]
     templates: BoothAsset[]
+    idolStage?: boolean
   }>((data) => {
     setEvent(data.event ?? null)
+    setIdolEnabled(!!data.idolStage)
     setFrames(data.frames)
     // 편집·결과 화면에서는 손님이 고른 프레임을 그대로 둔다 — 관리자가 그 사이 숨기거나 지워도
     // 진행 중인 사진이 바뀌지 않게. 목록에서는 바로 빠지고, 다음 손님부터 보이지 않는다.
@@ -702,7 +716,10 @@ export function BoothClassic() {
     setStep('home')
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
-    setStageLookId(null)
+    setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
+    setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
+    setIdolConsent(false)
+    setIdolTicket(null)
     setPassVerified(false)
     setPendingMode(null)
     setPassDigits('')
@@ -796,6 +813,18 @@ export function BoothClassic() {
     return () => window.clearInterval(timer)
   }, [printing])
 
+  // 행사 모드 AI 아이돌 사진 — 한 컷을 찍고 편집 화면에 오면 만든다(못 만들면 얼굴 인식 메이크업 사진)
+  const idolShot = idolOn && shots.length === 1 ? shots[0] : null
+  const idol = useIdolStage({
+    active: idolOn && (step === 'compose' || step === 'result'),
+    shot: idolShot,
+    conceptId: stageConceptId,
+    ticket: idolTicket,
+    getImage,
+  })
+  const idolImage = idol.image
+  const idolBusy = idol.busy
+
   // ---------- 처음 화면 복귀 (첫 화면 제외 모든 단계) ----------
   // 촬영 카운트다운·인쇄 전송·결과 만들기 중에는 기다리는 게 정상이라 세지 않는다.
   // 관리자 팝업이 열려 있을 때도 멈춘다 (직원이 설정 중).
@@ -808,6 +837,7 @@ export function BoothClassic() {
     printStatus === 'printing' ||
     saveStatus === 'uploading' ||
     printing ||
+    idolBusy ||
     (step === 'qr' && !!guestPhotoUrl) ||
     backgroundAdminOpen
   useEffect(() => {
@@ -926,6 +956,7 @@ export function BoothClassic() {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || '이용권 확인에 실패했어요')
         setPassVerified(true)
+        setIdolTicket(typeof data.idolTicket === 'string' ? data.idolTicket : null)
         const next = pendingMode ?? 'solo'
         setPendingMode(null)
         proceedToMode(next)
@@ -1523,6 +1554,16 @@ export function BoothClassic() {
 
         if (renderTokenRef.current !== token) return
 
+        // AI 아이돌 사진이 있으면 BEFORE(실물) / ON STAGE(AI) + 하단 '오늘의 아이돌 컨셉'
+        const concept = findIdolConcept(stageConceptId)
+        if (stageMakeup && look && idolImage && concept && shotImages.length === 1) {
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
+          drawOnStageLayout(ctx, idolImage, shotImages[0], look.accent)
+          drawStageMakeupFooter(ctx, { name: concept.name, desc: concept.desc, footer: look.footer, accent: look.accent }, stageMakeup.eventLines, "TODAY'S IDOL CONCEPT · 오늘의 아이돌 컨셉")
+          return
+        }
+
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
         ctx.fillStyle = '#ffffff'
@@ -1657,6 +1698,8 @@ export function BoothClassic() {
     getImage,
     stageMakeup,
     stageLookId,
+    stageConceptId,
+    idolImage,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -2051,20 +2094,43 @@ export function BoothClassic() {
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
         {/* ---------- 홈(행사 무대 메이크업 모드): 촬영 방식 없이 룩부터 고르고 바로 촬영 ---------- */}
         {step === 'home' && stageMakeup && (
-          <div className="flex w-full max-w-5xl flex-col items-center gap-7" style={{ color: activeBackground.ink }}>
+          <div className="flex w-full max-w-4xl flex-col items-center gap-5" style={{ color: activeBackground.ink }}>
             <div className="text-center">
-              <h1 className="booth-display text-3xl md:text-4xl mb-2">오늘의 무대 메이크업을 골라요</h1>
-              <p className="opacity-60">Pick your K-POP stage makeup look · 1컷 또는 네컷 / 1 or 4 cuts</p>
+              <h1 className="booth-display text-3xl md:text-4xl mb-2">{idolEnabled ? '어떤 컨셉으로 데뷔할까요?' : '오늘의 무대 컨셉을 골라요'}</h1>
+              <p className="opacity-60">
+                {idolEnabled ? 'Pick your K-POP idol concept · AI가 나를 아이돌 사진으로' : 'Pick your K-POP stage concept · 무대 메이크업 사진'}
+              </p>
             </div>
-            <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" size="home" />
-            <button
-              type="button"
-              onClick={() => startMode('solo')}
-              className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
-              style={{ background: accent }}
-            >
-              <Camera className="w-6 h-6" /> 촬영 시작 · Start
-            </button>
+            <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="classic" />
+            {idolEnabled && (
+              <p className="max-w-3xl text-center text-sm leading-relaxed opacity-70 break-keep">
+                {IDOL_CONSENT.ko}
+                <br />
+                {IDOL_CONSENT.en}
+              </p>
+            )}
+            <div className="flex flex-wrap justify-center gap-3">
+              {idolEnabled && (
+                <button
+                  type="button"
+                  onClick={() => { setIdolConsent(true); startMode('solo') }}
+                  className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
+                  style={{ background: accent }}
+                >
+                  <Sparkles className="w-6 h-6" /> 동의하고 아이돌 되기 · Agree &amp; Start
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setIdolConsent(false); startMode('solo') }}
+                className={idolEnabled
+                  ? 'inline-flex items-center justify-center gap-3 rounded-full border-2 border-current px-8 py-5 text-lg font-bold transition-opacity hover:opacity-80'
+                  : 'inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5'}
+                style={idolEnabled ? undefined : { background: accent }}
+              >
+                <Camera className="w-6 h-6" /> {idolEnabled ? '메이크업만 · Makeup only' : '촬영 시작 · Start'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -2514,8 +2580,8 @@ export function BoothClassic() {
                     : ''}
               </p>
 
-              {/* 컷 수 선택 (일반 촬영만) */}
-              {mode === 'solo' && (
+              {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
+              {mode === 'solo' && !idolOn && (
                 <div className="flex gap-2 mb-6">
                   {([1, 4] as const).map((count) => (
                     <button
@@ -2618,8 +2684,15 @@ export function BoothClassic() {
             {/* 옵션이 많아도(프레임 56종·같이 찍기 조정) 페이지가 넘치지 않게 열 안에서만 스크롤하고,
                 완성·다시 찍기는 열 바닥에 붙여 늘 보이게 한다 */}
             <div className="w-full max-w-sm flex flex-col gap-6 lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
-              {/* 행사 모드: K-POP 무대 메이크업 룩 */}
-              {stageMakeup && (
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {idolOn && idolShot && (
+                <div>
+                  <p className="text-sm font-semibold text-white/60 mb-3">AI 아이돌 사진 · ON STAGE</p>
+                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" />
+                </div>
+              )}
+              {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
+              {stageMakeup && !(idolOn && idolShot && (idol.busy || idol.status === 'done')) && (
                 <div>
                   <p className="text-sm font-semibold text-white/60 mb-3">무대 메이크업 · STAGE MAKEUP</p>
                   <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" status={makeupStatus} />
@@ -2803,10 +2876,10 @@ export function BoothClassic() {
               >
                 <button
                   onClick={finishCompose}
-                  disabled={finishing}
+                  disabled={finishing || idolBusy}
                   className="flex items-center justify-center gap-2 rounded-full booth-primary px-8 py-4 text-lg font-bold hover:opacity-80 transition-opacity disabled:opacity-40"
                 >
-                  <Check className="w-5 h-5" /> 완성하기
+                  <Check className="w-5 h-5" /> {idolBusy ? 'AI 사진 기다리는 중…' : '완성하기'}
                 </button>
                 <button
                   onClick={() => {
