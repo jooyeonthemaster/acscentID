@@ -47,20 +47,20 @@ const booth = catalog.filter(item => item.target === 'booth');
 const kiosk = catalog.filter(item => item.target === 'kiosk');
 const clone = (value, edits = {}) => ({ ...value, ...edits });
 
-test('catalog contains 86 valid unique entries and every required collection', () => {
-  // 기본 36종씩 + 행사 배경(K-WAVE 운영 모드 — 키오스크 1종, 포토부스 2종: 남색·먹선 포토 스테이지) + 사주 프로그램 배경 11종
-  assert.equal(catalog.length, 86);
-  assert.equal(new Set(catalog.map(item => item.id)).size, 86);
-  assert.equal(new Set(catalog.map(item => item.image_url)).size, 86);
+test('catalog contains 87 valid unique entries and every required collection', () => {
+  // 기본 36종씩 + 행사 배경(K-WAVE 운영 모드 — 키오스크 1종, 포토부스 3종: 남색·먹선 포토 스테이지·아이돌 포토 스테이지) + 사주 프로그램 배경 11종
+  assert.equal(catalog.length, 87);
+  assert.equal(new Set(catalog.map(item => item.id)).size, 87);
+  assert.equal(new Set(catalog.map(item => item.image_url)).size, 87);
   assert.equal(catalog.filter(item => item.collection === 'saju').length, 11);
   // 사주 배경은 모두 추천 글꼴이 있고, 글꼴 목록에 있는 글꼴이다
   const fontIds = loadTs('src/lib/screen-fonts/catalog.ts').SCREEN_FONT_IDS;
   for (const item of catalog.filter(item => item.font)) assert.ok(fontIds.includes(item.font), item.id);
   assert.ok(catalog.filter(item => item.collection === 'saju').every(item => item.font));
-  assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026', 'booth-event-kwave-2026', 'booth-event-kwave-2026-ink']);
+  assert.deepEqual(catalog.filter(item => item.collection === 'event').map(item => item.id), ['kiosk-event-kwave-2026', 'booth-event-kwave-2026', 'booth-event-kwave-2026-ink', 'booth-event-kwave-2026-idol']);
   for (const target of types.SCREEN_TARGETS) {
     const entries = catalog.filter(item => item.target === target);
-    assert.equal(entries.length, target === 'kiosk' ? 48 : 38);
+    assert.equal(entries.length, target === 'kiosk' ? 48 : 39);
     assert.equal(entries.filter(item => item.collection === 'poster').length, 20);
     assert.equal(entries.filter(item => item.collection === 'study').length, 10);
     assert.equal(entries.filter(item => item.collection === 'legacy').length, 6);
@@ -204,7 +204,7 @@ test('tombstones persist across fresh merges without resurrecting bundled preset
   ];
   for (let reload = 0; reload < 2; reload++) {
     const snapshot = merge.mergeBackgroundRecords(catalog, records);
-    assert.equal(snapshot.backgrounds.length, 85);
+    assert.equal(snapshot.backgrounds.length, 86);
     assert.equal(snapshot.backgrounds.some(item => item.id === booth[0].id), false);
     assert.equal(snapshot.backgrounds.find(item => item.id === booth[1].id).is_active, false);
     assert.equal(snapshot.selected.booth, booth[2].id);
@@ -222,7 +222,7 @@ test('merge honors custom edits/order and rejects damaged remote records', () =>
     { kind: 'background', background: custom }, { kind: 'background', background: edited },
     { kind: 'selection', target: 'booth', id: edited.id },
   ]);
-  assert.equal(snapshot.backgrounds.length, 87);
+  assert.equal(snapshot.backgrounds.length, 88);
   assert.equal(snapshot.backgrounds[0].id, custom.id);
   assert.equal(snapshot.backgrounds[1].title, '수정한 배경');
   assert.equal(snapshot.selected.booth, edited.id);
@@ -312,7 +312,7 @@ function isolatedStore() {
 test('store keeps IDs/targets immutable and preserves original images when deleting', async () => {
   const { store, records } = isolatedStore();
   const initial = await store.readBackgroundSnapshot();
-  assert.equal(initial.backgrounds.length, 86);
+  assert.equal(initial.backgrounds.length, 87);
   const edited = await store.saveBackground({ id: booth[0].id, target: 'kiosk', title: '  이름 수정  ' }, false);
   assert.equal(edited.target, 'booth');
   assert.equal(edited.id, booth[0].id);

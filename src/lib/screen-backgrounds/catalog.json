@@ -1128,6 +1128,22 @@
     "font": "pretendard"
   },
   {
+    "id": "booth-event-kwave-2026-idol",
+    "target": "booth",
+    "title": "K-WAVE 아이돌 포토 스테이지",
+    "image_url": "/assets/screen-backgrounds/booth/booth-event-kwave-2026-idol.webp",
+    "thumbnail_url": "/assets/screen-backgrounds/booth/booth-event-kwave-2026-idol-thumb.webp",
+    "collection": "event",
+    "palette": "soft",
+    "tone": "light",
+    "ink": "#221f1a",
+    "accent": "#c42a25",
+    "base": "#bee6f7",
+    "display_order": 209,
+    "is_active": true,
+    "font": "pretendard"
+  },
+  {
     "id": "kiosk-saju-01",
     "target": "kiosk",
     "title": "연분홍 수묵화",
