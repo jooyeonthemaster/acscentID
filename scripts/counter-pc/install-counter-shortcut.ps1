@@ -43,6 +43,6 @@ foreach ($path in $targets) {
 
 Write-Host ''
 Write-Host '다음 단계:'
-Write-Host '  1) 영수증 프린터를 [설정 > 프린터]에서 기본 프린터로 지정 (Windows 가 기본 프린터를 자동 관리하지 않게 끄기)'
-Write-Host '  2) 바탕화면의 [포토부스 이용권 발급]을 열고 카운터 PIN 입력'
-Write-Host '  3) 화면 아래 [시험 출력]으로 쪽지가 한 장씩 잘려 나오는지 확인'
+Write-Host '  1) 바탕화면의 [포토부스 이용권 발급]을 열고 카운터 PIN 입력'
+Write-Host '  2) 목록 위에 [영수증 프린터 연결됨] 이 보이는지 확인 (인쇄 도우미: install-counter-printer.ps1)'
+Write-Host '  3) [시험 출력]으로 쪽지가 한 장씩 잘려 나오는지 확인'

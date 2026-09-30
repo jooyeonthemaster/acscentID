@@ -1,20 +1,37 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { COUNTER_VALID_MINUTES, formatMinutes } from '@/lib/photobooth/pass-validity'
+import { drawSlip, helperStatus, passQrPath, printViaHelper, SLIP_GUIDE, slipsToEscPos, type HelperStatus } from '@/lib/photobooth/counter-slip'
 
 /**
  * 카운터 이용권 발급 화면 (/booth/counter)
  *
  * 직원이 결제 후 장수 버튼을 누르면 이용권이 발급되고 곧바로 영수증 프린터로 쪽지가 나온다.
- * 카운터 PC 크롬을 --kiosk-printing 으로 띄우면 인쇄 창 없이 기본 프린터로 바로 출력된다
- * (docs/photobooth-counter-pass.md). 쪽지 한 장 = 인쇄 한 페이지라, 프린터 드라이버의
- * '페이지마다 자르기'를 켜 두면 한 장씩 잘려 나온다.
+ * 카운터 PC 에 인쇄 도우미(scripts/counter-pc)가 떠 있으면 쪽지를 그려 드라이버 없이 바로 보내고
+ * 장마다 자른다. 도우미가 없으면 브라우저 인쇄로 넘어간다 — 크롬을 --kiosk-printing 으로 띄우면
+ * 인쇄 창 없이 기본 프린터로 나가고, 드라이버의 '페이지마다 자르기'로 한 장씩 잘린다
+ * (docs/photobooth-counter-pass.md).
  */
 
-/** 쪽지 한 장 높이 — 프린터에서 여백이 남거나 잘리면 이 값만 조정 */
-const SLIP_HEIGHT_MM = 90
+/** 브라우저 인쇄(도우미 없을 때) 쪽지 한 장 높이 — 프린터에서 여백이 남거나 잘리면 이 값만 조정 */
+const SLIP_HEIGHT_MM = 115
 const ISSUE_COUNTS = [1, 2, 3, 4]
 const REFRESH_MS = 20_000
+/** 유효 시간 빠른 선택 (분) — 세부 조정은 ±5분 */
+const VALID_PRESETS = [15, 30, 60, 120]
+/** 이 카운터 PC 가 고른 유효 시간 — 바꾸면 다음 발급부터 적용 */
+const VALID_MINUTES_KEY = 'acscent-counter-valid-minutes'
+
+function loadValidMinutes() {
+  try {
+    const saved = Number(window.localStorage.getItem(VALID_MINUTES_KEY))
+    if (Number.isInteger(saved) && saved >= COUNTER_VALID_MINUTES.min && saved <= COUNTER_VALID_MINUTES.max) return saved
+  } catch {
+    // 저장소를 못 쓰는 환경 — 기본값
+  }
+  return COUNTER_VALID_MINUTES.default
+}
 
 interface CounterPass {
   id: string
@@ -37,15 +54,27 @@ type Access = 'counter' | 'admin' | null
 const kst = (iso: string, options: Intl.DateTimeFormatOptions) =>
   new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', ...options })
 
-/** 자정 만료는 '23:59까지'로 보여 준다 (자정 = 다음 날 0시라 날짜가 헷갈린다) */
+/** '오늘 21:45까지' — 날짜가 넘어가면 '10월 1일 00:15까지' */
 function expiryLabel(expiresAt: string | null) {
   if (!expiresAt) return '기한 없음'
-  const last = new Date(Date.parse(expiresAt) - 60_000).toISOString()
-  return `${kst(last, { month: 'long', day: 'numeric', weekday: 'short' })} ${kst(last, { hour: '2-digit', minute: '2-digit', hour12: false })}까지`
+  const day = (iso: string) => kst(iso, { year: 'numeric', month: 'numeric', day: 'numeric' })
+  const time = kst(expiresAt, { hour: '2-digit', minute: '2-digit', hour12: false })
+  const date = day(expiresAt) === day(new Date().toISOString()) ? '오늘' : kst(expiresAt, { month: 'long', day: 'numeric' })
+  return `${date} ${time}까지`
 }
 
 const spacedCode = (code: string) => `${code.slice(0, 3)} ${code.slice(3)}`
 const expired = (pass: CounterPass) => !!pass.expires_at && Date.parse(pass.expires_at) <= Date.now()
+
+/** 브라우저 인쇄 쪽지의 QR — 인쇄 직전에 바로 그려져야 해서 이미지 대신 SVG */
+function PassQr({ code }: { code: string }) {
+  const { size, d } = passQrPath(code)
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width="27mm" height="27mm" shapeRendering="crispEdges" style={{ display: 'block', margin: '2mm auto 0' }}>
+      <path d={d} fill="#000" />
+    </svg>
+  )
+}
 
 export function CounterClient() {
   const [access, setAccess] = useState<Access | 'loading'>('loading')
@@ -55,9 +84,12 @@ export function CounterClient() {
   const [passes, setPasses] = useState<CounterPass[]>([])
   const [stats, setStats] = useState({ issued: 0, used: 0, voided: 0 })
   const [busy, setBusy] = useState(false)
+  const [validMinutes, setValidMinutes] = useState<number>(COUNTER_VALID_MINUTES.default)
   const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
   const [printJob, setPrintJob] = useState<PrintJob | null>(null)
+  const [helper, setHelper] = useState<HelperStatus | null | 'checking'>('checking')
   const jobSeq = useRef(0)
+  const printedJob = useRef(0)
 
   const say = useCallback((tone: 'ok' | 'error', text: string) => {
     setNotice({ tone, text })
@@ -107,12 +139,59 @@ export function CounterClient() {
     }
   }, [access, load])
 
-  // 쪽지가 화면(인쇄 영역)에 그려진 다음 인쇄한다
+  useEffect(() => setValidMinutes(loadValidMinutes()), [])
+
+  const changeValidMinutes = (minutes: number) => {
+    const next = Math.min(COUNTER_VALID_MINUTES.max, Math.max(COUNTER_VALID_MINUTES.min, minutes))
+    setValidMinutes(next)
+    try {
+      window.localStorage.setItem(VALID_MINUTES_KEY, String(next))
+    } catch {
+      // 저장 못 해도 이번 화면에서는 적용된다
+    }
+  }
+
+  const checkHelper = useCallback(async () => setHelper(await helperStatus()), [])
+
   useEffect(() => {
-    if (!printJob) return
-    const frame = window.requestAnimationFrame(() => window.setTimeout(() => window.print(), 50))
-    return () => window.cancelAnimationFrame(frame)
-  }, [printJob])
+    if (access !== 'counter' && access !== 'admin') return
+    void checkHelper()
+    window.addEventListener('focus', checkHelper)
+    return () => window.removeEventListener('focus', checkHelper)
+  }, [access, checkHelper])
+
+  // 인쇄 도우미가 있으면 쪽지를 그려 바로 보내고, 없으면 쪽지가 인쇄 영역에 그려진 다음 브라우저 인쇄
+  useEffect(() => {
+    if (!printJob || printedJob.current === printJob.id) return
+    printedJob.current = printJob.id
+    void (async () => {
+      try {
+        const canvases = await Promise.all(
+          printJob.passes.map((pass) =>
+            drawSlip({
+              title: printJob.test ? '시험 출력 — 사용할 수 없음' : '포토부스 이용권',
+              code: spacedCode(pass.code),
+              qrCode: pass.code,
+              usage: `1회 사용 · ${expiryLabel(pass.expires_at)}`,
+              event: printJob.event,
+              issued: `발급 ${kst(pass.created_at, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}`,
+            }),
+          ),
+        )
+        if (await printViaHelper(slipsToEscPos(canvases))) {
+          setHelper((current) => (current && current !== 'checking' ? { ...current, ok: true, error: undefined } : current))
+          return
+        }
+      } catch (error) {
+        // 도우미는 있는데 프린터가 받지 못함(전원·용지) — 브라우저 인쇄로 넘기면 엉뚱한 기본 프린터로 갈 수 있어 알리기만 한다
+        say('error', `${error instanceof Error ? error.message : '인쇄 실패'} — 프린터를 확인하고 '다시 출력'을 누르세요`)
+        void checkHelper()
+        return
+      }
+      setHelper(null)
+      window.requestAnimationFrame(() => window.setTimeout(() => window.print(), 50))
+    })()
+  }, [printJob, say, checkHelper])
 
   const pair = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -145,7 +224,7 @@ export function CounterClient() {
       const res = await fetch('/api/photobooth/counter/passes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count }),
+        body: JSON.stringify({ count, validMinutes }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || '발급에 실패했습니다')
@@ -166,12 +245,12 @@ export function CounterClient() {
 
   const testPrint = () => {
     const now = new Date()
-    const midnight = new Date(now.getTime() + 60 * 60 * 1000).toISOString()
+    const expiresAt = new Date(now.getTime() + validMinutes * 60_000).toISOString()
     setPrintJob({
       id: ++jobSeq.current,
       test: true,
       event: null,
-      passes: [{ id: 'test', code: '000000', status: 'issued', created_at: now.toISOString(), expires_at: midnight }],
+      passes: [{ id: 'test', code: '000000', status: 'issued', created_at: now.toISOString(), expires_at: expiresAt }],
     })
   }
 
@@ -288,8 +367,43 @@ export function CounterClient() {
                     </button>
                   ))}
                 </div>
+                <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
+                  <span className="mr-1 text-sm font-bold">유효 시간</span>
+                  <button
+                    type="button"
+                    onClick={() => changeValidMinutes(validMinutes - 5)}
+                    disabled={validMinutes <= COUNTER_VALID_MINUTES.min}
+                    aria-label="5분 줄이기"
+                    className="h-10 w-10 rounded-lg border border-neutral-300 text-lg font-bold disabled:opacity-30"
+                  >
+                    −
+                  </button>
+                  <span className="min-w-[5.5rem] text-center text-lg font-black tabular-nums">{formatMinutes(validMinutes)}</span>
+                  <button
+                    type="button"
+                    onClick={() => changeValidMinutes(validMinutes + 5)}
+                    disabled={validMinutes >= COUNTER_VALID_MINUTES.max}
+                    aria-label="5분 늘리기"
+                    className="h-10 w-10 rounded-lg border border-neutral-300 text-lg font-bold disabled:opacity-30"
+                  >
+                    +
+                  </button>
+                  <span className="ml-auto flex gap-1.5">
+                    {VALID_PRESETS.map((minutes) => (
+                      <button
+                        key={minutes}
+                        type="button"
+                        onClick={() => changeValidMinutes(minutes)}
+                        aria-pressed={validMinutes === minutes}
+                        className={`h-10 rounded-lg px-3 text-sm font-semibold ${validMinutes === minutes ? 'bg-neutral-900 text-white' : 'border border-neutral-300'}`}
+                      >
+                        {formatMinutes(minutes)}
+                      </button>
+                    ))}
+                  </span>
+                </div>
                 <p className="text-xs text-neutral-500">
-                  이용권은 오늘 자정까지 한 번 쓸 수 있어요. 인쇄가 안 됐으면 아래 목록에서 다시 출력하세요.
+                  이용권은 발급한 때부터 {formatMinutes(validMinutes)} 동안 한 번 쓸 수 있어요(이 PC에 기억). 인쇄가 안 됐으면 아래 목록에서 다시 출력하세요.
                 </p>
               </section>
 
@@ -305,9 +419,20 @@ export function CounterClient() {
               <section className="rounded-2xl bg-white shadow-sm">
                 <div className="flex items-center justify-between px-5 pt-4">
                   <h2 className="font-bold">오늘 발급한 이용권</h2>
-                  <button type="button" onClick={testPrint} className="text-sm text-neutral-500 underline">
-                    시험 출력
-                  </button>
+                  <span className="flex items-center gap-3">
+                    <span className={`text-xs ${helper && helper !== 'checking' && helper.ok ? 'text-emerald-600' : 'text-neutral-400'}`}>
+                      {helper === 'checking'
+                        ? '프린터 확인 중…'
+                        : helper
+                          ? helper.ok
+                            ? '영수증 프린터 연결됨'
+                            : `영수증 프린터 확인 필요${helper.error ? ` (${helper.error})` : ''}`
+                          : '인쇄 도우미 없음 · 브라우저 인쇄'}
+                    </span>
+                    <button type="button" onClick={testPrint} className="text-sm text-neutral-500 underline">
+                      시험 출력
+                    </button>
+                  </span>
                 </div>
                 {passes.length === 0 ? (
                   <p className="px-5 py-8 text-center text-sm text-neutral-400">아직 발급한 이용권이 없어요.</p>
@@ -360,12 +485,13 @@ export function CounterClient() {
               <div style={{ fontSize: '34pt', fontWeight: 900, letterSpacing: '0.08em', lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
                 {spacedCode(pass.code)}
               </div>
+              <PassQr code={pass.code} />
               <div style={{ borderTop: '1px dashed #000', margin: '3mm 0 3mm' }} />
               <div style={{ fontSize: '10.5pt', fontWeight: 700 }}>1회 사용 · {expiryLabel(pass.expires_at)}</div>
               <div style={{ fontSize: '9.5pt', marginTop: '2mm', lineHeight: 1.45 }}>
-                포토부스 화면에서 촬영 방식을 고른 뒤
+                {SLIP_GUIDE[0]}
                 <br />
-                번호 6자리를 입력하세요.
+                {SLIP_GUIDE[1]}
               </div>
               {printJob.event && <div style={{ fontSize: '9pt', marginTop: '2mm' }}>♥ {printJob.event}</div>}
               <div style={{ fontSize: '8pt', marginTop: '3mm' }}>

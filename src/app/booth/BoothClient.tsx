@@ -33,6 +33,7 @@ import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import QRCode from 'qrcode'
+import { createQrReader, parsePassQr, type QrReader } from '@/lib/photobooth/qr-scan'
 import {
   BUNDLED_TEMPLATES,
   resolveTemplateGeometry,
@@ -83,16 +84,13 @@ import {
 import '@/components/retro/retro.css'
 import './booth.css'
 
-/** 브라우저 내장 QR 인식 API (지원하지 않는 환경이 있어 직접 좁게 선언) */
-type BarcodeDetectorLike = new (options?: { formats?: string[] }) => {
-  detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]>
-}
-
 // 4x6인치 @300dpi (세로)
 const CANVAS_W = PRINT.W
 const CANVAS_H = PRINT.H
 
 const POLL_INTERVAL_MS = 2500
+/** 같은 이용권 QR 을 다시 확인하기까지 (쓴 번호를 계속 대고 있을 때) */
+const PASS_QR_RETRY_MS = 4000
 /** 관리자 핫스팟을 이만큼 눌러야 열린다 — 손님이 모서리를 스쳐도 안 열리게 */
 const ADMIN_HOLD_MS = 1500
 /** 부스 앱 화면 배율 선택지 — 큰 모니터일수록 키운다 (매장 1920x1080 모니터는 150%) */
@@ -265,12 +263,6 @@ function sleep(ms: number): Promise<void> {
 
 /** 라이브 카메라 소스 — 웹캠 video 또는 DSLR 라이브뷰를 그린 캔버스 */
 type LiveSource = HTMLVideoElement | HTMLCanvasElement
-
-function liveSize(src: LiveSource): { w: number; h: number } {
-  return src instanceof HTMLVideoElement
-    ? { w: src.videoWidth, h: src.videoHeight }
-    : { w: src.width, h: src.height }
-}
 
 /** 미리보기(거울 모드)와 같게 좌우를 뒤집어 JPEG 로 뜬다 */
 function mirroredJpeg(src: CanvasImageSource, width: number, height: number): string | null {
@@ -1098,80 +1090,50 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   }, [step, pressCardKey, backgroundAdminOpen])
 
   /**
-   * 부스 카메라로 카드 QR 읽기.
-   *
-   * 브라우저 내장 BarcodeDetector 가 가장 빠르지만 윈도우 크롬에는 없는 경우가 많다.
-   * 그때는 jsQR(순수 JS)로 폴백해서 어떤 기기에서든 카메라 스캔이 되게 한다.
+   * 부스 카메라로 QR 읽기 — 카드 스캔 화면은 포토카드 QR, 이용권 화면은 카운터 쪽지 QR (src/lib/photobooth/qr-scan.ts).
    */
   useEffect(() => {
-    if (step !== 'scan') return
+    if (step !== 'scan' && step !== 'pass') return
     let stopped = false
+    // 쓴 이용권을 계속 대고 있으면 같은 오류만 반복되니 한 번 확인한 번호는 잠시 다시 보내지 않는다
+    let lastPass = ''
+    let lastPassAt = 0
 
     const start = async () => {
-      // 1순위: 브라우저 내장 API
-      const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorLike })
-        .BarcodeDetector
-      let detectNative: ((v: LiveSource) => Promise<string | null>) | null = null
-      if (Detector) {
-        try {
-          const detector = new Detector({ formats: ['qr_code'] })
-          detectNative = async (video) => {
-            const found = await detector.detect(video)
-            return found.length > 0 ? found[0].rawValue : null
-          }
-        } catch {
-          detectNative = null
-        }
-      }
-
-      // 2순위: jsQR — 캔버스로 프레임을 떠서 직접 디코딩 (느리지만 어디서나 동작)
-      let detectFallback: ((v: LiveSource) => string | null) | null = null
-      if (!detectNative) {
-        try {
-          const jsQR = (await import('jsqr')).default
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d', { willReadFrequently: true })
-          detectFallback = (video) => {
-            if (!ctx) return null
-            // 긴 변 640px 로 줄여야 디코딩이 실시간으로 돈다
-            const { w, h } = liveSize(video)
-            const scale = Math.min(1, 640 / Math.max(w, h))
-            canvas.width = Math.round(w * scale)
-            canvas.height = Math.round(h * scale)
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-            const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
-            const result = jsQR(image.data, image.width, image.height, {
-              inversionAttempts: 'dontInvert',
-            })
-            return result?.data ?? null
-          }
-        } catch (error) {
-          console.error('[photobooth] QR 폴백 로드 실패:', error)
-          setScanError('카드 자동 인식을 쓸 수 없어요. 카드의 번호를 입력해주세요')
-          return
-        }
+      let reader: QrReader
+      try {
+        reader = await createQrReader()
+      } catch (error) {
+        console.error('[photobooth] QR 인식기 로드 실패:', error)
+        if (step === 'scan') setScanError('카드 자동 인식을 쓸 수 없어요. 카드의 번호를 입력해주세요')
+        return
       }
 
       const tick = async () => {
         if (stopped) return
-        const video = getLiveSource()
-        if (video) {
+        const source = getLiveSource()
+        if (source) {
           try {
-            const value = detectNative
-              ? await detectNative(video)
-              : detectFallback
-                ? detectFallback(video)
-                : null
+            const value = await reader.read(source)
             if (value && !stopped) {
-              stopped = true
-              await applyCardCode(value)
-              return
+              if (step === 'scan') {
+                stopped = true
+                await applyCardCode(value)
+                return
+              }
+              const code = parsePassQr(value)
+              if (code && (code !== lastPass || Date.now() - lastPassAt > PASS_QR_RETRY_MS)) {
+                lastPass = code
+                lastPassAt = Date.now()
+                setPassDigits(code)
+                await submitPass(code)
+              }
             }
           } catch {
             // 인식 실패는 다음 프레임에서 재시도
           }
         }
-        if (!stopped) window.setTimeout(tick, detectNative ? 350 : 220)
+        if (!stopped) window.setTimeout(tick, reader.intervalMs)
       }
       tick()
     }
@@ -1180,7 +1142,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     return () => {
       stopped = true
     }
-  }, [step, applyCardCode, getLiveSource])
+  }, [step, applyCardCode, submitPass, getLiveSource])
 
   // ---------- 업로드 사진 인물 오려내기 ----------
   // 사진이 도착하자마자 한 번만 돌린다(촬영하는 동안 끝나므로 손님은 대기를 못 느낀다).
@@ -1254,7 +1216,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // 다시 켜는 경우가 있어 한 번 정하고 끝내지 않는다.
   const [cameraProbe, setCameraProbe] = useState(0)
   useEffect(() => {
-    if (step !== 'camera' && step !== 'scan') return
+    if (step !== 'camera' && step !== 'scan' && step !== 'pass') return
     let cancelled = false
     let timer = 0
     setCameraSource('probing')
@@ -1283,7 +1245,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   // DSLR 라이브뷰 — 프레임을 하나씩 받아 캔버스에 그린다(앞 프레임을 다 그린 뒤 다음 요청)
   useEffect(() => {
-    if ((step !== 'camera' && step !== 'scan') || cameraSource !== 'dslr') return
+    if ((step !== 'camera' && step !== 'scan' && step !== 'pass') || cameraSource !== 'dslr') return
     let stopped = false
     let failures = 0
     ;(async () => {
@@ -1331,7 +1293,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   }, [step, cameraSource])
 
   useEffect(() => {
-    if ((step !== 'camera' && step !== 'scan') || cameraSource !== 'webcam') return
+    if ((step !== 'camera' && step !== 'scan' && step !== 'pass') || cameraSource !== 'webcam') return
     let cancelled = false
     setCameraError(null)
     navigator.mediaDevices
@@ -2185,58 +2147,82 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </div>
         )}
 
-        {/* ---------- 이용권 코드 입력 ---------- */}
+        {/* ---------- 이용권: 쪽지 QR 을 카메라에 대거나 번호 입력 ---------- */}
         {step === 'pass' && (
-          <div className="bth-pass">
-            <RetroWindow className="bth-panel" icon="file" title="TICKET">
-              <h2 className="bth-display bth-h2">이용권 번호 입력</h2>
-              <p className="bth-sub">상품 구매 시 받은 6자리 번호를 입력해주세요</p>
-
-              {/* 코드 표시 */}
-              <div className="bth-code">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bth-code-cell rt-field"
-                    data-current={i === passDigits.length && !passLoading}
-                  >
-                    {passDigits[i] ?? ''}
+          <div className="bth-split">
+            <div className="bth-split-main">
+              <div className="bth-viewport">
+                {cameraError ? (
+                  <div className="bth-empty">
+                    <PixelIcon name="warning" size={96} />
+                    <p className="bth-error">{cameraError}</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="rt-viewer bth-live bth-live--wide">
+                    {renderLiveView('bth-live-media bth-mirror')}
+                    {renderCameraStatus()}
+                    <div className="bth-aim" aria-hidden="true">
+                      <span />
+                    </div>
+                    {passLoading && (
+                      <div className="bth-overlay-center">
+                        <RetroWindow className="bth-mini" icon="file" title="TICKET">
+                          <RetroProgress label="이용권 확인 중" />
+                        </RetroWindow>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              {passLoading && <RetroProgress className="bth-inline-busy" label="이용권 확인 중" />}
-              <p className="bth-error" role="alert">
-                {passError}
-              </p>
+            </div>
 
-              {/* 키패드 */}
-              <div className="bth-keypad">
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+            <div className="bth-split-side">
+              <h2 className="bth-display bth-h2">이용권 QR을 보여주세요</h2>
+              <p className="bth-sub bth-scan-sub">카운터에서 받은 이용권의 QR을 카메라 쪽으로 향하게 해주세요</p>
+              <div className="rt-group bth-manual">
+                <span className="rt-group-label">QR이 안 읽히면 번호 6자리를 눌러주세요</span>
+                <div className="bth-code">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bth-code-cell rt-field"
+                      data-current={i === passDigits.length && !passLoading}
+                    >
+                      {passDigits[i] ?? ''}
+                    </div>
+                  ))}
+                </div>
+                <div className="bth-keypad">
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                    <button
+                      key={digit}
+                      type="button"
+                      onClick={() => pressKeypad(digit)}
+                      disabled={passLoading}
+                      className="rt-btn"
+                    >
+                      {digit}
+                    </button>
+                  ))}
+                  <div />
+                  <button type="button" onClick={() => pressKeypad('0')} disabled={passLoading} className="rt-btn">
+                    0
+                  </button>
                   <button
-                    key={digit}
                     type="button"
-                    onClick={() => pressKeypad(digit)}
+                    onClick={() => pressKeypad('back')}
                     disabled={passLoading}
+                    aria-label="지우기"
                     className="rt-btn"
                   >
-                    {digit}
+                    <PixelIcon name="backspace" size={40} />
                   </button>
-                ))}
-                <div />
-                <button type="button" onClick={() => pressKeypad('0')} disabled={passLoading} className="rt-btn">
-                  0
-                </button>
-                <button
-                  type="button"
-                  onClick={() => pressKeypad('back')}
-                  disabled={passLoading}
-                  aria-label="지우기"
-                  className="rt-btn"
-                >
-                  <PixelIcon name="backspace" size={40} />
-                </button>
+                </div>
+                <p className="bth-error" role="alert">
+                  {passError}
+                </p>
               </div>
-            </RetroWindow>
+            </div>
           </div>
         )}
 

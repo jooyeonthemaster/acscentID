@@ -1,14 +1,13 @@
 import type { createServiceRoleClient } from '@/lib/supabase/service'
 import { isMasterPass } from '@/lib/photobooth/master-pass'
 import { resolveCurrentEvent } from '@/lib/photobooth/current-event'
+import { COUNTER_VALID_MINUTES } from '@/lib/photobooth/pass-validity'
+
+export { COUNTER_VALID_MINUTES }
 
 type ServiceClient = ReturnType<typeof createServiceRoleClient>
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000
-const DAY_MS = 24 * 60 * 60 * 1000
-
-/** 카운터 발급분의 최소 유효 시간 — 자정 직전에 뽑아도 바로 만료되지 않게 */
-const COUNTER_MIN_VALID_MS = 2 * 60 * 60 * 1000
 
 /** 부스 키패드 잠금 — 최근 1분 동안 틀린 번호가 이만큼 쌓이면 1분간 입력을 받지 않는다 (매장 전체 기준) */
 export const PASS_FAILURE_WINDOW_MS = 60 * 1000
@@ -22,10 +21,17 @@ export function kstMidnightIso(now = Date.now()): string {
   return new Date(new Date(`${today}T00:00:00.000Z`).getTime() - KST_OFFSET_MS).toISOString()
 }
 
-/** 카운터 발급분 만료 — 발급 당일 KST 자정, 단 최소 2시간은 보장 */
-export function counterPassExpiry(now = Date.now()): string {
-  const endOfDay = new Date(kstMidnightIso(now)).getTime() + DAY_MS
-  return new Date(Math.max(endOfDay, now + COUNTER_MIN_VALID_MS)).toISOString()
+/** 카운터 발급분 만료 — 발급 시각 + 유효 시간(기본 30분) */
+export function counterPassExpiry(now = Date.now(), minutes: number = COUNTER_VALID_MINUTES.default): string {
+  return new Date(now + minutes * 60_000).toISOString()
+}
+
+/** 요청의 유효 시간(분) 검사 — 없으면 기본값, 범위 밖·소수면 null */
+export function counterValidMinutes(value: unknown): number | null {
+  if (value === undefined || value === null) return COUNTER_VALID_MINUTES.default
+  if (!Number.isInteger(value)) return null
+  const minutes = value as number
+  return minutes >= COUNTER_VALID_MINUTES.min && minutes <= COUNTER_VALID_MINUTES.max ? minutes : null
 }
 
 /** 마스터 번호와 겹치면 사용 불가능한 죽은 이용권이 되므로 다시 뽑는다 */

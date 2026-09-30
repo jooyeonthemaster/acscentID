@@ -24,6 +24,7 @@ function loadTs(relativePath, mocks, cache) {
   const localRequire = id => {
     if (Object.hasOwn(mocks, id)) return mocks[id];
     if (id.startsWith('@/')) return loadTs(path.relative(root, path.resolve(root, 'src', `${id.slice(2)}.ts`)), mocks, cache);
+    if (id.startsWith('./') || id.startsWith('../')) return loadTs(path.relative(root, path.resolve(path.dirname(filename), `${id}.ts`)), mocks, cache);
     return require(id);
   };
   new Function('require', 'module', 'exports', 'process', output)(localRequire, mod, mod.exports, process);
@@ -153,7 +154,7 @@ test('counter pairing: PIN required, cookie scoped, PIN change revokes paired de
   assert.ok(limited, 'pairing attempts are rate limited');
 });
 
-test('counter issue: only counter/admin, 1~6 per press, today-midnight expiry, void rules', async () => {
+test('counter issue: only counter/admin, 1~6 per press, 30-minute default expiry, void rules', async () => {
   process.env.PHOTOBOOTH_COUNTER_PIN = '24681357';
   const h = harness();
   assert.equal((await h.counterPasses.POST(req({ body: { count: 1 } }))).status, 401, 'anonymous cannot issue');
@@ -161,14 +162,22 @@ test('counter issue: only counter/admin, 1~6 per press, today-midnight expiry, v
 
   assert.equal((await h.counterPasses.POST(req({ body: { count: 7 }, cookie }))).status, 400);
   assert.equal((await h.counterPasses.POST(req({ body: { count: 0 }, cookie }))).status, 400);
+  assert.equal((await h.counterPasses.POST(req({ body: { count: 1, validMinutes: 2 }, cookie }))).status, 400);
+  const before = Date.now();
   const issued = await h.counterPasses.POST(req({ body: { count: 3 }, cookie }));
   assert.equal(issued.status, 200);
   assert.equal(issued.body.passes.length, 3);
   for (const pass of issued.body.passes) {
     assert.match(pass.code, /^\d{6}$/);
     assert.notEqual(pass.code, '110619', 'never the master code');
-    assert.ok(Date.parse(pass.expires_at) > Date.now());
+    const validMs = Date.parse(pass.expires_at) - before;
+    assert.ok(validMs >= 30 * 60_000 && validMs < 31 * 60_000, 'default 30 minutes');
   }
+  const hour = await h.counterPasses.POST(req({ body: { count: 1, validMinutes: 60 }, cookie }));
+  assert.equal(hour.status, 200);
+  const hourMs = Date.parse(hour.body.passes[0].expires_at) - before;
+  assert.ok(hourMs >= 60 * 60_000 && hourMs < 61 * 60_000, 'chosen 60 minutes');
+  h.db.tables.photobooth_passes.splice(-1, 1);
   const rows = h.db.tables.photobooth_passes;
   assert.ok(rows.every(r => r.issued_via === 'counter' && r.status === 'issued'));
 
@@ -240,13 +249,14 @@ test('booth keypad lock: 10 wrong codes in a minute lock every booth (master too
   assert.equal(h.db.tables.photobooth_pass_failures.length, 0);
 });
 
-test('counter expiry: KST midnight of the issue day, at least 2 hours', () => {
-  const { counterPassExpiry, kstMidnightIso } = harness().passesLib;
-  // 2026-09-24 14:00 KST → 2026-09-25 00:00 KST (= 09-24 15:00Z)
-  assert.equal(counterPassExpiry(Date.parse('2026-09-24T05:00:00Z')), '2026-09-24T15:00:00.000Z');
-  // 23:30 KST → 01:30 KST 다음 날 (최소 2시간)
-  assert.equal(counterPassExpiry(Date.parse('2026-09-24T14:30:00Z')), '2026-09-24T16:30:00.000Z');
-  // 00:10 KST 는 그날 자정까지
+test('counter expiry: issue time + chosen minutes (default 30)', () => {
+  const { counterPassExpiry, counterValidMinutes, kstMidnightIso } = harness().passesLib;
+  const at = Date.parse('2026-09-24T05:00:00Z');
+  assert.equal(counterPassExpiry(at), '2026-09-24T05:30:00.000Z');
+  assert.equal(counterPassExpiry(at, 90), '2026-09-24T06:30:00.000Z');
+  assert.equal(counterValidMinutes(undefined), 30);
+  assert.equal(counterValidMinutes(60), 60);
+  for (const bad of [0, 4, 1441, 12.5, '30']) assert.equal(counterValidMinutes(bad), null, String(bad));
+  // 목록·취소의 '오늘' 기준은 그대로 KST 0시
   assert.equal(kstMidnightIso(Date.parse('2026-09-24T15:10:00Z')), '2026-09-24T15:00:00.000Z');
-  assert.equal(counterPassExpiry(Date.parse('2026-09-24T15:10:00Z')), '2026-09-25T15:00:00.000Z');
 });

@@ -91,7 +91,7 @@ interface BoothPass {
   used_at: string | null
   note: string | null
   event_id: string | null
-  /** 카운터 발급분만 있음 (당일 자정) — 마이그레이션 전 행은 없음 */
+  /** 카운터 발급분만 있음 (발급 후 기본 30분) — 마이그레이션 전 행은 없음 */
   expires_at?: string | null
   issued_via?: 'admin' | 'counter'
   photobooth_events: { title: string } | null
@@ -597,7 +597,7 @@ export default function AdminPhotoboothPage() {
                   <h2 className="text-lg font-bold text-slate-900">이용권 (구매 특전)</h2>
                   <p className="text-sm text-slate-500">
                     상품 결제 시 발급 → 손님이 부스 키패드에 6자리 번호 입력 → 1회 촬영·인화.
-                    매장 카운터에서는 <a href="/booth/counter" target="_blank" rel="noreferrer" className="font-semibold text-slate-700 underline">카운터 발급 화면</a>으로 바로 출력합니다(당일 자정까지 유효).
+                    매장 카운터에서는 <a href="/booth/counter" target="_blank" rel="noreferrer" className="font-semibold text-slate-700 underline">카운터 발급 화면</a>으로 바로 출력합니다(발급 후 기본 30분 유효, 카운터 화면에서 조절).
                     오늘 발급 {passStats?.issued_today ?? 0} · 사용 {passStats?.used_today ?? 0}
                   </p>
                 </div>

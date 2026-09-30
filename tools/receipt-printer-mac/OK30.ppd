@@ -1,0 +1,53 @@
+*PPD-Adobe: "4.3"
+*FormatVersion: "4.3"
+*FileVersion: "1.0"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName: "OK30.PPD"
+*Manufacturer: "OKPOS"
+*Product: "(OK30)"
+*ModelName: "OKPOS OK30 ACSCENT dev"
+*ShortNickName: "OKPOS OK30"
+*NickName: "OKPOS OK30 ESC/POS (ACSCENT dev)"
+*PSVersion: "(3010.000) 0"
+*LanguageLevel: "3"
+*ColorDevice: False
+*DefaultColorSpace: Gray
+*FileSystem: False
+*Throughput: "1"
+*LandscapeOrientation: Plus90
+*TTRasterizer: Type42
+*cupsVersion: 2.2
+*cupsModelNumber: 0
+*cupsManualCopies: True
+*cupsFilter: "application/vnd.cups-raster 0 /Library/Printers/ACSCENT/Filter/rastertook30"
+
+*OpenUI *Resolution/Resolution: PickOne
+*OrderDependency: 10 AnySetup *Resolution
+*DefaultResolution: 180dpi
+*Resolution 180dpi/180 DPI: "<</HWResolution[180 180]/cupsBitsPerColor 8/cupsColorOrder 0/cupsColorSpace 18>>setpagedevice"
+*CloseUI: *Resolution
+
+*OpenUI *PageSize/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: Slip80x90
+*PageSize Slip80x90/80 x 90 mm: "<</PageSize[226.77 255.12]/ImagingBBox null>>setpagedevice"
+*PageSize Roll80x297/80 x 297 mm: "<</PageSize[226.77 841.89]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+
+*OpenUI *PageRegion/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: Slip80x90
+*PageRegion Slip80x90/80 x 90 mm: "<</PageSize[226.77 255.12]/ImagingBBox null>>setpagedevice"
+*PageRegion Roll80x297/80 x 297 mm: "<</PageSize[226.77 841.89]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+
+*DefaultImageableArea: Slip80x90
+*ImageableArea Slip80x90/80 x 90 mm: "0 0 226.77 255.12"
+*ImageableArea Roll80x297/80 x 297 mm: "0 0 226.77 841.89"
+*DefaultPaperDimension: Slip80x90
+*PaperDimension Slip80x90/80 x 90 mm: "226.77 255.12"
+*PaperDimension Roll80x297/80 x 297 mm: "226.77 841.89"
+
+*DefaultFont: Courier
+*Font Courier: Standard "(002.004S)" Standard ROM

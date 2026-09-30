@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
  * POST /api/photobooth/pass  { code: "123456" }
  *
  * 상품 구매 특전 — 직원이 결제 시 발급한 6자리 코드를 부스에서 입력하면 1회 사용 처리.
- * 카운터 발급분은 expires_at(당일 자정)이 지나면 쓸 수 없다.
+ * 카운터 발급분은 expires_at(발급 시각 + 카운터에서 고른 유효 시간)이 지나면 쓸 수 없다.
  *
  * 키패드는 누구나 누를 수 있으므로 번호 맞히기를 막는다 — 최근 1분 동안 틀린 번호가
  * PASS_FAILURE_LIMIT 번 쌓이면 매장 전체 부스가 1분간 입력을 받지 않는다(마스터 번호 포함).

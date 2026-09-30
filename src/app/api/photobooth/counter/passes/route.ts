@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sameOrigin } from '@/lib/screen-backgrounds/device-auth'
 import { counterAccess } from '@/lib/photobooth/counter-auth'
-import { counterPassExpiry, issuePasses, kstMidnightIso } from '@/lib/photobooth/passes'
+import { COUNTER_VALID_MINUTES, counterPassExpiry, counterValidMinutes, issuePasses, kstMidnightIso } from '@/lib/photobooth/passes'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 
 export const runtime = 'nodejs'
@@ -14,7 +14,7 @@ const MAX_PER_ISSUE = 6
 /**
  * 카운터 이용권 발급 (연결된 카운터 기기 또는 관리자)
  * GET   오늘 카운터 발급 목록 + 발급·사용 수
- * POST  발급 { count } — 당일 자정까지 유효
+ * POST  발급 { count, validMinutes? } — 발급 시각부터 validMinutes 분(기본 30분) 유효
  * PATCH 취소 { id } — 오늘 발급한 미사용분만 (잘못 뽑았을 때)
  */
 export async function GET(request: NextRequest) {
@@ -59,8 +59,15 @@ export async function POST(request: NextRequest) {
   if (count < 1 || count > MAX_PER_ISSUE) {
     return NextResponse.json({ error: `한 번에 1~${MAX_PER_ISSUE}장까지 발급할 수 있습니다` }, { status: 400, headers })
   }
+  const minutes = counterValidMinutes(body?.validMinutes)
+  if (minutes === null) {
+    return NextResponse.json(
+      { error: `유효 시간은 ${COUNTER_VALID_MINUTES.min}분~${COUNTER_VALID_MINUTES.max / 60}시간 사이로 정해 주세요` },
+      { status: 400, headers }
+    )
+  }
   const result = await issuePasses(createServiceRoleClient(), {
-    count, via: 'counter', expiresAt: counterPassExpiry(),
+    count, via: 'counter', expiresAt: counterPassExpiry(Date.now(), minutes),
   })
   if ('error' in result) return NextResponse.json({ error: result.error }, { status: 500, headers })
   return NextResponse.json({ success: true, passes: result.passes, event: result.event }, { headers })
