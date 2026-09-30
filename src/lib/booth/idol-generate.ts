@@ -74,6 +74,46 @@ interface Completion {
   error?: { message?: string }
 }
 
+/** 첫 모델이 늦거나 실패할 때 다시 시도하는 더 빠른 이미지 모델 */
+const FALLBACK_MODEL = 'google/gemini-2.5-flash-image'
+
+/** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
+async function requestImage(model: string, timeout: number, prompt: string, photo: string): Promise<string | null> {
+  const started = Date.now()
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey()}`,
+        'Content-Type': 'application/json',
+        'X-Title': "AC'SCENT photobooth",
+      },
+      body: JSON.stringify({
+        model,
+        modalities: ['image', 'text'],
+        image_config: { aspect_ratio: '2:3' },
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: photo } }] }],
+      }),
+      signal: AbortSignal.timeout(timeout),
+    })
+    const raw = await res.text()
+    if (!res.ok) {
+      console.error('[idol] 생성 호출 실패', model, res.status, raw.slice(0, 300))
+      return null
+    }
+    const data = JSON.parse(raw) as Completion
+    const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url
+    if (data.error || !url?.startsWith('data:image/')) {
+      console.error('[idol] 이미지 없음', model, data.error?.message ?? data.choices?.[0]?.message?.content?.slice(0, 200))
+      return null
+    }
+    return url
+  } catch (error) {
+    console.error('[idol] 생성 중단', model, `${Math.round((Date.now() - started) / 1000)}s`, error instanceof Error ? error.message : error)
+    return null
+  }
+}
+
 export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number): Promise<string> {
   if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
   if (!/^data:image\/(jpeg|png|webp);base64,/.test(photo) || photo.length > 3_000_000) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
@@ -82,38 +122,16 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
   if (now - windowStart > 60_000) { windowStart = now; windowCount = 0 }
   if (++windowCount > PER_MINUTE) throw new IdolError('잠시 후 다시 시도해 주세요.', 429)
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey()}`,
-      'Content-Type': 'application/json',
-      'X-Title': "AC'SCENT photobooth",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL,
-      modalities: ['image', 'text'],
-      image_config: { aspect_ratio: '2:3' },
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: buildIdolPrompt(concept, people) },
-          { type: 'image_url', image_url: { url: photo } },
-        ],
-      }],
-    }),
-    signal: AbortSignal.timeout(110_000),
-  })
-  const raw = await res.text()
-  if (!res.ok) {
-    console.error('[idol] 생성 호출 실패', res.status, raw.slice(0, 300))
-    throw new IdolError('AI 사진을 만들지 못했어요.', 502)
+  // 가끔 이미지 모델이 한참 멈춘다(운영에서 110초 넘게 걸린 적) — 손님이 오래 서 있지 않게 첫 시도는 짧게 끊고,
+  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스는 얼굴 인식 메이크업 사진으로 대신한다
+  const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
+  const attempts: [string, number][] = [[primary, 50_000], [FALLBACK_MODEL, 45_000]]
+  let url: string | null = null
+  for (const [model, timeout] of attempts) {
+    url = await requestImage(model, timeout, buildIdolPrompt(concept, people), photo)
+    if (url) break
   }
-  const data = JSON.parse(raw) as Completion
-  const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url
-  if (data.error || !url?.startsWith('data:image/')) {
-    console.error('[idol] 이미지 없음', data.error?.message ?? data.choices?.[0]?.message?.content?.slice(0, 200))
-    throw new IdolError('AI 사진을 만들지 못했어요.', 502)
-  }
+  if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)
   // 응답 크기(4.5MB 제한)와 부스 전송을 줄이려 JPEG 로 — 긴 변 1800 이하
   const jpeg = await sharp(Buffer.from(url.slice(url.indexOf(',') + 1), 'base64'))
     .resize({ width: 1800, height: 1800, fit: 'inside', withoutEnlargement: true })
