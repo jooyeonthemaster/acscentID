@@ -93,7 +93,7 @@ K-WAVE 모드 전용: 제조 레시피를 **굵은 상자**로 감싸고(`recipe
 - **인화물**: ON STAGE(AI 사진, 사진 칸 전체) + 왼쪽 아래 BEFORE(실물) 폴라로이드, 하단 띠 `TODAY'S IDOL CONCEPT · 오늘의 아이돌 컨셉` + 컨셉 이름·설명 + 행사 줄. 편집 화면에서 **다시 만들기**(이용권 하나당 생성 3번까지).
 - **대신하기**: 키가 없거나, 생성 실패, '메이크업만', 얼굴 0명·4명 이상(3명까지만 생성)이면 아래 얼굴 인식 메이크업 사진으로 만든다(편집 화면에 이유 안내). 메이크업만은 1컷/네컷을 고를 수 있다.
 - **서버**: `POST /api/photobooth/idol`(`src/lib/booth/idol-generate.ts`) — 이용권 확인(`/api/photobooth/pass`) 때 받은 서명 표(15분, 3회)가 있어야 생성한다. 손님 사진은 저장·기록하지 않는다. `sharp` 로 JPEG(긴 변 1800)로 줄여 돌려준다.
-- **설정(Vercel 환경변수)**: `OPENROUTER_PHOTOBOOTH_API_KEY`(전용 키 — 없으면 부스는 '메이크업만' 화면으로 자동 전환, `/api/photobooth/config` 의 `idolStage`), 선택 `OPENROUTER_PHOTOBOOTH_MODEL`(기본 `google/gemini-3-pro-image-preview`). 키를 넣고 재배포하면 다음 손님부터 켜진다.
+- **설정(Vercel 환경변수)**: `OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY`(전용 키, 옛 이름 `OPENROUTER_PHOTOBOOTH_API_KEY` 도 읽음 — 없으면 부스는 '메이크업만' 화면으로 자동 전환, `/api/photobooth/config` 의 `idolStage`), 선택 `OPENROUTER_PHOTOBOOTH_MODEL`(기본 `google/gemini-3-pro-image-preview`). 키를 넣고 재배포하면 다음 손님부터 켜진다.
 
 ### K-POP 무대 메이크업 (K-WAVE 모드)
 

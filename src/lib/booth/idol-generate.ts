@@ -1,5 +1,6 @@
 // K-POP 아이돌 컨셉 사진 생성(서버 전용) — 부스에서 찍은 한 컷 + 컨셉 → 같은 얼굴의 아이돌 컨셉 사진.
-// 전용 키 OPENROUTER_PHOTOBOOTH_API_KEY 만 쓴다(사이트 분석 메인 키·화면 배경 키와 비용을 섞지 않는다).
+// 전용 키 OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY(이태원 K-WAVE 행사용, 옛 이름 OPENROUTER_PHOTOBOOTH_API_KEY 도 읽음)만 쓴다
+// — 사이트 분석 메인 키·화면 배경 키와 비용을 섞지 않는다.
 // 모델은 OPENROUTER_PHOTOBOOTH_MODEL 로 바꿀 수 있다(기본: 얼굴 유지가 가장 나은 Gemini 이미지 모델).
 // 손님 사진은 생성에만 쓰고 저장하지 않는다 — 요청·응답을 기록하지 않는다.
 
@@ -8,8 +9,12 @@ import sharp from 'sharp'
 import { OPENROUTER_IMAGE_MODEL } from '@/lib/gemini/client'
 import { buildIdolPrompt, type IdolConcept } from './idol-concepts'
 
+function apiKey() {
+  return process.env.OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY || process.env.OPENROUTER_PHOTOBOOTH_API_KEY || ''
+}
+
 export function idolConfigured() {
-  return !!process.env.OPENROUTER_PHOTOBOOTH_API_KEY
+  return !!apiKey()
 }
 
 export class IdolError extends Error {
@@ -80,7 +85,7 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_PHOTOBOOTH_API_KEY}`,
+      Authorization: `Bearer ${apiKey()}`,
       'Content-Type': 'application/json',
       'X-Title': "AC'SCENT photobooth",
     },

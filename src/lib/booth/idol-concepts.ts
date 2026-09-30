@@ -1,6 +1,6 @@
 // K-POP 아이돌 컨셉 사진 — 포토부스 행사 모드(K-WAVE)에서 손님이 컨셉을 고르고 한 컷 찍으면,
 // 찍은 사람의 얼굴은 그대로 두고 헤어·무대 메이크업·의상·조명·배경만 그 컨셉의 아이돌 사진으로 새로 만든다
-// (서버 src/lib/booth/idol-generate.ts, 전용 키 OPENROUTER_PHOTOBOOTH_API_KEY).
+// (서버 src/lib/booth/idol-generate.ts, 전용 키 OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY).
 // 인화물은 BEFORE(실물) / ON STAGE(생성) — 닮음이 조금 어긋나도 '나'가 분명하다. docs/kiosk-modes.md '포토부스'
 //
 // 컨셉마다 무대 메이크업 룩(stage-makeup.ts)이 짝으로 붙는다 — 촬영 화면 실시간 메이크업 미리보기와,
@@ -15,6 +15,8 @@ export interface IdolConcept {
   /** 생성 프롬프트 조각(영어) — 서버가 id 로 찾아 쓴다(화면에서 온 문장은 쓰지 않는다) */
   prompt: {
     scene: string
+    /** 여럿이 찍었을 때의 장면(한 사람 클로즈업이 본질인 컨셉은 단체 장면으로 바꿔 쓴다 — 없으면 scene) */
+    groupScene?: string
     hair: string
     makeup: string
     outfit: string
@@ -30,6 +32,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     lookId: 'glitter-eye',
     prompt: {
       scene: "the famous 'ending fairy' close-up at the very end of a K-pop music show performance: a confident, slightly breathless gaze straight into the camera, colorful stage lights and LED-wall bokeh behind, a few pieces of glittering confetti floating in the air, Korean music broadcast TV look",
+      groupScene: "the group 'ending fairy' moment at the very end of a K-pop music show performance: all members posing together shoulder to shoulder in one single camera shot, confident slightly breathless gazes into the camera, colorful stage lights and LED-wall bokeh behind, glittering confetti in the air, Korean music broadcast TV look",
       hair: 'freshly styled stage hair with a little natural movement',
       makeup: 'shimmering pearl glitter eyeshadow in lilac and soft gold, fine eyeliner, dewy radiant skin, soft rosy-pink lip',
       outfit: 'sparkly embellished stage costume with crystals',
@@ -102,15 +105,21 @@ export function buildIdolPrompt(concept: IdolConcept, people: number): string {
     '- They must be instantly recognizable as themselves to their friends and family.',
     '- Do NOT swap or replace faces, do not beautify into a different face, do not slim the face, enlarge the eyes, change the eye shape, or lighten/darken the skin. Do not make anyone look younger or older.',
     `- Keep the same number of people (${people}), the same left-to-right order, and a similar pose and expression.${many ? ' Each person keeps their own face — never blend or copy faces between people.' : ''}`,
+    ...(many
+      ? [
+          `- The result MUST show all ${people} people together in ONE scene, standing side by side like an idol group photo — never drop, merge or duplicate anyone. If the input looks like separate photos or tiles, bring everyone into one shared scene.`,
+        ]
+      : []),
     '',
-    `CONCEPT — ${concept.name.en}: ${p.scene}.`,
+    // 여럿일 때 '클로즈업' 컨셉이 인원수를 이겨 한 명으로 줄어드는 일이 있어, 단체 컷으로 바꿔 말한다
+    `CONCEPT — ${concept.name.en}${many ? ' (group version: all members in one shot)' : ''}: ${many ? p.groupScene ?? p.scene : p.scene}.`,
     '',
     'IDOL STYLING (applied to them, not replacing them):',
-    `- Hair: ${p.hair}; keep ${many ? "each person's" : 'their'} natural hair color and roughly the same length.`,
+    `- Hair: ${p.hair}; keep ${many ? "each person's" : 'their'} exact hair color from the photo (brown stays brown, blond stays blond — do not turn it black) and roughly the same length.`,
     `- Stage makeup: ${p.makeup}.`,
     `- Outfit: ${p.outfit}; modest, age-appropriate and fully covered.`,
     '',
-    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture (not plastic), vertical 2:3 portrait, upper-body framing with the face${many ? 's' : ''} in the upper-middle of the frame.`,
+    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture (not plastic), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
     '',
     'DO NOT add any text, captions, logos, watermarks, group names or signatures. Do not make anyone resemble a real celebrity or existing idol. Do not change body shape.',
   ].join('\n')
