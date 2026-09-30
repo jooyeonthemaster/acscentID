@@ -1,12 +1,13 @@
 import type { BackgroundSnapshot, DeviceSettings, ScreenBackground, ScreenTarget } from './types'
 import { DEFAULT_DEVICE_SETTINGS, isFontId, isScreenTarget, isScreenUi, resolveSelected, SCREEN_TARGETS } from './types'
 import { validateBackground } from './validation'
+import { parsePassSettings } from '@/lib/booth/pass-policy'
 
 export type BackgroundRecord =
   | { kind: 'background'; background: ScreenBackground }
   | { kind: 'deleted'; id: string }
   | { kind: 'selection'; target: ScreenTarget; id: string }
-  | { kind: 'settings'; target: ScreenTarget; ui: DeviceSettings['ui']; font: string | null; mode?: string | null; hanjaFont?: string; receiptStyle?: string }
+  | { kind: 'settings'; target: ScreenTarget; ui: DeviceSettings['ui']; font: string | null; mode?: string | null; hanjaFont?: string; receiptStyle?: string; pass?: Record<string, boolean> }
 
 /** Tombstones must override bundled defaults, including after deployment or refresh. */
 export function mergeBackgroundRecords(bundled: ScreenBackground[], records: BackgroundRecord[]): BackgroundSnapshot {
@@ -26,6 +27,7 @@ export function mergeBackgroundRecords(bundled: ScreenBackground[], records: Bac
         ui: record.ui, font: record.font, ...(isFontId(record.mode) ? { mode: record.mode } : {}),
         ...(record.hanjaFont === 'kaishu' || record.hanjaFont === 'gothic' ? { hanjaFont: record.hanjaFont } : {}),
         ...(record.receiptStyle === 'sheet' || record.receiptStyle === 'prescription' ? { receiptStyle: record.receiptStyle } : {}),
+        ...(parsePassSettings(record.pass) ? { pass: parsePassSettings(record.pass)! } : {}),
       }
     } else {
       // Never silently resurrect a hidden/deleted preset on damaged remote configuration.

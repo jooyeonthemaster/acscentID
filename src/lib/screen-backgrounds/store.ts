@@ -8,6 +8,7 @@ import { isScreenUi } from './types'
 import { SCREEN_FONT_IDS } from '@/lib/screen-fonts/catalog'
 import { KIOSK_MODE_IDS } from '@/lib/kiosk/modes'
 import { BOOTH_MODE_IDS } from '@/lib/booth/modes'
+import { parsePassSettings } from '@/lib/booth/pass-policy'
 
 // Private server-only configuration bucket; no manual SQL migration or device-local metadata.
 // One object per background avoids overwriting unrelated edits from another administrator.
@@ -109,9 +110,16 @@ export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<De
     if (target !== 'kiosk' || (patch.receiptStyle !== 'sheet' && patch.receiptStyle !== 'prescription')) throw new BackgroundError('영수증 양식을 확인해주세요.')
     next.receiptStyle = patch.receiptStyle
   }
+  if (Object.hasOwn(patch, 'pass')) {
+    // 바꾼 모드만 보내도 된다 — 다른 모드의 저장값은 그대로 둔다
+    const pass = parsePassSettings(patch.pass)
+    if (target !== 'booth' || !pass || !Object.keys(pass).every(id => BOOTH_MODE_IDS.includes(id))) throw new BackgroundError('이용권 설정을 확인해주세요.')
+    next.pass = { ...next.pass, ...pass }
+  }
   await writeRecord(`settings-${target}`, {
     kind: 'settings', target, ui: next.ui, font: next.font, ...(next.mode ? { mode: next.mode } : {}),
     ...(next.hanjaFont ? { hanjaFont: next.hanjaFont } : {}), ...(next.receiptStyle ? { receiptStyle: next.receiptStyle } : {}),
+    ...(next.pass ? { pass: next.pass } : {}),
   })
   return next
 }

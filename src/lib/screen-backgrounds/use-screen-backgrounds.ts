@@ -7,6 +7,7 @@ import { validateBackground } from './validation'
 import { kstToday, type LiveEventOverride } from '@/lib/screen-events/types'
 import { findKioskMode } from '@/lib/kiosk/modes'
 import { findBoothMode } from '@/lib/booth/modes'
+import { parsePassSettings } from '@/lib/booth/pass-policy'
 
 const POLL_MS = 15000
 function initialSnapshot(target: ScreenTarget): BackgroundSnapshot {
@@ -20,6 +21,7 @@ function parseSettings(value: unknown): DeviceSettings {
     ui: isScreenUi(raw.ui) ? raw.ui : DEFAULT_DEVICE_SETTINGS.ui, font: isFontId(raw.font) ? raw.font : null, ...(isFontId(raw.mode) ? { mode: raw.mode } : {}),
     ...(raw.hanjaFont === 'kaishu' || raw.hanjaFont === 'gothic' ? { hanjaFont: raw.hanjaFont } : {}),
     ...(raw.receiptStyle === 'sheet' || raw.receiptStyle === 'prescription' ? { receiptStyle: raw.receiptStyle } : {}),
+    ...(parsePassSettings(raw.pass) ? { pass: parsePassSettings(raw.pass)! } : {}),
   }
 }
 function parseSnapshot(value: unknown, target: ScreenTarget): BackgroundSnapshot {

@@ -46,7 +46,7 @@ export async function DELETE(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try { const denied = await authorize(request); if (denied) return denied
     const body = await bodyOf(request)
-    if (isScreenTarget(body.target) && (Object.hasOwn(body, 'ui') || Object.hasOwn(body, 'font') || Object.hasOwn(body, 'mode') || Object.hasOwn(body, 'hanjaFont') || Object.hasOwn(body, 'receiptStyle'))) {
+    if (isScreenTarget(body.target) && (Object.hasOwn(body, 'ui') || Object.hasOwn(body, 'font') || Object.hasOwn(body, 'mode') || Object.hasOwn(body, 'hanjaFont') || Object.hasOwn(body, 'receiptStyle') || Object.hasOwn(body, 'pass'))) {
       const settings = await saveDeviceSettings(body.target, body as { ui?: never; font?: never })
       return NextResponse.json({ success: true, settings }, { headers })
     }

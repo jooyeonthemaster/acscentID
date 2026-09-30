@@ -36,6 +36,8 @@ export interface DeviceSettings {
   hanjaFont?: 'kaishu' | 'gothic'
   /** 키오스크 사주 영수증 — 'sheet'(사주 감정서형, 기본) · 'prescription'(이전 처방전형) */
   receiptStyle?: 'sheet' | 'prescription'
+  /** 포토부스 운영 모드별 이용권 필요 여부 (모드 id → true/false). 없는 모드는 기본값 — src/lib/booth/pass-policy.ts */
+  pass?: Record<string, boolean>
 }
 
 export const DEFAULT_DEVICE_SETTINGS: DeviceSettings = { ui: 'retro', font: null }

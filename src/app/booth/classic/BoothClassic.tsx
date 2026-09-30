@@ -25,6 +25,7 @@ import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
+import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
 import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, lookPreviewFilter, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
@@ -422,6 +423,8 @@ export function BoothClassic() {
   } = useScreenBackgrounds('booth')
   // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·편집 화면 무대 메이크업이 바뀐다
   const boothMode = findBoothMode(deviceBaseSettings.mode)
+  /** 이 운영 모드에서 이용권 번호를 받는가 — 스토어 어드민 '운영 모드 · 이용권 번호'(src/lib/booth/pass-policy.ts) */
+  const passRequired = boothPassRequired(deviceBaseSettings)
   const stageMakeup = boothMode.stageMakeup ?? null
   /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
   const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
@@ -903,7 +906,9 @@ export function BoothClassic() {
 
   const startMode = useCallback(
     (nextMode: Mode) => {
-      if (passVerified) {
+      if (passVerified || !passRequired) {
+        // 이용권 없이 쓰는 운영 모드 — 행사 모드면 AI 사진 생성 표만 따로 받는다(못 받으면 메이크업 사진으로)
+        if (!passVerified && stageMakeup && !idolTicket) void requestFreeIdolTicket().then(setIdolTicket)
         proceedToMode(nextMode)
         return
       }
@@ -913,7 +918,7 @@ export function BoothClassic() {
       setPassError('')
       setStep('pass')
     },
-    [passVerified, proceedToMode]
+    [passVerified, passRequired, stageMakeup, idolTicket, proceedToMode]
   )
 
   // ---------- 템플릿 선택 → 빈 영역 기하 계산 ----------
@@ -3307,7 +3312,7 @@ export function BoothClassic() {
               ) : (
                 // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <BoothModeControls value={deviceBaseSettings.mode} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
+                  <BoothModeControls value={deviceBaseSettings.mode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                   {screenZoom !== null && (
                     <div className="mb-4 flex shrink-0 items-center gap-4">
                       <p className="shrink-0 text-lg font-bold">화면 크기</p>

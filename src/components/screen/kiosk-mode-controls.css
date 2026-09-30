@@ -17,6 +17,8 @@
 .kmc-saju > b { font-size: 15px; }
 .kmc-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .kmc-row > span { flex: 0 0 5em; font-size: 14px; font-weight: 700; color: #475569; }
+/* 포토부스 이용권 — 모드 이름이 길다 */
+.kmc-row--wide > span { flex: 1 1 12em; }
 .kmc-seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: #eef0f4; }
 .kmc .kmc-seg button { min-height: 44px; padding: 0 14px; border: 0; border-radius: 6px; background: transparent; color: #475569; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; opacity: 1; }
 .kmc .kmc-seg button[aria-pressed='true'] { background: #1f2937; color: #ffffff; }
