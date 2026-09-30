@@ -57,7 +57,7 @@ export const BOOTH_MODES: BoothMode[] = [
     stageMakeup: {
       eventLines: ['2026 K-WAVE DANCE FESTIVAL', '세계문화마을 · 이태원로 · 10.3~10.4'],
     },
-    defaultBackground: 'booth-event-kwave-2026',
+    defaultBackground: 'booth-event-kwave-2026-ink',
   },
 ]
 
