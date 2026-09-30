@@ -3,13 +3,15 @@
 // 포토부스 행사 모드(K-WAVE) — AI 아이돌 컨셉 사진 화면 부품.
 // - IdolConceptPicker: 첫 화면 컨셉 고르기(음방 엔딩요정·앨범 재킷·무대 직캠·뮤비 스틸)
 // - useIdolStage: 찍은 한 컷 → 얼굴 수 확인 → /api/photobooth/idol 생성 → 결과 그림(다시 만들기 포함)
-// - IdolStagePanel: 편집 화면 옆 — 만드는 중(경과 초) / 완성(다시 만들기) / 못 만듦(메이크업 사진으로 대신)
+// - IdolStagePanel: 편집 화면 옆 — 만드는 중(경과 초) / 완성(다시 만들기) / 못 만듦(찍은 원본으로 인화)
+// - IdolDesignPicker: 편집 화면 옆 — 컨셉별 인화 디자인 4종(src/lib/booth/idol-layouts.ts)을 실제 사진으로 그린 미리보기로 고르기
 // 개념·프롬프트는 src/lib/booth/idol-concepts.ts, 서버는 src/lib/booth/idol-generate.ts
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IDOL_CONCEPTS, IDOL_MAX_PEOPLE, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { findStageLook } from '@/lib/booth/stage-makeup'
-import { countFaces } from '@/lib/booth/face-makeup'
+import { countFaces, faceRectsInCell } from '@/lib/booth/face-makeup'
+import { drawIdolDesign, idolDesigns, type Picture } from '@/lib/booth/idol-layouts'
 
 // ───────────────────────── 컨셉 고르기 ─────────────────────────
 
@@ -65,14 +67,51 @@ export const IDOL_CONSENT = {
 
 export type IdolStatus = 'off' | 'checking' | 'generating' | 'done' | 'failed' | 'skipped'
 
-/** 원본 사진 → 긴 변 1280 JPEG(업로드 4.5MB 제한 안쪽, 얼굴은 충분히 또렷) */
-function toJpeg(img: HTMLImageElement) {
-  const k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight))
+type Box = { x: number; y: number; w: number; h: number }
+
+/** 원본의 box 부분을 w×h JPEG 로 */
+function cropJpeg(img: HTMLImageElement, box: Box, w: number, h: number, quality = 0.92) {
   const c = document.createElement('canvas')
-  c.width = Math.round(img.naturalWidth * k)
-  c.height = Math.round(img.naturalHeight * k)
-  c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
-  return c.toDataURL('image/jpeg', 0.9)
+  c.width = w
+  c.height = h
+  const ctx = c.getContext('2d')!
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, w, h)
+  return c.toDataURL('image/jpeg', quality)
+}
+
+/**
+ * AI 에 보낼 사진 — 얼굴이 작고 흐리면 모델이 얼굴을 새로 그려 '다른 사람'이 된다(가로 원판 전체를 1280 으로 줄여 보내던 때).
+ * - 본 사진: 손님이 촬영 화면에서 본 세로 2:3 구도, 얼굴이 작으면 상반신이 차도록 얼굴 쪽으로 당겨 1024×1536
+ * - 얼굴 참고: 사람마다 얼굴 클로즈업 512×512(최대 IDOL_MAX_PEOPLE 장) — 서버가 '정체성 참고용'으로 함께 보낸다
+ */
+async function idolInputs(img: HTMLImageElement) {
+  const W = img.naturalWidth, H = img.naturalHeight
+  // 촬영 화면(2:3 cover)과 같은 가운데 세로 구도
+  const baseH = Math.min(H, W * 1.5), baseW = baseH / 1.5
+  let crop: Box = { x: (W - baseW) / 2, y: (H - baseH) / 2, w: baseW, h: baseH }
+  const faces = (await faceRectsInCell(img, 0, 0, W, H)).filter((f) => f.w > 0 && f.h > 0)
+  if (faces.length) {
+    const x0 = Math.min(...faces.map((f) => f.x)), x1 = Math.max(...faces.map((f) => f.x + f.w))
+    const y0 = Math.min(...faces.map((f) => f.y)), y1 = Math.max(...faces.map((f) => f.y + f.h))
+    // 머리가 세로의 약 1/4(상반신) — 여럿이면 모두 들어가게 가로 여유
+    const h = Math.min(baseH, Math.max((y1 - y0) / 0.26, ((x1 - x0) * 1.5) * 1.5))
+    const w = h / 1.5
+    const cx = (x0 + x1) / 2
+    const x = Math.min(Math.max(cx - w / 2, 0), W - w)
+    const y = Math.min(Math.max(y0 - h * 0.14, 0), H - h)
+    crop = { x, y, w, h }
+  }
+  const photo = cropJpeg(img, crop, 1024, 1536)
+  const faceRefs = faces.slice(0, IDOL_MAX_PEOPLE)
+    .sort((a, b) => a.x - b.x)
+    .map((f) => {
+      const side = Math.min(Math.max(f.w, f.h) * 1.35, W, H)
+      const x = Math.min(Math.max(f.x + f.w / 2 - side / 2, 0), W - side)
+      const y = Math.min(Math.max(f.y + f.h / 2 - side / 2, 0), H - side)
+      return cropJpeg(img, { x, y, w: side, h: side }, 512, 512)
+    })
+  return { photo, faces: faceRefs }
 }
 
 function loadImage(src: string) {
@@ -113,7 +152,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
     setElapsed(0)
     if (!concept || !ticket) {
       setStatus('failed')
-      setMessage(!ticket ? '이용권 확인 정보가 없어 메이크업 사진으로 만들었어요.' : '컨셉을 찾지 못했어요.')
+      setMessage(!ticket ? '이용권 확인 정보가 없어 찍은 사진 그대로 인화해요.' : '컨셉을 찾지 못했어요.')
       return
     }
     try {
@@ -124,17 +163,19 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
       if (people === 0 || people > IDOL_MAX_PEOPLE) {
         setStatus('skipped')
         setMessage(people === 0
-          ? '얼굴을 찾지 못해 메이크업 사진으로 만들었어요. 카메라 가까이 서면 AI 사진을 만들 수 있어요.'
-          : `AI 사진은 ${IDOL_MAX_PEOPLE}명까지예요. ${people}명이라 메이크업 사진으로 만들었어요.`)
+          ? '얼굴을 찾지 못해 찍은 사진 그대로 인화해요. 카메라 가까이 서면 AI 사진을 만들 수 있어요.'
+          : `AI 사진은 ${IDOL_MAX_PEOPLE}명까지예요. ${people}명이라 찍은 사진 그대로 인화해요.`)
         return
       }
+      const input = await idolInputs(original)
+      if (token !== runRef.current) return
       setStatus('generating')
       setTries((n) => n + 1)
       const res = await fetch('/api/photobooth/idol', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // 얼굴 인식을 못 쓰는 기기(-1)면 1명으로 보고 만든다
-        body: JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: toJpeg(original) }),
+        body: JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: input.photo, faces: input.faces }),
       })
       const data = await res.json().catch(() => ({}))
       if (token !== runRef.current) return
@@ -146,7 +187,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
     } catch (error) {
       if (token !== runRef.current) return
       setStatus('failed')
-      setMessage(`${error instanceof Error ? error.message : 'AI 사진을 만들지 못했어요.'} 메이크업 사진으로 대신했어요.`)
+      setMessage(`${error instanceof Error ? error.message : 'AI 사진을 만들지 못했어요.'} 찍은 사진 그대로 인화해요.`)
     }
   }, [shot, conceptId, ticket, getImage])
 
@@ -225,7 +266,7 @@ export function IdolStagePanel({ stage, conceptId, variant }: {
         </>
       )}
       {stage.status === 'done' && (
-        <p className={text}>BEFORE(실물)와 ON STAGE(AI) 두 장이 함께 인화돼요 · Printed as BEFORE / ON STAGE</p>
+        <p className={text}>완성! 아래에서 인화 디자인을 골라 주세요 · Pick a print design below</p>
       )}
       {(stage.status === 'failed' || stage.status === 'skipped') && <p className={text}>{stage.message}</p>}
       {stage.canRetry && (stage.status === 'done' || stage.status === 'failed') && (
@@ -233,6 +274,70 @@ export function IdolStagePanel({ stage, conceptId, variant }: {
           {stage.status === 'done' ? '다시 만들기 · Try again' : 'AI 사진 다시 시도 · Retry'} ({stage.retriesLeft})
         </button>
       )}
+    </div>
+  )
+}
+
+// ───────────────────────── 인화 디자인 고르기 ─────────────────────────
+
+const THUMB = 0.2
+
+/** 컨셉별 인화 디자인 4종 — 손님 사진으로 그린 작은 미리보기(인화와 같은 그리기 함수) */
+export function IdolDesignPicker({ conceptId, value, onChange, main, before, event, variant }: {
+  conceptId: string
+  value: string | null
+  onChange: (id: string) => void
+  /** 큰 사진(AI 사진, 아직 없으면 찍은 원본) */
+  main: Picture | null
+  before: Picture | null
+  event: string
+  variant: 'retro' | 'classic'
+}) {
+  const retro = variant === 'retro'
+  const concept = findIdolConcept(conceptId)
+  const designs = useMemo(() => (concept ? idolDesigns(concept) : []), [concept])
+  const selected = designs.find((d) => d.id === value)?.id ?? designs[0]?.id
+  const canvases = useRef<(HTMLCanvasElement | null)[]>([])
+
+  useEffect(() => {
+    if (!concept || !main) return
+    designs.forEach((design, i) => {
+      const canvas = canvases.current[i]
+      const ctx = canvas?.getContext('2d')
+      if (!canvas || !ctx) return
+      ctx.setTransform(THUMB, 0, 0, THUMB, 0, 0)
+      drawIdolDesign(ctx, concept, design.id, { main, before }, event)
+    })
+  }, [concept, designs, main, before, event])
+
+  if (!concept) return null
+  return (
+    <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3'} role="radiogroup" aria-label="인화 디자인 · Print design">
+      {designs.map((design, i) => {
+        const on = design.id === selected
+        return (
+          <button
+            key={design.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            data-on={on ? 'true' : 'false'}
+            onClick={() => onChange(design.id)}
+            className={retro
+              ? 'rt-choice flex flex-col items-center gap-1 p-2'
+              : `flex flex-col items-center gap-1 rounded-2xl border-2 p-2 transition-colors ${on ? 'border-current ring-2 ring-current' : 'border-[color:color-mix(in_srgb,currentColor_22%,transparent)]'}`}
+          >
+            <canvas
+              ref={(node) => { canvases.current[i] = node }}
+              width={1200 * THUMB}
+              height={1800 * THUMB}
+              className="block aspect-[2/3] w-full rounded-md bg-black/10"
+            />
+            <b className="text-sm leading-tight">{design.name.ko}</b>
+            <em className="text-xs not-italic opacity-70">{design.name.en}</em>
+          </button>
+        )
+      })}
     </div>
   )
 }

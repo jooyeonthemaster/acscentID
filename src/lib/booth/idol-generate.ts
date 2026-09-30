@@ -78,7 +78,7 @@ interface Completion {
 const FALLBACK_MODEL = 'google/gemini-2.5-flash-image'
 
 /** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
-async function requestImage(model: string, timeout: number, prompt: string, photo: string): Promise<string | null> {
+async function requestImage(model: string, timeout: number, prompt: string, photo: string, faces: string[]): Promise<string | null> {
   const started = Date.now()
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -92,7 +92,15 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
         model,
         modalities: ['image', 'text'],
         image_config: { aspect_ratio: '2:3' },
-        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: photo } }] }],
+        // 본 사진 다음에 얼굴 클로즈업을 사람 순서대로 — 프롬프트가 'IMAGE 1 / 얼굴 참고'로 부른다
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: photo } },
+            ...faces.map((url) => ({ type: 'image_url', image_url: { url } })),
+          ],
+        }],
       }),
       signal: AbortSignal.timeout(timeout),
     })
@@ -114,9 +122,12 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
   }
 }
 
-export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number): Promise<string> {
+export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number, faces: string[] = []): Promise<string> {
   if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
-  if (!/^data:image\/(jpeg|png|webp);base64,/.test(photo) || photo.length > 3_000_000) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
+  const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
+  if (!isImage(photo, 3_000_000)) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
+  // 얼굴 참고 사진(부스가 자른 클로즈업) — 사람 수까지만, 형식이 틀리면 빼고 본 사진만으로
+  const refs = faces.filter((face) => isImage(face, 600_000)).slice(0, people)
 
   const now = Date.now()
   if (now - windowStart > 60_000) { windowStart = now; windowCount = 0 }
@@ -128,7 +139,7 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
   const attempts: [string, number][] = [[primary, 50_000], [FALLBACK_MODEL, 45_000]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, buildIdolPrompt(concept, people), photo)
+    url = await requestImage(model, timeout, buildIdolPrompt(concept, people, refs.length), photo, refs)
     if (url) break
   }
   if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)

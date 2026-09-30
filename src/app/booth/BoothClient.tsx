@@ -21,13 +21,14 @@ import '@/components/mac/mac.css'
 import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
-import { IDOL_CONSENT, IdolConceptPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { IDOL_CONSENT, IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { drawIdolDesign } from '@/lib/booth/idol-layouts'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { findBoothMode } from '@/lib/booth/modes'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, drawOnStageLayout, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
+import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
@@ -448,8 +449,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [idolConsent, setIdolConsent] = useState(false)
   const [idolTicket, setIdolTicket] = useState<string | null>(null)
   const [idolEnabled, setIdolEnabled] = useState(false)
+  /** AI 아이돌 사진 인화 디자인(컨셉별 4종 — src/lib/booth/idol-layouts.ts). null 이면 그 컨셉의 첫 디자인 */
+  const [idolDesignId, setIdolDesignId] = useState<string | null>(null)
   const pickConcept = useCallback((id: string) => {
     setStageConceptId(id)
+    setIdolDesignId(null)
     setStageLookId(findIdolConcept(id)?.lookId ?? null)
   }, [])
   const idolOn = !!stageMakeup && idolConsent && idolEnabled
@@ -726,6 +730,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
     setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
+    setIdolDesignId(null)
     setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
     setIdolConsent(false)
     setIdolTicket(null)
@@ -832,6 +837,14 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     getImage,
   })
   const idolImage = idol.image
+  /** 찍은 한 컷(인화 디자인 미리보기의 BEFORE·AI 사진 전 큰 사진) */
+  const [idolShotImage, setIdolShotImage] = useState<HTMLImageElement | null>(null)
+  useEffect(() => {
+    if (!idolShot) { setIdolShotImage(null); return }
+    let live = true
+    void getImage(idolShot).then((img) => { if (live) setIdolShotImage(img) }).catch(() => {})
+    return () => { live = false }
+  }, [idolShot, getImage])
   const idolBusy = idol.busy
 
   // ---------- 처음 화면 복귀 (첫 화면 제외 모든 단계) ----------
@@ -1565,6 +1578,16 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         const guest =
           mode === 'together' && guestPhotoUrl ? await getImage(guestPhotoUrl) : null
         const frame = selectedFrame ? await getImage(selectedFrame.image_url) : null
+        // AI 아이돌 사진(행사 모드 + 동의) — 메이크업·스티커 없이 고른 인화 디자인으로. AI 사진이 오기 전·못 만들었으면 찍은 원본 그대로
+        const idolConcept = findIdolConcept(stageConceptId)
+        if (stageMakeup && idolOn && idolConcept && shotImages.length === 1) {
+          setMakeupStatus('idle')
+          drawIdolDesign(ctx, idolConcept, idolDesignId,
+            idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
+            stageMakeup.eventLines[0])
+          return
+        }
+
         // 행사 모드: 얼굴을 찾아 룩 메이크업을 입힌 사진(같은 사진·룩은 캐시). 얼굴이 없으면 원본
         const look = stageMakeup ? findStageLook(stageLookId) : null
         let photos: (HTMLImageElement | HTMLCanvasElement)[] = shotImages
@@ -1578,16 +1601,6 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         }
 
         if (renderTokenRef.current !== token) return
-
-        // AI 아이돌 사진이 있으면 BEFORE(실물) / ON STAGE(AI) + 하단 '오늘의 아이돌 컨셉'
-        const concept = findIdolConcept(stageConceptId)
-        if (stageMakeup && look && idolImage && concept && shotImages.length === 1) {
-          ctx.fillStyle = '#ffffff'
-          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
-          drawOnStageLayout(ctx, idolImage, shotImages[0], look.accent)
-          drawStageMakeupFooter(ctx, { name: concept.name, desc: concept.desc, footer: look.footer, accent: look.accent }, stageMakeup.eventLines, "TODAY'S IDOL CONCEPT · 오늘의 아이돌 컨셉")
-          return
-        }
 
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
@@ -1725,6 +1738,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     stageLookId,
     stageConceptId,
     idolImage,
+    idolOn,
+    idolDesignId,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -2673,13 +2688,21 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 </div>
               )}
               {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
-              {stageMakeup && !(idolOn && idolShot && (idol.busy || idol.status === 'done')) && (
+              {stageMakeup && !(idolOn && idolShot) && (
                 <div className="rt-group">
                   <span className="rt-group-label">무대 메이크업 · STAGE MAKEUP</span>
                   <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" status={makeupStatus} />
                 </div>
               )}
-              {/* 프레임 선택 */}
+              {/* 인화 디자인(AI 아이돌 사진 — 컨셉별 4종) / 그 밖에는 프레임 선택 */}
+              {idolOn && idolShot ? (
+                <div className="rt-group">
+                  <span className="rt-group-label">인화 디자인 · PRINT DESIGN</span>
+                  <IdolDesignPicker conceptId={stageConceptId} value={idolDesignId} onChange={setIdolDesignId}
+                    main={idolImage ?? idolShotImage} before={idolImage ? idolShotImage : null}
+                    event={stageMakeup?.eventLines[0] ?? ''} variant="retro" />
+                </div>
+              ) : (
               <div className="rt-group">
                 <span className="rt-group-label">프레임</span>
                 <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="retro" />
@@ -2687,6 +2710,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <p className="bth-group-text">등록된 프레임이 없어요 (관리자 페이지에서 추가)</p>
                 )}
               </div>
+              )}
 
               {/* 최애와 찍기: 합성 위치·크기 */}
               {mode === 'template' && templateGeometry && (

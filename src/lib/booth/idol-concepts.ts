@@ -3,8 +3,7 @@
 // (서버 src/lib/booth/idol-generate.ts, 전용 키 OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY).
 // 인화물은 BEFORE(실물) / ON STAGE(생성) — 닮음이 조금 어긋나도 '나'가 분명하다. docs/kiosk-modes.md '포토부스'
 //
-// 컨셉마다 무대 메이크업 룩(stage-makeup.ts)이 짝으로 붙는다 — 촬영 화면 실시간 메이크업 미리보기와,
-// AI 를 못 쓸 때(키 없음·실패·동의 안 함·얼굴 0명 또는 4명 이상) 얼굴 인식 메이크업 사진으로 대신할 때 쓴다.
+// 컨셉마다 무대 메이크업 룩(stage-makeup.ts)이 짝으로 붙는다 — AI 를 못 쓸 때(키 없음·실패·동의 안 함·얼굴 0명 또는 4명 이상) 얼굴 인식 메이크업 사진으로 대신할 때 쓴다.
 
 export interface IdolConcept {
   id: string
@@ -90,36 +89,47 @@ export function findIdolConcept(id: string | null | undefined): IdolConcept | nu
 export const IDOL_MAX_PEOPLE = 3
 
 /**
- * 생성 프롬프트 — 얼굴(정체성)을 가장 먼저 못 박고, 그 위에 컨셉·스타일·사진 품질, 마지막에 금지 사항.
+ * 생성 프롬프트 — '새 사진을 만들어라'가 아니라 '이 사진을 고쳐라'(편집)로 말한다. 새로 만들라고 하면 모델이 얼굴까지 다시 그려
+ * 현장에서 '완전히 다른 사람'이 됐다. 얼굴(정체성)을 가장 먼저 못 박고, 바꿀 것(조명·배경·의상·메이크업)만 좁게 허락한다.
+ * 헤어스타일을 바꾸면 알아보기 힘들어져 머리는 본인 그대로 손질만 한다.
+ * faceRefs: 본 사진 뒤에 붙는 얼굴 클로즈업 수(부스가 사람 순서대로 자른 것, 0 이면 본 사진만).
  * 외국인 손님이 많아 '한국 사람처럼' 바꾸는 일(피부 밝히기·눈매 바꾸기)을 특히 막는다.
  * 실존 연예인 닮게·로고·그룹명·노출 의상은 넣지 않는다(초상권·어린 손님).
  */
-export function buildIdolPrompt(concept: IdolConcept, people: number): string {
+export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs = 0): string {
   const p = concept.prompt
   const many = people > 1
+  const who = many ? `${people} people` : 'person'
   return [
-    `Transform this photo into an official K-pop idol concept photo of the SAME real ${many ? `${people} people` : 'person'} in it.`,
+    `EDIT the first image (IMAGE 1) into an official K-pop idol concept photo of the SAME real ${who}. This is a photo edit of real people, not a new portrait: their faces must come from IMAGE 1.`,
+    ...(faceRefs
+      ? [
+          `The next ${faceRefs === 1 ? 'image is a close-up' : `${faceRefs} images are close-ups`} of ${faceRefs === 1 && !many ? "this person's face" : "each person's face, in left-to-right order"} from the same photo — use ${faceRefs === 1 ? 'it' : 'them'} only as the identity reference for exact facial details. Do not place ${faceRefs === 1 ? 'it' : 'them'} in the result.`,
+        ]
+      : []),
     '',
-    'IDENTITY LOCK — the most important rule:',
-    `- Keep ${many ? "every person's" : "the person's"} own face exactly: face shape, eye shape and eyelids, eyebrows, nose, lips, jawline, moles and marks, skin tone, ethnicity, age and gender presentation.`,
-    '- They must be instantly recognizable as themselves to their friends and family.',
-    '- Do NOT swap or replace faces, do not beautify into a different face, do not slim the face, enlarge the eyes, change the eye shape, or lighten/darken the skin. Do not make anyone look younger or older.',
-    `- Keep the same number of people (${people}), the same left-to-right order, and a similar pose and expression.${many ? ' Each person keeps their own face — never blend or copy faces between people.' : ''}`,
+    'IDENTITY LOCK — the most important rule, above the concept:',
+    `- Preserve ${many ? "every person's" : "the person's"} real face exactly as in the photo: face shape and width, eye shape, eyelids and eye size, eyebrow shape, nose, lips and mouth width, jawline and chin, cheeks, moles, freckles and marks, skin tone, ethnicity, age and gender presentation.`,
+    '- Keep the same head angle, gaze direction and facial expression, and the face at a similar size in the frame.',
+    '- They must be instantly recognizable as themselves to their friends and family — the result should look like a professional photographer shot THIS person, not a lookalike.',
+    '- Do NOT regenerate, swap, idealize or beautify the face into a different face. Do not slim the face or jaw, enlarge the eyes, add double eyelids, change the nose or lips, smooth away features, or lighten/darken the skin. Do not make anyone look younger or older.',
+    '- If there is any conflict between the concept and the likeness, keep the likeness.',
+    `- Keep the same number of people (${people}), the same left-to-right order, and a similar pose.${many ? ' Each person keeps their own face — never blend or copy faces between people.' : ''}`,
     ...(many
       ? [
           `- The result MUST show all ${people} people together in ONE scene, standing side by side like an idol group photo — never drop, merge or duplicate anyone. If the input looks like separate photos or tiles, bring everyone into one shared scene.`,
         ]
       : []),
     '',
-    // 여럿일 때 '클로즈업' 컨셉이 인원수를 이겨 한 명으로 줄어드는 일이 있어, 단체 컷으로 바꿔 말한다
+    'WHAT YOU MAY CHANGE: background, lighting, outfit, hair finish and makeup only.',
     `CONCEPT — ${concept.name.en}${many ? ' (group version: all members in one shot)' : ''}: ${many ? p.groupScene ?? p.scene : p.scene}.`,
     '',
-    'IDOL STYLING (applied to them, not replacing them):',
-    `- Hair: ${p.hair}; keep ${many ? "each person's" : 'their'} exact hair color from the photo (brown stays brown, blond stays blond — do not turn it black) and roughly the same length.`,
-    `- Stage makeup: ${p.makeup}.`,
+    'IDOL STYLING (applied on top of them, never reshaping them):',
+    `- Hair: keep ${many ? "each person's" : 'their'} own hairstyle — same cut, length, parting, bangs and exact hair color (brown stays brown, blond stays blond, never turned black) — only neatly styled with ${p.hair}.`,
+    `- Stage makeup: ${p.makeup}. Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips.`,
     `- Outfit: ${p.outfit}; modest, age-appropriate and fully covered.`,
     '',
-    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture (not plastic), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
+    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture with real pores (not plastic or airbrushed), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
     '',
     'DO NOT add any text, captions, logos, watermarks, group names or signatures. Do not make anyone resemble a real celebrity or existing idol. Do not change body shape.',
   ].join('\n')

@@ -8,7 +8,7 @@ export const maxDuration = 120
 
 /**
  * 포토부스 행사 모드 — AI 아이돌 컨셉 사진 (부스 전용, 비로그인)
- * POST /api/photobooth/idol  { ticket, concept, people, photo: 'data:image/jpeg;base64,…' }
+ * POST /api/photobooth/idol  { ticket, concept, people, photo: 'data:image/jpeg;base64,…', faces?: [얼굴 클로즈업 data URL…] }
  * → { image: 'data:image/jpeg;base64,…' }
  *
  * ticket 은 이용권 확인(/api/photobooth/pass) 때 받은 서명 표 — 없으면 비용이 드는 생성을 하지 않는다.
@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `AI 사진은 ${IDOL_MAX_PEOPLE}명까지 만들 수 있어요.` }, { status: 400 })
     }
     spendIdolTicket(body?.ticket)
-    const image = await generateIdolPhoto(String(body?.photo ?? ''), concept, people)
+    const faces = Array.isArray(body?.faces) ? body.faces.filter((face: unknown): face is string => typeof face === 'string') : []
+    const image = await generateIdolPhoto(String(body?.photo ?? ''), concept, people, faces)
     return NextResponse.json({ image }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     if (error instanceof IdolError) return NextResponse.json({ error: error.message }, { status: error.status })
