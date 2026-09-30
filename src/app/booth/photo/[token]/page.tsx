@@ -7,6 +7,7 @@ import {
   resultTokenCreatedAt,
 } from '@/lib/photobooth/result-photo'
 import PhotoSaver from './PhotoSaver'
+import { BOOTH_LANGS, boothText, parseBoothLang } from '@/lib/booth/i18n'
 
 // 부스 [이미지 저장] QR 을 폰으로 찍으면 열리는 페이지 — 손님이 자기 사진을 갤러리에 저장한다
 export const metadata = {
@@ -18,21 +19,27 @@ export const dynamic = 'force-dynamic'
 
 export default async function BoothPhotoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>
+  /** ?lang= — 부스 화면 언어(부스가 [이미지 저장] QR 주소에 붙인다, 없으면 한국어) */
+  searchParams: Promise<{ lang?: string | string[] }>
 }) {
   const { token } = await params
   if (!isResultToken(token)) notFound()
+  const lang = parseBoothLang((await searchParams).lang)
+  const t = boothText(lang)
+  const expiredDesc = t.photoExpiredDesc(RESULT_PHOTO_TTL_HOURS)
 
   if (isResultExpired(token)) {
     return (
-      <div className="min-h-svh bg-neutral-950 text-white flex flex-col items-center justify-center px-6 py-10 text-center">
+      <div lang={BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'} className="min-h-svh bg-neutral-950 text-white flex flex-col items-center justify-center px-6 py-10 text-center">
         <p className="text-sm font-bold tracking-[0.25em] text-white/50 mb-8">AC&apos;SCENT WOW</p>
-        <h1 className="text-2xl font-bold mb-3 break-keep">사진 보관 기간이 지났어요</h1>
+        <h1 className="text-2xl font-bold mb-3 break-keep">{t.photoExpiredTitle}</h1>
         <p className="text-white/55 text-sm leading-relaxed break-keep">
-          부스 사진은 개인정보 보호를 위해
+          {expiredDesc[0]}
           <br />
-          촬영 후 {RESULT_PHOTO_TTL_HOURS}시간이 지나면 자동으로 삭제돼요.
+          {expiredDesc[1]}
         </p>
       </div>
     )
@@ -46,6 +53,7 @@ export default async function BoothPhotoPage({
       downloadUrl={resultPhotoImagePath(token, true)}
       fileName={`acscent-wow-${token.slice(-6)}.jpg`}
       expiresAt={expiresAt}
+      lang={lang}
     />
   )
 }

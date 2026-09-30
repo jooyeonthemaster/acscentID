@@ -1785,3 +1785,38 @@
 .bth-home--stage .bth-idol-consent {
   font-size: 13px;
 }
+
+/* ── 언어 버튼(우측 상단) — 키오스크 .ksk-lang 과 같은 모양 ── */
+.bth-lang {
+  position: relative;
+  flex: none;
+  z-index: 60;
+}
+.bth-lang .bth-lang-btn {
+  min-height: 54px;
+  padding: 6px 14px;
+  gap: 8px;
+  font-size: 18px;
+}
+.bth-lang[data-open='true'] .bth-lang-btn {
+  background: var(--rt-face-alt);
+  box-shadow: var(--rt-sunken);
+}
+/* 메뉴 밖을 누르면 닫히게 — 화면 전체를 덮는 투명 버튼 */
+.bth-lang-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+.bth-lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+}
+.bth-lang-menu button {
+  font-size: 19px;
+}

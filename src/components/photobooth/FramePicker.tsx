@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { boothText, type BoothLang } from '@/lib/booth/i18n'
 
 interface FrameOption {
   id: string
@@ -10,6 +11,7 @@ interface FrameOption {
   category?: string
 }
 
+// 분류 값(내부 키) — 화면에는 사전 frameAll·frameUploaded 로 보인다. 관리자 분류 이름은 데이터 그대로
 const ALL = '전체'
 const UPLOADED = '직접 등록'
 
@@ -25,12 +27,16 @@ export function FramePicker<T extends FrameOption>({
   selected,
   onSelect,
   variant,
+  lang,
 }: {
   frames: T[]
   selected: T | null
   onSelect: (frame: T | null) => void
   variant: 'retro' | 'classic'
+  lang: BoothLang
 }) {
+  const t = boothText(lang)
+  const categoryLabel = (name: string) => (name === UPLOADED ? t.frameUploaded : t.frameCategories[name] ?? name)
   const [category, setCategory] = useState(ALL)
   const categories = Array.from(new Set(frames.map((frame) => frame.category || UPLOADED)))
   // 고른 분류가 관리자 변경으로 사라지면 전체로 돌아간다
@@ -52,9 +58,9 @@ export function FramePicker<T extends FrameOption>({
   return (
     <div className={retro ? 'bth-frame-picker' : 'flex flex-col gap-3'}>
       <label className={retro ? 'bth-frame-filter' : 'flex items-center gap-3 text-sm font-semibold'}>
-        <span>분류</span>
+        <span>{t.frameCategory}</span>
         <select
-          aria-label="프레임 분류"
+          aria-label={t.frameCategoryAria}
           value={activeCategory}
           onChange={(event) => setCategory(event.target.value)}
           className={
@@ -64,21 +70,21 @@ export function FramePicker<T extends FrameOption>({
           }
         >
           <option value={ALL}>
-            {ALL} ({frames.length})
+            {t.frameAll} ({frames.length})
           </option>
           {categories.map((name) => (
             <option key={name} value={name}>
-              {name} ({frames.filter((frame) => (frame.category || UPLOADED) === name).length})
+              {categoryLabel(name)} ({frames.filter((frame) => (frame.category || UPLOADED) === name).length})
             </option>
           ))}
         </select>
       </label>
       <p className={retro ? 'bth-group-text' : 'text-sm opacity-70'} aria-live="polite">
-        선택: {selected?.title || '프레임 없음'}
+        {t.frameSelected(selected?.title || t.frameNone)}
       </p>
       <div
         className={retro ? 'bth-frame-grid' : 'grid max-h-[15rem] grid-cols-4 gap-2 overflow-y-auto overscroll-contain p-1'}
-        aria-label="프레임 목록"
+        aria-label={t.frameListAria}
       >
         <button
           type="button"
@@ -86,7 +92,7 @@ export function FramePicker<T extends FrameOption>({
           aria-pressed={!selected}
           className={`${tile(!selected)} flex items-center justify-center text-sm font-bold`}
         >
-          없음
+          {t.frameNoneButton}
         </button>
         {visible.map((frame) => {
           const pressed = selected?.id === frame.id

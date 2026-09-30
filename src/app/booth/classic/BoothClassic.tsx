@@ -19,11 +19,14 @@
 
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
-import { IDOL_CONSENT, IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
+import { BoothLangSwitcher } from '@/components/photobooth/BoothLangSwitcher'
+import { attractHeadline, boothText, conceptText, guestError, lookText, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
+import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from '@/app/kiosk/fonts'
 import { findBoothMode } from '@/lib/booth/modes'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
 import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
@@ -430,6 +433,14 @@ export function BoothClassic() {
   const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
   // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
   const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
+  /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
+  const [lang, setLang] = useState<BoothLang>('ko')
+  const t = boothText(lang)
+  // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
+  const langRef = useRef(lang)
+  langRef.current = lang
+  const tRef = useRef(t)
+  tRef.current = t
   const [idolConsent, setIdolConsent] = useState(false)
   const [idolTicket, setIdolTicket] = useState<string | null>(null)
   const [idolEnabled, setIdolEnabled] = useState(false)
@@ -721,6 +732,7 @@ export function BoothClassic() {
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
     setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
+    setLang('ko')
     setIdolDesignId(null)
     setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
     setIdolConsent(false)
@@ -826,6 +838,7 @@ export function BoothClassic() {
     conceptId: stageConceptId,
     ticket: idolTicket,
     getImage,
+    lang,
   })
   const idolImage = idol.image
   /** 찍은 한 컷(인화 디자인 미리보기의 BEFORE·AI 사진 전 큰 사진) */
@@ -907,7 +920,7 @@ export function BoothClassic() {
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error(data.error || '세션 생성 실패')
       setSessionCode(data.code)
-      const uploadUrl = `${window.location.origin}/booth/upload/${data.code}`
+      const uploadUrl = withBoothLang(`${window.location.origin}/booth/upload/${data.code}`, langRef.current)
       const qr = await QRCode.toDataURL(uploadUrl, { width: 480, margin: 1 })
       setQrDataUrl(qr)
     } catch (error) {
@@ -962,7 +975,7 @@ export function BoothClassic() {
     async (code: string) => {
       setPassLoading(true)
       setPassError('')
-      let title = '이용권을 확인하지 못했어요'
+      let title = tRef.current.passFailTitle
       try {
         const res = await fetch('/api/photobooth/pass', {
           method: 'POST',
@@ -971,8 +984,10 @@ export function BoothClassic() {
         })
         const data = await res.json()
         if (!res.ok) {
-          if (typeof data.title === 'string') title = data.title
-          throw new Error(data.error || '이용권 확인에 실패했어요')
+          // 한국어는 서버 문구 그대로, 다른 언어는 실패 종류별 번역 문구
+          const failure = passErrorText(langRef.current, res.status, data)
+          title = failure.title
+          throw new Error(failure.message)
         }
         setPassVerified(true)
         setIdolTicket(typeof data.idolTicket === 'string' ? data.idolTicket : null)
@@ -980,7 +995,7 @@ export function BoothClassic() {
         setPendingMode(null)
         proceedToMode(next)
       } catch (error) {
-        const message = error instanceof Error ? error.message : '이용권 확인에 실패했어요'
+        const message = guestError(langRef.current, error instanceof Error ? error.message : null, tRef.current.passFailMessage)
         setPassError(message)
         setPassDigits('')
         setPassAlert({ title, message })
@@ -1052,7 +1067,7 @@ export function BoothClassic() {
     async (rawCode: string) => {
       const code = parseCardCode(rawCode)
       if (!code) {
-        setScanError('카드 번호를 읽지 못했어요')
+        setScanError(tRef.current.cardCodeUnreadable)
         return false
       }
       setScanBusy(true)
@@ -1060,14 +1075,14 @@ export function BoothClassic() {
       try {
         const res = await fetch(`/api/photobooth/card?code=${code}`, { cache: 'no-store' })
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || '카드를 확인하지 못했어요')
+        if (!res.ok) throw new Error(data.error || tRef.current.cardCheckFailed)
 
         const img = await getImage(data.card.cutoutUrl)
         const canvas = document.createElement('canvas')
         canvas.width = img.naturalWidth || img.width
         canvas.height = img.naturalHeight || img.height
         const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('카드 이미지를 준비하지 못했어요')
+        if (!ctx) throw new Error(tRef.current.cardImageFailed)
         ctx.drawImage(img, 0, 0)
 
         setScannedCard({ code: data.card.code, title: data.card.title, cutoutUrl: data.card.cutoutUrl })
@@ -1080,7 +1095,7 @@ export function BoothClassic() {
         return true
       } catch (error) {
         console.error('[photobooth] 카드 적용 실패:', error)
-        setScanError(error instanceof Error ? error.message : '카드를 확인하지 못했어요')
+        setScanError(guestError(langRef.current, error instanceof Error ? error.message : null, tRef.current.cardCheckFailed))
         return false
       } finally {
         setScanBusy(false)
@@ -1136,7 +1151,7 @@ export function BoothClassic() {
         reader = await createQrReader()
       } catch (error) {
         console.error('[photobooth] QR 인식기 로드 실패:', error)
-        if (step === 'scan') setScanError('카드 자동 인식을 쓸 수 없어요. 카드의 번호를 입력해주세요')
+        if (step === 'scan') setScanError(tRef.current.cardAutoUnavailable)
         return
       }
 
@@ -1264,7 +1279,7 @@ export function BoothClassic() {
         setCameraSource('dslr')
       } else if (health.reachable) {
         // 브리지는 있는데 카메라가 안 잡힘(전원 꺼짐·다른 앱 사용 중) — 웹캠으로 넘어가지 않고 기다린다
-        setCameraError('카메라를 연결하고 있어요. 카메라 전원이 켜져 있는지 확인해주세요')
+        setCameraError(tRef.current.cameraConnecting)
         timer = window.setTimeout(probe, 2500)
       } else {
         setCameraSource('webcam')
@@ -1366,7 +1381,7 @@ export function BoothClassic() {
       })
       .catch((error) => {
         console.error('카메라 접근 실패:', error)
-        setCameraError('카메라를 사용할 수 없습니다. 브라우저 카메라 권한을 확인해주세요.')
+        setCameraError(tRef.current.cameraUnavailable)
       })
     return () => {
       cancelled = true
@@ -1379,7 +1394,9 @@ export function BoothClassic() {
   const liveComposeReady = step === 'camera' && mode === 'template' && !!templateGeometry
   // 행사 모드 — 촬영 화면은 필터·메이크업 없이 실제 모습 그대로 보여 주고, 고른 컨셉(룩) 이름만 적는다
   // (메이크업은 찍은 뒤 결과에만 입힌다. AI 아이돌 사진은 원본 한 컷으로 만든다)
-  const liveLookName = !stageMakeup ? null : idolOn ? findIdolConcept(stageConceptId)?.name ?? null : findStageLook(stageLookId)?.name ?? null
+  const liveConcept = findIdolConcept(stageConceptId)
+  const liveLook = findStageLook(stageLookId)
+  const liveLookName = !stageMakeup ? null : idolOn ? (liveConcept ? conceptText(t, liveConcept).name : null) : liveLook ? lookText(t, liveLook).name : null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -1467,13 +1484,13 @@ export function BoothClassic() {
           const settingProblem = /동영상 모드/.test(failReason)
           attempts++
           if (attempts <= 2 && !settingProblem) {
-            setShotNotice('다시 찍을게요. 카메라를 봐주세요')
+            setShotNotice(tRef.current.retakeNotice)
             await sleep(1200)
             setShotNotice(null)
             shot--
             continue
           }
-          setShotNotice(settingProblem ? `직원에게 알려주세요 — ${failReason}` : '카메라가 응답하지 않아요. 직원에게 알려주세요')
+          setShotNotice(settingProblem ? tRef.current.tellStaff(failReason) : tRef.current.cameraNoResponse)
           window.setTimeout(() => setShotNotice(null), settingProblem ? 10000 : 4000)
           collected.length = 0
           break
@@ -1521,14 +1538,14 @@ export function BoothClassic() {
       {!liveReady && !cameraError && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-white/70">
           <Loader2 className="w-9 h-9 animate-spin" style={{ color: accent }} />
-          <span className="text-sm">카메라 준비 중</span>
+          <span className="text-sm">{t.cameraPreparing}</span>
         </div>
       )}
       {capturing && cameraSource === 'dslr' && (
         <div className="absolute inset-x-0 bottom-6 flex justify-center">
           <div className="flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-base font-bold text-white">
             <Loader2 className="w-4 h-4 animate-spin" style={{ color: accent }} />
-            찰칵! 그대로 잠깐만요
+            {t.captureHold}
           </div>
         </div>
       )}
@@ -1701,7 +1718,7 @@ export function BoothClassic() {
       } catch (error) {
         console.error('합성 렌더 실패:', error)
         if (renderTokenRef.current === token) {
-          setComposeError('이미지 합성에 실패했습니다. 다시 시도해주세요.')
+          setComposeError(tRef.current.composeFailed)
         }
       }
     }
@@ -1814,7 +1831,7 @@ export function BoothClassic() {
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
-      setComposeError('결과 이미지를 만들 수 없습니다. 잠시 후 다시 시도해주세요.')
+      setComposeError(tRef.current.resultFailed)
     } finally {
       setFinishing(false)
     }
@@ -1865,7 +1882,7 @@ export function BoothClassic() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.path) throw new Error(data.error || `업로드 실패 (${res.status})`)
-      const url = `${window.location.origin}${data.path}`
+      const url = withBoothLang(`${window.location.origin}${data.path}`, langRef.current)
       const qrDataUrl = await QRCode.toDataURL(url, { width: 640, margin: 1 })
       setSaveQr({ url, qrDataUrl })
       setSaveQrOpen(true)
@@ -1877,9 +1894,9 @@ export function BoothClassic() {
   }, [resultUrl, saveStatus, saveQr, logShot])
 
   const eventPeriod = event ? formatPeriod(event) : null
-  const templateLabel = event?.artist ? `${event.artist}와 찍기` : '최애와 찍기'
+  const templateLabel = event?.artist ? t.tileTemplateWith(event.artist) : t.tileTemplate
   const standSideText =
-    templateGeometry?.freeSide === 'left' ? '왼쪽' : '오른쪽'
+    templateGeometry?.freeSide === 'left' ? t.standLeft : t.standRight
 
   // ======================
   // Render
@@ -1887,16 +1904,19 @@ export function BoothClassic() {
   useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
   return (
     <div
-      className={`relative min-h-screen overflow-hidden bg-neutral-950 text-white flex flex-col select-none ${lightHome ? 'booth-tone-light' : 'booth-tone-dark'}`}
+      className={`relative min-h-screen overflow-hidden bg-neutral-950 text-white flex flex-col select-none ${KIOSK_FONT_CLASS} ${lightHome ? 'booth-tone-light' : 'booth-tone-dark'}`}
       data-background={activeBackground.id}
+      data-lang={lang}
+      lang={BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
       style={{
-        fontFamily: activeBackground.bodyFont,
+        // 테마 글꼴은 한국어 전용이라 한자권 언어에서는 그 언어 글꼴로(키오스크와 같은 글꼴)
+        fontFamily: isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.bodyFont,
         backgroundColor: activeBackground.base,
         color: activeBackground.ink,
         '--booth-ink': activeBackground.ink,
         '--booth-accent': accent,
         '--booth-on-accent': onAccent,
-        '--booth-display-font': activeBackground.displayFont,
+        '--booth-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.displayFont,
         '--booth-display-weight': String(activeBackground.displayWeight),
         '--booth-display-tracking': activeBackground.displayTracking,
       } as React.CSSProperties}
@@ -2006,7 +2026,7 @@ export function BoothClassic() {
         {isAttract && (
           <motion.button
             type="button"
-            aria-label="포토부스 시작하기"
+            aria-label={t.attractAria}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -2027,13 +2047,13 @@ export function BoothClassic() {
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             >
               {boothMode.attract ? (
-                // 행사 모드 — 외국인 손님이 많아 영어 한 줄을 곁들인다
+                // 행사 모드 — 제목은 화면 언어로. 한국어 화면일 때만 외국인 손님을 위해 영어 한 줄을 곁들인다
                 <>
                   <p className="mb-3 text-4xl font-black tracking-tight md:text-5xl">{boothMode.attract.wordmark}</p>
                   <p className={`mb-10 text-lg font-bold tracking-[0.4em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>{boothMode.attract.sub}</p>
                   <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>{boothMode.attract.badge}</p>
-                  <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">{boothMode.attract.headline}</h1>
-                  {boothMode.attract.headlineEn && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{boothMode.attract.headlineEn}</p>}
+                  <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">{attractHeadline(t, lang, boothMode)}</h1>
+                  {lang === 'ko' && boothMode.attract.headlineEn && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{boothMode.attract.headlineEn}</p>}
                 </>
               ) : (
                 <>
@@ -2041,7 +2061,7 @@ export function BoothClassic() {
                   <img src="/assets/photobooth/decor/wordmark.svg" alt="AC'SCENT WOW PHOTO" className={`mb-12 w-80 max-w-[55vw] ${lightHome ? 'invert' : ''}`} />
                   <p className={`mb-5 text-xl font-bold tracking-[0.32em] ${lightHome ? 'text-[var(--booth-ink)]/70' : 'text-white/70'}`}>4×6 PHOTO BENEFIT</p>
                   <h1 className="booth-display max-w-4xl text-5xl leading-tight md:text-7xl">
-                    {event?.greeting || '오늘의 최애와, 한 장에'}
+                    {event?.greeting || t.attractDefault}
                   </h1>
                   {event?.hashtag && <p className="mt-6 text-2xl font-bold" style={{ color: accent }}>{event.hashtag}</p>}
                 </>
@@ -2051,7 +2071,7 @@ export function BoothClassic() {
                 animate={{ boxShadow: ['0 0 0 0 rgba(255,255,255,.15)', '0 0 0 16px rgba(255,255,255,0)', '0 0 0 0 rgba(255,255,255,0)'] }}
                 transition={{ duration: 2.2, repeat: Infinity }}
               >
-                화면을 터치해 시작하기
+                {t.attractTouch}
               </motion.span>
             </motion.div>
           </motion.button>
@@ -2060,7 +2080,7 @@ export function BoothClassic() {
       {resultUrl && (
         <div className="booth-print-area">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={resultUrl} alt="인쇄용 사진" />
+          <img src={resultUrl} alt={t.printAlt} />
         </div>
       )}
 
@@ -2072,7 +2092,7 @@ export function BoothClassic() {
               type="button"
               onClick={goBack}
               disabled={shooting || passLoading || finishing}
-              aria-label="이전 단계로 돌아가기"
+              aria-label={t.backAria}
               className="flex min-h-12 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-full px-5 text-base font-bold shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98] disabled:opacity-40"
               style={{
                 backgroundColor: accent,
@@ -2080,7 +2100,7 @@ export function BoothClassic() {
               }}
             >
               <ChevronLeft className="h-5 w-5" />
-              뒤로
+              {t.back}
             </button>
           )}
           <button
@@ -2099,12 +2119,13 @@ export function BoothClassic() {
               {event.title}
             </span>
           )}
+          <BoothLangSwitcher lang={lang} onChange={setLang} variant="classic" disabled={shooting || printing} />
           {step !== 'home' && (
             <button
               onClick={resetAll}
               className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
             >
-              <X className="w-4 h-4" /> 처음으로
+              <X className="w-4 h-4" /> {t.home}
             </button>
           )}
         </div>
@@ -2124,17 +2145,15 @@ export function BoothClassic() {
         {step === 'home' && stageMakeup && (
           <div className="flex w-full max-w-4xl flex-col items-center gap-5" style={{ color: activeBackground.ink }}>
             <div className="text-center">
-              <h1 className="booth-display text-3xl md:text-4xl mb-2">{idolEnabled ? '어떤 컨셉으로 데뷔할까요?' : '오늘의 무대 컨셉을 골라요'}</h1>
+              <h1 className="booth-display text-3xl md:text-4xl mb-2">{idolEnabled ? t.stageTitleIdol : t.stageTitleMakeup}</h1>
               <p className="opacity-60">
-                {idolEnabled ? 'Pick your K-POP idol concept · AI가 나를 아이돌 사진으로' : 'Pick your K-POP stage concept · 무대 메이크업 사진'}
+                {idolEnabled ? t.stageSubIdol : t.stageSubMakeup}
               </p>
             </div>
-            <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="classic" />
+            <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="classic" lang={lang} />
             {idolEnabled && (
               <p className="max-w-3xl text-center text-sm leading-relaxed opacity-70 break-keep">
-                {IDOL_CONSENT.ko}
-                <br />
-                {IDOL_CONSENT.en}
+                {t.idolConsent}
               </p>
             )}
             <div className="flex flex-wrap justify-center gap-3">
@@ -2145,7 +2164,7 @@ export function BoothClassic() {
                   className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
                   style={{ background: accent }}
                 >
-                  <Sparkles className="w-6 h-6" /> 동의하고 아이돌 되기 · Agree &amp; Start
+                  <Sparkles className="w-6 h-6" /> {t.idolAgreeStart}
                 </button>
               )}
               <button
@@ -2156,7 +2175,7 @@ export function BoothClassic() {
                   : 'inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5'}
                 style={idolEnabled ? undefined : { background: accent }}
               >
-                <Camera className="w-6 h-6" /> {idolEnabled ? '메이크업만 · Makeup only' : '촬영 시작 · Start'}
+                <Camera className="w-6 h-6" /> {idolEnabled ? t.makeupOnly : t.startShooting}
               </button>
             </div>
           </div>
@@ -2197,8 +2216,8 @@ export function BoothClassic() {
               </div>
             ) : (
               <div className="mb-10 text-center">
-                <h1 className="booth-display text-3xl md:text-4xl mb-2">어떤 사진을 찍을까요?</h1>
-                <p className={lightHome ? 'text-[var(--booth-ink)]/65' : 'text-white/50'}>4x6인치 인화 사진으로 출력됩니다</p>
+                <h1 className="booth-display text-3xl md:text-4xl mb-2">{t.homeTitle}</h1>
+                <p className={lightHome ? 'text-[var(--booth-ink)]/65' : 'text-white/50'}>{t.homeSub}</p>
               </div>
             )}
 
@@ -2208,11 +2227,11 @@ export function BoothClassic() {
                 className={`group min-h-60 rounded-3xl p-7 text-left text-lg transition-all ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950'}`}
               >
                 <QrCode className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">포토카드로 찍기</p>
+                <p className="booth-display text-xl mb-2">{t.tileCard}</p>
                 <p className="text-lg opacity-60 leading-relaxed break-keep">
-                  매장 포토카드를
+                  {t.tileCardDesc[0]}
                   <br />
-                  카메라에 보여주세요
+                  {t.tileCardDesc[1]}
                 </p>
               </button>
               <button
@@ -2223,9 +2242,9 @@ export function BoothClassic() {
                 <Users className="w-10 h-10 mb-6" />
                 <p className="booth-display text-xl mb-2">{templateLabel}</p>
                 <p className="text-lg opacity-60 leading-relaxed break-keep">
-                  준비된 컷의 빈자리에
+                  {t.tileTemplateDesc[0]}
                   <br />
-                  옆에 선 것처럼 합성돼요
+                  {t.tileTemplateDesc[1]}
                 </p>
               </button>
               <button
@@ -2234,12 +2253,12 @@ export function BoothClassic() {
               >
                 <Smartphone className="w-10 h-10 mb-6" />
                 <p className="booth-display text-xl mb-2">
-                  {event ? '내 포카·직찍과 찍기' : '같이 찍기'}
+                  {event ? t.tileTogetherEvent : t.tileTogether}
                 </p>
                 <p className="text-lg opacity-60 leading-relaxed break-keep">
-                  폰 속 사진을 올려서
+                  {t.tileTogetherDesc[0]}
                   <br />
-                  함께 찍은 것처럼 합성해요
+                  {t.tileTogetherDesc[1]}
                 </p>
               </button>
               <button
@@ -2247,18 +2266,18 @@ export function BoothClassic() {
                 className={`group min-h-60 rounded-3xl p-7 text-left transition-all ${lightHome ? 'border border-[var(--booth-ink)]/15 bg-white/75 shadow-[0_16px_45px_rgba(43,67,86,.10)] hover:-translate-y-1 hover:bg-white' : 'border border-white/15 bg-white/5 hover:bg-white hover:text-neutral-950'}`}
               >
                 <Camera className="w-10 h-10 mb-6" />
-                <p className="booth-display text-xl mb-2">일반 촬영</p>
+                <p className="booth-display text-xl mb-2">{t.tileSolo}</p>
                 <p className="text-lg opacity-60 leading-relaxed break-keep">
-                  1컷 또는 네컷으로
+                  {t.tileSoloDesc[0]}
                   <br />
-                  지금 이 순간을 담아요
+                  {t.tileSoloDesc[1]}
                 </p>
               </button>
             </div>
 
             <p className={`mt-8 text-center text-base flex items-center justify-center gap-1.5 ${lightHome ? 'text-[var(--booth-ink)]/55' : 'text-white/35'}`}>
               <Ticket className="w-3.5 h-3.5" />
-              포토부스는 상품 구매 시 드리는 이용권으로 이용할 수 있어요
+              {t.passNote}
             </p>
           </div>
         )}
@@ -2268,9 +2287,9 @@ export function BoothClassic() {
           <div className="w-full max-w-6xl flex flex-col items-center">
             <h2 className="booth-display text-2xl md:text-3xl mb-1 flex items-center gap-2">
               <Ticket className="w-8 h-8" style={{ color: accent }} />
-              이용권 QR을 보여주세요
+              {t.passTitle}
             </h2>
-            <p className="text-sm opacity-50 mb-4">카운터에서 받은 이용권의 QR을 카메라 쪽으로 향하게 해주세요</p>
+            <p className="text-sm opacity-50 mb-4">{t.passSub}</p>
 
             <div className="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
               {cameraError ? (
@@ -2291,7 +2310,7 @@ export function BoothClassic() {
               )}
 
             <div className="w-full max-w-sm text-center">
-            <p className="text-sm opacity-50 mb-3">QR이 안 읽히면 번호 6자리를 눌러주세요</p>
+            <p className="text-sm opacity-50 mb-3">{t.passManual}</p>
 
             {/* 코드 표시 */}
             <div className="flex justify-center gap-2.5 mb-4">
@@ -2341,6 +2360,7 @@ export function BoothClassic() {
               <button
                 onClick={() => pressKeypad('back')}
                 disabled={passLoading}
+                aria-label={t.keypadDelete}
                 className="h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/15 active:bg-white/25 transition-colors disabled:opacity-40"
               >
                 <Delete className="w-6 h-6" />
@@ -2355,45 +2375,45 @@ export function BoothClassic() {
         {step === 'qr' && (
           <div className="text-center">
             <h2 className="booth-display text-2xl md:text-3xl mb-2">
-              {guestPhotoUrl ? '사진을 받았어요' : '폰으로 사진 올리기'}
+              {guestPhotoUrl ? t.qrReceived : t.qrTitle}
             </h2>
             <p className="text-white/50 mb-8">
               {guestPhotoUrl
-                ? '함께 찍을 수 있게 인물만 오려내고 있어요'
-                : 'QR을 스캔해 합성할 포카·직찍 한 장을 올려주세요'}
+                ? t.qrCuttingSub
+                : t.qrSub}
             </p>
             {guestPhotoUrl ? (
               <div className="flex flex-col items-center gap-6">
                 <div className="relative overflow-hidden rounded-3xl border-4 shadow-2xl" style={{ borderColor: accent }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={guestPhotoUrl} alt="받은 사진" className="h-72 w-auto max-w-[70vw] object-contain" />
+                  <img src={guestPhotoUrl} alt={t.receivedPhotoAlt} className="h-72 w-auto max-w-[70vw] object-contain" />
                   {/* 훑고 지나가는 빛 — 처리 중임을 보여준다. 오려내기 계산이 화면 스레드를 잠깐씩 막아도
                       멈추지 않도록 JS 가 아닌 CSS 애니메이션(컴포지터에서 돈다)으로 */}
                   <div className="booth-shimmer pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/45 to-transparent" />
                 </div>
                 <p className="flex items-center gap-2 text-white/60">
-                  <Loader2 className="w-4 h-4 animate-spin" /> 인물만 오려내는 중… 곧 카메라가 켜져요
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t.cuttingOutLong}
                 </p>
               </div>
             ) : sessionExpired ? (
               <div className="flex flex-col items-center gap-5">
-                <p className="text-red-400">세션이 만료되었어요</p>
+                <p className="text-red-400">{t.sessionExpired}</p>
                 <button
                   onClick={() => proceedToMode('together')}
                   className="flex items-center gap-2 rounded-full booth-primary px-6 py-3 font-semibold hover:opacity-80 transition-opacity"
                 >
-                  <RefreshCw className="w-4 h-4" /> QR 다시 만들기
+                  <RefreshCw className="w-4 h-4" /> {t.qrRemake}
                 </button>
               </div>
             ) : qrDataUrl ? (
               <div className="flex flex-col items-center gap-6">
                 <div className="bg-white rounded-3xl p-5 border-4" style={{ borderColor: accent }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrDataUrl} alt="사진 업로드 QR" className="w-56 h-56 md:w-64 md:h-64" />
+                  <img src={qrDataUrl} alt={t.uploadQrAlt} className="w-56 h-56 md:w-64 md:h-64" />
                 </div>
                 <p className="font-mono text-white/40 tracking-widest">{sessionCode}</p>
                 <p className="flex items-center gap-2 text-white/60">
-                  <Loader2 className="w-4 h-4 animate-spin" /> 업로드를 기다리는 중...
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t.waitingUpload}...
                 </p>
               </div>
             ) : (
@@ -2406,9 +2426,9 @@ export function BoothClassic() {
         {step === 'scan' && (
           // 키오스크라 스크롤이 생기면 안 된다. 카메라와 키패드를 좌우로 나눠 한 화면에 담는다
           <div className="w-full max-w-6xl flex flex-col items-center">
-            <h2 className="text-xl md:text-2xl font-bold mb-1">카드를 카메라에 보여주세요</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-1">{t.scanTitle}</h2>
             <p className="text-sm opacity-50 mb-4">
-              포토카드 뒷면의 QR을 화면 쪽으로 향하게 해주세요
+              {t.scanSub}
             </p>
 
             <div className="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
@@ -2436,7 +2456,7 @@ export function BoothClassic() {
             {/* QR이 안 읽힐 때 — 카드에 인쇄된 번호로 진행.
                 부스는 터치스크린이라 물리 키보드가 없을 수 있어 화면 키패드를 제공한다. */}
             <div className="flex flex-col items-center">
-              <p className="text-sm opacity-50 mb-3">QR이 안 읽히면 카드의 번호를 눌러주세요</p>
+              <p className="text-sm opacity-50 mb-3">{t.scanManual}</p>
 
               {/* 입력 칸 — 몇 자 들어갔는지 한눈에 보이게 */}
               <div className="flex gap-2 mb-4">
@@ -2470,7 +2490,8 @@ export function BoothClassic() {
                   onClick={() => pressCardKey('back')}
                   disabled={scanBusy}
                   className="h-11 w-11 rounded-lg border border-current/20 bg-current/5 flex items-center justify-center hover:bg-current/15 active:bg-current/25 transition-colors disabled:opacity-30"
-                  title="지우기"
+                  title={t.keypadDelete}
+                  aria-label={t.keypadDelete}
                 >
                   <Delete className="w-5 h-5" />
                 </button>
@@ -2483,7 +2504,7 @@ export function BoothClassic() {
               onClick={resetAll}
               className="mt-4 flex items-center gap-1 mx-auto text-sm opacity-40 hover:opacity-100 transition-opacity"
             >
-              <ChevronLeft className="w-4 h-4" /> 뒤로
+              <ChevronLeft className="w-4 h-4" /> {t.back}
             </button>
           </div>
         )}
@@ -2492,10 +2513,10 @@ export function BoothClassic() {
         {step === 'template' && (
           <div className="w-full max-w-6xl">
             <h2 className="booth-display text-center text-2xl md:text-3xl mb-2">
-              함께 찍을 컷을 골라주세요
+              {t.templateTitle}
             </h2>
             <p className="text-center text-white/50 text-sm mb-8">
-              빈 자리에 손님이 합성돼 옆에 선 한 장이 됩니다
+              {t.templateSub}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {templates.map((tpl) => (
@@ -2545,7 +2566,7 @@ export function BoothClassic() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={cutoutPreviewUrl ?? undefined}
-                      alt="함께 찍을 인물"
+                      alt={t.cutoutPersonAlt}
                       draggable={false}
                       className="pointer-events-none absolute drop-shadow-2xl select-none"
                       style={{
@@ -2600,7 +2621,7 @@ export function BoothClassic() {
                   {mode === 'together' && guestPhotoUrl && (
                     <div className="absolute top-4 right-4 w-20 rounded-lg overflow-hidden border-2 border-white shadow-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={guestPhotoUrl} alt="업로드된 사진" className="w-full" />
+                      <img src={guestPhotoUrl} alt={t.uploadedPhotoAlt} className="w-full" />
                     </div>
                   )}
               </div>
@@ -2609,19 +2630,17 @@ export function BoothClassic() {
             <div className="flex flex-col items-center text-center lg:w-72 lg:shrink-0 lg:items-start lg:text-left">
               <h2 className="booth-display text-2xl md:text-3xl mb-2 break-keep">
                 {mode === 'together'
-                  ? '이제 현장 사진을 찍어요'
+                  ? t.camTogether
                   : mode === 'template'
                     ? shotProgress?.current === 2
-                      ? '마지막으로 단독 컷 한 장!'
-                      : `${standSideText}에 서주세요`
-                    : '카메라를 봐주세요'}
+                      ? t.camLastSolo
+                      : standSideText
+                    : t.camLook}
               </h2>
               <p className="text-white/45 text-base mb-6 min-h-6 break-keep">
                 {mode === 'template' && shotProgress?.current !== 2
-                  ? '화면에 보이는 그대로 인화됩니다'
-                  : liveLookName
-                    ? `${liveLookName.ko} · ${liveLookName.en}`
-                    : ''}
+                  ? t.printAsSeen
+                  : liveLookName ?? ''}
               </p>
 
               {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
@@ -2638,7 +2657,7 @@ export function BoothClassic() {
                           : 'border-white/25 text-white/60 hover:border-white/60'
                       }`}
                     >
-                      {count === 1 ? '1컷' : '네컷'}
+                      {count === 1 ? t.cutOne : t.cutFour}
                     </button>
                   ))}
                 </div>
@@ -2652,7 +2671,7 @@ export function BoothClassic() {
                       initial={{ opacity: 0, scale: 0.7, rotate: -5 }}
                       animate={{ opacity: 1, scale: 1, rotate: index % 2 ? 3 : -2 }}
                       src={shot}
-                      alt={`촬영된 ${index + 1}번째 컷`}
+                      alt={t.shotAlt(index + 1)}
                       className="h-20 w-28 rounded-lg border-4 border-white object-cover shadow-xl"
                     />
                   ))}
@@ -2662,10 +2681,10 @@ export function BoothClassic() {
               {showLiveCutout && !shooting && (
                 <div className="mb-6 w-full max-w-72">
                   <p className="mb-3 text-base text-white/60 break-keep">
-                    손가락으로 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
+                    {t.dragHint}
                   </p>
                   <label className="block text-sm text-white/60">
-                    인물 크기
+                    {t.personSize}
                     <input
                       type="range"
                       min={LAYER_SCALE_MIN}
@@ -2684,7 +2703,7 @@ export function BoothClassic() {
                       guestLayer.flip ? 'booth-primary border-transparent' : 'border-white/25 text-white/70 hover:border-white/60'
                     }`}
                   >
-                    좌우 반전
+                    {t.flip}
                   </button>
                 </div>
               )}
@@ -2696,10 +2715,10 @@ export function BoothClassic() {
               >
                 <Camera className="w-5 h-5" />
                 {mode === 'template'
-                  ? '촬영 시작 (2컷)'
+                  ? t.shootTemplate
                   : cutCount === 4
-                    ? '네컷 촬영 시작'
-                    : '촬영하기'}
+                    ? t.shootFour
+                    : t.shoot}
               </button>
             </div>
           </div>
@@ -2719,7 +2738,7 @@ export function BoothClassic() {
               />
               {(overlayAdjustable || mode === 'template') && (
                 <p className="mt-3 text-sm text-white/40">
-                  {mode === 'template' ? '사진' : '인물'}을 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
+                  {mode === 'template' ? t.dragHintPhoto : t.dragHintPerson}
                 </p>
               )}
               {composeError && <p className="mt-3 text-sm text-red-400">{composeError}</p>}
@@ -2731,32 +2750,32 @@ export function BoothClassic() {
               {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
               {idolOn && idolShot && (
                 <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">AI 아이돌 사진 · ON STAGE</p>
-                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" />
+                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol}</p>
+                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" lang={lang} />
                 </div>
               )}
               {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
               {stageMakeup && !(idolOn && idolShot) && (
                 <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">무대 메이크업 · STAGE MAKEUP</p>
-                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" status={makeupStatus} />
+                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupMakeup}</p>
+                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" status={makeupStatus} lang={lang} />
                 </div>
               )}
               {/* 인화 디자인(AI 아이돌 사진 — 컨셉별 4종) / 그 밖에는 프레임 선택 */}
               {idolOn && idolShot ? (
                 <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">인화 디자인 · PRINT DESIGN</p>
+                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupDesign}</p>
                   <IdolDesignPicker conceptId={stageConceptId} value={idolDesignId} onChange={setIdolDesignId}
                     main={idolImage ?? idolShotImage} before={idolImage ? idolShotImage : null}
-                    event={stageMakeup?.eventLines[0] ?? ''} variant="classic" />
+                    event={stageMakeup?.eventLines[0] ?? ''} variant="classic" lang={lang} />
                 </div>
               ) : (
               <div>
-                <p className="text-sm font-semibold text-white/60 mb-3">프레임</p>
-                <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" />
+                <p className="text-sm font-semibold text-white/60 mb-3">{t.groupFrame}</p>
+                <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" lang={lang} />
                 {modeFrames.length === 0 && (
                   <p className="mt-2 text-xs text-white/30">
-                    등록된 프레임이 없어요 (관리자 페이지에서 추가)
+                    {t.noFrames}
                   </p>
                 )}
               </div>
@@ -2767,15 +2786,15 @@ export function BoothClassic() {
                 <div className="flex flex-col gap-4">
                   {selectedTemplate?.foreground_url ? (
                     <div className="rounded-2xl border border-white/15 p-4">
-                      <p className="text-sm font-semibold">같은 공간 합성</p>
+                      <p className="text-sm font-semibold">{t.sameSpace}</p>
                       <p className="mt-1.5 text-xs text-white/45 leading-relaxed">
-                        카메라 배경 전체 위에 아티스트가 자연스럽게 합성됩니다
+                        {t.sameSpaceDesc}
                       </p>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-white/15 p-4">
                       <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-sm font-semibold">배경 지우기</span>
+                        <span className="text-sm font-semibold">{t.keyingToggle}</span>
                         <input
                           type="checkbox"
                           checked={keying.enabled}
@@ -2786,11 +2805,11 @@ export function BoothClassic() {
                         />
                       </label>
                       <p className="mt-1.5 text-xs text-white/35 leading-relaxed">
-                        그린·블루 배경지 앞에서 찍을 때 켜세요. 설정은 이 부스에 저장됩니다
+                        {t.keyingDesc}
                       </p>
                       {keying.enabled && (
                         <label className="block mt-3 text-xs text-white/50">
-                          지우는 정도
+                          {t.keyingStrength}
                           <input
                             type="range"
                             min={0.08}
@@ -2809,7 +2828,7 @@ export function BoothClassic() {
                   {/* 슬라이더는 가로로 나란히 — 줌 150% 에서 아래 버튼이 화면 밖으로 밀리지 않게 */}
                   <div className="grid grid-cols-3 gap-x-4">
                     <label className="text-sm text-white/60">
-                      확대
+                      {t.zoom}
                       <input
                         type="range"
                         min={FIT_ZOOM_MIN}
@@ -2823,7 +2842,7 @@ export function BoothClassic() {
                       />
                     </label>
                     <label className="text-sm text-white/60">
-                      좌우 위치
+                      {t.posX}
                       <input
                         type="range"
                         min={0}
@@ -2837,7 +2856,7 @@ export function BoothClassic() {
                       />
                     </label>
                     <label className="text-sm text-white/60">
-                      상하 위치
+                      {t.posY}
                       <input
                         type="range"
                         min={0}
@@ -2860,7 +2879,7 @@ export function BoothClassic() {
                   {mode === 'together' && (
                   <div className="rounded-2xl border border-white/15 p-4">
                     <label className="flex items-center justify-between cursor-pointer">
-                      <span className="text-sm font-semibold">인물만 오려내기</span>
+                      <span className="text-sm font-semibold">{t.cutoutToggle}</span>
                       <input
                         type="checkbox"
                         checked={useCutout && cutoutStatus === 'done'}
@@ -2870,18 +2889,16 @@ export function BoothClassic() {
                       />
                     </label>
                     <p className="mt-1.5 text-xs text-white/35 leading-relaxed">
-                      {cutoutStatus === 'processing' && '올린 사진에서 인물을 찾는 중...'}
-                      {cutoutStatus === 'done' &&
-                        '배경을 지우고 옆에 함께 선 것처럼 합성했어요'}
-                      {cutoutStatus === 'failed' &&
-                        '인물을 찾지 못해 사진 그대로 올렸어요 (인물이 크게 나온 사진일수록 잘 돼요)'}
-                      {cutoutStatus === 'idle' && '사진을 올리면 배경을 지워드려요'}
+                      {cutoutStatus === 'processing' && t.cutoutProcessing}
+                      {cutoutStatus === 'done' && t.cutoutDone}
+                      {cutoutStatus === 'failed' && t.cutoutFailed}
+                      {cutoutStatus === 'idle' && t.cutoutIdle}
                     </p>
                   </div>
                   )}
                   <div className="grid grid-cols-2 gap-x-5">
                     <label className="text-sm text-white/60">
-                      {useCutout && cutoutStatus === 'done' ? '인물 크기' : '사진 크기'}
+                      {useCutout && cutoutStatus === 'done' ? t.personSize : t.photoSize}
                       <input
                         type="range"
                         min={LAYER_SCALE_MIN}
@@ -2895,7 +2912,7 @@ export function BoothClassic() {
                       />
                     </label>
                     <label className="text-sm text-white/60">
-                      기울기
+                      {t.tilt}
                       <input
                         type="range"
                         min={-180}
@@ -2917,7 +2934,7 @@ export function BoothClassic() {
                       guestLayer.flip ? 'booth-primary border-transparent' : 'border-white/25 text-white/70 hover:border-white/60'
                     }`}
                   >
-                    좌우 반전
+                    {t.flip}
                   </button>
                 </div>
               )}
@@ -2932,7 +2949,7 @@ export function BoothClassic() {
                   disabled={finishing || idolBusy}
                   className="flex items-center justify-center gap-2 rounded-full booth-primary px-8 py-4 text-lg font-bold hover:opacity-80 transition-opacity disabled:opacity-40"
                 >
-                  <Check className="w-5 h-5" /> {idolBusy ? 'AI 사진 기다리는 중…' : '완성하기'}
+                  <Check className="w-5 h-5" /> {idolBusy ? t.waitingAi : t.finish}
                 </button>
                 <button
                   onClick={() => {
@@ -2941,7 +2958,7 @@ export function BoothClassic() {
                   }}
                   className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-3.5 font-semibold text-white/80 hover:bg-white/10 transition-colors"
                 >
-                  <RefreshCw className="w-4 h-4" /> 다시 찍기
+                  <RefreshCw className="w-4 h-4" /> {t.retake}
                 </button>
               </div>
             </div>
@@ -2956,7 +2973,7 @@ export function BoothClassic() {
             <div className="flex flex-col items-center lg:shrink-0">
               <motion.img
                 src={resultUrl}
-                alt="완성된 사진"
+                alt={t.resultAlt}
                 className="aspect-[2/3] w-[min(60vw,340px)] md:w-[min(34vw,470px)] lg:w-auto lg:max-w-none lg:h-[calc(100svh-12rem)] rounded-xl shadow-2xl"
                 initial={{ opacity: 0, y: 80, rotate: -4, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
@@ -2979,18 +2996,18 @@ export function BoothClassic() {
                 ) : (
                   <Printer className="w-5 h-5" />
                 )}
-                {printStatus === 'printing' ? '인쇄 보내는 중' : '인쇄하기'}
+                {printStatus === 'printing' ? t.printSending : t.print}
               </button>
               {printStatus === 'sent' && (
                 <p className="text-center text-sm font-semibold" style={{ color: accent }}>
                   {printWaitLeft !== null
-                    ? `사진이 나오고 있어요 · 약 ${printWaitLeft}초`
-                    : '프린터에서 사진을 챙겨 가세요'}
+                    ? t.printComing(printWaitLeft)
+                    : t.printPickup}
                 </p>
               )}
               {printStatus === 'failed' && (
                 <p className="text-center text-sm font-semibold text-red-400">
-                  인쇄가 되지 않았어요. 직원에게 알려주세요
+                  {t.printFailed}
                 </p>
               )}
               <button
@@ -3003,18 +3020,18 @@ export function BoothClassic() {
                 ) : (
                   <Download className="w-4 h-4" />
                 )}
-                {saveStatus === 'uploading' ? 'QR 만드는 중' : '이미지 저장'}
+                {saveStatus === 'uploading' ? t.qrMaking : t.saveImage}
               </button>
               {saveStatus === 'failed' && (
                 <p className="text-center text-sm font-semibold text-red-400">
-                  QR을 만들지 못했어요. 잠시 후 다시 눌러주세요
+                  {t.qrFailed}
                 </p>
               )}
               <button
                 onClick={() => setStep('compose')}
                 className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-3.5 font-semibold text-white/80 hover:bg-white/10 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4" /> 다시 편집
+                <ChevronLeft className="w-4 h-4" /> {t.reEdit}
               </button>
 
               {/* 생카 인증 문화: 해시태그 안내 */}
@@ -3023,7 +3040,7 @@ export function BoothClassic() {
                   className="mt-3 rounded-2xl border p-4 text-center"
                   style={{ borderColor: accent }}
                 >
-                  <p className="text-xs text-white/50 mb-1">X(트위터) 인증 태그</p>
+                  <p className="text-xs text-white/50 mb-1">{t.hashtagLabel}</p>
                   <p className="font-bold text-lg" style={{ color: accent }}>
                     {event.hashtag}
                   </p>
@@ -3034,7 +3051,7 @@ export function BoothClassic() {
                 onClick={resetAll}
                 className="mt-2 text-sm text-white/40 hover:text-white transition-colors"
               >
-                처음으로 돌아가기
+                {t.backHome}
               </button>
             </div>
           </div>
@@ -3048,7 +3065,7 @@ export function BoothClassic() {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="폰으로 사진 받기"
+            aria-label={t.saveQrAria}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -3067,27 +3084,27 @@ export function BoothClassic() {
             >
               <div className="shrink-0 rounded-2xl bg-white p-3 shadow-inner">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={saveQr.qrDataUrl} alt="사진 받기 QR" className="h-56 w-56" />
+                <img src={saveQr.qrDataUrl} alt={t.saveQrAlt} className="h-56 w-56" />
               </div>
               <div className="flex min-w-0 flex-1 flex-col text-left">
-                <h2 className="text-2xl font-black break-keep">폰으로 QR을 찍어 저장하세요</h2>
+                <h2 className="text-2xl font-black break-keep">{t.saveQrTitle}</h2>
                 <ol className="mt-4 space-y-2 text-base opacity-75 break-keep">
                   <li>
-                    <span className="font-bold">1.</span> 폰 카메라로 QR을 비춰요
+                    <span className="font-bold">1.</span> {t.saveQrStep1}
                   </li>
                   <li>
-                    <span className="font-bold">2.</span> 열린 페이지에서 <span className="font-bold">사진 저장하기</span>를 눌러요
+                    <span className="font-bold">2.</span> {t.saveQrStep2[0]}<span className="font-bold">{t.photoSave}</span>{t.saveQrStep2[1]}
                   </li>
                 </ol>
                 <p className="mt-4 text-sm opacity-50 break-keep">
-                  사진은 {RESULT_PHOTO_TTL_HOURS}시간 뒤 자동으로 삭제돼요
+                  {t.photoAutoDelete(RESULT_PHOTO_TTL_HOURS)}
                 </p>
                 <button
                   type="button"
                   onClick={() => setSaveQrOpen(false)}
                   className="booth-primary mt-6 min-h-14 w-full rounded-2xl text-lg font-black"
                 >
-                  닫기
+                  {t.close}
                 </button>
               </div>
             </motion.div>
@@ -3128,7 +3145,7 @@ export function BoothClassic() {
                 className="min-h-14 w-full rounded-2xl text-lg font-bold text-white"
                 style={{ background: accent }}
               >
-                확인
+                {t.confirm}
               </button>
             </motion.div>
           </motion.div>
@@ -3141,7 +3158,7 @@ export function BoothClassic() {
           <motion.div
             role="alertdialog"
             aria-live="assertive"
-            aria-label="잠시 후 처음 화면으로 돌아갑니다"
+            aria-label={t.idleTitle}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -3162,17 +3179,17 @@ export function BoothClassic() {
                 {idleLeft}
               </span>
               <h2 className="mt-2 text-2xl font-black break-keep">
-                {sessionDone ? '사진을 챙겨 가세요' : '잠시 후 처음 화면으로 돌아갑니다'}
+                {sessionDone ? t.idleDoneTitle : t.idleTitle}
               </h2>
               <p className="mb-2 text-base opacity-60 break-keep">
                 {sessionDone ? (
                   <>
-                    인쇄가 끝났어요. 프린터에서 사진을 가져가세요.
+                    {t.idleDoneLines[0]}
                     <br />
-                    잠시 후 처음 화면으로 돌아갑니다.
+                    {t.idleDoneLines[1]}
                   </>
                 ) : (
-                  '계속하시려면 화면을 터치해 주세요.'
+                  t.idleTouch
                 )}
               </p>
               {sessionDone ? (
@@ -3184,7 +3201,7 @@ export function BoothClassic() {
                       lightHome ? 'border-[var(--booth-ink)]/20' : 'border-white/20 text-white/80'
                     }`}
                   >
-                    계속 보기
+                    {t.keepViewing}
                   </button>
                   <button
                     type="button"
@@ -3193,12 +3210,12 @@ export function BoothClassic() {
                     onClick={resetAll}
                     className="booth-primary min-h-14 rounded-2xl text-lg font-black"
                   >
-                    처음으로
+                    {t.home}
                   </button>
                 </div>
               ) : (
                 <button type="button" className="booth-primary min-h-14 w-full rounded-2xl text-lg font-black">
-                  계속하기
+                  {t.continue}
                 </button>
               )}
             </motion.div>

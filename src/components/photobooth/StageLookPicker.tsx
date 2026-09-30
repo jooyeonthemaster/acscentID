@@ -2,26 +2,32 @@
 
 // 편집 화면 '무대 메이크업 룩' 고르기 — 포토부스 행사 모드(K-WAVE)에서만 보인다(src/lib/booth/modes.ts stageMakeup).
 // 룩을 고르면 사진 색 보정·스티커·인화물 하단 '오늘의 무대 메이크업'이 바로 미리보기에 입혀진다(src/lib/booth/stage-makeup.ts).
-// 외국인 손님이 많아 한국어·영어를 함께 쓴다. 레트로·맥은 입체 선택 버튼, 기존 디자인은 둥근 카드.
+// 글씨는 화면 언어(lang, 사전 src/lib/booth/i18n.ts)로 한 가지만 쓴다. 레트로·맥은 입체 선택 버튼, 기존 디자인은 둥근 카드.
 // size='home' 은 행사 모드 첫 화면(촬영 방식 타일 대신 룩부터 고른다) — 3열로 크게.
 
 import { STAGE_LOOKS, findStageLook, type StageLook } from '@/lib/booth/stage-makeup'
+import { boothText, lookText, type BoothLang } from '@/lib/booth/i18n'
 
-export function StageLookPicker({ value, onChange, variant, size, status }: {
+export function StageLookPicker({ value, onChange, variant, size, status, lang }: {
   value: string | null
   onChange: (id: string | null) => void
   variant: 'retro' | 'classic'
   size?: 'home'
   /** 편집 화면 — 얼굴 인식 메이크업 진행(busy: 입히는 중, noface: 얼굴을 못 찾아 색 보정만) */
   status?: 'idle' | 'busy' | 'noface'
+  lang: BoothLang
 }) {
   const retro = variant === 'retro'
   const home = size === 'home'
+  const t = boothText(lang)
   const current = findStageLook(value)
-  const options = [{ id: null as string | null, name: { ko: '원본', en: 'Original' }, swatch: ['#ffffff', '#d9dde6'] as [string, string] }, ...STAGE_LOOKS]
+  const options = [
+    { id: null as string | null, label: t.lookOriginal, swatch: ['#ffffff', '#d9dde6'] as [string, string] },
+    ...STAGE_LOOKS.map((look) => ({ id: look.id as string | null, label: lookText(t, look).name, swatch: look.swatch })),
+  ]
   return (
     <div className={retro ? `bth-look-picker${home ? ' bth-look-picker--home' : ''}` : `flex flex-col gap-3${home ? ' w-full text-center' : ''}`}>
-      <div className={retro ? 'bth-look-grid' : home ? 'grid grid-cols-2 gap-3 md:grid-cols-3 text-left' : 'grid grid-cols-2 gap-2'} role="radiogroup" aria-label="무대 메이크업 룩 · Stage makeup look">
+      <div className={retro ? 'bth-look-grid' : home ? 'grid grid-cols-2 gap-3 md:grid-cols-3 text-left' : 'grid grid-cols-2 gap-2'} role="radiogroup" aria-label={t.lookAria}>
         {options.map((look) => {
           const on = (value ?? null) === look.id
           return (
@@ -39,21 +45,20 @@ export function StageLookPicker({ value, onChange, variant, size, status }: {
               <span className={retro ? 'bth-look-swatch' : `${home ? 'h-12 w-12' : 'h-9 w-9'} shrink-0 rounded-full border border-black/10 shadow-inner`}
                 style={{ background: `linear-gradient(135deg, ${look.swatch[0]}, ${look.swatch[1]})` }} aria-hidden="true" />
               <span className={retro ? 'bth-look-name' : 'flex min-w-0 flex-col leading-tight'}>
-                <b className={retro ? undefined : `line-clamp-2 break-keep font-bold ${home ? 'text-lg' : 'text-sm'}`}>{look.name.ko}</b>
-                <em className={retro ? undefined : `truncate not-italic opacity-70 ${home ? 'text-sm' : 'text-[11px]'}`}>{look.name.en}</em>
+                <b className={retro ? undefined : `line-clamp-2 break-keep font-bold ${home ? 'text-lg' : 'text-sm'}`}>{look.label}</b>
               </span>
             </button>
           )
         })}
       </div>
       <p className={retro ? 'bth-group-text bth-look-desc' : `leading-snug opacity-75 ${home ? 'text-lg' : 'text-sm'}`} aria-live="polite">
-        {current ? <>{current.desc.ko}<br /><span>{current.desc.en}</span></> : <>룩을 고르면 얼굴에 무대 메이크업이 입혀져요<br /><span>Pick a look to put stage makeup on your face</span></>}
+        {current ? lookText(t, current).desc : t.lookHint}
       </p>
       {current && status === 'busy' && (
-        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm font-bold'} role="status">얼굴을 찾아 메이크업하는 중… · Applying makeup…</p>
+        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm font-bold'} role="status">{t.lookApplying}</p>
       )}
       {current && status === 'noface' && (
-        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm opacity-75'} role="status">얼굴을 찾지 못해 사진 색만 바꿨어요 — 카메라 쪽으로 가까이 서 주세요 · No face found</p>
+        <p className={retro ? 'bth-group-text bth-look-status' : 'text-sm opacity-75'} role="status">{t.lookNoFace}</p>
       )}
     </div>
   )

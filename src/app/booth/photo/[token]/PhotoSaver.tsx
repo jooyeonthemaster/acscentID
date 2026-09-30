@@ -3,12 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Check, Loader2 } from 'lucide-react'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
+import { BOOTH_LANGS, boothText, type BoothLang } from '@/lib/booth/i18n'
 
 interface Props {
   imageUrl: string
   downloadUrl: string
   fileName: string
   expiresAt: number
+  /** 부스 화면 언어(QR 주소 ?lang=) */
+  lang: BoothLang
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed'
@@ -19,20 +22,22 @@ function isIOS() {
   return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 }
 
-// 서버(UTC)와 폰이 같은 글자를 그리도록 한국 시간으로 고정 — 다르면 하이드레이션이 어긋난다
-const EXPIRY_FORMAT = new Intl.DateTimeFormat('ko-KR', {
-  timeZone: 'Asia/Seoul',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})
-function formatExpiry(ts: number) {
-  return EXPIRY_FORMAT.format(new Date(ts))
+// 서버(UTC)와 폰이 같은 글자를 그리도록 한국 시간으로 고정 — 다르면 하이드레이션이 어긋난다.
+// 날짜 모양은 화면 언어를 따른다(서버·폰 모두 같은 ?lang= 이라 글자가 같다)
+function formatExpiry(ts: number, htmlLang: string) {
+  return new Intl.DateTimeFormat(htmlLang, {
+    timeZone: 'Asia/Seoul',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(ts))
 }
 
-export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt }: Props) {
+export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt, lang }: Props) {
+  const t = boothText(lang)
+  const htmlLang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
   const [loaded, setLoaded] = useState(false)
   const [missing, setMissing] = useState(false)
   const [state, setState] = useState<SaveState>('idle')
@@ -79,13 +84,13 @@ export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt 
   }
 
   return (
-    <div className="min-h-svh bg-neutral-950 text-white flex flex-col items-center px-5 pt-8 pb-10 text-center">
+    <div lang={htmlLang} className="min-h-svh bg-neutral-950 text-white flex flex-col items-center px-5 pt-8 pb-10 text-center">
       <p className="text-sm font-bold tracking-[0.25em] text-white/50 mb-6">AC&apos;SCENT WOW</p>
 
       {missing ? (
         <div className="flex flex-1 flex-col items-center justify-center">
-          <h1 className="text-2xl font-bold mb-3 break-keep">사진을 찾을 수 없어요</h1>
-          <p className="text-white/55 text-sm break-keep">보관 기간이 지났거나 삭제된 사진이에요.</p>
+          <h1 className="text-2xl font-bold mb-3 break-keep">{t.photoNotFound}</h1>
+          <p className="text-white/55 text-sm break-keep">{t.photoNotFoundDesc}</p>
         </div>
       ) : (
         <>
@@ -105,7 +110,7 @@ export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt 
                 else setMissing(true)
               }}
               src={imageUrl}
-              alt="포토부스에서 찍은 내 사진"
+              alt={t.photoAlt}
               onLoad={() => setLoaded(true)}
               onError={() => setMissing(true)}
               className={`max-h-[58svh] w-auto max-w-full rounded-2xl shadow-2xl ${loaded ? '' : 'absolute inset-0 opacity-0'}`}
@@ -125,19 +130,19 @@ export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt 
             ) : (
               <Download className="w-5 h-5" />
             )}
-            {state === 'saved' ? '저장했어요' : '사진 저장하기'}
+            {state === 'saved' ? t.photoSaved : t.photoSave}
           </button>
 
           <p className="mt-4 text-sm text-white/55 leading-relaxed break-keep">
             {state === 'failed'
-              ? '저장하지 못했어요. 사진을 길게 눌러 저장해 주세요.'
-              : '저장이 안 되면 사진을 길게 눌러 ‘사진 앱에 저장’을 눌러 주세요.'}
+              ? t.photoSaveFailed
+              : t.photoSaveHint}
           </p>
 
           <p className="mt-6 text-xs text-white/35 leading-relaxed break-keep">
-            개인정보 보호를 위해 {RESULT_PHOTO_TTL_HOURS}시간 뒤 자동으로 삭제돼요.
+            {t.photoPrivacy(RESULT_PHOTO_TTL_HOURS)}
             <br />
-            {formatExpiry(expiresAt)}까지 받을 수 있어요.
+            {t.photoUntil(formatExpiry(expiresAt, htmlLang))}
           </p>
         </>
       )}

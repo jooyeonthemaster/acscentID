@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { isCardCode } from '@/lib/photobooth/card-code'
+import { BOOTH_LANGS, boothText, parseBoothLang } from '@/lib/booth/i18n'
 
 // 카드 QR을 폰으로 찍었을 때 열리는 안내 페이지 (부스 카메라로 찍으면 여기까지 오지 않는다)
 export const metadata = {
@@ -12,10 +13,15 @@ export const dynamic = 'force-dynamic'
 
 export default async function BoothCardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ code: string }>
+  /** ?lang= — 있으면 그 언어로(인쇄된 카드 QR 에는 없어 한국어) */
+  searchParams: Promise<{ lang?: string | string[] }>
 }) {
   const { code: raw } = await params
+  const lang = parseBoothLang((await searchParams).lang)
+  const t = boothText(lang)
   const code = decodeURIComponent(raw).trim().toUpperCase()
   if (!isCardCode(code)) notFound()
 
@@ -33,7 +39,7 @@ export default async function BoothCardPage({
     : data.photobooth_events
 
   return (
-    <div className="min-h-svh bg-neutral-950 text-white flex flex-col items-center justify-center px-6 py-10 text-center">
+    <div lang={BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'} className="min-h-svh bg-neutral-950 text-white flex flex-col items-center justify-center px-6 py-10 text-center">
       <p className="text-sm font-bold tracking-[0.25em] text-white/50 mb-8">AC&apos;SCENT WOW</p>
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,19 +55,17 @@ export default async function BoothCardPage({
 
       <div className="w-full max-w-sm rounded-2xl border border-white/15 p-5 mb-5">
         <p className="text-sm leading-relaxed text-white/70">
-          이 카드는 <span className="font-bold text-white">매장 포토부스</span>에서 사용할 수
-          있어요.
+          {t.cardUse[0]}<span className="font-bold text-white">{t.cardUse[1]}</span>{t.cardUse[2]}
           <br />
-          부스 화면에서 <span className="font-bold text-white">포토카드로 찍기</span>를 고르고
-          카드를 카메라에 보여주세요.
+          {t.cardHow[0]}<span className="font-bold text-white">{t.tileCard}</span>{t.cardHow[1]}
         </p>
         <p className="mt-4 font-mono text-2xl font-bold tracking-[0.3em]">{data.code}</p>
-        <p className="mt-1 text-xs text-white/35">QR이 안 읽히면 이 번호를 입력하세요</p>
+        <p className="mt-1 text-xs text-white/35">{t.cardCodeHint}</p>
       </div>
 
       {event?.hashtag && (
         <p className="text-sm text-white/45">
-          인증 태그 <span className="font-bold text-white/80">{event.hashtag}</span>
+          {t.cardHashtag} <span className="font-bold text-white/80">{event.hashtag}</span>
         </p>
       )}
     </div>

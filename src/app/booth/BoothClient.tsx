@@ -21,11 +21,14 @@ import '@/components/mac/mac.css'
 import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
-import { IDOL_CONSENT, IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
+import { BoothLangSwitcher } from '@/components/photobooth/BoothLangSwitcher'
+import { attractHeadline, boothText, conceptText, guestError, lookText, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
+import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from '@/app/kiosk/fonts'
 import { findBoothMode } from '@/lib/booth/modes'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
 import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
@@ -446,6 +449,14 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
   // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
   const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
+  /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
+  const [lang, setLang] = useState<BoothLang>('ko')
+  const t = boothText(lang)
+  // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
+  const langRef = useRef(lang)
+  langRef.current = lang
+  const tRef = useRef(t)
+  tRef.current = t
   const [idolConsent, setIdolConsent] = useState(false)
   const [idolTicket, setIdolTicket] = useState<string | null>(null)
   const [idolEnabled, setIdolEnabled] = useState(false)
@@ -730,6 +741,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     // 앞 손님이 고른 프레임을 다음 손님에게 넘기지 않는다 (편집 화면에서 다시 기본값으로 잡힌다)
     setSelectedFrame(null)
     setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
+    setLang('ko')
     setIdolDesignId(null)
     setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
     setIdolConsent(false)
@@ -835,6 +847,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     conceptId: stageConceptId,
     ticket: idolTicket,
     getImage,
+    lang,
   })
   const idolImage = idol.image
   /** 찍은 한 컷(인화 디자인 미리보기의 BEFORE·AI 사진 전 큰 사진) */
@@ -916,7 +929,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error(data.error || '세션 생성 실패')
       setSessionCode(data.code)
-      const uploadUrl = `${window.location.origin}/booth/upload/${data.code}`
+      const uploadUrl = withBoothLang(`${window.location.origin}/booth/upload/${data.code}`, langRef.current)
       const qr = await QRCode.toDataURL(uploadUrl, { width: 480, margin: 1 })
       setQrDataUrl(qr)
     } catch (error) {
@@ -971,7 +984,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     async (code: string) => {
       setPassLoading(true)
       setPassError('')
-      let title = '이용권을 확인하지 못했어요'
+      let title = tRef.current.passFailTitle
       try {
         const res = await fetch('/api/photobooth/pass', {
           method: 'POST',
@@ -980,8 +993,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         })
         const data = await res.json()
         if (!res.ok) {
-          if (typeof data.title === 'string') title = data.title
-          throw new Error(data.error || '이용권 확인에 실패했어요')
+          // 한국어는 서버 문구 그대로, 다른 언어는 실패 종류별 번역 문구
+          const failure = passErrorText(langRef.current, res.status, data)
+          title = failure.title
+          throw new Error(failure.message)
         }
         setPassVerified(true)
         setIdolTicket(typeof data.idolTicket === 'string' ? data.idolTicket : null)
@@ -989,7 +1004,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         setPendingMode(null)
         proceedToMode(next)
       } catch (error) {
-        const message = error instanceof Error ? error.message : '이용권 확인에 실패했어요'
+        const message = guestError(langRef.current, error instanceof Error ? error.message : null, tRef.current.passFailMessage)
         setPassError(message)
         setPassDigits('')
         setPassAlert({ title, message })
@@ -1061,7 +1076,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     async (rawCode: string) => {
       const code = parseCardCode(rawCode)
       if (!code) {
-        setScanError('카드 번호를 읽지 못했어요')
+        setScanError(tRef.current.cardCodeUnreadable)
         return false
       }
       setScanBusy(true)
@@ -1069,14 +1084,14 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       try {
         const res = await fetch(`/api/photobooth/card?code=${code}`, { cache: 'no-store' })
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || '카드를 확인하지 못했어요')
+        if (!res.ok) throw new Error(data.error || tRef.current.cardCheckFailed)
 
         const img = await getImage(data.card.cutoutUrl)
         const canvas = document.createElement('canvas')
         canvas.width = img.naturalWidth || img.width
         canvas.height = img.naturalHeight || img.height
         const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('카드 이미지를 준비하지 못했어요')
+        if (!ctx) throw new Error(tRef.current.cardImageFailed)
         ctx.drawImage(img, 0, 0)
 
         setScannedCard({ code: data.card.code, title: data.card.title, cutoutUrl: data.card.cutoutUrl })
@@ -1089,7 +1104,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         return true
       } catch (error) {
         console.error('[photobooth] 카드 적용 실패:', error)
-        setScanError(error instanceof Error ? error.message : '카드를 확인하지 못했어요')
+        setScanError(guestError(langRef.current, error instanceof Error ? error.message : null, tRef.current.cardCheckFailed))
         return false
       } finally {
         setScanBusy(false)
@@ -1145,7 +1160,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         reader = await createQrReader()
       } catch (error) {
         console.error('[photobooth] QR 인식기 로드 실패:', error)
-        if (step === 'scan') setScanError('카드 자동 인식을 쓸 수 없어요. 카드의 번호를 입력해주세요')
+        if (step === 'scan') setScanError(tRef.current.cardAutoUnavailable)
         return
       }
 
@@ -1273,7 +1288,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         setCameraSource('dslr')
       } else if (health.reachable) {
         // 브리지는 있는데 카메라가 안 잡힘(전원 꺼짐·다른 앱 사용 중) — 웹캠으로 넘어가지 않고 기다린다
-        setCameraError('카메라를 연결하고 있어요. 카메라 전원이 켜져 있는지 확인해주세요')
+        setCameraError(tRef.current.cameraConnecting)
         timer = window.setTimeout(probe, 2500)
       } else {
         setCameraSource('webcam')
@@ -1375,7 +1390,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       })
       .catch((error) => {
         console.error('카메라 접근 실패:', error)
-        setCameraError('카메라를 사용할 수 없습니다. 브라우저 카메라 권한을 확인해주세요.')
+        setCameraError(tRef.current.cameraUnavailable)
       })
     return () => {
       cancelled = true
@@ -1388,7 +1403,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const liveComposeReady = step === 'camera' && mode === 'template' && !!templateGeometry
   // 행사 모드 — 촬영 화면은 필터·메이크업 없이 실제 모습 그대로 보여 주고, 고른 컨셉(룩) 이름만 적는다
   // (메이크업은 찍은 뒤 결과에만 입힌다. AI 아이돌 사진은 원본 한 컷으로 만든다)
-  const liveLookName = !stageMakeup ? null : idolOn ? findIdolConcept(stageConceptId)?.name ?? null : findStageLook(stageLookId)?.name ?? null
+  const liveConcept = findIdolConcept(stageConceptId)
+  const liveLook = findStageLook(stageLookId)
+  const liveLookName = !stageMakeup ? null : idolOn ? (liveConcept ? conceptText(t, liveConcept).name : null) : liveLook ? lookText(t, liveLook).name : null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -1476,13 +1493,13 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           const settingProblem = /동영상 모드/.test(failReason)
           attempts++
           if (attempts <= 2 && !settingProblem) {
-            setShotNotice('다시 찍을게요. 카메라를 봐주세요')
+            setShotNotice(tRef.current.retakeNotice)
             await sleep(1200)
             setShotNotice(null)
             shot--
             continue
           }
-          setShotNotice(settingProblem ? `직원에게 알려주세요 — ${failReason}` : '카메라가 응답하지 않아요. 직원에게 알려주세요')
+          setShotNotice(settingProblem ? tRef.current.tellStaff(failReason) : tRef.current.cameraNoResponse)
           window.setTimeout(() => setShotNotice(null), settingProblem ? 10000 : 4000)
           collected.length = 0
           break
@@ -1530,15 +1547,15 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       {!liveReady && !cameraError && (
         <div className="bth-overlay-center bth-overlay-dim">
           <RetroWindow className="bth-mini" icon="camera" title="CAMERA">
-            <span>카메라 준비 중</span>
-            <RetroProgress label="카메라 준비 중" />
+            <span>{t.cameraPreparing}</span>
+            <RetroProgress label={t.cameraPreparing} />
           </RetroWindow>
         </div>
       )}
       {capturing && cameraSource === 'dslr' && (
         <div className="bth-live-toast rt-toast" role="status">
           <PixelIcon name="camera" size={28} />
-          찰칵! 그대로 잠깐만요
+          {t.captureHold}
         </div>
       )}
       {shotNotice && (
@@ -1713,7 +1730,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       } catch (error) {
         console.error('합성 렌더 실패:', error)
         if (renderTokenRef.current === token) {
-          setComposeError('이미지 합성에 실패했습니다. 다시 시도해주세요.')
+          setComposeError(tRef.current.composeFailed)
         }
       }
     }
@@ -1826,7 +1843,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
-      setComposeError('결과 이미지를 만들 수 없습니다. 잠시 후 다시 시도해주세요.')
+      setComposeError(tRef.current.resultFailed)
     } finally {
       setFinishing(false)
     }
@@ -1877,7 +1894,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.path) throw new Error(data.error || `업로드 실패 (${res.status})`)
-      const url = `${window.location.origin}${data.path}`
+      const url = withBoothLang(`${window.location.origin}${data.path}`, langRef.current)
       const qrDataUrl = await QRCode.toDataURL(url, { width: 640, margin: 1 })
       setSaveQr({ url, qrDataUrl })
       setSaveQrOpen(true)
@@ -1889,9 +1906,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   }, [resultUrl, saveStatus, saveQr, logShot])
 
   const eventPeriod = event ? formatPeriod(event) : null
-  const templateLabel = event?.artist ? `${event.artist}와 찍기` : '최애와 찍기'
+  const templateLabel = event?.artist ? t.tileTemplateWith(event.artist) : t.tileTemplate
   const standSideText =
-    templateGeometry?.freeSide === 'left' ? '왼쪽' : '오른쪽'
+    templateGeometry?.freeSide === 'left' ? t.standLeft : t.standRight
 
   // ======================
   // Render
@@ -1899,19 +1916,24 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
   const stepMeta = BOOTH_STEP_META[step]
   // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
+  // 테마 글꼴은 한국어 전용이라 한자권 언어에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다(키오스크와 같은 글꼴)
+  const cjkFont = isCjkLang(lang) ? CJK_FONT_STACK[lang] : undefined
   const deskVars = retroDesktopVars(
-    event?.theme_color ? { ...retroDesk, deco: accent, decoSoft: mixColor(accent, '#ffffff', 0.78) } : retroDesk
+    event?.theme_color ? { ...retroDesk, deco: accent, decoSoft: mixColor(accent, '#ffffff', 0.78) } : retroDesk,
+    cjkFont ? { display: cjkFont, body: cjkFont } : undefined
   )
   const startAttract = () => setIsAttract(false)
 
   return (
     <MotionConfig reducedMotion="user">
     <div
-      className={`bth-root rt rt--booth rt-desktop ${RETRO_FONT_CLASS}`}
+      className={`bth-root rt rt--booth rt-desktop ${RETRO_FONT_CLASS} ${KIOSK_FONT_CLASS}`}
       data-ui={design}
+      data-lang={lang}
+      lang={BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
       data-background={activeBackground.id}
       data-tone={retroDesk.tone}
-      style={{ ...deskVars, ...(design === 'mac' ? macFontVars(deviceSettings.font ? retroDesk.bodyFont : undefined) : {}) } as React.CSSProperties}
+      style={{ ...deskVars, ...(design === 'mac' ? macFontVars(cjkFont ?? (deviceSettings.font ? retroDesk.bodyFont : undefined)) : {}) } as React.CSSProperties}
     >
       {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId]} />
@@ -1955,7 +1977,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           <motion.div
             role="button"
             tabIndex={0}
-            aria-label="포토부스 시작하기"
+            aria-label={t.attractAria}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1977,15 +1999,15 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               <div className="bth-attract-group">
                 <RetroWindow ghosts icon="heart" title="WELCOME" bodyClassName="bth-attract-body">
                   {boothMode.attract ? (
-                    // 행사 모드 — 외국인 손님이 많아 영어 한 줄을 곁들인다
+                    // 행사 모드 — 제목은 화면 언어로. 한국어 화면일 때만 외국인 손님을 위해 영어 한 줄을 곁들인다
                     <>
                       <div className="bth-wordmark rt-pixel" aria-label={`${boothMode.attract.wordmark} ${boothMode.attract.sub}`}>
                         <b>{boothMode.attract.wordmark}</b>
                         <span>{boothMode.attract.sub}</span>
                       </div>
                       <span className="bth-attract-tag rt-tag rt-pixel">{boothMode.attract.badge}</span>
-                      <h1 className="bth-display bth-h1 bth-attract-h1">{boothMode.attract.headline}</h1>
-                      {boothMode.attract.headlineEn && <p className="bth-hashtag-text">{boothMode.attract.headlineEn}</p>}
+                      <h1 className="bth-display bth-h1 bth-attract-h1">{attractHeadline(t, lang, boothMode)}</h1>
+                      {lang === 'ko' && boothMode.attract.headlineEn && <p className="bth-hashtag-text">{boothMode.attract.headlineEn}</p>}
                     </>
                   ) : (
                     <>
@@ -1994,7 +2016,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         <span>PHOTO</span>
                       </div>
                       <span className="bth-attract-tag rt-tag rt-pixel">4×6 PHOTO BENEFIT</span>
-                      <h1 className="bth-display bth-h1 bth-attract-h1">{event?.greeting || '오늘의 최애와, 한 장에'}</h1>
+                      <h1 className="bth-display bth-h1 bth-attract-h1">{event?.greeting || t.attractDefault}</h1>
                       {event?.hashtag && <p className="bth-hashtag-text">{event.hashtag}</p>}
                     </>
                   )}
@@ -2003,7 +2025,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <RetroWindow icon="sparkle" title="START">
                     <span className="bth-attract-cta rt-btn rt-btn--pink rt-btn--block">
                       <PixelIcon name="camera" size={48} />
-                      <span>화면을 터치해 시작하기</span>
+                      <span>{t.attractTouch}</span>
                     </span>
                   </RetroWindow>
                   <RetroStickers
@@ -2027,7 +2049,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       {resultUrl && (
         <div className="booth-print-area">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={resultUrl} alt="인쇄용 사진" />
+          <img src={resultUrl} alt={t.printAlt} />
         </div>
       )}
 
@@ -2049,11 +2071,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   type="button"
                   onClick={goBack}
                   disabled={shooting || passLoading || finishing}
-                  aria-label="이전 단계로 돌아가기"
+                  aria-label={t.backAria}
                   className="rt-btn bth-tool-btn"
                 >
                   <PixelIcon name="arrowLeft" size={32} />
-                  <span>뒤로</span>
+                  <span>{t.back}</span>
                 </button>
               ) : (
                 <span className="bth-toolbar-brand rt-pixel">{boothMode.brandLine}</span>
@@ -2066,10 +2088,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </span>
             )}
             <div className="bth-toolbar-side bth-toolbar-end">
+              <BoothLangSwitcher lang={lang} onChange={setLang} variant="retro" disabled={shooting || printing} />
               {step !== 'home' && (
                 <button type="button" onClick={resetAll} className="rt-btn bth-tool-btn">
                   <PixelIcon name="home" size={32} />
-                  <span>처음으로</span>
+                  <span>{t.home}</span>
                 </button>
               )}
             </div>
@@ -2090,25 +2113,21 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'home' && stageMakeup && (
           <div className="bth-home bth-home--stage">
             <div className="bth-heading">
-              <h1 className="bth-display bth-h1">{idolEnabled ? '어떤 컨셉으로 데뷔할까요?' : '오늘의 무대 컨셉을 골라요'}</h1>
+              <h1 className="bth-display bth-h1">{idolEnabled ? t.stageTitleIdol : t.stageTitleMakeup}</h1>
               <p className="bth-sub">
-                {idolEnabled ? 'Pick your K-POP idol concept · AI가 나를 아이돌 사진으로' : 'Pick your K-POP stage concept · 무대 메이크업 사진'}
+                {idolEnabled ? t.stageSubIdol : t.stageSubMakeup}
               </p>
             </div>
             <RetroWindow className="bth-panel bth-stage-pick" icon="sparkle" title={idolEnabled ? 'IDOL CONCEPT' : 'STAGE MAKEUP'}>
-              <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="retro" />
+              <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="retro" lang={lang} />
             </RetroWindow>
             {idolEnabled && (
-              <p className="bth-idol-consent">
-                {IDOL_CONSENT.ko}
-                <br />
-                <span>{IDOL_CONSENT.en}</span>
-              </p>
+              <p className="bth-idol-consent">{t.idolConsent}</p>
             )}
             <div className="bth-stage-actions">
               {idolEnabled && (
                 <button type="button" onClick={() => { setIdolConsent(true); startMode('solo') }} className="rt-btn rt-btn--primary rt-btn--lg bth-stage-start">
-                  <PixelIcon name="sparkle" size={40} /> 동의하고 아이돌 되기 · Agree &amp; Start
+                  <PixelIcon name="sparkle" size={40} /> {t.idolAgreeStart}
                 </button>
               )}
               <button
@@ -2116,7 +2135,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 onClick={() => { setIdolConsent(false); startMode('solo') }}
                 className={idolEnabled ? 'rt-btn rt-btn--lg' : 'rt-btn rt-btn--primary rt-btn--lg bth-stage-start'}
               >
-                <PixelIcon name="camera" size={40} /> {idolEnabled ? '메이크업만 · Makeup only' : '촬영 시작 · Start'}
+                <PixelIcon name="camera" size={40} /> {idolEnabled ? t.makeupOnly : t.startShooting}
               </button>
             </div>
           </div>
@@ -2149,8 +2168,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </div>
             ) : (
               <div className="bth-heading">
-                <h1 className="bth-display bth-h1">어떤 사진을 찍을까요?</h1>
-                <p className="bth-sub">4x6인치 인화 사진으로 출력됩니다</p>
+                <h1 className="bth-display bth-h1">{t.homeTitle}</h1>
+                <p className="bth-sub">{t.homeSub}</p>
               </div>
             )}
 
@@ -2159,11 +2178,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <span className="bth-tile-icon">
                   <PixelIcon name="qr" size={80} />
                 </span>
-                <span className="bth-display bth-tile-name">포토카드로 찍기</span>
+                <span className="bth-display bth-tile-name">{t.tileCard}</span>
                 <span className="bth-tile-desc">
-                  매장 포토카드를
+                  {t.tileCardDesc[0]}
                   <br />
-                  카메라에 보여주세요
+                  {t.tileCardDesc[1]}
                 </span>
               </button>
               <button
@@ -2177,38 +2196,38 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 </span>
                 <span className="bth-display bth-tile-name">{templateLabel}</span>
                 <span className="bth-tile-desc">
-                  준비된 컷의 빈자리에
+                  {t.tileTemplateDesc[0]}
                   <br />
-                  옆에 선 것처럼 합성돼요
+                  {t.tileTemplateDesc[1]}
                 </span>
               </button>
               <button type="button" onClick={() => startMode('together')} className="bth-tile">
                 <span className="bth-tile-icon">
                   <PixelIcon name="phone" size={80} />
                 </span>
-                <span className="bth-display bth-tile-name">{event ? '내 포카·직찍과 찍기' : '같이 찍기'}</span>
+                <span className="bth-display bth-tile-name">{event ? t.tileTogetherEvent : t.tileTogether}</span>
                 <span className="bth-tile-desc">
-                  폰 속 사진을 올려서
+                  {t.tileTogetherDesc[0]}
                   <br />
-                  함께 찍은 것처럼 합성해요
+                  {t.tileTogetherDesc[1]}
                 </span>
               </button>
               <button type="button" onClick={() => startMode('solo')} className="bth-tile">
                 <span className="bth-tile-icon">
                   <PixelIcon name="camera" size={80} />
                 </span>
-                <span className="bth-display bth-tile-name">일반 촬영</span>
+                <span className="bth-display bth-tile-name">{t.tileSolo}</span>
                 <span className="bth-tile-desc">
-                  1컷 또는 네컷으로
+                  {t.tileSoloDesc[0]}
                   <br />
-                  지금 이 순간을 담아요
+                  {t.tileSoloDesc[1]}
                 </span>
               </button>
             </div>
 
             <p className="bth-note">
               <PixelIcon name="file" size={28} />
-              포토부스는 상품 구매 시 드리는 이용권으로 이용할 수 있어요
+              {t.passNote}
             </p>
           </div>
         )}
@@ -2233,7 +2252,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {passLoading && (
                       <div className="bth-overlay-center">
                         <RetroWindow className="bth-mini" icon="file" title="TICKET">
-                          <RetroProgress label="이용권 확인 중" />
+                          <RetroProgress label={t.passChecking} />
                         </RetroWindow>
                       </div>
                     )}
@@ -2243,10 +2262,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             </div>
 
             <div className="bth-split-side">
-              <h2 className="bth-display bth-h2">이용권 QR을 보여주세요</h2>
-              <p className="bth-sub bth-scan-sub">카운터에서 받은 이용권의 QR을 카메라 쪽으로 향하게 해주세요</p>
+              <h2 className="bth-display bth-h2">{t.passTitle}</h2>
+              <p className="bth-sub bth-scan-sub">{t.passSub}</p>
               <div className="rt-group bth-manual">
-                <span className="rt-group-label">QR이 안 읽히면 번호 6자리를 눌러주세요</span>
+                <span className="rt-group-label">{t.passManual}</span>
                 <div className="bth-code">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div
@@ -2278,7 +2297,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     type="button"
                     onClick={() => pressKeypad('back')}
                     disabled={passLoading}
-                    aria-label="지우기"
+                    aria-label={t.keypadDelete}
                     className="rt-btn"
                   >
                     <PixelIcon name="backspace" size={40} />
@@ -2300,36 +2319,36 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 {guestPhotoUrl ? (
                   <div className="rt-viewer bth-photo-view">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={guestPhotoUrl} alt="받은 사진" />
+                    <img src={guestPhotoUrl} alt={t.receivedPhotoAlt} />
                   </div>
                 ) : sessionExpired ? (
                   <div className="bth-empty">
                     <PixelIcon name="hourglass" size={96} />
-                    <p className="bth-error">세션이 만료되었어요</p>
+                    <p className="bth-error">{t.sessionExpired}</p>
                   </div>
                 ) : qrDataUrl ? (
                   <div className="bth-qr rt-field">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={qrDataUrl} alt="사진 업로드 QR" />
+                    <img src={qrDataUrl} alt={t.uploadQrAlt} />
                   </div>
                 ) : (
                   <div className="bth-empty">
-                    <RetroProgress label="QR 준비 중" className="bth-inline-busy" />
+                    <RetroProgress label={t.qrPreparing} className="bth-inline-busy" />
                   </div>
                 )}
               </div>
             </div>
             <div className="bth-split-side">
-              <h2 className="bth-display bth-h2">{guestPhotoUrl ? '사진을 받았어요' : '폰으로 사진 올리기'}</h2>
+              <h2 className="bth-display bth-h2">{guestPhotoUrl ? t.qrReceived : t.qrTitle}</h2>
               <p className="bth-sub">
                 {guestPhotoUrl
-                  ? '함께 찍을 수 있게 인물만 오려내고 있어요'
-                  : 'QR을 스캔해 합성할 포카·직찍 한 장을 올려주세요'}
+                  ? t.qrCuttingSub
+                  : t.qrSub}
               </p>
               {guestPhotoUrl ? (
                 <div className="bth-status" role="status">
-                  <RetroProgress label="인물 오려내는 중" />
-                  <p>인물만 오려내는 중… 곧 카메라가 켜져요</p>
+                  <RetroProgress label={t.cuttingOut} />
+                  <p>{t.cuttingOutLong}</p>
                 </div>
               ) : sessionExpired ? (
                 <div className="bth-side-actions">
@@ -2338,15 +2357,15 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     onClick={() => proceedToMode('together')}
                     className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
                   >
-                    <PixelIcon name="qr" size={40} /> QR 다시 만들기
+                    <PixelIcon name="qr" size={40} /> {t.qrRemake}
                   </button>
                 </div>
               ) : qrDataUrl ? (
                 <>
                   <p className="bth-session rt-pixel">{sessionCode}</p>
                   <div className="bth-status" role="status">
-                    <RetroProgress label="업로드를 기다리는 중" />
-                    <p>업로드를 기다리는 중...</p>
+                    <RetroProgress label={t.waitingUpload} />
+                    <p>{t.waitingUpload}...</p>
                   </div>
                 </>
               ) : null}
@@ -2376,7 +2395,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {scanBusy && (
                       <div className="bth-overlay-center">
                         <RetroWindow className="bth-mini" icon="qr" title="SCANNING">
-                          <RetroProgress label="카드 확인 중" />
+                          <RetroProgress label={t.cardChecking} />
                         </RetroWindow>
                       </div>
                     )}
@@ -2388,10 +2407,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             {/* QR이 안 읽힐 때 — 카드에 인쇄된 번호로 진행.
                 부스는 터치스크린이라 물리 키보드가 없을 수 있어 화면 키패드를 제공한다. */}
             <div className="bth-split-side">
-              <h2 className="bth-display bth-h2">카드를 카메라에 보여주세요</h2>
-              <p className="bth-sub bth-scan-sub">포토카드 뒷면의 QR을 화면 쪽으로 향하게 해주세요</p>
+              <h2 className="bth-display bth-h2">{t.scanTitle}</h2>
+              <p className="bth-sub bth-scan-sub">{t.scanSub}</p>
               <div className="rt-group bth-manual">
-                <span className="rt-group-label">QR이 안 읽히면 카드의 번호를 눌러주세요</span>
+                <span className="rt-group-label">{t.scanManual}</span>
                 {/* 입력 칸 — 몇 자 들어갔는지 한눈에 보이게 */}
                 <div className="bth-code">
                   {Array.from({ length: CARD_CODE_LENGTH }).map((_, i) => (
@@ -2421,7 +2440,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     type="button"
                     onClick={() => pressCardKey('back')}
                     disabled={scanBusy}
-                    aria-label="지우기"
+                    aria-label={t.keypadDelete}
                     className="rt-btn"
                   >
                     <PixelIcon name="backspace" size={32} />
@@ -2433,7 +2452,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </div>
               <div className="bth-side-actions">
                 <button type="button" onClick={resetAll} className="rt-btn rt-btn--block">
-                  <PixelIcon name="arrowLeft" size={32} /> 뒤로
+                  <PixelIcon name="arrowLeft" size={32} /> {t.back}
                 </button>
               </div>
             </div>
@@ -2444,8 +2463,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         {step === 'template' && (
           <div className="bth-templates">
             <div className="bth-heading">
-              <h2 className="bth-display bth-h2">함께 찍을 컷을 골라주세요</h2>
-              <p className="bth-sub">빈 자리에 손님이 합성돼 옆에 선 한 장이 됩니다</p>
+              <h2 className="bth-display bth-h2">{t.templateTitle}</h2>
+              <p className="bth-sub">{t.templateSub}</p>
             </div>
             <div className="bth-files">
               {templates.map((tpl) => (
@@ -2493,7 +2512,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={cutoutPreviewUrl ?? undefined}
-                        alt="함께 찍을 인물"
+                        alt={t.cutoutPersonAlt}
                         draggable={false}
                         className="absolute drop-shadow-2xl select-none pointer-events-none"
                         style={{
@@ -2515,7 +2534,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {mode === 'template' && !templateGeometry && (
                       <div className="bth-overlay-center bth-overlay-dim">
                         <RetroWindow className="bth-mini" icon="folder" title="LOADING">
-                          <RetroProgress label="컷 준비 중" />
+                          <RetroProgress label={t.cutPreparing} />
                         </RetroWindow>
                       </div>
                     )}
@@ -2544,7 +2563,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     {mode === 'together' && guestPhotoUrl && (
                       <div className="bth-guest-thumb">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={guestPhotoUrl} alt="업로드된 사진" />
+                        <img src={guestPhotoUrl} alt={t.uploadedPhotoAlt} />
                       </div>
                     )}
                   </div>
@@ -2555,25 +2574,25 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <div className="bth-split-side">
               <h2 className="bth-display bth-h2">
                 {mode === 'together'
-                  ? '이제 현장 사진을 찍어요'
+                  ? t.camTogether
                   : mode === 'template'
                     ? shotProgress?.current === 2
-                      ? '마지막으로 단독 컷 한 장!'
-                      : `${standSideText}에 서주세요`
-                    : '카메라를 봐주세요'}
+                      ? t.camLastSolo
+                      : standSideText
+                    : t.camLook}
               </h2>
               {liveLookName && (
                 <p className="bth-sub">
-                  {liveLookName.ko} · {liveLookName.en}
+                  {liveLookName}
                 </p>
               )}
               {mode === 'template' && shotProgress?.current !== 2 && (
-                <p className="bth-sub">화면에 보이는 그대로 인화됩니다</p>
+                <p className="bth-sub">{t.printAsSeen}</p>
               )}
 
               {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
               {mode === 'solo' && !idolOn && (
-                <div className="bth-seg" role="group" aria-label="컷 수">
+                <div className="bth-seg" role="group" aria-label={t.cutCountAria}>
                   {([1, 4] as const).map((count) => (
                     <button
                       key={count}
@@ -2583,7 +2602,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       aria-pressed={cutCount === count}
                       className="rt-choice"
                     >
-                      {count === 1 ? '1컷' : '네컷'}
+                      {count === 1 ? t.cutOne : t.cutFour}
                     </button>
                   ))}
                 </div>
@@ -2597,7 +2616,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       initial={{ opacity: 0, scale: 0.7, rotate: -5 }}
                       animate={{ opacity: 1, scale: 1, rotate: index % 2 ? 3 : -2 }}
                       src={shot}
-                      alt={`촬영된 ${index + 1}번째 컷`}
+                      alt={t.shotAlt(index + 1)}
                       className="bth-shot"
                     />
                   ))}
@@ -2607,10 +2626,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               {showLiveCutout && !shooting && (
                 <div className="bth-adjust">
                   <p className="bth-sub">
-                    손가락으로 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
+                    {t.dragHint}
                   </p>
                   <label className="bth-range-label">
-                    인물 크기
+                    {t.personSize}
                     <input
                       type="range"
                       min={LAYER_SCALE_MIN}
@@ -2627,7 +2646,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     aria-pressed={guestLayer.flip}
                     onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
                   >
-                    좌우 반전
+                    {t.flip}
                   </button>
                 </div>
               )}
@@ -2641,10 +2660,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 >
                   <PixelIcon name="camera" size={44} />
                   {mode === 'template'
-                    ? '촬영 시작 (2컷)'
+                    ? t.shootTemplate
                     : cutCount === 4
-                      ? '네컷 촬영 시작'
-                      : '촬영하기'}
+                      ? t.shootFour
+                      : t.shoot}
                 </button>
               </div>
             </div>
@@ -2669,7 +2688,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </div>
               {(overlayAdjustable || mode === 'template') && (
                 <p className="bth-hint">
-                  {mode === 'template' ? '사진' : '인물'}을 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요
+                  {mode === 'template' ? t.dragHintPhoto : t.dragHintPerson}
                 </p>
               )}
               {composeError && (
@@ -2683,31 +2702,31 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
               {idolOn && idolShot && (
                 <div className="rt-group">
-                  <span className="rt-group-label">AI 아이돌 사진 · ON STAGE</span>
-                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="retro" />
+                  <span className="rt-group-label">{t.groupIdol}</span>
+                  <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="retro" lang={lang} />
                 </div>
               )}
               {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
               {stageMakeup && !(idolOn && idolShot) && (
                 <div className="rt-group">
-                  <span className="rt-group-label">무대 메이크업 · STAGE MAKEUP</span>
-                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" status={makeupStatus} />
+                  <span className="rt-group-label">{t.groupMakeup}</span>
+                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="retro" status={makeupStatus} lang={lang} />
                 </div>
               )}
               {/* 인화 디자인(AI 아이돌 사진 — 컨셉별 4종) / 그 밖에는 프레임 선택 */}
               {idolOn && idolShot ? (
                 <div className="rt-group">
-                  <span className="rt-group-label">인화 디자인 · PRINT DESIGN</span>
+                  <span className="rt-group-label">{t.groupDesign}</span>
                   <IdolDesignPicker conceptId={stageConceptId} value={idolDesignId} onChange={setIdolDesignId}
                     main={idolImage ?? idolShotImage} before={idolImage ? idolShotImage : null}
-                    event={stageMakeup?.eventLines[0] ?? ''} variant="retro" />
+                    event={stageMakeup?.eventLines[0] ?? ''} variant="retro" lang={lang} />
                 </div>
               ) : (
               <div className="rt-group">
-                <span className="rt-group-label">프레임</span>
-                <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="retro" />
+                <span className="rt-group-label">{t.groupFrame}</span>
+                <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="retro" lang={lang} />
                 {modeFrames.length === 0 && (
-                  <p className="bth-group-text">등록된 프레임이 없어요 (관리자 페이지에서 추가)</p>
+                  <p className="bth-group-text">{t.noFrames}</p>
                 )}
               </div>
               )}
@@ -2717,13 +2736,13 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <div className="bth-stack">
                   {selectedTemplate?.foreground_url ? (
                     <div className="rt-group">
-                      <span className="rt-group-label">같은 공간 합성</span>
-                      <p className="bth-group-text">카메라 배경 전체 위에 아티스트가 자연스럽게 합성됩니다</p>
+                      <span className="rt-group-label">{t.sameSpace}</span>
+                      <p className="bth-group-text">{t.sameSpaceDesc}</p>
                     </div>
                   ) : (
                     <div className="rt-group">
                       <label className="bth-toggle">
-                        <span>배경 지우기</span>
+                        <span>{t.keyingToggle}</span>
                         <input
                           type="checkbox"
                           checked={keying.enabled}
@@ -2732,11 +2751,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         />
                       </label>
                       <p className="bth-group-text">
-                        그린·블루 배경지 앞에서 찍을 때 켜세요. 설정은 이 부스에 저장됩니다
+                        {t.keyingDesc}
                       </p>
                       {keying.enabled && (
                         <label className="bth-range-label">
-                          지우는 정도
+                          {t.keyingStrength}
                           <input
                             type="range"
                             min={0.08}
@@ -2753,7 +2772,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {/* 슬라이더는 가로로 나란히 — 줌 150% 에서 아래 버튼이 화면 밖으로 밀리지 않게 */}
                   <div className="bth-sliders">
                     <label className="bth-range-label">
-                      확대
+                      {t.zoom}
                       <input
                         type="range"
                         min={FIT_ZOOM_MIN}
@@ -2765,7 +2784,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       />
                     </label>
                     <label className="bth-range-label">
-                      좌우 위치
+                      {t.posX}
                       <input
                         type="range"
                         min={0}
@@ -2777,7 +2796,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       />
                     </label>
                     <label className="bth-range-label">
-                      상하 위치
+                      {t.posY}
                       <input
                         type="range"
                         min={0}
@@ -2798,7 +2817,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {mode === 'together' && (
                     <div className="rt-group">
                       <label className="bth-toggle">
-                        <span>인물만 오려내기</span>
+                        <span>{t.cutoutToggle}</span>
                         <input
                           type="checkbox"
                           checked={useCutout && cutoutStatus === 'done'}
@@ -2808,18 +2827,17 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         />
                       </label>
                       <p className="bth-group-text">
-                        {cutoutStatus === 'processing' && '올린 사진에서 인물을 찾는 중...'}
-                        {cutoutStatus === 'done' && '배경을 지우고 옆에 함께 선 것처럼 합성했어요'}
-                        {cutoutStatus === 'failed' &&
-                          '인물을 찾지 못해 사진 그대로 올렸어요 (인물이 크게 나온 사진일수록 잘 돼요)'}
-                        {cutoutStatus === 'idle' && '사진을 올리면 배경을 지워드려요'}
+                        {cutoutStatus === 'processing' && t.cutoutProcessing}
+                        {cutoutStatus === 'done' && t.cutoutDone}
+                        {cutoutStatus === 'failed' && t.cutoutFailed}
+                        {cutoutStatus === 'idle' && t.cutoutIdle}
                       </p>
-                      {cutoutStatus === 'processing' && <RetroProgress label="인물 찾는 중" />}
+                      {cutoutStatus === 'processing' && <RetroProgress label={t.cutoutFinding} />}
                     </div>
                   )}
                   <div className="bth-sliders bth-sliders--2">
                     <label className="bth-range-label">
-                      {useCutout && cutoutStatus === 'done' ? '인물 크기' : '사진 크기'}
+                      {useCutout && cutoutStatus === 'done' ? t.personSize : t.photoSize}
                       <input
                         type="range"
                         min={LAYER_SCALE_MIN}
@@ -2831,7 +2849,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                       />
                     </label>
                     <label className="bth-range-label">
-                      기울기
+                      {t.tilt}
                       <input
                         type="range"
                         min={-180}
@@ -2849,20 +2867,20 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                     aria-pressed={guestLayer.flip}
                     onClick={() => setGuestLayer((prev) => ({ ...prev, flip: !prev.flip }))}
                   >
-                    좌우 반전
+                    {t.flip}
                   </button>
                 </div>
               )}
 
               <div className="bth-side-actions">
-                {finishing && <RetroProgress label="사진을 만드는 중" />}
+                {finishing && <RetroProgress label={t.making} />}
                 <button
                   type="button"
                   onClick={finishCompose}
                   disabled={finishing || idolBusy}
                   className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
                 >
-                  <PixelIcon name="check" size={44} /> {idolBusy ? 'AI 사진 기다리는 중…' : '완성하기'}
+                  <PixelIcon name="check" size={44} /> {idolBusy ? t.waitingAi : t.finish}
                 </button>
                 <button
                   type="button"
@@ -2872,7 +2890,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   }}
                   className="rt-btn rt-btn--block"
                 >
-                  <PixelIcon name="camera" size={32} /> 다시 찍기
+                  <PixelIcon name="camera" size={32} /> {t.retake}
                 </button>
               </div>
             </div>
@@ -2888,7 +2906,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <div className="rt-viewer bth-result-view">
                   <motion.img
                     src={resultUrl}
-                    alt="완성된 사진"
+                    alt={t.resultAlt}
                     className="bth-result-img"
                     initial={{ opacity: 0, y: 80, rotate: -4, scale: 0.8 }}
                     animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
@@ -2907,23 +2925,23 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   className="rt-btn rt-btn--primary rt-btn--lg rt-btn--block"
                 >
                   <PixelIcon name={printStatus === 'printing' ? 'hourglass' : 'printer'} size={44} />
-                  {printStatus === 'printing' ? '인쇄 보내는 중' : '인쇄하기'}
+                  {printStatus === 'printing' ? t.printSending : t.print}
                 </button>
-                {printStatus === 'printing' && <RetroProgress label="인쇄 보내는 중" />}
+                {printStatus === 'printing' && <RetroProgress label={t.printSending} />}
                 {printStatus === 'sent' && (
                   <div className="bth-print-status" role="status">
                     <p>
                       <PixelIcon name="printer" size={32} />
                       {printWaitLeft !== null
-                        ? `사진이 나오고 있어요 · 약 ${printWaitLeft}초`
-                        : '프린터에서 사진을 챙겨 가세요'}
+                        ? t.printComing(printWaitLeft)
+                        : t.printPickup}
                     </p>
-                    {printWaitLeft !== null && <RetroProgress label="사진 인화 중" />}
+                    {printWaitLeft !== null && <RetroProgress label={t.printInProgress} />}
                   </div>
                 )}
                 {printStatus === 'failed' && (
                   <p className="bth-error" role="alert">
-                    <PixelIcon name="warning" size={28} /> 인쇄가 되지 않았어요. 직원에게 알려주세요
+                    <PixelIcon name="warning" size={28} /> {t.printFailed}
                   </p>
                 )}
                 <button
@@ -2933,29 +2951,29 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   className="rt-btn rt-btn--block"
                 >
                   <PixelIcon name={saveStatus === 'uploading' ? 'hourglass' : 'floppy'} size={32} />
-                  {saveStatus === 'uploading' ? 'QR 만드는 중' : '이미지 저장'}
+                  {saveStatus === 'uploading' ? t.qrMaking : t.saveImage}
                 </button>
-                {saveStatus === 'uploading' && <RetroProgress label="QR 만드는 중" />}
+                {saveStatus === 'uploading' && <RetroProgress label={t.qrMaking} />}
                 {saveStatus === 'failed' && (
                   <p className="bth-error" role="alert">
-                    QR을 만들지 못했어요. 잠시 후 다시 눌러주세요
+                    {t.qrFailed}
                   </p>
                 )}
                 <button type="button" onClick={() => setStep('compose')} className="rt-btn rt-btn--block">
-                  <PixelIcon name="palette" size={32} /> 다시 편집
+                  <PixelIcon name="palette" size={32} /> {t.reEdit}
                 </button>
 
                 {/* 생카 인증 문화: 해시태그 안내 */}
                 {event?.hashtag && (
                   <div className="rt-group bth-hashtag">
-                    <p>X(트위터) 인증 태그</p>
+                    <p>{t.hashtagLabel}</p>
                     <b>{event.hashtag}</b>
                   </div>
                 )}
               </div>
               <div className="bth-side-actions">
                 <button type="button" onClick={resetAll} className="rt-btn rt-btn--block">
-                  <PixelIcon name="home" size={32} /> 처음으로 돌아가기
+                  <PixelIcon name="home" size={32} /> {t.backHome}
                 </button>
               </div>
             </div>
@@ -2979,7 +2997,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="폰으로 사진 받기"
+            aria-label={t.saveQrAria}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -2991,27 +3009,27 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             }}
           >
             <motion.div initial={{ y: 16 }} animate={{ y: 0 }} className="bth-dialog bth-dialog--wide">
-              <RetroWindow icon="phone" title="SAVE TO PHONE" onClose={() => setSaveQrOpen(false)} closeLabel="닫기">
+              <RetroWindow icon="phone" title="SAVE TO PHONE" onClose={() => setSaveQrOpen(false)} closeLabel={t.close}>
                 <div className="bth-saveqr">
                   <div className="bth-qr rt-field">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={saveQr.qrDataUrl} alt="사진 받기 QR" />
+                    <img src={saveQr.qrDataUrl} alt={t.saveQrAlt} />
                   </div>
                   <div className="bth-saveqr-text">
-                    <h2 className="bth-h2">폰으로 QR을 찍어 저장하세요</h2>
+                    <h2 className="bth-h2">{t.saveQrTitle}</h2>
                     <ol className="bth-steps">
-                      <li>폰 카메라로 QR을 비춰요</li>
+                      <li>{t.saveQrStep1}</li>
                       <li>
-                        열린 페이지에서 <b>사진 저장하기</b>를 눌러요
+                        {t.saveQrStep2[0]}<b>{t.photoSave}</b>{t.saveQrStep2[1]}
                       </li>
                     </ol>
-                    <p className="bth-sub">사진은 {RESULT_PHOTO_TTL_HOURS}시간 뒤 자동으로 삭제돼요</p>
+                    <p className="bth-sub">{t.photoAutoDelete(RESULT_PHOTO_TTL_HOURS)}</p>
                     <button
                       type="button"
                       onClick={() => setSaveQrOpen(false)}
                       className="rt-btn rt-btn--primary rt-btn--block"
                     >
-                      닫기
+                      {t.close}
                     </button>
                   </div>
                 </div>
@@ -3044,7 +3062,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <p className="bth-sub">{passAlert.message}</p>
                   <div className="bth-idle-actions">
                     <button type="button" onClick={() => setPassAlert(null)} className="rt-btn rt-btn--primary">
-                      확인
+                      {t.confirm}
                     </button>
                   </div>
                 </div>
@@ -3060,7 +3078,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           <motion.div
             role="alertdialog"
             aria-live="assertive"
-            aria-label="잠시 후 처음 화면으로 돌아갑니다"
+            aria-label={t.idleTitle}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -3072,24 +3090,24 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               <RetroWindow icon="hourglass" title="STANDBY">
                 <div className="bth-idle">
                   <span className="bth-idle-count rt-pixel">{idleLeft}</span>
-                  <RetroProgress value={idleLeft / IDLE_WARN_S} blocks={IDLE_WARN_S} label="처음 화면 복귀까지 남은 시간" />
-                  <h2 className="bth-h2">{sessionDone ? '사진을 챙겨 가세요' : '잠시 후 처음 화면으로 돌아갑니다'}</h2>
+                  <RetroProgress value={idleLeft / IDLE_WARN_S} blocks={IDLE_WARN_S} label={t.idleRemaining} />
+                  <h2 className="bth-h2">{sessionDone ? t.idleDoneTitle : t.idleTitle}</h2>
                   <p className="bth-sub">
                     {sessionDone ? (
                       <>
-                        인쇄가 끝났어요. 프린터에서 사진을 가져가세요.
+                        {t.idleDoneLines[0]}
                         <br />
-                        잠시 후 처음 화면으로 돌아갑니다.
+                        {t.idleDoneLines[1]}
                       </>
                     ) : (
-                      '계속하시려면 화면을 터치해 주세요.'
+                      t.idleTouch
                     )}
                   </p>
                   {sessionDone ? (
                     <div className="bth-idle-actions">
                       {/* 누르는 순간(pointerdown) 팝업이 닫히며 결과 화면에 남는다 */}
                       <button type="button" className="rt-btn">
-                        계속 보기
+                        {t.keepViewing}
                       </button>
                       <button
                         type="button"
@@ -3098,12 +3116,12 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                         onClick={resetAll}
                         className="rt-btn rt-btn--primary"
                       >
-                        처음으로
+                        {t.home}
                       </button>
                     </div>
                   ) : (
                     <button type="button" className="rt-btn rt-btn--primary rt-btn--block">
-                      계속하기
+                      {t.continue}
                     </button>
                   )}
                 </div>

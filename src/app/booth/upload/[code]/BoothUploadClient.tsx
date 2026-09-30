@@ -9,10 +9,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { compressImage } from '@/lib/image/compressor'
 import { ImagePlus, Loader2, Check, RefreshCw, Sparkles } from 'lucide-react'
+import { BOOTH_LANGS, boothText, guestError, type BoothLang } from '@/lib/booth/i18n'
 
 type Status = 'checking' | 'ready' | 'invalid' | 'uploading' | 'done' | 'error'
 
-export function BoothUploadClient({ code }: { code: string }) {
+/** lang: 부스 화면 언어(QR 주소 ?lang=) — 문구는 부스와 같은 사전(src/lib/booth/i18n.ts) */
+export function BoothUploadClient({ code, lang }: { code: string; lang: BoothLang }) {
+  const t = boothText(lang)
   const [status, setStatus] = useState<Status>('checking')
   const [errorMessage, setErrorMessage] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
@@ -30,7 +33,7 @@ export function BoothUploadClient({ code }: { code: string }) {
   useEffect(() => {
     if (!/^PB-[A-Z2-9]{6}$/.test(code)) {
       setStatus('invalid')
-      setErrorMessage('잘못된 접속 주소예요. 부스 화면의 QR을 다시 스캔해주세요.')
+      setErrorMessage(t.upInvalidUrl)
       return
     }
     let cancelled = false
@@ -40,10 +43,10 @@ export function BoothUploadClient({ code }: { code: string }) {
         if (cancelled) return
         if (!ok) {
           setStatus('invalid')
-          setErrorMessage(data.error || '세션을 확인할 수 없어요.')
+          setErrorMessage(guestError(lang, data.error, t.upSessionFailed))
         } else if (data.status === 'expired') {
           setStatus('invalid')
-          setErrorMessage('만료된 세션이에요. 부스 화면에서 QR을 다시 만들어주세요.')
+          setErrorMessage(t.upExpired)
         } else if (data.status === 'uploaded') {
           setStatus('done')
         } else {
@@ -53,13 +56,13 @@ export function BoothUploadClient({ code }: { code: string }) {
       .catch(() => {
         if (!cancelled) {
           setStatus('invalid')
-          setErrorMessage('네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.')
+          setErrorMessage(t.upNetwork)
         }
       })
     return () => {
       cancelled = true
     }
-  }, [code])
+  }, [code, lang, t])
 
   const handleFile = async (file: File) => {
     setStatus('uploading')
@@ -79,17 +82,17 @@ export function BoothUploadClient({ code }: { code: string }) {
         body: JSON.stringify({ code, imageBase64: base64 }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '업로드에 실패했어요')
+      if (!res.ok) throw new Error(data.error || t.upFailed)
       setStatus('done')
     } catch (error) {
       console.error('포토부스 업로드 실패:', error)
       setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : '업로드에 실패했어요')
+      setErrorMessage(guestError(lang, error instanceof Error ? error.message : null, t.upFailed))
     }
   }
 
   return (
-    <div className="relative min-h-svh overflow-hidden bg-[#0b0b0a] text-white flex flex-col items-center justify-center px-6 py-10">
+    <div lang={BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'} className="relative min-h-svh overflow-hidden bg-[#0b0b0a] text-white flex flex-col items-center justify-center px-6 py-10">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/photobooth/attract/graphite-gallery.png" alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/70 to-black/95" />
@@ -113,7 +116,7 @@ export function BoothUploadClient({ code }: { code: string }) {
 
       {status === 'invalid' && (
         <div className="text-center">
-          <p className="text-lg font-semibold mb-3">접속할 수 없어요</p>
+          <p className="text-lg font-semibold mb-3">{t.upCannotConnect}</p>
           <p className="text-base text-white/55 leading-relaxed">{errorMessage}</p>
         </div>
       )}
@@ -121,11 +124,11 @@ export function BoothUploadClient({ code }: { code: string }) {
       {(status === 'ready' || status === 'error') && (
         <div className="w-full max-w-sm text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15"><ImagePlus className="h-7 w-7" /></div>
-          <h1 className="text-3xl font-black mb-3">최애 사진 올리기</h1>
+          <h1 className="text-3xl font-black mb-3">{t.upTitle}</h1>
           <p className="text-base text-white/60 mb-8 leading-relaxed">
-            함께 찍고 싶은 사진 한 장을 선택해주세요.
+            {t.upDesc[0]}
             <br />
-            업로드하면 부스 화면에서 바로 이어져요.
+            {t.upDesc[1]}
           </p>
           {status === 'error' && (
             <p className="text-base text-red-300 mb-4">{errorMessage}</p>
@@ -147,11 +150,11 @@ export function BoothUploadClient({ code }: { code: string }) {
           >
             {status === 'error' ? (
               <>
-                <RefreshCw className="w-5 h-5" /> 다시 선택하기
+                <RefreshCw className="w-5 h-5" /> {t.upReselect}
               </>
             ) : (
               <>
-                <ImagePlus className="w-5 h-5" /> 사진 선택하기
+                <ImagePlus className="w-5 h-5" /> {t.upSelect}
               </>
             )}
           </button>
@@ -165,12 +168,12 @@ export function BoothUploadClient({ code }: { code: string }) {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={preview}
-              alt="업로드 중인 사진"
+              alt={t.upUploadingAlt}
               className="w-40 mx-auto rounded-2xl mb-6 opacity-60"
             />
           )}
           <p className="flex items-center justify-center gap-2 text-base text-white/70">
-            <Loader2 className="w-4 h-4 animate-spin" /> 업로드하는 중...
+            <Loader2 className="w-4 h-4 animate-spin" /> {t.upUploading}
           </p>
         </div>
       )}
@@ -181,17 +184,17 @@ export function BoothUploadClient({ code }: { code: string }) {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={preview}
-              alt="업로드된 사진"
+              alt={t.uploadedPhotoAlt}
               className="w-40 mx-auto rounded-2xl mb-6"
             />
           )}
           <div className="w-14 h-14 mx-auto rounded-full bg-white text-neutral-950 flex items-center justify-center mb-4">
             <Check className="w-7 h-7" />
           </div>
-          <h1 className="text-xl font-bold mb-2">업로드 완료!</h1>
+          <h1 className="text-xl font-bold mb-2">{t.upDone}</h1>
           <p className="text-base text-white/55 leading-relaxed">
-            이제 부스 화면에서 촬영을 이어가주세요.
-            <br />이 창은 닫으셔도 돼요.
+            {t.upDoneDesc[0]}
+            <br />{t.upDoneDesc[1]}
           </p>
         </div>
       )}

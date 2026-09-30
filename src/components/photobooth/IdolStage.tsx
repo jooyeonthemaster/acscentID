@@ -12,21 +12,26 @@ import { IDOL_CONCEPTS, IDOL_MAX_PEOPLE, findIdolConcept } from '@/lib/booth/ido
 import { findStageLook } from '@/lib/booth/stage-makeup'
 import { countFaces, faceRectsInCell } from '@/lib/booth/face-makeup'
 import { drawIdolDesign, idolDesigns, type Picture } from '@/lib/booth/idol-layouts'
+import { boothText, conceptText, designName, type BoothLang, type BoothText } from '@/lib/booth/i18n'
 
 // ───────────────────────── 컨셉 고르기 ─────────────────────────
 
-export function IdolConceptPicker({ value, onChange, variant }: {
+export function IdolConceptPicker({ value, onChange, variant, lang }: {
   value: string
   onChange: (id: string) => void
   variant: 'retro' | 'classic'
+  /** 화면 언어 — 이름·설명은 src/lib/booth/i18n.ts 에서 id 로 찾는다 */
+  lang: BoothLang
 }) {
   const retro = variant === 'retro'
+  const t = boothText(lang)
   const current = findIdolConcept(value)
   return (
     <div className={retro ? 'bth-look-picker bth-look-picker--home' : 'flex w-full flex-col gap-3 text-center'}>
-      <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3 text-left'} role="radiogroup" aria-label="아이돌 컨셉 · Idol concept">
+      <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3 text-left'} role="radiogroup" aria-label={t.conceptAria}>
         {IDOL_CONCEPTS.map((concept) => {
           const on = concept.id === value
+          const text = conceptText(t, concept)
           const swatch = findStageLook(concept.lookId)?.swatch ?? ['#ffffff', '#d9dde6']
           return (
             <button
@@ -43,29 +48,41 @@ export function IdolConceptPicker({ value, onChange, variant }: {
               <span className={retro ? 'bth-look-swatch' : 'h-12 w-12 shrink-0 rounded-full border border-black/10 shadow-inner'}
                 style={{ background: `linear-gradient(135deg, ${swatch[0]}, ${swatch[1]})` }} aria-hidden="true" />
               <span className={retro ? 'bth-look-name' : 'flex min-w-0 flex-col leading-tight'}>
-                <b className={retro ? undefined : 'line-clamp-2 break-keep text-lg font-bold'}>{concept.name.ko}</b>
-                <em className={retro ? undefined : 'truncate text-sm not-italic opacity-70'}>{concept.name.en}</em>
+                <b className={retro ? undefined : 'line-clamp-2 break-keep text-lg font-bold'}>{text.name}</b>
               </span>
             </button>
           )
         })}
       </div>
       <p className={retro ? 'bth-group-text bth-look-desc' : 'text-lg leading-snug opacity-75'} aria-live="polite">
-        {current && <>{current.desc.ko}<br /><span>{current.desc.en}</span></>}
+        {current && conceptText(t, current).desc}
       </p>
     </div>
   )
 }
 
-/** 첫 화면 동의 문구 — 사진이 외부 AI 로 간다는 것을 촬영 전에 알린다 */
-export const IDOL_CONSENT = {
-  ko: '찍은 사진은 AI 아이돌 사진을 만드는 데만 AI 서비스(Google)로 보내지고, 저장하지 않아요.',
-  en: 'Your photo is sent to an AI service only to create your idol photo, and is not stored.',
-}
+// 첫 화면 동의 문구(사진이 외부 AI 로 간다는 것을 촬영 전에 알린다)는 사전 idolConsent
 
 // ───────────────────────── 생성 흐름 ─────────────────────────
 
 export type IdolStatus = 'off' | 'checking' | 'generating' | 'done' | 'failed' | 'skipped'
+
+/** 못 만든 이유 — 문구는 화면 언어로 그때그때 만든다(도중에 언어를 바꿔도 따라간다) */
+type IdolNote =
+  | { kind: 'noTicket' | 'noConcept' | 'noFace' }
+  | { kind: 'tooMany'; people: number }
+  | { kind: 'failed'; detail: string | null }
+
+function idolNoteText(t: BoothText, lang: BoothLang, note: IdolNote): string {
+  switch (note.kind) {
+    case 'noTicket': return t.idolNoTicket
+    case 'noConcept': return t.idolNoConcept
+    case 'noFace': return t.idolNoFace
+    case 'tooMany': return t.idolTooMany(IDOL_MAX_PEOPLE, note.people)
+    // 서버·기기 오류 문구는 한국어라 한국어 화면에서만 그대로 보여 준다
+    case 'failed': return `${lang === 'ko' && note.detail ? note.detail : t.idolFailed} ${t.idolFallback}`
+  }
+}
 
 type Box = { x: number; y: number; w: number; h: number }
 
@@ -126,7 +143,7 @@ function loadImage(src: string) {
 /** 한 이용권(표)으로 만들 수 있는 횟수 — 서버 IDOL_TICKET_USES 와 같게 */
 const MAX_TRIES = 3
 
-export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
+export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }: {
   /** 행사 모드 + 동의 + 키 설정 + 편집·결과 단계 */
   active: boolean
   /** 찍은 한 컷(주소) — 바뀌면 처음부터 */
@@ -134,10 +151,12 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
   conceptId: string
   ticket: string | null
   getImage: (src: string) => Promise<HTMLImageElement>
+  /** 화면 언어 — 안내 문구(message) */
+  lang: BoothLang
 }) {
   const [status, setStatus] = useState<IdolStatus>('off')
   const [image, setImage] = useState<HTMLImageElement | null>(null)
-  const [message, setMessage] = useState('')
+  const [note, setNote] = useState<IdolNote | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [tries, setTries] = useState(0)
   const runRef = useRef(0)
@@ -148,11 +167,11 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
     const token = ++runRef.current
     const concept = findIdolConcept(conceptId)
     setImage(null)
-    setMessage('')
+    setNote(null)
     setElapsed(0)
     if (!concept || !ticket) {
       setStatus('failed')
-      setMessage(!ticket ? '이용권 확인 정보가 없어 찍은 사진 그대로 인화해요.' : '컨셉을 찾지 못했어요.')
+      setNote({ kind: !ticket ? 'noTicket' : 'noConcept' })
       return
     }
     try {
@@ -162,9 +181,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
       if (token !== runRef.current) return
       if (people === 0 || people > IDOL_MAX_PEOPLE) {
         setStatus('skipped')
-        setMessage(people === 0
-          ? '얼굴을 찾지 못해 찍은 사진 그대로 인화해요. 카메라 가까이 서면 AI 사진을 만들 수 있어요.'
-          : `AI 사진은 ${IDOL_MAX_PEOPLE}명까지예요. ${people}명이라 찍은 사진 그대로 인화해요.`)
+        setNote(people === 0 ? { kind: 'noFace' } : { kind: 'tooMany', people })
         return
       }
       const input = await idolInputs(original)
@@ -187,7 +204,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
     } catch (error) {
       if (token !== runRef.current) return
       setStatus('failed')
-      setMessage(`${error instanceof Error ? error.message : 'AI 사진을 만들지 못했어요.'} 찍은 사진 그대로 인화해요.`)
+      setNote({ kind: 'failed', detail: error instanceof Error ? error.message : null })
     }
   }, [shot, conceptId, ticket, getImage])
 
@@ -221,7 +238,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
     status,
     /** 인화에 쓸 AI 사진(완성일 때만) */
     image: status === 'done' ? image : null,
-    message,
+    message: note ? idolNoteText(boothText(lang), lang, note) : '',
     elapsed,
     busy,
     canRetry: !busy && status !== 'skipped' && tries < MAX_TRIES && !!ticket,
@@ -232,46 +249,42 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage }: {
 
 // ───────────────────────── 편집 화면 안내 ─────────────────────────
 
-const WAIT_LINES = [
-  ['무대 조명 켜는 중…', 'Turning on the stage lights…'],
-  ['헤어·메이크업 받는 중…', 'Hair and makeup in progress…'],
-  ['무대 의상 갈아입는 중…', 'Changing into the stage outfit…'],
-  ['카메라 리허설 중…', 'Camera rehearsal…'],
-  ['곧 데뷔합니다!', 'Debut coming up!'],
-] as const
+// 만드는 중 안내(5초마다 다음 줄)는 사전 idolWait
 
-export function IdolStagePanel({ stage, conceptId, variant }: {
+export function IdolStagePanel({ stage, conceptId, variant, lang }: {
   stage: ReturnType<typeof useIdolStage>
   conceptId: string
   variant: 'retro' | 'classic'
+  lang: BoothLang
 }) {
   const retro = variant === 'retro'
+  const t = boothText(lang)
   const concept = findIdolConcept(conceptId)
-  const line = WAIT_LINES[Math.min(WAIT_LINES.length - 1, Math.floor(stage.elapsed / 5))]
+  const line = t.idolWait[Math.min(t.idolWait.length - 1, Math.floor(stage.elapsed / 5))]
   const text = retro ? 'bth-group-text' : 'text-sm leading-snug opacity-80'
   const button = retro ? 'rt-btn rt-btn--block' : 'rounded-full border px-5 py-3 text-base font-bold transition-opacity hover:opacity-80 disabled:opacity-40'
   return (
     <div className={retro ? 'bth-idol-panel' : 'flex flex-col gap-2'} role="status" aria-live="polite">
-      {concept && <p className={retro ? 'bth-idol-concept' : 'text-lg font-bold'}>{concept.name.ko} · {concept.name.en}</p>}
+      {concept && <p className={retro ? 'bth-idol-concept' : 'text-lg font-bold'}>{conceptText(t, concept).name}</p>}
       {stage.busy && (
         <>
           <p className={retro ? 'bth-idol-wait' : 'text-base font-bold'}>
-            {stage.status === 'checking' ? '얼굴 확인 중… · Checking faces…' : `${line[0]} · ${line[1]}`}
+            {stage.status === 'checking' ? t.idolChecking : line}
           </p>
           <div className={retro ? 'bth-idol-bar' : 'h-2 w-full overflow-hidden rounded-full bg-current/15'} aria-hidden="true">
             <span className={retro ? undefined : 'block h-full rounded-full bg-current transition-[width] duration-500'}
               style={{ width: `${Math.min(95, 8 + stage.elapsed * 3.2)}%` }} />
           </div>
-          <p className={text}>AI 아이돌 사진을 만들고 있어요 (보통 20~40초) · {stage.elapsed}s</p>
+          <p className={text}>{t.idolMaking(stage.elapsed)}</p>
         </>
       )}
       {stage.status === 'done' && (
-        <p className={text}>완성! 아래에서 인화 디자인을 골라 주세요 · Pick a print design below</p>
+        <p className={text}>{t.idolDone}</p>
       )}
       {(stage.status === 'failed' || stage.status === 'skipped') && <p className={text}>{stage.message}</p>}
       {stage.canRetry && (stage.status === 'done' || stage.status === 'failed') && (
         <button type="button" className={button} onClick={stage.retry}>
-          {stage.status === 'done' ? '다시 만들기 · Try again' : 'AI 사진 다시 시도 · Retry'} ({stage.retriesLeft})
+          {stage.status === 'done' ? t.idolRetryDone : t.idolRetryFailed} ({stage.retriesLeft})
         </button>
       )}
     </div>
@@ -283,7 +296,7 @@ export function IdolStagePanel({ stage, conceptId, variant }: {
 const THUMB = 0.2
 
 /** 컨셉별 인화 디자인 4종 — 손님 사진으로 그린 작은 미리보기(인화와 같은 그리기 함수) */
-export function IdolDesignPicker({ conceptId, value, onChange, main, before, event, variant }: {
+export function IdolDesignPicker({ conceptId, value, onChange, main, before, event, variant, lang }: {
   conceptId: string
   value: string | null
   onChange: (id: string) => void
@@ -292,8 +305,11 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
   before: Picture | null
   event: string
   variant: 'retro' | 'classic'
+  /** 화면 언어 — 디자인 이름만(미리보기 그림은 인화물과 같이 한국어·영어) */
+  lang: BoothLang
 }) {
   const retro = variant === 'retro'
+  const t = boothText(lang)
   const concept = findIdolConcept(conceptId)
   const designs = useMemo(() => (concept ? idolDesigns(concept) : []), [concept])
   const selected = designs.find((d) => d.id === value)?.id ?? designs[0]?.id
@@ -312,7 +328,7 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
 
   if (!concept) return null
   return (
-    <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3'} role="radiogroup" aria-label="인화 디자인 · Print design">
+    <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3'} role="radiogroup" aria-label={t.designAria}>
       {designs.map((design, i) => {
         const on = design.id === selected
         return (
@@ -333,8 +349,7 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
               height={1800 * THUMB}
               className="block aspect-[2/3] w-full rounded-md bg-black/10"
             />
-            <b className="text-sm leading-tight">{design.name.ko}</b>
-            <em className="text-xs not-italic opacity-70">{design.name.en}</em>
+            <b className="text-sm leading-tight">{designName(t, design)}</b>
           </button>
         )
       })}
