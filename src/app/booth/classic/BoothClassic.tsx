@@ -95,7 +95,7 @@ const CANVAS_H = PRINT.H
 
 const POLL_INTERVAL_MS = 2500
 /** 같은 이용권 QR 을 다시 확인하기까지 (쓴 번호를 계속 대고 있을 때) */
-const PASS_QR_RETRY_MS = 4000
+const PASS_QR_RETRY_MS = 8000
 /** 이용권 화면에서 DSLR 초점을 다시 잡는 간격 (AF 자체가 약 1.2초) */
 const DSLR_QR_AF_MS = 2500
 /** 관리자 핫스팟을 이만큼 눌러야 열린다 — 손님이 모서리를 스쳐도 안 열리게 */
@@ -297,6 +297,10 @@ export function BoothClassic() {
   const [pendingMode, setPendingMode] = useState<Mode | null>(null)
   const [passDigits, setPassDigits] = useState('')
   const [passError, setPassError] = useState('')
+  /** 이용권을 못 쓸 때 화면 가운데 팝업 (쓴 번호·시간 지남·취소·없는 번호) — 키패드 아래 글씨만으로는 못 보고 지나친다 */
+  const [passAlert, setPassAlert] = useState<{ title: string; message: string } | null>(null)
+  const passAlertRef = useRef(false)
+  passAlertRef.current = passAlert !== null
   const [passLoading, setPassLoading] = useState(false)
 
   // 같이 찍기 세션
@@ -941,6 +945,7 @@ export function BoothClassic() {
     async (code: string) => {
       setPassLoading(true)
       setPassError('')
+      let title = '이용권을 확인하지 못했어요'
       try {
         const res = await fetch('/api/photobooth/pass', {
           method: 'POST',
@@ -948,21 +953,37 @@ export function BoothClassic() {
           body: JSON.stringify({ code }),
         })
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || '이용권 확인에 실패했어요')
+        if (!res.ok) {
+          if (typeof data.title === 'string') title = data.title
+          throw new Error(data.error || '이용권 확인에 실패했어요')
+        }
         setPassVerified(true)
         setIdolTicket(typeof data.idolTicket === 'string' ? data.idolTicket : null)
         const next = pendingMode ?? 'solo'
         setPendingMode(null)
         proceedToMode(next)
       } catch (error) {
-        setPassError(error instanceof Error ? error.message : '이용권 확인에 실패했어요')
+        const message = error instanceof Error ? error.message : '이용권 확인에 실패했어요'
+        setPassError(message)
         setPassDigits('')
+        setPassAlert({ title, message })
       } finally {
         setPassLoading(false)
       }
     },
     [pendingMode, proceedToMode]
   )
+
+  // 이용권 안내 팝업은 8초 뒤 닫히고, 이용권 화면을 떠나면 바로 닫힌다
+  useEffect(() => {
+    if (!passAlert) return
+    if (step !== 'pass') {
+      setPassAlert(null)
+      return
+    }
+    const timer = window.setTimeout(() => setPassAlert(null), 8000)
+    return () => window.clearTimeout(timer)
+  }, [passAlert, step])
 
   const pressKeypad = useCallback(
     (digit: string) => {
@@ -1115,7 +1136,10 @@ export function BoothClassic() {
                 return
               }
               const code = parsePassQr(value)
-              if (code && (code !== lastPass || Date.now() - lastPassAt > PASS_QR_RETRY_MS)) {
+              // 안내 팝업이 떠 있는 동안에는 같은 쪽지를 계속 대고 있어도 다시 보내지 않는다
+              if (code && passAlertRef.current) {
+                if (code === lastPass) lastPassAt = Date.now()
+              } else if (code && (code !== lastPass || Date.now() - lastPassAt > PASS_QR_RETRY_MS)) {
                 lastPass = code
                 lastPassAt = Date.now()
                 setPassDigits(code)
@@ -3043,6 +3067,46 @@ export function BoothClassic() {
                   닫기
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 이용권을 못 쓸 때 — 이유를 크게 보여 준다(8초 뒤 저절로 닫힘) */}
+      <AnimatePresence>
+        {passAlert && (
+          <motion.div
+            role="alertdialog"
+            aria-live="assertive"
+            aria-label={passAlert.title}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[64] flex items-center justify-center bg-black/55 p-8 backdrop-blur-sm"
+            onClick={() => setPassAlert(null)}
+          >
+            <motion.div
+              initial={{ y: 16, scale: 0.97 }}
+              animate={{ y: 0, scale: 1 }}
+              onClick={(event) => event.stopPropagation()}
+              className={`flex w-full max-w-md flex-col items-center gap-3 rounded-[28px] px-8 pb-7 pt-9 text-center shadow-2xl ${
+                lightHome ? 'bg-white text-[var(--booth-ink)]' : 'border border-white/10 bg-neutral-900 text-white'
+              }`}
+            >
+              <span className="grid h-20 w-20 place-items-center rounded-full border-4" style={{ borderColor: accent, color: accent }}>
+                <Ticket className="h-9 w-9" />
+              </span>
+              <h2 className="mt-2 text-2xl font-black break-keep">{passAlert.title}</h2>
+              <p className="mb-2 text-base opacity-70 break-keep">{passAlert.message}</p>
+              <button
+                type="button"
+                onClick={() => setPassAlert(null)}
+                className="min-h-14 w-full rounded-2xl text-lg font-bold text-white"
+                style={{ background: accent }}
+              >
+                확인
+              </button>
             </motion.div>
           </motion.div>
         )}

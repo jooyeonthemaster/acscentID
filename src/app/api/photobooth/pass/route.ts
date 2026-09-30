@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (failureError) console.error('Photobooth pass failure count failed:', failureError)
     if ((recentFailures ?? 0) >= PASS_FAILURE_LIMIT) {
       return NextResponse.json(
-        { error: '번호가 여러 번 틀렸어요. 1분 뒤에 다시 입력해 주세요' },
+        { title: '잠시 후 다시 시도해주세요', error: '번호가 여러 번 틀렸어요. 1분 뒤에 다시 입력해 주세요' },
         { status: 429 }
       )
     }
@@ -75,16 +75,28 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (existing?.status === 'issued' && existing.expires_at && Date.parse(existing.expires_at) <= Date.parse(now)) {
+        const until = new Date(existing.expires_at).toLocaleTimeString('ko-KR', {
+          timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false,
+        })
         return NextResponse.json(
-          { error: '사용 기간이 지난 이용권이에요. 직원에게 문의해주세요' },
+          {
+            title: '사용 시간이 지난 이용권이에요',
+            error: `사용 기간이 지난 이용권이에요. ${until}까지 쓸 수 있었어요. 카운터에 문의해주세요`,
+          },
           { status: 410 }
         )
       }
       if (existing?.status === 'used') {
-        return NextResponse.json({ error: '이미 사용된 이용권이에요' }, { status: 410 })
+        return NextResponse.json(
+          { title: '이미 사용한 이용권이에요', error: '이미 사용된 이용권이에요' },
+          { status: 410 }
+        )
       }
       if (existing?.status === 'void') {
-        return NextResponse.json({ error: '취소된 이용권이에요. 직원에게 문의해주세요' }, { status: 410 })
+        return NextResponse.json(
+          { title: '취소된 이용권이에요', error: '취소된 이용권이에요. 직원에게 문의해주세요' },
+          { status: 410 }
+        )
       }
       if (!existing) {
         // 없는 번호만 '틀린 입력'으로 센다. 하루 지난 기록은 같이 정리한다
@@ -95,7 +107,7 @@ export async function POST(request: NextRequest) {
           .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       }
       return NextResponse.json(
-        { error: '등록되지 않은 번호예요. 직원에게 문의해주세요' },
+        { title: '등록되지 않은 번호예요', error: '등록되지 않은 번호예요. 직원에게 문의해주세요' },
         { status: 404 }
       )
     }
