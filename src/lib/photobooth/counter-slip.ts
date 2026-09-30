@@ -29,6 +29,9 @@ export interface SlipContent {
   issued: string
 }
 
+/** 쪽지 QR 한 변 (mm) — 브라우저 인쇄 쪽지도 같은 크기 */
+export const SLIP_QR_MM = 45
+
 /** 쪽지 안내 문구 — 캔버스 쪽지와 브라우저 인쇄 쪽지가 같이 쓴다 */
 export const SLIP_GUIDE = ['포토부스에서 촬영 방식을 고른 뒤', 'QR을 카메라에 보여 주거나 번호를 입력하세요.']
 
@@ -58,7 +61,7 @@ export async function drawSlip(slip: SlipContent): Promise<HTMLCanvasElement> {
 
   const canvas = document.createElement('canvas')
   canvas.width = SLIP_DOTS
-  canvas.height = mm(150)
+  canvas.height = mm(170)
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -87,9 +90,9 @@ export async function drawSlip(slip: SlipContent): Promise<HTMLCanvasElement> {
   text('이용권 번호', 9, 400, mm(0.5))
   text(slip.code, 34, 900, 0, 0.08)
   if (slip.qrCode) {
-    // 칸을 정수 점으로 그려야 흐림 없이 또렷하다 — 부스 카메라가 멀리서도 읽게 약 27mm
+    // 칸을 정수 점으로 그려야 흐림 없이 또렷하다. 부스 DSLR 은 가까운 것에 초점이 늦어 조금 떨어져 대도 읽히게 크게(약 44mm)
     const { size, dark } = passQrModules(slip.qrCode)
-    const cell = Math.max(4, Math.floor(mm(27) / size))
+    const cell = Math.max(4, Math.floor(mm(SLIP_QR_MM) / size))
     const left = Math.round(cx - (size * cell) / 2)
     y += mm(2)
     for (let row = 0; row < size; row++) for (let col = 0; col < size; col++) if (dark(row, col)) ctx.fillRect(left + col * cell, y + row * cell, cell, cell)

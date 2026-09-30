@@ -22,6 +22,7 @@
  *   GET  /frame.jpg   최신 라이브뷰 JPEG (요청이 오면 라이브뷰를 켜고, 15초간 없으면 끈다)
  *   POST /capture     셔터를 눌러 원본 JPEG 를 그대로 돌려준다
  *   POST /release     카메라를 놓아준다 (dslrBooth 를 켜기 전에 호출)
+ *   POST /af          라이브뷰 자동초점 한 번 — 이용권 QR 처럼 가까이 댄 것에 초점을 다시 맞춘다
  *
  * ⚠️ 카메라는 한 번에 한 앱만 잡을 수 있다. dslrBooth 와 동시에 켜지 말 것.
  */
@@ -86,6 +87,9 @@ const PropID_Evf_OutputDevice = 0x00000500
 const PropID_Evf_Mode = 0x00000501
 const CameraCommand_ExtendShutDownTimer = 0x00000001
 const CameraCommand_PressShutterButton = 0x00000004
+const CameraCommand_DoEvfAf = 0x00000102
+const EvfAf_OFF = 0
+const EvfAf_ON = 1
 const ShutterButton_OFF = 0x00000000
 const ShutterButton_Completely = 0x00000003
 // 초점을 다시 잡지 않고 바로 셔터 — 초점을 못 잡아(어두움·민무늬 배경·너무 가까움) 셔터가 거부될 때 쓴다
@@ -225,6 +229,9 @@ const state = {
   evfSize: null,
   error: '',
   capture: null,
+  /** 라이브뷰 AF 진행 중이면 끝나는 시각 */
+  afUntil: 0,
+  afFailLogged: false,
   timers: { pump: null, evf: null, keepAlive: null, retry: null },
   callbacks: { object: null, stateEvt: null },
 }
@@ -471,6 +478,31 @@ function scheduleEvf() {
   }, EVF_POLL_MS)
 }
 
+/**
+ * 라이브뷰 자동초점 — 셔터 없이 초점만 다시 잡는다(카메라의 AF 영역 설정을 따른다).
+ * 부스는 손님이 서는 거리에 초점이 맞아 있어서 가까이 댄 이용권 QR 이 흐리다 → 이용권 화면이 몇 초마다 부른다.
+ */
+const EVF_AF_HOLD_MS = 1200
+function evfAutofocus() {
+  if (!state.connected || !state.liveView) return Promise.resolve({ ok: false, error: '라이브뷰가 꺼져 있습니다' })
+  if (state.capture) return Promise.resolve({ ok: false, error: '촬영 중입니다' })
+  if (state.afUntil > Date.now()) return Promise.resolve({ ok: true, busy: true })
+  const err = state.eds.EdsSendCommand(state.camera, CameraCommand_DoEvfAf, EvfAf_ON)
+  if (err !== EDS_ERR_OK) {
+    if (!state.afFailLogged) log('[bridge] 라이브뷰 AF 실패:', errName(err))
+    state.afFailLogged = true
+    return Promise.resolve({ ok: false, error: `AF 실패: ${errName(err)}` })
+  }
+  state.afUntil = Date.now() + EVF_AF_HOLD_MS
+  return new Promise((resolve) =>
+    setTimeout(() => {
+      if (state.connected && state.camera) state.eds.EdsSendCommand(state.camera, CameraCommand_DoEvfAf, EvfAf_OFF)
+      state.afUntil = 0
+      resolve({ ok: true })
+    }, EVF_AF_HOLD_MS)
+  )
+}
+
 function readStream(streamRef) {
   const ptr = [null]
   const len = [BigInt(0)]
@@ -664,6 +696,7 @@ const server = http.createServer(async (req, res) => {
         evf: evfReport(url.searchParams.has('reset')),
         evfSize: state.evfSize,
         movieMode: inMovieMode(),
+        af: true,
         error: state.error || (inMovieMode() ? MOVIE_MODE_MESSAGE : null),
       })
     }
@@ -690,6 +723,10 @@ const server = http.createServer(async (req, res) => {
       cors(res)
       res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Content-Length': jpeg.length })
       return res.end(jpeg)
+    }
+
+    if (url.pathname === '/af' && req.method === 'POST') {
+      return json(res, 200, await evfAutofocus())
     }
 
     if (url.pathname === '/release' && req.method === 'POST') {

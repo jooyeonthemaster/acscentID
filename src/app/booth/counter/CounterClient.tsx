@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { COUNTER_VALID_MINUTES, formatMinutes } from '@/lib/photobooth/pass-validity'
-import { drawSlip, helperStatus, passQrPath, printViaHelper, SLIP_GUIDE, slipsToEscPos, type HelperStatus } from '@/lib/photobooth/counter-slip'
+import { drawSlip, helperStatus, passQrPath, printViaHelper, SLIP_GUIDE, SLIP_QR_MM, slipsToEscPos, type HelperStatus } from '@/lib/photobooth/counter-slip'
 
 /**
  * 카운터 이용권 발급 화면 (/booth/counter)
@@ -15,7 +15,7 @@ import { drawSlip, helperStatus, passQrPath, printViaHelper, SLIP_GUIDE, slipsTo
  */
 
 /** 브라우저 인쇄(도우미 없을 때) 쪽지 한 장 높이 — 프린터에서 여백이 남거나 잘리면 이 값만 조정 */
-const SLIP_HEIGHT_MM = 115
+const SLIP_HEIGHT_MM = 135
 const ISSUE_COUNTS = [1, 2, 3, 4]
 const REFRESH_MS = 20_000
 /** 유효 시간 빠른 선택 (분) — 세부 조정은 ±5분 */
@@ -70,7 +70,7 @@ const expired = (pass: CounterPass) => !!pass.expires_at && Date.parse(pass.expi
 function PassQr({ code }: { code: string }) {
   const { size, d } = passQrPath(code)
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width="27mm" height="27mm" shapeRendering="crispEdges" style={{ display: 'block', margin: '2mm auto 0' }}>
+    <svg viewBox={`0 0 ${size} ${size}`} width={`${SLIP_QR_MM}mm`} height={`${SLIP_QR_MM}mm`} shapeRendering="crispEdges" style={{ display: 'block', margin: '2mm auto 0' }}>
       <path d={d} fill="#000" />
     </svg>
   )

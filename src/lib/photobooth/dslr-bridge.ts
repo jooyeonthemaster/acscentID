@@ -70,3 +70,18 @@ export async function captureDslrStill(maxEdge = 2400): Promise<ImageBitmap> {
   probe.close()
   return createImageBitmap(blob, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' })
 }
+
+/**
+ * 라이브뷰 자동초점 한 번 (약 1.2초). 브리지가 옛 버전(POST /af 없음)이거나 AF 가 안 되면 조용히 false.
+ * 이용권 QR 처럼 가까이 댄 것은 손님 거리에 맞춘 초점으로는 흐려서 읽히지 않는다.
+ */
+export async function autofocusDslr(): Promise<boolean> {
+  try {
+    const res = await fetch(`${DSLR_BRIDGE_URL}/af`, { method: 'POST', cache: 'no-store' })
+    if (!res.ok) return false
+    const data = (await res.json()) as { ok?: boolean }
+    return !!data.ok
+  } catch {
+    return false
+  }
+}

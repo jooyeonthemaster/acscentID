@@ -67,7 +67,7 @@ import {
 } from '@/lib/photobooth/compose'
 import { cutoutPerson, warmupSegmentation } from '@/lib/photobooth/segmentation'
 import { parseCardCode, CARD_CODE_LENGTH, CARD_ALPHABET } from '@/lib/photobooth/card-code'
-import { probeDslrBridge, fetchDslrFrame, captureDslrStill } from '@/lib/photobooth/dslr-bridge'
+import { probeDslrBridge, fetchDslrFrame, captureDslrStill, autofocusDslr } from '@/lib/photobooth/dslr-bridge'
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
 import {
   useLayerGestures,
@@ -96,6 +96,8 @@ const CANVAS_H = PRINT.H
 const POLL_INTERVAL_MS = 2500
 /** 같은 이용권 QR 을 다시 확인하기까지 (쓴 번호를 계속 대고 있을 때) */
 const PASS_QR_RETRY_MS = 4000
+/** 이용권 화면에서 DSLR 초점을 다시 잡는 간격 (AF 자체가 약 1.2초) */
+const DSLR_QR_AF_MS = 2500
 /** 관리자 핫스팟을 이만큼 눌러야 열린다 — 손님이 모서리를 스쳐도 안 열리게 */
 const ADMIN_HOLD_MS = 1500
 /** 부스 앱 화면 배율 선택지 — 큰 모니터일수록 키운다 (매장 1920x1080 모니터는 150%) */
@@ -1233,6 +1235,26 @@ export function BoothClassic() {
       window.clearTimeout(timer)
     }
   }, [step, cameraProbe])
+
+  // DSLR 초점 — 이용권 화면에서는 가까이 댄 QR 에 몇 초마다 다시 맞추고, 촬영 화면에 들어오면 손님에게 한 번 되돌린다
+  useEffect(() => {
+    if (cameraSource !== 'dslr' || !dslrLive) return
+    if (step === 'camera') {
+      void autofocusDslr()
+      return
+    }
+    if (step !== 'pass') return
+    let stopped = false
+    ;(async () => {
+      while (!stopped) {
+        await autofocusDslr()
+        await sleep(DSLR_QR_AF_MS)
+      }
+    })()
+    return () => {
+      stopped = true
+    }
+  }, [step, cameraSource, dslrLive])
 
   // DSLR 라이브뷰 — 프레임을 하나씩 받아 캔버스에 그린다(앞 프레임을 다 그린 뒤 다음 요청)
   useEffect(() => {
