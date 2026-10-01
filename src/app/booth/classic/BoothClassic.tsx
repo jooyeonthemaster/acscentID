@@ -18,18 +18,16 @@
  */
 
 import { FramePicker } from '@/components/photobooth/FramePicker'
-import { StageLookPicker } from '@/components/photobooth/StageLookPicker'
 import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
-import { faceRectsInCell, makeupShot, preloadFaceMakeup } from '@/lib/booth/face-makeup'
+import { preloadFaceDetect } from '@/lib/booth/face-detect'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { BoothLangSwitcher } from '@/components/photobooth/BoothLangSwitcher'
-import { attractHeadline, boothText, conceptText, guestError, lookText, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
+import { attractHeadline, boothText, conceptText, guestError, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from '@/app/kiosk/fonts'
 import { findBoothMode } from '@/lib/booth/modes'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
-import { STAGE_LAYOUT, applyLookGrade, drawLookStickers, drawStageMakeupFooter, findStageLook, type Rect } from '@/lib/booth/stage-makeup'
 import { useLiveBoothConfig } from '@/hooks/useLiveBoothConfig'
 import { DEFAULT_FRAMES } from '@/lib/photobooth/frame-catalog'
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties } from 'react'
@@ -429,8 +427,6 @@ export function BoothClassic() {
   /** 이 운영 모드에서 이용권 번호를 받는가 — 스토어 어드민 '운영 모드 · 이용권 번호'(src/lib/booth/pass-policy.ts) */
   const passRequired = boothPassRequired(deviceBaseSettings)
   const stageMakeup = boothMode.stageMakeup ?? null
-  /** 편집 화면에서 고른 무대 메이크업 룩(행사 모드) — 손님마다 원본에서 시작 */
-  const [stageLookId, setStageLookId] = useState<string | null>(DEFAULT_IDOL_CONCEPT.lookId)
   // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
   const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
   /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
@@ -443,20 +439,17 @@ export function BoothClassic() {
   tRef.current = t
   const [idolConsent, setIdolConsent] = useState(false)
   const [idolTicket, setIdolTicket] = useState<string | null>(null)
-  const [idolEnabled, setIdolEnabled] = useState(false)
   /** AI 아이돌 사진 인화 디자인(컨셉별 4종 — src/lib/booth/idol-layouts.ts). null 이면 그 컨셉의 첫 디자인 */
   const [idolDesignId, setIdolDesignId] = useState<string | null>(null)
   const pickConcept = useCallback((id: string) => {
     setStageConceptId(id)
     setIdolDesignId(null)
-    setStageLookId(findIdolConcept(id)?.lookId ?? null)
   }, [])
-  const idolOn = !!stageMakeup && idolConsent && idolEnabled
-  /** 얼굴 인식 메이크업 진행 — 편집 화면 룩 고르기 아래 안내 */
-  const [makeupStatus, setMakeupStatus] = useState<'idle' | 'busy' | 'noface'>('idle')
+  // 행사 모드는 늘 AI 아이돌 사진(메이크업만 촬영은 없앴다) — AI 키가 없거나 못 만들면 찍은 원본을 인화 디자인에
+  const idolOn = !!stageMakeup && idolConsent
   // 행사 모드 첫 화면에서 얼굴 인식 모델을 미리 불러 둔다(첫 손님이 기다리지 않게)
   useEffect(() => {
-    if (stageMakeup) preloadFaceMakeup()
+    if (stageMakeup) preloadFaceDetect()
   }, [stageMakeup])
   // 행사 모드는 매장 이벤트를 무시한다 — 와우 생카에 묶인 프레임도 목록에서 뺀다(배경·글꼴과 같은 규칙)
   const modeFrames = useMemo(() => (boothMode.storeEvents ? frames : frames.filter((f) => !f.screen_event_id)), [frames, boothMode.storeEvents])
@@ -502,7 +495,6 @@ export function BoothClassic() {
     idolStage?: boolean
   }>((data) => {
     setEvent(data.event ?? null)
-    setIdolEnabled(!!data.idolStage)
     setFrames(data.frames)
     // 편집·결과 화면에서는 손님이 고른 프레임을 그대로 둔다 — 관리자가 그 사이 숨기거나 지워도
     // 진행 중인 사진이 바뀌지 않게. 목록에서는 바로 빠지고, 다음 손님부터 보이지 않는다.
@@ -734,7 +726,6 @@ export function BoothClassic() {
     setStageConceptId(DEFAULT_IDOL_CONCEPT.id)
     setLang('ko')
     setIdolDesignId(null)
-    setStageLookId(DEFAULT_IDOL_CONCEPT.lookId)
     setIdolConsent(false)
     setIdolTicket(null)
     setPassVerified(false)
@@ -1395,8 +1386,7 @@ export function BoothClassic() {
   // 행사 모드 — 촬영 화면은 필터·메이크업 없이 실제 모습 그대로 보여 주고, 고른 컨셉(룩) 이름만 적는다
   // (메이크업은 찍은 뒤 결과에만 입힌다. AI 아이돌 사진은 원본 한 컷으로 만든다)
   const liveConcept = findIdolConcept(stageConceptId)
-  const liveLook = findStageLook(stageLookId)
-  const liveLookName = !stageMakeup ? null : idolOn ? (liveConcept ? conceptText(t, liveConcept).name : null) : liveLook ? lookText(t, liveLook).name : null
+  const liveLookName = stageMakeup && liveConcept ? conceptText(t, liveConcept).name : null
   useEffect(() => {
     if (!liveComposeReady) return
     const canvas = livePreviewNode
@@ -1586,36 +1576,19 @@ export function BoothClassic() {
         // AI 아이돌 사진(행사 모드 + 동의) — 메이크업·스티커 없이 고른 인화 디자인으로. AI 사진이 오기 전·못 만들었으면 찍은 원본 그대로
         const idolConcept = findIdolConcept(stageConceptId)
         if (stageMakeup && idolOn && idolConcept && shotImages.length === 1) {
-          setMakeupStatus('idle')
           drawIdolDesign(ctx, idolConcept, idolDesignId,
             idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
             stageMakeup.eventLines[0])
           return
         }
 
-        // 행사 모드: 얼굴을 찾아 룩 메이크업을 입힌 사진(같은 사진·룩은 캐시). 얼굴이 없으면 원본
-        const look = stageMakeup ? findStageLook(stageLookId) : null
-        let photos: (HTMLImageElement | HTMLCanvasElement)[] = shotImages
-        if (look && shotImages.length) {
-          setMakeupStatus('busy')
-          photos = await Promise.all(shotImages.map((img) => makeupShot(img, look)))
-          if (renderTokenRef.current !== token) return
-          setMakeupStatus(photos.every((p, i) => p === shotImages[i]) ? 'noface' : 'idle')
-        } else {
-          setMakeupStatus('idle')
-        }
-
-        if (renderTokenRef.current !== token) return
+        const photos: HTMLImageElement[] = shotImages
 
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
-        // 행사 모드(무대 메이크업): 사진은 하단 띠 위까지만, 띠에 '오늘의 무대 메이크업'·행사 줄. 매장 모드는 예전 그대로
-        const photoH = stageMakeup ? STAGE_LAYOUT.photoBottom : CANVAS_H
-        const photoRects: Rect[] = []
-        /** 얼굴 인식 메이크업을 입힌 칸들 — 스티커가 얼굴을 비켜 가게 */
-        const faceCells: { img: HTMLImageElement; rect: Rect }[] = []
+        const photoH = CANVAS_H
 
         if (templateImg && templateGeometry) {
           // 최애와 찍기 — 위: 카메라 배경을 공유하는 아티스트 합성 컷, 아래: 단독 컷, 맨 아래: 이벤트 밴드
@@ -1631,7 +1604,6 @@ export function BoothClassic() {
           })
 
           drawPhotoCard(ctx, shotImages[1] ?? shotImages[0], x, soloY, contentW, soloH)
-          photoRects.push({ x, y: togetherY, w: contentW, h: togetherH }, { x, y: soloY, w: contentW, h: soloH })
 
           const dateText = new Date().toLocaleDateString('ko-KR', {
             year: 'numeric',
@@ -1659,13 +1631,9 @@ export function BoothClassic() {
             const col = i % 2
             const row = Math.floor(i / 2)
             drawCover(ctx, photos[i], col * cellW, row * cellH, cellW, cellH)
-            photoRects.push({ x: col * cellW, y: row * cellH, w: cellW, h: cellH })
-            faceCells.push({ img: shotImages[i], rect: { x: col * cellW, y: row * cellH, w: cellW, h: cellH } })
           }
         } else {
           drawCover(ctx, photos[0], 0, 0, CANVAS_W, photoH)
-          photoRects.push({ x: 0, y: 0, w: CANVAS_W, h: photoH })
-          faceCells.push({ img: shotImages[0], rect: { x: 0, y: 0, w: CANVAS_W, h: photoH } })
         }
 
         if ((mode === 'together' || mode === 'card') && useCutout && cutout) {
@@ -1700,21 +1668,10 @@ export function BoothClassic() {
           ctx.restore()
         }
 
-        if (look) applyLookGrade(ctx, look, photoRects)
-
         if (frame) {
           ctx.drawImage(frame, 0, 0, CANVAS_W, CANVAS_H)
         }
 
-        if (stageMakeup) {
-          // 스티커는 프레임 위에(가려지지 않게), 하단 띠는 맨 마지막에
-          if (look) {
-            const faces = (await Promise.all(faceCells.map(({ img, rect }) => faceRectsInCell(img, rect.x, rect.y, rect.w, rect.h)))).flat()
-            if (renderTokenRef.current !== token) return
-            drawLookStickers(ctx, look, { x: 0, y: 0, w: CANVAS_W, h: STAGE_LAYOUT.photoBottom }, faces)
-          }
-          drawStageMakeupFooter(ctx, look, stageMakeup.eventLines)
-        }
       } catch (error) {
         console.error('합성 렌더 실패:', error)
         if (renderTokenRef.current === token) {
@@ -1740,7 +1697,6 @@ export function BoothClassic() {
     event,
     getImage,
     stageMakeup,
-    stageLookId,
     stageConceptId,
     idolImage,
     idolOn,
@@ -2145,37 +2101,21 @@ export function BoothClassic() {
         {step === 'home' && stageMakeup && (
           <div className="flex w-full max-w-4xl flex-col items-center gap-5" style={{ color: activeBackground.ink }}>
             <div className="text-center">
-              <h1 className="booth-display text-3xl md:text-4xl mb-2">{idolEnabled ? t.stageTitleIdol : t.stageTitleMakeup}</h1>
-              <p className="opacity-60">
-                {idolEnabled ? t.stageSubIdol : t.stageSubMakeup}
-              </p>
+              <h1 className="booth-display text-3xl md:text-4xl mb-2">{t.stageTitleIdol}</h1>
+              <p className="opacity-60">{t.stageSubIdol}</p>
             </div>
             <IdolConceptPicker value={stageConceptId} onChange={pickConcept} variant="classic" lang={lang} />
-            {idolEnabled && (
-              <p className="max-w-3xl text-center text-sm leading-relaxed opacity-70 break-keep">
-                {t.idolConsent}
-              </p>
-            )}
+            <p className="max-w-3xl text-center text-sm leading-relaxed opacity-70 break-keep">
+              {t.idolConsent}
+            </p>
             <div className="flex flex-wrap justify-center gap-3">
-              {idolEnabled && (
-                <button
-                  type="button"
-                  onClick={() => { setIdolConsent(true); startMode('solo') }}
-                  className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
-                  style={{ background: accent }}
-                >
-                  <Sparkles className="w-6 h-6" /> {t.idolAgreeStart}
-                </button>
-              )}
               <button
                 type="button"
-                onClick={() => { setIdolConsent(false); startMode('solo') }}
-                className={idolEnabled
-                  ? 'inline-flex items-center justify-center gap-3 rounded-full border-2 border-current px-8 py-5 text-lg font-bold transition-opacity hover:opacity-80'
-                  : 'inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5'}
-                style={idolEnabled ? undefined : { background: accent }}
+                onClick={() => { setIdolConsent(true); startMode('solo') }}
+                className="inline-flex min-w-80 items-center justify-center gap-3 rounded-full px-10 py-5 booth-display text-xl text-neutral-950 transition-transform hover:-translate-y-0.5"
+                style={{ background: accent }}
               >
-                <Camera className="w-6 h-6" /> {idolEnabled ? t.makeupOnly : t.startShooting}
+                <Sparkles className="w-6 h-6" /> {t.idolAgreeStart}
               </button>
             </div>
           </div>
@@ -2726,7 +2666,16 @@ export function BoothClassic() {
 
         {/* ---------- 합성 · 프레임 편집 ---------- */}
         {step === 'compose' && (
-          <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
+          // AI 아이돌 사진은 3단(왼쪽 인화 디자인 4종 · 가운데 미리보기 · 오른쪽 진행·버튼) — 스크롤 없이 한눈에
+          <div className={`w-full flex flex-col lg:flex-row gap-8 items-center justify-center ${idolOn && idolShot ? 'max-w-7xl lg:items-center' : 'max-w-5xl lg:items-start'}`}>
+            {idolOn && idolShot && (
+              <div className="w-full max-w-[min(18rem,calc((100svh-24rem)*2/3+2rem))] lg:shrink-0">
+                <p className="text-sm font-semibold text-white/60 mb-3">{t.groupDesign}</p>
+                <IdolDesignPicker conceptId={stageConceptId} value={idolDesignId} onChange={setIdolDesignId}
+                  main={idolImage ?? idolShotImage} before={idolImage ? idolShotImage : null}
+                  event={stageMakeup?.eventLines[0] ?? ''} variant="classic" lang={lang} />
+              </div>
+            )}
             <div className="flex flex-col items-center lg:shrink-0">
               <canvas
                 ref={attachComposeCanvas}
@@ -2754,22 +2703,8 @@ export function BoothClassic() {
                   <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" lang={lang} />
                 </div>
               )}
-              {/* 행사 모드: K-POP 무대 메이크업 룩(AI 사진을 안 쓰거나 못 만들었을 때) */}
-              {stageMakeup && !(idolOn && idolShot) && (
-                <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupMakeup}</p>
-                  <StageLookPicker value={stageLookId} onChange={setStageLookId} variant="classic" status={makeupStatus} lang={lang} />
-                </div>
-              )}
-              {/* 인화 디자인(AI 아이돌 사진 — 컨셉별 4종) / 그 밖에는 프레임 선택 */}
-              {idolOn && idolShot ? (
-                <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupDesign}</p>
-                  <IdolDesignPicker conceptId={stageConceptId} value={idolDesignId} onChange={setIdolDesignId}
-                    main={idolImage ?? idolShotImage} before={idolImage ? idolShotImage : null}
-                    event={stageMakeup?.eventLines[0] ?? ''} variant="classic" lang={lang} />
-                </div>
-              ) : (
+              {/* 프레임 선택(AI 아이돌 사진은 왼쪽 열의 인화 디자인으로 대신) */}
+              {!(idolOn && idolShot) && (
               <div>
                 <p className="text-sm font-semibold text-white/60 mb-3">{t.groupFrame}</p>
                 <FramePicker frames={modeFrames} selected={selectedFrame} onSelect={setSelectedFrame} variant="classic" lang={lang} />

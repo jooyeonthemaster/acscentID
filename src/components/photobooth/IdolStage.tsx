@@ -9,8 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IDOL_CONCEPTS, IDOL_MAX_PEOPLE, findIdolConcept } from '@/lib/booth/idol-concepts'
-import { findStageLook } from '@/lib/booth/stage-makeup'
-import { countFaces, faceRectsInCell } from '@/lib/booth/face-makeup'
+import { countFaces, faceRectsInCell } from '@/lib/booth/face-detect'
 import { drawIdolDesign, idolDesigns, type Picture } from '@/lib/booth/idol-layouts'
 import { boothText, conceptText, designName, type BoothLang, type BoothText } from '@/lib/booth/i18n'
 
@@ -26,13 +25,14 @@ export function IdolConceptPicker({ value, onChange, variant, lang }: {
   const retro = variant === 'retro'
   const t = boothText(lang)
   const current = findIdolConcept(value)
+  // 컨셉마다 예시 사진 썸네일(같은 예시 인물로 실제 부스 파이프라인에서 만든 결과 — design-review/kwave-idol-examples-4)
+  // 4열 1행으로 가로로 쭉 — 한눈에 비교하고 고르게
   return (
-    <div className={retro ? 'bth-look-picker bth-look-picker--home' : 'flex w-full flex-col gap-3 text-center'}>
-      <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3 text-left'} role="radiogroup" aria-label={t.conceptAria}>
+    <div className={retro ? 'bth-concept-picker' : 'flex w-full flex-col gap-3 text-center'}>
+      <div className={retro ? 'bth-concept-grid' : 'grid w-full grid-cols-4 gap-3'} role="radiogroup" aria-label={t.conceptAria}>
         {IDOL_CONCEPTS.map((concept) => {
           const on = concept.id === value
           const text = conceptText(t, concept)
-          const swatch = findStageLook(concept.lookId)?.swatch ?? ['#ffffff', '#d9dde6']
           return (
             <button
               key={concept.id}
@@ -42,19 +42,22 @@ export function IdolConceptPicker({ value, onChange, variant, lang }: {
               data-on={on ? 'true' : 'false'}
               onClick={() => onChange(concept.id)}
               className={retro
-                ? 'rt-choice bth-look-btn'
-                : `flex min-h-24 items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-colors ${on ? 'border-current ring-2 ring-current' : 'border-[color:color-mix(in_srgb,currentColor_22%,transparent)]'}`}
+                ? 'rt-choice bth-concept-card'
+                : `flex flex-col items-stretch gap-2 rounded-2xl border-2 p-2 transition-colors ${on ? 'border-current ring-2 ring-current' : 'border-[color:color-mix(in_srgb,currentColor_22%,transparent)]'}`}
             >
-              <span className={retro ? 'bth-look-swatch' : 'h-12 w-12 shrink-0 rounded-full border border-black/10 shadow-inner'}
-                style={{ background: `linear-gradient(135deg, ${swatch[0]}, ${swatch[1]})` }} aria-hidden="true" />
-              <span className={retro ? 'bth-look-name' : 'flex min-w-0 flex-col leading-tight'}>
-                <b className={retro ? undefined : 'line-clamp-2 break-keep text-lg font-bold'}>{text.name}</b>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/assets/photobooth/idol-concepts/${concept.id}.webp`}
+                alt=""
+                draggable={false}
+                className={retro ? 'bth-concept-thumb' : 'block aspect-square w-full rounded-xl object-cover'}
+              />
+              <b className={retro ? 'bth-concept-name' : 'line-clamp-2 break-keep text-center text-base font-bold leading-tight'}>{text.name}</b>
             </button>
           )
         })}
       </div>
-      <p className={retro ? 'bth-group-text bth-look-desc' : 'text-lg leading-snug opacity-75'} aria-live="polite">
+      <p className={retro ? 'bth-group-text bth-concept-desc' : 'text-base leading-snug opacity-75'} aria-live="polite">
         {current && conceptText(t, current).desc}
       </p>
     </div>

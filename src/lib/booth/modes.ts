@@ -24,9 +24,9 @@ export interface BoothMode {
   storeEvents: boolean
   /** 없으면 매장 기본 문구(화면 코드에 그대로) */
   attract?: BoothAttract
-  /** K-POP 무대 메이크업 — 편집 화면에서 룩을 고르면 색 보정·스티커·인화물 하단 '오늘의 무대 메이크업'(src/lib/booth/stage-makeup.ts) */
+  /** 행사 모드(K-POP AI 아이돌 사진) — 첫 화면에서 컨셉을 고르고 한 컷, 인화 디자인 4종(src/lib/booth/idol-layouts.ts) */
   stageMakeup?: {
-    /** 인화물 하단 행사 줄 — 1줄: 행사명, 2줄: 장소·기간 */
+    /** 인화물 행사 줄 — 1줄: 행사명(인화 디자인에 싣는다), 2줄: 장소·기간 */
     eventLines: [string, string]
   }
   /** 이 모드로 바꿀 때 함께 고르는 포토부스 기본 배경(catalog.json id) */

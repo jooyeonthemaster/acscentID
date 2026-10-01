@@ -7,7 +7,6 @@
 // main: 인화의 큰 사진(AI 사진, 못 만들었으면 찍은 원본), before: 실물(AI 사진이 있을 때만).
 
 import { FONT_STACK, roundRectPath } from '@/lib/photobooth/compose'
-import { findStageLook } from './stage-makeup'
 import type { IdolConcept } from './idol-concepts'
 
 export type Picture = HTMLImageElement | HTMLCanvasElement
@@ -97,8 +96,7 @@ const STYLES: Record<string, ConceptStyle> = {
 function styleOf(concept: IdolConcept): ConceptStyle {
   const known = STYLES[concept.id]
   if (known) return known
-  const look = findStageLook(concept.lookId)
-  const dark = look?.footer ?? '#1b1b3a', accent = look?.accent ?? '#c9b8ff'
+  const dark = '#1b1b3a', accent = '#c9b8ff'
   return {
     deco: 'studio', dark, accent, card: [accent, dark], posterFont: sans(900),
     designs: [

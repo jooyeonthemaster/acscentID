@@ -1820,3 +1820,92 @@
 .bth-lang-menu button {
   font-size: 19px;
 }
+
+/* ── 행사 모드 첫 화면: 아이돌 컨셉 썸네일 4열 1행 ── */
+.bth-concept-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.bth-concept-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  /* 썸네일(정사각형)이 화면 높이를 넘지 않게 — 1280x720(줌 150%)에서도 버튼까지 스크롤 없이 */
+  max-width: min(100%, calc((100svh - 575px) * 4 + 106px), 640px);
+}
+.bth-concept-card.rt-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
+  min-height: 0;
+}
+.bth-concept-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid var(--rt-lo);
+}
+.bth-concept-card[data-on='true'] .bth-concept-thumb {
+  outline: 4px solid var(--rt-accent, var(--rt-deco));
+  outline-offset: -4px;
+}
+.bth-concept-name {
+  display: block;
+  text-align: center;
+  font-size: 19px;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.bth-concept-desc {
+  margin: 0;
+  text-align: center;
+}
+
+/* ── 편집 3단(AI 아이돌 사진): 왼쪽 인화 디자인 · 가운데 미리보기 · 오른쪽 진행·버튼 — 스크롤 없이 ── */
+.bth-split--3 {
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1fr) minmax(300px, 0.8fr);
+  gap: 22px;
+}
+.bth-split-left {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 6px 6px;
+}
+/* 디자인 4종은 2x2 — 칸 높이에 맞춰 줄어든다(미리보기 2:3) */
+.bth-split-left .bth-look-grid--2,
+.bth-split-left [role='radiogroup'] {
+  max-width: min(calc((100svh - 390px) * 2 / 3 + 40px), 262px);
+  margin-inline: auto;
+}
+.bth-split--3 .bth-split-side {
+  justify-content: center;
+}
+.bth-home--stage:has(.bth-concept-grid) {
+  gap: 8px;
+}
+.bth-stage-pick:has(.bth-concept-grid) .rt-win-body {
+  padding-top: 12px;
+  padding-bottom: 10px;
+}
+.bth-concept-picker .bth-concept-desc {
+  font-size: 16px;
+}
+/* 컨셉·디자인 이름 — 한국어는 어절 단위로, 일본어·중국어는 칸 안에서 줄바꿈(keep-all 이면 가나·한자가 칸 밖으로 넘친다) */
+.bth-root:not([data-lang='ko']) .bth-concept-name {
+  word-break: normal;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+}
+.bth-concept-card.rt-choice {
+  justify-content: flex-start;
+}

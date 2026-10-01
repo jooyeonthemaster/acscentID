@@ -12,7 +12,7 @@
  * - AI 생성 프롬프트(src/lib/booth/idol-concepts.ts)
  *
  * 컨셉·룩·인화 디자인·운영 모드 문구는 데이터 파일에 ko·en 만 있어, 화면 표시용 이름은 여기서 id 로 찾는다
- * (conceptText·lookText·designName·attractHeadline — 없으면 데이터의 한국어로).
+ * (conceptText·designName·attractHeadline — 없으면 데이터의 한국어로).
  */
 
 import { KIOSK_LANGS, isCjkLang, isKioskLang, type KioskLang } from '@/lib/kiosk/i18n'
@@ -46,13 +46,9 @@ const ko = {
 
   // ── 첫 화면(행사 모드) ──
   stageTitleIdol: '어떤 컨셉으로 데뷔할까요?',
-  stageTitleMakeup: '오늘의 무대 컨셉을 골라요',
   stageSubIdol: 'AI가 나를 아이돌 사진으로 만들어 드려요',
-  stageSubMakeup: '무대 메이크업 사진을 찍어요',
   idolConsent: '찍은 사진은 AI 아이돌 사진을 만드는 데만 AI 서비스(Google)로 보내지고, 저장하지 않아요.',
   idolAgreeStart: '동의하고 아이돌 되기',
-  makeupOnly: '메이크업만',
-  startShooting: '촬영 시작',
 
   // ── 첫 화면(매장) ──
   homeTitle: '어떤 사진을 찍을까요?',
@@ -149,7 +145,6 @@ const ko = {
   composeFailed: '이미지 합성에 실패했습니다. 다시 시도해주세요.',
   resultFailed: '결과 이미지를 만들 수 없습니다. 잠시 후 다시 시도해주세요.',
   groupIdol: 'AI 아이돌 사진 · ON STAGE',
-  groupMakeup: '무대 메이크업 · STAGE MAKEUP',
   groupDesign: '인화 디자인 · PRINT DESIGN',
   groupFrame: '프레임',
   noFrames: '등록된 프레임이 없어요 (관리자 페이지에서 추가)',
@@ -222,14 +217,6 @@ const ko = {
   idolRetryDone: '다시 만들기',
   idolRetryFailed: 'AI 사진 다시 시도',
   designAria: '인화 디자인',
-
-  // ── 무대 메이크업 룩(StageLookPicker) ──
-  lookAria: '무대 메이크업 룩',
-  lookOriginal: '원본',
-  lookHint: '룩을 고르면 얼굴에 무대 메이크업이 입혀져요',
-  lookApplying: '얼굴을 찾아 메이크업하는 중…',
-  lookNoFace: '얼굴을 찾지 못해 사진 색만 바꿨어요 — 카메라 쪽으로 가까이 서 주세요',
-
   // ── 프레임(FramePicker) ──
   frameCategory: '분류',
   frameCategoryAria: '프레임 분류',
@@ -242,19 +229,12 @@ const ko = {
   /** 프레임 분류 이름(관리자 데이터) — 한국어는 그대로 */
   frameCategories: {} as Record<string, string>,
 
-  // ── 컨셉·룩·인화 디자인 이름(id 로 찾는다) ──
+  // ── 컨셉·인화 디자인 이름(id 로 찾는다) ──
   concepts: {
     'ending-fairy': { name: '음방 엔딩요정', desc: '음악방송 무대가 끝난 순간, 카메라를 바라보는 엔딩 클로즈업' },
     'album-jacket': { name: '앨범 재킷', desc: '스튜디오에서 찍은 공식 컨셉 포토, 맑고 고급스럽게' },
     'stage-fancam': { name: '무대 직캠', desc: '콘서트 무대 위 카리스마, 조명과 응원봉 사이에서' },
     'mv-still': { name: '뮤비 스틸', desc: '네온 불빛 가득한 뮤직비디오의 한 장면처럼' },
-  } as Record<string, Named>,
-  looks: {
-    'glitter-eye': { name: '글리터 스테이지 아이', desc: '눈두덩에 펄 글리터, 조명 아래 무대처럼 반짝여요' },
-    'blush-line': { name: '블러셔 라인', desc: '볼과 콧등을 잇는 핑크 블러셔로 사랑스럽게' },
-    'cherry-lip': { name: '체리 스테이지 립', desc: '또렷한 체리 레드 립으로 걸크러시 무대 완성' },
-    'glass-skin': { name: '글래스 스킨 글로우', desc: '하이라이터로 빛나는 맑고 투명한 물광 피부' },
-    'neon-liner': { name: '네온 그래픽 라이너', desc: '컬러 아이라이너로 그린 네온, 페스티벌 무대처럼' },
   } as Record<string, Named>,
   /** 인화 디자인 종류별 이름(컨셉마다 다른 이름은 designs 에) */
   designKinds: { stage: '무대 한 장', photocard: '포토카드', split: '비포 · 애프터', poster: '포스터' } as Record<string, string>,
@@ -326,13 +306,9 @@ const en: BoothText = {
   },
 
   stageTitleIdol: 'Which concept will you debut with?',
-  stageTitleMakeup: "Pick today's stage concept",
   stageSubIdol: 'AI turns you into a K-POP idol photo',
-  stageSubMakeup: 'Take a K-POP stage makeup photo',
   idolConsent: 'Your photo is sent to an AI service (Google) only to create your idol photo, and is not stored.',
   idolAgreeStart: 'Agree & become an idol',
-  makeupOnly: 'Makeup only',
-  startShooting: 'Start',
 
   homeTitle: 'What photo shall we take?',
   homeSub: 'Printed as a 4x6-inch photo',
@@ -420,7 +396,6 @@ const en: BoothText = {
   composeFailed: "We couldn't combine the image. Please try again.",
   resultFailed: "We couldn't create the final image. Please try again shortly.",
   groupIdol: 'AI IDOL PHOTO · ON STAGE',
-  groupMakeup: 'STAGE MAKEUP',
   groupDesign: 'PRINT DESIGN',
   groupFrame: 'Frame',
   noFrames: 'No frames available',
@@ -489,11 +464,6 @@ const en: BoothText = {
   idolRetryFailed: 'Retry AI photo',
   designAria: 'Print design',
 
-  lookAria: 'Stage makeup look',
-  lookOriginal: 'Original',
-  lookHint: 'Pick a look to put stage makeup on your face',
-  lookApplying: 'Applying makeup…',
-  lookNoFace: 'No face found, so only the colors changed — please stand closer to the camera',
 
   frameCategory: 'Category',
   frameCategoryAria: 'Frame category',
@@ -522,13 +492,6 @@ const en: BoothText = {
     'album-jacket': { name: 'Album Jacket', desc: 'An official concept photo from a high-end studio' },
     'stage-fancam': { name: 'Stage Fancam', desc: 'Charisma on a concert stage, among lights and lightsticks' },
     'mv-still': { name: 'MV Still', desc: 'Like a frame from a neon-lit music video' },
-  },
-  looks: {
-    'glitter-eye': { name: 'Glitter Stage Eye', desc: 'Pearl glitter lids that sparkle under stage lights' },
-    'blush-line': { name: 'Rosy Blush Line', desc: 'A rosy blush line across the cheeks and nose' },
-    'cherry-lip': { name: 'Cherry Stage Lip', desc: 'A bold cherry-red lip for a girl-crush stage' },
-    'glass-skin': { name: 'Glass Skin Glow', desc: 'Dewy highlighter glow for clear glass skin' },
-    'neon-liner': { name: 'Neon Liner', desc: 'Neon graphic liner for a festival stage vibe' },
   },
   designKinds: { stage: 'On Stage', photocard: 'Photocard', split: 'Before & After', poster: 'Poster' },
   designs: {
@@ -592,13 +555,9 @@ const ja: BoothText = {
   },
 
   stageTitleIdol: 'どのコンセプトでデビューしますか？',
-  stageTitleMakeup: '今日のステージコンセプトを選ぼう',
   stageSubIdol: 'AIがあなたをアイドル写真にします',
-  stageSubMakeup: 'ステージメイク写真を撮ろう',
   idolConsent: '撮影した写真はAIアイドル写真を作るためだけにAIサービス（Google）へ送られ、保存されません。',
   idolAgreeStart: '同意してアイドルになる',
-  makeupOnly: 'メイクだけ',
-  startShooting: '撮影スタート',
 
   homeTitle: 'どんな写真を撮りますか？',
   homeSub: '4x6インチの写真でプリントされます',
@@ -686,7 +645,6 @@ const ja: BoothText = {
   composeFailed: '画像の合成に失敗しました。もう一度お試しください。',
   resultFailed: '完成画像を作れませんでした。しばらくしてからお試しください。',
   groupIdol: 'AIアイドル写真 · ON STAGE',
-  groupMakeup: 'ステージメイク · STAGE MAKEUP',
   groupDesign: 'プリントデザイン · PRINT DESIGN',
   groupFrame: 'フレーム',
   noFrames: '利用できるフレームがありません',
@@ -755,11 +713,6 @@ const ja: BoothText = {
   idolRetryFailed: 'AI写真を再試行',
   designAria: 'プリントデザイン',
 
-  lookAria: 'ステージメイクのルック',
-  lookOriginal: 'オリジナル',
-  lookHint: 'ルックを選ぶと、顔にステージメイクがのります',
-  lookApplying: '顔を探してメイク中…',
-  lookNoFace: '顔が見つからず、写真の色だけ変えました — カメラに近づいてください',
 
   frameCategory: '分類',
   frameCategoryAria: 'フレームの分類',
@@ -788,13 +741,6 @@ const ja: BoothText = {
     'album-jacket': { name: 'アルバムジャケット', desc: 'スタジオで撮った公式コンセプトフォト、透明感と高級感を' },
     'stage-fancam': { name: 'ステージ直カム', desc: 'コンサートのステージでカリスマ全開、照明とペンライトの中で' },
     'mv-still': { name: 'MVスチール', desc: 'ネオンがきらめくミュージックビデオのワンシーンのように' },
-  },
-  looks: {
-    'glitter-eye': { name: 'グリッター・ステージアイ', desc: 'まぶたにパールグリッター、照明の下のステージのようにキラキラ' },
-    'blush-line': { name: 'ブラッシュライン', desc: '頬と鼻筋をつなぐピンクチークでキュートに' },
-    'cherry-lip': { name: 'チェリー・ステージリップ', desc: 'くっきりチェリーレッドのリップでガールクラッシュなステージに' },
-    'glass-skin': { name: 'グラススキン・グロウ', desc: 'ハイライトで輝く、透明感のあるツヤ肌' },
-    'neon-liner': { name: 'ネオン・グラフィックライナー', desc: 'カラーアイライナーで描くネオン、フェスのステージのように' },
   },
   designKinds: { stage: 'ステージ', photocard: 'フォトカード', split: 'ビフォー・アフター', poster: 'ポスター' },
   designs: {
@@ -858,13 +804,9 @@ const zhHans: BoothText = {
   },
 
   stageTitleIdol: '你想用哪个概念出道？',
-  stageTitleMakeup: '选择今天的舞台概念',
   stageSubIdol: 'AI 把你变成爱豆照片',
-  stageSubMakeup: '拍一张舞台妆照片',
   idolConsent: '拍摄的照片仅会发送至 AI 服务（Google）用于生成 AI 爱豆照片，不会被保存。',
   idolAgreeStart: '同意并成为爱豆',
-  makeupOnly: '只要妆容',
-  startShooting: '开始拍摄',
 
   homeTitle: '想拍什么样的照片？',
   homeSub: '将打印成 4x6 英寸照片',
@@ -952,7 +894,6 @@ const zhHans: BoothText = {
   composeFailed: '图片合成失败，请重试。',
   resultFailed: '无法生成成品图片，请稍后再试。',
   groupIdol: 'AI 爱豆照片 · ON STAGE',
-  groupMakeup: '舞台妆 · STAGE MAKEUP',
   groupDesign: '打印设计 · PRINT DESIGN',
   groupFrame: '相框',
   noFrames: '暂无可用相框',
@@ -1021,11 +962,6 @@ const zhHans: BoothText = {
   idolRetryFailed: '重试 AI 照片',
   designAria: '打印设计',
 
-  lookAria: '舞台妆造型',
-  lookOriginal: '原图',
-  lookHint: '选择造型后，脸上就会画上舞台妆',
-  lookApplying: '正在寻找脸部并上妆…',
-  lookNoFace: '没有找到脸部，只调整了照片颜色 — 请靠近镜头',
 
   frameCategory: '分类',
   frameCategoryAria: '相框分类',
@@ -1054,13 +990,6 @@ const zhHans: BoothText = {
     'album-jacket': { name: '专辑封面', desc: '在摄影棚拍摄的官方概念照，清新又高级' },
     'stage-fancam': { name: '舞台直拍', desc: '演唱会舞台上的气场，在灯光与应援棒之间' },
     'mv-still': { name: 'MV剧照', desc: '仿佛霓虹闪烁的MV中的一幕' },
-  },
-  looks: {
-    'glitter-eye': { name: '闪耀舞台眼妆', desc: '眼皮上的珠光亮片，像在舞台灯光下闪闪发亮' },
-    'blush-line': { name: '腮红线条', desc: '粉色腮红连起脸颊和鼻梁，甜美可爱' },
-    'cherry-lip': { name: '樱桃舞台唇妆', desc: '鲜明的樱桃红唇，打造 Girl Crush 舞台' },
-    'glass-skin': { name: '水光玻璃肌', desc: '用高光打造清透水光肌' },
-    'neon-liner': { name: '霓虹图形眼线', desc: '彩色眼线勾勒霓虹感，像音乐节舞台一样' },
   },
   designKinds: { stage: '舞台照', photocard: '小卡', split: '前后对比', poster: '海报' },
   designs: {
@@ -1124,13 +1053,9 @@ const zhHant: BoothText = {
   },
 
   stageTitleIdol: '你想用哪個概念出道？',
-  stageTitleMakeup: '選擇今天的舞台概念',
   stageSubIdol: 'AI 把你變成偶像照片',
-  stageSubMakeup: '拍一張舞台妝照片',
   idolConsent: '拍攝的照片只會傳送至 AI 服務（Google）用來製作偶像照片，不會被儲存。',
   idolAgreeStart: '同意並成為偶像',
-  makeupOnly: '只要妝容',
-  startShooting: '開始拍攝',
 
   homeTitle: '想拍什麼樣的照片？',
   homeSub: '將列印成 4x6 英寸相片',
@@ -1218,7 +1143,6 @@ const zhHant: BoothText = {
   composeFailed: '圖片合成失敗，請再試一次。',
   resultFailed: '無法產生完成圖片，請稍後再試。',
   groupIdol: 'AI 偶像照片 · ON STAGE',
-  groupMakeup: '舞台妝 · STAGE MAKEUP',
   groupDesign: '列印設計 · PRINT DESIGN',
   groupFrame: '相框',
   noFrames: '目前沒有可用的相框',
@@ -1287,11 +1211,6 @@ const zhHant: BoothText = {
   idolRetryFailed: '重試 AI 照片',
   designAria: '列印設計',
 
-  lookAria: '舞台妝造型',
-  lookOriginal: '原圖',
-  lookHint: '選擇造型後，臉上就會畫上舞台妝',
-  lookApplying: '正在尋找臉部並上妝…',
-  lookNoFace: '沒有找到臉部，只調整了照片顏色 — 請靠近鏡頭',
 
   frameCategory: '分類',
   frameCategoryAria: '相框分類',
@@ -1320,13 +1239,6 @@ const zhHant: BoothText = {
     'album-jacket': { name: '專輯封面', desc: '在攝影棚拍攝的官方概念照，清新又高級' },
     'stage-fancam': { name: '舞台直拍', desc: '演唱會舞台上的氣場，在燈光與應援棒之間' },
     'mv-still': { name: 'MV劇照', desc: '彷彿霓虹閃爍的MV中的一幕' },
-  },
-  looks: {
-    'glitter-eye': { name: '閃耀舞台眼妝', desc: '眼皮上的珠光亮片，像在舞台燈光下閃閃發亮' },
-    'blush-line': { name: '腮紅線條', desc: '粉色腮紅連起臉頰和鼻樑，甜美可愛' },
-    'cherry-lip': { name: '櫻桃舞台唇妝', desc: '鮮明的櫻桃紅唇，打造 Girl Crush 舞台' },
-    'glass-skin': { name: '水光玻璃肌', desc: '用打亮打造清透水光肌' },
-    'neon-liner': { name: '霓虹圖形眼線', desc: '彩色眼線勾勒霓虹感，像音樂祭舞台一樣' },
   },
   designKinds: { stage: '舞台照', photocard: '小卡', split: '前後對比', poster: '海報' },
   designs: {
@@ -1400,11 +1312,6 @@ export function withBoothLang(url: string, lang: BoothLang): string {
 /** 화면에 보일 AI 아이돌 컨셉 이름·설명 */
 export function conceptText(t: BoothText, concept: { id: string; name: { ko: string }; desc: { ko: string } }): Named {
   return t.concepts[concept.id] ?? { name: concept.name.ko, desc: concept.desc.ko }
-}
-
-/** 화면에 보일 무대 메이크업 룩 이름·설명 */
-export function lookText(t: BoothText, look: { id: string; name: { ko: string }; desc: { ko: string } }): Named {
-  return t.looks[look.id] ?? { name: look.name.ko, desc: look.desc.ko }
 }
 
 /** 화면에 보일 인화 디자인 이름(인화물 위 글씨는 바꾸지 않는다) */

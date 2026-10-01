@@ -3,14 +3,12 @@
 // (서버 src/lib/booth/idol-generate.ts, 전용 키 OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY).
 // 인화물은 BEFORE(실물) / ON STAGE(생성) — 닮음이 조금 어긋나도 '나'가 분명하다. docs/kiosk-modes.md '포토부스'
 //
-// 컨셉마다 무대 메이크업 룩(stage-makeup.ts)이 짝으로 붙는다 — AI 를 못 쓸 때(키 없음·실패·동의 안 함·얼굴 0명 또는 4명 이상) 얼굴 인식 메이크업 사진으로 대신할 때 쓴다.
+// AI 를 못 쓸 때(키 없음·실패·얼굴 0명 또는 4명 이상)는 찍은 원본을 그대로 인화 디자인에 넣는다(메이크업 필터는 없앴다).
 
 export interface IdolConcept {
   id: string
   name: { ko: string; en: string }
   desc: { ko: string; en: string }
-  /** 짝이 되는 무대 메이크업 룩(STAGE_LOOKS id) */
-  lookId: string
   /** 생성 프롬프트 조각(영어) — 서버가 id 로 찾아 쓴다(화면에서 온 문장은 쓰지 않는다) */
   prompt: {
     scene: string
@@ -28,7 +26,6 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     id: 'ending-fairy',
     name: { ko: '음방 엔딩요정', en: 'Ending Fairy' },
     desc: { ko: '음악방송 무대가 끝난 순간, 카메라를 바라보는 엔딩 클로즈업', en: 'The music-show ending close-up, right after the stage' },
-    lookId: 'glitter-eye',
     prompt: {
       scene: "the famous 'ending fairy' close-up at the very end of a K-pop music show performance: a confident, slightly breathless gaze straight into the camera, colorful stage lights and LED-wall bokeh behind, a few pieces of glittering confetti floating in the air, Korean music broadcast TV look",
       groupScene: "the group 'ending fairy' moment at the very end of a K-pop music show performance: all members posing together shoulder to shoulder in one single camera shot, confident slightly breathless gazes into the camera, colorful stage lights and LED-wall bokeh behind, glittering confetti in the air, Korean music broadcast TV look",
@@ -42,7 +39,6 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     id: 'album-jacket',
     name: { ko: '앨범 재킷', en: 'Album Jacket' },
     desc: { ko: '스튜디오에서 찍은 공식 컨셉 포토, 맑고 고급스럽게', en: 'An official concept photo from a high-end studio' },
-    lookId: 'glass-skin',
     prompt: {
       scene: 'an official K-pop album jacket / concept photo shot in a high-end studio: clean seamless pastel backdrop, soft diffused key light, calm elegant pose, fashion magazine editorial mood',
       hair: 'sleek, polished editorial hair styling',
@@ -55,7 +51,6 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     id: 'stage-fancam',
     name: { ko: '무대 직캠', en: 'Stage Fancam' },
     desc: { ko: '콘서트 무대 위 카리스마, 조명과 응원봉 사이에서', en: 'Charisma on a concert stage, among lights and lightsticks' },
-    lookId: 'cherry-lip',
     prompt: {
       scene: 'a fancam still from a live K-pop concert: a big stage with dramatic backlights, haze and light beams, powerful confident performance energy, audience lightsticks glowing as bokeh in the dark',
       hair: 'voluminous performance hair styling',
@@ -68,7 +63,6 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     id: 'mv-still',
     name: { ko: '뮤비 스틸', en: 'MV Still' },
     desc: { ko: '네온 불빛 가득한 뮤직비디오의 한 장면처럼', en: 'Like a frame from a neon-lit music video' },
-    lookId: 'neon-liner',
     prompt: {
       scene: 'a still frame from a K-pop music video: a neon-lit night set with cyan and magenta neon lights, reflective glossy surfaces, dreamy cinematic atmosphere',
       hair: 'trendy textured styling with a slight wet-look finish',
@@ -85,7 +79,7 @@ export function findIdolConcept(id: string | null | undefined): IdolConcept | nu
   return IDOL_CONCEPTS.find((c) => c.id === id) ?? null
 }
 
-/** AI 로 만들 수 있는 인원(컷 안 얼굴 수) — 넘으면 닮음이 크게 떨어져 얼굴 인식 메이크업으로 대신한다 */
+/** AI 로 만들 수 있는 인원(컷 안 얼굴 수) — 넘으면 닮음이 크게 떨어져 찍은 원본으로 인화한다 */
 export const IDOL_MAX_PEOPLE = 3
 
 /**
