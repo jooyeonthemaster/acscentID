@@ -27,12 +27,12 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '음방 엔딩요정', en: 'Ending Fairy' },
     desc: { ko: '음악방송 무대가 끝난 순간, 카메라를 바라보는 엔딩 클로즈업', en: 'The music-show ending close-up, right after the stage' },
     prompt: {
-      scene: "the famous 'ending fairy' moment at the very end of a K-pop music show performance, framed from the chest up: a confident, slightly breathless gaze straight into the camera, colorful stage lights and abstract LED-wall bokeh behind, a few pieces of glittering confetti floating in the air, Korean music broadcast TV look",
+      scene: "the famous 'ending fairy' close-up at the very end of a K-pop music show performance: a confident, slightly breathless gaze straight into the camera, colorful stage lights and abstract LED-wall bokeh behind, a few pieces of glittering confetti floating in the air, Korean music broadcast TV look",
       groupScene: "the group 'ending fairy' moment at the very end of a K-pop music show performance: all members posing together shoulder to shoulder in one single camera shot, confident slightly breathless gazes into the camera, colorful stage lights and abstract LED-wall bokeh behind, glittering confetti in the air, Korean music broadcast TV look",
       hair: 'freshly styled stage hair with a little natural movement',
-      makeup: 'shimmering pearl glitter eyeshadow in lilac and soft gold, fine eyeliner, radiant skin with soft matte cheeks, soft rosy-pink lip',
+      makeup: 'shimmering pearl glitter eyeshadow in lilac and soft gold, fine eyeliner, dewy radiant skin, soft rosy-pink lip',
       outfit: 'sparkly embellished stage costume with crystals',
-      camera: 'broadcast camera shot from the chest up with an 85mm-equivalent lens, colored rim lights, crisp and vivid',
+      camera: 'broadcast camera close-up with a telephoto lens, colored rim lights, crisp and vivid',
     },
   },
   {
@@ -42,7 +42,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     prompt: {
       scene: 'an official K-pop album jacket / concept photo shot in a high-end studio: clean seamless pastel backdrop, soft diffused key light, elegant pose that keeps their natural expression (a smile stays a smile), fashion magazine editorial mood',
       hair: 'sleek, polished editorial hair styling',
-      makeup: 'luminous glass-skin base with a subtle highlight on the nose bridge only, soft brown eyeshadow, glossy coral-pink lip',
+      makeup: 'luminous glass-skin base with highlighter on the cheekbones and nose bridge, soft brown eyeshadow, glossy coral-pink lip',
       outfit: 'chic designer concept outfit in soft pastel tones',
       camera: '85mm portrait lens, medium-format studio photography, soft and clean',
     },
@@ -56,7 +56,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
       hair: 'voluminous performance hair styling',
       makeup: 'sharp black winged eyeliner, smoky warm-brown eyeshadow, bold cherry-red lip',
       outfit: 'charismatic black-and-red performance outfit with metallic details',
-      camera: 'concert photography framed from the chest up with an 85mm-equivalent lens, high contrast, cinematic stage lighting',
+      camera: 'telephoto concert photography, high contrast, cinematic stage lighting',
     },
   },
   {
@@ -96,8 +96,6 @@ export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs =
   const who = many ? `${people} people` : 'person'
   return [
     `EDIT the first image (IMAGE 1) into an official K-pop idol concept photo of the SAME real ${who}. This is a photo edit of real people, not a new portrait: their faces must come from IMAGE 1.`,
-    // 부스는 사진을 줄여 아래 가운데에 두고 둘레를 단색으로 채워 보낸다(IdolStage) — 결과에서도 얼굴이 크게 차지 않게
-    'IMAGE 1 has a plain flat-colored margin around the photo, added only for framing: fill that margin with the scene, and keep the people at the same size and position in the frame as in IMAGE 1 — do not zoom in on them or crop them tighter.',
     ...(faceRefs
       ? [
           `The next ${faceRefs === 1 ? 'image is a close-up' : `${faceRefs} images are close-ups`} of ${faceRefs === 1 && !many ? "this person's face" : "each person's face, in left-to-right order"} from the same photo — use ${faceRefs === 1 ? 'it' : 'them'} only as the identity reference for exact facial details. Do not place ${faceRefs === 1 ? 'it' : 'them'} in the result.`,
@@ -105,11 +103,14 @@ export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs =
       : []),
     '',
     'IDENTITY LOCK — the most important rule, above the concept:',
-    `- Preserve ${many ? "every person's" : "the person's"} real facial features exactly as in the photo: eye shape, eyelids and eye size, eyebrow shape, nose, lips and mouth width, the spacing between them, moles, freckles and marks, skin tone, ethnicity, age and gender presentation (the face outline is refined only as described under FACE PROPORTIONS).`,
-    '- Keep the same head angle, gaze direction and facial expression (if they smile, keep the smile).',
+    `- Preserve ${many ? "every person's" : "the person's"} real face exactly as in the photo: face shape and width, eye shape, eyelids and eye size, eyebrow shape, nose, lips and mouth width, jawline and chin, cheeks, moles, freckles and marks, skin tone, ethnicity, age and gender presentation.`,
+    '- Keep the same head angle, gaze direction and facial expression, and the face at a similar size in the frame.',
     '- They must be instantly recognizable as themselves to their friends and family — the result should look like a professional photographer shot THIS person, not a lookalike.',
     '- Do NOT regenerate, swap, idealize or beautify the face into a different face. Do not enlarge the eyes, add double eyelids, change the nose or lips, smooth away features, or lighten/darken the skin. Do not make anyone look younger or older.',
-    '- If there is any conflict between the concept and the likeness, keep the likeness (except the face-proportion refinement below, which is required).',
+    // 현장 피드백(2026-10-01): 이목구비는 잘 닮지만 얼굴이 통통해 보인다 — 윤곽 전체를 바꾸게 하면 다른 사람이 됐다.
+    // 턱선만 살짝 다듬게 하는 한 줄만 둔다
+    '- One small refinement only: make the jawline slightly slimmer and more defined (a gentle V-line, as in idol photos). Everything else about the face stays exactly the same.',
+    '- If there is any conflict between the concept and the likeness, keep the likeness.',
     `- Keep the same number of people (${people}), the same left-to-right order, and a similar pose.${many ? ' Each person keeps their own face — never blend or copy faces between people.' : ''}`,
     ...(many
       ? [
@@ -117,22 +118,15 @@ export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs =
         ]
       : []),
     '',
-    // 부스 카메라는 손님 가까이에서 광각으로 찍어 얼굴이 실제보다 넓고 둥글게 나온다 — 그 왜곡까지 '정확히 유지'하면
-    // 현장에서 모두 통통하게 나왔다(2026-10-01). 눈·코·입·점은 그대로 두고 얼굴 윤곽만 아이돌 화보 비율로 다듬게 한다
-    'FACE PROPORTIONS — required refinement (this is the one shape change you must make):',
-    '- The input was shot at close range with a wide-angle lens, which makes faces look noticeably wider, rounder and puffier than in real life. Undo that: render the face as a professional agency photographer would with an 85mm lens from a distance.',
-    `- Make ${many ? "each person's" : 'the'} face visibly slimmer than in the input: reduce the width of the cheeks and lower face by about 10%, a slim V-line jaw with a defined chin and clean jawline, no puffiness under the cheekbones, a slender neck. Keep the eyes, nose, mouth, eyebrows, moles and their spacing exactly as they are.`,
-    '- Do not make the face childish or doll-like, and do not change age.',
-    '',
-    'WHAT YOU MAY CHANGE: background, lighting, outfit, hair finish, makeup and the face-proportion refinement above.',
+    'WHAT YOU MAY CHANGE: background, lighting, outfit, hair finish and makeup only.',
     `CONCEPT — ${concept.name.en}${many ? ' (group version: all members in one shot)' : ''}: ${many ? p.groupScene ?? p.scene : p.scene}.`,
     '',
     'IDOL STYLING (applied on top of them, never reshaping them):',
     `- Hair: keep ${many ? "each person's" : 'their'} own hairstyle — same cut, length, parting, bangs and exact hair color (brown stays brown, blond stays blond, never turned black) — only neatly styled with ${p.hair}.`,
-    `- Stage makeup: ${p.makeup}, plus subtle idol-style contouring — soft shading under the cheekbones and along the jawline, no shine on the cheeks. Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips.`,
+    `- Stage makeup: ${p.makeup}. Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips.`,
     `- Outfit: ${p.outfit}; modest, age-appropriate and fully covered.`,
     '',
-    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture with real pores (not plastic or airbrushed), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing from the waist or chest up — the head takes up no more than about a third of the frame height'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
+    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture with real pores (not plastic or airbrushed), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
     '',
     'DO NOT add any text, captions, logos, watermarks, group names or signatures, and no readable letters, numbers or symbols anywhere in the scene — including neon signs, LED screens, banners and clothing (keep any signs abstract and blurred). Do not make anyone resemble a real celebrity or existing idol. Do not change body shape.',
   ].join('\n')
