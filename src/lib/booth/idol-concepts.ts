@@ -15,8 +15,12 @@ export interface IdolConcept {
     /** 여럿이 찍었을 때의 장면(한 사람 클로즈업이 본질인 컨셉은 단체 장면으로 바꿔 쓴다 — 없으면 scene) */
     groupScene?: string
     hair: string
+    /** 여성 아이돌 메이크업·의상 */
     makeup: string
     outfit: string
+    /** 남성 아이돌 메이크업·의상 — 하나로 쓰면 남자 손님도 반짝이 섀도·레이스로 여성스럽게 나왔다(2026-10-02) */
+    makeupMen: string
+    outfitMen: string
     camera: string
   }
 }
@@ -36,6 +40,8 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
       hair: 'freshly styled stage hair with a little natural movement',
       makeup: 'shimmering pearl glitter eyeshadow in lilac and soft gold, fine eyeliner, dewy radiant skin, soft rosy-pink lip',
       outfit: 'trendy music-show stage styling in bright colors — such as a cropped jacket, a preppy school-uniform look or a sparkly embellished top',
+      makeupMen: 'natural clean skin, softly groomed brows, a thin subtle brown eyeliner, no colored eyeshadow, a natural tinted lip',
+      outfitMen: "men's music-show stage styling — such as a sharp school-uniform blazer with a tie, a cropped varsity or denim jacket, or a dark jacket with silver details",
       camera: 'live TV studio camera on a long zoom lens, bright clean broadcast video look with a slight soft diffusion',
     },
   },
@@ -49,6 +55,8 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
       makeup: 'luminous natural base, a soft flush of blush high on the cheeks, softly defined brows, light brown eyeshadow and a blurred gradient lip in rosy coral',
       // 어깨선 없는 하늘하늘한 옷 + 비스듬한 화보 포즈로 어깨가 좁아 보였다(2026-10-01) — 어깨가 잡힌 옷·정면 어깨
       outfit: 'editorial fashion styling with well-defined shoulders in muted soft tones — such as a structured cropped jacket, a preppy layered look, or a lace-trimmed blouse under a tailored blazer',
+      makeupMen: 'natural clean skin, groomed brows, no visible eyeshadow or lip color',
+      outfitMen: "men's editorial fashion styling with well-defined shoulders in muted tones — such as a tailored blazer over a knit, a leather jacket or a structured shirt jacket",
       camera: 'medium-format camera with an 80mm portrait lens, crisp focus, high-end editorial retouching that keeps real skin texture',
     },
   },
@@ -61,6 +69,8 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
       hair: 'voluminous performance hair styling',
       makeup: 'sharp black winged eyeliner, smoky warm-brown eyeshadow, bold cherry-red lip',
       outfit: 'an elaborate concert stage costume — such as white lace and frills with corset details, or a sleek black outfit with silver embellishment',
+      makeupMen: 'natural clean skin, a thin smoky brown eyeliner, no colored eyeshadow, a natural lip',
+      outfitMen: "a men's concert stage costume — such as a black or white tailored stage suit with silver embellishment, or a sleek black outfit with harness details",
       camera: 'concert photo taken from the audience with a 70-200mm telephoto lens and a fast shutter, high ISO with visible fine grain, slightly crushed blacks and saturated stage colors',
     },
   },
@@ -73,6 +83,8 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
       hair: 'trendy textured styling with a slight wet-look finish',
       makeup: 'graphic neon-cyan eyeliner with a magenta lower line, violet eyeshadow, berry lip',
       outfit: 'a bold, edgy styled look with layered accessories — chains, rings and statement earrings',
+      makeupMen: 'natural skin, a subtle smoky eyeliner, no colored eyeshadow, a natural lip',
+      outfitMen: "a bold edgy men's look — such as a leather jacket or oversized streetwear with chains, rings and statement earrings",
       camera: 'anamorphic lens with oval bokeh and a soft horizontal flare, teal-magenta music-video color grade with soft highlight roll-off and subtle film grain',
     },
   },
@@ -128,8 +140,11 @@ export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs =
     '',
     'IDOL STYLING (applied on top of them, never reshaping them):',
     `- Hair: keep ${many ? "each person's" : 'their'} own hairstyle — same cut, length, parting, bangs and exact hair color (brown stays brown, blond stays blond, never turned black) — only neatly styled with ${p.hair}.`,
-    `- Stage makeup: ${p.makeup}. Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips.`,
-    `- Outfit: ${p.outfit}; modest, age-appropriate and fully covered.`,
+    // 메이크업·의상은 사람마다 성별 표현에 맞춰 — 하나로 쓰면 남자가 여성스럽게 나왔다(2026-10-02)
+    `- Style each person according to their own gender presentation in the photo. Never feminize a man or masculinize a woman — a man must look like a male K-pop idol (masculine styling, no colored eyeshadow, no pink or glossy lips, no feminine clothing).`,
+    `- For women: stage makeup — ${p.makeup}; outfit — ${p.outfit}.`,
+    `- For men: makeup — ${p.makeupMen}; outfit — ${p.outfitMen}.`,
+    '- Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips. Outfits are modest, age-appropriate and fully covered.',
     '',
     `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, light professional skin retouching as in idol photos — even out the skin tone and slightly soften blemishes, redness and dark circles, while keeping natural skin texture and pores, and only the moles or freckles the person actually has (never add new ones) — not plastic or airbrushed, vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'framed from the chest up'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
     // 현장(2026-10-01): 얼굴은 근접 사진 크기 그대로인데 허리 위까지 넓게 그려 어깨·몸통이 왜소해 보였다

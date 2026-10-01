@@ -349,55 +349,80 @@ function drawPhotocard(ctx: CanvasRenderingContext2D, { concept, style, main, be
   }
 }
 
-/** 비포 · 애프터 — 위에 AI 사진, 아래 띠에 실물과 이름 */
-function drawSplit(ctx: CanvasRenderingContext2D, { concept, style, main, before, event }: Parts) {
-  const top = 1250
-  ctx.fillStyle = style.dark
-  ctx.fillRect(0, 0, W, H)
-  cover(ctx, main, 0, 0, W, top)
-  pill(ctx, 'AFTER · ON STAGE', W - 40, 40, { bg: 'rgba(10,8,30,0.6)', fg: '#ffffff', align: 'right', size: 22 })
-  ctx.fillStyle = style.accent
-  ctx.fillRect(0, top, W, 8)
-  let textX = 60
-  if (before) {
-    const bw = 360, bh = 460, bx = 60, by = top + 46
-    ctx.save()
-    roundRectPath(ctx, bx, by, bw, bh, 18)
-    ctx.clip()
-    cover(ctx, before, bx, by, bw, bh, 0.4)
-    ctx.restore()
-    pill(ctx, 'BEFORE', bx + 18, by + 18, { bg: 'rgba(255,255,255,0.9)', fg: '#1a1530', size: 18 })
-    // 화살표
-    ctx.save()
-    ctx.strokeStyle = style.accent
-    ctx.fillStyle = style.accent
-    ctx.lineWidth = 8
-    const ay = by + bh / 2, ax = bx + bw + 40
-    ctx.beginPath()
-    ctx.moveTo(ax, ay)
-    ctx.lineTo(ax + 80, ay)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(ax + 100, ay)
-    ctx.lineTo(ax + 72, ay - 22)
-    ctx.lineTo(ax + 72, ay + 22)
-    ctx.closePath()
-    ctx.fill()
-    ctx.restore()
-    textX = bx + bw + 160
-  }
-  const maxW = W - textX - 60
+/**
+ * 비포 · 애프터 — 홍보 배너의 인화지 모양(2026-10-02): 흰 인화지 위 줄에 BEFORE(실물, 세로 사진)와 컨셉 이름·행사,
+ * 아래에 ON STAGE(AI) 크게. 사진 왼쪽 위에 이름표(검정 BEFORE / 벽돌색 ON STAGE).
+ * 실물이 없으면(AI 를 못 만듦) 위 줄은 글씨만.
+ */
+const PAPER = '#f7f4ee'
+const PAPER_INK = '#1b1a24'
+const BRICK = '#a8392b'
+
+function tag(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, bg: string) {
   ctx.save()
+  ctx.font = sans(700)(30)
+  ctx.letterSpacing = '2px'
+  const w = ctx.measureText(text).width + 36
+  ctx.fillStyle = bg
+  ctx.fillRect(x, y, w, 54)
   ctx.fillStyle = '#ffffff'
+  ctx.textBaseline = 'middle'
   ctx.textAlign = 'left'
-  ctx.textBaseline = 'alphabetic'
-  const koPx = fit(ctx, concept.name.ko, maxW, sans(800), 64, 36)
-  ctx.fillText(concept.name.ko, textX, top + 250)
-  ctx.globalAlpha = 0.8
-  ctx.font = sans(600)(Math.round(koPx * 0.55))
-  ctx.fillText(concept.name.en, textX, top + 250 + koPx * 0.9, maxW)
+  ctx.fillText(text, x + 18, y + 28)
   ctx.restore()
-  eventText(ctx, event, textX, H - 70, style.accent, 'left', 20)
+}
+
+function photoBox(ctx: CanvasRenderingContext2D, pic: Picture, x: number, y: number, w: number, h: number, focalY: number) {
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(x, y, w, h)
+  ctx.clip()
+  cover(ctx, pic, x, y, w, h, focalY)
+  ctx.restore()
+}
+
+function drawSplit(ctx: CanvasRenderingContext2D, { concept, main, before, event }: Parts) {
+  const m = 56, gap = 24
+  const x = m, w = W - m * 2
+  ctx.fillStyle = PAPER
+  ctx.fillRect(0, 0, W, H)
+  // 위 줄: 왼쪽 실물(세로 사진 그대로 — 가로 띠에 넣으면 얼굴이 잘렸다), 오른쪽 컨셉 이름·행사
+  const topH = 600
+  let textX = x
+  if (before) {
+    const bw = Math.round(topH * 2 / 3)
+    photoBox(ctx, before, x, m, bw, topH, 0.3)
+    tag(ctx, 'BEFORE', x + 18, m + 18, PAPER_INK)
+    textX = x + bw + 48
+  }
+  const textW = x + w - textX
+  ctx.save()
+  ctx.fillStyle = BRICK
+  ctx.font = sans(800)(26)
+  ctx.letterSpacing = '6px'
+  ctx.textBaseline = 'alphabetic'
+  ctx.textAlign = 'left'
+  ctx.fillText('BEFORE → ON STAGE', textX, m + 60, textW)
+  ctx.letterSpacing = '0px'
+  ctx.fillStyle = PAPER_INK
+  const koPx = fit(ctx, concept.name.ko, textW, sans(900), 96, 48)
+  ctx.fillText(concept.name.ko, textX, m + 60 + 40 + koPx * 0.95)
+  ctx.globalAlpha = 0.65
+  ctx.font = sans(600)(Math.round(koPx * 0.42))
+  ctx.fillText(concept.name.en, textX, m + 60 + 40 + koPx * 0.95 + koPx * 0.62, textW)
+  ctx.globalAlpha = 1
+  ctx.fillStyle = BRICK
+  ctx.fillRect(textX, m + topH - 74, 64, 4)
+  ctx.fillStyle = PAPER_INK
+  ctx.globalAlpha = 0.8
+  fit(ctx, event, textW, (px) => `700 ${px}px ${FONT_STACK}`, 24, 14)
+  ctx.letterSpacing = '3px'
+  ctx.fillText(event, textX, m + topH - 18, textW)
+  ctx.restore()
+  // 아래: AI 사진 크게
+  const ay = m + topH + gap
+  photoBox(ctx, main, x, ay, w, H - m - ay, 0.25)
+  tag(ctx, 'ON STAGE', x + 18, ay + 18, BRICK)
 }
 
 /** 포스터 — 사진을 꽉 채우고 위에 큰 영어 제목, 아래에 한국어 이름·행사 */
