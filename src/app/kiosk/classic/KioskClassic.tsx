@@ -20,6 +20,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
+import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK, hanjaFontVar } from '../fonts'
@@ -1861,13 +1862,20 @@ export function KioskClassic() {
             className="ksk-attract"
             onClick={startSession}
           >
-            <div className="ksk-attract-head">
-              <span className="ksk-attract-ticket">{attract.ticket}</span>
-              <div className="ksk-attract-wordmark">
-                <span>AC&rsquo;SCENT</span>
-                <strong>{attract.wordmark}</strong>
-              </div>
-              <p className="ksk-attract-sub">{attract.sub}</p>
+            <div className={kioskMode.poster ? 'ksk-attract-head ksk-attract-head--poster' : 'ksk-attract-head'}>
+              {kioskMode.poster ? (
+                // 행사 모드 — 홍보 배너와 같은 제목(SAJU! / 사주로 찾는 나만의 향, / AI 조향사)
+                <PosterTitle poster={kioskMode.poster} line={lang === 'ko' ? undefined : attract.sub} />
+              ) : (
+                <>
+                  <span className="ksk-attract-ticket">{attract.ticket}</span>
+                  <div className="ksk-attract-wordmark">
+                    <span>AC&rsquo;SCENT</span>
+                    <strong>{attract.wordmark}</strong>
+                  </div>
+                  <p className="ksk-attract-sub">{attract.sub}</p>
+                </>
+              )}
             </div>
             <div className="ksk-attract-card">
               <span className="ksk-attract-card-no">{attract.cardNo}</span>

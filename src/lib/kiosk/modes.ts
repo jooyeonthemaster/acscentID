@@ -19,6 +19,17 @@ export interface ModeAttract {
   tags: string[]
 }
 
+/** 홍보 배너 모양 첫 화면 제목 — word+accent(벽돌색) / line / main(벽돌색) / mainEn / langs (src/app/kiosk/PosterTitle.tsx) */
+export interface KioskPoster {
+  word: string
+  accent: string
+  /** 한국어 화면의 둘째 줄. 외국어 화면에서는 그 언어의 attract.sub 를 쓴다 */
+  line: string
+  main: string
+  mainEn: string
+  langs: string
+}
+
 export interface KioskMode {
   id: string
   /** 관리자 화면에 보이는 이름 */
@@ -33,6 +44,8 @@ export interface KioskMode {
   programs: KioskProgramId[]
   /** 언어별 첫 화면 문구. 비면 매장 기본 문구 */
   attract: Partial<Record<KioskLang, Partial<ModeAttract>>>
+  /** 있으면 첫 화면 제목(티켓·워드마크·부제 자리)을 홍보 배너 모양으로 */
+  poster?: KioskPoster
   receipt: {
     /** 'scent' = 향 먼저(매장), 'saju' = 명식 먼저인 사주 처방전 */
     theme: 'scent' | 'saju'
@@ -69,6 +82,15 @@ export const KIOSK_MODES: KioskMode[] = [
     brandName: "AC'SCENT × K-WAVE",
     storeEvents: false,
     programs: ['saju'],
+    // 홍보 배너(2026-10-02)와 같은 제목
+    poster: {
+      word: 'SAJ',
+      accent: 'U!',
+      line: '사주로 찾는 나만의 향,',
+      main: 'AI 조향사',
+      mainEn: 'AI PERFUMER',
+      langs: 'English · 日本語 · 简体中文 · 繁體中文',
+    },
     attract: {
       ko: {
         ticket: 'K-WAVE DANCE FESTIVAL · ITAEWON',

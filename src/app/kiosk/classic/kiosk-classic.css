@@ -227,6 +227,15 @@
     transparent 100%);
   pointer-events: none;
 }
+/* 홍보 배너 모양 제목(PosterTitle) — 배경 그림 위에 바로 놓이므로 배너 고정색 대신 배경 글자색·강조색.
+   배너와 같은 노랑 배경(kiosk-saju-10)에서는 이 두 색이 곧 배너의 먹색·벽돌색이다 */
+.ksk-attract-head--poster {
+  --poster-ink: var(--ink);
+  --poster-accent: var(--accent);
+  /* 아래 카드 위에 붙은 테이프 장식(.ksk-attract-card::after)이 언어 줄을 덮지 않게 */
+  padding-bottom: 16px;
+}
+
 /* 로고 두 단어 — 글꼴마다 폭이 달라 한 줄에 억지로 두면 오른쪽으로 삐져나갔다.
    폭이 모자라면 두 줄로 내려가고, 글자 크기도 머리 폭에 맞춰 줄어든다(cqw) */
 .ksk-attract-wordmark {
@@ -293,6 +302,12 @@
   font-weight: 800;
   letter-spacing: var(--ksk-display-tracking, -0.03em);
   word-break: keep-all;
+}
+/* 일본어·중국어는 띄어쓰기가 없어 keep-all 이면 한 줄로 카드 밖까지 나간다 — 기본 줄바꿈(문장부호는 줄 앞에 안 옴) */
+[data-lang='ja'] .ksk-attract-mid,
+[data-lang='zh-Hans'] .ksk-attract-mid,
+[data-lang='zh-Hant'] .ksk-attract-mid {
+  word-break: normal;
 }
 .ksk-attract-mid strong {
   color: var(--accent);
