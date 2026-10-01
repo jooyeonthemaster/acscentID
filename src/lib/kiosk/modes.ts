@@ -46,6 +46,8 @@ export interface KioskMode {
   attract: Partial<Record<KioskLang, Partial<ModeAttract>>>
   /** 있으면 첫 화면 제목(티켓·워드마크·부제 자리)을 홍보 배너 모양으로 */
   poster?: KioskPoster
+  /** 사주 결과를 장 넘기기 대신 한 화면 스크롤로 — 손님이 몰리는 행사장에서 줄을 줄이려고 */
+  resultOnePage?: boolean
   receipt: {
     /** 'scent' = 향 먼저(매장), 'saju' = 명식 먼저인 사주 처방전 */
     theme: 'scent' | 'saju'
@@ -82,6 +84,7 @@ export const KIOSK_MODES: KioskMode[] = [
     brandName: "AC'SCENT × K-WAVE",
     storeEvents: false,
     programs: ['saju'],
+    resultOnePage: true,
     // 홍보 배너(2026-10-02)와 같은 제목
     poster: {
       word: 'SAJ',

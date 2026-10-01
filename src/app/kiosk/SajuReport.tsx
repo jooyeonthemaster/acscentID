@@ -289,3 +289,19 @@ export function SajuPrescriptionView({ result, tx }: { result: SajuAnalysisResul
     </div>
   )
 }
+
+// ─────────────────────────────── 한 장(스크롤) — 행사 모드(modes.ts resultOnePage)
+/** 4장을 한 화면에 이어 붙인다 — 장을 넘기느라 줄이 길어지지 않게. 장 이름은 짙은 띠 제목으로 남긴다 */
+export function SajuOnePageView({ result, tx }: { result: SajuAnalysisResult; tx: SajuText }) {
+  const parts = [SajuChartView, SajuReadingView, SajuPurposeView, SajuPrescriptionView]
+  return (
+    <div className="sjr-onepage">
+      {parts.map((View, i) => (
+        <section key={tx.chapters[i]} className="sjr-onepage-part">
+          <h2 className="sjr-onepage-head">{tx.chapters[i]}</h2>
+          <View result={result} tx={tx} />
+        </section>
+      ))}
+    </div>
+  )
+}

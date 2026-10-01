@@ -46,7 +46,7 @@ import { KioskModeControls } from '@/components/screen/KioskModeControls'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
-import { SajuChartView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
+import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
 function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
@@ -756,6 +756,10 @@ export function KioskClassic() {
   const chapters = useMemo(() => {
     if (!result) return []
     if (isSajuResult(result)) {
+      // 행사 모드 — 4장을 한 화면 스크롤로(장 넘기느라 줄이 길어지지 않게)
+      if (kioskMode.resultOnePage) {
+        return [{ label: 'SAJU REPORT', render: () => <SajuOnePageView result={result} tx={sx} />, scroll: true }]
+      }
       // 그림·카드 중심 결과(SajuReport) — 모든 장이 길 수 있어 스크롤로 둔다
       return [
         { label: sx.chapters[0], render: () => <SajuChartView result={result} tx={sx} />, scroll: true },
@@ -769,7 +773,7 @@ export function KioskClassic() {
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t, sx])
+  }, [result, t, sx, kioskMode.resultOnePage])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -1824,15 +1828,19 @@ export function KioskClassic() {
                   {chapters[chapterIdx]?.label ?? 'RESULT'}
                   {mocked ? ' · DEMO DATA' : ''}
                 </p>
-                <span className="ksk-chapter-count ksk-mono">
-                  {chapterIdx + 1} / {chapters.length}
-                </span>
+                {chapters.length > 1 && (
+                  <span className="ksk-chapter-count ksk-mono">
+                    {chapterIdx + 1} / {chapters.length}
+                  </span>
+                )}
               </div>
-              <div className="ksk-chapter-dots">
-                {chapters.map((c, i) => (
-                  <i key={c.label} data-on={i <= chapterIdx} />
-                ))}
-              </div>
+              {chapters.length > 1 && (
+                <div className="ksk-chapter-dots">
+                  {chapters.map((c, i) => (
+                    <i key={c.label} data-on={i <= chapterIdx} />
+                  ))}
+                </div>
+              )}
 
               {chapters[chapterIdx]?.render()}
 

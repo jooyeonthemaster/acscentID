@@ -42,6 +42,10 @@ K-WAVE 모드 전용: 제조 레시피를 **굵은 상자**로 감싸고(`recipe
 - 레트로·맥은 흰 창 안이라 배너 고정색(먹·벽돌), 기존(클래식)은 배경 그림 위라 배경의 글자색·강조색을 쓴다 — 노랑 배경 '흥겨운 오행 춤'(kiosk-saju-10)에서 배너와 같은 색이 된다.
 - 포토부스의 짝: `src/components/photobooth/IdolPosterTitle.tsx`(IDOL! / AI 포토부스).
 
+## 결과 한 장 스크롤 (`resultOnePage`)
+
+모드에 `resultOnePage: true` 면 사주 결과 4장(명식·풀이·물음·처방)을 장 넘기기 없이 한 화면에 이어 붙여 스크롤한다(`SajuOnePageView`, SajuReport.tsx). 장 이름은 짙은 띠 제목으로 남고, 아래 버튼은 '처음으로'·'영수증 인쇄' 둘. 손님이 몰리는 행사장에서 장 넘기느라 줄이 길어지지 않게 K-WAVE 에서만 켰다. 매장 모드는 예전처럼 4장.
+
 ## 모드 기본 배경
 
 `defaultBackground` 가 있으면 STORE ADMIN 에서 그 모드를 고를 때 키오스크 배경도 함께 바뀐다. K-WAVE 는 `kiosk-event-kwave-2026`(기본 배경 목록의 '행사' 배경, `catalog.json`). 매장 모드로 돌아갈 때는 배경이 자동으로 돌아가지 않으니 화면 배경에서 다시 고른다.

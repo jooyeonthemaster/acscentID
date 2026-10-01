@@ -105,3 +105,18 @@
   .sjr-tile-glyph { font-size: 48px; }
   .sjr-big { font-size: 30px; }
 }
+
+/* 한 장(스크롤) — 행사 모드. 장 사이를 띄우고 장 이름을 배경 위에서도 읽히는 짙은 띠로 */
+.sjr-onepage { display: flex; flex-direction: column; gap: 34px; }
+.sjr-onepage-part { display: flex; flex-direction: column; gap: 14px; }
+.sjr-onepage-head {
+  margin: 0;
+  padding: 10px 20px;
+  border-radius: 14px;
+  background: #1d1a16;
+  color: #e9d9b6;
+  font-family: var(--ksk-hanja-font, var(--font-noto-tc, 'Noto Sans TC')), 'Malgun Gothic', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}

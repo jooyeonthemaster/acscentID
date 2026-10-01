@@ -49,7 +49,7 @@ import { KioskModeControls } from '@/components/screen/KioskModeControls'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
-import { SajuChartView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
+import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
 import {
   PixelIcon,
   RetroProgress,
@@ -785,6 +785,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const chapters = useMemo(() => {
     if (!result) return []
     if (isSajuResult(result)) {
+      // 행사 모드 — 4장을 한 화면 스크롤로(장 넘기느라 줄이 길어지지 않게)
+      if (kioskMode.resultOnePage) {
+        return [{ label: 'SAJU REPORT', render: () => <SajuOnePageView result={result} tx={sx} />, scroll: true }]
+      }
       // 그림·카드 중심 결과(SajuReport) — 모든 장이 길 수 있어 스크롤로 둔다
       return [
         { label: sx.chapters[0], render: () => <SajuChartView result={result} tx={sx} />, scroll: true },
@@ -798,7 +802,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t, sx])
+  }, [result, t, sx, kioskMode.resultOnePage])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -1376,12 +1380,16 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <span className="rt-pixel">STEP {stepCode}</span>
                 <RetroSteps current={stepIdx} total={steps.length} label={`STEP ${stepCode}`} />
               </div>
-            ) : step === 'result' && result ? (
+            ) : step === 'result' && result && chapters.length > 1 ? (
               <div className="ksk-menubar-step">
                 <span className="rt-pixel">
                   REPORT {chapterIdx + 1}/{chapters.length}
                 </span>
                 <RetroSteps current={chapterIdx} total={chapters.length} label={`REPORT ${chapterIdx + 1}/${chapters.length}`} />
+              </div>
+            ) : step === 'result' && result ? (
+              <div className="ksk-menubar-step">
+                <span className="rt-pixel">REPORT</span>
               </div>
             ) : (
               <div className="ksk-menubar-step">
