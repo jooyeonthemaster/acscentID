@@ -26,6 +26,7 @@ import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts
 import { preloadFaceDetect } from '@/lib/booth/face-detect'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { BoothLangSwitcher } from '@/components/photobooth/BoothLangSwitcher'
+import { IdolPosterTitle } from '@/components/photobooth/IdolPosterTitle'
 import { attractHeadline, boothText, conceptText, guestError, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK } from '@/app/kiosk/fonts'
 import { findBoothMode } from '@/lib/booth/modes'
@@ -1954,7 +1955,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <div className="bth-attract-stage">
               <div className="bth-attract-group">
                 <RetroWindow ghosts icon="heart" title="WELCOME" bodyClassName="bth-attract-body">
-                  {boothMode.attract ? (
+                  {boothMode.attract?.poster ? (
+                    // 행사 모드 — 홍보 배너와 같은 제목(IDOL! / 오늘, 나도 K-POP 아이돌 / AI 포토부스)
+                    <IdolPosterTitle poster={boothMode.attract.poster} />
+                  ) : boothMode.attract ? (
                     // 행사 모드 — 제목은 화면 언어로. 한국어 화면일 때만 외국인 손님을 위해 영어 한 줄을 곁들인다
                     <>
                       <div className="bth-wordmark rt-pixel" aria-label={`${boothMode.attract.wordmark} ${boothMode.attract.sub}`}>

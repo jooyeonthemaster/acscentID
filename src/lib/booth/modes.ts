@@ -10,6 +10,18 @@ export interface BoothAttract {
   headline: string
   /** 대기 화면 제목 아래 영어 한 줄(행사 모드) */
   headlineEn?: string
+  /** 있으면 대기 화면 제목을 홍보 배너 모양으로(src/components/photobooth/IdolPosterTitle.tsx) — 위 문구 대신 */
+  poster?: BoothPoster
+}
+
+/** 홍보 배너 모양 제목 — word+accent(벽돌색) / line / main(벽돌색) / mainEn / langs */
+export interface BoothPoster {
+  word: string
+  accent: string
+  line: string
+  main: string
+  mainEn: string
+  langs: string
 }
 
 export interface BoothMode {
@@ -45,14 +57,23 @@ export const BOOTH_MODES: BoothMode[] = [
     id: 'kwave-2026',
     label: 'K-WAVE 댄스 페스티벌',
     note: '2026.10.3~10.4 · 이태원로 세계문화마을',
-    brandLine: "AC'SCENT × K-WAVE · STAGE MAKEUP PHOTO",
+    brandLine: "AC'SCENT × K-WAVE · AI IDOL PHOTO",
     storeEvents: false,
     attract: {
       wordmark: "AC'SCENT × K-WAVE",
-      sub: 'STAGE MAKEUP PHOTO',
+      sub: 'AI IDOL PHOTO',
       badge: '2026 K-WAVE DANCE FESTIVAL',
-      headline: '오늘의 무대 메이크업, 한 장에',
-      headlineEn: 'Pick your K-POP stage makeup look',
+      headline: '오늘, 나도 K-POP 아이돌',
+      headlineEn: 'Become a K-POP idol today',
+      // 홍보 배너(2026-10-01)와 같은 제목
+      poster: {
+        word: 'IDO',
+        accent: 'L!',
+        line: '오늘, 나도 K-POP 아이돌',
+        main: 'AI 포토부스',
+        mainEn: 'AI PHOTOBOOTH',
+        langs: 'English · 日本語 · 简体中文 · 繁體中文',
+      },
     },
     stageMakeup: {
       eventLines: ['2026 K-WAVE DANCE FESTIVAL', '세계문화마을 · 이태원로 · 10.3~10.4'],

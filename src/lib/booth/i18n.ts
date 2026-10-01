@@ -41,7 +41,7 @@ const ko = {
   attractTouch: '화면을 터치해 시작하기',
   /** 운영 모드 id → 대기 화면 제목 */
   attract: {
-    'kwave-2026': '오늘의 무대 메이크업, 한 장에',
+    'kwave-2026': '오늘, 나도 K-POP 아이돌',
   } as Record<string, string>,
 
   // ── 첫 화면(행사 모드) ──
@@ -302,7 +302,7 @@ const en: BoothText = {
   attractDefault: 'One shot with your bias today',
   attractTouch: 'Touch the screen to start',
   attract: {
-    'kwave-2026': 'Your K-POP stage makeup, in one shot',
+    'kwave-2026': 'Become a K-POP idol today',
   },
 
   stageTitleIdol: 'Which concept will you debut with?',
@@ -551,7 +551,7 @@ const ja: BoothText = {
   attractDefault: '今日の推しと、一枚に',
   attractTouch: '画面をタッチしてスタート',
   attract: {
-    'kwave-2026': '今日のステージメイクを、一枚に',
+    'kwave-2026': '今日は私もK-POPアイドル',
   },
 
   stageTitleIdol: 'どのコンセプトでデビューしますか？',
@@ -800,7 +800,7 @@ const zhHans: BoothText = {
   attractDefault: '今天和本命，合影一张',
   attractTouch: '触摸屏幕开始',
   attract: {
-    'kwave-2026': '今天的舞台妆，定格成一张',
+    'kwave-2026': '今天，我也是K-POP偶像',
   },
 
   stageTitleIdol: '你想用哪个概念出道？',
@@ -1049,7 +1049,7 @@ const zhHant: BoothText = {
   attractDefault: '今天和本命，合拍一張',
   attractTouch: '觸碰螢幕開始',
   attract: {
-    'kwave-2026': '今天的舞台妝，定格成一張',
+    'kwave-2026': '今天，我也是K-POP偶像',
   },
 
   stageTitleIdol: '你想用哪個概念出道？',
