@@ -91,7 +91,9 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
       body: JSON.stringify({
         model,
         modalities: ['image', 'text'],
-        image_config: { aspect_ratio: '2:3' },
+        // 기본 크기는 848x1264 라 인화 원판(1200x1800)보다 작아 늘려 찍으면 흐렸다 — Gemini 3 Pro Image 는 2K(1696x2528)를
+        // 같은 값에 준다(2026-10-02 시험: 장당 약 $0.137 동일, +5초). 예비 모델(2.5 Flash)은 이 값을 모르니 기본 크기로
+        image_config: model.includes('gemini-3') ? { aspect_ratio: '2:3', image_size: '2K' } : { aspect_ratio: '2:3' },
         // 본 사진 다음에 얼굴 클로즈업을 사람 순서대로 — 프롬프트가 'IMAGE 1 / 얼굴 참고'로 부른다
         messages: [{
           role: 'user',
@@ -136,7 +138,8 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
   // 가끔 이미지 모델이 한참 멈춘다(운영에서 110초 넘게 걸린 적) — 손님이 오래 서 있지 않게 첫 시도는 짧게 끊고,
   // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스는 얼굴 인식 메이크업 사진으로 대신한다
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
-  const attempts: [string, number][] = [[primary, 50_000], [FALLBACK_MODEL, 45_000]]
+  // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
+  const attempts: [string, number][] = [[primary, 60_000], [FALLBACK_MODEL, 45_000]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
     url = await requestImage(model, timeout, buildIdolPrompt(concept, people, refs.length), photo, refs)
