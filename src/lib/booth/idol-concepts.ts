@@ -126,7 +126,9 @@ export function buildIdolPrompt(concept: IdolConcept, people: number, faceRefs =
     `- Stage makeup: ${p.makeup}. Makeup is color on the skin only; it must not change the shape of the eyes, brows, nose or lips.`,
     `- Outfit: ${p.outfit}; modest, age-appropriate and fully covered.`,
     '',
-    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, natural skin texture with real pores (not plastic or airbrushed), vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'upper-body framing'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
+    `PHOTOGRAPHY: ${p.camera}. Professional entertainment-agency quality, sharp focus on the eyes, light professional skin retouching as in idol photos — even out the skin tone and slightly soften blemishes, redness and dark circles, while keeping natural skin texture and pores, and only the moles or freckles the person actually has (never add new ones) — not plastic or airbrushed, vertical 2:3 portrait that fills the entire frame edge to edge (no borders, white bars, frames, split panels or collage), ${many ? 'group framing from the chest up with all faces clearly visible' : 'framed from the chest up'} with the face${many ? 's' : ''} in the upper-middle of the frame.`,
+    // 현장(2026-10-01): 얼굴은 근접 사진 크기 그대로인데 허리 위까지 넓게 그려 어깨·몸통이 왜소해 보였다
+    `BODY PROPORTIONS: realistic adult head-to-body proportions — shoulders about 2.5 to 3 head-widths wide for men and about 2 to 2.5 for women, a natural neck and torso in proportion to the head. Never shrink the body or make the head look oversized.`,
     '',
     'DO NOT add any text, captions, logos, watermarks, group names or signatures, and no readable letters, numbers or symbols anywhere in the scene — including neon signs, LED screens, banners and clothing (keep any signs abstract and blurred). Do not make anyone resemble a real celebrity or existing idol. Do not change body shape.',
   ].join('\n')
