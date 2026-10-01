@@ -65,13 +65,13 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '무대 직캠', en: 'Stage Fancam' },
     desc: { ko: '콘서트 무대 위 카리스마, 조명과 응원봉 사이에서', en: 'Charisma on a concert stage, among lights and lightsticks' },
     prompt: {
-      scene: 'a concert photo of a K-pop performer on a big arena stage, framed from the chest up: singing with a handheld wireless microphone held near the chin, confident performance energy, a deep saturated purple, blue or red stage-light wash behind with huge LED screens, moving-head light beams cutting through haze, scattered confetti, and an out-of-focus crowd of glowing lightsticks',
+      scene: 'a K-pop stage fancam still taken from right in front of the stage, framed from the waist up: caught mid-choreography in a sharp, powerful dance move with intense eye contact, a thin skin-tone headset microphone along the cheek (no handheld microphone), hair in motion; behind, a large LED screen with abstract graphic visuals, crisp white, cold blue or red beam lights cutting through haze, dark stage, energetic girl-crush or hip-hop performance mood (not a ballad or trot concert)',
       hair: 'voluminous performance hair styling',
       makeup: 'sharp black winged eyeliner, smoky warm-brown eyeshadow, bold cherry-red lip',
-      outfit: 'an elaborate concert stage costume — such as white lace and frills with corset details, or a sleek black outfit with silver embellishment',
+      outfit: 'a trendy K-pop dance-performance stage outfit — such as a cropped jacket over a crop top with cargo or leather pants, or a mini skirt with combat boots, with chains and belts (no gowns, frills or lace dresses)',
       makeupMen: 'natural clean skin, a thin smoky brown eyeliner, no colored eyeshadow, a natural lip',
-      outfitMen: "a men's concert stage costume — such as a black or white tailored stage suit with silver embellishment, or a sleek black outfit with harness details",
-      camera: 'concert photo taken from the audience with a 70-200mm telephoto lens and a fast shutter, high ISO with visible fine grain, slightly crushed blacks and saturated stage colors',
+      outfitMen: "a trendy men's K-pop dance-performance stage outfit — such as an oversized cropped jacket with a harness, layered streetwear, or a black outfit with silver chains",
+      camera: 'vertical fan-cam style shot with a telephoto lens from just below the stage, fast shutter freezing the dance move, slight high-ISO grain, high contrast with deep blacks and crisp stage-light colors',
     },
   },
   {
