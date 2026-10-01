@@ -100,9 +100,35 @@ function cropJpeg(img: HTMLImageElement, box: Box, w: number, h: number, quality
   return c.toDataURL('image/jpeg', quality)
 }
 
+/** 본 사진을 줄여 둘 비율 — 둘레 여백만큼 결과에서도 얼굴이 작게 나온다 */
+const FRAME_SCALE = 0.78
+
+/**
+ * 원본의 box 부분을 w×h 의 FRAME_SCALE 크기로 아래 가운데에 두고, 둘레는 사진 윗부분 테두리의 평균 색으로 채운다.
+ * 부스 카메라는 손님 가까이서 찍어 얼굴이 화면을 크게 차지하고, 모델은 그 얼굴 크기를 그대로 따라 그려 결과가 모두
+ * 통통해 보였다(2026-10-01, 예시 인물 4명 비교 — design-review/kwave-prompt-compare). 프롬프트가 '둘레 여백은 장면으로 채우고
+ * 인물 크기·위치는 그대로'라고 알린다(idol-concepts.ts). 흐린 사진으로 채우면 얼굴이 크게 비쳐서 단색으로 채운다
+ */
+function framedJpeg(img: HTMLImageElement, box: Box, w: number, h: number, quality = 0.92) {
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const ctx = c.getContext('2d')!
+  ctx.imageSmoothingQuality = 'high'
+  const probe = document.createElement('canvas')
+  probe.width = probe.height = 1
+  probe.getContext('2d')!.drawImage(img, box.x, box.y, box.w, Math.max(1, box.h * 0.03), 0, 0, 1, 1)
+  const [r, g, b] = probe.getContext('2d')!.getImageData(0, 0, 1, 1).data
+  ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
+  ctx.fillRect(0, 0, w, h)
+  const fw = Math.round(w * FRAME_SCALE), fh = Math.round(h * FRAME_SCALE)
+  ctx.drawImage(img, box.x, box.y, box.w, box.h, Math.round((w - fw) / 2), h - fh, fw, fh)
+  return c.toDataURL('image/jpeg', quality)
+}
+
 /**
  * AI 에 보낼 사진 — 얼굴이 작고 흐리면 모델이 얼굴을 새로 그려 '다른 사람'이 된다(가로 원판 전체를 1280 으로 줄여 보내던 때).
- * - 본 사진: 손님이 촬영 화면에서 본 세로 2:3 구도, 얼굴이 작으면 상반신이 차도록 얼굴 쪽으로 당겨 1024×1536
+ * - 본 사진: 손님이 촬영 화면에서 본 세로 2:3 구도(얼굴이 작으면 상반신이 차도록 얼굴 쪽으로 당김)를 1024×1536 에 78% 로 줄여 둘레 단색 여백(framedJpeg)
  * - 얼굴 참고: 사람마다 얼굴 클로즈업 512×512(최대 IDOL_MAX_PEOPLE 장) — 서버가 '정체성 참고용'으로 함께 보낸다
  */
 async function idolInputs(img: HTMLImageElement) {
@@ -122,7 +148,7 @@ async function idolInputs(img: HTMLImageElement) {
     const y = Math.min(Math.max(y0 - h * 0.14, 0), H - h)
     crop = { x, y, w, h }
   }
-  const photo = cropJpeg(img, crop, 1024, 1536)
+  const photo = framedJpeg(img, crop, 1024, 1536)
   const faceRefs = faces.slice(0, IDOL_MAX_PEOPLE)
     .sort((a, b) => a.x - b.x)
     .map((f) => {
