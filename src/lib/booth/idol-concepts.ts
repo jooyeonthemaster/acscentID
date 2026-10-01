@@ -40,10 +40,11 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '앨범 재킷', en: 'Album Jacket' },
     desc: { ko: '스튜디오에서 찍은 공식 컨셉 포토, 맑고 고급스럽게', en: 'An official concept photo from a high-end studio' },
     prompt: {
-      scene: 'an official K-pop album jacket / concept photo shot in a high-end studio: clean seamless pastel backdrop, soft diffused key light, elegant pose that keeps their natural expression (a smile stays a smile), fashion magazine editorial mood',
+      scene: 'an official K-pop album jacket / concept photo shot in a high-end studio: clean seamless pastel backdrop, soft diffused key light, upright confident pose with the shoulders square to the camera (not turned sideways) that keeps their natural expression (a smile stays a smile), fashion magazine editorial mood',
       hair: 'sleek, polished editorial hair styling',
       makeup: 'luminous glass-skin base with highlighter on the cheekbones and nose bridge, soft brown eyeshadow, glossy coral-pink lip',
-      outfit: 'chic designer concept outfit in soft pastel tones',
+      // 어깨선 없는 하늘하늘한 옷 + 비스듬한 화보 포즈로 어깨가 좁아 보였다(2026-10-01) — 어깨가 잡힌 옷·정면 어깨
+      outfit: 'chic structured designer outfit in soft pastel tones with well-defined shoulders, such as a tailored jacket',
       camera: '85mm portrait lens, medium-format studio photography, soft and clean',
     },
   },
