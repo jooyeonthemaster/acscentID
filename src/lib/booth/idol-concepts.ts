@@ -21,17 +21,21 @@ export interface IdolConcept {
   }
 }
 
+// 장면·의상·메이크업 묘사는 실제 K-POP 사진 레퍼런스 145장(컨셉별 35~37장, 2026-10-02)을 보고 뽑은 공통점이다 —
+// 엔딩요정의 헤드셋 마이크·손 하트와 밝은 파스텔 LED, 앨범 재킷의 채도 낮은 필름 색감과 화보 스타일링, 직캠의 핸드 마이크·진한 조명·
+// 레이스 무대 의상, 뮤비의 강한 컬러 조명·액세서리. 레퍼런스 사진은 저작권·초상권 때문에 저장소에 넣지 않고(로컬 보관),
+// 생성할 때 모델에 넣지도 않는다(손님 얼굴에 아이돌 이목구비가 섞인다). 실존 인물 이름도 쓰지 않는다
 export const IDOL_CONCEPTS: IdolConcept[] = [
   {
     id: 'ending-fairy',
     name: { ko: '음방 엔딩요정', en: 'Ending Fairy' },
     desc: { ko: '음악방송 무대가 끝난 순간, 카메라를 바라보는 엔딩 클로즈업', en: 'The music-show ending close-up, right after the stage' },
     prompt: {
-      scene: "the famous 'ending fairy' close-up at the very end of a K-pop music show performance, framed from the chest up: a confident, slightly breathless gaze straight into the lens, a soft frontal key light with strong colored rim lights from behind, a blurred glowing LED wall with abstract motion graphics and a little stage haze behind, a few pieces of glittering confetti in the air, a soft dewy glow on the skin (no visible sweat or oily shine) and a few loose strands of hair, clean bright Korean live-broadcast look",
-      groupScene: "the group 'ending fairy' moment at the very end of a K-pop music show performance: all members posing together shoulder to shoulder in one single camera shot, confident slightly breathless gazes into the lens, a soft frontal key light with colored rim lights from behind, a blurred glowing LED wall with abstract motion graphics and stage haze behind, glittering confetti in the air, clean bright Korean live-broadcast look",
+      scene: "the famous 'ending fairy' close-up at the very end of a K-pop music show performance, framed from the chest up: slightly breathless, gazing straight into the lens, wearing a thin skin-tone headset microphone along the cheek and an in-ear monitor; if a hand is visible, a cute idol gesture near the face (finger heart, V-sign or hand on the cheek); bright high-key broadcast lighting with colored rim lights; behind, a blurred LED wall glowing in saturated pastel pink, sky blue and violet with abstract shapes, a little stage haze and a few pieces of confetti; a soft dewy glow on the skin (no visible sweat or oily shine) and a few loose strands of hair; clean bright Korean live-broadcast look",
+      groupScene: "the group 'ending fairy' moment at the very end of a K-pop music show performance: all members posing together shoulder to shoulder in one single camera shot, each with a thin skin-tone headset microphone along the cheek, playful idol hand gestures, slightly breathless gazes into the lens, bright high-key broadcast lighting, a blurred LED wall glowing in pastel pink, sky blue and violet with abstract shapes behind, a little stage haze and confetti, clean bright Korean live-broadcast look",
       hair: 'freshly styled stage hair with a little natural movement',
       makeup: 'shimmering pearl glitter eyeshadow in lilac and soft gold, fine eyeliner, dewy radiant skin, soft rosy-pink lip',
-      outfit: 'sparkly embellished stage costume with crystals',
+      outfit: 'trendy music-show stage styling in bright colors — such as a cropped jacket, a preppy school-uniform look or a sparkly embellished top',
       camera: 'live TV studio camera on a long zoom lens, bright clean broadcast video look with a slight soft diffusion',
     },
   },
@@ -40,11 +44,11 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '앨범 재킷', en: 'Album Jacket' },
     desc: { ko: '스튜디오에서 찍은 공식 컨셉 포토, 맑고 고급스럽게', en: 'An official concept photo from a high-end studio' },
     prompt: {
-      scene: 'an official K-pop album jacket / concept photo from a professional studio shoot: a seamless pastel paper backdrop, a large softbox or beauty-dish key light with soft fill from below (clamshell lighting) and clean catchlights in the eyes, a unified color grade of only two or three soft colors, upright confident pose with the shoulders square to the camera (not turned sideways) that keeps their natural expression (a smile stays a smile), fashion magazine editorial mood',
+      scene: 'an official K-pop album concept photo from a fashion-editorial studio shoot: a light grey or white seamless backdrop or a softly draped fabric backdrop, a large soft key light or a crisp direct-flash editorial look, a muted, low-saturation film-like color grade, upright confident pose with the shoulders square to the camera (not turned sideways) that keeps their natural expression (a smile stays a smile), high-fashion magazine mood',
       hair: 'sleek, polished editorial hair styling',
-      makeup: 'luminous glass-skin base with highlighter on the cheekbones and nose bridge, soft brown eyeshadow, glossy coral-pink lip',
+      makeup: 'luminous natural base, a soft flush of blush high on the cheeks, softly defined brows, light brown eyeshadow and a blurred gradient lip in rosy coral',
       // 어깨선 없는 하늘하늘한 옷 + 비스듬한 화보 포즈로 어깨가 좁아 보였다(2026-10-01) — 어깨가 잡힌 옷·정면 어깨
-      outfit: 'chic structured designer outfit in soft pastel tones with well-defined shoulders, such as a tailored jacket',
+      outfit: 'editorial fashion styling with well-defined shoulders in muted soft tones — such as a structured cropped jacket, a preppy layered look, or a lace-trimmed blouse under a tailored blazer',
       camera: 'medium-format camera with an 80mm portrait lens, crisp focus, high-end editorial retouching that keeps real skin texture',
     },
   },
@@ -53,10 +57,10 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '무대 직캠', en: 'Stage Fancam' },
     desc: { ko: '콘서트 무대 위 카리스마, 조명과 응원봉 사이에서', en: 'Charisma on a concert stage, among lights and lightsticks' },
     prompt: {
-      scene: 'a fancam still from a live K-pop concert arena: the performer isolated by a follow spotlight on a dark stage, moving-head light beams cutting through thick haze, a foreground sea of out-of-focus lightsticks glowing in one fan color, confident performance energy',
+      scene: 'a concert photo of a K-pop performer on a big arena stage, framed from the chest up: singing with a handheld wireless microphone held near the chin, confident performance energy, a deep saturated purple, blue or red stage-light wash behind with huge LED screens, moving-head light beams cutting through haze, scattered confetti, and an out-of-focus crowd of glowing lightsticks',
       hair: 'voluminous performance hair styling',
       makeup: 'sharp black winged eyeliner, smoky warm-brown eyeshadow, bold cherry-red lip',
-      outfit: 'charismatic black-and-red performance outfit with metallic details',
+      outfit: 'an elaborate concert stage costume — such as white lace and frills with corset details, or a sleek black outfit with silver embellishment',
       camera: 'concert photo taken from the audience with a 70-200mm telephoto lens and a fast shutter, high ISO with visible fine grain, slightly crushed blacks and saturated stage colors',
     },
   },
@@ -65,10 +69,10 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
     name: { ko: '뮤비 스틸', en: 'MV Still' },
     desc: { ko: '네온 불빛 가득한 뮤직비디오의 한 장면처럼', en: 'Like a frame from a neon-lit music video' },
     prompt: {
-      scene: 'a still frame from a K-pop music video on a stylized night set: practical neon tubes and glows in abstract shapes (no lettering) in teal and magenta, reflective glossy surfaces, atmospheric haze, the subject placed slightly off-center in the set',
+      scene: 'a still frame from a K-pop music video: a dramatic chest-up shot with intense eye contact, hard colored lighting in teal, red or hot pink on a dark stylized set (industrial, neon or club-like) with practical lights in abstract shapes (no lettering), atmospheric haze, shallow depth of field, the subject placed slightly off-center',
       hair: 'trendy textured styling with a slight wet-look finish',
       makeup: 'graphic neon-cyan eyeliner with a magenta lower line, violet eyeshadow, berry lip',
-      outfit: 'Y2K-inspired trendy stage outfit',
+      outfit: 'a bold, edgy styled look with layered accessories — chains, rings and statement earrings',
       camera: 'anamorphic lens with oval bokeh and a soft horizontal flare, teal-magenta music-video color grade with soft highlight roll-off and subtle film grain',
     },
   },
