@@ -441,8 +441,9 @@ function drawPoster(ctx: CanvasRenderingContext2D, { concept, style, main, befor
   ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
-  const px = fit(ctx, title, W - 120, style.posterFont, 170, 70)
+  // 재단 안전 여백 — 좌우 각 캔버스 폭의 6%. 자간을 넣은 상태로 폭을 재야 한다(빼고 재서 ALBUM JACKET 이 좌우 28px 까지 붙었다)
   ctx.letterSpacing = style.posterFont === serif ? '6px' : '0px'
+  const px = fit(ctx, title, W * 0.88, style.posterFont, 170, 60)
   ctx.font = style.posterFont(px)
   ctx.fillText(title, W / 2, 60 + px * 0.95)
   ctx.fillStyle = style.accent
