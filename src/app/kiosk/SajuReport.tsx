@@ -5,7 +5,7 @@
 // 한자는 Noto Sans TC 로 통일한다. 긴 해석은 앞 1~2문장만 보이고 '자세히 보기'로 펼친다.
 // 문구는 src/lib/kiosk/saju-i18n.ts (5개 언어), 해석 문장은 서버가 손님 언어로 만든다.
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getPerfumeById } from '@/data/perfumes'
 import { SAJU_ELEMENT_INFO, SAJU_PURPOSES, type SajuAnalysisResult, type SajuElement } from '@/types/analysis'
 import type { SajuText } from '@/lib/kiosk/saju-i18n'
@@ -291,17 +291,58 @@ export function SajuPrescriptionView({ result, tx }: { result: SajuAnalysisResul
 }
 
 // ─────────────────────────────── 한 장(스크롤) — 행사 모드(modes.ts resultOnePage)
+
+/** 맨 위 요약 — 결과가 6화면 분량이라, 손님이 가장 궁금한 '내 향'과 '용신'을 첫 화면에 먼저 */
+function SajuSummary({ result, tx }: { result: SajuAnalysisResult; tx: SajuText }) {
+  const top = result.matchingPerfumes[0]
+  const y = result.sajuChart.yongsin.element
+  const no = (top?.perfumeId.match(/(\d+)\s*$/)?.[1] ?? '--').padStart(2, '0')
+  const bridge = result.sajuAnalysis.scentDestiny.elementBridge
+  return (
+    <section className="sjr-summary" style={{ ['--sjr-el' as string]: elColor(y) }}>
+      <p className="sjr-summary-kicker">{tx.summary}</p>
+      <p className="sjr-summary-scent"><span>No. {no}</span> {top?.persona?.name ?? '-'}</p>
+      <p className="sjr-summary-yongsin">
+        <span className="sjr-summary-glyph" style={{ background: elColor(y), color: onEl(y) }}>{elHanja(y)}</span>
+        <span>{tx.yongsin} · {tx.elements[y]} — {tx.noteFamily[y]}</span>
+      </p>
+      {bridge && <p className="sjr-summary-bridge">{bridge}</p>}
+    </section>
+  )
+}
+
+/** '아래로 더 보기' — 스크롤 영역 아래에 붙어 있다가 끝에 거의 닿으면 사라진다 */
+function ScrollMoreHint({ label }: { label: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => {
+    const scroller = ref.current?.closest('.ksk-body') as HTMLElement | null
+    if (!scroller) return
+    const update = () => setHidden(scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 260)
+    update()
+    scroller.addEventListener('scroll', update, { passive: true })
+    return () => scroller.removeEventListener('scroll', update)
+  }, [])
+  return (
+    <div ref={ref} className="sjr-more-hint" data-hidden={hidden} aria-hidden="true">
+      <span>{label} ↓</span>
+    </div>
+  )
+}
+
 /** 4장을 한 화면에 이어 붙인다 — 장을 넘기느라 줄이 길어지지 않게. 장 이름은 짙은 띠 제목으로 남긴다 */
 export function SajuOnePageView({ result, tx }: { result: SajuAnalysisResult; tx: SajuText }) {
   const parts = [SajuChartView, SajuReadingView, SajuPurposeView, SajuPrescriptionView]
   return (
     <div className="sjr-onepage">
+      <SajuSummary result={result} tx={tx} />
       {parts.map((View, i) => (
         <section key={tx.chapters[i]} className="sjr-onepage-part">
           <h2 className="sjr-onepage-head">{tx.chapters[i]}</h2>
           <View result={result} tx={tx} />
         </section>
       ))}
+      <ScrollMoreHint label={tx.scrollMore} />
     </div>
   )
 }
