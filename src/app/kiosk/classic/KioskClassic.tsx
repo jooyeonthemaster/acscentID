@@ -1289,7 +1289,7 @@ export function KioskClassic() {
     >
       {quitConfirmNode}
       <ScreenFontFace ids={[deviceSettings.font, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
-      <div className="ksk-stage">
+      <div className="ksk-stage" data-step={step}>
         {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
         {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && (
           <div className="ksk-lang" data-open={langOpen}>
