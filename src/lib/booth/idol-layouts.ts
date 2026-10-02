@@ -108,6 +108,11 @@ function styleOf(concept: IdolConcept): ConceptStyle {
   }
 }
 
+/** AI 사진이 있어야 고를 수 있는 디자인(비포 · 애프터) — 실물과 AI 를 나란히 두는 디자인이라 */
+export function designNeedsAi(design: IdolDesign): boolean {
+  return design.kind === 'split'
+}
+
 /** 이 컨셉의 인화 디자인 4종 */
 export function idolDesigns(concept: IdolConcept): IdolDesign[] {
   return styleOf(concept).designs
@@ -276,7 +281,8 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
   if (deco === 'onair') {
     // 음악방송 생방송 화면 — 왼쪽 위 LIVE, 오른쪽 위 채널 느낌의 행사 표시, 아래 자막 띠
     pill(ctx, 'LIVE', 48, 48, { bg: '#ff2d55', fg: '#ffffff', dot: '#ffffff' })
-    pill(ctx, 'ON STAGE', W - 48, 48, { bg: 'rgba(10,8,30,0.62)', fg: '#ffffff', align: 'right' })
+    // ON STAGE 는 AI 사진일 때만 — 못 만들어 원본을 쓰면 붙이지 않는다
+    if (before) pill(ctx, 'ON STAGE', W - 48, 48, { bg: 'rgba(10,8,30,0.62)', fg: '#ffffff', align: 'right' })
     const y = H - 190
     ctx.fillStyle = accent
     ctx.fillRect(48, y, 12, 110)
@@ -331,7 +337,7 @@ function drawPhotocard(ctx: CanvasRenderingContext2D, { concept, style, main, be
   ctx.clip()
   cover(ctx, main, x, y, w, h)
   ctx.restore()
-  pill(ctx, 'ON STAGE', x + w - 28, y + 28, { bg: 'rgba(10,8,30,0.55)', fg: '#ffffff', align: 'right', size: 22 })
+  if (before) pill(ctx, 'ON STAGE', x + w - 28, y + 28, { bg: 'rgba(10,8,30,0.55)', fg: '#ffffff', align: 'right', size: 22 })
   const baseY = y + h + 14 + 150
   conceptLine(ctx, concept, x, baseY - 26, w - (before ? 220 : 0), ink, 52)
   eventText(ctx, event, x, baseY + 22, ink, 'left', 20)
@@ -472,7 +478,9 @@ export function drawIdolDesign(
   ctx.imageSmoothingQuality = 'high'
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, H)
-  const kind = resolveIdolDesign(concept, designId).kind
+  let kind = resolveIdolDesign(concept, designId).kind
+  // AI 사진이 없으면(생성 전·실패) 비포·애프터는 그릴 수 없다 — 첫 디자인(무대 한 장)으로
+  if (kind === 'split' && !pics.before) kind = 'stage'
   if (kind === 'photocard') drawPhotocard(ctx, parts)
   else if (kind === 'split') drawSplit(ctx, parts)
   else if (kind === 'poster') drawPoster(ctx, parts)
