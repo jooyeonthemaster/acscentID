@@ -144,7 +144,7 @@ const ko = {
   dragHintPerson: '인물을 끌어 옮기고, 두 손가락으로 크기·각도를 바꿀 수 있어요',
   composeFailed: '이미지 합성에 실패했습니다. 다시 시도해주세요.',
   resultFailed: '결과 이미지를 만들 수 없습니다. 잠시 후 다시 시도해주세요.',
-  groupIdol: 'AI 아이돌 사진 · ON STAGE',
+  groupIdol: (tag: string) => `AI 아이돌 사진 · ${tag}`,
   groupDesign: '인화 디자인 · PRINT DESIGN',
   groupFrame: '프레임',
   noFrames: '등록된 프레임이 없어요 (관리자 페이지에서 추가)',
@@ -217,6 +217,9 @@ const ko = {
   idolRetryDone: '다시 만들기',
   idolRetryFailed: 'AI 사진 다시 시도',
   designAria: '인화 디자인',
+  retryHint: '같은 사진으로 AI 사진만 다시 만들어요 · 다시 찍기는 처음부터 새로 찍어요',
+  cameraHint: '얼굴이 화면 가운데 오게 서 주세요 · 촬영하기를 누르면 3초 뒤 찍혀요',
+  idolNetworkRetry: '연결이 잠깐 끊겨 한 번 더 시도하고 있어요…',
   designNeedsAi: 'AI 사진이 나오면 고를 수 있어요',
   // ── 프레임(FramePicker) ──
   frameCategory: '분류',
@@ -396,7 +399,7 @@ const en: BoothText = {
   dragHintPerson: 'Drag the person to move, use two fingers to resize and rotate',
   composeFailed: "We couldn't combine the image. Please try again.",
   resultFailed: "We couldn't create the final image. Please try again shortly.",
-  groupIdol: 'AI IDOL PHOTO · ON STAGE',
+  groupIdol: (tag: string) => `AI IDOL PHOTO · ${tag}`,
   groupDesign: 'PRINT DESIGN',
   groupFrame: 'Frame',
   noFrames: 'No frames available',
@@ -464,6 +467,9 @@ const en: BoothText = {
   idolRetryDone: 'Make again',
   idolRetryFailed: 'Retry AI photo',
   designAria: 'Print design',
+  retryHint: 'Remake the AI photo from the same shot · Retake starts over with a new photo',
+  cameraHint: 'Keep your face in the center · The photo is taken 3 seconds after you tap',
+  idolNetworkRetry: 'Connection dropped — trying once more…',
   designNeedsAi: 'Available once the AI photo is ready',
 
 
@@ -646,7 +652,7 @@ const ja: BoothText = {
   dragHintPerson: '人物をドラッグして移動、2本指でサイズ・角度を変えられます',
   composeFailed: '画像の合成に失敗しました。もう一度お試しください。',
   resultFailed: '完成画像を作れませんでした。しばらくしてからお試しください。',
-  groupIdol: 'AIアイドル写真 · ON STAGE',
+  groupIdol: (tag: string) => `AIアイドル写真 · ${tag}`,
   groupDesign: 'プリントデザイン · PRINT DESIGN',
   groupFrame: 'フレーム',
   noFrames: '利用できるフレームがありません',
@@ -714,6 +720,9 @@ const ja: BoothText = {
   idolRetryDone: 'もう一度作る',
   idolRetryFailed: 'AI写真を再試行',
   designAria: 'プリントデザイン',
+  retryHint: '同じ写真でAI写真だけ作り直します · 撮り直すと最初から撮影します',
+  cameraHint: '顔を画面の中央に合わせてください · ボタンを押すと3秒後に撮影します',
+  idolNetworkRetry: '接続が切れたため、もう一度試しています…',
   designNeedsAi: 'AI写真ができると選べます',
 
 
@@ -896,7 +905,7 @@ const zhHans: BoothText = {
   dragHintPerson: '拖动人物移动，双指调整大小和角度',
   composeFailed: '图片合成失败，请重试。',
   resultFailed: '无法生成成品图片，请稍后再试。',
-  groupIdol: 'AI 爱豆照片 · ON STAGE',
+  groupIdol: (tag: string) => `AI 爱豆照片 · ${tag}`,
   groupDesign: '打印设计 · PRINT DESIGN',
   groupFrame: '相框',
   noFrames: '暂无可用相框',
@@ -964,6 +973,9 @@ const zhHans: BoothText = {
   idolRetryDone: '重新生成',
   idolRetryFailed: '重试 AI 照片',
   designAria: '打印设计',
+  retryHint: '用同一张照片重新生成AI照片 · 重拍则从头重新拍摄',
+  cameraHint: '请让脸位于画面中央 · 按下拍摄后3秒拍照',
+  idolNetworkRetry: '连接中断，正在重试一次…',
   designNeedsAi: 'AI照片完成后可选',
 
 
@@ -1146,7 +1158,7 @@ const zhHant: BoothText = {
   dragHintPerson: '拖曳人物移動，雙指調整大小和角度',
   composeFailed: '圖片合成失敗，請再試一次。',
   resultFailed: '無法產生完成圖片，請稍後再試。',
-  groupIdol: 'AI 偶像照片 · ON STAGE',
+  groupIdol: (tag: string) => `AI 偶像照片 · ${tag}`,
   groupDesign: '列印設計 · PRINT DESIGN',
   groupFrame: '相框',
   noFrames: '目前沒有可用的相框',
@@ -1214,6 +1226,9 @@ const zhHant: BoothText = {
   idolRetryDone: '重新製作',
   idolRetryFailed: '重試 AI 照片',
   designAria: '列印設計',
+  retryHint: '用同一張照片重新生成AI照片 · 重拍則從頭重新拍攝',
+  cameraHint: '請讓臉位於畫面中央 · 按下拍攝後3秒拍照',
+  idolNetworkRetry: '連線中斷，正在重試一次…',
   designNeedsAi: 'AI照片完成後可選',
 
 

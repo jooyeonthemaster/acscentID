@@ -163,6 +163,8 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
   const [note, setNote] = useState<IdolNote | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [tries, setTries] = useState(0)
+  /** 네트워크 오류로 한 번 더 보내는 중 */
+  const [retrying, setRetrying] = useState(false)
   const runRef = useRef(0)
   const startedFor = useRef<string | null>(null)
 
@@ -192,12 +194,22 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
       if (token !== runRef.current) return
       setStatus('generating')
       setTries((n) => n + 1)
-      const res = await fetch('/api/photobooth/idol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // 얼굴 인식을 못 쓰는 기기(-1)면 1명으로 보고 만든다
-        body: JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: input.photo, faces: input.faces }),
-      })
+      // 얼굴 인식을 못 쓰는 기기(-1)면 1명으로 보고 만든다
+      const body = JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: input.photo, faces: input.faces })
+      const send = () => fetch('/api/photobooth/idol', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+      let res: Response
+      try {
+        res = await send()
+      } catch {
+        // 네트워크가 잠깐 끊긴 것(서버 응답 없음)만 한 번 더 — 서버가 실패로 답한 것(5xx 등)은 다시 보내지 않는다
+        if (token !== runRef.current) return
+        setRetrying(true)
+        await new Promise((r) => setTimeout(r, 1500))
+        if (token !== runRef.current) return
+        res = await send()
+      } finally {
+        setRetrying(false)
+      }
       const data = await res.json().catch(() => ({}))
       if (token !== runRef.current) return
       if (!res.ok || typeof data.image !== 'string') throw new Error(data.error || 'AI 사진을 만들지 못했어요.')
@@ -245,6 +257,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
     message: note ? idolNoteText(boothText(lang), lang, note) : '',
     elapsed,
     busy,
+    retrying,
     canRetry: !busy && status !== 'skipped' && tries < MAX_TRIES && !!ticket,
     retriesLeft: Math.max(0, MAX_TRIES - tries),
     retry: () => { void run() },
@@ -279,7 +292,7 @@ export function IdolStagePanel({ stage, conceptId, variant, lang }: {
             <span className={retro ? undefined : 'block h-full rounded-full bg-current transition-[width] duration-500'}
               style={{ width: `${Math.min(95, 8 + stage.elapsed * 3.2)}%` }} />
           </div>
-          <p className={text}>{t.idolMaking(stage.elapsed)}</p>
+          <p className={text}>{stage.retrying ? t.idolNetworkRetry : t.idolMaking(stage.elapsed)}</p>
         </>
       )}
       {stage.status === 'done' && (
@@ -287,9 +300,13 @@ export function IdolStagePanel({ stage, conceptId, variant, lang }: {
       )}
       {(stage.status === 'failed' || stage.status === 'skipped') && <p className={text}>{stage.message}</p>}
       {stage.canRetry && (stage.status === 'done' || stage.status === 'failed') && (
-        <button type="button" className={button} onClick={stage.retry}>
-          {stage.status === 'done' ? t.idolRetryDone : t.idolRetryFailed} ({stage.retriesLeft})
-        </button>
+        <>
+          <button type="button" className={button} onClick={stage.retry}>
+            {stage.status === 'done' ? t.idolRetryDone : t.idolRetryFailed} ({stage.retriesLeft})
+          </button>
+          {/* 처음 쓰는 손님이 '다시 찍기'와 헷갈리지 않게 */}
+          <p className={text}>{t.retryHint}</p>
+        </>
       )}
     </div>
   )

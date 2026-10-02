@@ -451,6 +451,13 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
   const [lang, setLang] = useState<BoothLang>('ko')
   const t = boothText(lang)
+  // 화면 낭독기·번역기가 알도록 문서 언어도 맞춘다(부스 화면에 있는 동안만)
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+    return () => { root.lang = prev }
+  }, [lang])
   // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
   const langRef = useRef(lang)
   langRef.current = lang
@@ -2006,7 +2013,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         </div>
       )}
 
-      <div className="bth-frame rt-stack">
+      {/* 대기 화면이 떠 있으면 뒤 화면은 Tab·화면 낭독기에서 뺀다 */}
+      <div className="bth-frame rt-stack" inert={isAttract}>
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
         <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
         <section className="bth-window rt-win">
@@ -2526,6 +2534,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {liveLookName}
                 </p>
               )}
+              {idolOn && <p className="bth-sub">{t.cameraHint}</p>}
               {mode === 'template' && shotProgress?.current !== 2 && (
                 <p className="bth-sub">{t.printAsSeen}</p>
               )}
@@ -2653,7 +2662,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
               {idolOn && idolShot && (
                 <div className="rt-group">
-                  <span className="rt-group-label">{t.groupIdol}</span>
+                  <span className="rt-group-label">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</span>
                   <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="retro" lang={lang} />
                 </div>
               )}

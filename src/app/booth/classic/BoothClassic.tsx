@@ -435,6 +435,13 @@ export function BoothClassic() {
   /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
   const [lang, setLang] = useState<BoothLang>('ko')
   const t = boothText(lang)
+  // 화면 낭독기·번역기가 알도록 문서 언어도 맞춘다(부스 화면에 있는 동안만)
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+    return () => { root.lang = prev }
+  }, [lang])
   // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
   const langRef = useRef(lang)
   langRef.current = lang
@@ -2038,7 +2045,7 @@ export function BoothClassic() {
       )}
 
       {/* 헤더 */}
-      <header className={`booth-stage-ui relative z-10 flex min-h-16 items-center justify-between gap-5 border-b px-8 py-2.5 backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/35 text-[var(--booth-ink)]' : 'border-white/10'}`}>
+      <header inert={isAttract} className={`booth-stage-ui relative z-10 flex min-h-16 items-center justify-between gap-5 border-b px-8 py-2.5 backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/35 text-[var(--booth-ink)]' : 'border-white/10'}`}>
         <div className="flex min-w-0 items-center gap-5">
           {step !== 'home' && (
             <button
@@ -2091,6 +2098,7 @@ export function BoothClassic() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
+        inert={isAttract}
         className="booth-stage-ui relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-5"
       >
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
@@ -2579,6 +2587,7 @@ export function BoothClassic() {
                   ? t.printAsSeen
                   : liveLookName ?? ''}
               </p>
+              {idolOn && <p className="text-white/70 text-base mb-6 -mt-4 break-keep">{t.cameraHint}</p>}
 
               {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
               {mode === 'solo' && !idolOn && (
@@ -2696,7 +2705,7 @@ export function BoothClassic() {
               {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
               {idolOn && idolShot && (
                 <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol}</p>
+                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</p>
                   <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" lang={lang} />
                 </div>
               )}

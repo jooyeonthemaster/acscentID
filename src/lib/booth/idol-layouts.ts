@@ -300,7 +300,9 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
     ctx.strokeStyle = 'rgba(255,255,255,0.9)'
     ctx.lineWidth = 6
     const c = 90, m = 36
-    for (const [x, y, dx, dy] of [[m, 150, 1, 1], [W - m, 150, -1, 1], [m, H - 240, 1, -1], [W - m, H - 240, -1, -1]] as const) {
+    // 아래 모서리는 실물 폴라로이드(오른쪽 아래) 위로 — 겹쳐서 모서리가 가려졌다(2026-10-02 점검)
+    const low = before ? H - 470 : H - 240
+    for (const [x, y, dx, dy] of [[m, 150, 1, 1], [W - m, 150, -1, 1], [m, low, 1, -1], [W - m, low, -1, -1]] as const) {
       ctx.beginPath()
       ctx.moveTo(x, y + dy * c)
       ctx.lineTo(x, y)
@@ -408,7 +410,7 @@ function drawSplit(ctx: CanvasRenderingContext2D, { concept, main, before, event
   ctx.letterSpacing = '6px'
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
-  ctx.fillText('BEFORE → ON STAGE', textX, m + 60, textW)
+  ctx.fillText(`BEFORE → ${concept.tag}`, textX, m + 60, textW)
   ctx.letterSpacing = '0px'
   ctx.fillStyle = PAPER_INK
   const koPx = fit(ctx, concept.name.ko, textW, sans(900), 96, 48)
