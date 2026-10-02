@@ -22,6 +22,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
+import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from './PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
@@ -214,6 +215,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [camError, setCamError] = useState(false)
   /** 분석 응답을 실제로 받았는지 — 받기 전에는 진행률을 모르므로 퍼센트를 만들지 않는다 */
   const [analysisDone, setAnalysisDone] = useState(false)
+  /** 분석 실패 — 분석 화면에 남는 오류 카드(다시 시도·처음으로). null 이면 진행 중 */
+  const [analyzeError, setAnalyzeError] = useState<AnalyzeErrorKind | null>(null)
   const [statusIdx, setStatusIdx] = useState(0)
   const [result, setResult] = useState<ImageAnalysisResult | SajuAnalysisResult | null>(null)
   const [mocked, setMocked] = useState(false)
@@ -349,6 +352,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     setToast(null)
     setStep('attract')
+    setAnalyzeError(null)
     setProgram(DEFAULT_PROGRAM)
     setName('')
     setGender('')
@@ -675,6 +679,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     const isSaju = program === 'saju'
     setStep('analyzing')
     setAnalysisDone(false)
+    setAnalyzeError(null)
     setChapterIdx(0)
 
     // 응답 한 번으로 끝나는 요청이라 진행률을 알 수 없다 — 상태 문구만 돌린다
@@ -683,7 +688,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       setStatusIdx((i) => (i + 1) % lines.length)
     }, 2600)
 
-    const backStep: Step = isSaju ? 'product' : 'capture'
+    // 실패가 확정되면 그 자리에서 멈추고 오류 카드를 띄운다(입력은 그대로 두어 '다시 시도'가 바로 된다)
+    const fail = (kind: AnalyzeErrorKind, detail: unknown) => {
+      console.error(`[kiosk] 분석 실패(${kind}):`, detail)
+      window.clearInterval(statusTimer)
+      setAnalyzeError(kind)
+    }
     try {
       const url = isSaju ? '/api/kiosk/analyze/saju' : '/api/kiosk/analyze'
       const body = isSaju
@@ -726,25 +736,33 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           lang,
         }
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // 무인 기기: 네트워크가 행 걸려도 반드시 입력 화면으로 복귀한다 (사주는 서사가 길어 더 준다)
-        signal: AbortSignal.timeout(isSaju ? 110_000 : 75_000),
-        body: JSON.stringify(body),
-      })
-      const json = await res.json()
+      let res: Response
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // 무인 기기: 네트워크가 행 걸려도 반드시 끝난다 (사주는 서사가 길어 더 준다 — 서버는 92초 안에 답한다)
+          signal: AbortSignal.timeout(isSaju ? 110_000 : 75_000),
+          body: JSON.stringify(body),
+        })
+      } catch (e) {
+        fail(classifyFetchError(e), e)
+        return
+      }
+      let json: { success?: boolean; data?: unknown; error?: string; mocked?: boolean }
+      try {
+        json = await res.json()
+      } catch (e) {
+        fail('server', e)
+        return
+      }
       // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
       if (!res.ok || !json.success || !json.data) {
-        throw new Error(json.error || '분석 결과가 비어 있습니다')
+        fail('server', `${res.status} ${json.error ?? ''}`)
+        return
       }
       setResult(json.data as ImageAnalysisResult | SajuAnalysisResult)
       setMocked(Boolean(json.mocked))
-    } catch (e) {
-      console.error('[kiosk] 분석 실패:', e)
-      showToast(t.toastAnalyzeFailed)
-      setStep(backStep)
-      return
     } finally {
       window.clearInterval(statusTimer)
     }
@@ -753,7 +771,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setAnalysisDone(true)
     window.setTimeout(() => setStep('result'), 450)
   }, [
-    program, name, gender, styles, personalities, charms, photo, showToast,
+    program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
     t, lang, sx.statusLines,
@@ -1866,7 +1884,24 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </div>
         )}
 
-        {step === 'analyzing' && (
+        {step === 'analyzing' && analyzeError && (
+          <div className="ksk-body">
+            <div className="ksk-analyzing">
+              <RetroWindow className="ksk-loading ksk-analyze-error" icon="hourglass" title={analyzeError === 'network' ? 'OFFLINE' : 'ERROR'}>
+                <div role="alert">
+                  <h2 className="ksk-analyze-error-title">{t.analyzeError[`${analyzeError}Title`]}</h2>
+                  <p className="ksk-analyze-error-desc">{t.analyzeError[`${analyzeError}Desc`]}</p>
+                </div>
+                <div className="ksk-actions">
+                  <button className="ksk-btn" onClick={resetAll}>{t.analyzeError.home}</button>
+                  <button className="ksk-btn ksk-btn-primary" onClick={startAnalysis}>{t.analyzeError.retry}</button>
+                </div>
+              </RetroWindow>
+            </div>
+          </div>
+        )}
+
+        {step === 'analyzing' && !analyzeError && (
           <div className="ksk-body">
             <div className="ksk-analyzing">
               <RetroWindow className="ksk-loading" ghosts icon="hourglass" title={analysisDone ? 'DONE' : 'ANALYZING...'}>
