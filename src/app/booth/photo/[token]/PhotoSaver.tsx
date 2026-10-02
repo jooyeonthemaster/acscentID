@@ -133,13 +133,13 @@ export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt,
             {state === 'saved' ? t.photoSaved : t.photoSave}
           </button>
 
-          <p className="mt-4 text-sm text-white/55 leading-relaxed break-keep">
+          <p className="mt-4 text-sm text-white/80 leading-relaxed break-keep">
             {state === 'failed'
               ? t.photoSaveFailed
               : t.photoSaveHint}
           </p>
 
-          <p className="mt-6 text-xs text-white/35 leading-relaxed break-keep">
+          <p className="mt-6 text-sm text-white/70 leading-relaxed break-keep">
             {t.photoPrivacy(RESULT_PHOTO_TTL_HOURS)}
             <br />
             {t.photoUntil(formatExpiry(expiresAt, htmlLang))}
