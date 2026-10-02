@@ -1,13 +1,31 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type MouseEvent } from 'react'
 import DOMPurify from 'dompurify'
 
 interface CustomDetailRendererProps {
   html: string
+  /**
+   * 상세 빌더의 버튼 블록은 링크를 비워두면 href="#"로 저장된다.
+   * 그런 버튼은 페이지의 주 CTA(분석 시작·구매)로 연결한다. 없으면 상단 CTA로 스크롤.
+   */
+  onPrimaryAction?: () => void
 }
 
-export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
+function isEmptyHref(href: string | null) {
+  const v = (href ?? '').trim()
+  return v === '' || v === '#' || v.toLowerCase().startsWith('javascript:')
+}
+
+export function CustomDetailRenderer({ html, onPrimaryAction }: CustomDetailRendererProps) {
+  const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+    const anchor = (event.target as HTMLElement).closest('a')
+    if (!anchor || !isEmptyHref(anchor.getAttribute('href'))) return
+    event.preventDefault()
+    if (onPrimaryAction) onPrimaryAction()
+    else window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const sanitizedHtml = useMemo(() => {
     if (typeof window === 'undefined') return html
     return DOMPurify.sanitize(html, {
@@ -23,6 +41,7 @@ export function CustomDetailRenderer({ html }: CustomDetailRendererProps) {
         <div
           className="custom-detail-content"
           data-admin-editable="detail_html"
+          onClick={handleClick}
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
       </div>

@@ -1,17 +1,14 @@
 "use client"
 
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
-import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import {
-  Sparkles, X, AlertTriangle,
-  Truck, ShoppingCart,
+  Sparkles, Truck, ShoppingCart,
   Box, Droplets, Gem, Camera
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTransition } from "@/contexts/TransitionContext"
-import { AuthModal } from "@/components/auth/AuthModal"
+import { useProgramLogin } from "@/components/programs/ProgramLoginPrompt"
 import { ReviewModal, ReviewTrigger, ReviewWriteModal, ReviewStats, ReviewList } from "@/components/review"
 import { getReviewStats } from "@/lib/supabase/reviews"
 import type { ReviewStats as ReviewStatsType } from "@/lib/supabase/reviews"
@@ -52,13 +49,7 @@ export default function FigurePage() {
   const figureDiscount = (figureOpt?.price && figureOpt.original_price && figureOpt.original_price > figureOpt.price)
     ? Math.round(((figureOpt.original_price - figureOpt.price) / figureOpt.original_price) * 100)
     : null
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  // 로그인 안내 모달 표시 중 전역 하단 네비/CTA 숨김 — ProgramLoginPrompt와 동일 계약
-  useEffect(() => {
-    setMobileOverlayOpen('program-login-prompt', showLoginPrompt)
-    return () => setMobileOverlayOpen('program-login-prompt', false)
-  }, [showLoginPrompt])
+  const { startProgram, loginModal } = useProgramLogin()
   const [selectedImage, setSelectedImage] = useState(0)
   const t = useTranslations()
   const productName = useProductDisplayName('figure', t('products.figureDiffuser'))
@@ -69,7 +60,6 @@ export default function FigurePage() {
   const [reviewStats, setReviewStats] = useState<ReviewStatsType | null>(null)
   const [reviewRatingFilter, setReviewRatingFilter] = useState<number | null>(null)
 
-  const isLoggedIn = !!(user || unifiedUser)
   const currentUserId = user?.id || unifiedUser?.id
 
   // 리뷰 통계 로드
@@ -90,7 +80,6 @@ export default function FigurePage() {
   const currentImage = productImages[selectedImage] || productImages[0] || ''
 
   const { isCustomMode, detail } = useProductDetail('figure')
-  const { startTransition } = useTransition()
   const pageSubtitle = t('programs.subtitle.figure')
   const pageInfoTitle = t('programs.includes.figure')
   const pageInfoBody = `${t('programs.figure.sachetsIncluded')} / ${t('shipping.afterProduction')}`
@@ -115,17 +104,7 @@ export default function FigurePage() {
   }
 
   const handleStartClick = () => {
-    if (loading) return
-    if (isLoggedIn) {
-      startTransition("/input?type=figure&mode=online")
-    } else {
-      setShowLoginPrompt(true)
-    }
-  }
-
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
+    startProgram("/input?type=figure&mode=online")
   }
 
   const productComponents = [
@@ -196,7 +175,7 @@ export default function FigurePage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} onPrimaryAction={handleStartClick} />
       ) : (
         <div data-admin-editable="detail_html">
           {/* ============================================
@@ -519,82 +498,7 @@ export default function FigurePage() {
         }
       />
 
-      {/* ============================================
-          로그인 안내 모달
-      ============================================ */}
-      <AnimatePresence>
-        {showLoginPrompt && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
-            >
-              <div className="relative p-6 pb-4 text-center">
-                <button
-                  onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
-                >
-                  <X size={20} className="text-[var(--muted-ink)]" />
-                </button>
-
-                <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
-                  <AlertTriangle size={28} className="text-[var(--ink)]" />
-                </div>
-
-                <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('auth.guestWarningTitle')}</h2>
-                <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
-                  {t('programs.figure.loginWarning')}<br />
-                  <span className="font-bold text-[var(--accent-chem-deep)]">{t('auth.notSavedBold')}</span>
-                </p>
-              </div>
-
-              <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
-                <div className="space-y-2 text-sm lg:text-base">
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginBenefit1')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginBenefit2')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">!</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.figure.loginWarningGuest')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
-                >
-                  {t('buttons.loginSignup')}
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* 로그인 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        redirectPath="/input?type=figure&mode=online"
-      />
+      {loginModal}
 
       {/* 리뷰 모달 */}
       <ReviewModal

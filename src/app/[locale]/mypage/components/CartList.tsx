@@ -8,7 +8,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import type { CartItem, ProductType } from '@/types/cart'
 import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals, isSajuClickerSize } from '@/types/cart'
 import { useProductPricing } from '@/hooks/useProductPricing'
-import { useActivePromotions, calculateShippingWithPromotion } from '@/hooks/usePromotions'
+import { useActivePromotions, calculateShippingWithPromotion, useShippingPolicy } from '@/hooks/usePromotions'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
 import { PerfumeProfile } from '@/app/[locale]/result/components/PerfumeProfile'
 import { PerfumePersona } from '@/types/analysis'
@@ -34,6 +34,7 @@ export function CartList({ viewMode }: CartListProps) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
   const [recipeModalTarget, setRecipeModalTarget] = useState<CartItem | null>(null)
   const { freeShippingPromo } = useActivePromotions()
+  const { threshold: shippingThreshold } = useShippingPolicy()
   const { getOptions, getOption } = useProductPricing()
 
   // 장바구니 로드
@@ -461,7 +462,7 @@ export function CartList({ viewMode }: CartListProps) {
             <span className="flex items-center gap-1.5 text-[var(--ink)]">
               {t('shippingFee')}
               {shippingResult.isFreeByPromotion && (
-                <span className="px-1.5 py-0.5 bg-[var(--soft)] text-[var(--ink)] text-[9px] font-black rounded-full">배송비</span>
+                <span className="px-1.5 py-0.5 bg-[var(--soft)] text-[var(--ink)] text-[11px] font-black rounded-full">{t('eventBadge')}</span>
               )}
             </span>
             <span className="font-bold text-[var(--ink)]">
@@ -478,10 +479,10 @@ export function CartList({ viewMode }: CartListProps) {
             </span>
           </div>
           {shippingResult.isFreeByPromotion && (
-            <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">✓ {shippingResult.promotionName || '무료배송 이벤트'} 적용중</p>
+            <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">✓ {t('promoApplied', { name: shippingResult.promotionName || t('eventBadge') })}</p>
           )}
           {!shippingResult.isFreeByPromotion && totals.shippingFee === 0 && (
-            <p className="text-xs lg:text-sm text-[var(--muted-ink)]">✓ {t('freeShippingNote')}</p>
+            <p className="text-xs lg:text-sm text-[var(--muted-ink)]">✓ {t('freeShippingNote', { threshold: shippingThreshold })}</p>
           )}
         </div>
 

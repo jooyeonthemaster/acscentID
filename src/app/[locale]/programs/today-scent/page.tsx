@@ -14,6 +14,7 @@ import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useShippingPolicy } from "@/hooks/usePromotions"
 import { formatPrice } from "@/types/cart"
 import { TODAY_SCENTS, getScentById, type TodayScent } from "@/lib/today-scent/scents"
 import { getDrawnToday } from "@/lib/today-scent/draw"
@@ -37,6 +38,7 @@ const staggerContainer = {
 
 function TodayScentProductContent() {
   const t = useTranslations()
+  const { notice: shippingNotice } = useShippingPolicy()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, unifiedUser, loading } = useAuth()
@@ -282,7 +284,7 @@ function TodayScentProductContent() {
                 </div>
                 <div className="flex items-center gap-2 text-[var(--muted-ink)]">
                   <Truck size={16} className="text-[var(--ink)]" />
-                  <span>{t('programs.detail.todayScent.shippingItem')}</span>
+                  <span>{t('programs.detail.todayScent.shippingItem', { shipping: shippingNotice })}</span>
                 </div>
               </div>
             </div>

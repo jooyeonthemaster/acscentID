@@ -3,6 +3,7 @@
 import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { useTranslations } from 'next-intl'
+import { useShippingPolicy } from '@/hooks/usePromotions'
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "@/i18n/routing"
 import {
@@ -47,6 +48,7 @@ const staggerContainer = {
 
 export default function LeQuackPage() {
   const t = useTranslations()
+  const { notice: shippingNotice } = useShippingPolicy()
   const { getOption } = useProductPricing()
   const sigOpt = getOption('signature', '10ml')
   const sigDiscount = (sigOpt?.price && sigOpt.original_price && sigOpt.original_price > sigOpt.price)
@@ -94,7 +96,7 @@ export default function LeQuackPage() {
   const { isCustomMode, detail } = useProductDetail('le-quack')
   const pageSubtitle = t('programs.detail.leQuack.heroSubtitle')
   const pageInfoTitle = t('programs.detail.leQuack.heroInfoTitle')
-  const pageInfoBody = t('programs.detail.leQuack.heroInfoBody')
+  const pageInfoBody = t('programs.detail.leQuack.heroInfoBody', { shipping: shippingNotice })
   const pageCtaLabel = t('programs.detail.leQuack.ctaLabel')
   const pageContent = useMemo(
     () => extractProductPageContentWithFallback(detail?.custom_html, {
@@ -188,7 +190,7 @@ export default function LeQuackPage() {
       t('programs.detail.leQuack.infoDelivery'),
       t('programs.detail.leQuack.infoKeyringIncluded'),
       t('programs.detail.leQuack.infoPremiumPackage'),
-      t('programs.detail.leQuack.infoFreeShipping'),
+      shippingNotice,
     ],
     cta: {
       onClick: handlePurchaseClick,
@@ -201,7 +203,7 @@ export default function LeQuackPage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} onPrimaryAction={handlePurchaseClick} />
       ) : (
         <div data-admin-editable="detail_html">
           {/* ============================================

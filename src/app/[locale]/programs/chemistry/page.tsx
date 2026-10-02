@@ -4,14 +4,12 @@ import { type CSSProperties, useState, useEffect, useMemo } from "react"
 import { FlaskConical } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTransition } from "@/contexts/TransitionContext"
-import { AuthModal } from "@/components/auth/AuthModal"
+import { useProgramLogin } from "@/components/programs/ProgramLoginPrompt"
 import { useTranslations } from 'next-intl'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
-import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
 import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
@@ -46,8 +44,7 @@ export default function ChemistryProgramPage() {
       (acc, o) => (acc === null || o.price < acc ? o.price : acc),
       null,
     )
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { startProgram, requireLogin, loginModal } = useProgramLogin()
   const t = useTranslations()
   const te = useTranslations('editorialDetail')
   const tg = useTranslations('detailGallery')
@@ -63,7 +60,6 @@ export default function ChemistryProgramPage() {
   const currentUserId = user?.id || unifiedUser?.id
 
   const { isCustomMode, detail } = useProductDetail('chemistry')
-  const { startTransition } = useTransition()
   const pageSubtitle = t('programs.subtitle.chemistry')
   const pageInfoTitle = t('programs.includes.chemistry')
   const pageInfoBody = `${t('programs.detail.chemistry.info.volumeOptions')} / ${t('shipping.estimated')}`
@@ -98,19 +94,9 @@ export default function ChemistryProgramPage() {
   )
 
   const startAnalysis = (target?: 'idol' | 'self') => {
-    if (loading) return
-    if (isLoggedIn) {
-      startTransition(`/input?type=chemistry&mode=online${target ? `&target=${target}` : ''}`)
-    } else {
-      setShowLoginPrompt(true)
-    }
+    startProgram(`/input?type=chemistry&mode=online${target ? `&target=${target}` : ''}`)
   }
   const handleStartClick = () => startAnalysis()
-
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
-  }
 
   const priceSet10 = chemSet10?.price ?? 44000
   const priceSet50 = chemSet50?.price ?? 88000
@@ -219,7 +205,7 @@ export default function ChemistryProgramPage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} onPrimaryAction={handleStartClick} />
       ) : (
         <div data-admin-editable="detail_html">
           {/* 핵심 특징 스트립 — 다크 대비 밴드 */}
@@ -381,7 +367,7 @@ export default function ChemistryProgramPage() {
       programName={productName}
       currentUserId={currentUserId}
       isLoggedIn={isLoggedIn}
-      onLoginRequired={() => setShowLoginPrompt(true)}
+      onLoginRequired={() => requireLogin()}
     />
   )
 
@@ -418,19 +404,7 @@ export default function ChemistryProgramPage() {
       }
     />
 
-    {/* 로그인 안내 모달 (공유 컴포넌트) */}
-    <ProgramLoginPrompt
-      isOpen={showLoginPrompt}
-      onClose={() => setShowLoginPrompt(false)}
-      onLogin={handleLoginClick}
-    />
-
-    {/* 로그인 모달 */}
-    <AuthModal
-      isOpen={showAuthModal}
-      onClose={() => setShowAuthModal(false)}
-      redirectPath="/input?type=chemistry&mode=online"
-    />
+    {loginModal}
     </InactiveProductGuard>
   )
 }

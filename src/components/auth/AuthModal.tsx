@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sparkles } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect, useState } from 'react'
-import { useRouter } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
@@ -96,7 +96,8 @@ export function AuthModal({
                 <button
                   onClick={onClose}
                   disabled={isButtonDisabled}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors disabled:opacity-50"
+                  aria-label={t('close')}
+                  className="absolute top-3 right-3 p-3 rounded-full hover:bg-[var(--soft)] transition-colors disabled:opacity-50"
                 >
                   <X size={20} className="text-[var(--muted-ink)]" />
                 </button>
@@ -143,7 +144,7 @@ export function AuthModal({
                       <div className="w-full border-t border-[var(--line)]" />
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-white px-3 text-[11px] lg:text-[13px] text-[var(--muted-ink)]">또는</span>
+                      <span className="bg-white px-3 text-[11px] lg:text-[13px] text-[var(--muted-ink)]">{t('or')}</span>
                     </div>
                   </div>
 
@@ -153,9 +154,19 @@ export function AuthModal({
                     className="w-full h-12 bg-[var(--soft)] text-[var(--ink)] rounded-[5px] font-semibold hover:bg-[var(--line-soft)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    {isLoading ? t('loginInProgress') : '비회원으로 계속하기'}
+                    {isLoading ? t('loginInProgress') : t('continueAsGuest')}
                   </button>
                 </>
+              )}
+
+              {/* 닫을 수 없는 게이트에도 빠져나갈 길은 남긴다 */}
+              {!closeable && (
+                <Link
+                  href="/"
+                  className="flex w-full h-12 items-center justify-center rounded-[5px] border border-[var(--line)] text-sm lg:text-base font-semibold text-[var(--muted-ink)] hover:bg-[var(--soft)] hover:text-[var(--ink)] transition-all"
+                >
+                  {t('goHome')}
+                </Link>
               )}
 
               <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center pt-2">

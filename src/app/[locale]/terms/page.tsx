@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header"
 import { Scale, ShieldCheck, FileText, AlertTriangle, Ban, Gavel } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
+import { useShippingPolicy } from "@/hooks/usePromotions"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -12,6 +13,7 @@ const fadeInUp = {
 }
 
 export default function TermsPage() {
+  const { fee: shippingFee, threshold: shippingThreshold } = useShippingPolicy()
   const t = useTranslations('policy.terms')
 
   return (
@@ -230,7 +232,7 @@ export default function TermsPage() {
               <div className="pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <ul className="list-decimal list-inside space-y-2">
                   <li>{t('article10Item1')}</li>
-                  <li>{t('article10Item2')}</li>
+                  <li>{t('article10Item2', { fee: shippingFee, threshold: shippingThreshold })}</li>
                   <li>{t('article10Item3')}</li>
                   <li>{t('article10Item4')}</li>
                 </ul>

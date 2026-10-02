@@ -1,19 +1,18 @@
 "use client"
 
-import { type CSSProperties, useEffect, useMemo, useState } from "react"
-import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
+import { type CSSProperties, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 import {
-  Sparkles, User, Star, CheckCircle2, X, AlertTriangle,
+  Sparkles, User, Star, CheckCircle2,
   ChevronDown, Package, Truck,
   FileText, Droplets
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
-import { AuthModal } from "@/components/auth/AuthModal"
+import { useProgramLogin } from "@/components/programs/ProgramLoginPrompt"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useShippingPolicy } from "@/hooks/usePromotions"
 import { formatPrice } from "@/types/cart"
 import { useProductDisplayName, useProductImages } from '@/hooks/useAdminContent'
 import { useProductDetail } from '@/hooks/useProductDetail'
@@ -44,6 +43,7 @@ const staggerContainer = {
 
 export default function PersonalPage() {
   const t = useTranslations()
+  const { notice: shippingNotice } = useShippingPolicy()
   const { getOption } = useProductPricing()
   const personal10 = getOption('personal_scent', '10ml')
   const personal50 = getOption('personal_scent', '50ml')
@@ -51,20 +51,12 @@ export default function PersonalPage() {
     ? Math.round(((personal10.original_price - personal10.price) / personal10.original_price) * 100)
     : null
 
-  const router = useRouter()
-  const { user, unifiedUser, loading } = useAuth()
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  // 로그인 안내 모달 표시 중 전역 하단 네비/CTA 숨김 — ProgramLoginPrompt와 동일 계약
-  useEffect(() => {
-    setMobileOverlayOpen('program-login-prompt', showLoginPrompt)
-    return () => setMobileOverlayOpen('program-login-prompt', false)
-  }, [showLoginPrompt])
+  const { loading } = useAuth()
+  const { startProgram, loginModal } = useProgramLogin()
   const [selectedImage, setSelectedImage] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const productName = useProductDisplayName('personal', t('programs.detail.personal.productName'))
 
-  const isLoggedIn = !!(user || unifiedUser)
   const { isCustomMode, detail } = useProductDetail('personal')
 
   const { imageUrls: dynamicImages, loading: imagesLoading } = useProductImages('personal')
@@ -75,10 +67,10 @@ export default function PersonalPage() {
       badge: 'SIGNATURE',
       subtitle: t('programs.detail.personal.heroSubtitle'),
       infoTitle: t('programs.detail.personal.heroInfoTitle'),
-      infoBody: t('programs.detail.personal.heroInfoBody'),
+      infoBody: t('programs.detail.personal.heroInfoBody', { shipping: shippingNotice }),
       ctaLabel: t('programs.detail.personal.heroCtaLabel'),
     }),
-    [detail?.custom_html, t],
+    [detail?.custom_html, t, shippingNotice],
   )
   const pagePositionStyle = (field: ProductPagePositionField): CSSProperties | undefined => {
     const position = pageContent.positions[field]
@@ -90,17 +82,7 @@ export default function PersonalPage() {
   }
 
   const handleStartClick = () => {
-    if (loading) return
-    if (isLoggedIn) {
-      router.push("/input?type=personal")
-    } else {
-      setShowLoginPrompt(true)
-    }
-  }
-
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
+    startProgram("/input?type=personal")
   }
 
   const reviews = [
@@ -179,7 +161,7 @@ export default function PersonalPage() {
         infoIcon={<Droplets size={14} className="text-[var(--ink)]" />}
         infoItems={[
           pageContent.infoTitle,
-          t('programs.detail.personal.infoShipping', { fee: `${t('currency.symbol')}${formatPrice(3000)}` }),
+          t('programs.detail.personal.infoShipping', { shipping: shippingNotice }),
           t('programs.detail.personal.infoReportFree'),
         ]}
         cta={{
@@ -195,7 +177,7 @@ export default function PersonalPage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} onPrimaryAction={handleStartClick} />
       ) : (
         <div data-admin-editable="detail_html">
           {/* ============================================
@@ -637,7 +619,7 @@ export default function PersonalPage() {
             infoIcon={<Droplets size={14} className="text-[var(--ink)]" />}
             infoItems={[
               pageContent.infoTitle,
-              t('programs.detail.personal.infoShipping', { fee: `${t('currency.symbol')}${formatPrice(3000)}` }),
+              t('programs.detail.personal.infoShipping', { shipping: shippingNotice }),
               t('programs.detail.personal.infoReportFree'),
             ]}
             cta={{
@@ -653,82 +635,7 @@ export default function PersonalPage() {
         }
       />
 
-      {/* ============================================
-          로그인 안내 모달
-      ============================================ */}
-      <AnimatePresence>
-        {showLoginPrompt && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLoginPrompt(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
-            >
-              <div className="relative p-6 pb-4 text-center">
-                <button
-                  onClick={() => setShowLoginPrompt(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
-                >
-                  <X size={20} className="text-[var(--muted-ink)]" />
-                </button>
-
-                <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
-                  <AlertTriangle size={28} className="text-[var(--ink)]" />
-                </div>
-
-                <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('programs.detail.personal.loginPromptTitle')} 🤔</h2>
-                <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
-                  {t('programs.detail.personal.loginPromptBodyLine1')}<br />
-                  <span className="font-bold text-[var(--accent-chem-deep)]">{t('programs.detail.personal.loginPromptBodyLine2')}</span>
-                </p>
-              </div>
-
-              <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
-                <div className="space-y-2 text-sm lg:text-base">
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit1')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">✓</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit2')}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-[var(--muted-ink)] font-bold">!</span>
-                    <span className="text-[var(--muted-ink)]">{t('programs.detail.personal.loginBenefit3')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
-                >
-                  {t('programs.detail.personal.loginButton')}
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* 로그인 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        redirectPath="/input?type=personal&mode=online"
-      />
+      {loginModal}
     </InactiveProductGuard>
   )
 }

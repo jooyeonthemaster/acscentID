@@ -14,14 +14,12 @@ import { motion } from "framer-motion"
 import { ScrollText } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTransition } from "@/contexts/TransitionContext"
-import { AuthModal } from "@/components/auth/AuthModal"
+import { useProgramLogin } from "@/components/programs/ProgramLoginPrompt"
 import { useTranslations } from 'next-intl'
 import { useProductDetail } from '@/hooks/useProductDetail'
 import { InactiveProductGuard } from '@/components/programs/InactiveProductGuard'
 import { CustomDetailRenderer } from '@/components/programs/CustomDetailRenderer'
 import { ProgramAdminBridge } from '@/components/programs/ProgramAdminBridge'
-import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { ProgramReviewSection, ReviewTrigger } from "@/components/programs/ProgramReviewSection"
 import { UnifiedDetailHero, type DetailHeroImageMeta } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
@@ -81,8 +79,7 @@ export default function SajuProgramPage() {
       (acc, o) => (acc === null || o.price < acc ? o.price : acc),
       null,
     )
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { startProgram, requireLogin, loginModal } = useProgramLogin()
   const t = useTranslations()
   const tg = useTranslations('detailGallery')
   const productName = useProductDisplayName('saju', t('products.saju'))
@@ -109,7 +106,6 @@ export default function SajuProgramPage() {
   const currentUserId = user?.id || unifiedUser?.id
 
   const { isCustomMode, detail } = useProductDetail('saju')
-  const { startTransition } = useTransition()
   const pageSubtitle = t('programs.subtitle.saju')
   const pageInfoTitle = t('programs.includes.saju')
   const pageInfoBody = `${t('saju.landing.info1')} / ${t('saju.landing.info2')}`
@@ -134,17 +130,7 @@ export default function SajuProgramPage() {
   }
 
   const handleStartClick = () => {
-    if (loading) return
-    if (isLoggedIn) {
-      startTransition("/input?type=saju&mode=online")
-    } else {
-      setShowLoginPrompt(true)
-    }
-  }
-
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
+    startProgram("/input?type=saju&mode=online")
   }
 
   const processSteps = [
@@ -213,7 +199,7 @@ export default function SajuProgramPage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-        <CustomDetailRenderer html={detail?.custom_html ?? ''} />
+        <CustomDetailRenderer html={detail?.custom_html ?? ''} onPrimaryAction={handleStartClick} />
       ) : (
         <div data-admin-editable="detail_html">
           {/* ============================================
@@ -606,7 +592,7 @@ export default function SajuProgramPage() {
       programName={productName}
       currentUserId={currentUserId}
       isLoggedIn={isLoggedIn}
-      onLoginRequired={() => setShowLoginPrompt(true)}
+      onLoginRequired={() => requireLogin()}
     />
   )
 
@@ -632,19 +618,7 @@ export default function SajuProgramPage() {
       }
     />
 
-    {/* 로그인 안내 모달 (공유 컴포넌트) */}
-    <ProgramLoginPrompt
-      isOpen={showLoginPrompt}
-      onClose={() => setShowLoginPrompt(false)}
-      onLogin={handleLoginClick}
-    />
-
-    {/* 로그인 모달 */}
-    <AuthModal
-      isOpen={showAuthModal}
-      onClose={() => setShowAuthModal(false)}
-      redirectPath="/input?type=saju&mode=online"
-    />
+    {loginModal}
     </InactiveProductGuard>
   )
 }

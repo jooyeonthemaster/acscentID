@@ -7,6 +7,7 @@ import type { ProductType } from "@/types/cart"
 import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
 import type { SajuElement } from "@/types/analysis"
 import { useProductPricing } from "@/hooks/useProductPricing"
+import { useShippingPolicy } from "@/hooks/usePromotions"
 import { SajuClickerElementBadge } from "@/components/saju"
 
 // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적. selectedSize 는 임의 옵션 코드 허용.
@@ -43,6 +44,7 @@ export function OrderSummary({
   sajuElement = null,
 }: OrderSummaryProps) {
   const t = useTranslations()
+  const { fee: shippingFee, threshold: shippingThreshold } = useShippingPolicy()
   const { getOptions } = useProductPricing()
   const isFigureDiffuser = productType === "figure_diffuser"
   const isGraduation = productType === "graduation"
@@ -413,7 +415,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount', { fee: shippingFee }))}
               </li>
             </>
           ) : isFigureDiffuser ? (
@@ -435,7 +437,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount', { fee: shippingFee }))}
               </li>
             </>
           ) : isGraduation ? (
@@ -457,7 +459,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : t('checkout.shippingFeeAmount')}
+                  : t('checkout.shippingFeeAmount', { fee: shippingFee })}
               </li>
             </>
           ) : isSignature ? (
@@ -479,7 +481,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                : t('checkout.freeShippingOverInfo')}
+                : t('checkout.freeShippingOverInfo', { threshold: shippingThreshold })}
               </li>
             </>
           ) : isStoreProduct ? (
@@ -499,7 +501,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount', { fee: shippingFee }))}
               </li>
             </>
           ) : isChemistrySet ? (
@@ -521,7 +523,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount', { fee: shippingFee }))}
               </li>
             </>
           ) : isSajuClicker ? (
@@ -543,7 +545,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : t('checkout.shippingFeeAmount')}
+                  : t('checkout.shippingFeeAmount', { fee: shippingFee })}
               </li>
             </>
           ) : (
@@ -565,7 +567,7 @@ export function OrderSummary({
                 <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
                 {isFreeShippingPromo
                   ? <span className="text-[var(--muted-ink)] font-bold">{t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})</span>
-                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount'))}
+                  : (price >= FREE_SHIPPING_THRESHOLD ? t('checkout.freeShippingLabel') : t('checkout.shippingFeeAmount', { fee: shippingFee }))}
               </li>
             </>
           )}

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Package, Star, Minus, Plus, Trash2, Check, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
+import { useShippingPolicy } from '@/hooks/usePromotions'
 import type { CartItem, ProductType } from "@/types/cart"
 import { PRODUCT_TYPE_BADGES, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
@@ -45,6 +46,7 @@ export function MultiItemOrderSummary({
   isRepurchaser,
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
+  const { threshold: shippingThreshold } = useShippingPolicy()
   const { getOptions } = useProductPricing()
   const storeText = useStoreProductText()
   const getOptionLabel = (productType: ProductType, option: { size: string; label: string; product_type?: ProductType }) => {
@@ -285,10 +287,10 @@ export function MultiItemOrderSummary({
             <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
             {isFreeShippingPromo ? (
               <span className="text-[var(--muted-ink)] font-bold">
-                {t('checkout.promoFreeShipping', { promoName: promoName || t('checkout.eventLabel') })}
+                {t('checkout.freeShippingLabel')} ({promoName || t('checkout.eventLabel')})
               </span>
             ) : (
-              t('checkout.freeShippingOver')
+              t('checkout.freeShippingOver', { threshold: shippingThreshold })
             )}
           </li>
           <li className="flex items-center gap-1.5">

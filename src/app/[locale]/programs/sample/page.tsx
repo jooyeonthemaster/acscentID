@@ -1,6 +1,6 @@
 "use client"
 
-import { type CSSProperties, useMemo, useState } from "react"
+import { type CSSProperties, useMemo } from "react"
 import { motion } from "framer-motion"
 import { useTranslations } from "next-intl"
 import {
@@ -9,13 +9,11 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTransition } from "@/contexts/TransitionContext"
-import { AuthModal } from "@/components/auth/AuthModal"
+import { useProgramLogin } from "@/components/programs/ProgramLoginPrompt"
 import { useProductDetail } from "@/hooks/useProductDetail"
 import { InactiveProductGuard } from "@/components/programs/InactiveProductGuard"
 import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer"
 import { ProgramAdminBridge } from "@/components/programs/ProgramAdminBridge"
-import { ProgramLoginPrompt } from "@/components/programs/ProgramLoginPrompt"
 import { UnifiedDetailHero } from "@/components/products/UnifiedDetailHero"
 import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
@@ -43,7 +41,7 @@ const staggerContainer = {
 
 export default function SamplePaperPage() {
   const t = useTranslations()
-  const { user, unifiedUser, loading } = useAuth()
+  const { loading } = useAuth()
   const { getOption } = useProductPricing()
   const paperOpt = getOption("image_analysis_paper", "set")
   const paperPrice = paperOpt?.price ?? 4000
@@ -51,12 +49,10 @@ export default function SamplePaperPage() {
     ? Math.round(((paperOpt.original_price - paperOpt.price) / paperOpt.original_price) * 100)
     : null
 
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { startProgram, loginModal } = useProgramLogin()
 
   const productName = useProductDisplayName("sample", t("programs.detail.sample.productName"))
   const { isCustomMode, detail } = useProductDetail("sample")
-  const { startTransition } = useTransition()
   const pageContent = useMemo(
     () => extractProductPageContentWithFallback(detail?.custom_html, {
       badge: "SAMPLE",
@@ -76,20 +72,8 @@ export default function SamplePaperPage() {
     }
   }
 
-  const isLoggedIn = !!(user || unifiedUser)
-
   const handleStartClick = () => {
-    if (loading) return
-    if (isLoggedIn) {
-      startTransition(SAMPLE_INPUT_PATH)
-    } else {
-      setShowLoginPrompt(true)
-    }
-  }
-
-  const handleLoginClick = () => {
-    setShowLoginPrompt(false)
-    setShowAuthModal(true)
+    startProgram(SAMPLE_INPUT_PATH)
   }
 
   const heroProps = {
@@ -100,7 +84,7 @@ export default function SamplePaperPage() {
     pagePositionStyle,
     breadcrumbs: [
       { label: t("programs.breadcrumbHome"), href: "/" },
-      { label: t("programs.breadcrumbPrograms"), href: "/" },
+      { label: t("programs.breadcrumbPrograms"), href: "/#programs-section" },
       { label: productName },
     ],
     price: (
@@ -133,7 +117,7 @@ export default function SamplePaperPage() {
   const detailBody = (
     <>
       {isCustomMode ? (
-          <CustomDetailRenderer html={detail?.custom_html ?? ""} />
+          <CustomDetailRenderer html={detail?.custom_html ?? ""} onPrimaryAction={handleStartClick} />
         ) : (
           <div data-admin-editable="detail_html">
             {/* Feature Bar */}
@@ -217,19 +201,7 @@ export default function SamplePaperPage() {
         }
       />
 
-      {/* 로그인 안내 모달 */}
-      <ProgramLoginPrompt
-        isOpen={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
-        onLogin={handleLoginClick}
-      />
-
-      {/* 로그인 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        redirectPath={SAMPLE_INPUT_PATH}
-      />
+      {loginModal}
     </InactiveProductGuard>
   )
 }

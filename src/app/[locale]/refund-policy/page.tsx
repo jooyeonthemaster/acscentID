@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header"
 import { RotateCcw, XCircle, RefreshCw, Truck, CreditCard, Phone } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
+import { useShippingPolicy } from "@/hooks/usePromotions"
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -12,6 +13,7 @@ const fadeInUp = {
 }
 
 export default function RefundPolicyPage() {
+  const { fee: shippingFee, threshold: shippingThreshold } = useShippingPolicy()
   const t = useTranslations('policy.refund')
 
   return (
@@ -161,7 +163,7 @@ export default function RefundPolicyPage() {
                   <li>{t('refundAmount1')}</li>
                   <li>{t('refundAmount2')}</li>
                   <li>{t('refundAmount3')}</li>
-                  <li>{t('refundAmount4')}</li>
+                  <li>{t('refundAmount4', { fee: shippingFee })}</li>
                 </ul>
               </div>
             </section>
@@ -218,9 +220,9 @@ export default function RefundPolicyPage() {
               <div className="md:pl-13 space-y-3 text-[#A69F8D] leading-relaxed">
                 <div className="bg-[#151823] rounded-[12px] p-4 border border-[#262A38] text-sm lg:text-base space-y-2">
                   <p><span className="font-bold">{t('shippingPeriodLabel')}</span> {t('shippingPeriodValue')}</p>
-                  <p><span className="font-bold">{t('shippingFeeLabel')}</span> {t('shippingFeeValue')}</p>
+                  <p><span className="font-bold">{t('shippingFeeLabel')}</span> {t('shippingFeeValue', { fee: shippingFee, threshold: shippingThreshold })}</p>
                   <p><span className="font-bold">{t('returnAddressLabel')}</span> {t('returnAddressValue')}</p>
-                  <p><span className="font-bold">{t('returnFeeLabel')}</span> {t('returnFeeValue')}</p>
+                  <p><span className="font-bold">{t('returnFeeLabel')}</span> {t('returnFeeValue', { fee: shippingFee })}</p>
                 </div>
                 <p className="text-sm lg:text-base text-[#8B8578]">
                   {t('shippingNote')}

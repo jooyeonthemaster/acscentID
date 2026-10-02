@@ -1,94 +1,63 @@
 "use client"
 
-import { useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, AlertTriangle } from "lucide-react"
+import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
+import { usePathname } from "@/i18n/routing"
+import { useAuth } from "@/contexts/AuthContext"
+import { useTransition } from "@/contexts/TransitionContext"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 interface ProgramLoginPromptProps {
   isOpen: boolean
   onClose: () => void
-  onLogin: () => void
+  /** 로그인 후 돌아올 경로 (로케일 접두사 없이) */
+  redirectPath?: string
 }
 
-export function ProgramLoginPrompt({
-  isOpen,
-  onClose,
-  onLogin,
-}: ProgramLoginPromptProps) {
-  const t = useTranslations()
-
-  useEffect(() => {
-    setMobileOverlayOpen('program-login-prompt', isOpen)
-    return () => setMobileOverlayOpen('program-login-prompt', false)
-  }, [isOpen])
-
+/**
+ * 프로그램 시작 시 비로그인 사용자에게 띄우는 단일 로그인 모달.
+ * 분석은 로그인 필수 정책이라 비회원 진입 버튼은 두지 않는다.
+ */
+export function ProgramLoginPrompt({ isOpen, onClose, redirectPath }: ProgramLoginPromptProps) {
+  const t = useTranslations("auth")
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-[6px] shadow-sm overflow-hidden border border-[var(--line)]"
-          >
-            <div className="relative p-6 pb-4 text-center">
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--soft)] transition-colors"
-              >
-                <X size={20} className="text-[var(--muted-ink)]" />
-              </button>
-
-              <div className="w-16 h-16 mx-auto mb-4 bg-[var(--soft)] rounded-[6px] flex items-center justify-center border border-[var(--line)]">
-                <AlertTriangle size={28} className="text-[var(--ink)]" />
-              </div>
-
-              <h2 className="text-xl font-black text-[var(--ink)] mb-2">{t('auth.guestWarningTitle')}</h2>
-              <p className="text-sm lg:text-base text-[var(--muted-ink)] leading-relaxed">
-                {t('auth.guestWarningText')}
-              </p>
-            </div>
-
-            <div className="px-6 py-4 bg-[var(--soft)] border-y border-[var(--line-soft)]">
-              <div className="space-y-2 text-sm lg:text-base">
-                <div className="flex items-start gap-2">
-                  <span className="text-[var(--ink)] font-bold">✓</span>
-                  <span className="text-[var(--muted-ink)]">{t('auth.guestBenefit1')}</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[var(--ink)] font-bold">✓</span>
-                  <span className="text-[var(--muted-ink)]">{t('auth.guestBenefit2')}</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[var(--ink)] font-bold">!</span>
-                  <span className="text-[var(--muted-ink)]">{t('auth.guestWarning')}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <button
-                onClick={onLogin}
-                className="w-full h-14 bg-[var(--ink)] text-white rounded-[5px] font-bold text-lg transition-all hover:bg-black"
-              >
-                {t('buttons.loginSignup')}
-              </button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <AuthModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("programLoginTitle")}
+      description={t("programLoginDescription")}
+      redirectPath={redirectPath}
+    />
   )
+}
+
+/**
+ * 프로그램 상세 페이지 공통 — 시작 버튼과 로그인 요구를 한곳에서 처리한다.
+ * startProgram(path): 로그인 상태면 바로 이동, 아니면 로그인 모달 (로그인 후 path로 복귀)
+ * requireLogin(path?): 리뷰 작성 등 — 로그인 후 path(기본: 현재 페이지)로 복귀
+ */
+export function useProgramLogin() {
+  const { user, unifiedUser, loading } = useAuth()
+  const { startTransition } = useTransition()
+  const pathname = usePathname()
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
+  const isLoggedIn = !!(user || unifiedUser)
+
+  const requireLogin = (path?: string) => setRedirectPath(path ?? pathname)
+
+  const startProgram = (path: string) => {
+    if (loading) return
+    if (isLoggedIn) startTransition(path)
+    else setRedirectPath(path)
+  }
+
+  const loginModal = (
+    <ProgramLoginPrompt
+      isOpen={redirectPath !== null}
+      onClose={() => setRedirectPath(null)}
+      redirectPath={redirectPath ?? undefined}
+    />
+  )
+
+  return { isLoggedIn, authLoading: loading, startProgram, requireLogin, loginModal }
 }

@@ -178,7 +178,7 @@ export function PaymentMethodSelector({
             >
               {/* 준비중 뱃지 */}
               {isDisabled && (
-                <span className="absolute top-2 right-2 text-[9px] font-bold text-[var(--muted-ink)] bg-white border border-[var(--line)] px-1.5 py-0.5 rounded-[3px]">
+                <span className="absolute top-2 right-2 text-[11px] font-bold text-[var(--muted-ink)] bg-white border border-[var(--line)] px-1.5 py-0.5 rounded-[3px]">
                   {t('payment.preparing')}
                 </span>
               )}
@@ -238,13 +238,6 @@ export function PaymentMethodSelector({
           )
         })}
       </div>
-
-      {/* 안내 문구 */}
-      {disabledMethods.size > 0 && (
-        <p className="text-[11px] lg:text-[13px] text-[var(--muted-ink)] text-center leading-relaxed">
-          {t('payment.cardAndEasyPaySoon')}
-        </p>
-      )}
     </div>
   )
 }
