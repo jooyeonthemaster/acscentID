@@ -19,7 +19,8 @@ interface MultiItemOrderSummaryProps {
   onUpdateSize: (itemId: string, size: string) => void
   onRemoveItem: (itemId: string) => void
   isFreeShippingPromo?: boolean
-  promoName?: string
+  /** 계좌이체면 '입금 확인 후', 그 외(카드·간편결제)는 '결제 완료 후' 배송 안내 */
+  isBankTransfer?: boolean
   isRepurchaser?: boolean
 }
 
@@ -43,7 +44,7 @@ export function MultiItemOrderSummary({
   onUpdateSize,
   onRemoveItem,
   isFreeShippingPromo = false,
-  promoName,
+  isBankTransfer = false,
   isRepurchaser,
 }: MultiItemOrderSummaryProps) {
   const t = useTranslations()
@@ -290,7 +291,7 @@ export function MultiItemOrderSummary({
             <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
             {isFreeShippingPromo ? (
               <span className="text-[var(--muted-ink)] font-bold">
-                {t('checkout.freeShippingLabel')} ({promoName || t('checkout.eventLabel')})
+                {t('checkout.freeShippingLabel')} ({t('checkout.eventLabel')})
               </span>
             ) : (
               t('checkout.freeShippingOver', { threshold: shippingThreshold })
@@ -298,7 +299,7 @@ export function MultiItemOrderSummary({
           </li>
           <li className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-[var(--paper)] border border-[var(--line)] flex items-center justify-center text-[10px] lg:text-[12px]">✓</span>
-            {t('checkout.shippingAfterDeposit')}
+            {isBankTransfer ? t('checkout.shippingAfterDeposit') : t('checkout.shippingAfterPayment')}
           </li>
         </ul>
       </div>

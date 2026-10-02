@@ -287,7 +287,7 @@ function OrderCompleteContent() {
 
       <Header title={t('checkoutComplete.title')} showBack={false} />
 
-      <main className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-lg mx-auto">
           {/* 성공 아이콘 */}
           <motion.div
@@ -488,7 +488,7 @@ function OrderCompleteContent() {
             </Link>
           </motion.div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

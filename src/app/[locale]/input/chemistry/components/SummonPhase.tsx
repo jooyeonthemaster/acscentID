@@ -160,7 +160,6 @@ export function SummonPhase({
         <CharacterCard
           icon={<Moon size={16} />}
           label={t('summon.characterA')}
-          emoji="🌙"
           name={formData.character1Name}
           imageBase64={formData.character1ImageBase64}
           isCompressing={isCompressing1}
@@ -174,7 +173,6 @@ export function SummonPhase({
         <CharacterCard
           icon={<Sun size={16} />}
           label={t('summon.characterB')}
-          emoji="☀️"
           name={formData.character2Name}
           imageBase64={formData.character2ImageBase64}
           isCompressing={isCompressing2}
@@ -207,12 +205,11 @@ export function SummonPhase({
 
 // 캐릭터 카드 컴포넌트
 function CharacterCard({
-  icon, label, emoji, name, imageBase64, isCompressing,
+  icon, label, name, imageBase64, isCompressing,
   onNameChange, onImageClick, onRemoveImage, accentColor,
 }: {
   icon: React.ReactNode
   label: string
-  emoji: string
   name: string
   imageBase64: string | null
   isCompressing: boolean
@@ -235,7 +232,7 @@ function CharacterCard({
       {/* 헤더 */}
       <div className={`${bgColor} px-3 py-1.5 flex items-center gap-2 border-b-2 border-[var(--line)]`}>
         {icon}
-        <span className="text-xs lg:text-sm font-black text-[var(--ink)]">{emoji} {label}</span>
+        <span className="text-xs lg:text-sm font-black text-[var(--ink)]">{label}</span>
       </div>
 
       {/* 이미지 영역 */}
@@ -257,7 +254,8 @@ function CharacterCard({
               <img src={imageBase64} alt={label} className="w-full h-full object-cover" />
               <button
                 onClick={(e) => { e.stopPropagation(); onRemoveImage() }}
-                className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[var(--ink)]"
+                aria-label={t('removeImageAria', { character: label })}
+                className="tap-target absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white"
               >
                 <X size={12} />
               </button>
@@ -275,7 +273,7 @@ function CharacterCard({
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center bg-[var(--soft)] text-[var(--ink)] placeholder:text-[var(--muted-ink)] border border-[var(--line)] rounded-[6px] ${focusBorder} focus:ring-2 focus:ring-[var(--line)] outline-none`}
+          className={`w-full mt-3 h-10 px-3 text-base font-bold text-center bg-[var(--soft)] text-[var(--ink)] placeholder:font-normal placeholder:text-[var(--muted-ink)] border border-[var(--line)] rounded-[6px] ${focusBorder} focus:ring-2 focus:ring-[var(--line)] outline-none`}
           placeholder={t('namePlaceholder')}
           maxLength={20}
         />

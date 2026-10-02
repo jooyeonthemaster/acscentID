@@ -19,13 +19,13 @@ export default function ReservePage() {
   return (
     <div className="relative min-h-screen bg-[#0E1016] font-wanted">
       <Header title={t('title')} showBack={true} backHref="/" />
-      <main className="relative z-10 pt-28 pb-16 px-4 sm:px-6">
+      <div className="relative z-10 pt-28 pb-16 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
           <Suspense fallback={<ReserveLoading />}>
             <ReserveFlow />
           </Suspense>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

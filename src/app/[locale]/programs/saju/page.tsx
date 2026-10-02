@@ -600,21 +600,21 @@ export default function SajuProgramPage() {
     <InactiveProductGuard productSlug="saju">
     <ViewportSwitch
       mobile={
-        <main className="relative min-h-screen bg-[#FFFDF5] font-sans">
+        <div className="relative min-h-screen bg-[#FFFDF5] font-sans">
           <Header />
           <ProgramAdminBridge productSlug="saju" />
           {/* 헤더(티커 h-7 + 바 h-14 ≈ 84px)만큼만 상단 여백 → 이미지 위 흰 띠 제거 */}
           <UnifiedDetailHero {...heroProps} sectionClassName="pt-[84px]" />
           {detailBody}
           {reviewSection}
-        </main>
+        </div>
       }
       desktop={
-        <main className="relative min-h-screen bg-[#FFFDF5] pb-16 font-sans">
+        <div className="relative min-h-screen bg-[#FFFDF5] pb-16 font-sans">
           <DesktopDetailHero {...heroProps} />
           <div className="mx-auto w-full max-w-[960px]">{detailBody}</div>
           <div className="mx-auto w-full max-w-[960px]">{reviewSection}</div>
-        </main>
+        </div>
       }
     />
 

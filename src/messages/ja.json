@@ -900,7 +900,8 @@
     "optionSajuClicker": "ディフューザークリッカーキーリング",
     "sajuElementNote": "分析が導いた五行で刻印・ステッカーを製作します",
     "decreaseQuantity": "数量を減らす",
-    "increaseQuantity": "数量を増やす"
+    "increaseQuantity": "数量を増やす",
+    "shippingAfterPayment": "決済完了後2〜3日以内に発送"
   },
   "checkoutComplete": {
     "title": "注文完了",
@@ -1268,7 +1269,9 @@
     "ratingLabel4": "良い",
     "ratingLabel5": "最高！",
     "leaveFirst": "最初のレビューを書いてください",
-    "triggerLabel": "評価{rating}、レビュー{count}件を見る"
+    "triggerLabel": "評価{rating}、レビュー{count}件を見る",
+    "prevPage": "前のレビューページ",
+    "nextPage": "次のレビューページ"
   },
   "coupon": {
     "unlimitedUse": "無制限使用",
@@ -1350,7 +1353,22 @@
     "loginToUseCoupon": "ログイン後にクーポンをご使用いただけます",
     "couponLoadFailed": "クーポンの読み込みに失敗しました",
     "discountAmountWon": "-{amount}ウォン割引",
-    "discountPercent": "{percent}%割引"
+    "discountPercent": "{percent}%割引",
+    "claimPage": {
+      "missingTitle": "QRコードをもう一度読み取ってください",
+      "missingDescription": "クーポン情報のないアドレスです。店舗で受け取ったクーポンQRをスマートフォンのカメラでもう一度読み取ってください。",
+      "successTitle": "クーポン登録完了",
+      "errorTitle": "登録できません",
+      "loginTitle": "ログインが必要です",
+      "loadingTitle": "クーポン登録中",
+      "waiting": "少々お待ちください",
+      "viewCoupons": "クーポンを見る",
+      "loginAndClaim": "ログインして登録",
+      "retry": "もう一度試す",
+      "goHome": "ホームへ",
+      "authTitle": "クーポン登録のためログインしてください",
+      "authDescription": "ログイン後、このクーポンは自動でクーポン箱に保存されます"
+    }
   },
   "faq": {
     "searchPlaceholder": "質問を検索",
@@ -2413,9 +2431,9 @@
     "title": "レイヤリングパフューム",
     "description": "二人のキャラクターのケミを香りに込めて",
     "progress": {
-      "summon": "召喚",
-      "deck": "カードデッキ",
-      "catalyst": "触媒"
+      "summon": "情報入力",
+      "deck": "関係を選ぶ",
+      "catalyst": "確認"
     },
     "target": {
       "label": "分析対象",
@@ -2443,7 +2461,8 @@
       "namePlaceholder": "名前入力",
       "imageGuideMain": "ケミを分析する二人の画像をアップロードしてください。",
       "imageGuideSub": "写真、イラスト、ゲームキャラクター、アイドルすべてOK！",
-      "imageGuide": "ケミを分析する二人のキャラクター画像をアップロードしてください。写真、イラスト、ゲームキャラクターすべてOK！"
+      "imageGuide": "ケミを分析する二人のキャラクター画像をアップロードしてください。写真、イラスト、ゲームキャラクターすべてOK！",
+      "removeImageAria": "{character}の画像を削除"
     },
     "deck": {
       "cardProgress": "カード {current} / {total}",

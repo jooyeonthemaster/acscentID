@@ -34,6 +34,8 @@ const DESKTOP_READY_EXACT = new Set<string>([
   '/terms',
   '/privacy',
   '/refund-policy',
+  // 결제: lg+에서 왼쪽 입력·오른쪽 주문 요약(sticky) 2단
+  '/checkout',
 ])
 
 const DESKTOP_READY_PREFIXES: string[] = ['/products', '/programs']

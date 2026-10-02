@@ -75,6 +75,7 @@ export function DesktopFooter() {
             <div className="mt-5 flex items-center gap-2">
               <a
                 href="https://www.instagram.com/acscent_id/"
+                aria-label="Instagram"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--dark-line)] text-[var(--dark-muted)] transition-colors hover:border-white hover:text-white"
@@ -83,6 +84,7 @@ export function DesktopFooter() {
               </a>
               <a
                 href="https://x.com/acscent_id"
+                aria-label="X (Twitter)"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--dark-line)] text-[var(--dark-muted)] transition-colors hover:border-white hover:text-white"

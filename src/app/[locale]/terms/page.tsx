@@ -17,7 +17,7 @@ export default function TermsPage() {
   const t = useTranslations('policy.terms')
 
   return (
-    <main className="min-h-screen bg-[#0C0E16]">
+    <div className="min-h-screen bg-[#0C0E16]">
       <Header />
 
       {/* Hero Section */}
@@ -334,6 +334,6 @@ export default function TermsPage() {
           </motion.div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

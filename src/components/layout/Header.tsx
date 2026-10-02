@@ -78,7 +78,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
       >
         {!compact && (
           <div className="w-full bg-[var(--dark-band)] border-b border-[var(--dark-band)] py-1 overflow-hidden flex items-center h-7">
-            <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[9px] uppercase text-white">
+            <div className="animate-ticker whitespace-nowrap flex gap-6 items-center font-black text-[11px] uppercase text-white">
               {Array(8).fill(t('header.marquee')).map((text, i) => (
                 <span key={i} className="flex items-center gap-2">
                   {text} <Star size={8} fill="#ADAEAA" />

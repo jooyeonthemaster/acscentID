@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/routing'
+import { CardLink } from '@/components/ui/card-link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, ChevronLeft, Handshake, MapPin } from 'lucide-react'
@@ -47,7 +48,6 @@ interface HomeDesktopProps {
   products: HomeDesktopProduct[]
   storeProducts: HomeDesktopStoreProduct[]
   showTodayScent: boolean
-  onCardClick: (href: string) => void
   onReserveClick: () => void
 }
 
@@ -72,7 +72,6 @@ export function HomeDesktop({
   products,
   storeProducts,
   showTodayScent,
-  onCardClick,
   onReserveClick,
 }: HomeDesktopProps) {
   const t = useTranslations()
@@ -194,10 +193,10 @@ export function HomeDesktop({
 
           <div className="grid grid-cols-2 gap-5">
             {products.map((product) => (
-              <div
+              <CardLink
                 key={product.id}
-                onClick={() => onCardClick(product.href)}
-                className="group cursor-pointer"
+                href={product.href}
+                className="group block"
               >
                 <div className="flex h-full flex-row overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
                   <div className="relative aspect-square w-[220px] shrink-0 overflow-hidden bg-[var(--soft)]">
@@ -244,7 +243,7 @@ export function HomeDesktop({
                     </p>
                   </div>
                 </div>
-              </div>
+              </CardLink>
             ))}
           </div>
         </div>
@@ -265,10 +264,10 @@ export function HomeDesktop({
 
           <div className="grid grid-cols-3 gap-5">
             {storeProducts.map((product) => (
-              <div
+              <CardLink
                 key={product.slug}
-                onClick={() => onCardClick(`/products/${product.slug}`)}
-                className="group cursor-pointer"
+                href={`/products/${product.slug}`}
+                className="group block"
               >
                 <div className="flex h-full flex-col overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
                   <div className="relative aspect-square overflow-hidden bg-[var(--soft)]">
@@ -301,7 +300,7 @@ export function HomeDesktop({
                     </p>
                   </div>
                 </div>
-              </div>
+              </CardLink>
             ))}
           </div>
 

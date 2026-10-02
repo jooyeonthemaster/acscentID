@@ -36,7 +36,7 @@ export function CustomDetailRenderer({ html, onPrimaryAction }: CustomDetailRend
   }, [html])
 
   return (
-    <section className="py-8 px-4 bg-[var(--paper)]">
+    <section className="py-8 px-4 bg-[var(--paper)] lg:bg-transparent">
       <div className="w-full max-w-[455px] mx-auto">
         <div
           className="custom-detail-content"
@@ -57,6 +57,55 @@ export function CustomDetailRenderer({ html, onPrimaryAction }: CustomDetailRend
 
         .custom-detail-content [data-ac-page-config="1"] {
           display: none !important;
+        }
+
+        /* 상세 빌더 기본 템플릿의 만화풍 스타일(두꺼운 검정 테두리·오프셋 그림자·원색 배경)을
+           사이트 공통 토큰으로 정규화한다. 저장된 HTML은 그대로 두고 표시만 맞춘다. */
+        .custom-detail-content [data-ac-block] [style*="box-shadow"],
+        .custom-detail-content [data-ac-block][style*="box-shadow"] {
+          box-shadow: none !important;
+        }
+
+        .custom-detail-content [style*="border: 2px solid #111827"] {
+          border: 1px solid var(--line) !important;
+        }
+
+        .custom-detail-content [style*="border-left: 5px solid #111827"] {
+          border-left: 3px solid var(--ink) !important;
+        }
+
+        .custom-detail-content [data-ac-block] [style*="border-radius: 14px"],
+        .custom-detail-content [data-ac-block] [style*="border-radius: 16px"],
+        .custom-detail-content [data-ac-block] [style*="border-radius: 18px"],
+        .custom-detail-content [data-ac-block] [style*="border-radius: 22px"],
+        .custom-detail-content [data-ac-block][style*="border-radius: 14px"],
+        .custom-detail-content [data-ac-block][style*="border-radius: 16px"],
+        .custom-detail-content [data-ac-block][style*="border-radius: 18px"],
+        .custom-detail-content [data-ac-block][style*="border-radius: 22px"] {
+          border-radius: 6px !important;
+        }
+
+        .custom-detail-content [style*="background: #FACC15"],
+        .custom-detail-content [style*="background: #22D3EE"],
+        .custom-detail-content [style*="background: #FFF7ED"] {
+          background: var(--soft) !important;
+          color: var(--ink) !important;
+        }
+
+        /* 버튼 블록 = 사이트 주 버튼 */
+        .custom-detail-content [data-ac-block="button"] a {
+          min-height: 52px !important;
+          border: none !important;
+          border-radius: 5px !important;
+          background: var(--ink) !important;
+          color: #fff !important;
+          text-decoration: none !important;
+          font-weight: 800 !important;
+        }
+
+        .custom-detail-content [data-ac-block="button"] a:hover {
+          background: #000 !important;
+          color: #fff !important;
         }
 
         /* Headings */

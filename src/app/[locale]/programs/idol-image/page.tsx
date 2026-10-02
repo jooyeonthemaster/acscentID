@@ -332,22 +332,22 @@ export default function IdolImagePage() {
     <InactiveProductGuard productSlug="idol-image">
     <ViewportSwitch
       mobile={
-        <main className="accent-ai relative min-h-screen bg-[var(--canvas)]">
+        <div className="accent-ai relative min-h-screen bg-[var(--canvas)]">
           <Header />
           <ProgramAdminBridge productSlug="idol-image" />
           <UnifiedDetailHero {...heroProps} />
           {detailBody}
           {reviewSection}
           {!isCustomMode && closingCta}
-        </main>
+        </div>
       }
       desktop={
-        <main className="accent-ai relative min-h-screen bg-[var(--canvas)]">
+        <div className="accent-ai relative min-h-screen bg-[var(--canvas)]">
           <DesktopDetailHero {...heroProps} />
           {detailBody}
           <div className="mx-auto w-full max-w-[1240px]">{reviewSection}</div>
           {!isCustomMode && closingCta}
-        </main>
+        </div>
       }
     />
 

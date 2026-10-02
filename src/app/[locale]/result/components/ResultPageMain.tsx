@@ -460,7 +460,7 @@ export default function ResultPageMain() {
       />
 
       {/* 메인 콘텐츠 - 455px 고정 */}
-      <main className="relative z-10 flex-1 pt-28 pb-6 overflow-y-auto">
+      <div className="relative z-10 flex-1 pt-28 pb-6 overflow-y-auto">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -518,7 +518,7 @@ export default function ResultPageMain() {
             </>
           )}
         </motion.div>
-      </main>
+      </div>
 
       {/* 모바일 하단 고정 액션 버튼 */}
       {displayedAnalysis && (
@@ -538,7 +538,7 @@ export default function ResultPageMain() {
   )
 
   const desktopResult = (
-    <main className="relative z-10 flex-1 pb-16 pt-[116px]">
+    <div className="relative z-10 flex-1 pb-16 pt-[116px]">
       {displayedAnalysis && (
         <motion.div
           variants={staggerContainer}
@@ -600,7 +600,7 @@ export default function ResultPageMain() {
           </motion.div>
         </motion.div>
       )}
-    </main>
+    </div>
   )
 
   return (

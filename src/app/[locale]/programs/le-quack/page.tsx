@@ -426,7 +426,7 @@ export default function LeQuackPage() {
     <InactiveProductGuard productSlug="le-quack">
     <ViewportSwitch
       mobile={
-        <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+        <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
           <Header />
           <ProgramAdminBridge productSlug="le-quack" />
           <UnifiedDetailHero {...heroProps} />
@@ -450,10 +450,10 @@ export default function LeQuackPage() {
 
           {/* 하단 여백 (고정 버튼 공간) */}
           <div className="h-24" />
-        </main>
+        </div>
       }
       desktop={
-        <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
+        <div className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
           <DesktopDetailHero {...heroProps} />
           <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
           <div className="mx-auto mt-8 w-full max-w-[760px] px-4">
@@ -466,7 +466,7 @@ export default function LeQuackPage() {
               {t('programs.detail.leQuack.ctaLabel')}
             </button>
           </div>
-        </main>
+        </div>
       }
     />
 

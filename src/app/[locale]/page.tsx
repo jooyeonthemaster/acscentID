@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Link, useRouter } from "@/i18n/routing"
 import { ChevronRight, ChevronLeft, Handshake, MapPin } from "lucide-react"
 import { Header } from "@/components/layout/Header"
+import { CardLink } from "@/components/ui/card-link"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
 import { PopupModal } from "@/components/home/PopupModal"
@@ -255,7 +256,7 @@ export default function Home() {
       <Header />
 
       {/* 메인 컨텐츠 */}
-      <main className="pt-[84px]">
+      <div className="pt-[84px]">
 
         {/* ===== 히어로: 풀블리드 배너 슬라이드 ===== */}
         <section className={`relative w-full overflow-hidden transition-opacity duration-300 ${bannersLoading ? 'opacity-0' : 'opacity-100'}`}>
@@ -381,9 +382,9 @@ export default function Home() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.06, duration: 0.35 }}
-                  onClick={() => handleCardClick(product.href)}
-                  className="group h-full cursor-pointer"
+                  className="h-full"
                 >
+                  <CardLink href={product.href} className="group block h-full">
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
                     {/* 카드 이미지 */}
                     <div className="relative aspect-square overflow-hidden bg-[var(--soft)]">
@@ -433,6 +434,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
+                  </CardLink>
                 </motion.div>
               ))}
             </div>
@@ -459,9 +461,9 @@ export default function Home() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.06, duration: 0.35 }}
-                    onClick={() => handleCardClick(`/products/${product.slug}`)}
-                    className="group h-full cursor-pointer"
+                    className="h-full"
                   >
+                    <CardLink href={`/products/${product.slug}`} className="group block h-full">
                     <div className="relative flex h-full flex-col overflow-hidden rounded-[5px] border border-[var(--line)] bg-white transition-colors group-hover:border-[var(--ink)]">
                       <div className="relative aspect-square overflow-hidden bg-[var(--soft)]">
                         <Image
@@ -493,6 +495,7 @@ export default function Home() {
                         </p>
                       </div>
                     </div>
+                    </CardLink>
                   </motion.div>
                 )
               })}
@@ -535,7 +538,7 @@ export default function Home() {
           </div>
         </section>
 
-      </main>
+      </div>
     </div>
   )
 
@@ -567,7 +570,6 @@ export default function Home() {
             products={PRODUCTS}
             storeProducts={desktopStoreProducts}
             showTodayScent={showTodayScent}
-            onCardClick={handleCardClick}
             onReserveClick={() => setShowReserveChoice(true)}
           />
         }

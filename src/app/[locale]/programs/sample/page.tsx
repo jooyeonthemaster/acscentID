@@ -186,18 +186,18 @@ export default function SamplePaperPage() {
     <InactiveProductGuard productSlug="sample">
       <ViewportSwitch
         mobile={
-          <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
             <Header />
             <ProgramAdminBridge productSlug="sample" />
             <UnifiedDetailHero {...heroProps} />
             {detailBody}
-          </main>
+          </div>
         }
         desktop={
-          <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
             <DesktopDetailHero {...heroProps} />
             <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
-          </main>
+          </div>
         }
       />
 

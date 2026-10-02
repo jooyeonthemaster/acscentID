@@ -426,7 +426,7 @@ export default function FigurePage() {
   )
 
   const mobileTree = (
-    <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+    <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
       <Header />
       <ProgramAdminBridge productSlug="figure" />
 
@@ -435,7 +435,7 @@ export default function FigurePage() {
       {detailBody}
 
       {reviewSection}
-    </main>
+    </div>
   )
 
   return (

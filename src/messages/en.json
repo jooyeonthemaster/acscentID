@@ -900,7 +900,8 @@
     "optionSajuClicker": "Diffuser Clicker Keyring",
     "sajuElementNote": "Engraving & box sticker are made with the element prescribed by your analysis",
     "decreaseQuantity": "Decrease quantity",
-    "increaseQuantity": "Increase quantity"
+    "increaseQuantity": "Increase quantity",
+    "shippingAfterPayment": "Ships within 2–3 days after payment"
   },
   "checkoutComplete": {
     "title": "Order Complete",
@@ -1268,7 +1269,9 @@
     "ratingLabel4": "Good",
     "ratingLabel5": "Excellent!",
     "leaveFirst": "Be the first to leave a review",
-    "triggerLabel": "Rated {rating}, view {count} reviews"
+    "triggerLabel": "Rated {rating}, view {count} reviews",
+    "prevPage": "Previous review page",
+    "nextPage": "Next review page"
   },
   "coupon": {
     "unlimitedUse": "Unlimited use",
@@ -1350,6 +1353,21 @@
       "claimButton": "✨ Claim {percent}% Coupon!",
       "confirmed": "Got it",
       "successMessage": "Apply your {percent}% discount at checkout"
+    },
+    "claimPage": {
+      "missingTitle": "Please scan the QR code again",
+      "missingDescription": "This address has no coupon information. Scan the coupon QR you received in store with your phone camera again.",
+      "successTitle": "Coupon registered",
+      "errorTitle": "Couldn't register",
+      "loginTitle": "Login required",
+      "loadingTitle": "Registering coupon",
+      "waiting": "Please wait a moment",
+      "viewCoupons": "View my coupons",
+      "loginAndClaim": "Log in and register",
+      "retry": "Try again",
+      "goHome": "Home",
+      "authTitle": "Log in to register your coupon",
+      "authDescription": "After logging in, this coupon is saved to your coupon box automatically"
     }
   },
   "faq": {
@@ -2413,9 +2431,9 @@
     "title": "Layering Perfume",
     "description": "Capturing the chemistry of two characters in scent",
     "progress": {
-      "summon": "Summon",
-      "deck": "Card Deck",
-      "catalyst": "Catalyst"
+      "summon": "Details",
+      "deck": "Relationship",
+      "catalyst": "Review"
     },
     "target": {
       "label": "Analysis Target",
@@ -2443,7 +2461,8 @@
       "namePlaceholder": "Enter name",
       "imageGuideMain": "Upload images of the two people you want to analyze.",
       "imageGuideSub": "Photos, illustrations, game characters, and idols all work!",
-      "imageGuide": "Upload images of two characters to analyze their chemistry. Photos, illustrations, and game characters all work!"
+      "imageGuide": "Upload images of two characters to analyze their chemistry. Photos, illustrations, and game characters all work!",
+      "removeImageAria": "Remove {character} image"
     },
     "deck": {
       "cardProgress": "Card {current} / {total}",

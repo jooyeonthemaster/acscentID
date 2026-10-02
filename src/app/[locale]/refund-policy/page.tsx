@@ -17,7 +17,7 @@ export default function RefundPolicyPage() {
   const t = useTranslations('policy.refund')
 
   return (
-    <main className="min-h-screen bg-[#0C0E16]">
+    <div className="min-h-screen bg-[#0C0E16]">
       <Header />
 
       {/* Hero Section */}
@@ -301,6 +301,6 @@ export default function RefundPolicyPage() {
           </motion.div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

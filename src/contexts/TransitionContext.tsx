@@ -131,7 +131,8 @@ function DoorTransitionController({
         : "relative h-full w-1/2 overflow-hidden border-l border-[#12141D] pointer-events-auto"
 
     return (
-        <div className="fixed inset-0 z-[100000] pointer-events-none flex">
+        // 장식용 전환 문 — 스크린리더에서 숨기고, 화면 밖에 있을 때는 포커스·상호작용 대상에서도 뺀다
+        <div aria-hidden="true" inert={stage === 'open'} className="fixed inset-0 z-[100000] pointer-events-none flex">
             {/* 왼쪽 문 */}
             <motion.div
                 initial={{ x: "-100%" }}

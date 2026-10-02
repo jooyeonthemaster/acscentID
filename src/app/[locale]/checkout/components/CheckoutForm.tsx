@@ -347,7 +347,13 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
           />
           <div className="mb-2 rounded-[6px] border border-[var(--line)] bg-[var(--soft)] px-3 py-2 flex items-start justify-between gap-3">
             <p className="text-[11px] lg:text-[13px] leading-relaxed text-[var(--muted-ink)]">
-              {postcodeNotice || t('checkout.manualAddressHint')}
+              {postcodeNotice || (
+                <>
+                  {/* '모바일에서…' 문구는 모바일에서만, PC에는 일반 안내 */}
+                  <span className="lg:hidden">{t('checkout.manualAddressHint')}</span>
+                  <span className="hidden lg:inline">{t('checkout.addressManualFallback')}</span>
+                </>
+              )}
             </p>
             <button
               type="button"

@@ -9,11 +9,14 @@ import {
   CheckCircle2,
   Loader2,
   LogIn,
+  QrCode,
   RotateCcw,
   Ticket,
 } from 'lucide-react'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTranslations } from 'next-intl'
+import { Header } from '@/components/layout/Header'
 
 type ClaimStatus = 'idle' | 'loading' | 'success' | 'error' | 'login'
 
@@ -40,6 +43,7 @@ export function CouponClaimClient({
   )
 
   const { user, unifiedUser, loading } = useAuth()
+  const t = useTranslations('coupon.claimPage')
   const [status, setStatus] = useState<ClaimStatus>('idle')
   const [message, setMessage] = useState('')
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -111,81 +115,93 @@ export function CouponClaimClient({
     void claimCoupon()
   }
 
+  // QR 정보 없이 직접 들어온 경우 — 다시 시도해도 소용없으므로 재스캔 안내와 홈 이동만 보여준다
+  const isMissingQr = !token && !code
+  const title = isMissingQr
+    ? t('missingTitle')
+    : status === 'success'
+      ? t('successTitle')
+      : status === 'error'
+        ? t('errorTitle')
+        : status === 'login'
+          ? t('loginTitle')
+          : t('loadingTitle')
+  const description = isMissingQr ? t('missingDescription') : (message || t('waiting'))
+
   return (
-    <div className="flex min-h-[75vh] items-center justify-center px-5 py-10">
-      <div className="w-full max-w-sm rounded-[12px] border-3 border-[#262A38] bg-[#12141D] p-6 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[12px] border-2 border-[#262A38] bg-[#232838]">
-          {status === 'success' ? (
-            <CheckCircle2 className="h-8 w-8 text-[#E9E2D0]" />
-          ) : status === 'error' ? (
-            <AlertTriangle className="h-8 w-8 text-red-600" />
-          ) : status === 'loading' ? (
-            <Loader2 className="h-8 w-8 animate-spin text-[#E9E2D0]" />
-          ) : (
-            <Ticket className="h-8 w-8 text-[#E9E2D0]" />
-          )}
-        </div>
+    <>
+      <Header />
+      <div className="flex min-h-[75vh] items-center justify-center bg-[var(--canvas)] px-5 pb-10 pt-28 lg:pt-12">
+        <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-6 text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--soft)]">
+            {status === 'success' ? (
+              <CheckCircle2 className="h-7 w-7 text-[var(--ink)]" aria-hidden />
+            ) : isMissingQr ? (
+              <QrCode className="h-7 w-7 text-[var(--muted-ink)]" aria-hidden />
+            ) : status === 'error' ? (
+              <AlertTriangle className="h-7 w-7 text-[var(--ink)]" aria-hidden />
+            ) : status === 'loading' ? (
+              <Loader2 className="h-7 w-7 animate-spin text-[var(--muted-ink)]" aria-hidden />
+            ) : (
+              <Ticket className="h-7 w-7 text-[var(--ink)]" aria-hidden />
+            )}
+          </div>
 
-        <h1 className="text-2xl font-black text-[#E9E2D0]">
-          {status === 'success'
-            ? '쿠폰 등록 완료'
-            : status === 'error'
-              ? '등록할 수 없어요'
-              : status === 'login'
-                ? '로그인이 필요해요'
-                : '쿠폰 등록 중'}
-        </h1>
-        <p className="mt-3 min-h-10 text-sm lg:text-base font-bold leading-relaxed text-[#8B8578]">
-          {message || '잠시만 기다려주세요'}
-        </p>
+          <h1 className="text-xl font-black text-[var(--ink)]">{title}</h1>
+          <p className="mt-2 min-h-10 text-sm lg:text-base leading-relaxed text-[var(--muted-ink)]" role="status">
+            {description}
+          </p>
 
-        <div className="mt-6 space-y-3">
-          {status === 'success' && (
+          <div className="mt-6 space-y-2">
+            {status === 'success' && (
+              <button
+                onClick={() => router.push('/mypage?tab=coupons')}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] px-4 font-bold text-white transition-colors hover:bg-black"
+              >
+                {t('viewCoupons')}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+
+            {status === 'login' && (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[5px] bg-[var(--ink)] px-4 font-bold text-white transition-colors hover:bg-black"
+              >
+                <LogIn className="h-4 w-4" aria-hidden />
+                {t('loginAndClaim')}
+              </button>
+            )}
+
+            {status === 'error' && !isMissingQr && (
+              <button
+                onClick={retryClaim}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[5px] border border-[var(--ink)] bg-white px-4 font-bold text-[var(--ink)] transition-colors hover:bg-[var(--soft)]"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden />
+                {t('retry')}
+              </button>
+            )}
+
             <button
-              onClick={() => router.push('/mypage?tab=coupons')}
-              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#10131C] px-4 py-3 font-black text-[#E9E2D0] transition"
+              onClick={() => router.push('/')}
+              className={isMissingQr
+                ? 'flex min-h-12 w-full items-center justify-center rounded-[5px] bg-[var(--ink)] px-4 font-bold text-white transition-colors hover:bg-black'
+                : 'flex min-h-12 w-full items-center justify-center rounded-[5px] border border-[var(--line)] bg-white px-4 font-bold text-[var(--muted-ink)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)]'}
             >
-              쿠폰함 보기
-              <ArrowRight className="h-4 w-4" />
+              {t('goHome')}
             </button>
-          )}
-
-          {status === 'login' && (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#F5EFE2] px-4 py-3 font-black text-[#12141D] transition"
-            >
-              <LogIn className="h-4 w-4" />
-              로그인하고 등록
-            </button>
-          )}
-
-          {status === 'error' && (
-            <button
-              onClick={retryClaim}
-              className="flex w-full items-center justify-center gap-2 rounded-[12px] border-2 border-[#262A38] bg-[#12141D] px-4 py-3 font-black text-[#E9E2D0] transition"
-            >
-              <RotateCcw className="h-4 w-4" />
-              다시 시도
-            </button>
-          )}
-
-          <button
-            onClick={() => router.push('/')}
-            className="w-full rounded-[12px] border-2 border-[#262A38] bg-[#151823] px-4 py-3 font-black text-[#8B8578] transition hover:border-[#262A38] hover:bg-[#1B1F2C]"
-          >
-            홈으로
-          </button>
+          </div>
         </div>
       </div>
 
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="쿠폰 등록을 위해 로그인해주세요"
-        description="로그인 후 이 쿠폰이 자동으로 쿠폰함에 저장됩니다"
+        title={t('authTitle')}
+        description={t('authDescription')}
         redirectPath={redirectPath}
       />
-    </div>
+    </>
   )
 }

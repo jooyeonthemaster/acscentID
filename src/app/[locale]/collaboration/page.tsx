@@ -91,7 +91,7 @@ export default function CollaborationPage() {
     <div className="min-h-screen bg-[var(--paper)]">
       <Header />
 
-      <main className="pb-32 pt-[80px] lg:pt-[110px]">
+      <div className="pb-32 pt-[80px] lg:pt-[110px]">
         <div className="mx-auto w-full max-w-[455px] px-5 lg:max-w-[880px]">
 
           {/* 뒤로가기 */}
@@ -277,7 +277,7 @@ export default function CollaborationPage() {
             <div className="h-10"></div>
           </motion.div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

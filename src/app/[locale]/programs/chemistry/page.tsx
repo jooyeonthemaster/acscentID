@@ -385,22 +385,22 @@ export default function ChemistryProgramPage() {
     <InactiveProductGuard productSlug="chemistry">
     <ViewportSwitch
       mobile={
-        <main className="accent-chem relative min-h-screen bg-[var(--canvas)]">
+        <div className="accent-chem relative min-h-screen bg-[var(--canvas)]">
           <Header />
           <ProgramAdminBridge productSlug="chemistry" />
           <UnifiedDetailHero {...heroProps} />
           {detailBody}
           {reviewSection}
           {!isCustomMode && closingCta}
-        </main>
+        </div>
       }
       desktop={
-        <main className="accent-chem relative min-h-screen bg-[var(--canvas)]">
+        <div className="accent-chem relative min-h-screen bg-[var(--canvas)]">
           <DesktopDetailHero {...heroProps} />
           {detailBody}
           <div className="mx-auto w-full max-w-[1240px]">{reviewSection}</div>
           {!isCustomMode && closingCta}
-        </main>
+        </div>
       }
     />
 

@@ -542,7 +542,7 @@ export default function PersonalPage() {
   )
 
   const mobileTree = (
-    <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+    <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
       <Header />
       <ProgramAdminBridge productSlug="personal" />
 
@@ -553,7 +553,7 @@ export default function PersonalPage() {
       {reviewSection}
 
       {marketingSections}
-    </main>
+    </div>
   )
 
   return (

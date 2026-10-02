@@ -66,13 +66,16 @@ export function LanguageSwitcher({ dark = false, align = 'right' }: { dark?: boo
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "tap-target flex items-center gap-1 px-1.5 py-1 rounded-[4px] transition-colors",
-          dark ? "text-[var(--dark-muted)] hover:bg-white/10 hover:text-white" : "text-[var(--muted-ink)] hover:bg-[var(--soft)] hover:text-[var(--ink)]"
+          // 언어 선택은 쿠키로 1년 유지되어 접두사 없는 주소도 그 언어로 열린다 — 현재 언어를 테두리로 분명히 보여준다
+          "tap-target flex items-center gap-1 rounded-[4px] border px-1.5 py-1 transition-colors",
+          dark
+            ? "border-[var(--dark-line)] text-white hover:bg-white/10"
+            : "border-[var(--line)] text-[var(--ink)] hover:bg-[var(--soft)]"
         )}
-        aria-label="Language"
+        aria-label={`Language: ${localeNames[locale as Locale]}`}
       >
-        <Globe size={14} />
-        <span className="text-[10px] lg:text-[12px] font-bold uppercase">{locale}</span>
+        <Globe size={14} aria-hidden />
+        <span className="text-[11px] lg:text-[12px] font-black uppercase">{locale}</span>
       </button>
 
       <AnimatePresence>

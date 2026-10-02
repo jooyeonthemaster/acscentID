@@ -46,7 +46,10 @@ function InputForm() {
     const searchParams = useSearchParams()
     const t = useTranslations()
     const inputType = searchParams.get('type') || 'idol_image'
-    const programTitle = t(INPUT_TYPE_TO_TITLE_KEY[inputType] ?? 'products.idolImage')
+    // 시향지 상세에서 온 경우(product=sample)는 같은 분석 흐름이라도 상품명을 시향지로 표시
+    const programTitle = searchParams.get('product') === 'sample'
+        ? t('programs.detail.sample.productName')
+        : t(INPUT_TYPE_TO_TITLE_KEY[inputType] ?? 'products.idolImage')
 
     const {
         currentStep,
@@ -220,9 +223,9 @@ function InputForm() {
                 </div>
 
                 {/* 메인 콘텐츠 Container — 하단 고정 내비 바 높이만큼 여백 확보 */}
-                <main className="relative z-10 flex-1 flex flex-col w-full px-4 pt-8 pb-40">
+                <div className="relative z-10 flex-1 flex flex-col w-full px-4 pt-8 pb-40">
                 {stepContent}
-            </main>
+            </div>
             </div>
 
             {/* 하단 고정 내비게이션 바 — 사주 위저드 방식 */}

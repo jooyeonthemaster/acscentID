@@ -33,7 +33,7 @@ export default function BrandStoryPage() {
   const t = useTranslations('about.brand')
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
       <Header />
 
       {/* Hero Section */}
@@ -239,6 +239,6 @@ export default function BrandStoryPage() {
           </div>
         </motion.div>
       </section>
-    </main>
+    </div>
   )
 }

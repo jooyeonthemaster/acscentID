@@ -84,7 +84,7 @@ const INITIAL_SCENT_COUNT = 8
 function ProductNotFound() {
   const t = useTranslations()
   return (
-    <main className="min-h-screen bg-[var(--canvas)]">
+    <div className="min-h-screen bg-[var(--canvas)]">
       <Header />
       <section className="flex min-h-screen items-center justify-center px-4 pt-24">
         <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
@@ -99,7 +99,7 @@ function ProductNotFound() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   )
 }
 
@@ -589,7 +589,7 @@ function ProductDetailInner({
   }
 
   return (
-    <main className={desktopFrame ? "relative min-h-screen bg-[var(--canvas)] pb-16" : "relative min-h-screen bg-[var(--canvas)] pb-40"}>
+    <div className={desktopFrame ? "relative min-h-screen bg-[var(--canvas)] pb-16" : "relative min-h-screen bg-[var(--canvas)] pb-40"}>
       {!desktopFrame && <Header showBack backHref="/products" />}
       {!desktopFrame && <ProgramAdminBridge productSlug={product.slug} />}
 
@@ -1014,7 +1014,7 @@ function ProductDetailInner({
         onClose={() => setShowAuthModal(false)}
         redirectPath={authRedirectPath}
       />
-    </main>
+    </div>
   )
 }
 

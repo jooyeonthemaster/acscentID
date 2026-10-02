@@ -48,7 +48,7 @@ export default function GenericProgramPage() {
 
   if (!productsLoading && !product) {
     return (
-      <main className="min-h-screen bg-[var(--canvas)] font-wanted">
+      <div className="min-h-screen bg-[var(--canvas)] font-wanted">
         <Header />
         <section className="flex min-h-screen items-center justify-center px-4 pt-24">
           <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
@@ -65,7 +65,7 @@ export default function GenericProgramPage() {
             </Link>
           </div>
         </section>
-      </main>
+      </div>
     )
   }
 
@@ -114,18 +114,18 @@ export default function GenericProgramPage() {
     <InactiveProductGuard productSlug={slug}>
       <ViewportSwitch
         mobile={
-          <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
             <Header />
             <ProgramAdminBridge productSlug={slug} />
             <UnifiedDetailHero {...heroProps} />
             {detailBody}
-          </main>
+          </div>
         }
         desktop={
-          <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
             <DesktopDetailHero {...heroProps} />
             <div className="mx-auto w-full max-w-[760px]">{detailBody}</div>
-          </main>
+          </div>
         }
       />
     </InactiveProductGuard>

@@ -21,7 +21,7 @@ export default function ProductsPage() {
   const storeText = useStoreProductText()
 
   const mobileList = (
-    <main className="relative min-h-screen bg-[var(--canvas)]">
+    <div className="relative min-h-screen bg-[var(--canvas)]">
       <Header />
 
       <section className="px-4 pb-28 pt-28">
@@ -113,7 +113,7 @@ export default function ProductsPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 
   return <ViewportSwitch mobile={mobileList} desktop={<ProductsDesktop />} />

@@ -33,7 +33,7 @@ export default function HowItWorksPage() {
   const t = useTranslations('about.howItWorks')
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] font-wanted">
       <Header />
 
       {/* Hero Section */}
@@ -420,6 +420,6 @@ export default function HowItWorksPage() {
           </div>
         </motion.div>
       </section>
-    </main>
+    </div>
   )
 }

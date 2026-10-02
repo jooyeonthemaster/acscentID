@@ -459,9 +459,9 @@ export default function SajuResultPage() {
       <Header showBack backHref={backHref} dark />
 
       {/* 두루마리 — 章 세로 서사 */}
-      <main className="relative z-10">
+      <div className="relative z-10">
         <div className="mx-auto w-full max-w-[455px]">{chapterSequence}</div>
-      </main>
+      </div>
     </>
   );
 
@@ -470,9 +470,9 @@ export default function SajuResultPage() {
   // 아래로 pt-[84px] 오프셋을 준다. 모바일 Header는 모바일 트리 안에 남는다
   // (hideAtLg 계약으로 lg에서 스스로 사라진다).
   const desktopResult = (
-    <main className="relative z-10 pt-[84px]">
+    <div className="relative z-10 pt-[84px]">
       <div className="mx-auto w-full max-w-[680px]">{chapterSequence}</div>
-    </main>
+    </div>
   );
 
   return (

@@ -12,7 +12,7 @@ export default function CouponClaimPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[70vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#E9E2D0]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--muted-ink)]" />
         </div>
       }
     >

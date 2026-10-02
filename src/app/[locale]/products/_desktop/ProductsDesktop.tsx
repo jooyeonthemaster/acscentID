@@ -21,7 +21,7 @@ export function ProductsDesktop() {
   const storeText = useStoreProductText()
 
   return (
-    <main className="relative min-h-screen bg-[var(--canvas)]">
+    <div className="relative min-h-screen bg-[var(--canvas)]">
       <section className="px-6 pb-28 pt-[124px]">
         <div className="mx-auto w-full max-w-[1240px]">
           <div className="mb-4 flex items-center gap-1.5 text-sm text-[var(--muted-ink)]">
@@ -104,6 +104,6 @@ export function ProductsDesktop() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

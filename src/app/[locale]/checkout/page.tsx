@@ -964,7 +964,7 @@ function CheckoutContent() {
 
       <Header title={t('checkout.title')} showBack={true} backHref={backHref} />
 
-      <main className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* 인앱브라우저 경고 배너 — 결제 차단 전 최상단 안내 */}
           <InAppBrowserNotice />
@@ -983,13 +983,12 @@ function CheckoutContent() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-6"
-          >
-            {/* 왼쪽: 주문 요약 */}
-            <div className="space-y-6">
+          {/* 모바일: 주문 요약 → 배송 → 쿠폰 → 결제 → 동의 순 1열
+              lg+: 왼쪽 입력 흐름, 오른쪽 주문 요약 sticky */}
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-8">
+          <div className="contents">
+            {/* 주문 요약 (lg: 오른쪽 sticky) */}
+            <div className="space-y-6 lg:sticky lg:top-[100px] lg:col-start-2 lg:row-span-4 lg:row-start-1">
               {isMultiItemMode ? (
                 <MultiItemOrderSummary
                   items={checkoutItems}
@@ -997,7 +996,7 @@ function CheckoutContent() {
                   onUpdateSize={handleUpdateSize}
                   onRemoveItem={handleRemoveItem}
                   isFreeShippingPromo={shippingResult.isFreeByPromotion}
-                  promoName={shippingResult.promotionName || undefined}
+                  isBankTransfer={paymentMethod === "bank_transfer"}
                   isRepurchaser={isRepurchaser}
                 />
               ) : (
@@ -1042,18 +1041,18 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* 오른쪽: 배송 정보 */}
-            <div className="space-y-6">
+            {/* 배송 정보 */}
+            <div className="space-y-6 lg:col-start-1">
               <CheckoutForm formData={formData} setFormData={setFormData} />
             </div>
-          </motion.div>
+          </div>
 
           {/* 쿠폰 선택 섹션 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 mt-6"
+            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 lg:col-start-1"
           >
             <CouponSelector
               selectedCoupon={selectedCoupon}
@@ -1073,7 +1072,7 @@ function CheckoutContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 mt-6"
+            className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-6 lg:col-start-1"
           >
             {/* 헤더 */}
             <div className="flex items-center gap-3 mb-5">
@@ -1161,7 +1160,8 @@ function CheckoutContent() {
                         <div className="flex items-center gap-2">
                           <span className="text-[var(--muted-ink)] font-bold">{t('shipping.label')}</span>
                           <span className="text-[10px] lg:text-[12px] px-1.5 py-0.5 bg-[var(--soft)] text-[var(--ink)] rounded-[6px] font-bold tracking-tight">
-                            {shippingResult.promotionName}
+                            {/* 이벤트 이름은 관리자용(예: '배송비')이라 고객에게는 고정 문구로 */}
+                            {t('mypage.cart.eventBadge')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -1226,7 +1226,7 @@ function CheckoutContent() {
           </motion.div>
 
           {/* 개인정보 동의 + 결제 버튼 */}
-          <div className="mt-6 space-y-6">
+          <div className="space-y-6 lg:col-start-1">
             {/* 개인정보 동의 */}
             <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[6px] p-5">
                 <label className="flex items-start gap-3 cursor-pointer group">
@@ -1319,8 +1319,9 @@ function CheckoutContent() {
               </span>
             </div>
           </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

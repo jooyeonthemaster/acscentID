@@ -480,7 +480,7 @@ export function CartList({ viewMode }: CartListProps) {
             </span>
           </div>
           {shippingResult.isFreeByPromotion && (
-            <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">✓ {t('promoApplied', { name: shippingResult.promotionName || t('eventBadge') })}</p>
+            <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">✓ {t('promoApplied', { name: t('eventBadge') })}</p>
           )}
           {!shippingResult.isFreeByPromotion && totals.shippingFee === 0 && (
             <p className="text-xs lg:text-sm text-[var(--muted-ink)]">✓ {t('freeShippingNote', { threshold: shippingThreshold })}</p>

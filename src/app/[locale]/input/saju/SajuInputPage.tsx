@@ -225,9 +225,9 @@ export default function SajuInputPage() {
                 </div>
 
                 {/* 페이즈 콘텐츠 — 한지 넘김 전환 (§3.0) */}
-                <main className="relative z-10 px-6 pb-40 pt-8">
+                <div className="relative z-10 px-6 pb-40 pt-8">
                     {phaseContent}
-                </main>
+                </div>
             </div>
 
             {/* 하단 내비게이션 바 (§3.0 — 사주 스킨 자체 구현) */}

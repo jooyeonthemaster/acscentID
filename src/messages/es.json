@@ -900,7 +900,8 @@
     "optionSajuClicker": "Llavero difusor clicker",
     "sajuElementNote": "El grabado y la pegatina se hacen con el elemento recomendado por tu análisis",
     "decreaseQuantity": "Reducir cantidad",
-    "increaseQuantity": "Aumentar cantidad"
+    "increaseQuantity": "Aumentar cantidad",
+    "shippingAfterPayment": "Envío en 2~3 días tras completar el pago"
   },
   "checkoutComplete": {
     "title": "Pedido completado",
@@ -1268,7 +1269,9 @@
     "ratingLabel4": "Bueno",
     "ratingLabel5": "¡Excelente!",
     "leaveFirst": "Sé el primero en dejar una reseña",
-    "triggerLabel": "Valoración {rating}, ver {count} reseñas"
+    "triggerLabel": "Valoración {rating}, ver {count} reseñas",
+    "prevPage": "Página de reseñas anterior",
+    "nextPage": "Página de reseñas siguiente"
   },
   "coupon": {
     "unlimitedUse": "Uso ilimitado",
@@ -1350,7 +1353,22 @@
     "loginToUseCoupon": "Inicia sesión para usar cupones",
     "couponLoadFailed": "No se pudieron cargar los cupones",
     "discountAmountWon": "-{amount} KRW de descuento",
-    "discountPercent": "{percent}% de descuento"
+    "discountPercent": "{percent}% de descuento",
+    "claimPage": {
+      "missingTitle": "Vuelve a escanear el código QR",
+      "missingDescription": "Esta dirección no tiene información de cupón. Escanea de nuevo con la cámara el QR del cupón que recibiste en la tienda.",
+      "successTitle": "Cupón registrado",
+      "errorTitle": "No se pudo registrar",
+      "loginTitle": "Inicia sesión",
+      "loadingTitle": "Registrando cupón",
+      "waiting": "Espera un momento",
+      "viewCoupons": "Ver mis cupones",
+      "loginAndClaim": "Iniciar sesión y registrar",
+      "retry": "Reintentar",
+      "goHome": "Inicio",
+      "authTitle": "Inicia sesión para registrar tu cupón",
+      "authDescription": "Tras iniciar sesión, este cupón se guardará automáticamente en tu cuponera"
+    }
   },
   "faq": {
     "searchPlaceholder": "Busca tu pregunta",
@@ -2413,9 +2431,9 @@
     "title": "Perfume layering",
     "description": "Capturando la química de dos personajes en un aroma",
     "progress": {
-      "summon": "Invocar",
-      "deck": "Mazo",
-      "catalyst": "Catalizador"
+      "summon": "Datos",
+      "deck": "Relación",
+      "catalyst": "Revisar"
     },
     "target": {
       "label": "Objetivo del análisis",
@@ -2443,7 +2461,8 @@
       "namePlaceholder": "Introduce un nombre",
       "imageGuideMain": "Sube las imágenes de las dos personas que quieres analizar.",
       "imageGuideSub": "Pueden ser fotos reales, ilustraciones, personajes de videojuegos o idols.",
-      "imageGuide": "Sube imágenes de dos personajes para analizar su química. Pueden ser fotos reales, ilustraciones, personajes de videojuegos o idols."
+      "imageGuide": "Sube imágenes de dos personajes para analizar su química. Pueden ser fotos reales, ilustraciones, personajes de videojuegos o idols.",
+      "removeImageAria": "Quitar imagen de {character}"
     },
     "deck": {
       "cardProgress": "Carta {current} / {total}",

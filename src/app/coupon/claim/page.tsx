@@ -12,15 +12,18 @@ export const metadata = {
 export default function CouponClaimCompatPage() {
   return (
     <NextIntlClientProvider locale="ko" messages={koMessages}>
+      {/* [locale] 밖 라우트라 공개 사이트 디자인 토큰(.public-editorial)을 직접 씌운다 */}
+      <div lang="ko" className="public-editorial min-h-screen">
       <Suspense
         fallback={
           <div className="flex min-h-[70vh] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--muted-ink)]" />
           </div>
         }
       >
         <CouponClaimClient />
       </Suspense>
+      </div>
     </NextIntlClientProvider>
   )
 }

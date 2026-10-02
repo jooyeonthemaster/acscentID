@@ -145,13 +145,14 @@ function TodayScentProductContent() {
       {/* ============================================
           HERO - 오늘의 향 비주얼 + 구매
       ============================================ */}
-      <section className="pt-28 pb-10 px-4">
-        <div className="w-full max-w-[455px] mx-auto">
+      <section className="pt-28 pb-10 px-4 lg:pt-12">
+        {/* lg+: 비주얼 카드 | 제품 정보 2단 (모바일은 기존 1열 그대로) */}
+        <div className="w-full max-w-[455px] mx-auto lg:grid lg:max-w-[1040px] lg:grid-cols-2 lg:items-start lg:gap-10">
           {/* 향 비주얼 카드 (테마 컬러) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative border border-[var(--line)] rounded-[6px] overflow-hidden mb-5"
+            className="relative border border-[var(--line)] rounded-[6px] overflow-hidden mb-5 lg:sticky lg:top-[100px] lg:mb-0"
             style={{ backgroundColor: scent.theme.bg, color: scent.theme.ink }}
           >
             <div className="absolute top-3 left-3 z-10 flex gap-2">
@@ -315,7 +316,7 @@ function TodayScentProductContent() {
 
       {/* Feature Bar */}
       <section className="py-6 px-4 bg-white border-y border-[var(--line)]">
-        <div className="w-full max-w-[455px] mx-auto">
+        <div className="w-full max-w-[455px] mx-auto lg:max-w-[760px]">
           <div className="flex flex-wrap items-center justify-center gap-4 text-[var(--ink)]">
             <div className="flex items-center gap-1.5">
               <Sparkles size={14} className="text-[var(--muted-ink)]" />
@@ -336,7 +337,7 @@ function TodayScentProductContent() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
-          className="w-full max-w-[455px] mx-auto"
+          className="w-full max-w-[455px] mx-auto lg:max-w-[760px]"
         >
           <div className="text-center mb-8">
             <motion.div variants={fadeInUp} className="inline-block px-3 py-1.5 bg-[var(--soft)] text-[var(--ink)] text-xs lg:text-sm font-black rounded-[4px] border border-[var(--line)] mb-3">
@@ -426,17 +427,17 @@ function TodayScentProductContent() {
     <>
       <ViewportSwitch
         mobile={
-          <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
             <Header />
             {pageBody}
             {mobileFixedBar}
-          </main>
+          </div>
         }
         desktop={
-          <main className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
+          <div className="relative min-h-screen bg-[var(--canvas)] pb-16 font-wanted">
             {pageBody}
             {/* 데스크탑: 고정 바 대신 인라인 구매 패널 */}
-            <div className="mx-auto mt-4 w-full max-w-[455px] px-4">
+            <div className="mx-auto mt-4 w-full max-w-[760px] px-4">
               <div className="rounded-[6px] border border-[var(--line)] bg-white p-4">
                 <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
                   <div className="min-w-0">
@@ -461,7 +462,7 @@ function TodayScentProductContent() {
                 </div>
               </div>
             </div>
-          </main>
+          </div>
         }
       />
 

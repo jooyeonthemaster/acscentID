@@ -64,7 +64,7 @@ function QRInputForm() {
             <ProgressBar currentStep={currentStep} />
 
             {/* 메인 콘텐츠 Container */}
-            <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col max-w-xl mx-auto w-full px-4 pt-8 pb-32">
+            <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col max-w-xl mx-auto w-full px-4 pt-8 pb-32">
                 <AnimatePresence mode="wait">
                     {currentStep === 1 && (
                         <Step1
@@ -128,7 +128,7 @@ function QRInputForm() {
                         onNext={currentStep === TOTAL_STEPS ? handleComplete : handleNext}
                     />
                 </div>
-            </main>
+            </div>
 
             {/* QR 오프라인 모드: 로그인 필수 게이트 */}
             <AuthModal

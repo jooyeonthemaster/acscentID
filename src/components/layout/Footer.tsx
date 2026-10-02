@@ -189,17 +189,19 @@ export function Footer({ ignoreOwnBottomBar = false }: { ignoreOwnBottomBar?: bo
           <div className="flex items-center gap-2">
             <a
               href="https://www.instagram.com/acscent_id/"
+              aria-label="Instagram"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
+              className="tap-target w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Instagram size={14} />
             </a>
             <a
               href="https://x.com/acscent_id"
+              aria-label="X (Twitter)"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
+              className="tap-target w-8 h-8 rounded-full border border-[var(--dark-line)] flex items-center justify-center text-[var(--dark-muted)] hover:border-white hover:text-white transition-colors"
             >
               <Twitter size={14} />
             </a>

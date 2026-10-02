@@ -900,7 +900,8 @@
     "optionSajuClicker": "扩香点击器钥匙扣",
     "sajuElementNote": "将按分析推荐的五行制作刻印与贴纸",
     "decreaseQuantity": "减少数量",
-    "increaseQuantity": "增加数量"
+    "increaseQuantity": "增加数量",
+    "shippingAfterPayment": "付款完成后2~3天内发货"
   },
   "checkoutComplete": {
     "title": "订单完成",
@@ -1268,7 +1269,9 @@
     "ratingLabel4": "很好",
     "ratingLabel5": "非常棒！",
     "leaveFirst": "来写第一条评价吧",
-    "triggerLabel": "评分{rating}，查看{count}条评价"
+    "triggerLabel": "评分{rating}，查看{count}条评价",
+    "prevPage": "上一页评价",
+    "nextPage": "下一页评价"
   },
   "coupon": {
     "unlimitedUse": "无限使用",
@@ -1350,6 +1353,21 @@
       "claimButton": "✨ 领取{percent}%优惠券！",
       "confirmed": "已确认",
       "successMessage": "付款时可享受{percent}%折扣"
+    },
+    "claimPage": {
+      "missingTitle": "请重新扫描二维码",
+      "missingDescription": "此地址没有优惠券信息。请用手机相机重新扫描在门店领取的优惠券二维码。",
+      "successTitle": "优惠券已登记",
+      "errorTitle": "无法登记",
+      "loginTitle": "需要登录",
+      "loadingTitle": "正在登记优惠券",
+      "waiting": "请稍候",
+      "viewCoupons": "查看优惠券",
+      "loginAndClaim": "登录并登记",
+      "retry": "重试",
+      "goHome": "返回首页",
+      "authTitle": "请登录以登记优惠券",
+      "authDescription": "登录后，此优惠券将自动保存到优惠券箱"
     }
   },
   "faq": {
@@ -2413,9 +2431,9 @@
     "title": "叠香香水",
     "description": "将两个角色的化学反应融入香氛",
     "progress": {
-      "summon": "召唤",
-      "deck": "卡组",
-      "catalyst": "催化剂"
+      "summon": "填写信息",
+      "deck": "选择关系",
+      "catalyst": "确认"
     },
     "target": {
       "label": "分析对象",
@@ -2443,7 +2461,8 @@
       "namePlaceholder": "输入名字",
       "imageGuideMain": "请上传两个人物的图片来分析化学反应。",
       "imageGuideSub": "真人照片、插画、游戏角色和偶像都可以！",
-      "imageGuide": "请上传两个人物的图片来分析化学反应。真人照片、插画、游戏角色和偶像都可以！"
+      "imageGuide": "请上传两个人物的图片来分析化学反应。真人照片、插画、游戏角色和偶像都可以！",
+      "removeImageAria": "删除{character}的图片"
     },
     "deck": {
       "cardProgress": "卡片 {current} / {total}",

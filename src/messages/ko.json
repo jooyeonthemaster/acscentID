@@ -1310,7 +1310,8 @@
     "optionSajuClicker": "디퓨저 클리커 키링",
     "sajuElementNote": "분석이 추천한 오행으로 각인·스티커가 제작됩니다",
     "decreaseQuantity": "수량 줄이기",
-    "increaseQuantity": "수량 늘리기"
+    "increaseQuantity": "수량 늘리기",
+    "shippingAfterPayment": "결제 완료 후 2~3일 내 배송"
   },
   "checkoutComplete": {
     "title": "주문 완료",
@@ -1678,7 +1679,9 @@
     "ratingLabel4": "좋아요",
     "ratingLabel5": "최고예요!",
     "leaveFirst": "첫 리뷰를 남겨주세요",
-    "triggerLabel": "평점 {rating}점, 리뷰 {count}개 보기"
+    "triggerLabel": "평점 {rating}점, 리뷰 {count}개 보기",
+    "prevPage": "이전 리뷰 페이지",
+    "nextPage": "다음 리뷰 페이지"
   },
   "coupon": {
     "unlimitedUse": "무제한 사용",
@@ -1760,6 +1763,21 @@
       "claimButton": "✨ {percent}% 쿠폰 받기!",
       "confirmed": "확인했어요",
       "successMessage": "결제할 때 {percent}% 할인 적용하세요"
+    },
+    "claimPage": {
+      "missingTitle": "QR을 다시 스캔해주세요",
+      "missingDescription": "쿠폰 정보가 없는 주소예요. 매장에서 받은 쿠폰 QR을 휴대폰 카메라로 다시 스캔해주세요.",
+      "successTitle": "쿠폰 등록 완료",
+      "errorTitle": "등록할 수 없어요",
+      "loginTitle": "로그인이 필요해요",
+      "loadingTitle": "쿠폰 등록 중",
+      "waiting": "잠시만 기다려주세요",
+      "viewCoupons": "쿠폰함 보기",
+      "loginAndClaim": "로그인하고 등록",
+      "retry": "다시 시도",
+      "goHome": "홈으로",
+      "authTitle": "쿠폰 등록을 위해 로그인해주세요",
+      "authDescription": "로그인 후 이 쿠폰이 자동으로 쿠폰함에 저장됩니다"
     }
   },
   "faq": {
@@ -2413,9 +2431,9 @@
     "title": "레이어링 퍼퓸",
     "description": "두 인물의 케미를 향기로 담다",
     "progress": {
-      "summon": "소환",
-      "deck": "카드 덱",
-      "catalyst": "촉매"
+      "summon": "정보 입력",
+      "deck": "관계 고르기",
+      "catalyst": "확인"
     },
     "target": {
       "label": "분석 대상",
@@ -2443,7 +2461,8 @@
       "namePlaceholder": "이름 입력",
       "imageGuideMain": "케미를 분석할 두 인물의 이미지를 업로드해주세요.",
       "imageGuideSub": "실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!",
-      "imageGuide": "케미를 분석할 두 인물의 이미지를 업로드해주세요. 실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!"
+      "imageGuide": "케미를 분석할 두 인물의 이미지를 업로드해주세요. 실제 사진, 일러스트, 게임 캐릭터, 아이돌 모두 가능해요!",
+      "removeImageAria": "{character} 이미지 삭제"
     },
     "deck": {
       "cardProgress": "카드 {current} / {total}",

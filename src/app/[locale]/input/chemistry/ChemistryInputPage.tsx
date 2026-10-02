@@ -143,7 +143,7 @@ function ChemistryInputFormInner() {
         <ChemistryProgress phase={phase} currentCard={currentCard} totalCards={TOTAL_CARDS} />
 
         {/* 메인 콘텐츠 */}
-        <main className="relative z-10 flex-1 flex flex-col w-full px-4 pt-4 pb-4">
+        <div className="relative z-10 flex-1 flex flex-col w-full px-4 pt-4 pb-4">
           <div className="flex-1">
             {phaseContent}
           </div>
@@ -163,7 +163,7 @@ function ChemistryInputFormInner() {
               />
             </div>
           )}
-        </main>
+        </div>
       </div>
     </>
   )
@@ -349,16 +349,16 @@ function ChemistryProgress({ phase, currentCard, totalCards }: {
     <div className="relative z-10 px-4 py-2 w-full">
       <div className="h-1.5 bg-[var(--soft)] rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-[var(--soft)] to-[var(--soft)] rounded-full"
+          className="h-full bg-[var(--ink)] rounded-full"
           initial={{ width: "0%" }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
       <div className="flex justify-between mt-1 text-[10px] lg:text-[12px] font-bold text-[var(--muted-ink)]">
-        <span className={phase === 'summon' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.summon')}</span>
-        <span className={phase === 'deck' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.deck')}</span>
-        <span className={phase === 'catalyst' ? 'text-[var(--muted-ink)]' : ''}>{t('progress.catalyst')}</span>
+        <span className={phase === 'summon' ? 'font-black text-[var(--ink)]' : ''}>{t('progress.summon')}</span>
+        <span className={phase === 'deck' ? 'font-black text-[var(--ink)]' : ''}>{t('progress.deck')}</span>
+        <span className={phase === 'catalyst' ? 'font-black text-[var(--ink)]' : ''}>{t('progress.catalyst')}</span>
       </div>
     </div>
   )

@@ -388,7 +388,7 @@ export default function GraduationPage() {
   )
 
   const mobileTree = (
-    <main className="relative min-h-screen bg-[var(--canvas)] font-wanted">
+    <div className="relative min-h-screen bg-[var(--canvas)] font-wanted">
       <Header />
       <ProgramAdminBridge productSlug="graduation" />
 
@@ -397,7 +397,7 @@ export default function GraduationPage() {
       {detailBody}
 
       {reviewSection}
-    </main>
+    </div>
   )
 
   return (

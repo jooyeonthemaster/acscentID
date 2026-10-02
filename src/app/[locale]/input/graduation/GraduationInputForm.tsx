@@ -106,7 +106,7 @@ export function GraduationInputForm() {
                 <GraduationProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
                 {/* 메인 콘텐츠 Container */}
-                <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col w-full px-4 pt-8 pb-32">
+                <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar flex flex-col w-full px-4 pt-8 pb-32">
                     <AnimatePresence mode="wait">
                         {currentStep === 1 && (
                             <GraduationStep1
@@ -169,7 +169,7 @@ export function GraduationInputForm() {
                             isLastStep={currentStep === totalSteps}
                         />
                     </div>
-                </main>
+                </div>
             </div>
 
             {/* 인증 게이트 — 비로그인 분석 차단 */}

@@ -129,7 +129,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="relative z-10 flex-1 px-5 pb-6 overflow-y-auto">
+      <div className="relative z-10 flex-1 px-5 pb-6 overflow-y-auto">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -216,7 +216,7 @@ export default function SharedResultClient({ result }: SharedResultClientProps) 
             </span>
           </motion.div>
         </motion.div>
-      </main>
+      </div>
 
       {/* 공유 모달 */}
       <ShareModal

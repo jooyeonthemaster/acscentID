@@ -219,6 +219,7 @@ export function ReviewList({
           <button
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1}
+            aria-label={t('review.prevPage')}
             className={`w-10 h-10 flex items-center justify-center border border-[var(--line)] rounded-[6px] transition-all ${
               page === 1
                 ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'
@@ -264,6 +265,7 @@ export function ReviewList({
           <button
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages}
+            aria-label={t('review.nextPage')}
             className={`w-10 h-10 flex items-center justify-center border border-[var(--line)] rounded-[6px] transition-all ${
               page === totalPages
                 ? 'bg-[var(--soft)] text-[var(--muted-ink)] cursor-not-allowed'

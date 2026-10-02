@@ -198,7 +198,7 @@ export function DesktopHeader() {
       <header className="fixed inset-x-0 top-0 z-50 hidden flex-col border-b border-[var(--line)] bg-white/[0.97] lg:flex">
         {/* 마키 티커 — 모바일 헤더와 동일 마크업/높이(28px) */}
         <div className="flex h-7 w-full items-center overflow-hidden border-b border-[var(--dark-band)] bg-[var(--dark-band)] py-1">
-          <div className="animate-ticker flex items-center gap-6 whitespace-nowrap text-[9px] font-black uppercase text-white">
+          <div className="animate-ticker flex items-center gap-6 whitespace-nowrap text-[11px] font-black uppercase text-white">
             {Array(16).fill(t('header.marquee')).map((text, i) => (
               <span key={i} className="flex items-center gap-2">
                 {text} <Star size={8} fill="#ADAEAA" />

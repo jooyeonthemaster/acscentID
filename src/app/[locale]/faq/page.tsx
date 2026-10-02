@@ -123,7 +123,7 @@ export default function FAQPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[var(--paper)] pb-32 pt-24 lg:pt-32">
+      <div className="min-h-screen bg-[var(--paper)] pb-32 pt-24 lg:pt-32">
         <div className="mx-auto max-w-3xl px-4">
           {/* Hero Section */}
           <div className="mb-8 text-center">
@@ -224,7 +224,7 @@ export default function FAQPage() {
             </motion.div>
           )}
         </div>
-      </main>
+      </div>
     </>
   )
 }
