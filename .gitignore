@@ -61,3 +61,6 @@ backups
 /birthday-posters/
 # 배경 시안 검토 원본(478MB) — 웹 에셋은 public/assets/screen-backgrounds 로 변환해 커밋한다
 /design-review/
+
+# 단위 테스트 번들(npm run test:saju-parser)
+/.test-build

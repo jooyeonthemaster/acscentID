@@ -21,8 +21,37 @@ import type { Locale } from '@/i18n/config';
 // 인증(401)과 일일 한도 두 블록만 제거했다. 무인 기기는 로그인 주체가 없다.
 // 명식·용신·향 후보는 서버 엔진이 결정적으로 계산하고 AI는 해석만 만든다(원 라우트와 동일 계약).
 
-const GEMINI_TIMEOUT_MS = 60000;
-const MAX_RETRIES = 1;
+// 시간 예산 — 키오스크는 110초 기다린다(KioskClient). 그 안에 성공이든 실패든 반드시 답해야
+// 손님 화면이 '연결할 수 없음'으로 끊기지 않는다. 시도마다 남은 예산 안에서만 기다린다.
+const DEADLINE_MS = 92_000;
+const ATTEMPT_TIMEOUT_MS = 55_000;
+const MIN_ATTEMPT_MS = 12_000; // 남은 시간이 이보다 짧으면 새 시도를 시작하지 않는다
+const MAX_ATTEMPTS = 3;
+const UPSTREAM_BACKOFF_MS = 1_500;
+/** 업스트림 오류·시간 초과·잘림 뒤에 쓰는 빠른 모델 — 해석 품질은 조금 낮아도 손님을 돌려보내지 않는다 */
+const FALLBACK_MODEL = 'google/gemini-2.5-flash';
+export const maxDuration = 120;
+
+/** 키오스크 화면·영수증이 쓰지 않는 블록은 빼고 짧게 받는다 — 외국어(특히 일·중)는 같은 분량이 토큰을 훨씬 많이 써서
+ *  maxOutputTokens 에 걸려 JSON 이 잘리는 일을 막고, 응답 시간(=행사장 줄)도 줄인다 */
+const KIOSK_OUTPUT_BRIEF = `
+
+# 키오스크 출력 간소화 (이 지시가 위 분량 규칙보다 우선)
+- "comparisonAnalysis" 블록은 출력하지 마십시오.
+- personalColor.description, analysis 의 네 필드(mood/style/expression/concept), matchingPerfumes[0].matchReason, noteComments 각 항목, usageGuide 는 각각 1문장으로 짧게.
+- 값이 정해진 enum(personalColor.season·tone, scentRecommendation.best_season·best_time, sajuAnalysis.purposeReading.purpose)은 영어 값 그대로 — 번역 금지. JSON 키도 영어 그대로.
+- perfumeId 는 "AC'SCENT 07" 형식(곧은 작은따옴표 ', 두 자리 숫자) 그대로.`;
+
+type AttemptFailure = 'upstream' | 'timeout' | 'truncated' | 'invalid';
+
+function classifyFailure(message: string): AttemptFailure {
+  if (/timed out/i.test(message)) return 'timeout';
+  if (/^TRUNCATED/.test(message)) return 'truncated';
+  if (/OpenRouter API error|fetch failed|ECONNRESET|EMPTY_RESPONSE/i.test(message)) return 'upstream';
+  return 'invalid';
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 type SajuRelationId = (typeof SAJU_RELATION_OPTIONS)[number]['id'];
 
 interface KioskSajuResponse {
@@ -203,21 +232,31 @@ export async function POST(request: NextRequest) {
       wish: typeof body.wish === 'string' && body.wish.trim() ? body.wish.trim().slice(0, 100) : undefined,
       chart, candidates, partner: partnerPrompt,
     });
-    const prompt = locale === 'ko' ? basePrompt
-      : wrapPromptWithLocale(basePrompt, locale)
+    const kioskPrompt = basePrompt + KIOSK_OUTPUT_BRIEF;
+    const prompt = locale === 'ko' ? kioskPrompt
+      : wrapPromptWithLocale(kioskPrompt, locale)
         + '\n\n# NO HANGUL: never write Korean (Hangul) characters anywhere in the output. Romanize Korean saju terms (e.g. "Byeong-o year", "Yongsin") and keep Chinese characters (漢字) only in parentheses.'
         + (traditional ? '\n\n# 所有輸出文字一律使用繁體中文（Traditional Chinese characters），不可使用簡體字。' : '');
 
-    const model = getModelWithConfig({ maxOutputTokens: 16384, temperature: 0.85 });
-    const attempt = async (text: string) => {
+    const startedAt = Date.now();
+    const deadline = startedAt + DEADLINE_MS;
+    const timeLeft = () => deadline - Date.now();
+    // 외국어는 같은 분량에 토큰을 더 쓴다 — 잘림 방지로 여유를 둔다
+    const maxOutputTokens = locale === 'ko' ? 16384 : 24576;
+
+    const attempt = async (text: string, modelId: string | undefined, timeoutMs: number) => {
       const started = Date.now();
+      const model = getModelWithConfig({ maxOutputTokens, temperature: 0.85, model: modelId });
       const res = await withTimeout(
         model.generateContent({ contents: [{ role: 'user', parts: [{ text }] }] }),
-        GEMINI_TIMEOUT_MS,
-        'Gemini API request timed out (60 seconds)'
+        timeoutMs,
+        `Gemini API request timed out (${Math.round(timeoutMs / 1000)} seconds)`
       );
-      console.log(`[${requestId}] 응답 수신 (${Date.now() - started}ms)`);
-      return parseSajuGeminiResponse(res.response.text(), {
+      const raw = res.response.text();
+      console.log(`[${requestId}] 응답 수신 (${Date.now() - started}ms, ${raw.length}자, finish=${res.response.finishReason ?? '?'}${modelId ? `, ${modelId}` : ''})`);
+      if (!raw.trim()) throw new Error(`EMPTY_RESPONSE (finish=${res.response.finishReason ?? '?'})`);
+      if (res.response.finishReason === 'length') throw new Error(`TRUNCATED: 출력이 maxOutputTokens(${maxOutputTokens})에서 잘렸습니다. 더 짧게, 완전한 JSON 으로 다시 출력하십시오.`);
+      return parseSajuGeminiResponse(raw, {
         locale,
         purpose,
         isThreePillar: chart.isThreePillar,
@@ -225,38 +264,56 @@ export async function POST(request: NextRequest) {
       });
     };
 
+    /** 외국어 해석에 섞인 한글 — 고칠 수 있는 건 고치고, 남은 문장만 짧은 호출로 그 언어로 고쳐 받는다.
+     *  예전엔 한글이 남으면 전체를 다시 받느라 재시도 한 번을 써 버렸다(그 재시도가 실패하면 손님은 실패 화면) */
+    const fixHangul = async (analysis: SajuAnalysisResult['sajuAnalysis']) => {
+      const leftovers: HangulLeftover[] = [];
+      const fixed = fixHangulDeep(analysis, leftovers);
+      if (!leftovers.length) return fixed;
+      const budget = Math.min(20_000, timeLeft() - 2_000);
+      if (budget < 5_000) {
+        console.warn(`[${requestId}] 한글 ${leftovers.length}곳 — 시간이 없어 고친 그대로 사용`);
+        return fixed;
+      }
+      const langName = traditional ? 'Traditional Chinese' : locale === 'zh' ? 'Simplified Chinese' : locale === 'ja' ? 'Japanese' : 'English';
+      try {
+        const fixer = getModelWithConfig({ maxOutputTokens: 4096, temperature: 0.2 });
+        const fixPrompt = `These ${langName} sentences accidentally contain Korean (Hangul) words. Rewrite each one fully in ${langName} with the same meaning, replacing every Hangul word with the ${langName} word (Chinese characters for saju terms are fine). Return ONLY JSON: {"items": ["...", ...]} in the same order and count.\n\n${JSON.stringify({ items: leftovers.map(l => l.text) })}`;
+        const res = await withTimeout(fixer.generateContent({ contents: [{ role: 'user', parts: [{ text: fixPrompt }] }] }), budget, 'hangul fix timed out');
+        const items = (JSON.parse(res.response.text().replace(/^```(?:json)?|```$/g, '').trim()) as { items?: unknown }).items;
+        if (Array.isArray(items) && items.length === leftovers.length) {
+          items.forEach((t, k) => { if (typeof t === 'string' && t.trim() && !HANGUL.test(t)) setAtPath(fixed, leftovers[k].path, t.trim()) });
+        }
+      } catch (fixError) {
+        console.warn(`[${requestId}] 한글 고침 실패(고친 그대로 사용): ${fixError instanceof Error ? fixError.message : fixError}`);
+      }
+      return fixed;
+    };
+
     let parsed: Awaited<ReturnType<typeof attempt>> | null = null;
     let lastError = '';
-    for (let i = 0; i <= MAX_RETRIES && !parsed; i += 1) {
+    let lastFailure: AttemptFailure | null = null;
+    for (let i = 0; i < MAX_ATTEMPTS && !parsed; i += 1) {
+      const left = timeLeft();
+      if (left < MIN_ATTEMPT_MS) {
+        console.warn(`[${requestId}] 남은 시간 ${left}ms — 새 시도를 시작하지 않음`);
+        break;
+      }
+      // 직전이 업스트림 오류·시간 초과·잘림이면 빠른 모델로, 응답이 규칙에 어긋났으면 같은 모델에 이유를 알려 다시
+      const useFallback = lastFailure !== null && lastFailure !== 'invalid';
+      const text = lastFailure === 'invalid' ? buildSajuRetryPrompt(prompt, lastError) : prompt;
+      const modelId = useFallback ? FALLBACK_MODEL : undefined;
+      const attemptStarted = Date.now();
       try {
-        const next = await attempt(i === 0 ? prompt : buildSajuRetryPrompt(prompt, lastError));
-        if (locale !== 'ko') {
-          // 외국어 해석에 섞인 한글 — 고칠 수 있는 건 고치고, 그래도 남으면 한 번 다시 받는다(마지막 시도면 고친 그대로)
-          const leftovers: HangulLeftover[] = [];
-          next.sajuAnalysis = fixHangulDeep(next.sajuAnalysis, leftovers);
-          if (leftovers.length && i < MAX_RETRIES) {
-            throw new Error(`Output contained Korean Hangul characters (write them in the target language or 漢字 instead): ${leftovers.slice(0, 3).map(l => l.text.slice(0, 60)).join(' / ')}`);
-          }
-          if (leftovers.length) {
-            // 마지막 안전장치 — 한글이 남은 문장만 모아 그 언어로 고쳐 받는다(짧은 호출). 실패하면 고친 그대로 쓴다
-            const langName = traditional ? 'Traditional Chinese' : locale === 'zh' ? 'Simplified Chinese' : locale === 'ja' ? 'Japanese' : 'English';
-            try {
-              const fixer = getModelWithConfig({ maxOutputTokens: 4096, temperature: 0.2 });
-              const fixPrompt = `These ${langName} sentences accidentally contain Korean (Hangul) words. Rewrite each one fully in ${langName} with the same meaning, replacing every Hangul word with the ${langName} word (Chinese characters for saju terms are fine). Return ONLY JSON: {"items": ["...", ...]} in the same order and count.\n\n${JSON.stringify({ items: leftovers.map(l => l.text) })}`;
-              const res = await withTimeout(fixer.generateContent({ contents: [{ role: 'user', parts: [{ text: fixPrompt }] }] }), 20000, 'hangul fix timed out');
-              const items = (JSON.parse(res.response.text().replace(/^```(?:json)?|```$/g, '').trim()) as { items?: unknown }).items;
-              if (Array.isArray(items) && items.length === leftovers.length) {
-                items.forEach((t, k) => { if (typeof t === 'string' && t.trim() && !HANGUL.test(t)) setAtPath(next.sajuAnalysis, leftovers[k].path, t.trim()) });
-              }
-            } catch (fixError) {
-              console.warn(`[${requestId}] 한글 고침 실패(고친 그대로 사용): ${fixError instanceof Error ? fixError.message : fixError}`);
-            }
-          }
-        }
+        const next = await attempt(text, modelId, Math.min(ATTEMPT_TIMEOUT_MS, left - 2_000));
+        if (locale !== 'ko') next.sajuAnalysis = await fixHangul(next.sajuAnalysis);
         parsed = next;
       } catch (e) {
         lastError = e instanceof Error ? e.message : 'Unknown error';
-        console.error(`[${requestId}] 시도 ${i + 1} 실패: ${lastError}`);
+        lastFailure = classifyFailure(lastError);
+        // 운영 로그 검색어: "[KIOSK-SAJU-" + "시도 N 실패"
+        console.error(`[${requestId}] 시도 ${i + 1} 실패 (${lastFailure}, ${modelId ?? 'default'}, ${Date.now() - attemptStarted}ms, locale=${body.locale}, purpose=${purpose}, 삼주=${chart.isThreePillar}): ${lastError.slice(0, 600)}`);
+        if (lastFailure === 'upstream') await sleep(UPSTREAM_BACKOFF_MS);
       }
     }
     if (!parsed) throw new Error(lastError || '사주 해석 생성에 실패했습니다.');
