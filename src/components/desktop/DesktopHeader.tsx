@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Link, useRouter } from '@/i18n/routing'
@@ -17,18 +17,8 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 import { useStoreProducts } from '@/hooks/useStoreProducts'
 import { useStoreProductText } from '@/hooks/useStoreProductText'
 import { stripLocaleFromPathname } from '@/lib/route-visibility'
+import { ABOUT_NAV_LINKS, PRIMARY_NAV_LINKS, PROGRAM_NAV_LINKS } from '@/lib/navigation'
 
-// MobileBottomNav의 ALL_PROGRAM_LINKS와 동일한 슬러그/키 (데스크탑 드롭다운용)
-const PROGRAM_MENU_LINKS = [
-  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const },
-  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const },
-  { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const },
-  { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const },
-  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const },
-  { slug: 'saju', href: '/programs/saju', labelKey: 'products.saju' as const },
-  { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const },
-  { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const },
-]
 
 /** 노출 상품 필터가 필요한 드롭다운 내용물 — 첫 오픈 시에만 마운트해 모바일에서 불필요한 fetch를 막는다 */
 function DropdownSkeleton({ rows = 3 }: { rows?: number }) {
@@ -48,7 +38,7 @@ function ProgramsMenu({ onNavigate }: { onNavigate: () => void }) {
   // 로딩 중에는 FALLBACK(전체)이 필터 전에 잠깐 노출되는 버그를 막기 위해 스켈레톤만 렌더링
   if (loading) return <DropdownSkeleton />
 
-  const links = PROGRAM_MENU_LINKS.filter((link) => isProductVisible(link.slug))
+  const links = PROGRAM_NAV_LINKS.filter((link) => isProductVisible(link.slug))
 
   return (
     <div className="flex min-w-[240px] flex-col gap-0.5 p-2">
@@ -114,16 +104,34 @@ function NavDropdown({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // 터치 기기(lg 태블릿 등)는 mouseleave가 오지 않으므로 바깥 탭으로 닫는다
+  useEffect(() => {
+    if (!open) return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) onOpenChange(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [open, onOpenChange])
+
   return (
     <div
+      ref={rootRef}
       className="relative h-full"
       onMouseEnter={() => onOpenChange(true)}
       onMouseLeave={() => onOpenChange(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onOpenChange(false)
+      }}
     >
       <button
         type="button"
         aria-expanded={open}
-        onClick={() => onOpenChange(!open)}
+        aria-haspopup="true"
+        // hover로 이미 열린 상태에서 클릭하면 닫히던 충돌 — 클릭은 열기 전용 (닫기는 mouseleave·Esc·바깥 탭)
+        onClick={() => onOpenChange(true)}
         className={cn(
           'flex h-full items-center gap-1 text-sm lg:text-base font-bold transition-colors',
           open ? 'text-[var(--ink)]' : 'text-[var(--muted-ink)] hover:text-[var(--ink)]',
@@ -226,28 +234,23 @@ export function DesktopHeader() {
             </NavDropdown>
             <NavDropdown label={t('nav.about')} open={aboutOpen} onOpenChange={setAboutOpen}>
               <div className="flex min-w-[200px] flex-col gap-0.5 p-2">
-                <Link
-                  href="/about/brand"
-                  onClick={() => setAboutOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm lg:text-base font-bold text-[var(--muted-ink)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)]"
-                >
-                  {t('footer.brandStory')}
-                </Link>
-                <Link
-                  href="/about/how-it-works"
-                  onClick={() => setAboutOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm lg:text-base font-bold text-[var(--muted-ink)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)]"
-                >
-                  {t('footer.howItWorks')}
-                </Link>
+                {ABOUT_NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setAboutOpen(false)}
+                    className="rounded-[4px] px-3 py-2.5 text-sm lg:text-base font-bold text-[var(--muted-ink)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)]"
+                  >
+                    {t(link.labelKey)}
+                  </Link>
+                ))}
               </div>
             </NavDropdown>
-            <Link href="/collaboration" className={navLinkClass(currentPath === '/collaboration')}>
-              {t('footer.collaboration')}
-            </Link>
-            <Link href="/faq" className={navLinkClass(currentPath === '/faq')}>
-              {t('footer.faq')}
-            </Link>
+            {PRIMARY_NAV_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className={navLinkClass(currentPath === link.href)}>
+                {t(link.labelKey)}
+              </Link>
+            ))}
           </nav>
 
           {/* 우측 컨트롤 — 모바일 헤더와 동일한 컴포넌트/스타일 재사용 */}

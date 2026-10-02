@@ -128,7 +128,7 @@ export function HomeDesktop({
             </p>
             <div className="mt-9 flex items-center gap-3">
               <a
-                href="#programs-section-desktop"
+                href="#programs-section"
                 className="pointer-events-auto flex items-center gap-2 rounded-[5px] bg-white px-6 py-3.5 text-[15px] font-extrabold text-[var(--ink)] transition-colors hover:bg-[var(--soft)]"
               >
                 {t('home.browsePrograms')}
@@ -183,7 +183,7 @@ export function HomeDesktop({
       </section>
 
       {/* ===== 프로그램 둘러보기 ===== */}
-      <section id="programs-section-desktop" className="scroll-mt-[100px] bg-[var(--canvas)]">
+      <section id="programs-section" className="scroll-mt-[100px] bg-[var(--canvas)]">
         <div className="mx-auto w-full max-w-[1240px] px-6 py-24">
           <div className="mb-10">
             <p className="text-[11px] font-black text-[var(--muted-ink)]">PROGRAMS</p>

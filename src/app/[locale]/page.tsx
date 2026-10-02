@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useSyncExternalStore } from "react"
+import { useEffect, useState, useRef, useSyncExternalStore } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Link, useRouter } from "@/i18n/routing"
 import { ChevronRight, ChevronLeft, Handshake, MapPin } from "lucide-react"
@@ -181,6 +181,29 @@ export default function Home() {
     .slice()
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
 
+  // 다른 페이지에서 /#programs-section 으로 들어오면 섹션이 그려진 뒤 스크롤한다
+  // (ViewportSwitch가 하이드레이션 후 한쪽 트리만 남기므로 브라우저 기본 앵커 이동이 빗나간다)
+  useEffect(() => {
+    const scrollToHash = () => {
+      const id = window.location.hash.slice(1)
+      if (!id) return
+      let tries = 0
+      const timer = window.setInterval(() => {
+        const el = document.getElementById(id)
+        tries += 1
+        if (el && el.offsetParent !== null) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          window.clearInterval(timer)
+        } else if (tries > 30) {
+          window.clearInterval(timer)
+        }
+      }, 100)
+    }
+    scrollToHash()
+    window.addEventListener('hashchange', scrollToHash)
+    return () => window.removeEventListener('hashchange', scrollToHash)
+  }, [])
+
   const handleCardClick = (href: string) => {
     // DB에서 온 링크가 외부 URL이면 하드 이동, 내부 경로면 i18n 라우터(로케일 접두사 자동 부착)
     if (href.startsWith('http')) {
@@ -236,7 +259,7 @@ export default function Home() {
 
         {/* ===== 히어로: 풀블리드 배너 슬라이드 ===== */}
         <section className={`relative w-full overflow-hidden transition-opacity duration-300 ${bannersLoading ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="relative mx-auto h-[420px] w-full max-w-[455px]">
+          <div className="relative mx-auto h-[min(420px,52svh)] w-full max-w-[455px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={currentSlide}
@@ -314,21 +337,36 @@ export default function Home() {
 
         <div className="mx-auto w-full max-w-[455px]">
 
-          {/* ===== 현장방문 예약 스트립 ===== */}
-          <div className="border-y border-[var(--line)] bg-[var(--paper)] px-4 py-4">
-            <button
-              type="button"
-              onClick={() => setShowReserveChoice(true)}
-              aria-label={t('nav.visitReservation')}
-              className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-[5px] border border-[var(--ink)] bg-white px-5 py-3.5 text-[15px] font-extrabold text-[var(--ink)] transition-colors hover:bg-[var(--soft)] active:scale-[0.99]"
-            >
-              <MapPin size={17} />
-              {t('nav.visitReservation')}
-            </button>
+          {/* ===== 가치 제안 + 주 CTA (데스크탑 히어로와 같은 메시지) ===== */}
+          <div className="border-b border-[var(--line)] bg-[var(--paper)] px-4 pb-5 pt-5">
+            <p className="text-[11px] font-extrabold uppercase text-[var(--muted-ink)]">AC&apos;SCENT IDENTITY</p>
+            <h1 className="mt-1.5 text-balance text-[24px] font-black leading-[1.3] text-[var(--ink)]">
+              {t('footer.tagline')}
+            </h1>
+            <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+              <a
+                href="#programs-section"
+                onClick={(event) => {
+                  event.preventDefault()
+                  document.getElementById('programs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                className="flex min-h-12 items-center justify-center rounded-[5px] bg-[var(--ink)] px-5 text-[15px] font-extrabold text-white transition-colors hover:bg-black active:scale-[0.99]"
+              >
+                {t('home.browsePrograms')}
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowReserveChoice(true)}
+                className="flex min-h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[var(--ink)] bg-white px-4 text-[14px] font-bold text-[var(--ink)] transition-colors hover:bg-[var(--soft)] active:scale-[0.99]"
+              >
+                <MapPin size={16} aria-hidden />
+                {t('nav.visitReservation')}
+              </button>
+            </div>
           </div>
 
           {/* ===== 프로그램 둘러보기 섹션 ===== */}
-          <section id="programs-section" className="bg-[var(--canvas)] px-4 pb-16 pt-10">
+          <section id="programs-section" className="scroll-mt-[96px] bg-[var(--canvas)] px-4 pb-16 pt-10">
             {/* 섹션 타이틀 */}
             <div className="mb-6">
               <p className="text-[11px] font-black text-[var(--muted-ink)]">PROGRAMS</p>

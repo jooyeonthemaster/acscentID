@@ -20,6 +20,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { stripLocaleFromPathname } from '@/lib/route-visibility'
+import { ABOUT_NAV_LINKS, PRIMARY_NAV_LINKS, PROGRAM_NAV_LINKS, VISIT_RESERVATION_URL } from '@/lib/navigation'
 
 // Unified User Type
 interface UnifiedUser {
@@ -151,22 +152,17 @@ export function MobileMenuSheet({
   }, [isOpen, refreshStoreProducts])
 
   // Navigation Links with translated labels (활성 상품만 + DB 이미지 연동)
-  const programLinks = [
-    { slug: 'idol-image', href: '/programs/idol-image', label: t('footer.aiImageAnalysis') },
-    { slug: 'figure', href: '/programs/figure', label: t('footer.figureDiffuser') },
-    { slug: 'graduation', href: '/programs/graduation', label: t('products.graduation') },
-    { slug: 'personal', href: '/programs/personal', label: t('products.personal') },
-    { slug: 'chemistry', href: '/programs/chemistry', label: t('products.chemistry') },
-    { slug: 'saju', href: '/programs/saju', label: t('products.saju') },
-    { slug: 'le-quack', href: '/programs/le-quack', label: t('products.leQuack') },
-  ]
+  const programLinks = PROGRAM_NAV_LINKS
     .filter((link) => isProductVisible(link.slug))
     .map((link) => ({
-      ...link,
+      href: link.href,
+      label: t(link.labelKey),
       image: thumbnailsLoading ? PRODUCT_IMAGE_PLACEHOLDER : (thumbnails[link.slug] || PRODUCT_IMAGE_PLACEHOLDER),
     }))
 
-  const productLinks = storeProducts
+  const aboutLinks = ABOUT_NAV_LINKS.map((link) => ({ href: link.href, label: t(link.labelKey) }))
+
+  const productLinks: Array<{ href: string; label: string; image?: string }> = storeProducts
     .filter((product) => product.isActive !== false)
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     .map((product) => {
@@ -177,6 +173,33 @@ export function MobileMenuSheet({
         image: product.image,
       }
     })
+  productLinks.push({ href: '/products', label: t('store.viewAll') })
+
+  // PC GNB와 같은 순서: 프로그램 · 상품 · 소개 · 협업 문의 · FAQ
+  const secondaryNav = (
+    <>
+      <MobileSection
+        title={t('nav.about')}
+        links={aboutLinks}
+        isActive={normalizedPathname.startsWith('/about')}
+        onLinkClick={handleClose}
+      />
+      {PRIMARY_NAV_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          onClick={handleClose}
+          className={cn(
+            "flex items-center gap-3 px-4 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors",
+            normalizedPathname === link.href && "bg-[var(--soft)]",
+          )}
+        >
+          {link.href === '/faq' && <HelpCircle size={18} aria-hidden />}
+          {t(link.labelKey)}
+        </Link>
+      ))}
+    </>
+  )
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -237,20 +260,13 @@ export function MobileMenuSheet({
                   isActive={isProductsActive}
                   onLinkClick={handleClose}
                 />
+                {secondaryNav}
                 <Link
                   href="/mypage"
                   onClick={handleClose}
                   className="flex items-center gap-3 px-4 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
                 >
                   {t('nav.myPage')}
-                </Link>
-                <Link
-                  href="/faq"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
-                >
-                  <HelpCircle size={18} />
-                  FAQ
                 </Link>
               </nav>
 
@@ -262,7 +278,7 @@ export function MobileMenuSheet({
                   className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[6px] hover:bg-[var(--soft)] hover:text-[var(--ink)] text-[var(--muted-ink)] transition-all font-medium"
                 >
                   <a
-                    href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
+                    href={VISIT_RESERVATION_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -303,14 +319,7 @@ export function MobileMenuSheet({
                   isActive={isProductsActive}
                   onLinkClick={handleClose}
                 />
-                <Link
-                  href="/faq"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-6 py-4 border-b border-[var(--line-soft)] font-bold text-[var(--ink)] hover:bg-[var(--soft)] transition-colors"
-                >
-                  <HelpCircle size={18} />
-                  FAQ
-                </Link>
+                {secondaryNav}
               </nav>
 
               <div className="p-4 border-t border-[var(--line-soft)]">
@@ -320,7 +329,7 @@ export function MobileMenuSheet({
                   className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-[6px] hover:bg-[var(--soft)] hover:text-[var(--ink)] text-[var(--muted-ink)] transition-all font-medium"
                 >
                   <a
-                    href="https://map.naver.com/p/entry/place/1274492663?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1"
+                    href={VISIT_RESERVATION_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

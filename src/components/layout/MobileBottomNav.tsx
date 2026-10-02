@@ -17,18 +17,8 @@ import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
 import { useViewportMode } from '@/hooks/useViewportMode'
 import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
+import { PROGRAM_NAV_LINKS } from '@/lib/navigation'
 
-// Programs 드롭업 메뉴 항목 (전체)
-const ALL_PROGRAM_LINKS = [
-  { slug: 'idol-image', href: '/programs/idol-image', labelKey: 'products.idolImage' as const, descKey: 'programs.subtitle.idolImage' as const },
-  { slug: 'figure', href: '/programs/figure', labelKey: 'products.figureDiffuser' as const, descKey: 'programs.subtitle.figure' as const },
-  { slug: 'graduation', href: '/programs/graduation', labelKey: 'products.graduation' as const, descKey: 'programs.subtitle.graduation' as const },
-  { slug: 'personal', href: '/programs/personal', labelKey: 'products.personal' as const, descKey: 'programs.subtitle.personal' as const },
-  { slug: 'chemistry', href: '/programs/chemistry', labelKey: 'products.chemistry' as const, descKey: 'programs.subtitle.chemistry' as const },
-  { slug: 'saju', href: '/programs/saju', labelKey: 'products.saju' as const, descKey: 'programs.subtitle.saju' as const },
-  { slug: 'le-quack', href: '/programs/le-quack', labelKey: 'products.leQuack' as const, descKey: 'home.signaturePerfumDesc' as const },
-  { slug: 'today-scent', href: '/programs/today-scent', labelKey: 'todayScent.title' as const, descKey: 'todayScent.subtitle' as const },
-]
 
 // NavItem 컴포넌트
 function NavItem({
@@ -67,7 +57,7 @@ function NavItem({
 }
 
 // ProgramsSheet 컴포넌트 - 하단 시트 모달
-type ProgramLink = (typeof ALL_PROGRAM_LINKS)[number] & { image: string }
+type ProgramLink = (typeof PROGRAM_NAV_LINKS)[number] & { image: string }
 
 function ProgramsSheet({
   onClose,
@@ -167,7 +157,7 @@ export function MobileBottomNav() {
   const { thumbnails, loading: thumbnailsLoading } = useProductThumbnailMap()
 
   // 노출 상품만 필터링 + DB 이미지 연동 (행 없으면 기본 노출)
-  const PROGRAM_LINKS = ALL_PROGRAM_LINKS
+  const PROGRAM_LINKS = PROGRAM_NAV_LINKS
     .filter((link) => isProductVisible(link.slug))
     .map((link) => ({
       ...link,
