@@ -1900,12 +1900,83 @@
 .bth-concept-picker .bth-concept-desc {
   font-size: 16px;
 }
-/* 컨셉·디자인 이름 — 한국어는 어절 단위로, 일본어·중국어는 칸 안에서 줄바꿈(keep-all 이면 가나·한자가 칸 밖으로 넘친다) */
-.bth-root:not([data-lang='ko']) .bth-concept-name {
-  word-break: normal;
-  overflow-wrap: anywhere;
-  font-size: 17px;
+/* 컨셉·디자인 이름은 한 줄 — 칸 너비에 맞춰 글자가 줄어든다. 일본어·중국어가 두 줄(「エンディング妖/精」)로 꺾여
+   1366x768 에서 화면이 3px 넘쳤다(2026-10-02 점검) */
+.bth-concept-card.rt-choice,
+.bth-design-btn {
+  container-type: inline-size;
+}
+.bth-concept-name {
+  white-space: nowrap;
+  font-size: clamp(12px, 11cqi, 19px);
+}
+.bth-design-name {
+  white-space: nowrap;
+  font-size: clamp(10px, 12cqi, 15px);
 }
 .bth-concept-card.rt-choice {
   justify-content: flex-start;
+}
+
+/* ── 큰 화면(앱 밖 브라우저 1920x1080 등, 화면 배율 100%) — 1280 기준 크기로 가운데에 작게 남던 것(2026-10-02 점검) ──
+   매장 앱은 화면 배율 150% 라 CSS 뷰포트가 1280x720 이고 여기에 걸리지 않는다 */
+@media (min-width: 1600px) and (min-height: 900px) {
+  .bth-home--stage {
+    max-width: 1400px;
+    gap: 22px;
+  }
+  .bth-home--stage .bth-h1 {
+    font-size: 66px;
+  }
+  .bth-home--stage .bth-sub {
+    font-size: 26px;
+  }
+  .bth-concept-grid {
+    max-width: min(100%, 960px);
+    gap: 20px;
+  }
+  .bth-concept-name {
+    font-size: clamp(14px, 11cqi, 26px);
+  }
+  .bth-concept-picker .bth-concept-desc {
+    font-size: 21px;
+  }
+  .bth-home--stage .bth-idol-consent {
+    font-size: 17px;
+  }
+  .bth-home--stage .bth-stage-start {
+    min-height: 96px;
+    padding-inline: 56px;
+    font-size: 32px;
+  }
+  .bth-split--3 {
+    grid-template-columns: minmax(360px, 0.85fr) minmax(0, 1fr) minmax(360px, 0.85fr);
+  }
+  .bth-split-left .bth-look-grid--2,
+  .bth-split-left [role='radiogroup'] {
+    max-width: min(calc((100svh - 390px) * 2 / 3 + 40px), 400px);
+  }
+  .bth-design-name {
+    font-size: clamp(12px, 12cqi, 19px);
+  }
+  .bth-split--3 .rt-group-label {
+    font-size: 17px;
+  }
+  .bth-split--3 .bth-idol-concept {
+    font-size: 28px;
+  }
+  .bth-split--3 .bth-idol-wait {
+    font-size: 24px;
+  }
+  .bth-split--3 .bth-split-side .bth-group-text {
+    font-size: 19px;
+  }
+  .bth-split--3 .bth-idol-panel .rt-btn {
+    min-height: 68px;
+    font-size: 22px;
+  }
+  .bth-split--3 .bth-side-actions .rt-btn--lg {
+    min-height: 104px;
+    font-size: 32px;
+  }
 }
