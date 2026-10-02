@@ -178,7 +178,7 @@ const ko = {
   printInProgress: '사진 인화 중',
   printFailed: '인쇄가 되지 않았어요. 직원에게 알려주세요',
   qrMaking: 'QR 만드는 중',
-  saveImage: '이미지 저장',
+  saveImage: '폰으로 받기',
   qrFailed: 'QR을 만들지 못했어요. 잠시 후 다시 눌러주세요',
   reEdit: '다시 편집',
   hashtagLabel: 'X(트위터) 인증 태그',
@@ -213,7 +213,7 @@ const ko = {
   idolChecking: '얼굴 확인 중…',
   idolWait: ['무대 조명 켜는 중…', '헤어·메이크업 받는 중…', '무대 의상 갈아입는 중…', '카메라 리허설 중…', '곧 데뷔합니다!'],
   idolMaking: (s: number) => `AI 아이돌 사진을 만들고 있어요 (보통 20~40초) · ${s}초`,
-  idolDone: '완성! 아래에서 인화 디자인을 골라 주세요',
+  idolDone: '완성! 왼쪽에서 인화 디자인을 골라 주세요',
   idolRetryDone: '다시 만들기',
   idolRetryFailed: 'AI 사진 다시 시도',
   designAria: '인화 디자인',
@@ -460,7 +460,7 @@ const en: BoothText = {
   idolChecking: 'Checking faces…',
   idolWait: ['Turning on the stage lights…', 'Hair and makeup in progress…', 'Changing into the stage outfit…', 'Camera rehearsal…', 'Debut coming up!'],
   idolMaking: (s: number) => `Creating your AI idol photo (usually 20–40s) · ${s}s`,
-  idolDone: 'Done! Pick a print design below',
+  idolDone: 'Done! Pick a print design on the left',
   idolRetryDone: 'Make again',
   idolRetryFailed: 'Retry AI photo',
   designAria: 'Print design',
@@ -710,7 +710,7 @@ const ja: BoothText = {
   idolChecking: '顔を確認中…',
   idolWait: ['ステージの照明をつけています…', 'ヘアメイク中…', 'ステージ衣装に着替え中…', 'カメラリハーサル中…', 'まもなくデビューします！'],
   idolMaking: (s: number) => `AIアイドル写真を作成中です（通常20〜40秒） · ${s}秒`,
-  idolDone: '完成！下からプリントデザインを選んでください',
+  idolDone: '完成！左からプリントデザインを選んでください',
   idolRetryDone: 'もう一度作る',
   idolRetryFailed: 'AI写真を再試行',
   designAria: 'プリントデザイン',
@@ -780,7 +780,7 @@ const ja: BoothText = {
   photoSaved: '保存しました',
   photoSave: '写真を保存',
   photoSaveFailed: '保存できませんでした。写真を長押しして保存してください。',
-  photoSaveHint: '保存できない場合は、写真を長押しして「"写真"に保存」を選んでください。',
+  photoSaveHint: '保存できない場合は、写真を長押しして「写真に保存」を選んでください。',
   photoPrivacy: (h: number) => `個人情報保護のため、${h}時間後に自動で削除されます。`,
   photoUntil: (date: string) => `${date}まで受け取れます。`,
 
@@ -960,7 +960,7 @@ const zhHans: BoothText = {
   idolChecking: '正在确认脸部…',
   idolWait: ['正在打开舞台灯光…', '正在做发型和妆容…', '正在换上舞台服装…', '相机彩排中…', '即将出道！'],
   idolMaking: (s: number) => `正在生成 AI 爱豆照片（通常 20~40 秒） · ${s} 秒`,
-  idolDone: '完成！请在下方选择打印设计',
+  idolDone: '完成！请在左侧选择打印设计',
   idolRetryDone: '重新生成',
   idolRetryFailed: '重试 AI 照片',
   designAria: '打印设计',
@@ -990,7 +990,7 @@ const zhHans: BoothText = {
   },
 
   concepts: {
-    'ending-fairy': { name: '打歌舞台Ending妖精', desc: '打歌舞台结束的瞬间，望向镜头的Ending特写' },
+    'ending-fairy': { name: '打歌舞台结尾妖精', desc: '打歌舞台结束的瞬间，望向镜头的结尾特写' },
     'album-jacket': { name: '专辑封面', desc: '在摄影棚拍摄的官方概念照，清新又高级' },
     'stage-fancam': { name: '舞台直拍', desc: '演唱会舞台上的气场，在灯光与应援棒之间' },
     'mv-still': { name: 'MV剧照', desc: '仿佛霓虹闪烁的MV中的一幕' },
@@ -998,9 +998,9 @@ const zhHans: BoothText = {
   designKinds: { stage: '舞台照', photocard: '小卡', split: '前后对比', poster: '海报' },
   designs: {
     'ending-fairy:stage': '打歌直播',
-    'ending-fairy:poster': 'Ending海报',
+    'ending-fairy:poster': '结尾海报',
     'album-jacket:stage': '概念照',
-    'album-jacket:poster': '专辑封面',
+    'album-jacket:poster': '封面海报',
     'stage-fancam:stage': '直拍画面',
     'stage-fancam:poster': '演唱会海报',
     'mv-still:stage': 'MV场景',
@@ -1210,7 +1210,7 @@ const zhHant: BoothText = {
   idolChecking: '正在確認臉部…',
   idolWait: ['正在打開舞台燈光…', '正在做造型和妝髮…', '正在換上舞台服裝…', '相機彩排中…', '即將出道！'],
   idolMaking: (s: number) => `正在製作 AI 偶像照片（通常 20~40 秒） · ${s} 秒`,
-  idolDone: '完成！請在下方選擇列印設計',
+  idolDone: '完成！請在左側選擇列印設計',
   idolRetryDone: '重新製作',
   idolRetryFailed: '重試 AI 照片',
   designAria: '列印設計',
@@ -1240,7 +1240,7 @@ const zhHant: BoothText = {
   },
 
   concepts: {
-    'ending-fairy': { name: '打歌舞台Ending妖精', desc: '打歌舞台結束的瞬間，望向鏡頭的Ending特寫' },
+    'ending-fairy': { name: '打歌舞台結尾妖精', desc: '打歌舞台結束的瞬間，望向鏡頭的結尾特寫' },
     'album-jacket': { name: '專輯封面', desc: '在攝影棚拍攝的官方概念照，清新又高級' },
     'stage-fancam': { name: '舞台直拍', desc: '演唱會舞台上的氣場，在燈光與應援棒之間' },
     'mv-still': { name: 'MV劇照', desc: '彷彿霓虹閃爍的MV中的一幕' },
@@ -1248,9 +1248,9 @@ const zhHant: BoothText = {
   designKinds: { stage: '舞台照', photocard: '小卡', split: '前後對比', poster: '海報' },
   designs: {
     'ending-fairy:stage': '打歌直播',
-    'ending-fairy:poster': 'Ending海報',
+    'ending-fairy:poster': '結尾海報',
     'album-jacket:stage': '概念照',
-    'album-jacket:poster': '專輯封面',
+    'album-jacket:poster': '封面海報',
     'stage-fancam:stage': '直拍畫面',
     'stage-fancam:poster': '演唱會海報',
     'mv-still:stage': 'MV場景',
@@ -1303,9 +1303,17 @@ export function boothText(lang: BoothLang): BoothText {
 }
 
 /** 손님 폰 페이지 ?lang= — 없거나 모르는 값이면 한국어 */
+/** 흔히 쓰는 다른 언어 코드 — 손님이 주소를 직접 고치거나 다른 곳에서 링크를 만들어도 알아듣게(부스 QR 은 zh-Hans·zh-Hant 를 쓴다) */
+const LANG_ALIASES: Record<string, BoothLang> = {
+  zh: 'zh-Hans', 'zh-cn': 'zh-Hans', 'zh-sg': 'zh-Hans', 'zh-hans': 'zh-Hans',
+  'zh-tw': 'zh-Hant', 'zh-hk': 'zh-Hant', 'zh-mo': 'zh-Hant', 'zh-hant': 'zh-Hant',
+  'ja-jp': 'ja', jp: 'ja', 'en-us': 'en', 'en-gb': 'en', 'ko-kr': 'ko', kr: 'ko',
+}
+
 export function parseBoothLang(value: unknown): BoothLang {
   const v = Array.isArray(value) ? value[0] : value
-  return isBoothLang(v) ? v : 'ko'
+  if (isBoothLang(v)) return v
+  return typeof v === 'string' ? LANG_ALIASES[v.trim().toLowerCase().replace('_', '-')] ?? 'ko' : 'ko'
 }
 
 /** 부스가 만드는 손님 폰 QR 주소에 언어를 붙인다(한국어는 붙이지 않는다) */
