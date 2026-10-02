@@ -2,8 +2,8 @@
 
 // 포토부스 행사 모드(K-WAVE) — AI 아이돌 컨셉 사진 화면 부품.
 // - IdolConceptPicker: 첫 화면 컨셉 고르기(음방 엔딩요정·앨범 재킷·무대 직캠·뮤비 스틸)
-// - useIdolStage: 찍은 한 컷 → 얼굴 수 확인 → /api/photobooth/idol 생성 → 결과 그림(다시 만들기 포함)
-// - IdolStagePanel: 편집 화면 옆 — 만드는 중(경과 초) / 완성(다시 만들기) / 못 만듦(찍은 원본으로 인화)
+// - useIdolStage: 찍은 한 컷 → 얼굴 수 확인 → /api/photobooth/idol 생성 → 결과 그림(다시 만들기는 없다 — 실패하면 찍은 원본으로 인화)
+// - IdolStagePanel: 편집 화면 옆 — 만드는 중(경과 초) / 완성 / 못 만듦(찍은 원본으로 인화)
 // - IdolDesignPicker: 편집 화면 옆 — 컨셉별 인화 디자인 4종(src/lib/booth/idol-layouts.ts)을 실제 사진으로 그린 미리보기로 고르기
 // 개념·프롬프트는 src/lib/booth/idol-concepts.ts, 서버는 src/lib/booth/idol-generate.ts
 
@@ -144,9 +144,6 @@ function loadImage(src: string) {
   })
 }
 
-/** 한 이용권(표)으로 만들 수 있는 횟수 — 서버 IDOL_TICKET_USES 와 같게 */
-const MAX_TRIES = 3
-
 export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }: {
   /** 행사 모드 + 동의 + 키 설정 + 편집·결과 단계 */
   active: boolean
@@ -162,7 +159,6 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [note, setNote] = useState<IdolNote | null>(null)
   const [elapsed, setElapsed] = useState(0)
-  const [tries, setTries] = useState(0)
   /** 네트워크 오류로 한 번 더 보내는 중 */
   const [retrying, setRetrying] = useState(false)
   const runRef = useRef(0)
@@ -193,7 +189,6 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
       const input = await idolInputs(original)
       if (token !== runRef.current) return
       setStatus('generating')
-      setTries((n) => n + 1)
       // 얼굴 인식을 못 쓰는 기기(-1)면 1명으로 보고 만든다
       const body = JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: input.photo, faces: input.faces })
       const send = () => fetch('/api/photobooth/idol', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
@@ -232,7 +227,6 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
         startedFor.current = null
         setStatus('off')
         setImage(null)
-        setTries(0)
       }
       return
     }
@@ -258,9 +252,6 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
     elapsed,
     busy,
     retrying,
-    canRetry: !busy && status !== 'skipped' && tries < MAX_TRIES && !!ticket,
-    retriesLeft: Math.max(0, MAX_TRIES - tries),
-    retry: () => { void run() },
   }
 }
 
@@ -279,7 +270,6 @@ export function IdolStagePanel({ stage, conceptId, variant, lang }: {
   const concept = findIdolConcept(conceptId)
   const line = t.idolWait[Math.min(t.idolWait.length - 1, Math.floor(stage.elapsed / 5))]
   const text = retro ? 'bth-group-text' : 'text-sm leading-snug opacity-80'
-  const button = retro ? 'rt-btn rt-btn--block' : 'rounded-full border px-5 py-3 text-base font-bold transition-opacity hover:opacity-80 disabled:opacity-40'
   return (
     <div className={retro ? 'bth-idol-panel' : 'flex flex-col gap-2'} role="status" aria-live="polite">
       {concept && <p className={retro ? 'bth-idol-concept' : 'text-lg font-bold'}>{conceptText(t, concept).name}</p>}
@@ -299,15 +289,6 @@ export function IdolStagePanel({ stage, conceptId, variant, lang }: {
         <p className={text}>{t.idolDone}</p>
       )}
       {(stage.status === 'failed' || stage.status === 'skipped') && <p className={text}>{stage.message}</p>}
-      {stage.canRetry && (stage.status === 'done' || stage.status === 'failed') && (
-        <>
-          <button type="button" className={button} onClick={stage.retry}>
-            {stage.status === 'done' ? t.idolRetryDone : t.idolRetryFailed} ({stage.retriesLeft})
-          </button>
-          {/* 처음 쓰는 손님이 '다시 찍기'와 헷갈리지 않게 */}
-          <p className={text}>{t.retryHint}</p>
-        </>
-      )}
     </div>
   )
 }

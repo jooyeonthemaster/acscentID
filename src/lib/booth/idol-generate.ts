@@ -23,10 +23,11 @@ export class IdolError extends Error {
 
 // ───────────────────────── 생성 이용권(ticket) ─────────────────────────
 // 이용권 번호가 확인된 부스만 생성할 수 있게, /api/photobooth/pass 가 짧게 쓰는 서명 표를 준다.
-// 표 하나로 IDOL_TICKET_USES 번(첫 생성 + 다시 만들기)까지 — 서버 인스턴스 안에서 센다(여럿이면 조금 느슨).
+// 표 하나로 IDOL_TICKET_USES 번까지 — 서버 인스턴스 안에서 센다(여럿이면 조금 느슨).
+// '다시 만들기'는 없앴다(2026-10-02, 비용) — 2번 = 첫 생성 + 네트워크 재시도나 '다시 찍기' 한 번. 넘으면 찍은 사진 그대로 인화
 
 const TICKET_MS = 15 * 60 * 1000
-export const IDOL_TICKET_USES = 3
+export const IDOL_TICKET_USES = 2
 
 function secret() {
   const value = process.env.SCREEN_BACKGROUND_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY

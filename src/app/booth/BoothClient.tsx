@@ -2690,7 +2690,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             </div>
 
             <div className="bth-split-side">
-              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·못 만듦) */}
               {idolOn && idolShot && (
                 <div className="rt-group">
                   <span className="rt-group-label">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</span>

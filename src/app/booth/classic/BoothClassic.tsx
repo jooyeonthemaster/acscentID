@@ -2733,7 +2733,7 @@ export function BoothClassic() {
             {/* 옵션이 많아도(프레임 56종·같이 찍기 조정) 페이지가 넘치지 않게 열 안에서만 스크롤하고,
                 완성·다시 찍기는 열 바닥에 붙여 늘 보이게 한다 */}
             <div className="w-full max-w-sm flex flex-col gap-6 lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
-              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·못 만듦) */}
               {idolOn && idolShot && (
                 <div>
                   <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</p>
