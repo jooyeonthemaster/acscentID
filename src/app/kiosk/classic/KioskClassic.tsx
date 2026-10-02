@@ -1496,6 +1496,10 @@ export function KioskClassic() {
                 onClose={() => setPartnerOskOpen(false)}
                 maxLength={12}
                 hint={sx.partnerName}
+                // 화면 언어 자판·라벨 — 이름 칸과 같게(예전엔 고민·상대 이름 칸이 언어와 상관없이 한글 자판)
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
               />
             ) : (
               <div className="ksk-actions">
@@ -1534,6 +1538,10 @@ export function KioskClassic() {
                 onClose={() => setWishOpen(false)}
                 maxLength={40}
                 hint={sx.wishHint}
+                // 화면 언어 자판·라벨 — 이름 칸과 같게(예전엔 고민·상대 이름 칸이 언어와 상관없이 한글 자판)
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
               />
             ) : (
               <div className="ksk-actions">
