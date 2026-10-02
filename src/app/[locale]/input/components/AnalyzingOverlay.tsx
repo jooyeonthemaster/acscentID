@@ -113,7 +113,7 @@ export function AnalyzingOverlay({ isVisible, userName, isComplete = false, onDo
                     >
                         <div className="bg-[var(--paper)] px-6 py-5 text-center">
                             <Image
-                                src="/images/logo/acscent-wordmark-cream.png"
+                                src="/images/logo/acscent-wordmark-ink.png"
                                 alt="AC'SCENT"
                                 width={2053}
                                 height={285}

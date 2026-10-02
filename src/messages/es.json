@@ -59,7 +59,10 @@
     "goHome": "Volver al inicio",
     "close": "Cerrar",
     "or": "o",
-    "continueAsGuest": "Continuar como invitado"
+    "continueAsGuest": "Continuar como invitado",
+    "pageLoginTitle": "Esta página requiere iniciar sesión",
+    "pageLoginDescription": "Al iniciar sesión volverás directamente a esta página.",
+    "checkingLogin": "Comprobando tu sesión"
   },
   "errors": {
     "generic": "Ocurrió un error",
@@ -224,7 +227,12 @@
     "limitedSale": "⏰ Venta limitada hasta {date}",
     "limitedBadge": "~{date} Limitado",
     "prevBanner": "Banner anterior",
-    "nextBanner": "Siguiente banner"
+    "nextBanner": "Siguiente banner",
+    "popup": {
+      "label": "Aviso de evento",
+      "close": "Cerrar",
+      "hideToday": "No mostrar hoy"
+    }
   },
   "programs": {
     "breadcrumbHome": "Inicio",
@@ -579,7 +587,14 @@
     "representative": "Principal",
     "thumbnailAria": "Ver imagen {index} de {alt}",
     "prevImage": "Imagen anterior",
-    "nextImage": "Imagen siguiente"
+    "nextImage": "Imagen siguiente",
+    "inactive": {
+      "title": "Este programa ya no está disponible",
+      "description": "Este programa no se puede usar ahora. Echa un vistazo a los otros programas disponibles.",
+      "backHome": "Volver al inicio",
+      "alternativesTitle": "También te puede interesar",
+      "metaTitlePrefix": "No disponible"
+    }
   },
   "input": {
     "customInput": "+ Escribir manualmente",
@@ -883,7 +898,9 @@
     "optionSaju10": "Perfume Saju 10ml",
     "optionSaju50": "Perfume Saju 50ml",
     "optionSajuClicker": "Llavero difusor clicker",
-    "sajuElementNote": "El grabado y la pegatina se hacen con el elemento recomendado por tu análisis"
+    "sajuElementNote": "El grabado y la pegatina se hacen con el elemento recomendado por tu análisis",
+    "decreaseQuantity": "Reducir cantidad",
+    "increaseQuantity": "Aumentar cantidad"
   },
   "checkoutComplete": {
     "title": "Pedido completado",
@@ -1249,7 +1266,9 @@
     "ratingLabel2": "Regular",
     "ratingLabel3": "Bastante bien",
     "ratingLabel4": "Bueno",
-    "ratingLabel5": "¡Excelente!"
+    "ratingLabel5": "¡Excelente!",
+    "leaveFirst": "Sé el primero en dejar una reseña",
+    "triggerLabel": "Valoración {rating}, ver {count} reseñas"
   },
   "coupon": {
     "unlimitedUse": "Uso ilimitado",
@@ -1991,7 +2010,25 @@
     "defaultTitle": "AC'SCENT IDENTITY - Servicio de recomendación de perfumes con IA",
     "defaultDescription": "Encuentra tu perfume personalizado con análisis de imagen IA. Perfume con análisis de imagen, difusor con figura 3D, perfume conmemorativo de graduación. Más de 10,000 análisis, 95% de satisfacción.",
     "ogTitle": "AC'SCENT IDENTITY - Servicio de recomendación de perfumes con IA",
-    "ogDescription": "Encuentra tu fragancia única con análisis de imagen. Perfume IA, difusor con figura, perfume conmemorativo de graduación."
+    "ogDescription": "Encuentra tu fragancia única con análisis de imagen. Perfume IA, difusor con figura, perfume conmemorativo de graduación.",
+    "pages": {
+      "products": {
+        "title": "Todos los productos",
+        "description": "Perfumes y tiras de prueba AC'SCENT que puedes elegir sin análisis. Elige un aroma y haz tu pedido al instante."
+      },
+      "reserve": {
+        "title": "Reserva de visita",
+        "description": "Reserva tu visita a la tienda AC'SCENT. Elige fecha y hora y crea tu propio aroma en persona."
+      },
+      "todayScent": {
+        "title": "Aroma del día",
+        "description": "Saca un aroma cada día y recibe como perfume el que combina con tu estado de ánimo."
+      },
+      "sample": {
+        "title": "Tira de prueba con análisis de imagen IA",
+        "description": "Un informe de recomendación de aromas y una tira de prueba que empiezan con una sola imagen. Prueba el aroma antes de comprar el perfume."
+      }
+    }
   },
   "about": {
     "brand": {
@@ -2769,7 +2806,13 @@
       "requestOnlyLabel": "Solicitud de ingrediente específico",
       "requestAddedToast": "La solicitud \"{note}\" se añadió a tu carrito",
       "addFailed": "No se pudo añadir al carrito",
-      "photoSectionTitle": "Fotos del producto"
+      "photoSectionTitle": "Fotos del producto",
+      "selectScentRequired": "Selecciona al menos un aroma",
+      "showAllScents": "Ver {count} aromas más",
+      "requestTitle": "Solicitud de fragancia específica",
+      "requestOptional": "Opcional",
+      "requestPlaceholder": "Ej.: ¡Quiero el aroma característico de mi artista favorito!",
+      "requestHelp": "Si tienes un aroma en mente, escríbelo. Puedes comprar sin completarlo."
     }
   },
   "saju": {
@@ -3550,5 +3593,12 @@
       "ctaHint": "Puedes comprar después de revisar ambos resultados y el tipo de química.",
       "relationStartCta": "Empezar con esta combinación"
     }
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La dirección puede ser incorrecta o la página se movió o eliminó.",
+    "backHome": "Volver al inicio",
+    "popularTitle": "Programas populares",
+    "metaTitle": "Página no encontrada"
   }
 }

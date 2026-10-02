@@ -118,7 +118,7 @@ export default function PersonalPage() {
         pagePositionStyle={pagePositionStyle}
         breadcrumbs={[
           { label: t('programs.breadcrumbHome'), href: "/" },
-          { label: t('programs.breadcrumbPrograms'), href: "/" },
+          { label: t('programs.breadcrumbPrograms'), href: "/#programs-section" },
           { label: productName },
         ]}
         images={{
@@ -131,14 +131,6 @@ export default function PersonalPage() {
           <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
             PREMIUM
           </span>
-        }
-        meta={
-          <div className="flex items-center gap-1.5">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} className="h-4 w-4 fill-[var(--ink)] text-[var(--ink)]" />
-            ))}
-            <span className="ml-1 text-xs lg:text-sm font-bold text-[var(--muted-ink)]">4.9 (2,847)</span>
-          </div>
         }
         price={
           <>
@@ -571,12 +563,13 @@ export default function PersonalPage() {
         desktop={
           <PersonalDesktop
             title={productName}
+            meta={null}
             imageAlt={productName}
             pageContent={pageContent}
             pagePositionStyle={pagePositionStyle}
             breadcrumbs={[
               { label: t('programs.breadcrumbHome'), href: "/" },
-              { label: t('programs.breadcrumbPrograms'), href: "/" },
+              { label: t('programs.breadcrumbPrograms'), href: "/#programs-section" },
               { label: productName },
             ]}
             images={{
@@ -589,14 +582,6 @@ export default function PersonalPage() {
               <span className="inline-flex min-h-11 items-center rounded-[4px] border border-[var(--line)] bg-[var(--soft)] px-5 text-sm lg:text-base font-black text-[var(--ink)]">
                 PREMIUM
               </span>
-            }
-            meta={
-              <div className="flex items-center gap-1.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-[var(--ink)] text-[var(--ink)]" />
-                ))}
-                <span className="ml-1 text-xs lg:text-sm font-bold text-[var(--muted-ink)]">4.9 (2,847)</span>
-              </div>
             }
             price={
               <>

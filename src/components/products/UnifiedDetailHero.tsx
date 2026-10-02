@@ -140,7 +140,7 @@ export function UnifiedDetailHero({
                     type="button"
                     onClick={prevImage}
                     aria-label={t('programs.prevImage')}
-                    className="absolute left-2.5 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#191918]/25 bg-white/90 transition-colors hover:bg-white"
+                    className="tap-target absolute left-2.5 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#191918]/25 bg-white/90 transition-colors hover:bg-white"
                   >
                     <ChevronLeft size={20} className="text-[var(--ink)]" />
                   </button>
@@ -148,7 +148,7 @@ export function UnifiedDetailHero({
                     type="button"
                     onClick={nextImage}
                     aria-label={t('programs.nextImage')}
-                    className="absolute right-2.5 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#191918]/25 bg-white/90 transition-colors hover:bg-white"
+                    className="tap-target absolute right-2.5 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#191918]/25 bg-white/90 transition-colors hover:bg-white"
                   >
                     <ChevronRight size={20} className="text-[var(--ink)]" />
                   </button>
@@ -198,7 +198,7 @@ export function UnifiedDetailHero({
               <span key={index} className="inline-flex items-center gap-1.5">
                 {index > 0 && <ChevronRight size={11} aria-hidden="true" />}
                 {item.href ? (
-                  <Link href={item.href} className="hover:text-[var(--ink)]">
+                  <Link href={item.href} className="tap-target hover:text-[var(--ink)]">
                     {item.label}
                   </Link>
                 ) : (
@@ -226,7 +226,7 @@ export function UnifiedDetailHero({
           <div className="mb-4">
             <h1 className={cn("mb-2 break-keep text-[28px] font-black leading-[1.2] text-[var(--ink)]", titleClassName)}>
               <span
-                className="inline-block"
+                className="inline-block max-w-full"
                 data-admin-editable="product_name"
                 data-admin-page-position-field="productName"
                 style={pagePositionStyle?.("productName")}
@@ -236,7 +236,7 @@ export function UnifiedDetailHero({
             </h1>
             <p className="max-w-[500px] break-keep text-[15px] leading-[1.65] text-[var(--muted-ink)]">
               <span
-                className="inline-block whitespace-pre-line"
+                className="inline-block max-w-full whitespace-pre-line"
                 data-admin-page-field="subtitle"
                 data-admin-page-position-field="subtitle"
                 style={pagePositionStyle?.("subtitle")}

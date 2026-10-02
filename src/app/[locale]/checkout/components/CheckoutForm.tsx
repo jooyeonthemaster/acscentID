@@ -355,7 +355,7 @@ export function CheckoutForm({ formData, setFormData }: CheckoutFormProps) {
                 setManualAddressMode((prev) => !prev)
                 setPostcodeNotice("")
               }}
-              className="shrink-0 text-[11px] lg:text-[13px] font-black text-[var(--ink)] underline underline-offset-2"
+              className="tap-target shrink-0 text-[11px] lg:text-[13px] font-black text-[var(--ink)] underline underline-offset-2"
             >
               {manualAddressMode ? t('checkout.useAddressSearch') : t('checkout.enterAddressManually')}
             </button>

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Sparkles, Check, Square, CheckSquare, Beaker, X, Droplets, Clock } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import type { CartItem, ProductType } from '@/types/cart'
-import { PRODUCT_TYPE_BADGES, formatPrice, calculateCartTotals, isSajuClickerSize } from '@/types/cart'
+import { PRODUCT_TYPE_BADGES, calculateCartTotals, isSajuClickerSize } from '@/types/cart'
 import { useProductPricing } from '@/hooks/useProductPricing'
 import { useActivePromotions, calculateShippingWithPromotion, useShippingPolicy } from '@/hooks/usePromotions'
 import { PerfumeNotes } from '@/app/[locale]/result/components/PerfumeNotes'
@@ -15,6 +15,7 @@ import { PerfumePersona } from '@/types/analysis'
 import { useLocalizedPerfumes } from '@/hooks/useLocalizedPerfumes'
 import { getEffectiveProductType } from '@/lib/products/store-products'
 import { emitCartChanged } from '@/lib/cart-events'
+import { Krw } from "@/components/ui/krw"
 
 interface CartListProps {
   viewMode: 'grid' | 'list'
@@ -414,7 +415,7 @@ export function CartList({ viewMode }: CartListProps) {
                     >
                       {getOptions(effectiveProductType).map(option => (
                         <option key={option.size} value={option.size}>
-                          {isSajuClickerSize(option.size) ? tCheckout('optionSajuClicker') : option.label} - {formatPrice(option.price)}{tCurrency('suffix')}
+                          {isSajuClickerSize(option.size) ? tCheckout('optionSajuClicker') : option.label} - <Krw amount={option.price} />
                         </option>
                       ))}
                     </select>
@@ -443,7 +444,7 @@ export function CartList({ viewMode }: CartListProps) {
                 </button>
               </div>
               <span className="font-black text-lg text-[var(--ink)]">
-                {formatPrice(item.price * item.quantity)}{tCurrency('suffix')}
+                <Krw amount={item.price * item.quantity} />
               </span>
             </div>
           </motion.div>
@@ -456,7 +457,7 @@ export function CartList({ viewMode }: CartListProps) {
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm lg:text-base">
             <span className="text-[var(--ink)]">{t('productAmount')}</span>
-            <span className="font-bold text-[var(--ink)]">{formatPrice(totals.subtotal)}{tCurrency('suffix')}</span>
+            <span className="font-bold text-[var(--ink)]"><Krw amount={totals.subtotal} /></span>
           </div>
           <div className="flex justify-between text-sm lg:text-base">
             <span className="flex items-center gap-1.5 text-[var(--ink)]">
@@ -468,13 +469,13 @@ export function CartList({ viewMode }: CartListProps) {
             <span className="font-bold text-[var(--ink)]">
               {shippingResult.isFreeByPromotion ? (
                 <span className="flex items-center gap-1.5">
-                  <span className="line-through text-[var(--muted-ink)]">{formatPrice(shippingResult.originalFee)}{tCurrency('suffix')}</span>
-                  <span className="text-[var(--ink)] font-black">0{tCurrency('suffix')}</span>
+                  <span className="line-through text-[var(--muted-ink)]"><Krw amount={shippingResult.originalFee} /></span>
+                  <span className="text-[var(--ink)] font-black"><Krw amount={0} /></span>
                 </span>
               ) : totals.shippingFee === 0 ? (
                 tCurrency('free')
               ) : (
-                `${formatPrice(totals.shippingFee)}${tCurrency('suffix')}`
+                <Krw amount={totals.shippingFee} />
               )}
             </span>
           </div>
@@ -495,7 +496,7 @@ export function CartList({ viewMode }: CartListProps) {
               }
             </p>
             <p className="text-2xl font-black text-[var(--ink)]">
-              {formatPrice(totals.total)}{tCurrency('suffix')}
+              <Krw amount={totals.total} />
             </p>
           </div>
           <button

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { createMetadata } from '@/lib/seo/metadata'
+import { isProgramEnabledServer } from '@/lib/programs/availability'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productSchema, breadcrumbSchema } from '@/lib/seo/schemas'
 import { getServerOption } from '@/lib/products/pricing'
@@ -14,10 +16,15 @@ interface ProgramLayoutProps {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = resolveProgramLocale((await params).locale)
   const seo = getProgramSeo('graduation', locale)
+  const enabled = await isProgramEnabledServer('graduation')
+  const tInactive = await getTranslations({ locale, namespace: 'programs.inactive' })
+  const title = enabled ? seo.title : `${tInactive('metaTitlePrefix')} · ${seo.title}`
   const path = getLocalizedProgramPath('graduation', locale)
 
   return createMetadata({
-    title: seo.title,
+    title,
+    // 판매중지 프로그램은 검색 노출에서 제외
+    noIndex: !enabled,
     description: seo.description,
     path,
     keywords: seo.keywords,
@@ -56,8 +63,6 @@ export default async function GraduationLayout({ children, params }: ProgramLayo
     availability: opt?.is_active === false ? 'SoldOut' : 'LimitedAvailability',
     validThrough: '2026-02-28',
     sku: 'ACSCENT-GRADUATION',
-    ratingValue: 4.9,
-    reviewCount: 60,
   })
 
   return (

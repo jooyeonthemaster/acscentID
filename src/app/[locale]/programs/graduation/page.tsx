@@ -132,7 +132,7 @@ export default function GraduationPage() {
         meta={
           <div className="flex flex-wrap items-center gap-2">
             <ReviewTrigger
-              averageRating={reviewStats?.average_rating || 4.9}
+              averageRating={reviewStats?.average_rating ?? 0}
               totalCount={reviewStats?.total_count || 0}
               onClick={() => setShowReviewModal(true)}
             />
@@ -425,7 +425,7 @@ export default function GraduationPage() {
             meta={
               <div className="flex flex-wrap items-center gap-2">
                 <ReviewTrigger
-                  averageRating={reviewStats?.average_rating || 4.9}
+                  averageRating={reviewStats?.average_rating ?? 0}
                   totalCount={reviewStats?.total_count || 0}
                   onClick={() => setShowReviewModal(true)}
                 />

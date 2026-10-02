@@ -18,7 +18,8 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
+import type { Locale } from "@/i18n/config"
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { CustomDetailRenderer } from "@/components/programs/CustomDetailRenderer"
@@ -28,13 +29,14 @@ import { DesktopDetailHero } from "@/components/desktop/DesktopDetailHero"
 import { EvidenceMediaGrid } from "@/components/public/EvidenceMediaGrid"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/components/ui/toast"
 import { useProductPricing, type PricingRow } from "@/hooks/useProductPricing"
 import { useProductDetail } from "@/hooks/useProductDetail"
 import { useProductImages } from "@/hooks/useAdminContent"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
-import { formatPrice, type AddToCartRequest, type CartItem } from "@/types/cart"
-import { TODAY_SCENTS, getScentById } from "@/lib/today-scent/scents"
+import { type AddToCartRequest, type CartItem } from "@/types/cart"
+import { TODAY_SCENTS, getScentById, localizeTodayScent } from "@/lib/today-scent/scents"
 import {
   STORE_PRODUCT_IMAGE,
   STORE_PRODUCT_TYPE,
@@ -46,6 +48,7 @@ import { CURATED_GALLERIES, mergeCuratedWithAdmin, type MergedGalleryImage } fro
 import { extractProductPageContentWithFallback, type ProductPagePositionField } from "@/lib/products/page-content"
 import { setMobileOverlayOpen } from "@/lib/mobile-overlay"
 import { emitCartChanged } from "@/lib/cart-events"
+import { Krw } from "@/components/ui/krw"
 
 type SelectedScentQuantities = Record<string, number>
 
@@ -74,6 +77,9 @@ function parseSelectedScentQuantities(scentParam: string | null, scentsParam: st
   const scent = scentParam ? getScentById(scentParam) : null
   return scent ? { [scent.id]: 1 } : {}
 }
+
+// 향 목록은 처음 8개만 보여주고 '더 보기'로 펼친다 (검색 중에는 전체)
+const INITIAL_SCENT_COUNT = 8
 
 function ProductNotFound() {
   const t = useTranslations()
@@ -212,6 +218,7 @@ function ProductDetailInner({
 }) {
   const t = useTranslations()
   const storeText = useStoreProductText()
+  const locale = useLocale() as Locale
   const localized = storeText(product)
   const requestOnlyLabel = t('store.detail.requestOnlyLabel')
   const price = priceOption?.price ?? product.fallbackPrice
@@ -222,6 +229,9 @@ function ProductDetailInner({
   const purchasePath = `/checkout?product=store-multi&type=${STORE_PRODUCT_TYPE}&item=${product.slug}`
   const [authRedirectPath, setAuthRedirectPath] = useState<string | undefined>(undefined)
   const scentSectionRef = useRef<HTMLElement>(null)
+  const { showToast } = useToast()
+  const [scentError, setScentError] = useState(false)
+  const [showAllScents, setShowAllScents] = useState(false)
   // 구매 CTA로 향 선택 섹션으로 스크롤할 때 "여기서 고르세요" 글로우 힌트
   const [scentGlow, setScentGlow] = useState(false)
   const scentGlowTimerRef = useRef<number | null>(null)
@@ -297,17 +307,18 @@ function ProductDetailInner({
     const normalized = query.trim().toLowerCase()
     if (!normalized) return TODAY_SCENTS
     return TODAY_SCENTS.filter((scent) => {
-      return [
-        scent.name,
-        scent.perfumeId,
-        scent.vibe,
-        scent.notes.top,
-        scent.notes.mid,
-        scent.notes.base,
-        ...scent.keywords,
-      ].some((value) => value.toLowerCase().includes(normalized))
+      const shown = localizeTodayScent(scent, locale)
+      return [scent, shown].some((s) => [
+        s.name,
+        s.perfumeId,
+        s.vibe,
+        s.notes.top,
+        s.notes.mid,
+        s.notes.base,
+        ...s.keywords,
+      ].some((value) => value.toLowerCase().includes(normalized)))
     })
-  }, [query])
+  }, [query, locale])
 
   const selectedItems = useMemo(() => {
     return TODAY_SCENTS
@@ -322,6 +333,7 @@ function ProductDetailInner({
   const selectedTotalQuantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0)
   const selectedTotalPrice = price * selectedTotalQuantity
   const canTryScentPaperFirst = product.slug !== SCENT_PAPER_PRODUCT_SLUG
+  const scentErrorVisible = scentError && selectedItems.length === 0 && !fragranceRequestNote.trim()
 
   const setScentQuantity = (scentId: string, quantity: number) => {
     setSelectedQuantities((prev) => {
@@ -342,7 +354,9 @@ function ProductDetailInner({
   const requireSelectedItems = () => {
     if (selectedItems.length > 0) return selectedItems
     if (trimmedRequestNote) return [] // 요청 메모만으로 구매 진행
-    // 향 미선택 상태로 구매를 시도하면 향 선택 섹션으로 스크롤하고 글로우 힌트를 준다
+    // 향 미선택 상태로 구매를 시도하면 향 선택 섹션으로 스크롤하고, 이유를 문구로도 알린다
+    setScentError(true)
+    showToast(t('store.detail.selectScentRequired'), 'error')
     scrollToScentSelection()
     return null
   }
@@ -549,10 +563,10 @@ function ProductDetailInner({
         data-admin-page-position-field="price"
         style={pagePositionStyle("price")}
       >
-        <span className="text-2xl font-black text-[var(--ink)]">{formatPrice(price)}{t('currency.suffix')}</span>
+        <span className="text-2xl font-black text-[var(--ink)]"><Krw amount={price} /></span>
         {originalPrice && originalPrice > price && (
           <>
-            <span className="text-sm text-[var(--muted-ink)] line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
+            <span className="text-sm text-[var(--muted-ink)] line-through"><Krw amount={originalPrice} /></span>
             {discount !== null && (
               <span className="rounded-[3px] bg-[var(--accent-chem)] px-1.5 py-0.5 text-[10px] font-black text-white">{discount}% OFF</span>
             )}
@@ -644,117 +658,125 @@ function ProductDetailInner({
               />
             </div>
 
-            <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-              {filteredScents.map((scent) => {
+            {scentErrorVisible && (
+              <p role="alert" className="mb-3 rounded-[4px] border border-[var(--ink)] bg-[var(--soft)] px-3 py-2 text-xs font-extrabold text-[var(--ink)]">
+                {t('store.detail.selectScentRequired')}
+              </p>
+            )}
+
+            {/* 페이지 안의 별도 스크롤 박스는 모바일에서 스크롤이 갇히므로 펼쳐 보여주고, 길면 '더 보기'로 접는다 */}
+            <ul className="space-y-2">
+              {(showAllScents || query.trim() ? filteredScents : filteredScents.slice(0, INITIAL_SCENT_COUNT)).map((scent) => {
                 const quantity = selectedQuantities[scent.id] || 0
                 const active = quantity > 0
+                const shown = localizeTodayScent(scent, locale)
                 return (
-                  <div
+                  <li
                     key={scent.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setScentQuantity(scent.id, active ? 0 : 1)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault()
-                        setScentQuantity(scent.id, active ? 0 : 1)
-                      }
-                    }}
-                    className={`w-full cursor-pointer select-none rounded-[5px] border p-3 text-left transition-colors ${
+                    className={`rounded-[5px] border transition-colors ${
                       active
                         ? "border-[var(--ink)] bg-[var(--soft)] shadow-[inset_0_0_0_1px_var(--ink)]"
                         : "border-[var(--line)] bg-white hover:border-[var(--ink)]"
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setScentQuantity(scent.id, active ? 0 : 1)}
+                      className="flex w-full select-none items-start gap-3 p-3 text-left"
+                    >
                       <span
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-[var(--line)] text-lg"
                         style={{ backgroundColor: scent.theme.bg }}
+                        aria-hidden
                       >
                         {scent.emoji}
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div>
-                            <p className="text-sm font-extrabold text-[var(--ink)]">{scent.name}</p>
-                            <p className="text-[11px] font-bold text-[var(--muted-ink)]">{scent.perfumeId}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setScentQuantity(scent.id, active ? 0 : 1)
-                            }}
-                            className={`min-h-8 shrink-0 rounded-[4px] px-3 text-[11px] font-extrabold transition-colors ${
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center justify-between gap-2">
+                          <span>
+                            <span className="block text-sm font-extrabold text-[var(--ink)]">{shown.name}</span>
+                            <span className="block text-[11px] font-bold text-[var(--muted-ink)]">{scent.perfumeId}</span>
+                          </span>
+                          {/* 상태 표시 (버튼 안의 버튼이 되지 않도록 시각 요소만) */}
+                          <span
+                            aria-hidden
+                            className={`inline-flex min-h-8 shrink-0 items-center rounded-[4px] px-3 text-[11px] font-extrabold transition-colors ${
                               active
                                 ? "bg-[var(--ink)] text-white"
-                                : "border border-[var(--line)] bg-white text-[var(--muted-ink)] hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                                : "border border-[var(--line)] bg-white text-[var(--muted-ink)]"
                             }`}
                           >
                             {active ? t('store.detail.selected') : t('store.detail.select')}
-                          </button>
-                        </div>
-                        <p className="mt-1 line-clamp-2 break-keep text-xs leading-relaxed text-[var(--muted-ink)]">{scent.vibe}</p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {[scent.notes.top, scent.notes.mid, scent.notes.base].map((note) => (
+                          </span>
+                        </span>
+                        <span className="mt-1 line-clamp-2 break-keep text-xs leading-relaxed text-[var(--muted-ink)]">{shown.vibe}</span>
+                        <span className="mt-2 flex flex-wrap gap-1">
+                          {[shown.notes.top, shown.notes.mid, shown.notes.base].map((note) => (
                             <span key={note} className={`rounded-[3px] px-2 py-0.5 text-[10px] font-bold text-[var(--muted-ink)] ${active ? "bg-white" : "bg-[var(--soft)]"}`}>
                               {note}
                             </span>
                           ))}
-                        </div>
-                        {active && (
-                          <div
-                            className="mt-3 flex items-center justify-between rounded-[4px] border border-[var(--line)] bg-white px-2 py-2"
-                            onClick={(event) => event.stopPropagation()}
+                        </span>
+                      </span>
+                    </button>
+                    {active && (
+                      <div className="mx-3 mb-3 flex items-center justify-between rounded-[4px] border border-[var(--line)] bg-white px-2 py-2">
+                        <span className="text-xs font-extrabold text-[var(--muted-ink)]">{t('store.detail.quantity')}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setScentQuantity(scent.id, quantity - 1)}
+                            className="flex h-11 w-11 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
+                            aria-label={t('store.detail.decreaseQtyAria', { name: shown.name })}
                           >
-                            <span className="text-xs font-extrabold text-[var(--muted-ink)]">{t('store.detail.quantity')}</span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setScentQuantity(scent.id, quantity - 1)}
-                                className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
-                                aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
-                              >
-                                <Minus size={14} />
-                              </button>
-                              <span className="w-8 text-center text-sm font-extrabold text-[var(--ink)]">{quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => setScentQuantity(scent.id, quantity + 1)}
-                                disabled={quantity >= MAX_SCENT_QUANTITY}
-                                className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
-                                aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-8 text-center text-sm font-extrabold text-[var(--ink)]">{quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => setScentQuantity(scent.id, quantity + 1)}
+                            disabled={quantity >= MAX_SCENT_QUANTITY}
+                            className="flex h-11 w-11 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
+                            aria-label={t('store.detail.increaseQtyAria', { name: shown.name })}
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    )}
+                  </li>
                 )
               })}
-            </div>
+            </ul>
+            {!showAllScents && !query.trim() && filteredScents.length > INITIAL_SCENT_COUNT && (
+              <button
+                type="button"
+                onClick={() => setShowAllScents(true)}
+                className="mt-3 flex min-h-11 w-full items-center justify-center gap-1 rounded-[4px] border border-[var(--line)] bg-white text-sm font-extrabold text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
+              >
+                {t('store.detail.showAllScents', { count: filteredScents.length - INITIAL_SCENT_COUNT })}
+              </button>
+            )}
           </section>
 
           {/* 특정 향료 요청 (선택) — 향 선택 단계의 주관식 입력. 비워도 구매 가능. */}
           <section className="mb-4 rounded-[6px] border border-[var(--line)] bg-white p-4">
             <div className="mb-2 flex items-center gap-2">
               <PenLine size={16} className="text-[var(--ink)]" />
-              <h2 className="text-sm font-extrabold text-[var(--ink)]">특정 향료 요청</h2>
-              <span className="rounded-[3px] bg-[var(--soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--muted-ink)]">선택</span>
+              <h2 className="text-sm font-extrabold text-[var(--ink)]">{t('store.detail.requestTitle')}</h2>
+              <span className="rounded-[3px] bg-[var(--soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--muted-ink)]">{t('store.detail.requestOptional')}</span>
             </div>
             <textarea
               value={fragranceRequestNote}
               onChange={(event) => setFragranceRequestNote(event.target.value)}
               maxLength={200}
               rows={2}
-              placeholder="예: 하현상 시그니처 향으로 주세요!"
+              placeholder={t('store.detail.requestPlaceholder')}
               className="w-full resize-none rounded-[4px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted-ink)] focus:border-[var(--ink)]"
             />
             <p className="mt-1.5 break-keep text-[11px] text-[var(--muted-ink)]">
-              원하는 향이 따로 있으면 적어주세요. 작성하지 않아도 구매할 수 있어요.
+              {t('store.detail.requestHelp')}
             </p>
           </section>
 
@@ -780,19 +802,19 @@ function ProductDetailInner({
                         {scent.emoji}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-extrabold text-[var(--ink)]">{scent.name}</p>
+                        <p className="truncate text-sm font-extrabold text-[var(--ink)]">{localizeTodayScent(scent, locale).name}</p>
                         <p className="text-[11px] font-bold text-[var(--muted-ink)]">
-                          {localized.shortLabel} · {formatPrice(price)}{t('currency.suffix')} × {quantity}
+                          {localized.shortLabel} · <Krw amount={price} /> × {quantity}
                         </p>
                       </div>
-                      <span className="text-sm font-extrabold text-[var(--ink)]">{formatPrice(price * quantity)}{t('currency.suffix')}</span>
+                      <span className="text-sm font-extrabold text-[var(--ink)]"><Krw amount={price * quantity} /></span>
                     </div>
                     <div className="mt-3 flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => setScentQuantity(scent.id, quantity - 1)}
                         className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
-                        aria-label={t('store.detail.decreaseQtyAria', { name: scent.name })}
+                        aria-label={t('store.detail.decreaseQtyAria', { name: localizeTodayScent(scent, locale).name })}
                       >
                         <Minus size={14} />
                       </button>
@@ -802,7 +824,7 @@ function ProductDetailInner({
                         onClick={() => setScentQuantity(scent.id, quantity + 1)}
                         disabled={quantity >= MAX_SCENT_QUANTITY}
                         className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-[var(--ink)] transition-colors hover:border-[var(--ink)] disabled:opacity-40"
-                        aria-label={t('store.detail.increaseQtyAria', { name: scent.name })}
+                        aria-label={t('store.detail.increaseQtyAria', { name: localizeTodayScent(scent, locale).name })}
                       >
                         <Plus size={14} />
                       </button>
@@ -819,7 +841,7 @@ function ProductDetailInner({
               </div>
               <div className="mt-3 flex items-center justify-between border-t border-[var(--line)] px-1 pt-3 text-[var(--ink)]">
                 <span className="text-xs font-extrabold text-[var(--muted-ink)]">{t('store.detail.totalAmount')}</span>
-                <span className="text-base font-black">{formatPrice(selectedTotalPrice)}{t('currency.suffix')}</span>
+                <span className="text-base font-black"><Krw amount={selectedTotalPrice} /></span>
               </div>
             </section>
           ) : (
@@ -858,13 +880,13 @@ function ProductDetailInner({
             <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(160px,0.8fr)] items-center gap-3">
               <div className="min-w-0">
                 <div className="truncate text-lg font-black leading-tight text-[var(--ink)]">
-                  {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}{t('currency.suffix')}
+                  <Krw amount={selectedTotalQuantity > 0 ? selectedTotalPrice : price} />
                 </div>
                 <div className="mt-0.5 truncate text-[11px] font-bold text-[var(--muted-ink)]">
                   {selectedTotalQuantity > 0
                     ? t('store.detail.summaryShort', { count: selectedScentCount, qty: selectedTotalQuantity, label: localized.shortLabel })
                     : trimmedRequestNote
-                      ? `특정 향료 요청 · ${localized.shortLabel}`
+                      ? `${requestOnlyLabel} · ${localized.shortLabel}`
                       : t('store.detail.notSelectedShort', { label: localized.shortLabel })}
                 </div>
               </div>
@@ -889,26 +911,18 @@ function ProductDetailInner({
       )}
 
       {!desktopFrame && !showLoginPrompt && !showAuthModal && (
+        // 1줄(가격 + 장바구니 + 구매) — '시향지로 먼저 받아보기'는 히어로의 보조 CTA로만 노출
         <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[455px] -translate-x-1/2 border-t border-[var(--line)] bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
-          {canTryScentPaperFirst && (
-            <button
-              type="button"
-              onClick={handleTryScentPaperFirst}
-              className="mb-2 flex h-10 w-full items-center justify-center rounded-[4px] border border-[var(--line)] bg-white text-xs font-extrabold text-[var(--ink)] transition-colors"
-            >
-              {t('store.detail.tryPaperFirstBottom')}
-            </button>
-          )}
           <div className="grid grid-cols-[minmax(0,1fr)_52px_minmax(112px,1.1fr)] items-center gap-2">
             <div className="min-w-0">
               <div className="truncate text-[15px] font-black leading-tight text-[var(--ink)]">
-                {formatPrice(selectedTotalQuantity > 0 ? selectedTotalPrice : price)}{t('currency.suffix')}
+                <Krw amount={selectedTotalQuantity > 0 ? selectedTotalPrice : price} />
               </div>
               <div className="mt-0.5 truncate text-[10px] font-bold text-[var(--muted-ink)]">
                 {selectedTotalQuantity > 0
                   ? t('store.detail.summaryShort', { count: selectedScentCount, qty: selectedTotalQuantity, label: localized.shortLabel })
                   : trimmedRequestNote
-                    ? `특정 향료 요청 · ${localized.shortLabel}`
+                    ? `${requestOnlyLabel} · ${localized.shortLabel}`
                     : t('store.detail.notSelectedShort', { label: localized.shortLabel })}
               </div>
             </div>
@@ -930,7 +944,7 @@ function ProductDetailInner({
           </div>
         </div>
       )}
-      {!desktopFrame && <div className="h-28" />}
+      {!desktopFrame && <div className="h-20" />}
 
       <AnimatePresence>
         {showLoginPrompt && (

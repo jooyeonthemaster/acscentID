@@ -9,6 +9,16 @@ import { isFocusedExperiencePath } from '@/lib/route-visibility'
 import { subscribeMobileOverlayChange } from '@/lib/mobile-overlay'
 
 const STORAGE_KEY = 'acscent-cookie-consent'
+export const COOKIE_CONSENT_CHANGED_EVENT = 'cookie-consent-changed'
+
+/** 쿠키 동의/거부를 이미 선택했는지. 저장소 접근이 막힌 환경은 선택한 것으로 본다 (팝업이 영영 안 뜨지 않도록). */
+export function hasCookieConsentDecision(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null
+  } catch {
+    return true
+  }
+}
 
 export function CookieConsentBanner() {
   const t = useTranslations('cookieConsent')
@@ -50,13 +60,13 @@ export function CookieConsentBanner() {
 
   const handleAccept = () => {
     localStorage.setItem(STORAGE_KEY, 'accepted')
-    window.dispatchEvent(new Event('cookie-consent-changed'))
+    window.dispatchEvent(new Event(COOKIE_CONSENT_CHANGED_EVENT))
     setVisible(false)
   }
 
   const handleReject = () => {
     localStorage.setItem(STORAGE_KEY, 'rejected')
-    window.dispatchEvent(new Event('cookie-consent-changed'))
+    window.dispatchEvent(new Event(COOKIE_CONSENT_CHANGED_EVENT))
     setVisible(false)
   }
 

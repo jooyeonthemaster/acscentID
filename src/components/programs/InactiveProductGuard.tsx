@@ -1,8 +1,15 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { PackageX } from 'lucide-react'
+import { Link } from '@/i18n/routing'
 import { useActiveProducts } from '@/hooks/useAdminContent'
-import { useRouter } from '@/i18n/routing'
-import { AlertTriangle } from 'lucide-react'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
+import { ProgramSuggestions } from '@/components/programs/ProgramSuggestions'
+import { hasOwnBottomBar } from '@/lib/route-visibility'
 
 interface InactiveProductGuardProps {
   productSlug: string
@@ -11,7 +18,6 @@ interface InactiveProductGuardProps {
 
 export function InactiveProductGuard({ productSlug, children }: InactiveProductGuardProps) {
   const { isProductActive, loading } = useActiveProducts()
-  const router = useRouter()
   const isAdminPreview =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('adminPreview') === '1'
@@ -22,30 +28,47 @@ export function InactiveProductGuard({ productSlug, children }: InactiveProductG
   // 관리자 상품 편집 미리보기에서는 비활성 상품도 그대로 편집 가능해야 합니다.
   if (isAdminPreview) return <>{children}</>
 
-  // 비활성 상품이면 안내 메시지 표시
   if (!isProductActive(productSlug)) {
-    return (
-      <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center p-4">
-        <div className="bg-white rounded-[6px] border border-[var(--line)] p-8 max-w-sm w-full text-center">
-          <div className="w-16 h-16 bg-[var(--soft)] rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-8 h-8 text-[var(--muted-ink)]" />
-          </div>
-          <h2 className="text-xl font-bold text-[var(--ink)] mb-2">
-            현재 이용할 수 없는 상품입니다
-          </h2>
-          <p className="text-sm lg:text-base text-[var(--muted-ink)] mb-6">
-            이 프로그램은 현재 준비 중이거나 일시적으로 중단되었습니다.
-          </p>
-          <button
-            onClick={() => router.push('/')}
-            className="w-full py-3 bg-[var(--ink)] text-white font-bold rounded-[5px] hover:bg-black transition-colors"
-          >
-            홈으로 돌아가기
-          </button>
-        </div>
-      </div>
-    )
+    return <InactiveProductNotice productSlug={productSlug} />
   }
 
   return <>{children}</>
+}
+
+function InactiveProductNotice({ productSlug }: { productSlug: string }) {
+  const t = useTranslations()
+  const pathname = usePathname()
+  // 자체 구매바 페이지(le-quack 등)는 전역 푸터·하단 탭을 숨기므로, 안내 화면에서는 직접 붙인다
+  const needsShellChrome = hasOwnBottomBar(pathname)
+
+  return (
+    <>
+      <Header />
+      <section className="bg-[var(--canvas)] px-4 pb-16 pt-28 lg:pt-16">
+        <div className="mx-auto w-full max-w-[455px] lg:max-w-[720px]">
+          <div className="rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--soft)]">
+              <PackageX className="h-7 w-7 text-[var(--muted-ink)]" aria-hidden />
+            </div>
+            <h1 className="mb-2 text-xl font-black text-[var(--ink)]">{t('programs.inactive.title')}</h1>
+            <p className="text-sm lg:text-base text-[var(--muted-ink)]">{t('programs.inactive.description')}</p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-[5px] bg-[var(--ink)] px-5 text-base font-bold text-white transition-colors hover:bg-black"
+            >
+              {t('programs.inactive.backHome')}
+            </Link>
+          </div>
+
+          <ProgramSuggestions title={t('programs.inactive.alternativesTitle')} excludeSlug={productSlug} />
+        </div>
+      </section>
+      {needsShellChrome && (
+        <>
+          <Footer ignoreOwnBottomBar />
+          <MobileBottomNav ignoreOwnBottomBar />
+        </>
+      )}
+    </>
+  )
 }

@@ -4,11 +4,12 @@ import { motion } from "framer-motion"
 import { Package, Star, Sparkles, Check, Palette, GraduationCap, Bird, Plus, Minus, Heart, Gift, ShoppingBag } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import type { ProductType } from "@/types/cart"
-import { FREE_SHIPPING_THRESHOLD, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
+import { FREE_SHIPPING_THRESHOLD, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
 import type { SajuElement } from "@/types/analysis"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useShippingPolicy } from "@/hooks/usePromotions"
 import { SajuClickerElementBadge } from "@/components/saju"
+import { Krw } from "@/components/ui/krw"
 
 // 가격 옵션은 admin_product_pricing(DB) 기반이라 동적. selectedSize 는 임의 옵션 코드 허용.
 interface OrderSummaryProps {
@@ -171,13 +172,13 @@ export function OrderSummary({
           <p className="text-xl font-black text-[var(--ink)]">
             {quantity > 1 ? (
               <>
-                {(price * quantity).toLocaleString()}{t('currency.suffix')}
+                <Krw amount={(price * quantity)} />
                 <span className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold ml-1">
-                  ({price.toLocaleString()}{t('currency.suffix')} × {quantity})
+                  (<Krw amount={price} /> × {quantity})
                 </span>
               </>
             ) : (
-              <>{price.toLocaleString()}{t('currency.suffix')}</>
+              <><Krw amount={price} /></>
             )}
           </p>
 
@@ -263,10 +264,10 @@ export function OrderSummary({
                       <p className="font-black text-[var(--ink)] text-lg truncate">{optionLabel}</p>
                     </div>
                     <div className="flex items-end gap-2 shrink-0">
-                      <p className="text-xl font-black text-[var(--ink)]">{formatPrice(option.price)}{t('currency.suffix')}</p>
+                      <p className="text-xl font-black text-[var(--ink)]"><Krw amount={option.price} /></p>
                       {option.original_price && option.original_price > option.price && (
                         <>
-                          <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">{formatPrice(option.original_price)}{t('currency.suffix')}</span>
+                          <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through"><Krw amount={option.original_price} /></span>
                           {discount !== null && (
                             <span className="px-1.5 py-0.5 bg-[var(--soft)] text-[var(--ink)] text-[9px] font-black rounded-[6px]">{discount}% OFF</span>
                           )}
@@ -317,11 +318,11 @@ export function OrderSummary({
                     <div>
                       <p className="text-[15px] font-black leading-tight text-[var(--ink)]">{optionLabel}</p>
                       <p className="mt-0.5 text-sm lg:text-base font-black leading-tight text-[var(--ink)]">
-                        {formatPrice(option.price)}{t('currency.suffix')}
+                        <Krw amount={option.price} />
                       </p>
                       {option.original_price && option.original_price > option.price ? (
                         <span className="mt-1 block text-[10px] lg:text-[12px] leading-none text-[var(--muted-ink)] line-through">
-                          {formatPrice(option.original_price)}{t('currency.suffix')}
+                          <Krw amount={option.original_price} />
                         </span>
                       ) : (
                         <span aria-hidden className="mt-1 block h-[10px]" />
@@ -354,6 +355,7 @@ export function OrderSummary({
           <div className="flex items-center bg-[var(--paper)] rounded-[6px] border border-[var(--line)]">
             <button
               onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
+              aria-label={t('checkout.decreaseQuantity')}
               className="w-10 h-10 flex items-center justify-center text-[var(--muted-ink)] hover:text-[var(--muted-ink)] transition-colors disabled:opacity-30"
               disabled={quantity <= 1}
             >
@@ -362,6 +364,7 @@ export function OrderSummary({
             <span className="w-10 text-center font-black text-lg text-[var(--ink)]">{quantity}</span>
             <button
               onClick={() => onQuantityChange(Math.min(10, quantity + 1))}
+              aria-label={t('checkout.increaseQuantity')}
               className="w-10 h-10 flex items-center justify-center text-[var(--muted-ink)] hover:text-[var(--muted-ink)] transition-colors disabled:opacity-30"
               disabled={quantity >= 10}
             >
@@ -369,7 +372,7 @@ export function OrderSummary({
             </button>
           </div>
           <span className="font-black text-xl text-[var(--ink)]">
-            {(price * quantity).toLocaleString()}{t('currency.suffix')}
+            <Krw amount={(price * quantity)} />
           </span>
         </div>
         {isRepurchaser === true && (

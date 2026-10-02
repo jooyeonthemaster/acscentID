@@ -9,10 +9,10 @@ import { Header } from "@/components/layout/Header"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
-import { formatPrice } from "@/types/cart"
 import { STORE_PRODUCT_TYPE } from "@/lib/products/store-products"
 import { ViewportSwitch } from "@/components/desktop/ViewportSwitch"
 import { ProductsDesktop } from "./_desktop/ProductsDesktop"
+import { Krw } from "@/components/ui/krw"
 
 export default function ProductsPage() {
   const t = useTranslations()
@@ -90,9 +90,9 @@ export default function ProductsPage() {
                         {localized.description}
                       </p>
                       <div className="mt-3 flex items-end gap-2">
-                        <span className="text-base font-extrabold text-[var(--ink)]">{formatPrice(price)}{t('currency.suffix')}</span>
+                        <span className="text-base font-extrabold text-[var(--ink)]"><Krw amount={price} /></span>
                         {originalPrice && originalPrice > price && (
-                          <span className="text-xs text-[var(--muted-ink)] line-through">{formatPrice(originalPrice)}{t('currency.suffix')}</span>
+                          <span className="text-xs text-[var(--muted-ink)] line-through"><Krw amount={originalPrice} /></span>
                         )}
                       </div>
                     </div>

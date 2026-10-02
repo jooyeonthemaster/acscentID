@@ -5,12 +5,13 @@ import { Package, Star, Minus, Plus, Trash2, Check, Gift } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { useShippingPolicy } from '@/hooks/usePromotions'
 import type { CartItem, ProductType } from "@/types/cart"
-import { PRODUCT_TYPE_BADGES, formatPrice, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
+import { PRODUCT_TYPE_BADGES, isScentPaperSize, isSajuClickerSize } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
 import { getEffectiveProductType } from "@/lib/products/store-products"
 import { getSajuYongsinElement } from "@/lib/saju"
 import { SajuClickerElementBadge } from "@/components/saju"
+import { Krw } from "@/components/ui/krw"
 
 interface MultiItemOrderSummaryProps {
   items: CartItem[]
@@ -256,7 +257,8 @@ export function MultiItemOrderSummary({
                   <button
                     onClick={() => onUpdateQuantity(item.id, -1)}
                     disabled={item.quantity <= 1}
-                    className="p-1 hover:bg-[var(--soft)] disabled:opacity-50"
+                    aria-label={t('checkout.decreaseQuantity')}
+                    className="tap-target p-1 hover:bg-[var(--soft)] disabled:opacity-50"
                   >
                     <Minus size={12} />
                   </button>
@@ -264,13 +266,14 @@ export function MultiItemOrderSummary({
                   <button
                     onClick={() => onUpdateQuantity(item.id, 1)}
                     disabled={item.quantity >= 10}
-                    className="p-1 hover:bg-[var(--soft)] disabled:opacity-50"
+                    aria-label={t('checkout.increaseQuantity')}
+                    className="tap-target p-1 hover:bg-[var(--soft)] disabled:opacity-50"
                   >
                     <Plus size={12} />
                   </button>
                 </div>
                 <span className="font-black text-[var(--ink)]">
-                  {formatPrice(item.price * item.quantity)}{t('currency.suffix')}
+                  <Krw amount={item.price * item.quantity} />
                 </span>
               </div>
             </div>

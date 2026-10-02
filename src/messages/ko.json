@@ -59,7 +59,10 @@
     "goHome": "홈으로 돌아가기",
     "close": "닫기",
     "or": "또는",
-    "continueAsGuest": "비회원으로 계속하기"
+    "continueAsGuest": "비회원으로 계속하기",
+    "pageLoginTitle": "로그인이 필요한 페이지예요",
+    "pageLoginDescription": "로그인하면 보던 페이지로 바로 돌아와요.",
+    "checkingLogin": "로그인 상태를 확인하고 있어요"
   },
   "errors": {
     "generic": "오류가 발생했어요",
@@ -224,7 +227,12 @@
     "limitedSale": "⏰ {date}까지 한정 판매",
     "limitedBadge": "~{date} 한정",
     "prevBanner": "이전 배너",
-    "nextBanner": "다음 배너"
+    "nextBanner": "다음 배너",
+    "popup": {
+      "label": "이벤트 안내",
+      "close": "닫기",
+      "hideToday": "오늘 하루 보지 않기"
+    }
   },
   "programs": {
     "breadcrumbHome": "홈",
@@ -579,7 +587,14 @@
     "representative": "대표",
     "thumbnailAria": "{alt} 이미지 {index} 보기",
     "prevImage": "이전 사진",
-    "nextImage": "다음 사진"
+    "nextImage": "다음 사진",
+    "inactive": {
+      "title": "판매가 종료된 프로그램이에요",
+      "description": "지금은 이 프로그램을 이용할 수 없어요. 아래에서 이용 가능한 다른 프로그램을 둘러보세요.",
+      "backHome": "홈으로 돌아가기",
+      "alternativesTitle": "이런 프로그램은 어떠세요?",
+      "metaTitlePrefix": "판매 종료"
+    }
   },
   "input": {
     "customInput": "+ 직접 입력하기",
@@ -1293,7 +1308,9 @@
     "optionSaju10": "사주 퍼퓸 10ml",
     "optionSaju50": "사주 퍼퓸 50ml",
     "optionSajuClicker": "디퓨저 클리커 키링",
-    "sajuElementNote": "분석이 추천한 오행으로 각인·스티커가 제작됩니다"
+    "sajuElementNote": "분석이 추천한 오행으로 각인·스티커가 제작됩니다",
+    "decreaseQuantity": "수량 줄이기",
+    "increaseQuantity": "수량 늘리기"
   },
   "checkoutComplete": {
     "title": "주문 완료",
@@ -1659,7 +1676,9 @@
     "ratingLabel2": "그냥 그래요",
     "ratingLabel3": "괜찮아요",
     "ratingLabel4": "좋아요",
-    "ratingLabel5": "최고예요!"
+    "ratingLabel5": "최고예요!",
+    "leaveFirst": "첫 리뷰를 남겨주세요",
+    "triggerLabel": "평점 {rating}점, 리뷰 {count}개 보기"
   },
   "coupon": {
     "unlimitedUse": "무제한 사용",
@@ -1991,7 +2010,25 @@
     "defaultTitle": "AC'SCENT IDENTITY - AI 맞춤 퍼퓸 추천 서비스",
     "defaultDescription": "AI 이미지 분석으로 나만의 맞춤 퍼퓸을 찾아드립니다. 이미지 분석 퍼퓸, 피규어 화분 디퓨저, 졸업 기념 퍼퓸. 10,000건 이상 분석, 만족도 95%.",
     "ogTitle": "AC'SCENT IDENTITY - AI 맞춤 퍼퓸 추천 서비스",
-    "ogDescription": "이미지 분석으로 당신만의 향기를 찾아드립니다. AI 퍼퓸, 피규어 디퓨저, 졸업 기념 퍼퓸."
+    "ogDescription": "이미지 분석으로 당신만의 향기를 찾아드립니다. AI 퍼퓸, 피규어 디퓨저, 졸업 기념 퍼퓸.",
+    "pages": {
+      "products": {
+        "title": "전체 상품",
+        "description": "분석 없이 바로 고르는 AC'SCENT 향수·시향지. 마음에 드는 향을 선택해 바로 주문하세요."
+      },
+      "reserve": {
+        "title": "현장방문 예약",
+        "description": "AC'SCENT 오프라인 매장 방문 예약. 원하는 날짜와 시간을 골라 나만의 향을 직접 만들어 보세요."
+      },
+      "todayScent": {
+        "title": "오늘의 향",
+        "description": "매일 하나씩 뽑는 오늘의 향. 오늘의 기분에 어울리는 향을 퍼퓸으로 받아보세요."
+      },
+      "sample": {
+        "title": "AI 이미지 분석 시향지",
+        "description": "이미지 한 장으로 시작되는 향 추천 리포트와 시향지. 향수를 사기 전에 먼저 향을 확인해 보세요."
+      }
+    }
   },
   "about": {
     "brand": {
@@ -2735,7 +2772,13 @@
       "requestOnlyLabel": "특정 향료 요청",
       "requestAddedToast": "\"{note}\" 요청이 장바구니에 담겼습니다",
       "addFailed": "장바구니 추가에 실패했습니다",
-      "photoSectionTitle": "제품 사진"
+      "photoSectionTitle": "제품 사진",
+      "selectScentRequired": "향을 1개 이상 선택해주세요",
+      "showAllScents": "향 {count}개 더 보기",
+      "requestTitle": "특정 향료 요청",
+      "requestOptional": "선택",
+      "requestPlaceholder": "예: 하현상 시그니처 향으로 주세요!",
+      "requestHelp": "원하는 향이 따로 있으면 적어주세요. 작성하지 않아도 구매할 수 있어요."
     }
   },
   "saju": {
@@ -3516,5 +3559,12 @@
       "ctaHint": "두 향의 결과와 케미 타입을 확인한 뒤 구매할 수 있어요.",
       "relationStartCta": "이 조합으로 시작하기"
     }
+  },
+  "notFound": {
+    "title": "페이지를 찾을 수 없어요",
+    "description": "주소가 잘못되었거나 페이지가 이동·삭제되었어요.",
+    "backHome": "홈으로 돌아가기",
+    "popularTitle": "인기 프로그램",
+    "metaTitle": "페이지를 찾을 수 없음"
   }
 }

@@ -59,7 +59,10 @@
     "goHome": "Back to home",
     "close": "Close",
     "or": "or",
-    "continueAsGuest": "Continue as guest"
+    "continueAsGuest": "Continue as guest",
+    "pageLoginTitle": "This page requires login",
+    "pageLoginDescription": "After logging in, you'll come right back to this page.",
+    "checkingLogin": "Checking your login status"
   },
   "errors": {
     "generic": "An error occurred",
@@ -224,7 +227,12 @@
     "limitedSale": "⏰ Limited sale until {date}",
     "limitedBadge": "~{date} Limited",
     "prevBanner": "Previous banner",
-    "nextBanner": "Next banner"
+    "nextBanner": "Next banner",
+    "popup": {
+      "label": "Event notice",
+      "close": "Close",
+      "hideToday": "Don't show again today"
+    }
   },
   "programs": {
     "breadcrumbHome": "Home",
@@ -579,7 +587,14 @@
     "representative": "Main",
     "thumbnailAria": "View {alt} image {index}",
     "prevImage": "Previous image",
-    "nextImage": "Next image"
+    "nextImage": "Next image",
+    "inactive": {
+      "title": "This program is no longer available",
+      "description": "This program can't be used right now. Take a look at the other programs below.",
+      "backHome": "Back to home",
+      "alternativesTitle": "You might also like",
+      "metaTitlePrefix": "Unavailable"
+    }
   },
   "input": {
     "customInput": "+ Enter manually",
@@ -883,7 +898,9 @@
     "optionSaju10": "Saju Perfume 10ml",
     "optionSaju50": "Saju Perfume 50ml",
     "optionSajuClicker": "Diffuser Clicker Keyring",
-    "sajuElementNote": "Engraving & box sticker are made with the element prescribed by your analysis"
+    "sajuElementNote": "Engraving & box sticker are made with the element prescribed by your analysis",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   },
   "checkoutComplete": {
     "title": "Order Complete",
@@ -1249,7 +1266,9 @@
     "ratingLabel2": "So-so",
     "ratingLabel3": "Pretty good",
     "ratingLabel4": "Good",
-    "ratingLabel5": "Excellent!"
+    "ratingLabel5": "Excellent!",
+    "leaveFirst": "Be the first to leave a review",
+    "triggerLabel": "Rated {rating}, view {count} reviews"
   },
   "coupon": {
     "unlimitedUse": "Unlimited use",
@@ -1991,7 +2010,25 @@
     "defaultTitle": "AC'SCENT IDENTITY - AI Custom Perfume Recommendation Service",
     "defaultDescription": "Discover your custom perfume with AI image analysis. AI Image Analysis Perfume, 3D Figure Diffuser, Graduation Memorial Perfume. Over 10,000 analyses completed with 95% satisfaction.",
     "ogTitle": "AC'SCENT IDENTITY - AI Custom Perfume Recommendation Service",
-    "ogDescription": "Find your signature scent with image analysis. AI Perfume, 3D Figure Diffuser, Graduation Memorial Perfume."
+    "ogDescription": "Find your signature scent with image analysis. AI Perfume, 3D Figure Diffuser, Graduation Memorial Perfume.",
+    "pages": {
+      "products": {
+        "title": "All Products",
+        "description": "AC'SCENT perfumes and scent papers you can pick without an analysis. Choose a scent and order right away."
+      },
+      "reserve": {
+        "title": "Visit Reservation",
+        "description": "Book a visit to the AC'SCENT store. Pick a date and time and craft your own scent in person."
+      },
+      "todayScent": {
+        "title": "Today's Scent",
+        "description": "Draw one scent a day. Get the scent that matches today's mood as a perfume."
+      },
+      "sample": {
+        "title": "AI Image Analysis Scent Paper",
+        "description": "A scent recommendation report and scent paper that start with a single image. Try the scent before buying a perfume."
+      }
+    }
   },
   "about": {
     "brand": {
@@ -2769,7 +2806,13 @@
       "requestOnlyLabel": "Specific fragrance request",
       "requestAddedToast": "\"{note}\" request has been added to your cart",
       "addFailed": "Failed to add to cart",
-      "photoSectionTitle": "Product photos"
+      "photoSectionTitle": "Product photos",
+      "selectScentRequired": "Please select at least one scent",
+      "showAllScents": "Show {count} more scents",
+      "requestTitle": "Specific fragrance request",
+      "requestOptional": "Optional",
+      "requestPlaceholder": "e.g. Please make it my favorite artist's signature scent!",
+      "requestHelp": "Let us know if you have a scent in mind. You can buy without writing anything."
     }
   },
   "saju": {
@@ -3550,5 +3593,12 @@
       "ctaHint": "You can purchase after reviewing both scent results and your chemistry type.",
       "relationStartCta": "Start with this pair"
     }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The address may be wrong, or the page has been moved or deleted.",
+    "backHome": "Back to home",
+    "popularTitle": "Popular programs",
+    "metaTitle": "Page not found"
   }
 }

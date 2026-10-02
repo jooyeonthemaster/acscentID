@@ -59,7 +59,10 @@
     "goHome": "返回首页",
     "close": "关闭",
     "or": "或",
-    "continueAsGuest": "以游客身份继续"
+    "continueAsGuest": "以游客身份继续",
+    "pageLoginTitle": "此页面需要登录",
+    "pageLoginDescription": "登录后会直接回到此页面。",
+    "checkingLogin": "正在确认登录状态"
   },
   "errors": {
     "generic": "发生了错误",
@@ -224,7 +227,12 @@
     "limitedSale": "⏰ 限时销售至{date}",
     "limitedBadge": "~{date} 限定",
     "prevBanner": "上一张横幅",
-    "nextBanner": "下一张横幅"
+    "nextBanner": "下一张横幅",
+    "popup": {
+      "label": "活动通知",
+      "close": "关闭",
+      "hideToday": "今天不再显示"
+    }
   },
   "programs": {
     "breadcrumbHome": "首页",
@@ -579,7 +587,14 @@
     "representative": "主图",
     "thumbnailAria": "查看 {alt} 图片 {index}",
     "prevImage": "上一张图片",
-    "nextImage": "下一张图片"
+    "nextImage": "下一张图片",
+    "inactive": {
+      "title": "该项目已停止销售",
+      "description": "目前无法使用该项目。请看看下面其他可用的项目。",
+      "backHome": "返回首页",
+      "alternativesTitle": "您可能也喜欢",
+      "metaTitlePrefix": "已停售"
+    }
   },
   "input": {
     "customInput": "+ 直接输入",
@@ -883,7 +898,9 @@
     "optionSaju10": "四柱香水 10ml",
     "optionSaju50": "四柱香水 50ml",
     "optionSajuClicker": "扩香点击器钥匙扣",
-    "sajuElementNote": "将按分析推荐的五行制作刻印与贴纸"
+    "sajuElementNote": "将按分析推荐的五行制作刻印与贴纸",
+    "decreaseQuantity": "减少数量",
+    "increaseQuantity": "增加数量"
   },
   "checkoutComplete": {
     "title": "订单完成",
@@ -1249,7 +1266,9 @@
     "ratingLabel2": "一般",
     "ratingLabel3": "还不错",
     "ratingLabel4": "很好",
-    "ratingLabel5": "非常棒！"
+    "ratingLabel5": "非常棒！",
+    "leaveFirst": "来写第一条评价吧",
+    "triggerLabel": "评分{rating}，查看{count}条评价"
   },
   "coupon": {
     "unlimitedUse": "无限使用",
@@ -1991,7 +2010,25 @@
     "defaultTitle": "AC'SCENT IDENTITY - AI定制香水推荐服务",
     "defaultDescription": "通过AI图像分析为您找到专属定制香水。AI图像分析香水、手办花盆香薰器、毕业纪念香水。分析超过10,000次，满意度95%。",
     "ogTitle": "AC'SCENT IDENTITY - AI定制香水推荐服务",
-    "ogDescription": "通过图像分析为您找到专属香气。AI香水、手办香薰器、毕业纪念香水。"
+    "ogDescription": "通过图像分析为您找到专属香气。AI香水、手办香薰器、毕业纪念香水。",
+    "pages": {
+      "products": {
+        "title": "全部商品",
+        "description": "无需分析即可直接选购的AC'SCENT香水与试香纸。选择喜欢的香味即可下单。"
+      },
+      "reserve": {
+        "title": "到店预约",
+        "description": "预约到访AC'SCENT线下门店。选择日期和时间，亲手调制属于你的香味。"
+      },
+      "todayScent": {
+        "title": "今日香味",
+        "description": "每天抽取一款今日香味，把适合今天心情的香味做成香水带回家。"
+      },
+      "sample": {
+        "title": "AI图片分析试香纸",
+        "description": "从一张图片开始的香味推荐报告与试香纸。购买香水前先确认香味。"
+      }
+    }
   },
   "about": {
     "brand": {
@@ -2769,7 +2806,13 @@
       "requestOnlyLabel": "指定香料请求",
       "requestAddedToast": "“{note}”请求已加入购物车",
       "addFailed": "加入购物车失败",
-      "photoSectionTitle": "商品图片"
+      "photoSectionTitle": "商品图片",
+      "selectScentRequired": "请至少选择一种香味",
+      "showAllScents": "再看{count}种香味",
+      "requestTitle": "指定香料需求",
+      "requestOptional": "选填",
+      "requestPlaceholder": "例：请做成我喜欢的艺人的招牌香味！",
+      "requestHelp": "如有想要的香味请填写。不填写也可以购买。"
     }
   },
   "saju": {
@@ -3550,5 +3593,12 @@
       "ctaHint": "确认两种香气的结果与CP感类型后即可购买。",
       "relationStartCta": "以这个组合开始"
     }
+  },
+  "notFound": {
+    "title": "找不到页面",
+    "description": "地址可能有误，或页面已被移动或删除。",
+    "backHome": "返回首页",
+    "popularTitle": "热门项目",
+    "metaTitle": "找不到页面"
   }
 }

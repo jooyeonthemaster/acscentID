@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Tag, ChevronDown, X, Check, Ticket, AlertCircle, Loader2, Gift } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CheckoutCoupon, calculateCouponDiscount, getCouponDiscountLabel } from '@/types/coupon'
+import { Krw } from "@/components/ui/krw"
 
 interface CouponSelectorProps {
   selectedCoupon: CheckoutCoupon | null
@@ -94,7 +95,7 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
         </div>
         {selectedCoupon && (
           <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)]">
-            -{discountAmount.toLocaleString()}{t('currency.suffix')}
+            -<Krw amount={discountAmount} />
           </span>
         )}
       </div>
@@ -246,7 +247,7 @@ export function CouponSelector({ selectedCoupon, onSelectCoupon, productPrice, e
                             )}
                           </p>
                           <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold">
-                            -{couponDiscount.toLocaleString()}{t('currency.suffix')} {t('coupon.discount')}
+                            -<Krw amount={couponDiscount} /> {t('coupon.discount')}
                           </p>
                           {couponUnusedAmount > 0 && (
                             <p className="mt-1 text-[11px] lg:text-[13px] font-bold leading-snug text-[var(--muted-ink)]">

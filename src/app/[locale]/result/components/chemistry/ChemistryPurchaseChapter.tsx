@@ -8,10 +8,10 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast"
 import { apiFetch } from "@/lib/api-client"
 import type { ImageAnalysisResult } from "@/types/analysis"
-import { formatPrice } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useLocalizedPerfumes } from "@/hooks/useLocalizedPerfumes"
 import { useTranslations } from 'next-intl'
+import { Krw } from "@/components/ui/krw"
 
 interface ChemistryPurchaseChapterProps {
   characterA: ImageAnalysisResult
@@ -158,7 +158,7 @@ export function ChemistryPurchaseChapter({
                 <div>
                   <span className="text-sm lg:text-base font-bold text-[var(--ink)]">{option.label}</span>
                 </div>
-                <span className="text-base font-bold text-[var(--muted-ink)]">{formatPrice(option.price)}{t('currency.suffix')}</span>
+                <span className="text-base font-bold text-[var(--muted-ink)]"><Krw amount={option.price} /></span>
               </div>
             </motion.button>
           ))}

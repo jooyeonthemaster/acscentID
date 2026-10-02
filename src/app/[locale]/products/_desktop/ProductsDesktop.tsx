@@ -4,11 +4,11 @@ import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import { ChevronRight, Droplets, Package, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { formatPrice } from '@/types/cart'
 import { STORE_PRODUCT_TYPE } from '@/lib/products/store-products'
 import { useProductPricing } from '@/hooks/useProductPricing'
 import { useStoreProducts } from '@/hooks/useStoreProducts'
 import { useStoreProductText } from '@/hooks/useStoreProductText'
+import { Krw } from "@/components/ui/krw"
 
 /**
  * /products 데스크탑 변형 (lg+): 흰 카드 3열 그리드 (에디토리얼).
@@ -79,11 +79,11 @@ export function ProductsDesktop() {
                     </p>
                     <div className="mt-auto flex items-end gap-2 pt-4">
                       <span className="text-lg font-extrabold text-[var(--ink)]">
-                        {formatPrice(price)}{t('currency.suffix')}
+                        <Krw amount={price} />
                       </span>
                       {originalPrice && originalPrice > price && (
                         <span className="text-sm text-[var(--muted-ink)] line-through">
-                          {formatPrice(originalPrice)}{t('currency.suffix')}
+                          <Krw amount={originalPrice} />
                         </span>
                       )}
                     </div>

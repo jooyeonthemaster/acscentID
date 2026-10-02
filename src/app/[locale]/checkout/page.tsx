@@ -29,7 +29,7 @@ import { usePortonePayment } from "./hooks/usePortonePayment"
 import { CheckoutCoupon, calculateCouponDiscount } from "@/types/coupon"
 import type { CartItem, ProductType, PaymentMethod } from "@/types/cart"
 import type { SajuElement } from "@/types/analysis"
-import { formatPrice, calculateCartTotals, DEFAULT_SHIPPING_FEE } from "@/types/cart"
+import { calculateCartTotals, DEFAULT_SHIPPING_FEE } from "@/types/cart"
 import { useProductPricing } from "@/hooks/useProductPricing"
 import { useStoreProducts } from "@/hooks/useStoreProducts"
 import { useStoreProductText } from "@/hooks/useStoreProductText"
@@ -46,6 +46,7 @@ import {
   getStoreProductBySlug,
   getStoreProductName,
 } from "@/lib/products/store-products"
+import { Krw } from "@/components/ui/krw"
 
 const PERSISTED_CART_ITEM_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -1152,7 +1153,7 @@ function CheckoutContent() {
                     <span className="text-[var(--muted-ink)] font-bold">
                       {t('checkout.productAmount')} {isMultiItemMode && t('checkout.itemCount', { count: checkoutItems.length })}
                     </span>
-                    <span className="font-black text-[var(--ink)]">{formatPrice(productPrice)}{t('currency.suffix')}</span>
+                    <span className="font-black text-[var(--ink)]"><Krw amount={productPrice} /></span>
                   </div>
                   {shippingResult.isFreeByPromotion ? (
                     <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[6px] px-3 py-2.5">
@@ -1165,9 +1166,9 @@ function CheckoutContent() {
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">
-                            {formatPrice(shippingResult.originalFee)}{t('currency.suffix')}
+                            <Krw amount={shippingResult.originalFee} />
                           </span>
-                          <span className="font-black text-[var(--muted-ink)]">0{t('currency.suffix')}</span>
+                          <span className="font-black text-[var(--muted-ink)]"><Krw amount={0} /></span>
                         </div>
                       </div>
                     </div>
@@ -1177,13 +1178,13 @@ function CheckoutContent() {
                       {shippingFee === 0 ? (
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs lg:text-sm text-[var(--muted-ink)] line-through">
-                            {formatPrice(DEFAULT_SHIPPING_FEE)}{t('currency.suffix')}
+                            <Krw amount={DEFAULT_SHIPPING_FEE} />
                           </span>
-                          <span className="font-black text-[var(--muted-ink)]">0{t('currency.suffix')}</span>
+                          <span className="font-black text-[var(--muted-ink)]"><Krw amount={0} /></span>
                         </div>
                       ) : (
                         <span className="font-black text-[var(--ink)]">
-                          {formatPrice(shippingFee)}{t('currency.suffix')}
+                          <Krw amount={shippingFee} />
                         </span>
                       )}
                     </div>
@@ -1193,14 +1194,14 @@ function CheckoutContent() {
                       <div className="flex justify-between">
                         <span className="text-[var(--muted-ink)] font-bold">{t('checkout.couponDiscount')}</span>
                         <span className="font-black text-[var(--muted-ink)]">
-                          -{formatPrice(discountAmount)}{t('currency.suffix')}
+                          -<Krw amount={discountAmount} />
                         </span>
                       </div>
                       {couponUnusedAmount > 0 && (
                         <div className="flex items-start gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--canvas)] px-3 py-2 text-xs lg:text-sm font-bold leading-relaxed text-[var(--ink)]">
                           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                           <span>
-                            정액 쿠폰 잔액 {formatPrice(couponUnusedAmount)}{t('currency.suffix')}은 이 주문에서 사용되지 않고 소멸됩니다.
+                            정액 쿠폰 잔액 <Krw amount={couponUnusedAmount} />은 이 주문에서 사용되지 않고 소멸됩니다.
                           </span>
                         </div>
                       )}
@@ -1211,11 +1212,11 @@ function CheckoutContent() {
                     <div className="text-right">
                       {discountAmount > 0 && (
                         <span className="text-sm lg:text-base text-[var(--muted-ink)] line-through mr-2">
-                          {formatPrice(productPrice + shippingResult.originalFee)}{t('currency.suffix')}
+                          <Krw amount={productPrice + shippingResult.originalFee} />
                         </span>
                       )}
                       <span className="font-black text-2xl text-[var(--ink)]">
-                        {formatPrice(totalPrice)}{t('currency.suffix')}
+                        <Krw amount={totalPrice} />
                       </span>
                     </div>
                   </div>
@@ -1282,7 +1283,7 @@ function CheckoutContent() {
                         ) : (
                           <>
                             <Sparkles size={20} />
-                            <span>{formatPrice(totalPrice)}{t('currency.suffix')} {paymentMethod === "bank_transfer" ? t('checkout.orderButton') : t('checkout.payButton')}</span>
+                            <span><Krw amount={totalPrice} /> {paymentMethod === "bank_transfer" ? t('checkout.orderButton') : t('checkout.payButton')}</span>
                           </>
                         )}
                       </div>

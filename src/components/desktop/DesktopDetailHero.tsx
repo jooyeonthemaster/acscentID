@@ -196,7 +196,7 @@ export function DesktopDetailHero({
               <span key={index} className="inline-flex items-center gap-1.5">
                 {index > 0 && <ChevronRight size={11} aria-hidden="true" />}
                 {item.href ? (
-                  <Link href={item.href} className="hover:text-[var(--ink)]">
+                  <Link href={item.href} className="tap-target hover:text-[var(--ink)]">
                     {item.label}
                   </Link>
                 ) : (
@@ -224,7 +224,7 @@ export function DesktopDetailHero({
           <div className="mb-5">
             <h1 className={cn("break-keep text-[34px] font-black leading-[1.18] text-[var(--ink)] xl:text-[38px]", titleClassName)}>
               <span
-                className="inline-block"
+                className="inline-block max-w-full"
                 data-admin-editable="product_name"
                 data-admin-page-position-field="productName"
                 style={pagePositionStyle?.("productName")}
@@ -234,7 +234,7 @@ export function DesktopDetailHero({
             </h1>
             <p className="mt-3.5 max-w-[500px] break-keep text-[17px] leading-[1.65] text-[var(--muted-ink)]">
               <span
-                className="inline-block whitespace-pre-line"
+                className="inline-block max-w-full whitespace-pre-line"
                 data-admin-page-field="subtitle"
                 data-admin-page-position-field="subtitle"
                 style={pagePositionStyle?.("subtitle")}

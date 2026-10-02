@@ -21,6 +21,7 @@ import { ArrowLeft } from 'lucide-react'
 
 import { Header } from '@/components/layout/Header'
 import { AuthModal } from '@/components/auth/AuthModal'
+import { useSoftKeyboardOpen } from '@/hooks/useSoftKeyboardOpen'
 import Image from 'next/image'
 import { CloudRidge, ProgressThread, SAJU_EASE_INK, HOUR_BRANCHES } from '@/components/saju'
 import { ViewportSwitch } from '@/components/desktop/ViewportSwitch'
@@ -47,6 +48,8 @@ export default function SajuInputPage() {
     const searchParams = useSearchParams()
     const t = useTranslations()
     const tNav = useTranslations('saju.input.nav')
+    // 키보드가 떠 있는 동안 하단 고정 바가 입력창을 가리지 않도록 숨긴다
+    const keyboardOpen = useSoftKeyboardOpen()
     const tSeal = useTranslations('saju.input.seal')
     const tBirth = useTranslations('saju.input.birth')
     const tPurpose = useTranslations('saju.input.purpose')
@@ -228,38 +231,40 @@ export default function SajuInputPage() {
             </div>
 
             {/* 하단 내비게이션 바 (§3.0 — 사주 스킨 자체 구현) */}
-            <div className="fixed inset-x-0 bottom-0 z-50">
-                <div
-                    className="mx-auto w-full max-w-[455px] border-t border-[#262A38] bg-[#12141D]/95 px-6 py-4 backdrop-blur"
-                    style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-                >
-                    <div className="flex items-center gap-4">
-                        {phaseIndex > 0 && (
-                            <button
+            {!keyboardOpen && (
+                <div className="fixed inset-x-0 bottom-0 z-50">
+                    <div
+                        className="mx-auto w-full max-w-[455px] border-t border-[#262A38] bg-[#12141D]/95 px-6 py-4 backdrop-blur"
+                        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+                    >
+                        <div className="flex items-center gap-4">
+                            {phaseIndex > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handlePrev}
+                                    disabled={isSealing || isSubmitting}
+                                    className="font-serif-kr flex-shrink-0 px-2 py-3 text-[14px] text-[#A69F8D]"
+                                >
+                                    {tNav('prev')}
+                                </button>
+                            )}
+                            <motion.button
                                 type="button"
-                                onClick={handlePrev}
-                                disabled={isSealing || isSubmitting}
-                                className="font-serif-kr flex-shrink-0 px-2 py-3 text-[14px] text-[#A69F8D]"
+                                whileTap={{ scale: 0.98 }}
+                                onClick={onNext}
+                                disabled={nextDisabled}
+                                className={`font-serif-kr h-[52px] flex-1 rounded-lg text-[16px] font-semibold transition-colors duration-300 ${
+                                    nextDisabled
+                                        ? 'bg-[#1E2129] text-[#5C564A]'
+                                        : 'bg-[#C0392B] text-[#F5EFE2] ring-1 ring-[#C9A227]/40'
+                                }`}
                             >
-                                {tNav('prev')}
-                            </button>
-                        )}
-                        <motion.button
-                            type="button"
-                            whileTap={{ scale: 0.98 }}
-                            onClick={onNext}
-                            disabled={nextDisabled}
-                            className={`font-serif-kr h-[52px] flex-1 rounded-lg text-[16px] font-semibold transition-colors duration-300 ${
-                                nextDisabled
-                                    ? 'bg-[#1E2129] text-[#5C564A]'
-                                    : 'bg-[#C0392B] text-[#F5EFE2] ring-1 ring-[#C9A227]/40'
-                            }`}
-                        >
-                            {nextLabel}
-                        </motion.button>
+                                {nextLabel}
+                            </motion.button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </>
     )
 

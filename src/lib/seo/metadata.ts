@@ -99,3 +99,8 @@ export function createMetadata({
 }
 
 export { SITE_NAME, DEFAULT_DESCRIPTION }
+
+/** 로케일 접두사를 붙인 공개 경로 (localePrefix: 'as-needed' — ko는 접두사 없음) */
+export function localizePublicPath(path: string, locale: Locale): string {
+  return locale === 'ko' ? path : `/${locale}${path === '/' ? '' : path}`
+}

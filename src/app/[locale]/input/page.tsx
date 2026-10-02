@@ -20,6 +20,7 @@ import SajuInputPage from "./saju/SajuInputPage"
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { InactiveProductGuard } from "@/components/programs/InactiveProductGuard"
+import { useSoftKeyboardOpen } from "@/hooks/useSoftKeyboardOpen"
 
 // input type → product slug 매핑
 const INPUT_TYPE_TO_SLUG: Record<string, string> = {
@@ -200,7 +201,7 @@ function InputForm() {
                 {/* 프로그램 명패 — 사주 위저드의 낙관 로고 위치를 따른다 */}
                 <div className="relative z-10 flex items-center justify-center gap-2.5 pb-1 pt-4">
                     <Image
-                        src="/images/logo/acscent-wordmark-cream.png"
+                        src="/images/logo/acscent-wordmark-ink.png"
                         alt="AC'SCENT"
                         width={2053}
                         height={285}
@@ -264,7 +265,7 @@ function InputForm() {
                         </button>
                         <Link href="/" className="flex flex-col">
                             <Image
-                                src="/images/logo/acscent-wordmark-cream.png"
+                                src="/images/logo/acscent-wordmark-ink.png"
                                 alt="AC'SCENT"
                                 width={2053}
                                 height={285}
@@ -472,6 +473,9 @@ interface NavigationButtonsProps {
 
 function NavigationButtons({ currentStep, isValid, isSubmitting, onPrev, onNext }: NavigationButtonsProps) {
     const t = useTranslations()
+    // 키보드가 떠 있는 동안 고정 바가 키보드 위로 올라와 입력창을 가리므로 숨긴다
+    const keyboardOpen = useSoftKeyboardOpen()
+    if (keyboardOpen) return null
     return (
         <div className="fixed inset-x-0 bottom-0 z-50">
             <div

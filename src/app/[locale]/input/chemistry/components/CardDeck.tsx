@@ -184,9 +184,10 @@ function TropeCard({ formData, setFormData }: {
               whileTap={{ scale: 0.95 }}
               onClick={() => toggleTrope(trope.id)}
               aria-pressed={isSelected}
-              className={`p-3 rounded-[6px] border-2 text-left transition-all ${
+              type="button"
+              className={`input-choice p-3 rounded-[6px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-[var(--line)] bg-[var(--soft)] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
+                  ? 'border-[var(--line)] bg-[var(--soft)]'
                   : 'border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]'
               }`}
             >
@@ -256,9 +257,11 @@ function ArchetypeCard({ label, emoji, imageBase64, values, customValue, onToggl
               key={arch.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => onToggle(arch.id)}
-              className={`p-3 rounded-[6px] border-2 text-left transition-all ${
+              type="button"
+              aria-pressed={isSelected}
+              className={`input-choice p-3 rounded-[6px] border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-[var(--line)] bg-[var(--soft)] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
+                  ? 'border-[var(--line)] bg-[var(--soft)]'
                   : 'border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]'
               }`}
             >
@@ -309,9 +312,11 @@ function SceneCard({ formData, setFormData }: {
               key={scene.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => toggleScene(scene.id)}
-              className={`p-4 rounded-[6px] border-2 text-center transition-all ${
+              type="button"
+              aria-pressed={isSelected}
+              className={`input-choice p-4 rounded-[6px] border-2 text-center transition-all ${
                 isSelected
-                  ? 'border-[var(--line)] bg-[var(--soft)] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
+                  ? 'border-[var(--line)] bg-[var(--soft)]'
                   : 'border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]'
               }`}
             >
@@ -357,9 +362,11 @@ function EmotionBubbleCard({ formData, setFormData, toggleEmotion }: {
               whileTap={{ scale: 0.9 }}
               animate={isSelected ? { scale: [1, 1.1, 1] } : {}}
               onClick={() => toggleEmotion(emotion.id)}
-              className={`px-4 py-3 rounded-full border-2 transition-all ${
+              type="button"
+              aria-pressed={isSelected}
+              className={`input-choice px-4 py-3 rounded-full border-2 transition-all ${
                 isSelected
-                  ? 'border-[var(--line)] bg-[var(--soft)] shadow-[0_0_0_3px_rgba(212,160,23,0.22),0_4px_14px_rgba(212,160,23,0.28)]'
+                  ? 'border-[var(--line)] bg-[var(--soft)]'
                   : 'border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]'
               }`}
             >

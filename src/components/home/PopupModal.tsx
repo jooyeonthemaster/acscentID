@@ -6,7 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { setMobileOverlayOpen } from '@/lib/mobile-overlay'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
+import { COOKIE_CONSENT_CHANGED_EVENT, hasCookieConsentDecision } from '@/components/cookie-consent/CookieConsentBanner'
 
 interface PopupData {
   id: string
@@ -27,29 +30,43 @@ export function PopupModal() {
   const [popups, setPopups] = useState<PopupData[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
+  // 첫 방문은 쿠키 배너가 먼저 — 동의/거부를 고른 뒤에 팝업을 띄운다
+  const [consentDecided, setConsentDecided] = useState(false)
+  const t = useTranslations('home.popup')
+  const showPopup = isVisible && consentDecided
 
   useEffect(() => {
     fetchActivePopups()
   }, [])
 
   useEffect(() => {
+    const sync = () => setConsentDecided(hasCookieConsentDecision())
+    sync()
+    window.addEventListener(COOKIE_CONSENT_CHANGED_EVENT, sync)
+    return () => window.removeEventListener(COOKIE_CONSENT_CHANGED_EVENT, sync)
+  }, [])
+
+  // 다른 모달·드로어와 같은 방식으로 배경 스크롤 잠금
+  useBodyScrollLock(showPopup)
+
+  useEffect(() => {
     if (typeof document === 'undefined') return
 
-    if (isVisible) {
+    if (showPopup) {
       document.body.dataset.acscentPopupOpen = 'true'
     } else {
       delete document.body.dataset.acscentPopupOpen
     }
 
     window.dispatchEvent(new Event('acscent-popup-visibility-change'))
-    setMobileOverlayOpen('home-popup', isVisible)
+    setMobileOverlayOpen('home-popup', showPopup)
 
     return () => {
       delete document.body.dataset.acscentPopupOpen
       window.dispatchEvent(new Event('acscent-popup-visibility-change'))
       setMobileOverlayOpen('home-popup', false)
     }
-  }, [isVisible])
+  }, [showPopup])
 
   const fetchActivePopups = async () => {
     const now = new Date().toISOString()
@@ -137,19 +154,19 @@ export function PopupModal() {
     setIsVisible(false)
   }
 
-  if (!isVisible || popups.length === 0) return null
+  if (!showPopup || popups.length === 0) return null
 
   const current = popups[currentIndex]
   const isExternalImage = current.image_url?.startsWith('http')
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {showPopup && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-4"
         >
           {/* Backdrop */}
           <div
@@ -163,99 +180,104 @@ export function PopupModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[360px] bg-white rounded-[6px] border border-[var(--line)] overflow-hidden z-10"
+            role="dialog"
+            aria-modal="true"
+            aria-label={current.title || t('label')}
+            className="relative z-10 w-full max-w-[360px] pt-12"
           >
-            {/* Close button */}
+            {/* 닫기 — 이미지 위 문구를 가리지 않도록 카드 바깥 우상단 */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 z-20 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center border border-[var(--line)] hover:bg-[var(--soft)] transition-colors"
+              aria-label={t('close')}
+              className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 border border-[var(--line)] hover:bg-[var(--soft)] transition-colors"
             >
-              <X size={16} className="text-[var(--muted-ink)]" />
+              <X size={18} className="text-[var(--ink)]" />
             </button>
+            <div className="relative w-full bg-white rounded-[6px] border border-[var(--line)] overflow-hidden">
+              {/* Popup counter */}
+              {popups.length > 1 && (
+                <div className="absolute top-3 left-3 z-20 px-2 py-0.5 bg-black/60 text-white text-[10px] lg:text-[12px] font-bold rounded-[3px]">
+                  {currentIndex + 1} / {popups.length}
+                </div>
+              )}
 
-            {/* Popup counter */}
-            {popups.length > 1 && (
-              <div className="absolute top-3 left-3 z-20 px-2 py-0.5 bg-black/60 text-white text-[10px] lg:text-[12px] font-bold rounded-[3px]">
-                {currentIndex + 1} / {popups.length}
+              {/* Image */}
+              {current.image_url && (
+                <div
+                  className={`relative w-full ${
+                    current.image_aspect_ratio === '16/9' ? 'aspect-[16/9]' :
+                    current.image_aspect_ratio === '1/1' ? 'aspect-square' :
+                    current.image_aspect_ratio === '3/4' ? 'aspect-[3/4]' :
+                    current.image_aspect_ratio === 'free' ? 'aspect-auto' :
+                    'aspect-[4/5]'
+                  } ${current.link_url ? 'cursor-pointer' : ''}`}
+                  onClick={current.link_url ? handleLinkClick : undefined}
+                >
+                  {current.image_aspect_ratio === 'free' ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={current.image_url}
+                      alt={current.title}
+                      className="w-full h-auto"
+                    />
+                  ) : isExternalImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={current.image_url}
+                      alt={current.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={current.image_url}
+                      alt={current.title}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Text content */}
+              {(current.title || current.description) && (
+                <div className="p-4">
+                  {current.title && !current.image_url && (
+                    <h3 className="text-lg font-bold text-[var(--ink)] mb-1">
+                      {current.title}
+                    </h3>
+                  )}
+                  {current.description && (
+                    <p className="text-sm lg:text-base text-[var(--muted-ink)] whitespace-pre-line">
+                      {current.description}
+                    </p>
+                  )}
+                  {current.link_url && current.link_text && (
+                    <button
+                      onClick={handleLinkClick}
+                      className="mt-3 w-full bg-[var(--ink)] text-white font-bold text-sm lg:text-base py-2.5 rounded-[5px] hover:bg-black transition-colors"
+                    >
+                      {current.link_text}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Bottom actions */}
+              <div className="flex border-t border-[var(--line)]">
+                <button
+                  onClick={hideForToday}
+                  className="flex-1 py-3 text-xs lg:text-sm text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors font-medium"
+                >
+                  {t('hideToday')}
+                </button>
+                <div className="w-px bg-[var(--line)]" />
+                <button
+                  onClick={handleClose}
+                  className="flex-1 py-3 text-xs lg:text-sm text-[var(--ink)] hover:bg-[var(--soft)] transition-colors font-bold"
+                >
+                  {t('close')}
+                </button>
               </div>
-            )}
-
-            {/* Image */}
-            {current.image_url && (
-              <div
-                className={`relative w-full ${
-                  current.image_aspect_ratio === '16/9' ? 'aspect-[16/9]' :
-                  current.image_aspect_ratio === '1/1' ? 'aspect-square' :
-                  current.image_aspect_ratio === '3/4' ? 'aspect-[3/4]' :
-                  current.image_aspect_ratio === 'free' ? 'aspect-auto' :
-                  'aspect-[4/5]'
-                } ${current.link_url ? 'cursor-pointer' : ''}`}
-                onClick={current.link_url ? handleLinkClick : undefined}
-              >
-                {current.image_aspect_ratio === 'free' ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={current.image_url}
-                    alt={current.title}
-                    className="w-full h-auto"
-                  />
-                ) : isExternalImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={current.image_url}
-                    alt={current.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Image
-                    src={current.image_url}
-                    alt={current.title}
-                    fill
-                    className="object-cover"
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Text content */}
-            {(current.title || current.description) && (
-              <div className="p-4">
-                {current.title && !current.image_url && (
-                  <h3 className="text-lg font-bold text-[var(--ink)] mb-1">
-                    {current.title}
-                  </h3>
-                )}
-                {current.description && (
-                  <p className="text-sm lg:text-base text-[var(--muted-ink)] whitespace-pre-line">
-                    {current.description}
-                  </p>
-                )}
-                {current.link_url && current.link_text && (
-                  <button
-                    onClick={handleLinkClick}
-                    className="mt-3 w-full bg-[var(--ink)] text-white font-bold text-sm lg:text-base py-2.5 rounded-[5px] hover:bg-black transition-colors"
-                  >
-                    {current.link_text}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Bottom actions */}
-            <div className="flex border-t border-[var(--line)]">
-              <button
-                onClick={hideForToday}
-                className="flex-1 py-3 text-xs lg:text-sm text-[var(--muted-ink)] hover:bg-[var(--soft)] transition-colors font-medium"
-              >
-                오늘 하루 보지 않기
-              </button>
-              <div className="w-px bg-[var(--line)]" />
-              <button
-                onClick={handleClose}
-                className="flex-1 py-3 text-xs lg:text-sm text-[var(--ink)] hover:bg-[var(--soft)] transition-colors font-bold"
-              >
-                닫기
-              </button>
             </div>
           </motion.div>
         </motion.div>

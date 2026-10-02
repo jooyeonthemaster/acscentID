@@ -66,7 +66,7 @@ export function LanguageSwitcher({ dark = false, align = 'right' }: { dark?: boo
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-1 px-1.5 py-1 rounded-[4px] transition-colors",
+          "tap-target flex items-center gap-1 px-1.5 py-1 rounded-[4px] transition-colors",
           dark ? "text-[var(--dark-muted)] hover:bg-white/10 hover:text-white" : "text-[var(--muted-ink)] hover:bg-[var(--soft)] hover:text-[var(--ink)]"
         )}
         aria-label="Language"

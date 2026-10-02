@@ -142,7 +142,7 @@ export default function FigurePage() {
         }
         meta={
           <ReviewTrigger
-            averageRating={reviewStats?.average_rating || 4.8}
+            averageRating={reviewStats?.average_rating ?? 0}
             totalCount={reviewStats?.total_count || 0}
             onClick={() => setShowReviewModal(true)}
           />
@@ -466,7 +466,7 @@ export default function FigurePage() {
             }
             meta={
               <ReviewTrigger
-                averageRating={reviewStats?.average_rating || 4.8}
+                averageRating={reviewStats?.average_rating ?? 0}
                 totalCount={reviewStats?.total_count || 0}
                 onClick={() => setShowReviewModal(true)}
               />

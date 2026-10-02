@@ -173,7 +173,7 @@ export default function SajuProgramPage() {
     ],
     meta: (
       <ReviewTrigger
-        averageRating={reviewStats?.average_rating || 4.9}
+        averageRating={reviewStats?.average_rating ?? 0}
         totalCount={reviewStats?.total_count || 0}
         onClick={() => {
           document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })

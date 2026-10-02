@@ -16,8 +16,11 @@ import { CatalystPhase } from "./components/CatalystPhase"
 import { ChemistryAnalyzingOverlay } from "./components/ChemistryAnalyzingOverlay"
 import { Header } from "@/components/layout/Header"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { useSoftKeyboardOpen } from "@/hooks/useSoftKeyboardOpen"
 
 function ChemistryInputFormInner() {
+  // 키보드가 떠 있는 동안 하단 버튼 바가 입력창을 가리지 않도록 숨긴다
+  const keyboardOpen = useSoftKeyboardOpen()
   const t = useTranslations()
   const searchParams = useSearchParams()
   const {
@@ -146,18 +149,20 @@ function ChemistryInputFormInner() {
           </div>
 
           {/* 네비게이션 버튼 */}
-          <div className="sticky bottom-0 z-20 -mx-4 mt-5 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[var(--soft)] via-[var(--soft)]/95 to-[var(--soft)]/0">
-            <ChemistryNavButtons
-              phase={phase}
-              isSummonValid={isSummonValid()}
-              isCardValid={isCardValid(currentCard)}
-              isSubmitting={isSubmitting}
-              onSummonNext={goToDeck}
-              onCardNext={nextCard}
-              onCardPrev={prevCard}
-              onComplete={handleComplete}
-            />
-          </div>
+          {!keyboardOpen && (
+            <div className="sticky bottom-0 z-20 -mx-4 mt-5 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[var(--soft)] via-[var(--soft)]/95 to-[var(--soft)]/0">
+              <ChemistryNavButtons
+                phase={phase}
+                isSummonValid={isSummonValid()}
+                isCardValid={isCardValid(currentCard)}
+                isSubmitting={isSubmitting}
+                onSummonNext={goToDeck}
+                onCardNext={nextCard}
+                onCardPrev={prevCard}
+                onComplete={handleComplete}
+              />
+            </div>
+          )}
         </main>
       </div>
     </>
@@ -200,7 +205,7 @@ function ChemistryInputFormInner() {
             </button>
             <Link href="/" className="flex flex-col">
               <Image
-                src="/images/logo/acscent-wordmark-cream.png"
+                src="/images/logo/acscent-wordmark-ink.png"
                 alt="AC'SCENT"
                 width={2053}
                 height={285}

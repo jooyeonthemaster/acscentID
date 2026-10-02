@@ -11,6 +11,7 @@ import { ADMIN_PROGRAMS } from '@/lib/admin/catalog'
 import { useActiveProducts } from '@/hooks/useAdminContent'
 import { useViewportMode } from '@/hooks/useViewportMode'
 import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
+import { keepNumbers } from '@/components/ui/keep-numbers'
 
 // 입금계좌 (복사용 — 숫자만)
 const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
@@ -27,7 +28,7 @@ export const PROGRAM_NAME_KEYS: Record<string, string> = {
   'today-scent': 'todayScent.title',
 }
 
-export function Footer() {
+export function Footer({ ignoreOwnBottomBar = false }: { ignoreOwnBottomBar?: boolean } = {}) {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   const t = useTranslations()
@@ -64,7 +65,7 @@ export function Footer() {
 
   // 관리자 페이지, 집중 경험 경로, 자체 하단 고정 바 페이지(구매바 등)에서는 숨김
   // — 자체 하단 바가 있는 페이지에서 푸터가 고정 바를 덮는 겹침을 막는다.
-  if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname) || hasOwnBottomBar(pathname)) return null
+  if (pathname?.startsWith('/admin') || isFocusedExperiencePath(pathname) || (!ignoreOwnBottomBar && hasOwnBottomBar(pathname))) return null
 
   // 하이드레이션 후 데스크탑으로 확정되면 모바일 푸터는 언마운트 (lg 미만 동작 불변)
   if (hideAtLg && viewportMode === 'desktop') return null
@@ -95,12 +96,12 @@ export function Footer() {
             <h3 className="text-xs lg:text-sm font-black uppercase text-white mb-3">
               {t('footer.programs')}
             </h3>
-            <ul className="space-y-1.5">
+            <ul>
               {visiblePrograms.map((program) => (
                 <li key={program.slug}>
                   <Link
                     href={program.href}
-                    className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
+                    className="inline-flex min-h-11 items-center text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white transition-all"
                   >
                     {program.name}
                   </Link>
@@ -114,11 +115,11 @@ export function Footer() {
             <h3 className="text-xs lg:text-sm font-black uppercase text-white mb-3">
               {t('footer.support')}
             </h3>
-            <ul className="space-y-1.5">
+            <ul>
               <li>
                 <Link
                   href="/faq"
-                  className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
+                  className="inline-flex min-h-11 items-center text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white transition-all"
                 >
                   FAQ
                 </Link>
@@ -126,7 +127,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white inline-block transition-all"
+                  className="inline-flex min-h-11 items-center text-xs lg:text-sm text-[var(--dark-muted)] hover:text-white transition-all"
                 >
                   {t('footer.privacy')}
                 </Link>
@@ -140,22 +141,22 @@ export function Footer() {
           <p className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] leading-relaxed">
             <span className="font-bold text-white">NEANDER Co.,LTD</span>
             <br />
-            {t('footer.companyInfo')}
+            {keepNumbers(t('footer.companyInfo'))}
             <br />
-            {t('footer.salesRegistration')}
+            {keepNumbers(t('footer.salesRegistration'))}
             <br />
             {t('footer.companyAddress')}
             <br />
-            {t('footer.companyContact')}
+            {keepNumbers(t('footer.companyContact'))}
           </p>
           <div className="flex gap-3 mt-2">
-            <Link href="/terms" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
+            <Link href="/terms" className="tap-target text-[11px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.terms')}
             </Link>
-            <Link href="/privacy" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
+            <Link href="/privacy" className="tap-target text-[11px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.privacy')}
             </Link>
-            <Link href="/refund-policy" className="text-[10px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
+            <Link href="/refund-policy" className="tap-target text-[11px] lg:text-[12px] text-[var(--dark-muted)] hover:text-white transition-colors">
               {t('footer.cancelRefundExchange')}
             </Link>
           </div>
@@ -165,7 +166,7 @@ export function Footer() {
         <div className="border-t border-[var(--dark-line)] pt-4 mb-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm lg:text-base md:text-base font-bold text-white">
-              {t('footer.depositAccount')}
+              {keepNumbers(t('footer.depositAccount'))}
             </p>
             <button
               onClick={handleCopyAccount}

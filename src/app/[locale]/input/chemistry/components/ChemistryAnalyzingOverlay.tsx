@@ -113,7 +113,7 @@ export function ChemistryAnalyzingOverlay({
         <div className="overflow-hidden rounded-[6px] border border-[var(--line)] bg-[var(--soft)] shadow-[0_30px_70px_-20px_rgba(11,14,22,0.7)]">
           <div className="bg-[var(--paper)] px-6 py-5 text-center">
             <Image
-              src="/images/logo/acscent-wordmark-cream.png"
+              src="/images/logo/acscent-wordmark-ink.png"
               alt="AC'SCENT"
               width={2053}
               height={285}

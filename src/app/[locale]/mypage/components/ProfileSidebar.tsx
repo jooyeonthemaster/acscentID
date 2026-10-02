@@ -81,7 +81,7 @@ export function ProfileSidebar({ user, unifiedUser }: ProfileSidebarProps) {
       <div className="hidden lg:block px-6 py-5 border-b-2 border-[var(--line)]">
         <Link href="/" aria-label="AC'SCENT" className="inline-block">
           <Image
-            src="/images/logo/acscent-wordmark-cream.png"
+            src="/images/logo/acscent-wordmark-ink.png"
             alt="AC'SCENT"
             width={2053}
             height={285}

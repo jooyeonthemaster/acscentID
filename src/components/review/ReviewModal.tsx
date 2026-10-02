@@ -185,12 +185,27 @@ interface ReviewTriggerProps {
 
 export function ReviewTrigger({ averageRating, totalCount, onClick }: ReviewTriggerProps) {
   const t = useTranslations()
+  // 리뷰가 없을 때 별점(예: 0.0 또는 기본값)을 보이면 신뢰를 잃는다 — 첫 리뷰 유도로 대체
+  if (totalCount === 0) {
+    return (
+      <button
+        onClick={onClick}
+        className="flex min-h-11 items-center gap-2 hover:opacity-80 transition-opacity group"
+      >
+        <Star size={18} className="text-[var(--muted-ink)]" aria-hidden />
+        <span className="text-sm lg:text-base font-bold text-[var(--muted-ink)] group-hover:text-[var(--ink)] transition-colors">
+          {t('review.leaveFirst')}
+        </span>
+      </button>
+    )
+  }
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
+      aria-label={t('review.triggerLabel', { rating: averageRating.toFixed(1), count: totalCount })}
+      className="flex min-h-11 items-center gap-2 hover:opacity-80 transition-opacity group"
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1" aria-hidden>
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}

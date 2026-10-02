@@ -33,6 +33,7 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 import { isProductTypeDiscontinued } from '@/lib/products/active'
 import { isSajuClickerSize, isScentPaperSize } from '@/types/cart'
 import { getEffectiveProductType } from '@/lib/products/store-products'
+import { Krw } from "@/components/ui/krw"
 
 interface RefundAccountInput {
   bankName: string
@@ -242,7 +243,6 @@ function OrderCard({
   const t = useTranslations('mypage')
   const tStatus = useTranslations('status')
   const tPayment = useTranslations('payment')
-  const tCurrency = useTranslations('currency')
   const tCheckout = useTranslations('checkout')
   const [showRecipeModal, setShowRecipeModal] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -444,7 +444,7 @@ function OrderCard({
                   </span>
                 </div>
                 <h4 className="font-bold text-[var(--ink)] truncate">{order.perfume_name}</h4>
-                <p className="text-sm lg:text-base text-[var(--muted-ink)]">{sizeLabel} • {order.price.toLocaleString()}{tCurrency('suffix')}</p>
+                <p className="text-sm lg:text-base text-[var(--muted-ink)]">{sizeLabel} • <Krw amount={order.price} /></p>
               </div>
             </div>
 
@@ -577,7 +577,7 @@ function OrderCard({
               <p className="text-xs lg:text-sm text-[var(--muted-ink)] font-bold mb-0.5">{order.perfume_brand}</p>
               <h4 className="font-black text-lg text-[var(--ink)] leading-tight mb-1">{order.perfume_name}</h4>
               <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold">{sizeLabel}</p>
-              <p className="font-black text-lg text-[var(--ink)] mt-1">{order.price.toLocaleString()}{tCurrency('suffix')}</p>
+              <p className="font-black text-lg text-[var(--ink)] mt-1"><Krw amount={order.price} /></p>
             </div>
           </div>
 

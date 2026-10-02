@@ -137,12 +137,13 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                                     key={key}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                                    className={`relative flex min-h-[92px] flex-col items-center justify-center gap-1 py-3 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
+                                    type="button"
+                                    aria-pressed={isActive}
+                                    className={`input-choice relative flex min-h-[92px] flex-col items-center justify-center gap-1 py-3 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
                                         isActive
                                             ? "border-[var(--line)] bg-[var(--soft)]"
                                             : "border-[var(--line)] bg-[var(--soft)] hover:border-[var(--line)]"
                                     }`}
-                                    style={isActive ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
                                 >
                                     <div className="flex items-center gap-1.5">
                                         <span className="text-base">{emoji}</span>
@@ -183,12 +184,13 @@ export function Step1({ formData, setFormData, isIdol, isOnline, focusedField, s
                                 key={key}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setFormData(prev => ({ ...prev, gender: key }))}
-                                className={`relative flex-1 py-3.5 rounded-[6px] text-sm lg:text-base font-semibold border-2 transition-colors duration-300 ${
+                                type="button"
+                                aria-pressed={formData.gender === key}
+                                className={`input-choice relative flex-1 py-3.5 rounded-[6px] text-sm lg:text-base font-semibold border-2 transition-colors duration-300 ${
                                     formData.gender === key
                                         ? "border-[var(--line)] bg-[var(--soft)] text-[var(--ink)] font-black"
                                         : "border-[var(--line)] bg-[var(--soft)] text-[var(--muted-ink)] hover:border-[var(--line)]"
                                 }`}
-                                style={formData.gender === key ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
                             >
                                 <span className="relative z-10">{label}</span>
                             </motion.button>

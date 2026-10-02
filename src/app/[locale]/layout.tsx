@@ -134,7 +134,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <ScrollToTop />
       <JsonLd data={organizationSchema(locale as Locale)} />
       <JsonLd data={webSiteSchema(locale as Locale)} />
-      <div className="public-editorial w-full min-h-screen relative flex flex-col">
+      <div lang={locale} className="public-editorial w-full min-h-screen relative flex flex-col">
         <DesktopHeader />
         <ShellColumn>{children}</ShellColumn>
         <DesktopFooter />

@@ -59,7 +59,10 @@
     "goHome": "ホームに戻る",
     "close": "閉じる",
     "or": "または",
-    "continueAsGuest": "ゲストとして続ける"
+    "continueAsGuest": "ゲストとして続ける",
+    "pageLoginTitle": "ログインが必要なページです",
+    "pageLoginDescription": "ログインすると、このページにすぐ戻ります。",
+    "checkingLogin": "ログイン状態を確認しています"
   },
   "errors": {
     "generic": "エラーが発生しました",
@@ -224,7 +227,12 @@
     "limitedSale": "⏰ {date}まで限定販売",
     "limitedBadge": "~{date} 限定",
     "prevBanner": "前のバナー",
-    "nextBanner": "次のバナー"
+    "nextBanner": "次のバナー",
+    "popup": {
+      "label": "イベントのお知らせ",
+      "close": "閉じる",
+      "hideToday": "今日は表示しない"
+    }
   },
   "programs": {
     "breadcrumbHome": "ホーム",
@@ -579,7 +587,14 @@
     "representative": "メイン",
     "thumbnailAria": "{alt} 画像 {index} を見る",
     "prevImage": "前の写真",
-    "nextImage": "次の写真"
+    "nextImage": "次の写真",
+    "inactive": {
+      "title": "販売が終了したプログラムです",
+      "description": "現在このプログラムはご利用いただけません。下記のほかのプログラムをご覧ください。",
+      "backHome": "ホームに戻る",
+      "alternativesTitle": "こちらのプログラムはいかがですか？",
+      "metaTitlePrefix": "販売終了"
+    }
   },
   "input": {
     "customInput": "+ 直接入力",
@@ -883,7 +898,9 @@
     "optionSaju10": "四柱香水 10ml",
     "optionSaju50": "四柱香水 50ml",
     "optionSajuClicker": "ディフューザークリッカーキーリング",
-    "sajuElementNote": "分析が導いた五行で刻印・ステッカーを製作します"
+    "sajuElementNote": "分析が導いた五行で刻印・ステッカーを製作します",
+    "decreaseQuantity": "数量を減らす",
+    "increaseQuantity": "数量を増やす"
   },
   "checkoutComplete": {
     "title": "注文完了",
@@ -1249,7 +1266,9 @@
     "ratingLabel2": "普通",
     "ratingLabel3": "なかなか良い",
     "ratingLabel4": "良い",
-    "ratingLabel5": "最高！"
+    "ratingLabel5": "最高！",
+    "leaveFirst": "最初のレビューを書いてください",
+    "triggerLabel": "評価{rating}、レビュー{count}件を見る"
   },
   "coupon": {
     "unlimitedUse": "無制限使用",
@@ -1991,7 +2010,25 @@
     "defaultTitle": "AC'SCENT IDENTITY - AIカスタムパフューム推薦サービス",
     "defaultDescription": "AIイメージ分析であなただけのカスタムパフュームをお探しします。イメージ分析パフューム、フィギュア花鉢ディフューザー、卒業記念パフューム。10,000件以上分析、満足度95%。",
     "ogTitle": "AC'SCENT IDENTITY - AIカスタムパフューム推薦サービス",
-    "ogDescription": "イメージ分析であなただけの香りをお探しします。AIパフューム、フィギュアディフューザー、卒業記念パフューム。"
+    "ogDescription": "イメージ分析であなただけの香りをお探しします。AIパフューム、フィギュアディフューザー、卒業記念パフューム。",
+    "pages": {
+      "products": {
+        "title": "すべての商品",
+        "description": "分析なしですぐ選べるAC'SCENTの香水・試香紙。好きな香りを選んですぐにご注文ください。"
+      },
+      "reserve": {
+        "title": "来店予約",
+        "description": "AC'SCENTオフライン店舗の来店予約。日時を選んで自分だけの香りを作ってみましょう。"
+      },
+      "todayScent": {
+        "title": "今日の香り",
+        "description": "毎日ひとつ引く今日の香り。今日の気分に合う香りをパフュームで受け取りましょう。"
+      },
+      "sample": {
+        "title": "AIイメージ分析 試香紙",
+        "description": "画像1枚から始まる香りのおすすめレポートと試香紙。香水を買う前に香りを確かめてみましょう。"
+      }
+    }
   },
   "about": {
     "brand": {
@@ -2769,7 +2806,13 @@
       "requestOnlyLabel": "特定香料リクエスト",
       "requestAddedToast": "「{note}」のリクエストをカートに追加しました",
       "addFailed": "カートへの追加に失敗しました",
-      "photoSectionTitle": "商品写真"
+      "photoSectionTitle": "商品写真",
+      "selectScentRequired": "香りを1つ以上選んでください",
+      "showAllScents": "香りをさらに{count}件見る",
+      "requestTitle": "特定の香料リクエスト",
+      "requestOptional": "任意",
+      "requestPlaceholder": "例：推しのシグネチャーの香りでお願いします！",
+      "requestHelp": "ご希望の香りがあればご記入ください。未記入でもご購入いただけます。"
     }
   },
   "saju": {
@@ -3550,5 +3593,12 @@
       "ctaHint": "2つの香りの結果とケミタイプを確認してから購入できます。",
       "relationStartCta": "この組み合わせで始める"
     }
+  },
+  "notFound": {
+    "title": "ページが見つかりません",
+    "description": "アドレスが間違っているか、ページが移動・削除されました。",
+    "backHome": "ホームに戻る",
+    "popularTitle": "人気のプログラム",
+    "metaTitle": "ページが見つかりません"
   }
 }

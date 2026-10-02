@@ -141,3 +141,16 @@ export function formatRelativeTime(
 export function getCurrencySuffix(locale: Locale = 'ko'): string {
   return CURRENCY_SUFFIX[locale]
 }
+
+/**
+ * 화면 표시용 원화 — ko: "48,000원", 그 외: "₩48,000".
+ * ja-JP·es-ES 로케일 Intl은 전각 ￦·"48.000 ₩"처럼 제각각이라 기호 위치를 en-US 형식으로 고정한다.
+ */
+export function formatKrw(amount: number, locale: string): string {
+  if (locale === 'ko') return `${amount.toLocaleString('ko-KR')}원`
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'KRW',
+    maximumFractionDigits: 0,
+  }).format(amount)
+}

@@ -23,6 +23,7 @@ import { useTranslations } from 'next-intl'
 
 import { Header } from "@/components/layout/Header"
 import { isSajuClickerSize, isScentPaperSize } from "@/types/cart"
+import { Krw } from "@/components/ui/krw"
 
 // 계좌 정보
 const BANK_INFO = {
@@ -349,7 +350,7 @@ function OrderCompleteContent() {
                 <div className="border-t-2 border-[var(--line)] pt-4 mt-4 flex justify-between items-center">
                   <span className="font-black text-[var(--ink)]">{t('checkoutComplete.paymentAmount')}</span>
                   <span className="font-black text-2xl text-[var(--muted-ink)]">
-                    {orderInfo.price.toLocaleString()}{t('currency.suffix')}
+                    <Krw amount={orderInfo.price} />
                   </span>
                 </div>
               </div>

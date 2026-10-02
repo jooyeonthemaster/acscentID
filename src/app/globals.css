@@ -803,3 +803,89 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   줄바꿈 정책 (공개 사이트)
+   - ko: 어절 단위로만 줄바꿈 (keep-all). 아주 긴 토큰만 마지막 수단으로 끊는다.
+   - ja·zh: 공백이 없는 문장이라 keep-all을 걸면 줄바꿈 지점이 사라져 가로로 넘친다.
+     컴포넌트의 break-keep 클래스도 이 언어에서는 무효화하고 금칙(strict)만 적용한다.
+   - 번호(사업자번호·계좌 등)는 keepNumbers()로 nowrap 처리.
+   ============================================================ */
+.public-editorial:lang(ko),
+.public-editorial-portal:lang(ko) {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.public-editorial:lang(ja),
+.public-editorial:lang(zh),
+.public-editorial-portal:lang(ja),
+.public-editorial-portal:lang(zh) {
+  word-break: normal;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+.public-editorial:lang(ja) .break-keep,
+.public-editorial:lang(zh) .break-keep,
+.public-editorial-portal:lang(ja) .break-keep,
+.public-editorial-portal:lang(zh) .break-keep {
+  word-break: normal;
+}
+
+/* 포커스된 입력칸이 하단 고정 바·키보드 바로 위에 붙지 않도록 여유를 둔다 */
+.public-editorial :is(input, textarea, select) {
+  scroll-margin-bottom: 120px;
+}
+
+/* ============================================================
+   입력 위저드 선택지 (/input) — 선택 상태를 테두리 색 차이가 아니라
+   배경 반전 + 체크 표시로 구분한다. 컴포넌트는 class="input-choice" + aria-pressed만 단다.
+   ============================================================ */
+.input-choice {
+  position: relative;
+  border-color: var(--line);
+  background-color: var(--paper);
+  box-shadow: none;
+}
+
+.input-choice[aria-pressed="true"] {
+  border-color: var(--ink);
+  background-color: var(--ink);
+  color: #fff;
+}
+
+.input-choice[aria-pressed="true"] * {
+  color: inherit;
+}
+
+.input-choice[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+/* 알약형 칩은 모서리 체크가 글자와 겹치므로 글자 뒤에 붙인다 */
+.input-choice.rounded-full[aria-pressed="true"]::after {
+  position: static;
+  margin-left: 4px;
+}
+
+/* 작은 컨트롤의 보이는 크기는 그대로 두고 터치 영역만 최소 44×44로 넓힌다 */
+.tap-target {
+  position: relative;
+}
+
+.tap-target::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}

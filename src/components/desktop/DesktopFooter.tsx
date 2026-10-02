@@ -11,6 +11,7 @@ import { useActiveProducts } from '@/hooks/useAdminContent'
 import { getTranslatedProgramName } from '@/components/layout/Footer'
 import { useViewportMode } from '@/hooks/useViewportMode'
 import { isDesktopFooterExcludedPath } from '@/lib/desktop/routes'
+import { keepNumbers } from '@/components/ui/keep-numbers'
 
 const DEPOSIT_ACCOUNT_NUMBER = '1005-204-549279'
 
@@ -125,17 +126,17 @@ export function DesktopFooter() {
             <p className="text-[11px] lg:text-[13px] leading-relaxed text-[var(--dark-muted)]">
               <span className="font-bold text-white">NEANDER Co.,LTD</span>
               <br />
-              {t('footer.companyInfo')}
+              {keepNumbers(t('footer.companyInfo'))}
               <br />
-              {t('footer.salesRegistration')}
+              {keepNumbers(t('footer.salesRegistration'))}
               <br />
               {t('footer.companyAddress')}
               <br />
-              {t('footer.companyContact')}
+              {keepNumbers(t('footer.companyContact'))}
             </p>
             <div className="mt-4 flex items-center justify-between gap-3 rounded-[6px] border border-[var(--dark-line)] px-3 py-2.5">
               <p className="text-xs lg:text-sm font-bold text-white">
-                {t('footer.depositAccount')}
+                {keepNumbers(t('footer.depositAccount'))}
               </p>
               <button
                 onClick={handleCopyAccount}

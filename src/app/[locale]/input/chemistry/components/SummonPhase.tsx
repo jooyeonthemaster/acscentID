@@ -70,12 +70,13 @@ export function SummonPhase({
                 key={key}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setFormData(prev => ({ ...prev, targetType: key }))}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
+                type="button"
+                aria-pressed={isActive}
+                className={`input-choice flex flex-col items-center justify-center gap-0.5 py-2 rounded-[6px] text-sm lg:text-base font-bold border-2 transition-colors duration-300 ${
                   isActive
                     ? "border-[var(--line)] bg-[var(--soft)] text-[var(--ink)]"
                     : "border-[var(--line)] bg-[var(--soft)] text-[var(--muted-ink)] hover:border-[var(--line)]"
                 }`}
-                style={isActive ? { boxShadow: '0 0 0 3px rgba(212,160,23,0.22), 0 4px 14px rgba(212,160,23,0.28)' } : undefined}
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">{emoji}</span>

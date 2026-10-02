@@ -172,7 +172,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
               <button
                 onClick={() => setShowAuthModal(true)}
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 border rounded-[5px] transition-colors whitespace-nowrap",
+                  "tap-target flex items-center gap-1 px-2 py-1 border rounded-[5px] transition-colors whitespace-nowrap",
                   dark
                     ? "bg-white/10 border-[var(--dark-line)] hover:bg-white/20"
                     : "bg-white border-[var(--ink)] hover:bg-[var(--soft)]"
@@ -187,7 +187,7 @@ export function Header({ showBack, backHref = "/", compact = false, dark = false
             <button
               onClick={() => router.push('/mypage?tab=cart')}
               className={cn(
-                "relative w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                "tap-target w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-90",
                 dark
                   ? "border-[var(--dark-line)] bg-white/10 hover:border-white hover:bg-white/20"
                   : "border-[var(--line)] bg-white hover:border-[var(--ink)] hover:bg-[var(--soft)]"

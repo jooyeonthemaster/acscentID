@@ -19,6 +19,15 @@ import { isDesktopChromeExcludedPath } from '@/lib/desktop/routes'
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/lib/products/images'
 import { PROGRAM_NAV_LINKS } from '@/lib/navigation'
 
+// 하단 CTA 바를 띄우는 프로그램 상세 → 분석 시작 경로 (로그인 후 복귀 경로와 동일)
+const PROGRAM_START_PATH_BY_PATHNAME: Record<string, { slug: string; path: string }> = {
+  '/programs/idol-image': { slug: 'idol-image', path: '/input?type=idol_image&mode=online' },
+  '/programs/figure': { slug: 'figure', path: '/input?type=figure&mode=online' },
+  '/programs/graduation': { slug: 'graduation', path: '/input?type=graduation&mode=online' },
+  '/programs/chemistry': { slug: 'chemistry', path: '/input?type=chemistry&mode=online' },
+  '/programs/saju': { slug: 'saju', path: '/input?type=saju&mode=online' },
+}
+
 
 // NavItem 컴포넌트
 function NavItem({
@@ -141,7 +150,8 @@ function ProgramsSheet({
   )
 }
 
-export function MobileBottomNav() {
+/** ignoreOwnBottomBar: 자체 구매바 페이지라도 그 바가 없는 상태(판매중지 안내 등)에서 강제로 노출 */
+export function MobileBottomNav({ ignoreOwnBottomBar = false }: { ignoreOwnBottomBar?: boolean } = {}) {
   const pathname = usePathname()
   const normalizedPathname = stripLocaleFromPathname(pathname)
   const { user, unifiedUser, loading, signOut } = useAuth()
@@ -177,24 +187,9 @@ export function MobileBottomNav() {
   const shouldHideForFocusedExperience = isFocusedExperiencePath(pathname)
   // 자체 하단 고정 구매바를 가진 페이지 — 전역 네비와 겹쳐 스크롤 시 깜빡이는 문제 방지
   // Footer와 목록이 어긋나지 않도록 route-visibility의 단일 정의를 사용한다
-  const pageHasOwnBottomBar = hasOwnBottomBar(pathname)
+  const pageHasOwnBottomBar = !ignoreOwnBottomBar && hasOwnBottomBar(pathname)
 
-  const isIdolImagePage = normalizedPathname === '/programs/idol-image'
-  const isFigurePage = normalizedPathname === '/programs/figure'
-  const isGraduationPage = normalizedPathname === '/programs/graduation'
-  const isChemistryPage = normalizedPathname === '/programs/chemistry'
-  const isSajuPage = normalizedPathname === '/programs/saju'
-  const currentProgramSlug = isIdolImagePage
-    ? 'idol-image'
-    : isFigurePage
-      ? 'figure'
-      : isGraduationPage
-        ? 'graduation'
-        : isChemistryPage
-          ? 'chemistry'
-          : isSajuPage
-            ? 'saju'
-            : null
+  const currentProgramSlug = PROGRAM_START_PATH_BY_PATHNAME[normalizedPathname]?.slug ?? null
   // 비활성 프로그램에서는 InactiveProductGuard 안내가 뜨므로 분석 CTA도 함께 숨긴다
   const isProgramDetailPage = currentProgramSlug !== null && isProductActive(currentProgramSlug)
 
@@ -248,40 +243,12 @@ export function MobileBottomNav() {
     setShowAuthModal(true)
   }
 
-  const handleProgramCTAClick = () => {
-    if (loading) return
+  const programStartPath = PROGRAM_START_PATH_BY_PATHNAME[normalizedPathname]?.path ?? null
 
-    if (isIdolImagePage) {
-      if (currentUser) {
-        startTransition('/input?type=idol_image&mode=online')
-      } else {
-        setShowAuthModal(true)
-      }
-    } else if (isFigurePage) {
-      if (currentUser) {
-        startTransition('/input?type=figure&mode=online')
-      } else {
-        setShowAuthModal(true)
-      }
-    } else if (isGraduationPage) {
-      if (currentUser) {
-        startTransition('/input?type=graduation&mode=online')
-      } else {
-        setShowAuthModal(true)
-      }
-    } else if (isChemistryPage) {
-      if (currentUser) {
-        startTransition('/input?type=chemistry&mode=online')
-      } else {
-        setShowAuthModal(true)
-      }
-    } else if (isSajuPage) {
-      if (currentUser) {
-        startTransition('/input?type=saju&mode=online')
-      } else {
-        setShowAuthModal(true)
-      }
-    }
+  const handleProgramCTAClick = () => {
+    if (loading || !programStartPath) return
+    if (currentUser) startTransition(programStartPath)
+    else setShowAuthModal(true)
   }
 
   const shouldHideBars = hasMobileOverlay || showAuthModal || isMenuOpen
@@ -292,9 +259,8 @@ export function MobileBottomNav() {
       {isProgramDetailPage && !shouldHideBars && (
         <div
           className={cn(
-            "fixed left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t border-[var(--line)] safe-area-bottom",
-            "transition-all duration-300 ease-out",
-            isVisible ? "bottom-16" : "bottom-0",
+            // 상세 페이지에서는 탭바를 숨기고 CTA 바만 하단에 고정 (두 바가 겹쳐 화면의 1/4을 차지하던 문제)
+            "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-50 px-4 py-2 bg-white border-t border-[var(--line)] safe-area-bottom",
             hideAtLg && "lg:hidden"
           )}
         >
@@ -308,8 +274,8 @@ export function MobileBottomNav() {
         </div>
       )}
 
-      {/* 하단 네비게이션 바 (4탭) */}
-      {!shouldHideBars && (
+      {/* 하단 네비게이션 바 (4탭) — 프로그램 상세에서는 CTA 바로 대체 */}
+      {!shouldHideBars && !isProgramDetailPage && (
         <nav
           className={cn(
             "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[455px] z-40 bg-white border-t border-[var(--line)] safe-area-bottom",
@@ -428,15 +394,9 @@ export function MobileBottomNav() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        redirectPath={
-          isIdolImagePage ? '/input?type=idol_image&mode=online' :
-            isFigurePage ? '/input?type=figure&mode=online' :
-              isGraduationPage ? '/input?type=graduation&mode=online' :
-                // [FIX] chemistry가 누락되어 로그인 후 /mypage로 이동하던 버그 수정
-                isChemistryPage ? '/input?type=chemistry&mode=online' :
-                  isSajuPage ? '/input?type=saju&mode=online' :
-                    '/mypage'
-        }
+        title={programStartPath ? t('auth.programLoginTitle') : undefined}
+        description={programStartPath ? t('auth.programLoginDescription') : undefined}
+        redirectPath={programStartPath ?? '/mypage'}
       />
     </>
   )
