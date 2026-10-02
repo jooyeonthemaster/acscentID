@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IDOL_CONCEPTS, IDOL_MAX_PEOPLE, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { countFaces, faceRectsInCell } from '@/lib/booth/face-detect'
-import { drawIdolDesign, idolDesigns, type Picture } from '@/lib/booth/idol-layouts'
+import { designNeedsAi, drawIdolDesign, idolDesigns, type Picture } from '@/lib/booth/idol-layouts'
 import { boothText, conceptText, designName, type BoothLang, type BoothText } from '@/lib/booth/i18n'
 
 // ───────────────────────── 컨셉 고르기 ─────────────────────────
@@ -316,7 +316,10 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
   const t = boothText(lang)
   const concept = findIdolConcept(conceptId)
   const designs = useMemo(() => (concept ? idolDesigns(concept) : []), [concept])
-  const selected = designs.find((d) => d.id === value)?.id ?? designs[0]?.id
+  // AI 사진이 없으면(before 없음) 비포·애프터는 못 고른다 — 골라 둔 상태면 첫 디자인이 선택된 것으로
+  const usable = (d: (typeof designs)[number]) => !!before || !designNeedsAi(d)
+  const picked = designs.find((d) => d.id === value)
+  const selected = (picked && usable(picked) ? picked : designs[0])?.id
   const canvases = useRef<(HTMLCanvasElement | null)[]>([])
 
   useEffect(() => {
@@ -335,12 +338,16 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
     <div className={retro ? 'bth-look-grid bth-look-grid--2' : 'grid grid-cols-2 gap-3'} role="radiogroup" aria-label={t.designAria}>
       {designs.map((design, i) => {
         const on = design.id === selected
+        const off = !usable(design)
         return (
           <button
             key={design.id}
             type="button"
             role="radio"
             aria-checked={on}
+            aria-disabled={off}
+            disabled={off}
+            title={off ? t.designNeedsAi : undefined}
             data-on={on ? 'true' : 'false'}
             onClick={() => onChange(design.id)}
             className={retro
@@ -354,6 +361,7 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
               className="block aspect-[2/3] w-full rounded-md bg-black/10"
             />
             <b className="text-sm leading-tight">{designName(t, design)}</b>
+            {off && <em className="text-xs not-italic leading-tight opacity-70">{t.designNeedsAi}</em>}
           </button>
         )
       })}

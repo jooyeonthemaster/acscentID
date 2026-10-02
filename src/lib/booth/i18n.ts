@@ -217,6 +217,7 @@ const ko = {
   idolRetryDone: '다시 만들기',
   idolRetryFailed: 'AI 사진 다시 시도',
   designAria: '인화 디자인',
+  designNeedsAi: 'AI 사진이 나오면 고를 수 있어요',
   // ── 프레임(FramePicker) ──
   frameCategory: '분류',
   frameCategoryAria: '프레임 분류',
@@ -463,6 +464,7 @@ const en: BoothText = {
   idolRetryDone: 'Make again',
   idolRetryFailed: 'Retry AI photo',
   designAria: 'Print design',
+  designNeedsAi: 'Available once the AI photo is ready',
 
 
   frameCategory: 'Category',
@@ -712,6 +714,7 @@ const ja: BoothText = {
   idolRetryDone: 'もう一度作る',
   idolRetryFailed: 'AI写真を再試行',
   designAria: 'プリントデザイン',
+  designNeedsAi: 'AI写真ができると選べます',
 
 
   frameCategory: '分類',
@@ -961,6 +964,7 @@ const zhHans: BoothText = {
   idolRetryDone: '重新生成',
   idolRetryFailed: '重试 AI 照片',
   designAria: '打印设计',
+  designNeedsAi: 'AI照片完成后可选',
 
 
   frameCategory: '分类',
@@ -1210,6 +1214,7 @@ const zhHant: BoothText = {
   idolRetryDone: '重新製作',
   idolRetryFailed: '重試 AI 照片',
   designAria: '列印設計',
+  designNeedsAi: 'AI照片完成後可選',
 
 
   frameCategory: '分類',
