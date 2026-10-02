@@ -215,6 +215,16 @@ export function KioskClassic() {
   } = useScreenBackgrounds('kiosk')
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다, src/lib/kiosk/modes.ts)
   const kioskMode = findKioskMode(deviceSettings.mode)
+  // 문서 언어 — 화면 낭독기·자동 번역·글꼴 선택이 화면 언어를 따르게(키오스크 경로는 로케일 레이아웃 밖이라 비어 있었다)
+  const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = htmlLang
+    return () => {
+      root.lang = prev
+    }
+  }, [htmlLang])
   const activePrograms = useMemo(() => PROGRAMS.filter((p) => kioskMode.programs.includes(p.id)), [kioskMode])
   const showProgramStep = activePrograms.length > 1
   const startSession = useCallback(() => {
@@ -662,7 +672,7 @@ export function KioskClassic() {
           ...(purpose === 'compatibility'
             ? {
               partner: {
-                name: partnerName.trim() || '상대방',
+                name: partnerName.trim() || sx.partnerDefault,
                 gender: partnerGender || '',
                 relation: partnerRelation,
                 birth: digitsToBirth(partnerDigits, partnerCalendar, partnerLeap, null),
@@ -728,7 +738,7 @@ export function KioskClassic() {
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx.statusLines,
+    t, lang, sx,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -736,6 +746,9 @@ export function KioskClassic() {
     if (program !== 'saju') return IMAGE_STEPS
     return purpose === 'compatibility' ? SAJU_STEPS_COMPAT : SAJU_STEPS
   }, [program, purpose])
+
+  /** 단계 표시 — '번호 · 이름'을 단계 순서에서 계산한다(예전엔 01·05·06만 손으로 적혀 6단계가 '05 · PRODUCT'였다) */
+  const stepPill = (s: Step) => `${String(steps.indexOf(s) + 1).padStart(2, '0')} · ${STEP_LABELS[s]}`
 
   const goNext = useCallback(() => {
     const i = steps.indexOf(step)
@@ -1373,7 +1386,7 @@ export function KioskClassic() {
 
         {step === 'purpose' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.purpose}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('purpose')}</p>
             <h1 className="ksk-title">{sx.purposeTitle}</h1>
             <p className="ksk-desc">{sx.purposeDesc}</p>
             <SajuPurposeGrid value={purpose} onChange={setPurpose} tx={sx} />
@@ -1391,7 +1404,7 @@ export function KioskClassic() {
 
         {step === 'birth' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.birth}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('birth')}</p>
             <h1 className="ksk-title">{sx.birthTitle}</h1>
             <SajuBirthPad
               digits={birthDigits}
@@ -1420,7 +1433,7 @@ export function KioskClassic() {
 
         {step === 'hour' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.hour}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('hour')}</p>
             <h1 className="ksk-title">{sx.hourTitle}</h1>
             <p className="ksk-desc">{sx.hourDesc}</p>
             <SajuHourGrid value={hourIndex} onChange={setHourIndex} tx={sx} />
@@ -1438,7 +1451,7 @@ export function KioskClassic() {
 
         {step === 'partner' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.partner}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('partner')}</p>
             <h1 className="ksk-title">{sx.partnerTitle}</h1>
             <label className="ksk-field-label ksk-mono">{sx.relation}</label>
             <SajuRelationGrid value={partnerRelation} onChange={setPartnerRelation} tx={sx} />
@@ -1506,7 +1519,7 @@ export function KioskClassic() {
 
         {step === 'wish' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.wish}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('wish')}</p>
             <h1 className="ksk-title">{sx.wishTitle}</h1>
             <p className="ksk-desc">{sx.wishDesc}</p>
             <button className="ksk-input ksk-input-tall" data-empty={!wish} onClick={() => setWishOpen(true)}>
@@ -1540,17 +1553,17 @@ export function KioskClassic() {
 
         {step === 'info' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">01 · PROFILE</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('info')}</p>
             <h1 className="ksk-title">
               {program === 'idol' ? t.infoTitleIdol : t.infoTitleSelf}
             </h1>
             <p className="ksk-desc">{t.infoDesc}</p>
-            <label className="ksk-field-label ksk-mono">NAME {t.nameOptional}</label>
+            <label className="ksk-field-label">{t.nameLabel} {t.nameOptional}</label>
             {/* 터치 전용: 네이티브 키보드를 띄우지 않고 자체 OSK를 연다 */}
             <button className="ksk-input" data-empty={!name} onClick={() => setOskOpen(true)}>
               {name || t.namePlaceholder}
             </button>
-            <label className="ksk-field-label ksk-mono">GENDER</label>
+            <label className="ksk-field-label">{t.genderLabel}</label>
             <div className="ksk-chips" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               {GENDER_OPTIONS.map((g) => (
                 <button key={g.key} className="ksk-chip" data-on={gender === g.key} onClick={() => setGender(g.key)}>
@@ -1633,7 +1646,7 @@ export function KioskClassic() {
 
         {step === 'product' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">05 · PRODUCT</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('product')}</p>
             <h1 className="ksk-title">{t.productTitle}</h1>
             <p className="ksk-desc">{t.productDesc}</p>
             <div className="ksk-products">
@@ -1654,6 +1667,8 @@ export function KioskClassic() {
               ))}
             </div>
             <div style={{ flex: 1 }} />
+            {/* 결과 화면에는 언어 버튼이 없다 — 분석 전에 어떤 언어로 나오는지 알린다 */}
+            <p className="ksk-result-lang">{t.resultLangNote}</p>
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
                 {t.prev}
@@ -1667,7 +1682,7 @@ export function KioskClassic() {
 
         {step === 'capture' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">06 · PHOTO</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('capture')}</p>
             <h1 className="ksk-title">
               {photo ? t.captureConfirm : photoSource === 'qr' ? t.captureQrTitle : t.captureCamTitle}
             </h1>
@@ -1891,7 +1906,14 @@ export function KioskClassic() {
         {step === 'attract' && (
           <div
             className="ksk-attract"
+            role="button"
+            tabIndex={0}
+            // 낭독기가 제목 글자를 'SAJ U!'처럼 쪼개 읽지 않게 시작 영역 전체에 이름을 붙인다
+            aria-label={kioskMode.poster ? `SAJU! ${kioskMode.poster.main} — ${t.attractCta}` : t.attractCta}
             onClick={startSession}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') startSession()
+            }}
           >
             <div className={kioskMode.poster ? 'ksk-attract-head ksk-attract-head--poster' : 'ksk-attract-head'}>
               {kioskMode.poster ? (

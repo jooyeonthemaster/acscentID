@@ -42,6 +42,8 @@ export interface SajuText {
   skip: string
   statusLines: string[]
   eta: string
+  /** 궁합 상대 이름을 비웠을 때 — 해석문에 그대로 들어간다 */
+  partnerDefault: string
   // 결과
   chapters: [string, string, string, string]
   pillarHeads: { hour: string; day: string; month: string; year: string }
@@ -138,7 +140,8 @@ const ko: SajuText = {
   wishHint: '고민 한 줄',
   skip: '건너뛰기',
   statusLines: ['만세력에서 생시를 찾는 중...', '네 기둥을 세우는 중...', '오행의 균형을 재는 중...', '용신을 정하는 중...', '기운에 맞는 향을 고르는 중...'],
-  eta: '명식을 풀이하는 데 40~80초쯤 걸립니다.',
+  eta: '명식을 풀이하는 데 30~60초쯤 걸립니다.',
+  partnerDefault: '상대방',
   chapters: ['命式 · 명식', '解 · 풀이', '望 · 물음', '香 · 처방'],
   pillarHeads: { hour: '시', day: '일', month: '월', year: '년' },
   me: '나',
@@ -224,7 +227,8 @@ const en: SajuText = {
   wishHint: 'One line',
   skip: 'Skip',
   statusLines: ['Finding your birth in the calendar...', 'Raising the four pillars...', 'Weighing the five elements...', 'Choosing the element you need...', 'Picking the scent for your energy...'],
-  eta: 'Reading your chart takes about 40–80 seconds.',
+  eta: 'Reading your chart takes about 30–60 seconds.',
+  partnerDefault: 'Partner',
   chapters: ['命式 · Chart', '解 · Reading', '望 · Your question', '香 · Scent'],
   pillarHeads: { hour: 'Hour', day: 'Day', month: 'Month', year: 'Year' },
   me: 'You',
@@ -302,7 +306,8 @@ const ja: SajuText = {
   wishHint: '悩みを一行',
   skip: 'スキップ',
   statusLines: ['万年暦で生まれた時を探しています...', '四つの柱を立てています...', '五行のバランスを測っています...', '用神を決めています...', '気に合う香りを選んでいます...'],
-  eta: '命式の読み解きには40〜80秒ほどかかります。',
+  eta: '命式の読み解きには30〜60秒ほどかかります。',
+  partnerDefault: 'お相手',
   chapters: ['命式', '解 · 読み解き', '望 · 問い', '香 · 処方'],
   pillarHeads: { hour: '時', day: '日', month: '月', year: '年' },
   me: '私',
@@ -380,7 +385,8 @@ const zhHans: SajuText = {
   wishHint: '一句烦恼',
   skip: '跳过',
   statusLines: ['正在万年历中查找出生时间...', '正在立起四柱...', '正在衡量五行平衡...', '正在确定用神...', '正在挑选合适的香气...'],
-  eta: '解读命盘大约需要 40–80 秒。',
+  eta: '解读命盘大约需要 30–60 秒。',
+  partnerDefault: '对方',
   chapters: ['命式 · 命盘', '解 · 解读', '望 · 提问', '香 · 处方'],
   pillarHeads: { hour: '时', day: '日', month: '月', year: '年' },
   me: '我',
@@ -459,7 +465,8 @@ const zhHant: SajuText = {
   wishHint: '一句煩惱',
   skip: '跳過',
   statusLines: ['正在萬年曆中查找出生時間...', '正在立起四柱...', '正在衡量五行平衡...', '正在確定用神...', '正在挑選合適的香氣...'],
-  eta: '解讀命盤大約需要 40–80 秒。',
+  eta: '解讀命盤大約需要 30–60 秒。',
+  partnerDefault: '對方',
   chapters: ['命式 · 命盤', '解 · 解讀', '望 · 提問', '香 · 處方'],
   pillarHeads: { hour: '時', day: '日', month: '月', year: '年' },
   noHour: '時辰不明',

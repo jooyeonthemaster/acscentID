@@ -53,6 +53,8 @@ const ko = {
   infoTitleSelf: '어떻게 불러드릴까요?',
   infoDesc: '이름은 영수증 리포트에 함께 인쇄됩니다.',
   nameOptional: '(선택)',
+  nameLabel: '이름',
+  genderLabel: '성별',
   namePlaceholder: '이름 또는 별명',
   gender: { Male: '남성', Female: '여성', Other: '기타' },
 
@@ -77,6 +79,8 @@ const ko = {
   // ── 제품 ──
   productTitle: '어떤 제품으로 만들까요?',
   productDesc: '분석 결과 레시피가 선택한 제품 기준으로 인쇄됩니다.',
+  /** 분석 직전 — 결과 화면에는 언어 버튼이 없어 미리 알린다 */
+  resultLangNote: '결과는 한국어로 나와요.',
   products: {
     perfume_10ml: { label: '퍼퓸 10ml', description: '휴대용 미니 용량' },
     perfume_50ml: { label: '퍼퓸 50ml', description: '정품 풀용량' },
@@ -263,6 +267,8 @@ const en: KioskText = {
   infoTitleSelf: 'What should we call you?',
   infoDesc: 'The name will be printed on your receipt report.',
   nameOptional: '(optional)',
+  nameLabel: 'Name',
+  genderLabel: 'Gender',
   namePlaceholder: 'Name or nickname',
   gender: { Male: 'Male', Female: 'Female', Other: 'Other' },
 
@@ -285,6 +291,7 @@ const en: KioskText = {
 
   productTitle: 'Which product should we make?',
   productDesc: 'The recipe will be printed for the product you choose.',
+  resultLangNote: 'Your results will be shown in English.',
   products: {
     perfume_10ml: { label: 'Perfume 10ml', description: 'Pocket-size mini' },
     perfume_50ml: { label: 'Perfume 50ml', description: 'Full-size bottle' },
@@ -458,6 +465,8 @@ const ja: KioskText = {
   infoTitleSelf: 'お名前を教えてください',
   infoDesc: 'お名前はレシートのレポートに印字されます。',
   nameOptional: '（任意）',
+  nameLabel: 'お名前',
+  genderLabel: '性別',
   namePlaceholder: '名前またはニックネーム',
   gender: { Male: '男性', Female: '女性', Other: 'その他' },
 
@@ -480,6 +489,7 @@ const ja: KioskText = {
 
   productTitle: 'どの製品にしますか？',
   productDesc: '分析結果のレシピは、選んだ製品に合わせて印字されます。',
+  resultLangNote: '結果は日本語で表示されます。',
   products: {
     perfume_10ml: { label: 'パフューム 10ml', description: '持ち歩きに便利なミニサイズ' },
     perfume_50ml: { label: 'パフューム 50ml', description: 'フルサイズ' },
@@ -652,6 +662,8 @@ const zhHans: KioskText = {
   infoTitleSelf: '怎么称呼你？',
   infoDesc: '名字会打印在小票报告上。',
   nameOptional: '（可选）',
+  nameLabel: '姓名',
+  genderLabel: '性别',
   namePlaceholder: '名字或昵称',
   gender: { Male: '男', Female: '女', Other: '其他' },
 
@@ -674,6 +686,7 @@ const zhHans: KioskText = {
 
   productTitle: '要做成哪种产品？',
   productDesc: '分析结果的配方会按所选产品打印。',
+  resultLangNote: '结果将以简体中文显示。',
   products: {
     perfume_10ml: { label: '香水 10ml', description: '便携迷你装' },
     perfume_50ml: { label: '香水 50ml', description: '正装大容量' },
@@ -848,6 +861,8 @@ const zhHant: KioskText = {
   infoTitleSelf: '怎麼稱呼你？',
   infoDesc: '名字會列印在收據報告上。',
   nameOptional: '（選填）',
+  nameLabel: '姓名',
+  genderLabel: '性別',
   namePlaceholder: '名字或暱稱',
   gender: { Male: '男', Female: '女', Other: '其他' },
 
@@ -870,6 +885,7 @@ const zhHant: KioskText = {
 
   productTitle: '要做成哪種產品？',
   productDesc: '分析結果的配方會依所選產品列印。',
+  resultLangNote: '結果將以繁體中文顯示。',
   products: {
     perfume_10ml: { label: '香水 10ml', description: '隨身迷你裝' },
     perfume_50ml: { label: '香水 50ml', description: '正裝大容量' },

@@ -236,6 +236,8 @@ export async function POST(request: NextRequest) {
     const prompt = locale === 'ko' ? kioskPrompt
       : wrapPromptWithLocale(kioskPrompt, locale)
         + '\n\n# NO HANGUL: never write Korean (Hangul) characters anywhere in the output. Romanize Korean saju terms (e.g. "Byeong-o year", "Yongsin") and keep Chinese characters (漢字) only in parentheses.'
+        // 로마자는 한국어 개정 로마자 표기(RR) 하나로 — 'Mao-Yu Clash'(중국 병음)처럼 섞이지 않게
+        + '\n# ROMANIZATION: when you romanize Korean saju terms, always use the Korean Revised Romanization of the Korean reading, never Chinese pinyin or Japanese readings. Hyphenate pillar/branch pairs. Examples: 卯酉 → "Myo-Yu", 辛金 → "Sin-Geum", 丙午 → "Byeong-o", 用神 → "Yongsin", 卯酉沖 → "Myo-Yu clash (卯酉沖)".'
         + (traditional ? '\n\n# 所有輸出文字一律使用繁體中文（Traditional Chinese characters），不可使用簡體字。' : '');
 
     const startedAt = Date.now();

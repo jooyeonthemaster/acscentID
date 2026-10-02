@@ -2138,3 +2138,15 @@
 .ksk-root[data-lang='ja'] .ksk-title {
   word-break: auto-phrase;
 }
+
+/* 06 제품 단계 — 결과 언어 안내 한 줄(결과 화면에는 언어 버튼이 없다) */
+.ksk-result-lang {
+  /* 버튼 바 위의 흐림(.ksk-actions::before)보다 위에 — 안 그러면 흐리게 묻힌다 */
+  position: relative;
+  z-index: 6;
+  margin: auto 0 0;
+  padding-top: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
