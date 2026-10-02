@@ -155,7 +155,6 @@ const ko = {
   savePng: 'PNG 저장',
 
   // ── 대기 ──
-  idleBanner: (n: number) => `${n}초 후 처음 화면으로 돌아갑니다`,
   idleTitle: '잠시 후 처음 화면으로 돌아갑니다',
   idleDesc: '계속 보시려면 화면을 터치해 주세요.',
   idleContinue: '계속 보기',
@@ -358,7 +357,6 @@ const en: KioskText = {
   print: 'Print',
   savePng: 'Save PNG',
 
-  idleBanner: (n) => `Returning to the start screen in ${n}s`,
   idleTitle: 'Returning to the start screen soon',
   idleDesc: 'Touch the screen to keep viewing.',
   idleContinue: 'Keep viewing',
@@ -553,7 +551,6 @@ const ja: KioskText = {
   print: '印刷する',
   savePng: 'PNGで保存',
 
-  idleBanner: (n) => `${n}秒後に最初の画面に戻ります`,
   idleTitle: 'まもなく最初の画面に戻ります',
   idleDesc: '続けて見るには画面をタッチしてください。',
   idleContinue: '続けて見る',
@@ -748,7 +745,6 @@ const zhHans: KioskText = {
   print: '打印',
   savePng: '保存 PNG',
 
-  idleBanner: (n) => `${n} 秒后返回首页`,
   idleTitle: '即将返回首页',
   idleDesc: '如需继续查看，请触摸屏幕。',
   idleContinue: '继续查看',
@@ -945,7 +941,6 @@ const zhHant: KioskText = {
   print: '列印',
   savePng: '儲存 PNG',
 
-  idleBanner: (n) => `${n} 秒後返回首頁`,
   idleTitle: '即將返回首頁',
   idleDesc: '如需繼續查看，請觸碰螢幕。',
   idleContinue: '繼續查看',

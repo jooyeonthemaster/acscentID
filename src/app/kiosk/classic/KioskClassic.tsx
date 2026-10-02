@@ -20,6 +20,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
+import { idleWindowFor } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
@@ -127,30 +128,7 @@ const STEP_LABELS: Record<string, string> = {
 const MAX_PICK = 3
 const FRAGRANCE_DENSITY = 0.9 // g/ml — types/feedback.ts calculateGranuleAmounts와 동일 계수
 
-// 폰으로 QR을 찍고 갤러리를 뒤지는 동안은 화면 터치가 없다 — 유휴 한도를 따로 길게 잡는다
-const QR_IDLE_LIMIT = 420
-
-/* 영수증 미리보기·발권 후: 손님은 이미 볼일을 마쳤다. 20초 조용하면 10초짜리
-   안내 팝업을 띄우고, 그래도 아무도 없으면 처음 화면으로 돌아간다. */
-const RECEIPT_IDLE_SILENT = 20
-const RECEIPT_IDLE_WARN = 10
-
-const IDLE_LIMIT: Partial<Record<Step, number>> = {
-  program: 120,
-  info: 120,
-  style: 120,
-  personality: 120,
-  charm: 120,
-  purpose: 120,
-  birth: 180,
-  hour: 150,
-  partner: 180,
-  wish: 180,
-  product: 120,
-  capture: 180,
-  analyzing: 120, // fetch 타임아웃(75s)의 보험 — 어떤 경우에도 무인 기기가 잠기지 않게
-  result: 360, // 장이 여러 개라 읽는 시간이 길다
-}
+// 무입력 타임아웃 값·규칙은 src/lib/kiosk/idle.ts (포토부스와 같은 30초 + 10초 안내)
 
 function toggleIn(list: string[], value: string, max: number): string[] {
   if (list.includes(value)) return list.filter((v) => v !== value)
@@ -373,17 +351,21 @@ export function KioskClassic() {
   // ── 유휴 리셋 ─────────────────────────────────────────────
   const receiptOpen = Boolean(receipt)
 
+  const idleWin = idleWindowFor({
+    step,
+    receiptOpen,
+    qrWaiting: step === 'capture' && photoSource === 'qr',
+    analyzeFailed: analyzeError !== null,
+  })
+  const idleSilent = idleWin?.silent ?? 0
+  const idleWarn = idleWin?.warn ?? 0
+
   useEffect(() => {
-    const limit = receiptOpen
-      ? RECEIPT_IDLE_SILENT + RECEIPT_IDLE_WARN
-      : step === 'capture' && photoSource === 'qr'
-        ? QR_IDLE_LIMIT
-        : IDLE_LIMIT[step]
+    const limit = idleSilent + idleWarn
     if (!limit || backgroundAdminOpen) {
       setIdleLeft(null)
       return
     }
-    const warnFrom = receiptOpen ? RECEIPT_IDLE_WARN : 15
     idleDeadline.current = Date.now() + limit * 1000
     const bump = () => {
       idleDeadline.current = Date.now() + limit * 1000
@@ -402,7 +384,7 @@ export function KioskClassic() {
       if (left <= 0) {
         resetAll()
       } else {
-        setIdleLeft(left <= warnFrom ? left : null)
+        setIdleLeft(left <= idleWarn ? left : null)
       }
     }, 1000)
     return () => {
@@ -411,7 +393,7 @@ export function KioskClassic() {
       window.clearInterval(timer)
       setIdleLeft(null)
     }
-  }, [step, photoSource, resetAll, receiptOpen, printing, backgroundAdminOpen])
+  }, [step, idleSilent, idleWarn, resetAll, printing, backgroundAdminOpen])
 
   // ── 카메라 ────────────────────────────────────────────────
   useEffect(() => {
@@ -2087,9 +2069,9 @@ export function KioskClassic() {
       )}
 
       {toast && <div className="ksk-toast">{toast}</div>}
-      {idleLeft !== null && receiptOpen ? (
-        // 화면 어디를 눌러도(pointerdown) 대기 시간이 다시 채워지고 팝업은 닫힌다
-        <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive">
+      {idleLeft !== null && (
+        // 무입력 안내 — 어느 단계든 화면 가운데 10초 안내창. 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다
+        <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive" aria-label={t.idleTitle}>
           <div className="ksk-idle-card">
             <span className="ksk-idle-count ksk-mono">{idleLeft}</span>
             <h2>{t.idleTitle}</h2>
@@ -2099,8 +2081,6 @@ export function KioskClassic() {
             </button>
           </div>
         </div>
-      ) : (
-        idleLeft !== null && <div className="ksk-idle">{t.idleBanner(idleLeft)}</div>
       )}
       {/* 안전한 모든 단계의 우하단에서 동일한 관리자 인증창을 연다. */}
       {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
