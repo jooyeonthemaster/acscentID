@@ -109,6 +109,8 @@ const SCREEN_ZOOM_OPTIONS = [1, 1.25, 1.5, 1.75] as const
    두 기기가 한 공간에 있어 손님이 같은 방식으로 겪게 한다. */
 const IDLE_SILENT_S = 30
 const IDLE_WARN_S = 10
+/** 편집·결과 화면 — AI 사진(비용이 든다)을 보고 디자인을 고르는 동안이라 길게. 30초로 두었더니 완성된 사진이 사라졌다(2026-10-02 점검) */
+const EDIT_IDLE_SILENT_S = 80
 /** 폰으로 QR 을 찍고 사진을 고르는 동안은 부스를 만지지 않는다 — 한도를 길게 */
 const QR_IDLE_SILENT_S = 120
 /** [이미지 저장] QR 을 폰으로 찍는 동안도 부스를 안 만진다 */
@@ -672,25 +674,9 @@ export function BoothClassic() {
   // 앱 종료는 한 번 더 묻는다(QuitConfirm)
   const [askQuitBooth, quitConfirmNode] = useQuitConfirm(quitBooth)
 
-  // 홈에서 60초간 입력이 없으면 매장 어트랙트 화면으로 전환
+  // 첫 화면 밖으로 나가면 대기 화면을 닫는다 — 대기 화면으로 가는 건 아래 무입력 규칙(안내 후 처음으로)이 맡는다
   useEffect(() => {
-    if (step !== 'home') {
-      setIsAttract(false)
-      return
-    }
-    let timer = window.setTimeout(() => setIsAttract(true), 60_000)
-    const reset = () => {
-      setIsAttract(false)
-      window.clearTimeout(timer)
-      timer = window.setTimeout(() => setIsAttract(true), 60_000)
-    }
-    window.addEventListener('pointerdown', reset)
-    window.addEventListener('keydown', reset)
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('pointerdown', reset)
-      window.removeEventListener('keydown', reset)
-    }
+    if (step !== 'home') setIsAttract(false)
   }, [step])
 
   // 배경 제거 설정은 이 부스 기기에 저장 (매장이 한 번만 맞추면 됨)
@@ -846,8 +832,9 @@ export function BoothClassic() {
   // ---------- 처음 화면 복귀 (첫 화면 제외 모든 단계) ----------
   // 촬영 카운트다운·인쇄 전송·결과 만들기 중에는 기다리는 게 정상이라 세지 않는다.
   // 관리자 팝업이 열려 있을 때도 멈춘다 (직원이 설정 중).
+  // 첫 화면(컨셉·체험 고르기)도 같은 규칙 — 예전엔 안내 없이 60초 뒤 대기 화면으로 가고 언어도 남았다
   const idlePaused =
-    step === 'home' ||
+    (step === 'home' && isAttract) ||
     shooting ||
     finishing ||
     passLoading ||
@@ -861,7 +848,10 @@ export function BoothClassic() {
   useEffect(() => {
     if (idlePaused) return
     const silent =
-      step === 'qr' ? QR_IDLE_SILENT_S : saveQrOpen ? SAVE_QR_IDLE_SILENT_S : IDLE_SILENT_S
+      step === 'qr' ? QR_IDLE_SILENT_S
+        : saveQrOpen ? SAVE_QR_IDLE_SILENT_S
+          : step === 'compose' || step === 'result' ? EDIT_IDLE_SILENT_S
+            : IDLE_SILENT_S
     const full = (silent + IDLE_WARN_S) * 1000
     idleDeadlineRef.current = Date.now() + (sessionDone ? IDLE_WARN_S * 1000 : full)
     // 화면 어디를 눌러도 시간이 다시 채워지고 안내 팝업은 닫힌다 (키오스크와 동일)
@@ -874,8 +864,11 @@ export function BoothClassic() {
     window.addEventListener('keydown', bump)
     const timer = window.setInterval(() => {
       const left = Math.ceil((idleDeadlineRef.current - Date.now()) / 1000)
-      if (left <= 0) resetAll()
-      else setIdleLeft(left <= IDLE_WARN_S ? left : null)
+      if (left <= 0) {
+        // 처음으로(언어도 한국어로) + 다음 손님을 기다리는 대기 화면
+        resetAll()
+        setIsAttract(true)
+      } else setIdleLeft(left <= IDLE_WARN_S ? left : null)
     }, 250)
     return () => {
       window.removeEventListener('pointerdown', bump)
