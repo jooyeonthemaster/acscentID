@@ -47,7 +47,7 @@ const ko = {
   // ── 첫 화면(행사 모드) ──
   stageTitleIdol: '어떤 컨셉으로 데뷔할까요?',
   stageSubIdol: 'AI가 나를 아이돌 사진으로 만들어 드려요',
-  idolConsent: '찍은 사진은 AI 아이돌 사진을 만드는 데만 AI 서비스(Google)로 보내지고, 저장하지 않아요.',
+  idolConsent: '찍은 사진은 AI 아이돌 사진을 만드는 데만 AI 서비스(Google)로 보내요. 완성 사진은 인화물 QR로 폰에 받을 수 있게 7일 동안 보관한 뒤 자동으로 삭제해요.',
   idolAgreeStart: '동의하고 아이돌 되기',
 
   // ── 첫 화면(매장) ──
@@ -191,7 +191,7 @@ const ko = {
   saveQrStep1: '폰 카메라로 QR을 비춰요',
   /** 2단계 — 앞 · 굵게(photoSave 버튼 이름) · 뒤 */
   saveQrStep2: ['열린 페이지에서 ', '를 눌러요'],
-  photoAutoDelete: (h: number) => `사진은 ${h}시간 뒤 자동으로 삭제돼요`,
+  photoAutoDelete: (h: number) => `사진은 ${h / 24}일 뒤 자동으로 삭제돼요`,
 
   // ── 처음 화면 복귀 ──
   idleTitle: '잠시 후 처음 화면으로 돌아갑니다',
@@ -271,7 +271,7 @@ const ko = {
 
   // ── 손님 폰: 내 사진 저장(/booth/photo) ──
   photoExpiredTitle: '사진 보관 기간이 지났어요',
-  photoExpiredDesc: (h: number) => ['부스 사진은 개인정보 보호를 위해', `촬영 후 ${h}시간이 지나면 자동으로 삭제돼요.`],
+  photoExpiredDesc: (h: number) => ['부스 사진은 개인정보 보호를 위해', `촬영 후 ${h / 24}일이 지나면 자동으로 삭제돼요.`],
   photoNotFound: '사진을 찾을 수 없어요',
   photoNotFoundDesc: '보관 기간이 지났거나 삭제된 사진이에요.',
   photoAlt: '포토부스에서 찍은 내 사진',
@@ -279,7 +279,7 @@ const ko = {
   photoSave: '사진 저장하기',
   photoSaveFailed: '저장하지 못했어요. 사진을 길게 눌러 저장해 주세요.',
   photoSaveHint: '저장이 안 되면 사진을 길게 눌러 ‘사진 앱에 저장’을 눌러 주세요.',
-  photoPrivacy: (h: number) => `개인정보 보호를 위해 ${h}시간 뒤 자동으로 삭제돼요.`,
+  photoPrivacy: (h: number) => `개인정보 보호를 위해 ${h / 24}일 뒤 자동으로 삭제돼요.`,
   photoUntil: (date: string) => `${date}까지 받을 수 있어요.`,
 
   // ── 손님 폰: 포토카드 안내(/booth/card) ──
@@ -311,7 +311,7 @@ const en: BoothText = {
 
   stageTitleIdol: 'Which concept will you debut with?',
   stageSubIdol: 'AI turns you into a K-POP idol photo',
-  idolConsent: 'Your photo is sent to an AI service (Google) only to create your idol photo, and is not stored.',
+  idolConsent: 'Your photo is sent to an AI service (Google) only to create your idol photo. The finished photo is kept for 7 days so you can download it with the QR on your print, then deleted automatically.',
   idolAgreeStart: 'Agree & become an idol',
 
   homeTitle: 'What photo shall we take?',
@@ -443,7 +443,7 @@ const en: BoothText = {
   saveQrTitle: 'Scan the QR with your phone to save',
   saveQrStep1: 'Point your phone camera at the QR',
   saveQrStep2: ['Tap ', ' on the page that opens'],
-  photoAutoDelete: (h: number) => `Photos are automatically deleted after ${h} hours`,
+  photoAutoDelete: (h: number) => `Photos are automatically deleted after ${h / 24} days`,
 
   idleTitle: 'Returning to the start screen soon',
   idleRemaining: 'Time left before returning to start',
@@ -529,7 +529,7 @@ const en: BoothText = {
   upDoneDesc: ['Please continue shooting on the booth screen.', 'You can close this page.'],
 
   photoExpiredTitle: 'This photo is no longer available',
-  photoExpiredDesc: (h: number) => ['To protect your privacy, booth photos', `are automatically deleted ${h} hours after shooting.`],
+  photoExpiredDesc: (h: number) => ['To protect your privacy, booth photos', `are automatically deleted ${h / 24} days after shooting.`],
   photoNotFound: "We couldn't find the photo",
   photoNotFoundDesc: 'It has expired or been deleted.',
   photoAlt: 'My photo from the photo booth',
@@ -537,7 +537,7 @@ const en: BoothText = {
   photoSave: 'Save photo',
   photoSaveFailed: "Couldn't save. Press and hold the photo to save it.",
   photoSaveHint: 'If saving doesn’t work, press and hold the photo and choose “Save to Photos”.',
-  photoPrivacy: (h: number) => `For your privacy, it is automatically deleted after ${h} hours.`,
+  photoPrivacy: (h: number) => `For your privacy, it is automatically deleted after ${h / 24} days.`,
   photoUntil: (date: string) => `Available until ${date}.`,
 
   cardUse: ['This card can be used at the ', 'store photo booth', '.'],
@@ -564,7 +564,7 @@ const ja: BoothText = {
 
   stageTitleIdol: 'どのコンセプトでデビューしますか？',
   stageSubIdol: 'AIがあなたをアイドル写真にします',
-  idolConsent: '撮影した写真はAIアイドル写真を作るためだけにAIサービス（Google）へ送られ、保存されません。',
+  idolConsent: '撮影した写真はAIアイドル写真を作るためだけにAIサービス（Google）へ送られます。完成写真はプリントのQRでスマホに保存できるよう7日間保管し、その後自動で削除します。',
   idolAgreeStart: '同意してアイドルになる',
 
   homeTitle: 'どんな写真を撮りますか？',
@@ -696,7 +696,7 @@ const ja: BoothText = {
   saveQrTitle: 'スマホでQRを読み取って保存してください',
   saveQrStep1: 'スマホのカメラでQRを読み取ります',
   saveQrStep2: ['開いたページで', 'を押します'],
-  photoAutoDelete: (h: number) => `写真は${h}時間後に自動で削除されます`,
+  photoAutoDelete: (h: number) => `写真は${h / 24}日後に自動で削除されます`,
 
   idleTitle: 'まもなく最初の画面に戻ります',
   idleRemaining: '最初の画面に戻るまでの残り時間',
@@ -782,7 +782,7 @@ const ja: BoothText = {
   upDoneDesc: ['ブース画面で撮影を続けてください。', 'このページは閉じても大丈夫です。'],
 
   photoExpiredTitle: '写真の保管期間が過ぎました',
-  photoExpiredDesc: (h: number) => ['ブースの写真は個人情報保護のため、', `撮影から${h}時間後に自動で削除されます。`],
+  photoExpiredDesc: (h: number) => ['ブースの写真は個人情報保護のため、', `撮影から${h / 24}日後に自動で削除されます。`],
   photoNotFound: '写真が見つかりません',
   photoNotFoundDesc: '保管期間が過ぎたか、削除された写真です。',
   photoAlt: 'フォトブースで撮った私の写真',
@@ -790,7 +790,7 @@ const ja: BoothText = {
   photoSave: '写真を保存',
   photoSaveFailed: '保存できませんでした。写真を長押しして保存してください。',
   photoSaveHint: '保存できない場合は、写真を長押しして「写真に保存」を選んでください。',
-  photoPrivacy: (h: number) => `個人情報保護のため、${h}時間後に自動で削除されます。`,
+  photoPrivacy: (h: number) => `個人情報保護のため、${h / 24}日後に自動で削除されます。`,
   photoUntil: (date: string) => `${date}まで受け取れます。`,
 
   cardUse: ['このカードは', '店舗のフォトブース', 'で使えます。'],
@@ -817,7 +817,7 @@ const zhHans: BoothText = {
 
   stageTitleIdol: '你想用哪个概念出道？',
   stageSubIdol: 'AI 把你变成爱豆照片',
-  idolConsent: '拍摄的照片仅会发送至 AI 服务（Google）用于生成 AI 爱豆照片，不会被保存。',
+  idolConsent: '拍摄的照片仅会发送至 AI 服务（Google）用于生成 AI 爱豆照片。成品照片会保存 7 天，方便你用照片上的二维码下载，之后自动删除。',
   idolAgreeStart: '同意并成为爱豆',
 
   homeTitle: '想拍什么样的照片？',
@@ -949,7 +949,7 @@ const zhHans: BoothText = {
   saveQrTitle: '用手机扫描二维码保存',
   saveQrStep1: '用手机相机扫描二维码',
   saveQrStep2: ['在打开的页面点击', ''],
-  photoAutoDelete: (h: number) => `照片将在 ${h} 小时后自动删除`,
+  photoAutoDelete: (h: number) => `照片将在 ${h / 24} 天后自动删除`,
 
   idleTitle: '即将返回首页',
   idleRemaining: '距离返回首页的剩余时间',
@@ -1035,7 +1035,7 @@ const zhHans: BoothText = {
   upDoneDesc: ['请在拍照亭屏幕上继续拍摄。', '可以关闭此页面了。'],
 
   photoExpiredTitle: '照片已过保存期限',
-  photoExpiredDesc: (h: number) => ['为保护个人信息，拍照亭照片', `会在拍摄 ${h} 小时后自动删除。`],
+  photoExpiredDesc: (h: number) => ['为保护个人信息，拍照亭照片', `会在拍摄 ${h / 24} 天后自动删除。`],
   photoNotFound: '找不到照片',
   photoNotFoundDesc: '照片已过保存期限或已被删除。',
   photoAlt: '我在拍照亭拍的照片',
@@ -1043,7 +1043,7 @@ const zhHans: BoothText = {
   photoSave: '保存照片',
   photoSaveFailed: '保存失败，请长按照片保存。',
   photoSaveHint: '如果无法保存，请长按照片并选择“存储到照片”。',
-  photoPrivacy: (h: number) => `为保护个人信息，照片将在 ${h} 小时后自动删除。`,
+  photoPrivacy: (h: number) => `为保护个人信息，照片将在 ${h / 24} 天后自动删除。`,
   photoUntil: (date: string) => `可在 ${date} 前下载。`,
 
   cardUse: ['这张小卡可以在', '店内拍照亭', '使用。'],
@@ -1070,7 +1070,7 @@ const zhHant: BoothText = {
 
   stageTitleIdol: '你想用哪個概念出道？',
   stageSubIdol: 'AI 把你變成偶像照片',
-  idolConsent: '拍攝的照片只會傳送至 AI 服務（Google）用來製作偶像照片，不會被儲存。',
+  idolConsent: '拍攝的照片只會傳送至 AI 服務（Google）用來製作偶像照片。完成的照片會保存 7 天，方便你用相片上的 QR 碼下載，之後自動刪除。',
   idolAgreeStart: '同意並成為偶像',
 
   homeTitle: '想拍什麼樣的照片？',
@@ -1202,7 +1202,7 @@ const zhHant: BoothText = {
   saveQrTitle: '用手機掃描 QR 碼儲存',
   saveQrStep1: '用手機相機掃描 QR 碼',
   saveQrStep2: ['在開啟的頁面點選', ''],
-  photoAutoDelete: (h: number) => `照片會在 ${h} 小時後自動刪除`,
+  photoAutoDelete: (h: number) => `照片會在 ${h / 24} 天後自動刪除`,
 
   idleTitle: '即將返回首頁',
   idleRemaining: '距離返回首頁的剩餘時間',
@@ -1288,7 +1288,7 @@ const zhHant: BoothText = {
   upDoneDesc: ['請在拍貼機螢幕上繼續拍攝。', '可以關閉這個頁面了。'],
 
   photoExpiredTitle: '照片已超過保存期限',
-  photoExpiredDesc: (h: number) => ['為保護個人資料，拍貼機照片', `會在拍攝 ${h} 小時後自動刪除。`],
+  photoExpiredDesc: (h: number) => ['為保護個人資料，拍貼機照片', `會在拍攝 ${h / 24} 天後自動刪除。`],
   photoNotFound: '找不到照片',
   photoNotFoundDesc: '照片已超過保存期限或已被刪除。',
   photoAlt: '我在拍貼機拍的照片',
@@ -1296,7 +1296,7 @@ const zhHant: BoothText = {
   photoSave: '儲存照片',
   photoSaveFailed: '儲存失敗，請長按照片儲存。',
   photoSaveHint: '如果無法儲存，請長按照片並選擇「儲存到照片」。',
-  photoPrivacy: (h: number) => `為保護個人資料，照片會在 ${h} 小時後自動刪除。`,
+  photoPrivacy: (h: number) => `為保護個人資料，照片會在 ${h / 24} 天後自動刪除。`,
   photoUntil: (date: string) => `可在 ${date} 前下載。`,
 
   cardUse: ['這張小卡可以在', '店內拍貼機', '使用。'],

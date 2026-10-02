@@ -20,6 +20,7 @@
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
+import { makePrintQr, renderIdolPrint, uploadResultPhoto, type IdolPrintArgs } from '@/lib/booth/print-qr'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { preloadFaceDetect } from '@/lib/booth/face-detect'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
@@ -1577,9 +1578,16 @@ export function BoothClassic() {
         // AI 아이돌 사진(행사 모드 + 동의) — 메이크업·스티커 없이 고른 인화 디자인으로. AI 사진이 오기 전·못 만들었으면 찍은 원본 그대로
         const idolConcept = findIdolConcept(stageConceptId)
         if (stageMakeup && idolOn && idolConcept && shotImages.length === 1) {
-          drawIdolDesign(ctx, idolConcept, idolDesignId,
-            idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
-            stageMakeup.eventLines[0])
+          const args: IdolPrintArgs = {
+            concept: idolConcept,
+            designId: idolDesignId,
+            pics: idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
+            event: stageMakeup.eventLines[0],
+          }
+          // 완성하기에서 QR 없는 원판·QR 넣은 원판을 다시 그린다(src/lib/booth/print-qr.ts)
+          idolPrintRef.current = args
+          // 인화물 QR 이 켜진 모드면 미리보기에 자리를 보여 준다(완성하기를 누르면 진짜 QR)
+          drawIdolDesign(ctx, args.concept, args.designId, args.pics, args.event, boothMode.printQr ? 'placeholder' : null)
           return
         }
 
@@ -1702,6 +1710,7 @@ export function BoothClassic() {
     idolImage,
     idolOn,
     idolDesignId,
+    boothMode.printQr,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -1774,17 +1783,39 @@ export function BoothClassic() {
     }
   }, [])
 
-  const finishCompose = useCallback(() => {
+  /** 편집 화면에 마지막으로 그린 AI 아이돌 인화 디자인(완성하기에서 QR 을 넣어 다시 그린다) */
+  const idolPrintRef = useRef<IdolPrintArgs | null>(null)
+
+  const finishCompose = useCallback(async () => {
     const canvas = composeCanvasRef.current
     if (!canvas) return
     setFinishing(true)
     try {
-      setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
       setPrintStatus('idle')
       setSaveQr(null)
       setSaveStatus('idle')
+      const idolPrint = idolOn && boothMode.printQr ? idolPrintRef.current : null
+      if (idolPrint) {
+        // 인화물 오른쪽 아래 폰 다운로드 QR — QR 없는 원판을 올려 주소를 받고, 그 QR 을 넣은 원판을 인쇄한다
+        const clean = renderIdolPrint(idolPrint, null)
+        try {
+          if (!shotIdRef.current) await logShot()
+          if (!shotIdRef.current) throw new Error('촬영 기록이 없어요')
+          const path = await uploadResultPhoto(shotIdRef.current, clean)
+          const url = withBoothLang(`${window.location.origin}${path}`, langRef.current)
+          const qr = await makePrintQr(url)
+          setResultUrl(renderIdolPrint(idolPrint, qr.image))
+          setSaveQr({ url, qrDataUrl: qr.qrDataUrl })
+        } catch (error) {
+          // 올리기 실패(네트워크 등) — QR 없이 예전처럼. [폰으로 받기]는 그때 다시 올린다
+          console.error('[photobooth] 인화물 QR 만들기 실패:', error)
+          setResultUrl(clean)
+        }
+      } else {
+        setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
+        logShot()
+      }
       setStep('result')
-      logShot()
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
@@ -1792,7 +1823,7 @@ export function BoothClassic() {
     } finally {
       setFinishing(false)
     }
-  }, [logShot])
+  }, [logShot, idolOn, boothMode.printQr])
 
   const handlePrint = useCallback(async () => {
     if (printStatus === 'printing') return

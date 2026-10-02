@@ -43,6 +43,11 @@ export interface BoothMode {
   }
   /** 이 모드로 바꿀 때 함께 고르는 포토부스 기본 배경(catalog.json id) */
   defaultBackground?: string
+  /**
+   * 인화물 오른쪽 아래에 폰 다운로드 QR — 완성 사진을 모두 서버에 7일 보관하게 된다(src/lib/booth/print-qr.ts).
+   * 손님 동의 문구에 보관을 안내하는 행사 모드만 켠다. 매장 모드는 [폰으로 받기]를 누른 사진만 올린다
+   */
+  printQr?: boolean
 }
 
 export const BOOTH_MODES: BoothMode[] = [
@@ -79,6 +84,7 @@ export const BOOTH_MODES: BoothMode[] = [
       eventLines: ['2026 K-WAVE DANCE FESTIVAL', '세계문화마을 · 이태원로 · 10.3~10.4'],
     },
     defaultBackground: 'booth-event-kwave-2026-idol',
+    printQr: true,
   },
 ]
 

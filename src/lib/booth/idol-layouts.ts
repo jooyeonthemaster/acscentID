@@ -237,16 +237,60 @@ function shade(ctx: CanvasRenderingContext2D, y0: number, y1: number, from: stri
 
 // ───────────────────────── 네 가지 틀 ─────────────────────────
 
+/** 인화물 오른쪽 아래 폰 다운로드 QR — 이미지, 편집 미리보기용 자리 표시('placeholder'), 없음(null) */
+export type PrintQr = Picture | 'placeholder' | null
+
 interface Parts {
   concept: IdolConcept
   style: ConceptStyle
   main: Picture
   before: Picture | null
   event: string
+  qr: PrintQr
 }
 
+// QR 카드 — 흰 둥근 판에 QR(168px ≈ 14mm @300dpi, 폰으로 읽히는 크기) + 'SCAN · 사진 받기'
+const QR_W = 192, QR_H = 228, QR_M = 40
+
+function qrTile(ctx: CanvasRenderingContext2D, qr: PrintQr, x: number, y: number) {
+  if (!qr) return
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.25)'
+  ctx.shadowBlur = 16
+  ctx.shadowOffsetY = 4
+  roundRectPath(ctx, x, y, QR_W, QR_H, 18)
+  ctx.fillStyle = '#ffffff'
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  const q = 168, qx = x + (QR_W - q) / 2, qy = y + 12
+  if (qr === 'placeholder') {
+    // 완성하기를 누르면 진짜 QR 이 들어간다 — 미리보기에선 자리만
+    ctx.fillStyle = '#e9e9ee'
+    ctx.fillRect(qx, qy, q, q)
+    ctx.fillStyle = '#9a9aa6'
+    ctx.font = sans(800)(40)
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('QR', qx + q / 2, qy + q / 2)
+  } else {
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(qr, qx, qy, q, q)
+    ctx.imageSmoothingEnabled = true
+  }
+  ctx.fillStyle = '#1b1a24'
+  ctx.font = sans(800)(19)
+  ctx.letterSpacing = '1px'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillText('SCAN · 사진 받기', x + QR_W / 2, y + QR_H - 16)
+  ctx.restore()
+}
+
+/** 캔버스 오른쪽 아래 QR 자리(왼쪽 위 좌표) */
+const qrCorner = () => ({ x: W - QR_M - QR_W, y: H - QR_M - QR_H })
+
 /** 무대 한 장 — 사진을 꽉 채우고 컨셉 장식(LIVE·REC·레터박스·스튜디오 여백) + 아래 한 줄 */
-function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before, event }: Parts) {
+function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before, event, qr }: Parts) {
   const { deco, accent } = style
   if (deco === 'cinema') {
     const bar = 170
@@ -263,6 +307,8 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
     eventText(ctx, event, W - 60, bar / 2 + 8, '#ffffff', 'right', 20)
     if (before) polaroid(ctx, before, 60 + 110, H - bar - 60 - 160, 220, -0.06)
     conceptLine(ctx, concept, W / 2, H - bar / 2 + 16, W - 120, '#ffffff', 46, 'center')
+    // 아래 검은 띠에는 이름이 있어 그 바로 위 사진 오른쪽 아래에
+    qrTile(ctx, qr, W - QR_M - QR_W, H - bar - 24 - QR_H)
     return
   }
   if (deco === 'studio') {
@@ -274,6 +320,7 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
     if (before) polaroid(ctx, before, m + 40 + 100, H - bottom - 40 - 150, 200, -0.05)
     conceptLine(ctx, concept, m, H - bottom / 2 + 10, W - m * 2 - 380, style.dark, 50)
     eventText(ctx, event, W - m, H - bottom / 2 + 6, style.dark, 'right', 20)
+    qrTile(ctx, qr, W - m - 24 - QR_W, H - bottom - 24 - QR_H)
     return
   }
   cover(ctx, main, 0, 0, W, H)
@@ -286,7 +333,7 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
     const y = H - 190
     ctx.fillStyle = accent
     ctx.fillRect(48, y, 12, 110)
-    conceptLine(ctx, concept, 84, y + 62, W - 84 - 48 - (before ? 280 : 0), '#ffffff', 54)
+    conceptLine(ctx, concept, 84, y + 62, W - 84 - 48 - (before ? 280 : 0) - (qr ? QR_W + 24 : 0), '#ffffff', 54)
     eventText(ctx, event, 84, y + 104, '#ffffff', 'left', 20)
   } else {
     // 직캠 — 뷰파인더 모서리, REC·시간
@@ -310,14 +357,16 @@ function drawStage(ctx: CanvasRenderingContext2D, { concept, style, main, before
       ctx.stroke()
     }
     ctx.restore()
-    conceptLine(ctx, concept, 56, H - 110, W - 112 - (before ? 280 : 0), '#ffffff', 52)
+    conceptLine(ctx, concept, 56, H - 110, W - 112 - (before ? 280 : 0) - (qr ? QR_W + 24 : 0), '#ffffff', 52)
     eventText(ctx, event, 56, H - 64, '#ffffff', 'left', 20)
   }
-  if (before) polaroid(ctx, before, W - 48 - 120, H - 60 - 185, 220, 0.06)
+  const polaroidX = qr ? W - QR_M - QR_W - 24 - 120 : W - 48 - 120
+  if (before) polaroid(ctx, before, polaroidX, H - 60 - 185, 220, 0.06)
+  qrTile(ctx, qr, qrCorner().x, qrCorner().y)
 }
 
 /** 포토카드 — 컨셉 색 바탕에 둥근 카드, 아래에 이름과 실물 */
-function drawPhotocard(ctx: CanvasRenderingContext2D, { concept, style, main, before, event }: Parts) {
+function drawPhotocard(ctx: CanvasRenderingContext2D, { concept, style, main, before, event, qr }: Parts) {
   const g = ctx.createLinearGradient(0, 0, W, H)
   g.addColorStop(0, style.card[0])
   g.addColorStop(1, style.card[1])
@@ -341,10 +390,13 @@ function drawPhotocard(ctx: CanvasRenderingContext2D, { concept, style, main, be
   ctx.restore()
   if (before) pill(ctx, 'ON STAGE', x + w - 28, y + 28, { bg: 'rgba(10,8,30,0.55)', fg: '#ffffff', align: 'right', size: 22 })
   const baseY = y + h + 14 + 150
-  conceptLine(ctx, concept, x, baseY - 26, w - (before ? 220 : 0), ink, 52)
+  // 오른쪽 아래는 QR, 실물(BEFORE)은 그 왼쪽
+  const bw = 150, bh = 200, bx = (qr ? qrCorner().x - 24 : x + w) - bw, by = y + h + 44
+  const textRight = before ? bx - 30 : qr ? qrCorner().x - 30 : x + w
+  conceptLine(ctx, concept, x, baseY - 26, textRight - x, ink, 52)
   eventText(ctx, event, x, baseY + 22, ink, 'left', 20)
+  qrTile(ctx, qr, qrCorner().x, qrCorner().y)
   if (before) {
-    const bw = 150, bh = 200, bx = x + w - bw, by = y + h + 44
     ctx.save()
     roundRectPath(ctx, bx - 8, by - 8, bw + 16, bh + 16, 18)
     ctx.fillStyle = '#ffffff'
@@ -389,7 +441,7 @@ function photoBox(ctx: CanvasRenderingContext2D, pic: Picture, x: number, y: num
   ctx.restore()
 }
 
-function drawSplit(ctx: CanvasRenderingContext2D, { concept, main, before, event }: Parts) {
+function drawSplit(ctx: CanvasRenderingContext2D, { concept, main, before, event, qr }: Parts) {
   const m = 56, gap = 24
   const x = m, w = W - m * 2
   ctx.fillStyle = PAPER
@@ -431,10 +483,11 @@ function drawSplit(ctx: CanvasRenderingContext2D, { concept, main, before, event
   const ay = m + topH + gap
   photoBox(ctx, main, x, ay, w, H - m - ay, 0.25)
   tag(ctx, 'ON STAGE', x + 18, ay + 18, BRICK)
+  qrTile(ctx, qr, x + w - 24 - QR_W, H - m - 24 - QR_H)
 }
 
 /** 포스터 — 사진을 꽉 채우고 위에 큰 영어 제목, 아래에 한국어 이름·행사 */
-function drawPoster(ctx: CanvasRenderingContext2D, { concept, style, main, before, event }: Parts) {
+function drawPoster(ctx: CanvasRenderingContext2D, { concept, style, main, before, event, qr }: Parts) {
   cover(ctx, main, 0, 0, W, H, 0.45)
   shade(ctx, 0, 520, 'rgba(0,0,0,0.62)', 'rgba(0,0,0,0)')
   shade(ctx, H - 360, H, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.7)')
@@ -457,10 +510,11 @@ function drawPoster(ctx: CanvasRenderingContext2D, { concept, style, main, befor
   ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  fit(ctx, concept.name.ko, W - tx - 60, sans(800), 60, 34)
+  fit(ctx, concept.name.ko, (qr ? qrCorner().x - 30 : W - 60) - tx, sans(800), 60, 34)
   ctx.fillText(concept.name.ko, tx, H - 120)
   ctx.restore()
   eventText(ctx, event, tx, H - 70, '#ffffff', 'left', 22)
+  qrTile(ctx, qr, qrCorner().x, qrCorner().y)
 }
 
 /**
@@ -473,9 +527,11 @@ export function drawIdolDesign(
   designId: string | null | undefined,
   pics: { main: Picture; before: Picture | null },
   event: string,
+  /** 인화물 오른쪽 아래 폰 다운로드 QR(없으면 null) */
+  qr: PrintQr = null,
 ) {
   const style = styleOf(concept)
-  const parts: Parts = { concept, style, main: pics.main, before: pics.before, event }
+  const parts: Parts = { concept, style, main: pics.main, before: pics.before, event, qr }
   ctx.save()
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
