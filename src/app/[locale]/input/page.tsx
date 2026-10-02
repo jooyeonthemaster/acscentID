@@ -65,6 +65,7 @@ function InputForm() {
         isCompressing,
         isIdol,
         isOnline,
+        isOffline,
         // 피규어 온라인 모드 전용
         isFigureOnline,
         modelingImagePreview,
@@ -396,8 +397,9 @@ function InputForm() {
                 onClose={() => {}}
                 closeable={false}
                 showGuestOption={false}
-                title={t('auth.qrLoginTitle')}
-                description={t('auth.qrLoginDescription')}
+                // '오프라인 향수 분석' 안내는 매장 QR 진입에만 — 온라인·직접 접속은 일반 로그인 안내
+                title={isOffline ? t('auth.qrLoginTitle') : t('auth.programLoginTitle')}
+                description={isOffline ? t('auth.qrLoginDescription') : t('auth.programLoginDescription')}
                 redirectPath={qrRedirectPath}
             />
         </div>

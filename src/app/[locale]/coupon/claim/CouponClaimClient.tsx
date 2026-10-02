@@ -131,7 +131,7 @@ export function CouponClaimClient({
   return (
     <>
       <Header />
-      <div className="flex min-h-[75vh] items-center justify-center bg-[var(--canvas)] px-5 pb-10 pt-28 lg:pt-12">
+      <div className="flex min-h-[75vh] items-center justify-center bg-[var(--canvas)] px-5 pb-10 pt-28 lg:pt-32">
         <div className="w-full max-w-sm rounded-[6px] border border-[var(--line)] bg-white p-6 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--soft)]">
             {status === 'success' ? (

@@ -806,7 +806,7 @@
 
 /* ============================================================
    줄바꿈 정책 (공개 사이트)
-   - ko: 어절 단위로만 줄바꿈 (keep-all). 아주 긴 토큰만 마지막 수단으로 끊는다.
+   - ko: 어절 단위로만 줄바꿈 (keep-all). 칸을 넘치는 긴 토큰(URL 등)만 마지막 수단으로 끊는다.
    - ja·zh: 공백이 없는 문장이라 keep-all을 걸면 줄바꿈 지점이 사라져 가로로 넘친다.
      컴포넌트의 break-keep 클래스도 이 언어에서는 무효화하고 금칙(strict)만 적용한다.
    - 번호(사업자번호·계좌 등)는 keepNumbers()로 nowrap 처리.
@@ -814,7 +814,9 @@
 .public-editorial:lang(ko),
 .public-editorial-portal:lang(ko) {
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  /* anywhere는 flex 항목의 최소 폭까지 줄여 '30가/지 향'처럼 짧은 단어를 끊는다 —
+     넘칠 때만 끊는 break-word로 둔다 */
+  overflow-wrap: break-word;
 }
 
 .public-editorial:lang(ja),
@@ -822,7 +824,7 @@
 .public-editorial-portal:lang(ja),
 .public-editorial-portal:lang(zh) {
   word-break: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   line-break: strict;
 }
 

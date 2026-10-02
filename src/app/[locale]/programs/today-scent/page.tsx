@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { Link, useRouter } from "@/i18n/routing"
 import {
-  Star, X, ChevronRight, ShoppingCart, Sparkles,
+  X, ChevronRight, ShoppingCart, Sparkles,
   Package, Truck, Droplets, Share2, FileText,
 } from "lucide-react"
 import { Header } from "@/components/layout/Header"
@@ -145,7 +145,7 @@ function TodayScentProductContent() {
       {/* ============================================
           HERO - 오늘의 향 비주얼 + 구매
       ============================================ */}
-      <section className="pt-28 pb-10 px-4 lg:pt-12">
+      <section className="pt-28 pb-10 px-4 lg:pt-32">
         {/* lg+: 비주얼 카드 | 제품 정보 2단 (모바일은 기존 1열 그대로) */}
         <div className="w-full max-w-[455px] mx-auto lg:grid lg:max-w-[1040px] lg:grid-cols-2 lg:items-start lg:gap-10">
           {/* 향 비주얼 카드 (테마 컬러) */}
@@ -203,14 +203,6 @@ function TodayScentProductContent() {
 
             {/* 타이틀 */}
             <div className="mb-4">
-              <div className="mb-2 flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} size={14} className="fill-[var(--ink)] text-[var(--ink)]" />
-                  ))}
-                  <span className="text-xs lg:text-sm font-bold text-[var(--muted-ink)] ml-1">4.9 (1,204)</span>
-                </div>
-              </div>
               <h1 className="text-xl font-black text-[var(--ink)] leading-tight mb-1.5 break-keep">
                 {scent.name}
                 <span className="text-[var(--muted-ink)]"> · {t('programs.detail.todayScent.titleSuffix')}</span>

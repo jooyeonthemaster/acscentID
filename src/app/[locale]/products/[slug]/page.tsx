@@ -643,7 +643,7 @@ function ProductDetailInner({
                 </div>
                 <p className="break-keep text-xs text-[var(--muted-ink)]">{t('store.detail.scentSelectDesc')}</p>
               </div>
-              <span className="inline-flex items-center justify-center rounded-[3px] bg-[var(--soft)] px-2.5 py-1 text-center text-[11px] font-extrabold text-[var(--muted-ink)]">
+              <span className="inline-flex shrink-0 items-center whitespace-nowrap justify-center rounded-[3px] bg-[var(--soft)] px-2.5 py-1 text-center text-[11px] font-extrabold text-[var(--muted-ink)]">
                 {t('store.detail.scentsCount', { count: TODAY_SCENTS.length })}
               </span>
             </div>

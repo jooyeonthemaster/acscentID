@@ -211,7 +211,7 @@ export function MobileMenuSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col h-full overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {loading ? (
             <div className="p-8 text-center">
               <div className="w-8 h-8 border-2 border-[var(--line)] border-dashed rounded-full animate-spin mx-auto mb-2" />
@@ -240,7 +240,7 @@ export function MobileMenuSheet({
               </div>
 
               {/* Navigation */}
-              <nav className="flex-1 overflow-y-auto">
+              <nav className="flex-1">
                 <Link
                   href="/"
                   onClick={handleClose}
@@ -297,9 +297,9 @@ export function MobileMenuSheet({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col h-full">
-              {/* Navigation for non-logged in users */}
-              <nav className="flex-1 overflow-y-auto">
+            <div className="flex flex-col">
+              {/* Navigation for non-logged in users — 드로어 전체가 한 번에 스크롤 (메뉴가 늘어 안쪽 스크롤이 좁아지던 문제) */}
+              <nav>
                 <Link
                   href="/"
                   onClick={handleClose}

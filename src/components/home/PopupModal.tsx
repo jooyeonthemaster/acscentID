@@ -36,6 +36,8 @@ export function PopupModal() {
   const showPopup = isVisible && consentDecided
 
   useEffect(() => {
+    // 브레드크럼 등으로 특정 섹션(#programs-section)을 찾아 들어온 경우에는 팝업으로 가로막지 않는다
+    if (window.location.hash) return
     fetchActivePopups()
   }, [])
 

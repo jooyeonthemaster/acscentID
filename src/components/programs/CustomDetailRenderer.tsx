@@ -93,7 +93,7 @@ export function CustomDetailRenderer({ html, onPrimaryAction }: CustomDetailRend
         }
 
         /* 버튼 블록 = 사이트 주 버튼 */
-        .custom-detail-content [data-ac-block="button"] a {
+        .custom-detail-content [data-ac-block="button"] a[href] {
           min-height: 52px !important;
           border: none !important;
           border-radius: 5px !important;
@@ -103,7 +103,7 @@ export function CustomDetailRenderer({ html, onPrimaryAction }: CustomDetailRend
           font-weight: 800 !important;
         }
 
-        .custom-detail-content [data-ac-block="button"] a:hover {
+        .custom-detail-content [data-ac-block="button"] a[href]:hover {
           background: #000 !important;
           color: #fff !important;
         }

@@ -44,7 +44,7 @@ function InactiveProductNotice({ productSlug }: { productSlug: string }) {
   return (
     <>
       <Header />
-      <section className="bg-[var(--canvas)] px-4 pb-16 pt-28 lg:pt-16">
+      <section className="bg-[var(--canvas)] px-4 pb-16 pt-28 lg:pt-32">
         <div className="mx-auto w-full max-w-[455px] lg:max-w-[720px]">
           <div className="rounded-[6px] border border-[var(--line)] bg-white p-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--soft)]">
