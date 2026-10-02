@@ -351,8 +351,8 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
             data-on={on ? 'true' : 'false'}
             onClick={() => onChange(design.id)}
             className={retro
-              ? 'rt-choice flex flex-col items-center gap-1 p-2'
-              : `flex flex-col items-center gap-1 rounded-2xl border-2 p-2 transition-colors ${on ? 'border-current ring-2 ring-current' : 'border-[color:color-mix(in_srgb,currentColor_22%,transparent)]'}`}
+              ? 'rt-choice bth-design-btn flex flex-col items-center gap-1 p-2'
+              : `bth-design-btn flex flex-col items-center gap-1 rounded-2xl border-2 p-2 transition-colors ${on ? 'border-current ring-2 ring-current' : 'border-[color:color-mix(in_srgb,currentColor_22%,transparent)]'}`}
           >
             <canvas
               ref={(node) => { canvases.current[i] = node }}
@@ -360,7 +360,7 @@ export function IdolDesignPicker({ conceptId, value, onChange, main, before, eve
               height={1800 * THUMB}
               className="block aspect-[2/3] w-full rounded-md bg-black/10"
             />
-            <b className="text-sm leading-tight">{designName(t, design)}</b>
+            <b className="bth-design-name leading-tight">{designName(t, design)}</b>
             {off && <em className="text-xs not-italic leading-tight opacity-70">{t.designNeedsAi}</em>}
           </button>
         )
