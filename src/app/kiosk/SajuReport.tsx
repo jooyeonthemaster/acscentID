@@ -20,8 +20,8 @@ function sentences(text: string | undefined | null): string[] {
   return (text.match(/[^.!?。！？]+[.!?。！？]+["'”」)]*|[^.!?。！？]+$/g) ?? [text]).map(s => s.trim()).filter(Boolean)
 }
 
-/** 앞 n문장만 보이고 나머지는 '자세히 보기' */
-function Brief({ text, n = 2, tx, className = '' }: { text: string | undefined | null; n?: number; tx: SajuText; className?: string }) {
+/** 앞 n문장만 보이고 나머지는 '자세히 보기' — 퍼스널 컬러·타로 결과(ColorReport·TarotReport)도 같이 쓴다 */
+export function Brief({ text, n = 2, tx, className = '' }: { text: string | undefined | null; n?: number; tx: Pick<SajuText, 'more' | 'less'>; className?: string }) {
   const [open, setOpen] = useState(false)
   const all = sentences(text)
   if (!all.length) return null
@@ -311,8 +311,8 @@ function SajuSummary({ result, tx }: { result: SajuAnalysisResult; tx: SajuText 
   )
 }
 
-/** '아래로 더 보기' — 스크롤 영역 아래에 붙어 있다가 끝에 거의 닿으면 사라진다 */
-function ScrollMoreHint({ label }: { label: string }) {
+/** '아래로 더 보기' — 스크롤 영역 아래에 붙어 있다가 끝에 거의 닿으면 사라진다. 퍼스널 컬러·타로 결과도 같이 쓴다 */
+export function ScrollMoreHint({ label }: { label: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [hidden, setHidden] = useState(false)
   useEffect(() => {

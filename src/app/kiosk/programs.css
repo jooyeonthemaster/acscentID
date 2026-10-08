@@ -1,0 +1,101 @@
+/* 키오스크 AI 퍼스널 컬러(.clr-*) · AI 타로(.trt-*) — 기존·레트로 어느 화면에서도 같은 모양.
+   560px CSS 폭 기준(실기 zoom≈1.93). 색은 화면 테마와 무관하게 여기서 정한다(사주 결과 saju-report.css 와 같은 방식).
+   결과 화면의 카드·향 부품은 .sjr-* 를 그대로 쓰고, 여기는 두 프로그램에만 있는 부품을 둔다. */
+
+.xpr-note { padding: 4px 8px 10px; font-size: 15px; line-height: 1.5; color: #6b6255; text-align: center; word-break: keep-all; }
+.xpr-note--warn { padding: 12px 16px; border: 1px solid #e3c98f; border-radius: 14px; background: #fff6de; color: #6a4d10; font-weight: 700; text-align: left; }
+
+/* ── 타로 카드 ─────────────────────────────────────────── */
+.trt-card { position: relative; width: 100%; aspect-ratio: 2 / 3; box-sizing: border-box; border-radius: 8px; overflow: hidden; }
+/* 뒷면 — 남보라 바탕에 금색 마름모 격자 */
+.trt-card--back {
+  background-color: #1b1838;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, 0.28) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-45deg, rgba(201, 169, 97, 0.28) 0 1px, transparent 1px 9px);
+  border: 2px solid #c9a961;
+  box-shadow: inset 0 0 0 3px #1b1838, inset 0 0 0 4px rgba(201, 169, 97, 0.75);
+}
+.trt-card--back span { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(45deg); background: #1b1838; border: 1.5px solid #c9a961; }
+.trt-card--back span::after { content: ''; position: absolute; inset: 24%; border-radius: 50%; background: #c9a961; }
+.trt-card--empty { display: grid; place-items: center; border: 2px dashed currentColor; font-size: 22px; font-weight: 800; opacity: 0.45; }
+/* 앞면 — 한지색 바탕, 안쪽 선은 그 카드의 원소 색. 글자는 카드 폭에 맞춰 커진다(cqw, 못 쓰는 셸은 px) */
+.trt-card--face { container-type: inline-size; background: #fbf8f2; border: 2px solid #1b1838; box-shadow: inset 0 0 0 3px #fbf8f2, inset 0 0 0 4px var(--trt-el, #c9a961); color: #1b1838; }
+.trt-card-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 13% 8% 11%; text-align: center; }
+.trt-card--face[data-reversed] .trt-card-inner { transform: rotate(180deg); }
+/* 원소 기호는 뒤집히면 다른 원소가 된다(물 ▽ ↔ 불 △) — 역방향 카드에서도 기호만은 바로 세운다 */
+.trt-card--face[data-reversed] .trt-card-glyph { transform: rotate(180deg); }
+.trt-card-roman { font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-size: 17cqw; font-weight: 700; letter-spacing: 0.04em; line-height: 1; }
+.trt-card-glyph { display: grid; place-items: center; color: var(--trt-el, #c9a961); }
+.trt-card-glyph svg { width: 56px; width: 42cqw; height: 56px; height: 42cqw; }
+.trt-card-name { font-size: 17px; font-size: 12.5cqw; font-weight: 800; line-height: 1.15; word-break: keep-all; }
+.trt-card-en { margin-top: -6%; font-size: 9px; font-size: 6.6cqw; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+
+/* ── 타로 뽑기 화면 ────────────────────────────────────── */
+/* 고르는 동안은 작게(덱이 주인공), 펼치면 가로를 다 쓴다 */
+.trt-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 62%; margin: 0 auto 16px; transition: width 0.45s ease; }
+.trt-slots[data-revealed] { width: 100%; margin-top: 8px; }
+.trt-slot { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.trt-slot-pos { padding: 3px 12px; border-radius: 999px; background: #1b1838; color: #e9d9b6; font-size: 14px; font-weight: 800; white-space: nowrap; }
+.trt-slot-name { min-height: 2.6em; font-size: 14px; font-weight: 700; line-height: 1.3; text-align: center; word-break: keep-all; opacity: 0.85; }
+.trt-slots[data-revealed] .trt-slot-name { font-size: 16px; opacity: 1; }
+.trt-flip { position: relative; width: 100%; aspect-ratio: 2 / 3; perspective: 900px; }
+.trt-flip-side { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1); transition-delay: calc(var(--i, 0) * 0.32s); }
+.trt-flip-front { transform: rotateY(180deg); }
+.trt-flip[data-open] .trt-flip-back { transform: rotateY(180deg); }
+.trt-flip[data-open] .trt-flip-front { transform: rotateY(360deg); }
+.trt-deck { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.trt-deck-card { flex: 0 0 calc((100% - 42px) / 8); padding: 0; border: 0; background: none; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease; -webkit-tap-highlight-color: transparent; }
+.trt-deck-card:active:not(:disabled) { transform: translateY(-6px); }
+.trt-deck-card[data-picked] { opacity: 0.16; transform: scale(0.92); }
+.trt-deck-card:disabled:not([data-picked]) { opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) {
+  .trt-flip-side, .trt-slots, .trt-deck-card { transition: none; }
+}
+
+/* ── 타로 결과 ─────────────────────────────────────────── */
+.trt-hero { padding: 22px 16px 18px; border: 1px solid #c9a961; border-radius: 18px; background: #1b1838; color: #fbf8f2; text-align: center; box-shadow: 0 10px 28px rgba(27, 24, 56, 0.35); }
+.trt-hero-kicker { font-size: 16px; font-weight: 700; letter-spacing: 0.04em; color: #e9d9b6; }
+.trt-hero-title { margin-top: 4px !important; font-size: 30px; font-weight: 800; line-height: 1.3; }
+.trt-hero-question { margin-top: 8px !important; font-size: 16px; opacity: 0.85; }
+.trt-spread { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.trt-spread-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.trt-hero .trt-slot-pos { background: #c9a961; color: #1b1838; }
+.trt-spread-name { display: flex; flex-direction: column; font-size: 16px; font-weight: 800; line-height: 1.25; word-break: keep-all; }
+.trt-spread-name em { font-style: normal; font-size: 13px; font-weight: 700; color: #e9d9b6; }
+.trt-read { border-top: 5px solid var(--trt-el, #c9a961); }
+.trt-read-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 16px; font-weight: 700; color: #6b6255; }
+.trt-read-head b { padding: 2px 12px; border-radius: 999px; background: #1b1838; color: #e9d9b6; font-size: 15px; }
+.trt-read-head i { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-style: normal; color: var(--trt-el, #6b6255); }
+
+/* ── 퍼스널 컬러: 촬영 안내 ───────────────────────────── */
+.clr-tips { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.45; }
+.clr-tips li { position: relative; padding-left: 1.1em; word-break: keep-all; }
+.clr-tips li::before { content: '·'; position: absolute; left: 0.25em; font-weight: 800; }
+
+/* ── 퍼스널 컬러 결과 ──────────────────────────────────── */
+/* 드레이프 — 고른 색을 얼굴 사진 둘레에 깐다. 글자색은 바탕 밝기에 맞춰 바뀐다 */
+.clr-drape { padding: 26px 18px 24px; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 18px; background: var(--clr-drape, #f7e7ce); color: var(--clr-ink, #111); text-align: center; box-shadow: 0 10px 28px rgba(29, 26, 22, 0.22); transition: background 0.35s ease, color 0.35s ease; }
+.clr-face { width: 46%; aspect-ratio: 1; margin: 0 auto 16px; border: 5px solid #fff; border-radius: 50%; overflow: hidden; background: #ddd; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); }
+.clr-face img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.clr-drape-color { display: inline-block; margin: -4px 0 12px !important; padding: 4px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.88); color: #1d1a16; font-size: 15px; font-weight: 800; }
+.clr-drape-color[data-avoid] { background: #1d1a16; color: #fff; }
+.clr-drape-kicker { font-size: 16px; font-weight: 700; opacity: 0.85; }
+.clr-drape-type { margin-top: 2px !important; font-size: 40px; font-weight: 800; line-height: 1.2; }
+.clr-drape-title { margin-top: 6px !important; font-size: 19px; font-weight: 700; opacity: 0.92; word-break: keep-all; }
+.clr-hint { font-size: 15px; color: #6b6255; }
+.clr-swatch-label { margin-top: 14px !important; font-size: 16px; font-weight: 800; }
+.clr-swatches { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.clr-swatch { position: relative; aspect-ratio: 1; padding: 0; border: 2px solid rgba(29, 26, 22, 0.18); border-radius: 50%; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.clr-swatch[data-on] { outline: 3px solid #1d1a16; outline-offset: 3px; }
+/* 피할 색 — 빗금. 밝은 색·어두운 색 어디서도 보이게 흰 선에 어두운 테두리 */
+.clr-swatches[data-avoid] .clr-swatch::after { content: ''; position: absolute; left: 10%; right: 10%; top: calc(50% - 1.5px); height: 3px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55); transform: rotate(-45deg); }
+.clr-names { margin-top: 8px !important; font-size: 16px; font-weight: 700; color: #3b342b; word-break: keep-all; }
+.clr-gauges { display: flex; flex-direction: column; gap: 14px; }
+.clr-gauge { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'label label label' 'low track high'; align-items: center; gap: 4px 10px; font-size: 15px; color: #6b6255; }
+.clr-gauge b { grid-area: label; font-size: 17px; color: #1d1a16; }
+.clr-gauge-track { position: relative; height: 10px; border-radius: 999px; background: #e6ddcb; }
+.clr-gauge-track i { position: absolute; top: 50%; width: 22px; height: 22px; box-sizing: border-box; border: 3px solid #fff; border-radius: 50%; background: #1d1a16; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); transform: translate(-50%, -50%); }
+.clr-observe { display: flex; flex-direction: column; gap: 10px; }
+.clr-observe p { display: grid; grid-template-columns: 5em minmax(0, 1fr); align-items: baseline; gap: 10px; }
+.clr-observe b { font-size: 16px; color: #6b6255; }

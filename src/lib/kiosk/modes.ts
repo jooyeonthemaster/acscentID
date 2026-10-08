@@ -4,7 +4,7 @@
 
 import type { KioskLang } from './i18n'
 
-export type KioskProgramId = 'personal' | 'idol' | 'saju'
+export type KioskProgramId = 'personal' | 'idol' | 'saju' | 'color' | 'tarot'
 
 /** 첫 화면(대기 화면) 문구 — 없는 칸은 기본(i18n) 문구를 쓴다 */
 export interface ModeAttract {
@@ -49,7 +49,7 @@ export interface KioskMode {
   /** 사주 결과를 장 넘기기 대신 한 화면 스크롤로 — 손님이 몰리는 행사장에서 줄을 줄이려고 */
   resultOnePage?: boolean
   receipt: {
-    /** 'scent' = 향 먼저(매장), 'saju' = 명식 먼저인 사주 처방전 */
+    /** 'scent' = 향 먼저(매장), 'saju' = 명식 먼저인 사주 처방전. 컬러·타로는 프로그램이 제 머리말을 쓴다 */
     theme: 'scent' | 'saju'
     /** 워드마크 아래 한 줄 */
     subtitle: string
@@ -171,6 +171,74 @@ export const KIOSK_MODES: KioskMode[] = [
       },
     },
     defaultBackground: 'kiosk-event-kwave-2026',
+  },
+  {
+    // 초안 — AI 퍼스널 컬러 진단 · AI 타로. 프로그램이 둘이라 첫 화면 다음에 고르기 화면이 나온다.
+    // 행사가 정해지면 label·note·attract·receipt.eventLines 를 그 행사에 맞게 고친다(K-WAVE 항목 참고).
+    id: 'ai-lab',
+    label: 'AI 컬러 · 타로 (초안)',
+    note: '행사 · 팝업용 · 퍼스널 컬러 진단 + 타로',
+    brandName: "AC'SCENT AI LAB",
+    storeEvents: false,
+    programs: ['color', 'tarot'],
+    attract: {
+      ko: {
+        ticket: 'AI COLOR · AI TAROT',
+        wordmark: 'LAB!',
+        sub: '나의 색과 카드로 찾는 향, AI 조향사',
+        cardNo: '01 PICK > 01 SCENT',
+        title1: '나의 색, 오늘의 카드,',
+        title2: '어떤 향으로 이어질까요?',
+        body1: 'AI가 퍼스널 컬러를 진단하거나 타로 세 장을 읽고,',
+        body2: '어울리는 향 레시피를 영수증으로 뽑아드려요.',
+        tags: ['#퍼스널컬러', '#AI타로', '#AI조향'],
+      },
+      en: {
+        ticket: 'AI COLOR · AI TAROT',
+        wordmark: 'LAB!',
+        sub: 'An AI perfumer that reads your colors and cards',
+        cardNo: '01 PICK > 01 SCENT',
+        title1: 'Your colors, your cards,',
+        title2: 'which scent do they lead to?',
+        body1: 'AI diagnoses your personal color or reads three tarot cards,',
+        body2: 'then prints your matching scent recipe as a receipt.',
+        tags: ['#PersonalColor', '#AITarot', '#AIPerfumer'],
+      },
+      ja: {
+        ticket: 'AI COLOR · AI TAROT',
+        wordmark: 'LAB!',
+        sub: '色とカードで見つける、私だけの香り',
+        cardNo: '01 PICK > 01 SCENT',
+        title1: '私の色、今日のカード、',
+        title2: 'どんな香りにつながる？',
+        body1: 'AIがパーソナルカラーを診断、またはタロット3枚を読み、',
+        body2: '似合う香りのレシピをレシートでお渡しします。',
+        tags: ['#パーソナルカラー', '#AIタロット', '#AI調香'],
+      },
+      'zh-Hans': {
+        ticket: 'AI COLOR · AI TAROT',
+        wordmark: 'LAB!',
+        sub: '用色彩与塔罗找到属于你的香气',
+        cardNo: '01 PICK > 01 SCENT',
+        title1: '我的色彩，今天的牌，',
+        title2: '会通向哪一种香气？',
+        body1: 'AI 为你诊断个人色彩，或解读三张塔罗牌，',
+        body2: '并把契合的香气配方打印成小票。',
+        tags: ['#个人色彩', '#AI塔罗', '#AI调香'],
+      },
+      'zh-Hant': {
+        ticket: 'AI COLOR · AI TAROT',
+        wordmark: 'LAB!',
+        sub: '用色彩與塔羅找到屬於你的香氣',
+        cardNo: '01 PICK > 01 SCENT',
+        title1: '我的色彩，今天的牌，',
+        title2: '會通向哪一種香氣？',
+        body1: 'AI 為你診斷個人色彩，或解讀三張塔羅牌，',
+        body2: '並把契合的香氣配方列印成收據。',
+        tags: ['#個人色彩', '#AI塔羅', '#AI調香'],
+      },
+    },
+    receipt: { theme: 'scent', subtitle: 'AI LAB · SCENT REPORT', eventLines: [] },
   },
 ]
 

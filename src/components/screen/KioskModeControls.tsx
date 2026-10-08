@@ -7,7 +7,7 @@ import { KIOSK_MODES, findKioskMode } from '@/lib/kiosk/modes'
 import type { DeviceSettings } from '@/lib/screen-backgrounds/types'
 import './kiosk-mode-controls.css'
 
-const PROGRAM_LABELS = { idol: '최애 이미지 분석', personal: '내 이미지 분석', saju: '사주 분석' } as const
+const PROGRAM_LABELS = { idol: '최애 이미지 분석', personal: '내 이미지 분석', saju: '사주 분석', color: 'AI 퍼스널 컬러', tarot: 'AI 타로' } as const
 
 export function KioskModeControls({ value, onSave, onSelectBackground, disabled, settings }: {
   value: string | null | undefined

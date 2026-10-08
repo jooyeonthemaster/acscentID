@@ -66,6 +66,57 @@ const SAJU_LABELS_KO = {
   bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전',
 }
 
+/** AI 퍼스널 컬러 — 흑백 감열지라 색 견본 대신 유형 이름·색 이름·눈금으로 찍는다 (extra-receipt.ts 가 만든다) */
+export interface ReceiptColor {
+  title: string
+  typeName: string
+  undertone: string
+  nickname: string
+  summary: string
+  toneLabel: string
+  gauges: { label: string; low: string; high: string; value: number }[]
+  bestLabel: string
+  bestNames: string[]
+  avoidLabel: string
+  avoidNames: string[]
+  stylingLabel: string
+  styling: { label: string; text: string }[]
+  scentLabel: string
+  whyLabel: string
+  bridge: string
+  why: string
+}
+
+export interface ReceiptTarotCard {
+  position: string
+  roman: string
+  name: string
+  orientation: string
+  reversed: boolean
+  element: 'fire' | 'water' | 'air' | 'earth'
+  title: string
+  keywords: string
+}
+
+/** AI 타로 — 뽑힌 세 장을 카드 모양으로 그리고 자리별 한 줄·흐름·조언을 찍는다 */
+export interface ReceiptTarot {
+  title: string
+  topic: string
+  question?: string
+  headline: string
+  cards: ReceiptTarotCard[]
+  flowLabel: string
+  flow: string
+  adviceLabel: string
+  advice: string[]
+  scentLabel: string
+  whyLabel: string
+  bridge: string
+  why: string
+  ritualLabel: string
+  ritual: string
+}
+
 export interface ReceiptData {
   ticket: string | null // null이면 "PREVIEW"
   date: string
@@ -95,6 +146,9 @@ export interface ReceiptData {
   footerLines: string[]
   /** 사주 프로그램일 때만 — 명식·용신·처방 섹션이 추가된다 */
   saju?: ReceiptSaju
+  /** AI 퍼스널 컬러 · AI 타로일 때만 — 진단/카드가 향 앞에 오고, 이미지 분석용 섹션(ANALYSIS·SIGNALS)은 빠진다 */
+  color?: ReceiptColor
+  tarot?: ReceiptTarot
 }
 
 export interface ReceiptRenderOptions {
@@ -793,6 +847,96 @@ class ReceiptBuilder {
     return { x, yTop, size }
   }
 
+  // ───────── 퍼스널 컬러 · 타로 부품 ─────────
+
+  /** 양 끝 이름이 붙은 눈금 — 0~100 자리에 검은 표식. 색 없이도 웜/쿨·밝기가 읽힌다 */
+  gauge(label: string, low: string, high: string, value: number) {
+    const size = 16
+    const lh = 34
+    const labelW = 104, endW = 78
+    const trackX = MARGIN + labelW + endW + 8
+    const trackW = this.width - MARGIN - endW - 8 - trackX
+    const yMid = Math.round(this.y + lh / 2)
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      ctx.textBaseline = 'middle'
+      ctx.font = this.font(17, 700, this.fonts.sans)
+      ctx.textAlign = 'left'
+      ctx.fillText(label, MARGIN, yMid)
+      ctx.font = this.font(size, 500, this.fonts.sans)
+      ctx.textAlign = 'right'
+      ctx.fillText(low, trackX - 8, yMid)
+      ctx.textAlign = 'left'
+      ctx.fillText(high, trackX + trackW + 8, yMid)
+      ctx.fillRect(trackX, yMid - 1, trackW, 2)
+      for (let i = 0; i <= 4; i++) ctx.fillRect(trackX + Math.round((trackW - 2) * (i / 4)), yMid - 5, 2, 10)
+      const mx = trackX + Math.round(trackW * Math.max(0, Math.min(1, value / 100)))
+      ctx.fillRect(mx - 5, yMid - 11, 10, 22)
+    })
+    this.y += lh
+  }
+
+  /** 타로 세 장 — 자리 이름(반전 띠) · 카드(로마 숫자·원소 기호·이름) · 정/역방향. 역방향은 카드 안을 거꾸로 그린다 */
+  tarotCards(cards: ReceiptTarotCard[]) {
+    const gap = 14
+    const n = cards.length || 3
+    const colW = Math.floor((this.innerWidth() - gap * (n - 1)) / n)
+    const headH = 28, cardH = Math.round(colW * 1.45), footH = 26
+    const yTop = Math.round(this.y)
+    this.ops.push((ctx) => {
+      cards.forEach((card, i) => {
+        const x = MARGIN + i * (colW + gap)
+        const cy = yTop + headH + 6
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'center'
+        ctx.fillStyle = INK
+        ctx.fillRect(x, yTop, colW, headH)
+        ctx.fillStyle = '#ffffff'
+        ctx.font = this.font(17, 700, this.fonts.sans)
+        ctx.fillText(card.position, x + colW / 2, yTop + headH / 2)
+
+        strokeRectCrisp(ctx, x, cy, colW, cardH, 3)
+        strokeRectCrisp(ctx, x + 7, cy + 7, colW - 14, cardH - 14, 1)
+        ctx.save()
+        ctx.translate(x + colW / 2, cy + cardH / 2)
+        if (card.reversed) ctx.rotate(Math.PI)
+        ctx.fillStyle = INK
+        ctx.font = this.font(30, 700, "Georgia, 'Times New Roman', serif")
+        ctx.fillText(card.roman, 0, -cardH / 2 + 34)
+        // 이름 — 칸 폭에 맞춰 줄인다
+        let size = 19
+        ctx.font = this.font(size, 800, this.fonts.sans)
+        while (size > 11 && ctx.measureText(card.name).width > colW - 24) {
+          size -= 1
+          ctx.font = this.font(size, 800, this.fonts.sans)
+        }
+        ctx.fillText(card.name, 0, cardH / 2 - 30)
+        ctx.restore()
+        // 원소 기호 — 불 △ · 바람 △에 가로줄 · 물 ▽ · 흙 ▽에 가로줄.
+        // 뒤집히면 다른 원소가 되므로 역방향 카드에서도 돌리지 않고 가운데에 그린다
+        const up = card.element === 'fire' || card.element === 'air'
+        const gx = x + colW / 2, gy = cy + cardH / 2
+        const r = 26
+        ctx.lineWidth = 3
+        ctx.strokeStyle = INK
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
+        ctx.moveTo(gx, gy + (up ? -r : r))
+        ctx.lineTo(gx + r, gy + (up ? r - 4 : -r + 4))
+        ctx.lineTo(gx - r, gy + (up ? r - 4 : -r + 4))
+        ctx.closePath()
+        ctx.stroke()
+        if (card.element === 'air' || card.element === 'earth') ctx.fillRect(gx - 15, gy + (up ? 4 : -7), 30, 3)
+
+        ctx.fillStyle = INK
+        ctx.font = this.font(15, 600, this.fonts.sans)
+        ctx.fillText(card.orientation, x + colW / 2, cy + cardH + 6 + footH / 2)
+      })
+      ctx.textAlign = 'left'
+    })
+    this.y = yTop + headH + 6 + cardH + 6 + footH
+  }
+
   render(): { canvas: HTMLCanvasElement; height: number } {
     const canvas = document.createElement('canvas')
     canvas.width = this.width
@@ -909,10 +1053,94 @@ export async function renderKioskReceipt(
     }
   }
 
+  // 퍼스널 컬러·타로는 진단/카드가 먼저, 향이 그 다음, 향의 이유가 마지막
+  const extraScentLabel = data.color?.scentLabel ?? data.tarot?.scentLabel
+  const isExtra = Boolean(data.color || data.tarot)
+  const heading = (label: string, align: 'left' | 'center' = 'left') =>
+    b.text(label, { size: 16, weight: 700, align, letterSpacing: 2 })
+  const drawWhy = (label: string, bridge: string, why: string) => {
+    heading(label)
+    b.space(8)
+    if (bridge) {
+      b.text(bridge, { size: 20, weight: 700, lineHeight: 1.4 })
+      b.space(6)
+    }
+    b.text(why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 8 })
+    b.space(14)
+  }
+  const drawColor = (c: ReceiptColor) => {
+    b.space(20)
+    heading(c.title, 'center')
+    b.space(8)
+    b.text(c.typeName, { size: b.fitOneLine(c.typeName, 46, 800), weight: 800, align: 'center', lineHeight: 1.2 })
+    b.space(2)
+    b.text(c.undertone, { size: 19, weight: 700, align: 'center' })
+    b.space(6)
+    b.text(c.nickname, { size: 20, weight: 600, align: 'center', lineHeight: 1.4, maxLines: 2 })
+    b.space(14)
+    b.rule(1.5, true)
+    b.space(12)
+    b.text(c.summary, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 6 })
+    b.space(14)
+    heading(c.toneLabel)
+    b.space(6)
+    for (const g of c.gauges) b.gauge(g.label, g.low, g.high, g.value)
+    b.space(12)
+    heading(c.bestLabel)
+    b.space(6)
+    b.text(c.bestNames.join(' · '), { size: 19, weight: 700, lineHeight: 1.5 })
+    b.space(10)
+    heading(c.avoidLabel)
+    b.space(6)
+    b.text(c.avoidNames.join(' · '), { size: 18, weight: 500, lineHeight: 1.5 })
+    b.space(14)
+    heading(c.stylingLabel)
+    b.space(6)
+    for (const row of c.styling) {
+      b.text(row.label, { size: 18, weight: 700 })
+      b.text(row.text, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 3 })
+      b.space(8)
+    }
+    b.space(4)
+    b.rule(3)
+  }
+  const drawTarot = (t: ReceiptTarot) => {
+    b.space(20)
+    heading(t.title, 'center')
+    b.space(8)
+    b.text(t.headline, { size: 30, weight: 800, align: 'center', lineHeight: 1.3, maxLines: 2 })
+    b.space(4)
+    b.text(t.question ? `${t.topic} · ${t.question}` : t.topic, { size: 17, weight: 500, align: 'center', lineHeight: 1.5, maxLines: 2 })
+    b.space(16)
+    b.tarotCards(t.cards)
+    b.space(14)
+    for (const card of t.cards) {
+      // 정방향은 카드 그림 아래에 이미 찍혔다 — 줄 머리에는 역방향만 덧붙인다
+      b.text(`${card.position} · ${card.roman} ${card.name}${card.reversed ? ` · ${card.orientation}` : ''}`, { size: 18, weight: 700, lineHeight: 1.6 })
+      b.text(card.title, { size: 19, weight: 700, lineHeight: 1.45 })
+      b.text(card.keywords, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
+      b.space(8)
+    }
+    b.space(4)
+    b.rule(1.5, true)
+    b.space(12)
+    heading(t.flowLabel)
+    b.space(8)
+    b.text(t.flow, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 8 })
+    b.space(14)
+    heading(t.adviceLabel)
+    b.space(8)
+    for (const [i, line] of t.advice.entries()) {
+      b.text(line, { size: 18, weight: 500, lineHeight: 1.5, bullet: `${i + 1}.` })
+      b.space(3)
+    }
+    b.space(8)
+    b.rule(3)
+  }
   const drawScent = () => {
     // ── 매칭 향
     b.space(22)
-    b.text(sajuFirst ? L.rxScent : 'YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+    b.text(sajuFirst ? L.rxScent : extraScentLabel ?? 'YOUR SCENT', { size: 16, weight: 600, family: extraScentLabel ? 'sans' : 'mono', align: 'center', letterSpacing: 3 })
     b.space(8)
     b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
     b.space(4)
@@ -1052,10 +1280,18 @@ export async function renderKioskReceipt(
     b.space(14)
   }
   if (sheet) drawSheet()
-  else if (sajuFirst) { drawSaju(); drawScent() } else { drawScent(); drawSaju() }
+  else if (sajuFirst) { drawSaju(); drawScent() }
+  else if (data.color) { drawColor(data.color); drawScent(); drawWhy(data.color.whyLabel, data.color.bridge, data.color.why) }
+  else if (data.tarot) {
+    drawTarot(data.tarot); drawScent(); drawWhy(data.tarot.whyLabel, data.tarot.bridge, data.tarot.why)
+    heading(data.tarot.ritualLabel)
+    b.space(8)
+    b.text(data.tarot.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
+    b.space(14)
+  } else { drawScent(); drawSaju() }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
-  if (!data.saju && data.analysisText) {
+  if (!data.saju && !isExtra && data.analysisText) {
     b.text('ANALYSIS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     b.text(data.analysisText, { size: 19, weight: 500, lineHeight: 1.55, maxLines: 6 })
@@ -1063,7 +1299,7 @@ export async function renderKioskReceipt(
   }
 
   // ── 퍼스널 컬러
-  if (!data.saju && data.personalColorText) {
+  if (!data.saju && !isExtra && data.personalColorText) {
     b.text('PERSONAL COLOR', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     b.text(data.personalColorText, { size: 21, weight: 700 })
@@ -1073,7 +1309,7 @@ export async function renderKioskReceipt(
   }
 
   // ── 시그널 (사주판은 오행 분포가 그 역할을 한다)
-  if (!data.saju && data.signals.length > 0) {
+  if (!data.saju && !isExtra && data.signals.length > 0) {
     b.text('SIGNALS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     for (const s of data.signals) b.bar(s.label, s.value)

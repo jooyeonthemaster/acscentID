@@ -75,6 +75,8 @@ interface KioskRecord {
   analysis_text: string | null
   recipe: RecipeRow[] | null
   saju: Record<string, unknown> | null
+  /** 퍼스널 컬러·타로 요약 (20261008 마이그레이션 뒤에만 온다) */
+  detail?: Record<string, unknown> | null
   ticket: string | null
   printed: boolean
   printed_at: string | null
@@ -105,12 +107,16 @@ const PROGRAM_FILTERS: { value: string; label: string }[] = [
   { value: 'idol', label: '최애 이미지' },
   { value: 'personal', label: '내 이미지' },
   { value: 'saju', label: '사주 향' },
+  { value: 'color', label: '퍼스널 컬러' },
+  { value: 'tarot', label: '타로' },
 ]
 
 const PROGRAM_COLORS: Record<KioskProgram, string> = {
   idol: 'bg-rose-100 text-rose-700',
   personal: 'bg-indigo-100 text-indigo-700',
   saju: 'bg-amber-100 text-amber-700',
+  color: 'bg-teal-100 text-teal-700',
+  tarot: 'bg-violet-100 text-violet-700',
 }
 
 function formatDateTime(iso: string) {
@@ -833,6 +839,14 @@ export default function AdminKioskPage() {
                                     <p className="text-xs font-bold text-slate-500 mb-1">사주 요약</p>
                                     <pre className="max-h-40 overflow-auto rounded bg-white border border-slate-200 p-2 text-[11px] text-slate-600">
                                       {JSON.stringify(record.saju, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
+                                {record.detail && (
+                                  <div>
+                                    <p className="text-xs font-bold text-slate-500 mb-1">{record.program === 'tarot' ? '타로 요약' : '퍼스널 컬러 요약'}</p>
+                                    <pre className="max-h-40 overflow-auto rounded bg-white border border-slate-200 p-2 text-[11px] text-slate-600">
+                                      {JSON.stringify(record.detail, null, 2)}
                                     </pre>
                                   </div>
                                 )}
