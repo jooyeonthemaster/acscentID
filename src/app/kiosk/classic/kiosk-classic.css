@@ -997,13 +997,15 @@
   z-index: 40;
 }
 
-/* 우하단 관리자 종료 핫스팟 (Electron 셸에서만 의미) */
+/* 우측 상단 관리자 핫스팟 (Electron 셸에서만 의미) */
 .ksk-exit-hotspot {
   position: absolute;
+  /* 관리자 창 — 우측 상단 모서리(2026-10-09, 예전엔 우측 하단). 바로 아래에 언어 버튼이 있어
+     겹치지 않게 모서리 위쪽의 얇은 띠로 둔다(언어 버튼은 화면 위에서 36px 아래부터) */
+  top: 0;
   right: 0;
-  bottom: 0;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 36px;
   z-index: 50;
   opacity: 0;
 }
@@ -1799,13 +1801,15 @@
   .ksk-admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* 우하단 숨김 관리자 영역 */
+/* 우측 상단 숨김 관리자 영역 */
 .ksk-exit-hotspot {
   position: absolute;
+  /* 관리자 창 — 우측 상단 모서리(2026-10-09, 예전엔 우측 하단). 바로 아래에 언어 버튼이 있어
+     겹치지 않게 모서리 위쪽의 얇은 띠로 둔다(언어 버튼은 화면 위에서 36px 아래부터) */
+  top: 0;
   right: 0;
-  bottom: 0;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 36px;
   z-index: 70;
   border: 0;
   background: transparent;

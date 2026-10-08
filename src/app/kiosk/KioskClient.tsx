@@ -2366,7 +2366,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </RetroWindow>
         </div>
       )}
-      {/* 안전한 모든 단계의 우하단에서 동일한 관리자 인증창을 연다. */}
+      {/* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */}
       {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
         <button
           type="button"
