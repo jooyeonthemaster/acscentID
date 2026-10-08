@@ -56,6 +56,7 @@ import { buildReceiptColor, buildReceiptTarot, extraAnalysisText, extraRecordDet
 import { ColorCaptureTips, ColorReportView } from './ColorReport'
 import { TarotReportView } from './TarotReport'
 import { TarotSteps, useTarotSession } from './TarotSteps'
+import { useCamFrame } from './useCamFrame'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
 import {
   PixelIcon,
@@ -257,6 +258,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [oskOpen, setOskOpen] = useState(false)
   // 폰 QR 업로드
   const [photoSource, setPhotoSource] = useState<'camera' | 'qr'>(DEFAULT_PHOTO_SOURCE)
+  // 촬영 액자 — 3:4 로 찍히는 그대로 보이게 크기를 재고, 카메라로 찍은 사진을 확인하는 동안은 그 크기로 묶는다.
+  // 폰으로 받은 사진은 비율이 제각각이라 액자를 그 사진에 맞춘다
+  const camFrame = useCamFrame({
+    frozen: Boolean(photo) && photoSource === 'camera',
+    fitPhoto: Boolean(photo) && photoSource !== 'camera',
+  })
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrState, setQrState] = useState<'idle' | 'creating' | 'waiting' | 'expired' | 'failed'>('idle')
@@ -1941,10 +1948,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 )}
               </div>
             ) : (
-              <div className="ksk-cam">
+              <div className="ksk-cam-slot" ref={camFrame.slotRef}>
+              <div className="ksk-cam" style={camFrame.size ?? undefined} data-fit={photo && photoSource !== 'camera' ? 'contain' : undefined}>
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={t.selectedPhotoAlt} />
+                  <img src={photo} alt={t.selectedPhotoAlt} onLoad={camFrame.onPhotoLoad} />
                 ) : (
                   <video ref={videoRef} playsInline muted />
                 )}
@@ -1973,11 +1981,13 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 </div>
               )}
               </div>
+              </div>
             )}
             {/* 퍼스널 컬러 — 조명·가림에 민감해서 찍기 전에 안내한다 */}
             {captureNotice && !photo && <p className="clr-notice" role="alert">{captureNotice}</p>}
             {program === 'color' && !photo && photoSource === 'camera' && <ColorCaptureTips tx={px.color} />}
-            <div style={{ flex: 1 }} />
+            {/* 카메라 쪽은 액자 자리(.ksk-cam-slot)가 남는 높이를 받는다 — 밀어내는 칸은 QR 안내일 때만 */}
+            {!photo && photoSource === 'qr' && <div style={{ flex: 1 }} />}
             {photo ? (
               <div className="ksk-actions">
                 <button

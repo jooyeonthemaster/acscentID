@@ -612,8 +612,19 @@
 }
 
 /* ── 촬영 ─────────────────────────────── */
+/* 액자 자리 — 남는 높이를 다 받는다. 액자는 이 안에서 3:4 를 지키는 가장 큰 크기(useCamFrame 이 재서 넣는다).
+   폭만 100% 로 두면 자리가 모자랄 때 높이만 줄어 넓적해지고, 3:4 로 찍힌 사진이 확대되어 보인다 */
+.ksk-cam-slot {
+  flex: 1 1 0;
+  min-height: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 .ksk-cam {
   position: relative;
+  flex: none;
+  box-sizing: border-box;
   width: 100%;
   aspect-ratio: 3 / 4;
   background: #101010;
@@ -627,6 +638,10 @@
 }
 .ksk-cam video {
   transform: scaleX(-1);
+}
+/* 폰으로 받은 사진 — 3:4 가 아닐 수 있어 잘리지 않게 액자 안에 통째로 */
+.ksk-cam[data-fit='contain'] img {
+  object-fit: contain;
 }
 .ksk-cam-corner {
   position: absolute;
