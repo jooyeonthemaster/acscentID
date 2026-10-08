@@ -5,16 +5,18 @@
 // 터치 키보드만 화면마다 달라서 keyboard 로 받아 그린다.
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
 import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, shuffleTarotDeck } from '@/lib/kiosk/tarot-deck'
 import type { TarotDraw, TarotTopic } from '@/types/analysis'
 import { TarotCardBack, TarotCardFace } from './TarotCard'
 import './programs.css'
+import './moonlit-tarot.css'
 
 export type TarotStep = 'topic' | 'question' | 'cards'
 
-const TOPIC_GLYPHS: Record<TarotTopic, string> = { general: '今', love: '戀', career: '業', money: '財', self: '我' }
+const TOPIC_ICONS = { general: Sparkles, love: Heart, career: BriefcaseBusiness, money: Coins, self: Sprout }
 
 /** 타로 한 판의 상태 — 주제·질문·섞은 덱·고른 자리. 키오스크 화면이 들고 있다가 처음으로 돌아갈 때 reset 한다 */
 export function useTarotSession() {
@@ -75,18 +77,21 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
 
   if (step === 'topic') {
     return (
-      <div className="ksk-body">
+      <div className="ksk-body trt-step" data-tarot-step="topic">
         <p className="ksk-eyebrow ksk-mono">{pill('topic')}</p>
         <h1 className="ksk-title">{tx.topicTitle}</h1>
         <p className="ksk-desc">{tx.topicDesc}</p>
         <div className="ksk-purposes">
-          {TAROT_TOPICS.map((id) => (
-            <button key={id} className="ksk-purpose" data-on={session.topic === id} onClick={() => session.setTopic(id)}>
-              <span className="ksk-purpose-hanja">{TOPIC_GLYPHS[id]}</span>
-              <b>{tx.topics[id].label}</b>
-              <span>{tx.topics[id].desc}</span>
-            </button>
-          ))}
+          {TAROT_TOPICS.map((id) => {
+            const Icon = TOPIC_ICONS[id]
+            return (
+              <button key={id} type="button" className="ksk-purpose" data-on={session.topic === id} aria-pressed={session.topic === id} onClick={() => session.setTopic(id)}>
+                <span className="trt-topic-icon"><Icon size={28} strokeWidth={1.5} aria-hidden="true" /></span>
+                <b>{tx.topics[id].label}</b>
+                <span>{tx.topics[id].desc}</span>
+              </button>
+            )
+          })}
         </div>
         <div style={{ flex: 1 }} />
         <div className="ksk-actions">
@@ -99,7 +104,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
 
   if (step === 'question') {
     return (
-      <div className="ksk-body">
+      <div className="ksk-body trt-step" data-tarot-step="question">
         <p className="ksk-eyebrow ksk-mono">{pill('question')}</p>
         <h1 className="ksk-title">{tx.questionTitle}</h1>
         <p className="ksk-desc">{tx.questionDesc}</p>
@@ -127,8 +132,11 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
 
   const full = session.picks.length >= TAROT_PICK_COUNT
   return (
-    <div className="ksk-body">
-      <p className="ksk-eyebrow ksk-mono">{pill('cards')} · {tx.picked(session.picks.length, TAROT_PICK_COUNT)}</p>
+    <div className="ksk-body trt-step" data-tarot-step="cards" data-revealed={session.revealed || undefined}>
+      <div className="trt-selection-progress" aria-hidden="true">
+        {TAROT_POSITIONS.map((position, i) => <span key={position} data-filled={i < session.picks.length || undefined} />)}
+      </div>
+      <p className="ksk-eyebrow ksk-mono" aria-live="polite" aria-atomic="true">{pill('cards')} · {tx.picked(session.picks.length, TAROT_PICK_COUNT)}</p>
       <h1 className="ksk-title">{session.revealed ? tx.revealedTitle : tx.cardsTitle}</h1>
       {/* 고르기 시작하면 설명 자리에 '한 장 무르기' 안내를 보여 준다 — 줄을 더하면 화면이 넘친다(일본어) */}
       {!session.revealed && <p className="ksk-desc">{session.picks.length > 0 ? tx.undoHint : tx.cardsDesc}</p>}
@@ -142,19 +150,24 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
               key={position}
               className="trt-slot"
               data-filled={Boolean(draw) || undefined}
-              // 펼치기 전에는 고른 자리를 눌러 그 한 장만 무를 수 있다
-              role={draw && !session.revealed ? 'button' : undefined}
-              onClick={draw && !session.revealed ? () => session.unpick(session.picks[i]) : undefined}
             >
               <span className="trt-slot-pos">{tx.positions[position].label}</span>
-              <div className="trt-flip" data-open={open || undefined} style={{ '--i': i } as CSSProperties}>
-                <div className="trt-flip-side trt-flip-back">
-                  {draw ? <TarotCardBack /> : <div className="trt-card trt-card--empty">{i + 1}</div>}
+              <button
+                type="button"
+                className="trt-slot-control"
+                disabled={!draw || session.revealed}
+                aria-label={`${tx.positions[position].label} · ${draw && !session.revealed ? tx.undoHint : tx.positions[position].desc}`}
+                onClick={() => session.unpick(session.picks[i])}
+              >
+                <div className="trt-flip" data-open={open || undefined} style={{ '--i': i } as CSSProperties}>
+                  <div className="trt-flip-side trt-flip-back">
+                    {draw ? <TarotCardBack /> : <div className="trt-card trt-card--empty"><span>{i + 1}</span></div>}
+                  </div>
+                  <div className="trt-flip-side trt-flip-front">
+                    {open && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
+                  </div>
                 </div>
-                <div className="trt-flip-side trt-flip-front">
-                  {open && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
-                </div>
-              </div>
+              </button>
               <span className="trt-slot-name">
                 {/* 역방향 카드는 이름이 거꾸로 보이므로 캡션에 이름과 방향을 같이 적는다 */}
                 {open ? `${TAROT_DECK[draw.id].names[lang]} · ${draw.reversed ? tx.reversed : tx.upright}` : tx.positions[position].desc}
@@ -165,7 +178,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
       </div>
 
       {!session.revealed && (
-        <div className="trt-deck">
+        <div className="trt-deck" role="group" aria-label={tx.cardsTitle}>
           {deck.map((_, slot) => {
             const picked = session.picks.includes(slot)
             return (
@@ -177,10 +190,12 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
                 // 고른 카드는 다시 누르면 취소된다. 세 장이 차면 나머지는 잠근다
                 disabled={!picked && full}
                 aria-pressed={picked}
-                aria-label={`${slot + 1}`}
+                aria-label={picked ? `${slot + 1} · ${tx.positions[TAROT_POSITIONS[session.picks.indexOf(slot)]].label} · ${tx.undoHint}` : `${slot + 1}`}
                 onClick={() => (picked ? session.unpick(slot) : session.pick(slot))}
               >
-                <TarotCardBack />
+                {picked ? (
+                  <span className="trt-card trt-card--picked" aria-hidden="true"><span>{session.picks.indexOf(slot) + 1}</span></span>
+                ) : <TarotCardBack />}
               </button>
             )
           })}
@@ -188,9 +203,9 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
       )}
 
       {/* 다시 섞기 — 버튼 바 위 흐림에 묻히지 않게 덱 바로 아래에 둔다(펼치기 전에만) */}
-      {!session.revealed && session.picks.length > 0 && (
+      {!session.revealed && (
         <p className="trt-hint">
-          <button type="button" className="trt-hint-btn" onClick={shuffle}>{tx.reshuffle}</button>
+          <button type="button" className="trt-hint-btn" onClick={shuffle}><Shuffle size={20} strokeWidth={1.7} aria-hidden="true" />{tx.reshuffle}</button>
         </p>
       )}
 

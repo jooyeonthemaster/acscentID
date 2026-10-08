@@ -12,6 +12,7 @@ import { Brief, ScrollMoreHint } from './SajuReport'
 import { ElementGlyph, TarotCardFace } from './TarotCard'
 import './saju-report.css'
 import './programs.css'
+import './moonlit-tarot.css'
 
 export function TarotReportView({ result, px, lang, scrollMore }: { result: TarotAnalysisResult; px: ProgramText; lang: KioskLang; scrollMore: string }) {
   const tx = px.tarot
@@ -20,7 +21,7 @@ export function TarotReportView({ result, px, lang, scrollMore }: { result: Taro
   return (
     <div className="sjr trt">
       <section className="trt-hero">
-        <p className="trt-hero-kicker">{tx.topics[spread.topic].label}</p>
+        <p className="trt-hero-kicker"><span aria-hidden="true">✦</span> {tx.topics[spread.topic].label} <span aria-hidden="true">✦</span></p>
         <p className="trt-hero-title">{reading.headline}</p>
         {spread.question && <p className="trt-hero-question">{tx.questionLabel} · {spread.question}</p>}
         <div className="trt-spread">

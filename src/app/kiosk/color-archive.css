@@ -1,0 +1,294 @@
+/* Chromatic Archive — 560px 키오스크 열. 사진과 팔레트에는 필터·블렌드·질감을 씌우지 않는다. */
+.ksk-root[data-program-theme='color'] .clr {
+  --sjr-ink: #202d72;
+  --sjr-soft: #586180;
+  --sjr-line: #d5d8e3;
+  --sjr-paper: #fdfdfc;
+  --sjr-gold: #202d72;
+  --sjr-gold-soft: #e7e9f1;
+  gap: 10px;
+  padding: 14px 20px;
+  border: 1px solid #d5d8e3;
+  border-radius: 3px;
+  background: #fdfdfc;
+  color: #202d72;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fdfdfc;
+  color: #202d72;
+  box-shadow: none;
+  text-align: left;
+  transition: none;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #d95741;
+  color: #b64332;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  opacity: 1;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-kicker span:last-child {
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-type {
+  margin: 8px 0 0 !important;
+  color: #202d72;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.065em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-title {
+  margin-top: 6px !important;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  opacity: 1;
+}
+
+.ksk-root[data-program-theme='color'] .clr-portrait {
+  width: 190px;
+  max-width: 78%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  margin: 12px auto 0;
+  padding: 15px;
+  border: 1px solid rgba(32, 45, 114, 0.1);
+  border-radius: 50%;
+  background: var(--clr-drape);
+}
+
+.ksk-root[data-program-theme='color'] .clr-face {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.ksk-root[data-program-theme='color'] .clr-face img {
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-color {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px 10px;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  margin: -10px auto 0 !important;
+  padding: 4px 12px;
+  border: 1px solid rgba(32, 45, 114, 0.12);
+  border-radius: 2px;
+  background: var(--clr-drape);
+  color: var(--clr-ink);
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.ksk-root[data-program-theme='color'] .clr-drape-color span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-card {
+  padding: 18px 0;
+  border: 0;
+  border-top: 1px solid #d5d8e3;
+  border-radius: 0;
+  background: #fdfdfc;
+  box-shadow: none;
+}
+
+.ksk-root[data-program-theme='color'] .clr .clr-palette {
+  padding: 10px 0 8px;
+  border-top-color: #7780a8;
+  border-bottom: 1px solid #7780a8;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-kicker {
+  color: #202d72;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+}
+
+.ksk-root[data-program-theme='color'] .clr-hint {
+  margin-top: 3px;
+  color: #586180;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatch-label {
+  margin-top: 9px !important;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatches {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+  padding: 0 5px;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatch {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 56px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(32, 45, 114, 0.12);
+  border-radius: 50%;
+  outline: 0;
+  touch-action: manipulation;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatch[data-on] {
+  outline: 2px solid #202d72;
+  outline-offset: 3px;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatch:focus-visible {
+  outline: 3px solid #202d72;
+  outline-offset: 5px;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+.ksk-root[data-program-theme='color'] .clr-swatch-check {
+  width: 31px;
+  height: 31px;
+}
+
+/* 색의 표면을 가리지 않는다. 피할 색 여부는 그룹 제목과 선택한 색 설명으로 전한다. */
+.ksk-root[data-program-theme='color'] .clr-swatches[data-avoid] .clr-swatch::after {
+  display: none;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-card--accent {
+  padding: 16px;
+  border: 1px solid #d5d8e3;
+  border-left: 4px solid #202d72;
+  background: #f3f4f9;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-section {
+  align-self: stretch;
+  margin-top: 10px !important;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #202d72;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-brief p {
+  color: #333d61;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-more {
+  min-height: 44px;
+  border-color: #a7aec9;
+  border-radius: 3px;
+  background: #fdfdfc;
+  color: #202d72;
+  font-size: 16px;
+}
+
+.ksk-root[data-program-theme='color'] .clr-gauge,
+.ksk-root[data-program-theme='color'] .clr-observe b {
+  color: #586180;
+}
+
+.ksk-root[data-program-theme='color'] .clr-gauge b {
+  color: #202d72;
+}
+
+.ksk-root[data-program-theme='color'] .clr-gauge-track {
+  background: #e7e9f1;
+}
+
+.ksk-root[data-program-theme='color'] .clr-gauge-track i {
+  background: #202d72;
+  box-shadow: 0 1px 4px rgba(32, 45, 114, 0.2);
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-chip {
+  padding: 6px 12px;
+  border: 1px solid #d5d8e3;
+  border-radius: 3px;
+  background: #f3f4f9;
+  font-size: 16px;
+}
+
+.ksk-root[data-program-theme='color'] .clr .xpr-note {
+  padding: 12px;
+  border-radius: 3px;
+  background: #f3f4f9;
+  color: #586180;
+  font-size: 13px;
+}
+
+.ksk-root[data-program-theme='color'] .clr .xpr-note--warn {
+  border-color: #e2c0a2;
+  background: #fff4e7;
+  color: #794422;
+  font-size: 15px;
+}
+
+.ksk-root[data-program-theme='color'] .clr .sjr-more-hint span {
+  border: 1px solid #202d72;
+  border-radius: 3px;
+  background: #202d72;
+  color: #fff;
+  font-size: 16px;
+  box-shadow: 0 4px 14px rgba(32, 45, 114, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ksk-root[data-program-theme='color'] .clr .sjr-more-hint span {
+    animation: none;
+  }
+}
+
+/* AI 가 준 색 이름이 견본 수와 다를 때만 나오는 목록 — 견본마다 이름을 붙일 수 없어 묶어서 보여 준다 */
+.ksk-root[data-program-theme='color'] .clr-names {
+  margin-top: 10px !important;
+  color: #202d72;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}

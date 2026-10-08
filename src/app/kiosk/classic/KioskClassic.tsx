@@ -25,6 +25,8 @@ import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-e
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
+import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
+import { ProgramAttract } from '../ProgramAttract'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK, hanjaFontVar } from '../fonts'
 import { OnScreenKeyboard } from './OnScreenKeyboard'
 import {
@@ -256,6 +258,7 @@ export function KioskClassic() {
   } = useScreenBackgrounds('kiosk')
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다, src/lib/kiosk/modes.ts)
   const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  const programTheme = kioskProgramTheme(kioskMode.id)
   // 문서 언어 — 화면 낭독기·자동 번역·글꼴 선택이 화면 언어를 따르게(키오스크 경로는 로케일 레이아웃 밖이라 비어 있었다)
   const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
   useEffect(() => {
@@ -1298,7 +1301,7 @@ export function KioskClassic() {
       if (!body) return
       body.style.setProperty('--ksk-fit', '1')
       // 글이 긴 장은 축소 대신 스크롤 — 줄이면 읽을 수 없는 크기가 된다
-      if (scrollChapter) return
+      if (scrollChapter || programTheme) return
       // scrollHeight 를 읽는 순간 레이아웃이 확정된다 (zoom 1 기준 실측)
       const avail = body.clientHeight
       const content = body.scrollHeight
@@ -1318,7 +1321,7 @@ export function KioskClassic() {
       window.clearTimeout(t2)
       window.removeEventListener('resize', fit)
     }
-  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter, tarot.questionOpen, tarot.picks.length, tarot.revealed, tarot.deck.length])
+  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter, programTheme, tarot.questionOpen, tarot.picks.length, tarot.revealed, tarot.deck.length])
 
   /* ── 스크롤 힌트 ──────────────────────────────────────────
      스크롤바를 숨겨 둔 터치 화면에서는 "아래에 더 있다"를 알 방법이 없다.
@@ -1392,6 +1395,8 @@ export function KioskClassic() {
   return (
     <div
       className={`ksk-root ${KIOSK_FONT_CLASS}`}
+      data-program-theme={programTheme}
+      data-program-step={step}
       data-background={activeBackground.id}
       data-lang={lang}
       lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
@@ -1413,6 +1418,7 @@ export function KioskClassic() {
         '--surface-strong': activeBackground.surfaceStrong,
         '--ksk-shadow': activeBackground.shadow,
         '--ksk-radius': activeBackground.radius,
+        ...kioskProgramThemeVars(programTheme, isCjkLang(lang) ? CJK_FONT_STACK[lang] : undefined),
       } as CSSProperties}
     >
       {quitConfirmNode}
@@ -1467,6 +1473,8 @@ export function KioskClassic() {
             )}
           </div>
         )}
+
+        {programTheme && step !== 'attract' && <div className="program-brandbar"><span>{kioskMode.brandName}</span></div>}
 
         {showHeader && (
           <header>
@@ -1945,7 +1953,7 @@ export function KioskClassic() {
                   className="ksk-alt"
                   onClick={() => {
                     clearQr()
-                    setStep('product')
+                    goPrev()
                   }}
                 >
                   {t.backStep}
@@ -1969,7 +1977,7 @@ export function KioskClassic() {
                   {t.useQr}
                 </button>
                 <div className="ksk-actions">
-                  <button className="ksk-btn" onClick={() => setStep('product')}>
+                  <button className="ksk-btn" onClick={() => goPrev()}>
                     {t.prev}
                   </button>
                   <button
@@ -2066,7 +2074,10 @@ export function KioskClassic() {
           </div>
         )}
 
-        {step === 'attract' && (
+        {step === 'attract' && programTheme && (
+          <ProgramAttract theme={programTheme} lang={lang} attract={attract} brand={kioskMode.brandName} onStart={startSession} />
+        )}
+        {step === 'attract' && !programTheme && (
           <div
             className="ksk-attract"
             role="button"

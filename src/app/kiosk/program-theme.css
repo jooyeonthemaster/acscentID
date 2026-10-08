@@ -1,0 +1,192 @@
+/* 승인한 Chromatic Archive / Moonlit Garden. UI 선택과 무관하게 이 두 운영 모드만 전용 테마를 쓴다. */
+.ksk-root[data-program-theme] {
+  padding: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--ksk-body-font);
+  -webkit-font-smoothing: antialiased;
+}
+.ksk-root[data-program-theme] *,
+.ksk-root[data-program-theme] *::before,
+.ksk-root[data-program-theme] *::after { box-sizing: border-box; }
+.ksk-root[data-program-theme] .ksk-stage {
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; max-width: 560px; height: 100%; margin: auto; padding: 18px;
+  border: 1px solid var(--ink); border-radius: 0; overflow: hidden;
+  background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.ksk-root[data-program-theme='tarot'] .ksk-stage {
+  background: var(--paper) url('/assets/kiosk-programs/moonlit-garden-background.webp') center / 100% 100% no-repeat;
+}
+.ksk-root[data-program-theme='tarot'] .ksk-stage:not([data-step='attract'])::before {
+  content: ''; position: absolute; inset: 0; background: rgba(247,242,232,.5); pointer-events: none;
+}
+.ksk-root[data-program-theme] .ksk-stage > * { position: relative; }
+.ksk-root[data-program-theme] .ksk-stage > .rt-ghost { display: none; }
+.ksk-root[data-program-theme] .ksk-window {
+  display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%;
+  border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible;
+}
+.ksk-root[data-program-theme] .ksk-window > .rt-win-title { display: none; }
+.ksk-root[data-program-theme] .ksk-winbody { background: transparent; }
+.ksk-root[data-program-theme] .program-brandbar {
+  display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; margin: 0 0 10px; padding: 0 2px;
+  color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: .095em;
+}
+.ksk-root[data-program-theme] .program-brandbar > span { padding-right: 72px; }
+.ksk-root[data-program-theme] .ksk-lang { position: relative; z-index: 25; top: auto; right: auto; flex: none; }
+.ksk-root[data-program-theme] .ksk-lang .ksk-lang-btn {
+  min-width: 64px; min-height: 44px; padding: 8px 10px; gap: 6px;
+  border: 1px solid transparent; border-radius: 4px; box-shadow: none;
+  background: var(--paper); color: var(--ink); font: inherit; font-size: 14px; font-weight: 700;
+}
+.ksk-root[data-program-theme] .ksk-lang-btn svg { width: 18px; height: 18px; }
+.ksk-root[data-program-theme] .ksk-lang-menu {
+  min-width: 190px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink); box-shadow: 0 8px 24px #272f7326;
+}
+.ksk-root[data-program-theme] .ksk-lang-menu button { min-height: 48px; color: var(--ink); font-family: var(--ksk-body-font); }
+.ksk-root[data-program-theme] .ksk-lang-menu button[data-on='true'] { background: var(--accent-soft); color: var(--accent); }
+.ksk-root[data-program-theme]:not(.rt) .ksk-stage > .ksk-lang { position: absolute; top: 18px; right: 18px; z-index: 25; }
+.ksk-root[data-program-theme] .ksk-menubar {
+  min-height: 38px; padding: 0 2px 10px; margin-bottom: 0;
+  border: 0; background: transparent; box-shadow: none;
+}
+.ksk-root[data-program-theme] .ksk-menubar-step { flex-direction: row; align-items: center; gap: 12px; }
+.ksk-root[data-program-theme] .ksk-menubar-step > span { font-size: 10px; color: var(--ink-soft); letter-spacing: .1em; white-space: nowrap; }
+.ksk-root[data-program-theme] .ksk-menubar .rt-steps { display: flex; flex: 1; height: 4px; padding: 0; gap: 4px; border: 0; background: transparent; box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-menubar .rt-steps li { flex: 1; min-width: 0; height: 4px; margin: 0; border: 0; background: var(--line); box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-menubar .rt-steps li[data-state='done'],
+.ksk-root[data-program-theme] .ksk-menubar .rt-steps li[data-state='now'] { background: var(--accent); }
+.ksk-root[data-program-theme] .ksk-top { padding: 2px 0 8px; border: 0; }
+.ksk-root[data-program-theme] .ksk-top-brand { display: none; }
+.ksk-root[data-program-theme] .ksk-top-step { font-size: 10px; }
+.ksk-root[data-program-theme] .ksk-progress { height: 4px; margin: 0 0 12px; }
+.ksk-root[data-program-theme] .ksk-body { padding: 12px 6px 0; color: var(--ink); }
+.ksk-root[data-program-theme] .ksk-title { font-family: var(--ksk-body-font); color: var(--ink); font-weight: 800; text-shadow: none; letter-spacing: -.035em; }
+.ksk-root[data-program-theme] .ksk-desc { color: var(--ink-soft); }
+.ksk-root[data-program-theme] .ksk-eyebrow { padding: 0; border: 0; border-radius: 0; background: none; color: var(--accent); font-family: var(--ksk-body-font); font-size: 11px; letter-spacing: .12em; }
+.ksk-root[data-program-theme] .ksk-actions {
+  flex-shrink: 0; gap: 10px; margin: 16px -6px 0; padding: 12px 6px 6px;
+  border-top: 1px solid var(--line); background: var(--paper); box-shadow: none;
+}
+.ksk-root[data-program-theme] .ksk-actions::before { height: 14px; background: linear-gradient(to top,var(--paper),transparent); }
+.ksk-root[data-program-theme] .ksk-btn,
+.ksk-root[data-program-theme] .ksk-alt {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 62px; padding: 12px 14px; border: 1px solid var(--accent); border-radius: var(--ksk-radius);
+  background: var(--paper); color: var(--accent); box-shadow: none; text-shadow: none;
+  font-family: var(--ksk-body-font); font-size: 19px; font-weight: 750;
+}
+.ksk-root[data-program-theme] .ksk-btn-primary,
+.ksk-root[data-program-theme] .ksk-btn-primary:active:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-btn:disabled { background: var(--paper); color: var(--ink-soft); border-color: var(--line); opacity: .55; box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-cam-nocam .ksk-btn {
+  flex: none; width: auto; max-width: 100%; min-height: 62px;
+  background: var(--paper); color: var(--accent) !important;
+}
+/* 카드 화면에는 카드 선택용 진행 표시가 있으므로 공통 단계 바를 중복하지 않는다. */
+.ksk-root[data-program-theme='tarot'] .ksk-stage[data-step='cards'] .ksk-menubar,
+.ksk-root[data-program-theme='tarot'] .ksk-stage[data-step='cards'] > header { display: none; }
+.ksk-root[data-program-theme] :is(.ksk-input,.ksk-chip,.ksk-check,.ksk-key) { background: var(--paper); border-color: var(--line); color: var(--ink); box-shadow: none; font-family: var(--ksk-body-font); }
+.ksk-root[data-program-theme] .ksk-chip[data-on='true'],
+.ksk-root[data-program-theme] .ksk-key-done { background: var(--accent); color: white; border-color: var(--accent); }
+.ksk-root[data-program-theme] :is(button,[role='button']):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ksk-root[data-program-theme] .ksk-result { min-height: 100%; }
+.ksk-root[data-program-theme] .ksk-chapter-head { padding: 0 0 8px; border: 0; background: none; box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-chapter-head > .rt-icon,
+.ksk-root[data-program-theme] .ksk-chapter-count { display: none; }
+.ksk-root[data-program-theme] .ksk-chapter-file { font-size: 11px; letter-spacing: .1em; color: var(--ink-soft); }
+.ksk-root[data-program-theme] .ksk-doc { padding: 0; border: 0; background: none; box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-result .ksk-actions { margin-top: auto; }
+.ksk-root[data-program-theme='color'] .ksk-stage[data-step='result'] .ksk-menubar { display: none; }
+.ksk-root[data-program-theme='color'] .ksk-stage[data-step='result'] .program-brandbar { margin-bottom: 2px; }
+.ksk-root[data-program-theme='color'] .ksk-stage[data-step='result'] .ksk-body { padding-top: 0; }
+.ksk-root[data-program-theme='color'] .ksk-chapter-head { margin: 0; padding: 0; }
+.ksk-root[data-program-theme='color'] .ksk-chapter-head .ksk-eyebrow { margin: 0; }
+.ksk-root[data-program-theme='color'] .ksk-result { gap: 8px; }
+.ksk-root[data-program-theme] .ksk-loading { border: 1px solid var(--line); background: var(--paper); box-shadow: none; }
+.ksk-root[data-program-theme] .ksk-analyzing .rt-stickers,
+.ksk-root[data-program-theme] .ksk-analyzing .rt-ghost { display: none; }
+.ksk-root[data-program-theme] .ksk-modal-actions .ksk-btn { color: #fff; border-color: #fff; background: transparent; }
+.ksk-root[data-program-theme] .ksk-modal-actions .ksk-btn-primary { background: #fff; color: var(--accent); }
+
+/* 첫 화면 — 글자와 버튼은 HTML, 원화는 별도 투명 에셋 */
+.ksk-root[data-program-theme] .program-attract {
+  position: relative; inset: auto; display: flex; flex: 1; flex-direction: column; justify-content: flex-start;
+  min-height: 0; width: 100%; height: 100%; padding: 0 6px; gap: 0;
+  background: none; cursor: default; isolation: auto;
+}
+.ksk-root[data-program-theme] .program-attract::before,
+.ksk-root[data-program-theme] .program-attract::after { display: none; }
+.ksk-root[data-program-theme] .program-attract .program-brandbar { margin-bottom: 20px; }
+.ksk-root[data-program-theme] .program-intro { flex: none; text-align: center; }
+.ksk-root[data-program-theme] .program-wordmark {
+  margin: 0; color: var(--accent); font-family: Impact,'Arial Narrow',var(--font-heading-serif),sans-serif;
+  font-size: clamp(100px,27vw,152px); font-weight: 900; letter-spacing: -.065em; line-height: .92;
+}
+.ksk-root[data-program-theme='color'] .program-wordmark { padding-bottom: 16px; border-bottom: 1px solid var(--accent); }
+.ksk-root[data-program-theme] .program-headline { max-width: 95%; margin: 18px auto 0; color: var(--ink); font-size: 27px; font-weight: 800; line-height: 1.45; letter-spacing: -.04em; text-wrap: balance; word-break: keep-all; }
+.ksk-root[data-program-theme] .program-art { position: relative; flex: 1; min-height: 120px; margin: 8px -4px; display: flex; align-items: center; justify-content: center; }
+.ksk-root[data-program-theme] .program-art > img { display: block; position: absolute; width: 100%; height: 100%; object-fit: contain; }
+.ksk-root[data-program-theme] .program-color-index { position: absolute; left: -2px; top: 15%; bottom: 15%; width: 14px; display: flex; flex-direction: column; gap: 4px; z-index: 1; }
+.ksk-root[data-program-theme] .program-color-index i { flex: 1; }
+.ksk-root[data-program-theme] .program-doodle { position: absolute; color: var(--accent); font-size: 46px; }
+.ksk-root[data-program-theme] .program-doodle-a { top: 9%; right: 3%; transform: rotate(12deg); }
+.ksk-root[data-program-theme] .program-doodle-b { bottom: 7%; left: 8%; transform: rotate(-12deg); font-size: 30px; }
+.ksk-root[data-program-theme] .program-start-area { flex: none; text-align: center; }
+.ksk-root[data-program-theme] .program-note { margin: 10px 0 16px; color: var(--ink); font-size: 17px; font-weight: 650; word-break: keep-all; }
+.ksk-root[data-program-theme] .program-start { display: flex; width: 100%; min-height: 76px; gap: 24px; font-size: 29px; font-weight: 800; }
+.ksk-root[data-program-theme] .program-start > span:last-child { font-size: 36px; line-height: 1; }
+.ksk-root[data-program-theme] .program-signature { display: flex; align-items: center; gap: 18px; margin: 18px 0 2px; color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: .23em; }
+.ksk-root[data-program-theme] .program-signature::before,
+.ksk-root[data-program-theme] .program-signature::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.ksk-root[data-program-theme='tarot'] .program-star { display: block; margin: 0 0 10px; color: #927e57; font-size: 30px; }
+.ksk-root[data-program-theme='tarot'] .program-wordmark { font-family: Georgia,'Times New Roman',serif; font-size: clamp(92px,25vw,136px); font-weight: 500; letter-spacing: -.085em; }
+.ksk-root[data-program-theme='tarot'] .program-headline { max-width: 90%; font-size: 30px; line-height: 1.42; }
+.ksk-root[data-program-theme='tarot'] .program-start { border-radius: 999px; }
+.ksk-root[data-program-theme='tarot'] .program-note { letter-spacing: .16em; }
+.ksk-root[data-program-theme]:not([data-lang='ko']) .program-headline { font-size: 25px; }
+@media (max-height: 800px) {
+  .ksk-root[data-program-theme] .program-wordmark { font-size: 108px; }
+  .ksk-root[data-program-theme='tarot'] .program-wordmark { font-size: 98px; }
+  .ksk-root[data-program-theme] .program-headline { margin-top: 10px; font-size: 23px; }
+  .ksk-root[data-program-theme] .program-attract .program-brandbar { margin-bottom: 10px; }
+  .ksk-root[data-program-theme] .program-star { margin-bottom: 4px; font-size: 22px; }
+  .ksk-root[data-program-theme] .program-start { min-height: 64px; font-size: 24px; }
+}
+@media (max-width: 440px) {
+  .ksk-root[data-program-theme] { padding: 8px; }
+  .ksk-root[data-program-theme] .ksk-stage { padding: 14px 10px; }
+  .ksk-root[data-program-theme] .program-wordmark { font-size: 100px; }
+  .ksk-root[data-program-theme='tarot'] .program-wordmark { font-size: 94px; }
+  .ksk-root[data-program-theme] .program-headline { font-size: 24px; }
+  .ksk-root[data-program-theme] .program-brandbar { font-size: 10px; }
+  .ksk-root[data-program-theme] .ksk-btn { font-size: 17px; }
+}
+
+/* 타로 — 모서리의 식물·정원 그림 위에 놓이는 작은 글자(브랜드·단계·첫 화면 서명)가 묻히지 않게 글자 뒤에만 종이색을 깐다.
+   그림은 그대로 두고, 가장자리를 번지게 해 붙인 띠처럼 보이지 않게 한다 */
+.ksk-root[data-program-theme='tarot'] .program-brandbar > span,
+.ksk-root[data-program-theme='tarot'] .ksk-menubar-step > span,
+.ksk-root[data-program-theme='tarot'] .ksk-top-step {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(250, 246, 237, 0.94);
+  box-shadow: 0 0 10px 4px rgba(250, 246, 237, 0.88);
+  color: var(--ink);
+}
+/* 왼쪽 위 브랜드 — 오른쪽 언어 버튼 자리는 안쪽 여백 대신 바깥 여백으로 비워 둔다(종이색이 늘어지지 않게) */
+.ksk-root[data-program-theme='tarot'] .program-brandbar > span { margin-right: 72px; }
+.ksk-root[data-program-theme='tarot'] .program-signature {
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(250, 246, 237, 0.94);
+  box-shadow: 0 0 10px 4px rgba(250, 246, 237, 0.88);
+}
+.ksk-root[data-program-theme='tarot'] .program-signature::before,
+.ksk-root[data-program-theme='tarot'] .program-signature::after { display: none; }

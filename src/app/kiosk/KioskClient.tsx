@@ -27,6 +27,8 @@ import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-e
 import { PosterTitle } from './PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
+import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
+import { ProgramAttract } from './ProgramAttract'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK, hanjaFontVar } from './fonts'
 import { OnScreenKeyboard } from './OnScreenKeyboard'
 import {
@@ -289,6 +291,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   } = useScreenBackgrounds('kiosk')
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다)
   const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  const programTheme = kioskProgramTheme(kioskMode.id)
   // 문서 언어 — 화면 낭독기·자동 번역·글꼴 선택이 화면 언어를 따르게(키오스크 경로는 로케일 레이아웃 밖이라 비어 있었다)
   const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
   useEffect(() => {
@@ -1327,7 +1330,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       if (!body) return
       body.style.setProperty('--ksk-fit', '1')
       // 글이 긴 장은 축소 대신 스크롤 — 줄이면 읽을 수 없는 크기가 된다
-      if (scrollChapter) return
+      if (scrollChapter || programTheme) return
       // scrollHeight 를 읽는 순간 레이아웃이 확정된다 (zoom 1 기준 실측)
       const avail = body.clientHeight
       const content = body.scrollHeight
@@ -1347,7 +1350,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       window.clearTimeout(t2)
       window.removeEventListener('resize', fit)
     }
-  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter, tarot.questionOpen, tarot.picks.length, tarot.revealed, tarot.deck.length])
+  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter, programTheme, tarot.questionOpen, tarot.picks.length, tarot.revealed, tarot.deck.length])
 
   /* ── 스크롤 힌트 ──────────────────────────────────────────
      스크롤바를 숨겨 둔 터치 화면에서는 "아래에 더 있다"를 알 방법이 없다.
@@ -1434,7 +1437,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             setLangOpen((open) => !open)
           }}
         >
-          <PixelIcon name="globe" size={24} />
+          {programTheme ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c5 5 5 13 0 18M12 3c-5 5-5 13 0 18" />
+            </svg>
+          ) : <PixelIcon name="globe" size={24} />}
           <span className="rt-pixel">{KIOSK_LANGS.find((l) => l.id === lang)?.code}</span>
         </button>
         {langOpen && (
@@ -1485,6 +1492,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     <div
       className={`ksk-root rt rt--kiosk rt-desktop ${KIOSK_FONT_CLASS} ${RETRO_FONT_CLASS}`}
       data-ui={design}
+      data-program-theme={programTheme}
+      data-program-step={step}
       data-background={activeBackground.id}
       data-tone={retroDesk.tone}
       data-lang={lang}
@@ -1502,6 +1511,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.bodyFont,
           '--ksk-display-tracking': retroDesk.displayTracking,
           ...(design === 'mac' ? macFontVars(isCjkLang(lang) ? CJK_FONT_STACK[lang] : deviceSettings.font ? retroDesk.bodyFont : undefined) : {}),
+          ...kioskProgramThemeVars(programTheme, isCjkLang(lang) ? CJK_FONT_STACK[lang] : undefined),
         } as CSSProperties
       }
     >
@@ -1509,7 +1519,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       {step !== 'attract' && (
-      <div className="ksk-stage rt-stack">
+      <div className="ksk-stage rt-stack" data-step={step}>
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
         <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
         <section className="ksk-window rt-win">
@@ -1518,6 +1528,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <span className="rt-win-title-text">{kioskMode.brandName}</span>
             {titleExtra && <span className="rt-win-title-extra">{titleExtra}</span>}
           </header>
+
+          {programTheme && <div className="program-brandbar"><span>{kioskMode.brandName}</span>{langControl}</div>}
 
           {/* 메뉴바 — 현재 단계(블록)와 언어 전환 */}
           <div className="ksk-menubar">
@@ -1542,7 +1554,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 <span className="rt-pixel">PLEASE WAIT</span>
               </div>
             )}
-            {langControl}
+            {!programTheme && langControl}
           </div>
 
           <div className="ksk-winbody">
@@ -2010,7 +2022,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   className="ksk-alt"
                   onClick={() => {
                     clearQr()
-                    setStep('product')
+                    goPrev()
                   }}
                 >
                   {t.backStep}
@@ -2034,7 +2046,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {t.useQr}
                 </button>
                 <div className="ksk-actions">
-                  <button className="ksk-btn" onClick={() => setStep('product')}>
+                  <button className="ksk-btn" onClick={() => goPrev()}>
                     {t.prev}
                   </button>
                   <button
@@ -2134,7 +2146,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       </div>
       )}
 
-      {step === 'attract' && (
+      {step === 'attract' && programTheme && (
+        <div className="ksk-stage" data-step="attract">
+          <ProgramAttract theme={programTheme} lang={lang} attract={attract} brand={kioskMode.brandName} langControl={langControl} onStart={startSession} />
+        </div>
+      )}
+      {step === 'attract' && !programTheme && (
         <>
           {/* 대기 화면 — 레퍼런스처럼 바탕화면 아이콘 줄 + 겹친 창 + 작은 시작 창. 어디를 눌러도 시작 */}
           <div

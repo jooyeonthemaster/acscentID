@@ -4,6 +4,7 @@
 // 고르면 같은 종류의 키오스크 모두가 다음 손님부터 그 모드로 돈다. 목록은 src/lib/kiosk/modes.ts
 import { useState } from 'react'
 import { KIOSK_MODES, findKioskMode } from '@/lib/kiosk/modes'
+import { kioskProgramTheme } from '@/lib/kiosk/program-theme'
 import type { DeviceSettings } from '@/lib/screen-backgrounds/types'
 import './kiosk-mode-controls.css'
 
@@ -21,6 +22,7 @@ export function KioskModeControls({ value, onSave, onSelectBackground, disabled,
   const [saving, setSaving] = useState<string | null>(null)
   const [error, setError] = useState('')
   const current = findKioskMode(value)
+  const programTheme = kioskProgramTheme(current.id)
   const pick = async (id: string) => {
     if (saving || id === current.id) return
     setSaving(id); setError('')
@@ -46,6 +48,12 @@ export function KioskModeControls({ value, onSave, onSelectBackground, disabled,
           </button>
         ))}
       </div>
+      {programTheme && (
+        <p className="kmc-theme-note">
+          <b>{programTheme === 'color' ? '컬러 아카이브' : '문라이트 가든'} 전용 디자인 적용 중</b>
+          <span>이 모드는 전용 배경·글꼴·버튼을 사용합니다. 아래 화면 디자인·배경 설정은 다른 운영 모드에서 적용됩니다.</span>
+        </p>
+      )}
       {settings && current.programs.includes('saju') && (
         <div className="kmc-saju">
           <b>사주 표시</b>

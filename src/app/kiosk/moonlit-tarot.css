@@ -1,0 +1,220 @@
+/* Moonlit Garden. Program-scoped so the shared kiosk and other reports retain
+   their own palette. The deck remains the real 22-card deck in 8 + 8 + 6 rows. */
+.trt-garden-art { display: none; }
+.trt-slot-control { display: block; width: 100%; padding: 0; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; cursor: pointer; }
+.trt-slot-control:disabled { cursor: default; }
+.trt-card--picked { display: grid; place-items: center; border: 1px solid currentColor; font: inherit; }
+.trt-topic-icon { display: grid; place-items: center; margin-bottom: 10px; }
+
+.ksk-root[data-program-theme='tarot'] .trt-step {
+  --trt-plum: #53405f;
+  --trt-muted: #766a7b;
+  --trt-lavender: #d7c9e1;
+  --trt-sage: #c5c9b1;
+  --trt-paper: #faf6ed;
+  padding-top: 22px;
+  color: #30372f;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step > .ksk-eyebrow {
+  align-self: center;
+  padding: 0;
+  margin: 0 0 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--trt-plum);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+  text-align: center;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step > .ksk-title {
+  color: #30372f;
+  text-align: center;
+  font-size: 30px;
+  line-height: 1.35;
+  letter-spacing: -.04em;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step > .ksk-desc {
+  max-width: 410px;
+  margin: 0 auto 22px;
+  color: #625a61;
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: center;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purposes { gap: 12px; margin-top: 10px; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose {
+  position: relative;
+  min-height: 136px;
+  padding: 22px 14px;
+  border: 1px solid #bdb4be;
+  border-radius: 18px;
+  background: rgba(251, 248, 242, .94);
+  color: #51415c;
+  box-shadow: 0 3px 12px #53405f08;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose:first-child { min-height: 142px; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose[data-on='true'] {
+  border-color: #70597d;
+  background: #e7ddec;
+  box-shadow: inset 0 0 0 1px #70597d;
+  color: #47314f;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose b { margin-bottom: 5px; font-size: 20px; font-weight: 700; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose span { opacity: 1; color: #726576; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-purpose .trt-topic-icon { display: grid; color: #70587c; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-input-tall {
+  min-height: 150px;
+  margin-top: 16px;
+  padding: 24px;
+  border: 1px solid #bdb4be;
+  border-radius: 18px;
+  background: rgba(251, 248, 242, .96);
+  color: #51415c;
+  box-shadow: 0 3px 12px #53405f08;
+  font-size: 20px;
+  line-height: 1.6;
+}
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-input-tall[data-empty='true'] { color: #8a7a8a; }
+
+/* A quiet three-point progress line follows the number of cards selected. */
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  flex: none;
+  width: 146px;
+  height: 10px;
+  margin: 0 auto 14px;
+}
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: #afa0b4;
+}
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress span {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #7e6989;
+  border-radius: 50%;
+  background: #f6f0e6;
+}
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress span[data-filled] { background: #614a6f; border-color: #614a6f; }
+.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] > .ksk-title { max-width: 400px; align-self: center; margin-bottom: 8px; }
+.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] > .ksk-desc { min-height: 2.8em; margin-bottom: 12px; font-size: 14px; }
+.ksk-root[data-program-theme='tarot'] .trt-slots { flex: none; width: 76%; max-width: 368px; gap: 16px; margin: 0 auto 14px; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] { width: 100%; max-width: none; margin-top: 28px; gap: 14px; }
+.ksk-root[data-program-theme='tarot'] .trt-slot { gap: 7px; }
+.ksk-root[data-program-theme='tarot'] .trt-slot-pos {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: #53405f;
+  font-size: 15px;
+  font-weight: 800;
+}
+.ksk-root[data-program-theme='tarot'] .trt-slot-control { min-width: 44px; min-height: 44px; border-radius: 8px; -webkit-tap-highlight-color: transparent; }
+.ksk-root[data-program-theme='tarot'] .trt-slot-name { min-height: 1.4em; font-size: 11px; font-weight: 500; color: #796d7d; opacity: 1; }
+.ksk-root[data-program-theme='tarot'] .trt-slots:not([data-revealed]) .trt-slot-name { display: none; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name { margin-top: 4px; font-size: 15px; line-height: 1.5; color: #53405f; }
+
+/* Original SVG line art scales with every card without concealing its hit area. */
+.ksk-root[data-program-theme='tarot'] .trt-card--back {
+  background: #c5c9b1;
+  border: 1px solid #8c9278;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 2px #e5e3cf, 0 2px 4px #44383b10;
+  color: #646b51;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--back > span { display: none; }
+.ksk-root[data-program-theme='tarot'] .trt-garden-art { display: block; width: 100%; height: 100%; }
+.ksk-root[data-program-theme='tarot'] .trt-slots .trt-card--back {
+  background: #d7c9e1;
+  border-color: #766087;
+  border-radius: 8px;
+  color: #6b517e;
+  box-shadow: inset 0 0 0 2px #eee5f2, 0 4px 9px #53405f12;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--empty {
+  background: #f7f1e9;
+  border: 1px solid #c6b9ca;
+  box-shadow: inset 0 0 0 4px #f7f1e9, inset 0 0 0 5px #e5dbe6;
+  color: #a696b0;
+  opacity: 1;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--empty > span,
+.ksk-root[data-program-theme='tarot'] .trt-card--picked > span {
+  display: grid;
+  place-items: center;
+  width: 1.6em;
+  aspect-ratio: 1;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
+.ksk-root[data-program-theme='tarot'] .trt-deck { flex: none; gap: 7px 6px; width: 100%; max-width: 484px; margin: 0 auto; }
+.ksk-root[data-program-theme='tarot'] .trt-deck-card { flex: 0 0 calc((100% - 42px) / 8); min-width: 44px; min-height: 66px; border-radius: 5px; }
+.ksk-root[data-program-theme='tarot'] .trt-deck-card[data-picked] { opacity: 1; transform: none; }
+.ksk-root[data-program-theme='tarot'] .trt-card--picked { background: #f8f4ee; border: 1px solid #cbbdce; border-radius: 5px; box-shadow: inset 0 0 0 3px #f8f4ee, inset 0 0 0 4px #e4dce7; color: #a391ae; font-size: 19px; }
+.ksk-root[data-program-theme='tarot'] .trt-deck-card:disabled:not([data-picked]) { opacity: .72; }
+.ksk-root[data-program-theme='tarot'] .trt-deck-card:active:not(:disabled) { transform: translateY(-3px); }
+.ksk-root[data-program-theme='tarot'] .trt-hint { position: relative; z-index: 6; flex: none; margin: 16px 0 2px; }
+.ksk-root[data-program-theme='tarot'] .trt-hint-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 182px; min-height: 46px; padding: 10px 22px; border: 1px solid #766087; border-radius: 999px; background: #faf6edf0; color: #5b456c; font-size: 16px; font-weight: 700; }
+.ksk-root[data-program-theme='tarot'] :is(.trt-slot-control, .trt-deck-card, .trt-hint-btn, .trt-step .ksk-purpose):focus-visible { outline: 3px solid #72558a; outline-offset: 3px; }
+.ksk-root[data-program-theme='tarot'] .trt-step .ksk-actions .ksk-btn-primary { flex: 1.8; }
+
+/* Readable fronts retain all 22 identities, elemental colors, and reversals. */
+.ksk-root[data-program-theme='tarot'] .trt-card--face { border-color: #877391; background: #faf6ed; color: #53405f; box-shadow: inset 0 0 0 3px #faf6ed, inset 0 0 0 4px var(--trt-el, #877391), 0 4px 12px #53405f13; }
+.ksk-root[data-program-theme='tarot'] .trt-card--face::before { content: ''; position: absolute; inset: 9px; border: 1px solid #ddd0dc; border-radius: 999px 999px 4px 4px; pointer-events: none; }
+.ksk-root[data-program-theme='tarot'] .trt-card-roman { font-weight: 400; }
+.ksk-root[data-program-theme='tarot'] .trt-card-name { font-weight: 700; }
+
+/* The report uses the same parchment and plum, with element colors reserved
+   for the elemental symbol and reading stripe. */
+.ksk-root[data-program-theme='tarot'] .sjr.trt {
+  --sjr-ink: #493950;
+  --sjr-soft: #7a6e7e;
+  --sjr-line: #dacece;
+  --sjr-paper: #fbf7ef;
+  --sjr-gold: #82678f;
+  --sjr-gold-soft: #e4d9ea;
+  gap: 18px;
+}
+.ksk-root[data-program-theme='tarot'] .trt-hero { padding: 24px 18px 22px; border: 1px solid #b5a4bc; border-radius: 22px; background: #f8f2e9; color: #493950; box-shadow: 0 6px 20px #53405f0e; }
+.ksk-root[data-program-theme='tarot'] .trt-hero-kicker { color: #846b8f; font-size: 14px; font-weight: 600; letter-spacing: .08em; }
+.ksk-root[data-program-theme='tarot'] .trt-hero-kicker span { margin: 0 9px; font-size: 12px; }
+.ksk-root[data-program-theme='tarot'] .trt-hero-title { margin-top: 12px !important; font-size: 28px; font-weight: 750; line-height: 1.4; text-wrap: balance; }
+.ksk-root[data-program-theme='tarot'] .trt-hero-question { color: #796d7d; opacity: 1; line-height: 1.6; }
+.ksk-root[data-program-theme='tarot'] .trt-spread { gap: 14px; margin-top: 22px; }
+.ksk-root[data-program-theme='tarot'] .trt-hero .trt-slot-pos { background: none; color: #53405f; }
+.ksk-root[data-program-theme='tarot'] .trt-spread-name { font-size: 15px; line-height: 1.5; }
+.ksk-root[data-program-theme='tarot'] .trt-spread-name em { margin-top: 2px; color: #846b8f; font-size: 12px; font-weight: 500; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-card { border-radius: 18px; box-shadow: 0 3px 12px #53405f0a; }
+.ksk-root[data-program-theme='tarot'] .trt-read { border-top-width: 3px; }
+.ksk-root[data-program-theme='tarot'] .trt-read-head { gap: 8px; font-size: 14px; color: #796d7d; }
+.ksk-root[data-program-theme='tarot'] .trt-read-head b { padding: 3px 10px; background: #e8deeb; color: #664e73; font-size: 13px; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-card-title { margin-top: 12px !important; font-size: 25px; line-height: 1.45; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-chip { padding: 6px 12px; background: #eee6ef; color: #796084; font-size: 16px; font-weight: 500; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-brief p { color: #514851; font-size: 20px; line-height: 1.7; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-section { align-self: center; padding: 0; margin-top: 12px !important; background: none; color: #715c7d; font-size: 19px; text-align: center; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-section::before { content: '✦'; padding-right: 10px; font-size: 12px; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-card--accent { background: #f0e8f2; border-color: #d8c9df; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-more { min-height: 46px; background: #f2ebf3; color: #715c7d; font-size: 16px; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-insights li { align-items: center; font-size: 20px; font-weight: 500; line-height: 1.65; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-insights li b { width: 38px; height: 38px; border-width: 1px; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; }
+.ksk-root[data-program-theme='tarot'] .trt .xpr-note { background: #faf6edef; color: #6b5d70; font-size: 13px; }
+.ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { background: #614a6f; color: #faf6ed; box-shadow: 0 4px 12px #53405f25; font-size: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ksk-root[data-program-theme='tarot'] .trt-deck-card:active:not(:disabled) { transform: none; }
+  .ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { animation: none; }
+}
