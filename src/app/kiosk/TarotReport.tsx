@@ -1,10 +1,9 @@
 'use client'
 
-// 키오스크 AI 타로 결과 — 한 장 스크롤. 카드 세 장 → 자리별 풀이 → 흐름 → 조언 → 향.
-// 사주 결과(SajuReport)의 카드·향 부품(.sjr-*)을 그대로 쓰고 카드 그림 부분만 따로 그린다. 기존·레트로 공용.
+// 키오스크 AI 타로 결과 — 한 장 스크롤. 카드 세 장 → 자리별 풀이 → 흐름 → 조언.
+// 사주 결과(SajuReport)의 카드 부품(.sjr-*)을 그대로 쓰고 카드 그림 부분만 따로 그린다. 기존·레트로 공용. 향 추천은 없다.
 
 import type { CSSProperties } from 'react'
-import { getPerfumeById } from '@/data/perfumes'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { ProgramText } from '@/lib/kiosk/program-i18n'
 import { TAROT_DECK, TAROT_ELEMENT_COLORS } from '@/lib/kiosk/tarot-deck'
@@ -17,17 +16,6 @@ import './programs.css'
 export function TarotReportView({ result, px, lang, scrollMore }: { result: TarotAnalysisResult; px: ProgramText; lang: KioskLang; scrollMore: string }) {
   const tx = px.tarot
   const { tarotSpread: spread, tarotReading: reading } = result
-  const top = result.matchingPerfumes[0]
-  const persona = top?.persona
-  const no = (top?.perfumeId.match(/(\d+)\s*$/)?.[1] ?? '--').padStart(2, '0')
-  const category = (getPerfumeById(top?.perfumeId ?? '')?.category ?? 'scent').toUpperCase()
-  const pct = top ? Math.round(top.score <= 1 ? top.score * 100 : top.score) : null
-  const el = spread.scentElement
-  const layers = [
-    { key: 'top', label: px.layers.top, note: persona?.mainScent },
-    { key: 'middle', label: px.layers.middle, note: persona?.subScent1 },
-    { key: 'base', label: px.layers.base, note: persona?.subScent2 },
-  ]
 
   return (
     <div className="sjr trt">
@@ -81,35 +69,11 @@ export function TarotReportView({ result, px, lang, scrollMore }: { result: Taro
         ))}
       </ol>
 
-      <section className="sjr-scent" style={{ ['--sjr-el' as string]: TAROT_ELEMENT_COLORS[el] }}>
-        <p className="sjr-scent-kicker">{tx.scentTitle} · {tx.scentFrom(tx.elements[el])}</p>
-        <p className="sjr-scent-no">No. {no}</p>
-        <p className="sjr-scent-name">{persona?.name ?? '-'}</p>
-        <p className="sjr-scent-meta">{category}{pct !== null ? ` · ${px.match(pct)}` : ''} · {tx.elementScent[el]}</p>
-        {!!persona?.keywords?.length && (
-          <div className="sjr-scent-tags">{persona.keywords.slice(0, 4).map((k) => <span key={k}>#{k}</span>)}</div>
-        )}
-      </section>
-
-      {reading.scentBridge && <p className="sjr-bridge">{reading.scentBridge}</p>}
-
-      <div className="sjr-layers">
-        {layers.map((l, i) => (
-          <section key={l.key} className="sjr-layer" style={{ ['--i' as string]: i }}>
-            <p className="sjr-layer-head"><b>{l.label}</b><span>{l.note?.name ?? '-'}</span></p>
-            <Brief text={l.note?.fanComment} n={1} tx={px} />
-          </section>
-        ))}
-      </div>
-
-      <section className="sjr-card">
-        <p className="sjr-kicker">{tx.ritual}</p>
-        <Brief text={reading.ritual} n={2} tx={px} />
-      </section>
-      <section className="sjr-card">
-        <p className="sjr-kicker">{tx.why}</p>
-        <Brief text={reading.scentWhy} n={2} tx={px} />
-      </section>
+      {result.keywords.length > 0 && (
+        <div className="sjr-chips trt-keywords">
+          {result.keywords.map((k) => <span key={k} className="sjr-chip">#{k}</span>)}
+        </div>
+      )}
 
       <p className="xpr-note">{tx.disclaimer}</p>
       <ScrollMoreHint label={scrollMore} />

@@ -1,5 +1,5 @@
 // 키오스크 AI 퍼스널 컬러 — 8유형의 팔레트. 유형은 AI가 사진을 보고 고르지만, 색 견본은 여기 고정값을 쓴다
-// (AI가 매번 다른 HEX를 지어내면 같은 유형인데 팔레트가 달라진다). 향 후보는 scent-affinity.ts.
+// (AI가 매번 다른 HEX를 지어내면 같은 유형인데 팔레트가 달라진다).
 
 import type { PersonalColorTypeId, SeasonType, ToneType } from '@/types/analysis'
 

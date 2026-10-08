@@ -10,8 +10,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { STYLES, PERSONALITIES, CHARM_POINTS, GENDER_OPTIONS } from '@/app/[locale]/input/constants'
 import {
-  ImageAnalysisResult,
   SajuAnalysisResult,
+  KioskAnalysisResult,
   TRAIT_LABELS,
   TraitScores,
   SEASON_LABELS,
@@ -45,11 +45,11 @@ import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 import { KioskModeControls } from '@/components/screen/KioskModeControls'
-import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines, type KioskProgramId } from '@/lib/kiosk/modes'
+import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines, KIOSK_MODE_IDS, type KioskProgramId } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
 import { programText } from '@/lib/kiosk/program-i18n'
-import { buildReceiptColor, buildReceiptTarot, extraAnalysisText, extraRecordDetail, isColorResult, isTarotResult } from '@/lib/kiosk/extra-receipt'
+import { buildReceiptColor, buildReceiptTarot, extraAnalysisText, extraRecordDetail, isColorResult, isTarotResult, scentResultOf } from '@/lib/kiosk/extra-receipt'
 import { ColorCaptureTips, ColorReportView } from '../ColorReport'
 import { TarotReportView } from '../TarotReport'
 import { TarotSteps, useTarotSession } from '../TarotSteps'
@@ -121,9 +121,10 @@ const DEFAULT_PHOTO_SOURCE: 'camera' | 'qr' = 'qr'
 const IMAGE_STEPS: Step[] = ['info', 'style', 'personality', 'charm', 'product', 'capture']
 const SAJU_STEPS: Step[] = ['info', 'purpose', 'birth', 'hour', 'wish', 'product']
 const SAJU_STEPS_COMPAT: Step[] = ['info', 'purpose', 'birth', 'hour', 'partner', 'wish', 'product']
-// 퍼스널 컬러 — 얼굴을 찍으면 바로 진단. 타로 — 카드를 펼치면 바로 풀이(둘 다 제품을 먼저 고른다)
-const COLOR_STEPS: Step[] = ['info', 'product', 'capture']
-const TAROT_STEPS: Step[] = ['info', 'topic', 'question', 'product', 'cards']
+// 퍼스널 컬러 — 얼굴을 찍으면 바로 진단. 타로 — 카드를 펼치면 바로 풀이.
+// 둘 다 향을 추천하지 않으므로 제품 고르기 단계가 없다(진단서 · 리딩만 인쇄)
+const COLOR_STEPS: Step[] = ['info', 'capture']
+const TAROT_STEPS: Step[] = ['info', 'topic', 'question', 'cards']
 
 const STEP_LABELS: Record<string, string> = {
   info: 'PROFILE',
@@ -164,12 +165,14 @@ function isMockRequested(): boolean {
  */
 function previewModeId(): string | null {
   if (typeof window === 'undefined') return null
-  return new URLSearchParams(window.location.search).get('mode')
+  const id = new URLSearchParams(window.location.search).get('mode')
+  // 없는 모드 이름이면 무시하고 기기 설정을 따른다(예전엔 매장 기본 모드로 떨어졌다)
+  return id && KIOSK_MODE_IDS.includes(id) ? id : null
 }
 
 /** 사주 결과 → 영수증 명식/처방 데이터 */
 
-function isSajuResult(r: ImageAnalysisResult | SajuAnalysisResult | null): r is SajuAnalysisResult {
+function isSajuResult(r: KioskAnalysisResult | null): r is SajuAnalysisResult {
   return Boolean(r && 'sajuChart' in r)
 }
 
@@ -188,8 +191,10 @@ export function KioskClassic() {
   const [progress, setProgress] = useState(0)
   /** 분석 실패 — 분석 화면에 남는 오류 카드(다시 시도·처음으로). null 이면 진행 중 */
   const [analyzeError, setAnalyzeError] = useState<AnalyzeErrorKind | null>(null)
+  /** 촬영 화면에 남는 안내(퍼스널 컬러에서 얼굴을 못 찾았을 때) — 2.6초 토스트는 다시 찍는 화면에서 이미 사라져 있었다 */
+  const [captureNotice, setCaptureNotice] = useState<string | null>(null)
   const [statusIdx, setStatusIdx] = useState(0)
-  const [result, setResult] = useState<ImageAnalysisResult | SajuAnalysisResult | null>(null)
+  const [result, setResult] = useState<KioskAnalysisResult | null>(null)
   const [mocked, setMocked] = useState(false)
   const [chapterIdx, setChapterIdx] = useState(0)
   // 사주 입력
@@ -260,6 +265,8 @@ export function KioskClassic() {
   const pickProgram = useCallback((id: Program) => {
     setProgram(id)
     setPhotoSource(id === 'color' ? 'camera' : DEFAULT_PHOTO_SOURCE)
+    // 디퓨저는 매장 이미지 분석에서만 고를 수 있다 — 다른 프로그램으로 옮기면 고른 제품을 향수로 되돌린다
+    if (id !== 'idol' && id !== 'personal') setProductType((cur) => (cur.startsWith('diffuser') ? 'perfume_10ml' : cur))
   }, [])
   const startSession = useCallback(() => {
     pickProgram(activePrograms[0]?.id ?? DEFAULT_PROGRAM)
@@ -341,6 +348,7 @@ export function KioskClassic() {
     setToast(null)
     setStep('attract')
     setAnalyzeError(null)
+    setCaptureNotice(null)
     setProgram(DEFAULT_PROGRAM)
     setName('')
     setGender('')
@@ -667,6 +675,11 @@ export function KioskClassic() {
     reader.readAsDataURL(file)
   }, [])
 
+  // 새 사진이 생기면 '얼굴을 찾지 못했습니다' 안내는 물린다
+  useEffect(() => {
+    if (photo) setCaptureNotice(null)
+  }, [photo])
+
   // ── 분석 ─────────────────────────────────────────────────
   // 분석 대기 문구 — 프로그램마다 다르다
   const statusLines = program === 'saju' ? sx.statusLines : program === 'color' ? px.color.statusLines : program === 'tarot' ? px.tarot.statusLines : t.statusLines
@@ -778,7 +791,7 @@ export function KioskClassic() {
       // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
       // 얼굴을 못 찾은 사진(퍼스널 컬러) — 다시 보내도 같으니 사진을 물리고 다시 찍게 한다
       if (json.error === 'NO_FACE') {
-        showToast(px.color.noFace)
+        setCaptureNotice(px.color.noFace)
         setPhoto(null)
         setStep('capture')
         return
@@ -787,7 +800,7 @@ export function KioskClassic() {
         fail('server', `${res.status} ${json.error ?? ''}`)
         return
       }
-      setResult(json.data as ImageAnalysisResult | SajuAnalysisResult)
+      setResult(json.data as KioskAnalysisResult)
       setMocked(Boolean(json.mocked))
     } finally {
       window.clearInterval(progTimer)
@@ -800,7 +813,7 @@ export function KioskClassic() {
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx, statusLines, px.color.noFace, tarot.topic, tarot.question, tarot.draws, showToast,
+    t, lang, sx, statusLines, px.color.noFace, tarot.topic, tarot.question, tarot.draws,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -863,17 +876,19 @@ export function KioskClassic() {
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
   // ── 결과 파생 데이터 ───────────────────────────────────────
-  const match = result?.matchingPerfumes?.[0]
+  // 향이 있는 결과(이미지 분석·사주)만 향·레시피를 가진다 — 퍼스널 컬러·타로는 null
+  const scentResult = scentResultOf(result)
+  const match = scentResult?.matchingPerfumes?.[0]
   const persona = match?.persona
   const productInfo = PRODUCT_TYPES.find((p) => p.id === productType)!
 
   const topTraits = useMemo(() => {
-    if (!result) return []
-    return (Object.entries(result.traits) as [keyof TraitScores, number][])
+    if (!scentResult) return []
+    return (Object.entries(scentResult.traits) as [keyof TraitScores, number][])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([key, value]) => ({ label: t.traits[key] ?? TRAIT_LABELS[key], value }))
-  }, [result, t])
+  }, [scentResult, t])
 
   const recipeRows = useMemo(() => {
     if (!persona) return []
@@ -901,8 +916,10 @@ export function KioskClassic() {
         productType,
         perfumeId: persona?.id,
         result,
-        // 셸은 순수 base64를 기대한다 (Buffer.from(photoBase64, 'base64')) — dataURL 접두어 제거
-        photoBase64: photo ? photo.split(',')[1] : null,
+        // 셸은 순수 base64를 기대한다 (Buffer.from(photoBase64, 'base64')) — dataURL 접두어 제거.
+        // 퍼스널 컬러는 본인 얼굴 사진이고 화면에 '저장하지 않습니다'라고 안내한다 — 기기 아카이브에 넘기지 않는다
+        // (셸은 받은 사진을 output/<시각>/photo.jpg 로 남긴다)
+        photoBase64: photo && !isColorResult(result) ? photo.split(',')[1] : null,
       })
       .catch(() => {})
   }, [step, result, kiosk, name, productType, persona, photo])
@@ -911,7 +928,9 @@ export function KioskClassic() {
   // 결과 화면에 도달한 건만 남긴다. 실패해도 손님 플로우는 그대로 진행한다 —
   // 기록은 운영 통계용이지 손님이 기다릴 이유가 없다.
   useEffect(() => {
-    if (step !== 'result' || !result || !persona || !match || recordedRef.current) return
+    if (step !== 'result' || !result || recordedRef.current) return
+    // 향이 있는 프로그램은 향 정보가 준비된 뒤에 남긴다. 퍼스널 컬러·타로는 향·제품 칸을 비워 남긴다
+    if (scentResult && (!persona || !match)) return
     recordedRef.current = true
 
     const saju = isSajuResult(result) ? buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') : null
@@ -924,20 +943,24 @@ export function KioskClassic() {
         gender,
         // 사주는 사진을 쓰지 않는다
         photo_source: isSajuResult(result) || isTarotResult(result) ? null : photoSource,
-        product_type: productType,
-        product_label: productInfo.label,
-        perfume_id: persona.id,
-        perfume_no: perfumeNoFromId(persona.id),
-        perfume_name: persona.name,
-        category_en: scentCategoryEn(persona.id),
-        match_score: match.score,
-        keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords)?.slice(0, 5),
-        traits: topTraits,
-        personal_color: result.personalColor && !isTarotResult(result)
-          ? `${SEASON_LABELS[result.personalColor.season]} ${TONE_LABELS[result.personalColor.tone]}`
-          : null,
-        analysis_text: extraAnalysisText(result) ?? [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
-        recipe: recipeRows,
+        product_type: scentResult ? productType : null,
+        product_label: scentResult ? productInfo.label : null,
+        perfume_id: persona?.id ?? null,
+        perfume_no: persona ? perfumeNoFromId(persona.id) : null,
+        perfume_name: persona?.name ?? null,
+        category_en: persona ? scentCategoryEn(persona.id) : null,
+        match_score: match?.score ?? null,
+        keywords: scentResult
+          ? (scentResult.matchingKeywords?.length ? scentResult.matchingKeywords : persona?.keywords)?.slice(0, 5)
+          : isColorResult(result) || isTarotResult(result) ? result.keywords.slice(0, 5) : null,
+        traits: scentResult ? topTraits : null,
+        personal_color: isColorResult(result)
+          ? px.color.typeNames[result.colorDiagnosis.typeId]
+          : scentResult?.personalColor
+            ? `${SEASON_LABELS[scentResult.personalColor.season]} ${TONE_LABELS[scentResult.personalColor.tone]}`
+            : null,
+        analysis_text: extraAnalysisText(result) ?? [scentResult?.analysis?.mood, scentResult?.analysis?.style].filter(Boolean).join(' '),
+        recipe: scentResult ? recipeRows : null,
         saju,
         // 퍼스널 컬러·타로 요약(유형·눈금 / 주제·뽑힌 카드) — 다른 프로그램은 null
         detail: extraRecordDetail(result),
@@ -952,60 +975,79 @@ export function KioskClassic() {
       })
       .catch((e) => console.error('[kiosk] 분석 기록 실패:', e))
   }, [
-    step, result, persona, match, program, name, gender, photoSource, productType,
-    productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx,
+    step, result, scentResult, persona, match, program, name, gender, photoSource, productType,
+    productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx, px,
   t.gender,
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
   const buildReceipt = useCallback(async (): Promise<{ dataUrl: string; base64: string } | null> => {
-    if (!result || !persona || !match) return null
+    if (!result) return null
     const now = new Date()
     const two = (n: number) => String(n).padStart(2, '0')
-    const baseMl = productInfo.totalVolumeMl - productInfo.fragranceVolumeMl
-    const categoryEn = scentCategoryEn(persona.id)
-
-    const data: ReceiptData = {
-      ticket: ticketRef.current,
+    const stamp = {
       date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())}`,
       time: `${two(now.getHours())}:${two(now.getMinutes())}`,
       customerName: name.trim() || t.guest,
       gender,
-      productLabel: t.products[productInfo.id]?.label ?? productInfo.label,
-      perfumeNo: perfumeNoFromId(persona.id),
-      perfumeName: persona.name,
-      categoryEn,
-      score: match.score,
-      keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords).slice(0, 5),
-      notes: {
-        top: persona.mainScent?.name ?? '-',
-        middle: persona.subScent1?.name ?? '-',
-        base: persona.subScent2?.name ?? '-',
-      },
-      analysisText: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
-      personalColorText: result.personalColor
-        ? t.personalColor(
-            t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
-            t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
-          )
-        : '',
-      palette: result.personalColor?.palette?.slice(0, 4) ?? [],
-      signals: topTraits,
-      recipeRows,
-      baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
-      steps: t.receipt.steps,
-      // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
-      counterNotice: modeCounterNotice(kioskMode, lang, t.receipt.counterNotice),
-      recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
-      precautions: t.receipt.precautions,
-      footerLines: [
-        ...(mocked ? [t.receipt.demoNote] : []),
-        ...(isColorResult(result) ? [px.color.disclaimer] : isTarotResult(result) ? [px.tarot.disclaimer] : []),
-        "AC'SCENT · www.acscent.co.kr",
-      ],
-      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
-      ...(isColorResult(result) ? { color: buildReceiptColor(result, px) } : {}),
-      ...(isTarotResult(result) ? { tarot: buildReceiptTarot(result, px, lang) } : {}),
+    }
+    let data: ReceiptData
+    if (isColorResult(result) || isTarotResult(result)) {
+      // 퍼스널 컬러 · 타로 — 진단서/리딩만. 향·제품·레시피·발권 번호가 없다(영수증 렌더러가 그 구역을 찍지 않는다)
+      data = {
+        ...stamp,
+        ticket: null,
+        productLabel: '', perfumeNo: '', perfumeName: '', categoryEn: '', score: 0,
+        keywords: result.keywords.slice(0, 5),
+        notes: { top: '', middle: '', base: '' },
+        analysisText: '', personalColorText: '', palette: [], signals: [], recipeRows: [], baseText: '', steps: [],
+        footerLines: [
+          ...(mocked ? [px.demoNote] : []),
+          isColorResult(result) ? px.color.disclaimer : px.tarot.disclaimer,
+          "AC'SCENT · www.acscent.co.kr",
+        ],
+        ...(isColorResult(result) ? { color: buildReceiptColor(result, px) } : { tarot: buildReceiptTarot(result, px, lang) }),
+      }
+    } else {
+      if (!persona || !match) return null
+      const baseMl = productInfo.totalVolumeMl - productInfo.fragranceVolumeMl
+      const categoryEn = scentCategoryEn(persona.id)
+      data = {
+        ...stamp,
+        ticket: ticketRef.current,
+        productLabel: t.products[productInfo.id]?.label ?? productInfo.label,
+        perfumeNo: perfumeNoFromId(persona.id),
+        perfumeName: persona.name,
+        categoryEn,
+        score: match.score,
+        keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords).slice(0, 5),
+        notes: {
+          top: persona.mainScent?.name ?? '-',
+          middle: persona.subScent1?.name ?? '-',
+          base: persona.subScent2?.name ?? '-',
+        },
+        analysisText: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
+        personalColorText: result.personalColor
+          ? t.personalColor(
+              t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
+              t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
+            )
+          : '',
+        palette: result.personalColor?.palette?.slice(0, 4) ?? [],
+        signals: topTraits,
+        recipeRows,
+        baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
+        steps: t.receipt.steps,
+        // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
+        counterNotice: modeCounterNotice(kioskMode, lang, t.receipt.counterNotice),
+        recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
+        precautions: t.receipt.precautions,
+        footerLines: [
+          ...(mocked ? [t.receipt.demoNote] : []),
+          "AC'SCENT · www.acscent.co.kr",
+        ],
+        ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
+      }
     }
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
@@ -1025,7 +1067,8 @@ export function KioskClassic() {
   const openReceipt = useCallback(async () => {
     try {
       // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
-      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket) {
+      // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
+      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
         const t = await kiosk.nextTicket().catch(() => null)
         if (t?.success && t.ticket) ticketRef.current = t.ticket
       }
@@ -1035,7 +1078,7 @@ export function KioskClassic() {
       console.error('[kiosk] 영수증 렌더 실패:', e)
       showToast(t.toastReceiptFailed)
     }
-  }, [buildReceipt, kiosk, showToast, t])
+  }, [buildReceipt, kiosk, showToast, t, scentResult])
 
   const printReceipt = useCallback(async () => {
     if (!receipt) return
@@ -1068,13 +1111,18 @@ export function KioskClassic() {
             }),
           }).catch((e) => console.error('[kiosk] 출력 기록 실패:', e))
         }
-        if (res.ticket && !ticketRef.current) {
-          ticketRef.current = res.ticket
-          // 구형 셸(선채번 미지원) 경로: 채번된 번호를 반영해 재인쇄용 원판만 갱신
-          const again = await buildReceipt()
-          if (again) setReceipt(again)
+        if (!scentResult) {
+          // 퍼스널 컬러·타로 — 발권 번호가 없는 영수증
+          showToast(px.printed)
+        } else {
+          if (res.ticket && !ticketRef.current) {
+            ticketRef.current = res.ticket
+            // 구형 셸(선채번 미지원) 경로: 채번된 번호를 반영해 재인쇄용 원판만 갱신
+            const again = await buildReceipt()
+            if (again) setReceipt(again)
+          }
+          showToast(t.toastTicketIssued(res.ticket ?? ''))
         }
-        showToast(t.toastTicketIssued(res.ticket ?? ''))
       } else {
         showToast(t.toastPrintFailed(res.error ?? t.printerError))
       }
@@ -1084,7 +1132,7 @@ export function KioskClassic() {
     } finally {
       setPrinting(false)
     }
-  }, [receipt, kiosk, buildReceipt, showToast, t])
+  }, [receipt, kiosk, buildReceipt, showToast, t, scentResult, px.printed])
 
   // ── 관리자 핫스팟 (짧게 누르기 / 1.5초 홀드 모두 서버 인증 후 설정) ────
   const exitHold = useRef<number | undefined>(undefined)
@@ -1468,6 +1516,7 @@ export function KioskClassic() {
             tx={px.tarot}
             labels={{ prev: t.prev, next: t.next }}
             lang={lang}
+            pill={stepPill}
             onPrev={goPrev}
             onNext={goNext}
             keyboard={(props) => (
@@ -1861,6 +1910,7 @@ export function KioskClassic() {
               </div>
             )}
             {/* 퍼스널 컬러 — 조명·가림에 민감해서 찍기 전에 안내한다 */}
+            {captureNotice && !photo && <p className="clr-notice" role="alert">{captureNotice}</p>}
             {program === 'color' && !photo && photoSource === 'camera' && <ColorCaptureTips tx={px.color} />}
             <div style={{ flex: 1 }} />
             {photo ? (
@@ -1935,6 +1985,10 @@ export function KioskClassic() {
                 <button className="ksk-btn" onClick={resetAll}>{t.analyzeError.home}</button>
                 <button className="ksk-btn ksk-btn-primary" onClick={startAnalysis}>{t.analyzeError.retry}</button>
               </div>
+              {/* 퍼스널 컬러 — 사진이 원인이면 같은 사진으로 다시 보내도 또 실패한다. 다시 찍는 길을 준다 */}
+              {program === 'color' && (
+                <button className="ksk-alt" onClick={() => { setPhoto(null); setAnalyzeError(null); setStep('capture') }}>{px.color.retake}</button>
+              )}
             </div>
           </div>
         )}

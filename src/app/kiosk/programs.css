@@ -2,7 +2,8 @@
    560px CSS 폭 기준(실기 zoom≈1.93). 색은 화면 테마와 무관하게 여기서 정한다(사주 결과 saju-report.css 와 같은 방식).
    결과 화면의 카드·향 부품은 .sjr-* 를 그대로 쓰고, 여기는 두 프로그램에만 있는 부품을 둔다. */
 
-.xpr-note { padding: 4px 8px 10px; font-size: 15px; line-height: 1.5; color: #6b6255; text-align: center; word-break: keep-all; }
+/* 배경 그림 위에 바로 놓인다 — 짙은 배경에서도 읽히게 카드와 같은 종이색 바탕을 둔다 */
+.xpr-note { padding: 10px 14px; border-radius: 12px; background: rgba(251, 248, 242, 0.92); font-size: 15px; line-height: 1.5; color: #5a5146; text-align: center; word-break: keep-all; }
 .xpr-note--warn { padding: 12px 16px; border: 1px solid #e3c98f; border-radius: 14px; background: #fff6de; color: #6a4d10; font-weight: 700; text-align: left; }
 
 /* ── 타로 카드 ─────────────────────────────────────────── */
@@ -47,7 +48,7 @@
 .trt-deck { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .trt-deck-card { flex: 0 0 calc((100% - 42px) / 8); padding: 0; border: 0; background: none; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease; -webkit-tap-highlight-color: transparent; }
 .trt-deck-card:active:not(:disabled) { transform: translateY(-6px); }
-.trt-deck-card[data-picked] { opacity: 0.16; transform: scale(0.92); }
+.trt-deck-card[data-picked] { opacity: 0.22; transform: scale(0.92); }
 .trt-deck-card:disabled:not([data-picked]) { opacity: 0.55; }
 @media (prefers-reduced-motion: reduce) {
   .trt-flip-side, .trt-slots, .trt-deck-card { transition: none; }
@@ -99,3 +100,12 @@
 .clr-observe { display: flex; flex-direction: column; gap: 10px; }
 .clr-observe p { display: grid; grid-template-columns: 5em minmax(0, 1fr); align-items: baseline; gap: 10px; }
 .clr-observe b { font-size: 16px; color: #6b6255; }
+
+/* 카드 고르기 — 한 장 무르기 안내와 '다시 섞기'(덱 바로 아래, 버튼 바 위 흐림 밖) */
+.trt-slot[role='button'] { cursor: pointer; }
+.trt-hint { display: flex; justify-content: center; margin: 8px 0 0; font-size: 15px; }
+.trt-hint-btn { min-height: 38px; padding: 0 16px; border: 1.5px solid currentColor; border-radius: 999px; background: none; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }
+/* 결과 맨 아래 키워드 */
+.clr-keywords, .trt-keywords { justify-content: center; }
+/* 촬영 화면 안내(얼굴을 찾지 못함) — 다시 찍는 동안 계속 보인다 */
+.clr-notice { margin: 10px 0 0; padding: 12px 16px; border-radius: 14px; background: #7a1f1f; color: #fff; font-size: 17px; font-weight: 800; line-height: 1.4; text-align: center; }

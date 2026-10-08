@@ -1854,3 +1854,13 @@
   font-size: 18px;
   font-weight: 700;
 }
+
+/* 맥 화면 — 누를 수 없는 주 버튼이 활성 버튼처럼 파랗게 보였다(mac.css 가 :disabled 를 구분하지 않는다).
+   공용 mac.css 는 포토부스도 쓰므로 키오스크 범위에서만 덮는다 */
+.rt[data-ui='mac'] .ksk-btn-primary:disabled {
+  background: #e6e9ef;
+  background-image: none;
+  border-color: #d3d8e0;
+  color: #9aa3b2;
+  box-shadow: none;
+}

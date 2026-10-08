@@ -822,8 +822,8 @@ export const SAJU_ELEMENT_INFO: Record<SajuElement, { hanja: string; color: stri
 
 // ============================================================
 // 키오스크 전용 — AI 퍼스널 컬러 진단 · AI 타로 (초안)
-// 규칙은 사주와 같다: 팔레트·향 후보·뽑힌 카드는 코드가 정하고 스냅샷으로 남긴다.
-// AI는 관찰과 해석(colorDiagnosis · tarotReading)만 쓴다.
+// 팔레트·뽑힌 카드는 코드가 정하고 스냅샷으로 남긴다. AI는 관찰과 해석(colorDiagnosis · tarotReading)만 쓴다.
+// 두 프로그램은 향을 추천하지 않는다 — 결과에 향·제품·레시피가 없다(ImageAnalysisResult 를 잇지 않는다).
 // ============================================================
 
 /** 8유형 — 계절 × 톤 중 실제로 쓰는 조합만 (src/lib/kiosk/color-types.ts) */
@@ -849,15 +849,14 @@ export interface ColorDiagnosis {
   avoidColorNames: string[];
   styling: { makeup: string; hair: string; fashion: string; accessory: string };
   metal: 'gold' | 'silver' | 'rose-gold';
-  /** 톤 → 향 한 줄 다리 */
-  scentBridge: string;
-  scentWhy: string;
   /** 조명·가림 때문에 확신이 낮으면 화면에 안내한다 */
   confidence: 'high' | 'medium' | 'low';
 }
 
-export interface ColorAnalysisResult extends ImageAnalysisResult {
+export interface ColorAnalysisResult {
   colorDiagnosis: ColorDiagnosis;
+  /** 이 톤의 인상 키워드(손님 언어) */
+  keywords: string[];
 }
 
 export type TarotTopic = 'general' | 'love' | 'career' | 'money' | 'self';
@@ -874,9 +873,8 @@ export interface TarotDraw {
 export interface TarotSpreadSnapshot {
   topic: TarotTopic;
   question?: string;
+  /** element — 카드 문양·강조색에 쓰는 원소(황금새벽회 대응) */
   cards: (TarotDraw & { position: TarotPosition; element: TarotElement })[];
-  /** 미래 카드의 원소 — 향 후보의 근거 */
-  scentElement: TarotElement;
 }
 
 export interface TarotReading {
@@ -888,13 +886,14 @@ export interface TarotReading {
   flow: string;
   /** 정확히 3개 */
   advice: string[];
-  scentBridge: string;
-  scentWhy: string;
-  /** 향을 쓰는 순간 */
-  ritual: string;
 }
 
-export interface TarotAnalysisResult extends ImageAnalysisResult {
+export interface TarotAnalysisResult {
   tarotSpread: TarotSpreadSnapshot;
   tarotReading: TarotReading;
+  /** 이 리딩의 키워드(손님 언어) */
+  keywords: string[];
 }
+
+/** 키오스크 분석 결과 전체 — 향이 있는 것(이미지·사주)과 없는 것(퍼스널 컬러·타로) */
+export type KioskAnalysisResult = ImageAnalysisResult | SajuAnalysisResult | ColorAnalysisResult | TarotAnalysisResult;

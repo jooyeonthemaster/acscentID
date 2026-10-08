@@ -34,6 +34,10 @@ export function useTarotSession() {
   const pick = useCallback((slot: number) => {
     setPicks((list) => (list.includes(slot) || list.length >= TAROT_PICK_COUNT ? list : [...list, slot]))
   }, [])
+  /** 잘못 누른 카드 한 장만 무른다 — 뒤의 카드가 한 자리씩 당겨진다(과거·현재·미래는 고른 순서) */
+  const unpick = useCallback((slot: number) => {
+    setPicks((list) => list.filter((s) => s !== slot))
+  }, [])
   const reset = useCallback(() => {
     setTopic(null)
     setQuestion('')
@@ -45,17 +49,19 @@ export function useTarotSession() {
   /** 뽑힌 카드 — 과거·현재·미래 순서 */
   const draws = useMemo(() => picks.map((slot) => deck[slot]).filter(Boolean), [picks, deck])
 
-  return { topic, setTopic, question, setQuestion, questionOpen, setQuestionOpen, deck, picks, pick, shuffle, revealed, setRevealed, draws, reset }
+  return { topic, setTopic, question, setQuestion, questionOpen, setQuestionOpen, deck, picks, pick, unpick, shuffle, revealed, setRevealed, draws, reset }
 }
 
 export type TarotSession = ReturnType<typeof useTarotSession>
 
-export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, keyboard }: {
+export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNext, keyboard }: {
   step: TarotStep
   session: TarotSession
   tx: TarotText
   labels: { prev: string; next: string }
   lang: KioskLang
+  /** 단계 표시 '03 · TOPIC' — 다른 단계와 같은 번호 매김(화면 쪽 stepPill) */
+  pill: (step: TarotStep) => string
   onPrev: () => void
   /** 마지막 단계(cards)에서는 분석을 시작한다 */
   onNext: () => void
@@ -70,7 +76,7 @@ export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, ke
   if (step === 'topic') {
     return (
       <div className="ksk-body">
-        <p className="ksk-eyebrow ksk-mono">TOPIC</p>
+        <p className="ksk-eyebrow ksk-mono">{pill('topic')}</p>
         <h1 className="ksk-title">{tx.topicTitle}</h1>
         <p className="ksk-desc">{tx.topicDesc}</p>
         <div className="ksk-purposes">
@@ -94,7 +100,7 @@ export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, ke
   if (step === 'question') {
     return (
       <div className="ksk-body">
-        <p className="ksk-eyebrow ksk-mono">QUESTION</p>
+        <p className="ksk-eyebrow ksk-mono">{pill('question')}</p>
         <h1 className="ksk-title">{tx.questionTitle}</h1>
         <p className="ksk-desc">{tx.questionDesc}</p>
         <button className="ksk-input ksk-input-tall" data-empty={!session.question} onClick={() => session.setQuestionOpen(true)}>
@@ -122,16 +128,24 @@ export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, ke
   const full = session.picks.length >= TAROT_PICK_COUNT
   return (
     <div className="ksk-body">
-      <p className="ksk-eyebrow ksk-mono">CARDS · {tx.picked(session.picks.length, TAROT_PICK_COUNT)}</p>
+      <p className="ksk-eyebrow ksk-mono">{pill('cards')} · {tx.picked(session.picks.length, TAROT_PICK_COUNT)}</p>
       <h1 className="ksk-title">{session.revealed ? tx.revealedTitle : tx.cardsTitle}</h1>
-      {!session.revealed && <p className="ksk-desc">{tx.cardsDesc}</p>}
+      {/* 고르기 시작하면 설명 자리에 '한 장 무르기' 안내를 보여 준다 — 줄을 더하면 화면이 넘친다(일본어) */}
+      {!session.revealed && <p className="ksk-desc">{session.picks.length > 0 ? tx.undoHint : tx.cardsDesc}</p>}
 
       <div className="trt-slots" data-revealed={session.revealed || undefined}>
         {TAROT_POSITIONS.map((position, i) => {
           const draw = session.draws[i]
           const open = session.revealed && Boolean(draw)
           return (
-            <div key={position} className="trt-slot" data-filled={Boolean(draw) || undefined}>
+            <div
+              key={position}
+              className="trt-slot"
+              data-filled={Boolean(draw) || undefined}
+              // 펼치기 전에는 고른 자리를 눌러 그 한 장만 무를 수 있다
+              role={draw && !session.revealed ? 'button' : undefined}
+              onClick={draw && !session.revealed ? () => session.unpick(session.picks[i]) : undefined}
+            >
               <span className="trt-slot-pos">{tx.positions[position].label}</span>
               <div className="trt-flip" data-open={open || undefined} style={{ '--i': i } as CSSProperties}>
                 <div className="trt-flip-side trt-flip-back">
@@ -160,9 +174,11 @@ export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, ke
                 type="button"
                 className="trt-deck-card"
                 data-picked={picked || undefined}
-                disabled={picked || full}
+                // 고른 카드는 다시 누르면 취소된다. 세 장이 차면 나머지는 잠근다
+                disabled={!picked && full}
+                aria-pressed={picked}
                 aria-label={`${slot + 1}`}
-                onClick={() => session.pick(slot)}
+                onClick={() => (picked ? session.unpick(slot) : session.pick(slot))}
               >
                 <TarotCardBack />
               </button>
@@ -171,22 +187,24 @@ export function TarotSteps({ step, session, tx, labels, lang, onPrev, onNext, ke
         </div>
       )}
 
+      {/* 다시 섞기 — 버튼 바 위 흐림에 묻히지 않게 덱 바로 아래에 둔다(펼치기 전에만) */}
+      {!session.revealed && session.picks.length > 0 && (
+        <p className="trt-hint">
+          <button type="button" className="trt-hint-btn" onClick={shuffle}>{tx.reshuffle}</button>
+        </p>
+      )}
+
       <div style={{ flex: 1 }} />
       {session.revealed ? (
+        // 펼친 뒤에는 다시 섞을 수 없다 — 앞면을 보고 마음에 들 때까지 다시 뽑으면 '뽑기'가 아니다
         <div className="ksk-actions">
-          <button className="ksk-btn" onClick={shuffle}>{tx.reshuffle}</button>
           <button className="ksk-btn ksk-btn-primary" onClick={onNext}>{tx.readCards}</button>
         </div>
       ) : (
-        <>
-          {session.picks.length > 0 && (
-            <button className="ksk-alt" onClick={shuffle}>{tx.reshuffle}</button>
-          )}
-          <div className="ksk-actions">
-            <button className="ksk-btn" onClick={onPrev}>{labels.prev}</button>
-            <button className="ksk-btn ksk-btn-primary" disabled={!full} onClick={() => session.setRevealed(true)}>{tx.reveal}</button>
-          </div>
-        </>
+        <div className="ksk-actions">
+          <button className="ksk-btn" onClick={onPrev}>{labels.prev}</button>
+          <button className="ksk-btn ksk-btn-primary" disabled={!full} onClick={() => session.setRevealed(true)}>{tx.reveal}</button>
+        </div>
       )}
     </div>
   )

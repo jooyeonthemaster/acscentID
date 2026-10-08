@@ -1,14 +1,10 @@
 // 키오스크 AI 퍼스널 컬러 · AI 타로 분석의 공통 부품 (서버 전용).
-// 두 프로그램은 AI에게 유니버설 코어(traits·scentCategories…)를 통째로 쓰게 하지 않는다 —
-// 향은 후보 표에서 고른 한 개이고, 코어의 수치는 그 향의 실제 데이터로 채운다(검증할 칸이 줄어 실패가 적다).
+// 두 프로그램은 향을 추천하지 않는다 — 진단서 / 타로 리딩만 만든다(2026-10-09, 향·제품·레시피 제거).
+// 팔레트·뽑힌 카드는 코드가 정하고 AI는 관찰·풀이 문장만 쓴다.
 
-import type { Perfume } from '@/data/perfumes'
-import { getLocalizedPerfumeText } from '@/data/perfumes-i18n'
 import { getModelWithConfig, withTimeout } from '@/lib/gemini/client'
-import type { ImageAnalysisResult, PersonalColor } from '@/types/analysis'
-import { applyTraditionalPersona } from './analysis-lang'
-import { analysisLocale, type KioskLang } from './i18n'
-import { PERFUMES_ZH_HANT } from './perfumes-zh-hant'
+import type { KioskLang } from './i18n'
+import { fixHangulDeep, setAtPath, type HangulLeftover } from './saju-hangul'
 
 export const HANGUL = /[가-힣]/
 const BACKSLASH = String.fromCharCode(92)
@@ -27,32 +23,17 @@ export function outputLanguageRule(lang: KioskLang): string {
 
 # OUTPUT LANGUAGE (overrides everything above)
 - Write every text value in ${LANGUAGE_NAMES[lang]}. The instructions above are in Korean only to describe the format.
-- JSON keys, enum values (typeId, confidence, metal) and perfumeId stay exactly as specified.
-- Never output Korean (Hangul) characters. Refer to scents by the names given in the candidate list.`
+- JSON keys and enum values (typeId, confidence, metal, position) stay exactly as specified.
+- Never output Korean (Hangul) characters.`
 }
 
-/** 프롬프트에 넣을 향 이름·노트 — 손님 언어 표기 */
-export function localPerfumeText(perfume: Perfume, lang: KioskLang) {
-  const { locale, traditional } = analysisLocale(lang)
-  const text = traditional ? PERFUMES_ZH_HANT[perfume.id] : locale === 'ko' ? undefined : getLocalizedPerfumeText(perfume.id, locale)
-  return {
-    name: text?.name ?? perfume.name,
-    mood: text?.mood ?? perfume.mood,
-    keywords: text?.keywords ?? perfume.keywords,
-    top: text?.mainScent ?? perfume.mainScent.name,
-    middle: text?.subScent1 ?? perfume.subScent1.name,
-    base: text?.subScent2 ?? perfume.subScent2.name,
-  }
-}
+/** 프롬프트에 넣는 손님 입력(이름·성별·질문)을 한 줄로 — 줄바꿈·따옴표·제어 문자로 지시문을 흉내 내지 못하게 */
+/** 제어 문자·줄 구분자(U+2028/2029)·따옴표 — 정규식 리터럴에 직접 쓰면 소스가 깨져 코드포인트로 만든다 */
+const PROMPT_UNSAFE = new RegExp(`[${String.fromCharCode(0)}-${String.fromCharCode(31)}${String.fromCharCode(127)}${String.fromCharCode(0x2028)}${String.fromCharCode(0x2029)}"${String.fromCharCode(0x201c)}${String.fromCharCode(0x201d)}\`]+`, 'g')
 
-export function candidateLines(candidates: Perfume[], lang: KioskLang): string {
-  return candidates
-    .map((p) => {
-      const t = localPerfumeText(p, lang)
-      // 화면·영수증이 mainScent=탑, subScent1=미들, subScent2=베이스로 찍으므로 AI 문장도 그 자리에 맞춰 쓰게 한다
-      return `- perfumeId "${p.id}" | ${t.name} | top: ${t.top} · middle: ${t.middle} · base: ${t.base} | ${t.mood}`
-    })
-    .join('\n')
+export function promptLine(value: unknown, max: number): string {
+  if (typeof value !== 'string') return ''
+  return value.replace(PROMPT_UNSAFE, ' ').replace(/\s+/g, ' ').trim().slice(0, max)
 }
 
 // ── 응답 읽기 ──────────────────────────────────────────────
@@ -124,10 +105,14 @@ export function textList(value: unknown, path: string, min: number, max: number,
   return list.slice(0, max)
 }
 
-export function clampScore(value: unknown, fallback = 0.9): number {
-  const n = Number(value)
-  const base = Number.isFinite(n) ? (n > 1 ? n / 100 : n) : fallback
-  return Math.round(Math.max(0.85, Math.min(0.99, base)) * 100) / 100
+/** 숫자로 읽을 수 있을 때만 — null·빈 문자열·글자는 '없음'(Number(null) 은 0 이라 그대로 쓰면 눈금이 0 으로 간다) */
+export function finiteNumber(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value === 'string' && value.trim()) {
+    const n = parseFloat(value.normalize('NFKC'))
+    return Number.isFinite(n) ? n : null
+  }
+  return null
 }
 
 /** 객체 안의 모든 문자열에서 한글이 남은 곳을 찾는다(외국어 출력 검증) */
@@ -144,133 +129,91 @@ export function findHangul(value: unknown): string | null {
   return null
 }
 
-export interface ScentPick {
-  perfume: Perfume
-  score: number
-  bridge: string
-  why: string
-  notes: { top: string; middle: string; base: string }
-  situation: string
-  tips: string[]
-}
-
-/**
- * scent 블록. 향은 후보 표 안에서만 받는다 — 후보 밖이면 오류로 돌려 다시 받는다
- * (조용히 다른 향으로 바꾸면 설명 문장과 레시피 번호가 어긋난 영수증이 나온다).
- */
-export function parseScentPick(raw: unknown, candidates: Perfume[], situationKey: 'situation' | 'ritual' = 'situation'): ScentPick {
-  const scent = requireRecord(raw, 'scent')
-  const notes = isRecord(scent.notes) ? scent.notes : {}
-  const note = (key: string) => (typeof notes[key] === 'string' ? (notes[key] as string).trim().slice(0, 300) : '')
-  // 모델이 id 뒤에 향 이름을 붙여 쓰기도 한다("AC'SCENT 29 · 紫羅蘭") — 번호만 읽는다
-  const no = String(scent.perfumeId ?? '').match(/SCENT[^0-9]{0,3}([0-9]{1,2})/i)?.[1]
-  const picked = no ? candidates.find((p) => p.id.endsWith(` ${no.padStart(2, '0')}`)) : undefined
-  if (!picked) {
-    throw new Error(`scent.perfumeId 는 후보 중 하나여야 합니다 (${candidates.map((p) => p.id).join(', ')}). 받은 값: ${String(scent.perfumeId)}`)
-  }
-  return {
-    perfume: picked,
-    score: clampScore(scent.score),
-    bridge: requireText(scent.bridge, 'scent.bridge', 160),
-    why: requireText(scent.why, 'scent.why', 900),
-    notes: { top: note('top'), middle: note('middle'), base: note('base') },
-    situation: requireText(scent[situationKey], `scent.${situationKey}`, 400),
-    tips: Array.isArray(scent.tips) ? scent.tips.filter((t): t is string => typeof t === 'string' && Boolean(t.trim())).map((t) => t.trim().slice(0, 160)).slice(0, 3) : [],
-  }
-}
-
-// ── 코어 조립 ──────────────────────────────────────────────
-
-/** 향 한 개 + 프로그램이 쓴 문장 → 화면·영수증·기록이 공통으로 읽는 코어. 수치는 그 향의 실제 데이터 */
-export function buildProgramCore(opts: {
-  lang: KioskLang
-  pick: ScentPick
-  keywords: string[]
-  personalColor: PersonalColor
-  dominantColors: string[]
-  analysis: { mood: string; style: string; expression: string; concept: string }
-}): ImageAnalysisResult {
-  const { pick, lang } = opts
-  const p = pick.perfume
-  const { locale, traditional } = analysisLocale(lang)
-  const text = locale === 'ko' ? undefined : getLocalizedPerfumeText(p.id, locale)
-  const core: ImageAnalysisResult = {
-    traits: p.traits,
-    scentCategories: p.characteristics,
-    dominantColors: opts.dominantColors,
-    personalColor: opts.personalColor,
-    analysis: opts.analysis,
-    matchingKeywords: opts.keywords,
-    matchingPerfumes: [{
-      perfumeId: p.id,
-      score: pick.score,
-      matchReason: pick.why,
-      persona: {
-        id: p.id,
-        name: text?.name ?? p.name,
-        description: text?.description ?? p.description,
-        traits: p.traits,
-        categories: p.characteristics,
-        keywords: text?.keywords ?? p.keywords,
-        primaryColor: p.primaryColor,
-        secondaryColor: p.secondaryColor,
-        mainScent: { name: text?.mainScent ?? p.mainScent.name, fanComment: pick.notes.top || undefined },
-        subScent1: { name: text?.subScent1 ?? p.subScent1.name, fanComment: pick.notes.middle || undefined },
-        subScent2: { name: text?.subScent2 ?? p.subScent2.name, fanComment: pick.notes.base || undefined },
-        recommendation: pick.situation,
-        mood: text?.mood ?? p.mood,
-        personality: text?.personality ?? p.personality,
-        usageGuide: { situation: pick.situation, tips: pick.tips },
-      },
-    }],
-  }
-  return traditional ? applyTraditionalPersona(core) : core
-}
-
 // ── AI 호출 ────────────────────────────────────────────────
 
 type Part = { text: string } | { inlineData: { mimeType: string; data: string } }
 
+/** 서버가 답하는 데 쓰는 전체 시간 — 키오스크는 110초 기다린다(KioskClient). 그 안에 성공이든 실패든 답한다 */
+const DEADLINE_MS = 88_000
+const ATTEMPT_TIMEOUT_MS = 40_000
+const MIN_ATTEMPT_MS = 10_000
+/** 출력 상한 — 4096 이면 추론 토큰까지 합쳐 가끔 잘렸다(2026-10-08 실측: 29회 중 1회 'Unterminated string') */
+const MAX_OUTPUT_TOKENS = 8192
+const LANG_NAME: Record<KioskLang, string> = { ko: 'Korean', en: 'English', ja: 'Japanese', 'zh-Hans': 'Simplified Chinese', 'zh-Hant': 'Traditional Chinese' }
+
 /**
- * 프롬프트를 보내 parse 가 통과할 때까지 받는다(한 번 다시 시도). parse 가 던진 오류 문장은
- * 다음 시도 프롬프트에 그대로 붙는다 — 사주 라우트의 교정 재시도와 같은 방식.
+ * 외국어 결과에 섞인 한글 — 고칠 수 있는 건 규칙으로 고치고, 남은 문장만 짧은 호출로 그 언어로 고쳐 받는다.
+ * 예전엔 한 글자만 섞여도 전체를 다시 받고(재시도 1회) 또 섞이면 손님에게 실패 화면이 떴다. 사주 라우트와 같은 방식.
+ * 그래도 남으면 오류를 던져 호출부가 다시 받게 한다.
+ */
+async function repairHangul<T>(requestId: string, lang: KioskLang, value: T, budgetMs: number): Promise<T> {
+  if (lang === 'ko') return value
+  const leftovers: HangulLeftover[] = []
+  const fixed = fixHangulDeep(value, leftovers)
+  if (!leftovers.length) return fixed
+  if (budgetMs >= 6_000) {
+    try {
+      const fixer = getModelWithConfig({ maxOutputTokens: 2048, temperature: 0.2 })
+      const prompt = `These ${LANG_NAME[lang]} sentences accidentally contain Korean (Hangul) words. Rewrite each one fully in ${LANG_NAME[lang]} with the same meaning, replacing every Hangul word. Return ONLY JSON: {"items": ["...", ...]} in the same order and count.\n\n${JSON.stringify({ items: leftovers.map((l) => l.text) })}`
+      const res = await withTimeout(fixer.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }), Math.min(15_000, budgetMs), 'hangul fix timed out')
+      const items = extractJsonObject(res.response.text()).items
+      if (Array.isArray(items) && items.length === leftovers.length) {
+        items.forEach((t, k) => { if (typeof t === 'string' && t.trim() && !HANGUL.test(t)) setAtPath(fixed, leftovers[k].path, t.trim()) })
+      }
+    } catch (error) {
+      console.warn(`[${requestId}] 한글 고침 실패: ${error instanceof Error ? error.message : error}`)
+    }
+  }
+  const hit = findHangul(fixed)
+  if (hit) throw new Error(`Output contained Korean (Hangul) characters — rewrite them in the target language: ${hit.slice(0, 80)}`)
+  return fixed
+}
+
+/**
+ * 프롬프트를 보내 parse 가 통과할 때까지 받는다(최대 3번, 전체 88초 안에서).
+ * - 응답이 규칙에 어긋나면(parse 오류) 그 오류 문장을 다음 프롬프트에 붙여 고쳐 받는다.
+ * - 업스트림 오류·시간 초과·잘림은 모델에게 알려 줄 일이 아니다 — 같은 프롬프트로 다시 보낸다.
+ * - 외국어 결과의 한글은 통과 후에 따로 고친다(repairHangul).
  */
 export async function generateParsed<T>(opts: {
   requestId: string
   prompt: string
   image?: string
   temperature: number
+  lang: KioskLang
   parse: (responseText: string) => T
-  timeoutMs?: number
-  retries?: number
 }): Promise<T> {
-  const model = getModelWithConfig({ maxOutputTokens: 4096, temperature: opts.temperature })
-  const retries = opts.retries ?? 1
+  const model = getModelWithConfig({ maxOutputTokens: MAX_OUTPUT_TOKENS, temperature: opts.temperature })
+  const deadline = Date.now() + DEADLINE_MS
   let lastError = ''
-  for (let i = 0; i <= retries; i += 1) {
-    const text = i === 0 ? opts.prompt : `${opts.prompt}\n\n# 직전 출력의 오류 (반드시 고칠 것)\n${lastError}\n위 오류를 고쳐 완전한 JSON 하나만 다시 출력하십시오.`
+  let lastInvalid = false
+  for (let i = 0; i < 3; i += 1) {
+    const left = deadline - Date.now()
+    if (left < MIN_ATTEMPT_MS) break
+    const text = lastInvalid ? `${opts.prompt}\n\n# 직전 출력의 오류 (반드시 고칠 것)\n${lastError}\n위 오류를 고쳐 완전한 JSON 하나만 다시 출력하십시오.` : opts.prompt
     const parts: Part[] = [{ text }]
     if (opts.image) parts.push({ inlineData: { mimeType: 'image/jpeg', data: opts.image.includes(',') ? opts.image.split(',')[1] : opts.image } })
+    const started = Date.now()
     try {
-      const started = Date.now()
       const res = await withTimeout(
         model.generateContent({ contents: [{ role: 'user', parts }] }),
-        opts.timeoutMs ?? 45000,
+        Math.min(ATTEMPT_TIMEOUT_MS, left - 2_000),
         'AI request timed out',
       )
-      console.log(`[${opts.requestId}] 응답 수신 (${Date.now() - started}ms)`)
-      return opts.parse(res.response.text())
+      const raw = res.response.text()
+      console.log(`[${opts.requestId}] 응답 수신 (${Date.now() - started}ms, ${raw.length}자, finish=${res.response.finishReason ?? '?'})`)
+      if (!raw.trim()) { lastInvalid = false; throw new Error(`EMPTY_RESPONSE (finish=${res.response.finishReason ?? '?'})`) }
+      if (res.response.finishReason === 'length') { lastInvalid = false; throw new Error('TRUNCATED: 출력이 상한에서 잘렸습니다.') }
+      lastInvalid = true // 여기부터의 오류는 응답 내용 문제
+      const parsed = opts.parse(raw)
+      return await repairHangul(opts.requestId, opts.lang, parsed, deadline - Date.now() - 2_000)
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error)
-      console.error(`[${opts.requestId}] 시도 ${i + 1} 실패: ${lastError}`)
+      if (/timed out|OpenRouter API error|fetch failed|ECONNRESET/i.test(lastError)) lastInvalid = false
+      // 운영 로그 검색어: "[KIOSK-COLOR-" / "[KIOSK-TAROT-" + "시도 N 실패"
+      console.error(`[${opts.requestId}] 시도 ${i + 1} 실패 (${lastInvalid ? 'invalid' : 'upstream'}, ${Date.now() - started}ms, lang=${opts.lang}): ${lastError.slice(0, 400)}`)
+      if (!lastInvalid) await new Promise((resolve) => setTimeout(resolve, 1_200))
     }
   }
   throw new Error(lastError || 'AI 응답을 만들지 못했습니다.')
-}
-
-/** 외국어 출력에 한글이 섞였으면 오류로 돌려 다시 받게 한다 */
-export function assertNoHangul(lang: KioskLang, value: unknown): void {
-  if (lang === 'ko') return
-  const hit = findHangul(value)
-  if (hit) throw new Error(`Output contained Korean (Hangul) characters — rewrite them in the target language: ${hit.slice(0, 80)}`)
 }

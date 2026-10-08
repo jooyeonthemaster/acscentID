@@ -14,6 +14,8 @@ export interface ColorText {
   tips: string[]
   confirmTitle: string
   noFace: string
+  /** 분석 실패 카드의 '다시 찍기' — 같은 사진으로 다시 보내면 또 실패하기 쉽다 */
+  retake: string
   statusLines: string[]
   eta: string
   chapter: string
@@ -30,13 +32,10 @@ export interface ColorText {
   avoid: string
   stylingTitle: string
   styling: { makeup: string; hair: string; fashion: string; accessory: string }
-  metalLabel: string
   metal: Record<'gold' | 'silver' | 'rose-gold', string>
-  scentTitle: string
-  why: string
   lowConfidence: string
   disclaimer: string
-  receipt: { subtitle: string; title: string; tone: string; best: string; avoid: string; styling: string; scent: string; why: string }
+  receipt: { subtitle: string; title: string; tone: string; best: string; avoid: string; styling: string }
 }
 
 export interface TarotText {
@@ -54,24 +53,21 @@ export interface TarotText {
   picked: (n: number, total: number) => string
   reveal: string
   reshuffle: string
+  /** 고른 카드를 다시 눌러 한 장만 무를 수 있다는 안내 */
+  undoHint: string
   readCards: string
   positions: Record<TarotPosition, { label: string; desc: string }>
   upright: string
   reversed: string
   elements: Record<TarotElement, string>
-  elementScent: Record<TarotElement, string>
   statusLines: string[]
   eta: string
   chapter: string
   questionLabel: string
   flowTitle: string
   adviceTitle: string
-  scentTitle: string
-  scentFrom: (element: string) => string
-  ritual: string
-  why: string
   disclaimer: string
-  receipt: { subtitle: string; title: string; spread: string; flow: string; advice: string; scent: string; why: string; ritual: string }
+  receipt: { subtitle: string; title: string; flow: string; advice: string }
 }
 
 export interface ProgramText {
@@ -80,8 +76,10 @@ export interface ProgramText {
   programs: Record<KioskProgramId, { title: string; desc: string; note: string }>
   more: string
   less: string
-  match: (pct: number) => string
-  layers: { top: string; middle: string; base: string }
+  /** 퍼스널 컬러·타로 영수증을 뽑았을 때 — 이 두 프로그램은 발권 번호가 없다 */
+  printed: string
+  /** 데모 결과(AI 키 없음·?mock=1) 영수증 꼬리말 — 만들 제품이 없으니 '제조용' 이야기를 하지 않는다 */
+  demoNote: string
   color: ColorText
   tarot: TarotText
 }
@@ -93,22 +91,23 @@ const ko: ProgramText = {
     personal: { title: '내 이미지 분석', desc: '사진 속 나의 분위기에서 향을 찾습니다', note: '사진 필요' },
     idol: { title: '최애 이미지 분석', desc: '좋아하는 사람의 사진에서 향을 찾습니다', note: '사진 필요' },
     saju: { title: '사주 향 분석', desc: '태어난 시각의 기운으로 향을 처방합니다', note: '생년월일시 필요' },
-    color: { title: 'AI 퍼스널 컬러 진단', desc: '얼굴빛에 어울리는 색과 향을 찾습니다', note: '촬영 필요' },
-    tarot: { title: 'AI 타로', desc: '카드 세 장의 흐름에서 향을 찾습니다', note: '카드 3장' },
+    color: { title: 'AI 퍼스널 컬러 진단', desc: '얼굴빛에 어울리는 색을 찾아 드립니다', note: '촬영 필요' },
+    tarot: { title: 'AI 타로', desc: '카드 세 장으로 지금의 흐름을 읽어 드립니다', note: '카드 3장' },
   },
   more: '자세히 보기',
   less: '접기',
-  match: (pct) => `어울림 ${pct}%`,
-  layers: { top: '겉향', middle: '중심향', base: '잔향' },
+  printed: '영수증을 인쇄했습니다',
+  demoNote: '※ 데모 결과입니다 — 실제 분석이 아닙니다.',
   color: {
     captureTitle: '정면을 바라봐 주세요',
     captureDesc: '사진은 진단을 위해 AI 분석 서버로만 전송되고, 저장하지 않습니다.',
     tips: ['모자 · 마스크 · 색안경은 벗어 주세요', '앞머리를 넘겨 이마가 살짝 보이게', '얼굴이 화면 가운데에 오게 서 주세요'],
     confirmTitle: '이 사진으로 진단할까요?',
     noFace: '얼굴을 찾지 못했습니다. 정면에서 다시 찍어 주세요.',
-    statusLines: ['피부 톤의 온도를 읽는 중...', '머리카락과 눈동자 색을 비교하는 중...', '명도와 선명도를 재는 중...', '사계절 팔레트에 맞춰 보는 중...', '톤에 어울리는 향을 고르는 중...'],
-    eta: '보통 20~40초 정도 걸립니다.',
-    chapter: 'PERSONAL COLOR · 퍼스널 컬러',
+    retake: '다시 찍기',
+    statusLines: ['피부 톤의 온도를 읽는 중...', '머리카락과 눈동자 색을 비교하는 중...', '명도와 선명도를 재는 중...', '사계절 팔레트에 맞춰 보는 중...'],
+    eta: '보통 10~20초 정도 걸립니다.',
+    chapter: 'PERSONAL COLOR',
     typeLabel: '나의 퍼스널 컬러',
     typeNames: {
       'spring-light': '봄 라이트', 'spring-bright': '봄 브라이트', 'summer-light': '여름 라이트', 'summer-mute': '여름 뮤트',
@@ -130,13 +129,10 @@ const ko: ProgramText = {
     avoid: '피하면 좋은 색',
     stylingTitle: '스타일 가이드',
     styling: { makeup: '메이크업', hair: '헤어', fashion: '옷', accessory: '액세서리' },
-    metalLabel: '어울리는 금속',
     metal: { gold: '골드', silver: '실버', 'rose-gold': '로즈골드' },
-    scentTitle: '톤에 어울리는 향',
-    why: '왜 이 향인가요',
     lowConfidence: '조명 때문에 정확도가 낮을 수 있어요. 밝은 곳에서 한 번 더 확인해 보세요.',
     disclaimer: 'AI가 사진 한 장으로 본 참고용 진단입니다. 조명과 화장에 따라 달라질 수 있습니다.',
-    receipt: { subtitle: 'PERSONAL COLOR · SCENT REPORT', title: '퍼스널 컬러 진단서', tone: '톤 분석', best: '어울리는 색', avoid: '피할 색', styling: '스타일 가이드', scent: '톤에 어울리는 향', why: '추천 이유' },
+    receipt: { subtitle: 'PERSONAL COLOR REPORT', title: '퍼스널 컬러 진단서', tone: '톤 분석', best: '어울리는 색', avoid: '피할 색', styling: '스타일 가이드' },
   },
   tarot: {
     topicTitle: '무엇이 궁금하세요?',
@@ -159,6 +155,7 @@ const ko: ProgramText = {
     picked: (n, total) => `${n} / ${total}`,
     reveal: '카드 펼치기',
     reshuffle: '다시 섞기',
+    undoHint: '고른 카드를 다시 누르면 그 한 장만 취소됩니다.',
     readCards: '풀이 보기',
     positions: {
       past: { label: '과거', desc: '지나온 흐름' },
@@ -168,19 +165,14 @@ const ko: ProgramText = {
     upright: '정방향',
     reversed: '역방향',
     elements: { fire: '불', water: '물', air: '바람', earth: '흙' },
-    elementScent: { fire: '스파이시 · 웜', water: '머스크 · 워터리', air: '시트러스 · 허브', earth: '우디 · 어스' },
-    statusLines: ['카드를 펼치는 중...', '세 장의 흐름을 읽는 중...', '카드의 원소를 살피는 중...', '미래 카드의 기운에 맞는 향을 고르는 중...'],
-    eta: '보통 20~40초 정도 걸립니다.',
+    statusLines: ['카드를 펼치는 중...', '세 장의 흐름을 읽는 중...', '카드의 원소를 살피는 중...'],
+    eta: '보통 10~20초 정도 걸립니다.',
     chapter: 'TAROT · 세 장의 흐름',
     questionLabel: '질문',
     flowTitle: '세 장이 말하는 것',
     adviceTitle: '카드의 조언',
-    scentTitle: '카드가 고른 향',
-    scentFrom: (element) => `미래 카드의 원소 · ${element}`,
-    ritual: '이럴 때 뿌리세요',
-    why: '왜 이 향인가요',
     disclaimer: '타로는 재미로 보는 참고용 풀이입니다.',
-    receipt: { subtitle: 'TAROT · SCENT READING', title: '타로 향 리딩', spread: '세 장의 카드', flow: '흐름', advice: '카드의 조언', scent: '카드가 고른 향', why: '추천 이유', ritual: '쓰는 법' },
+    receipt: { subtitle: 'TAROT READING', title: '타로 리딩', flow: '흐름', advice: '카드의 조언' },
   },
 }
 
@@ -191,21 +183,22 @@ const en: ProgramText = {
     personal: { title: 'My Image Analysis', desc: 'Find a scent from the mood of your photo', note: 'Photo needed' },
     idol: { title: 'Bias Image Analysis', desc: 'Find a scent from a photo of someone you love', note: 'Photo needed' },
     saju: { title: 'Saju Scent Reading', desc: 'A scent prescribed from the energy of your birth', note: 'Birth date needed' },
-    color: { title: 'AI Personal Color', desc: 'Find the colors and scent that suit your skin tone', note: 'Selfie needed' },
-    tarot: { title: 'AI Tarot', desc: 'Find a scent in the flow of three cards', note: '3 cards' },
+    color: { title: 'AI Personal Color', desc: 'Find the colors that suit your skin tone', note: 'Selfie needed' },
+    tarot: { title: 'AI Tarot', desc: 'A three-card reading of where you are now', note: '3 cards' },
   },
   more: 'Read more',
   less: 'Show less',
-  match: (pct) => `${pct}% match`,
-  layers: { top: 'Top', middle: 'Heart', base: 'Base' },
+  printed: 'Your receipt has been printed',
+  demoNote: '※ Demo result — not a real analysis.',
   color: {
     captureTitle: 'Please face the camera',
     captureDesc: 'Your photo is sent only to the AI server for this diagnosis and is not stored.',
     tips: ['Take off hats, masks and tinted glasses', 'Brush your fringe aside so your forehead shows', 'Stand so your face is in the centre'],
     confirmTitle: 'Use this photo?',
     noFace: 'We could not find a face. Please face the camera and try again.',
-    statusLines: ['Reading the warmth of your skin tone...', 'Comparing hair and eye colour...', 'Measuring brightness and clarity...', 'Matching the four-season palettes...', 'Choosing a scent for your tone...'],
-    eta: 'This usually takes 20–40 seconds.',
+    retake: 'Retake photo',
+    statusLines: ['Reading the warmth of your skin tone...', 'Comparing hair and eye colour...', 'Measuring brightness and clarity...', 'Matching the four-season palettes...'],
+    eta: 'This usually takes 10–20 seconds.',
     chapter: 'PERSONAL COLOR',
     typeLabel: 'Your personal color',
     typeNames: {
@@ -228,13 +221,10 @@ const en: ProgramText = {
     avoid: 'Colors to avoid',
     stylingTitle: 'Style guide',
     styling: { makeup: 'Makeup', hair: 'Hair', fashion: 'Clothes', accessory: 'Accessories' },
-    metalLabel: 'Your metal',
     metal: { gold: 'Gold', silver: 'Silver', 'rose-gold': 'Rose gold' },
-    scentTitle: 'A scent for your tone',
-    why: 'Why this scent',
     lowConfidence: 'The lighting may have affected accuracy. Try again somewhere brighter to confirm.',
     disclaimer: 'A reference diagnosis by AI from a single photo. Lighting and makeup can change the result.',
-    receipt: { subtitle: 'PERSONAL COLOR · SCENT REPORT', title: 'Personal Color Report', tone: 'Tone analysis', best: 'Best colors', avoid: 'Avoid', styling: 'Style guide', scent: 'Scent for your tone', why: 'Why this scent' },
+    receipt: { subtitle: 'PERSONAL COLOR REPORT', title: 'Personal Color Report', tone: 'Tone analysis', best: 'Best colors', avoid: 'Avoid', styling: 'Style guide' },
   },
   tarot: {
     topicTitle: 'What would you like to ask?',
@@ -257,6 +247,7 @@ const en: ProgramText = {
     picked: (n, total) => `${n} / ${total}`,
     reveal: 'Reveal the cards',
     reshuffle: 'Shuffle again',
+    undoHint: 'Tap a chosen card again to put it back.',
     readCards: 'Read my cards',
     positions: {
       past: { label: 'Past', desc: 'What has passed' },
@@ -266,19 +257,14 @@ const en: ProgramText = {
     upright: 'Upright',
     reversed: 'Reversed',
     elements: { fire: 'Fire', water: 'Water', air: 'Air', earth: 'Earth' },
-    elementScent: { fire: 'Spicy · Warm', water: 'Musky · Watery', air: 'Citrus · Herbal', earth: 'Woody · Earthy' },
-    statusLines: ['Turning the cards...', 'Reading the flow of the three...', 'Looking at the elements...', 'Choosing a scent for your future card...'],
-    eta: 'This usually takes 20–40 seconds.',
+    statusLines: ['Turning the cards...', 'Reading the flow of the three...', 'Looking at the elements...'],
+    eta: 'This usually takes 10–20 seconds.',
     chapter: 'TAROT · THREE CARDS',
     questionLabel: 'Question',
     flowTitle: 'What the three cards say',
     adviceTitle: 'Advice from the cards',
-    scentTitle: 'The scent the cards chose',
-    scentFrom: (element) => `Element of your future card · ${element}`,
-    ritual: 'When to wear it',
-    why: 'Why this scent',
     disclaimer: 'Tarot is a reading for fun and reflection.',
-    receipt: { subtitle: 'TAROT · SCENT READING', title: 'Tarot Scent Reading', spread: 'Three cards', flow: 'The flow', advice: 'Advice', scent: 'Scent the cards chose', why: 'Why this scent', ritual: 'How to wear' },
+    receipt: { subtitle: 'TAROT READING', title: 'Tarot Reading', flow: 'The flow', advice: 'Advice' },
   },
 }
 
@@ -289,21 +275,22 @@ const ja: ProgramText = {
     personal: { title: '私のイメージ診断', desc: '写真の雰囲気から香りを見つけます', note: '写真が必要' },
     idol: { title: '推しイメージ診断', desc: '好きな人の写真から香りを見つけます', note: '写真が必要' },
     saju: { title: '四柱推命の香り', desc: '生まれた時の気から香りを処方します', note: '生年月日が必要' },
-    color: { title: 'AIパーソナルカラー診断', desc: '肌色に似合う色と香りを見つけます', note: '撮影が必要' },
-    tarot: { title: 'AIタロット', desc: '3枚のカードの流れから香りを見つけます', note: 'カード3枚' },
+    color: { title: 'AIパーソナルカラー診断', desc: '肌色に似合う色を見つけます', note: '撮影が必要' },
+    tarot: { title: 'AIタロット', desc: '3枚のカードで今の流れを読み解きます', note: 'カード3枚' },
   },
   more: 'くわしく見る',
   less: '閉じる',
-  match: (pct) => `相性 ${pct}%`,
-  layers: { top: 'トップ', middle: 'ミドル', base: 'ベース' },
+  printed: 'レシートを印刷しました',
+  demoNote: '※ デモ結果です — 実際の分析ではありません。',
   color: {
     captureTitle: '正面を向いてください',
     captureDesc: '写真は診断のためAI分析サーバーにのみ送信され、保存されません。',
     tips: ['帽子・マスク・色付きメガネは外してください', '前髪を分けて額が少し見えるように', '顔が画面の中央に来るように立ってください'],
     confirmTitle: 'この写真で診断しますか？',
     noFace: '顔が見つかりませんでした。正面からもう一度撮影してください。',
-    statusLines: ['肌トーンの温度を読み取り中...', '髪と瞳の色を比べています...', '明度と鮮やかさを測っています...', '四季のパレットに合わせています...', 'トーンに合う香りを選んでいます...'],
-    eta: '通常20〜40秒ほどかかります。',
+    retake: '撮り直す',
+    statusLines: ['肌トーンの温度を読み取り中...', '髪と瞳の色を比べています...', '明度と鮮やかさを測っています...', '四季のパレットに合わせています...'],
+    eta: '通常10〜20秒ほどかかります。',
     chapter: 'PERSONAL COLOR · パーソナルカラー',
     typeLabel: 'あなたのパーソナルカラー',
     typeNames: {
@@ -326,13 +313,10 @@ const ja: ProgramText = {
     avoid: '避けたい色',
     stylingTitle: 'スタイルガイド',
     styling: { makeup: 'メイク', hair: 'ヘア', fashion: '服', accessory: 'アクセサリー' },
-    metalLabel: '似合う金属',
     metal: { gold: 'ゴールド', silver: 'シルバー', 'rose-gold': 'ローズゴールド' },
-    scentTitle: 'トーンに合う香り',
-    why: 'なぜこの香り？',
     lowConfidence: '照明の影響で精度が下がっているかもしれません。明るい場所でもう一度お試しください。',
     disclaimer: 'AIが写真1枚から判断した参考診断です。照明やメイクで変わることがあります。',
-    receipt: { subtitle: 'PERSONAL COLOR · SCENT REPORT', title: 'パーソナルカラー診断書', tone: 'トーン分析', best: '似合う色', avoid: '避けたい色', styling: 'スタイルガイド', scent: 'トーンに合う香り', why: 'おすすめの理由' },
+    receipt: { subtitle: 'PERSONAL COLOR REPORT', title: 'パーソナルカラー診断書', tone: 'トーン分析', best: '似合う色', avoid: '避けたい色', styling: 'スタイルガイド' },
   },
   tarot: {
     topicTitle: '何が気になりますか？',
@@ -355,6 +339,7 @@ const ja: ProgramText = {
     picked: (n, total) => `${n} / ${total}`,
     reveal: 'カードをめくる',
     reshuffle: '混ぜ直す',
+    undoHint: '選んだカードをもう一度押すと、その1枚だけ取り消せます。',
     readCards: '結果を見る',
     positions: {
       past: { label: '過去', desc: 'これまでの流れ' },
@@ -364,19 +349,14 @@ const ja: ProgramText = {
     upright: '正位置',
     reversed: '逆位置',
     elements: { fire: '火', water: '水', air: '風', earth: '地' },
-    elementScent: { fire: 'スパイシー · ウォーム', water: 'ムスク · ウォータリー', air: 'シトラス · ハーブ', earth: 'ウッディ · アース' },
-    statusLines: ['カードを開いています...', '3枚の流れを読んでいます...', 'カードのエレメントを見ています...', '未来のカードに合う香りを選んでいます...'],
-    eta: '通常20〜40秒ほどかかります。',
+    statusLines: ['カードを開いています...', '3枚の流れを読んでいます...', 'カードのエレメントを見ています...'],
+    eta: '通常10〜20秒ほどかかります。',
     chapter: 'TAROT · 3枚の流れ',
     questionLabel: '質問',
     flowTitle: '3枚が語ること',
     adviceTitle: 'カードからのアドバイス',
-    scentTitle: 'カードが選んだ香り',
-    scentFrom: (element) => `未来のカードのエレメント · ${element}`,
-    ritual: 'こんな時に',
-    why: 'なぜこの香り？',
     disclaimer: 'タロットは楽しむための参考リーディングです。',
-    receipt: { subtitle: 'TAROT · SCENT READING', title: 'タロット香りリーディング', spread: '3枚のカード', flow: '流れ', advice: 'アドバイス', scent: 'カードが選んだ香り', why: 'おすすめの理由', ritual: '使い方' },
+    receipt: { subtitle: 'TAROT READING', title: 'タロットリーディング', flow: '流れ', advice: 'アドバイス' },
   },
 }
 
@@ -387,21 +367,22 @@ const zhHans: ProgramText = {
     personal: { title: '我的形象分析', desc: '从照片的氛围中找到香气', note: '需要照片' },
     idol: { title: '本命形象分析', desc: '从喜欢的人的照片中找到香气', note: '需要照片' },
     saju: { title: '八字香气分析', desc: '根据出生时的气开出香气处方', note: '需要出生日期' },
-    color: { title: 'AI 个人色彩诊断', desc: '找到适合肤色的颜色与香气', note: '需要拍照' },
-    tarot: { title: 'AI 塔罗', desc: '从三张牌的流动中找到香气', note: '3 张牌' },
+    color: { title: 'AI 个人色彩诊断', desc: '找到适合肤色的颜色', note: '需要拍照' },
+    tarot: { title: 'AI 塔罗', desc: '用三张牌解读你现在的状态', note: '3 张牌' },
   },
   more: '查看详情',
   less: '收起',
-  match: (pct) => `契合 ${pct}%`,
-  layers: { top: '前调', middle: '中调', base: '后调' },
+  printed: '小票已打印',
+  demoNote: '※ 演示结果 — 并非真实分析。',
   color: {
     captureTitle: '请正对镜头',
     captureDesc: '照片仅发送至 AI 分析服务器用于诊断，不会保存。',
     tips: ['请摘下帽子、口罩和有色眼镜', '把刘海拨开，露出一点额头', '请站好，让脸位于画面中央'],
     confirmTitle: '用这张照片诊断吗？',
     noFace: '没有找到人脸，请正对镜头重新拍摄。',
-    statusLines: ['正在读取肤色的冷暖...', '正在比较发色与瞳色...', '正在测量明度与清晰度...', '正在对照四季色盘...', '正在挑选适合色调的香气...'],
-    eta: '通常需要 20~40 秒。',
+    retake: '重新拍摄',
+    statusLines: ['正在读取肤色的冷暖...', '正在比较发色与瞳色...', '正在测量明度与清晰度...', '正在对照四季色盘...'],
+    eta: '通常需要 10~20 秒。',
     chapter: 'PERSONAL COLOR · 个人色彩',
     typeLabel: '你的个人色彩',
     typeNames: {
@@ -417,20 +398,17 @@ const zhHans: ProgramText = {
       contrast: { label: '对比', low: '柔', high: '强' },
     },
     observeTitle: 'AI 看到的',
-    observe: { skin: '皮肤', hair: '头发', eyes: '瞳孔' },
+    observe: { skin: '皮肤', hair: '头发', eyes: '眼睛' },
     drapeTitle: '试试这些颜色',
     drapeHint: '点击颜色，放在脸旁看看。',
     best: '适合你的颜色',
     avoid: '建议避开的颜色',
     stylingTitle: '风格指南',
-    styling: { makeup: '妆容', hair: '发色', fashion: '穿搭', accessory: '配饰' },
-    metalLabel: '适合的金属',
+    styling: { makeup: '妆容', hair: '发型发色', fashion: '穿搭', accessory: '配饰' },
     metal: { gold: '金色', silver: '银色', 'rose-gold': '玫瑰金' },
-    scentTitle: '适合色调的香气',
-    why: '为什么是这款香',
     lowConfidence: '灯光可能影响了准确度，建议在明亮处再确认一次。',
     disclaimer: '这是 AI 根据一张照片给出的参考诊断，灯光和妆容可能影响结果。',
-    receipt: { subtitle: 'PERSONAL COLOR · SCENT REPORT', title: '个人色彩诊断书', tone: '色调分析', best: '适合的颜色', avoid: '避开的颜色', styling: '风格指南', scent: '适合色调的香气', why: '推荐理由' },
+    receipt: { subtitle: 'PERSONAL COLOR REPORT', title: '个人色彩诊断书', tone: '色调分析', best: '适合的颜色', avoid: '避开的颜色', styling: '风格指南' },
   },
   tarot: {
     topicTitle: '想问些什么？',
@@ -444,7 +422,7 @@ const zhHans: ProgramText = {
     },
     questionTitle: '有想问牌的事吗？',
     questionDesc: '写一句话即可，我们会融入解读。也可以跳过。',
-    questionPh: '例）可以开始新的事情吗',
+    questionPh: '例如：可以开始新的事情吗',
     questionHint: '一句话提问',
     skip: '跳过',
     cardsTitle: '请选出三张有感觉的牌',
@@ -453,6 +431,7 @@ const zhHans: ProgramText = {
     picked: (n, total) => `${n} / ${total}`,
     reveal: '翻开牌',
     reshuffle: '重新洗牌',
+    undoHint: '再点一次已选的牌，即可取消这一张。',
     readCards: '查看解读',
     positions: {
       past: { label: '过去', desc: '走过的路' },
@@ -462,19 +441,14 @@ const zhHans: ProgramText = {
     upright: '正位',
     reversed: '逆位',
     elements: { fire: '火', water: '水', air: '风', earth: '土' },
-    elementScent: { fire: '辛香 · 温暖', water: '麝香 · 水感', air: '柑橘 · 草本', earth: '木质 · 大地' },
-    statusLines: ['正在翻开牌...', '正在解读三张牌的流动...', '正在查看牌的元素...', '正在挑选契合未来之牌的香气...'],
-    eta: '通常需要 20~40 秒。',
+    statusLines: ['正在翻开牌...', '正在解读三张牌的流动...', '正在查看牌的元素...'],
+    eta: '通常需要 10~20 秒。',
     chapter: 'TAROT · 三张牌',
     questionLabel: '问题',
     flowTitle: '三张牌想说的',
     adviceTitle: '牌的建议',
-    scentTitle: '牌选出的香气',
-    scentFrom: (element) => `未来之牌的元素 · ${element}`,
-    ritual: '这种时候用',
-    why: '为什么是这款香',
     disclaimer: '塔罗是供娱乐参考的解读。',
-    receipt: { subtitle: 'TAROT · SCENT READING', title: '塔罗香气解读', spread: '三张牌', flow: '流动', advice: '牌的建议', scent: '牌选出的香气', why: '推荐理由', ritual: '用法' },
+    receipt: { subtitle: 'TAROT READING', title: '塔罗解读', flow: '流动', advice: '牌的建议' },
   },
 }
 
@@ -485,21 +459,22 @@ const zhHant: ProgramText = {
     personal: { title: '我的形象分析', desc: '從照片的氛圍中找到香氣', note: '需要照片' },
     idol: { title: '本命形象分析', desc: '從喜歡的人的照片中找到香氣', note: '需要照片' },
     saju: { title: '八字香氣分析', desc: '根據出生時的氣開出香氣處方', note: '需要出生日期' },
-    color: { title: 'AI 個人色彩診斷', desc: '找到適合膚色的顏色與香氣', note: '需要拍照' },
-    tarot: { title: 'AI 塔羅', desc: '從三張牌的流動中找到香氣', note: '3 張牌' },
+    color: { title: 'AI 個人色彩診斷', desc: '找到適合膚色的顏色', note: '需要拍照' },
+    tarot: { title: 'AI 塔羅', desc: '用三張牌解讀你現在的狀態', note: '3 張牌' },
   },
   more: '查看詳情',
   less: '收起',
-  match: (pct) => `契合 ${pct}%`,
-  layers: { top: '前調', middle: '中調', base: '後調' },
+  printed: '收據已列印',
+  demoNote: '※ 示範結果 — 並非真實分析。',
   color: {
     captureTitle: '請正對鏡頭',
     captureDesc: '照片僅傳送至 AI 分析伺服器用於診斷，不會保存。',
     tips: ['請摘下帽子、口罩和有色眼鏡', '把瀏海撥開，露出一點額頭', '請站好，讓臉位於畫面中央'],
     confirmTitle: '用這張照片診斷嗎？',
     noFace: '沒有找到人臉，請正對鏡頭重新拍攝。',
-    statusLines: ['正在讀取膚色的冷暖...', '正在比較髮色與瞳色...', '正在測量明度與清晰度...', '正在對照四季色盤...', '正在挑選適合色調的香氣...'],
-    eta: '通常需要 20~40 秒。',
+    retake: '重新拍攝',
+    statusLines: ['正在讀取膚色的冷暖...', '正在比較髮色與瞳色...', '正在測量明度與清晰度...', '正在對照四季色盤...'],
+    eta: '通常需要 10~20 秒。',
     chapter: 'PERSONAL COLOR · 個人色彩',
     typeLabel: '你的個人色彩',
     typeNames: {
@@ -515,20 +490,17 @@ const zhHant: ProgramText = {
       contrast: { label: '對比', low: '柔', high: '強' },
     },
     observeTitle: 'AI 看到的',
-    observe: { skin: '皮膚', hair: '頭髮', eyes: '瞳孔' },
+    observe: { skin: '皮膚', hair: '頭髮', eyes: '眼睛' },
     drapeTitle: '試試這些顏色',
     drapeHint: '點選顏色，放在臉旁看看。',
     best: '適合你的顏色',
     avoid: '建議避開的顏色',
     stylingTitle: '風格指南',
-    styling: { makeup: '妝容', hair: '髮色', fashion: '穿搭', accessory: '配飾' },
-    metalLabel: '適合的金屬',
+    styling: { makeup: '妝容', hair: '髮型髮色', fashion: '穿搭', accessory: '配飾' },
     metal: { gold: '金色', silver: '銀色', 'rose-gold': '玫瑰金' },
-    scentTitle: '適合色調的香氣',
-    why: '為什麼是這款香',
     lowConfidence: '燈光可能影響了準確度，建議在明亮處再確認一次。',
     disclaimer: '這是 AI 根據一張照片給出的參考診斷，燈光和妝容可能影響結果。',
-    receipt: { subtitle: 'PERSONAL COLOR · SCENT REPORT', title: '個人色彩診斷書', tone: '色調分析', best: '適合的顏色', avoid: '避開的顏色', styling: '風格指南', scent: '適合色調的香氣', why: '推薦理由' },
+    receipt: { subtitle: 'PERSONAL COLOR REPORT', title: '個人色彩診斷書', tone: '色調分析', best: '適合的顏色', avoid: '避開的顏色', styling: '風格指南' },
   },
   tarot: {
     topicTitle: '想問些什麼？',
@@ -542,7 +514,7 @@ const zhHant: ProgramText = {
     },
     questionTitle: '有想問牌的事嗎？',
     questionDesc: '寫一句話即可，我們會融入解讀。也可以跳過。',
-    questionPh: '例）可以開始新的事情嗎',
+    questionPh: '例如：可以開始新的事情嗎',
     questionHint: '一句話提問',
     skip: '跳過',
     cardsTitle: '請選出三張有感覺的牌',
@@ -551,6 +523,7 @@ const zhHant: ProgramText = {
     picked: (n, total) => `${n} / ${total}`,
     reveal: '翻開牌',
     reshuffle: '重新洗牌',
+    undoHint: '再點一次已選的牌，即可取消這一張。',
     readCards: '查看解讀',
     positions: {
       past: { label: '過去', desc: '走過的路' },
@@ -560,19 +533,14 @@ const zhHant: ProgramText = {
     upright: '正位',
     reversed: '逆位',
     elements: { fire: '火', water: '水', air: '風', earth: '土' },
-    elementScent: { fire: '辛香 · 溫暖', water: '麝香 · 水感', air: '柑橘 · 草本', earth: '木質 · 大地' },
-    statusLines: ['正在翻開牌...', '正在解讀三張牌的流動...', '正在查看牌的元素...', '正在挑選契合未來之牌的香氣...'],
-    eta: '通常需要 20~40 秒。',
+    statusLines: ['正在翻開牌...', '正在解讀三張牌的流動...', '正在查看牌的元素...'],
+    eta: '通常需要 10~20 秒。',
     chapter: 'TAROT · 三張牌',
     questionLabel: '問題',
     flowTitle: '三張牌想說的',
     adviceTitle: '牌的建議',
-    scentTitle: '牌選出的香氣',
-    scentFrom: (element) => `未來之牌的元素 · ${element}`,
-    ritual: '這種時候用',
-    why: '為什麼是這款香',
     disclaimer: '塔羅是供娛樂參考的解讀。',
-    receipt: { subtitle: 'TAROT · SCENT READING', title: '塔羅香氣解讀', spread: '三張牌', flow: '流動', advice: '牌的建議', scent: '牌選出的香氣', why: '推薦理由', ritual: '用法' },
+    receipt: { subtitle: 'TAROT READING', title: '塔羅解讀', flow: '流動', advice: '牌的建議' },
   },
 }
 

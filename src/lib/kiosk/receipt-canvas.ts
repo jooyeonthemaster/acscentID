@@ -81,10 +81,6 @@ export interface ReceiptColor {
   avoidNames: string[]
   stylingLabel: string
   styling: { label: string; text: string }[]
-  scentLabel: string
-  whyLabel: string
-  bridge: string
-  why: string
 }
 
 export interface ReceiptTarotCard {
@@ -109,12 +105,6 @@ export interface ReceiptTarot {
   flow: string
   adviceLabel: string
   advice: string[]
-  scentLabel: string
-  whyLabel: string
-  bridge: string
-  why: string
-  ritualLabel: string
-  ritual: string
 }
 
 export interface ReceiptData {
@@ -146,7 +136,8 @@ export interface ReceiptData {
   footerLines: string[]
   /** 사주 프로그램일 때만 — 명식·용신·처방 섹션이 추가된다 */
   saju?: ReceiptSaju
-  /** AI 퍼스널 컬러 · AI 타로일 때만 — 진단/카드가 향 앞에 오고, 이미지 분석용 섹션(ANALYSIS·SIGNALS)은 빠진다 */
+  /** AI 퍼스널 컬러 · AI 타로일 때만 — 진단서/리딩만 찍는다. 향·레시피·제품 주의사항·카운터 안내·티켓 번호는 없다
+   *  (이 두 프로그램은 향을 추천하지 않는다 — perfumeNo·recipeRows 등 향 칸은 비워 넘긴다) */
   color?: ReceiptColor
   tarot?: ReceiptTarot
 }
@@ -1037,9 +1028,11 @@ export async function renderKioskReceipt(
   }
 
   // ── 발권 정보
-  b.row(`${data.date}  ${data.time}`, data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { mono: true })
+  // 퍼스널 컬러·타로는 만들 제품이 없다 — 발권 번호·제품 줄을 찍지 않는다
+  const noProduct = Boolean(data.color || data.tarot)
+  b.row(`${data.date}  ${data.time}`, noProduct ? '' : data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { mono: true })
   b.row('NAME', data.customerName || '-', { mono: true })
-  b.row('PRODUCT', data.productLabel, { mono: true })
+  if (!noProduct) b.row('PRODUCT', data.productLabel, { mono: true })
   b.space(10)
   b.rule(1.5, true)
   }
@@ -1053,21 +1046,10 @@ export async function renderKioskReceipt(
     }
   }
 
-  // 퍼스널 컬러·타로는 진단/카드가 먼저, 향이 그 다음, 향의 이유가 마지막
-  const extraScentLabel = data.color?.scentLabel ?? data.tarot?.scentLabel
+  // 퍼스널 컬러·타로 — 진단서/리딩만
   const isExtra = Boolean(data.color || data.tarot)
   const heading = (label: string, align: 'left' | 'center' = 'left') =>
     b.text(label, { size: 16, weight: 700, align, letterSpacing: 2 })
-  const drawWhy = (label: string, bridge: string, why: string) => {
-    heading(label)
-    b.space(8)
-    if (bridge) {
-      b.text(bridge, { size: 20, weight: 700, lineHeight: 1.4 })
-      b.space(6)
-    }
-    b.text(why, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 8 })
-    b.space(14)
-  }
   const drawColor = (c: ReceiptColor) => {
     b.space(20)
     heading(c.title, 'center')
@@ -1080,7 +1062,7 @@ export async function renderKioskReceipt(
     b.space(14)
     b.rule(1.5, true)
     b.space(12)
-    b.text(c.summary, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 6 })
+    b.text(c.summary, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 12 })
     b.space(14)
     heading(c.toneLabel)
     b.space(6)
@@ -1098,7 +1080,7 @@ export async function renderKioskReceipt(
     b.space(6)
     for (const row of c.styling) {
       b.text(row.label, { size: 18, weight: 700 })
-      b.text(row.text, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 3 })
+      b.text(row.text, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 6 })
       b.space(8)
     }
     b.space(4)
@@ -1108,7 +1090,7 @@ export async function renderKioskReceipt(
     b.space(20)
     heading(t.title, 'center')
     b.space(8)
-    b.text(t.headline, { size: 30, weight: 800, align: 'center', lineHeight: 1.3, maxLines: 2 })
+    b.text(t.headline, { size: 30, weight: 800, align: 'center', lineHeight: 1.3, maxLines: 3 })
     b.space(4)
     b.text(t.question ? `${t.topic} · ${t.question}` : t.topic, { size: 17, weight: 500, align: 'center', lineHeight: 1.5, maxLines: 2 })
     b.space(16)
@@ -1126,7 +1108,7 @@ export async function renderKioskReceipt(
     b.space(12)
     heading(t.flowLabel)
     b.space(8)
-    b.text(t.flow, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 8 })
+    b.text(t.flow, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 16 })
     b.space(14)
     heading(t.adviceLabel)
     b.space(8)
@@ -1140,7 +1122,7 @@ export async function renderKioskReceipt(
   const drawScent = () => {
     // ── 매칭 향
     b.space(22)
-    b.text(sajuFirst ? L.rxScent : extraScentLabel ?? 'YOUR SCENT', { size: 16, weight: 600, family: extraScentLabel ? 'sans' : 'mono', align: 'center', letterSpacing: 3 })
+    b.text(sajuFirst ? L.rxScent : 'YOUR SCENT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
     b.space(8)
     b.text(`No. ${data.perfumeNo}`, { size: 30, weight: 700, family: 'mono', align: 'center', lineHeight: 1.2 })
     b.space(4)
@@ -1281,14 +1263,9 @@ export async function renderKioskReceipt(
   }
   if (sheet) drawSheet()
   else if (sajuFirst) { drawSaju(); drawScent() }
-  else if (data.color) { drawColor(data.color); drawScent(); drawWhy(data.color.whyLabel, data.color.bridge, data.color.why) }
-  else if (data.tarot) {
-    drawTarot(data.tarot); drawScent(); drawWhy(data.tarot.whyLabel, data.tarot.bridge, data.tarot.why)
-    heading(data.tarot.ritualLabel)
-    b.space(8)
-    b.text(data.tarot.ritual, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 3 })
-    b.space(14)
-  } else { drawScent(); drawSaju() }
+  else if (data.color) drawColor(data.color)
+  else if (data.tarot) drawTarot(data.tarot)
+  else { drawScent(); drawSaju() }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
   if (!data.saju && !isExtra && data.analysisText) {
@@ -1316,6 +1293,9 @@ export async function renderKioskReceipt(
     b.space(14)
   }
 
+  // 퍼스널 컬러·타로는 향을 추천하지 않는다 — 레시피를 찍지 않는다(진단서/리딩이 굵은 선으로 끝나 있다)
+  if (isExtra) b.space(14)
+  if (!isExtra) {
   b.rule(3)
   b.space(14)
 
@@ -1351,6 +1331,8 @@ export async function renderKioskReceipt(
     b.space(12)
   }
 
+  }
+
   // ── 푸터
   for (const line of data.footerLines) {
     b.text(line, { size: 17, weight: 500, align: 'center', lineHeight: 1.6 })
@@ -1370,6 +1352,8 @@ export async function renderKioskReceipt(
   }
   b.space(16)
 
+  // 제품 주의사항·카운터 제출 안내·티켓 번호는 만들 제품이 있을 때만
+  if (!isExtra) {
   // ── 주의사항 (실물 라벨 PRECAUTION과 동일 문구)
   b.rule(1.5, true)
   b.space(12)
@@ -1406,6 +1390,10 @@ export async function renderKioskReceipt(
   b.space(2)
   b.text(data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { size: data.ticket ? 44 : 28, weight: 800, family: 'mono', align: 'center', letterSpacing: 2, lineHeight: 1.2 })
   b.space(30)
+
+  } else {
+    b.space(14)
+  }
 
   const { canvas, height } = b.render()
   const dataUrl = canvas.toDataURL('image/png')
