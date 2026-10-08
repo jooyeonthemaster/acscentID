@@ -177,6 +177,15 @@
   box-shadow: 0 0 10px 4px rgba(250, 246, 237, 0.88);
   color: var(--ink);
 }
+/* 이름·성별 단계는 글이 왼쪽 정렬이라 왼쪽 가장자리 그림 위에 놓인다 — 작은 글자에도 같은 종이색 */
+.ksk-root[data-program-theme='tarot'][data-program-step='info'] :is(.ksk-eyebrow, .ksk-field-label, .ksk-desc) {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(250, 246, 237, 0.94);
+  box-shadow: 0 0 10px 4px rgba(250, 246, 237, 0.88);
+}
 /* 왼쪽 위 브랜드 — 오른쪽 언어 버튼 자리는 안쪽 여백 대신 바깥 여백으로 비워 둔다(종이색이 늘어지지 않게) */
 .ksk-root[data-program-theme='tarot'] .program-brandbar > span { margin-right: 72px; }
 .ksk-root[data-program-theme='tarot'] .program-signature {
