@@ -173,81 +173,156 @@ export const KIOSK_MODES: KioskMode[] = [
     defaultBackground: 'kiosk-event-kwave-2026',
   },
   {
-    // 초안 — AI 퍼스널 컬러 진단 · AI 타로. 프로그램이 둘이라 첫 화면 다음에 고르기 화면이 나온다.
-    // 행사가 정해지면 label·note·attract·receipt.eventLines 를 그 행사에 맞게 고친다(K-WAVE 항목 참고).
-    id: 'ai-lab',
-    label: 'AI 컬러 · 타로 (초안)',
-    note: '행사 · 팝업용 · 퍼스널 컬러 진단 + 타로',
-    brandName: "AC'SCENT AI LAB",
+    // AI 퍼스널 컬러 진단 — 프로그램 하나뿐인 모드라 첫 화면 다음에 바로 시작한다(고르기 화면 없음).
+    // 향을 추천하지 않는다(진단서만). 행사가 정해지면 label·note·attract·receipt.eventLines 를 그 행사에 맞게 고친다.
+    id: 'ai-color',
+    label: 'AI 퍼스널 컬러',
+    note: '행사 · 팝업용 · 사진 한 장으로 퍼스널 컬러 진단',
+    brandName: "AC'SCENT AI COLOR",
     storeEvents: false,
-    programs: ['color', 'tarot'],
-    // 두 프로그램은 향을 추천하지 않는다(진단서 · 리딩만) — 첫 화면 문구에도 향 이야기를 넣지 않는다
+    programs: ['color'],
     attract: {
       ko: {
-        ticket: 'AI COLOR · AI TAROT',
-        wordmark: 'LAB!',
-        sub: '나의 색과 오늘의 카드를 읽어 주는 AI',
-        cardNo: '01 PICK > 01 REPORT',
-        title1: '나의 색, 오늘의 카드,',
-        title2: 'AI가 읽어 드릴게요',
-        body1: 'AI가 퍼스널 컬러를 진단하거나 타로 세 장을 읽고,',
-        body2: '결과를 영수증으로 뽑아드려요.',
-        tags: ['#퍼스널컬러', '#AI타로', '#AI리딩'],
+        ticket: 'AI PERSONAL COLOR',
+        wordmark: 'COLOR!',
+        sub: '사진 한 장으로 찾는 나의 퍼스널 컬러',
+        cardNo: '01 PHOTO > 01 COLOR',
+        title1: '나에게 어울리는 색,',
+        title2: 'AI가 찾아 드릴게요',
+        body1: '얼굴 사진 한 장으로 퍼스널 컬러 8유형을 진단하고,',
+        body2: '어울리는 색과 스타일 가이드를 영수증으로 뽑아드려요.',
+        tags: ['#퍼스널컬러', '#웜톤쿨톤', '#AI진단'],
       },
       en: {
-        ticket: 'AI COLOR · AI TAROT',
-        wordmark: 'LAB!',
-        sub: 'An AI that reads your colors and your cards',
-        cardNo: '01 PICK > 01 REPORT',
-        title1: 'Your colors, your cards,',
-        title2: 'read for you by AI',
-        body1: 'AI diagnoses your personal color or reads three tarot cards,',
-        body2: 'then prints your result as a receipt.',
-        tags: ['#PersonalColor', '#AITarot', '#AIReading'],
+        ticket: 'AI PERSONAL COLOR',
+        wordmark: 'COLOR!',
+        sub: 'Find your personal color from a single photo',
+        cardNo: '01 PHOTO > 01 COLOR',
+        title1: 'Your best colors,',
+        title2: 'found by AI',
+        body1: 'AI finds your personal color type from one photo',
+        body2: 'and prints your best colors as a receipt.',
+        tags: ['#PersonalColor', '#WarmOrCool'],
       },
       ja: {
-        ticket: 'AI COLOR · AI TAROT',
-        wordmark: 'LAB!',
-        sub: 'あなたの色と今日のカードをAIが読み解きます',
-        cardNo: '01 PICK > 01 REPORT',
-        title1: '私の色、今日のカード、',
-        title2: 'AIが読み解きます',
-        body1: 'AIがパーソナルカラーを診断、またはタロット3枚を読み、',
-        body2: '結果をレシートでお渡しします。',
-        tags: ['#パーソナルカラー', '#AIタロット', '#AIリーディング'],
+        ticket: 'AI PERSONAL COLOR',
+        wordmark: 'COLOR!',
+        sub: '写真1枚でわかる、私のパーソナルカラー',
+        cardNo: '01 PHOTO > 01 COLOR',
+        title1: '私に似合う色、',
+        title2: 'AIが見つけます',
+        body1: '顔写真1枚からパーソナルカラー8タイプを診断し、',
+        body2: '似合う色とスタイルガイドをレシートでお渡しします。',
+        tags: ['#パーソナルカラー', '#イエベブルベ', '#AI診断'],
       },
       'zh-Hans': {
-        ticket: 'AI COLOR · AI TAROT',
-        wordmark: 'LAB!',
-        sub: '由 AI 解读你的色彩与今天的牌',
-        cardNo: '01 PICK > 01 REPORT',
-        title1: '我的色彩，今天的牌，',
-        title2: '交给 AI 来解读',
-        body1: 'AI 为你诊断个人色彩，或解读三张塔罗牌，',
-        body2: '并把结果打印成小票。',
-        tags: ['#个人色彩', '#AI塔罗', '#AI解读'],
+        ticket: 'AI PERSONAL COLOR',
+        wordmark: 'COLOR!',
+        sub: '一张照片，找到你的个人色彩',
+        cardNo: '01 PHOTO > 01 COLOR',
+        title1: '适合你的颜色，',
+        title2: '交给 AI 来找',
+        body1: '只需一张面部照片，AI 就能诊断你的个人色彩类型，',
+        body2: '并把适合的颜色与风格指南打印成小票。',
+        tags: ['#个人色彩', '#冷暖色调', '#AI诊断'],
       },
       'zh-Hant': {
-        ticket: 'AI COLOR · AI TAROT',
-        wordmark: 'LAB!',
-        sub: '由 AI 解讀你的色彩與今天的牌',
-        cardNo: '01 PICK > 01 REPORT',
-        title1: '我的色彩，今天的牌，',
-        title2: '交給 AI 來解讀',
-        body1: 'AI 為你診斷個人色彩，或解讀三張塔羅牌，',
-        body2: '並把結果列印成收據。',
-        tags: ['#個人色彩', '#AI塔羅', '#AI解讀'],
+        ticket: 'AI PERSONAL COLOR',
+        wordmark: 'COLOR!',
+        sub: '一張照片，找到你的個人色彩',
+        cardNo: '01 PHOTO > 01 COLOR',
+        title1: '適合你的顏色，',
+        title2: '交給 AI 來找',
+        body1: '只需一張臉部照片，AI 就能診斷你的個人色彩類型，',
+        body2: '並把適合的顏色與風格指南列印成收據。',
+        tags: ['#個人色彩', '#冷暖色調', '#AI診斷'],
       },
     },
-    receipt: { theme: 'scent', subtitle: 'AI LAB · REPORT', eventLines: [] },
+    receipt: { theme: 'scent', subtitle: 'PERSONAL COLOR REPORT', eventLines: [] },
+  },
+  {
+    // AI 타로 — 프로그램 하나뿐인 모드(고르기 화면 없음). 향을 추천하지 않는다(리딩만).
+    id: 'ai-tarot',
+    label: 'AI 타로',
+    note: '행사 · 팝업용 · 카드 세 장(과거 · 현재 · 미래) 리딩',
+    brandName: "AC'SCENT AI TAROT",
+    storeEvents: false,
+    programs: ['tarot'],
+    attract: {
+      ko: {
+        ticket: 'AI TAROT',
+        wordmark: 'TAROT!',
+        sub: '카드 세 장으로 읽는 지금의 나',
+        cardNo: '03 CARDS > 01 READING',
+        title1: '마음이 가는 카드 세 장,',
+        title2: 'AI가 읽어 드릴게요',
+        body1: '과거 · 현재 · 미래 세 장을 직접 뽑으면 AI가 흐름을 풀이하고,',
+        body2: '리딩을 영수증으로 뽑아드려요.',
+        tags: ['#AI타로', '#메이저아르카나', '#오늘의흐름'],
+      },
+      en: {
+        ticket: 'AI TAROT',
+        wordmark: 'TAROT!',
+        sub: 'A three-card reading of where you are now',
+        cardNo: '03 CARDS > 01 READING',
+        title1: 'Pick three cards,',
+        title2: 'AI reads them for you',
+        body1: 'Draw your past, present and future — AI reads the flow',
+        body2: 'and prints your reading as a receipt.',
+        tags: ['#AITarot', '#ThreeCards'],
+      },
+      ja: {
+        ticket: 'AI TAROT',
+        wordmark: 'TAROT!',
+        sub: '3枚のカードで読み解く、今の私',
+        cardNo: '03 CARDS > 01 READING',
+        title1: '気になるカードを3枚、',
+        title2: 'AIが読み解きます',
+        body1: '過去・現在・未来の3枚を自分で引くと、AIが流れを読み解き、',
+        body2: 'リーディングをレシートでお渡しします。',
+        tags: ['#AIタロット', '#大アルカナ', '#今日の流れ'],
+      },
+      'zh-Hans': {
+        ticket: 'AI TAROT',
+        wordmark: 'TAROT!',
+        sub: '用三张牌解读现在的你',
+        cardNo: '03 CARDS > 01 READING',
+        title1: '选出三张有感觉的牌，',
+        title2: '交给 AI 来解读',
+        body1: '亲手抽出过去、现在、未来三张牌，AI 为你解读其中的流动，',
+        body2: '并把解读打印成小票。',
+        tags: ['#AI塔罗', '#大阿尔卡那', '#今日运势'],
+      },
+      'zh-Hant': {
+        ticket: 'AI TAROT',
+        wordmark: 'TAROT!',
+        sub: '用三張牌解讀現在的你',
+        cardNo: '03 CARDS > 01 READING',
+        title1: '選出三張有感覺的牌，',
+        title2: '交給 AI 來解讀',
+        body1: '親手抽出過去、現在、未來三張牌，AI 為你解讀其中的流動，',
+        body2: '並把解讀列印成收據。',
+        tags: ['#AI塔羅', '#大阿爾克那', '#今日運勢'],
+      },
+    },
+    receipt: { theme: 'scent', subtitle: 'TAROT READING', eventLines: [] },
   },
 ]
 
 export const DEFAULT_KIOSK_MODE = KIOSK_MODES[0]
-export const KIOSK_MODE_IDS = KIOSK_MODES.map((m) => m.id)
+
+/**
+ * 이름이 바뀐 모드 — 기기 설정에 옛 id 가 남아 있어도 매장 기본 모드로 떨어지지 않게 새 모드로 읽는다.
+ * 'ai-lab'(퍼스널 컬러 + 타로를 고르는 모드)은 2026-10-09 에 'ai-color' · 'ai-tarot' 두 모드로 나뉘었다.
+ */
+const LEGACY_KIOSK_MODE_IDS: Record<string, string> = { 'ai-lab': 'ai-color' }
+
+/** 저장·미리보기에서 받는 id — 지금 모드 + 옛 이름 */
+export const KIOSK_MODE_IDS = [...KIOSK_MODES.map((m) => m.id), ...Object.keys(LEGACY_KIOSK_MODE_IDS)]
 
 export function findKioskMode(id: string | null | undefined): KioskMode {
-  return KIOSK_MODES.find((m) => m.id === id) ?? DEFAULT_KIOSK_MODE
+  const current = id ? LEGACY_KIOSK_MODE_IDS[id] ?? id : id
+  return KIOSK_MODES.find((m) => m.id === current) ?? DEFAULT_KIOSK_MODE
 }
 
 /** 영수증 행사 줄 — 그 언어, 없으면 영어, 없으면 한국어 */

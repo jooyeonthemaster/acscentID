@@ -291,7 +291,7 @@ const ja: ProgramText = {
     retake: '撮り直す',
     statusLines: ['肌トーンの温度を読み取り中...', '髪と瞳の色を比べています...', '明度と鮮やかさを測っています...', '四季のパレットに合わせています...'],
     eta: '通常10〜20秒ほどかかります。',
-    chapter: 'PERSONAL COLOR · パーソナルカラー',
+    chapter: 'PERSONAL COLOR',
     typeLabel: 'あなたのパーソナルカラー',
     typeNames: {
       'spring-light': 'スプリング・ライト', 'spring-bright': 'スプリング・ブライト', 'summer-light': 'サマー・ライト', 'summer-mute': 'サマー・ミュート',
@@ -383,7 +383,7 @@ const zhHans: ProgramText = {
     retake: '重新拍摄',
     statusLines: ['正在读取肤色的冷暖...', '正在比较发色与瞳色...', '正在测量明度与清晰度...', '正在对照四季色盘...'],
     eta: '通常需要 10~20 秒。',
-    chapter: 'PERSONAL COLOR · 个人色彩',
+    chapter: 'PERSONAL COLOR',
     typeLabel: '你的个人色彩',
     typeNames: {
       'spring-light': '浅春型', 'spring-bright': '净春型', 'summer-light': '浅夏型', 'summer-mute': '柔夏型',
@@ -475,7 +475,7 @@ const zhHant: ProgramText = {
     retake: '重新拍攝',
     statusLines: ['正在讀取膚色的冷暖...', '正在比較髮色與瞳色...', '正在測量明度與清晰度...', '正在對照四季色盤...'],
     eta: '通常需要 10~20 秒。',
-    chapter: 'PERSONAL COLOR · 個人色彩',
+    chapter: 'PERSONAL COLOR',
     typeLabel: '你的個人色彩',
     typeNames: {
       'spring-light': '淺春型', 'spring-bright': '淨春型', 'summer-light': '淺夏型', 'summer-mute': '柔夏型',

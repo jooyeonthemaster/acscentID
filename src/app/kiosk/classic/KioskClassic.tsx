@@ -160,7 +160,7 @@ function isMockRequested(): boolean {
 }
 
 /**
- * 미리보기용 — /kiosk?mode=ai-lab 처럼 열면 기기 설정(모든 키오스크가 따라가는 운영 모드)을 건드리지 않고
+ * 미리보기용 — /kiosk?mode=ai-color · ?mode=ai-tarot 처럼 열면 기기 설정(모든 키오스크가 따라가는 운영 모드)을 건드리지 않고
  * 그 모드로 본다. 매장 기기는 셸이 여는 주소가 고정이라 영향이 없다.
  */
 function previewModeId(): string | null {

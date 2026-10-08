@@ -192,7 +192,7 @@ function isMockRequested(): boolean {
 }
 
 /**
- * 미리보기용 — /kiosk?mode=ai-lab 처럼 열면 기기 설정(모든 키오스크가 따라가는 운영 모드)을 건드리지 않고
+ * 미리보기용 — /kiosk?mode=ai-color · ?mode=ai-tarot 처럼 열면 기기 설정(모든 키오스크가 따라가는 운영 모드)을 건드리지 않고
  * 그 모드로 본다. 매장 기기는 셸이 여는 주소가 고정이라 영향이 없다.
  */
 function previewModeId(): string | null {
@@ -2148,7 +2148,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <span className="ksk-attract-ticket rt-tag rt-pixel">{attract.ticket}</span>
                   <div className="ksk-attract-wordmark rt-pixel">
                     <span>AC&rsquo;SCENT</span>
-                    <strong>{attract.wordmark}</strong>
+                    {/* 레트로 픽셀 글꼴은 글자 폭이 넓다 — 'COLOR!'·'TAROT!'처럼 6자면 창 밖으로 나가 끝 글자가 잘린다. 5자 폭에 맞춰 줄인다 */}
+                    <strong style={design === 'retro' && attract.wordmark.length > 5 ? { fontSize: Math.round((86 * 5) / attract.wordmark.length) } : undefined}>{attract.wordmark}</strong>
                   </div>
                   <p className="ksk-attract-sub">{attract.sub}</p>
                 </>
