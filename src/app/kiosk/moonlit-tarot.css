@@ -135,7 +135,11 @@
   color: #646b51;
 }
 .ksk-root[data-program-theme='tarot'] .trt-card--back > span { display: none; }
-.ksk-root[data-program-theme='tarot'] .trt-garden-art { display: block; width: 100%; height: 100%; }
+.ksk-root[data-program-theme='tarot'] .trt-garden-art {
+  display: block; position: absolute; inset: 0; background: currentColor;
+  -webkit-mask: url('/assets/kiosk-programs/tarot-back-art.svg') center / 100% 100% no-repeat;
+  mask: url('/assets/kiosk-programs/tarot-back-art.svg') center / 100% 100% no-repeat;
+}
 .ksk-root[data-program-theme='tarot'] .trt-slots .trt-card--back {
   background: #d7c9e1;
   border-color: #766087;

@@ -4,8 +4,9 @@
 // 기존·레트로 두 화면이 같은 .ksk-* 클래스를 쓰므로 단계 화면을 통째로 여기 두고 양쪽에서 부른다.
 // 터치 키보드만 화면마다 달라서 keyboard 로 받아 그린다.
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { LayoutGroup, motion, useReducedMotion } from 'framer-motion'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
+import { useReducedMotion } from 'framer-motion'
 import { ArrowRight, BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
@@ -13,6 +14,7 @@ import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, preloadTar
 import type { TarotDraw, TarotTopic } from '@/types/analysis'
 import { TarotCardBack, TarotCardFace } from './TarotCard'
 import { CUT_MS, SHUFFLE_MS, TarotShuffleAnimation } from './TarotShuffleAnimation'
+import { flipOpen, flyCardBack, glideFrom, spotOf, type Flight } from './tarot-flight'
 import './programs.css'
 import './moonlit-tarot.css'
 import './tarot-motion.css'
@@ -141,9 +143,19 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
   return <TarotCardSelection session={session} tx={tx} labels={labels} lang={lang} pill={pill} onPrev={onPrev} onNext={onNext} revealedDesc={revealedDesc} />
 }
 
-type DeckPhase = 'collecting' | 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'revealing'
-/** 단계 시간 — 모으기(다시 섞기에서만) → 섞기(리플 2번) → 컷 → 나눠 주기 → 선택 가능. 공개 뒤 '풀이 보기' 잠금 */
-const PHASE_MS = { collecting: 620, shuffling: SHUFFLE_MS, cutting: CUT_MS, dealing: 950, revealing: 1400 } as const
+type DeckPhase = 'collecting' | 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'clearing' | 'revealing'
+/**
+ * 단계 시간 — 모으기(다시 섞기에서만) → 섞기(리플 2번) → 컷 → 나눠 주기 → 선택 가능.
+ * 펼치기: 덱을 걷고(clearing) → 세 장이 가운데로 미끄러져 와 한 장씩 뒤집힌다(revealing, 끝나야 '풀이 보기').
+ * 나눠 주기·모으기 시간은 tarot-motion.css 의 카드별 지연(--deal-delay · --collect-delay)과 맞춘다.
+ */
+const PHASE_MS = { collecting: 860, shuffling: SHUFFLE_MS, cutting: CUT_MS, dealing: 1280, clearing: 300, revealing: 1950 } as const
+/** 한 장씩 나눠 주는 간격 · 모으는 간격(ms) */
+const DEAL_GAP_MS = 28
+const COLLECT_GAP_MS = 14
+/** 펼치기 — 세 장이 가운데로 온 뒤 첫 장이 뒤집히기까지 · 장 사이 간격(ms). tarot-motion.css 의 캡션 지연과 맞춘다 */
+const FLIP_START_MS = 520
+const FLIP_GAP_MS = 240
 /** 부채꼴(8+8+6)의 처음 높이 — 재기 전에도 섞기 영역이 부채꼴과 같은 높이가 되게 */
 const FAN_HEIGHT_GUESS = 338
 const MOTION_COPY: Record<KioskLang, { shuffling: string; cutting: string; dealing: string }> = {
@@ -153,9 +165,14 @@ const MOTION_COPY: Record<KioskLang, { shuffling: string; cutting: string; deali
   'zh-Hans': { shuffling: '想着你的问题，正在洗牌', cutting: '分成三叠，再重新合拢', dealing: '寻找吸引你的牌' },
   'zh-Hant': { shuffling: '想著你的問題，正在洗牌', cutting: '分成三疊，再重新合攏', dealing: '尋找吸引你的牌' },
 }
-const CARD_TRAVEL = { duration: .48, ease: [.22, 1, .36, 1] as const }
 
-/** 데모의 섞기 → 컷 → 부채꼴 펼침을 22장·3장 선택 흐름에 맞춘다. */
+/**
+ * 22장을 세 줄 부채꼴(8+8+6)로 펼치고 세 장을 고른다.
+ * 움직임은 모두 transform·opacity 만 쓴다(CSS 애니메이션 · Web Animations) — 화면을 다시 짜지 않고 그래픽 스레드에서 돈다.
+ *  · 고르기: 누른 카드가 살짝 들려 과거·현재·미래 자리로 휘어 날아가 내려앉는다(tarot-flight.ts). 무르면 제자리로 돌아간다.
+ *  · 다시 섞기: 펼친 카드와 고른 카드가 가운데 더미로 모인 뒤 섞기 → 컷 → 다시 나눠 주기.
+ *  · 펼치기: 덱이 걷히고 → 세 장이 가운데로 커지며 미끄러져 와 → 한 장씩 들려 뒤집힌다.
+ */
 function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, revealedDesc }: {
   session: TarotSession
   tx: TarotText
@@ -167,15 +184,27 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
   revealedDesc?: string
 }) {
   const reducedMotion = useReducedMotion()
-  const layoutId = useId()
+  const layerRef = useRef<HTMLDivElement>(null)
   const deckRef = useRef<HTMLDivElement>(null)
+  const slotsRef = useRef<HTMLDivElement>(null)
+  const slotEls = useRef<(HTMLDivElement | null)[]>([])
+  const fanEls = useRef<(HTMLButtonElement | null)[]>([])
+  const flights = useRef(new Set<Flight>())
+  /** 펼치기 직전 세 자리의 위치 — 자리가 바뀐 뒤 여기서부터 미끄러져 간다 */
+  const slotsBefore = useRef<DOMRect | null>(null)
+  const picksBefore = useRef(session.picks)
   const [perRow, setPerRow] = useState(8)
   const [phase, setPhase] = useState<DeckPhase>(() => session.deck.length ? 'ready' : 'shuffling')
   const [tableHeight, setTableHeight] = useState(FAN_HEIGHT_GUESS)
-  const { deck } = session
+  /** 자리로 날아가는 중인 카드(id) — 도착할 때까지 자리는 비어 보인다 */
+  const [arriving, setArriving] = useState<number[]>([])
+  /** 부채꼴로 돌아가는 중인 덱 자리 — 도착할 때까지 빈 칸으로 보인다 */
+  const [returning, setReturning] = useState<number[]>([])
+  const { deck, picks, revealed, setRevealed } = session
   const reshuffleDeck = session.shuffle
+  const flying = arriving.length > 0 || returning.length > 0
   const busy = phase !== 'ready'
-  const full = session.picks.length >= TAROT_PICK_COUNT
+  const full = picks.length >= TAROT_PICK_COUNT
   const copy = MOTION_COPY[lang]
 
   useEffect(() => {
@@ -185,15 +214,45 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
       shuffling: 'cutting',
       cutting: 'dealing',
       dealing: 'ready',
+      clearing: 'revealing',
       revealing: 'ready',
     }
     const timer = window.setTimeout(() => {
       // 펼친 카드가 가운데로 다 모인 뒤에 실제 덱을 새로 섞는다(고른 카드도 이때 비운다)
       if (phase === 'collecting') reshuffleDeck()
+      if (phase === 'clearing') {
+        // 덱이 걷혔다 — 자리가 바뀌기 전 위치를 재 두고 앞면을 연다(아래 useLayoutEffect 가 이어받는다)
+        slotsBefore.current = slotsRef.current?.getBoundingClientRect() ?? null
+        setRevealed(true)
+      }
       setPhase(reducedMotion ? 'ready' : next[phase])
     }, reducedMotion ? 0 : PHASE_MS[phase])
     return () => window.clearTimeout(timer)
-  }, [deck.length, phase, reducedMotion, reshuffleDeck])
+  }, [deck.length, phase, reducedMotion, reshuffleDeck, setRevealed])
+
+  // 펼치기 — 세 자리가 가운데로 옮겨지고 커지는 것을 미끄러지듯 잇고(FLIP), 이어서 한 장씩 뒤집는다
+  useLayoutEffect(() => {
+    const before = slotsBefore.current
+    slotsBefore.current = null
+    if (!revealed || !before || !slotsRef.current) return
+    glideFrom(slotsRef.current, before)
+    slotEls.current.forEach((el, i) => flipOpen(el?.firstElementChild as HTMLElement | null, FLIP_START_MS + i * FLIP_GAP_MS))
+  }, [revealed])
+
+  // 한 장을 무르면 뒤의 카드가 한 자리씩 당겨진다 — 옆 자리에서 미끄러져 오게
+  useLayoutEffect(() => {
+    const before = picksBefore.current
+    picksBefore.current = picks
+    if (reducedMotion || before.length <= picks.length || !picks.length) return
+    const [a, b] = slotEls.current
+    if (!a || !b) return
+    const zoom = a.offsetWidth ? a.getBoundingClientRect().width / a.offsetWidth : 1
+    const step = (b.getBoundingClientRect().left - a.getBoundingClientRect().left) / zoom
+    picks.forEach((slot, index) => {
+      const was = before.indexOf(slot)
+      if (was > index) slotEls.current[index]?.animate([{ transform: `translateX(${(was - index) * step}px)` }, { transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.3,.05,.15,1)' })
+    })
+  }, [picks, reducedMotion])
 
   // 부채꼴이 다 깔렸을 때 높이를 기억해 둔다 — 다음 섞기 영역을 같은 높이로
   useEffect(() => {
@@ -202,6 +261,12 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
 
   // 타로 첫 화면을 건너뛰고 들어온 경우를 위해 여기서도 원화를 받아 둔다(한 번만 받는다)
   useEffect(() => preloadTarotArt(), [])
+
+  // 화면을 나가면 날아가던 카드를 치운다
+  useEffect(() => {
+    const active = flights.current
+    return () => { active.forEach((flight) => flight.cancel()); active.clear() }
+  }, [])
 
   useEffect(() => {
     const el = deckRef.current
@@ -212,53 +277,118 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
     return () => observer.disconnect()
   }, [])
 
+  const rows = Array.from({ length: Math.ceil(deck.length / perRow) }, (_, row) => deck.slice(row * perRow, (row + 1) * perRow))
+  /** 부채꼴에서 그 자리 카드의 기울기 — -1(왼쪽 끝) ~ 1(오른쪽 끝) */
+  const lean = (slot: number) => {
+    const row = rows[Math.floor(slot / perRow)]
+    return row && row.length > 1 ? ((slot % perRow) / (row.length - 1)) * 2 - 1 : 0
+  }
+
+  const launch = (flight: Flight, landed: () => void) => {
+    flights.current.add(flight)
+    void flight.done.then((ok) => {
+      flights.current.delete(flight)
+      if (!ok) return
+      // 진짜 카드를 먼저 그려 놓고(동기) 날아온 카드를 치운다 — 한 프레임도 비지 않게
+      flushSync(landed)
+      flight.remove()
+    })
+  }
+
+  const pickCard = (slot: number) => {
+    if (busy || full || returning.includes(slot)) return
+    const card = deck[slot]
+    const layer = layerRef.current
+    const from = fanEls.current[slot]
+    const to = slotEls.current[picks.length]
+    session.pick(slot)
+    if (reducedMotion || !card || !layer || !from || !to) return
+    setArriving((list) => [...list, card.id])
+    launch(flyCardBack(layer, spotOf(layer, from, 'fan', lean(slot) * 10), spotOf(layer, to, 'slot')), () => setArriving((list) => list.filter((id) => id !== card.id)))
+  }
+
+  const unpickCard = (slot: number | undefined) => {
+    // 날아오는 카드가 있을 때는 자리가 당겨지면 엉뚱한 곳에 내려앉는다 — 다 내려앉은 뒤에 무른다
+    if (slot === undefined || busy || revealed || arriving.length) return
+    const index = picks.indexOf(slot)
+    if (index < 0) return
+    const layer = layerRef.current
+    const from = slotEls.current[index]
+    const to = fanEls.current[slot]
+    session.unpick(slot)
+    if (reducedMotion || !layer || !from || !to) return
+    setReturning((list) => [...list, slot])
+    launch(flyCardBack(layer, spotOf(layer, from, 'slot'), spotOf(layer, to, 'fan', lean(slot) * 10)), () => setReturning((list) => list.filter((s) => s !== slot)))
+  }
+
   const reshuffle = () => {
-    if (busy || session.revealed) return
+    if (busy || flying || revealed) return
     if (reducedMotion) {
       session.shuffle()
       return
     }
-    // 펼친 카드(와 고른 카드)를 먼저 가운데로 모은다 — 덱은 모은 뒤에 섞는다(위 타이머)
+    // 고른 카드도 자리에서 가운데 더미로 날아가 섞인다(펼친 카드는 CSS 가 모은다). 덱은 다 모인 뒤에 섞는다(위 타이머)
+    const layer = layerRef.current
+    const table = deckRef.current
+    const sample = fanEls.current.find(Boolean)
+    if (layer && table && sample) {
+      const pile = { ...spotOf(layer, table, 'fan'), width: sample.offsetWidth }
+      picks.forEach((_, index) => {
+        const from = slotEls.current[index]
+        if (!from) return
+        const flight = flyCardBack(layer, spotOf(layer, from, 'slot'), pile, { delay: 60 + index * 80, fade: true })
+        flights.current.add(flight)
+        void flight.done.then(() => { flights.current.delete(flight); flight.remove() })
+      })
+    }
     setPhase('collecting')
   }
-  const rows = Array.from({ length: Math.ceil(deck.length / perRow) }, (_, row) => deck.slice(row * perRow, (row + 1) * perRow))
+
+  const reveal = () => {
+    if (!full || busy || flying) return
+    if (reducedMotion) {
+      setRevealed(true)
+      return
+    }
+    setPhase('clearing')
+  }
+
   const gathering = phase === 'shuffling' || phase === 'cutting'
   return (
-    <LayoutGroup id={layoutId}>
-    <div className="ksk-body trt-step" data-tarot-step="cards" data-revealed={session.revealed || undefined} data-deck-phase={phase}>
+    <div className="ksk-body trt-step" data-tarot-step="cards" data-revealed={revealed || undefined} data-deck-phase={phase}>
       <div className="trt-selection-progress" aria-hidden="true">
-        {TAROT_POSITIONS.map((position, i) => <span key={position} data-filled={i < session.picks.length || undefined} />)}
+        {TAROT_POSITIONS.map((position, i) => <span key={position} data-filled={i < picks.length || undefined} />)}
       </div>
-      <p className="ksk-eyebrow ksk-mono" aria-live="polite" aria-atomic="true">{pill('cards')} · {tx.picked(session.picks.length, TAROT_PICK_COUNT)}</p>
-      <h1 className="ksk-title">{session.revealed ? tx.revealedTitle : tx.cardsTitle}</h1>
+      <p className="ksk-eyebrow ksk-mono" aria-live="polite" aria-atomic="true">{pill('cards')} · {tx.picked(picks.length, TAROT_PICK_COUNT)}</p>
+      <h1 className="ksk-title">{revealed ? tx.revealedTitle : tx.cardsTitle}</h1>
       {/* 고르기 시작하면 설명 자리에 '한 장 무르기' 안내를 보여 준다 — 줄을 더하면 화면이 넘친다(일본어) */}
-      {!session.revealed && <p className="ksk-desc">{session.picks.length > 0 ? tx.undoHint : tx.cardsDesc}</p>}
-      {session.revealed && revealedDesc && <p className="ksk-desc trt-revealed-desc">{revealedDesc}</p>}
+      {!revealed && <p className="ksk-desc">{picks.length > 0 ? tx.undoHint : tx.cardsDesc}</p>}
+      {revealed && revealedDesc && <p className="ksk-desc trt-revealed-desc">{revealedDesc}</p>}
 
-      <div className="trt-slots" data-revealed={session.revealed || undefined}>
+      <div ref={slotsRef} className="trt-slots" data-revealed={revealed || undefined}>
         {TAROT_POSITIONS.map((position, i) => {
           const draw = session.draws[i]
-          const open = session.revealed && Boolean(draw)
+          const open = revealed && Boolean(draw)
+          // 날아오는 중이거나(도착 전) 다시 섞으러 떠난 카드는 자리에 없다
+          const landed = Boolean(draw) && !arriving.includes(draw.id) && phase !== 'collecting'
           return (
-            <div
-              key={position}
-              className="trt-slot"
-              data-filled={Boolean(draw) || undefined}
-            >
+            <div key={position} className="trt-slot" data-filled={landed || undefined} style={{ '--i': i } as CSSProperties}>
               <span className="trt-slot-pos">{tx.positions[position].label}</span>
               <button
                 type="button"
                 className="trt-slot-control"
-                disabled={!draw || session.revealed || busy}
-                aria-label={`${tx.positions[position].label} · ${draw && !session.revealed ? tx.undoHint : tx.positions[position].desc}`}
-                onClick={() => session.unpick(session.picks[i])}
+                disabled={!landed || revealed || busy}
+                aria-label={`${tx.positions[position].label} · ${draw && !revealed ? tx.undoHint : tx.positions[position].desc}`}
+                onClick={() => unpickCard(picks[i])}
               >
-                <div className="trt-flip" data-open={open || undefined} style={{ '--i': i } as CSSProperties}>
-                  <div className="trt-flip-side trt-flip-back">
-                    {draw ? <motion.div className="trt-moving-back" layoutId={reducedMotion ? undefined : `back-${draw.id}`} transition={CARD_TRAVEL}><TarotCardBack /></motion.div> : <div className="trt-card trt-card--empty"><span>{i + 1}</span></div>}
-                  </div>
-                  <div className="trt-flip-side trt-flip-front" aria-hidden={!open}>
-                    {draw && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
+                <div ref={(el) => { slotEls.current[i] = el }} className="trt-flip" data-open={open || undefined}>
+                  <div className="trt-flip-inner">
+                    <div className="trt-flip-side trt-flip-back">
+                      {landed ? <TarotCardBack /> : <div className="trt-card trt-card--empty"><span>{i + 1}</span></div>}
+                    </div>
+                    <div className="trt-flip-side trt-flip-front" aria-hidden={!open}>
+                      {draw && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
+                    </div>
                   </div>
                 </div>
               </button>
@@ -271,38 +401,42 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
         })}
       </div>
 
-      <div ref={deckRef} className="trt-table" hidden={session.revealed} style={gathering ? { minHeight: tableHeight } : undefined}>
+      <div ref={deckRef} className="trt-table" hidden={revealed} style={gathering ? { minHeight: tableHeight } : undefined}>
         {gathering && <TarotShuffleAnimation phase={phase} label={copy[phase]} />}
-        {!gathering && <div className="trt-deck trt-deck--fan" role="group" aria-label={tx.cardsTitle}>
+        {!gathering && <div className="trt-deck trt-deck--fan" role="group" aria-label={tx.cardsTitle} data-full={(full && phase === 'ready') || undefined}>
           {rows.map((row, rowIndex) => <div className="trt-fan-row" key={rowIndex} style={{ '--columns': perRow } as CSSProperties}>
           {row.map((card, column) => {
             const slot = rowIndex * perRow + column
-            const picked = session.picks.includes(slot)
-            const offset = row.length > 1 ? (column / (row.length - 1)) * 2 - 1 : 0
+            const order = picks.indexOf(slot)
+            const picked = order >= 0
+            const away = picked || returning.includes(slot)
+            const offset = lean(slot)
             return (
               <button
                 key={slot}
+                ref={(el) => { fanEls.current[slot] = el }}
                 type="button"
                 className="trt-deck-card trt-fan-card"
                 style={{
                   '--fan-angle': `${offset * 10}deg`,
                   '--fan-drop': `${offset * offset * 13}px`,
-                  '--deal-delay': `${rowIndex * 80 + column * 20}ms`,
+                  '--deal-delay': `${slot * DEAL_GAP_MS}ms`,
                   // 부채꼴 한가운데(섞은 더미 자리)까지의 거리 — 카드 몇 장 폭·몇 줄인지. 나눠 줄 때 여기서 출발하고, 모을 때 여기로 간다
                   '--dx': (row.length - 1) / 2 - column,
                   '--dy': (rows.length - 1) / 2 - rowIndex,
-                  '--collect-delay': `${(deck.length - 1 - slot) * 9}ms`,
+                  '--collect-delay': `${(deck.length - 1 - slot) * COLLECT_GAP_MS}ms`,
                 } as CSSProperties}
                 data-picked={picked || undefined}
+                data-away={away || undefined}
                 // 고른 카드는 다시 누르면 취소된다. 세 장이 차면 나머지는 잠근다
-                disabled={busy || (!picked && full)}
+                disabled={busy || (!picked && (full || away))}
                 aria-pressed={picked}
-                aria-label={picked ? `${slot + 1} · ${tx.positions[TAROT_POSITIONS[session.picks.indexOf(slot)]].label} · ${tx.undoHint}` : `${slot + 1}`}
-                onClick={() => (picked ? session.unpick(slot) : session.pick(slot))}
+                aria-label={picked ? `${slot + 1} · ${tx.positions[TAROT_POSITIONS[order]].label} · ${tx.undoHint}` : `${slot + 1}`}
+                onClick={() => (picked ? unpickCard(slot) : pickCard(slot))}
               >
-                <span className="trt-fan-lift">{picked ? (
-                  <span className="trt-card trt-card--picked" aria-hidden="true"><span>{session.picks.indexOf(slot) + 1}</span></span>
-                ) : <motion.div className="trt-moving-back" layoutId={reducedMotion ? undefined : `back-${card.id}`} transition={CARD_TRAVEL}><TarotCardBack /></motion.div>}</span>
+                <span className="trt-fan-lift">{away ? (
+                  <span className="trt-card trt-card--picked" aria-hidden="true">{picked && <span>{order + 1}</span>}</span>
+                ) : <TarotCardBack />}</span>
               </button>
             )
           })}</div>)}
@@ -311,14 +445,14 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
       </div>
 
       {/* 다시 섞기 — 버튼 바 위 흐림에 묻히지 않게 덱 바로 아래에 둔다(펼치기 전에만) */}
-      {!session.revealed && (
+      {!revealed && (
         <p className="trt-hint">
-          <button type="button" className="trt-hint-btn" disabled={busy} onClick={reshuffle}><Shuffle size={20} strokeWidth={1.7} aria-hidden="true" />{tx.reshuffle}</button>
+          <button type="button" className="trt-hint-btn" disabled={busy || flying} onClick={reshuffle}><Shuffle size={20} strokeWidth={1.7} aria-hidden="true" />{tx.reshuffle}</button>
         </p>
       )}
 
-      {!session.revealed && <div style={{ flex: 1 }} />}
-      {session.revealed ? (
+      {!revealed && <div style={{ flex: 1 }} />}
+      {revealed ? (
         // 펼친 뒤에는 다시 섞을 수 없다 — 앞면을 보고 마음에 들 때까지 다시 뽑으면 '뽑기'가 아니다
         <div className="ksk-actions">
           <button className="ksk-btn ksk-btn-primary trt-read-btn" disabled={busy} onClick={onNext}><span>{tx.readCards}</span><ArrowRight size={24} strokeWidth={2} aria-hidden="true" /></button>
@@ -326,10 +460,11 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
       ) : (
         <div className="ksk-actions">
           <button className="ksk-btn" onClick={onPrev}>{labels.prev}</button>
-          <button className="ksk-btn ksk-btn-primary" disabled={!full || busy} onClick={() => { setPhase(reducedMotion ? 'ready' : 'revealing'); session.setRevealed(true) }}>{tx.reveal}</button>
+          <button className="ksk-btn ksk-btn-primary" disabled={!full || busy || flying} onClick={reveal}>{tx.reveal}</button>
         </div>
       )}
+      {/* 날아가는 카드가 그려지는 층 — 누를 수 없고, 화면 구성에 끼어들지 않는다 */}
+      <div ref={layerRef} className="trt-flight-layer" aria-hidden="true" />
     </div>
-    </LayoutGroup>
   )
 }

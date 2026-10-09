@@ -1,4 +1,4 @@
-/* Moonlit Garden 섞기 연출 — 카드의 움직임(transform)은 TarotShuffleAnimation 이 framer-motion 으로 그린다.
+/* Moonlit Garden 섞기 연출 — 카드의 움직임(transform)은 TarotShuffleAnimation 이 Web Animations 로 그린다.
    여기는 자리·크기·뒷면 색만. 연출 영역은 부채꼴 덱과 같은 높이라(부모가 높이를 넘겨줌) 섞기 ↔ 펼치기 때 화면이 들썩이지 않고,
    더미가 부채꼴의 한가운데에 놓여 '가운데 더미에서 나눠 준다'로 이어진다. */
 .ksk-root[data-program-theme='tarot'] .trt-shuffle-animation {

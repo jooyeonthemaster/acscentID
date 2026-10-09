@@ -1,66 +1,127 @@
-/* NEANDER demo's shuffle / cut / fan / travel, adapted to 22 cards and touch. */
-.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] { padding-top: 16px; }
+/* 타로 카드 연출 — 섞기 · 컷 · 부채꼴로 나눠 주기 · 고르기(날아가기) · 다시 섞기 · 펼치기(뒤집기).
+   움직이는 것은 transform · opacity 뿐이다(너비·여백·그림자를 애니메이션하지 않는다) — 화면을 다시 짜지 않고 그래픽 스레드에서 돈다.
+   카드가 날아가는 길과 뒤집기는 tarot-flight.ts(Web Animations), 순서와 시간은 TarotSteps.tsx(PHASE_MS)가 맡는다. */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] { position: relative; padding-top: 16px; }
 .ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] > .ksk-eyebrow { margin-bottom: 10px; }
 .ksk-root[data-program-theme='tarot'] .trt-selection-progress { margin-bottom: 10px; }
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress span { transition: background-color .3s ease, border-color .3s ease, transform .3s cubic-bezier(.3,1.4,.5,1); }
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress span[data-filled] { transform: scale(1.18); }
+/* 자리의 크기·위치 바뀜은 tarot-flight 의 glideFrom(FLIP)이 잇는다 — 너비 전환은 프레임마다 화면을 다시 짜서 끊긴다 */
+.ksk-root[data-program-theme='tarot'] .trt-slots { transition: none; }
 .ksk-root[data-program-theme='tarot'] .trt-slots:not([data-revealed]) { width: 70%; margin-bottom: 8px; }
 .ksk-root[data-program-theme='tarot'] .trt-table { position: relative; flex: none; width: 100%; }
 .ksk-root[data-program-theme='tarot'] .trt-table[hidden] { display: none; }
 .ksk-root[data-program-theme='tarot'] .trt-deck--fan { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 0; padding: 8px 7px 0; }
 .ksk-root[data-program-theme='tarot'] .trt-fan-row { display: flex; justify-content: center; align-items: flex-start; gap: 6px; width: 100%; padding: 3px 0 19px; }
+
+/* ── 부채꼴 카드 ───────────────────────────────────── */
 .ksk-root[data-program-theme='tarot'] .trt-fan-card {
   position: relative; flex: 0 0 calc((100% - (var(--columns) - 1) * 6px) / var(--columns));
   min-width: 44px; min-height: 66px; aspect-ratio: 2 / 3;
   transform: translateY(var(--fan-drop)) rotate(var(--fan-angle));
   transform-origin: 50% 90%;
-  animation: trt-fan-deal .46s cubic-bezier(.22,1,.36,1) both;
+  transition: opacity .3s ease;
+  /* 나눠 주기 — 가운데 더미에서 한 장씩(--deal-delay) 제자리로. 기다리는 동안(both)은 더미에 쌓여 있다 */
+  animation: trt-fan-deal .66s both;
   animation-delay: var(--deal-delay);
 }
 .ksk-root[data-program-theme='tarot'] .trt-fan-card[data-picked],
 .ksk-root[data-program-theme='tarot'] .trt-fan-card:active:not(:disabled) { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
-.ksk-root[data-program-theme='tarot'] .trt-fan-lift { display: block; width: 100%; height: 100%; transition: transform .3s cubic-bezier(.22,1,.36,1); }
-.ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:active,:focus-visible):not(:disabled) .trt-fan-lift { transform: translateY(-7px); }
+/* 누르는 순간 카드가 손에 들리듯 살짝 뜬다 */
+.ksk-root[data-program-theme='tarot'] .trt-fan-lift { display: block; width: 100%; height: 100%; transition: transform .28s cubic-bezier(.3,.9,.3,1); }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:active,:focus-visible):not(:disabled):not([data-away]) .trt-fan-lift { transform: translateY(-9px) scale(1.06); }
 .ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:hover,:focus-visible) { z-index: 4; }
-.ksk-root[data-program-theme='tarot'] .trt-moving-back { width: 100%; height: 100%; }
+/* 세 장을 다 골랐을 때만 나머지를 흐리게 — 섞는 동안(눌리지 않는 동안)까지 흐리면 나눠 준 뒤 밝기가 튄다 */
+.ksk-root[data-program-theme='tarot'] .trt-deck--fan .trt-deck-card:disabled:not([data-picked]) { opacity: 1; }
+.ksk-root[data-program-theme='tarot'] .trt-deck--fan[data-full] .trt-deck-card:not([data-picked]) { opacity: .62; }
 .ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--back { box-shadow: inset 0 0 0 2px #e5e3cf, -1px 3px 6px #44383b26; }
-.ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--picked { border-color: #9d82ab; color: #745982; background: #eee5f1; }
-.ksk-root[data-program-theme='tarot'] .trt-hint { margin-top: 8px; }
-.ksk-root[data-program-theme='tarot'] .trt-hint-btn:disabled { cursor: default; opacity: .45; }
-.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] { margin: auto 0; padding: 30px 0; }
-.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-card--face { box-shadow: 0 8px 25px #97764729, 0 0 0 1px #b8a47d; }
-.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name { animation: trt-caption-in .5s .7s both; }
-.ksk-root[data-program-theme='tarot'] .program-art > img { animation: trt-hero-drift 7s ease-in-out infinite; }
-.ksk-root[data-program-theme='tarot'] .trt-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--picked { border-color: #9d82ab; color: #745982; background: #eee5f1; animation: trt-fade-in .26s ease-out both; }
 @media (hover: hover) {
-  .ksk-root[data-program-theme='tarot'] .trt-fan-card:hover:not(:disabled) .trt-fan-lift { transform: translateY(-7px); }
+  .ksk-root[data-program-theme='tarot'] .trt-fan-card:hover:not(:disabled):not([data-away]) .trt-fan-lift { transform: translateY(-9px) scale(1.06); }
 }
-/* 나눠 주기 — 부채꼴 한가운데(섞은 더미 자리)에 쌓여 있다가 한 장씩 제자리로 간다. 기다리는 동안(both)은 더미로 보인다.
-   --dx/--dy 는 한가운데까지 카드 몇 장 폭·몇 줄인지(TarotSteps), 100% 는 카드 자기 크기 */
+/* --dx/--dy 는 한가운데까지 카드 몇 장 폭·몇 줄인지(TarotSteps), 100% 는 카드 자기 크기.
+   제자리를 살짝 지나쳤다 돌아온다 — 미끄러져 온 종이가 멈추는 느낌 */
 @keyframes trt-fan-deal {
-  from { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.96); }
-  to { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
+  0% { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.95); animation-timing-function: cubic-bezier(.3,.1,.25,1); }
+  70% { transform: translateY(calc(var(--fan-drop) - 5px)) rotate(calc(var(--fan-angle) * 1.14)) scale(1.02); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  100% { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)) scale(1); }
 }
-/* 다시 섞기 — 펼친 카드를 바깥쪽 카드부터 가운데로 쓸어 모은다(그 뒤 섞기 연출이 같은 자리에서 이어진다) */
+
+/* ── 다시 섞기 — 펼친 카드를 바깥쪽부터 가운데로 쓸어 모은다(고른 카드는 자리에서 날아온다 — tarot-flight) ── */
 .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='collecting'] .trt-fan-card {
-  animation: trt-fan-collect .42s cubic-bezier(.5, 0, .75, 0) both;
+  animation: trt-fan-collect .56s cubic-bezier(.5,0,.25,1) both;
   animation-delay: var(--collect-delay);
 }
 @keyframes trt-fan-collect {
-  from { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
-  to { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.96); }
+  0% { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)) scale(1); }
+  22% { transform: translateY(calc(var(--fan-drop) - 6px)) rotate(var(--fan-angle)) scale(1.03); }
+  100% { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.95); }
 }
-/* 이미 고른 카드도 덱으로 돌아간다 — 자리에서는 흐려져 사라진다 */
-.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='collecting'] .trt-slots .trt-moving-back {
-  animation: trt-slot-collect .4s ease-in both;
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='collecting'] .trt-fan-card .trt-card--picked { animation: trt-fade-out .2s ease-in both; }
+
+/* ── 날아가는 카드(부채꼴 ↔ 자리 ↔ 더미) ─────────────── */
+.ksk-root[data-program-theme='tarot'] .trt-flight-layer { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+.ksk-root[data-program-theme='tarot'] .trt-flyer { position: absolute; margin: 0; transform-origin: 50% 50%; will-change: transform, opacity; backface-visibility: hidden; }
+.ksk-root[data-program-theme='tarot'] .trt-flyer-face { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; will-change: opacity; }
+.ksk-root[data-program-theme='tarot'] .trt-flyer-face[data-look='fan'] { box-shadow: inset 0 0 0 2px #e5e3cf, 0 10px 22px #44383b33; }
+.ksk-root[data-program-theme='tarot'] .trt-flyer-face[data-look='slot'] {
+  background: #d7c9e1; border-color: #766087; border-radius: 8px; color: #6b517e;
+  box-shadow: inset 0 0 0 2px #eee5f2, 0 12px 26px #53405f3a;
 }
-@keyframes trt-slot-collect { to { opacity: 0; } }
-@keyframes trt-caption-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* 자리에 내려앉은 카드 — 살짝 눌렸다 펴진다 */
+.ksk-root[data-program-theme='tarot'] .trt-step:not([data-revealed]) .trt-flip-back .trt-card--back { animation: trt-land .24s cubic-bezier(.3,.6,.3,1) both; }
+.ksk-root[data-program-theme='tarot'] .trt-flip-back .trt-card--empty { animation: trt-fade-in .2s ease-out both; }
+@keyframes trt-land { from { transform: scale(1.05); } to { transform: none; } }
+
+/* ── 펼치기 ────────────────────────────────────────── */
+/* ① 덱과 '다시 섞기'가 아래로 가라앉으며 걷힌다 */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='clearing'] :is(.trt-table, .trt-hint) { animation: trt-clear .3s cubic-bezier(.4,0,.8,.6) both; pointer-events: none; }
+@keyframes trt-clear { to { opacity: 0; transform: translateY(14px) scale(.985); } }
+/* ② 세 장이 가운데로 — glideFrom. ③ 한 장씩 뒤집힌다 — flipOpen. 앞·뒷면을 품은 판(.trt-flip-inner)이 통째로 돈다 */
+.ksk-root[data-program-theme='tarot'] .trt-flip { perspective: 1100px; }
+.ksk-root[data-program-theme='tarot'] .trt-flip-inner { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.ksk-root[data-program-theme='tarot'] .trt-flip-side { transition: none; }
+.ksk-root[data-program-theme='tarot'] .trt-flip-back,
+.ksk-root[data-program-theme='tarot'] .trt-flip[data-open] .trt-flip-back { transform: none; }
+.ksk-root[data-program-theme='tarot'] .trt-flip-front,
+.ksk-root[data-program-theme='tarot'] .trt-flip[data-open] .trt-flip-front { transform: rotateY(180deg); }
+.ksk-root[data-program-theme='tarot'] .trt-flip[data-open] .trt-flip-inner { transform: rotateY(180deg); }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] { margin: auto 0; padding: 30px 0; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-card--face { box-shadow: 0 8px 25px #97764729, 0 0 0 1px #b8a47d; }
+/* 앞면이 보이는 순간 빛이 한 번 스친다(카드 안에서 띠 하나가 지나간다 — 카드는 넘치는 것을 잘라 낸다) */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='revealing'] .trt-flip[data-open] .trt-flip-front .trt-card--face::after {
+  content: ''; position: absolute; top: -10%; bottom: -10%; left: -60%; width: 55%;
+  background: linear-gradient(100deg, transparent, #ffffffb8 50%, transparent);
+  transform: translateX(0) skewX(-16deg); opacity: 0;
+  animation: trt-sheen .7s cubic-bezier(.3,.2,.3,1) both;
+  animation-delay: calc(.52s + var(--i) * .24s + .5s);
+}
+@keyframes trt-sheen { 0% { opacity: 0; transform: translateX(0) skewX(-16deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateX(340%) skewX(-16deg); } }
+/* 제목·설명이 바뀌고, 카드 이름은 그 카드가 뒤집힌 뒤에, '풀이 보기'는 다 뒤집힌 뒤에 떠오른다 */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='revealing'] > :is(.ksk-title, .trt-revealed-desc) { animation: trt-rise-in .5s cubic-bezier(.3,.7,.3,1) both; }
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='revealing'] .trt-slot-name { animation: trt-rise-in .45s cubic-bezier(.3,.7,.3,1) both; animation-delay: calc(.52s + var(--i) * .24s + .62s); }
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='revealing'] .trt-read-btn { animation: trt-rise-in .45s cubic-bezier(.3,.7,.3,1) 1.5s both; }
+
+.ksk-root[data-program-theme='tarot'] .trt-hint { margin-top: 8px; }
+.ksk-root[data-program-theme='tarot'] .trt-hint-btn { transition: opacity .25s ease; }
+.ksk-root[data-program-theme='tarot'] .trt-hint-btn:disabled { cursor: default; opacity: .45; }
+.ksk-root[data-program-theme='tarot'] .program-art > img { animation: trt-hero-drift 7s ease-in-out infinite; }
+.ksk-root[data-program-theme='tarot'] .trt-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+@keyframes trt-fade-in { from { opacity: 0; } }
+@keyframes trt-fade-out { to { opacity: 0; } }
+@keyframes trt-rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes trt-hero-drift { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-7px) rotate(.4deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   .ksk-root[data-program-theme='tarot'] .trt-fan-card,
   .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] .trt-fan-card,
-  .ksk-root[data-program-theme='tarot'] .trt-slots .trt-moving-back,
-  .ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name,
+  .ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--picked,
+  .ksk-root[data-program-theme='tarot'] .trt-flip-back :is(.trt-card--back, .trt-card--empty),
+  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] :is(.trt-table, .trt-hint, .ksk-title, .trt-revealed-desc, .trt-slot-name, .trt-read-btn),
+  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] .trt-flip-front .trt-card--face::after,
   .ksk-root[data-program-theme='tarot'] .program-art > img { animation: none; }
-  .ksk-root[data-program-theme='tarot'] .trt-fan-lift { transition: none; }
+  .ksk-root[data-program-theme='tarot'] .trt-fan-lift,
+  .ksk-root[data-program-theme='tarot'] .trt-selection-progress span { transition: none; }
   .ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:hover,:active,:focus-visible):not(:disabled) .trt-fan-lift { transform: none; }
 }

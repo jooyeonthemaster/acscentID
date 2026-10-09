@@ -3,9 +3,9 @@
 // 섞기 연출 — 장식용 카드 16장. 실제 덱(22장)·순서·타이머는 부모(TarotSteps)가 맡고, 여기는 보이는 움직임만 그린다.
 // 섞이는 게 눈에 보이게: 두 더미로 갈라 한 장씩 번갈아 떨어뜨리는 리플 셔플을 두 번 → 세 더미로 나눠 순서를 바꿔 쌓는다.
 // 왼쪽·오른쪽 더미는 뒷면 색(세이지·라벤더)이 달라, 떨어진 뒤 두 색이 섞여 쌓이는 게 보인다.
+// 움직임은 Web Animations(transform 만) — 그래픽 스레드에서 돌아 느린 기기에서도 끊기지 않는다.
 
-import type { CSSProperties } from 'react'
-import { motion } from 'framer-motion'
+import { useLayoutEffect, useRef } from 'react'
 import { TarotCardBack } from './TarotCard'
 import './tarot-shuffle.css'
 
@@ -71,33 +71,39 @@ function cutKeyframes(i: number) {
   }
 }
 
+const at = (x: number, y: number, rotate: number) => `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rotate.toFixed(2)}deg)`
+
 export function TarotShuffleAnimation({ phase, label }: TarotShuffleAnimationProps) {
+  const cards = useRef<(HTMLDivElement | null)[]>([])
+  const shuffling = phase === 'shuffling'
+
+  useLayoutEffect(() => {
+    const running = CARDS.map((i) => {
+      const el = cards.current[i]
+      if (!el) return null
+      const path = shuffling ? riffleKeyframes(i) : cutKeyframes(i)
+      // 구간마다 부드럽게 출발·도착(ease-in-out) — 카드가 손에서 떨어졌다 멈추는 느낌
+      const frames = path.times.map((offset, k) => ({ offset, easing: 'ease-in-out', transform: at(path.x[k], path.y[k], path.rotate[k]) }))
+      return el.animate(frames, { duration: shuffling ? SHUFFLE_MS : CUT_MS, fill: 'both' })
+    })
+    return () => running.forEach((animation) => animation?.cancel())
+  }, [shuffling])
+
   return (
     <div className="trt-shuffle-animation" data-phase={phase} role="status" aria-live="polite" aria-atomic="true" aria-label={label}>
       <div className="trt-shuffle-table" aria-hidden="true">
         {CARDS.map((i) => {
-          const riffle = riffleKeyframes(i)
-          const cut = cutKeyframes(i)
           const s = stackAt(i)
-          const shuffling = phase === 'shuffling'
           return (
-            <motion.div
+            <div
               key={i}
+              ref={(el) => { cards.current[i] = el }}
               className="trt-shuffle-card"
               data-side={i % 2 === 0 ? 'left' : 'right'}
-              style={{ zIndex: shuffling ? i + 1 : cut.zIndex } as CSSProperties}
-              initial={{ x: s.x, y: s.y, rotate: 0 }}
-              animate={shuffling
-                ? { x: riffle.x, y: riffle.y, rotate: riffle.rotate }
-                : { x: cut.x, y: cut.y, rotate: cut.rotate }}
-              transition={{
-                duration: (shuffling ? SHUFFLE_MS : CUT_MS) / 1000,
-                times: shuffling ? riffle.times : cut.times,
-                ease: 'easeInOut',
-              }}
+              style={{ zIndex: shuffling ? i + 1 : cutKeyframes(i).zIndex, transform: at(s.x, s.y, 0) }}
             >
               <TarotCardBack />
-            </motion.div>
+            </div>
           )
         })}
       </div>

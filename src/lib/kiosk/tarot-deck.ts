@@ -66,10 +66,10 @@ const preloadedArt: HTMLImageElement[] = []
  */
 export function preloadTarotArt(): void {
   if (typeof window === 'undefined' || preloadedArt.length) return
-  for (const card of TAROT_DECK) {
+  for (const src of [...TAROT_DECK.map((card) => tarotArtSrc(card.id)), '/assets/kiosk-programs/tarot-back-art.svg']) {
     const img = new Image()
     img.decoding = 'async'
-    img.src = tarotArtSrc(card.id)
+    img.src = src
     preloadedArt.push(img)
   }
 }
