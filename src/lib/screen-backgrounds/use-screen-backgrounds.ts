@@ -40,7 +40,8 @@ function parseLive(value: unknown, target: ScreenTarget): LiveEventOverride | nu
 }
 async function readResponse(response: Response) {
   const result = await response.json().catch(() => null)
-  if (!response.ok) throw new Error(result?.error || '서버에 연결하지 못했습니다.')
+  // status 를 같이 싣는다 — 관리자 창이 인증 만료(403)·없어진 배경(409)·입력 제한(429)을 문구가 아닌 값으로 가린다
+  if (!response.ok) throw Object.assign(new Error(result?.error || '서버에 연결하지 못했습니다.'), { status: response.status })
   return result
 }
 

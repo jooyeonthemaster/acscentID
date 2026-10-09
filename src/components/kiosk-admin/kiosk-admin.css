@@ -1,0 +1,1766 @@
+/* 키오스크 현장 관리자 창 — 560px CSS 폭 기준(실기 1080×1920, 셸 zoom≈1.93).
+   고객 화면의 테마(기존·레트로·맥·컬러·타로)와 상관없이 늘 같은 모양이다: 밝은 창 · 짙은 남색 글자 · 절제된 인디고 포인트.
+   body 에 띄우므로 고객 화면의 CSS 변수·zoom 이 닿지 않는다 — 색·글꼴은 모두 여기서 정한다.
+   머리(제목·탭)와 바닥(종료·돌아가기)은 고정, 본문 한 곳만 스크롤한다. 누르는 곳은 48px 이상, 주요 버튼은 52px 이상. */
+
+.kadm {
+  --ink: #17233f;
+  --ink-2: #48546e;
+  --ink-3: #68748d;
+  --line: #dde2ec;
+  --line-2: #c6cddc;
+  --bg: #fbfcfe;
+  --card: #ffffff;
+  --soft: #f1f4f9;
+  --accent: #4f5bd5;
+  --accent-ink: #3944b8;
+  --accent-soft: #eef0fd;
+  --accent-line: #a9b0ec;
+  --ok: #167a36;
+  --ok-soft: #ecf9ef;
+  --ok-line: #3fb563;
+  --warn: #8a5200;
+  --warn-soft: #fff6e3;
+  --warn-line: #e3b04b;
+  --danger: #d32a44;
+  --danger-soft: #fff0f2;
+  --danger-line: #ec8f9d;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px 19px;
+  background: rgba(46, 50, 64, 0.66);
+  color: var(--ink);
+  font-family: var(--font-heading-serif), 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-align: left;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+.kadm *,
+.kadm *::before,
+.kadm *::after {
+  box-sizing: border-box;
+}
+.kadm :is(h1, h2, h3, h4, p, dl, dd, ul, figure) {
+  margin: 0;
+}
+.kadm button {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.kadm button:disabled {
+  cursor: default;
+}
+.kadm :is(button, [tabindex]):focus {
+  outline: none;
+}
+.kadm :is(button, [tabindex]):focus-visible {
+  outline: 3px solid rgba(79, 91, 213, 0.5);
+  outline-offset: 2px;
+}
+.kadm svg {
+  flex: none;
+}
+.kadm :is(em, i) {
+  font-style: normal;
+}
+
+/* ── 창 ─────────────────────────── */
+.kadm-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(522px, 100%);
+  height: min(940px, 100%);
+  background: var(--bg);
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(15, 22, 44, 0.32);
+  overflow: hidden;
+  animation: kadm-in 0.18s ease-out both;
+}
+.kadm-panel[data-small] {
+  width: min(432px, 100%);
+  height: auto;
+  max-height: 100%;
+  overflow-y: auto;
+}
+@keyframes kadm-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+}
+
+.kadm-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 16px 6px 26px;
+}
+.kadm-head h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm .kadm-chip-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--soft);
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kadm .kadm-chip-btn:active {
+  background: #e6eaf2;
+}
+
+.kadm-tabs {
+  flex: none;
+  display: flex;
+  margin: 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.kadm .kadm-tabs button {
+  flex: 1 1 auto;
+  min-height: 50px;
+  padding: 0 6px;
+  color: var(--ink-2);
+  font-size: 15.5px;
+  white-space: nowrap;
+  box-shadow: inset 0 -3px 0 transparent;
+}
+.kadm .kadm-tabs button[aria-selected='true'] {
+  color: var(--accent-ink);
+  font-weight: 800;
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+.kadm .kadm-tabs button:disabled {
+  color: #a3abbd;
+}
+
+.kadm-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 20px 22px;
+  scrollbar-width: thin;
+  scrollbar-color: #c3cad9 transparent;
+}
+.kadm-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.kadm-pane-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.kadm-h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+.kadm-h2 {
+  margin-top: 6px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-h2 + .kadm-sub {
+  margin-top: -8px;
+}
+.kadm-sub {
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.kadm-foot {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.kadm-foot > .kadm-btn {
+  min-height: 54px;
+  font-size: 17px;
+}
+.kadm-foot > .kadm-btn:first-child {
+  flex: 0 0 152px;
+  padding: 0 10px;
+}
+.kadm-foot > .kadm-btn:last-child {
+  flex: 1;
+}
+.kadm-foot--even > .kadm-btn:first-child {
+  flex: 1;
+}
+
+/* ── 버튼 · 알약 · 알림 ─────────────────────────── */
+.kadm .kadm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.kadm .kadm-btn:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+.kadm .kadm-btn:disabled {
+  opacity: 0.5;
+}
+.kadm .kadm-btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.kadm .kadm-btn--danger {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+}
+.kadm .kadm-btn--warn {
+  border-color: #a56300;
+  background: #a56300;
+  color: #fff;
+}
+.kadm .kadm-btn--quit {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.kadm .kadm-btn--soft {
+  border-color: var(--line);
+  background: var(--soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.kadm .kadm-btn--small {
+  flex: none;
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+.kadm .kadm-btn--wide {
+  width: 100%;
+  white-space: normal;
+}
+
+.kadm-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--ink-2);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.kadm-pill[data-tone='ok'] {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.kadm-pill[data-tone='plan'] {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.kadm-pill[data-tone='off'] {
+  background: #f3f4f7;
+  color: var(--ink-3);
+}
+.kadm-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kadm-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.kadm-notice > svg {
+  color: var(--ink);
+}
+.kadm-notice-text {
+  flex: 1;
+  min-width: 0;
+}
+.kadm-notice-text > b {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+}
+.kadm-notice-text > span {
+  display: block;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.kadm-notice[data-compact] {
+  gap: 10px;
+  padding: 10px 14px;
+}
+.kadm-notice[data-compact] .kadm-notice-text > span {
+  font-size: 14.5px;
+}
+.kadm-notice[data-tone='ok'] {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+}
+.kadm-notice[data-tone='ok'] > svg,
+.kadm-notice[data-tone='ok'] b {
+  color: var(--ok);
+}
+.kadm-notice[data-tone='warn'] {
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
+}
+.kadm-notice[data-tone='warn'] > svg,
+.kadm-notice[data-tone='warn'] b {
+  color: var(--warn);
+}
+.kadm-notice[data-tone='error'] {
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+.kadm-notice[data-tone='error'] > svg,
+.kadm-notice[data-tone='error'] b {
+  color: var(--danger);
+}
+.kadm-notice[data-tone='busy'] {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.kadm-notice[data-tone='busy'] b {
+  color: var(--accent-ink);
+}
+
+/* 저장 결과 띠 — 긴 목록 아래쪽에서 눌러도 보이게 본문 위에 붙는다 */
+.kadm-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  border-radius: 12px;
+  box-shadow: 0 0 0 6px var(--bg), 0 10px 18px -6px rgba(15, 22, 44, 0.22);
+}
+
+.kadm-spin {
+  flex: none;
+  display: inline-block;
+  border: 3px solid #d3d7ef;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: kadm-spin 0.8s linear infinite;
+}
+.kadm-rotating {
+  animation: kadm-spin 0.8s linear infinite;
+}
+@keyframes kadm-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kadm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 16px;
+  border: 1px dashed var(--line-2);
+  border-radius: 14px;
+  color: var(--ink-2);
+  text-align: center;
+}
+.kadm-empty > b {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 800;
+}
+.kadm-empty > span {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.kadm-empty--page {
+  padding: 64px 12px 24px;
+  border: 0;
+}
+.kadm-empty--page > i {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.kadm-empty--page > b {
+  font-size: 25px;
+}
+.kadm-empty--page > span {
+  font-size: 16.5px;
+}
+.kadm-empty--page > .kadm-btn {
+  margin-top: 16px;
+  min-width: 220px;
+}
+
+.kadm-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.kadm-hint > svg {
+  margin-top: -1px;
+}
+
+.kadm-radio {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #b4bccd;
+  border-radius: 50%;
+  background: var(--card);
+  color: #fff;
+}
+.kadm-radio[data-on] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.kadm-radio--dot[data-on] {
+  background: var(--card);
+}
+.kadm-radio--dot[data-on]::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.kadm-check {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.kadm-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.kadm-callout {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1.5px solid var(--accent-line);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+.kadm-callout > svg {
+  color: var(--accent);
+}
+.kadm-callout b {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+}
+.kadm-callout span {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.kadm-facts {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm-facts > div {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.kadm-facts > div + div {
+  border-top: 1px solid var(--line);
+}
+.kadm-facts dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 700;
+}
+.kadm-facts dd {
+  font-size: 15.5px;
+  line-height: 1.4;
+}
+.kadm-facts--card > div {
+  grid-template-columns: 132px 1fr;
+}
+.kadm-facts--card dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.kadm-facts--card dd b {
+  font-size: 17px;
+  font-weight: 800;
+}
+.kadm-facts--card dd em {
+  color: var(--ink-3);
+  font-size: 13.5px;
+}
+
+.kadm .kadm-linkrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-linkrow:disabled {
+  opacity: 0.55;
+}
+.kadm-linkrow > svg:first-child {
+  color: var(--accent);
+}
+.kadm-linkrow > svg:last-child {
+  color: var(--ink-3);
+}
+.kadm-linkrow > span {
+  flex: 1;
+  min-width: 0;
+}
+.kadm-linkrow b {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+}
+.kadm-linkrow em {
+  display: block;
+  color: var(--ink-3);
+  font-size: 14.5px;
+}
+.kadm-linkrow small {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* ── 인증(PIN) ─────────────────────────── */
+.kadm-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 22px 22px;
+}
+.kadm-pin > h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+.kadm-pin-sub {
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: center;
+}
+.kadm-pin-dots {
+  display: flex;
+  gap: 18px;
+  margin: 24px 0 14px;
+}
+.kadm-pin-dots > i {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #5a6a90;
+  border-radius: 50%;
+}
+.kadm-pin-dots > i[data-filled] {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+.kadm-pin-status {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-height: 76px;
+  margin-bottom: 10px;
+}
+.kadm-pin-checking,
+.kadm-pin-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.kadm-pin-wait {
+  background: var(--soft);
+  color: var(--ink-2);
+}
+.kadm-pin-error {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 62px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--danger-line);
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.kadm-pin-error > span {
+  display: flex;
+  flex-direction: column;
+  font-size: 14.5px;
+}
+.kadm-pin-error b {
+  font-size: 16px;
+  font-weight: 800;
+}
+.kadm-pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 10px;
+  width: 100%;
+}
+.kadm .kadm-pin-pad > button {
+  min-height: 60px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 25px;
+  font-weight: 800;
+}
+.kadm .kadm-pin-pad > button[data-action] {
+  font-size: 17px;
+  font-weight: 700;
+}
+.kadm .kadm-pin-pad > button:active:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.kadm .kadm-pin-pad > button:disabled {
+  border-color: var(--line);
+  background: #eceff5;
+  color: #9aa3b8;
+}
+.kadm .kadm-pin > .kadm-btn {
+  width: 100%;
+  min-height: 60px;
+  margin-top: 18px;
+  font-size: 17px;
+}
+
+/* ── 홈 ─────────────────────────── */
+.kadm-status {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.kadm-status-art {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7f2ea;
+  overflow: hidden;
+}
+.kadm-status-art > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.kadm-status-art[data-cover] > img {
+  object-fit: cover;
+}
+.kadm-status-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+.kadm-status-name > b {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-status dl {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.kadm-status dl > div {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  align-items: baseline;
+}
+.kadm-status dt {
+  color: #46558a;
+  font-size: 15px;
+  font-weight: 700;
+}
+.kadm-status dd {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+  font-size: 16px;
+  line-height: 1.35;
+}
+.kadm-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.kadm .kadm-links > button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 124px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-links > button:active {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.kadm-links svg:first-child {
+  color: var(--accent);
+}
+.kadm-links svg:nth-child(2) {
+  position: absolute;
+  top: 22px;
+  right: 16px;
+  color: var(--ink-3);
+}
+.kadm-links b {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 800;
+}
+.kadm-links span {
+  margin-top: 3px;
+  color: var(--ink-3);
+  font-size: 15px;
+}
+
+/* ── 운영 모드 ─────────────────────────── */
+.kadm-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kadm .kadm-mode {
+  display: grid;
+  grid-template-columns: 58px 1fr 30px;
+  align-items: center;
+  gap: 18px;
+  min-height: 98px;
+  padding: 14px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm-mode > svg {
+  justify-self: center;
+  color: #33406b;
+}
+.kadm-mode b {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-bottom: 4px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-mode em {
+  display: block;
+  color: var(--ink-3);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.kadm .kadm-mode[data-on],
+.kadm .kadm-mode[data-saving] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 0.5px var(--accent);
+  background: #f5f6ff;
+}
+.kadm .kadm-mode[data-on] > svg {
+  color: var(--accent);
+}
+.kadm-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.kadm .kadm-pair > button {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-pair > button[data-on] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 0.5px var(--accent);
+  background: #f5f6ff;
+}
+.kadm .kadm-pair > button:disabled:not([data-on]) {
+  opacity: 0.6;
+}
+.kadm-pair-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17.5px;
+  font-weight: 800;
+}
+.kadm-hanja {
+  display: block;
+  padding: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafbfd;
+  font-size: 30px;
+  line-height: 1.35;
+  text-align: center;
+}
+.kadm-receipt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 178px;
+  padding: 12px 10px 10px;
+  border: 1px dashed var(--line-2);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.kadm-receipt > b {
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.kadm-receipt[data-style='prescription'] > b {
+  align-self: stretch;
+  padding: 6px 0;
+  border-top: 3px double var(--ink);
+  border-bottom: 3px double var(--ink);
+  text-align: center;
+}
+.kadm-receipt > em {
+  margin-top: -4px;
+  font-size: 12px;
+}
+.kadm-receipt-grid {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--ink-2);
+  border-left: 1px solid var(--ink-2);
+}
+.kadm-receipt-grid > i {
+  padding: 3px 0;
+  border-right: 1px solid var(--ink-2);
+  border-bottom: 1px solid var(--ink-2);
+  color: var(--ink);
+  font-size: 15px;
+  text-align: center;
+}
+.kadm-receipt-grid > i:nth-child(-n + 4) {
+  background: var(--soft);
+  font-size: 11.5px;
+}
+.kadm-receipt-row {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kadm-receipt-boxes {
+  display: flex;
+  gap: 3px;
+}
+.kadm-receipt-boxes > i {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid var(--ink-2);
+  color: var(--ink);
+  font-size: 12px;
+}
+.kadm-receipt-seal {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-size: 14px;
+}
+.kadm-receipt-plain {
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+.kadm-receipt-line {
+  align-self: stretch;
+  padding-bottom: 5px;
+  border-bottom: 1px dotted var(--line-2);
+  text-align: center;
+}
+.kadm-receipt > small {
+  margin-top: auto;
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+
+/* ── 화면·글꼴 ─────────────────────────── */
+.kadm-designs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.kadm .kadm-designs > button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.kadm .kadm-designs > button[data-on] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.kadm .kadm-designs > button:disabled:not([data-on]) {
+  opacity: 0.6;
+}
+.kadm-designs > button > b {
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.kadm-design {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  padding-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7f8fb;
+  overflow: hidden;
+}
+.kadm-design > b {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+.kadm-design > em {
+  min-width: 70%;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.kadm-design-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  display: none;
+  height: 16px;
+}
+.kadm-design[data-ui='retro'] {
+  border: 2px outset #f4f5f8;
+  border-radius: 0;
+  background: #c9ccd4;
+}
+.kadm-design[data-ui='retro'] > .kadm-design-bar {
+  display: block;
+  background: #8389a3;
+}
+.kadm-design[data-ui='retro'] > em {
+  border: 2px outset #fff;
+  border-radius: 0;
+  background: #d8dae0;
+  color: #111;
+}
+.kadm-design[data-ui='mac'] {
+  border-color: #e3dccf;
+  border-radius: 10px;
+  background: #fcf8f1;
+}
+.kadm-design[data-ui='mac'] > .kadm-design-bar {
+  display: block;
+  background:
+    radial-gradient(circle at 11px 8px, #ee5f57 3.5px, transparent 4px),
+    radial-gradient(circle at 23px 8px, #f5bd4f 3.5px, transparent 4px),
+    radial-gradient(circle at 35px 8px, #5fc454 3.5px, transparent 4px),
+    #f1eadd;
+}
+.kadm-design[data-ui='mac'] > em {
+  border: 1px solid #e3dccf;
+  background: #fff;
+  color: var(--ink);
+}
+.kadm-fontcard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.kadm-fontcard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.kadm-fontcard-head span {
+  display: block;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.kadm-fontcard-head b {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-fontcard-sample {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafbfd;
+}
+.kadm-fontcard-sample > span {
+  display: block;
+  color: var(--ink-3);
+  font-family: var(--font-heading-serif), 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 13.5px;
+}
+.kadm-fontcard-sample > b {
+  display: block;
+  margin: 6px 0 4px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.kadm-fontcard-sample > em {
+  color: var(--ink-3);
+  font-size: 15.5px;
+}
+
+/* ── 평소 배경 ─────────────────────────── */
+.kadm-backgrounds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.kadm .kadm-backgrounds > button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-backgrounds > button[data-on],
+.kadm .kadm-backgrounds > button[data-saving] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.kadm .kadm-backgrounds > button[data-dim] {
+  opacity: 0.5;
+}
+.kadm-backgrounds > button > b {
+  margin-top: 7px;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kadm-backgrounds > button > em {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kadm-bg-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.kadm-bg-thumb > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kadm-bg-thumb > b {
+  position: relative;
+  padding: 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+.kadm-bg-thumb > .kadm-check {
+  top: 8px;
+  right: 8px;
+  box-shadow: none;
+}
+.kadm-bg-now {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.kadm-bg-busy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--accent-ink);
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+/* ── 행사 배경 ─────────────────────────── */
+.kadm-events {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.kadm .kadm-event-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 84px 1fr 24px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-event-card:active {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.kadm-event-card > svg {
+  color: var(--ink-3);
+}
+.kadm-event-thumb {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 96px;
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--ink-3);
+  overflow: hidden;
+}
+.kadm-event-thumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kadm-event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.kadm-event-info > b {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.kadm-event-info > span {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.kadm-legend {
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.kadm-legend > p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+}
+.kadm-legend > dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 10px;
+}
+.kadm-legend dl > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kadm-legend dd {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.kadm .kadm-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  margin: -12px 0 -12px -6px;
+  padding: 0 12px 0 4px;
+  color: var(--ink-2);
+  font-size: 16px;
+}
+.kadm-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: -6px;
+}
+.kadm-event-meta > span:first-child {
+  color: var(--ink-2);
+  font-size: 18px;
+}
+.kadm-event-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 0 28px;
+  text-align: center;
+}
+.kadm .kadm-event-images button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.kadm-event-images button > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kadm-event-images button > i {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+}
+.kadm-event-images button > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+  font-size: 14.5px;
+}
+.kadm-event-images figcaption {
+  margin-top: 6px;
+  font-size: 14.5px;
+}
+.kadm-rows {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.kadm-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 78px;
+  padding: 12px 16px;
+}
+.kadm-row + .kadm-row {
+  border-top: 1px solid var(--line);
+}
+.kadm-row > svg {
+  color: var(--accent);
+}
+.kadm-row b {
+  display: block;
+  font-size: 17.5px;
+  font-weight: 800;
+}
+.kadm-row span {
+  display: block;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.kadm-row > .kadm-btn {
+  min-width: 138px;
+}
+.kadm .kadm-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 0 0 8px;
+}
+.kadm-switch > em {
+  color: var(--ink-3);
+  font-size: 15.5px;
+  font-weight: 800;
+}
+.kadm-switch > i {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  background: #c3cada;
+  transition: background 0.18s ease;
+}
+.kadm-switch > i::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 22, 44, 0.3);
+  transition: transform 0.18s ease;
+}
+.kadm-switch[aria-checked='true'] > em {
+  color: var(--accent-ink);
+}
+.kadm-switch[aria-checked='true'] > i {
+  background: var(--accent);
+}
+.kadm-switch[aria-checked='true'] > i::after {
+  transform: translateX(24px);
+}
+.kadm .kadm-switch:disabled {
+  opacity: 0.5;
+}
+.kadm-font-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.kadm .kadm-font-choices > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 0 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--card);
+  font-size: 18px;
+}
+.kadm .kadm-font-choices > button[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 0.5px var(--accent);
+  background: var(--accent-soft);
+}
+.kadm-font-choices svg {
+  color: var(--accent);
+}
+.kadm .kadm-font-choices > button:disabled {
+  opacity: 0.6;
+}
+
+/* ── 창 안의 창(글꼴 고르기 · 생성 · 종료 확인 · 크게 보기) ─────────────────────────── */
+.kadm-modal-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(23, 35, 63, 0.52);
+}
+.kadm-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 100%;
+  padding: 28px 22px 20px;
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: 0 14px 40px rgba(15, 22, 44, 0.3);
+  overflow-y: auto;
+  text-align: center;
+}
+.kadm-modal h3 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-modal > p {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.kadm-modal > .kadm-notice {
+  width: 100%;
+  text-align: left;
+}
+.kadm-modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+.kadm-modal-actions > .kadm-btn {
+  flex: 1;
+  min-height: 56px;
+}
+.kadm-gen-icon[data-tone='warn'] {
+  color: #c07800;
+}
+.kadm-gen-icon[data-tone='ok'] {
+  color: var(--ok);
+}
+.kadm-gen-icon[data-tone='danger'] {
+  color: var(--danger);
+}
+.kadm-gen-icon[data-tone='info'] {
+  color: var(--accent);
+}
+.kadm-gen-results {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+.kadm-gen-results img {
+  display: block;
+  width: 124px;
+  aspect-ratio: 9 / 16;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  object-fit: cover;
+}
+.kadm-gen-results figcaption {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.kadm-modal--wide {
+  align-items: stretch;
+  gap: 0;
+  max-width: none;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+}
+.kadm-modal-head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 16px 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.kadm-modal-head h3 {
+  font-size: 23px;
+}
+.kadm-modal-head p {
+  margin-top: 4px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.kadm-modal .kadm-modal-foot {
+  flex: none;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 14px;
+  text-align: center;
+}
+.kadm-font-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 14px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #c3cad9 transparent;
+}
+.kadm-font-list h4 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 12px 6px 8px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font-size: 14.5px;
+  font-weight: 800;
+}
+.kadm .kadm-font-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 148px 1fr 28px;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  margin-bottom: 8px;
+  padding: 8px 12px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  text-align: left;
+}
+.kadm .kadm-font-row[data-selected] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 0.5px var(--accent);
+  background: var(--accent-soft);
+}
+.kadm-font-name > b {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.kadm-font-name > em {
+  display: block;
+  color: var(--accent-ink);
+  font-size: 12.5px;
+}
+.kadm-font-sample {
+  overflow: hidden;
+  font-size: 19px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kadm-zoom {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(18, 22, 36, 0.95);
+}
+.kadm-zoom > header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.kadm-zoom > header > b {
+  min-width: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+.kadm .kadm-zoom .kadm-chip-btn {
+  background: #fff;
+}
+.kadm-zoom > img {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+}
+.kadm-zoom > p {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #cfd5e4;
+  font-size: 14.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kadm-panel {
+    animation: none;
+  }
+  .kadm-spin,
+  .kadm-rotating {
+    animation-duration: 1.8s;
+  }
+  .kadm-switch > i,
+  .kadm-switch > i::after {
+    transition: none;
+  }
+}
