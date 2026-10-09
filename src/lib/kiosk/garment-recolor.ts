@@ -44,10 +44,11 @@ export interface GarmentPrep {
 
 // ───────────────────────── 파일 받기 ─────────────────────────
 //
-// 엔진(WASM 9.5MB, 전송 약 3MB)·모델(16MB)은 손님이 없는 첫 화면에서만 받는다(preloadGarmentModel).
-// 손님이 시작하면 받던 것을 멈춘다(pauseGarmentDownload) — 매장 망이 느려 진단 요청·응답과 같이 흐르면
-// 진단 결과가 돌아오지 못했다(2026-10-09 실기). 다 받은 파일은 메모리(blob)에 두고 워커는 거기서만 읽는다 —
-// 손님 진행 중에는 이 기능 때문에 망을 쓰지 않는다. 다 받지 못했으면 결과 화면은 드레이프로 대신한다.
+// 엔진(WASM 9.5MB)·모델(16MB)은 손님이 없는 첫 화면에서만, 조각으로 천천히 받는다(preloadGarmentModel).
+// 손님이 시작하면 받던 것을 멈춘다(pauseGarmentDownload) — 진단 요청과 같은 순간에 받기 시작했더니 키오스크의
+// USB Wi-Fi 가 끊겨 진단 결과가 돌아오지 못했다(2026-10-09 실기). 한 번 받은 파일은 기기 보관함(Cache Storage)에 두어
+// 앱을 다시 켜도 다시 받지 않는다. 쓸 때는 메모리(blob)에서만 읽는다 — 손님 진행 중에는 이 기능 때문에 망을 쓰지 않는다.
+// 다 받지 못했으면 결과 화면은 드레이프로 대신한다.
 
 interface GarmentAssets {
   /** blob: 주소 — WASM 로더 스크립트 */
@@ -60,6 +61,66 @@ interface GarmentAssets {
 let assets: GarmentAssets | null = null
 let download: AbortController | null = null
 
+/** 받아 둔 파일 보관함(Cache Storage) 이름 — @mediapipe/tasks-vision 이나 모델 파일을 바꾸면 끝의 번호를 올린다(옛 파일과 섞이지 않게) */
+const ASSET_CACHE = 'kiosk-garment-assets-v1'
+/**
+ * 조각 크기와 조각 사이 쉬는 시간 — 평균 250KB/s 를 넘지 않게 받는다(전부 약 26MB, 2~4분).
+ * 매장 키오스크는 USB Wi-Fi 동글(802.11n)이라 25MB 를 한꺼번에 받자 회선이 끊겼다
+ * (2026-10-09: 14시간 멀쩡하던 Wi-Fi 가 받기 시작한 뒤 여섯 번 재연결). 응답을 천천히 읽는 것만으로는
+ * 브라우저가 미리 다 받아 버려 소용없다 — 부분 요청(Range)으로 조각을 나눠 실제 전송을 늦춘다.
+ */
+const CHUNK_BYTES = 320 * 1024
+const CHUNK_GAP_MS = 1300
+
+/** 받다 만 조각 — 손님이 와서 멈춰도 앱이 켜져 있는 동안은 다음 첫 화면에서 이어 받는다 */
+const partial = new Map<string, { etag: string | null; total: number; type: string; chunks: BlobPart[]; received: number }>()
+
+function pause(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(new DOMException('aborted', 'AbortError'))
+    const timer = window.setTimeout(() => { signal.removeEventListener('abort', onAbort); resolve() }, ms)
+    const onAbort = () => { window.clearTimeout(timer); reject(new DOMException('aborted', 'AbortError')) }
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
+/** 보관함에 있으면 그것을(망을 쓰지 않는다), 없으면 조각으로 천천히 받아 보관함에 넣는다 */
+async function getAsset(url: string, signal: AbortSignal): Promise<Blob> {
+  const store = typeof caches === 'undefined' ? null : await caches.open(ASSET_CACHE).catch(() => null)
+  const kept = await store?.match(url).catch(() => undefined)
+  if (kept) return kept.blob()
+  const keep = async (blob: Blob) => {
+    partial.delete(url)
+    await store?.put(url, new Response(blob, { headers: { 'content-type': blob.type } })).catch(() => {})
+    return blob
+  }
+  for (;;) {
+    const part = partial.get(url)
+    const from = part?.received ?? 0
+    if (part && from >= part.total) return keep(new Blob(part.chunks, { type: part.type }))
+    const res = await fetch(url, { signal, cache: 'no-store', priority: 'low', headers: { Range: `bytes=${from}-${from + CHUNK_BYTES - 1}` } } as RequestInit)
+    const type = res.headers.get('content-type') ?? 'application/octet-stream'
+    // 부분 요청을 무시하고 통째로 준 서버 — 받은 것을 그대로 쓴다
+    if (res.status === 200) return keep(new Blob([await res.arrayBuffer()], { type }))
+    if (res.status !== 206) throw new Error(`${url} ${res.status}`)
+    const total = Number(res.headers.get('content-range')?.split('/')[1])
+    const etag = res.headers.get('etag')
+    if (!Number.isFinite(total) || total <= 0) throw new Error(`${url} no total`)
+    if (part && (part.etag !== etag || part.total !== total)) {
+      // 받는 사이에 파일이 바뀌었다(새 배포) — 처음부터
+      partial.delete(url)
+      continue
+    }
+    const bytes = await res.arrayBuffer()
+    if (!bytes.byteLength) throw new Error(`${url} empty chunk`)
+    const next = part ?? { etag, total, type, chunks: [], received: 0 }
+    next.chunks.push(bytes)
+    next.received += bytes.byteLength
+    partial.set(url, next)
+    if (next.received < next.total) await pause(CHUNK_GAP_MS, signal)
+  }
+}
+
 /** 컬러 모드 첫 화면(손님 없음)에서 부른다. 이미 받았거나 받는 중이면 아무것도 하지 않는다. 실패해도 조용히 — 다음 첫 화면에서 다시 */
 export function preloadGarmentModel(): void {
   if (typeof window === 'undefined' || typeof Worker === 'undefined' || assets || download) return
@@ -68,23 +129,22 @@ export function preloadGarmentModel(): void {
   void (async () => {
     const { FilesetResolver } = await import('@mediapipe/tasks-vision')
     const name = (await FilesetResolver.isSimdSupported()) ? 'vision_wasm_internal' : 'vision_wasm_nosimd_internal'
-    // 브라우저 HTTP 캐시를 거친다 — 앱을 다시 켜도 한 번 받은 파일은 확인 요청(304)만 오간다
-    const get = async (url: string) => {
-      const res = await fetch(url, { signal: ctrl.signal, priority: 'low' } as RequestInit)
-      if (!res.ok) throw new Error(`${url} ${res.status}`)
-      return res.blob()
-    }
-    const loader = await get(`${WASM_PATH}/${name}.js`)
-    const binary = await get(`${WASM_PATH}/${name}.wasm`)
-    const model = new Uint8Array(await (await get(MODEL_PATH)).arrayBuffer())
+    // 작은 것부터 — 로더 → 엔진 → 모델. 끝까지 받은 파일은 보관함에, 받다 만 파일은 조각째 메모리에 남아 다음에 이어 받는다
+    const loader = await getAsset(`${WASM_PATH}/${name}.js`, ctrl.signal)
+    const binary = await getAsset(`${WASM_PATH}/${name}.wasm`, ctrl.signal)
+    const model = new Uint8Array(await (await getAsset(MODEL_PATH, ctrl.signal)).arrayBuffer())
     if (ctrl.signal.aborted) return
     assets = { loader: URL.createObjectURL(loader), binary: URL.createObjectURL(binary), model }
+    // 옛 판 보관함 정리
+    if (typeof caches !== 'undefined') {
+      void caches.keys().then((keys) => keys.filter((k) => k.startsWith('kiosk-garment-assets-') && k !== ASSET_CACHE).forEach((k) => void caches.delete(k))).catch(() => {})
+    }
   })()
     .catch(() => {})
     .finally(() => { if (download === ctrl) download = null })
 }
 
-/** 손님이 첫 화면을 떠나면 받던 것을 멈춘다(다음 첫 화면에서 처음부터 다시 받는다 — 압축 전송이라 이어받기가 안 된다) */
+/** 손님이 첫 화면을 떠나면 받던 것을 멈춘다 — 다음 첫 화면에서 이어 받는다 */
 export function pauseGarmentDownload(): void {
   download?.abort()
   download = null
