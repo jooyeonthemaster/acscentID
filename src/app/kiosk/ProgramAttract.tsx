@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { preloadTarotArt } from '@/lib/kiosk/tarot-deck'
-import { preloadGarmentModel } from '@/lib/kiosk/garment-recolor'
+import { pauseGarmentDownload, preloadGarmentModel } from '@/lib/kiosk/garment-recolor'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { ModeAttract } from '@/lib/kiosk/modes'
 import type { KioskProgramTheme } from '@/lib/kiosk/program-theme'
@@ -28,10 +28,14 @@ export function ProgramAttract({ theme, lang, attract, brand, langControl, onSta
   const color = theme === 'color'
   const copy = COPY[lang]
   // 타로 — 손님이 오기 전(첫 화면)에 카드 원화를 받아 둔다. 첫 화면 그림을 먼저 그리도록 조금 늦춘다
-  // 퍼스널 컬러 — 옷 색 미리보기 모델(16MB)·WASM 을 손님이 오기 전에 받아 둔다(결과 화면에서 기다리지 않게)
+  // 퍼스널 컬러 — 옷 색 미리보기 모델(16MB)·WASM 을 손님이 없는 동안에만 받는다. 손님이 시작하면(첫 화면을 떠나면) 멈춘다 —
+  // 느린 매장 망에서 진단 요청과 같이 흐르면 진단 결과가 돌아오지 못한다
   useEffect(() => {
     const timer = window.setTimeout(theme === 'tarot' ? preloadTarotArt : preloadGarmentModel, theme === 'tarot' ? 1500 : 2500)
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      if (theme === 'color') pauseGarmentDownload()
+    }
   }, [theme])
   return (
     <section className="ksk-attract program-attract" aria-labelledby="program-title">

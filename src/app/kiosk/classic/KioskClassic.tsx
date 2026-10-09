@@ -57,7 +57,7 @@ import { TarotReportView } from '../TarotReport'
 import { TarotSteps, useTarotSession } from '../TarotSteps'
 import { ColorCaptureStep, ProgramAnalyzeError, ProgramAnalyzing, ProgramIdleDialog, ProgramInfoStep, ProgramLangMenu, ProgramReceiptModal, ProgramTopBar, type ProgramProgress } from '../ProgramScreens'
 import { programUiText } from '@/lib/kiosk/program-ui-i18n'
-import { prepareGarment, releaseGarment } from '@/lib/kiosk/garment-recolor'
+import { releaseGarment } from '@/lib/kiosk/garment-recolor'
 import { useCamFrame } from '../useCamFrame'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
 
@@ -702,8 +702,7 @@ export function KioskClassic() {
   const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
     const isSaju = program === 'saju'
-    // 퍼스널 컬러 — 옷 영역 계산을 분석과 함께 시작한다(진단에는 원본 사진만 보낸다)
-    if (program === 'color' && photo) void prepareGarment(photo)
+    // 퍼스널 컬러 옷 색 미리보기는 결과 화면에서 시작한다 — 진단 중에는 기기 계산·망을 진단에만 쓴다
     setStep('analyzing')
     setProgress(0)
     setAnalyzeError(null)

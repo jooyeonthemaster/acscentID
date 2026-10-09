@@ -30,7 +30,7 @@ function sentences(text: string): string[] {
 type TryOnState = 'loading' | GarmentStatus
 
 /**
- * 사진 한 장의 옷 마스크를 한 번 만들고(prepareGarment — 분석 중에 이미 시작돼 있다) 색마다 덧그림을 받는다.
+ * 사진 한 장의 옷 마스크를 한 번 만들고(prepareGarment — 첫 화면에서 미리 받아 둔 모델로만) 색마다 덧그림을 받는다.
  * 고른 색이 바뀌면 그 색만 계산하고, 준비가 끝나면 나머지 색도 뒤에서 미리 만들어 둔다.
  */
 function useGarmentTryOn(photo: string | null, hex: string, palette: string[]) {
