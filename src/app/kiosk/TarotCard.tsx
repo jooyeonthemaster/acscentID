@@ -1,14 +1,15 @@
 'use client'
 
-// 키오스크 타로 카드 — 달과 식물 선화 뒷면, 원소·번호·다국어 이름이 읽히는 앞면.
+// 키오스크 타로 카드 — 달과 식물 선화 뒷면, 원화·번호·다국어 이름이 읽히는 앞면.
 // 뽑기 화면과 결과 화면이 같은 카드와 정/역방향 표시를 쓴다.
 
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { TAROT_DECK, TAROT_ELEMENT_COLORS } from '@/lib/kiosk/tarot-deck'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotElement } from '@/types/analysis'
 import './programs.css'
 import './moonlit-tarot.css'
+import './tarot-card-art.css'
 
 /** 연금술 원소 기호 — 불 △ · 바람 △에 가로줄 · 물 ▽ · 흙 ▽에 가로줄. 글꼴에 없는 기호라 직접 그린다 */
 export function ElementGlyph({ element, size = 40 }: { element: TarotElement; size?: number }) {
@@ -45,16 +46,32 @@ export function TarotCardBack() {
 
 /** 앞면 — 역방향이면 카드 전체를 거꾸로 놓는다(실제 타로처럼). 읽을 이름은 카드 밖 캡션이 맡는다 */
 export function TarotCardFace({ id, reversed, lang }: { id: number; reversed: boolean; lang: KioskLang }) {
+  const [failedArtId, setFailedArtId] = useState<number | null>(null)
   const card = TAROT_DECK[id]
   if (!card) return null
   return (
     <div
       className="trt-card trt-card--face"
       data-reversed={reversed || undefined}
+      data-art={failedArtId !== id || undefined}
       style={{ '--trt-el': TAROT_ELEMENT_COLORS[card.element] } as CSSProperties}
     >
       <div className="trt-card-inner">
         <span className="trt-card-roman">{card.roman}</span>
+        <span className="trt-card-art" aria-hidden="true">
+          {/* Local artwork keeps the kiosk independent of the reference demo's host. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={id}
+            src={`/assets/kiosk-programs/tarot-major/m${String(id).padStart(2, '0')}.webp`}
+            alt=""
+            width={350}
+            height={600}
+            draggable={false}
+            decoding="async"
+            onError={() => setFailedArtId(id)}
+          />
+        </span>
         <span className="trt-card-glyph">
           <ElementGlyph element={card.element} size={44} />
         </span>

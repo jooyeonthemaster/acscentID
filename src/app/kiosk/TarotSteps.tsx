@@ -4,15 +4,18 @@
 // 기존·레트로 두 화면이 같은 .ksk-* 클래스를 쓰므로 단계 화면을 통째로 여기 두고 양쪽에서 부른다.
 // 터치 키보드만 화면마다 달라서 keyboard 로 받아 그린다.
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { LayoutGroup, motion, useReducedMotion } from 'framer-motion'
 import { BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
 import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, shuffleTarotDeck } from '@/lib/kiosk/tarot-deck'
 import type { TarotDraw, TarotTopic } from '@/types/analysis'
 import { TarotCardBack, TarotCardFace } from './TarotCard'
+import { TarotShuffleAnimation } from './TarotShuffleAnimation'
 import './programs.css'
 import './moonlit-tarot.css'
+import './tarot-motion.css'
 
 export type TarotStep = 'topic' | 'question' | 'cards'
 
@@ -130,9 +133,71 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
     )
   }
 
+  return <TarotCardSelection session={session} tx={tx} labels={labels} lang={lang} pill={pill} onPrev={onPrev} onNext={onNext} />
+}
+
+type DeckPhase = 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'revealing'
+const MOTION_COPY: Record<KioskLang, { shuffling: string; cutting: string; dealing: string }> = {
+  ko: { shuffling: '질문을 떠올리며 카드를 섞어요', cutting: '세 더미로 나누어 다시 모아요', dealing: '마음이 가는 카드를 찾아보세요' },
+  en: { shuffling: 'Hold your question in mind as the cards shuffle', cutting: 'Cutting into three piles, then gathering', dealing: 'Find the cards you feel drawn to' },
+  ja: { shuffling: '質問を思い浮かべながら、カードを混ぜます', cutting: '3つの山に分けて、もう一度重ねます', dealing: '心が惹かれるカードを探してください' },
+  'zh-Hans': { shuffling: '想着你的问题，正在洗牌', cutting: '分成三叠，再重新合拢', dealing: '寻找吸引你的牌' },
+  'zh-Hant': { shuffling: '想著你的問題，正在洗牌', cutting: '分成三疊，再重新合攏', dealing: '尋找吸引你的牌' },
+}
+const CARD_TRAVEL = { duration: .48, ease: [.22, 1, .36, 1] as const }
+
+/** 데모의 섞기 → 컷 → 부채꼴 펼침을 22장·3장 선택 흐름에 맞춘다. */
+function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }: {
+  session: TarotSession
+  tx: TarotText
+  labels: { prev: string; next: string }
+  lang: KioskLang
+  pill: (step: TarotStep) => string
+  onPrev: () => void
+  onNext: () => void
+}) {
+  const reducedMotion = useReducedMotion()
+  const layoutId = useId()
+  const deckRef = useRef<HTMLDivElement>(null)
+  const [perRow, setPerRow] = useState(8)
+  const [phase, setPhase] = useState<DeckPhase>(() => session.deck.length ? 'ready' : 'shuffling')
+  const { deck } = session
+  const busy = phase !== 'ready'
   const full = session.picks.length >= TAROT_PICK_COUNT
+  const copy = MOTION_COPY[lang]
+
+  useEffect(() => {
+    if (!deck.length || phase === 'ready') return
+    const next: Record<Exclude<DeckPhase, 'ready'>, { phase: DeckPhase; delay: number }> = {
+      shuffling: { phase: 'cutting', delay: 900 },
+      cutting: { phase: 'dealing', delay: 600 },
+      // Six narrow rows finish at 880ms, including the final staggered card.
+      dealing: { phase: 'ready', delay: 900 },
+      revealing: { phase: 'ready', delay: 1400 },
+    }
+    const timer = window.setTimeout(() => setPhase(reducedMotion ? 'ready' : next[phase].phase), reducedMotion ? 0 : next[phase].delay)
+    return () => window.clearTimeout(timer)
+  }, [deck.length, phase, reducedMotion])
+
+  useEffect(() => {
+    const el = deckRef.current
+    if (!el) return
+    // Measure CSS pixels so the kiosk shell's zoom does not shrink touch targets.
+    const observer = new ResizeObserver(([entry]) => setPerRow(Math.max(4, Math.min(8, Math.floor((entry.contentRect.width - 12) / 55)))))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const reshuffle = () => {
+    if (busy || session.revealed) return
+    session.shuffle()
+    setPhase(reducedMotion ? 'ready' : 'shuffling')
+  }
+  const rows = Array.from({ length: Math.ceil(deck.length / perRow) }, (_, row) => deck.slice(row * perRow, (row + 1) * perRow))
+  const gathering = phase === 'shuffling' || phase === 'cutting'
   return (
-    <div className="ksk-body trt-step" data-tarot-step="cards" data-revealed={session.revealed || undefined}>
+    <LayoutGroup id={layoutId}>
+    <div className="ksk-body trt-step" data-tarot-step="cards" data-revealed={session.revealed || undefined} data-deck-phase={phase}>
       <div className="trt-selection-progress" aria-hidden="true">
         {TAROT_POSITIONS.map((position, i) => <span key={position} data-filled={i < session.picks.length || undefined} />)}
       </div>
@@ -155,16 +220,16 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
               <button
                 type="button"
                 className="trt-slot-control"
-                disabled={!draw || session.revealed}
+                disabled={!draw || session.revealed || busy}
                 aria-label={`${tx.positions[position].label} · ${draw && !session.revealed ? tx.undoHint : tx.positions[position].desc}`}
                 onClick={() => session.unpick(session.picks[i])}
               >
                 <div className="trt-flip" data-open={open || undefined} style={{ '--i': i } as CSSProperties}>
                   <div className="trt-flip-side trt-flip-back">
-                    {draw ? <TarotCardBack /> : <div className="trt-card trt-card--empty"><span>{i + 1}</span></div>}
+                    {draw ? <motion.div className="trt-moving-back" layoutId={reducedMotion ? undefined : `back-${draw.id}`} transition={CARD_TRAVEL}><TarotCardBack /></motion.div> : <div className="trt-card trt-card--empty"><span>{i + 1}</span></div>}
                   </div>
-                  <div className="trt-flip-side trt-flip-front">
-                    {open && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
+                  <div className="trt-flip-side trt-flip-front" aria-hidden={!open}>
+                    {draw && <TarotCardFace id={draw.id} reversed={draw.reversed} lang={lang} />}
                   </div>
                 </div>
               </button>
@@ -177,50 +242,57 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
         })}
       </div>
 
-      {!session.revealed && (
-        <div className="trt-deck" role="group" aria-label={tx.cardsTitle}>
-          {deck.map((_, slot) => {
+      <div ref={deckRef} className="trt-table" hidden={session.revealed}>
+        {gathering && <TarotShuffleAnimation phase={phase} label={copy[phase]} />}
+        {!gathering && <div className="trt-deck trt-deck--fan" role="group" aria-label={tx.cardsTitle}>
+          {rows.map((row, rowIndex) => <div className="trt-fan-row" key={rowIndex} style={{ '--columns': perRow } as CSSProperties}>
+          {row.map((card, column) => {
+            const slot = rowIndex * perRow + column
             const picked = session.picks.includes(slot)
+            const offset = row.length > 1 ? (column / (row.length - 1)) * 2 - 1 : 0
             return (
               <button
                 key={slot}
                 type="button"
-                className="trt-deck-card"
+                className="trt-deck-card trt-fan-card"
+                style={{ '--fan-angle': `${offset * 10}deg`, '--fan-drop': `${offset * offset * 13}px`, '--deal-delay': `${rowIndex * 80 + column * 20}ms` } as CSSProperties}
                 data-picked={picked || undefined}
                 // 고른 카드는 다시 누르면 취소된다. 세 장이 차면 나머지는 잠근다
-                disabled={!picked && full}
+                disabled={busy || (!picked && full)}
                 aria-pressed={picked}
                 aria-label={picked ? `${slot + 1} · ${tx.positions[TAROT_POSITIONS[session.picks.indexOf(slot)]].label} · ${tx.undoHint}` : `${slot + 1}`}
                 onClick={() => (picked ? session.unpick(slot) : session.pick(slot))}
               >
-                {picked ? (
+                <span className="trt-fan-lift">{picked ? (
                   <span className="trt-card trt-card--picked" aria-hidden="true"><span>{session.picks.indexOf(slot) + 1}</span></span>
-                ) : <TarotCardBack />}
+                ) : <motion.div className="trt-moving-back" layoutId={reducedMotion ? undefined : `back-${card.id}`} transition={CARD_TRAVEL}><TarotCardBack /></motion.div>}</span>
               </button>
             )
-          })}
-        </div>
-      )}
+          })}</div>)}
+        </div>}
+        {phase === 'dealing' && <span className="trt-sr-only" role="status">{copy.dealing}</span>}
+      </div>
 
       {/* 다시 섞기 — 버튼 바 위 흐림에 묻히지 않게 덱 바로 아래에 둔다(펼치기 전에만) */}
       {!session.revealed && (
         <p className="trt-hint">
-          <button type="button" className="trt-hint-btn" onClick={shuffle}><Shuffle size={20} strokeWidth={1.7} aria-hidden="true" />{tx.reshuffle}</button>
+          <button type="button" className="trt-hint-btn" disabled={busy} onClick={reshuffle}><Shuffle size={20} strokeWidth={1.7} aria-hidden="true" />{tx.reshuffle}</button>
         </p>
       )}
 
-      <div style={{ flex: 1 }} />
+      {!session.revealed && <div style={{ flex: 1 }} />}
       {session.revealed ? (
         // 펼친 뒤에는 다시 섞을 수 없다 — 앞면을 보고 마음에 들 때까지 다시 뽑으면 '뽑기'가 아니다
         <div className="ksk-actions">
-          <button className="ksk-btn ksk-btn-primary" onClick={onNext}>{tx.readCards}</button>
+          <button className="ksk-btn ksk-btn-primary" disabled={busy} onClick={onNext}>{tx.readCards}</button>
         </div>
       ) : (
         <div className="ksk-actions">
           <button className="ksk-btn" onClick={onPrev}>{labels.prev}</button>
-          <button className="ksk-btn ksk-btn-primary" disabled={!full} onClick={() => session.setRevealed(true)}>{tx.reveal}</button>
+          <button className="ksk-btn ksk-btn-primary" disabled={!full || busy} onClick={() => { setPhase(reducedMotion ? 'ready' : 'revealing'); session.setRevealed(true) }}>{tx.reveal}</button>
         </div>
       )}
     </div>
+    </LayoutGroup>
   )
 }

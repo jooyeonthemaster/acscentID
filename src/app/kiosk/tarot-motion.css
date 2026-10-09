@@ -1,0 +1,48 @@
+/* NEANDER demo's shuffle / cut / fan / travel, adapted to 22 cards and touch. */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] { padding-top: 16px; }
+.ksk-root[data-program-theme='tarot'] .trt-step[data-tarot-step='cards'] > .ksk-eyebrow { margin-bottom: 10px; }
+.ksk-root[data-program-theme='tarot'] .trt-selection-progress { margin-bottom: 10px; }
+.ksk-root[data-program-theme='tarot'] .trt-slots:not([data-revealed]) { width: 70%; margin-bottom: 8px; }
+.ksk-root[data-program-theme='tarot'] .trt-table { position: relative; flex: none; width: 100%; }
+.ksk-root[data-program-theme='tarot'] .trt-table[hidden] { display: none; }
+.ksk-root[data-program-theme='tarot'] .trt-deck--fan { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 0; padding: 8px 7px 0; }
+.ksk-root[data-program-theme='tarot'] .trt-fan-row { display: flex; justify-content: center; align-items: flex-start; gap: 6px; width: 100%; padding: 3px 0 19px; }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card {
+  position: relative; flex: 0 0 calc((100% - (var(--columns) - 1) * 6px) / var(--columns));
+  min-width: 44px; min-height: 66px; aspect-ratio: 2 / 3;
+  transform: translateY(var(--fan-drop)) rotate(var(--fan-angle));
+  transform-origin: 50% 90%;
+  animation: trt-fan-deal .46s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: var(--deal-delay);
+}
+.ksk-root[data-program-theme='tarot'] .trt-fan-card[data-picked],
+.ksk-root[data-program-theme='tarot'] .trt-fan-card:active:not(:disabled) { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
+.ksk-root[data-program-theme='tarot'] .trt-fan-lift { display: block; width: 100%; height: 100%; transition: transform .3s cubic-bezier(.22,1,.36,1); }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:active,:focus-visible):not(:disabled) .trt-fan-lift { transform: translateY(-7px); }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:hover,:focus-visible) { z-index: 4; }
+.ksk-root[data-program-theme='tarot'] .trt-moving-back { width: 100%; height: 100%; }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--back { box-shadow: inset 0 0 0 2px #e5e3cf, -1px 3px 6px #44383b26; }
+.ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--picked { border-color: #9d82ab; color: #745982; background: #eee5f1; }
+.ksk-root[data-program-theme='tarot'] .trt-hint { margin-top: 8px; }
+.ksk-root[data-program-theme='tarot'] .trt-hint-btn:disabled { cursor: default; opacity: .45; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] { margin: auto 0; padding: 30px 0; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-card--face { box-shadow: 0 8px 25px #97764729, 0 0 0 1px #b8a47d; }
+.ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name { animation: trt-caption-in .5s .7s both; }
+.ksk-root[data-program-theme='tarot'] .program-art > img { animation: trt-hero-drift 7s ease-in-out infinite; }
+.ksk-root[data-program-theme='tarot'] .trt-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (hover: hover) {
+  .ksk-root[data-program-theme='tarot'] .trt-fan-card:hover:not(:disabled) .trt-fan-lift { transform: translateY(-7px); }
+}
+@keyframes trt-fan-deal {
+  from { opacity: 0; transform: translateY(25px) rotate(0deg) scale(.88); }
+  to { opacity: 1; transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
+}
+@keyframes trt-caption-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes trt-hero-drift { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-7px) rotate(.4deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ksk-root[data-program-theme='tarot'] .trt-fan-card,
+  .ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name,
+  .ksk-root[data-program-theme='tarot'] .program-art > img { animation: none; }
+  .ksk-root[data-program-theme='tarot'] .trt-fan-lift { transition: none; }
+  .ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:hover,:active,:focus-visible):not(:disabled) .trt-fan-lift { transform: none; }
+}

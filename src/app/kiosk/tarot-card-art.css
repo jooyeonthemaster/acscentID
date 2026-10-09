@@ -1,0 +1,62 @@
+/* The original text face stays available outside the program theme and when
+   a local illustration cannot be loaded. The entire inner face still reverses. */
+.trt-card-art { display: none; }
+
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] {
+  border-color: #9e8a66;
+  background: #faf5e9;
+  box-shadow: inset 0 0 0 3px #faf5e9, inset 0 0 0 4px #c4af83, 0 4px 12px #53405f18;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art]::before {
+  inset: 6px;
+  border-color: #e5d7b7;
+  border-radius: 3px;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-inner {
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 7% 7% 6%;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-art {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-roman {
+  position: absolute;
+  top: 3%;
+  left: 4%;
+  z-index: 1;
+  padding: 1px 2px;
+  background: #faf5e9;
+  color: #8a7550;
+  font-size: 10px;
+  font-size: 7cqw;
+  line-height: 1;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-glyph { display: none; }
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-name {
+  flex: none;
+  max-width: 100%;
+  color: #51415d;
+  font-size: 13px;
+  font-size: 9.8cqw;
+  line-height: 1.2;
+}
+.ksk-root[data-program-theme='tarot'] .trt-card--face[data-art] .trt-card-en {
+  flex: none;
+  margin: 0;
+  color: #8a7550;
+  font-size: 7px;
+  font-size: 5.3cqw;
+  line-height: 1.15;
+  letter-spacing: .04em;
+  opacity: 1;
+}
