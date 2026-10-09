@@ -301,6 +301,9 @@ export function KioskClassic() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const ticketRef = useRef<string | null>(null)
+  // 영수증 열기·인쇄가 진행 중인지 — 연타해도 한 번만 렌더·인쇄한다
+  const receiptOpeningRef = useRef(false)
+  const printBusyRef = useRef(false)
   const idleDeadline = useRef<number>(0)
   const savedRef = useRef(false)
   // DB 기록(kiosk_analyses) 한 건의 id — 영수증 출력 시 printed 갱신에 쓴다
@@ -1080,37 +1083,23 @@ export function KioskClassic() {
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
   }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont])
 
-  const openReceipt = useCallback(async () => {
-    try {
-      // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
-      // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
-      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
-        const t = await kiosk.nextTicket().catch(() => null)
-        if (t?.success && t.ticket) ticketRef.current = t.ticket
-      }
-      const r = await buildReceipt()
-      if (r) setReceipt(r)
-    } catch (e) {
-      console.error('[kiosk] 영수증 렌더 실패:', e)
-      showToast(t.toastReceiptFailed)
-    }
-  }, [buildReceipt, kiosk, showToast, t, scentResult])
-
-  const printReceipt = useCallback(async () => {
-    if (!receipt) return
+  /** 영수증 한 장을 인쇄한다(프린터 없는 웹 초안은 PNG 저장) — 미리보기의 버튼과 '영수증 출력'이 함께 쓴다 */
+  const printReceiptData = useCallback(async (target: { dataUrl: string; base64: string }) => {
     if (!kiosk?.hasPrinter) {
       // 웹 초안: PNG 다운로드로 대체
       const a = document.createElement('a')
-      a.href = receipt.dataUrl
+      a.href = target.dataUrl
       a.download = `acscent-receipt-${Date.now()}.png`
       a.click()
       showToast(t.toastPngSaved)
       return
     }
+    if (printBusyRef.current) return
+    printBusyRef.current = true
     setPrinting(true)
     try {
       const res = await kiosk.printReceipt({
-        receiptImageBase64: receipt.base64,
+        receiptImageBase64: target.base64,
         ticket: ticketRef.current ?? undefined,
       })
       if (res.success) {
@@ -1146,9 +1135,39 @@ export function KioskClassic() {
       console.error('[kiosk] 인쇄 실패:', e)
       showToast(t.toastPrintFailedStaff)
     } finally {
+      printBusyRef.current = false
       setPrinting(false)
     }
-  }, [receipt, kiosk, buildReceipt, showToast, t, scentResult, px.printed])
+  }, [kiosk, buildReceipt, showToast, t, scentResult, px.printed])
+
+  const openReceipt = useCallback(async () => {
+    if (receiptOpeningRef.current || printBusyRef.current) return
+    receiptOpeningRef.current = true
+    try {
+      // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
+      // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
+      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
+        const t = await kiosk.nextTicket().catch(() => null)
+        if (t?.success && t.ticket) ticketRef.current = t.ticket
+      }
+      const r = await buildReceipt()
+      if (r) {
+        setReceipt(r)
+        // 프린터가 있는 기기 — '영수증 출력'을 누르면 미리보기와 함께 바로 인쇄한다(처음 한 장).
+        // 이미 뽑았으면 미리보기만 연다 — 한 장 더는 미리보기의 버튼으로(같은 발권 번호가 두 장 나가지 않게)
+        if (kiosk?.hasPrinter && !printedOnce) void printReceiptData(r)
+      }
+    } catch (e) {
+      console.error('[kiosk] 영수증 렌더 실패:', e)
+      showToast(t.toastReceiptFailed)
+    } finally {
+      receiptOpeningRef.current = false
+    }
+  }, [buildReceipt, kiosk, showToast, t, scentResult, printedOnce, printReceiptData])
+
+  const printReceipt = useCallback(() => {
+    if (receipt) void printReceiptData(receipt)
+  }, [receipt, printReceiptData])
 
   // ── 관리자 핫스팟 (짧게 누르기 / 1.5초 홀드 모두 서버 인증 후 설정) ────
   const exitHold = useRef<number | undefined>(undefined)
@@ -2153,7 +2172,7 @@ export function KioskClassic() {
                   </button>
                 ) : (
                   <button className="ksk-btn ksk-btn-primary" onClick={openReceipt}>
-                    {kiosk?.hasPrinter ? t.receiptPrint : t.receiptPreview}
+                    {kiosk?.hasPrinter && !printedOnce ? t.receiptPrint : t.receiptPreview}
                   </button>
                 )}
               </div>
