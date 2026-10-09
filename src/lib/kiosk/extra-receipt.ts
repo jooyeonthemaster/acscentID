@@ -5,7 +5,7 @@ import type { ColorAnalysisResult, ImageAnalysisResult, KioskAnalysisResult, Tar
 import type { KioskLang } from './i18n'
 import type { ProgramText } from './program-i18n'
 import type { ReceiptColor, ReceiptTarot } from './receipt-canvas'
-import { TAROT_DECK } from './tarot-deck'
+import { TAROT_DECK, tarotArtSrc } from './tarot-deck'
 
 export function isColorResult(r: KioskAnalysisResult | null): r is ColorAnalysisResult {
   return Boolean(r && 'colorDiagnosis' in r)
@@ -62,6 +62,7 @@ export function buildReceiptTarot(r: TarotAnalysisResult, px: ProgramText, lang:
       element: c.element,
       title: reading.cards[i]?.title ?? '',
       keywords: (reading.cards[i]?.keywords ?? []).join(' · '),
+      artSrc: tarotArtSrc(c.id),
     })),
     flowLabel: tx.receipt.flow,
     flow: reading.flow,

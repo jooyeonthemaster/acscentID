@@ -1,6 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { preloadTarotArt } from '@/lib/kiosk/tarot-deck'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { ModeAttract } from '@/lib/kiosk/modes'
 import type { KioskProgramTheme } from '@/lib/kiosk/program-theme'
@@ -25,6 +26,12 @@ export function ProgramAttract({ theme, lang, attract, brand, langControl, onSta
 }) {
   const color = theme === 'color'
   const copy = COPY[lang]
+  // 타로 — 손님이 오기 전(첫 화면)에 카드 원화를 받아 둔다. 첫 화면 그림을 먼저 그리도록 조금 늦춘다
+  useEffect(() => {
+    if (theme !== 'tarot') return
+    const timer = window.setTimeout(preloadTarotArt, 1500)
+    return () => window.clearTimeout(timer)
+  }, [theme])
   return (
     <section className="ksk-attract program-attract" aria-labelledby="program-title">
       <header className="program-brandbar"><span>{brand}</span>{langControl}</header>

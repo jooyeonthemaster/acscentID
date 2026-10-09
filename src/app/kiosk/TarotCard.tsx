@@ -4,7 +4,7 @@
 // 뽑기 화면과 결과 화면이 같은 카드와 정/역방향 표시를 쓴다.
 
 import { useState, type CSSProperties } from 'react'
-import { TAROT_DECK, TAROT_ELEMENT_COLORS } from '@/lib/kiosk/tarot-deck'
+import { TAROT_DECK, TAROT_ELEMENT_COLORS, tarotArtSrc } from '@/lib/kiosk/tarot-deck'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotElement } from '@/types/analysis'
 import './programs.css'
@@ -63,7 +63,7 @@ export function TarotCardFace({ id, reversed, lang }: { id: number; reversed: bo
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={id}
-            src={`/assets/kiosk-programs/tarot-major/m${String(id).padStart(2, '0')}.webp`}
+            src={tarotArtSrc(id)}
             alt=""
             width={350}
             height={600}

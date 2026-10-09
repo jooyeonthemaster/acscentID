@@ -9,10 +9,10 @@ import { LayoutGroup, motion, useReducedMotion } from 'framer-motion'
 import { BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
-import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, shuffleTarotDeck } from '@/lib/kiosk/tarot-deck'
+import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, preloadTarotArt, shuffleTarotDeck } from '@/lib/kiosk/tarot-deck'
 import type { TarotDraw, TarotTopic } from '@/types/analysis'
 import { TarotCardBack, TarotCardFace } from './TarotCard'
-import { TarotShuffleAnimation } from './TarotShuffleAnimation'
+import { CUT_MS, SHUFFLE_MS, TarotShuffleAnimation } from './TarotShuffleAnimation'
 import './programs.css'
 import './moonlit-tarot.css'
 import './tarot-motion.css'
@@ -136,7 +136,11 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
   return <TarotCardSelection session={session} tx={tx} labels={labels} lang={lang} pill={pill} onPrev={onPrev} onNext={onNext} />
 }
 
-type DeckPhase = 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'revealing'
+type DeckPhase = 'collecting' | 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'revealing'
+/** 단계 시간 — 모으기(다시 섞기에서만) → 섞기(리플 2번) → 컷 → 나눠 주기 → 선택 가능. 공개 뒤 '풀이 보기' 잠금 */
+const PHASE_MS = { collecting: 620, shuffling: SHUFFLE_MS, cutting: CUT_MS, dealing: 950, revealing: 1400 } as const
+/** 부채꼴(8+8+6)의 처음 높이 — 재기 전에도 섞기 영역이 부채꼴과 같은 높이가 되게 */
+const FAN_HEIGHT_GUESS = 338
 const MOTION_COPY: Record<KioskLang, { shuffling: string; cutting: string; dealing: string }> = {
   ko: { shuffling: '질문을 떠올리며 카드를 섞어요', cutting: '세 더미로 나누어 다시 모아요', dealing: '마음이 가는 카드를 찾아보세요' },
   en: { shuffling: 'Hold your question in mind as the cards shuffle', cutting: 'Cutting into three piles, then gathering', dealing: 'Find the cards you feel drawn to' },
@@ -161,23 +165,37 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
   const deckRef = useRef<HTMLDivElement>(null)
   const [perRow, setPerRow] = useState(8)
   const [phase, setPhase] = useState<DeckPhase>(() => session.deck.length ? 'ready' : 'shuffling')
+  const [tableHeight, setTableHeight] = useState(FAN_HEIGHT_GUESS)
   const { deck } = session
+  const reshuffleDeck = session.shuffle
   const busy = phase !== 'ready'
   const full = session.picks.length >= TAROT_PICK_COUNT
   const copy = MOTION_COPY[lang]
 
   useEffect(() => {
     if (!deck.length || phase === 'ready') return
-    const next: Record<Exclude<DeckPhase, 'ready'>, { phase: DeckPhase; delay: number }> = {
-      shuffling: { phase: 'cutting', delay: 900 },
-      cutting: { phase: 'dealing', delay: 600 },
-      // Six narrow rows finish at 880ms, including the final staggered card.
-      dealing: { phase: 'ready', delay: 900 },
-      revealing: { phase: 'ready', delay: 1400 },
+    const next: Record<Exclude<DeckPhase, 'ready'>, DeckPhase> = {
+      collecting: 'shuffling',
+      shuffling: 'cutting',
+      cutting: 'dealing',
+      dealing: 'ready',
+      revealing: 'ready',
     }
-    const timer = window.setTimeout(() => setPhase(reducedMotion ? 'ready' : next[phase].phase), reducedMotion ? 0 : next[phase].delay)
+    const timer = window.setTimeout(() => {
+      // 펼친 카드가 가운데로 다 모인 뒤에 실제 덱을 새로 섞는다(고른 카드도 이때 비운다)
+      if (phase === 'collecting') reshuffleDeck()
+      setPhase(reducedMotion ? 'ready' : next[phase])
+    }, reducedMotion ? 0 : PHASE_MS[phase])
     return () => window.clearTimeout(timer)
-  }, [deck.length, phase, reducedMotion])
+  }, [deck.length, phase, reducedMotion, reshuffleDeck])
+
+  // 부채꼴이 다 깔렸을 때 높이를 기억해 둔다 — 다음 섞기 영역을 같은 높이로
+  useEffect(() => {
+    if (phase === 'ready' && deckRef.current?.offsetHeight) setTableHeight(deckRef.current.offsetHeight)
+  }, [phase, perRow])
+
+  // 타로 첫 화면을 건너뛰고 들어온 경우를 위해 여기서도 원화를 받아 둔다(한 번만 받는다)
+  useEffect(() => preloadTarotArt(), [])
 
   useEffect(() => {
     const el = deckRef.current
@@ -190,8 +208,12 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
 
   const reshuffle = () => {
     if (busy || session.revealed) return
-    session.shuffle()
-    setPhase(reducedMotion ? 'ready' : 'shuffling')
+    if (reducedMotion) {
+      session.shuffle()
+      return
+    }
+    // 펼친 카드(와 고른 카드)를 먼저 가운데로 모은다 — 덱은 모은 뒤에 섞는다(위 타이머)
+    setPhase('collecting')
   }
   const rows = Array.from({ length: Math.ceil(deck.length / perRow) }, (_, row) => deck.slice(row * perRow, (row + 1) * perRow))
   const gathering = phase === 'shuffling' || phase === 'cutting'
@@ -242,7 +264,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
         })}
       </div>
 
-      <div ref={deckRef} className="trt-table" hidden={session.revealed}>
+      <div ref={deckRef} className="trt-table" hidden={session.revealed} style={gathering ? { minHeight: tableHeight } : undefined}>
         {gathering && <TarotShuffleAnimation phase={phase} label={copy[phase]} />}
         {!gathering && <div className="trt-deck trt-deck--fan" role="group" aria-label={tx.cardsTitle}>
           {rows.map((row, rowIndex) => <div className="trt-fan-row" key={rowIndex} style={{ '--columns': perRow } as CSSProperties}>
@@ -255,7 +277,15 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
                 key={slot}
                 type="button"
                 className="trt-deck-card trt-fan-card"
-                style={{ '--fan-angle': `${offset * 10}deg`, '--fan-drop': `${offset * offset * 13}px`, '--deal-delay': `${rowIndex * 80 + column * 20}ms` } as CSSProperties}
+                style={{
+                  '--fan-angle': `${offset * 10}deg`,
+                  '--fan-drop': `${offset * offset * 13}px`,
+                  '--deal-delay': `${rowIndex * 80 + column * 20}ms`,
+                  // 부채꼴 한가운데(섞은 더미 자리)까지의 거리 — 카드 몇 장 폭·몇 줄인지. 나눠 줄 때 여기서 출발하고, 모을 때 여기로 간다
+                  '--dx': (row.length - 1) / 2 - column,
+                  '--dy': (rows.length - 1) / 2 - rowIndex,
+                  '--collect-delay': `${(deck.length - 1 - slot) * 9}ms`,
+                } as CSSProperties}
                 data-picked={picked || undefined}
                 // 고른 카드는 다시 누르면 취소된다. 세 장이 차면 나머지는 잠근다
                 disabled={busy || (!picked && full)}

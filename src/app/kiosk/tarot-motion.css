@@ -33,14 +33,32 @@
 @media (hover: hover) {
   .ksk-root[data-program-theme='tarot'] .trt-fan-card:hover:not(:disabled) .trt-fan-lift { transform: translateY(-7px); }
 }
+/* 나눠 주기 — 부채꼴 한가운데(섞은 더미 자리)에 쌓여 있다가 한 장씩 제자리로 간다. 기다리는 동안(both)은 더미로 보인다.
+   --dx/--dy 는 한가운데까지 카드 몇 장 폭·몇 줄인지(TarotSteps), 100% 는 카드 자기 크기 */
 @keyframes trt-fan-deal {
-  from { opacity: 0; transform: translateY(25px) rotate(0deg) scale(.88); }
-  to { opacity: 1; transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
+  from { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.96); }
+  to { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
 }
+/* 다시 섞기 — 펼친 카드를 바깥쪽 카드부터 가운데로 쓸어 모은다(그 뒤 섞기 연출이 같은 자리에서 이어진다) */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='collecting'] .trt-fan-card {
+  animation: trt-fan-collect .42s cubic-bezier(.5, 0, .75, 0) both;
+  animation-delay: var(--collect-delay);
+}
+@keyframes trt-fan-collect {
+  from { transform: translateY(var(--fan-drop)) rotate(var(--fan-angle)); }
+  to { transform: translate(calc(var(--dx) * (100% + 6px)), calc(var(--dy) * (100% + 22px))) rotate(0deg) scale(.96); }
+}
+/* 이미 고른 카드도 덱으로 돌아간다 — 자리에서는 흐려져 사라진다 */
+.ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase='collecting'] .trt-slots .trt-moving-back {
+  animation: trt-slot-collect .4s ease-in both;
+}
+@keyframes trt-slot-collect { to { opacity: 0; } }
 @keyframes trt-caption-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes trt-hero-drift { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-7px) rotate(.4deg); } }
 @media (prefers-reduced-motion: reduce) {
   .ksk-root[data-program-theme='tarot'] .trt-fan-card,
+  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] .trt-fan-card,
+  .ksk-root[data-program-theme='tarot'] .trt-slots .trt-moving-back,
   .ksk-root[data-program-theme='tarot'] .trt-slots[data-revealed] .trt-slot-name,
   .ksk-root[data-program-theme='tarot'] .program-art > img { animation: none; }
   .ksk-root[data-program-theme='tarot'] .trt-fan-lift { transition: none; }

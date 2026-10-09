@@ -52,6 +52,28 @@ export const TAROT_TOPICS: readonly TarotTopic[] = ['general', 'love', 'career',
 export const TAROT_ELEMENT_COLORS: Record<TarotElement, string> = { fire: '#B5452F', water: '#2F5D8A', air: '#6F93B5', earth: '#6B7A45' }
 export const TAROT_PICK_COUNT = TAROT_POSITIONS.length
 
+/** 앞면 원화(Rider–Waite–Smith) — public/assets/kiosk-programs/tarot-major/README.md */
+export function tarotArtSrc(id: number): string {
+  return `/assets/kiosk-programs/tarot-major/m${String(id).padStart(2, '0')}.webp`
+}
+
+// 받아 둔 원화 — 참조를 쥐고 있어야 같은 문서 안에서 다시 그릴 때 서버에 묻지 않고 바로 쓴다(HTML '사용 가능한 이미지 목록')
+const preloadedArt: HTMLImageElement[] = []
+
+/**
+ * 원화 22장을 미리 받아 둔다(약 2MB). 매장 망이 느려서, 카드를 고르는 순간에 받기 시작하면 펼칠 때 앞면이 비어 보였다.
+ * 타로 모드의 첫 화면에서 부른다 — 한 번만 받는다. 브라우저 밖(서버)에서는 아무것도 하지 않는다.
+ */
+export function preloadTarotArt(): void {
+  if (typeof window === 'undefined' || preloadedArt.length) return
+  for (const card of TAROT_DECK) {
+    const img = new Image()
+    img.decoding = 'async'
+    img.src = tarotArtSrc(card.id)
+    preloadedArt.push(img)
+  }
+}
+
 /** 역방향이 나올 확률 — 반반이면 화면이 뒤집힌 카드투성이라 읽는 재미보다 불안이 앞선다 */
 const REVERSED_CHANCE = 0.3
 

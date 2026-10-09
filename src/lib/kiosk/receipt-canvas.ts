@@ -92,6 +92,8 @@ export interface ReceiptTarotCard {
   element: 'fire' | 'water' | 'air' | 'earth'
   title: string
   keywords: string
+  /** 앞면 원화 주소 — 있으면 카드 칸에 흑백 점묘로 찍는다(못 불러오면 예전 글자 카드) */
+  artSrc?: string
 }
 
 /** AI 타로 — 뽑힌 세 장을 카드 모양으로 그리고 자리별 한 줄·흐름·조언을 찍는다 */
@@ -261,7 +263,8 @@ function strokeRectCrisp(
 /** 사진 → 감열 인쇄용 1비트 캔버스: 휘도 변환 → 히스토그램 2%/98% 스트레치 →
  *  평균 밝기를 150으로 끌어올리는 감마(0.45~2.4) → Floyd-Steinberg 디더링(임계 128).
  *  JIMFF 셸의 toneMapForThermal과 동일한 파라미터. */
-function ditherForThermal(img: HTMLImageElement, dw: number, dh: number): HTMLCanvasElement {
+/** toneTarget — 감마로 맞출 평균 밝기. 사진은 150, 선화(타로 원화)는 175 로 밝게 해야 선이 또렷하다(150 이면 면이 점으로 탁해진다) */
+function ditherForThermal(img: HTMLImageElement, dw: number, dh: number, toneTarget = 150): HTMLCanvasElement {
   const c = document.createElement('canvas')
   c.width = dw
   c.height = dh
@@ -306,7 +309,7 @@ function ditherForThermal(img: HTMLImageElement, dw: number, dh: number): HTMLCa
   }
   mean /= n
   // 평균을 toneTarget(150)으로 — 어두운 셀피가 검은 덩어리가 되는 것 방지
-  const gamma = Math.max(0.45, Math.min(2.4, Math.log(150 / 255) / Math.log(Math.max(1, mean) / 255)))
+  const gamma = Math.max(0.45, Math.min(2.4, Math.log(toneTarget / 255) / Math.log(Math.max(1, mean) / 255)))
   for (let i = 0; i < n; i++) {
     lum[i] = 255 * Math.pow(lum[i] / 255, gamma)
   }
@@ -867,12 +870,24 @@ class ReceiptBuilder {
     this.y += lh
   }
 
-  /** 타로 세 장 — 자리 이름(반전 띠) · 카드(로마 숫자·원소 기호·이름) · 정/역방향. 역방향은 카드 안을 거꾸로 그린다 */
-  tarotCards(cards: ReceiptTarotCard[]) {
+  /**
+   * 타로 세 장 — 자리 이름(반전 띠) · 카드 · 정/역방향.
+   * 원화(arts)가 있으면 카드 칸에 흑백 점묘(사진과 같은 감열 처리)로 찍고 그 아래 이름, 역방향은 원화를 거꾸로.
+   * 원화가 없으면 예전 글자 카드(로마 숫자·원소 기호·이름, 역방향은 안쪽을 거꾸로).
+   */
+  tarotCards(cards: ReceiptTarotCard[], arts: (HTMLImageElement | null)[] = []) {
     const gap = 14
     const n = cards.length || 3
     const colW = Math.floor((this.innerWidth() - gap * (n - 1)) / n)
-    const headH = 28, cardH = Math.round(colW * 1.45), footH = 26
+    // 원화 칸 — 카드 안쪽 여백 11, 원화 비율 그대로(350×600)
+    const pad = 11
+    const artW = colW - pad * 2
+    const artRatio = arts.find(Boolean) ? arts.find(Boolean)!.naturalHeight / arts.find(Boolean)!.naturalWidth : 0
+    const artH = artRatio ? Math.round(artW * artRatio) : 0
+    const nameH = 30
+    const headH = 28, cardH = artH ? pad + artH + 6 + nameH + 6 : Math.round(colW * 1.45), footH = 26
+    // 점묘는 미리 만들어 둔다(그리기 단계는 동기)
+    const dithered = arts.map((img) => (img && artH ? ditherForThermal(img, artW, artH, 175) : null))
     const yTop = Math.round(this.y)
     this.ops.push((ctx) => {
       cards.forEach((card, i) => {
@@ -888,6 +903,34 @@ class ReceiptBuilder {
 
         strokeRectCrisp(ctx, x, cy, colW, cardH, 3)
         strokeRectCrisp(ctx, x + 7, cy + 7, colW - 14, cardH - 14, 1)
+        const fitName = (max: number) => {
+          let size = max
+          ctx.font = this.font(size, 800, this.fonts.sans)
+          while (size > 11 && ctx.measureText(card.name).width > colW - 24) {
+            size -= 1
+            ctx.font = this.font(size, 800, this.fonts.sans)
+          }
+        }
+        const art = dithered[i]
+        if (art) {
+          const ax = x + pad, ay = cy + pad
+          ctx.save()
+          if (card.reversed) {
+            ctx.translate(ax + artW / 2, ay + artH / 2)
+            ctx.rotate(Math.PI)
+            ctx.drawImage(art, -artW / 2, -artH / 2)
+          } else {
+            ctx.drawImage(art, ax, ay)
+          }
+          ctx.restore()
+          // 이름은 종이에서 읽히게 늘 바로 — 방향은 카드 아래 줄이 알려 준다
+          ctx.fillStyle = INK
+          fitName(19)
+          ctx.fillText(card.name, x + colW / 2, ay + artH + 6 + nameH / 2)
+          ctx.font = this.font(15, 600, this.fonts.sans)
+          ctx.fillText(card.orientation, x + colW / 2, cy + cardH + 6 + footH / 2)
+          return
+        }
         ctx.save()
         ctx.translate(x + colW / 2, cy + cardH / 2)
         if (card.reversed) ctx.rotate(Math.PI)
@@ -895,12 +938,7 @@ class ReceiptBuilder {
         ctx.font = this.font(30, 700, "Georgia, 'Times New Roman', serif")
         ctx.fillText(card.roman, 0, -cardH / 2 + 34)
         // 이름 — 칸 폭에 맞춰 줄인다
-        let size = 19
-        ctx.font = this.font(size, 800, this.fonts.sans)
-        while (size > 11 && ctx.measureText(card.name).width > colW - 24) {
-          size -= 1
-          ctx.font = this.font(size, 800, this.fonts.sans)
-        }
+        fitName(19)
         ctx.fillText(card.name, 0, cardH / 2 - 30)
         ctx.restore()
         // 원소 기호 — 불 △ · 바람 △에 가로줄 · 물 ▽ · 흙 ▽에 가로줄.
@@ -975,6 +1013,12 @@ export async function renderKioskReceipt(
       /* 폰트 로드 실패 시 폴백 폰트로 진행 */
     }
   }
+  // 타로 원화 — 타로 첫 화면에서 받아 둔 것이라 보통 바로 온다. 망이 끊겨도 영수증이 멈추지 않게 4초 안에 못 받으면 글자 카드로
+  const tarotArt = data.tarot
+    ? await Promise.all(data.tarot.cards.map((card) => card.artSrc
+      ? Promise.race([loadImage(card.artSrc), new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))])
+      : Promise.resolve(null)))
+    : []
   const b = new ReceiptBuilder(width, fonts)
 
   // ── 헤더
@@ -1094,7 +1138,7 @@ export async function renderKioskReceipt(
     b.space(4)
     b.text(t.question ? `${t.topic} · ${t.question}` : t.topic, { size: 17, weight: 500, align: 'center', lineHeight: 1.5, maxLines: 2 })
     b.space(16)
-    b.tarotCards(t.cards)
+    b.tarotCards(t.cards, tarotArt)
     b.space(14)
     for (const card of t.cards) {
       // 정방향은 카드 그림 아래에 이미 찍혔다 — 줄 머리에는 역방향만 덧붙인다
