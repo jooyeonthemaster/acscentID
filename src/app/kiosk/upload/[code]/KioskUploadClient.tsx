@@ -10,8 +10,11 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { ArrowRight, Check, Hourglass, ImageOff, ImagePlus, LoaderCircle, Lock, RefreshCw, Ban, SunMedium, UserRound } from 'lucide-react'
 import { compressImage } from '@/lib/image/compressor'
 import { kioskText, isKioskLang, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
+import { programUiText } from '@/lib/kiosk/program-ui-i18n'
+import './upload-color.css'
 
 type Status =
   | 'checking'
@@ -23,7 +26,7 @@ type Status =
   | 'done'
   | 'error'
 
-export function KioskUploadClient({ code, lang: langProp }: { code: string; lang?: string }) {
+export function KioskUploadClient({ code, lang: langProp, program }: { code: string; lang?: string; program?: 'color' }) {
   // 키오스크가 QR 주소에 ?lang= 을 실어 보낸다 — 손님 폰도 같은 언어로 열린다
   const lang: KioskLang = isKioskLang(langProp) ? langProp : 'ko'
   const t = kioskText(lang).upload
@@ -103,6 +106,22 @@ export function KioskUploadClient({ code, lang: langProp }: { code: string; lang
       setErrorMessage(error instanceof Error ? error.message : t.uploadFailed)
     }
   }, [code, preview, t])
+
+  // 퍼스널 컬러 키오스크에서 온 손님 — Chromatic Archive 화면(목업 M01–M04). 다른 프로그램(최애 분석)은 예전 화면
+  if (program === 'color') {
+    return (
+      <ColorUploadView
+        code={code}
+        lang={lang}
+        status={status}
+        errorMessage={errorMessage}
+        preview={preview}
+        fileInputRef={fileInputRef}
+        onFile={handleFile}
+        onConfirm={confirmUpload}
+      />
+    )
+  }
 
   return (
     <div className="kup-root" lang={lang} data-cjk={isCjkLang(lang)}>
@@ -193,6 +212,139 @@ export function KioskUploadClient({ code, lang: langProp }: { code: string; lang
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+const TIP_ICONS = [UserRound, SunMedium, Ban]
+
+/** 퍼스널 컬러 업로드 — 상태는 위 KioskUploadClient 가 그대로 들고, 여기는 그리기만 한다 */
+function ColorUploadView({ code, lang, status, errorMessage, preview, fileInputRef, onFile, onConfirm }: {
+  code: string
+  lang: KioskLang
+  status: Status
+  errorMessage: string
+  preview: string | null
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+  onFile: (file: File) => void
+  onConfirm: () => void
+}) {
+  const m = programUiText(lang).mobile
+  const t = kioskText(lang).upload
+  const pick = () => fileInputRef.current?.click()
+  const stepIndex = status === 'done' ? 2 : status === 'confirm' || status === 'uploading' ? 1 : 0
+  const showSteps = status === 'confirm' || status === 'uploading' || status === 'done'
+  const uploadFailed = status === 'confirm' && Boolean(errorMessage)
+
+  return (
+    <div className="kupc-root" lang={lang} data-cjk={isCjkLang(lang)} data-status={status}>
+      <header className="kupc-top">
+        <span>AC&rsquo;SCENT AI COLOR</span>
+        <span className="kupc-code">{code}</span>
+      </header>
+      {showSteps && (
+        <ol className="kupc-steps">
+          {m.steps.map((label, i) => (
+            <li key={label} data-state={i < stepIndex || status === 'done' ? 'done' : i === stepIndex ? 'now' : 'todo'}>
+              <span aria-hidden="true">{i < stepIndex || status === 'done' ? <Check size={14} strokeWidth={2.6} /> : i + 1}</span>
+              {label}
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onFile(file)
+          e.target.value = ''
+        }}
+      />
+
+      {status === 'ready' && (
+        <main className="kupc-main">
+          <h1 className="kupc-title">{m.title}</h1>
+          <p className="kupc-desc">{m.desc[0]}<br />{m.desc[1]}</p>
+          <button type="button" className="kupc-drop" onClick={pick}>
+            <span className="kupc-drop-deco" aria-hidden="true"><i /><i /></span>
+            <ImagePlus size={84} strokeWidth={1.1} aria-hidden="true" />
+            <span>{m.dropHint[0]}<br />{m.dropHint[1]}</span>
+            <em>{m.formats}</em>
+          </button>
+          <ul className="kupc-tips">
+            {m.tips.map((tip, i) => {
+              const Icon = TIP_ICONS[i]
+              return <li key={tip.title}><Icon size={30} strokeWidth={1.3} aria-hidden="true" /><b>{tip.title}</b><span>{tip.desc}</span></li>
+            })}
+          </ul>
+          <div className="kupc-spacer" />
+          <button type="button" className="kupc-btn" onClick={pick}><span>{m.pick}</span><ArrowRight size={22} strokeWidth={2} aria-hidden="true" /></button>
+          <p className="kupc-note"><Lock size={16} strokeWidth={1.6} aria-hidden="true" />{m.privacy}</p>
+        </main>
+      )}
+
+      {status === 'confirm' && (
+        <main className="kupc-main">
+          <h1 className="kupc-title">{m.confirmTitle}</h1>
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="kupc-photo" src={preview} alt={t.selectedAlt} />
+          )}
+          {uploadFailed ? (
+            <div className="kupc-alert" role="alert">
+              <RefreshCw size={26} strokeWidth={1.6} aria-hidden="true" />
+              <p><b>{m.uploadErrorTitle}</b><span>{m.uploadErrorDesc}</span></p>
+            </div>
+          ) : (
+            <p className="kupc-desc kupc-desc--center">{m.confirmDesc}</p>
+          )}
+          <div className="kupc-spacer" />
+          <button type="button" className="kupc-btn" onClick={onConfirm}>{uploadFailed ? m.reupload : m.confirm}</button>
+          <button type="button" className="kupc-btn kupc-btn--ghost" onClick={pick}>{m.pickAnother}</button>
+        </main>
+      )}
+
+      {status === 'done' && (
+        <main className="kupc-main kupc-main--center">
+          <span className="kupc-done" aria-hidden="true"><Check size={46} strokeWidth={1.8} /></span>
+          <h1 className="kupc-title kupc-title--center">{m.doneTitle}</h1>
+          <p className="kupc-desc kupc-desc--center">{m.doneDesc[0]}<br />{m.doneDesc[1]}</p>
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="kupc-photo kupc-photo--small" src={preview} alt={t.doneAlt} />
+          )}
+        </main>
+      )}
+
+      {(status === 'checking' || status === 'preparing' || status === 'uploading' || status === 'invalid' || status === 'error') && (
+        <main className="kupc-main kupc-main--center">
+          <div className="kupc-state" role={status === 'invalid' || status === 'error' ? 'alert' : 'status'}>
+            {status === 'checking' && <LoaderCircle className="kupc-spin" size={52} strokeWidth={1.4} aria-hidden="true" />}
+            {status === 'uploading' && <LoaderCircle className="kupc-spin" size={52} strokeWidth={1.4} aria-hidden="true" />}
+            {status === 'preparing' && <span className="kupc-prep" aria-hidden="true"><ImagePlus size={52} strokeWidth={1.2} /><i /></span>}
+            {status === 'invalid' && <Hourglass size={52} strokeWidth={1.2} aria-hidden="true" />}
+            {status === 'error' && <ImageOff size={52} strokeWidth={1.2} aria-hidden="true" />}
+            <h1>
+              {status === 'checking' ? m.connecting
+                : status === 'preparing' ? m.preparing
+                  : status === 'uploading' ? m.sending
+                    : status === 'invalid' ? m.expiredTitle : m.photoErrorTitle}
+            </h1>
+            <p>
+              {status === 'uploading' ? m.sendingDesc
+                : status === 'invalid' ? (errorMessage === t.expired ? m.expiredDesc : errorMessage || m.expiredDesc)
+                  : status === 'error' ? m.photoErrorDesc : m.wait}
+            </p>
+            {status === 'error' && <button type="button" className="kupc-btn kupc-btn--small" onClick={pick}>{m.reselect}</button>}
+          </div>
+        </main>
+      )}
+
+      <footer className="kupc-foot"><span>{m.footer}</span></footer>
     </div>
   )
 }

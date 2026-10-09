@@ -58,6 +58,18 @@ export function TarotReportView({ result, px, lang, scrollMore }: { result: Taro
         )
       })}
 
+      {/* 세 장의 흐름 — 작은 카드 셋을 화살표로 잇는다(목업 T15) */}
+      <div className="trt-flow-row" aria-hidden="true">
+        {spread.cards.map((c, i) => (
+          <div key={c.position} className="trt-flow-item">
+            {i > 0 && <span className="trt-flow-arrow">→</span>}
+            <figure>
+              <TarotCardFace id={c.id} reversed={c.reversed} lang={lang} />
+              <figcaption><span>{tx.positions[c.position].label}</span><b>{TAROT_DECK[c.id].names[lang]}</b></figcaption>
+            </figure>
+          </div>
+        ))}
+      </div>
       <p className="sjr-section">{tx.flowTitle}</p>
       <section className="sjr-card sjr-card--accent">
         <Brief text={reading.flow} n={3} tx={px} />

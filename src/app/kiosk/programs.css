@@ -70,9 +70,6 @@
 .trt-read-head i { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-style: normal; color: var(--trt-el, #6b6255); }
 
 /* ── 퍼스널 컬러: 촬영 안내 ───────────────────────────── */
-.clr-tips { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.45; }
-.clr-tips li { position: relative; padding-left: 1.1em; word-break: keep-all; }
-.clr-tips li::before { content: '·'; position: absolute; left: 0.25em; font-weight: 800; }
 
 /* ── 퍼스널 컬러 결과 ──────────────────────────────────── */
 /* 드레이프 — 고른 색을 얼굴 사진 둘레에 깐다. 글자색은 바탕 밝기에 맞춰 바뀐다 */

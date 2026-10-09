@@ -292,3 +292,124 @@
   font-weight: 700;
   line-height: 1.5;
 }
+
+/* ── 결과 한 장 스크롤(C08 · C09 · C10 · C18 · C19) ─────────────── */
+.ksk-root[data-program-theme='color'] .clr2 {
+  gap: 12px;
+  padding: 4px 2px 10px;
+  border: 0;
+  background: transparent;
+}
+.ksk-root[data-program-theme='color'] .clr2 p { margin: 0; }
+.ksk-root[data-program-theme='color'] .clr2-head { display: flex; flex-direction: column; gap: 2px; }
+.ksk-root[data-program-theme='color'] .clr2-kicker { color: #272f73; font-size: 15px; font-weight: 700; }
+.ksk-root[data-program-theme='color'] .clr2-type { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ksk-root[data-program-theme='color'] .clr2-type h2 {
+  margin: 0; color: #272f73; font-size: 50px; font-weight: 900; letter-spacing: -0.06em; line-height: 1.12; word-break: keep-all;
+}
+.ksk-root[data-program-theme='color'] .clr2-badge {
+  flex: none; padding: 5px 14px; border-radius: 999px; background: #fbd9bd; color: #b3532c; font-size: 15px; font-weight: 800;
+}
+.ksk-root[data-program-theme='color'] .clr2-badge[data-tone='cool'] { background: #dfe4f6; color: #2f3f8f; }
+.ksk-root[data-program-theme='color'] .clr2-tagline { color: #3c4577; font-size: 18px; line-height: 1.45; word-break: keep-all; }
+.ksk-root[data-program-theme='color'] .clr2-h3,
+.ksk-root[data-program-theme='color'] .clr2-h2 {
+  margin: 10px 0 0; color: #272f73; font-size: 34px; font-weight: 900; letter-spacing: -0.05em; line-height: 1.2; word-break: keep-all;
+}
+.ksk-root[data-program-theme='color'] .clr2-sub { margin-top: 4px; color: #586180; font-size: 15px; line-height: 1.45; }
+
+/* 옷 색 미리보기 — 원본 위에 옷만 담긴 투명 덧그림 */
+.ksk-root[data-program-theme='color'] .clr2-try { display: flex; flex-direction: column; gap: 10px; }
+.ksk-root[data-program-theme='color'] .clr2-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.ksk-root[data-program-theme='color'] .clr2-tabs button {
+  min-height: 52px; border: 1px solid #272f73; border-radius: 3px; background: #fffcf4; color: #272f73;
+  font: inherit; font-size: 17px; font-weight: 800; cursor: pointer;
+}
+.ksk-root[data-program-theme='color'] .clr2-tabs button[data-on] { background: #272f73; color: #fff; }
+.ksk-root[data-program-theme='color'] .clr2-frame { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; }
+.ksk-root[data-program-theme='color'] .clr2-photo { position: relative; width: min(56%, 264px); aspect-ratio: 3 / 4; overflow: hidden; background: #ecebe6; }
+.ksk-root[data-program-theme='color'] .clr2-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.ksk-root[data-program-theme='color'] .clr2-overlay { animation: clr2-fade 0.25s ease-out; }
+@keyframes clr2-fade { from { opacity: 0; } }
+.ksk-root[data-program-theme='color'] .clr2-frame figcaption {
+  padding: 4px 14px; border-radius: 2px; background: #ecebf4; color: #272f73; font-size: 13px; font-weight: 700; text-align: center;
+}
+.ksk-root[data-program-theme='color'] .clr2-compare-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; align-self: center; min-height: 48px; padding: 0 18px;
+  border: 1px solid #a7aec9; border-radius: 3px; background: #fffcf4; color: #272f73; font: inherit; font-size: 16px; font-weight: 700;
+}
+.ksk-root[data-program-theme='color'] .clr2-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.ksk-root[data-program-theme='color'] .clr2-compare .clr2-frame { gap: 0; border: 1px solid #c4c7d9; background: #fffcf4; }
+.ksk-root[data-program-theme='color'] .clr2-compare .clr2-photo { width: 100%; }
+.ksk-root[data-program-theme='color'] .clr2-compare figcaption { align-self: stretch; padding: 8px 4px; border-radius: 0; font-size: 14px; }
+.ksk-root[data-program-theme='color'] .clr2-selected {
+  display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 0 16px; border: 1px solid #272f73; border-radius: 3px; background: #fffcf4;
+  color: #272f73; font-size: 16px;
+}
+.ksk-root[data-program-theme='color'] .clr2-selected span { flex: none; font-weight: 700; }
+.ksk-root[data-program-theme='color'] .clr2-selected i { flex: none; width: 34px; height: 34px; margin-left: auto; border: 1px solid rgba(39, 47, 115, 0.15); border-radius: 50%; }
+.ksk-root[data-program-theme='color'] .clr2-selected b { flex: 1; font-weight: 600; }
+.ksk-root[data-program-theme='color'] .clr2-back { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 60px; font-size: 19px; }
+
+/* 옷을 못 찾았거나 준비 중 — 얼굴 둘레 드레이프 */
+.ksk-root[data-program-theme='color'] .clr2-drape { display: flex; flex-direction: column; align-items: center; gap: 8px; background: transparent; }
+.ksk-root[data-program-theme='color'] .clr2-drape .clr-portrait { position: relative; width: 230px; margin-top: 6px; }
+.ksk-root[data-program-theme='color'] .clr2-drape .clr-face { border-radius: 50%; overflow: hidden; }
+.ksk-root[data-program-theme='color'] .clr2-scan {
+  position: absolute; inset: 15px; border-radius: 50%; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60% 100%) 0 0 / 100% 200%;
+  animation: clr2-scan 1.6s linear infinite;
+}
+@keyframes clr2-scan { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
+.ksk-root[data-program-theme='color'] .clr2-status {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 4px !important;
+  color: #586180; font-size: 14px; line-height: 1.45; text-align: center;
+}
+.ksk-root[data-program-theme='color'] .clr2-retry {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid #272f73; border-radius: 3px;
+  background: #fffcf4; color: #272f73; font: inherit; font-size: 15px; font-weight: 700;
+}
+
+/* 더 보기 · 톤 분석 · 스타일 가이드 */
+.ksk-root[data-program-theme='color'] .clr2-more {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: center; min-height: 48px; padding: 0 16px;
+  border: 0; background: transparent; color: #272f73; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.ksk-root[data-program-theme='color'] .clr2-more--box { align-self: stretch; margin-top: 4px; border: 1px solid #272f73; border-radius: 3px; background: #fffcf4; font-size: 17px; }
+.ksk-root[data-program-theme='color'] .clr2-section { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #c4c7d9; scroll-margin-top: 8px; }
+.ksk-root[data-program-theme='color'] .clr2-mini { color: #272f73; font-size: 15px; text-align: center; }
+.ksk-root[data-program-theme='color'] .clr2-mini b { display: block; margin-top: 2px; font-size: 28px; font-weight: 900; letter-spacing: -0.04em; }
+.ksk-root[data-program-theme='color'] .clr2-callout {
+  display: flex; align-items: center; gap: 20px; padding: 20px 22px; border-radius: 3px; background: #ecebf4; color: #272f73;
+}
+.ksk-root[data-program-theme='color'] .clr2-callout svg { flex: none; }
+.ksk-root[data-program-theme='color'] .clr2-callout p { font-size: 20px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.ksk-root[data-program-theme='color'] .clr2-observe { display: flex; flex-direction: column; margin: 0; padding: 4px 14px; border: 1px solid #c4c7d9; border-radius: 3px; background: #fffcf4; list-style: none; }
+.ksk-root[data-program-theme='color'] .clr2-observe li {
+  display: grid; grid-template-columns: 26px 72px 1fr; align-items: start; gap: 10px; padding: 12px 0; color: #272f73; font-size: 15px; line-height: 1.5;
+}
+.ksk-root[data-program-theme='color'] .clr2-observe li + li { border-top: 1px solid #e3e4ec; }
+.ksk-root[data-program-theme='color'] .clr2-observe b { font-weight: 800; }
+.ksk-root[data-program-theme='color'] .clr2-observe span { color: #3c4577; }
+.ksk-root[data-program-theme='color'] .clr2-styles { display: flex; flex-direction: column; gap: 10px; }
+.ksk-root[data-program-theme='color'] .clr2-style {
+  display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #c4c7d9; border-radius: 3px; background: #fffcf4;
+}
+.ksk-root[data-program-theme='color'] .clr2-style > div { flex: 1; min-width: 0; }
+.ksk-root[data-program-theme='color'] .clr2-style-title { color: #272f73; font-size: 20px; font-weight: 900; letter-spacing: -0.03em; }
+.ksk-root[data-program-theme='color'] .clr2-style .sjr-brief p { margin-top: 4px !important; font-size: 15px; line-height: 1.55; }
+.ksk-root[data-program-theme='color'] .clr2-style .sjr-more { min-height: 44px; font-size: 14px; }
+.ksk-root[data-program-theme='color'] .clr2-style-icon { flex: none; color: #9aa0c4; }
+.ksk-root[data-program-theme='color'] .clr2-chips { display: flex; gap: 10px; margin-top: 10px; }
+.ksk-root[data-program-theme='color'] .clr2-chips i { width: 40px; height: 40px; border: 1px solid rgba(39, 47, 115, 0.12); border-radius: 50%; }
+.ksk-root[data-program-theme='color'] .clr2-chips[data-shape='square'] i { width: 48px; height: 40px; border-radius: 2px; }
+.ksk-root[data-program-theme='color'] .clr2 .clr-palette { border-top: 1px solid #c4c7d9; border-bottom: 0; background: transparent; }
+.ksk-root[data-program-theme='color'] .clr2 .clr-hint { font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ksk-root[data-program-theme='color'] .clr2-overlay,
+  .ksk-root[data-program-theme='color'] .clr2-scan { animation: none; }
+}
+
+/* 결과 머리(챕터 표시) — 퍼스널 컬러는 한 장뿐이라 'PERSONAL COLOR' 머리가 결과 첫 줄(○○님의 퍼스널 컬러)과 겹친다. 셸 공통 */
+.ksk-root[data-program-theme='color'] .ksk-result > .ksk-chapter-head { display: none; }

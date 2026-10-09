@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion'
-import { BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
 import { TAROT_DECK, TAROT_PICK_COUNT, TAROT_POSITIONS, TAROT_TOPICS, preloadTarotArt, shuffleTarotDeck } from '@/lib/kiosk/tarot-deck'
@@ -59,7 +59,7 @@ export function useTarotSession() {
 
 export type TarotSession = ReturnType<typeof useTarotSession>
 
-export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNext, keyboard }: {
+export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNext, keyboard, questionNote, revealedDesc }: {
   step: TarotStep
   session: TarotSession
   tx: TarotText
@@ -71,6 +71,10 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
   /** 마지막 단계(cards)에서는 분석을 시작한다 */
   onNext: () => void
   keyboard: (props: { value: string; onChange: (value: string) => void; onClose: () => void; maxLength: number; hint: string }) => ReactNode
+  /** 질문 칸 아래 '질문은 선택 사항입니다.'(목업 T05) */
+  questionNote?: string
+  /** 카드를 펼친 뒤 제목 아래 한 줄(목업 T11) — 손님 이름이 들어간다 */
+  revealedDesc?: string
 }) {
   const { deck, shuffle } = session
   // 카드 단계에 처음 들어올 때 한 번 섞는다 — 이전 단계로 갔다 와도 고른 카드는 그대로
@@ -114,6 +118,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
         <button className="ksk-input ksk-input-tall" data-empty={!session.question} onClick={() => session.setQuestionOpen(true)}>
           {session.question || tx.questionPh}
         </button>
+        {questionNote && !session.questionOpen && <p className="trt-question-note">{questionNote}</p>}
         <div style={{ flex: 1 }} />
         {session.questionOpen ? (
           keyboard({
@@ -133,7 +138,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
     )
   }
 
-  return <TarotCardSelection session={session} tx={tx} labels={labels} lang={lang} pill={pill} onPrev={onPrev} onNext={onNext} />
+  return <TarotCardSelection session={session} tx={tx} labels={labels} lang={lang} pill={pill} onPrev={onPrev} onNext={onNext} revealedDesc={revealedDesc} />
 }
 
 type DeckPhase = 'collecting' | 'shuffling' | 'cutting' | 'dealing' | 'ready' | 'revealing'
@@ -151,7 +156,7 @@ const MOTION_COPY: Record<KioskLang, { shuffling: string; cutting: string; deali
 const CARD_TRAVEL = { duration: .48, ease: [.22, 1, .36, 1] as const }
 
 /** 데모의 섞기 → 컷 → 부채꼴 펼침을 22장·3장 선택 흐름에 맞춘다. */
-function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }: {
+function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, revealedDesc }: {
   session: TarotSession
   tx: TarotText
   labels: { prev: string; next: string }
@@ -159,6 +164,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
   pill: (step: TarotStep) => string
   onPrev: () => void
   onNext: () => void
+  revealedDesc?: string
 }) {
   const reducedMotion = useReducedMotion()
   const layoutId = useId()
@@ -227,6 +233,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
       <h1 className="ksk-title">{session.revealed ? tx.revealedTitle : tx.cardsTitle}</h1>
       {/* 고르기 시작하면 설명 자리에 '한 장 무르기' 안내를 보여 준다 — 줄을 더하면 화면이 넘친다(일본어) */}
       {!session.revealed && <p className="ksk-desc">{session.picks.length > 0 ? tx.undoHint : tx.cardsDesc}</p>}
+      {session.revealed && revealedDesc && <p className="ksk-desc trt-revealed-desc">{revealedDesc}</p>}
 
       <div className="trt-slots" data-revealed={session.revealed || undefined}>
         {TAROT_POSITIONS.map((position, i) => {
@@ -314,7 +321,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext }:
       {session.revealed ? (
         // 펼친 뒤에는 다시 섞을 수 없다 — 앞면을 보고 마음에 들 때까지 다시 뽑으면 '뽑기'가 아니다
         <div className="ksk-actions">
-          <button className="ksk-btn ksk-btn-primary" disabled={busy} onClick={onNext}>{tx.readCards}</button>
+          <button className="ksk-btn ksk-btn-primary trt-read-btn" disabled={busy} onClick={onNext}><span>{tx.readCards}</span><ArrowRight size={24} strokeWidth={2} aria-hidden="true" /></button>
         </div>
       ) : (
         <div className="ksk-actions">

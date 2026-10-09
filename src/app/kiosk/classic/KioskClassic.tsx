@@ -20,7 +20,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
-import { idleWindowFor } from '@/lib/kiosk/idle'
+import { idleWindowFor, IDLE_WARN_S } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
@@ -52,9 +52,12 @@ import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
 import { programText } from '@/lib/kiosk/program-i18n'
 import { buildReceiptColor, buildReceiptTarot, extraAnalysisText, extraRecordDetail, isColorResult, isTarotResult, scentResultOf } from '@/lib/kiosk/extra-receipt'
-import { ColorCaptureTips, ColorReportView } from '../ColorReport'
+import { ColorReportView } from '../ColorReport'
 import { TarotReportView } from '../TarotReport'
 import { TarotSteps, useTarotSession } from '../TarotSteps'
+import { ColorCaptureStep, ProgramAnalyzeError, ProgramAnalyzing, ProgramIdleDialog, ProgramInfoStep, ProgramLangMenu, ProgramReceiptModal, ProgramTopBar, type ProgramProgress } from '../ProgramScreens'
+import { programUiText } from '@/lib/kiosk/program-ui-i18n'
+import { prepareGarment, releaseGarment } from '@/lib/kiosk/garment-recolor'
 import { useCamFrame } from '../useCamFrame'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
 
@@ -195,7 +198,8 @@ export function KioskClassic() {
   /** 분석 실패 — 분석 화면에 남는 오류 카드(다시 시도·처음으로). null 이면 진행 중 */
   const [analyzeError, setAnalyzeError] = useState<AnalyzeErrorKind | null>(null)
   /** 촬영 화면에 남는 안내(퍼스널 컬러에서 얼굴을 못 찾았을 때) — 2.6초 토스트는 다시 찍는 화면에서 이미 사라져 있었다 */
-  const [captureNotice, setCaptureNotice] = useState<string | null>(null)
+  // 퍼스널 컬러 — 얼굴을 못 찾은 사진. 촬영 화면에 흐리게 보여 주고 다시 찍게 한다(목업 C13)
+  const [noFacePhoto, setNoFacePhoto] = useState<string | null>(null)
   const [statusIdx, setStatusIdx] = useState(0)
   const [result, setResult] = useState<KioskAnalysisResult | null>(null)
   const [mocked, setMocked] = useState(false)
@@ -310,6 +314,7 @@ export function KioskClassic() {
   const t = kioskText(lang)
   const sx = sajuText(lang)
   const px = programText(lang)
+  const pu = programUiText(lang)
   const attract = modeAttract(kioskMode, lang, {
     ticket: 'FOR YOUR BIAS · HONGDAE', wordmark: 'WOW!', sub: t.attractSub, cardNo: '01 PHOTO → 01 SCENT',
     title1: t.attractTitle1, title2: t.attractTitle2, body1: t.attractBody1, body2: t.attractBody2, tags: t.attractTags,
@@ -358,7 +363,6 @@ export function KioskClassic() {
     setToast(null)
     setStep('attract')
     setAnalyzeError(null)
-    setCaptureNotice(null)
     setProgram(DEFAULT_PROGRAM)
     setName('')
     setGender('')
@@ -381,6 +385,9 @@ export function KioskClassic() {
     setPartnerLeap(false)
     setPartnerOskOpen(false)
     resetTarot()
+    setNoFacePhoto(null)
+    // 옷 색 미리보기 — 이전 손님 사진의 마스크·덧그림을 지우고 계산 중인 것은 버린다
+    releaseGarment()
     setProductType('perfume_10ml')
     setPhoto(null)
     setProgress(0)
@@ -565,7 +572,7 @@ export function KioskClassic() {
       // 배포된 사이트 주소(NEXT_PUBLIC_SITE_URL)를 쓴다. 웹 초안에서는 현재 주소로 폴백.
       const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
       // 손님 폰도 키오스크와 같은 언어로 열리게 한다
-      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}`
+      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : ''}`
       const QRCode = (await import('qrcode')).default
       const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 1 })
       if (gen !== qrGeneration.current) return
@@ -579,7 +586,7 @@ export function KioskClassic() {
       console.error('[kiosk] QR 세션 생성 실패:', e)
       setQrState('failed')
     }
-  }, [lang])
+  }, [lang, program])
 
   /** 진행 중인 QR 세션만 버린다 (입력 소스는 그대로) — 늦게 도착한 응답은 세대 번호로 무효화 */
   const clearQr = useCallback(() => {
@@ -685,10 +692,6 @@ export function KioskClassic() {
     reader.readAsDataURL(file)
   }, [])
 
-  // 새 사진이 생기면 '얼굴을 찾지 못했습니다' 안내는 물린다
-  useEffect(() => {
-    if (photo) setCaptureNotice(null)
-  }, [photo])
 
   // ── 분석 ─────────────────────────────────────────────────
   // 분석 대기 문구 — 프로그램마다 다르다
@@ -696,6 +699,8 @@ export function KioskClassic() {
   const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
     const isSaju = program === 'saju'
+    // 퍼스널 컬러 — 옷 영역 계산을 분석과 함께 시작한다(진단에는 원본 사진만 보낸다)
+    if (program === 'color' && photo) void prepareGarment(photo)
     setStep('analyzing')
     setProgress(0)
     setAnalyzeError(null)
@@ -801,7 +806,8 @@ export function KioskClassic() {
       // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
       // 얼굴을 못 찾은 사진(퍼스널 컬러) — 다시 보내도 같으니 사진을 물리고 다시 찍게 한다
       if (json.error === 'NO_FACE') {
-        setCaptureNotice(px.color.noFace)
+        setNoFacePhoto(photo)
+        releaseGarment()
         setPhoto(null)
         setStep('capture')
         return
@@ -823,7 +829,7 @@ export function KioskClassic() {
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx, statusLines, px.color.noFace, tarot.topic, tarot.question, tarot.draws,
+    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -858,7 +864,7 @@ export function KioskClassic() {
     if (!result) return []
     // 퍼스널 컬러·타로 — 한 화면 스크롤
     if (isColorResult(result)) {
-      return [{ label: px.color.chapter, render: () => <ColorReportView result={result} photo={photo} px={px} scrollMore={sx.scrollMore} />, scroll: true }]
+      return [{ label: px.color.chapter, render: () => <ColorReportView result={result} photo={photo} px={px} ui={pu} name={name.trim()} />, scroll: true }]
     }
     if (isTarotResult(result)) {
       return [{ label: px.tarot.chapter, render: () => <TarotReportView result={result} px={px} lang={lang} scrollMore={sx.scrollMore} />, scroll: true }]
@@ -881,7 +887,7 @@ export function KioskClassic() {
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t, sx, px, photo, lang, kioskMode.resultOnePage])
+  }, [result, t, sx, px, pu, name, photo, lang, kioskMode.resultOnePage])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -1390,6 +1396,15 @@ export function KioskClassic() {
   // ── 렌더 ─────────────────────────────────────────────────
   const stepIdx = steps.indexOf(step)
   const showHeader = stepIdx >= 0
+  // 퍼스널 컬러·타로 전용 화면 — 작은 브랜드 줄 + 언어 버튼 + 단계(컬러: 두 단계 / 타로: 진행 막대)
+  const programLang = step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen ? (
+    <ProgramLangMenu lang={lang} open={langOpen} onToggle={() => setLangOpen((open) => !open)} onPick={(next) => { setLang(next); setLangOpen(false) }} label={t.langMenuLabel} closeLabel={t.close} />
+  ) : null
+  const programProgress: ProgramProgress = !programTheme || step === 'attract'
+    ? null
+    : programTheme === 'color'
+      ? step === 'info' || step === 'capture' ? { kind: 'stepper', current: step === 'info' ? 0 : 1, labels: [pu.stepper.info, pu.stepper.photo] } : null
+      : showHeader && step !== 'cards' ? { kind: 'bar', index: stepIdx, total: steps.length, label: STEP_LABELS[step] } : null
   useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
 
   return (
@@ -1425,7 +1440,7 @@ export function KioskClassic() {
       <ScreenFontFace ids={[deviceSettings.font, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
       <div className="ksk-stage" data-step={step}>
         {/* 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다 */}
-        {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && (
+        {step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen && !programTheme && (
           <div className="ksk-lang" data-open={langOpen}>
             <button
               type="button"
@@ -1474,9 +1489,9 @@ export function KioskClassic() {
           </div>
         )}
 
-        {programTheme && step !== 'attract' && <div className="program-brandbar"><span>{kioskMode.brandName}</span></div>}
+        {programTheme && step !== 'attract' && <ProgramTopBar brand={kioskMode.brandName} langMenu={programLang} progress={programProgress} />}
 
-        {showHeader && (
+        {showHeader && !programTheme && (
           <header>
             <div className="ksk-top">
               <span className="ksk-top-brand">{kioskMode.brandName}</span>
@@ -1534,6 +1549,8 @@ export function KioskClassic() {
             pill={stepPill}
             onPrev={goPrev}
             onNext={goNext}
+            questionNote={pu.tarot.questionNote}
+            revealedDesc={pu.tarot.revealedDesc(name)}
             keyboard={(props) => (
               <OnScreenKeyboard
                 {...props}
@@ -1712,7 +1729,33 @@ export function KioskClassic() {
           </div>
         )}
 
-        {step === 'info' && (
+        {step === 'info' && programTheme && (
+          <ProgramInfoStep
+            theme={programTheme}
+            t={t}
+            ui={pu}
+            eyebrow={stepPill('info')}
+            name={name}
+            gender={gender}
+            onGender={setGender}
+            onOpenKeyboard={() => setOskOpen(true)}
+            keyboard={oskOpen ? (
+              <OnScreenKeyboard
+                value={name}
+                onChange={setName}
+                onClose={() => setOskOpen(false)}
+                maxLength={12}
+                hint={t.namePlaceholder}
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
+              />
+            ) : null}
+            onHome={resetAll}
+            onNext={goNext}
+          />
+        )}
+        {step === 'info' && !programTheme && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{stepPill('info')}</p>
             <h1 className="ksk-title">
@@ -1841,16 +1884,49 @@ export function KioskClassic() {
           </div>
         )}
 
-        {step === 'capture' && (
+        {step === 'capture' && program === 'color' && (
+          <ColorCaptureStep
+            t={t}
+            ui={pu}
+            titles={{ capture: px.color.captureTitle, confirm: px.color.confirmTitle }}
+            photo={photo}
+            photoSource={photoSource}
+            videoRef={videoRef}
+            frameRef={camFrame.slotRef}
+            frameSize={camFrame.size}
+            onPhotoLoad={camFrame.onPhotoLoad}
+            countdown={countdown}
+            camError={camError}
+            inShell={Boolean(kiosk)}
+            onFile={onUploadFallback}
+            noFacePhoto={noFacePhoto}
+            qrState={qrState}
+            qrDataUrl={qrDataUrl}
+            qrCode={qrCode}
+            qrUnreachable={qrUnreachable}
+            onRetake={() => {
+              setPhoto(null)
+              releaseGarment()
+              // QR로 받은 사진을 물리면 세션이 이미 소진됐다 — 버리고 새 QR을 받는다
+              if (photoSource === 'qr') clearQr()
+            }}
+            onStart={startAnalysis}
+            onUseCamera={useCamera}
+            onUseQr={() => { setNoFacePhoto(null); void startQrSession() }}
+            onRegenQr={() => void startQrSession()}
+            onBackFromQr={() => { clearQr(); goPrev() }}
+            onPrev={goPrev}
+            onShoot={() => { setNoFacePhoto(null); startCountdown() }}
+          />
+        )}
+        {step === 'capture' && program !== 'color' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">{stepPill('capture')}</p>
             <h1 className="ksk-title">
-              {photo
-                ? program === 'color' ? px.color.confirmTitle : t.captureConfirm
-                : photoSource === 'qr' ? t.captureQrTitle : program === 'color' ? px.color.captureTitle : t.captureCamTitle}
+              {photo ? t.captureConfirm : photoSource === 'qr' ? t.captureQrTitle : t.captureCamTitle}
             </h1>
             <p className="ksk-desc">
-              {!photo && photoSource === 'qr' ? t.captureQrDesc : program === 'color' ? px.color.captureDesc : t.captureCamDesc}
+              {!photo && photoSource === 'qr' ? t.captureQrDesc : t.captureCamDesc}
             </p>
 
             {!photo && photoSource === 'qr' ? (
@@ -1926,9 +2002,6 @@ export function KioskClassic() {
               </div>
               </div>
             )}
-            {/* 퍼스널 컬러 — 조명·가림에 민감해서 찍기 전에 안내한다 */}
-            {captureNotice && !photo && <p className="clr-notice" role="alert">{captureNotice}</p>}
-            {program === 'color' && !photo && photoSource === 'camera' && <ColorCaptureTips tx={px.color} />}
             {/* 카메라 쪽은 액자 자리(.ksk-cam-slot)가 남는 높이를 받는다 — 밀어내는 칸은 QR 안내일 때만 */}
             {!photo && photoSource === 'qr' && <div style={{ flex: 1 }} />}
             {photo ? (
@@ -1993,7 +2066,18 @@ export function KioskClassic() {
           </div>
         )}
 
-        {step === 'analyzing' && analyzeError && (
+        {step === 'analyzing' && analyzeError && programTheme && (
+          <ProgramAnalyzeError
+            theme={programTheme}
+            t={t}
+            ui={pu}
+            kind={analyzeError}
+            onHome={resetAll}
+            onRetry={startAnalysis}
+            onRetake={program === 'color' ? () => { setPhoto(null); releaseGarment(); setAnalyzeError(null); setStep('capture') } : undefined}
+          />
+        )}
+        {step === 'analyzing' && analyzeError && !programTheme && (
           <div className="ksk-body">
             <div className="ksk-analyze-error" role="alert">
               <p className="ksk-eyebrow ksk-mono">{analyzeError === 'network' ? 'OFFLINE' : 'ERROR'}</p>
@@ -2011,7 +2095,10 @@ export function KioskClassic() {
           </div>
         )}
 
-        {step === 'analyzing' && !analyzeError && (
+        {step === 'analyzing' && !analyzeError && programTheme && (
+          <ProgramAnalyzing theme={programTheme} ui={pu} name={name} statusLines={statusLines} eta={analyzingEta} done={progress >= 100} cards={tarot.draws.map((d) => d.id)} />
+        )}
+        {step === 'analyzing' && !analyzeError && !programTheme && (
           <div className="ksk-body">
             <div className="ksk-analyzing">
               <p className="ksk-eyebrow ksk-mono">ANALYZING</p>
@@ -2075,7 +2162,7 @@ export function KioskClassic() {
         )}
 
         {step === 'attract' && programTheme && (
-          <ProgramAttract theme={programTheme} lang={lang} attract={attract} brand={kioskMode.brandName} onStart={startSession} />
+          <ProgramAttract theme={programTheme} lang={lang} attract={attract} brand={kioskMode.brandName} langControl={programLang} onStart={startSession} />
         )}
         {step === 'attract' && !programTheme && (
           <div
@@ -2242,7 +2329,20 @@ export function KioskClassic() {
         </div>
       )}
 
-      {receipt && (
+      {receipt && programTheme && (
+        <ProgramReceiptModal
+          t={t}
+          title={programTheme === 'color' ? pu.color.receiptTitle(name) : undefined}
+          desc={programTheme === 'color' ? pu.color.receiptDesc : undefined}
+          dataUrl={receipt.dataUrl}
+          primaryLabel={kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
+          busy={printing}
+          onClose={() => setReceipt(null)}
+          onPrimary={printReceipt}
+          onHome={resetAll}
+        />
+      )}
+      {receipt && !programTheme && (
         <div className="ksk-modal">
           <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2265,7 +2365,8 @@ export function KioskClassic() {
       )}
 
       {toast && <div className="ksk-toast">{toast}</div>}
-      {idleLeft !== null && (
+      {idleLeft !== null && programTheme && <ProgramIdleDialog t={t} left={idleLeft} total={IDLE_WARN_S} />}
+      {idleLeft !== null && !programTheme && (
         // 무입력 안내 — 어느 단계든 화면 가운데 10초 안내창. 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다
         <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive" aria-label={t.idleTitle}>
           <div className="ksk-idle-card">
