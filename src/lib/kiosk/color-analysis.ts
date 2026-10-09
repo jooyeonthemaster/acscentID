@@ -4,6 +4,7 @@
 
 import type { ColorAnalysisResult, ColorDiagnosis, PersonalColorTypeId } from '@/types/analysis'
 import { PERSONAL_COLOR_TYPES, normalizeColorTypeId, personalColorType } from './color-types'
+import type { ColorMeasure } from './garment-core'
 import type { KioskLang } from './i18n'
 import { extractJsonObject, finiteNumber, requireRecord, requireText, textList, outputLanguageRule } from './program-core'
 
@@ -18,9 +19,96 @@ const TYPE_GUIDE: Record<PersonalColorTypeId, string> = {
   'winter-deep': '쿨 · 명도 낮음 · 깊고 진함 · 대비 높음 — 차갑고 깊은 피부와 짙은 흑발',
 }
 
-export function buildColorPrompt(input: { name: string; gender: string; lang: KioskLang }): string {
-  const types = PERSONAL_COLOR_TYPES.map((t) => `- ${t.id}: ${TYPE_GUIDE[t.id]}`).join('\n')
-  const palettes = PERSONAL_COLOR_TYPES
+/**
+ * 기기가 보낸 색 측정값을 읽는다 — 숫자가 아니거나 Lab 범위를 벗어나면 버린다(지시문에 그대로 들어가므로).
+ * 측정이 없어도 진단은 된다(예전 기기 · 모델을 아직 못 받은 기기).
+ */
+export function readColorMeasure(value: unknown): ColorMeasure | null {
+  if (!value || typeof value !== 'object') return null
+  const lab = (v: unknown) => {
+    if (!v || typeof v !== 'object') return null
+    const { L, a, b } = v as Record<string, unknown>
+    const ok = (n: unknown, lo: number, hi: number): n is number => typeof n === 'number' && Number.isFinite(n) && n >= lo && n <= hi
+    return ok(L, 0, 100) && ok(a, -60, 80) && ok(b, -60, 90) ? { L: Math.round(L * 10) / 10, a: Math.round(a * 10) / 10, b: Math.round(b * 10) / 10 } : null
+  }
+  const raw = value as Record<string, unknown>
+  const skin = lab(raw.skin)
+  if (!skin) return null
+  const share = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0)
+  return { skin, hair: lab(raw.hair), skinShare: share(raw.skinShare), hairShare: share(raw.hairShare) }
+}
+
+/**
+ * 측정값으로 유형을 정하는 경계값 — 모두 어림값이다. 조명(화이트밸런스·노출)에 따라 달라지고, 유형이 확정된 사람들로 맞춘 값이 아니다.
+ * 서버 로그의 측정값(`[KIOSK-COLOR-…] 사진 … 피부 L a b`)을 모아 실기 조명에서 여러 사람으로 확인하며 조정할 것.
+ *  · 웜/쿨: 피부 색상각(노랑 쪽일수록 큼)
+ *  · 딥: 피부가 어두움 / 브라이트: 피부와 머리카락의 명도 차가 큼 / 라이트: 대비가 작고 맑으며 피부가 밝음 / 뮤트: 그 밖
+ */
+const UNDERTONE_HUE = 55
+const DEEP_SKIN_L = 60
+const BRIGHT_CONTRAST = 66
+const LIGHT_SKIN_L = 68
+const LIGHT_CHROMA_MAX = 17
+
+const skinHue = (m: ColorMeasure) => (Math.atan2(m.skin.b, m.skin.a) * 180) / Math.PI
+const to100 = (value: number, lo: number, hi: number) => Math.round(Math.max(0, Math.min(100, ((value - lo) / (hi - lo)) * 100)))
+
+/** 측정값으로 정한 진단 — typeId 가 없으면 웜/쿨만 정해졌다(머리카락을 못 잰 사진: 그 안의 4유형은 AI 가 고른다) */
+export interface MeasuredDiagnosis {
+  undertone: 'warm' | 'cool'
+  typeId: PersonalColorTypeId | null
+  scores: { warmth: number; brightness: number; clarity: number; contrast: number | null }
+  /** 웜·쿨 경계에 가깝다 — 확신을 '높음'으로 내지 않는다 */
+  edge: boolean
+}
+
+/**
+ * 측정값으로 유형을 정한다. AI 가 눈으로 고르면 같은 사람도 사진이 조금만 달라지면 유형이 바뀌었다
+ * (같은 조명에서 살짝 다르게 찍은 7장 중 3~4장이 웜↔쿨, 2장이 라이트↔뮤트 — 2026-10-10 실험). 측정값은 7장이 거의 같다.
+ * 그래서 유형은 숫자로 정하고 AI 는 그 유형의 설명만 쓴다.
+ * 피부로 보기 어려운 값(너무 어둡거나 밝음, 무채색에 가깝거나 지나치게 짙음)은 조명 탓일 수 있어 숫자로 정하지 않는다(null → AI 가 판단).
+ */
+export function diagnoseFromMeasure(m: ColorMeasure | null | undefined): MeasuredDiagnosis | null {
+  if (!m) return null
+  const chroma = Math.hypot(m.skin.a, m.skin.b)
+  if (m.skin.L < 35 || m.skin.L > 90 || chroma < 8 || chroma > 36 || m.skinShare < 0.02) return null
+  const hue = skinHue(m)
+  const undertone = hue >= UNDERTONE_HUE ? 'warm' : 'cool'
+  const contrast = m.hair ? m.skin.L - m.hair.L : null
+  const scores = {
+    // 온도 눈금은 유형 쪽에 서게 한다(웜 55 이상 · 쿨 45 이하 — parseColorResponse 와 같은 규칙)
+    warmth: undertone === 'warm' ? Math.max(55, to100(hue, 45, 65)) : Math.min(45, to100(hue, 45, 65)),
+    brightness: to100(m.skin.L, 50, 85),
+    clarity: to100(chroma, 10, 24),
+    contrast: contrast === null ? null : to100(contrast, 35, 80),
+  }
+  let tone: 'light' | 'bright' | 'mute' | 'deep' | null = null
+  if (m.skin.L <= DEEP_SKIN_L) tone = 'deep'
+  else if (contrast !== null) {
+    tone = contrast >= BRIGHT_CONTRAST ? 'bright' : m.skin.L >= LIGHT_SKIN_L && chroma < LIGHT_CHROMA_MAX ? 'light' : 'mute'
+  }
+  const typeId = tone
+    ? (PERSONAL_COLOR_TYPES.find((t) => t.undertone === undertone && t.tone === tone)?.id ?? null)
+    : null
+  return { undertone, typeId, scores, edge: Math.abs(hue - UNDERTONE_HUE) < 1.5 }
+}
+
+function measureLines(m: ColorMeasure): string {
+  const hue = skinHue(m)
+  const chroma = Math.hypot(m.skin.a, m.skin.b)
+  const lines = [
+    `- 피부(뺨·이마의 그늘과 번들거림을 뺀 가운데 값): L* ${m.skin.L} · a* ${m.skin.a} · b* ${m.skin.b} → 색상각 ${hue.toFixed(0)}° · 채도 ${chroma.toFixed(0)}`,
+  ]
+  if (m.hair) lines.push(`- 머리카락: L* ${m.hair.L} · a* ${m.hair.a} · b* ${m.hair.b} → 피부와의 명도 차 ${(m.skin.L - m.hair.L).toFixed(0)}`)
+  return lines.join('\n')
+}
+
+export function buildColorPrompt(input: { name: string; gender: string; lang: KioskLang; focused?: boolean; measure?: ColorMeasure | null }): string {
+  // 측정으로 정해진 만큼만 보여 준다 — 유형까지 정해졌으면 그 유형 하나, 웜/쿨만 정해졌으면 그 4유형
+  const measured = diagnoseFromMeasure(input.measure)
+  const candidates = PERSONAL_COLOR_TYPES.filter((t) => !measured || (measured.typeId ? t.id === measured.typeId : t.undertone === measured.undertone))
+  const types = candidates.map((t) => `- ${t.id}: ${TYPE_GUIDE[t.id]}`).join('\n')
+  const palettes = candidates
     .map((t) => `- ${t.id}: best [${t.best.join(', ')}] / avoid [${t.avoid.join(', ')}]`)
     .join('\n')
 
@@ -34,11 +122,26 @@ export function buildColorPrompt(input: { name: string; gender: string; lang: Ki
 # 손님
 - 이름: ${input.name} / 성별: ${input.gender || '밝히지 않음'}
 
+# 옷·배경은 근거가 아닙니다
+- 옷, 배경, 액세서리, 화장품 색은 그 사람이 '지금 걸친' 색이지 그 사람의 색이 아닙니다. 진단 근거로 쓰지 마십시오.
+- 같은 사람이 주황 옷을 입든 파란 옷을 입든 검은 옷을 입든 진단은 똑같아야 합니다. 옷 색과 어울려 보이는지로 판단하지 마십시오.
+- 근거는 피부(뺨·이마·목), 머리카락(염색이면 눈썹·뿌리), 눈동자와 흰자위뿐입니다. summary 와 observation 에도 옷·배경 이야기는 쓰지 않습니다.
+${input.focused ? `- 이 사진은 옷과 배경을 **회색으로 지우고** 얼굴 둘레만 잘라 낸 것입니다. 회색 부분은 지운 자리이니 없는 것으로 보고, 남아 있는 얼굴·머리카락·목만 보십시오. 회색을 그 사람의 색(회색 기·탁함)으로 읽지 마십시오.\n` : ''}${input.measure ? `
+# 기기가 사진에서 잰 색 (CIELAB)
+${measureLines(input.measure)}
+- 읽는 법: 피부 색상각이 클수록(노랑 쪽) 웜, 작을수록(분홍·붉은 쪽) 쿨 쪽입니다. 피부 L* 가 높을수록 brightness 가 높고, 채도가 높을수록 clarity 가 높으며, 피부와 머리카락의 명도 차가 클수록 contrast 가 높습니다.
+- 이 숫자는 조명에 따라 조금 달라지지만 옷·배경의 영향을 받지 않습니다.
+${measured?.typeId
+  ? `- **유형은 측정으로 정해졌습니다: ${measured.typeId}.** typeId 는 반드시 이 값으로 쓰고, 왜 이 유형인지(피부의 노란 기·분홍 기, 밝기, 머리카락과의 대비)를 사진에서 본 것으로 설명하십시오. 다른 유형을 고르지 마십시오.`
+  : measured
+    ? `- **언더톤은 측정으로 정해졌습니다: ${measured.undertone === 'warm' ? '웜' : '쿨'}.** 아래 4유형 중에서만 고르고, 명도·선명도·대비로 가르십시오.`
+    : `- 이 숫자만으로 정하기 어려운 사진입니다. 눈으로 본 것(흰자위·치아에 비친 조명을 뺀 피부의 노란 기·분홍 기, 머리카락·눈동자의 색)과 함께 판단하십시오.`}
+` : ''}
 # 진단 순서
-1. **조명 빼기**: 실내 키오스크 조명입니다. 흰자위·치아·옷이나 배경의 흰 부분을 기준으로 조명의 노란 기·푸른 기를 머릿속에서 빼고 판단하십시오.
+1. **조명 빼기**: 실내 키오스크 조명입니다. 흰자위·치아를 기준으로 조명의 노란 기·푸른 기를 머릿속에서 빼고 판단하십시오.
 2. **관찰**: 피부 언더톤(노랑·복숭아 = 웜 / 분홍·푸름 = 쿨), 머리카락 색(염색이면 눈썹·뿌리를 참고), 눈동자 색과 흰자위의 대비, 얼굴 전체의 대비감.
 3. **네 축 점수(0-100 정수)**: warmth(0 매우 쿨 ↔ 100 매우 웜), brightness(0 깊음 ↔ 100 밝음), clarity(0 탁하고 부드러움 ↔ 100 맑고 선명함), contrast(0 은은함 ↔ 100 또렷함).
-4. **8유형 중 하나**를 고릅니다. 피부가 밝은지 어두운지(인종)가 아니라 언더톤·선명도·대비로 가르십시오 — 어두운 피부도 네 계절 모두 될 수 있습니다.
+4. **아래 유형 중 하나**를 고릅니다. 피부가 밝은지 어두운지(인종)가 아니라 언더톤·선명도·대비로 가르십시오 — 어두운 피부도 네 계절 모두 될 수 있습니다.
 ${types}
 5. 점수와 유형은 서로 맞아야 합니다(웜 유형이면 warmth 55 이상, 쿨 유형이면 45 이하).
 6. confidence — 조명이 한쪽 색으로 심하게 치우쳤거나(네온·컬러 조명), 흑백·필터 사진이거나, 짙은 화장·가림으로 본래 색을 알기 어려우면 반드시 "low". 조금 애매하면 "medium". 자연스러운 조명의 맨 얼굴에 가까울 때만 "high".
@@ -50,7 +153,7 @@ ${palettes}
 # 출력 — JSON 하나만 (코드펜스·설명 금지)
 {
   "faceFound": true,
-  "typeId": "8유형 id 중 하나",
+  "typeId": "위 유형 id 중 하나",
   "confidence": "high" | "medium" | "low",
   "title": "이 사람의 톤을 그린 한 줄 별명 (20자 이내, 유형 이름을 그대로 반복하지 말 것)",
   "summary": "어떤 관찰 때문에 이 유형인지 3-4문장",
@@ -78,7 +181,7 @@ function readConfidence(value: unknown): ColorDiagnosis['confidence'] {
 }
 
 /** 얼굴을 못 찾았으면 null — 다시 받아도 같으니 재시도하지 않고 손님에게 다시 찍게 한다 */
-export function parseColorResponse(responseText: string): ColorAnalysisResult | null {
+export function parseColorResponse(responseText: string, measured: MeasuredDiagnosis | null = null): ColorAnalysisResult | null {
   const raw = extractJsonObject(responseText)
   // false · "false" · 0, 또는 유형 없이 faceFound 만 온 응답도 '얼굴 없음'
   if (raw.faceFound === false || raw.faceFound === 0 || String(raw.faceFound).toLowerCase() === 'false') return null
@@ -87,6 +190,8 @@ export function parseColorResponse(responseText: string): ColorAnalysisResult | 
   const typeId = normalizeColorTypeId(raw.typeId, raw.season, raw.tone)
   if (!typeId) throw new Error(`typeId 가 8유형 중 하나가 아닙니다: ${String(raw.typeId)}`)
   const type = personalColorType(typeId)
+  if (measured?.typeId && typeId !== measured.typeId) throw new Error(`유형은 측정으로 ${measured.typeId} 로 정해졌는데 ${typeId} 를 골랐습니다. typeId 를 ${measured.typeId} 로 쓰십시오`)
+  if (measured && type.undertone !== measured.undertone) throw new Error(`측정으로 정해진 언더톤은 ${measured.undertone} 인데 ${typeId}(${type.undertone}) 를 골랐습니다. ${measured.undertone} 유형 중에서 고르십시오`)
   const scores = requireRecord(raw.scores, 'scores')
   const observation = requireRecord(raw.observation, 'observation')
   const styling = requireRecord(raw.styling, 'styling')
@@ -98,11 +203,12 @@ export function parseColorResponse(responseText: string): ColorAnalysisResult | 
     title: requireText(raw.title, 'title', 60),
     summary: requireText(raw.summary, 'summary', 700),
     scores: {
+      // 측정값이 있으면 눈금도 측정값으로 — 같은 사람은 같은 눈금이 나온다. 없으면 AI 가 준 값
       // 유형과 온도 눈금이 어긋나 보이지 않게 — 웜 유형은 가운데 오른쪽, 쿨 유형은 왼쪽에 둔다
-      warmth: type.undertone === 'warm' ? Math.max(55, warmth) : Math.min(45, warmth),
-      brightness: clamp100(scores.brightness, 50),
-      clarity: clamp100(scores.clarity, 50),
-      contrast: clamp100(scores.contrast, 50),
+      warmth: measured?.scores.warmth ?? (type.undertone === 'warm' ? Math.max(55, warmth) : Math.min(45, warmth)),
+      brightness: measured?.scores.brightness ?? clamp100(scores.brightness, 50),
+      clarity: measured?.scores.clarity ?? clamp100(scores.clarity, 50),
+      contrast: measured?.scores.contrast ?? clamp100(scores.contrast, 50),
     },
     observation: {
       skin: requireText(observation.skin, 'observation.skin', 240),
@@ -119,7 +225,8 @@ export function parseColorResponse(responseText: string): ColorAnalysisResult | 
       accessory: requireText(styling.accessory, 'styling.accessory', 240),
     },
     metal: raw.metal === 'silver' || raw.metal === 'rose-gold' || raw.metal === 'gold' ? raw.metal : type.undertone === 'warm' ? 'gold' : 'silver',
-    confidence: readConfidence(raw.confidence),
+    // 웜·쿨 경계에 가까운 측정은 '높음'으로 내지 않는다
+    confidence: measured?.edge && readConfidence(raw.confidence) === 'high' ? 'medium' : readConfidence(raw.confidence),
   }
   return { colorDiagnosis: diagnosis, keywords: textList(raw.keywords, 'keywords', 3, 5, 24) }
 }

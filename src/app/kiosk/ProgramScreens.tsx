@@ -13,6 +13,7 @@ import { GENDER_OPTIONS } from '@/app/[locale]/input/constants'
 import { KIOSK_LANGS, type KioskLang, type KioskText } from '@/lib/kiosk/i18n'
 import type { AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import type { KioskProgramTheme } from '@/lib/kiosk/program-theme'
+import { warmGarmentEngine } from '@/lib/kiosk/garment-recolor'
 import type { ProgramUiText } from '@/lib/kiosk/program-ui-i18n'
 import { TAROT_DECK, tarotArtSrc } from '@/lib/kiosk/tarot-deck'
 import './program-screens.css'
@@ -191,6 +192,8 @@ export function ColorCaptureStep({
   t, ui, titles, photo, photoSource, videoRef, frameRef, frameSize, onPhotoLoad, countdown, camError, inShell, onFile, noFacePhoto, qrState, qrDataUrl, qrCode, qrUnreachable, onRetake, onStart, onUseCamera, onUseQr, onRegenQr, onBackFromQr, onPrev, onShoot,
 }: ColorCaptureProps) {
   const c = ui.color
+  // 진단용 얼굴 사진을 만드는 엔진을 사진 찍는 동안 깨워 둔다(파일을 받아 둔 기기에서만 — 망을 쓰지 않는다)
+  useEffect(() => warmGarmentEngine(), [])
 
   // C05 · C15 — 폰으로 올리기(QR)
   if (!photo && photoSource === 'qr') {

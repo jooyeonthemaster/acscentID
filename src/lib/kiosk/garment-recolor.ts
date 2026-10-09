@@ -14,7 +14,10 @@
 //
 // 진단(AI 분석)에는 이 모듈이 만든 이미지를 절대 쓰지 않는다 — 원본 사진은 화면이 따로 들고 있다.
 
+import type { ColorMeasure } from './garment-core'
 import type { GarmentWorkerRequest, GarmentWorkerResponse } from './garment.worker'
+
+export type { ColorMeasure }
 
 const WASM_PATH = '/mediapipe/wasm'
 const MODEL_PATH = '/models/selfie_multiclass_256x256.tflite'
@@ -40,6 +43,14 @@ export interface GarmentPrep {
   render(hex: string): Promise<string>
   /** 디버그·검증용 — 옷 마스크를 흑백 이미지로 */
   maskUrl(): Promise<string>
+  /** 진단용 — 옷·배경을 회색으로 지우고 얼굴 둘레만 자른 사진(data: JPEG)과 피부·머리카락 색. 얼굴을 못 찾았으면 없다 */
+  focus?: ColorFocus
+}
+
+/** 퍼스널 컬러 진단(AI)에 원본 대신 보내는 것 — 옷 색이 진단을 끌고 가지 않게 */
+export interface ColorFocus {
+  image: string
+  measure: ColorMeasure
 }
 
 // ───────────────────────── 파일 받기 ─────────────────────────
@@ -186,6 +197,22 @@ function call(req: WorkerCall, timeoutMs: number, transfer: Transferable[] = [])
   })
 }
 
+/** 촬영 화면에서 미리 부른다 — 엔진 준비(수 초)를 사진 찍는 동안 끝내 둔다. 파일을 아직 못 받았으면 아무것도 하지 않는다 */
+export function warmGarmentEngine(): void {
+  if (typeof window !== 'undefined' && assets) void ensureWorker().catch(() => {})
+}
+
+/**
+ * 이 사진의 진단용 얼굴 사진·색 측정값. 기기에 모델이 없거나, 얼굴을 못 찾았거나, 제한 시간을 넘기면 null —
+ * 그때는 원본 사진으로 진단한다(진단을 붙잡아 두지 않는다). 같은 분리 결과를 옷 색 미리보기가 이어서 쓴다.
+ */
+export function colorFocusFor(photo: string, timeoutMs = 7000): Promise<ColorFocus | null> {
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(null), timeoutMs)
+    prepareGarment(photo).then((prep) => { window.clearTimeout(timer); resolve(prep.focus ?? null) }, () => { window.clearTimeout(timer); resolve(null) })
+  })
+}
+
 /** 받아 둔 파일로 워커와 엔진을 준비한다 — 없으면 바로 실패(여기서 망을 쓰지 않는다) */
 function ensureWorker(): Promise<void> {
   if (!assets) return Promise.reject(new Error('garment assets not downloaded'))
@@ -296,5 +323,16 @@ async function build(photo: string, urls: string[], gen: number, started: number
     return job
   }
 
-  return { status, coverage, width: W, height: H, render, maskUrl: () => toUrl({ type: 'mask', key: gen }) }
+  let focus: ColorFocus | undefined
+  if (res.focus && res.measure) {
+    const image = await new Promise<string | null>((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(res.focus as Blob)
+    })
+    if (image) focus = { image, measure: res.measure }
+  }
+
+  return { status, coverage, width: W, height: H, render, maskUrl: () => toUrl({ type: 'mask', key: gen }), focus }
 }

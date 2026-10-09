@@ -1,4 +1,4 @@
-// 옷 색 미리보기 계산(순수 함수 — DOM 없음). 웹 워커(garment.worker.ts)에서 돈다 — 매장 기기의 느린 CPU 에서 화면이 멈추지 않게.
+// 옷 색 미리보기 · 진단용 얼굴 사진 계산(순수 함수 — DOM 없음). 웹 워커(garment.worker.ts)에서 돈다 — 매장 기기의 느린 CPU 에서 화면이 멈추지 않게.
 // 설명은 garment-recolor.ts 머리말.
 
 // sRGB ↔ Lab (D65)
@@ -68,7 +68,7 @@ function guidedFilter(I: Float32Array, p: Float32Array, w: number, h: number, r:
   return q
 }
 
-function bilinear(src: Float32Array, sw: number, sh: number, w: number, h: number): Float32Array {
+export function bilinear(src: Float32Array, sw: number, sh: number, w: number, h: number): Float32Array {
   if (sw === w && sh === h) return src
   const out = new Float32Array(w * h)
   for (let y = 0; y < h; y++) {
@@ -236,4 +236,88 @@ export function maskGarment(s: GarmentState): Uint8ClampedArray<ArrayBuffer> {
     m[i * 4] = v; m[i * 4 + 1] = v; m[i * 4 + 2] = v; m[i * 4 + 3] = 255
   }
   return m
+}
+
+// ───────────────────────── 진단용 얼굴 사진 · 색 측정 ─────────────────────────
+//
+// 퍼스널 컬러 진단(AI)이 옷 색에 끌렸다 — 같은 얼굴에 옷 색만 바꾼 사진 30장 중 9장의 유형이 달라졌다(2026-10-10 실험).
+// 그래서 AI 에는 옷과 배경을 회색으로 지우고 얼굴 둘레만 잘라 낸 사진을 보낸다. 근거가 될 수 없는 색은 아예 보이지 않게.
+// 같이, 얼굴 피부·머리카락 픽셀에서 잰 색(Lab)을 숫자로 넘겨 판단의 닻으로 쓰게 한다.
+
+/** 사진에서 잰 색 — CIELAB(D65). 조명 영향을 받으므로 참고값 */
+export interface ColorMeasure {
+  skin: { L: number; a: number; b: number }
+  hair: { L: number; a: number; b: number } | null
+  /** 사진에서 얼굴 피부 · 머리카락이 차지하는 비율(0~1) */
+  skinShare: number
+  hairShare: number
+}
+
+const round1 = (v: number) => Math.round(v * 10) / 10
+
+/** 밝기 순으로 줄 세워 lo~hi 구간(그늘·번들거림을 뺀 가운데)만 남기고 그 가운데 값을 낸다 */
+function bandMedian(index: number[], L: Float32Array, A: Float32Array, B: Float32Array, lo: number, hi: number) {
+  index.sort((x, y) => L[x] - L[y])
+  const band = index.slice(Math.floor(index.length * lo), Math.max(Math.floor(index.length * lo) + 1, Math.floor(index.length * hi)))
+  const mid = (values: number[]) => { values.sort((x, y) => x - y); return values[values.length >> 1] }
+  return { L: round1(mid(band.map((i) => L[i]))), a: round1(mid(band.map((i) => A[i]))), b: round1(mid(band.map((i) => B[i]))) }
+}
+
+/** 얼굴 피부 · 머리카락 마스크(사진 해상도, 0~1)에서 색을 잰다. 얼굴이 너무 작으면 null */
+export function measureColors(s: GarmentState, face: Float32Array, hair: Float32Array): ColorMeasure | null {
+  const skinIdx: number[] = []
+  const hairIdx: number[] = []
+  // 두 칸에 한 번만 본다 — 가운데 값에는 충분하고 느린 기기에서 빠르다
+  for (let i = 0; i < s.N; i += 2) {
+    if (face[i] > 0.75) skinIdx.push(i)
+    else if (hair[i] > 0.75) hairIdx.push(i)
+  }
+  const skinShare = (skinIdx.length * 2) / s.N
+  const hairShare = (hairIdx.length * 2) / s.N
+  if (skinIdx.length < 400 || skinShare < 0.012) return null
+  return {
+    // 피부: 그늘(어두운 30%)과 번들거림(밝은 15%)을 뺀 가운데
+    skin: bandMedian(skinIdx, s.L, s.A, s.B, 0.3, 0.85),
+    // 머리카락: 빛 반사(밝은 30%)를 뺀다
+    hair: hairIdx.length >= 300 ? bandMedian(hairIdx, s.L, s.A, s.B, 0.1, 0.7) : null,
+    skinShare: Math.round(skinShare * 1000) / 1000,
+    hairShare: Math.round(hairShare * 1000) / 1000,
+  }
+}
+
+export interface FocusImage {
+  /** 사람(얼굴·머리카락·몸 피부)만 남기고 나머지는 회색인 RGBA — 사진 전체 크기 */
+  rgba: Uint8ClampedArray<ArrayBuffer>
+  /** 얼굴·머리카락 둘레를 조금 넉넉히 잡은 잘라 낼 칸 */
+  box: { x: number; y: number; w: number; h: number }
+}
+
+/** 옷·배경·액세서리를 중간 회색으로 지운다. keep 은 남길 정도(0~1, 얼굴 피부 + 머리카락 + 몸 피부) */
+export function focusOnPerson(px: Uint8ClampedArray, W: number, H: number, face: Float32Array, hair: Float32Array, body: Float32Array): FocusImage | null {
+  const N = W * H
+  const rgba = new Uint8ClampedArray(N * 4)
+  let x0 = W, y0 = H, x1 = -1, y1 = -1
+  const GRAY = 128
+  for (let i = 0; i < N; i++) {
+    // 경계를 안쪽으로 조인다 — 머리카락 끝·어깨선에 옷·배경 색이 실처럼 남지 않게
+    const k = smoothstep(0.45, 0.82, Math.min(1, face[i] + hair[i] + body[i]))
+    const j = i * 4
+    rgba[j] = px[j] * k + GRAY * (1 - k)
+    rgba[j + 1] = px[j + 1] * k + GRAY * (1 - k)
+    rgba[j + 2] = px[j + 2] * k + GRAY * (1 - k)
+    rgba[j + 3] = 255
+    if (face[i] > 0.5 || hair[i] > 0.5) {
+      const x = i % W, y = (i / W) | 0
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      if (y > y1) y1 = y
+    }
+  }
+  if (x1 < 0) return null
+  // 턱 아래 목까지 보이게 아래쪽을 더 준다
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1
+  const mx = Math.round(bw * 0.08), top = Math.round(bh * 0.06), bottom = Math.round(bh * 0.14)
+  const x = Math.max(0, x0 - mx), y = Math.max(0, y0 - top)
+  return { rgba, box: { x, y, w: Math.min(W, x1 + mx + 1) - x, h: Math.min(H, y1 + bottom + 1) - y } }
 }

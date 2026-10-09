@@ -60,7 +60,7 @@ import { TarotReportView } from './TarotReport'
 import { TarotSteps, useTarotSession } from './TarotSteps'
 import { ColorCaptureStep, ProgramAnalyzeError, ProgramAnalyzing, ProgramIdleDialog, ProgramInfoStep, ProgramLangMenu, ProgramReceiptModal, ProgramTopBar, type ProgramProgress } from './ProgramScreens'
 import { programUiText } from '@/lib/kiosk/program-ui-i18n'
-import { releaseGarment } from '@/lib/kiosk/garment-recolor'
+import { colorFocusFor, releaseGarment } from '@/lib/kiosk/garment-recolor'
 import { useCamFrame } from './useCamFrame'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
 import {
@@ -737,7 +737,6 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
     const isSaju = program === 'saju'
-    // 퍼스널 컬러 옷 색 미리보기는 결과 화면에서 시작한다 — 진단 중에는 기기 계산·망을 진단에만 쓴다
     setStep('analyzing')
     setAnalysisDone(false)
     setAnalyzeError(null)
@@ -760,6 +759,9 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         : program === 'color' ? '/api/kiosk/analyze/color'
         : program === 'tarot' ? '/api/kiosk/analyze/tarot'
         : '/api/kiosk/analyze'
+      // 퍼스널 컬러 — 옷·배경을 지운 진단용 사진과 피부·머리카락 색(기기에 모델이 있을 때만). 진단이 옷 색에 끌리지 않게.
+      // 원본은 그대로 같이 보낸다 — 진단용 사진을 못 쓰면 서버가 원본으로 진단한다
+      const colorFocus = program === 'color' && photo ? await colorFocusFor(photo) : null
       const body = isSaju
         ? {
           name: name.trim() || t.guest,
@@ -783,7 +785,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           mock: isMockRequested(),
         }
         : program === 'color'
-        ? { name: name.trim() || t.guest, gender, imageBase64: photo, lang, mock: isMockRequested() }
+        ? { name: name.trim() || t.guest, gender, imageBase64: photo, ...(colorFocus ? { focusImage: colorFocus.image, measure: colorFocus.measure } : {}), lang, mock: isMockRequested() }
         : program === 'tarot'
         ? {
           name: name.trim() || t.guest,
