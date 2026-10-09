@@ -19,6 +19,8 @@ import './programs.css'
 import './color-archive.css'
 
 const GAUGE_KEYS: ColorGaugeKey[] = ['warmth', 'brightness', 'clarity', 'contrast']
+/** 글을 접지 않고 처음부터 다 보여 준다('자세히 보기' 버튼 없음) */
+const FULL = Number.POSITIVE_INFINITY
 /** 스타일 가이드 견본 — 머리색·금속은 진단 데이터에 없어 웜/쿨로 나눈 고정 견본 */
 const HAIR_CHIPS = { warm: ['#B07A52', '#8A5A3B'], cool: ['#5A4A48', '#2F2A2B'] } as const
 const METAL_CHIPS = { gold: '#C9A45C', silver: '#B8BCC4', 'rose-gold': '#D4A08C' } as const
@@ -258,7 +260,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
           {d.undertone === 'warm' ? <Sun size={34} strokeWidth={1.4} aria-hidden="true" /> : <Snowflake size={34} strokeWidth={1.4} aria-hidden="true" />}
           <p>{first}</p>
         </div>
-        {rest.length > 0 && <Brief text={rest.join(' ')} n={0} tx={px} />}
+        {rest.length > 0 && <Brief text={rest.join(' ')} n={FULL} tx={px} />}
         {d.confidence === 'low' && <p className="xpr-note xpr-note--warn">{tx.lowConfidence}</p>}
         <div className="clr-gauges">
           {GAUGE_KEYS.map((key) => (
@@ -295,7 +297,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
             <section key={key} className="clr2-style">
               <div>
                 <p className="clr2-style-title">{tx.styling[key]}{key === 'accessory' ? ` · ${tx.metal[d.metal]}` : ''}</p>
-                <Brief text={d.styling[key]} n={2} tx={px} />
+                <Brief text={d.styling[key]} n={FULL} tx={px} />
                 <div className="clr2-chips" data-shape={shape}>{chips.map((hex) => <i key={hex} style={{ background: hex }} />)}</div>
               </div>
               <Icon className="clr2-style-icon" size={56} strokeWidth={1} aria-hidden="true" />

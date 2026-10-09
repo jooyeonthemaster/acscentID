@@ -14,6 +14,9 @@ import './saju-report.css'
 import './programs.css'
 import './moonlit-tarot.css'
 
+/** 풀이를 접지 않고 처음부터 다 보여 준다('자세히 보기' 버튼 없음 — 한 장 스크롤이라 누를 일을 줄인다) */
+const FULL = Number.POSITIVE_INFINITY
+
 export function TarotReportView({ result, px, lang, scrollMore }: { result: TarotAnalysisResult; px: ProgramText; lang: KioskLang; scrollMore: string }) {
   const tx = px.tarot
   const { tarotSpread: spread, tarotReading: reading } = result
@@ -53,7 +56,7 @@ export function TarotReportView({ result, px, lang, scrollMore }: { result: Taro
             <div className="sjr-chips">
               {text.keywords.map((k) => <span key={k} className="sjr-chip">{k}</span>)}
             </div>
-            <Brief text={text.reading} n={2} tx={px} />
+            <Brief text={text.reading} n={FULL} tx={px} />
           </section>
         )
       })}
@@ -72,7 +75,7 @@ export function TarotReportView({ result, px, lang, scrollMore }: { result: Taro
       </div>
       <p className="sjr-section">{tx.flowTitle}</p>
       <section className="sjr-card sjr-card--accent">
-        <Brief text={reading.flow} n={3} tx={px} />
+        <Brief text={reading.flow} n={FULL} tx={px} />
       </section>
 
       <p className="sjr-section">{tx.adviceTitle}</p>
