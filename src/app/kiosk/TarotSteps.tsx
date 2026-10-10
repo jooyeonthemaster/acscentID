@@ -85,7 +85,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
 
   if (step === 'topic') {
     return (
-      <div className="ksk-body trt-step" data-tarot-step="topic">
+      <div key="topic" className="ksk-body trt-step" data-tarot-step="topic">
         <p className="ksk-eyebrow ksk-mono">{pill('topic')}</p>
         <h1 className="ksk-title">{tx.topicTitle}</h1>
         <p className="ksk-desc">{tx.topicDesc}</p>
@@ -112,7 +112,7 @@ export function TarotSteps({ step, session, tx, labels, lang, pill, onPrev, onNe
 
   if (step === 'question') {
     return (
-      <div className="ksk-body trt-step" data-tarot-step="question">
+      <div key="question" className="ksk-body trt-step" data-tarot-step="question">
         <p className="ksk-eyebrow ksk-mono">{pill('question')}</p>
         <h1 className="ksk-title">{tx.questionTitle}</h1>
         <p className="ksk-desc">{tx.questionDesc}</p>

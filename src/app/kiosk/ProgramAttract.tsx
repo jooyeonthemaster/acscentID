@@ -7,6 +7,7 @@ import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { ModeAttract } from '@/lib/kiosk/modes'
 import type { KioskProgramTheme } from '@/lib/kiosk/program-theme'
 import './program-theme.css'
+import './program-motion.css'
 
 const COPY: Record<KioskLang, { colorCta: string; tarotCta: string; colorNote: string; tarotNote: string }> = {
   ko: { colorCta: '내 컬러 찾기', tarotCta: '나의 카드 뽑기', colorNote: '사진 한 장 · 8가지 컬러 타입', tarotNote: '과거 · 현재 · 미래' },

@@ -14,9 +14,11 @@ import type { ColorGaugeKey, ProgramText } from '@/lib/kiosk/program-i18n'
 import type { ProgramUiText } from '@/lib/kiosk/program-ui-i18n'
 import type { ColorAnalysisResult } from '@/types/analysis'
 import { Brief } from './SajuReport'
+import { useReveal } from './useReveal'
 import './saju-report.css'
 import './programs.css'
 import './color-archive.css'
+import './program-motion.css'
 
 const GAUGE_KEYS: ColorGaugeKey[] = ['warmth', 'brightness', 'clarity', 'contrast']
 /** 글을 접지 않고 처음부터 다 보여 준다('자세히 보기' 버튼 없음) */
@@ -109,6 +111,8 @@ export function ColorReportView({ result, photo, px, ui, name }: {
   const tryOn = useGarmentTryOn(photo, selected, [...type.best, ...type.avoid])
   const toneRef = useRef<HTMLDivElement>(null)
   const styleRef = useRef<HTMLDivElement>(null)
+  // 아래쪽(톤 분석 · 스타일 가이드)은 스크롤해 화면에 들어올 때 차례로 나타난다
+  const rootRef = useReveal<HTMLDivElement>()
 
   // 팔레트와 이름 개수가 일치할 때만 견본마다 이름을 붙인다. 다르면 HEX 를 손님에게 보이지 않고 이름 목록으로만
   const avoiding = type.avoid.includes(selected)
@@ -130,9 +134,14 @@ export function ColorReportView({ result, photo, px, ui, name }: {
   }
 
   const garment = tryOn.state === 'ready' && Boolean(photo)
+  // 옷 색을 바꿀 때 — 앞의 색을 밑에 깔아 두고 새 색이 그 위로 스며든다. 새 색을 계산하는 동안에도 앞의 색을 그대로 보여 준다
+  // (사이에 원본 옷이 비쳐 깜박이지 않게). 미리보기를 못 쓰게 되면 비운다(지워진 그림 주소를 붙들지 않는다)
+  const [layers, setLayers] = useState<{ current: string | null; prev: string | null }>({ current: null, prev: null })
+  if (garment && tryOn.overlay && tryOn.overlay !== layers.current) setLayers({ current: tryOn.overlay, prev: layers.current })
+  if (!garment && (layers.current || layers.prev)) setLayers({ current: null, prev: null })
   const swatches = (colors: string[], avoid: boolean) => (
     <div className="clr-swatches" data-avoid={avoid || undefined} role="group" aria-label={avoid ? tx.avoid : tx.best}>
-      {colors.map((hex) => {
+      {colors.map((hex, index) => {
         const label = colorName(hex, avoid)
         return (
           <button
@@ -142,7 +151,8 @@ export function ColorReportView({ result, photo, px, ui, name }: {
             data-on={selected === hex || undefined}
             aria-label={`${avoid ? tx.avoid : tx.best} · ${label ?? hex}`}
             aria-pressed={selected === hex}
-            style={{ background: hex, color: readableInk(hex) }}
+            // --i: 차례로 나타나는 순서(추천 색 다음에 피할 색이 이어진다)
+            style={{ background: hex, color: readableInk(hex), '--i': index + (avoid ? type.best.length : 0) } as CSSProperties}
             onClick={() => pick(hex)}
           >
             {selected === hex && (
@@ -162,7 +172,9 @@ export function ColorReportView({ result, photo, px, ui, name }: {
         <img src={photo ?? ''} alt="" />
         {/* 덧그림은 옷 부분만 담긴 투명 이미지 — 얼굴·피부·배경은 아래 원본이 그대로 보인다 */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {overlay && <img className="clr2-overlay" src={overlay} alt="" />}
+        {overlay && layers.prev && layers.prev !== overlay && <img key="prev" className="clr2-overlay clr2-overlay--prev" src={layers.prev} alt="" />}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {overlay && <img key={overlay} className="clr2-overlay" src={overlay} alt="" />}
       </div>
       <figcaption>{caption}</figcaption>
     </figure>
@@ -170,7 +182,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
   const [first, ...rest] = sentences(d.summary)
 
   return (
-    <div className="sjr clr clr2">
+    <div className="sjr clr clr2" ref={rootRef}>
       <header className="clr2-head">
         <p className="clr2-kicker">{u.resultKicker(name)}</p>
         <div className="clr2-type">
@@ -188,7 +200,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
             <>
               <div className="clr2-compare">
                 {frame(null, u.captionOriginal, 'orig')}
-                {frame(tryOn.overlay, u.captionPreview(selectedName ?? groupLabel), 'prev')}
+                {frame(layers.current, u.captionPreview(selectedName ?? groupLabel), 'prev')}
               </div>
               <p className="clr2-selected">
                 <span>{u.selectedColor}</span>
@@ -205,7 +217,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
                 <button type="button" role="tab" aria-selected={view === 'preview'} data-on={view === 'preview' || undefined} onClick={() => setView('preview')}>{u.tabPreview}</button>
                 <button type="button" role="tab" aria-selected={view === 'original'} data-on={view === 'original' || undefined} onClick={() => setView('original')}>{u.tabOriginal}</button>
               </div>
-              {frame(view === 'preview' ? tryOn.overlay : null, view === 'preview' ? `${u.selectedColor} · ${selectedName ?? groupLabel}` : u.captionOriginal, 'single')}
+              {frame(view === 'preview' ? layers.current : null, view === 'preview' ? `${u.selectedColor} · ${selectedName ?? groupLabel}` : u.captionOriginal, view)}
               <button type="button" className="ksk-alt clr2-compare-btn" onClick={() => setView('compare')}>
                 <Columns2 size={20} strokeWidth={1.7} aria-hidden="true" /><span>{u.compare}</span>
               </button>
@@ -223,7 +235,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
             )}
             {tryOn.state === 'loading' && photo && <span className="clr2-scan" aria-hidden="true" />}
           </div>
-          <p className="clr-drape-color" data-avoid={avoiding || undefined} aria-live="polite" aria-atomic="true">
+          <p key={selected} className="clr-drape-color" data-avoid={avoiding || undefined} aria-live="polite" aria-atomic="true">
             <span>{groupLabel}</span>
             {selectedName && <strong>{selectedName}</strong>}
           </p>
@@ -254,26 +266,27 @@ export function ColorReportView({ result, photo, px, ui, name }: {
       </button>
 
       <div className="clr2-section" ref={toneRef}>
-        <p className="clr2-mini">{u.resultKicker(name)} · <b>{tx.typeNames[d.typeId]} · {tx.undertone[d.undertone]}</b></p>
-        <h3 className="clr2-h2">{tx.gaugeTitle}</h3>
-        <div className="clr2-callout">
+        <p className="clr2-mini" data-reveal="">{u.resultKicker(name)} · <b>{tx.typeNames[d.typeId]} · {tx.undertone[d.undertone]}</b></p>
+        <h3 className="clr2-h2" data-reveal="">{tx.gaugeTitle}</h3>
+        <div className="clr2-callout" data-reveal="">
           {d.undertone === 'warm' ? <Sun size={34} strokeWidth={1.4} aria-hidden="true" /> : <Snowflake size={34} strokeWidth={1.4} aria-hidden="true" />}
           <p>{first}</p>
         </div>
-        {rest.length > 0 && <Brief text={rest.join(' ')} n={FULL} tx={px} />}
-        {d.confidence === 'low' && <p className="xpr-note xpr-note--warn">{tx.lowConfidence}</p>}
+        {rest.length > 0 && <div data-reveal=""><Brief text={rest.join(' ')} n={FULL} tx={px} /></div>}
+        {d.confidence === 'low' && <p className="xpr-note xpr-note--warn" data-reveal="">{tx.lowConfidence}</p>}
         <div className="clr-gauges">
           {GAUGE_KEYS.map((key) => (
-            <div key={key} className="clr-gauge">
+            <div key={key} className="clr-gauge" data-reveal="">
               <b>{tx.gauges[key].label}</b>
               <span>{tx.gauges[key].low}</span>
-              <span className="clr-gauge-track"><i style={{ left: `${d.scores[key]}%` }} /></span>
+              {/* --v: 화면에 들어올 때 가운데에서 제 자리(점수)로 미끄러져 가는 거리를 재는 데 쓴다(program-motion.css) */}
+              <span className="clr-gauge-track"><i style={{ left: `${d.scores[key]}%`, '--v': d.scores[key] } as CSSProperties} /></span>
               <span>{tx.gauges[key].high}</span>
             </div>
           ))}
         </div>
-        <h3 className="clr2-h2">{tx.observeTitle}</h3>
-        <ul className="clr2-observe">
+        <h3 className="clr2-h2" data-reveal="">{tx.observeTitle}</h3>
+        <ul className="clr2-observe" data-reveal="">
           {([['skin', Smile], ['hair', Waves], ['eyes', Eye]] as const).map(([key, Icon]) => (
             <li key={key}><Icon size={22} strokeWidth={1.5} aria-hidden="true" /><b>{tx.observe[key]}</b><span>{d.observation[key]}</span></li>
           ))}
@@ -285,8 +298,8 @@ export function ColorReportView({ result, photo, px, ui, name }: {
       </div>
 
       <div className="clr2-section" ref={styleRef}>
-        <h3 className="clr2-h2">{tx.stylingTitle}</h3>
-        <p className="clr2-sub">{u.styleSub}</p>
+        <h3 className="clr2-h2" data-reveal="">{tx.stylingTitle}</h3>
+        <p className="clr2-sub" data-reveal="">{u.styleSub}</p>
         <div className="clr2-styles">
           {([
             ['makeup', Paintbrush, type.best.slice(1, 3), 'round'],
@@ -294,7 +307,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
             ['fashion', Shirt, type.best.slice(3, 7), 'square'],
             ['accessory', Gem, [METAL_CHIPS[d.metal]], 'round'],
           ] as const).map(([key, Icon, chips, shape]) => (
-            <section key={key} className="clr2-style">
+            <section key={key} className="clr2-style" data-reveal="">
               <div>
                 <p className="clr2-style-title">{tx.styling[key]}{key === 'accessory' ? ` · ${tx.metal[d.metal]}` : ''}</p>
                 <Brief text={d.styling[key]} n={FULL} tx={px} />
@@ -305,7 +318,7 @@ export function ColorReportView({ result, photo, px, ui, name }: {
           ))}
         </div>
         {result.keywords.length > 0 && (
-          <div className="sjr-chips clr-keywords">
+          <div className="sjr-chips clr-keywords" data-reveal="">
             {result.keywords.map((k) => <span key={k} className="sjr-chip">#{k}</span>)}
           </div>
         )}

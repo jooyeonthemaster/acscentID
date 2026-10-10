@@ -17,6 +17,7 @@ import { warmGarmentEngine } from '@/lib/kiosk/garment-recolor'
 import type { ProgramUiText } from '@/lib/kiosk/program-ui-i18n'
 import { TAROT_DECK, tarotArtSrc } from '@/lib/kiosk/tarot-deck'
 import './program-screens.css'
+import './program-motion.css'
 
 /** 목업의 색 견본 띠 — 장식(진단 결과와 무관한 고정 8색) */
 const SAMPLE_STRIP = ['#D9625A', '#F2B8A2', '#F2C44E', '#A6BE8C', '#8EC5E8', '#C9B3E3', '#F0C8B4', '#CEC3E2']
@@ -83,8 +84,9 @@ export function ProgramTopBar({ brand, langMenu, progress }: { brand: string; la
       )}
       {progress?.kind === 'bar' && (
         <div className="pg-bar">
-          <span>STEP {String(progress.index + 1).padStart(2, '0')}/{String(progress.total).padStart(2, '0')} · {progress.label}</span>
-          <i><b style={{ width: `${((progress.index + 1) / progress.total) * 100}%` }} /></i>
+          {/* 단계가 바뀌면 글자는 새로 나타나고(key), 막대는 가로 배율로 이어서 찬다 */}
+          <span key={progress.index}>STEP {String(progress.index + 1).padStart(2, '0')}/{String(progress.total).padStart(2, '0')} · {progress.label}</span>
+          <i><b style={{ transform: `scaleX(${(progress.index + 1) / progress.total})` }} /></i>
         </div>
       )}
     </header>
@@ -199,7 +201,7 @@ export function ColorCaptureStep({
   if (!photo && photoSource === 'qr') {
     const failed = qrState === 'failed' || qrState === 'expired'
     return (
-      <div className="ksk-body pg-body pg-capture" data-view="qr">
+      <div key="qr" className="ksk-body pg-body pg-capture" data-view="qr">
         <h1 className="pg-title">{c.qrTitle}</h1>
         <p className="pg-desc">{c.qrDesc}</p>
         <div className="pg-card pg-qr" data-state={qrState}>
@@ -240,7 +242,7 @@ export function ColorCaptureStep({
   // C06 — 찍은(받은) 사진 확인
   if (photo) {
     return (
-      <div className="ksk-body pg-body pg-capture" data-view="confirm">
+      <div key="confirm" className="ksk-body pg-body pg-capture" data-view="confirm">
         <h1 className="pg-title">{titles.confirm}</h1>
         <p className="pg-desc">{c.confirmDesc}</p>
         <div className="ksk-cam-slot pg-cam-slot" ref={frameRef}>
@@ -262,7 +264,7 @@ export function ColorCaptureStep({
 
   // C04 · C12 · C13 — 촬영(카운트다운 · 카메라 없음 · 얼굴 못 찾음은 같은 자리에 겹친다)
   return (
-    <div className="ksk-body pg-body pg-capture" data-view="camera">
+    <div key="camera" className="ksk-body pg-body pg-capture" data-view="camera">
       <h1 className="pg-title">{titles.capture}</h1>
       <p className="pg-desc">{c.captureDesc}</p>
       <div className="ksk-cam-slot pg-cam-slot" ref={frameRef}>
@@ -278,7 +280,7 @@ export function ColorCaptureStep({
           )}
           {!noFacePhoto && !camError && <span className="pg-guide" aria-hidden="true"><i /><b /></span>}
           {(['tl', 'tr', 'bl', 'br'] as const).map((pos) => <i key={pos} className="pg-corner" data-pos={pos} aria-hidden="true" />)}
-          {countdown !== null && <div className="pg-count" aria-live="assertive">{countdown}</div>}
+          {countdown !== null && <div key={countdown} className="pg-count" aria-live="assertive">{countdown}</div>}
           {camError && (
             <div className="pg-nocam" role="alert">
               <CameraOff size={56} strokeWidth={1.4} aria-hidden="true" />
@@ -372,7 +374,7 @@ export function ProgramAnalyzing({ theme, ui, name, statusLines, eta, done, card
           ))}
         </ol>
         <div className="pg-segments" aria-label={`${progress}%`}>
-          {[0, 1, 2].map((i) => <i key={i}><b style={{ width: `${Math.max(0, Math.min(1, progress / 100 * 3 - i)) * 100}%` }} /></i>)}
+          {[0, 1, 2].map((i) => <i key={i}><b style={{ transform: `scaleX(${Math.max(0, Math.min(1, progress / 100 * 3 - i))})` }} /></i>)}
         </div>
         <p className="pg-wait">{c.analyzingWait}</p>
         <div className="pg-spacer" />
@@ -386,8 +388,8 @@ export function ProgramAnalyzing({ theme, ui, name, statusLines, eta, done, card
       <div className="pg-moon" aria-hidden="true"><span>☾</span><span>✦</span></div>
       <p className="pg-kicker">ANALYZING</p>
       <p className="pg-percent">{progress}%</p>
-      <i className="pg-progress"><b style={{ width: `${progress}%` }} /></i>
-      <p className="pg-status">{statusLines.length ? statusLines[line % statusLines.length] : ui.tarot.analyzingTitle}</p>
+      <i className="pg-progress"><b style={{ transform: `scaleX(${progress / 100})` }} /></i>
+      <p key={statusLines.length ? line % statusLines.length : 'title'} className="pg-status">{statusLines.length ? statusLines[line % statusLines.length] : ui.tarot.analyzingTitle}</p>
       <p className="pg-eta">{eta}</p>
       <div className="pg-ghost-cards" aria-hidden="true">
         {cards.slice(0, 3).map((id, i) => (
@@ -438,7 +440,7 @@ export function ProgramIdleDialog({ t, left, total }: { t: KioskText; left: numb
     // 화면 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다 — 셸의 무입력 타이머가 맡는다
     <div className="pg-idle" role="alertdialog" aria-live="assertive" aria-label={t.idleTitle}>
       <div className="pg-idle-card">
-        <span className="pg-idle-count" style={{ '--p': left / total } as CSSProperties}><b>{left}</b></span>
+        <span className="pg-idle-count" style={{ '--p': left / total } as CSSProperties}><b key={left}>{left}</b></span>
         <h2>{t.idleTitle}</h2>
         <p>{t.idleDesc}</p>
         <button type="button" className="ksk-btn ksk-btn-primary">{t.idleContinue}</button>

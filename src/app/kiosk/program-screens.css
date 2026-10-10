@@ -221,7 +221,7 @@
 .ksk-root[data-program-theme] .pg-checklist li[data-state='now'] > span { border-color: var(--pg-accent); box-shadow: inset 0 0 0 5px var(--pg-paper); background: var(--pg-accent); }
 .ksk-root[data-program-theme] .pg-segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 18px 6% 0; }
 .ksk-root[data-program-theme] .pg-segments i { height: 10px; border-radius: 6px; background: var(--pg-accent-soft); overflow: hidden; }
-.ksk-root[data-program-theme] .pg-segments b { display: block; height: 100%; background: var(--pg-accent); transition: width 0.3s; }
+.ksk-root[data-program-theme] .pg-segments b { display: block; height: 100%; background: var(--pg-accent); }
 .ksk-root[data-program-theme] .pg-wait { margin: 16px 0 0; color: var(--pg-ink); font-size: 16px; text-align: center; }
 .ksk-root[data-program-theme] .pg-foot { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; color: var(--pg-soft); font-size: 12px; }
 .ksk-root[data-program-theme] .pg-foot::before,
@@ -231,7 +231,7 @@
 .ksk-root[data-program-theme] .pg-kicker { margin: 40px 0 0; color: var(--pg-ink); font-size: 14px; font-weight: 700; letter-spacing: 0.3em; text-align: center; }
 .ksk-root[data-program-theme] .pg-percent { margin: 2px 0 10px; color: var(--pg-accent); font-family: Georgia, 'Times New Roman', serif; font-size: 96px; font-weight: 700; line-height: 1; text-align: center; }
 .ksk-root[data-program-theme] .pg-progress { display: block; width: 72%; height: 8px; margin: 0 auto; border-radius: 6px; background: var(--pg-accent-soft); overflow: hidden; }
-.ksk-root[data-program-theme] .pg-progress b { display: block; height: 100%; background: var(--pg-accent); transition: width 0.3s; }
+.ksk-root[data-program-theme] .pg-progress b { display: block; height: 100%; background: var(--pg-accent); }
 .ksk-root[data-program-theme] .pg-status { margin: 24px 0 6px; color: var(--pg-ink); font-size: 22px; font-weight: 800; text-align: center; }
 .ksk-root[data-program-theme] .pg-eta { margin: 0; color: var(--pg-soft); font-size: 16px; text-align: center; }
 .ksk-root[data-program-theme] .pg-ghost-cards { position: relative; display: flex; justify-content: center; gap: 10px; margin: 34px auto 0; opacity: 0.22; filter: grayscale(0.4); }
@@ -291,12 +291,6 @@
 .ksk-root[data-program-theme='tarot'] .trt-question-note { margin: 10px 0 0; color: #7c6e7f; font-size: 13px; text-align: center; }
 .ksk-root[data-program-theme='tarot'] .trt-revealed-desc { margin-bottom: 0; }
 .ksk-root[data-program-theme='tarot'] .trt-read-btn { display: inline-flex; gap: 12px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme] .pg-spin { animation: none; }
-  .ksk-root[data-program-theme] .pg-segments b,
-  .ksk-root[data-program-theme] .pg-progress b { transition: none; }
-}
 
 /* 타로 결과 — 세 장의 흐름(T15): 작은 카드 셋을 화살표로 잇는다 */
 .ksk-root[data-program-theme='tarot'] .trt-flow-row { display: flex; align-items: flex-start; justify-content: center; gap: 4px; margin: 14px 0 0; }

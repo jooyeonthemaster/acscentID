@@ -105,17 +105,10 @@
 .ksk-root[data-program-theme='tarot'] .trt-hint { margin-top: 8px; }
 .ksk-root[data-program-theme='tarot'] .trt-hint-btn { transition: opacity .25s ease; }
 .ksk-root[data-program-theme='tarot'] .trt-hint-btn:disabled { cursor: default; opacity: .45; }
-.ksk-root[data-program-theme='tarot'] .program-art > img { animation: trt-hero-drift 7s ease-in-out infinite; }
 .ksk-root[data-program-theme='tarot'] .trt-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
 @keyframes trt-fade-in { from { opacity: 0; } }
 @keyframes trt-fade-out { to { opacity: 0; } }
 @keyframes trt-rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes trt-hero-drift { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-7px) rotate(.4deg); } }
 
-/* 카드 연출(섞기·펼치기·고르기·뒤집기)은 '움직임 줄이기' 설정에서도 그대로 보여 준다 — 매장 PC 는 윈도우를 '최적 성능'으로
-   맞춰 두어 브라우저가 늘 prefers-reduced-motion 으로 알려 온다(손님이 고른 것이 아니다). 그걸 따르면 연출이 통째로 사라진다.
-   손님이 없을 때 계속 도는 첫 화면 그림의 흔들림만 그 설정을 따른다(종일 켜 두는 기기 부담을 줄인다). */
-@media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='tarot'] .program-art > img { animation: none; }
-}
+/* 카드 연출은 '움직임 줄이기' 설정을 따르지 않는다 — 까닭과 그 밖의 화면 움직임은 program-motion.css */

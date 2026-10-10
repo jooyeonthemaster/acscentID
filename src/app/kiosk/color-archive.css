@@ -278,12 +278,6 @@
   box-shadow: 0 4px 14px rgba(32, 45, 114, 0.18);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='color'] .clr .sjr-more-hint span {
-    animation: none;
-  }
-}
-
 /* AI 가 준 색 이름이 견본 수와 다를 때만 나오는 목록 — 견본마다 이름을 붙일 수 없어 묶어서 보여 준다 */
 .ksk-root[data-program-theme='color'] .clr-names {
   margin-top: 10px !important;
@@ -329,7 +323,8 @@
 .ksk-root[data-program-theme='color'] .clr2-frame { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; }
 .ksk-root[data-program-theme='color'] .clr2-photo { position: relative; width: min(56%, 264px); aspect-ratio: 3 / 4; overflow: hidden; background: #ecebe6; }
 .ksk-root[data-program-theme='color'] .clr2-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
-.ksk-root[data-program-theme='color'] .clr2-overlay { animation: clr2-fade 0.25s ease-out; }
+/* 앞의 색을 밑에 깔아 두고(.clr2-overlay--prev) 새 색이 그 위로 스며든다 — program-motion.css */
+.ksk-root[data-program-theme='color'] .clr2-overlay { animation: clr2-fade 0.38s ease-out; }
 @keyframes clr2-fade { from { opacity: 0; } }
 .ksk-root[data-program-theme='color'] .clr2-frame figcaption {
   padding: 4px 14px; border-radius: 2px; background: #ecebf4; color: #272f73; font-size: 13px; font-weight: 700; text-align: center;
@@ -405,11 +400,6 @@
 .ksk-root[data-program-theme='color'] .clr2-chips[data-shape='square'] i { width: 48px; height: 40px; border-radius: 2px; }
 .ksk-root[data-program-theme='color'] .clr2 .clr-palette { border-top: 1px solid #c4c7d9; border-bottom: 0; background: transparent; }
 .ksk-root[data-program-theme='color'] .clr2 .clr-hint { font-size: 14px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='color'] .clr2-overlay,
-  .ksk-root[data-program-theme='color'] .clr2-scan { animation: none; }
-}
 
 /* 결과 머리(챕터 표시) — 퍼스널 컬러는 한 장뿐이라 'PERSONAL COLOR' 머리가 결과 첫 줄(○○님의 퍼스널 컬러)과 겹친다. 셸 공통 */
 .ksk-root[data-program-theme='color'] .ksk-result > .ksk-chapter-head { display: none; }

@@ -217,7 +217,3 @@
 .ksk-root[data-program-theme='tarot'] .trt .sjr-insights li b { width: 38px; height: 38px; border-width: 1px; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; }
 .ksk-root[data-program-theme='tarot'] .trt .xpr-note { background: #faf6edef; color: #6b5d70; font-size: 13px; }
 .ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { background: #614a6f; color: #faf6ed; box-shadow: 0 4px 12px #53405f25; font-size: 16px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { animation: none; }
-}
