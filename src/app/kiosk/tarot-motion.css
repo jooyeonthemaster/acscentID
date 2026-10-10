@@ -113,15 +113,9 @@
 @keyframes trt-rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes trt-hero-drift { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-7px) rotate(.4deg); } }
 
+/* 카드 연출(섞기·펼치기·고르기·뒤집기)은 '움직임 줄이기' 설정에서도 그대로 보여 준다 — 매장 PC 는 윈도우를 '최적 성능'으로
+   맞춰 두어 브라우저가 늘 prefers-reduced-motion 으로 알려 온다(손님이 고른 것이 아니다). 그걸 따르면 연출이 통째로 사라진다.
+   손님이 없을 때 계속 도는 첫 화면 그림의 흔들림만 그 설정을 따른다(종일 켜 두는 기기 부담을 줄인다). */
 @media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='tarot'] .trt-fan-card,
-  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] .trt-fan-card,
-  .ksk-root[data-program-theme='tarot'] .trt-fan-card .trt-card--picked,
-  .ksk-root[data-program-theme='tarot'] .trt-flip-back :is(.trt-card--back, .trt-card--empty),
-  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] :is(.trt-table, .trt-hint, .ksk-title, .trt-revealed-desc, .trt-slot-name, .trt-read-btn),
-  .ksk-root[data-program-theme='tarot'] .trt-step[data-deck-phase] .trt-flip-front .trt-card--face::after,
   .ksk-root[data-program-theme='tarot'] .program-art > img { animation: none; }
-  .ksk-root[data-program-theme='tarot'] .trt-fan-lift,
-  .ksk-root[data-program-theme='tarot'] .trt-selection-progress span { transition: none; }
-  .ksk-root[data-program-theme='tarot'] .trt-fan-card:is(:hover,:active,:focus-visible):not(:disabled) .trt-fan-lift { transform: none; }
 }

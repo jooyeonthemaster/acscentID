@@ -6,7 +6,6 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import { useReducedMotion } from 'framer-motion'
 import { ArrowRight, BriefcaseBusiness, Coins, Heart, Shuffle, Sparkles, Sprout } from 'lucide-react'
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import type { TarotText } from '@/lib/kiosk/program-i18n'
@@ -183,7 +182,10 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
   onNext: () => void
   revealedDesc?: string
 }) {
-  const reducedMotion = useReducedMotion()
+  // 카드 연출은 기기의 '움직임 줄이기' 설정을 따르지 않는다. 매장 PC 는 윈도우를 '최적 성능'으로 맞춰 두어
+  // 창 애니메이션이 꺼져 있고, 그러면 브라우저가 prefers-reduced-motion 으로 알려 온다 — 손님이 고른 설정이 아니라
+  // 기기 사양 조정인데, 그걸 따르면 섞기·펼치기·고르기·뒤집기가 통째로 사라져 '다시 섞기'는 눌러도 아무 일도 없어 보인다
+  // (2026-10-10 실기에서 확인). 연출은 transform·opacity 만 쓰므로 느린 기기에서도 부담이 작다.
   const layerRef = useRef<HTMLDivElement>(null)
   const deckRef = useRef<HTMLDivElement>(null)
   const slotsRef = useRef<HTMLDivElement>(null)
@@ -225,10 +227,10 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
         slotsBefore.current = slotsRef.current?.getBoundingClientRect() ?? null
         setRevealed(true)
       }
-      setPhase(reducedMotion ? 'ready' : next[phase])
-    }, reducedMotion ? 0 : PHASE_MS[phase])
+      setPhase(next[phase])
+    }, PHASE_MS[phase])
     return () => window.clearTimeout(timer)
-  }, [deck.length, phase, reducedMotion, reshuffleDeck, setRevealed])
+  }, [deck.length, phase, reshuffleDeck, setRevealed])
 
   // 펼치기 — 세 자리가 가운데로 옮겨지고 커지는 것을 미끄러지듯 잇고(FLIP), 이어서 한 장씩 뒤집는다
   useLayoutEffect(() => {
@@ -243,7 +245,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
   useLayoutEffect(() => {
     const before = picksBefore.current
     picksBefore.current = picks
-    if (reducedMotion || before.length <= picks.length || !picks.length) return
+    if (before.length <= picks.length || !picks.length) return
     const [a, b] = slotEls.current
     if (!a || !b) return
     const zoom = a.offsetWidth ? a.getBoundingClientRect().width / a.offsetWidth : 1
@@ -252,7 +254,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
       const was = before.indexOf(slot)
       if (was > index) slotEls.current[index]?.animate([{ transform: `translateX(${(was - index) * step}px)` }, { transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.3,.05,.15,1)' })
     })
-  }, [picks, reducedMotion])
+  }, [picks])
 
   // 부채꼴이 다 깔렸을 때 높이를 기억해 둔다 — 다음 섞기 영역을 같은 높이로
   useEffect(() => {
@@ -302,7 +304,7 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
     const from = fanEls.current[slot]
     const to = slotEls.current[picks.length]
     session.pick(slot)
-    if (reducedMotion || !card || !layer || !from || !to) return
+    if (!card || !layer || !from || !to) return
     setArriving((list) => [...list, card.id])
     launch(flyCardBack(layer, spotOf(layer, from, 'fan', lean(slot) * 10), spotOf(layer, to, 'slot')), () => setArriving((list) => list.filter((id) => id !== card.id)))
   }
@@ -316,17 +318,13 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
     const from = slotEls.current[index]
     const to = fanEls.current[slot]
     session.unpick(slot)
-    if (reducedMotion || !layer || !from || !to) return
+    if (!layer || !from || !to) return
     setReturning((list) => [...list, slot])
     launch(flyCardBack(layer, spotOf(layer, from, 'slot'), spotOf(layer, to, 'fan', lean(slot) * 10)), () => setReturning((list) => list.filter((s) => s !== slot)))
   }
 
   const reshuffle = () => {
     if (busy || flying || revealed) return
-    if (reducedMotion) {
-      session.shuffle()
-      return
-    }
     // 고른 카드도 자리에서 가운데 더미로 날아가 섞인다(펼친 카드는 CSS 가 모은다). 덱은 다 모인 뒤에 섞는다(위 타이머)
     const layer = layerRef.current
     const table = deckRef.current
@@ -346,10 +344,6 @@ function TarotCardSelection({ session, tx, labels, lang, pill, onPrev, onNext, r
 
   const reveal = () => {
     if (!full || busy || flying) return
-    if (reducedMotion) {
-      setRevealed(true)
-      return
-    }
     setPhase('clearing')
   }
 

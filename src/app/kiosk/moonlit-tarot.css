@@ -219,6 +219,5 @@
 .ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { background: #614a6f; color: #faf6ed; box-shadow: 0 4px 12px #53405f25; font-size: 16px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ksk-root[data-program-theme='tarot'] .trt-deck-card:active:not(:disabled) { transform: none; }
   .ksk-root[data-program-theme='tarot'] .trt .sjr-more-hint span { animation: none; }
 }
