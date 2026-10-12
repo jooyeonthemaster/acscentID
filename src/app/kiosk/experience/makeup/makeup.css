@@ -1,0 +1,70 @@
+/* 버추얼 메이크업(MAKEUP!) — 피치·라벤더·플럼. 목업 07-virtual-makeup */
+.kx-root[data-x='makeup'] { background: linear-gradient(160deg, #fbe2d6 0%, #f8ddd6 45%, #efdff0 100%); }
+.kx-root[data-x='makeup'] .kx-wordmark { font-size: 138px; letter-spacing: -0.03em; line-height: 0.92; }
+.kx-root[data-x='makeup'] .kx-headline { font-size: 30px; }
+.kx-root[data-x='makeup'] .kx-chip { border: 1px solid var(--kx-line); background: rgba(255, 250, 248, 0.7); border-radius: 999px; }
+.kx-root[data-x='makeup'] .kx-mark { font-size: 30px; }
+.mku-rule { flex: 1; height: 1px; margin: 0 6px 0 10px; background: var(--kx-frame); }
+.kx-root[data-x='makeup'] .kx-top-side:first-child { flex: 3; }
+.kx-root .mku-home { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--kx-accent); border-radius: 999px; color: var(--kx-accent); font-size: 15px; font-weight: 800; }
+.mku-steps { flex: none; display: flex; justify-content: center; margin: 8px 0 0; }
+.mku-steps li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 118px; color: var(--kx-soft); font-size: 13.5px; font-weight: 600; }
+.mku-steps li + li::before { content: ''; position: absolute; top: 22px; right: calc(50% + 28px); width: calc(100% - 56px); height: 1px; background: var(--kx-frame); }
+.mku-steps span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--kx-accent-soft); color: var(--kx-soft); transition: background-color 0.3s ease, color 0.3s ease; }
+.mku-steps li[data-state='now'] { color: var(--kx-ink); font-weight: 800; }
+.mku-steps li[data-state='now'] span { background: var(--kx-accent); color: #fff; }
+.kx-root[data-x='makeup'] .kx-title { margin-top: 8px; }
+.kx-root[data-x='makeup'] .kx-cam { background: #efe3e6; }
+.kx-root[data-x='makeup'] .kx-cam-corner { display: none; }
+.kx-cam-guide { width: 100%; height: 100%; }
+.mku-finding { position: absolute; left: 50%; bottom: 18px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; background: rgba(255, 250, 248, 0.92); color: var(--kx-ink); font-size: 16px; font-weight: 700; white-space: nowrap; transform: translateX(-50%); }
+.mku-tips { flex: none; margin-top: 12px; }
+.mku-alert { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 12px; padding: 10px 16px; border-radius: 10px; background: rgba(255, 250, 248, 0.8); color: var(--kx-ink); font-size: 15.5px; text-align: center; animation: kx-shake 0.5s ease-out 0.1s; }
+.mku-alert b { font-size: 17px; }
+.mku-note { flex: none; margin: 12px 0 0; font-size: 21px; font-weight: 800; text-align: center; }
+.kx-root .mku-shoot { flex: none; min-height: 72px; margin-top: 12px; font-size: 25px; }
+
+/* 편집 — 가운데 선을 밀어 원본(왼쪽)과 적용(오른쪽)을 비교한다 */
+.mku-compare { --split: 50%; position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 100%; border-radius: var(--kx-card-radius); overflow: hidden; background: #efe3e6; touch-action: none; cursor: ew-resize; }
+.mku-compare > img, .mku-compare > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.mku-compare > canvas { clip-path: inset(0 0 0 var(--split)); }
+.mku-divider { position: absolute; top: 0; bottom: 0; left: var(--split); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 6px rgba(60, 30, 60, 0.35); pointer-events: none; }
+.mku-divider b { position: absolute; left: 50%; top: 78%; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #fff; color: var(--kx-accent); box-shadow: 0 2px 10px rgba(60, 30, 60, 0.3); transform: translate(-50%, -50%); }
+.mku-tag { position: absolute; top: 12px; padding: 4px 12px; border-radius: 999px; background: rgba(255, 250, 248, 0.86); color: var(--kx-ink); font-size: 13px; font-weight: 700; pointer-events: none; }
+.mku-tag[data-side='left'] { left: 12px; }
+.mku-tag[data-side='right'] { right: 12px; background: var(--kx-accent-soft); }
+.mku-caption { flex: none; margin-top: 6px; color: var(--kx-soft); font-size: 13.5px; text-align: center; }
+.mku-tabs { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.kx-root .mku-tabs button { min-height: 50px; border: 1px solid var(--kx-line); border-radius: 8px; background: rgba(255, 250, 248, 0.6); color: var(--kx-soft); font-size: 18px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease, transform 0.14s ease-out; }
+.kx-root .mku-tabs button[data-on] { border-color: var(--kx-accent); background: var(--kx-accent); color: #fff; }
+.mku-swatches { flex: none; display: flex; justify-content: center; gap: 16px; margin-top: 12px; }
+.kx-root .mku-swatches button { display: grid; place-items: center; width: 58px; height: 58px; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; color: #fff; transition: transform 0.2s var(--kx-spring), box-shadow 0.2s ease; animation: kx-pop 0.36s var(--kx-spring) calc(var(--i) * 0.04s) backwards; }
+.kx-root .mku-swatches button[data-on] { box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px var(--kx-accent); transform: scale(1.06); }
+.kx-root .mku-swatches button:active { transform: scale(0.9); }
+.mku-swatches svg { animation: kx-pop 0.3s var(--kx-spring); }
+.mku-color-name { flex: none; margin-top: 6px; font-size: 15px; font-weight: 700; text-align: center; animation: kx-fade 0.25s ease-out; }
+.mku-level { flex: none; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 14px; margin-top: 6px; font-size: 16px; }
+.mku-level b { font-weight: 800; }
+.mku-level output { min-width: 46px; font-weight: 800; text-align: right; }
+.mku-level span { grid-column: 2; display: flex; justify-content: space-between; margin-top: -6px; color: var(--kx-soft); font-size: 12.5px; }
+.mku-level input { -webkit-appearance: none; appearance: none; width: 100%; height: 48px; margin: 0; background: transparent; touch-action: pan-y; cursor: pointer; }
+.mku-level input::-webkit-slider-runnable-track { height: 8px; border-radius: 8px; background: linear-gradient(90deg, #d98294 var(--v), rgba(120, 80, 115, 0.22) var(--v)); }
+.mku-level input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -11px; border: 3px solid #fff; border-radius: 50%; background: var(--kx-accent); box-shadow: 0 2px 6px rgba(60, 30, 60, 0.35); }
+
+/* 완성 */
+.mku-look { flex: none; align-self: center; min-height: 34px; padding: 4px 22px; border-radius: 8px; background: rgba(240, 190, 200, 0.6); font-size: 21px; font-weight: 800; animation: kx-pop 0.42s var(--kx-spring) 0.2s backwards; }
+.mku-pair { flex: 1 1 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; min-height: 200px; margin-top: 10px; border-radius: var(--kx-card-radius); overflow: hidden; }
+.mku-pair figure { position: relative; min-height: 0; animation: kx-zoom 0.5s var(--kx-ease) backwards; }
+.mku-pair figure:nth-child(2) { animation-delay: 0.14s; }
+.mku-pair img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.mku-recipe { flex: none; margin-top: 8px; padding: 12px 16px 12px; }
+.mku-recipe h2 { display: flex; align-items: center; gap: 14px; font-size: 19px; font-weight: 800; }
+.mku-recipe h2 i { flex: 1; height: 1px; background: var(--kx-line); }
+.mku-recipe ul { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 8px; }
+.mku-recipe li { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 14.5px; }
+.mku-recipe li + li { border-left: 1px solid var(--kx-line); }
+.mku-recipe li em { color: var(--kx-soft); font-weight: 700; }
+.mku-recipe li span { width: 58px; height: 58px; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; animation: kx-pop 0.4s var(--kx-spring) 0.3s backwards; }
+.mku-recipe li b { font-weight: 700; }
+.mku-recipe p { display: flex; flex-direction: column; margin-top: 8px; color: var(--kx-soft); font-size: 12.5px; text-align: center; }
+.mku-recipe p b { color: var(--kx-ink); font-size: 17px; }

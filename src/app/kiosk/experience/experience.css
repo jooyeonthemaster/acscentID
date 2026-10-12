@@ -1,0 +1,242 @@
+/* 키오스크 체험 모드 — 공통 틀과 부품. 560px CSS 폭 기준(실기 1080×1920, 셸 zoom≈1.93).
+   일곱 모드는 아래 토큰(색·모서리·글꼴)만 다르고 틀은 같다. 모드만의 화면은 각 모드 폴더의 CSS.
+   손님이 누르는 것은 모두 56px 이상(실기 약 108px).
+   움직임은 transform·opacity 만 — 매장 PC 는 윈도우 애니메이션이 꺼져 있어 prefers-reduced-motion 을 따르지 않는다
+   (program-motion.css 와 같은 원칙). 감추는 상태는 keyframes 의 from 에만 둔다. */
+
+.kx-root {
+  --kx-bg: #fdf7ed;
+  --kx-paper: #fffdf8;
+  --kx-ink: #2a2330;
+  --kx-soft: #6f6672;
+  --kx-line: #d9d0d2;
+  --kx-accent: #6c1f31;
+  --kx-on-accent: #fff;
+  --kx-accent-soft: #f3dcdf;
+  --kx-frame: transparent;
+  --kx-radius: 6px;
+  --kx-card-radius: 10px;
+  --kx-font: var(--font-heading-serif), 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --kx-display: Impact, 'Arial Narrow', var(--kx-font);
+  --kx-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --kx-spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+
+  position: fixed;
+  inset: 0;
+  background: var(--kx-bg);
+  color: var(--kx-ink);
+  font-family: var(--kx-font);
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  cursor: default;
+}
+/* 일본어·중국어는 띄어쓰기가 없어 keep-all 이 줄을 못 나눈다 — 기본 줄바꿈으로(문장부호가 줄 앞에 오지 않게) */
+.kx-root:is([data-lang='ja'], [data-lang='zh-Hans'], [data-lang='zh-Hant']) { word-break: normal; line-break: strict; }
+.kx-root *, .kx-root *::before, .kx-root *::after { box-sizing: border-box; }
+.kx-root :is(h1, h2, h3, p, ul, ol, figure, dl, dd) { margin: 0; padding: 0; }
+.kx-root :is(ul, ol) { list-style: none; }
+.kx-root :is(em, i) { font-style: normal; }
+.kx-root button { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.kx-root button:disabled { cursor: default; }
+.kx-root :is(button, [tabindex]):focus { outline: none; }
+.kx-root :is(button, [tabindex]):focus-visible { outline: 3px solid var(--kx-accent); outline-offset: 3px; }
+.kx-root svg { flex: none; }
+.kx-root img { -webkit-user-drag: none; }
+
+/* 모드별 토큰 */
+.kx-root[data-x='nail'] { --kx-bg: #fdf7ed; --kx-paper: #fffaf3; --kx-ink: #5e1a2c; --kx-soft: #8a5361; --kx-line: #e3c9cd; --kx-accent: #6c1f31; --kx-accent-soft: #f6dfe1; --kx-frame: #b98a94; }
+.kx-root[data-x='card'] { --kx-bg: #fdfcf3; --kx-paper: #fff; --kx-ink: #101216; --kx-soft: #4d5360; --kx-line: #cfd3dc; --kx-accent: #0b3ff0; --kx-accent-soft: #e2e9fe; --kx-frame: #7f9af7; --kx-radius: 3px; --kx-card-radius: 4px; }
+.kx-root[data-x='skin'] { --kx-bg: #f7f4ea; --kx-paper: #fbf9f2; --kx-ink: #274636; --kx-soft: #5f7366; --kx-line: #cfd6c7; --kx-accent: #2c5340; --kx-accent-soft: #dfe7d9; --kx-frame: #8fa593; --kx-radius: 4px; --kx-card-radius: 8px; --kx-display: Georgia, 'Times New Roman', serif; }
+.kx-root[data-x='draw'] { --kx-bg: #fdf0a9; --kx-paper: #fffaf0; --kx-ink: #1f1d1b; --kx-soft: #5b5548; --kx-line: #2a2622; --kx-accent: #23211f; --kx-accent-soft: #fbe37d; --kx-radius: 12px; --kx-card-radius: 14px; }
+.kx-root[data-x='voice'] { --kx-bg: #070b22; --kx-paper: rgba(16, 22, 60, 0.82); --kx-ink: #f4f7ff; --kx-soft: #a9b3d9; --kx-line: #3b4690; --kx-accent: #5ff0df; --kx-on-accent: #041a2a; --kx-accent-soft: rgba(95, 240, 223, 0.14); --kx-radius: 999px; --kx-card-radius: 18px; }
+.kx-root[data-x='career'] { --kx-bg: #e6f3fe; --kx-paper: #ffffff; --kx-ink: #10358f; --kx-soft: #4a5f8f; --kx-line: #c5d8f3; --kx-accent: #1946cd; --kx-accent-soft: #dfeafd; --kx-radius: 14px; --kx-card-radius: 18px; }
+.kx-root[data-x='makeup'] { --kx-bg: #fbe4da; --kx-paper: rgba(255, 250, 248, 0.86); --kx-ink: #47223f; --kx-soft: #7a5674; --kx-line: #dcc3d6; --kx-accent: #4b2447; --kx-accent-soft: #ecdcec; --kx-frame: #b697b0; --kx-radius: 6px; --kx-card-radius: 12px; }
+
+/* ── 틀 ─────────────────────────────────────────── */
+.kx-stage { position: relative; display: flex; flex-direction: column; width: 100%; max-width: 560px; height: 100%; margin: 0 auto; overflow: hidden; }
+/* 목업의 얇은 안쪽 테두리(네일·명함·스킨케어·메이크업) */
+.kx-stage::after { content: ''; position: absolute; inset: 9px; border: 1px solid var(--kx-frame); pointer-events: none; }
+.kx-start, .kx-page { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 22px 24px 20px; }
+.kx-page { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.kx-page::-webkit-scrollbar { display: none; }
+/* 관리자 창 — 우측 상단 모서리의 얇은 띠(언어 버튼은 그 아래) */
+.kx-hotspot { position: absolute; top: 0; right: 0; z-index: 50; width: 96px; height: 30px; opacity: 0; }
+
+/* ── 버튼 ─────────────────────────────────────────── */
+.kx-root .kx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 62px; padding: 0 18px;
+  border: 1.5px solid var(--kx-accent); border-radius: var(--kx-radius); background: transparent; color: var(--kx-accent);
+  font-size: 20px; font-weight: 800; text-align: center;
+  transition: transform 0.14s ease-out, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+.kx-root .kx-btn--primary { background: var(--kx-accent); color: var(--kx-on-accent); }
+.kx-root .kx-btn:disabled { opacity: 0.4; }
+.kx-root :is(.kx-btn, .kx-home, .kx-lang-btn, .kx-chip-btn, .kx-tile):active:not(:disabled) { transform: scale(0.972); }
+.kx-root .kx-btn--wide { width: 100%; }
+.kx-actions { flex: none; display: flex; gap: 12px; margin-top: 14px; }
+.kx-actions > .kx-btn { flex: 1; }
+.kx-actions > .kx-btn--primary { flex: 2.4; }
+.kx-actions > .kx-btn:only-child { flex: 1; }
+.kx-foot { flex: none; display: flex; align-items: center; gap: 14px; margin-top: 12px; color: var(--kx-soft); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; white-space: nowrap; }
+.kx-foot::before, .kx-foot::after { content: ''; flex: 1; height: 1px; background: var(--kx-line); }
+.kx-spacer { flex: 1 1 0; min-height: 6px; }
+.kx-spin { animation: kx-spin 1s linear infinite; }
+@keyframes kx-spin { to { transform: rotate(360deg); } }
+
+/* ── 언어 · 머리 · 단계 ─────────────────────────────── */
+.kx-lang { position: relative; flex: none; }
+.kx-root .kx-lang-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 64px; min-height: 48px; padding: 0 8px; color: var(--kx-ink); font-size: 15px; font-weight: 800; transition: transform 0.14s ease-out; }
+.kx-root .kx-lang-scrim { position: fixed; inset: 0; z-index: 30; }
+.kx-lang-menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 31; min-width: 196px; padding: 6px; border: 1px solid var(--kx-line); border-radius: 10px; background: var(--kx-bg); box-shadow: 0 12px 30px rgba(20, 20, 40, 0.22); transform-origin: top right; animation: kx-drop 0.2s var(--kx-ease); }
+.kx-root .kx-lang-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 14px; border-radius: 7px; color: var(--kx-ink); font-size: 17px; font-weight: 600; }
+.kx-root .kx-lang-menu button[data-on] { background: var(--kx-accent-soft); font-weight: 800; }
+.kx-top { flex: none; display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.kx-top-side { flex: 1 1 0; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.kx-top-side[data-end] { justify-content: flex-end; }
+.kx-top-center { flex: none; display: flex; align-items: center; justify-content: center; }
+.kx-root .kx-home { display: inline-flex; align-items: center; gap: 7px; min-height: 48px; padding: 0 6px; color: var(--kx-ink); font-size: 15px; font-weight: 700; white-space: nowrap; transition: transform 0.14s ease-out; }
+.kx-mark { font-family: var(--kx-display); font-size: 32px; font-weight: 900; line-height: 1; letter-spacing: -0.02em; color: var(--kx-accent); }
+.kx-steps { flex: none; display: flex; align-items: flex-start; justify-content: center; margin: 4px 0 2px; }
+.kx-steps li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; width: 118px; color: var(--kx-soft); font-size: 13px; font-weight: 600; transition: color 0.3s ease; }
+.kx-steps li + li::before { content: ''; position: absolute; top: 17px; right: calc(50% + 24px); width: calc(100% - 48px); height: 1px; background: var(--kx-line); }
+.kx-step-dot { display: grid; place-items: center; width: 34px; height: 34px; border: 1.5px solid var(--kx-line); border-radius: 50%; background: var(--kx-bg); font-size: 14px; font-weight: 800; line-height: 1; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+.kx-steps li[data-state='now'] { color: var(--kx-ink); font-weight: 800; }
+.kx-steps li[data-state='now'] .kx-step-dot { border-color: var(--kx-accent); background: var(--kx-accent); color: var(--kx-on-accent); }
+.kx-steps li[data-state='done'] .kx-step-dot { border-color: var(--kx-accent); color: var(--kx-accent); }
+.kx-step-dot svg { animation: kx-pop 0.35s var(--kx-spring); }
+.kx-steps[data-compact] li { width: 62px; }
+.kx-steps[data-compact] li + li::before { right: calc(50% + 20px); width: calc(100% - 40px); }
+
+/* ── 제목 ─────────────────────────────────────────── */
+.kx-title { margin: 10px 0 4px; color: var(--kx-ink); font-size: 31px; font-weight: 900; line-height: 1.22; letter-spacing: -0.045em; text-align: center; text-wrap: balance; }
+.kx-desc { margin: 0 0 12px; color: var(--kx-soft); font-size: 16.5px; line-height: 1.45; text-align: center; }
+.kx-card { border: 1px solid var(--kx-line); border-radius: var(--kx-card-radius); background: var(--kx-paper); }
+
+/* ── 첫 화면 ─────────────────────────────────────────── */
+.kx-start-bar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.kx-start-brand { color: var(--kx-ink); font-size: 12.5px; font-weight: 700; letter-spacing: 0.2em; }
+.kx-wordmark { flex: none; padding-bottom: 12px; border-bottom: 1px solid var(--kx-accent); color: var(--kx-accent); font-family: var(--kx-display); font-size: 168px; font-weight: 900; line-height: 0.86; letter-spacing: -0.035em; text-align: center; white-space: nowrap; }
+.kx-headline { flex: none; margin-top: 16px; color: var(--kx-ink); font-size: 27px; font-weight: 800; line-height: 1.3; letter-spacing: -0.04em; text-align: center; text-wrap: balance; }
+.kx-headline-sub { display: block; margin-top: 8px; color: var(--kx-soft); font-size: 17px; font-weight: 500; line-height: 1.4; letter-spacing: -0.02em; }
+.kx-start-art { position: relative; flex: 1 1 0; min-height: 120px; margin: 6px -8px; }
+.kx-start-art > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* 그림은 목업에서 잘라 온 것이라 가장자리 바탕색이 화면과 조금 다르다 — 밝은 화면에서는 곱하기로 겹쳐 경계가 보이지 않게 */
+.kx-root:not([data-x='voice']) .kx-art-blend { mix-blend-mode: multiply; }
+.kx-root[data-x='voice'] .kx-art-blend { mix-blend-mode: screen; }
+.kx-start-info { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; color: var(--kx-ink); font-size: 18.5px; font-weight: 700; text-align: center; }
+.kx-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.kx-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 18px; border-radius: 8px; background: var(--kx-accent-soft); color: var(--kx-accent); font-size: 16px; font-weight: 700; }
+.kx-root .kx-cta { flex: none; width: 100%; min-height: 74px; gap: 16px; font-size: 28px; }
+
+/* ── 카메라 ─────────────────────────────────────────── */
+.kx-cam-slot { flex: 1 1 0; display: flex; justify-content: center; min-height: 220px; }
+.kx-cam { position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 100%; border-radius: var(--kx-card-radius); background: #e9e4dc; overflow: hidden; }
+.kx-cam > video, .kx-cam > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.kx-cam > video { transform: scaleX(-1); }
+.kx-cam[data-error] { background: #26222e; }
+.kx-cam-corner { position: absolute; width: 30px; height: 30px; border: 2.5px solid var(--kx-accent); pointer-events: none; animation: kx-zoom-out 0.5s var(--kx-ease) 0.25s backwards; }
+.kx-cam-corner[data-pos='tl'] { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+.kx-cam-corner[data-pos='tr'] { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+.kx-cam-corner[data-pos='bl'] { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+.kx-cam-corner[data-pos='br'] { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+.kx-cam-badge { position: absolute; top: 16px; right: 20px; padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); color: var(--kx-ink); font-size: 13px; font-weight: 700; }
+.kx-cam-count { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 140px; height: 140px; border-radius: 50%; background: rgba(20, 16, 30, 0.62); color: #fff; font-size: 84px; font-weight: 900; transform: translate(-50%, -50%); animation: kx-count 0.42s var(--kx-ease); }
+.kx-cam-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; color: #fff; text-align: center; animation: kx-fade 0.4s ease-out; }
+.kx-cam-error p { display: flex; flex-direction: column; gap: 4px; font-size: 16px; }
+.kx-cam-error b { font-size: 19px; }
+.kx-cam[data-flash]::after { content: ''; position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; animation: kx-flash 0.55s ease-out; }
+/* 안내선(얼굴 타원 · 손 모양)은 은은하게 숨 쉰다 */
+.kx-cam-guide { position: absolute; inset: 0; pointer-events: none; animation: kx-breathe 2.6s ease-in-out 0.6s infinite; }
+
+/* ── 휴대폰으로 받기 · 무입력 안내 ───────────────────── */
+.kx-sheet, .kx-idle { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 26px; background: rgba(18, 16, 28, 0.6); animation: kx-fade 0.22s ease-out; }
+.kx-idle { z-index: 45; }
+.kx-sheet-card, .kx-idle-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(440px, 100%); padding: 28px 24px 22px; border-radius: 18px; background: #fffdf9; color: #1d1a22; text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3); animation: kx-zoom 0.32s var(--kx-ease); }
+.kx-sheet-card h2, .kx-idle-card h2 { font-size: 25px; font-weight: 900; letter-spacing: -0.03em; }
+.kx-sheet-desc { color: #55505c; font-size: 16px; line-height: 1.45; }
+.kx-root .kx-sheet-x { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 52px; height: 52px; color: #55505c; }
+.kx-sheet-qr { display: grid; place-items: center; width: 264px; height: 264px; margin: 6px 0; border: 1px solid #e3dfe6; border-radius: 12px; background: #fff; }
+.kx-sheet-qr img { width: 240px; height: 240px; image-rendering: pixelated; animation: kx-zoom 0.35s var(--kx-ease); }
+.kx-sheet-qr p { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px; color: #55505c; font-size: 15.5px; line-height: 1.45; }
+.kx-sheet-keep { color: #77717d; font-size: 13.5px; }
+.kx-sheet-card .kx-btn, .kx-idle-card .kx-btn { width: 100%; margin-top: 6px; }
+.kx-sheet-card .kx-btn--primary, .kx-idle-card .kx-btn--primary { border-color: #1d1a22; background: #1d1a22; color: #fff; border-radius: 10px; }
+.kx-sheet-card .kx-btn--ghost { min-height: 52px; border-color: #1d1a22; color: #1d1a22; border-radius: 10px; font-size: 17px; }
+.kx-idle-count { --p: 1; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: conic-gradient(#1d1a22 calc(var(--p) * 360deg), #e7e3ea 0); }
+.kx-idle-count b { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: #fffdf9; font-size: 40px; font-weight: 800; animation: kx-tick 0.4s var(--kx-ease); }
+.kx-idle-card p { color: #55505c; font-size: 15.5px; }
+
+/* ── 터치 키보드(기존 화면의 OnScreenKeyboard 를 그대로 쓴다 — 모양만 여기서) ───────── */
+.kx-root .ksk-osk { flex: none; margin: 10px -6px 0; padding-top: 10px; border-top: 2px solid var(--kx-accent); animation: kx-sheet 0.3s var(--kx-ease) backwards; }
+.kx-root .ksk-osk-preview { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; margin-bottom: 10px; padding: 10px 14px; border: 1.5px solid var(--kx-accent); border-radius: var(--kx-radius); background: #fff; color: #1d1a22; }
+.kx-root .ksk-osk-value { display: flex; align-items: center; overflow: hidden; font-size: 24px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.kx-root .ksk-osk-value em { color: #9a96a0; font-weight: 500; }
+.kx-root .ksk-osk-caret { display: inline-block; width: 2px; height: 26px; margin-left: 3px; background: #1d1a22; animation: kx-caret 1.1s linear infinite; }
+.kx-root .ksk-osk-count { color: #77717d; font-size: 13px; white-space: nowrap; }
+.kx-root .ksk-osk-pending { color: #77717d; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+.kx-root .ksk-osk-cands { display: flex; align-items: stretch; gap: 6px; min-height: 52px; margin-bottom: 8px; overflow: hidden; }
+.kx-root .ksk-osk-cands[data-open='false'] { display: none; }
+.kx-root .ksk-cand { flex: 1 1 0; min-width: 0; border: 1.5px solid #c9c4ce; border-radius: 6px; background: #fff; color: #1d1a22; font-size: 26px; font-weight: 700; line-height: 1; }
+.kx-root .ksk-cand:disabled { opacity: 0.35; }
+.kx-root .ksk-cand-more { flex: 0 0 48px; font-size: 20px; }
+.kx-root .ksk-osk-keys { display: flex; flex-direction: column; gap: 6px; }
+.kx-root .ksk-osk-row { display: flex; justify-content: center; gap: 5px; }
+.kx-root .ksk-key { flex: 1 1 0; min-width: 0; height: 56px; border: 1.5px solid #c9c4ce; border-radius: 6px; background: #fff; color: #1d1a22; font-size: 21px; font-weight: 600; transition: transform 0.08s ease-out, background-color 0.12s ease; }
+.kx-root .ksk-key:active:not(:disabled) { background: #e9e5ee; transform: scale(0.93); }
+.kx-root .ksk-key[data-on='true'] { border-color: #1d1a22; background: #1d1a22; color: #fff; }
+.kx-root .ksk-key:disabled { opacity: 0.32; }
+.kx-root .ksk-key-wide { flex: 1.5 1 0; font-size: 19px; }
+.kx-root .ksk-key-mode { flex: 1.6 1 0; font-size: 16px; font-weight: 700; }
+.kx-root .ksk-key-space { flex: 4 1 0; color: #77717d; font-size: 15px; }
+.kx-root .ksk-key-done { flex: 2 1 0; border-color: var(--kx-accent); background: var(--kx-accent); color: var(--kx-on-accent); font-size: 18px; font-weight: 800; }
+
+/* ── 움직임 ─────────────────────────────────────────── */
+@keyframes kx-fade { from { opacity: 0; } }
+@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes kx-rise-lg { from { opacity: 0; transform: translateY(26px); } }
+@keyframes kx-zoom { from { opacity: 0; transform: scale(0.94); } }
+@keyframes kx-zoom-out { from { opacity: 0; transform: scale(1.45); } }
+@keyframes kx-pop { from { opacity: 0; transform: scale(0.5); } }
+@keyframes kx-sheet { from { opacity: 0; transform: translateY(30px); } }
+@keyframes kx-drop { from { opacity: 0; transform: translateY(-8px) scale(0.96); } }
+@keyframes kx-float { 0%, 100% { transform: translateY(0) rotate(-0.4deg); } 50% { transform: translateY(-7px) rotate(0.4deg); } }
+@keyframes kx-nudge { 0%, 55%, 100% { transform: translateX(0); } 28% { transform: translateX(8px); } }
+@keyframes kx-sheen { 0% { transform: translateX(-140%) skewX(-18deg); } 38%, 100% { transform: translateX(440%) skewX(-18deg); } }
+@keyframes kx-breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes kx-count { from { opacity: 0; transform: translate(-50%, -50%) scale(1.55); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes kx-flash { from { opacity: 0.92; } to { opacity: 0; } }
+@keyframes kx-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes kx-tick { from { opacity: 0.2; transform: scale(1.35); } }
+@keyframes kx-beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes kx-shake { 0%, 100% { transform: translateX(0); } 18% { transform: translateX(-8px); } 38% { transform: translateX(7px); } 58% { transform: translateX(-4px); } 78% { transform: translateX(3px); } }
+
+/* 첫 화면 — 차례로 등장하고, 그림은 천천히 떠 있고, 시작 버튼은 화살표와 빛으로 손짓한다 */
+.kx-start-bar { animation: kx-fade 0.5s ease-out backwards; }
+.kx-wordmark { animation: kx-rise-lg 0.65s var(--kx-ease) 0.06s backwards; }
+.kx-headline { animation: kx-rise 0.55s var(--kx-ease) 0.22s backwards; }
+.kx-start-art { animation: kx-zoom 0.75s var(--kx-ease) 0.3s backwards; }
+.kx-start-art > img { animation: kx-float 7s ease-in-out 1.1s infinite; }
+.kx-start-info { animation: kx-rise 0.5s var(--kx-ease) 0.5s backwards; }
+.kx-root .kx-cta { position: relative; overflow: hidden; animation: kx-rise 0.55s var(--kx-ease) 0.58s backwards; }
+.kx-cta > svg { animation: kx-nudge 2.4s ease-in-out 1.6s infinite; }
+.kx-cta::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 22%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent); transform: translateX(-140%) skewX(-18deg); animation: kx-sheen 4.8s ease-in-out 1.8s infinite; pointer-events: none; }
+.kx-start > .kx-foot { animation: kx-fade 0.6s ease-out 0.8s backwards; }
+/* 안쪽 화면 — 위에서부터 차례로 올라온다. 카메라 칸·버튼 줄은 자리를 움직이지 않고 나타나기만 한다 */
+.kx-page > * { animation: kx-rise 0.46s var(--kx-ease) backwards; }
+.kx-page > :nth-child(1) { animation-delay: 0.02s; }
+.kx-page > :nth-child(2) { animation-delay: 0.07s; }
+.kx-page > :nth-child(3) { animation-delay: 0.12s; }
+.kx-page > :nth-child(4) { animation-delay: 0.17s; }
+.kx-page > :nth-child(5) { animation-delay: 0.22s; }
+.kx-page > :nth-child(6) { animation-delay: 0.27s; }
+.kx-page > :nth-child(n + 7) { animation-delay: 0.32s; }
+.kx-page > :is(.kx-cam-slot, .kx-actions, .kx-spacer, .kx-foot, .kx-top):nth-child(n) { animation-name: kx-fade; }
+.kx-page > .kx-actions:nth-child(n) { animation-delay: 0.14s; }
+.kx-page > .ksk-osk:nth-child(n) { animation: kx-sheet 0.3s var(--kx-ease) backwards; }

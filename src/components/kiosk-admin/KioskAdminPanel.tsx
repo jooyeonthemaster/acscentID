@@ -9,18 +9,19 @@
 //  · 운영 모드는 다음 손님부터 적용된다. 설정은 같은 종류의 키오스크가 모두 따라간다(target=kiosk).
 //  · 모드를 바꾸며 전용 배경까지 고르는 모드는 두 번 저장한다 — 모드는 됐는데 배경만 실패할 수 있다(전체 실패가 아니다).
 //  · 화면 디자인을 바꾸면 저장 뒤 페이지가 새로 열린다(useScreenUiSwitch) — 관리자 창도 닫힌다.
-//  · 컬러·타로 모드는 전용 디자인을 쓴다 — 일반 디자인·글꼴·평소 배경은 매장·사주 모드에서 보인다.
+//  · 컬러·타로와 체험 모드(네일·명함·스킨케어…)는 전용 디자인을 쓴다 — 일반 디자인·글꼴·평소 배경은 매장·사주 모드에서 보인다.
 //  · 인증은 10분. 끝나면 저장이 403 으로 거절된다 — 다시 비밀번호를 받는다.
 //  · 인터넷이 끊기면 기기(셸)가 PIN 을 확인해 '앱 종료'만 연다.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, CircleAlert, FlaskConical, GalleryHorizontalEnd, ImageIcon, Info, LockKeyhole as Lock,
-  MoonStar, Palette, Power, RefreshCw, Settings, Store, Type, WifiOff, X,
+  ArrowRight, Brush, CalendarDays, Check, ChevronLeft, ChevronRight, CircleAlert, Compass, Droplets, FlaskConical, GalleryHorizontalEnd, Hand, IdCard, ImageIcon, Info,
+  LockKeyhole as Lock, Mic, MoonStar, Palette, Pencil, Power, RefreshCw, Settings, Store, Type, WifiOff, X,
 } from 'lucide-react'
 import { KIOSK_FONT_CLASS, hanjaFontVar } from '@/app/kiosk/fonts'
 import type { KioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { EXPERIENCE_META, kioskExperience, type ExperienceId } from '@/lib/kiosk/experience'
 import { KIOSK_MODES, findKioskMode, type KioskMode } from '@/lib/kiosk/modes'
 import { kioskProgramTheme } from '@/lib/kiosk/program-theme'
 import { SCREEN_UI_LABELS, type DeviceSettings, type ScreenBackground, type ScreenUi } from '@/lib/screen-backgrounds/types'
@@ -63,7 +64,23 @@ const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: t
   'ai-color': { name: 'AI 퍼스널 컬러', lines: ['사진 한 장으로 컬러 진단', '컬러 전용 디자인 사용'], Icon: Palette },
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }
-const modeCopy = (mode: KioskMode) => MODE_COPY[mode.id] ?? { name: mode.label, lines: [mode.note, mode.defaultBackground ? '전용 배경으로 함께 변경' : ''] as [string, string], Icon: Settings }
+const EXPERIENCE_ICON: Record<ExperienceId, typeof Store> = { nail: Hand, card: IdCard, skin: Droplets, draw: Pencil, voice: Mic, career: Compass, makeup: Brush }
+const modeCopy = (mode: KioskMode) => {
+  if (MODE_COPY[mode.id]) return MODE_COPY[mode.id]
+  // 체험 모드(네일·명함·스킨케어…) — 이름·설명은 experience.ts 한 곳에서
+  if (mode.experience) return { name: EXPERIENCE_META[mode.experience].name, lines: [EXPERIENCE_META[mode.experience].note, `${EXPERIENCE_META[mode.experience].tag} 전용 디자인 사용`] as [string, string], Icon: EXPERIENCE_ICON[mode.experience] }
+  return { name: mode.label, lines: [mode.note, mode.defaultBackground ? '전용 배경으로 함께 변경' : ''] as [string, string], Icon: Settings }
+}
+/**
+ * 이 모드가 전용 디자인으로 도는가 — 그 이름('컬러'·'타로'·'네일 디자이너'…). 없으면 화면 디자인·글꼴·배경 설정을 따르는 모드다.
+ * 컬러·타로는 셸 안의 전용 테마, 체험 모드는 전용 화면 묶음이라 둘 다 화면·글꼴·배경·행사 설정이 보이지 않는다.
+ */
+const dedicatedDesign = (modeId: string): string | undefined => {
+  const theme = kioskProgramTheme(modeId)
+  if (theme) return theme === 'color' ? '컬러' : '타로'
+  const experience = kioskExperience(modeId)
+  return experience ? EXPERIENCE_META[experience].name : undefined
+}
 
 const FONT_SAMPLE = '오늘의 최애, 어떤 향으로 기억할까요?'
 const defaultFontLabel = (ui: ScreenUi) => (ui === 'retro' ? '기본 (에스코어드림)' : ui === 'mac' ? '기본 (시스템 글꼴)' : '기본 (배경의 글꼴 조합)')
@@ -339,15 +356,16 @@ function modeArt(mode: KioskMode, background: ScreenBackground): { src: string; 
   const theme = kioskProgramTheme(mode.id)
   if (theme === 'color') return { src: '/assets/kiosk-programs/color-archive-fan.webp', cover: false }
   if (theme === 'tarot') return { src: '/assets/kiosk-programs/moonlit-tarot-fan.webp', cover: false }
+  if (mode.experience) return { src: `/assets/kiosk-experiences/${mode.experience}-hero.webp`, cover: false }
   return { src: background.thumbnail_url || background.image_url, cover: true }
 }
 
 function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: KioskMode; flash: string; go: (tab: Tab) => void }) {
   const copy = modeCopy(mode)
-  const theme = kioskProgramTheme(mode.id)
+  const theme = dedicatedDesign(mode.id)
   const art = modeArt(mode, screen.activeBackground)
   const ui = screen.baseSettings.ui
-  const design = theme === 'color' ? '컬러 전용 디자인' : theme === 'tarot' ? '타로 전용 디자인' : `${SCREEN_UI_LABELS[ui]} · ${findScreenFont(screen.liveEvent?.font ?? screen.baseSettings.font)?.label ?? '기본 글꼴'}`
+  const design = theme ? `${theme} 전용 디자인` : `${SCREEN_UI_LABELS[ui]} · ${findScreenFont(screen.liveEvent?.font ?? screen.baseSettings.font)?.label ?? '기본 글꼴'}`
   const event = theme || !mode.storeEvents ? '이 모드에서는 사용 안 함' : screen.liveEvent ? `${screen.liveEvent.title} 적용 중` : '적용 중인 행사 없음'
   const links: { tab: Tab; title: string; text: string; Icon: typeof Settings }[] = [
     { tab: 'mode', title: '운영 모드', text: '손님에게 보여줄 서비스', Icon: Settings },
@@ -407,8 +425,24 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
   const settings = screen.baseSettings
   const current = findKioskMode(settings.mode)
   const busy = save?.phase === 'saving' || (save?.phase === 'partial' && save.retrying) || Boolean(sajuBusy)
-  const theme = kioskProgramTheme(current.id)
+  const theme = dedicatedDesign(current.id)
   const name = (id: string) => modeCopy(findKioskMode(id)).name
+  const modeButton = (mode: KioskMode, compact: boolean) => {
+    const item = modeCopy(mode)
+    const on = current.id === mode.id
+    const saving = save?.phase === 'saving' && save.id === mode.id
+    return (
+      <button key={mode.id} type="button" role="radio" aria-checked={on} className="kadm-mode" data-compact={compact || undefined} data-on={on || undefined} data-saving={saving || undefined} disabled={busy} onClick={() => void pick(mode.id)}>
+        <item.Icon size={compact ? 34 : 52} strokeWidth={compact ? 1.5 : 1.3} aria-hidden="true" />
+        <span>
+          <b>{item.name}{on && <span className="kadm-pill" data-tone="ok">{compact ? '운영 중' : '현재 운영 중'}</span>}{saving && <span className="kadm-pill" data-tone="plan">저장 중</span>}</b>
+          <em>{item.lines[0]}</em>
+          {!compact && item.lines[1] && <em>{item.lines[1]}</em>}
+        </span>
+        <span className="kadm-radio kadm-radio--dot" data-on={on || undefined} aria-hidden="true" />
+      </button>
+    )
+  }
 
   const applyBackground = async (id: string, background: string) => {
     try {
@@ -458,7 +492,7 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
       {save?.phase === 'saved' && (
         <Notice tone="ok" title="저장 완료">
           {name(save.id)} 모드를 저장했어요. 다음 손님부터 적용됩니다.
-          {findKioskMode(save.id).defaultBackground ? ' 전용 배경도 함께 바꿨어요.' : kioskProgramTheme(save.id) ? ` ${kioskProgramTheme(save.id) === 'color' ? '컬러' : '타로'} 전용 디자인으로 보여요.` : ''}
+          {findKioskMode(save.id).defaultBackground ? ' 전용 배경도 함께 바꿨어요.' : dedicatedDesign(save.id) ? ` ${dedicatedDesign(save.id)} 전용 디자인으로 보여요.` : ''}
         </Notice>
       )}
       {save?.phase === 'failed' && (
@@ -473,22 +507,12 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
         </Notice>
       )}
       <div className="kadm-modes" role="radiogroup" aria-label="운영 모드">
-        {KIOSK_MODES.map((mode) => {
-          const item = modeCopy(mode)
-          const on = current.id === mode.id
-          const saving = save?.phase === 'saving' && save.id === mode.id
-          return (
-            <button key={mode.id} type="button" role="radio" aria-checked={on} className="kadm-mode" data-on={on || undefined} data-saving={saving || undefined} disabled={busy} onClick={() => void pick(mode.id)}>
-              <item.Icon size={52} strokeWidth={1.3} aria-hidden="true" />
-              <span>
-                <b>{item.name}{on && <span className="kadm-pill" data-tone="ok">현재 운영 중</span>}{saving && <span className="kadm-pill" data-tone="plan">저장 중</span>}</b>
-                <em>{item.lines[0]}</em>
-                {item.lines[1] && <em>{item.lines[1]}</em>}
-              </span>
-              <span className="kadm-radio kadm-radio--dot" data-on={on || undefined} aria-hidden="true" />
-            </button>
-          )
-        })}
+        {KIOSK_MODES.filter((mode) => !mode.experience).map((mode) => modeButton(mode, false))}
+        {/* 체험 모드는 수가 많아 두 줄 묶음으로 작게 */}
+        <h3 className="kadm-modes-sub">체험 모드<span>모드마다 전용 디자인으로 운영돼요</span></h3>
+        <div className="kadm-modes-grid">
+          {KIOSK_MODES.filter((mode) => mode.experience).map((mode) => modeButton(mode, true))}
+        </div>
       </div>
 
       {current.programs.includes('saju') && (
@@ -520,7 +544,7 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
       )}
       <Notice title="운영 모드는 다음 손님부터 적용됩니다.">
         {theme
-          ? `지금은 ${theme === 'color' ? '컬러' : '타로'} 전용 디자인으로 운영돼요. 화면·글꼴과 평소 배경에서 고른 것은 매장·사주 모드에서 보여요.`
+          ? `지금은 ${theme} 전용 디자인으로 운영돼요. 화면·글꼴과 평소 배경에서 고른 것은 매장·사주 모드에서 보여요.`
           : '선택한 설정은 즉시 저장돼요.'}
       </Notice>
     </div>
@@ -566,7 +590,7 @@ function LookTab({ screen, onAuthExpired, go }: { screen: KioskAdminScreen; onAu
   const [picker, setPicker] = useState(false)
   const settings = screen.baseSettings
   const mode = findKioskMode(settings.mode)
-  const theme = kioskProgramTheme(mode.id)
+  const theme = dedicatedDesign(mode.id)
   const eventFont = !theme && screen.liveEvent?.font ? screen.liveEvent : null
   const busy = uiSave?.phase === 'saving' || fontSave?.phase === 'saving'
   const previewFont = settings.font ?? (settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null)
@@ -611,9 +635,9 @@ function LookTab({ screen, onAuthExpired, go }: { screen: KioskAdminScreen; onAu
         <>
           <div className="kadm-callout">
             <Palette size={46} strokeWidth={1.5} aria-hidden="true" />
-            <div><b>전용 디자인 사용 중</b><span>퍼스널 컬러와 타로는 각 서비스의 전용 디자인을 사용해요.</span></div>
+            <div><b>전용 디자인 사용 중</b><span>퍼스널 컬러·타로와 체험 모드는 각 서비스의 전용 디자인을 사용해요.</span></div>
           </div>
-          <Notice compact>지금 화면에는 {theme === 'color' ? '컬러' : '타로'} 전용 디자인이 보여요. 아래 화면 디자인·글꼴과 평소 배경은 저장되지만 매장·사주 모드에서만 보입니다.</Notice>
+          <Notice compact>지금 화면에는 {theme} 전용 디자인이 보여요. 아래 화면 디자인·글꼴과 평소 배경은 저장되지만 매장·사주 모드에서만 보입니다.</Notice>
         </>
       )}
       {eventFont && (
@@ -706,7 +730,7 @@ function BackgroundsTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; o
   const [refreshing, setRefreshing] = useState(false)
   const settings = screen.baseSettings
   const mode = findKioskMode(settings.mode)
-  const theme = kioskProgramTheme(mode.id)
+  const theme = dedicatedDesign(mode.id)
   const saving = save?.phase === 'saving'
   const title = (id: string) => screen.backgrounds.find((item) => item.id === id)?.title ?? '고른 배경'
   // 지금 고른 배경을 맨 앞에 — 탭을 연 때 기준이라 고르는 동안에는 순서가 바뀌지 않는다
@@ -730,7 +754,7 @@ function BackgroundsTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; o
     }
   }
   const showing = theme
-    ? `지금 화면에는 ${theme === 'color' ? '컬러' : '타로'} 전용 디자인이 보여요. 여기서 고른 배경은 저장되고 매장·사주 모드에서 보여요.`
+    ? `지금 화면에는 ${theme} 전용 디자인이 보여요. 여기서 고른 배경은 저장되고 매장·사주 모드에서 보여요.`
     : screen.liveEvent
       ? `지금 화면에는 ‘${screen.liveEvent.title}’ 행사 배경이 보여요. 여기서 고른 배경은 저장되고, 적용 중인 행사가 없을 때 보여요.`
       : ''

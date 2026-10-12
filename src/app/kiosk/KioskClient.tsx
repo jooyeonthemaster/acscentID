@@ -45,6 +45,7 @@ import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgr
 import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { useExperienceSwitch } from './experience/useExperienceSwitch'
 import { KioskAdminPanel } from '@/components/kiosk-admin/KioskAdminPanel'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines, KIOSK_MODE_IDS, type KioskProgramId } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
@@ -1368,6 +1369,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     ? `${String(stepIdx + 1).padStart(2, '0')}/${String(steps.length).padStart(2, '0')}`
     : ''
   useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
+  // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
+  useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
   const titleExtra =
     step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
 

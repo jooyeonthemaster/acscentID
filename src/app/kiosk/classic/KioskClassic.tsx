@@ -41,6 +41,7 @@ import './kiosk-classic.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { toKioskTheme } from '@/lib/screen-backgrounds/theme'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { useExperienceSwitch } from '../experience/useExperienceSwitch'
 import { screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { KioskAdminPanel } from '@/components/kiosk-admin/KioskAdminPanel'
@@ -1275,6 +1276,8 @@ export function KioskClassic() {
       ? step === 'info' || step === 'capture' ? { kind: 'stepper', current: step === 'info' ? 0 : 1, labels: [pu.stepper.info, pu.stepper.photo] } : null
       : showHeader && step !== 'cards' ? { kind: 'bar', index: stepIdx, total: steps.length, label: STEP_LABELS[step] } : null
   useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
+  // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
+  useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
 
   return (
     <div

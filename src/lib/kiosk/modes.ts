@@ -3,6 +3,7 @@
 // (기기 설정 settings-kiosk 의 mode). 행사가 생기면 여기에 한 항목을 더하면 된다 — docs/kiosk-modes.md
 
 import type { KioskLang } from './i18n'
+import { EXPERIENCE_IDS, EXPERIENCE_META, experienceModeId, type ExperienceId } from './experience'
 
 export type KioskProgramId = 'personal' | 'idol' | 'saju' | 'color' | 'tarot'
 
@@ -64,6 +65,8 @@ export interface KioskMode {
   }
   /** 이 모드로 바꿀 때 함께 고르는 키오스크 기본 배경(catalog.json id) */
   defaultBackground?: string
+  /** 체험 모드(네일·명함 등) — 기존 화면 셸 대신 전용 화면(src/app/kiosk/experience)이 돈다. programs·attract·receipt 는 쓰이지 않는다 */
+  experience?: ExperienceId
 }
 
 export const KIOSK_MODES: KioskMode[] = [
@@ -307,6 +310,18 @@ export const KIOSK_MODES: KioskMode[] = [
     },
     receipt: { theme: 'scent', subtitle: 'TAROT READING', eventLines: [] },
   },
+  // 체험 모드 7종(2026-10-12) — 화면·문구는 src/app/kiosk/experience, 이름은 experience.ts
+  ...EXPERIENCE_IDS.map((id): KioskMode => ({
+    id: experienceModeId(id),
+    label: EXPERIENCE_META[id].name,
+    note: EXPERIENCE_META[id].note,
+    brandName: EXPERIENCE_META[id].tag,
+    storeEvents: false,
+    programs: [],
+    attract: {},
+    receipt: { theme: 'scent', subtitle: '', eventLines: [] },
+    experience: id,
+  })),
 ]
 
 export const DEFAULT_KIOSK_MODE = KIOSK_MODES[0]

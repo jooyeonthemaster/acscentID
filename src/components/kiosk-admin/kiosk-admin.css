@@ -900,6 +900,39 @@
 .kadm .kadm-mode[data-on] > svg {
   color: var(--accent);
 }
+.kadm-modes-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 10px 2px 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kadm-modes-sub span {
+  color: var(--ink-3);
+  font-size: 14px;
+  font-weight: 500;
+}
+.kadm-modes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kadm .kadm-mode[data-compact] {
+  grid-template-columns: 38px 1fr 26px;
+  gap: 12px;
+  min-height: 88px;
+  padding: 10px 14px;
+}
+.kadm-mode[data-compact] b {
+  margin-bottom: 2px;
+  font-size: 17.5px;
+}
+.kadm-mode[data-compact] em {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
 .kadm-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
