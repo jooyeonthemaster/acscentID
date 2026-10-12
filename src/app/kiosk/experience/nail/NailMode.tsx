@@ -4,12 +4,12 @@
 // 손 모양은 그대로 두고 손톱 자리에만 색 층을 올린다(engine.ts). 사진은 기기 안에서만 쓰고, 받기를 누른 결과만 올라간다.
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, Camera, Check, Download, Eye, Hand, Heart, Minus, Plus, RotateCcw, Sparkles, Sun } from 'lucide-react'
+import { ArrowRight, Camera, Check, Download, Eye, Hand, Heart, Minus, MoveDiagonal, Plus, RotateCcw, ScanLine, Sparkles, Sun, ThumbsUp } from 'lucide-react'
 import { KX_IDLE, KxCamView, KxFoot, KxHome, KxPage, KxSaveSheet, KxSpinner, KxStart, KxSteps, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, fontsReady, kxFontFamily, loadImage, makeCanvas, roundRect } from '../kx-canvas'
 import { loadVision, photoCanvas, preloadVision } from '../kx-vision'
-import { drawNailSample, findNails, NAIL_VIEW_RATIO, renderNails, type HandShape, type NailDesign, type NailPattern } from './engine'
+import { checkHand, drawNailSample, findNails, NAIL_VIEW_RATIO, renderNails, type HandCheck, type HandCue, type HandShape, type NailDesign, type NailPattern } from './engine'
 import { fillNames, NAIL_TEXT, type NailColor, type NailText } from './text'
 import './nail.css'
 
@@ -23,6 +23,8 @@ const GOLD = '#e3c184'
 const SCALES = [0.8, 0.9, 1, 1.1, 1.2, 1.3]
 /** 손톱이 이만큼은 보여야 디자인을 입힌다 */
 const MIN_NAILS = 3
+/** 손이 좋은 자리에서 이만큼(ms) 멈춰 있으면 알아서 찍는다 — 읽는 속도가 기기마다 달라 횟수가 아니라 시간으로 잰다 */
+const AUTO_STEADY_MS = 700
 
 /** 작은 손톱 견본 — 고른 색·패턴 그대로 */
 function NailSample({ design, size = 26 }: { design: NailDesign; size?: number }) {
@@ -109,7 +111,7 @@ async function drawNailCard(t: NailText, image: string, names: { name: string; d
 }
 
 export default function NailMode() {
-  const { lang } = useKx()
+  const { lang, c } = useKx()
   const t = kxText(NAIL_TEXT, lang)
   const [step, setStep] = useState<Step>('start')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -122,7 +124,10 @@ export default function NailMode() {
   const [showOriginal, setShowOriginal] = useState(false)
   const [final, setFinal] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const cam = useKxCamera(step === 'capture')
+  // 손톱은 작다 — 카메라가 주는 가장 큰 영상으로 받는다
+  const cam = useKxCamera(step === 'capture', { sharp: true })
+  /** 찍기 전 미리보기의 손 상태 — 'wait' 는 아직 읽지 못함(엔진 준비 중) */
+  const [cue, setCue] = useState<HandCue | 'wait'>('wait')
   const viewRef = useRef<HTMLCanvasElement>(null)
   const originalRef = useRef<HTMLCanvasElement>(null)
   /** 사진 전체 크기의 작업용 그림 — 화면에는 손 둘레만 잘라 보여 준다 */
@@ -143,9 +148,9 @@ export default function NailMode() {
   const analyze = useCallback(async (shot: string) => {
     setPhoto(shot)
     setStep('finding')
-    const retry = (reason: 'noHand' | 'fewNails') => { setProblem(reason); setPhoto(null); setStep('capture') }
+    const retry = (reason: 'noHand' | 'fewNails') => { setProblem(reason); setPhoto(null); setCue('wait'); setStep('capture') }
     try {
-      const base = await photoCanvas(shot, 1280)
+      const base = await photoCanvas(shot, 1600)
       const hand = await findNails(base)
       if (!hand) return retry('noHand')
       if (hand.nails.length < MIN_NAILS) return retry('fewNails')
@@ -159,6 +164,36 @@ export default function NailMode() {
       retry('noHand')
     }
   }, [])
+
+  // 찍기 전 안내 — 미리보기에서 손을 읽어 '더 가까이·손등으로·손가락 펴기'를 알려 주고, 좋은 자리에서 멈추면 알아서 찍는다.
+  // 읽는 동안 화면이 잠깐 멈출 수 있어, 읽은 시간만큼은 쉬었다가 다시 읽는다. 카운트다운 중에는 읽지 않는다.
+  const { state: camState, countdown: camCountdown, element: camElement, shoot: camShoot } = cam
+  useEffect(() => {
+    if (step !== 'capture' || camState !== 'ready' || camCountdown !== null) return
+    let alive = true
+    let timer: number | undefined
+    let last: HandCheck | null = null
+    /** 좋은 자리에서 멈춘 채로 처음 읽힌 때 */
+    let since = 0
+    let lastAt = 0
+    const read = async () => {
+      const started = performance.now()
+      const el = camElement()
+      const check = el ? await checkHand(el).catch(() => null) : null
+      if (!alive) return
+      if (check) {
+        setCue(check.cue)
+        const still = check.cue === 'ok' && last?.cue === 'ok' && Math.hypot(check.x - last.x, check.y - last.y) < 0.05 && Math.abs(check.size - last.size) < 0.06
+        since = still ? since || lastAt : 0
+        last = check
+        lastAt = started
+        if (since && started - since >= AUTO_STEADY_MS) { camShoot((shot) => void analyze(shot)); return }
+      }
+      timer = window.setTimeout(read, Math.max(260, performance.now() - started))
+    }
+    timer = window.setTimeout(read, 600)
+    return () => { alive = false; window.clearTimeout(timer) }
+  }, [step, camState, camCountdown, camElement, camShoot, analyze])
 
   const point = pattern === 'solid' ? null : pattern === 'glitter' ? null : POINT[color]
   const design: NailDesign = { pattern, base: COLORS[color], point: COLORS[POINT[color]], glossy, scale }
@@ -223,7 +258,7 @@ export default function NailMode() {
         // eslint-disable-next-line @next/next/no-img-element
         art={<img className="kx-art-blend" src="/assets/kiosk-experiences/nail-hero.webp" alt="" draggable={false} />}
         cta={t.cta}
-        onStart={() => { setProblem(null); setStep('capture') }}
+        onStart={() => { setProblem(null); setCue('wait'); setStep('capture') }}
         foot={t.foot}
       >
         <p>{t.sub}</p>
@@ -249,7 +284,13 @@ export default function NailMode() {
         <div className="kx-cam-slot">
           <KxCamView cam={step === 'capture' ? cam : null} photo={step === 'finding' ? photo : null} flash={step === 'finding'}>
             {step === 'capture' && (
-              <Hand className="nl-guide" strokeWidth={0.42} aria-hidden="true" />
+              <>
+                <Hand className="nl-guide" data-ok={cue === 'ok' || undefined} strokeWidth={0.42} aria-hidden="true" />
+                <p className="nl-cue" data-cue={cam.countdown !== null ? 'ok' : cue} role="status" key={cam.countdown !== null ? 'hold' : cue}>
+                  {cam.countdown !== null || cue === 'ok' ? <ThumbsUp size={20} strokeWidth={2} aria-hidden="true" /> : cue === 'far' || cue === 'cut' ? <MoveDiagonal size={20} strokeWidth={2} aria-hidden="true" /> : cue === 'wait' ? <KxSpinner size={20} /> : cue === 'none' ? <ScanLine size={20} strokeWidth={2} aria-hidden="true" /> : <Hand size={20} strokeWidth={2} aria-hidden="true" />}
+                  {cam.countdown !== null ? t.live.hold : cue === 'wait' ? c.enginePreparing : t.live[cue]}
+                </p>
+              </>
             )}
             {step === 'finding' && <p className="nl-finding" role="status"><KxSpinner size={28} />{t.finding}</p>}
           </KxCamView>
@@ -293,7 +334,7 @@ export default function NailMode() {
         </div>
         <p className="nl-caption">
           <span data-warn={scene.hand.palm || undefined}>{scene.hand.palm ? t.palmHint : t.editNote}</span>
-          <button type="button" onClick={() => { setPhoto(null); setStep('capture') }}><RotateCcw size={15} strokeWidth={2.2} aria-hidden="true" />{t.retake}</button>
+          <button type="button" onClick={() => { setPhoto(null); setCue('wait'); setStep('capture') }}><RotateCcw size={15} strokeWidth={2.2} aria-hidden="true" />{t.retake}</button>
         </p>
         <div className="nl-patterns" role="radiogroup" aria-label={t.patternLabel}>
           {PATTERNS.map((id) => (

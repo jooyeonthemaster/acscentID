@@ -5,8 +5,9 @@
 // 같은 조합은 다시 그리지 않는다. 사진은 그리는 데만 쓰고 저장하지 않으며, 받기를 누른 결과만 올라간다.
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowRight, Camera, Check, Images, Pencil, RefreshCw } from 'lucide-react'
-import { KX_IDLE, KxBack, KxCamView, KxHome, KxPage, KxSaveSheet, KxStart, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
+import { ArrowRight, Camera, Check, Images, Pencil, Printer, RefreshCw, UserRound, UsersRound } from 'lucide-react'
+import { KX_IDLE, KX_PHOTO_RATIO, KxBack, KxCamView, KxHome, KxPage, KxReceiptSheet, KxSaveSheet, KxStart, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
+import type { KxReceipt } from '../kx-receipt'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, roundRect } from '../kx-canvas'
 import { DRAW_TEXT, type DrawLevel, type DrawStyle, type DrawText } from './text'
@@ -21,6 +22,8 @@ const ASSET = '/assets/kiosk-experiences'
 const CORAL = '#f0563c'
 const STAR = '#f6c531'
 const comboKey = (style: DrawStyle, level: DrawLevel) => `${style}|${level}`
+/** 여럿이 찍을 때의 사진 비율(가로/세로) — 서버도 4:3 으로 그린다 */
+const GROUP_RATIO = 4 / 3
 
 /** 서버로 보낼 사진 — 긴 변 1024 로 줄인다(생성에는 충분하고 전송이 빠르다) */
 async function shrink(photo: string): Promise<string> {
@@ -50,7 +53,7 @@ function heart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number)
 }
 
 /** 저장용 포스터 — 노란 바탕, 종이에 붙인 캐리커처, 스타일 꼬리표, 원본 사진 한 장 */
-async function drawPoster(t: DrawText, art: string, original: string, tag: string): Promise<Blob> {
+async function drawPoster(t: DrawText, art: string, original: string, tag: string, wide: boolean): Promise<Blob> {
   const family = kxFontFamily()
   await fontsReady(`900 60px ${family}`, `700 30px ${family}`)
   const [drawing, photo, mark] = await Promise.all([loadImage(art), loadImage(original), loadImage(`${ASSET}/draw-wordmark.webp`)])
@@ -80,20 +83,23 @@ async function drawPoster(t: DrawText, art: string, original: string, tag: strin
     drawCover(ctx, image, -w / 2 + pad, -h / 2 + pad, w - pad * 2, h - pad * 2 - (pad > 20 ? 0 : 44), focus)
     ctx.restore()
   }
-  paper(150, 216, 780, 1040, -0.02, 30, drawing, 0.5)
-  paper(766, 986, 230, 320, 0.07, 14, photo, 0.3)
+  // 여럿이 찍은 가로 그림은 종이도 가로로(사람이 잘리지 않게)
+  const main = wide ? { x: 60, y: 330, w: 960, h: 740 } : { x: 150, y: 216, w: 780, h: 1040 }
+  const small = wide ? { x: 700, y: 1010, w: 310, h: 276 } : { x: 766, y: 986, w: 230, h: 320 }
+  paper(main.x, main.y, main.w, main.h, -0.02, 30, drawing, 0.5)
+  paper(small.x, small.y, small.w, small.h, 0.07, 14, photo, 0.3)
   ctx.save()
-  ctx.translate(766 + 115, 986 + 160)
+  ctx.translate(small.x + small.w / 2, small.y + small.h / 2)
   ctx.rotate(0.07)
   ctx.fillStyle = '#1f1d1b'
   ctx.font = `700 26px ${family}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(t.original, 0, 132)
+  ctx.fillText(t.original, 0, small.h / 2 - 28)
   ctx.restore()
   // 꼬리표
   ctx.save()
-  ctx.translate(360, 1296)
+  ctx.translate(360, wide ? 1150 : 1296)
   ctx.rotate(-0.045)
   ctx.font = `800 40px ${family}`
   const tagW = ctx.measureText(tag).width + 88
@@ -124,7 +130,7 @@ function Doodles({ text }: { text?: string }) {
 }
 
 export default function DrawMode() {
-  const { lang, home } = useKx()
+  const { lang, home, c } = useKx()
   const t = kxText(DRAW_TEXT, lang)
   const [step, setStep] = useState<Step>('start')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -135,10 +141,13 @@ export default function DrawMode() {
   const [problem, setProblem] = useState<'failed' | 'busy' | null>(null)
   const [stage, setStage] = useState(0)
   const [saving, setSaving] = useState(false)
-  const cam = useKxCamera(step === 'capture')
+  const [printing, setPrinting] = useState(false)
+  /** 여럿이 함께 — 사진을 가로로 찍고 한 장에 모두 그린다 */
+  const [group, setGroup] = useState(false)
+  const cam = useKxCamera(step === 'capture', { ratio: group ? GROUP_RATIO : KX_PHOTO_RATIO })
   const request = useRef<AbortController | null>(null)
 
-  useKxScreen(step === 'start' ? 'start' : step === 'drawing' || cam.countdown !== null ? 'busy' : saving ? KX_IDLE.save : step === 'capture' ? KX_IDLE.camera : step === 'result' ? KX_IDLE.result : KX_IDLE.edit)
+  useKxScreen(step === 'start' ? 'start' : step === 'drawing' || cam.countdown !== null ? 'busy' : saving || printing ? KX_IDLE.save : step === 'capture' ? KX_IDLE.camera : step === 'result' ? KX_IDLE.result : KX_IDLE.edit)
   // 화면을 떠나면 기다리던 그림은 버린다
   useEffect(() => () => request.current?.abort(), [])
   // 그리는 동안 안내 문구가 차례로 바뀐다
@@ -167,7 +176,7 @@ export default function DrawMode() {
       const response = await fetch('/api/kiosk/experience/caricature', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photo: await shrink(photo), style, level }),
+        body: JSON.stringify({ photo: await shrink(photo), style, level, group }),
         signal: AbortSignal.any([ctrl.signal, AbortSignal.timeout(130_000)]),
       })
       const result = await response.json().catch(() => null)
@@ -188,15 +197,20 @@ export default function DrawMode() {
       setProblem('failed')
       setStep('style')
     }
-  }, [photo, arts, combo, style, level])
+  }, [photo, arts, combo, style, level, group])
 
   const build = useCallback(async (): Promise<KxShareFile[]> => {
     if (!art || !photo) throw new Error('결과가 없습니다')
     return [
-      { name: 'caricature-poster.jpg', type: 'image/jpeg', label: t.posterLabel, blob: await drawPoster(t, art, photo, tag) },
+      { name: 'caricature-poster.jpg', type: 'image/jpeg', label: t.posterLabel, blob: await drawPoster(t, art, photo, tag, group) },
       { name: 'caricature.jpg', type: 'image/jpeg', label: t.artLabel, blob: await (await fetch(art)).blob() },
     ]
-  }, [art, photo, t, tag])
+  }, [art, photo, t, tag, group])
+  const receipt = useCallback((): KxReceipt => {
+    if (!art) throw new Error('결과가 없습니다')
+    // 선화는 밝게 찍어야 선이 또렷하다
+    return { tag: 'DRAW!', title: t.resultTitle, blocks: [{ kind: 'image', src: art, width: group ? 440 : 400, frame: true, tone: style === 'line' ? 185 : 165, caption: tag }], foot: t.foot }
+  }, [art, t, tag, group, style])
 
   if (step === 'start') {
     return (
@@ -208,7 +222,7 @@ export default function DrawMode() {
         // eslint-disable-next-line @next/next/no-img-element
         art={<img className="kx-art-blend" src={`${ASSET}/draw-hero.webp`} alt="" draggable={false} />}
         cta={t.cta}
-        onStart={() => { setProblem(null); setPhoto(null); setArts({}); setStep('capture') }}
+        onStart={() => { setProblem(null); setPhoto(null); setArts({}); setGroup(false); setStep('capture') }}
         foot={t.foot}
       >
         <p><span className="drw-underline">{t.sub}</span></p>
@@ -237,11 +251,15 @@ export default function DrawMode() {
       <KxPage name="draw-capture">
         {head(<KxBack label={t.back} onClick={home} />)}
         {title(t.captureTitle)}
+        <div className="drw-who" role="radiogroup" aria-label={t.captureTitle}>
+          <button type="button" role="radio" aria-checked={!group} data-on={!group || undefined} disabled={cam.countdown !== null} onClick={() => setGroup(false)}><UserRound size={22} strokeWidth={2} aria-hidden="true" />{t.solo}</button>
+          <button type="button" role="radio" aria-checked={group} data-on={group || undefined} disabled={cam.countdown !== null} onClick={() => setGroup(true)}><UsersRound size={22} strokeWidth={2} aria-hidden="true" />{t.group}</button>
+        </div>
         <div className="drw-stage">
-          <div className="drw-paper"><KxCamView cam={cam} /></div>
+          <div className="drw-paper" data-wide={group || undefined} key={group ? 'wide' : 'tall'}><KxCamView cam={cam} /></div>
           <Doodles />
         </div>
-        <p className="drw-note">{t.captureDesc}</p>
+        <p className="drw-note" key={group ? 'g' : 's'}>{group ? t.groupHint : t.captureDesc}<span>{t.hairTip}</span></p>
         <button type="button" className="kx-btn kx-btn--primary kx-btn--wide drw-go" disabled={cam.state !== 'ready' || cam.countdown !== null} onClick={() => cam.shoot((shot) => { setPhoto(shot); setArts({}); setProblem(null); setStep('confirm') })}>
           <Camera size={28} strokeWidth={2} aria-hidden="true" />{t.shoot}
         </button>
@@ -257,7 +275,7 @@ export default function DrawMode() {
         {head(<KxBack label={t.back} onClick={() => setStep('capture')} />)}
         {title(t.confirmTitle)}
         <div className="drw-stage">
-          <div className="drw-paper">
+          <div className="drw-paper" data-wide={group || undefined}>
             <KxCamView cam={null} photo={photo} flash />
             <span className="drw-badge">{t.shotDone}</span>
           </div>
@@ -276,7 +294,7 @@ export default function DrawMode() {
         {head(null)}
         {title(t.drawingTitle)}
         <div className="drw-stage">
-          <div className="drw-paper" data-drawing>
+          <div className="drw-paper" data-drawing data-wide={group || undefined}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photo} alt="" draggable={false} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -299,7 +317,7 @@ export default function DrawMode() {
         {head(<KxBack label={t.back} onClick={() => setStep('confirm')} />)}
         {title(t.styleTitle)}
         <div className="drw-stage" data-small>
-          <div className="drw-paper" key={art ? combo : 'photo'}>
+          <div className="drw-paper" data-wide={group || undefined} key={art ? combo : 'photo'}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={art ?? photo} alt="" draggable={false} />
             <span className="drw-badge" data-plain>{art ? tag : t.myPhoto}</span>
@@ -347,21 +365,25 @@ export default function DrawMode() {
       {head(<KxHome />)}
       {title(t.resultTitle)}
       <div className="drw-stage" data-result>
-        <div className="drw-paper" key={combo}>
+        <div className="drw-paper" data-wide={group || undefined} key={combo}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={art} alt="" draggable={false} />
           <span className="drw-tag">{tag}</span>
         </div>
-        <figure className="drw-original">
+        <figure className="drw-original" data-wide={group || undefined}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={photo} alt="" draggable={false} />
           <figcaption>{t.original}</figcaption>
         </figure>
         <Doodles text={t.doodles[1]} />
       </div>
-      <button type="button" className="kx-btn kx-btn--wide drw-ghost" onClick={() => setStep('style')}><Images size={24} strokeWidth={2} aria-hidden="true" />{t.again}</button>
+      <div className="drw-pair">
+        <button type="button" className="kx-btn drw-ghost" onClick={() => setStep('style')}><Images size={22} strokeWidth={2} aria-hidden="true" />{t.again}</button>
+        <button type="button" className="kx-btn drw-ghost" onClick={() => setPrinting(true)}><Printer size={22} strokeWidth={2} aria-hidden="true" />{c.receipt}</button>
+      </div>
       <button type="button" className="kx-btn kx-btn--primary kx-btn--wide drw-go" onClick={() => setSaving(true)}>{t.save}<ArrowRight size={28} strokeWidth={2.3} aria-hidden="true" /></button>
       <KxSaveSheet open={saving} cacheKey={`${lang}|${combo}|${art.length}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
+      <KxReceiptSheet open={printing} cacheKey={`${lang}|${combo}|${art.length}`} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
     </KxPage>
   )
 }

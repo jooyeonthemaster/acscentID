@@ -21,14 +21,17 @@
 .kx-root[data-x='career'] .kx-title { margin-top: 0; font-size: 36px; }
 .kx-root[data-x='career'] .kx-title span { display: block; }
 .kx-root[data-x='career'] .kx-desc { color: var(--kx-accent); font-size: 18px; font-weight: 500; }
-.crr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
-.kx-root .crr-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; min-height: 196px; padding: 10px 8px 14px; border: 3px solid transparent; border-radius: 22px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); color: var(--kx-ink); font-size: 27px; font-weight: 900; transition: transform 0.14s ease-out, border-color 0.2s ease; animation: kx-rise 0.42s var(--kx-ease) backwards; }
-.crr-tile:nth-child(2) { animation-delay: 0.06s; }
-.crr-tile:nth-child(3) { animation-delay: 0.12s; }
-.crr-tile:nth-child(4) { animation-delay: 0.18s; }
+.crr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.kx-root .crr-tile { position: relative; display: grid; grid-template-columns: 62px 1fr; align-items: center; gap: 12px; min-height: 118px; padding: 10px 12px; border: 3px solid transparent; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); color: var(--kx-ink); text-align: left; transition: transform 0.16s ease-out, border-color 0.2s ease; animation: kx-rise 0.42s var(--kx-ease) backwards; }
+.crr-tile:nth-child(n + 3) { animation-delay: 0.05s; }
+.crr-tile:nth-child(n + 5) { animation-delay: 0.1s; }
+.crr-tile:nth-child(n + 7) { animation-delay: 0.15s; }
 .kx-root .crr-tile[data-on] { border-color: var(--kx-accent); }
-.crr-tile img { width: 78%; height: 122px; object-fit: contain; }
-.crr-check { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--crr-orange); color: #fff; animation: kx-pop 0.32s var(--kx-spring); }
+.kx-root .crr-tile:active { transform: scale(0.97); }
+.crr-tile-icon { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 16px; background: var(--kx-accent-soft); color: var(--kx-accent); }
+.crr-tile[data-tone='warm'] .crr-tile-icon { background: #fde9dc; color: var(--crr-orange); }
+.crr-tile b { font-size: 19px; font-weight: 900; line-height: 1.22; letter-spacing: -0.03em; }
+.crr-check { position: absolute; top: -8px; right: -6px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--crr-orange); color: #fff; animation: kx-pop 0.32s var(--kx-spring); }
 .crr-options { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
 .kx-root .crr-option { display: grid; grid-template-columns: 86px 1fr 42px; align-items: center; gap: 14px; min-height: 112px; padding: 10px 18px; border: 3px solid transparent; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); color: var(--kx-ink); text-align: left; transition: transform 0.14s ease-out, border-color 0.2s ease; animation: kx-rise 0.42s var(--kx-ease) backwards; }
 .crr-option:nth-child(2) { animation-delay: 0.07s; }
@@ -69,3 +72,49 @@
 .crr-guide li b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dfeafd; color: #1946cd; font-size: 15px; }
 .kx-root[data-x='career'] .kx-foot { margin-top: 16px; }
 .kx-root[data-x='career'] .crr-career { min-height: 138px; }
+
+/* MBTI — 열여섯 가지를 네 줄로 */
+.crr-mbti { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
+.kx-root .crr-mbti button { min-height: 86px; border: 3px solid transparent; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px rgba(25, 70, 205, 0.1); color: var(--kx-accent); font-size: 21px; font-weight: 900; letter-spacing: 0.02em; transition: transform 0.14s ease-out, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+.kx-root .crr-mbti button[data-on] { border-color: var(--crr-orange); background: var(--crr-orange); color: #fff; }
+.kx-root .crr-mbti button:active { transform: scale(0.94); }
+.crr-mbti-note { min-height: 44px; margin-top: 12px; color: var(--kx-accent); font-size: 16.5px; font-weight: 700; line-height: 1.35; text-align: center; animation: kx-rise 0.3s var(--kx-ease) backwards; }
+
+/* 관상 — 재미로 보는 인상 읽기 */
+.kx-root[data-x='career'] .crr-face-title { margin-top: 12px; }
+.kx-root[data-x='career'] .kx-cam { border-radius: 22px; }
+.kx-root[data-x='career'] .kx-cam-corner { display: none; }
+.crr-face-guide { width: 100%; height: 100%; }
+.crr-scan { position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 100%; border-radius: 22px; overflow: hidden; background: #dfe8f7; }
+.crr-scan img, .crr-scan canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.crr-scan canvas { opacity: 0; transition: opacity 0.5s ease; }
+.crr-scan canvas[data-on] { opacity: 1; }
+/* 위에서 아래로 훑는 빛 */
+.crr-scan i { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(180deg, rgba(120, 190, 255, 0), rgba(120, 190, 255, 0.5) 85%, #fff 100%); animation: crr-scan 1.5s ease-in-out infinite alternate; }
+@keyframes crr-scan { from { transform: translateY(-60%); } to { transform: translateY(420%); } }
+.crr-privacy, .crr-reading { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin-top: 10px; color: var(--kx-accent); font-size: 15.5px; font-weight: 700; text-align: center; }
+.crr-reading { font-size: 19px; font-weight: 900; }
+.crr-alert { flex: none; display: flex; flex-direction: column; align-items: center; min-height: 48px; margin-top: 10px; padding: 6px 14px; border: 2px solid var(--crr-orange); border-radius: 14px; background: #fffaf5; font-size: 14.5px; text-align: center; animation: kx-shake 0.5s ease-out 0.1s; }
+.crr-alert b { color: var(--crr-orange); font-size: 16.5px; }
+.crr-face-actions { flex: none; display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 10px; }
+.kx-root .crr-face-actions .kx-btn { min-height: 74px; border-radius: 16px; font-size: 24px; }
+.kx-root .crr-face-actions .kx-btn:not(.kx-btn--primary) { border-width: 2px; background: #fff; font-size: 19px; }
+
+/* 결과 — 나를 읽은 단서(MBTI · 관상) */
+.crr-tags span[data-clue] { background: #fde9dc; color: var(--crr-orange); }
+.kx-root[data-x='career'] .crr-careers[data-tight] { gap: 8px; margin-top: 10px; }
+.kx-root[data-x='career'] .crr-careers[data-tight] .crr-career { min-height: 112px; grid-template-columns: 112px 1fr; }
+.crr-careers[data-tight] .crr-career img { width: 112px; height: 86px; }
+.crr-careers[data-tight] .crr-career b { font-size: 25px; }
+.crr-careers[data-tight] .crr-career span { margin-bottom: 5px; font-size: 14px; }
+.kx-root .crr-clues { flex: none; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; min-height: 60px; margin-top: 10px; padding: 6px 14px; border: 2px solid var(--kx-accent); border-radius: 16px; background: #fff; color: var(--kx-accent); text-align: left; animation: kx-rise 0.46s var(--kx-ease) 0.45s backwards; transition: transform 0.14s ease-out; }
+.kx-root .crr-clues:active { transform: scale(0.98); }
+.crr-clues em { display: block; font-size: 13px; font-weight: 800; }
+.crr-clues b { display: block; color: var(--kx-ink); font-size: 16px; font-weight: 800; line-height: 1.25; }
+.crr-clues i { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; font-weight: 800; white-space: nowrap; }
+.kx-root[data-x='career'] .crr-first { margin-top: 8px; }
+.crr-clue-sheet h3 { align-self: flex-start; margin-top: 4px; color: #1946cd; font-size: 17px; font-weight: 900; }
+.crr-clue-sheet ul { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+.crr-clue-sheet li { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 12px; font-size: 15.5px; line-height: 1.4; }
+.crr-clue-sheet li b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dfeafd; color: #1946cd; font-size: 15px; font-weight: 900; }
+.crr-clue-sheet li strong { display: block; font-weight: 800; }

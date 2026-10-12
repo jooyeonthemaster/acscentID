@@ -1,28 +1,32 @@
 'use client'
 
-// 미래 직업 탐색(NEXT!) — 좋아하는 활동(여러 개) + 상황 질문 다섯 개 → 탐색해 볼 직업 세 가지와 작은 첫 도전. 목업 06-future-career.
-// 관심사 기반 탐색이다(data.ts). 적성·미래를 단정하지 않는다 — 문구도 '탐색해 볼'·'첫 도전'으로 쓴다.
+// 미래 직업 탐색(NEXT!) — 좋아하는 활동(8개 중 여럿) → MBTI(선택) → 상황 질문 다섯 개 → 관상(선택) → 탐색해 볼 직업 세 가지와 작은 첫 도전.
+// 목업 06-future-career. 관심사가 중심이고, MBTI·관상은 재미로 곁들이는 단서다(data.ts · face.ts).
+// 적성·미래를 단정하지 않는다 — 문구도 '탐색해 볼'·'첫 도전'·'재미로 보는'으로 쓴다. 관상 사진은 기기 안에서만 보고 남기지 않는다.
 
-import { useCallback, useMemo, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import {
-  ArrowRight, CalendarDays, Check, Download, Ear, Gift, Hammer, HeartHandshake, Image as ImageIcon, Lightbulb, Megaphone, MessagesSquare, Palette, Presentation, Puzzle, Search, Sparkles, Users, X,
+  ArrowRight, CalendarDays, Check, Download, Ear, FlaskConical, Gift, GraduationCap, Hammer, HeartHandshake, Image as ImageIcon, Lightbulb, Megaphone, MessagesSquare, Palette, Presentation, Puzzle, ScanFace,
+  Search, Sparkles, Users, X,
 } from 'lucide-react'
-import { KX_IDLE, KxFoot, KxHome, KxLang, KxPage, KxSaveSheet, KxStart, KxSteps, KxTop, useKx, useKxScreen, type KxShareFile } from '../kx'
+import { KX_IDLE, KxCamView, KxFoot, KxHome, KxLang, KxPage, KxSaveSheet, KxSpinner, KxStart, KxSteps, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, fillLines, fontsReady, kxFontFamily, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
-import { CAREERS, CAREER_AXES, CAREER_QUESTIONS, CAREER_TOTAL, exploreCareers, type CareerAxis, type CareerResult } from './data'
+import { loadVision, photoCanvas, preloadVision } from '../kx-vision'
+import { CAREERS, CAREER_INTERESTS, CAREER_QUESTIONS, CAREER_TOTAL, MBTI_TYPES, exploreCareers, mbtiLetters, type CareerAxis, type CareerInterest, type CareerResult, type FaceTrait, type MbtiType } from './data'
+import { readFace, type FaceReading } from './face'
 import { CAREER_TEXT, type CareerText } from './text'
 import './career.css'
 
 type IconType = ComponentType<{ size?: number; strokeWidth?: number; 'aria-hidden'?: boolean | 'true' }>
 const ICONS: Record<string, IconType> = {
   palette: Palette, puzzle: Puzzle, chat: MessagesSquare, search: Search, team: Users, present: Presentation, poster: ImageIcon, plan: CalendarDays,
-  megaphone: Megaphone, ear: Ear, bulb: Lightbulb, gift: Gift, hammer: Hammer, heart: HeartHandshake, spark: Sparkles,
+  megaphone: Megaphone, ear: Ear, bulb: Lightbulb, gift: Gift, hammer: Hammer, heart: HeartHandshake, spark: Sparkles, flask: FlaskConical, cap: GraduationCap,
 }
 const axisArt = (axis: CareerAxis) => `/assets/kiosk-experiences/career-${axis}.webp`
 
 /** 저장용 탐색 가이드 한 장 */
-async function drawGuideCard(t: CareerText, result: CareerResult): Promise<Blob> {
+async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[]): Promise<Blob> {
   const family = kxFontFamily()
   await fontsReady(`800 40px ${family}`, `500 30px ${family}`)
   const W = 1080, pad = 80
@@ -56,16 +60,18 @@ async function drawGuideCard(t: CareerText, result: CareerResult): Promise<Blob>
   ctx.fillText(t.resultSub, pad, 258)
   ctx.font = `700 30px ${family}`
   let tx = pad
-  result.axes.slice(0, 2).forEach((axis) => {
-    const label = `#${t.axes[axis]}`
+  // 관심 축 둘 + 곁들인 단서(MBTI · 관상에서 가장 눈에 띈 인상) — 넘치면 거기서 멈춘다
+  const tags: [string, boolean][] = [...result.axes.slice(0, 2).map((axis): [string, boolean] => [`#${t.axes[axis]}`, false]), ...clues.map((clue): [string, boolean] => [clue, true])]
+  for (const [label, soft] of tags) {
     const w = ctx.measureText(label).width + 44
-    ctx.fillStyle = '#dfeafd'
+    if (tx + w > W - pad) break
+    ctx.fillStyle = soft ? '#fde9dc' : '#dfeafd'
     roundRect(ctx, tx, 318, w, 54, 27)
     ctx.fill()
-    ctx.fillStyle = accent
+    ctx.fillStyle = soft ? orange : accent
     ctx.fillText(label, tx + 22, 329)
     tx += w + 14
-  })
+  }
   let y = 410
   cards.forEach((card, index) => {
     const h = 122 + card.lines.length * 44
@@ -111,24 +117,94 @@ async function drawGuideCard(t: CareerText, result: CareerResult): Promise<Blob>
   return canvasBlob(canvas, 'image/jpeg', 0.92)
 }
 
+/** 관상을 읽는 동안 — 사진 위에 얼굴 윤곽과 특징점을 찍어 보인다 */
+function FaceScan({ photo, reading }: { photo: string; reading: FaceReading | null }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = ref.current
+    if (!canvas || !reading) return
+    const image = new Image()
+    image.onload = () => {
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      const unit = canvas.width / 360
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'
+      ctx.lineWidth = 1.6 * unit
+      ctx.beginPath()
+      reading.outline.forEach((point, i) => (i ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)))
+      ctx.closePath()
+      ctx.stroke()
+      ctx.fillStyle = '#ffb347'
+      for (const point of reading.points) { ctx.beginPath(); ctx.arc(point.x, point.y, 2.4 * unit, 0, Math.PI * 2); ctx.fill() }
+    }
+    image.src = photo
+  }, [photo, reading])
+  return (
+    <div className="crr-scan">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo} alt="" draggable={false} />
+      <canvas ref={ref} data-on={reading ? '' : undefined} />
+      <i aria-hidden="true" />
+    </div>
+  )
+}
+
 export default function CareerMode() {
-  const { lang } = useKx()
+  const { lang, t: k } = useKx()
   const t = kxText(CAREER_TEXT, lang)
-  const [step, setStep] = useState<'start' | 'ask' | 'result'>('start')
-  /** 0 = 첫 질문(여러 개), 1~5 = 상황 질문 */
+  const [step, setStep] = useState<'start' | 'ask' | 'face' | 'result'>('start')
+  /** 0 = 활동 고르기(여러 개) · 1 = MBTI · 2~6 = 상황 질문 */
   const [index, setIndex] = useState(0)
-  const [picks, setPicks] = useState<CareerAxis[]>([])
+  const [picks, setPicks] = useState<CareerInterest[]>([])
+  const [mbti, setMbti] = useState<MbtiType | null>(null)
   const [answers, setAnswers] = useState<(number | null)[]>(() => CAREER_QUESTIONS.map(() => null))
+  /** 관상 — 찍은 사진(읽는 동안만 쓴다)과 읽은 결과 */
+  const [shot, setShot] = useState<string | null>(null)
+  const [reading, setReading] = useState<FaceReading | null>(null)
+  const [traits, setTraits] = useState<FaceTrait[]>([])
+  const [noFace, setNoFace] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [cluesOpen, setCluesOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const cam = useKxCamera(step === 'face' && !shot)
+  const QUESTIONS_FROM = 2
+  const lastAsk = QUESTIONS_FROM + CAREER_QUESTIONS.length - 1
 
-  useKxScreen(step === 'start' ? 'start' : saving || guideOpen ? KX_IDLE.save : step === 'result' ? KX_IDLE.result : KX_IDLE.step)
+  useKxScreen(step === 'start' ? 'start' : shot || cam.countdown !== null ? 'busy' : saving || guideOpen || cluesOpen ? KX_IDLE.save : step === 'result' ? KX_IDLE.result : step === 'face' ? KX_IDLE.camera : KX_IDLE.step)
 
-  const result = useMemo(() => (step === 'result' ? exploreCareers(picks, answers.map((a) => a ?? 0)) : null), [step, picks, answers])
+  // 질문에 답하는 동안 얼굴 인식 도구를 조금씩 받아 둔다(관상 단계에서 기다리지 않게)
+  useEffect(() => {
+    if (step !== 'ask') return
+    return preloadVision('face')
+  }, [step])
+  useEffect(() => { if (step === 'face') void loadVision('face').catch(() => {}) }, [step])
+
+  const result = useMemo(() => (step === 'result' ? exploreCareers(picks, answers.map((a) => a ?? 0), mbti, traits) : null), [step, picks, answers, mbti, traits])
+  const clueTags = useMemo(() => [...(mbti ? [mbti] : []), ...(traits[0] ? [t.traits[traits[0]][0]] : [])], [mbti, traits, t])
   const build = useCallback(async (): Promise<KxShareFile[]> => {
     if (!result) throw new Error('결과가 없습니다')
-    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result) }]
-  }, [result, t])
+    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags) }]
+  }, [result, t, clueTags])
+
+  /** 관상 — 찍은 사진에서 인상을 읽는다. 읽는 동안 특징점이 찍히는 것을 잠깐 보여 준 뒤 결과로 */
+  const read = useCallback(async (photo: string) => {
+    setShot(photo)
+    setReading(null)
+    try {
+      const found = await readFace(await photoCanvas(photo, 960))
+      if (!found) { setNoFace(true); setShot(null); return }
+      setNoFace(false)
+      setReading(found)
+      setTraits(found.traits)
+      window.setTimeout(() => { setShot(null); setStep('result') }, 2400)
+    } catch (error) {
+      console.error('[kiosk] 얼굴을 읽지 못했습니다:', error)
+      setNoFace(true)
+      setShot(null)
+    }
+  }, [])
 
   if (step === 'start') {
     return (
@@ -149,45 +225,56 @@ export default function CareerMode() {
   }
 
   const top = <KxTop left={<KxHome />} center={<p className="crr-mark"><b>NEXT!</b><span>{t.tagline}</span></p>} right={<KxLang />} />
+  const dots = (current: number) => <KxSteps labels={Array.from({ length: CAREER_TOTAL }, () => '')} current={current} compact />
 
   if (step === 'ask') {
-    const first = index === 0
-    const question = first ? null : CAREER_QUESTIONS[index - 1]
-    const text = first ? null : t.questions[index - 1]
-    const answered = first ? picks.length > 0 : answers[index - 1] !== null
-    const next = () => { if (index + 1 >= CAREER_TOTAL) setStep('result'); else setIndex(index + 1) }
+    const kind = index === 0 ? 'interests' : index === 1 ? 'mbti' : 'question'
+    const at = index - QUESTIONS_FROM
+    const question = kind === 'question' ? CAREER_QUESTIONS[at] : null
+    const text = kind === 'question' ? t.questions[at] : null
+    const answered = kind === 'interests' ? picks.length > 0 : kind === 'mbti' ? true : answers[at] !== null
+    const next = () => { if (index >= lastAsk) { setNoFace(false); setStep('face') } else setIndex(index + 1) }
     return (
       <KxPage name="career-ask">
         {top}
-        <KxSteps labels={Array.from({ length: CAREER_TOTAL }, () => '')} current={index} compact />
+        {dots(index)}
         {/* 질문이 바뀔 때마다 새로 올라온다 */}
         <div className="crr-question" key={index}>
           <p className="crr-count"><b>{index + 1}</b> / {CAREER_TOTAL}</p>
-          <h1 className="kx-title">{first ? t.q1Title : text!.title.map((line, i) => <span key={i}>{line}</span>)}</h1>
-          <p className="kx-desc">{first ? t.q1Sub : t.qSub}</p>
-          {first ? (
+          <h1 className="kx-title">{kind === 'interests' ? t.q1Title : kind === 'mbti' ? t.mbtiTitle : text!.title.map((line, i) => <span key={i}>{line}</span>)}</h1>
+          <p className="kx-desc">{kind === 'interests' ? t.q1Sub : kind === 'mbti' ? t.mbtiSub : t.qSub}</p>
+          {kind === 'interests' && (
             <div className="crr-tiles" role="group" aria-label={t.q1Title}>
-              {CAREER_AXES.map((axis) => {
-                const on = picks.includes(axis)
+              {CAREER_INTERESTS.map(({ id, icon }, i) => {
+                const Icon = ICONS[icon]
+                const on = picks.includes(id)
                 return (
-                  <button key={axis} type="button" aria-pressed={on} className="kx-tile crr-tile" data-on={on || undefined}
-                    onClick={() => setPicks((list) => (on ? list.filter((a) => a !== axis) : [...list, axis]))}>
-                    {on && <i className="crr-check" aria-hidden="true"><Check size={22} strokeWidth={3} /></i>}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={axisArt(axis)} alt="" draggable={false} />
-                    <span>{t.axes[axis]}</span>
+                  <button key={id} type="button" aria-pressed={on} className="kx-tile crr-tile" data-on={on || undefined} data-tone={i % 4 === 1 || i % 4 === 2 ? 'warm' : undefined}
+                    onClick={() => setPicks((list) => (on ? list.filter((a) => a !== id) : [...list, id]))}>
+                    {on && <i className="crr-check" aria-hidden="true"><Check size={18} strokeWidth={3} /></i>}
+                    <span className="crr-tile-icon"><Icon size={38} strokeWidth={1.6} aria-hidden="true" /></span>
+                    <b>{t.interests[id]}</b>
                   </button>
                 )
               })}
             </div>
-          ) : (
+          )}
+          {kind === 'mbti' && (
+            <div className="crr-mbti" role="radiogroup" aria-label={t.mbtiTitle}>
+              {MBTI_TYPES.map((type) => (
+                <button key={type} type="button" role="radio" aria-checked={mbti === type} data-on={mbti === type || undefined} onClick={() => setMbti(mbti === type ? null : type)}>{type}</button>
+              ))}
+            </div>
+          )}
+          {kind === 'mbti' && <p className="crr-mbti-note" key={mbti ?? 'none'}>{mbti ? mbtiLetters(mbti).slice(0, 2).map((letter) => t.mbtiLetters[letter]).join(' · ') : t.mbtiSkip}</p>}
+          {kind === 'question' && (
             <div className="crr-options" role="radiogroup" aria-label={text!.title.join(' ')}>
               {question!.options.map((_, i) => {
                 const Icon = ICONS[question!.icons[i]]
-                const on = answers[index - 1] === i
+                const on = answers[at] === i
                 return (
                   <button key={i} type="button" role="radio" aria-checked={on} className="kx-tile crr-option" data-on={on || undefined}
-                    onClick={() => setAnswers((list) => list.map((value, at) => (at === index - 1 ? i : value)))}>
+                    onClick={() => setAnswers((list) => list.map((value, n) => (n === at ? i : value)))}>
                     <span className="crr-option-icon"><Icon size={40} strokeWidth={1.6} aria-hidden="true" /></span>
                     <b>{text!.options[i]}</b>
                     <i className="crr-radio" aria-hidden="true">{on && <Check size={20} strokeWidth={3} />}</i>
@@ -198,27 +285,63 @@ export default function CareerMode() {
           )}
         </div>
         <div className="kx-spacer" />
-        {first
+        {kind === 'interests'
           ? <p className="crr-pill" aria-live="polite">{t.picked(picks.length)}</p>
           : <button type="button" className="crr-pill crr-pill--btn" onClick={() => setIndex(index - 1)}>{t.prevQ}</button>}
         <button type="button" className="kx-btn kx-btn--primary kx-btn--wide crr-next" disabled={!answered} onClick={next}>
-          {index + 1 >= CAREER_TOTAL ? t.seeResult : t.nextQ}<ArrowRight size={28} strokeWidth={2.4} aria-hidden="true" />
+          {kind === 'mbti' && !mbti ? t.mbtiSkip : t.nextQ}<ArrowRight size={28} strokeWidth={2.4} aria-hidden="true" />
         </button>
         <KxFoot>{t.foot}</KxFoot>
       </KxPage>
     )
   }
 
+  if (step === 'face') {
+    return (
+      <KxPage name="career-face">
+        {top}
+        {dots(CAREER_TOTAL - 1)}
+        <h1 className="kx-title crr-face-title">{t.faceTitle.map((line, i) => <span key={i}>{line}</span>)}</h1>
+        <p className="kx-desc">{t.faceSub}</p>
+        <div className="kx-cam-slot">
+          {shot
+            ? <FaceScan photo={shot} reading={reading} />
+            : (
+              <KxCamView cam={cam}>
+                <svg className="crr-face-guide" viewBox="0 0 300 400" aria-hidden="true"><ellipse cx="150" cy="182" rx="94" ry="126" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeDasharray="7 7" /></svg>
+              </KxCamView>
+            )}
+        </div>
+        {shot
+          ? <p className="crr-reading" role="status"><KxSpinner size={24} />{t.faceReading}</p>
+          : noFace
+            ? <p className="crr-alert" role="alert"><b>{t.faceFail[0]}</b>{t.faceFail[1]}</p>
+            : <p className="crr-privacy">{t.facePrivacy}</p>}
+        <div className="crr-face-actions">
+          <button type="button" className="kx-btn" disabled={Boolean(shot) || cam.countdown !== null} onClick={() => { setTraits([]); setStep('result') }}>{t.faceSkip}</button>
+          <button type="button" className="kx-btn kx-btn--primary" disabled={Boolean(shot) || cam.state !== 'ready' || cam.countdown !== null} onClick={() => cam.shoot((photo) => void read(photo))}>
+            <ScanFace size={26} strokeWidth={2} aria-hidden="true" />{t.faceShoot}
+          </button>
+        </div>
+        <KxFoot>{t.faceDisclaimer}</KxFoot>
+      </KxPage>
+    )
+  }
+
   if (!result) return null
   const topCareer = result.careers[0]
+  const hasClues = Boolean(mbti) || traits.length > 0
   return (
     <KxPage name="career-result">
       {top}
       <p className="crr-done"><i aria-hidden="true"><Check size={16} strokeWidth={3} /></i>{t.done}</p>
       <h1 className="kx-title crr-result-title">{t.resultTitle}</h1>
       <p className="kx-desc">{t.resultSub}</p>
-      <p className="crr-tags">{result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}</p>
-      <ol className="crr-careers">
+      <p className="crr-tags">
+        {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
+        {clueTags.map((clue) => <span key={clue} data-clue>{clue}</span>)}
+      </p>
+      <ol className="crr-careers" data-tight={hasClues || undefined}>
         {result.careers.map((id) => {
           const career = CAREERS[id]
           return (
@@ -234,6 +357,13 @@ export default function CareerMode() {
           )
         })}
       </ol>
+      {hasClues && (
+        <button type="button" className="crr-clues" onClick={() => setCluesOpen(true)}>
+          <ScanFace size={30} strokeWidth={1.7} aria-hidden="true" />
+          <span><em>{t.clues}</em><b>{[mbti, ...traits.slice(0, 2).map((trait) => t.traits[trait][0])].filter(Boolean).join(' · ')}</b></span>
+          <i>{t.cluesOpen}<ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" /></i>
+        </button>
+      )}
       <section className="crr-first">
         <Lightbulb size={38} strokeWidth={1.6} aria-hidden="true" />
         <div>
@@ -251,7 +381,7 @@ export default function CareerMode() {
       {guideOpen && (
         <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={t.guideTitle} onPointerDown={(event) => { if (event.target === event.currentTarget) setGuideOpen(false) }}>
           <div className="kx-sheet-card crr-guide">
-            <button type="button" className="kx-sheet-x" aria-label="close" onClick={() => setGuideOpen(false)}><X size={24} strokeWidth={2} aria-hidden="true" /></button>
+            <button type="button" className="kx-sheet-x" aria-label={k.close} onClick={() => setGuideOpen(false)}><X size={24} strokeWidth={2} aria-hidden="true" /></button>
             <h2>{t.guideTitle}</h2>
             <p className="kx-sheet-desc">{t.careers[topCareer].first}</p>
             <ol>{t.guides[CAREERS[topCareer].primary].map((line, i) => <li key={i}><b>{i + 1}</b><span>{line}</span></li>)}</ol>
@@ -259,7 +389,29 @@ export default function CareerMode() {
           </div>
         </div>
       )}
-      <KxSaveSheet open={saving} cacheKey={`${lang}|${result.careers.join()}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
+      {cluesOpen && (
+        <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={t.clues} onPointerDown={(event) => { if (event.target === event.currentTarget) setCluesOpen(false) }}>
+          <div className="kx-sheet-card crr-guide crr-clue-sheet">
+            <button type="button" className="kx-sheet-x" aria-label={k.close} onClick={() => setCluesOpen(false)}><X size={24} strokeWidth={2} aria-hidden="true" /></button>
+            <h2>{t.clues}</h2>
+            {mbti && (
+              <>
+                <h3>MBTI · {mbti}</h3>
+                <ul>{mbtiLetters(mbti).map((letter) => <li key={letter}><b>{letter}</b><span>{t.mbtiLetters[letter]}</span></li>)}</ul>
+              </>
+            )}
+            {traits.length > 0 && (
+              <>
+                <h3>{t.faceSheetTitle}</h3>
+                <ul>{traits.map((trait) => <li key={trait}><b><ScanFace size={18} strokeWidth={2} aria-hidden="true" /></b><span><strong>{t.traits[trait][0]}</strong>{t.traits[trait][1]}</span></li>)}</ul>
+              </>
+            )}
+            <p className="kx-sheet-keep">{t.faceDisclaimer}</p>
+            <button type="button" className="kx-btn kx-btn--primary" onClick={() => setCluesOpen(false)}>OK</button>
+          </div>
+        </div>
+      )}
+      <KxSaveSheet open={saving} cacheKey={`${lang}|${result.careers.join()}|${clueTags.join()}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
     </KxPage>
   )
 }

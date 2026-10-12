@@ -4,14 +4,24 @@
 export type SkinFeel = 'tight' | 'oily' | 'both' | 'calm'
 export type SkinCare = 'moisture' | 'simple' | 'texture'
 export type SkinTexture = 'light' | 'rich'
-export type SkinStep = 'cleanse' | 'tone' | 'moisturize' | 'sunscreen' | 'soothe'
+export type SkinStep = 'cleanse' | 'tone' | 'essence' | 'eye' | 'moisturize' | 'sunscreen' | 'soothe' | 'mask' | 'exfoliate'
+/** 루틴의 한 단계 — 고를 수 있는 단계이거나, 손님이 직접 적은 단계('custom:앰플') */
+export type SkinEntry = SkinStep | `custom:${string}`
+/** 손님이 더할 수 있는 단계(바르는 순서대로) */
+export const SKIN_STEP_LIBRARY: SkinStep[] = ['cleanse', 'exfoliate', 'tone', 'essence', 'mask', 'eye', 'moisturize', 'soothe', 'sunscreen']
+export const SKIN_MAX_STEPS = 7
+export const SKIN_CUSTOM_MAX = 12
+export const customEntry = (label: string): SkinEntry => `custom:${label}`
+export const customLabel = (entry: SkinEntry): string | null => (entry.startsWith('custom:') ? entry.slice(7) : null)
 export type SkinTime = 'am' | 'pm'
 
 export const SKIN_FEELS: SkinFeel[] = ['tight', 'oily', 'both', 'calm']
 export const SKIN_CARES: SkinCare[] = ['moisture', 'simple', 'texture']
 
 export interface SkinRoutine {
-  steps: Record<SkinTime, SkinStep[]>
+  steps: Record<SkinTime, SkinEntry[]>
+  /** 손님이 단계를 직접 고쳤다 */
+  edited?: boolean
   texture: Record<SkinTime, SkinTexture>
   /** 루틴의 중심 — 결과 머리표에 쓴다 */
   focus: 'moisture' | 'balance' | 'keep'

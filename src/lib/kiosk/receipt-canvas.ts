@@ -264,7 +264,7 @@ function strokeRectCrisp(
  *  평균 밝기를 150으로 끌어올리는 감마(0.45~2.4) → Floyd-Steinberg 디더링(임계 128).
  *  JIMFF 셸의 toneMapForThermal과 동일한 파라미터. */
 /** toneTarget — 감마로 맞출 평균 밝기. 사진은 150, 선화(타로 원화)는 175 로 밝게 해야 선이 또렷하다(150 이면 면이 점으로 탁해진다) */
-function ditherForThermal(img: HTMLImageElement, dw: number, dh: number, toneTarget = 150): HTMLCanvasElement {
+export function ditherForThermal(img: CanvasImageSource, dw: number, dh: number, toneTarget = 150): HTMLCanvasElement {
   const c = document.createElement('canvas')
   c.width = dw
   c.height = dh

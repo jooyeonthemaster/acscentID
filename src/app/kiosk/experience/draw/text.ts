@@ -15,6 +15,12 @@ export interface DrawText {
   captureTitle: string
   captureDesc: string
   shoot: string
+  /** 혼자 · 같이 */
+  solo: string
+  group: string
+  groupHint: string
+  hairTip: string
+  receiptSub: string
   confirmTitle: string
   confirmDesc: string
   shotDone: string
@@ -61,6 +67,11 @@ const ko: DrawText = {
   captureTitle: '사진을 찍어 주세요',
   captureDesc: '어깨 위가 보이게, 편하게 웃어 주세요.',
   shoot: '사진 촬영',
+  solo: '혼자',
+  group: '같이',
+  groupHint: '모두 화면 안에 들어오게 붙어 서 주세요.',
+  hairTip: '머리 모양이 다 보이면 더 닮게 그려져요.',
+  receiptSub: '그림 영수증',
   confirmTitle: '사진을 확인해 주세요',
   confirmDesc: '얼굴이 잘 보이면 준비됐어요.',
   shotDone: '촬영 완료',
@@ -105,6 +116,11 @@ const en: DrawText = {
   captureTitle: 'Take your photo',
   captureDesc: 'Head and shoulders in view — and smile.',
   shoot: 'Take photo',
+  solo: 'Just me',
+  group: 'Together',
+  groupHint: 'Stand close so everyone fits in the frame.',
+  hairTip: 'Keep your whole hairstyle in view for a better likeness.',
+  receiptSub: 'Drawing receipt',
   confirmTitle: 'Check your photo',
   confirmDesc: 'If your face is clear, you’re ready.',
   shotDone: 'Photo taken',
@@ -150,6 +166,11 @@ const ja: DrawText = {
   captureTitle: '写真を撮ってください',
   captureDesc: '肩から上を入れて、自然な笑顔でどうぞ。',
   shoot: '撮影する',
+  solo: 'ひとりで',
+  group: 'いっしょに',
+  groupHint: '全員が画面に入るよう、寄って立ってください。',
+  hairTip: '髪型全体が見えると、より似せて描けます。',
+  receiptSub: '絵のレシート',
   confirmTitle: '写真を確認してください',
   confirmDesc: '顔がよく見えていれば準備OKです。',
   shotDone: '撮影完了',
@@ -194,6 +215,11 @@ const zhHans: DrawText = {
   captureTitle: '请拍一张照片',
   captureDesc: '请露出肩膀以上，自然地笑一笑。',
   shoot: '拍摄照片',
+  solo: '单人',
+  group: '多人',
+  groupHint: '请大家靠近一点，都进到画面里。',
+  hairTip: '发型完整入镜，画得会更像。',
+  receiptSub: '画作小票',
   confirmTitle: '请确认照片',
   confirmDesc: '脸部清晰可见，就准备好了。',
   shotDone: '拍摄完成',
@@ -239,6 +265,11 @@ const zhHant: DrawText = {
   captureTitle: '請拍一張照片',
   captureDesc: '請露出肩膀以上，自然地笑一笑。',
   shoot: '拍攝照片',
+  solo: '單人',
+  group: '多人',
+  groupHint: '請大家靠近一點，都進到畫面裡。',
+  hairTip: '髮型完整入鏡，畫得會更像。',
+  receiptSub: '畫作收據',
   confirmTitle: '請確認照片',
   confirmDesc: '臉部清楚可見，就準備好了。',
   shotDone: '拍攝完成',

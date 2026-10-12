@@ -1,125 +1,52 @@
-// 키오스크 캐리커처 생성(서버 전용) — 손님이 찍은 한 컷 + 스타일·과장 정도 → 같은 사람의 손그림 캐리커처.
-// 키는 전용 OPENROUTER_KIOSK_IMAGE_API_KEY 가 있으면 그것을, 없으면 키오스크 분석이 쓰는 OPENROUTER_API_KEY 를 쓴다.
-// 모델은 OPENROUTER_CARICATURE_MODEL 로 바꿀 수 있다(기본: 빠르고 싼 Gemini 2.5 Flash Image, 장당 약 $0.04).
-// 손님 사진은 생성에만 쓰고 저장하지 않는다 — 요청·응답을 기록하지 않는다.
+// 키오스크 캐리커처(서버 전용) — 손님이 찍은 한 컷 + 스타일·과장 정도 → 같은 사람의 손그림 캐리커처.
+// 생성(키·모델·상한)은 image-gen.ts 가 맡고, 여기는 무엇을 어떻게 그릴지(프롬프트)만 둔다.
 
-import sharp from 'sharp'
-import { OPENROUTER_IMAGE_MODEL } from '@/lib/gemini/client'
+import { generateKioskImage } from './image-gen'
 
 export const CARICATURE_STYLES = ['line', 'water', 'comic'] as const
 export type CaricatureStyle = (typeof CARICATURE_STYLES)[number]
 export const CARICATURE_LEVELS = ['soft', 'fun'] as const
 export type CaricatureLevel = (typeof CARICATURE_LEVELS)[number]
 
-const DEFAULT_MODEL = 'google/gemini-2.5-flash-image'
-
-function apiKey() {
-  return process.env.OPENROUTER_KIOSK_IMAGE_API_KEY || process.env.OPENROUTER_API_KEY || ''
-}
-
-export function caricatureConfigured() {
-  return !!apiKey()
-}
-
-export class CaricatureError extends Error {
-  constructor(message: string, public status = 500) { super(message) }
-}
-
+// 세 스타일은 한눈에 달라 보여야 한다 — 선화는 색이 전혀 없고, 수채화는 번지는 물감, 코믹은 굵은 선과 원색·망점
 const STYLE_PROMPT: Record<CaricatureStyle, string> = {
-  line: 'STYLE — LINE ART: confident black ink pen lines on paper, light cross-hatching for shadow, almost no color (at most a faint warm gray wash). It should look like a quick, skilled street-artist pen sketch.',
-  water: 'STYLE — WATERCOLOR: loose pencil outlines with soft translucent watercolor washes in gentle pastel tones, visible paper grain, a few color blooms bleeding past the lines.',
-  comic: 'STYLE — COMIC: lively cartoon illustration with bold dark outlines, flat warm colors and simple cel shading, a few red crayon accent strokes around the figure.',
+  line: 'STYLE — INK LINE ART, STRICTLY BLACK AND WHITE: the whole image contains only black ink lines on plain white paper. Zero color anywhere — no skin tone, no hair color, no clothing color, no gray wash, no tinted paper. Only small solid-black accents (hair shadows, pupils) are allowed as fills. Confident contour lines with sparse cross-hatching, like a skilled street artist\'s quick pen sketch. If any color appears, the image is wrong.',
+  water: 'STYLE — WATERCOLOR PAINTING: loose wet-on-wet watercolor with soft, bleeding edges, visible pigment blooms and paper grain, gentle pastel palette. Almost no outlines (only a few faint pencil marks). Abstract watercolor splashes behind the figure.',
+  comic: 'STYLE — POP COMIC: bold thick black outlines, flat saturated colors with halftone-dot shading, strong highlights, and a bright colored burst panel with action lines behind the figure, like a comic-book cover.',
 }
 
 const LEVEL_PROMPT: Record<CaricatureLevel, string> = {
   soft: 'EXAGGERATION — SUBTLE: keep proportions close to the photo. Only a slightly larger head and eyes (about 10%), so it reads as a warm portrait sketch more than a caricature.',
-  fun: 'EXAGGERATION — PLAYFUL: a clearly bigger head on a smaller body (head about 1.5× the natural proportion), a wider smile and brighter eyes, and the most charming distinctive features (hairstyle, glasses, dimples, accessories) emphasized.',
+  fun: 'EXAGGERATION — PLAYFUL: a clearly bigger head on a smaller body (head about 1.5× the natural proportion), a wider smile and brighter eyes, and the most charming distinctive features the person really has (their smile, dimples, the shape and volume of their hair) emphasized. Exaggerate proportions only — never restyle anything.',
 }
 
-export function buildCaricaturePrompt(style: CaricatureStyle, level: CaricatureLevel): string {
+/** 머리 모양은 닮음의 큰 부분인데 모델이 자주 바꿔 그린다(앞머리를 만들거나 길이를 줄인다) — 따로 한 문단으로 못 박는다 */
+const HAIR_PROMPT = 'HAIR — reproduce each person\'s hair exactly as in the photo: the same length (where it ends: ears, chin, shoulders, chest), the same volume and texture (straight, wavy, curly, coily), the same parting, the same fringe (bangs or no bangs), tied up or worn down exactly as shown, and the same color including dyed tones, roots and highlights. Hats, hairbands and hair clips stay. Do not tidy, shorten, lengthen or restyle the hair.'
+
+/** 없는 안경을 씌워 그리는 일이 있었다(안경을 예로 들자 모두에게 씌웠다) — 있는 것만, 없는 것은 더하지 않게 */
+const WEAR_PROMPT = 'WORN ITEMS — draw glasses, hats, earrings, necklaces, piercings and facial hair ONLY if they are clearly visible on that person in the photo, and then exactly as they are. Never add glasses or any accessory that is not in the photo.'
+
+export function buildCaricaturePrompt(style: CaricatureStyle, level: CaricatureLevel, group = false): string {
   return [
-    'Redraw the person (or people) in this photo as a hand-drawn caricature portrait.',
-    'LIKENESS: each person must stay clearly recognizable — keep their face shape, hairstyle (same parting, fringe and length — do not add bangs or restyle the hair) and hair color, glasses and accessories, expression, and clothing colors from the photo. Draw exactly the people in the photo; do not add or remove anyone.',
+    group
+      ? 'Redraw the group of people in this photo as one hand-drawn group caricature.'
+      : 'Redraw the person in this photo as a hand-drawn caricature portrait.',
+    group
+      ? 'PEOPLE — count the people in the photo first, then draw EVERY one of them: the same number of people, in the same left-to-right order and the same relative positions and heights. Do not drop, merge, duplicate or invent anyone. Each person must be individually recognizable — treat each face separately (face shape, eyes, eyebrows, nose, smile), and keep each person\'s own clothing colors. Give every person the same level of care and the same amount of exaggeration; nobody is a background figure.'
+      : 'LIKENESS — the person must stay clearly recognizable: keep their face shape, eyes, eyebrows, nose, smile, expression, and clothing colors from the photo. If more than one person is in the photo, draw every one of them.',
+    HAIR_PROMPT,
+    WEAR_PROMPT,
     STYLE_PROMPT[style],
     LEVEL_PROMPT[level],
     'TONE: kind and flattering, the way a friendly artist would draw a guest. Never mocking. Do not exaggerate skin tone, ethnicity-related features, body weight, age, blemishes or anything that could feel insulting.',
-    'COMPOSITION: vertical 3:4 bust portrait, head and shoulders centered with some space around, on a clean off-white paper background. No photo background, no frame, no border.',
+    group
+      ? 'COMPOSITION: horizontal 4:3 picture. The group fills most of the picture: everyone from the chest up, side by side as in the photo, all heads fully inside the frame with only a little space above, nobody cropped at the edges. Clean off-white paper background (plus the style\'s own backdrop, if any). No photo background, no frame, no border.'
+      : 'COMPOSITION: vertical 3:4 bust portrait that fills most of the picture — the head (with all of its hair) about half the image height, shoulders reaching the bottom edge, only a little space above the hair. Clean off-white paper background (plus the style\'s own backdrop, if any). No photo background, no frame, no border.',
     'Do not write any text, letters, signature, logo or watermark anywhere in the image.',
   ].join('\n')
 }
 
-/** 기기 한 대가 몰아 누르는 일 막기 — 서버 인스턴스 안에서 1분에 이만큼, 하루에 이만큼(과금 폭주 방지) */
-const PER_MINUTE = 6
-const PER_DAY = Number(process.env.KIOSK_CARICATURE_DAILY_LIMIT) || 300
-let minuteStart = 0
-let minuteCount = 0
-let dayStart = 0
-let dayCount = 0
-
-interface Completion {
-  choices?: { message?: { content?: string | null; images?: { image_url?: { url?: string } }[] } }[]
-  error?: { message?: string }
-}
-
-/** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
-async function requestImage(model: string, timeout: number, prompt: string, photo: string): Promise<string | null> {
-  const started = Date.now()
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT kiosk caricature" },
-      body: JSON.stringify({
-        model,
-        modalities: ['image', 'text'],
-        image_config: { aspect_ratio: '3:4' },
-        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: photo } }] }],
-      }),
-      signal: AbortSignal.timeout(timeout),
-    })
-    const raw = await res.text()
-    if (!res.ok) {
-      console.error('[caricature] 생성 호출 실패', model, res.status, raw.slice(0, 300))
-      return null
-    }
-    const data = JSON.parse(raw) as Completion
-    const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url
-    if (data.error || !url?.startsWith('data:image/')) {
-      console.error('[caricature] 이미지 없음', model, data.error?.message ?? data.choices?.[0]?.message?.content?.slice(0, 200))
-      return null
-    }
-    return url
-  } catch (error) {
-    console.error('[caricature] 생성 중단', model, `${Math.round((Date.now() - started) / 1000)}s`, error instanceof Error ? error.message : error)
-    return null
-  }
-}
-
-/** 캐리커처 한 장(JPEG data: 주소). 사진은 data:image/jpeg|png|webp, 약 1.5MB 이하 */
-export async function generateCaricature(photo: string, style: CaricatureStyle, level: CaricatureLevel): Promise<string> {
-  if (!caricatureConfigured()) throw new CaricatureError('그림 그리기 설정이 아직 없어요.', 503)
-  if (!/^data:image\/(jpeg|png|webp);base64,/.test(photo) || photo.length > 2_000_000) throw new CaricatureError('사진 형식이 올바르지 않아요.', 400)
-
-  const now = Date.now()
-  if (now - minuteStart > 60_000) { minuteStart = now; minuteCount = 0 }
-  if (now - dayStart > 86_400_000) { dayStart = now; dayCount = 0 }
-  if (minuteCount >= PER_MINUTE || dayCount >= PER_DAY) throw new CaricatureError('잠시 후 다시 시도해 주세요.', 429)
-  minuteCount++
-  dayCount++
-
-  // 첫 시도가 늦거나 실패하면 더 나은(느리고 비싼) 모델로 한 번 더 — 손님이 빈손으로 돌아가지 않게
-  const primary = process.env.OPENROUTER_CARICATURE_MODEL || DEFAULT_MODEL
-  const attempts: [string, number][] = [[primary, 45_000], [primary === OPENROUTER_IMAGE_MODEL ? DEFAULT_MODEL : OPENROUTER_IMAGE_MODEL, 60_000]]
-  const prompt = buildCaricaturePrompt(style, level)
-  let url: string | null = null
-  for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, prompt, photo)
-    if (url) break
-  }
-  if (!url) throw new CaricatureError('그림을 완성하지 못했어요.', 502)
-  // 화면·휴대폰 전송에 맞게 JPEG 로 — 긴 변 1400 이하
-  const jpeg = await sharp(Buffer.from(url.slice(url.indexOf(',') + 1), 'base64'))
-    .resize({ width: 1400, height: 1400, fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 88 })
-    .toBuffer()
-  return `data:image/jpeg;base64,${jpeg.toString('base64')}`
+/** 캐리커처 한 장(JPEG data: 주소). 사진은 data:image/jpeg|png|webp, 약 1.5MB 이하. group: 여럿이 함께 찍은 가로 사진 */
+export async function generateCaricature(photo: string, style: CaricatureStyle, level: CaricatureLevel, group = false): Promise<string> {
+  return generateKioskImage({ tag: 'caricature', prompt: buildCaricaturePrompt(style, level, group), photos: [photo], aspect: group ? '4:3' : '3:4' })
 }

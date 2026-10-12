@@ -30,11 +30,14 @@ export const NAIL_VIEW_RATIO = 5 / 4
 // 손가락마다 [뿌리, 둘째 마디, 끝마디, 끝] 특징점 번호
 const CHAINS = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16], [17, 18, 19, 20]]
 // 손톱 폭 — 손 기준 길이(검지~새끼 뿌리 사이)에 대한 비율, 끝마디 길이에 대한 상한
-const WIDTH_BY_HAND = [0.175, 0.185, 0.195, 0.18, 0.148]
-const WIDTH_BY_TIP = [0.5, 0.6, 0.56, 0.58, 0.6]
+// (2026-10-13 키움: 손톱이 넓은 손에서 4분의 3만 덮였다 — 가는 손과 넓은 손의 가운데쯤으로)
+const WIDTH_BY_HAND = [0.19, 0.2, 0.21, 0.195, 0.16]
+const WIDTH_BY_TIP = [0.54, 0.65, 0.6, 0.63, 0.65]
 // 손가락 폭에서 손톱이 차지하는 비율(엄지는 옆으로 돌아 있어 좁게 보인다)
 const NAIL_IN_FINGER = [0.6, 0.78, 0.78, 0.78, 0.78]
-const LENGTH_RATIO = 1.22
+const LENGTH_RATIO = 1.3
+/** 손끝을 못 읽었을 때 — 끝마디 특징점(손톱 가운데쯤)에서 손톱 끝까지, 폭에 대한 비율 */
+const TIP_FROM_MARK = 0.61
 /** 색 경계로 볼 차이 · 살색으로 볼 차이(RGB 거리) */
 const EDGE = 42
 const SKIN = 52
@@ -164,8 +167,8 @@ export async function findNails(photo: HTMLCanvasElement): Promise<HandShape | n
     const cx = tx + nx * shift, cy = ty + ny * shift
     let length = LENGTH_RATIO * width
     const end = middle([-0.18, 0, 0.18].map((k) => boundary(cx + nx * k * width, cy + ny * k * width, ux, uy, width * 1.3)))
-    // 손끝을 읽었으면 거기서 살짝 안쪽이 손톱 끝. 못 읽었으면 특징점(손톱 가운데쯤)을 가운데로
-    const reach = end !== null && end >= 0.25 * width ? end - 0.05 * width : length / 2
+    // 손끝을 읽었으면 거기서 살짝 안쪽이 손톱 끝. 못 읽었으면 특징점에서 폭의 0.61배 앞이 끝(길이는 큐티클 쪽으로 늘린다)
+    const reach = end !== null && end >= 0.25 * width ? end - 0.05 * width : TIP_FROM_MARK * width
     const tipX = cx + ux * reach, tipY = cy + uy * reach
     length = Math.min(length, 0.8 * Math.hypot(tipX - dx, tipY - dy))
     const x = tipX - ux * length / 2, y = tipY - uy * length / 2
@@ -173,11 +176,67 @@ export async function findNails(photo: HTMLCanvasElement): Promise<HandShape | n
     nails.push({ x, y, angle: Math.atan2(uy, ux), width, length, finger })
   })
 
-  // 손등·손바닥 — 인식한 좌우와 손의 감긴 방향이 어긋나면 손바닥 쪽이다(거울상이어도 둘이 함께 뒤집혀 그대로 성립)
-  const turn = (mx(5) - mx(0)) * (my(17) - my(0)) - (my(5) - my(0)) * (mx(17) - mx(0))
-  const palm = !!label && label.score > 0.8 && (label.name === 'Right') !== (turn > 0)
+  return { nails, palm: palmSide(marks, label), view: viewBox(nails, palmX, palmY, W, H) }
+}
 
-  return { nails, palm, view: viewBox(nails, palmX, palmY, W, H) }
+/** 손등·손바닥 — 인식한 좌우와 손의 감긴 방향이 어긋나면 손바닥 쪽이다(거울상이어도 둘이 함께 뒤집혀 그대로 성립) */
+function palmSide(marks: { x: number; y: number }[], label: { name: string; score: number } | null): boolean {
+  const turn = (marks[5].x - marks[0].x) * (marks[17].y - marks[0].y) - (marks[5].y - marks[0].y) * (marks[17].x - marks[0].x)
+  return !!label && label.score > 0.8 && (label.name === 'Right') !== (turn > 0)
+}
+
+// ───────────────────────── 찍기 전 안내 ─────────────────────────
+
+/** 미리보기의 손 상태 — 없음 · 손바닥 · 굽은 손가락 · 멀다 · 잘렸다 · 좋다 */
+export type HandCue = 'none' | 'palm' | 'curl' | 'far' | 'cut' | 'ok'
+export interface HandCheck {
+  cue: HandCue
+  /** 손 길이(손목~가운뎃손가락 끝) ÷ 화면 높이 */
+  size: number
+  /** 손 가운데(0~1) — 멈춰 있는지 볼 때 */
+  x: number
+  y: number
+}
+
+/**
+ * 손이 화면 높이의 이만큼은 차야 한다. 손톱 자리는 손 크기에 비례한 오차(특징점)로 정해져,
+ * 손이 작게 찍히면 손톱이 20픽셀도 안 돼 조금만 어긋나도 티가 난다 — 크게 찍는 것이 가장 큰 개선이다.
+ */
+export const HAND_MIN_SIZE = 0.5
+const LIVE_HEIGHT = 384
+/** 찍히는 사진과 같은 비율(가로/세로) — kx.tsx 의 KX_PHOTO_RATIO */
+const LIVE_RATIO = 3 / 4
+let live: HTMLCanvasElement | null = null
+
+/**
+ * 미리보기 한 장을 읽어 손이 찍기 좋은 상태인지 본다(찍히는 것과 같은 가운데 3:4 만). 영상이 아직 없으면 null.
+ * 작은 그림으로 한 번만 본다 — 매장 PC 에서 초당 한두 번 돌 만큼 가볍게.
+ */
+export async function checkHand(video: HTMLVideoElement): Promise<HandCheck | null> {
+  if (!video.videoWidth) return null
+  const engine = await loadVision('hand')
+  const sw = Math.min(video.videoWidth, video.videoHeight * LIVE_RATIO), sh = sw / LIVE_RATIO
+  live ??= document.createElement('canvas')
+  live.width = Math.round(LIVE_HEIGHT * LIVE_RATIO)
+  live.height = LIVE_HEIGHT
+  live.getContext('2d')!.drawImage(video, (video.videoWidth - sw) / 2, (video.videoHeight - sh) / 2, sw, sh, 0, 0, live.width, live.height)
+  const result = engine.detect(live)
+  const found = result.landmarks[0]
+  if (!found) return { cue: 'none', size: 0, x: 0.5, y: 0.5 }
+  // 화면 높이를 1 로 둔 좌표(가로는 0~0.75)
+  const marks = found.map((mark) => ({ x: mark.x * LIVE_RATIO, y: mark.y }))
+  const span = (a: number, b: number) => Math.hypot(marks[a].x - marks[b].x, marks[a].y - marks[b].y)
+  const category = result.handedness?.[0]?.[0]
+  const straight = CHAINS.slice(1).filter((chain) => span(chain[0], chain[3]) / (span(chain[0], chain[1]) + span(chain[1], chain[2]) + span(chain[2], chain[3])) >= STRAIGHT).length
+  // 가운뎃손가락이 굽어 있어도 크기를 알 수 있게 손바닥 길이로도 본다
+  const size = Math.max(span(0, 12), span(0, 9) * 1.85)
+  const cut = [4, 8, 12, 16, 20].some((tip) => found[tip].x < 0.03 || found[tip].x > 0.97 || found[tip].y < 0.03 || found[tip].y > 0.97)
+  const cue: HandCue = palmSide(marks, category ? { name: category.categoryName, score: category.score } : null) ? 'palm'
+    : straight < 4 ? 'curl'
+    : cut ? 'cut'
+    : size < HAND_MIN_SIZE ? 'far'
+    : 'ok'
+  return { cue, size, x: (marks[0].x + marks[9].x) / 2 / LIVE_RATIO, y: (marks[0].y + marks[9].y) / 2 }
 }
 
 /** 손톱이 모두 들어오고 손이 크게 보이는 5:4 자리 — 손바닥 쪽으로 조금 치우쳐 손 모양이 함께 보이게 */

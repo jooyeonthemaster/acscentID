@@ -54,15 +54,15 @@
 .vc-mine h2 { display: flex; justify-content: space-between; }
 .vc-mine h2 span { color: var(--kx-soft); font-variant-numeric: tabular-nums; }
 .vc-mine p { margin-top: 6px; font-size: 20.5px; font-weight: 800; line-height: 1.4; letter-spacing: -0.03em; }
-.vc-styles { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
-.kx-root .vc-styles button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 164px; border: 1px solid var(--kx-line); border-radius: 14px; background: var(--kx-paper); color: var(--vc-violet); transition: transform 0.16s ease-out, border-color 0.22s ease, background-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease; animation: kx-rise 0.42s var(--kx-ease) calc(0.12s + var(--i) * 0.07s) backwards; }
-.vc-styles svg { width: 60px; height: 60px; }
-.vc-check svg { width: 15px; height: 15px; }
-.kx-root .vc-styles button b { color: var(--kx-ink); font-size: 24px; font-weight: 800; }
+.vc-styles { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.kx-root .vc-styles button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 96px; padding: 0 2px; border: 1px solid var(--kx-line); border-radius: 14px; background: var(--kx-paper); color: var(--vc-violet); transition: transform 0.16s ease-out, border-color 0.22s ease, background-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease; animation: kx-rise 0.42s var(--kx-ease) calc(0.1s + var(--i) * 0.04s) backwards; }
+.vc-styles svg { width: 36px; height: 36px; }
+.vc-check svg { width: 13px; height: 13px; }
+.kx-root .vc-styles button b { color: var(--kx-ink); font-size: 17.5px; font-weight: 800; line-height: 1.1; }
 .kx-root .vc-styles button[data-on] { border-color: var(--kx-accent); background: var(--kx-accent-soft); color: var(--kx-accent); box-shadow: 0 0 0 1px var(--kx-accent), 0 0 22px rgba(95, 240, 223, 0.3); }
 .kx-root .vc-styles button[data-on] b { color: var(--kx-accent); }
 .kx-root .vc-styles button:active { transform: scale(0.95); }
-.vc-check { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--kx-accent); color: var(--kx-on-accent); animation: kx-pop 0.3s var(--kx-spring); }
+.vc-check { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--kx-accent); color: var(--kx-on-accent); animation: kx-pop 0.3s var(--kx-spring); }
 .vc-style-note { flex: none; min-height: 22px; margin-top: 10px; color: var(--kx-soft); font-size: 14.5px; font-weight: 600; text-align: center; animation: kx-rise 0.3s var(--kx-ease) backwards; }
 .vc-compare { margin-top: 12px; padding: 16px 18px 16px; }
 .vc-compare h2 { color: var(--kx-ink); font-size: 18px; font-weight: 800; }

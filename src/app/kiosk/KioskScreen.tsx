@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { kioskExperience, previewKioskModeParam } from '@/lib/kiosk/experience'
+import { readDeviceKioskMode } from '@/lib/kiosk/device-mode'
 
 // 기존·레트로·맥 화면 중 기기 설정의 하나만 싣는다 — 클래식과 공통 화면의 전역 CSS가 섞이지 않게(ui-switch.tsx 참고)
 const Gate = dynamic(() => import('@/lib/screen-backgrounds/ui-switch').then(m => m.ScreenUiGate), {
@@ -20,7 +21,8 @@ export function KioskScreen() {
       retro={Retro}
       classic={Classic}
       special={(mode) => {
-        const id = kioskExperience(previewKioskModeParam() ?? mode)
+        // 미리보기 주소 → 이 기기에만 켠 체험 모드 → 모든 키오스크가 함께 쓰는 운영 모드
+        const id = kioskExperience(previewKioskModeParam() ?? readDeviceKioskMode() ?? mode)
         return id ? <Experience id={id} /> : null
       }}
     />

@@ -7,8 +7,16 @@
 .kx-root[data-x='nail'] .kx-cam-corner { border-color: var(--kx-accent); }
 
 /* 촬영 — 손 안내선 */
-.nl-guide { position: absolute; left: 14%; top: 10%; width: 72%; height: 80%; color: rgba(255, 255, 255, 0.95); pointer-events: none; filter: drop-shadow(0 0 1.5px rgba(60, 10, 25, 0.6)); animation: kx-breathe 2.6s ease-in-out infinite; }
+/* 안내선은 '이만큼 크게'의 기준이다 — 손을 선에 맞추면 화면 높이의 반 넘게 찬다(HAND_MIN_SIZE) */
+.nl-guide { position: absolute; left: 3%; top: 2%; width: 94%; height: 92%; color: rgba(255, 255, 255, 0.95); pointer-events: none; filter: drop-shadow(0 0 1.5px rgba(60, 10, 25, 0.6)); animation: kx-breathe 2.6s ease-in-out infinite; }
 .nl-guide path { stroke-dasharray: 0.7 0.7; }
+.nl-guide { transition: color 0.3s ease; }
+.nl-guide[data-ok] { color: #7df0b4; }
+/* 찍기 전 안내 — 손 상태에 따라 한 줄. 바뀔 때마다 살짝 올라온다 */
+.nl-cue { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; width: fit-content; min-height: 44px; margin: 0 auto; padding: 8px 18px; border-radius: 22px; background: rgba(40, 12, 22, 0.78); color: #fff; font-size: 17px; font-weight: 800; line-height: 1.25; text-align: center; animation: nl-cue 0.32s var(--kx-ease) backwards; }
+.nl-cue[data-cue='ok'] { background: #1f8a5b; }
+.nl-cue[data-cue='wait'] { background: rgba(255, 250, 243, 0.92); color: var(--kx-ink); font-weight: 700; }
+@keyframes nl-cue { from { opacity: 0; transform: translateY(10px); } }
 .nl-finding { position: absolute; left: 50%; bottom: 18px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; background: rgba(255, 250, 243, 0.94); color: var(--kx-ink); font-size: 16px; font-weight: 700; white-space: nowrap; transform: translateX(-50%); }
 .nl-tips { flex: none; flex-wrap: nowrap; gap: 8px; margin-top: 12px; }
 .kx-root[data-x='nail'] .nl-tips .kx-chip { flex: 1 1 0; min-width: 0; min-height: 46px; padding: 0 8px; font-size: 13.5px; line-height: 1.2; white-space: normal; text-align: left; }

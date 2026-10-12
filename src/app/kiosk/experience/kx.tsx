@@ -5,12 +5,16 @@
 // 모양은 experience.css(공통) + 모드별 CSS. 글자·버튼은 모두 실제 부품이다(목업 이미지를 깔지 않는다).
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, CameraOff, Check, Home, Loader2, RefreshCw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CameraOff, Check, Download, Home, Loader2, Printer, RefreshCw, X } from 'lucide-react'
 import type { ExperienceId } from '@/lib/kiosk/experience'
 import { KIOSK_LANGS, type KioskLang, type KioskText } from '@/lib/kiosk/i18n'
-import type { ShareType } from '@/lib/kiosk/share'
+import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { OnScreenKeyboard } from '../classic/OnScreenKeyboard'
 import type { KxCommonText } from './kx-i18n'
+import { renderKxReceipt, type KxReceipt } from './kx-receipt'
+import type { KxShare, KxShareFile } from './kx-share'
+
+export type { KxShareFile } from './kx-share'
 
 // ───────────────────────── 문맥 ─────────────────────────
 
@@ -28,6 +32,8 @@ export interface KxContextValue {
   /** 처음으로 — 모드 상태와 언어를 모두 비운다 */
   home: () => void
   setScreen: (kind: KxScreenKind) => void
+  /** 결과 올리기 — 휴대폰으로 받기 창과 영수증의 QR 이 같이 쓴다. 같은 결과(cacheKey)는 한 번만 올린다 */
+  share: (cacheKey: string, build: () => Promise<KxShareFile[]>) => Promise<KxShare>
 }
 
 export const KxContext = createContext<KxContextValue | null>(null)
@@ -168,14 +174,23 @@ export interface KxCamera {
   countdown: number | null
   /** 3 · 2 · 1 뒤에 찍는다 */
   shoot: (onPhoto: (photo: string) => void) => void
+  /** 지금 미리보기 영상 — 찍기 전에 화면을 읽어 안내할 때(네일의 손 안내) */
+  element: () => HTMLVideoElement | null
 }
 
 /** 찍히는 사진의 비율(가로/세로) — 액자도 같은 비율이어야 미리보기에 보이던 그대로 찍힌다 */
 export const KX_PHOTO_RATIO = 3 / 4
 const PHOTO_LONG_EDGE = 1280
+/** 손톱처럼 작은 것을 볼 때(sharp) — 카메라가 주는 가장 큰 영상으로 받아 더 크게 찍는다 */
+const SHARP_LONG_EDGE = 1600
+const SHARP_VIDEO = { width: { ideal: 2560 }, height: { ideal: 1440 } }
+const USUAL_VIDEO = { width: { ideal: 1280 }, height: { ideal: 960 } }
 
-/** 카메라 켜기·끄기와 촬영. active 가 꺼지면 장치를 놓는다 */
-export function useKxCamera(active: boolean): KxCamera {
+/**
+ * 카메라 켜기·끄기와 촬영. active 가 꺼지면 장치를 놓는다.
+ * sharp: 큰 영상으로 받는다. 매장 PC 가 그 영상을 못 따라가면(초당 10장 미만) 평소 크기로 내린다.
+ */
+export function useKxCamera(active: boolean, { sharp = false, ratio = KX_PHOTO_RATIO }: { sharp?: boolean; /** 찍는 비율(가로/세로) — 여럿이 찍을 때는 가로로 */ ratio?: number } = {}): KxCamera {
   const [state, setState] = useState<KxCamera['state']>('starting')
   const [countdown, setCountdown] = useState<number | null>(null)
   const video = useRef<HTMLVideoElement | null>(null)
@@ -193,13 +208,24 @@ export function useKxCamera(active: boolean): KxCamera {
     if (!active) return
     let alive = true
     let retry: number | undefined
+    let rate: number | undefined
     const start = async () => {
       try {
-        const media = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false })
+        const media = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', ...(sharp ? SHARP_VIDEO : USUAL_VIDEO) }, audio: false })
         if (!alive) { media.getTracks().forEach((track) => track.stop()); return }
         stream.current = media
         setState('ready')
         play()
+        // 큰 영상이 버거운 기기인지 잠깐 재 본다 — 실제로 화면에 나온 장수로(설정값이 아니라)
+        if (sharp) rate = window.setTimeout(() => {
+          const el = video.current
+          const before = el?.getVideoPlaybackQuality?.().totalVideoFrames
+          if (!el || before === undefined) return
+          rate = window.setTimeout(() => {
+            const shown = el.getVideoPlaybackQuality().totalVideoFrames - before
+            if (shown < 25) void media.getVideoTracks()[0]?.applyConstraints(USUAL_VIDEO).catch(() => { /* 그대로 쓴다 */ })
+          }, 2500)
+        }, 900)
       } catch {
         if (!alive) return
         setState('error')
@@ -211,13 +237,14 @@ export function useKxCamera(active: boolean): KxCamera {
     return () => {
       alive = false
       window.clearTimeout(retry)
+      window.clearTimeout(rate)
       window.clearInterval(timer.current)
       stream.current?.getTracks().forEach((track) => track.stop())
       stream.current = null
       setCountdown(null)
       setState('starting')
     }
-  }, [active, play])
+  }, [active, play, sharp])
 
   const attach = useCallback((el: HTMLVideoElement | null) => {
     video.current = el
@@ -227,10 +254,10 @@ export function useKxCamera(active: boolean): KxCamera {
   const capture = useCallback((): string | null => {
     const el = video.current
     if (!el || !el.videoWidth) return null
-    // 가운데에서 3:4 로 자른다. 거울처럼 보이던 그대로(좌우 반전) 찍는다
-    const sw = Math.min(el.videoWidth, el.videoHeight * KX_PHOTO_RATIO)
-    const sh = sw / KX_PHOTO_RATIO
-    const scale = Math.min(1, PHOTO_LONG_EDGE / sh)
+    // 가운데에서 비율(기본 3:4)대로 자른다. 거울처럼 보이던 그대로(좌우 반전) 찍는다
+    const sw = Math.min(el.videoWidth, el.videoHeight * ratio)
+    const sh = sw / ratio
+    const scale = Math.min(1, (sharp ? SHARP_LONG_EDGE : PHOTO_LONG_EDGE) / Math.max(sw, sh))
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(sw * scale)
     canvas.height = Math.round(sh * scale)
@@ -240,7 +267,7 @@ export function useKxCamera(active: boolean): KxCamera {
     ctx.scale(-1, 1)
     ctx.drawImage(el, (el.videoWidth - sw) / 2, (el.videoHeight - sh) / 2, sw, sh, 0, 0, canvas.width, canvas.height)
     return canvas.toDataURL('image/jpeg', 0.9)
-  }, [])
+  }, [sharp, ratio])
 
   const shoot = useCallback((onPhoto: (photo: string) => void) => {
     if (timer.current !== undefined || state !== 'ready') return
@@ -257,7 +284,9 @@ export function useKxCamera(active: boolean): KxCamera {
     }, 1000)
   }, [capture, state])
 
-  return { state, attach, countdown, shoot }
+  const element = useCallback(() => video.current, [])
+
+  return { state, attach, countdown, shoot, element }
 }
 
 /** 카메라 액자 — 미리보기 위에 안내선(children)·카운트다운·오류를 겹친다. photo 가 있으면 그 사진을 보여 준다 */
@@ -298,43 +327,6 @@ export function KxCamView({ cam, photo, children, badge, flash }: {
 
 // ───────────────────────── 휴대폰으로 받기 ─────────────────────────
 
-export interface KxShareFile {
-  /** 영문 소문자·숫자·하이픈 + 확장자(jpg·png·wav·pdf) */
-  name: string
-  type: ShareType
-  /** 휴대폰 화면에 보이는 이름 */
-  label: string
-  blob: Blob
-}
-
-const blobBase64 = (blob: Blob) => new Promise<string>((resolve, reject) => {
-  const reader = new FileReader()
-  reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '')
-  reader.onerror = () => reject(reader.error)
-  reader.readAsDataURL(blob)
-})
-
-/** 결과 파일을 올리고 QR 을 만든다 — 같은 결과(cacheKey)는 한 번만 올린다 */
-function useShare() {
-  const { id, lang } = useKx()
-  const cache = useRef(new Map<string, string>())
-  return useCallback(async (cacheKey: string, build: () => Promise<KxShareFile[]>): Promise<string> => {
-    const kept = cache.current.get(cacheKey)
-    if (kept) return kept
-    const files = await build()
-    const body = { kind: id, lang, files: await Promise.all(files.map(async (file) => ({ name: file.name, type: file.type, label: file.label, data: await blobBase64(file.blob) }))) }
-    const response = await fetch('/api/kiosk/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(40000) })
-    const result = await response.json().catch(() => null)
-    if (!response.ok || !result?.path) throw new Error(result?.error || 'share failed')
-    // 폰이 여는 주소 — 배포된 사이트 주소. 웹 초안에서는 지금 주소로
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-    const QRCode = (await import('qrcode')).default
-    const qr = await QRCode.toDataURL(`${origin}${result.path}`, { width: 520, margin: 1 })
-    cache.current.set(cacheKey, qr)
-    return qr
-  }, [id, lang])
-}
-
 /**
  * 휴대폰으로 받기 창 — 열리면 결과 파일을 만들어 올리고 QR 을 보여 준다.
  * 손님이 받기를 눌렀을 때만 서버에 올라간다(24시간 보관).
@@ -348,8 +340,7 @@ export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc }: {
   title?: string
   desc?: string
 }) {
-  const { c, t } = useKx()
-  const share = useShare()
+  const { c, t, share } = useKx()
   // 결과는 '어느 요청의 것인지'와 함께 둔다 — 요청이 바뀌면(다른 결과·다시 시도) 그 순간부터 준비 중으로 보인다
   const [done, setDone] = useState<{ run: string; qr: string | null } | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -361,7 +352,7 @@ export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc }: {
     if (!open) return
     let alive = true
     share(cacheKey, () => builder.current())
-      .then((qr) => { if (alive) setDone({ run, qr }) })
+      .then((made) => { if (alive) setDone({ run, qr: made.qr }) })
       .catch((error) => { console.error('[kiosk] 결과를 올리지 못했습니다:', error); if (alive) setDone({ run, qr: null }) })
     return () => { alive = false }
   }, [open, cacheKey, run, share])
@@ -386,6 +377,91 @@ export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc }: {
         </div>
         <p className="kx-sheet-keep">{c.saveKeep}</p>
         <button type="button" className="kx-btn kx-btn--primary" onClick={onClose}>{state.phase === 'ready' ? c.saveDone : t.close}</button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * 영수증 창 — 열리면 결과를 올려 QR 을 만들고, 미리보기와 함께 바로 인쇄한다(프린터가 있는 기기).
+ * 올리지 못하면 QR 없이 찍는다. 프린터가 없는 웹 초안에서는 미리보기와 PNG 저장만.
+ */
+export function KxReceiptSheet({ open, cacheKey, build, receipt, onClose }: {
+  open: boolean
+  cacheKey: string
+  build: () => Promise<KxShareFile[]>
+  /** 영수증에 찍을 내용 — 창이 열릴 때 한 번 부른다 */
+  receipt: () => KxReceipt | Promise<KxReceipt>
+  onClose: () => void
+}) {
+  const { c, t, share, lang } = useKx()
+  const [made, setMade] = useState<{ run: string; dataUrl: string; base64: string } | null>(null)
+  const [print, setPrint] = useState<{ run: string; phase: 'printing' | 'printed' | 'failed' } | null>(null)
+  const latest = useRef({ build, receipt })
+  useEffect(() => { latest.current = { build, receipt } }, [build, receipt])
+  const run = `${cacheKey}|${lang}`
+  const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
+  const hasPrinter = Boolean(kiosk?.hasPrinter)
+
+  const send = useCallback(async (base64: string, key: string) => {
+    if (!kiosk?.hasPrinter) return
+    setPrint({ run: key, phase: 'printing' })
+    try {
+      const result = await kiosk.printReceipt({ receiptImageBase64: base64 })
+      setPrint({ run: key, phase: result.success ? 'printed' : 'failed' })
+    } catch (error) {
+      console.error('[kiosk] 영수증을 찍지 못했습니다:', error)
+      setPrint({ run: key, phase: 'failed' })
+    }
+  }, [kiosk])
+
+  useEffect(() => {
+    if (!open) return
+    let alive = true
+    void (async () => {
+      const locale = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+      const when = (value: number | Date) => new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(value)
+      // 올리지 못해도(연결 문제) 영수증은 QR 없이 찍는다
+      const shared = await share(cacheKey, () => latest.current.build()).catch((error) => { console.error('[kiosk] 결과를 올리지 못했습니다:', error); return null })
+      const content = await latest.current.receipt()
+      const image = await renderKxReceipt(content, shared ? { url: shared.url, title: c.receiptQrTitle, desc: c.receiptQrDesc, until: c.receiptUntil.replace('{date}', when(shared.expiresAt)) } : null, when(new Date()))
+      if (!alive) return
+      setMade({ run, ...image })
+      void send(image.base64, run)
+    })().catch((error) => console.error('[kiosk] 영수증을 만들지 못했습니다:', error))
+    return () => { alive = false }
+  }, [open, cacheKey, run, lang, share, c, send])
+
+  if (!open) return null
+  const ready = made?.run === run ? made : null
+  const phase = !ready ? 'preparing' : !hasPrinter ? 'preview' : print?.run === run ? print.phase : 'printing'
+  return (
+    <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={c.receiptTitle}>
+      <div className="kx-sheet-card kx-receipt">
+        <button type="button" className="kx-sheet-x" aria-label={t.close} onClick={onClose}><X size={24} strokeWidth={2} aria-hidden="true" /></button>
+        <h2>{c.receiptTitle}</h2>
+        <p className="kx-sheet-desc" role="status" data-phase={phase}>
+          {phase === 'preparing' && <><Loader2 className="kx-spin" size={20} strokeWidth={2} aria-hidden="true" />{c.receiptPreparing}</>}
+          {phase === 'printing' && <><Loader2 className="kx-spin" size={20} strokeWidth={2} aria-hidden="true" />{c.receiptPrinting}</>}
+          {phase === 'printed' && <><Check size={20} strokeWidth={2.6} aria-hidden="true" />{c.receiptPrinted}</>}
+          {phase === 'failed' && c.receiptFailed}
+          {phase === 'preview' && c.receiptNoPrinter}
+        </p>
+        <div className="kx-receipt-paper">
+          {ready
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={ready.dataUrl} alt={c.receiptTitle} />
+            : <span aria-hidden="true" />}
+        </div>
+        <div className="kx-receipt-actions">
+          {ready && hasPrinter && (phase === 'printed' || phase === 'failed') && (
+            <button type="button" className="kx-btn kx-btn--ghost" onClick={() => void send(ready.base64, run)}><Printer size={20} strokeWidth={1.9} aria-hidden="true" />{phase === 'failed' ? c.saveRetry : c.receiptAgain}</button>
+          )}
+          {ready && !hasPrinter && (
+            <a className="kx-btn kx-btn--ghost" href={ready.dataUrl} download="acscent-receipt.png"><Download size={20} strokeWidth={1.9} aria-hidden="true" />PNG</a>
+          )}
+          <button type="button" className="kx-btn kx-btn--primary" onClick={onClose}>{t.close}</button>
+        </div>
       </div>
     </div>
   )

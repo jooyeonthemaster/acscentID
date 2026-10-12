@@ -18,6 +18,19 @@ export interface KxCommonText {
   /** 보관 기간 안내 — 손님이 요청한 것만 24시간 */
   saveKeep: string
   saveDone: string
+  /** 영수증 */
+  receipt: string
+  receiptTitle: string
+  receiptPreparing: string
+  receiptPrinting: string
+  receiptPrinted: string
+  receiptFailed: string
+  receiptAgain: string
+  receiptNoPrinter: string
+  receiptQrTitle: string
+  receiptQrDesc: string
+  /** {date} 자리에 날짜·시각 */
+  receiptUntil: string
   /** 얼굴·손 인식 엔진을 받는 중 */
   enginePreparing: string
   engineFailed: string
@@ -39,6 +52,17 @@ const ko: KxCommonText = {
   saveRetry: '다시 시도',
   saveKeep: '받기를 누른 결과만 24시간 보관한 뒤 지워요.',
   saveDone: '다 받았어요',
+  receipt: '영수증 출력',
+  receiptTitle: '영수증',
+  receiptPreparing: '영수증을 준비하고 있어요…',
+  receiptPrinting: '출력하고 있어요…',
+  receiptPrinted: '출력했어요. 영수증을 가져가세요.',
+  receiptFailed: '출력하지 못했어요. 다시 시도해 주세요.',
+  receiptAgain: '한 장 더 출력',
+  receiptNoPrinter: '이 기기에는 프린터가 없어 미리보기만 보여요.',
+  receiptQrTitle: '휴대폰으로 받기',
+  receiptQrDesc: '휴대폰 카메라로 QR을 비추면 받을 수 있어요',
+  receiptUntil: '{date}까지 받을 수 있어요',
   enginePreparing: '인식 도구를 준비하고 있어요…',
   engineFailed: '준비하지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
   retry: '다시 시도',
@@ -58,6 +82,17 @@ const en: KxCommonText = {
   saveRetry: 'Try again',
   saveKeep: 'Only results you choose to save are kept, for 24 hours.',
   saveDone: 'Got it',
+  receipt: 'Print receipt',
+  receiptTitle: 'Receipt',
+  receiptPreparing: 'Preparing your receipt…',
+  receiptPrinting: 'Printing…',
+  receiptPrinted: 'Printed. Please take your receipt.',
+  receiptFailed: 'Could not print. Please try again.',
+  receiptAgain: 'Print one more',
+  receiptNoPrinter: 'This device has no printer — preview only.',
+  receiptQrTitle: 'Get it on your phone',
+  receiptQrDesc: 'Point your phone camera at the QR code',
+  receiptUntil: 'Available until {date}',
   enginePreparing: 'Getting things ready…',
   engineFailed: 'Could not get ready. Check the connection and try again.',
   retry: 'Try again',
@@ -77,6 +112,17 @@ const ja: KxCommonText = {
   saveRetry: 'もう一度',
   saveKeep: '保存を選んだ結果だけを24時間保管し、その後削除します。',
   saveDone: '受け取りました',
+  receipt: 'レシートを印刷',
+  receiptTitle: 'レシート',
+  receiptPreparing: 'レシートを準備しています…',
+  receiptPrinting: '印刷しています…',
+  receiptPrinted: '印刷しました。レシートをお取りください。',
+  receiptFailed: '印刷できませんでした。もう一度お試しください。',
+  receiptAgain: 'もう1枚印刷',
+  receiptNoPrinter: 'この端末にはプリンターがないため、プレビューのみ表示します。',
+  receiptQrTitle: 'スマホで受け取る',
+  receiptQrDesc: 'スマホのカメラでQRコードを読み取ってください',
+  receiptUntil: '{date}まで受け取れます',
   enginePreparing: '準備しています…',
   engineFailed: '準備できませんでした。接続を確認してもう一度お試しください。',
   retry: 'もう一度',
@@ -96,6 +142,17 @@ const zhHans: KxCommonText = {
   saveRetry: '重试',
   saveKeep: '仅保存您选择保存的结果，24小时后删除。',
   saveDone: '已收到',
+  receipt: '打印小票',
+  receiptTitle: '小票',
+  receiptPreparing: '正在准备小票…',
+  receiptPrinting: '正在打印…',
+  receiptPrinted: '已打印，请取走小票。',
+  receiptFailed: '打印失败，请再试一次。',
+  receiptAgain: '再打印一张',
+  receiptNoPrinter: '此设备没有打印机，仅显示预览。',
+  receiptQrTitle: '用手机接收',
+  receiptQrDesc: '用手机相机扫描二维码即可接收',
+  receiptUntil: '{date}前可接收',
   enginePreparing: '正在准备…',
   engineFailed: '准备失败。请检查连接后重试。',
   retry: '重试',
@@ -115,6 +172,17 @@ const zhHant: KxCommonText = {
   saveRetry: '再試一次',
   saveKeep: '僅保存您選擇儲存的結果，24小時後刪除。',
   saveDone: '已收到',
+  receipt: '列印收據',
+  receiptTitle: '收據',
+  receiptPreparing: '正在準備收據…',
+  receiptPrinting: '列印中…',
+  receiptPrinted: '已列印，請取走收據。',
+  receiptFailed: '列印失敗，請再試一次。',
+  receiptAgain: '再列印一張',
+  receiptNoPrinter: '此裝置沒有印表機，僅顯示預覽。',
+  receiptQrTitle: '用手機接收',
+  receiptQrDesc: '用手機相機掃描 QR Code 即可接收',
+  receiptUntil: '{date}前可接收',
   enginePreparing: '正在準備…',
   engineFailed: '準備失敗。請檢查連線後再試一次。',
   retry: '再試一次',

@@ -1,5 +1,6 @@
 import type { KioskLang } from '@/lib/kiosk/i18n'
-import type { CardAlign, CardColor, CardFont, CardTemplate } from './design'
+import type { CardMood } from '@/lib/kiosk/card-moods'
+import type { CardAlign, CardColor, CardFont, CardTemplate, CardTone } from './design'
 
 export interface CardText {
   brand: string
@@ -24,6 +25,34 @@ export interface CardText {
   templateTitle: string
   templates: Record<CardTemplate, string>
   toDesign: string
+  /** AI 로 디자인하기 */
+  moodTitle: string
+  moods: Record<CardMood, string>
+  customMood: string
+  customMoodTitle: string
+  customMoodPh: string
+  withFace: string
+  withFaceOn: string
+  faceTitle: string
+  faceDesc: string
+  faceShoot: string
+  faceSkip: string
+  toAi: string
+  basic: string
+  makingTitle: string
+  makingSteps: [string, string, string]
+  makingNote: string
+  artFailed: [string, string]
+  textSide: string
+  sides: { left: string; right: string }
+  tone: string
+  tones: Record<CardTone, string>
+  redraw: string
+  /** {n} 자리에 남은 횟수 */
+  redrawLeft: string
+  redrawLimit: string
+  aiNote: string
+  receiptSub: string
   editTitle: string
   front: string
   back: string
@@ -49,7 +78,7 @@ export interface CardText {
 const ko: CardText = {
   brand: '명함 디자이너',
   headline: ['나를 소개하는', '한 장의 디자인'],
-  sub: '이름을 담고, 스타일을 고르면 완성',
+  sub: '원하는 느낌을 고르면 AI가 디자인해요',
   cta: '내 명함 만들기',
   foot: '나만의 디지털 명함',
   steps: ['정보 입력', '디자인', '완성'],
@@ -68,6 +97,32 @@ const ko: CardText = {
   templateTitle: '템플릿 고르기',
   templates: { minimal: '미니멀', editorial: '에디토리얼', block: '컬러블록' },
   toDesign: '디자인 시작하기',
+  moodTitle: '어떤 느낌으로 만들까요?',
+  moods: { minimal: '미니멀 모던', pastel: '파스텔 감성', nature: '자연 · 그린', night: '네온 나이트', luxury: '블랙 & 골드', retro: '레트로 팝', space: '우주 · 몽환', paint: '수채화' },
+  customMood: '직접 적기',
+  customMoodTitle: '원하는 느낌을 짧게 적어 주세요',
+  customMoodPh: '예) 벚꽃 바다, 고양이, 재즈 바',
+  withFace: '내 얼굴 넣기',
+  withFaceOn: '얼굴 사진 넣음',
+  faceTitle: '명함에 넣을 얼굴을 찍어 주세요',
+  faceDesc: '사진은 명함을 그리는 데만 쓰고 저장하지 않아요.',
+  faceShoot: '사진 촬영',
+  faceSkip: '넣지 않기',
+  toAi: 'AI로 디자인하기',
+  basic: 'AI 없이 기본 디자인으로',
+  makingTitle: 'AI가 명함을 그리고 있어요',
+  makingSteps: ['느낌을 읽고 있어요', '바탕을 그리고 있어요', '글자 자리를 다듬고 있어요'],
+  makingNote: '10초쯤 걸려요. 잠시만 기다려 주세요.',
+  artFailed: ['명함을 그리지 못했어요.', '다시 시도하거나 기본 디자인으로 만들어 보세요.'],
+  textSide: '글자 위치',
+  sides: { left: '왼쪽', right: '오른쪽' },
+  tone: '글자 색',
+  tones: { auto: '자동', light: '밝게', dark: '어둡게' },
+  redraw: '다시 그리기',
+  redrawLeft: '{n}번 더 그릴 수 있어요',
+  redrawLimit: '이번에는 다 그려 봤어요',
+  aiNote: 'AI가 그린 바탕 위에 내 정보를 올렸어요.',
+  receiptSub: '명함 미리보기 영수증',
   editTitle: '한 장에, 나답게',
   front: '앞면',
   back: '뒷면',
@@ -93,7 +148,7 @@ const ko: CardText = {
 const en: CardText = {
   brand: 'CARD DESIGNER',
   headline: ['One card that', 'introduces you'],
-  sub: 'Add your name, pick a style, done',
+  sub: 'Pick a feeling and AI designs it',
   cta: 'Make my card',
   foot: 'My own digital card',
   steps: ['Details', 'Design', 'Done'],
@@ -112,6 +167,32 @@ const en: CardText = {
   templateTitle: 'Choose a template',
   templates: { minimal: 'Minimal', editorial: 'Editorial', block: 'Color block' },
   toDesign: 'Start designing',
+  moodTitle: 'What feeling shall we go for?',
+  moods: { minimal: 'Minimal modern', pastel: 'Soft pastel', nature: 'Nature & green', night: 'Neon night', luxury: 'Black & gold', retro: 'Retro pop', space: 'Dreamy space', paint: 'Watercolor' },
+  customMood: 'Type my own',
+  customMoodTitle: 'Describe the feeling in a few words',
+  customMoodPh: 'e.g. cherry blossoms, cats, jazz bar',
+  withFace: 'Add my face',
+  withFaceOn: 'Face photo added',
+  faceTitle: 'Take the photo for your card',
+  faceDesc: 'Your photo is used only to draw the card and is not stored.',
+  faceShoot: 'Take photo',
+  faceSkip: 'No photo',
+  toAi: 'Design with AI',
+  basic: 'Use a basic design without AI',
+  makingTitle: 'AI is drawing your card',
+  makingSteps: ['Reading the mood', 'Painting the background', 'Making room for your details'],
+  makingNote: 'This takes about 10 seconds.',
+  artFailed: ['We couldn’t draw the card.', 'Try again, or use a basic design.'],
+  textSide: 'Text side',
+  sides: { left: 'Left', right: 'Right' },
+  tone: 'Text color',
+  tones: { auto: 'Auto', light: 'Light', dark: 'Dark' },
+  redraw: 'Draw again',
+  redrawLeft: '{n} more to draw',
+  redrawLimit: 'That’s every drawing for now',
+  aiNote: 'Your details are placed over artwork drawn by AI.',
+  receiptSub: 'Card preview receipt',
   editTitle: 'One card, your way',
   front: 'Front',
   back: 'Back',
@@ -137,7 +218,7 @@ const en: CardText = {
 const ja: CardText = {
   brand: '名刺デザイナー',
   headline: ['あなたを紹介する', '1枚のデザイン'],
-  sub: '名前を入れて、スタイルを選べば完成',
+  sub: '好きな雰囲気を選ぶと、AIがデザインします',
   cta: '名刺をつくる',
   foot: '自分だけのデジタル名刺',
   steps: ['情報入力', 'デザイン', '完成'],
@@ -156,6 +237,32 @@ const ja: CardText = {
   templateTitle: 'テンプレートを選ぶ',
   templates: { minimal: 'ミニマル', editorial: 'エディトリアル', block: 'カラーブロック' },
   toDesign: 'デザインを始める',
+  moodTitle: 'どんな雰囲気でつくりますか？',
+  moods: { minimal: 'ミニマルモダン', pastel: 'やさしいパステル', nature: '自然 · グリーン', night: 'ネオンナイト', luxury: 'ブラック & ゴールド', retro: 'レトロポップ', space: '宇宙 · 幻想', paint: '水彩画' },
+  customMood: '自分で入力',
+  customMoodTitle: '好きな雰囲気を短くどうぞ',
+  customMoodPh: '例）桜の海、ねこ、ジャズバー',
+  withFace: '自分の顔を入れる',
+  withFaceOn: '顔写真あり',
+  faceTitle: '名刺に入れる顔を撮ってください',
+  faceDesc: '写真は名刺を描くためだけに使い、保存しません。',
+  faceShoot: '撮影する',
+  faceSkip: '入れない',
+  toAi: 'AIでデザイン',
+  basic: 'AIを使わず基本デザインで',
+  makingTitle: 'AIが名刺を描いています',
+  makingSteps: ['雰囲気を読み取っています', '背景を描いています', '文字の位置を整えています'],
+  makingNote: '10秒ほどかかります。少々お待ちください。',
+  artFailed: ['名刺を描けませんでした。', 'もう一度試すか、基本デザインでお作りください。'],
+  textSide: '文字位置',
+  sides: { left: '左', right: '右' },
+  tone: '文字色',
+  tones: { auto: '自動', light: '明るく', dark: '暗く' },
+  redraw: '描き直す',
+  redrawLeft: 'あと{n}回描けます',
+  redrawLimit: '今回の分は描き終えました',
+  aiNote: 'AIが描いた背景に、あなたの情報をのせました。',
+  receiptSub: '名刺プレビューレシート',
   editTitle: '1枚に、自分らしく',
   front: '表面',
   back: '裏面',
@@ -181,7 +288,7 @@ const ja: CardText = {
 const zhHans: CardText = {
   brand: '名片设计师',
   headline: ['用一张设计', '介绍你自己'],
-  sub: '填上名字，选好风格就完成',
+  sub: '选好想要的感觉，AI来设计',
   cta: '制作你的名片',
   foot: '专属于你的电子名片',
   steps: ['填写信息', '设计', '完成'],
@@ -200,6 +307,32 @@ const zhHans: CardText = {
   templateTitle: '选择模板',
   templates: { minimal: '极简', editorial: '杂志风', block: '色块' },
   toDesign: '开始设计',
+  moodTitle: '想做成什么感觉？',
+  moods: { minimal: '极简现代', pastel: '柔和粉彩', nature: '自然 · 绿意', night: '霓虹之夜', luxury: '黑 & 金', retro: '复古波普', space: '宇宙 · 梦幻', paint: '水彩画' },
+  customMood: '自己输入',
+  customMoodTitle: '请简短写下想要的感觉',
+  customMoodPh: '例：樱花海、猫咪、爵士酒吧',
+  withFace: '加入我的人像',
+  withFaceOn: '已加入人像',
+  faceTitle: '请拍一张放进名片的人像',
+  faceDesc: '照片仅用于绘制名片，不会保存。',
+  faceShoot: '拍摄照片',
+  faceSkip: '不加入',
+  toAi: '用AI设计',
+  basic: '不用AI，使用基础设计',
+  makingTitle: 'AI正在绘制名片',
+  makingSteps: ['正在解读感觉', '正在绘制底图', '正在调整文字位置'],
+  makingNote: '大约需要 10 秒，请稍候。',
+  artFailed: ['没能画出名片。', '请重试，或改用基础设计制作。'],
+  textSide: '文字位置',
+  sides: { left: '左侧', right: '右侧' },
+  tone: '文字颜色',
+  tones: { auto: '自动', light: '浅色', dark: '深色' },
+  redraw: '重新绘制',
+  redrawLeft: '还能再画 {n} 次',
+  redrawLimit: '这次的绘制次数已用完',
+  aiNote: '已把你的信息放在AI绘制的底图上。',
+  receiptSub: '名片预览小票',
   editTitle: '一张名片，展现自我',
   front: '正面',
   back: '背面',
@@ -225,7 +358,7 @@ const zhHans: CardText = {
 const zhHant: CardText = {
   brand: '名片設計師',
   headline: ['用一張設計', '介紹你自己'],
-  sub: '填上名字，選好風格就完成',
+  sub: '選好想要的感覺，AI來設計',
   cta: '製作你的名片',
   foot: '專屬於你的數位名片',
   steps: ['填寫資訊', '設計', '完成'],
@@ -244,6 +377,32 @@ const zhHant: CardText = {
   templateTitle: '選擇範本',
   templates: { minimal: '極簡', editorial: '雜誌風', block: '色塊' },
   toDesign: '開始設計',
+  moodTitle: '想做成什麼感覺？',
+  moods: { minimal: '極簡現代', pastel: '柔和粉彩', nature: '自然 · 綠意', night: '霓虹之夜', luxury: '黑 & 金', retro: '復古普普', space: '宇宙 · 夢幻', paint: '水彩畫' },
+  customMood: '自行輸入',
+  customMoodTitle: '請簡短寫下想要的感覺',
+  customMoodPh: '例：櫻花海、貓咪、爵士酒吧',
+  withFace: '加入我的人像',
+  withFaceOn: '已加入人像',
+  faceTitle: '請拍一張放進名片的人像',
+  faceDesc: '照片僅用於繪製名片，不會儲存。',
+  faceShoot: '拍攝照片',
+  faceSkip: '不加入',
+  toAi: '用AI設計',
+  basic: '不用AI，使用基本設計',
+  makingTitle: 'AI正在繪製名片',
+  makingSteps: ['正在解讀感覺', '正在繪製底圖', '正在調整文字位置'],
+  makingNote: '大約需要 10 秒，請稍候。',
+  artFailed: ['沒能畫出名片。', '請再試一次，或改用基本設計製作。'],
+  textSide: '文字位置',
+  sides: { left: '左側', right: '右側' },
+  tone: '文字顏色',
+  tones: { auto: '自動', light: '淺色', dark: '深色' },
+  redraw: '重新繪製',
+  redrawLeft: '還能再畫 {n} 次',
+  redrawLimit: '這次的繪製次數已用完',
+  aiNote: '已把你的資訊放在AI繪製的底圖上。',
+  receiptSub: '名片預覽收據',
   editTitle: '一張名片，展現自我',
   front: '正面',
   back: '背面',

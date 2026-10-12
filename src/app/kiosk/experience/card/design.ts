@@ -12,6 +12,10 @@ export const CARD_COLORS: CardColor[] = ['blue', 'ivory', 'black', 'lime']
 export const CARD_ALIGNS: CardAlign[] = ['left', 'center', 'right']
 export const CARD_RATIO = 9 / 5
 
+/** AI 바탕 위 글자의 색 — auto 는 바탕의 밝기를 보고 정한다 */
+export type CardTone = 'auto' | 'light' | 'dark'
+export const CARD_TONES: CardTone[] = ['auto', 'light', 'dark']
+
 export interface CardSpec {
   template: CardTemplate
   font: CardFont
@@ -20,7 +24,32 @@ export interface CardSpec {
   name: string
   role: string
   contact: string
+  /** AI 가 그린 바탕 위에 올릴 때 — 글자를 둘 쪽과 글자 색. 있으면 템플릿·색·정렬 대신 이것으로 그린다(drawCard 에 art 를 함께 넘긴다) */
+  ai?: { side: 'left' | 'right'; tone: CardTone }
 }
+
+/** AI 가 그린 바탕 — luma 는 글자가 놓일 쪽(그림의 왼쪽 절반)의 밝기(0~1) */
+export interface CardArt {
+  image: CanvasImageSource & { width: number; height: number }
+  luma: number
+}
+
+/** 바탕 그림에서 글자 자리의 밝기를 잰다 */
+export function measureArt(image: CardArt['image']): CardArt {
+  const canvas = document.createElement('canvas')
+  canvas.width = 90
+  canvas.height = 50
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+  const scale = Math.max(90 / image.width, 50 / image.height)
+  ctx.drawImage(image, (image.width - 90 / scale) * ART_FOCUS, (image.height - 50 / scale) / 2, 90 / scale, 50 / scale, 0, 0, 90, 50)
+  const px = ctx.getImageData(0, 0, 48, 50).data
+  let sum = 0
+  for (let i = 0; i < px.length; i += 4) sum += px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114
+  return { image, luma: sum / (px.length / 4) / 255 }
+}
+
+/** 9:5 보다 넓은 그림은 볼거리가 있는 오른쪽을 남기고 자른다(0 = 왼쪽 끝, 1 = 오른쪽 끝) */
+const ART_FOCUS = 0.85
 
 export const CARD_SWATCH: Record<CardColor, string> = { blue: '#0b3ff0', ivory: '#f6f2e6', black: '#15161a', lime: '#c8f02e' }
 const PAPER = '#f8f5ea'
@@ -64,10 +93,71 @@ function spaced(ctx: CanvasRenderingContext2D, text: string, x: number, y: numbe
 }
 
 /**
- * 명함 한 면. sansFamily = 화면이 쓰는 고딕 글꼴(kxFontFamily).
+ * AI 가 그린 바탕 위의 명함 — 앞면은 바탕을 그대로 깔고 글자 쪽에 옅은 막을 쳐 이름·직업·연락처를 올린다.
+ * 뒷면은 같은 바탕을 흐리게 깔고 가운데에 다시 적는다(한 장만 그려 앞뒤가 한 벌이 되게).
+ */
+function drawAiCard(ctx: CanvasRenderingContext2D, W: number, H: number, spec: CardSpec, side: CardSide, sansFamily: string, art: CardArt) {
+  const u = W / 900
+  const family = spec.font === 'serif' ? SERIF : sansFamily
+  const pad = 60 * u
+  const flip = spec.ai!.side === 'right'
+  const image = art.image
+  const scale = Math.max(W / image.width, H / image.height)
+  const sw = W / scale, sh = H / scale
+  const over = side === 'back' ? 40 * u : 0
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(0, 0, W, H)
+  ctx.clip()
+  ctx.save()
+  // 글자를 오른쪽에 두면 그림을 뒤집는다 — 차분한 자리가 늘 글자 밑에 온다
+  if (flip) { ctx.translate(W, 0); ctx.scale(-1, 1) }
+  if (side === 'back') ctx.filter = `blur(${16 * u}px) saturate(1.15)`
+  ctx.drawImage(image, (image.width - sw) * ART_FOCUS, (image.height - sh) / 2, sw, sh, -over, -over, W + over * 2, H + over * 2)
+  ctx.restore()
+
+  // 글자 색 — 어두운 바탕에는 흰 글자, 밝은 바탕에는 먹색
+  const white = spec.ai!.tone === 'auto' ? art.luma < 0.58 : spec.ai!.tone === 'light'
+  const ink = white ? '#ffffff' : '#15161a'
+  const veil = white ? '12,14,22' : '255,255,255'
+  const name = spec.name.trim(), role = spec.role.trim(), contact = spec.contact.trim()
+  ctx.textBaseline = 'alphabetic'
+  if (side === 'front') {
+    const fade = ctx.createLinearGradient(flip ? W : 0, 0, flip ? W * 0.3 : W * 0.7, 0)
+    fade.addColorStop(0, `rgba(${veil},0.56)`)
+    fade.addColorStop(0.55, `rgba(${veil},0.3)`)
+    fade.addColorStop(1, `rgba(${veil},0)`)
+    ctx.fillStyle = fade
+    ctx.fillRect(0, 0, W, H)
+    const x = flip ? W - pad : pad
+    const maxWidth = W * 0.52
+    ctx.textAlign = flip ? 'right' : 'left'
+    ctx.fillStyle = ink
+    ctx.fillRect(flip ? x - 46 * u : x, 132 * u, 46 * u, 5 * u)
+    const size = name ? fitText(ctx, name, 800, 80 * u, family, maxWidth) : 80 * u
+    if (name) ctx.fillText(name, x, 160 * u + size * 0.86)
+    if (role) { fitText(ctx, role, 600, 32 * u, family, maxWidth); ctx.fillText(role, x, 160 * u + size * 0.86 + 54 * u) }
+    if (contact) { fitText(ctx, contact, 600, 26 * u, sansFamily, maxWidth); ctx.fillText(contact, x, H - pad - 2 * u) }
+  } else {
+    ctx.fillStyle = `rgba(${veil},0.42)`
+    ctx.fillRect(0, 0, W, H)
+    ctx.textAlign = 'center'
+    ctx.fillStyle = ink
+    const size = name ? fitText(ctx, name, 800, 68 * u, family, W - pad * 3) : 68 * u
+    if (name) ctx.fillText(name, W / 2, H / 2 - 22 * u + size * 0.3)
+    ctx.fillRect(W / 2 - 23 * u, H / 2 + 26 * u, 46 * u, 4 * u)
+    if (role) { fitText(ctx, role, 600, 30 * u, family, W - pad * 3); ctx.fillText(role, W / 2, H / 2 + 78 * u) }
+    if (contact) { fitText(ctx, contact, 600, 24 * u, sansFamily, W - pad * 3); ctx.fillText(contact, W / 2, H - pad + 2 * u) }
+  }
+  ctx.restore()
+}
+
+/**
+ * 명함 한 면. sansFamily = 화면이 쓰는 고딕 글꼴(kxFontFamily). art 는 AI 바탕(spec.ai 와 함께일 때만 쓴다).
  * 이름·직업·연락처가 비면 그 줄은 그리지 않는다.
  */
-export function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, spec: CardSpec, side: CardSide, sansFamily: string) {
+export function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, spec: CardSpec, side: CardSide, sansFamily: string, art: CardArt | null = null) {
+  if (spec.ai && art) { drawAiCard(ctx, W, H, spec, side, sansFamily, art); return }
   const u = W / 900 // 900×500 기준 단위
   const p = palette(spec.color)
   const family = spec.font === 'serif' ? SERIF : sansFamily

@@ -16,6 +16,7 @@ import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgr
 import { CJK_FONT_STACK, KIOSK_FONT_CLASS } from '../fonts'
 import { KX_COMMON } from './kx-i18n'
 import { KxContext, KxIdleDialog, type KxContextValue, type KxScreenKind } from './kx'
+import { uploadShare, type KxShare, type KxShareFile } from './kx-share'
 import { useExperienceSwitch } from './useExperienceSwitch'
 import './experience.css'
 
@@ -40,12 +41,23 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
   const [adminOpen, setAdminOpen] = useState(false)
   const [idleLeft, setIdleLeft] = useState<number | null>(null)
 
+  // 올린 결과(받는 주소·QR) — 같은 결과는 한 번만 올린다. 처음으로 돌아가면 비운다
+  const [shares] = useState(() => new Map<string, KxShare>())
+  const share = useCallback(async (cacheKey: string, build: () => Promise<KxShareFile[]>) => {
+    const kept = shares.get(cacheKey)
+    if (kept) return kept
+    const made = await uploadShare(id, lang, await build())
+    shares.set(cacheKey, made)
+    return made
+  }, [id, lang, shares])
+
   const home = useCallback(() => {
+    shares.clear()
     setSession((n) => n + 1)
     setLang('ko')
     setKind('start')
     setIdleLeft(null)
-  }, [])
+  }, [shares])
 
   // 문서 언어 — 화면 낭독기·글꼴 선택이 화면 언어를 따르게
   const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
@@ -93,7 +105,7 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
   const holdUp = () => { window.clearTimeout(hold.current); hold.current = undefined }
   useEffect(() => () => window.clearTimeout(hold.current), [])
 
-  const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind }), [id, lang, home])
+  const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind, share }), [id, lang, home, share])
   const Mode = MODES[id]
 
   return (

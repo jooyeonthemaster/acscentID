@@ -10,6 +10,7 @@ import { kioskExperience, previewKioskModeParam, type ExperienceId } from '@/lib
  * 관리자 창이 열려 있는 동안에는 갈아타지 않는다(저장 안내가 보이는 채로 화면이 사라지지 않게).
  * 주소의 ?mode= 로 미리보는 중에는 기기 설정을 따라가지 않는다(끝없이 새로고침하지 않게).
  *  - current: 지금 떠 있는 화면(셸이면 null)
+ *  - mode: 지금 도는 모드 — 이 기기에만 켠 체험 모드가 있으면 그것, 없으면 함께 쓰는 운영 모드(useScreenBackgrounds 의 baseSettings.mode)
  *  - confirmed: 서버에서 한 번이라도 설정을 받았는가(캐시만으로 갈아타지 않는다)
  */
 export function useExperienceSwitch(current: ExperienceId | null, mode: string | null | undefined, confirmed: boolean, idle: boolean, adminOpen = false) {

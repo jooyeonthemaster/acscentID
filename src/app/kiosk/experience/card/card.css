@@ -63,3 +63,51 @@
 .kx-root .crd-edit { flex: none; min-height: 54px; border-color: var(--kx-line); background: #f4f5f8; font-size: 18px; }
 .kx-root .crd-phone { flex: none; min-height: 72px; margin-top: 10px; font-size: 26px; }
 .kx-root .crd-home { flex: none; align-self: center; min-height: 44px; padding: 0 20px; color: var(--kx-accent); font-size: 15px; font-weight: 800; }
+
+/* AI 로 디자인하기 — 느낌 고르기 · 직접 적기 · 얼굴 넣기 */
+.kx-root[data-x='card'] .crd-title[data-compact] { margin-top: 12px; font-size: 34px; }
+.crd-fields[data-compact] { gap: 8px; margin-top: 8px; }
+.kx-root .crd-fields[data-compact] .crd-field { min-height: 62px; padding: 6px 16px; }
+.crd-fields[data-compact] .crd-field span { font-size: 22px; }
+.crd-fields[data-compact] .crd-field[data-empty] span { font-size: 18px; }
+.crd-h2 { display: flex; align-items: center; gap: 8px; color: var(--kx-ink); }
+.kx-root[data-x='card'] [data-page='card-info'] .crd-h2 { margin: 18px 0 10px; font-size: 25px; }
+.crd-h2 svg { color: var(--kx-accent); }
+.crd-moods { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kx-root .crd-moods button { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 12px; border: 1.5px solid var(--kx-line); border-radius: var(--kx-radius); background: #fff; color: var(--kx-ink); font-size: 17.5px; font-weight: 700; text-align: left; transition: transform 0.14s ease-out, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; animation: kx-rise 0.36s var(--kx-ease) calc(var(--i) * 0.035s) backwards; }
+.kx-root .crd-moods button[data-on] { border-color: var(--kx-accent); background: var(--kx-accent); color: #fff; }
+.kx-root .crd-moods button:active { transform: scale(0.96); }
+.crd-moods i { flex: none; width: 26px; height: 26px; border: 1.5px solid rgba(16, 18, 22, 0.2); border-radius: 50%; }
+.crd-moods button[data-on] i { border-color: #fff; }
+.crd-extras { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.kx-root .crd-extras button { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 12px; border: 1.5px dashed var(--kx-accent); border-radius: var(--kx-radius); background: #fff; color: var(--kx-accent); font-size: 16.5px; font-weight: 800; text-align: left; transition: transform 0.14s ease-out, background-color 0.2s ease; }
+.kx-root .crd-extras button[data-on] { border-style: solid; background: var(--kx-accent-soft); }
+.kx-root .crd-extras button:active { transform: scale(0.96); }
+.crd-extras span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crd-extras img { flex: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
+.crd-extras i { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--kx-accent); color: #fff; }
+.crd-alert { flex: none; display: flex; flex-direction: column; margin-top: 8px; padding: 8px 14px; border: 1.5px solid #c2371f; background: #fff5f2; color: var(--kx-ink); font-size: 14.5px; animation: kx-shake 0.5s ease-out 0.1s; }
+.crd-alert b { color: #c2371f; font-size: 16px; }
+.kx-root .crd-basic { flex: none; align-self: center; min-height: 44px; padding: 0 16px; color: var(--kx-soft); font-size: 14.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.kx-root .crd-basic:disabled { opacity: 0.4; }
+.crd-mood-typing { flex: none; min-height: 70px; margin-top: 14px; padding: 16px 18px; border: 2px solid var(--kx-accent); background: #fff; font-size: 26px; font-weight: 800; }
+.crd-mood-typing[data-empty] { color: #a2a7b3; font-weight: 500; font-size: 21px; }
+.crd-face-guide { width: 100%; height: 100%; }
+.kx-root[data-x='card'] [data-page='card-face'] .kx-desc { margin-bottom: 8px; color: var(--kx-ink); }
+
+/* 그리는 중 — 명함 두 장 자리에 빛이 지나간다 */
+.crd-making { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 26px; }
+.crd-making div { position: relative; width: 74%; aspect-ratio: 9 / 5; background: linear-gradient(120deg, #dfe4f6, #f1eedf); box-shadow: 0 6px 18px rgba(16, 24, 60, 0.14); overflow: hidden; animation: kx-rise 0.5s var(--kx-ease) backwards; }
+.crd-making div:nth-child(2) { width: 60%; opacity: 0.7; animation-delay: 0.12s; }
+.crd-making i { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent); animation: crd-shine 1.5s ease-in-out infinite; }
+@keyframes crd-shine { from { transform: translateX(-120%) skewX(-14deg); } to { transform: translateX(300%) skewX(-14deg); } }
+.crd-progress { flex: none; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; color: var(--kx-accent); font-size: 21px; }
+.crd-progress b { font-weight: 800; animation: kx-rise 0.4s var(--kx-ease) backwards; }
+.crd-redraw { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; color: var(--kx-soft); font-size: 13.5px; }
+.kx-root .crd-redraw button { display: inline-flex; align-items: center; gap: 6px; min-height: 46px; padding: 0 16px; border: 1.5px solid var(--kx-accent); background: #fff; color: var(--kx-accent); font-size: 16px; font-weight: 800; transition: transform 0.14s ease-out, opacity 0.2s ease; }
+.kx-root .crd-redraw button:active:not(:disabled) { transform: scale(0.96); }
+.kx-root .crd-redraw button:disabled { opacity: 0.35; }
+.crd-pair { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kx-root .crd-pair .crd-edit { padding: 0 6px; font-size: 17px; }
+.kx-root[data-x='card'] [data-page='card-edit'] .crd-option { min-height: 60px; }
+.kx-root[data-x='card'] [data-page='card-edit'] .crd-title { margin-top: 12px; }

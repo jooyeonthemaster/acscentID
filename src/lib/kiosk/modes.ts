@@ -1,6 +1,7 @@
 // 키오스크 운영 모드 — 매장 상시 운영과 외부 행사마다 켜는 프로그램·첫 화면 문구·영수증 머리말이 다르다.
-// 관리자가 키오스크 STORE ADMIN(우측 상단 모서리 → PIN) '운영 모드'에서 고르고, 같은 종류의 키오스크가 모두 따라간다
-// (기기 설정 settings-kiosk 의 mode). 행사가 생기면 여기에 한 항목을 더하면 된다 — docs/kiosk-modes.md
+// 관리자가 키오스크 STORE ADMIN(우측 상단 모서리 → PIN) '운영 모드'에서 고른다.
+// 매장 기본(맨 앞 항목)은 모든 키오스크가 함께 쓰는 운영 모드이고, 그 밖의 프로그램은 모두 '체험 모드' —
+// 고른 그 키오스크에만 저장된다(device-mode.ts). 행사가 생기면 여기에 한 항목을 더하면 된다 — docs/kiosk-modes.md
 
 import type { KioskLang } from './i18n'
 import { EXPERIENCE_IDS, EXPERIENCE_META, experienceModeId, type ExperienceId } from './experience'
@@ -338,6 +339,11 @@ export const KIOSK_MODE_IDS = [...KIOSK_MODES.map((m) => m.id), ...Object.keys(L
 export function findKioskMode(id: string | null | undefined): KioskMode {
   const current = id ? LEGACY_KIOSK_MODE_IDS[id] ?? id : id
   return KIOSK_MODES.find((m) => m.id === current) ?? DEFAULT_KIOSK_MODE
+}
+
+/** 체험 모드(매장 기본이 아닌 프로그램)인가 — 기기에만 저장하는 모드. 없는 이름·매장 기본은 아니다 */
+export function isDeviceKioskMode(id: string | null | undefined): id is string {
+  return Boolean(id) && KIOSK_MODE_IDS.includes(id as string) && findKioskMode(id).id !== DEFAULT_KIOSK_MODE.id
 }
 
 /** 영수증 행사 줄 — 그 언어, 없으면 영어, 없으면 한국어 */

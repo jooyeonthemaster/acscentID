@@ -1,11 +1,12 @@
-// 보이스 체험의 소리 처리 — 손님 본인의 녹음에 스타일(라디오·로봇·동화)을 입힌다.
+// 보이스 체험의 소리 처리 — 손님 본인의 녹음에 재미있는 필터(다람쥐·거인·외계인·유령·합창단·노래방·거꾸로·무전기)를 입힌다.
 // 다른 사람의 목소리를 흉내 내거나 합성하지 않는다: 녹음한 소리의 높낮이·음색·울림만 바꾼다.
 // 모두 기기 안(Web Audio)에서 처리한다. 녹음은 서버로 가지 않고, 받기를 누른 결과만 올라간다.
 
 export const VOICE_RATE = 24000
 export const VOICE_MAX_SECONDS = 15
-export type VoiceStyle = 'radio' | 'robot' | 'fairy'
-export const VOICE_STYLES: VoiceStyle[] = ['radio', 'robot', 'fairy']
+/** 목소리 필터 — 다람쥐 · 거인 · 외계인 · 유령 · 합창단 · 노래방 · 거꾸로 · 무전기 */
+export type VoiceStyle = 'squirrel' | 'giant' | 'alien' | 'ghost' | 'choir' | 'karaoke' | 'reverse' | 'walkie'
+export const VOICE_STYLES: VoiceStyle[] = ['squirrel', 'giant', 'alien', 'ghost', 'choir', 'karaoke', 'reverse', 'walkie']
 
 /** 녹음을 듣기 좋게 다듬은 결과 — 못 쓰는 녹음이면 이유 */
 export type Decoded = { ok: true; samples: Float32Array } | { ok: false; reason: 'short' | 'quiet' }
@@ -149,93 +150,195 @@ function chain(...nodes: AudioNode[]): AudioNode {
   return nodes[nodes.length - 1]
 }
 
-/**
- * 스타일을 입힌 소리 — 같은 녹음이면 같은 결과가 나온다.
- * 라디오: 살짝 낮추고 저음·또렷함을 더해 눌러 담은 진행자 톤. 로봇: 낮은 사인파를 곱하고 짧은 되울림으로 금속성. 동화: 네 반음 올리고 밝은 울림.
- */
-export async function applyStyle(original: Float32Array, style: VoiceStyle): Promise<Float32Array> {
-  const source = style === 'radio' ? pitchShift(original, Math.pow(2, -1.8 / 12)) : style === 'fairy' ? pitchShift(original, Math.pow(2, 4 / 12)) : original
-  const tail = style === 'fairy' ? 1.4 : style === 'radio' ? 0.4 : 0.25
-  const ctx = new OfflineAudioContext(1, source.length + Math.round(VOICE_RATE * tail), VOICE_RATE)
+const semitones = (n: number) => Math.pow(2, n / 12)
+const at = (seconds: number) => Math.round(VOICE_RATE * seconds)
+
+function reversed(samples: Float32Array): Float32Array {
+  return samples.slice().reverse()
+}
+
+/** 빠르기를 바꾼다(높낮이도 따라간다) — 1.07 이면 조금 빠르고 높게 */
+function resample(samples: Float32Array, ratio: number): Float32Array {
+  const out = new Float32Array(Math.floor(samples.length / ratio))
+  for (let i = 0; i < out.length; i++) {
+    const position = i * ratio, j = Math.floor(position), f = position - j
+    out[i] = samples[j] * (1 - f) + (samples[j + 1] ?? 0) * f
+  }
+  return out
+}
+
+/** 여러 소리를 겹친다 — [소리, 크기, 늦게 들어오는 초] */
+function mix(...layers: [Float32Array, number, number][]): Float32Array {
+  const out = new Float32Array(Math.max(...layers.map(([samples, , delay]) => samples.length + at(delay))))
+  for (const [samples, gain, delay] of layers) {
+    const offset = at(delay)
+    for (let i = 0; i < samples.length; i++) out[offset + i] += samples[i] * gain
+  }
+  return out
+}
+
+function compressor(ctx: BaseAudioContext, threshold: number, ratio: number): DynamicsCompressorNode {
+  const node = ctx.createDynamicsCompressor()
+  node.threshold.value = threshold
+  node.knee.value = 10
+  node.ratio.value = ratio
+  node.attack.value = 0.004
+  node.release.value = 0.18
+  return node
+}
+
+function level(ctx: BaseAudioContext, value: number): GainNode {
+  const node = ctx.createGain()
+  node.gain.value = value
+  return node
+}
+
+/** 울림을 보내는 길 — from → (울림) → out */
+function reverb(ctx: BaseAudioContext, from: AudioNode, out: AudioNode, seconds: number, seed: number, amount: number) {
+  const hall = ctx.createConvolver()
+  hall.buffer = impulse(ctx, seconds, seed)
+  chain(from, hall, level(ctx, amount), out)
+}
+
+/** 소리 그래프 하나를 끝까지 돌린다 — build 가 입력(input)을 출력(out)까지 잇는다. tail 은 울림이 남을 초 */
+async function render(source: Float32Array, tail: number, build: (ctx: OfflineAudioContext, input: AudioBufferSourceNode, out: GainNode) => void): Promise<Float32Array> {
+  const ctx = new OfflineAudioContext(1, source.length + at(tail), VOICE_RATE)
   const buffer = ctx.createBuffer(1, source.length, VOICE_RATE)
   buffer.getChannelData(0).set(source)
   const input = ctx.createBufferSource()
   input.buffer = buffer
   const out = ctx.createGain()
   out.connect(ctx.destination)
+  build(ctx, input, out)
+  input.start()
+  return (await ctx.startRendering()).getChannelData(0).slice()
+}
 
-  if (style === 'radio') {
-    const compressor = ctx.createDynamicsCompressor()
-    compressor.threshold.value = -30
-    compressor.knee.value = 12
-    compressor.ratio.value = 8
-    compressor.attack.value = 0.003
-    compressor.release.value = 0.18
-    const voice = chain(input, filter(ctx, 'highpass', 85), filter(ctx, 'lowshelf', 210, 6), filter(ctx, 'peaking', 2800, 4.5, 0.9), filter(ctx, 'highshelf', 7000, -3), compressor, shaper(ctx, (x) => Math.tanh(1.7 * x) / Math.tanh(1.7)))
-    voice.connect(out)
-    // 방송실의 짧은 울림
-    const room = ctx.createConvolver()
-    room.buffer = impulse(ctx, 0.3, 7)
-    const send = ctx.createGain()
-    send.gain.value = 0.1
-    chain(voice, room, send, out)
-  }
+const FILTERS: Record<VoiceStyle, (voice: Float32Array) => Promise<Float32Array>> = {
+  // 다람쥐 — 헬륨을 마신 듯 높고 조금 빠르게(아홉 반음 위)
+  squirrel: (voice) => render(resample(pitchShift(voice, semitones(9)), 1.07), 0.1, (ctx, input, out) => {
+    chain(input, filter(ctx, 'highpass', 240), filter(ctx, 'peaking', 3400, 3, 1), out)
+  }),
 
-  if (style === 'robot') {
-    // 낮은 사인파를 곱한다(링 모듈레이션) — 사람 목소리의 자연스러운 울림이 기계음으로 바뀐다
-    const ring = ctx.createGain()
-    ring.gain.value = 0
+  // 거인 — 여덟 반음 아래, 땅이 울리는 저음과 동굴 같은 울림
+  giant: (voice) => render(pitchShift(voice, semitones(-8)), 1.3, (ctx, input, out) => {
+    // 저음만 키우면 작은 스피커에서는 웅웅거리기만 한다 — 말소리 대역(1kHz 둘레)을 함께 세운다
+    const body = chain(input, filter(ctx, 'lowshelf', 180, 4), filter(ctx, 'peaking', 1100, 3, 0.8), filter(ctx, 'lowpass', 3600), compressor(ctx, -26, 5))
+    body.connect(out)
+    chain(body, filter(ctx, 'lowpass', 150), shaper(ctx, (x) => Math.tanh(3 * x)), level(ctx, 0.18), out)
+    reverb(ctx, chain(body, filter(ctx, 'lowpass', 2200)), out, 1.2, 31, 0.2)
+  }),
+
+  // 외계인 — 음높이가 빠르게 떨리고(지연 시간을 흔든다) 금속성이 섞인 우주 교신
+  alien: (voice) => render(pitchShift(voice, semitones(4)), 0.5, (ctx, input, out) => {
+    const wobble = ctx.createDelay(0.05)
+    wobble.delayTime.value = 0.012
+    const flutter = ctx.createOscillator()
+    flutter.frequency.value = 7.5
+    chain(flutter, level(ctx, 0.0026)).connect(wobble.delayTime)
+    flutter.start()
+    input.connect(wobble)
+    const ring = level(ctx, 0)
     const wave = ctx.createOscillator()
-    wave.frequency.value = 54
+    wave.frequency.value = 150
     wave.connect(ring.gain)
     wave.start()
-    input.connect(ring)
-    const mix = ctx.createGain()
-    ring.connect(mix)
-    const dry = ctx.createGain()
-    dry.gain.value = 0.22
-    chain(input, dry, mix)
-    // 짧은 되울림 — 금속 통 속 같은 소리
-    const delay = ctx.createDelay(0.05)
-    delay.delayTime.value = 0.0095
-    const feedback = ctx.createGain()
-    feedback.gain.value = 0.58
-    mix.connect(delay)
-    delay.connect(feedback)
-    feedback.connect(delay)
+    wobble.connect(ring)
+    const sum = ctx.createGain()
+    chain(ring, level(ctx, 0.55), sum)
+    chain(wobble, level(ctx, 0.6), sum)
+    // 짧은 되울림 — 금속 통을 지나는 소리
+    const comb = ctx.createDelay(0.05)
+    comb.delayTime.value = 0.006
+    chain(sum, comb, level(ctx, 0.55), comb)
     const body = ctx.createGain()
-    mix.connect(body)
-    delay.connect(body)
-    const compressor = ctx.createDynamicsCompressor()
-    compressor.threshold.value = -24
-    compressor.ratio.value = 6
-    // 계단처럼 깎아 디지털 느낌을 조금
-    chain(body, filter(ctx, 'highpass', 190), filter(ctx, 'lowpass', 3600), shaper(ctx, (x) => Math.round(x * 14) / 14), compressor, out)
-  }
+    sum.connect(body)
+    comb.connect(body)
+    chain(body, filter(ctx, 'highpass', 220), compressor(ctx, -22, 4), out)
+  }),
 
-  if (style === 'fairy') {
-    const voice = chain(input, filter(ctx, 'highpass', 170), filter(ctx, 'peaking', 1900, 2, 1), filter(ctx, 'highshelf', 5200, 5))
-    const dry = ctx.createGain()
-    dry.gain.value = 0.86
-    chain(voice, dry, out)
-    // 메아리 한 번과 밝은 울림 — 이야기 속 같은 공간
-    const echo = ctx.createDelay(0.5)
-    echo.delayTime.value = 0.13
-    const echoGain = ctx.createGain()
-    echoGain.gain.value = 0.2
-    chain(voice, echo, echoGain, out)
-    const hall = ctx.createConvolver()
-    hall.buffer = impulse(ctx, 1.3, 23)
-    const send = ctx.createGain()
-    send.gain.value = 0.16
-    chain(voice, filter(ctx, 'highpass', 600), hall, send, out)
-  }
+  // 유령 — 말보다 울림이 먼저 밀려온다(뒤집어 울린 뒤 다시 뒤집는다). 느리게 떨리는 음량과 긴 여운
+  ghost: async (voice) => {
+    const low = pitchShift(voice, semitones(-2))
+    const hall = 2.2, lead = 0.5
+    const swell = reversed(await render(reversed(low), hall, (ctx, input, out) => {
+      reverb(ctx, chain(input, filter(ctx, 'highpass', 500)), out, hall, 47, 1)
+    }))
+    // swell 은 앞에 울림 꼬리(hall 초)가 붙어 있다 — 그중 끝 lead 초만 남겨 말 앞에 깐다
+    return render(mix([low, 0.55, lead], [swell.subarray(at(hall - lead)), 0.9, 0]), 2.4, (ctx, input, out) => {
+      const tremble = level(ctx, 0.72)
+      const slow = ctx.createOscillator()
+      slow.frequency.value = 4.6
+      chain(slow, level(ctx, 0.28)).connect(tremble.gain)
+      slow.start()
+      const body = chain(input, filter(ctx, 'highpass', 260), filter(ctx, 'highshelf', 4500, 4), tremble)
+      chain(body, level(ctx, 0.8), out)
+      reverb(ctx, body, out, 2.4, 53, 0.4)
+    })
+  },
 
-  input.start()
-  const rendered = (await ctx.startRendering()).getChannelData(0)
-  // 꼬리의 빈 소리를 잘라 낸다
+  // 합창단 — 내 목소리로 화음(한 옥타브 아래 · 제 음 · 장3도 · 5도)을 쌓고 큰 홀의 울림을 더한다
+  choir: (voice) => render(mix(
+    [pitchShift(voice, semitones(-12)), 0.5, 0.03],
+    [voice, 0.85, 0],
+    [pitchShift(voice, semitones(0.18)), 0.5, 0.02],
+    [pitchShift(voice, semitones(4)), 0.6, 0.045],
+    [pitchShift(voice, semitones(7)), 0.55, 0.07],
+  ), 2.2, (ctx, input, out) => {
+    const body = chain(input, filter(ctx, 'highpass', 120), compressor(ctx, -24, 4))
+    chain(body, level(ctx, 0.75), out)
+    reverb(ctx, body, out, 2.2, 61, 0.32)
+  }),
+
+  // 노래방 — 에코 가득한 마이크(0.2초 메아리가 잦아들며 되돌아온다)
+  karaoke: (voice) => render(voice, 2.2, (ctx, input, out) => {
+    const body = chain(input, filter(ctx, 'highpass', 110), filter(ctx, 'lowshelf', 220, 2.5), filter(ctx, 'peaking', 4200, 4, 0.9), compressor(ctx, -24, 4))
+    body.connect(out)
+    const echo = ctx.createDelay(1)
+    echo.delayTime.value = 0.2
+    const tone = filter(ctx, 'lowpass', 3200)
+    chain(body, echo, tone, level(ctx, 0.45), echo)
+    chain(tone, level(ctx, 0.5), out)
+    reverb(ctx, body, out, 1.5, 71, 0.22)
+  }),
+
+  // 거꾸로 — 끝에서부터 처음으로
+  reverse: (voice) => render(reversed(voice), 0.6, (ctx, input, out) => {
+    input.connect(out)
+    reverb(ctx, input, out, 0.5, 83, 0.15)
+  }),
+
+  // 무전기 — 좁은 대역으로 찌그러뜨리고, 앞에 '치직', 뒤에 '삐빅'과 잡음을 붙인다
+  walkie: async (voice) => {
+    const speech = await render(voice, 0.05, (ctx, input, out) => {
+      chain(input, filter(ctx, 'highpass', 480), filter(ctx, 'lowpass', 2500), filter(ctx, 'peaking', 1600, 5, 1), shaper(ctx, (x) => Math.max(-0.5, Math.min(0.5, x * 4)) * 2), compressor(ctx, -20, 8), out)
+    })
+    const squelch = at(0.14), beep = at(0.07), gap = at(0.02)
+    const total = new Float32Array(squelch + speech.length + beep * 2 + gap * 2 + squelch)
+    const random = noise(91)
+    // 바닥에 깔리는 잡음
+    for (let i = 0; i < total.length; i++) total[i] = random() * 0.035
+    for (let i = 0; i < squelch; i++) total[i] += random() * 0.3 * (1 - i / squelch)
+    total.set(speech.map((value, i) => value * 0.9 + total[squelch + i]), squelch)
+    let cursor = squelch + speech.length + gap
+    for (const tone of [1050, 1400]) {
+      for (let i = 0; i < beep; i++) total[cursor + i] += Math.sin((2 * Math.PI * tone * i) / VOICE_RATE) * 0.32
+      cursor += beep + (tone === 1050 ? gap : 0)
+    }
+    for (let i = 0; i < squelch; i++) total[cursor + i] += random() * 0.28 * (1 - i / squelch)
+    return render(total, 0.02, (ctx, input, out) => { chain(input, filter(ctx, 'highpass', 400), filter(ctx, 'lowpass', 2800), out) })
+  },
+}
+
+/**
+ * 필터를 입힌 소리 — 같은 녹음이면 같은 결과가 나온다.
+ * 높낮이·빠르기·겹치기는 숫자 배열에서 바로 하고, 음색·울림·메아리는 Web Audio 그래프로 한 번에 돌린다.
+ */
+export async function applyStyle(original: Float32Array, style: VoiceStyle): Promise<Float32Array> {
+  const rendered = await FILTERS[style](original)
+  // 꼬리의 빈 소리를 잘라 낸다(말이 끝난 뒤 울림이 사라진 곳까지)
   let end = rendered.length
-  while (end > source.length && Math.abs(rendered[end - 1]) < 0.002) end--
+  while (end > VOICE_RATE / 2 && Math.abs(rendered[end - 1]) < 0.002) end--
   const result = rendered.slice(0, end)
   normalize(result, 0.9)
   fade(result)

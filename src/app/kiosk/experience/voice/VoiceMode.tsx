@@ -4,7 +4,7 @@
 // 손님 본인의 녹음에 스타일만 입힌다(audio.ts). 녹음은 기기 안에서만 쓰고, 받기를 누른 결과만 올라간다.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, BookOpen, Bot, Check, Mic, MicOff, Play, Radio, RefreshCw, Shuffle, Smartphone, Square } from 'lucide-react'
+import { ArrowRight, Check, Ghost, Mic, MicOff, MicVocal, Mountain, Play, RadioTower, RefreshCw, Rewind, Rocket, Shuffle, Smartphone, Square, Squirrel, Users } from 'lucide-react'
 import { KX_IDLE, KxFoot, KxHome, KxLang, KxPage, KxSaveSheet, KxSpinner, KxStart, KxSteps, KxTop, useKx, useKxScreen, type KxShareFile } from '../kx'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, fillLines, fontsReady, kxFontFamily, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
@@ -15,7 +15,9 @@ import './voice.css'
 type Step = 'start' | 'record' | 'processing' | 'style' | 'result'
 type Problem = 'short' | 'quiet' | 'failed'
 const BARS = 46
-const STYLE_ICON = { radio: Radio, robot: Bot, fairy: BookOpen } as const
+const STYLE_ICON = { squirrel: Squirrel, giant: Mountain, alien: Rocket, ghost: Ghost, choir: Users, karaoke: MicVocal, reverse: Rewind, walkie: RadioTower } as const
+/** 녹음을 마치면 먼저 만들어 들려주는 필터 */
+const FIRST_STYLE: VoiceStyle = 'squirrel'
 
 interface Playing { id: string; startedAt: number; duration: number }
 
@@ -276,7 +278,7 @@ export default function VoiceMode() {
   const [problem, setProblem] = useState<Problem | null>(null)
   const [original, setOriginal] = useState<Float32Array | null>(null)
   const [styled, setStyled] = useState<Partial<Record<VoiceStyle, Float32Array>>>({})
-  const [style, setStyle] = useState<VoiceStyle>('radio')
+  const [style, setStyle] = useState<VoiceStyle>(FIRST_STYLE)
   /** 변환이 끝나면 바로 들려줄 스타일(아직 준비 중일 때 눌렀다) */
   const [wanted, setWanted] = useState<VoiceStyle | null>(null)
   const [saving, setSaving] = useState(false)
@@ -287,10 +289,10 @@ export default function VoiceMode() {
     try {
       const decoded = await decodeRecording(blob)
       if (!decoded.ok) { setProblem(decoded.reason); setStep('record'); return }
-      const first = await applyStyle(decoded.samples, 'radio')
+      const first = await applyStyle(decoded.samples, FIRST_STYLE)
       setOriginal(decoded.samples)
-      setStyled({ radio: first })
-      setStyle('radio')
+      setStyled({ [FIRST_STYLE]: first })
+      setStyle(FIRST_STYLE)
       setProblem(null)
       setStep('style')
     } catch (error) {
@@ -450,7 +452,7 @@ export default function VoiceMode() {
             return (
               <button key={id} type="button" role="radio" aria-checked={style === id} data-on={style === id || undefined} style={{ '--i': i } as CSSProperties} onClick={() => pick(id)}>
                 {style === id && <span className="vc-check" aria-hidden="true"><Check size={15} strokeWidth={3} /></span>}
-                <Icon size={46} strokeWidth={1.5} aria-hidden="true" />
+                <Icon size={34} strokeWidth={1.6} aria-hidden="true" />
                 <b>{t.styles[id]}</b>
               </button>
             )

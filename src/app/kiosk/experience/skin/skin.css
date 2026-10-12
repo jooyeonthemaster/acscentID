@@ -43,8 +43,16 @@
 .kx-root .skn-texture button:active { transform: scale(0.96); }
 
 /* 데일리 루틴 */
-.skn-routine { position: relative; margin-top: 4px; padding: 46px 16px 14px; }
-.skn-tag { position: absolute; top: -1px; left: -1px; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 34px 0 16px; background: var(--kx-accent-soft); color: var(--kx-ink); font-size: 16px; font-weight: 700; clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); border-top-left-radius: var(--kx-card-radius); }
+/* 단계를 많이 담으면 카드가 줄어들며 안에서 넘겨 본다 */
+.skn-routine { position: relative; flex: 0 1 auto; min-height: 220px; margin-top: 4px; padding: 46px 16px 14px; overflow-y: auto; scrollbar-width: none; }
+.skn-routine::-webkit-scrollbar { display: none; }
+.skn-routine[data-many] .skn-day { grid-template-columns: 76px 1fr; padding: 2px 0; }
+.skn-routine[data-many] .skn-day-name span { width: 48px; height: 48px; }
+.skn-routine[data-many] .skn-day-name svg { width: 26px; height: 26px; }
+.skn-routine[data-many] .skn-day ol { gap: 4px; }
+.kx-root .skn-routine[data-many] .skn-step { min-height: 44px; font-size: 15.5px; }
+.skn-routine[data-many] .skn-mine { margin-top: 8px; }
+.skn-tag { position: absolute; top: -1px; left: -1px; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 34px 0 16px; white-space: nowrap; background: var(--kx-accent-soft); color: var(--kx-ink); font-size: 16px; font-weight: 700; clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); border-top-left-radius: var(--kx-card-radius); }
 .skn-day { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 8px; padding: 6px 0; }
 .skn-day + .skn-day { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--kx-line); }
 .skn-day-name { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 17px; font-weight: 800; }
@@ -60,9 +68,39 @@
 .skn-mine span { display: inline-flex; align-items: center; gap: 6px; }
 .skn-routine .skn-chips { justify-content: center; }
 .skn-routine .skn-note { margin-top: 6px; }
-.kx-root .skn-phone { flex: none; display: grid; grid-template-columns: 56px 1fr 24px; align-items: center; gap: 16px; width: 100%; min-height: 70px; margin-top: 10px; padding: 8px 16px; color: var(--kx-ink); text-align: left; transition: transform 0.14s ease-out; }
-.skn-phone > span { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--kx-accent-soft); color: var(--kx-accent); }
-.skn-phone b { display: block; font-size: 19px; font-weight: 800; }
-.skn-phone em { display: block; color: var(--kx-soft); font-size: 14px; }
+.skn-take { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.kx-root .skn-phone { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 12px; width: 100%; min-height: 70px; padding: 8px 12px; text-align: left; color: var(--kx-ink); text-align: left; transition: transform 0.14s ease-out; }
+.skn-phone > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--kx-accent-soft); color: var(--kx-accent); }
+.skn-phone b { display: block; font-size: 17px; font-weight: 800; line-height: 1.25; }
+.skn-phone em { display: block; color: var(--kx-soft); font-size: 13px; }
 /* 자가 체크 화면 아래 빈 자리의 장식(목업의 유리 방울·천) */
 .skn-deco { flex: 1 1 0; min-height: 0; margin: 6px -24px 0; background: url('/assets/kiosk-experiences/skin-hero.webp') center 60% / 78% auto no-repeat; opacity: 0.55; mix-blend-mode: multiply; pointer-events: none; }
+
+/* 루틴 직접 고치기 — 줄을 낮추고 오른쪽에 위·아래·빼기 */
+.skn-list[data-many] { gap: 6px; }
+.skn-list[data-many] .skn-row, .skn-list[data-editing] .skn-row { grid-template-columns: 44px 1fr; gap: 12px; padding: 6px 12px; }
+.skn-list[data-many] .skn-row-icon, .skn-list[data-editing] .skn-row-icon { width: 44px; height: 44px; }
+.skn-list[data-many] .skn-row p, .skn-list[data-editing] .skn-row p { font-size: 18.5px; }
+.skn-list[data-many] .skn-row div > span { font-size: 13.5px; margin-top: 0; }
+.skn-list[data-many] .skn-texture { margin-top: 4px; }
+.kx-root .skn-list[data-many] .skn-texture button { min-height: 44px; }
+.skn-list[data-editing] .skn-row { grid-template-columns: 44px 1fr auto; }
+.skn-row-tools { display: flex; gap: 6px; }
+.kx-root .skn-row-tools button { display: grid; place-items: center; width: 46px; height: 46px; border: 1.5px solid var(--kx-accent); border-radius: 50%; color: var(--kx-accent); transition: transform 0.14s ease-out, opacity 0.2s ease, background-color 0.2s ease; }
+.kx-root .skn-row-tools button:active:not(:disabled) { transform: scale(0.9); background: var(--kx-accent-soft); }
+.kx-root .skn-row-tools button:disabled { opacity: 0.28; }
+.skn-edit-bar { flex: none; display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 8px; }
+.kx-root .skn-edit-bar button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border: 1.5px dashed var(--kx-accent); border-radius: var(--kx-radius); color: var(--kx-accent); font-size: 17px; font-weight: 800; transition: transform 0.14s ease-out, opacity 0.2s ease; }
+.kx-root .skn-edit-bar button:last-child { border-style: solid; border-color: var(--kx-line); color: var(--kx-soft); font-size: 15px; }
+.kx-root .skn-edit-bar button:active:not(:disabled) { transform: scale(0.97); }
+.kx-root .skn-edit-bar button:disabled { opacity: 0.35; }
+.kx-root .skn-edit { flex: none; min-height: 52px; margin-bottom: -4px; border-style: dashed; font-size: 17px; }
+.kx-root .skn-edit[data-on] { border-style: solid; background: var(--kx-accent-soft); }
+.skn-add h2 { font-size: 22px; font-weight: 800; }
+.skn-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 6px; }
+.skn-add-grid button { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 0 14px; border: 1.5px solid #c9d2c4; border-radius: 10px; background: #fff; color: #274636; font-size: 17px; font-weight: 700; text-align: left; transition: transform 0.14s ease-out; animation: kx-rise 0.3s var(--kx-ease) backwards; }
+.skn-add-grid button:active { transform: scale(0.96); }
+.skn-add-grid button[data-custom] { border-style: dashed; border-color: #274636; }
+.skn-add-title { flex: none; margin-top: 16px; font-size: 22px; font-weight: 800; text-align: center; }
+.skn-typing { flex: none; min-height: 64px; margin-top: 12px; padding: 14px 18px; border: 2px solid var(--kx-accent); border-radius: var(--kx-radius); background: var(--kx-paper); font-size: 26px; font-weight: 800; text-align: center; }
+.skn-typing[data-empty] { color: var(--kx-soft); font-weight: 500; }

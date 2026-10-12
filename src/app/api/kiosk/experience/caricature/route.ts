@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kioskEnabled } from '@/lib/kiosk/access'
-import { CARICATURE_LEVELS, CARICATURE_STYLES, CaricatureError, generateCaricature, type CaricatureLevel, type CaricatureStyle } from '@/lib/kiosk/caricature'
+import { CARICATURE_LEVELS, CARICATURE_STYLES, generateCaricature, type CaricatureLevel, type CaricatureStyle } from '@/lib/kiosk/caricature'
+import { KioskImageError } from '@/lib/kiosk/image-gen'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,8 +10,8 @@ export const maxDuration = 120
 
 /**
  * 키오스크 캐리커처 한 장(키오스크 전용, 비로그인)
- * POST /api/kiosk/experience/caricature  { photo(data: 주소), style: line|water|comic, level: soft|fun } → { image(data: 주소) }
- * 사진과 결과는 저장하지 않는다(src/lib/kiosk/caricature.ts).
+ * POST /api/kiosk/experience/caricature  { photo(data: 주소), style: line|water|comic, level: soft|fun, group?: boolean } → { image(data: 주소) }
+ * 사진과 결과는 저장하지 않는다(src/lib/kiosk/image-gen.ts).
  */
 export async function POST(request: NextRequest) {
   if (!kioskEnabled(request)) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -21,10 +22,10 @@ export async function POST(request: NextRequest) {
     if (!CARICATURE_STYLES.includes(style) || !CARICATURE_LEVELS.includes(level) || typeof body?.photo !== 'string') {
       return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     }
-    const image = await generateCaricature(body.photo, style, level)
+    const image = await generateCaricature(body.photo, style, level, body.group === true)
     return NextResponse.json({ success: true, image })
   } catch (error) {
-    if (error instanceof CaricatureError) return NextResponse.json({ error: error.message }, { status: error.status })
+    if (error instanceof KioskImageError) return NextResponse.json({ error: error.message }, { status: error.status })
     console.error('[caricature] 처리 실패:', error instanceof Error ? error.message : error)
     return NextResponse.json({ error: '그림을 완성하지 못했어요.' }, { status: 500 })
   }

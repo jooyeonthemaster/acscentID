@@ -170,6 +170,17 @@
 .kx-sheet-card .kx-btn--primary, .kx-idle-card .kx-btn--primary { border-color: #1d1a22; background: #1d1a22; color: #fff; border-radius: 10px; }
 .kx-sheet-card .kx-btn--ghost { min-height: 52px; border-color: #1d1a22; color: #1d1a22; border-radius: 10px; font-size: 17px; }
 .kx-idle-count { --p: 1; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: conic-gradient(#1d1a22 calc(var(--p) * 360deg), #e7e3ea 0); }
+/* 영수증 창 — 감열지처럼 흰 종이에 미리보기 */
+.kx-receipt .kx-sheet-desc { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 26px; }
+.kx-receipt .kx-sheet-desc[data-phase='printed'] { color: #1f7a4d; font-weight: 800; }
+.kx-receipt .kx-sheet-desc[data-phase='failed'] { color: #b3261e; font-weight: 800; }
+.kx-receipt-paper { width: 100%; max-height: 520px; padding: 10px 0; border-radius: 10px; background: #e9e6df; overflow-y: auto; scrollbar-width: none; }
+.kx-receipt-paper::-webkit-scrollbar { display: none; }
+.kx-receipt-paper img { display: block; width: 62%; margin: 0 auto; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22); animation: kx-receipt 0.7s var(--kx-ease) backwards; }
+.kx-receipt-paper span { display: block; width: 62%; height: 300px; margin: 0 auto; background: #fff; animation: kx-breathe 1.2s ease-in-out infinite; }
+@keyframes kx-receipt { from { opacity: 0; transform: translateY(-24px); } }
+.kx-receipt-actions { display: flex; gap: 10px; width: 100%; }
+.kx-receipt-actions > * { flex: 1; text-decoration: none; }
 .kx-idle-count b { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: #fffdf9; font-size: 40px; font-weight: 800; animation: kx-tick 0.4s var(--kx-ease); }
 .kx-idle-card p { color: #55505c; font-size: 15.5px; }
 

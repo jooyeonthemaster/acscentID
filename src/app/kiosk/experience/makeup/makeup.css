@@ -34,11 +34,13 @@
 .mku-tag[data-side='left'] { left: 12px; }
 .mku-tag[data-side='right'] { right: 12px; background: var(--kx-accent-soft); }
 .mku-caption { flex: none; margin-top: 6px; color: var(--kx-soft); font-size: 13.5px; text-align: center; }
-.mku-tabs { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-.kx-root .mku-tabs button { min-height: 50px; border: 1px solid var(--kx-line); border-radius: 8px; background: rgba(255, 250, 248, 0.6); color: var(--kx-soft); font-size: 18px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease, transform 0.14s ease-out; }
-.kx-root .mku-tabs button[data-on] { border-color: var(--kx-accent); background: var(--kx-accent); color: #fff; }
-.mku-swatches { flex: none; display: flex; justify-content: center; gap: 16px; margin-top: 12px; }
-.kx-root .mku-swatches button { display: grid; place-items: center; width: 58px; height: 58px; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; color: #fff; transition: transform 0.2s var(--kx-spring), box-shadow 0.2s ease; animation: kx-pop 0.36s var(--kx-spring) calc(var(--i) * 0.04s) backwards; }
+.mku-tabs { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.kx-root .mku-tabs button { min-height: 44px; padding: 0 2px; border: 1px solid var(--kx-line); border-radius: 8px; background: rgba(255, 250, 248, 0.6); color: var(--kx-soft); font-size: 16px; font-weight: 700; line-height: 1.1; transition: background-color 0.2s ease, color 0.2s ease, transform 0.14s ease-out; }
+.kx-root .mku-tabs button[data-off] { border-style: dashed; opacity: 0.75; }
+.kx-root .mku-tabs button[data-on] { border-style: solid; border-color: var(--kx-accent); background: var(--kx-accent); color: #fff; opacity: 1; }
+.mku-swatches { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 58px; margin-top: 10px; }
+.mku-swatches[data-empty] { min-height: 0; margin-top: 4px; }
+.kx-root .mku-swatches button:not(.mku-ai) { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; color: #fff; transition: transform 0.2s var(--kx-spring), box-shadow 0.2s ease; animation: kx-pop 0.36s var(--kx-spring) calc(var(--i) * 0.04s) backwards; }
 .kx-root .mku-swatches button[data-on] { box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px var(--kx-accent); transform: scale(1.06); }
 .kx-root .mku-swatches button:active { transform: scale(0.9); }
 .mku-swatches svg { animation: kx-pop 0.3s var(--kx-spring); }
@@ -68,3 +70,20 @@
 .mku-recipe li b { font-weight: 700; }
 .mku-recipe p { display: flex; flex-direction: column; margin-top: 8px; color: var(--kx-soft); font-size: 12.5px; text-align: center; }
 .mku-recipe p b { color: var(--kx-ink); font-size: 17px; }
+
+/* 아이라인의 윙 견본 — 눈꼬리가 올라간 모양을 작게 */
+.kx-root .mku-swatches button[data-wing] { border-radius: 50% 50% 50% 8%; }
+.kx-root .mku-ai { display: inline-flex; align-items: center; gap: 6px; min-height: 52px; padding: 0 12px; border: 1.5px solid var(--kx-accent); border-radius: 999px; background: rgba(255, 250, 248, 0.8); color: var(--kx-accent); font-size: 13.5px; font-weight: 800; line-height: 1.15; text-align: left; animation: kx-pop 0.36s var(--kx-spring) 0.2s backwards; transition: transform 0.14s ease-out, opacity 0.2s ease; }
+.kx-root .mku-ai:active:not(:disabled) { transform: scale(0.95); }
+.kx-root .mku-ai:disabled { opacity: 0.4; }
+.mku-color-name[data-alert] { color: #b3261e; }
+.mku-working { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 24px; background: rgba(75, 36, 71, 0.55); color: #fff; font-size: 18px; font-weight: 800; text-align: center; animation: kx-fade 0.3s ease-out; }
+.mku-hair-sheet h2 { font-size: 22px; font-weight: 800; }
+.mku-hair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin: 4px 0; }
+.mku-hair-grid button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 60px; border: 1.5px solid #d9c3d6; border-radius: 12px; background: #fff; color: #4b2447; font-size: 18px; font-weight: 800; transition: transform 0.14s ease-out, opacity 0.2s ease; animation: kx-rise 0.3s var(--kx-ease) backwards; }
+.mku-hair-grid button:active:not(:disabled) { transform: scale(0.95); }
+.mku-hair-grid button:disabled { opacity: 0.4; }
+.mku-extras { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
+.mku-recipe .mku-extras { flex-direction: row; font-size: 13px; }
+.mku-extras em { color: var(--kx-soft); font-weight: 700; }
+.mku-extras span { padding: 2px 10px; border-radius: 999px; background: var(--kx-accent-soft); color: var(--kx-accent); font-weight: 700; }

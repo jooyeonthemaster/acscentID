@@ -22,7 +22,7 @@ import {
 import { KIOSK_FONT_CLASS, hanjaFontVar } from '@/app/kiosk/fonts'
 import type { KioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { EXPERIENCE_META, kioskExperience, type ExperienceId } from '@/lib/kiosk/experience'
-import { KIOSK_MODES, findKioskMode, type KioskMode } from '@/lib/kiosk/modes'
+import { DEFAULT_KIOSK_MODE, KIOSK_MODES, findKioskMode, isDeviceKioskMode, type KioskMode } from '@/lib/kiosk/modes'
 import { kioskProgramTheme } from '@/lib/kiosk/program-theme'
 import { SCREEN_UI_LABELS, type DeviceSettings, type ScreenBackground, type ScreenUi } from '@/lib/screen-backgrounds/types'
 import type { LiveEventOverride } from '@/lib/screen-events/types'
@@ -45,8 +45,16 @@ export interface KioskAdminScreen {
   error: string | null
   refresh: () => Promise<void>
   liveEvent: LiveEventOverride | null
-  /** 저장된 기기 설정(행사 글꼴을 덮어쓰기 전 값) */
+  /** 저장된 기기 설정(행사 글꼴을 덮어쓰기 전 값). mode 는 이 기기의 체험 모드가 있으면 그것 */
   baseSettings: DeviceSettings
+  /** 모든 키오스크가 함께 쓰는 운영 모드(서버 값) — 지금은 매장 기본만 저장한다. 다른 값은 예전 방식으로 남은 것 */
+  sharedMode: string | null
+  /** 이 키오스크에만 켠 체험 모드(기기 저장) */
+  deviceMode: string | null
+  /** 체험 모드를 이 키오스크에 저장한다(null = 끈다). 기기 저장소를 못 쓰면 false */
+  setDeviceMode: (id: string | null) => boolean
+  /** 체험 모드가 이 키오스크에 깐 전용 배경(K-WAVE) — 평소 배경 선택보다 먼저 보인다 */
+  modeBackground: ScreenBackground | null
   selectBackground: (id: string) => Promise<void>
   saveSettings: (patch: Partial<DeviceSettings>) => Promise<void>
   unlock: (pin: string) => Promise<boolean>
@@ -60,7 +68,7 @@ const TABS: { id: Tab; label: string }[] = [
 /** 관리자 창에서 부르는 모드 이름과 두 줄 설명 — 목록에 없는 모드(새 행사)는 modes.ts 의 이름·설명을 그대로 쓴다 */
 const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: typeof Store }> = {
   wow: { name: '매장 기본', lines: ['최애 이미지 분석', '사진으로 찾는 나만의 향'], Icon: Store },
-  'kwave-2026': { name: 'K-WAVE 사주', lines: ['사주 분석', '전용 배경으로 함께 변경'], Icon: MoonStar },
+  'kwave-2026': { name: 'K-WAVE 사주', lines: ['사주 분석', '전용 배경 사용'], Icon: MoonStar },
   'ai-color': { name: 'AI 퍼스널 컬러', lines: ['사진 한 장으로 컬러 진단', '컬러 전용 디자인 사용'], Icon: Palette },
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }
@@ -69,7 +77,7 @@ const modeCopy = (mode: KioskMode) => {
   if (MODE_COPY[mode.id]) return MODE_COPY[mode.id]
   // 체험 모드(네일·명함·스킨케어…) — 이름·설명은 experience.ts 한 곳에서
   if (mode.experience) return { name: EXPERIENCE_META[mode.experience].name, lines: [EXPERIENCE_META[mode.experience].note, `${EXPERIENCE_META[mode.experience].tag} 전용 디자인 사용`] as [string, string], Icon: EXPERIENCE_ICON[mode.experience] }
-  return { name: mode.label, lines: [mode.note, mode.defaultBackground ? '전용 배경으로 함께 변경' : ''] as [string, string], Icon: Settings }
+  return { name: mode.label, lines: [mode.note, mode.defaultBackground ? '전용 배경 사용' : ''] as [string, string], Icon: Settings }
 }
 /**
  * 이 모드가 전용 디자인으로 도는가 — 그 이름('컬러'·'타로'·'네일 디자이너'…). 없으면 화면 디자인·글꼴·배경 설정을 따르는 모드다.
@@ -378,7 +386,7 @@ function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: 
       {flash && <Notice tone="ok" compact>{flash}</Notice>}
       <div>
         <h2 className="kadm-h1">지금 운영 상태</h2>
-        <p className="kadm-sub">설정은 이 매장의 모든 키오스크에 공유돼요.</p>
+        <p className="kadm-sub">설정은 이 매장의 모든 키오스크에 공유돼요.<br />체험 모드만 고른 이 키오스크에 따로 저장돼요.</p>
       </div>
       <section className="kadm-status">
         <span className="kadm-status-art" data-cover={art.cover || undefined}>
@@ -386,7 +394,7 @@ function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: 
           <img src={art.src} alt="" />
         </span>
         <div>
-          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone="ok">현재 운영 중</span></p>
+          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone="ok">현재 운영 중</span>{screen.deviceMode && <span className="kadm-pill" data-tone="plan">이 키오스크만</span>}</p>
           <dl>
             <div><dt>화면</dt><dd>{design}</dd></div>
             <div><dt>행사 배경</dt><dd>{event}</dd></div>
@@ -415,8 +423,6 @@ type ModeSave =
   | { phase: 'saving'; id: string }
   | { phase: 'saved'; id: string }
   | { phase: 'failed'; id: string; message: string }
-  /** 모드는 저장됐는데 전용 배경만 못 바꿨다 */
-  | { phase: 'partial'; id: string; background: string; retrying?: boolean }
 
 function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthExpired: () => void }) {
   const [save, setSave] = useState<ModeSave | null>(null)
@@ -424,7 +430,9 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
   const [sajuNotice, setSajuNotice] = useState<{ tone: NoticeTone; text: string } | null>(null)
   const settings = screen.baseSettings
   const current = findKioskMode(settings.mode)
-  const busy = save?.phase === 'saving' || (save?.phase === 'partial' && save.retrying) || Boolean(sajuBusy)
+  const busy = save?.phase === 'saving' || Boolean(sajuBusy)
+  /** 예전 방식으로 모든 키오스크에 저장돼 있는 체험 모드를 따르는 중인가 — 이 키오스크에 따로 고른 것이 없을 때 */
+  const legacyShared = !screen.deviceMode && isDeviceKioskMode(screen.sharedMode)
   const theme = dedicatedDesign(current.id)
   const name = (id: string) => modeCopy(findKioskMode(id)).name
   const modeButton = (mode: KioskMode, compact: boolean) => {
@@ -444,29 +452,32 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
     )
   }
 
-  const applyBackground = async (id: string, background: string) => {
-    try {
-      await screen.selectBackground(background)
-      setSave({ phase: 'saved', id })
-    } catch (error) {
-      if (isAuthError(error)) { setSave(null); onAuthExpired(); return }
-      setSave({ phase: 'partial', id, background })
-    }
-  }
   const pick = async (id: string) => {
-    if (busy || id === current.id) return
-    setSave({ phase: 'saving', id }); setSajuNotice(null)
-    try {
-      await screen.saveSettings({ mode: id === KIOSK_MODES[0].id ? null : id })
-    } catch (error) {
-      if (isAuthError(error)) { setSave(null); onAuthExpired(); return }
-      setSave({ phase: 'failed', id, message: errorText(error, '저장하지 못했어요.') })
+    if (busy) return
+    const device = id !== DEFAULT_KIOSK_MODE.id
+    // 이미 이 키오스크에 고른 모드면 그대로 둔다(예전 방식으로 공유된 모드를 누르면 이 키오스크 것으로 옮겨 적는다)
+    if (device ? screen.deviceMode === id : current.id === id) return
+    setSajuNotice(null)
+    const failed = (message: string) => setSave({ phase: 'failed', id, message })
+    if (device) {
+      // 체험 모드 — 고른 이 키오스크에만 저장한다. 모든 키오스크가 함께 쓰는 설정(서버)은 건드리지 않는다
+      if (screen.setDeviceMode(id)) setSave({ phase: 'saved', id })
+      else failed('이 키오스크에 저장하지 못했어요.')
       return
     }
-    // 전용 배경이 있는 모드는 배경도 같이 고른다 — 여기서 실패해도 모드는 이미 바뀌었다
-    const background = findKioskMode(id).defaultBackground
-    if (background) await applyBackground(id, background)
-    else setSave({ phase: 'saved', id })
+    // 매장 기본 — 이 키오스크의 체험 모드를 끈다. 예전 방식으로 모든 키오스크에 저장된 체험 모드가 남아 있으면 그것도 매장 기본으로 되돌린다
+    if (isDeviceKioskMode(screen.sharedMode)) {
+      setSave({ phase: 'saving', id })
+      try {
+        await screen.saveSettings({ mode: null })
+      } catch (error) {
+        if (isAuthError(error)) { setSave(null); onAuthExpired(); return }
+        failed(errorText(error, '저장하지 못했어요.'))
+        return
+      }
+    }
+    if (screen.setDeviceMode(null)) setSave({ phase: 'saved', id })
+    else failed('이 키오스크에 저장하지 못했어요.')
   }
   const saveSaju = async (key: 'hanjaFont' | 'receiptStyle', value: string, label: string) => {
     if (busy) return
@@ -486,13 +497,15 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
     <div className="kadm-pane">
       <div>
         <h2 className="kadm-h1">운영 모드</h2>
-        <p className="kadm-sub">선택하면 바로 저장돼요.<br />이 매장의 모든 키오스크에 공유됩니다.</p>
+        <p className="kadm-sub">선택하면 바로 저장돼요.<br />매장 기본은 모든 키오스크가 함께 쓰고, 체험 모드는 고른 이 키오스크에서만 켜져요.</p>
       </div>
       {save?.phase === 'saving' && <Notice tone="busy" title="저장 중">{name(save.id)} 모드로 바꾸고 있어요. 잠시만 기다려 주세요.</Notice>}
       {save?.phase === 'saved' && (
         <Notice tone="ok" title="저장 완료">
-          {name(save.id)} 모드를 저장했어요. 다음 손님부터 적용됩니다.
-          {findKioskMode(save.id).defaultBackground ? ' 전용 배경도 함께 바꿨어요.' : dedicatedDesign(save.id) ? ` ${dedicatedDesign(save.id)} 전용 디자인으로 보여요.` : ''}
+          {save.id === DEFAULT_KIOSK_MODE.id
+            ? '이 키오스크를 매장 기본으로 돌렸어요. 다음 손님부터 적용됩니다.'
+            : `${name(save.id)} 모드를 이 키오스크에 저장했어요. 다음 손님부터 적용되고, 다른 키오스크는 바뀌지 않아요.`}
+          {findKioskMode(save.id).defaultBackground ? ' 전용 배경으로 보여요.' : dedicatedDesign(save.id) ? ` ${dedicatedDesign(save.id)} 전용 디자인으로 보여요.` : ''}
         </Notice>
       )}
       {save?.phase === 'failed' && (
@@ -500,18 +513,17 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
           {name(save.id)} 모드로 바꾸지 못했어요. 현재 운영 모드({modeCopy(current).name})는 그대로 유지됩니다. {save.message}
         </Notice>
       )}
-      {save?.phase === 'partial' && (
-        <Notice tone="warn" title={`${name(save.id)} 모드는 저장됐지만, 전용 배경은 바꾸지 못했어요.`}
-          action={<button type="button" className="kadm-btn kadm-btn--small kadm-btn--warn" disabled={save.retrying} onClick={() => { setSave({ ...save, retrying: true }); void applyBackground(save.id, save.background) }}>{save.retrying ? '적용 중…' : '전용 배경 다시 적용'}</button>}>
-          현재 배경을 유지합니다. 배경만 다시 적용해 주세요.
+      {legacyShared && !save && (
+        <Notice tone="warn" compact>
+          지금 모드({modeCopy(current).name})는 예전 방식으로 모든 키오스크에 함께 저장돼 있어요. 매장 기본을 고르면 모든 키오스크가 매장 기본으로 돌아가고, 체험 모드를 고르면 이 키오스크만 바뀌어요.
         </Notice>
       )}
       <div className="kadm-modes" role="radiogroup" aria-label="운영 모드">
-        {KIOSK_MODES.filter((mode) => !mode.experience).map((mode) => modeButton(mode, false))}
-        {/* 체험 모드는 수가 많아 두 줄 묶음으로 작게 */}
-        <h3 className="kadm-modes-sub">체험 모드<span>모드마다 전용 디자인으로 운영돼요</span></h3>
+        {/* 운영 모드는 매장 기본 하나(모든 키오스크가 함께 쓴다) — 그 밖의 프로그램(사주·컬러·타로·체험 일곱 가지)은 모두 체험 모드로, 고른 이 키오스크에만 저장한다(수가 많아 두 줄로 작게) */}
+        {KIOSK_MODES.filter((mode) => mode.id === DEFAULT_KIOSK_MODE.id).map((mode) => modeButton(mode, false))}
+        <h3 className="kadm-modes-sub">체험 모드<span>고른 이 키오스크에서만 매장 기본 대신 운영돼요</span></h3>
         <div className="kadm-modes-grid">
-          {KIOSK_MODES.filter((mode) => mode.experience).map((mode) => modeButton(mode, true))}
+          {KIOSK_MODES.filter((mode) => mode.id !== DEFAULT_KIOSK_MODE.id).map((mode) => modeButton(mode, true))}
         </div>
       </div>
 
@@ -592,6 +604,8 @@ function LookTab({ screen, onAuthExpired, go }: { screen: KioskAdminScreen; onAu
   const mode = findKioskMode(settings.mode)
   const theme = dedicatedDesign(mode.id)
   const eventFont = !theme && screen.liveEvent?.font ? screen.liveEvent : null
+  /** 체험 모드의 전용 배경(K-WAVE)이 제 글꼴로 보이는 중 */
+  const modeFont = !theme && !eventFont ? findScreenFont(screen.modeBackground?.font) : undefined
   const busy = uiSave?.phase === 'saving' || fontSave?.phase === 'saving'
   const previewFont = settings.font ?? (settings.ui === 'retro' ? DEFAULT_RETRO_FONT : null)
   const fontLabel = findScreenFont(settings.font)?.label ?? defaultFontLabel(settings.ui)
@@ -657,6 +671,8 @@ function LookTab({ screen, onAuthExpired, go }: { screen: KioskAdminScreen; onAu
         </>
       )}
 
+      {modeFont && <Notice compact>지금 화면에는 {modeCopy(mode).name} 전용 배경과 글꼴({modeFont.label})이 보여요. 아래에서 고른 글꼴은 저장되고 매장 기본에서 보여요.</Notice>}
+
       <h3 className="kadm-h2">화면 디자인</h3>
       {uiSave?.phase === 'failed' && (
         <Notice tone="error" title="화면 디자인을 바꾸지 못했어요." action={<button type="button" className="kadm-btn kadm-btn--small kadm-btn--danger" onClick={() => void pickUi(uiSave.ui)}>다시 시도</button>}>
@@ -685,7 +701,7 @@ function LookTab({ screen, onAuthExpired, go }: { screen: KioskAdminScreen; onAu
 
       <h3 className="kadm-h2">글꼴</h3>
       {fontSave?.phase === 'saving' && <Notice tone="busy" compact>글꼴을 저장하고 있어요…</Notice>}
-      {fontSave?.phase === 'saved' && <Notice tone="ok" compact>{eventFont ? '글꼴을 저장했어요. 지금은 행사 글꼴이 보이고, 행사가 끝나면 이 글꼴이 보여요.' : theme ? '글꼴을 저장했어요. 매장·사주 모드에서 보여요.' : '글꼴을 저장했어요. 화면에 바로 적용됩니다.'}</Notice>}
+      {fontSave?.phase === 'saved' && <Notice tone="ok" compact>{eventFont ? '글꼴을 저장했어요. 지금은 행사 글꼴이 보이고, 행사가 끝나면 이 글꼴이 보여요.' : theme ? '글꼴을 저장했어요. 매장·사주 모드에서 보여요.' : modeFont ? '글꼴을 저장했어요. 매장 기본에서 보여요.' : '글꼴을 저장했어요. 화면에 바로 적용됩니다.'}</Notice>}
       {fontSave?.phase === 'failed' && <Notice tone="error" title="글꼴을 바꾸지 못했어요.">이전 글꼴을 그대로 유지했어요. {fontSave.message}</Notice>}
       <section className="kadm-fontcard">
         <div className="kadm-fontcard-head">
@@ -755,9 +771,11 @@ function BackgroundsTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; o
   }
   const showing = theme
     ? `지금 화면에는 ${theme} 전용 디자인이 보여요. 여기서 고른 배경은 저장되고 매장·사주 모드에서 보여요.`
-    : screen.liveEvent
-      ? `지금 화면에는 ‘${screen.liveEvent.title}’ 행사 배경이 보여요. 여기서 고른 배경은 저장되고, 적용 중인 행사가 없을 때 보여요.`
-      : ''
+    : screen.modeBackground
+      ? `지금 화면에는 ${modeCopy(mode).name} 전용 배경이 보여요(이 키오스크만). 여기서 고른 배경은 저장되고 매장 기본에서 보여요.`
+      : screen.liveEvent
+        ? `지금 화면에는 ‘${screen.liveEvent.title}’ 행사 배경이 보여요. 여기서 고른 배경은 저장되고, 적용 중인 행사가 없을 때 보여요.`
+        : ''
 
   return (
     <div className="kadm-pane">

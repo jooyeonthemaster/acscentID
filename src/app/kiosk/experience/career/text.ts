@@ -1,5 +1,5 @@
 import type { KioskLang } from '@/lib/kiosk/i18n'
-import type { CareerAxis, CareerId } from './data'
+import type { CareerAxis, CareerId, CareerInterest, FaceTrait, MbtiLetter } from './data'
 
 export interface CareerText {
   headline: string
@@ -10,6 +10,27 @@ export interface CareerText {
   /** 머리의 작은 글자 */
   tagline: string
   axes: Record<CareerAxis, string>
+  /** 첫 질문의 활동 여덟 가지 */
+  interests: Record<CareerInterest, string>
+  mbtiTitle: string
+  mbtiSub: string
+  mbtiSkip: string
+  /** MBTI 글자마다 한 줄 */
+  mbtiLetters: Record<MbtiLetter, string>
+  /** 관상(재미로 보는 인상 읽기) */
+  faceTitle: [string, string]
+  faceSub: string
+  facePrivacy: string
+  faceShoot: string
+  faceSkip: string
+  faceReading: string
+  faceFail: [string, string]
+  /** 특징마다 [이름, 풀이] */
+  traits: Record<FaceTrait, [string, string]>
+  clues: string
+  cluesOpen: string
+  faceSheetTitle: string
+  faceDisclaimer: string
   q1Title: string
   q1Sub: string
   picked: (n: number) => string
@@ -37,11 +58,44 @@ export interface CareerText {
 const ko: CareerText = {
   headline: '나의 다음 가능성을 찾아요',
   sub: '좋아하는 일에서 시작하는 직업 탐색',
-  note: '6개의 질문 · 새로운 발견',
+  note: '8단계 · MBTI와 관상까지',
   cta: '가능성 탐색 시작',
   foot: '관심사 기반 직업 탐색',
   tagline: '나의 다음 가능성을 찾아요',
   axes: { make: '만들기', solve: '문제 풀기', help: '사람 돕기', talk: '이야기하기' },
+  interests: { craft: '만들기 · 조립하기', design: '그리기 · 꾸미기', puzzle: '문제 풀기', explore: '탐구 · 실험하기', care: '사람 돕기', teach: '알려 주기', story: '글쓰기 · 이야기하기', lead: '앞에서 이끌기' },
+  mbtiTitle: 'MBTI를 알고 있나요?',
+  mbtiSub: '알면 골라 주세요. 몰라도 괜찮아요.',
+  mbtiSkip: '잘 모르겠어요',
+  mbtiLetters: {
+    E: '사람들과 있을 때 힘이 나요', I: '혼자 몰입할 때 힘이 나요', S: '눈앞의 사실을 꼼꼼히 봐요', N: '새로운 가능성을 떠올려요',
+    T: '이치에 맞는지 따져 봐요', F: '사람의 마음을 먼저 살펴요', J: '계획을 세워 차근차근 가요', P: '상황에 맞게 유연하게 움직여요',
+  },
+  faceTitle: ['마지막으로,', '관상도 볼까요?'],
+  faceSub: '재미로 보는 인상 읽기예요',
+  facePrivacy: '사진은 이 기기 안에서만 보고 저장하지 않아요.',
+  faceShoot: '관상 보기',
+  faceSkip: '건너뛰기',
+  faceReading: '인상을 읽고 있어요…',
+  faceFail: ['얼굴을 찾지 못했어요.', '정면을 보고 다시 찍거나 건너뛰어 주세요.'],
+  traits: {
+    'forehead-wide': ['넓고 시원한 이마', '생각의 폭이 넓고 큰 그림을 그리는 힘이 좋아요.'],
+    'forehead-neat': ['단정한 이마', '판단이 빠르고 바로 움직이는 실행력이 좋아요.'],
+    'eyes-big': ['크고 시원한 눈', '표현이 풍부하고 사람의 마음을 잘 읽어요.'],
+    'eyes-calm': ['차분하고 깊은 눈매', '관찰력이 좋고 한 가지에 깊이 집중해요.'],
+    'brow-open': ['눈과 눈썹 사이가 넉넉한 인상', '여유가 있고 사람을 편하게 품어 줘요.'],
+    'brow-close': ['눈썹에 힘이 있는 인상', '목표를 정하면 밀고 나가는 추진력이 있어요.'],
+    'nose-long': ['곧게 뻗은 콧대', '책임감이 강하고 맡은 일을 끝까지 해내요.'],
+    'nose-soft': ['부드러운 코', '친화력이 좋아 어디서든 잘 어울려요.'],
+    'mouth-wide': ['시원하게 큰 입', '말에 힘이 있고 분위기를 이끄는 편이에요.'],
+    'mouth-neat': ['야무진 입매', '말보다 손으로 꼼꼼하게 보여 주는 편이에요.'],
+    'jaw-firm': ['단단한 턱선', '끈기가 있어 시작한 일을 완성해 내요.'],
+    'jaw-slim': ['갸름한 턱선', '감각이 섬세하고 디테일에 강해요.'],
+  },
+  clues: '나를 읽은 단서',
+  cluesOpen: '보기',
+  faceSheetTitle: '재미로 보는 관상',
+  faceDisclaimer: '재미로 보는 풀이예요. 능력이나 미래를 말해 주지 않아요.',
   q1Title: '마음이 가는 활동을 골라요',
   q1Sub: '여러 개를 골라도 좋아요',
   picked: (n) => `${n}개 선택`,
@@ -89,18 +143,51 @@ const ko: CareerText = {
   },
   save: '탐색 가이드 저장',
   saveTitle: '탐색 가이드 받기',
-  resultFoot: '관심사 기반 탐색 · 적성 검사가 아니에요',
+  resultFoot: '재미로 보는 탐색 · 적성 검사가 아니에요',
   cardLabel: '나의 직업 탐색 가이드',
 }
 
 const en: CareerText = {
   headline: 'Find your next possibility',
   sub: 'Exploring careers from what you like',
-  note: '6 questions · new discoveries',
+  note: '8 steps · with MBTI and a face reading',
   cta: 'Start exploring',
   foot: 'Career exploration based on your interests',
   tagline: 'Find your next possibility',
   axes: { make: 'Making', solve: 'Solving', help: 'Helping', talk: 'Storytelling' },
+  interests: { craft: 'Building things', design: 'Drawing & decorating', puzzle: 'Solving puzzles', explore: 'Exploring & testing', care: 'Helping people', teach: 'Teaching others', story: 'Writing & telling stories', lead: 'Leading from the front' },
+  mbtiTitle: 'Do you know your MBTI?',
+  mbtiSub: 'Pick it if you know it. Skipping is fine.',
+  mbtiSkip: 'Not sure',
+  mbtiLetters: {
+    E: 'Energized around people', I: 'Energized by deep solo focus', S: 'Attentive to concrete facts', N: 'Drawn to new possibilities',
+    T: 'Checks whether it makes sense', F: 'Reads people’s feelings first', J: 'Plans and goes step by step', P: 'Adapts flexibly to the moment',
+  },
+  faceTitle: ['Lastly,', 'a face reading?'],
+  faceSub: 'A playful read of your features, just for fun',
+  facePrivacy: 'Your photo stays on this device and is not saved.',
+  faceShoot: 'Read my face',
+  faceSkip: 'Skip',
+  faceReading: 'Reading your features…',
+  faceFail: ['We couldn’t find a face.', 'Face the camera and retry, or skip.'],
+  traits: {
+    'forehead-wide': ['A broad, open forehead', 'Wide-ranging thinking and a knack for the big picture.'],
+    'forehead-neat': ['A neat forehead', 'Quick judgment and the drive to act right away.'],
+    'eyes-big': ['Large, bright eyes', 'Expressive, and good at reading how people feel.'],
+    'eyes-calm': ['Calm, deep-set eyes', 'Observant, with deep focus on one thing.'],
+    'brow-open': ['Generous space between eyes and brows', 'Easygoing, and puts people at ease.'],
+    'brow-close': ['Strong, low-set brows', 'Once the goal is set, you push through.'],
+    'nose-long': ['A straight nose bridge', 'Responsible — you finish what you take on.'],
+    'nose-soft': ['A soft nose', 'Friendly, and fits in anywhere.'],
+    'mouth-wide': ['A wide, open mouth', 'Your words carry weight and set the mood.'],
+    'mouth-neat': ['A neat, firm mouth', 'You show it with careful hands more than words.'],
+    'jaw-firm': ['A firm jawline', 'Persistent — you complete what you start.'],
+    'jaw-slim': ['A slender jawline', 'A delicate sense and an eye for detail.'],
+  },
+  clues: 'What we read',
+  cluesOpen: 'View',
+  faceSheetTitle: 'A playful face reading',
+  faceDisclaimer: 'For fun only — it says nothing about ability or the future.',
   q1Title: 'Pick the activities you enjoy',
   q1Sub: 'You can choose more than one',
   picked: (n) => `${n} selected`,
@@ -148,18 +235,51 @@ const en: CareerText = {
   },
   save: 'Save my guide',
   saveTitle: 'Get my guide',
-  resultFoot: 'Interest-based exploration · not an aptitude test',
+  resultFoot: 'A playful exploration · not an aptitude test',
   cardLabel: 'My career exploration guide',
 }
 
 const ja: CareerText = {
   headline: '次の可能性を見つけましょう',
   sub: '好きなことから始める職業探索',
-  note: '6つの質問 · 新しい発見',
+  note: '8ステップ · MBTIと人相まで',
   cta: '可能性の探索スタート',
   foot: '興味・関心にもとづく職業探索',
   tagline: '次の可能性を見つけましょう',
   axes: { make: 'つくる', solve: '問題を解く', help: '人を助ける', talk: '話す' },
+  interests: { craft: '工作 · 組み立て', design: '描く · 飾る', puzzle: '問題を解く', explore: '探究 · 実験する', care: '人を助ける', teach: '教える', story: '書く · 話す', lead: '前に立って導く' },
+  mbtiTitle: 'MBTIを知っていますか？',
+  mbtiSub: 'わかれば選んでください。わからなくても大丈夫です。',
+  mbtiSkip: 'わかりません',
+  mbtiLetters: {
+    E: '人といると元気が出ます', I: 'ひとりで没頭すると元気が出ます', S: '目の前の事実をしっかり見ます', N: '新しい可能性を思い描きます',
+    T: '筋が通っているか考えます', F: 'まず人の気持ちを考えます', J: '計画を立てて着実に進めます', P: '状況に合わせて柔軟に動きます',
+  },
+  faceTitle: ['最後に、', '人相も見てみますか？'],
+  faceSub: '遊び感覚で顔の印象を読みます',
+  facePrivacy: '写真はこの端末の中だけで読み取り、保存しません。',
+  faceShoot: '人相を見る',
+  faceSkip: 'スキップ',
+  faceReading: '印象を読み取っています…',
+  faceFail: ['顔が見つかりませんでした。', '正面を向いて撮り直すか、スキップしてください。'],
+  traits: {
+    'forehead-wide': ['広くすっきりした額', '考えの幅が広く、全体像を描く力があります。'],
+    'forehead-neat': ['整った額', '判断が早く、すぐに動ける行動力があります。'],
+    'eyes-big': ['大きくぱっちりした目', '表現が豊かで、人の気持ちをよく読み取ります。'],
+    'eyes-calm': ['落ち着いた深い目もと', '観察力があり、ひとつのことに深く集中します。'],
+    'brow-open': ['目と眉の間がゆったり', 'ゆとりがあり、人をあたたかく受けとめます。'],
+    'brow-close': ['力強い眉の印象', '目標を決めたら突き進む推進力があります。'],
+    'nose-long': ['まっすぐ通った鼻筋', '責任感が強く、任されたことを最後までやり遂げます。'],
+    'nose-soft': ['やわらかな鼻', '親しみやすく、どこでもすぐになじみます。'],
+    'mouth-wide': ['のびやかな大きな口', '言葉に力があり、場の雰囲気を引っぱるタイプです。'],
+    'mouth-neat': ['きりっとした口もと', '言葉より手を動かして、ていねいに見せるタイプです。'],
+    'jaw-firm': ['しっかりしたあご', '粘り強く、始めたことを最後まで仕上げます。'],
+    'jaw-slim': ['ほっそりしたあご', '感覚が繊細で、ディテールに強いです。'],
+  },
+  clues: '読み取った手がかり',
+  cluesOpen: '見る',
+  faceSheetTitle: '遊び感覚の人相読み',
+  faceDisclaimer: '遊び感覚の読み解きです。能力や将来を示すものではありません。',
   q1Title: '気になる活動を選びましょう',
   q1Sub: '複数選んでも大丈夫です',
   picked: (n) => `${n}個選択`,
@@ -207,18 +327,51 @@ const ja: CareerText = {
   },
   save: '探索ガイドを保存',
   saveTitle: '探索ガイドを受け取る',
-  resultFoot: '興味にもとづく探索 · 適性検査ではありません',
+  resultFoot: '遊び感覚の探索 · 適性検査ではありません',
   cardLabel: 'あなたの職業探索ガイド',
 }
 
 const zhHans: CareerText = {
   headline: '发现你的下一种可能',
   sub: '从喜欢的事出发的职业探索',
-  note: '6个问题 · 新的发现',
+  note: '8个步骤 · 还有MBTI和面相',
   cta: '开始探索可能性',
   foot: '基于兴趣的职业探索',
   tagline: '发现你的下一种可能',
   axes: { make: '动手创作', solve: '解决问题', help: '帮助他人', talk: '表达交流' },
+  interests: { craft: '制作 · 组装', design: '画画 · 装饰', puzzle: '解决问题', explore: '探究 · 做实验', care: '帮助他人', teach: '教别人', story: '写作 · 讲故事', lead: '带领大家' },
+  mbtiTitle: '你知道自己的MBTI吗？',
+  mbtiSub: '知道的话请选择，不知道也没关系。',
+  mbtiSkip: '不太清楚',
+  mbtiLetters: {
+    E: '和人在一起时更有活力', I: '独自投入时更有活力', S: '细看眼前的事实', N: '会联想到新的可能',
+    T: '先看是否合乎道理', F: '先体察别人的心情', J: '定好计划，一步步来', P: '随情况灵活应变',
+  },
+  faceTitle: ['最后，', '也来看看面相？'],
+  faceSub: '纯属趣味的印象解读',
+  facePrivacy: '照片只在这台设备内查看，不会保存。',
+  faceShoot: '看面相',
+  faceSkip: '跳过',
+  faceReading: '正在解读印象…',
+  faceFail: ['没有找到人脸。', '请正对镜头重拍，或选择跳过。'],
+  traits: {
+    'forehead-wide': ['宽阔舒展的额头', '思路开阔，擅长把握全局。'],
+    'forehead-neat': ['端正的额头', '判断快，行动力强，说做就做。'],
+    'eyes-big': ['明亮的大眼睛', '表达丰富，善于读懂别人的心思。'],
+    'eyes-calm': ['沉静深邃的眼神', '观察力强，能深入专注于一件事。'],
+    'brow-open': ['眉眼间距舒展', '从容大方，待人包容，让人很自在。'],
+    'brow-close': ['眉宇有力', '定下目标后，就有勇往直前的冲劲。'],
+    'nose-long': ['挺直的鼻梁', '责任心强，接手的事会做到最后。'],
+    'nose-soft': ['柔和的鼻子', '亲和力强，到哪儿都能融洽相处。'],
+    'mouth-wide': ['舒展大方的嘴型', '说话有力量，常常带动气氛。'],
+    'mouth-neat': ['利落的嘴型', '比起言语，更会用双手细致地展现。'],
+    'jaw-firm': ['结实的下颌线', '有韧劲，开始的事会坚持做完。'],
+    'jaw-slim': ['纤巧的下颌线', '感觉细腻，擅长处理细节。'],
+  },
+  clues: '读懂我的线索',
+  cluesOpen: '查看',
+  faceSheetTitle: '趣味面相解读',
+  faceDisclaimer: '仅供娱乐的解读，不代表能力或未来。',
   q1Title: '选择让你心动的活动',
   q1Sub: '可以选择多项',
   picked: (n) => `已选 ${n} 项`,
@@ -266,18 +419,51 @@ const zhHans: CareerText = {
   },
   save: '保存探索指南',
   saveTitle: '领取探索指南',
-  resultFoot: '基于兴趣的探索 · 并非能力倾向测验',
+  resultFoot: '趣味探索 · 并非能力倾向测验',
   cardLabel: '你的职业探索指南',
 }
 
 const zhHant: CareerText = {
   headline: '發現你的下一種可能',
   sub: '從喜歡的事出發的職業探索',
-  note: '6個問題 · 新的發現',
+  note: '8個步驟 · 還有MBTI和面相',
   cta: '開始探索可能性',
   foot: '以興趣為基礎的職業探索',
   tagline: '發現你的下一種可能',
   axes: { make: '動手創作', solve: '解決問題', help: '幫助他人', talk: '表達交流' },
+  interests: { craft: '製作 · 組裝', design: '畫畫 · 裝飾', puzzle: '解決問題', explore: '探究 · 做實驗', care: '幫助他人', teach: '教別人', story: '寫作 · 說故事', lead: '帶領大家' },
+  mbtiTitle: '你知道自己的MBTI嗎？',
+  mbtiSub: '知道的話請選擇，不知道也沒關係。',
+  mbtiSkip: '不太清楚',
+  mbtiLetters: {
+    E: '和人在一起時更有活力', I: '獨自投入時更有活力', S: '細看眼前的事實', N: '會聯想到新的可能',
+    T: '先看是否合乎道理', F: '先體察別人的心情', J: '訂好計畫，一步步來', P: '隨情況靈活應變',
+  },
+  faceTitle: ['最後，', '也來看看面相？'],
+  faceSub: '純屬趣味的印象解讀',
+  facePrivacy: '照片只在這台裝置內查看，不會儲存。',
+  faceShoot: '看面相',
+  faceSkip: '略過',
+  faceReading: '正在解讀印象…',
+  faceFail: ['沒有找到人臉。', '請正對鏡頭重拍，或選擇略過。'],
+  traits: {
+    'forehead-wide': ['寬闊舒展的額頭', '思路開闊，擅長掌握全局。'],
+    'forehead-neat': ['端正的額頭', '判斷快，行動力強，說做就做。'],
+    'eyes-big': ['明亮的大眼睛', '表達豐富，善於讀懂別人的心思。'],
+    'eyes-calm': ['沉靜深邃的眼神', '觀察力強，能深入專注於一件事。'],
+    'brow-open': ['眉眼間距舒展', '從容大方，待人包容，讓人很自在。'],
+    'brow-close': ['眉宇有力', '訂下目標後，就有勇往直前的衝勁。'],
+    'nose-long': ['挺直的鼻樑', '責任心強，接手的事會做到最後。'],
+    'nose-soft': ['柔和的鼻子', '親和力強，到哪裡都能融洽相處。'],
+    'mouth-wide': ['舒展大方的嘴型', '說話有力量，常常帶動氣氛。'],
+    'mouth-neat': ['俐落的嘴型', '比起言語，更會用雙手細膩地展現。'],
+    'jaw-firm': ['結實的下顎線', '有韌性，開始的事會堅持做完。'],
+    'jaw-slim': ['纖巧的下顎線', '感覺細膩，擅長處理細節。'],
+  },
+  clues: '讀懂我的線索',
+  cluesOpen: '查看',
+  faceSheetTitle: '趣味面相解讀',
+  faceDisclaimer: '僅供娛樂的解讀，不代表能力或未來。',
   q1Title: '選擇讓你心動的活動',
   q1Sub: '可以選擇多項',
   picked: (n) => `已選 ${n} 項`,
@@ -325,7 +511,7 @@ const zhHant: CareerText = {
   },
   save: '儲存探索指南',
   saveTitle: '領取探索指南',
-  resultFoot: '以興趣為基礎的探索 · 並非性向測驗',
+  resultFoot: '趣味探索 · 並非性向測驗',
   cardLabel: '你的職業探索指南',
 }
 
