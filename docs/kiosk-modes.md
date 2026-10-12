@@ -7,6 +7,17 @@
 - 저장: 운영 모드는 기기 설정 `settings-kiosk` 의 `mode`(없으면 매장 기본), 체험 모드는 그 기기의 localStorage. 포토부스는 따로 — 아래 '포토부스 운영 모드'.
 - 목록: `src/lib/kiosk/modes.ts` — 행사가 생기면 항목 하나를 더한다(`id`, 관리자 표시 이름·설명, 제목줄 이름, `programs`, 언어별 `attract`, `receipt`).
 
+## 웹브라우저 접속 비밀번호 (2026-10-13)
+
+`/kiosk` 를 매장 키오스크 앱이 아닌 **일반 웹브라우저**로 열면 여섯 자리 비밀번호를 먼저 묻는다(`src/app/kiosk/WebAccessGate.tsx`). 맞으면 그 브라우저는 12시간 동안 다시 묻지 않는다.
+
+- **키오스크 앱은 묻지 않는다.** 앱인지는 화면에서 `window.kiosk.isElectron` 으로 본다(셸의 preload 가 항상 넣는다 — 2026-10-13 실기 app.asar 로 확인). 서버에 묻지 않으므로 인터넷이 끊긴 채 켜져도 앱이 잠기지 않는다. 인쇄 브리지만 붙은 브라우저(`isElectron: false`)는 묻는다.
+- **비밀번호는 서버에서만 확인한다**(`src/lib/kiosk/web-access.ts`, `POST /api/kiosk/access`). 화면 코드에는 들어 있지 않다. 맞으면 서명한 httpOnly 쿠키(`acscent-kiosk-web`, 경로 `/api/kiosk`, 12시간)를 주고, 화면은 열 때마다 `GET /api/kiosk/access` 로 통과 여부만 묻는다. 주소(IP)마다 1분에 8번까지만 받는다(서버 인스턴스 안에서만 센다).
+- 환경 변수: `KIOSK_WEB_PASSWORD`(없으면 `110619`) · `KIOSK_WEB_SESSION_SECRET`(없으면 배경 관리자 세션 비밀값 → 서비스 롤 키) · `KIOSK_WEB_GATE`(`1` 항상 묻기 · `0` 끄기 · 없으면 **운영 서버에서만** — 개발 서버와 localhost 는 묻지 않는다). 로컬에서 비밀번호 화면을 보려면 `KIOSK_WEB_GATE=1` 로 켠다.
+- **묻지 않는 주소**: 손님 휴대폰이 여는 `/kiosk/get/…`(결과 받기)와 `/kiosk/upload/…`(사진 올리기). 포토부스(`/booth`)도 해당 없다.
+- **막는 범위는 화면까지다.** `/api/kiosk/*`(분석·생성·기록)는 예전처럼 `KIOSK_ENABLED`·`KIOSK_ALLOW_REMOTE` 와 생성 상한만 본다 — 키오스크 앱을 서버가 확실히 가려낼 방법(기기 비밀값)이 없어, API 까지 막으면 앱이 막힐 위험이 있다. 화면을 거치지 않고 API 를 직접 부르는 것은 이 비밀번호로 막지 못한다.
+- `/kiosk` 페이지는 정적 페이지 그대로다(쿠키를 서버에서 읽어 그리지 않는다 — 앱이 켜질 때마다 함수를 거치지 않게).
+
 ## 기기별 체험 모드 (2026-10-13)
 
 체험 모드는 서버에 저장하지 않고 그 기기에만 적는다(`src/lib/kiosk/device-mode.ts`, localStorage `acscent-kiosk-device-mode-v1`). 매장 키오스크 앱(Electron)은 다시 켜도 저장소를 지우지 않는다(2026-10-13 원격으로 확인 — `clearStorageData` 없음, 프로필 `%APPDATA%\acscent-wow-kiosk`).
