@@ -4,10 +4,10 @@
 .kx-root[data-x='card'] .kx-start-brand { font-size: 15px; font-weight: 800; letter-spacing: 0; }
 .kx-root[data-x='card'] .kx-start-info { font-size: 19px; }
 .kx-root[data-x='card'] .kx-start-art > canvas { animation: kx-float 7s ease-in-out 1.1s infinite; }
-.crd-card { display: block; width: 100%; aspect-ratio: 9 / 5; box-shadow: 0 6px 18px rgba(16, 24, 60, 0.18); background: #f8f5ea; }
-.crd-hero { position: absolute; width: 64%; left: 14%; }
-.crd-hero--front { top: 4%; z-index: 1; }
-.crd-hero--back { top: 50%; left: 16%; animation-delay: 1.6s !important; }
+.crd-card { display: block; width: 100%; aspect-ratio: 9 / 5; border-radius: 7px; box-shadow: 0 1px 2px rgba(16, 24, 60, 0.16), 0 10px 26px rgba(16, 24, 60, 0.2); background: #f8f5ea; }
+.crd-hero { position: absolute; width: 66%; }
+.crd-hero--front { top: 5%; left: 8%; z-index: 1; rotate: -4deg; }
+.crd-hero--back { top: 47%; left: 24%; rotate: 4deg; animation-delay: 1.6s !important; }
 .crd-steps { display: flex; align-items: center; gap: 0; color: var(--kx-soft); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
 .crd-steps li { display: inline-flex; align-items: center; gap: 6px; }
 .crd-steps li + li::before { content: ''; width: 26px; height: 1px; margin: 0 8px; background: var(--kx-frame); }
@@ -35,8 +35,8 @@
 .kx-root .crd-sides button { min-height: 48px; color: var(--kx-accent); font-size: 17px; font-weight: 800; transition: background-color 0.2s ease, color 0.2s ease; }
 .kx-root .crd-sides button[data-on] { background: var(--kx-accent); color: #fff; }
 .crd-stack { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.crd-stack figure { width: 60%; transition: width 0.35s var(--kx-ease), opacity 0.3s ease; opacity: 0.75; }
-.crd-stack[data-side='front'] figure[data-which='front'], .crd-stack[data-side='back'] figure[data-which='back'] { width: 74%; opacity: 1; }
+.crd-stack figure { width: 46%; transition: width 0.35s var(--kx-ease), opacity 0.3s ease; opacity: 0.75; }
+.crd-stack[data-side='front'] figure[data-which='front'], .crd-stack[data-side='back'] figure[data-which='back'] { width: 70%; opacity: 1; }
 .crd-stack figcaption { margin-top: 5px; color: var(--kx-soft); font-size: 12.5px; text-align: center; }
 .crd-options { flex: none; display: flex; flex-direction: column; margin-top: 8px; border-top: 1px solid var(--kx-line); }
 .crd-option { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 10px; min-height: 68px; border-bottom: 1px solid var(--kx-line); }
@@ -52,11 +52,13 @@
 .crd-done { flex: none; align-self: center; display: grid; place-items: center; width: 46px; height: 46px; margin-top: 14px; border-radius: 50%; background: #c8f02e; color: #101216; animation: kx-pop 0.45s var(--kx-spring) 0.15s backwards; }
 .kx-root[data-x='card'] .crd-title--result { margin-top: 8px; font-size: 44px; line-height: 1.12; }
 .crd-title--result b { color: var(--kx-accent); font-size: 60px; }
-.crd-final { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 4px; }
-.crd-final figure { width: 60%; animation: kx-rise 0.5s var(--kx-ease) backwards; }
-.crd-final figure:nth-child(1) { animation-delay: 0.25s; }
-.crd-final figure:nth-child(2) { animation-delay: 0.38s; }
-.crd-final figcaption { margin-bottom: 4px; font-size: 14px; font-weight: 800; }
+/* 완성한 두 면을 책상에 놓인 명함처럼 살짝 겹쳐 기울여 보여 준다(받는 파일은 반듯한 그림 그대로) */
+.crd-final { position: relative; flex: none; height: 330px; margin-top: 8px; }
+.crd-final figure { position: absolute; width: 66%; }
+.crd-final figure[data-which='back'] { top: 8px; right: 2%; animation: crd-deal-back 0.6s var(--kx-ease) 0.25s both; }
+.crd-final figure[data-which='front'] { bottom: 12px; left: 2%; z-index: 1; animation: crd-deal-front 0.6s var(--kx-ease) 0.4s both; }
+@keyframes crd-deal-back { from { opacity: 0; transform: translateY(26px) rotate(0deg); } to { opacity: 1; transform: rotate(5deg); } }
+@keyframes crd-deal-front { from { opacity: 0; transform: translateY(26px) rotate(0deg); } to { opacity: 1; transform: rotate(-4deg); } }
 .crd-file { flex: none; display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 14px; margin-top: 14px; padding: 12px 18px; background: #f0f1f4; color: var(--kx-accent); }
 .crd-file b { display: block; color: var(--kx-ink); font-size: 19px; font-weight: 800; }
 .crd-file span { display: block; color: var(--kx-soft); font-size: 14.5px; }
@@ -109,5 +111,8 @@
 .kx-root .crd-redraw button:disabled { opacity: 0.35; }
 .crd-pair { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .kx-root .crd-pair .crd-edit { padding: 0 6px; font-size: 17px; }
-.kx-root[data-x='card'] [data-page='card-edit'] .crd-option { min-height: 60px; }
+.kx-root[data-x='card'] [data-page='card-edit'] .crd-option { min-height: 56px; }
+/* 다섯 개가 한 줄에 들어가는 묶음(구성·서체) */
+.crd-option > div[data-many] { gap: 6px; }
+.kx-root .crd-option > div[data-many] button { max-width: none; min-width: 0; padding: 0 2px; font-size: 15px; letter-spacing: -0.02em; white-space: nowrap; }
 .kx-root[data-x='card'] [data-page='card-edit'] .crd-title { margin-top: 12px; }
