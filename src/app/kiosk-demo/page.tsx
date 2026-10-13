@@ -136,7 +136,7 @@ export default function KioskDemoPage() {
       </main>
 
       <footer className="kd-foot">
-        <b>주식회사 네안더</b>
+        <b>주식회사 네안데르</b>
         <span>Tel. 02-336-3368</span>
         <span>neander@neander.co.kr</span>
       </footer>
