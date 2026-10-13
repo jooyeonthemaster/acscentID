@@ -91,7 +91,7 @@ function PasswordScreen({ onOpen }: { onOpen: () => void }) {
         </div>
         <p className="kwg-msg" role="status" aria-live="polite" data-error={error ? '' : undefined}>{sending ? '확인하는 중…' : error}</p>
         <div className="kwg-pad">
-          {KEYS.map((key, index) => key === '' ? <span key={index} aria-hidden="true" /> : (
+          {KEYS.map((key) => key === '' ? <span key="blank" aria-hidden="true" /> : (
             <button key={key} type="button" disabled={sending} aria-label={key === 'back' ? '지우기' : key} onClick={() => press(key)}>
               {key === 'back' ? <Delete size={26} strokeWidth={1.8} aria-hidden="true" /> : key}
             </button>
