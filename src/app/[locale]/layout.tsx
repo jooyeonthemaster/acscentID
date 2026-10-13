@@ -57,7 +57,7 @@ export async function generateMetadata({
   };
 
   const creators: Record<string, string> = {
-    ko: "주식회사 네안더",
+    ko: "주식회사 네안데르",
     en: "Neander Inc.",
     ja: "株式会社ネアンダー",
     zh: "NEANDER 株式会社",
