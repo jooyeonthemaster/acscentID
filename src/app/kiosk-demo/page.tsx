@@ -137,7 +137,9 @@ export default function KioskDemoPage() {
 
       <footer className="kd-foot">
         <b>주식회사 네안데르</b>
-        <span>Tel. 02-336-3368</span>
+        {/* 휴대폰에서 누르면 바로 전화가 걸린다 */}
+        <a href="tel:02-336-3368">Tel. 02-336-3368</a>
+        <a href="tel:010-8507-5121">Mobile. 010-8507-5121</a>
         <span>neander@neander.co.kr</span>
       </footer>
     </div>

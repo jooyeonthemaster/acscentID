@@ -123,6 +123,9 @@
 
 .kd-foot { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: clamp(52px, 7vw, 88px); padding-block: 26px 44px; border-top: 1px solid var(--kd-line); color: var(--kd-soft); font-size: 14px; }
 .kd-foot b { color: var(--kd-ink); font-weight: 700; }
+.kd-foot a { font-variant-numeric: tabular-nums; text-underline-offset: 3px; }
+.kd-foot a:hover { color: var(--kd-ink); text-decoration: underline; }
+.kd-foot a:focus-visible { outline: 2px solid var(--kd-accent); outline-offset: 2px; border-radius: 2px; }
 
 @media (max-width: 760px) {
   .kd-hero { grid-template-columns: minmax(0, 1fr); }
