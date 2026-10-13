@@ -1,6 +1,6 @@
 // 영업용 데모(/kiosk-demo) — 랜딩페이지에서 고르는 프로그램 목록과, 데모로 연 화면을 가리는 표시.
-// 데모는 운영 모드 미리보기 주소(/kiosk?mode=…)에 demo=1 을 붙여 연다: 기기 설정을 건드리지 않고, 화면에 NEANDER 워터마크가 깔린다(DemoWatermark).
-// 웹브라우저로 여는 것이라 접속 비밀번호를 묻는다(web-access.ts). 설명: docs/kiosk-modes.md '영업용 데모'
+// 데모는 운영 모드 미리보기 주소(/kiosk?mode=…)에 demo=1 을 붙여 연다: 기기 설정을 건드리지 않고, 화면에 NEANDER 워터마크가 깔린다(KioskWatermark).
+// 설명: docs/kiosk-modes.md '영업용 데모'
 
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const KIOSK_DEMO_PARAM = 'demo'

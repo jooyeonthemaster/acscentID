@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
 // 영업용 데모 랜딩 — 키오스크에서 도는 프로그램을 골라 웹브라우저로 직접 눌러 볼 수 있게 한다.
-// 고른 프로그램은 운영 모드 미리보기 주소에 demo=1 을 붙여 새 창으로 연다: 접속 비밀번호를 묻고(web-access.ts), 화면에 NEANDER 워터마크가 깔린다(DemoWatermark).
+// 고른 프로그램은 운영 모드 미리보기 주소에 demo=1 을 붙여 새 창으로 연다: 화면에 NEANDER 워터마크가 깔린다(KioskWatermark).
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/kiosk-modes.md '영업용 데모'
 export const metadata: Metadata = {
   title: 'NEANDER 키오스크 데모',
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-/** 매장 키오스크 실물 사진에 그 프로그램의 첫 화면을 합성한 그림(scripts/kiosk-demo/compose.py) */
-const kioskShot = (mode: string) => `/assets/kiosk-demo/kiosk-${mode}.webp`
+/** 그 프로그램의 첫 화면(560×996 CSS 크기로 찍어 600×1067 로 줄인 것) */
+const screenShot = (mode: string) => `/assets/kiosk-demo/screen-${mode}.webp`
 const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'reading', title: 'AI 분석 · 리딩', note: '사진이나 생년월일로 나를 읽어 주는 프로그램' },
   { id: 'studio', title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
@@ -27,19 +27,29 @@ const FEATURES = [
   { Icon: Sparkles, title: '행사 맞춤', text: '첫 화면 문구와 배경, 영수증 문구를 행사에 맞춰 바꿀 수 있습니다.' },
 ]
 const NOTES = [
-  '데모를 열면 여섯 자리 접속 코드를 묻습니다. 코드는 담당자에게 받으세요. 한 번 넣으면 그 브라우저에서 12시간 동안 다시 묻지 않습니다.',
   '카메라나 마이크를 쓰는 프로그램은 브라우저가 권한을 물을 때 허용해 주세요.',
   'AI가 그림을 그리는 프로그램은 결과가 나오기까지 10초쯤 걸립니다.',
   '영수증 출력은 프린터가 달린 실제 키오스크에서 동작합니다. 브라우저에서는 미리보기로 보여 줍니다.',
-  '데모 화면에는 NEANDER 워터마크가 표시됩니다.',
+  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 키오스크에는 표시되지 않습니다.',
 ]
 /** 머리말의 키오스크 한 대 — 화면이 이 차례로 3초마다 바뀐다(움직임 줄이기를 켠 브라우저는 첫 화면에 머문다) */
 const HERO = ['ai-tarot', 'studio-draw', 'studio-voice', 'studio-card', 'ai-color', 'studio-makeup', 'studio-nail', 'studio-career', 'studio-skin', 'kwave-2026']
   .map((mode) => KIOSK_DEMOS.find((demo) => demo.mode === mode)!)
 
-function Kiosk({ mode, alt }: { mode: string; alt: string }) {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img className="kd-kiosk" src={kioskShot(mode)} alt={alt} width={623} height={1004} loading="lazy" decoding="async" />
+/**
+ * 매장 키오스크를 정면에서 본 모양 — 그림 파일 없이 코드로 그린다(kiosk-demo.css 의 .kd-kiosk).
+ * 실물(2026-09 매장 설치)의 특징만 옮겼다: 검은 몸체 · 크게 둥근 윗모서리 · 가운데 위에 집게로 꽂은 웹캠 · 9:16 화면 · 화면 아래 영수증 구멍이 난 패널(아래로 흐려진다).
+ */
+function Kiosk({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span className={`kd-kiosk${className ? ` ${className}` : ''}`}>
+      <span className="kd-kiosk-cam" aria-hidden="true"><i /></span>
+      <span className="kd-kiosk-body">
+        <span className="kd-kiosk-screen">{children}</span>
+        <span className="kd-kiosk-panel" aria-hidden="true"><i /></span>
+      </span>
+    </span>
+  )
 }
 
 export default function KioskDemoPage() {
@@ -59,12 +69,14 @@ export default function KioskDemoPage() {
             <a className="kd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
           <figure className="kd-hero-stage" aria-label="매장 키오스크에서 프로그램이 바뀌며 도는 모습">
-            <div className="kd-cycle" aria-hidden="true">
-              {HERO.map((demo, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={demo.mode} src={kioskShot(demo.mode)} alt="" width={623} height={1004} decoding="async" fetchPriority={i ? 'low' : 'high'} style={{ '--i': i } as CSSProperties} />
-              ))}
-            </div>
+            <Kiosk className="kd-kiosk--hero">
+              <span className="kd-cycle" aria-hidden="true">
+                {HERO.map((demo, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={demo.mode} src={screenShot(demo.mode)} alt="" width={600} height={1067} decoding="async" fetchPriority={i ? 'low' : 'high'} style={{ '--i': i } as CSSProperties} />
+                ))}
+              </span>
+            </Kiosk>
             <figcaption className="kd-now" aria-hidden="true">
               {HERO.map((demo, i) => <span key={demo.mode} style={{ '--i': i, '--kd-tone': demo.color } as CSSProperties}><b>{demo.tag}</b>{demo.name}</span>)}
             </figcaption>
@@ -84,7 +96,10 @@ export default function KioskDemoPage() {
                   {demos.map((demo) => (
                     <li key={demo.mode}>
                       <a className="kd-card" href={kioskDemoHref(demo.mode)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
-                        <Kiosk mode={demo.mode} alt={`매장 키오스크에 띄운 ${demo.name} 첫 화면`} />
+                        <Kiosk>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
+                        </Kiosk>
                         <span className="kd-card-body">
                           <span className="kd-tag">{demo.tag}</span>
                           <b>{demo.name}</b>
