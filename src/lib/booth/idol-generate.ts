@@ -47,8 +47,8 @@ export function issueIdolTicket(pass: string, now = Date.now()) {
 
 const uses = new Map<string, number>()
 
-/** 표가 맞고 기한·횟수가 남았으면 1회 쓴다 */
-export function spendIdolTicket(ticket: unknown): void {
+/** 표가 서명·기한이 맞으면 표의 주인(사용 처리한 이용권 id, 'free', 'demo' 등)을 돌려준다 — 횟수는 쓰지 않는다 */
+export function readIdolTicket(ticket: unknown): { payload: string; pass: string } {
   if (typeof ticket !== 'string' || ticket.length > 300) throw new IdolError('이용권을 먼저 확인해 주세요.', 401)
   const cut = ticket.lastIndexOf('.')
   const payload = ticket.slice(0, cut), signed = ticket.slice(cut + 1)
@@ -57,10 +57,17 @@ export function spendIdolTicket(ticket: unknown): void {
   const expires = Number(payload.split('.')[0])
   if (!ok || !Number.isFinite(expires)) throw new IdolError('이용권을 먼저 확인해 주세요.', 401)
   if (expires < Date.now()) throw new IdolError('시간이 지났어요. 처음부터 다시 해 주세요.', 401)
+  return { payload, pass: payload.split('.')[1] ?? '' }
+}
+
+/** 표가 맞고 기한·횟수가 남았으면 1회 쓰고 표의 주인을 돌려준다 */
+export function spendIdolTicket(ticket: unknown): string {
+  const { payload, pass } = readIdolTicket(ticket)
   const used = uses.get(payload) ?? 0
   if (used >= IDOL_TICKET_USES) throw new IdolError('이번 이용권으로 만들 수 있는 횟수를 다 썼어요.', 429)
   uses.set(payload, used + 1)
   if (uses.size > 2000) for (const key of [...uses.keys()].slice(0, 1000)) uses.delete(key)
+  return pass
 }
 
 // ───────────────────────── 생성 ─────────────────────────

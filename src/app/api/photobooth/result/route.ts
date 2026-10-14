@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
+import { isDemoTicket } from '@/lib/booth/demo-server'
 import {
   RESULT_PHOTO_BUCKET,
   RESULT_PHOTO_DIR,
@@ -17,19 +18,33 @@ const MAX_SIZE_MB = 4
 /** 부스 완성 직후에만 받는다 — 오래된 촬영 기록으로 아무 사진이나 올리는 걸 막는다 */
 const SHOT_MAX_AGE_MS = 2 * 60 * 60 * 1000
 
+/** 데모 사진 올리기 — 인스턴스 안에서 1분에 이만큼 */
+const DEMO_UPLOADS_PER_MINUTE = 10
+let demoWindowStart = 0
+let demoWindowCount = 0
+function takeDemoUpload(now = Date.now()) {
+  if (now - demoWindowStart > 60_000) { demoWindowStart = now; demoWindowCount = 0 }
+  return ++demoWindowCount <= DEMO_UPLOADS_PER_MINUTE
+}
+
 /**
  * 부스 완성 사진을 "폰으로 받기"용으로 올린다 (부스 전용, 비로그인)
  * POST /api/photobooth/result  { shotId, imageBase64 } → { token, path }
+ * 영업용 데모(/booth-demo)는 촬영 기록 대신 데모 표로: { demoTicket, imageBase64 } — 매장 통계에 남기지 않는다.
  *
- * 손님이 [이미지 저장]을 누른 사진만, 24시간 보관한다 (src/lib/photobooth/result-photo.ts).
+ * 손님이 [폰으로 받기]를 누른 사진과 인화물 QR(행사 모드)용 사진을 7일 보관한다 (src/lib/photobooth/result-photo.ts).
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
     const shotId = typeof body?.shotId === 'string' ? body.shotId : ''
     const imageBase64 = typeof body?.imageBase64 === 'string' ? body.imageBase64 : ''
+    const demo = isDemoTicket(body?.demoTicket)
+    if (demo && !takeDemoUpload()) {
+      return NextResponse.json({ error: '잠시 후 다시 시도해 주세요' }, { status: 429 })
+    }
 
-    if (!/^[0-9a-f-]{36}$/i.test(shotId)) {
+    if (!demo && !/^[0-9a-f-]{36}$/i.test(shotId)) {
       return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     }
     if (!imageBase64.startsWith('data:image/jpeg;base64,')) {
@@ -46,17 +61,21 @@ export async function POST(request: NextRequest) {
 
     const serviceClient = createServiceRoleClient()
 
-    const { data: shot, error: shotError } = await serviceClient
-      .from('photobooth_shots')
-      .select('id, created_at')
-      .eq('id', shotId)
-      .maybeSingle()
-    if (shotError) {
-      console.error('Photobooth result shot fetch failed:', shotError)
-      return NextResponse.json({ error: '기록 조회에 실패했습니다' }, { status: 500 })
-    }
-    if (!shot || Date.now() - new Date(shot.created_at).getTime() > SHOT_MAX_AGE_MS) {
-      return NextResponse.json({ error: '촬영 기록을 찾을 수 없습니다' }, { status: 404 })
+    let shot: { id: string; created_at: string } | null = null
+    if (!demo) {
+      const { data, error: shotError } = await serviceClient
+        .from('photobooth_shots')
+        .select('id, created_at')
+        .eq('id', shotId)
+        .maybeSingle()
+      if (shotError) {
+        console.error('Photobooth result shot fetch failed:', shotError)
+        return NextResponse.json({ error: '기록 조회에 실패했습니다' }, { status: 500 })
+      }
+      if (!data || Date.now() - new Date(data.created_at).getTime() > SHOT_MAX_AGE_MS) {
+        return NextResponse.json({ error: '촬영 기록을 찾을 수 없습니다' }, { status: 404 })
+      }
+      shot = data
     }
 
     const token = createResultToken()
@@ -72,12 +91,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '사진을 올리지 못했습니다' }, { status: 500 })
     }
 
-    // 통계: "저장" = 손님이 폰으로 받기를 요청한 건
-    const { error: markError } = await serviceClient
-      .from('photobooth_shots')
-      .update({ downloaded: true })
-      .eq('id', shot.id)
-    if (markError) console.error('Photobooth result shot mark failed:', markError)
+    // 통계: "저장" = 손님이 폰으로 받기를 요청한 건(데모는 기록이 없다)
+    if (shot) {
+      const { error: markError } = await serviceClient
+        .from('photobooth_shots')
+        .update({ downloaded: true })
+        .eq('id', shot.id)
+      if (markError) console.error('Photobooth result shot mark failed:', markError)
+    }
 
     await removeExpired(serviceClient)
 

@@ -1801,7 +1801,7 @@ export function BoothClassic() {
         try {
           if (!shotIdRef.current) await logShot()
           if (!shotIdRef.current) throw new Error('촬영 기록이 없어요')
-          const path = await uploadResultPhoto(shotIdRef.current, clean)
+          const path = await uploadResultPhoto({ shotId: shotIdRef.current }, clean)
           const url = withBoothLang(`${window.location.origin}${path}`, langRef.current)
           const qr = await makePrintQr(url)
           setResultUrl(renderIdolPrint(idolPrint, qr.image))

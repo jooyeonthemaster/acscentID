@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findIdolConcept, IDOL_MAX_PEOPLE } from '@/lib/booth/idol-concepts'
 import { generateIdolPhoto, IdolError, spendIdolTicket } from '@/lib/booth/idol-generate'
+import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest) {
     if (!Number.isInteger(people) || people < 1 || people > IDOL_MAX_PEOPLE) {
       return NextResponse.json({ error: `AI 사진은 ${IDOL_MAX_PEOPLE}명까지 만들 수 있어요.` }, { status: 400 })
     }
-    spendIdolTicket(body?.ticket)
+    // 영업용 데모 표는 생성 상한(1분 3장·하루 40장)을 따로 센다
+    if (spendIdolTicket(body?.ticket) === DEMO_TICKET_OWNER) await takeDemoGeneration()
     const faces = Array.isArray(body?.faces) ? body.faces.filter((face: unknown): face is string => typeof face === 'string') : []
     const image = await generateIdolPhoto(String(body?.photo ?? ''), concept, people, faces)
     return NextResponse.json({ image }, { headers: { 'Cache-Control': 'no-store' } })

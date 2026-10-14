@@ -27,12 +27,15 @@ export function renderIdolPrint(args: IdolPrintArgs, qr: PrintQr): string {
   return canvas.toDataURL('image/jpeg', 0.95)
 }
 
-/** 완성 사진을 올리고 폰에서 열 주소(언어 포함)를 받는다 — 서버가 촬영 기록(shotId)으로 요청을 확인한다 */
-export async function uploadResultPhoto(shotId: string, imageBase64: string): Promise<string> {
+/** 사진 올리기 자격 — 매장은 촬영 기록, 영업용 데모는 데모 표(매장 통계에 남기지 않는다) */
+export type ResultUploadAuth = { shotId: string } | { demoTicket: string }
+
+/** 완성 사진을 올리고 폰에서 열 주소를 받는다 — 서버가 촬영 기록이나 데모 표로 요청을 확인한다 */
+export async function uploadResultPhoto(auth: ResultUploadAuth, imageBase64: string): Promise<string> {
   const res = await fetch('/api/photobooth/result', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ shotId, imageBase64 }),
+    body: JSON.stringify({ ...auth, imageBase64 }),
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok || typeof data.path !== 'string') throw new Error(data.error || `업로드 실패 (${res.status})`)
