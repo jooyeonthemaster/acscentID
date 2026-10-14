@@ -37,7 +37,8 @@ export async function uploadShare(kind: ExperienceId, lang: KioskLang, files: Kx
   const result = await response.json().catch(() => null)
   if (!response.ok || !result?.path) throw new Error(result?.error || 'share failed')
   // 폰이 여는 주소 — 배포된 사이트 주소. 웹 초안에서는 지금 주소로
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}${result.path}`
+  const local = process.env.NODE_ENV !== 'production' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
+  const url = `${local ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}${result.path}`
   const QRCode = (await import('qrcode')).default
   return { url, qr: await QRCode.toDataURL(url, { width: 520, margin: 1 }), expiresAt: started + SHARE_TTL_HOURS * 60 * 60 * 1000 }
 }

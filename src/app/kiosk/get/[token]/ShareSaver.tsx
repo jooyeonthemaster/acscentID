@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, Download, FileText, Loader2 } from 'lucide-react'
 import { shareFileUrl, type ShareFileMeta, type ShareMeta } from '@/lib/kiosk/share'
 import { SHARE_TEXT } from './text'
+import { isExpansionId } from '@/lib/kiosk/expansion/types'
 
 /** 아이폰·아이패드(데스크톱 모드 포함) — 사진 앱 저장은 공유 시트의 "이미지 저장"으로만 된다 */
 function isIOS() {
@@ -18,7 +19,7 @@ function formatExpiry(ts: number, htmlLang: string) {
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed'
 
-function Item({ token, file, text }: { token: string; file: ShareFileMeta; text: (typeof SHARE_TEXT)['ko'] }) {
+function Item({ token, file, text, prefix }: { token: string; file: ShareFileMeta; text: (typeof SHARE_TEXT)['ko']; prefix: string }) {
   const [state, setState] = useState<SaveState>('idle')
   // 아이폰 공유 시트는 "누른 직후"에만 열린다 — 누르고 나서 받기 시작하면 늦으므로 미리 받아 둔다
   const ready = useRef<File | null>(null)
@@ -30,10 +31,10 @@ function Item({ token, file, text }: { token: string; file: ShareFileMeta; text:
     let cancelled = false
     fetch(url)
       .then((res) => (res.ok ? res.blob() : Promise.reject(new Error(String(res.status)))))
-      .then((blob) => { if (!cancelled) ready.current = new File([blob], `acscent-${file.name}`, { type: file.type }) })
+      .then((blob) => { if (!cancelled) ready.current = new File([blob], `${prefix}-${file.name}`, { type: file.type }) })
       .catch(() => { /* 저장 버튼이 내려받기로 대신한다 */ })
     return () => { cancelled = true }
-  }, [url, image, file.name, file.type])
+  }, [url, image, file.name, file.type, prefix])
 
   const save = async () => {
     setState('saving')
@@ -51,7 +52,7 @@ function Item({ token, file, text }: { token: string; file: ShareFileMeta; text:
     // 안드로이드·그 밖: 바로 내려받기
     const link = document.createElement('a')
     link.href = shareFileUrl(token, file.name, true)
-    link.download = `acscent-${file.name}`
+    link.download = `${prefix}-${file.name}`
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -96,7 +97,7 @@ export function ShareSaver({ token, meta, tag, color, htmlLang, expiresAt }: {
     <div lang={htmlLang} className="flex min-h-svh flex-col items-center gap-4 bg-neutral-950 px-5 pb-10 pt-8 text-center text-white">
       <p className="text-3xl font-black tracking-tight" style={{ color: '#fff', textShadow: `0 0 28px ${color}` }}>{tag}</p>
       <h1 className="break-keep text-xl font-bold">{text.title}</h1>
-      {meta.files.map((file) => <Item key={file.name} token={token} file={file} text={text} />)}
+      {meta.files.map((file) => <Item key={file.name} token={token} file={file} text={text} prefix={isExpansionId(meta.kind) ? 'kiosk' : 'acscent'} />)}
       <p className="max-w-sm break-keep text-sm leading-relaxed text-white/70">{text.hint}</p>
       <p className="max-w-sm break-keep text-sm leading-relaxed text-white/55">{text.keep(formatExpiry(expiresAt, htmlLang))}</p>
     </div>

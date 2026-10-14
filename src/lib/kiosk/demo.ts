@@ -5,7 +5,9 @@
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const KIOSK_DEMO_PARAM = 'demo'
 
-export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'touch'
+import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
+
+export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'touch' | 'display'
 
 export interface KioskDemo {
   /** 운영 모드 id(src/lib/kiosk/modes.ts) */
@@ -15,12 +17,12 @@ export interface KioskDemo {
   name: string
   desc: string
   needs: KioskDemoNeed[]
-  group: 'reading' | 'studio'
+  group: 'reading' | 'studio' | 'preferences' | 'social' | 'interactive'
   /** 그 프로그램 화면의 대표색 — 랜딩의 작은 표시에 쓴다 */
   color: string
 }
 
-export const KIOSK_DEMO_NEEDS: Record<KioskDemoNeed, string> = { camera: '카메라', mic: '마이크', ai: 'AI 생성', touch: '터치만' }
+export const KIOSK_DEMO_NEEDS: Record<KioskDemoNeed, string> = { camera: '카메라', mic: '마이크', ai: 'AI 생성', touch: '터치', display: '전시 화면 연동' }
 
 export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'kwave-2026', tag: 'SAJU!', name: '사주 향 처방', desc: '생년월일시로 사주 오행을 읽고, 부족한 기운을 채우는 향을 처방전 영수증으로 뽑아 줍니다.', needs: ['touch', 'ai'], group: 'reading', color: '#1f5a45' },
@@ -33,6 +35,10 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'studio-voice', tag: 'VOICE!', name: '보이스 체험', desc: '목소리를 녹음해 다람쥐 · 거인 · 외계인 같은 여덟 가지 필터로 들어 봅니다.', needs: ['mic'], group: 'studio', color: '#187b8d' },
   { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '관심사 · MBTI · 재미로 보는 관상으로 어울리는 직업을 찾아 줍니다.', needs: ['touch', 'camera'], group: 'studio', color: '#315ca8' },
   { mode: 'studio-makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', desc: '내 얼굴에 립 · 아이 · 블러셔 · 헤어 색을 올려 보고 머리 모양도 바꿔 봅니다.', needs: ['camera', 'ai'], group: 'studio', color: '#754f70' },
+  ...EXPANSION_IDS.map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
+    needs: ['lookalike','palm','face'].includes(id) ? ['camera','touch'] : ['product','heritage','vision-wall'].includes(id) ? ['touch','display'] : ['touch'],
+    group:['science','product','heritage','vision-wall'].includes(id) ? 'interactive' : ['team','couple','lookalike','palm','face'].includes(id) ? 'social' : 'preferences',
+  })),
 ]
 
 /** 데모로 여는 주소 — 미리보기 주소에 데모 표시를 붙인다 */

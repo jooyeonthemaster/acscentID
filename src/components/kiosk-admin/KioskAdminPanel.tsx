@@ -18,10 +18,12 @@ import { createPortal } from 'react-dom'
 import {
   ArrowRight, Brush, CalendarDays, Check, ChevronLeft, ChevronRight, CircleAlert, Compass, Droplets, FlaskConical, GalleryHorizontalEnd, Hand, IdCard, ImageIcon, Info,
   LockKeyhole as Lock, Mic, MoonStar, Palette, Pencil, Power, RefreshCw, Settings, Store, Type, WifiOff, X,
+  Wine, Martini, Coffee, Utensils, Shirt, Sparkles, Atom, Box, Users, MessagesSquare, Landmark, Plane, Heart, ScanFace, Search,
 } from 'lucide-react'
 import { KIOSK_FONT_CLASS, hanjaFontVar } from '@/app/kiosk/fonts'
 import type { KioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { EXPERIENCE_META, kioskExperience, type ExperienceId } from '@/lib/kiosk/experience'
+import { EXPANSION_META, isExpansionId } from '@/lib/kiosk/expansion/types'
 import { DEFAULT_KIOSK_MODE, KIOSK_MODES, findKioskMode, isDeviceKioskMode, type KioskMode } from '@/lib/kiosk/modes'
 import { kioskProgramTheme } from '@/lib/kiosk/program-theme'
 import { SCREEN_UI_LABELS, type DeviceSettings, type ScreenBackground, type ScreenUi } from '@/lib/screen-backgrounds/types'
@@ -72,7 +74,9 @@ const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: t
   'ai-color': { name: 'AI 퍼스널 컬러', lines: ['사진 한 장으로 컬러 진단', '컬러 전용 디자인 사용'], Icon: Palette },
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }
-const EXPERIENCE_ICON: Record<ExperienceId, typeof Store> = { nail: Hand, card: IdCard, skin: Droplets, draw: Pencil, voice: Mic, career: Compass, makeup: Brush }
+const EXPERIENCE_ICON: Record<ExperienceId, typeof Store> = { nail: Hand, card: IdCard, skin: Droplets, draw: Pencil, voice: Mic, career: Compass, makeup: Brush,
+  sommelier:Wine, cocktail:Martini, barista:Coffee, 'taste-dna':Utensils, 'style-profiler':Shirt, coord:Shirt, lookalike:Sparkles, science:Atom, palm:Hand, aura:Sparkles, product:Box, team:Users, 'vision-wall':MessagesSquare, heritage:Landmark, travel:Plane, scent:Droplets, face:ScanFace, couple:Heart,
+}
 const modeCopy = (mode: KioskMode) => {
   if (MODE_COPY[mode.id]) return MODE_COPY[mode.id]
   // 체험 모드(네일·명함·스킨케어…) — 이름·설명은 experience.ts 한 곳에서
@@ -426,6 +430,11 @@ type ModeSave =
 
 function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthExpired: () => void }) {
   const [save, setSave] = useState<ModeSave | null>(null)
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('전체')
+  const modeCategory = (mode: KioskMode) => mode.experience && isExpansionId(mode.experience) ? EXPANSION_META[mode.experience].category : '기존 체험'
+  const categories = ['전체', '기존 체험', ...new Set(Object.values(EXPANSION_META).map(m => m.category))]
+  const filtered = KIOSK_MODES.filter(mode => mode.id !== DEFAULT_KIOSK_MODE.id && (category === '전체' || modeCategory(mode) === category) && `${modeCopy(mode).name} ${mode.note} ${mode.id}`.toLowerCase().includes(query.trim().toLowerCase()))
   const [sajuBusy, setSajuBusy] = useState<string | null>(null)
   const [sajuNotice, setSajuNotice] = useState<{ tone: NoticeTone; text: string } | null>(null)
   const settings = screen.baseSettings
@@ -522,9 +531,12 @@ function ModeTab({ screen, onAuthExpired }: { screen: KioskAdminScreen; onAuthEx
         {/* 운영 모드는 매장 기본 하나(모든 키오스크가 함께 쓴다) — 그 밖의 프로그램(사주·컬러·타로·체험 일곱 가지)은 모두 체험 모드로, 고른 이 키오스크에만 저장한다(수가 많아 두 줄로 작게) */}
         {KIOSK_MODES.filter((mode) => mode.id === DEFAULT_KIOSK_MODE.id).map((mode) => modeButton(mode, false))}
         <h3 className="kadm-modes-sub">체험 모드<span>고른 이 키오스크에서만 매장 기본 대신 운영돼요</span></h3>
+        <label className="kadm-mode-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="체험 모드 검색" placeholder="이름으로 찾기" value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label="검색 지우기" onClick={() => setQuery('')}><X size={19} /></button>}</label>
+        <div className="kadm-mode-categories" aria-label="체험 종류">{categories.map(item => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}</div>
         <div className="kadm-modes-grid">
-          {KIOSK_MODES.filter((mode) => mode.id !== DEFAULT_KIOSK_MODE.id).map((mode) => modeButton(mode, true))}
+          {filtered.map((mode) => modeButton(mode, true))}
         </div>
+        {!filtered.length && <p className="kadm-sub" role="status">조건에 맞는 체험이 없어요. 검색어나 종류를 바꿔 주세요.</p>}
       </div>
 
       {current.programs.includes('saju') && (

@@ -9,7 +9,7 @@ import './kiosk-demo.css'
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/kiosk-modes.md '영업용 데모'
 export const metadata: Metadata = {
   title: 'NEANDER 키오스크 데모',
-  description: '세로형 터치 키오스크에서 도는 AI 체험 프로그램 열 가지를 직접 눌러 보는 데모입니다.',
+  description: '세로형 터치 키오스크의 체험 프로그램 28가지를 직접 눌러 보는 데모입니다.',
   robots: { index: false, follow: false },
 }
 
@@ -18,10 +18,13 @@ const screenShot = (mode: string) => `/assets/kiosk-demo/screen-${mode}.webp`
 const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'reading', title: 'AI 분석 · 리딩', note: '사진이나 생년월일로 나를 읽어 주는 프로그램' },
   { id: 'studio', title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
+  { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 내 선택으로 만드는 가이드' },
+  { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
+  { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 3D 제품 · 비전 월 · 문화유산 탐색' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
-  { Icon: Languages, title: '5개 언어', text: '한국어 · English · 日本語 · 简体中文 · 繁體中文' },
+  { Icon: Languages, title: '언어 안내', text: '기존 10종은 5개 언어, 새로 추가된 18종은 한국어로 제공합니다.' },
   { Icon: Smartphone, title: '휴대폰으로 받기', text: '체험 스튜디오의 결과는 QR을 찍어 휴대폰에 저장합니다.' },
   { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함은 영수증으로도 뽑습니다.' },
   { Icon: Sparkles, title: '행사 맞춤', text: '첫 화면 문구와 배경, 영수증 문구를 행사에 맞춰 바꿀 수 있습니다.' },
@@ -64,7 +67,7 @@ export default function KioskDemoPage() {
         <section className="kd-hero">
           <div className="kd-hero-copy">
             <p className="kd-eyebrow">세로형 터치 키오스크 · 1080 × 1920</p>
-            <h1>키오스크 한 대,<br />AI 체험 프로그램 열 가지</h1>
+            <h1>키오스크 한 대,<br />체험 프로그램 {KIOSK_DEMOS.length}가지</h1>
             <p className="kd-lead">매장과 행사장에 세우는 키오스크에서 그대로 도는 프로그램입니다. 아래에서 골라 직접 눌러 보세요.</p>
             <a className="kd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>

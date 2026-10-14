@@ -9,7 +9,7 @@ import { SHARE_TEXT } from './text'
 
 // 키오스크 체험 결과의 [휴대폰으로 받기] QR 을 폰으로 찍으면 열리는 페이지 — 손님이 자기 결과(사진·명함·목소리)를 저장한다
 export const metadata = {
-  title: "내 결과 받기 | AC'SCENT",
+  title: '내 체험 결과 받기',
   robots: { index: false, follow: false },
 }
 export const dynamic = 'force-dynamic'

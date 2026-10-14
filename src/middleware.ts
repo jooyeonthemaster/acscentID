@@ -39,6 +39,7 @@ export function middleware(request: NextRequest) {
     pathname === '/kiosk' ||
     pathname.startsWith('/kiosk/') ||
     pathname === '/kiosk-demo' ||
+    pathname.startsWith('/kiosk-display/') ||
     pathname === '/coupon/claim' ||
     pathname === '/coupon/register' ||
     pathname.startsWith('/_next') ||

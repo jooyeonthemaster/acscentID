@@ -1,0 +1,79 @@
+{
+  "generator": "Built-in image_gen",
+  "date": "2026-10-14",
+  "purpose": "Artwork only; native UI is implemented in code.",
+  "prompts": [
+    {
+      "id": "sommelier",
+      "prompt": "Use case: product-mockup. Create a new premium editorial still-life artwork for a Korean sommelier touchscreen experience. ART ASSET ONLY, not a UI mockup. A single tall elegant stemmed wine glass with deep burgundy wine, small cluster of ripe dark grapes and one grape leaf, a subtle cream tasting paper with absolutely no writing, warm ivory seamless backdrop and soft burgundy shadows. Art directed modern quiet luxury, delicate natural material detail, sophisticated museum shop editorial photograph. Centered composition, all objects visible, spacious margins, gentle daylight. Landscape 4:3 composition suitable for a rounded UI hero panel. Palette ivory #F7F3EC, oxblood #6B2941, sage leaf. No logos, text, letters, buttons, borders, labels, watermark or interface elements."
+    },
+    {
+      "id": "cocktail",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Two beautifully styled clear cocktail glasses, one with coral grapefruit fizz and one with pale lime soda, wedges of citrus and mint leaves, warm peach-ivory background, sophisticated daylight product photograph; coral #E65B39 and mint accents. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "barista",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Ceramic pour-over dripper atop a clear carafe of amber coffee, a small ivory espresso cup and scattered coffee beans, folded natural linen, warm cream background; soft editorial photograph in espresso browns #684333. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "taste-dna",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Artful overhead still life of a sliced lemon, red chili, a strawberry, a green herb sprig and a small sea-salt dish, arranged loosely into a pleasing arc on warm ivory paper. Premium food photography with olive #5D6C36 accent. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "style-profiler",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Tasteful fashion editorial still life: charcoal blazer, ivory knit top, elegant neutral loafers and a sculptural silver bangle neatly arranged as a capsule wardrobe flat lay on pale grey stone. Sophisticated monochrome charcoal #272B35 accent. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "coord",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A complete relaxed layered outfit arranged as an elegant flat lay: sage light jacket, cream t-shirt, dark neutral trousers and white sneakers, one botanical sprig. Muted sage #3E6260 and ivory. Crisp fashion editorial photography. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "lookalike",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Three overlapping fine-art portrait cards of clearly fictional adult East Asian star personas: serene long-haired woman, upbeat short-haired man, sophisticated androgynous adult. Beautiful editorial watercolor and pencil, icy blue #256D99 palette on warm white, absolutely no lettering or labels, faces not modeled on any real celebrity. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "science",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Three elegant small stage lamps emitting red green and blue beams toward a central white glow against pale ice blue backdrop. Exquisite tactile 3D science-museum illustration suggesting additive light mixing, cobalt #2664BA accents. No labels or diagrams. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "palm",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: An anatomically accurate adult open palm seen front-on, five fingers, elegant hand rendered as fine graphite and warm watercolor illustration, a few delicate gold constellation marks floating around it, deep midnight teal #3B5B72 to pale linen atmosphere. Gentle imaginative fortune-telling artwork, no palm-line scientific diagram. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "aura",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A luminous layered orb of translucent lilac glass with peach and mint iridescent edges floating over a warm white softly textured surface, subtle radiating watercolor atmosphere. Calm abstract editorial art, lavender #785DA9. No text, no chart. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "product",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Two elegant unbranded contemporary table lamps, one sage ceramic mushroom dome lamp and one cream cylindrical lamp, tactile matte surfaces, warm soft lamp glow on pale aqua exhibition plinths. Premium product photograph, aqua #276F7A accents. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "team",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Five tactile sculptural interlocking abstract human-like wooden and ceramic forms in warm orange, apricot, sage, lavender and cream forming a collaborative circle. Refined playful 3D museum illustration, orange #D07735 accent, warm ivory background. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "vision-wall",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Beautiful modern museum wall with an intentional arrangement of blank translucent blue, peach, violet and cream rounded paper tiles, soft shadows and architectural daylight. Message wall without any visible writing, deep blue #314C97 palette, sophisticated editorial 3D rendering. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "heritage",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A poetic conceptual miniature of a Korean traditional palace with gracefully curving tiled roofs, timber columns and a tranquil courtyard, spring foliage, fine architectural paper-model craftsmanship on warm ivory plinth, celadon and teal #315C6B. Not a claim of exact historical reconstruction. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "travel",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A coastal landscape as a beautiful editorial cut-paper diorama: mint blue sea, cream winding path, green hills, tiny terracotta houses and a distant sun; warm ivory framing, refined tactile paper layers, optimistic travel mood, mint #268075. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "scent",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A sculptural transparent unbranded perfume bottle with pale golden liquid, a bergamot half, delicate green leaves, a piece of cedarwood and a cream blotter without writing on warm ivory linen. High-end fragrance editorial photograph, olive #58694F. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "face",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: A single clearly fictional adult East Asian face, calm welcoming expression, elegant fine ink and watercolor portrait on warm traditional ivory hanji paper, subtle cinnamon #805849 accents and light abstract clouds. Artistic storytelling portrait, no fortune charts or diagnostic markers. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    },
+    {
+      "id": "couple",
+      "prompt": "Use case: stylized-concept. Create a premium editorial hero ART ASSET for a Korean portrait touchscreen kiosk. Primary subject: Two distinct interlocking sculptural hearts made of matte coral and dusty rose ceramic, smaller complementary cream and sage shapes, soft romantic daylight shadows, premium poetic still life on blush ivory background, coral #A65258. No people or writing. Landscape 4:3 composition, centered balanced subject with generous margins, beautiful refined materials and sophisticated soft daylight, suitable for a rounded image panel inside an editorial UI. Image only: NO UI, no screen, no buttons, no frames, no letters, no logos, no watermark, no brand names. All important objects inside the image."
+    }
+  ]
+}

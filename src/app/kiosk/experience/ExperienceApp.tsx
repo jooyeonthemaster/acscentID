@@ -19,9 +19,10 @@ import { KxContext, KxIdleDialog, type KxContextValue, type KxScreenKind } from 
 import { uploadShare, type KxShare, type KxShareFile } from './kx-share'
 import { useExperienceSwitch } from './useExperienceSwitch'
 import './experience.css'
+import { EXPANSION_META, isExpansionId } from '@/lib/kiosk/expansion/types'
 
 // 모드 화면은 그 모드일 때만 싣는다(인식 엔진·그림이 모드마다 다르다)
-const MODES: Record<ExperienceId, ComponentType> = {
+const MODES: Partial<Record<ExperienceId, ComponentType>> = {
   nail: dynamic(() => import('./nail/NailMode'), { ssr: false }),
   card: dynamic(() => import('./card/CardMode'), { ssr: false }),
   skin: dynamic(() => import('./skin/SkinMode'), { ssr: false }),
@@ -30,6 +31,7 @@ const MODES: Record<ExperienceId, ComponentType> = {
   career: dynamic(() => import('./career/CareerMode'), { ssr: false }),
   makeup: dynamic(() => import('./makeup/MakeupMode'), { ssr: false }),
 }
+const ExpansionMode = dynamic(() => import('./expansion/ExpansionMode'), { ssr:false })
 
 export function ExperienceApp({ id }: { id: ExperienceId }) {
   const screen = useScreenBackgrounds('kiosk')
@@ -43,15 +45,18 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
 
   // 올린 결과(받는 주소·QR) — 같은 결과는 한 번만 올린다. 처음으로 돌아가면 비운다
   const [shares] = useState(() => new Map<string, KxShare>())
+  const shareEpoch = useRef(0)
   const share = useCallback(async (cacheKey: string, build: () => Promise<KxShareFile[]>) => {
     const kept = shares.get(cacheKey)
-    if (kept) return kept
+    if (kept && kept.expiresAt > Date.now() + 60000) return kept
+    const epoch = shareEpoch.current
     const made = await uploadShare(id, lang, await build())
-    shares.set(cacheKey, made)
+    if (shareEpoch.current === epoch) shares.set(cacheKey, made)
     return made
   }, [id, lang, shares])
 
   const home = useCallback(() => {
+    shareEpoch.current++
     shares.clear()
     setSession((n) => n + 1)
     setLang('ko')
@@ -106,18 +111,20 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
   useEffect(() => () => window.clearTimeout(hold.current), [])
 
   const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind, share }), [id, lang, home, share])
-  const Mode = MODES[id]
+  const expanded = isExpansionId(id)
+  const Mode = expanded ? ExpansionMode : MODES[id]
 
   return (
     <div
       className={`kx-root ${KIOSK_FONT_CLASS}`}
       data-x={id}
       data-lang={lang}
-      style={isCjkLang(lang) ? ({ '--kx-font': CJK_FONT_STACK[lang] } as CSSProperties) : undefined}
+      data-expansion={expanded ? id : undefined}
+      style={{ ...(isCjkLang(lang) ? { '--kx-font': CJK_FONT_STACK[lang] } : {}), ...(expanded ? { '--kx-accent': EXPANSION_META[id].color } : {}) } as CSSProperties}
     >
       <KxContext.Provider value={context}>
         <div className="kx-stage">
-          <Mode key={session} />
+          {Mode && <Mode key={`${id}-${session}`} />}
         </div>
         {idleLeft !== null && <KxIdleDialog left={idleLeft} total={IDLE_WARN_S} />}
       </KxContext.Provider>

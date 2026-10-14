@@ -1797,3 +1797,11 @@
     transition: none;
   }
 }
+
+/* More experience modes: keep the device-scoped picker searchable. */
+.kadm-mode-search { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid #d4dce7; border-radius:12px; background:#fff; }
+.kadm-mode-search input { min-width:0; flex:1; min-height:38px; border:0; outline:none; background:transparent; color:#1f2937; font:inherit; }
+.kadm-mode-search button { display:grid; place-items:center; min-width:42px; min-height:42px; }
+.kadm-mode-categories { display:flex; flex-wrap:wrap; gap:7px; margin:12px 0; }
+.kadm-mode-categories button { min-height:42px; padding:8px 13px; border:1px solid #d4dce7; border-radius:999px; background:#fff; color:#475569; font-size:13px; font-weight:700; }
+.kadm-mode-categories button[aria-pressed='true'] { border-color:#2455c8; background:#eaf0ff; color:#2455c8; }

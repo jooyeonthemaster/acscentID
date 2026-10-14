@@ -64,3 +64,4 @@ backups
 
 # 단위 테스트 번들(npm run test:saju-parser)
 /.test-build
+/.data/kiosk-exhibit/

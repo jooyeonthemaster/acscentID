@@ -4,7 +4,9 @@
 // 화면 디자인·글꼴·배경 설정은 이 모드들에서 쓰이지 않는다.
 // 설명: docs/kiosk-experiences.md
 
-export const EXPERIENCE_IDS = ['nail', 'card', 'skin', 'draw', 'voice', 'career', 'makeup'] as const
+import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
+
+export const EXPERIENCE_IDS = ['nail', 'card', 'skin', 'draw', 'voice', 'career', 'makeup', ...EXPANSION_IDS] as const
 export type ExperienceId = (typeof EXPERIENCE_IDS)[number]
 
 /** 운영 모드 id — 'studio-nail' 처럼 붙인다 */
@@ -19,6 +21,7 @@ export function kioskExperience(modeId: string | null | undefined): ExperienceId
 
 /** 관리자 화면·문서에서 쓰는 이름과 목업의 큰 글자 */
 export const EXPERIENCE_META: Record<ExperienceId, { name: string; tag: string; note: string; color: string }> = {
+  ...EXPANSION_META,
   nail: { name: '네일 디자이너', tag: 'NAIL!', note: '손 사진에 네일 색·패턴 입히기', color: '#7A2946' },
   card: { name: '명함 디자이너', tag: 'CARD!', note: '느낌을 고르면 AI가 디자인 · 건당 비용', color: '#2148C8' },
   skin: { name: '스킨케어', tag: 'SKIN!', note: '자가 체크 · 내 루틴 직접 고치기', color: '#426B58' },
