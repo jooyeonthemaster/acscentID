@@ -1,9 +1,11 @@
 import { perfumes } from '../../../data/perfumes'
 import { josa } from './korean'
+import { colorDistance, expression, hexToLab, outfitLook, PALETTE_NAMES, PHOTO_PLANS, readingLine, type ColorFamily, type PhotoReading } from './photo'
 import type { Answers, AnswerSummary, ChoiceOption, ExperienceResult, PreferenceDefinition, PreferenceId, Question, RecommendationBundle, ResultMetric, ResultSection } from './types'
 
 // These experiences run locally. A recommendation is a transparent match against
 // curated examples, never a fabricated AI/network response or a medical diagnosis.
+// 사진(표정·옷 색)은 답변 위에 더하는 점수다 — 후보마다 몇 점을 왜 더했는지 '사진에서 읽은 것'에 그대로 적는다.
 const options = (entries: readonly (readonly [string, string, string?])[]): ChoiceOption[] => entries.map(([id, label, note]) => ({ id, label, ...(note ? { note } : {}) }))
 const single = (key: string, title: string, entries: readonly (readonly [string, string, string?])[], note?: string): Question => ({ key, title, type: 'single', required: true, options: options(entries), note })
 const multi = (key: string, title: string, entries: readonly (readonly [string, string, string?])[], min = 1, max = 3, note?: string): Question => ({ key, title, type: 'multi', required: min > 0, min, max, options: options(entries), note: note ?? `${min ? `${min}개 이상, ` : '없으면 선택하지 않아도 돼요. '}${max}개까지 골라주세요.` })
@@ -168,6 +170,25 @@ const section = (title: string, body: string, items?: string[]): ResultSection =
 const bounded = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n))
 const selectedText = (id: PreferenceId, a: Answers, key: string) => label(id, key, str(a, key))
 
+/** 사진이 한 후보에 더한 점수와 그 까닭. palette 가 있으면 결과 색을 그것으로(옷 색을 앞에 둔다) */
+type Boost = { points: number; reasons: string[]; notes: string[]; palette?: string[] }
+const boost = (): Boost => ({ points: 0, reasons: [], notes: [] })
+const add = (b: Boost, points: number, reason: string) => { if (points > 0) { b.points += points; b.reasons.push(`${reason} +${points}점`) } }
+export const PHOTO_SECTION = '사진에서 읽은 것'
+/** 결과 맨 끝에 붙는다(카드·영수증에도 같이). 점수를 더하지 않은 후보도 그렇다고 적는다 */
+const photoSection = (id: PreferenceId, photo: PhotoReading, b: Boost): ResultSection =>
+  section(PHOTO_SECTION, `${readingLine(photo, PHOTO_PLANS[id])}. 사진은 기기 안에서 읽고 바로 지웠어요.`, [...(b.reasons.length ? b.reasons : ['이 후보에는 사진으로 더한 점수가 없어요. 답변으로 고른 후보예요.']), ...b.notes])
+/** 사진이 있을 때만 후보에 점수와 '사진에서 읽은 것'을 더한다 */
+const withPhoto = (id: PreferenceId, photo: PhotoReading | null, ranked: Ranked, b: Boost | null): Ranked => !photo || !b ? ranked : { score: ranked.score + b.points, result: { ...ranked.result, ...(b.palette ? { palette: b.palette } : {}), sections: [...ranked.result.sections, photoSection(id, photo, b)] } }
+/** 옷 색(많이 보이는 둘)을 앞에 두고 원래 색을 잇는다 — 같은 색은 한 번만 */
+const outfitPalette = (photo: PhotoReading, rest: string[], size = 4) => [...new Set([...photo.outfit.slice(0, 2).map(c => c.hex), ...rest])].slice(0, size)
+/** 옷 색과 가까운 순서(0 이 가장 가깝다) */
+const nearestOrder = <T,>(items: T[], hex: (item: T) => string, photo: PhotoReading | null) => {
+  const look = photo ? outfitLook(photo) : null
+  if (!look) return new Map<T, number>()
+  return new Map([...items].sort((p, q) => colorDistance(hexToLab(hex(p)), look.main.lab) - colorDistance(hexToLab(hex(q)), look.main.lab)).map((item, i) => [item, i] as const))
+}
+
 type Wine = { id: string; title: string; color: string; target: [number, number, number]; aromas: string[]; occasions: string[]; notes: string[]; pair: string; tip: string; palette: string[] }
 const WINES: Wine[] = [
   { id: 'light-red', title: '가벼운 레드', color: 'red', target: [1, 4, 2], aromas: ['red-fruit', 'floral'], occasions: ['meal', 'gathering'], notes: ['체리와 라즈베리 같은 붉은 과일', '가벼운 질감과 산뜻한 마무리'], pair: '버섯 요리 · 구운 채소 · 담백한 닭 요리', tip: '피노 누아나 가메 계열에서 가벼운 바디의 예시를 찾아보세요.', palette: ['#86334D', '#E9C4CB', '#F7E9D6'] },
@@ -182,12 +203,25 @@ const WINES: Wine[] = [
 
 const WINE_COLOR: Record<string, string> = { red: '레드', white: '화이트', rose: '로제' }
 const WINE_MOMENT: Record<string, string> = { meal: '식사와 함께 비교해볼 스타일', gathering: '가벼운 모임에서 비교해볼 스타일', quiet: '조용한 저녁에 비교해볼 스타일' }
-function wineResults(a: Answers): Ranked[] {
+/** 옷 색이 떠올리게 하는 와인 색 — 무채색·파랑 계열은 어느 쪽도 아니다 */
+const WINE_OF: Partial<Record<ColorFamily, string>> = { red: 'red', burgundy: 'red', brown: 'red', purple: 'red', pink: 'rose', coral: 'rose', lavender: 'rose', white: 'white', beige: 'white', yellow: 'white', khaki: 'white', green: 'white', mint: 'white' }
+function wineBoost(w: Wine, photo: PhotoReading): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  if (face?.bright && (w.target[0] >= 3 || w.aromas[0] === 'red-fruit')) add(b, 6, `${face.label} → 과일향·단맛이 도는 스타일`)
+  if (face?.calm && w.target[2] >= 4) add(b, 6, `${face.label} → 둥글고 깊은 스타일`)
+  if (face && !face.bright && !face.calm && w.aromas.includes('floral')) add(b, 5, `${face.label} → 꽃향이 도는 스타일`)
+  if (look?.depth === 'dark' && w.target[2] >= 4) add(b, 8, `짙은 옷 색(${look.main.name}) → 묵직한 바디`)
+  if (look?.depth === 'light' && w.target[2] <= 2) add(b, 8, `밝은 옷 색(${look.main.name}) → 가벼운 바디`)
+  if (look?.depth === 'mid' && w.target[2] === 3) add(b, 5, `중간 밝기의 옷 색(${look.main.name}) → 중간 바디`)
+  if (look && WINE_OF[look.main.family] === w.color) add(b, 6, `옷 색 ${look.main.name} → ${WINE_COLOR[w.color]}`)
+  return b
+}
+function wineResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const wanted = [num(a, 'sweetness'), num(a, 'acidity'), num(a, 'body')]
   return WINES.map(w => {
     const matches = list(a, 'aromas').filter(x => w.aromas.includes(x))
     const score = 80 - w.target.reduce((sum, x, i) => sum + Math.abs(x - wanted[i]) * 7, 0) + matches.length * 8 + (w.occasions.includes(str(a, 'occasion')) ? 5 : 0) + (str(a, 'wineColor') === w.color ? 22 : 0)
-    return { score, result: { id: w.id, title: w.title, subtitle: WINE_MOMENT[str(a, 'occasion')], summary: `${matches.length ? labels('sommelier', 'aromas', matches) : '선택한 맛과 다른 균형'}에 초점을 둔 후보예요. 단맛 ${w.target[0]}, 산미 ${w.target[1]}, 바디 ${w.target[2]}의 스타일 예시입니다.`, tags: [WINE_COLOR[w.color], ...w.aromas.map(x => label('sommelier', 'aromas', x))], metrics: ['단맛', '산미', '바디'].map((x, i) => metric(x, w.target[i])), palette: w.palette, sections: [section('테이스팅 노트', w.notes[0], w.notes.slice(1)), section('함께 먹기', w.pair), section('비교해볼 포인트', w.tip), section('나의 취향과 비교', `선택한 값: 단맛 ${wanted[0]} · 산미 ${wanted[1]} · 바디 ${wanted[2]}. 와인 색(${selectedText('sommelier', a, 'wineColor')})과 즐길 순간(${selectedText('sommelier', a, 'occasion')})을 반영했어요.`)] } }
+    return withPhoto('sommelier', photo, { score, result: { id: w.id, title: w.title, subtitle: WINE_MOMENT[str(a, 'occasion')], summary: `${matches.length ? labels('sommelier', 'aromas', matches) : '선택한 맛과 다른 균형'}에 초점을 둔 후보예요. 단맛 ${w.target[0]}, 산미 ${w.target[1]}, 바디 ${w.target[2]}의 스타일 예시입니다.`, tags: [WINE_COLOR[w.color], ...w.aromas.map(x => label('sommelier', 'aromas', x))], metrics: ['단맛', '산미', '바디'].map((x, i) => metric(x, w.target[i])), palette: w.palette, sections: [section('테이스팅 노트', w.notes[0], w.notes.slice(1)), section('함께 먹기', w.pair), section('비교해볼 포인트', w.tip), section('나의 취향과 비교', `선택한 값: 단맛 ${wanted[0]} · 산미 ${wanted[1]} · 바디 ${wanted[2]}. 와인 색(${selectedText('sommelier', a, 'wineColor')})과 즐길 순간(${selectedText('sommelier', a, 'occasion')})을 반영했어요.`)] } }, photo && wineBoost(w, photo))
   })
 }
 
@@ -207,10 +241,20 @@ const DRINKS: Drink[] = [
   { id: 'apple-ginger', name: '애플 진저', flavor: ['spicy', 'berry'], mood: 'bold', ingredients: [ing('사과 주스', 70, 'apple'), ing('생강 우린 물', 40, 'ginger'), ing('탄산수', 60), ing('설탕 시럽', 10)], spirit: 'rum', notes: '사과의 둥근 맛과 생강의 알싸함이 만나요.', color: '#C9A85F' },
 ]
 
-function drinkResults(a: Answers): Ranked[] {
+function drinkBoost(d: Drink, photo: PhotoReading, colorRank: number | undefined): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  if (face?.bright && (d.mood === 'festive' || d.mood === 'fresh')) add(b, 8, `${face.label} → 즐겁고 산뜻한 기분의 레시피`)
+  if (face?.calm && d.mood === 'relax') add(b, 8, `${face.label} → 차분한 기분의 레시피`)
+  if (face && !face.bright && !face.calm && d.mood === 'fresh') add(b, 5, `${face.label} → 산뜻한 기분의 레시피`)
+  if (look && colorRank === 0) add(b, 10, `옷 색 ${josa(look.main.name, '과/와')} 가장 닮은 색의 한 잔`)
+  if (look && colorRank === 1) add(b, 5, `옷 색 ${josa(look.main.name, '과/와')} 닮은 색의 한 잔`)
+  return b
+}
+function drinkResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const excluded = list(a, 'excluded'), wanted = list(a, 'ingredients'), alcoholic = str(a, 'drinkType') === 'cocktail'
   const valid = DRINKS.filter(d => !d.ingredients.some(i => i.tags.some(t => excluded.includes(t))))
   if (!valid.length) throw new Error('제외 재료를 반영하면 만들 수 있는 레시피가 없어요. 제외할 재료를 조정해주세요.')
+  const colorRank = nearestOrder(valid, d => d.color, photo)
   return valid.map(d => {
     const allTags = d.ingredients.flatMap(i => i.tags)
     const hit = wanted.filter(t => allTags.includes(t))
@@ -237,9 +281,9 @@ function drinkResults(a: Answers): Ranked[] {
     const sweetBase = d.ingredients.some(i => i.tags.some(t => ['berry', 'pineapple', 'apple'].includes(t)))
     const score = hit.length * 16 + list(a, 'flavors').filter(f => d.flavor.includes(f)).length * 12 + (str(a, 'mood') === d.mood ? 9 : 0)
       + (sparkle === hadSparkle ? 8 : 0) + (sweetness === 'less' && !d.ingredients.some(i => i.name === '설탕 시럽') ? 6 : 0) + (sweetness === 'more' && sweetBase ? 6 : 0)
-    return { score, result: {
+    return withPhoto('cocktail', photo, { score, result: {
       id: `${d.id}-${alcoholic ? 'cocktail' : 'mocktail'}`, title: `${d.name}${alcoholic ? '' : ' · 논알코올'}`, subtitle: `1잔 · 액체 ${total} ml · 얼음 별도`, summary: `${d.notes} ${selectedText('cocktail', a, 'mood')} 즐기고 싶은 오늘을 위해 ${hit.length ? `${josa(labels('cocktail', 'ingredients', hit), '을/를')} 넣었어요.` : excluded.length ? '제외한 재료를 피해 비슷한 맛으로 구성했어요.' : '고른 맛에 가까운 재료로 구성했어요.'}`, tags: [alcoholic ? '주류 포함' : '주류 무첨가', ...d.flavor.map(f => label('cocktail', 'flavors', f))], palette: [d.color, '#FFF6DE', '#455B46'], metrics: [metric('한 잔 분량', total, 250), metric('주류 분량', alcoholic ? 30 : 0, total)], sections: [section('재료와 비율', '표시된 분량은 얼음을 제외한 액체 기준입니다.', proportions), section('만드는 순서', '깨끗한 잔과 계량 도구를 준비해주세요.', ['잔에 얼음을 채워요.', `${hasSparkle ? '탄산수를 제외한' : '표시된'} 재료를 분량대로 넣고 가볍게 저어요.`, hasSparkle ? '탄산수는 마지막에 넣고 한두 번만 천천히 섞어요.' : '전체가 고르게 섞이면 바로 즐겨요.']), section('선택을 반영했어요', `넣고 싶은 재료: ${labels('cocktail', 'ingredients', wanted)}. 제외한 재료: ${labels('cocktail', 'excluded', excluded) || '없음'}.`, [hit.length < wanted.length ? '모든 선호 재료를 한 잔에 넣지는 않았어요. 제외 조건을 우선해서 구성했어요.' : '선택한 선호 재료가 모두 들어 있어요.', `단맛: ${selectedText('cocktail', a, 'sweetness')}${sweetness === 'less' ? ' — 시럽을 빼고 재료 자체의 단맛으로 맞췄어요.' : sweetness === 'more' ? ' — 시럽을 10 ml 더했어요.' : ''}`, `탄산: ${selectedText('cocktail', a, 'sparkle')}${!sparkle && hadSparkle ? ' — 탄산수 대신 차가운 물을 넣었어요.' : sparkle && !hadSparkle ? ' — 이 레시피는 원래 탄산이 없어요. 마지막에 탄산수를 조금 더해도 돼요.' : ''}`]), section('대안과 조정', hasSparkle ? '탄산수는 같은 양의 물로 바꾸면 부드럽게 마실 수 있어요.' : '더 연하게 마시고 싶으면 얼음이 녹는 속도를 보며 물을 조금 더해보세요.', ['단맛은 시럽을 조금씩 넣으며 맞춰주세요.', '가공 주스·시럽의 원재료도 확인해주세요.'])],
-    } }
+    } }, photo && drinkBoost(d, photo, colorRank.get(d)))
   })
 }
 
@@ -252,7 +296,16 @@ const COFFEES = [
   { id: 'juicy', name: '선명하고 풍성한 커피', acidity: 4, body: 4, roast: 'light', note: '잘 익은 과일과 긴 여운', origin: '과일향을 살린 라이트 로스트 예시', usual: ['black', 'sweet'] },
 ]
 
-function coffeeResults(a: Answers): Ranked[] {
+function coffeeBoost(c: (typeof COFFEES)[number], photo: PhotoReading): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  const roastFor = { dark: 'dark', mid: 'medium', light: 'light' } as const
+  if (look && roastFor[look.depth] === c.roast) add(b, look.depth === 'mid' ? 6 : 8, `${look.depth === 'dark' ? '짙은' : look.depth === 'light' ? '밝은' : '중간 밝기의'} 옷 색(${look.main.name}) → ${label('barista', 'roast', c.roast)} 로스팅`)
+  if (face?.bright && c.acidity >= 4) add(b, 6, `${face.label} → 밝은 산미`)
+  if (face?.calm && c.acidity <= 2) add(b, 6, `${face.label} → 부드러운 산미`)
+  if (face && !face.bright && !face.calm && c.acidity === 3) add(b, 5, `${face.label} → 균형 잡힌 산미`)
+  return b
+}
+function coffeeResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const brew = str(a, 'brew'), serve = str(a, 'serve'), decaf = str(a, 'caffeine') === 'decaf'
   const recipe: Record<string, { dose: number; liquid: number; lines: string[] }> = {
     filter: { dose: 15, liquid: serve === 'iced' ? 150 : 225, lines: [`원두 15 g을 중간 굵기로 갈아요.`, `뜨거운 물 ${serve === 'iced' ? '150' : '225'} ml를 나누어 부으며 맛을 확인해요.`, serve === 'iced' ? '잔의 얼음 75 g 위에 내려 빠르게 식혀요.' : '너무 진하면 뜨거운 물을 조금 더해요.'] },
@@ -261,9 +314,9 @@ function coffeeResults(a: Answers): Ranked[] {
     cold: { dose: 25, liquid: 250, lines: ['굵게 간 원두 25 g과 물 250 ml를 깨끗한 용기에 담아요.', '뚜껑을 닫아 냉장고에서 12~16시간 우린 뒤 잘 걸러요.', '냉장 상태를 유지하고 소량씩 신선하게 준비해요.'] },
   }
   const r = recipe[brew]
-  return COFFEES.map(c => ({ score: 70 - Math.abs(c.acidity - num(a, 'acidity')) * 9 - Math.abs(c.body - num(a, 'body')) * 7 + (c.roast === str(a, 'roast') ? 18 : 0) + (c.usual.includes(str(a, 'usual')) ? 8 : 0) + (serve === 'milk' ? c.body * 2 : 0), result: {
+  return COFFEES.map(c => withPhoto('barista', photo, { score: 70 - Math.abs(c.acidity - num(a, 'acidity')) * 9 - Math.abs(c.body - num(a, 'body')) * 7 + (c.roast === str(a, 'roast') ? 18 : 0) + (c.usual.includes(str(a, 'usual')) ? 8 : 0) + (serve === 'milk' ? c.body * 2 : 0), result: {
     id: `${c.id}-${brew}-${serve}-${decaf ? 'decaf' : 'regular'}`, title: `${decaf ? '디카페인으로 찾는 ' : ''}${c.name}`, subtitle: `${selectedText('barista', a, 'brew')} · ${selectedText('barista', a, 'serve')}`, summary: `${josa(c.note, '을/를')} 탐색해보세요. 평소 마시는 커피(${selectedText('barista', a, 'usual')})와 산미 ${num(a, 'acidity')}, 바디 ${josa(String(num(a, 'body')), '을/를')} 반영한 후보예요.`, tags: [label('barista', 'roast', c.roast), decaf ? '디카페인 원두로 찾기' : '일반 원두'], metrics: [metric('산미', c.acidity), metric('바디', c.body), metric('원두 g', r.dose, 30)], palette: ['#684333', '#B88E66', '#F0E6D6'], sections: [section('원두와 로스팅', c.origin, [label('barista', 'roast', c.roast), decaf ? '같은 풍미 방향의 디카페인 원두를 확인하세요. 카페인이 완전히 없는 것은 아닙니다.' : '로스터가 표시한 테이스팅 노트를 함께 확인하세요.']), section('추출 가이드', `${selectedText('barista', a, 'brew')}의 시작점이며 정답 비율은 아닙니다.`, r.lines), section('마시는 방법', serve === 'milk' ? brew === 'espresso' ? '위 가이드의 우유 양을 기준으로 더하거나 줄여보세요.' : '완성한 커피에 우유를 조금씩 더해 취향의 비율을 찾아보세요.' : serve === 'iced' ? '얼음이 녹으며 연해지는 것도 고려해주세요.' : brew === 'cold' ? '콜드브루는 냉장 추출한 뒤 마실 분량에만 뜨거운 물을 더해요.' : '조금 식었을 때 향과 산미가 어떻게 바뀌는지 비교해요.'), section('다음 비교', c.roast === str(a, 'roast') ? `고른 ${label('barista', 'roast', c.roast)} 로스팅 안에서도 산지와 가공 방식이 다른 원두를 같은 추출법으로 비교해보세요.` : `고른 ${selectedText('barista', a, 'roast')} 로스팅과 이 후보의 ${label('barista', 'roast', c.roast)} 로스팅을 같은 추출법으로 비교하면 차이를 알기 쉬워요.`)],
-  } }))
+  } }, photo && coffeeBoost(c, photo)))
 }
 
 const DISHES = [
@@ -278,14 +331,23 @@ const DISHES = [
   { id: 'pumpkin', name: '단호박·곡물 볼', tastes: ['sweet', 'nutty'], pairing: 'creamy', texture: 'soft', excluded: [] as string[], items: ['찐 단호박', '익힌 곡물', '올리브오일'], tip: '잘 익은 단호박의 단맛과 곡물의 고소함을 함께 맛봐요.' },
 ]
 
-function tasteResults(a: Answers): Ranked[] {
+function tasteBoost(d: (typeof DISHES)[number], photo: PhotoReading): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  if (face?.bright && d.tastes.some(t => t === 'sweet' || t === 'sour')) add(b, 6, `${face.label} → 새콤달콤한 조합`)
+  if (face?.calm && d.tastes.some(t => t === 'umami' || t === 'nutty')) add(b, 6, `${face.label} → 구수하고 고소한 조합`)
+  if (face && !face.bright && !face.calm && d.pairing === 'creamy') add(b, 5, `${face.label} → 부드러운 조합`)
+  if (look?.vivid && d.tastes.some(t => t === 'hot' || t === 'sour')) add(b, 6, `선명한 옷 색(${look.main.name}) → 매콤·새콤한 조합`)
+  if (look && !look.vivid && (look.palette === 'neutral' || look.palette === 'earth') && d.tastes.some(t => t === 'nutty' || t === 'umami')) add(b, 4, `차분한 옷 색(${look.main.name}) → 고소한 조합`)
+  return b
+}
+function tasteResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const selected = list(a, 'tastes'), intensity = num(a, 'intensity')
   const axis = ['sour', 'nutty', 'sweet', 'hot', 'umami']
   const pairingBonus: Record<string, string[]> = { fresh: ['sour'], creamy: ['nutty', 'sweet'], spicy: ['hot'], savory: ['umami'] }
   const axes = axis.map(t => metric(label('taste-dna', 'tastes', t), bounded((selected.includes(t) ? 42 + intensity * 9 : 16) + (pairingBonus[str(a, 'pairing')].includes(t) ? 8 : 0)), 100, '#5D6C36'))
-  return DISHES.filter(d => !d.excluded.some(x => list(a, 'excluded').includes(x))).map(d => ({ score: d.tastes.filter(t => selected.includes(t)).length * 18 + (d.pairing === str(a, 'pairing') ? 14 : 0) + (d.texture === str(a, 'texture') ? 12 : 0), result: {
+  return DISHES.filter(d => !d.excluded.some(x => list(a, 'excluded').includes(x))).map(d => withPhoto('taste-dna', photo, { score: d.tastes.filter(t => selected.includes(t)).length * 18 + (d.pairing === str(a, 'pairing') ? 14 : 0) + (d.texture === str(a, 'texture') ? 12 : 0), result: {
     id: d.id, title: d.name, subtitle: `${labels('taste-dna', 'tastes', selected)}의 취향 지도`, summary: `선택한 ${selectedText('taste-dna', a, 'pairing')} 조합과 ${selectedText('taste-dna', a, 'texture')} 식감을 바탕으로 비교해볼 음식이에요.`, tags: d.tastes.map(t => label('taste-dna', 'tastes', t)), metrics: axes, palette: ['#5D6C36', '#DF6846', '#FFF9DC'], sections: [section('나의 맛 지도', `선호도 ${intensity}/5를 반영한 선택 기반 지표입니다. 실제 미각 능력을 측정한 값이 아닙니다.`, axes.map(x => `${x.label}: ${x.value}/100`)), section('조합에 담긴 재료', d.tip, d.items), section('맛의 강도 조절', intensity <= 2 ? '양념을 적게 넣고 재료 자체의 맛부터 느껴보세요.' : intensity >= 4 ? '향과 양념을 조금씩 더하며 선명한 균형을 찾아보세요.' : '재료와 양념이 균형을 이루도록 조금씩 맛보며 조절해요.'), section('제외 조건', `${labels('taste-dna', 'excluded', list(a, 'excluded')) || '따로 제외한 재료 없음'}. 해당 재료가 들어가는 구성은 후보에서 뺐어요.`, ['구입 재료의 원재료 표시는 따로 확인해주세요.'])],
-  } }))
+  } }, photo && tasteBoost(d, photo)))
 }
 
 const STYLE_PALETTES: Record<string, string[]> = { neutral: ['#F2EFE8', '#8D8B87', '#292B30'], earth: ['#C6B18A', '#7D866A', '#654E40'], pastel: ['#DCCFE4', '#CADFD5', '#F2D5CA'], vivid: ['#304DB9', '#D86238', '#F3D653'] }
@@ -299,11 +361,17 @@ const STYLES = [
 ]
 
 const FIT: Record<string, string> = { slim: '몸에 가까운', regular: '적당히 여유 있는', relaxed: '넉넉한' }
-function styleResults(a: Answers): Ranked[] {
+function styleBoost(s: (typeof STYLES)[number], photo: PhotoReading, chosen: string): Boost {
+  const b = boost(), look = outfitLook(photo)
+  if (look && s.palettes.includes(look.palette)) add(b, 12, `옷 색 ${photo.outfit.map(c => c.name).join('·')}(${PALETTE_NAMES[look.palette]}) → ${josa(PALETTE_NAMES[look.palette], '을/를')} 쓰는 스타일`)
+  if (look) { b.palette = outfitPalette(photo, STYLE_PALETTES[chosen] ?? []); b.notes.push('무드보드의 첫 색은 지금 입은 옷에서 읽은 색이에요.') }
+  return b
+}
+function styleResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const focus = ['top', 'bottom', 'outer', 'shoes'].indexOf(str(a, 'focus'))
-  return STYLES.map(s => ({ score: (list(a, 'styles').includes(s.id) ? 40 : 0) + (s.occasions.includes(str(a, 'occasion')) ? 12 : 0) + (s.palettes.includes(str(a, 'palette')) ? 10 : 0) + (s.silhouette.includes(str(a, 'silhouette')) ? 8 : 0), result: {
+  return STYLES.map(s => withPhoto('style-profiler', photo, { score: (list(a, 'styles').includes(s.id) ? 40 : 0) + (s.occasions.includes(str(a, 'occasion')) ? 12 : 0) + (s.palettes.includes(str(a, 'palette')) ? 10 : 0) + (s.silhouette.includes(str(a, 'silhouette')) ? 8 : 0), result: {
     id: s.id, title: s.name, subtitle: `${josa(selectedText('style-profiler', a, 'occasion'), '을/를')} 위한 무드보드`, summary: `${labels('style-profiler', 'styles', list(a, 'styles'))} 취향을 ${josa(selectedText('style-profiler', a, 'palette'), '과/와')} ${FIT[str(a, 'silhouette')]} 실루엣으로 풀어봐요.`, tags: [selectedText('style-profiler', a, 'palette'), selectedText('style-profiler', a, 'silhouette')], palette: STYLE_PALETTES[str(a, 'palette')], sections: [section('무드보드의 원칙', s.tip, [`상황: ${selectedText('style-profiler', a, 'occasion')}`, `비율: ${selectedText('style-profiler', a, 'silhouette')}`, `색감: ${selectedText('style-profiler', a, 'palette')}`]), section('아이템 조합', '이미 가진 옷에서 비슷한 구성을 먼저 찾아보세요.', s.pieces), section('먼저 바꿔볼 하나', `${selectedText('style-profiler', a, 'focus')}부터 시작한다면 ${josa(s.pieces[focus], '을/를')} 비교해보세요.`), section('다른 시도', str(a, 'occasion') === 'work' ? '일하는 환경의 드레스코드 안에서 작은 색 포인트를 더해요.' : str(a, 'occasion') === 'event' ? '주인공 아이템 하나를 정하고 나머지 색은 두세 가지로 줄여요.' : '편안한 기본 조합에 오늘 가장 끌리는 소재 하나를 더해요.')],
-  } }))
+  } }, photo && styleBoost(s, photo, str(a, 'palette'))))
 }
 
 const COORD_PALETTES: Record<string, string[]> = { neutral: ['#EFECE4', '#494A4E', '#B8B4AC'], sage: ['#7D9386', '#F1E9D8', '#494B46'], blue: ['#6684A5', '#F5F3ED', '#303C4F'], warm: ['#947055', '#D4C2A3', '#F3EBDD'] }
@@ -316,7 +384,17 @@ const OUTFITS = [
   { id: 'layer', name: '색을 겹친 레이어 룩', style: 'minimal', shoe: 'loafers', bottom: 'skirt', top: 'shirt' },
 ]
 
-function outfitResults(a: Answers): Ranked[] {
+/** 지금 입은 옷의 팔레트와 이어 입기 좋은 조합 */
+const COORD_FOR: Record<string, string[]> = { neutral: ['clean', 'smart'], earth: ['easy', 'soft'], pastel: ['soft', 'layer'], vivid: ['motion', 'layer'] }
+function coordBoost(o: (typeof OUTFITS)[number], photo: PhotoReading, chosen: string): Boost {
+  const b = boost(), look = outfitLook(photo)
+  if (!look) return b
+  if (COORD_FOR[look.palette].includes(o.id)) add(b, 10, `지금 입은 옷 색 ${look.main.name}(${PALETTE_NAMES[look.palette]}) → 이어 입기 좋은 ${o.name}`)
+  b.palette = outfitPalette(photo, COORD_PALETTES[chosen] ?? [], 3)
+  b.notes.push(look.vivid ? `${look.main.name}처럼 선명한 색을 입었다면 나머지는 무채색으로 정리해 보세요.` : look.depth === 'dark' ? `${look.main.name}처럼 짙은 색 위에는 밝은 하의나 겉옷으로 대비를 주세요.` : look.depth === 'light' ? `${look.main.name}처럼 밝은 색에는 짙은 하의로 무게를 잡아 보세요.` : `${look.main.name}에 같은 계열의 짙고 옅은 색을 겹쳐 보세요.`)
+  return b
+}
+function outfitResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const included = list(a, 'included'), excluded = list(a, 'excluded'), weather = str(a, 'weather'), occasion = str(a, 'occasion')
   const allowed = (item: string) => !excluded.includes(item)
   const choose = (preferred: string, candidates: string[]) => allowed(preferred) ? preferred : candidates.find(allowed)!
@@ -340,9 +418,9 @@ function outfitResults(a: Answers): Ranked[] {
     }
     const pieces = [`상의: ${topIds.map(x => names[x]).join(' + ')}`, `하의: ${names[bottom]}`, `신발: ${names[shoe]}`, ...(outer ? [`겉옷: ${names[outer]}`] : []), `가방: ${occasion === 'work' ? '문서가 들어가는 단정한 토트백' : occasion === 'active' ? '손이 자유로운 작은 크로스백' : '가벼운 캔버스백'}`]
     const tip = weather === 'hot' ? '통기성과 편안함을 우선하고, 햇빛과 실내 냉방에 맞춰 얇은 겉옷을 조절하세요.' : weather === 'cold' ? '보온 이너와 겉옷을 겹쳐 입고 실내에서는 한 겹씩 조절하세요.' : weather === 'rain' ? '빗물에 젖는 밑단과 미끄러운 바닥을 확인하고 우산을 챙겨요.' : '가벼운 겉옷으로 아침저녁 온도 차에 대응하세요.'
-    return { score: (o.style === str(a, 'style') ? 30 : 0) + (occasion === 'work' && ['clean', 'smart'].includes(o.id) ? 14 : 0) + (occasion === 'date' && ['soft', 'layer'].includes(o.id) ? 14 : 0) + (occasion === 'active' && o.id === 'motion' ? 20 : 0) + (occasion === 'weekend' && o.id === 'easy' ? 14 : 0), result: {
+    return withPhoto('coord', photo, { score: (o.style === str(a, 'style') ? 30 : 0) + (occasion === 'work' && ['clean', 'smart'].includes(o.id) ? 14 : 0) + (occasion === 'date' && ['soft', 'layer'].includes(o.id) ? 14 : 0) + (occasion === 'active' && o.id === 'motion' ? 20 : 0) + (occasion === 'weekend' && o.id === 'easy' ? 14 : 0), result: {
       id: o.id, title: o.name, subtitle: `${selectedText('coord', a, 'weather')} · ${selectedText('coord', a, 'occasion')}`, summary: `${josa(selectedText('coord', a, 'palette'), '을/를')} 기본으로 ${selectedText('coord', a, 'style')} 취향을 반영한 조합이에요. ${tip}`, tags: [label('coord', 'style', o.style), selectedText('coord', a, 'palette')], palette: COORD_PALETTES[str(a, 'palette')], sections: [section('아이템 구성', '같은 종류라도 소재와 길이를 상황에 맞춰 골라주세요.', pieces), section('포함·제외 반영', `포함: ${labels('coord', 'included', included) || '지정 없음'} / 제외: ${labels('coord', 'excluded', excluded) || '지정 없음'}`), section('날씨에 맞추기', tip, weather === 'rain' && shoe === 'loafers' ? ['로퍼는 직접 포함한 선택을 유지했어요. 방수성과 접지력을 확인하거나 다른 신발로 바꿔보세요.'] : undefined), section('바꿔볼 아이템', `현재 신발은 ${names[shoe]}입니다.`, ['sneakers', 'loafers'].filter(x => x !== shoe && allowed(x)).map(x => `신발을 ${josa(names[x], '으로/로')} 바꿔 비교해보세요.`))],
-    } }
+    } }, photo && coordBoost(o, photo, str(a, 'palette')))
   })
 }
 
@@ -355,11 +433,20 @@ const AURAS = [
   { id: 'rose', name: '로즈의 대화', hex: '#CB90A8', mood: 'bright', atmosphere: 'social', energy: 4, phrase: '좋아하는 것을 함께 말해보세요.', action: '함께 있는 사람에게 오늘 좋았던 순간 하나를 물어보세요.' },
 ]
 
-function auraResults(a: Answers): Ranked[] {
+function auraBoost(c: (typeof AURAS)[number], photo: PhotoReading, colorRank: number | undefined, chosen: string): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  if (look && colorRank === 0) add(b, 12, `옷 색 ${josa(look.main.name, '과/와')} 가장 닮은 ${c.name}`)
+  if (look && colorRank === 1) add(b, 6, `옷 색 ${josa(look.main.name, '과/와')} 닮은 ${c.name}`)
+  if (face) add(b, Math.max(0, 6 - Math.abs(c.energy - face.level) * 3), `${face.label}의 활기 ${face.level}/5 → 활동 속도 ${c.energy}/5`)
+  if (look) b.palette = outfitPalette(photo, [chosen, c.hex], 3)
+  return b
+}
+function auraResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const chosen = AURAS.find(x => x.id === str(a, 'color'))!
-  return AURAS.map(c => ({ score: (c.id === chosen.id ? 30 : 0) + (c.mood === str(a, 'mood') ? 14 : 0) + (c.atmosphere === str(a, 'atmosphere') ? 14 : 0) - Math.abs(c.energy - num(a, 'energy')) * 4, result: {
+  const auraRank = nearestOrder(AURAS, x => x.hex, photo)
+  return AURAS.map(c => withPhoto('aura', photo, { score: (c.id === chosen.id ? 30 : 0) + (c.mood === str(a, 'mood') ? 14 : 0) + (c.atmosphere === str(a, 'atmosphere') ? 14 : 0) - Math.abs(c.energy - num(a, 'energy')) * 4, result: {
     id: c.id, title: c.name, subtitle: `${josa(selectedText('aura', a, 'color'), '을/를')} 더한 오늘의 컬러 이야기`, summary: `‘${selectedText('aura', a, 'mood')}’라는 답변과 ${josa(selectedText('aura', a, 'atmosphere'), '을/를')} 바라는 마음을 색으로 표현했어요. ${c.phrase}`, tags: [selectedText('aura', a, 'mood'), selectedText('aura', a, 'atmosphere')], palette: [chosen.hex, c.hex, '#F9F3E9'], metrics: [metric('직접 고른 활동 속도', num(a, 'energy'))], sections: [section('색의 이야기', c.phrase, [`기본색: ${label('aura', 'color', c.id)}`, `직접 고른 포인트: ${selectedText('aura', a, 'color')}`]), section('오늘의 작은 행동', c.action), section('나에게 맞게', num(a, 'energy') <= 2 ? '오늘은 이 행동을 아주 짧게 해도 좋아요. 쉬는 시간을 먼저 남겨두세요.' : num(a, 'energy') >= 4 ? '흥미가 이어지면 한 번 더 시도해보세요. 중간의 쉬는 시간도 챙겨요.' : '부담 없는 속도로 한 가지를 먼저 해보세요.')],
-  } }))
+  } }, photo && auraBoost(c, photo, auraRank.get(c), chosen.hex)))
 }
 
 type Activity = { id: string; title: string; interest: string; indoor: boolean; detail: string }
@@ -389,7 +476,15 @@ const ROUTES = [
 ]
 
 const PACE_WAY: Record<string, string> = { slow: '천천히 쉬면서', balanced: '균형 있게', active: '여러 곳을 둘러보며' }
-function travelResults(a: Answers): Ranked[] {
+function travelBoost(r: (typeof ROUTES)[number], photo: PhotoReading): Boost {
+  const b = boost(), face = expression(photo), look = outfitLook(photo)
+  const pace = face ? (face.level >= 4 ? 'active' : face.level <= 2 ? 'slow' : 'balanced') : null
+  if (face && r.pace === pace) add(b, pace === 'balanced' ? 6 : 10, `${face.label}의 활기 ${face.level}/5 → ${PACE_WAY[r.pace]} 움직이는 코스`)
+  const first = look ? { warm: 'food', cool: 'nature', neutral: 'culture' }[look.tone] : null
+  if (look && r.first[0] === first) add(b, 5, `${look.tone === 'warm' ? '따뜻한' : look.tone === 'cool' ? '시원한' : '차분한'} 옷 색(${look.main.name}) → ${{ food: '맛있는 음식', nature: '자연', culture: '문화·전시' }[first!]}에서 시작하는 코스`)
+  return b
+}
+function travelResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   const selected = list(a, 'activities'), setting = str(a, 'setting'), duration = str(a, 'duration'), pace = str(a, 'pace')
   const days = duration === 'two-days' ? 2 : 1, budget = duration === 'half' ? 240 : 480
   const eligible = ACTIVITIES.filter(x => setting === 'indoor' ? x.indoor : setting === 'outdoor' ? !x.indoor : true)
@@ -428,14 +523,27 @@ function travelResults(a: Answers): Ranked[] {
       totalMinutes += clock - 10 * 60
     }
     const companionNote: Record<string, string> = { solo: '혼자 정한 속도를 지켜요. 관심이 가는 곳에서는 조금 더 머물러도 좋아요.', partner: '각자 가장 기대하는 활동을 하나씩 정하고 순서를 함께 조율해요.', friends: '만날 위치와 다시 모일 시간을 미리 정해두면 편해요.', family: '쉬는 자리·화장실·이동 편의를 먼저 확인하고 동행의 속도에 맞춰요.' }
-    return { score: selected.includes(r.first[0]) ? 25 + (r.pace === pace ? 12 : 0) : (r.pace === pace ? 12 : 0), result: {
+    return withPhoto('travel', photo, { score: selected.includes(r.first[0]) ? 25 + (r.pace === pace ? 12 : 0) : (r.pace === pace ? 12 : 0), result: {
       id: r.id, title: r.title, subtitle: `${selectedText('travel', a, 'duration')} · ${selectedText('travel', a, 'companion')}`, summary: `${josa(labels('travel', 'activities', selected), '을/를')} 중심으로 ‘${selectedText('travel', a, 'setting')}’ 조건을 지킨 코스예요. ${PACE_WAY[pace]} 움직일 수 있도록 ${totalMinutes}분으로 구성했어요.`, tags: [selectedText('travel', a, 'setting'), selectedText('travel', a, 'planning')], metrics: [metric('예상 소요 분', totalMinutes, budget * days), metric('실내 활동 수', indoorStops, totalStops), metric('활동 수', totalStops, 14)], palette: ['#268075', '#E7D8BC', '#ED9B78'], sections: [section('코스 순서', '10시 출발 예시 · 구간마다 이동 15분을 포함했어요. 실제 거리와 교통에 따라 조정해주세요.', schedule), section('활동 상세', '특정 상호나 장소가 아닌 활동 유형입니다.', detail), section('동행과 속도', companionNote[str(a, 'companion')]), section('바꾸는 방법', str(a, 'planning') === 'planned' ? '먼저 방문할 장소의 예약·운영시간을 확인하고 이 순서에 맞춰 조정하세요.' : '각 구간의 활동은 같은 관심사의 다른 장소로 바꿀 수 있어요. 이동 시간이 늘면 마지막 활동을 줄여요.', [`선택한 활동: ${labels('travel', 'activities', selected)}`, setting === 'indoor' ? '비가 와도 실내 활동으로 유지해요. 건물 사이 이동은 필요할 수 있어요.' : '기상 상황에 따라 실내 코스로 다시 조정해보세요.'])],
-    } }
+    } }, photo && travelBoost(r, photo))
   })
 }
 
-function scentResults(a: Answers): Ranked[] {
-  type Family = keyof (typeof perfumes)[number]['characteristics']
+type ScentFamily = keyof (typeof perfumes)[number]['characteristics']
+/** 옷 색이 떠올리게 하는 향 계열 */
+const SCENT_OF: Record<ColorFamily, ScentFamily> = { yellow: 'citrus', orange: 'citrus', green: 'citrus', mint: 'citrus', sky: 'citrus', red: 'fruity', coral: 'fruity', pink: 'floral', lavender: 'floral', purple: 'floral', brown: 'woody', beige: 'woody', khaki: 'woody', burgundy: 'spicy', black: 'spicy', charcoal: 'woody', navy: 'woody', blue: 'musky', gray: 'musky', white: 'musky' }
+function scentBoost(p: (typeof perfumes)[number], photo: PhotoReading): Boost {
+  const b = boost(), face = expression(photo), c = p.characteristics
+  const families = [...new Set(photo.outfit.filter((x, i) => i === 0 || x.share >= 0.25).slice(0, 2).map(x => SCENT_OF[x.family]))]
+  for (const family of families) add(b, Math.round(c[family] * 1.2), `옷 색 ${photo.outfit.filter(x => SCENT_OF[x.family] === family).map(x => x.name).join('·')} → ${label('scent', 'families', family)} ${c[family]}/10`)
+  if (face?.bright) add(b, Math.round((c.fruity + c.citrus) / 2 * 0.8), `${face.label} → 상큼한 과일·시트러스`)
+  if (face?.calm) add(b, Math.round(c.musky * 0.8), `${face.label} → 포근한 머스크`)
+  if (face && !face.bright && !face.calm) add(b, Math.round(c.floral * 0.8), `${face.label} → 부드러운 플로럴`)
+  if (photo.outfit.length) b.palette = outfitPalette(photo, [p.primaryColor, p.secondaryColor], 3)
+  return b
+}
+function scentResults(a: Answers, photo: PhotoReading | null): Ranked[] {
+  type Family = ScentFamily
   const selected = list(a, 'families') as Family[], avoided = list(a, 'avoided') as Family[], strength = num(a, 'intensity')
   const pool = perfumes.filter(p => !avoided.some(f => p.characteristics[f] >= 7))
   if (!pool.length) throw new Error('부담스러운 향 계열을 반영하면 시향 후보가 없어요. 제외할 계열을 조금 줄여주세요.')
@@ -446,19 +554,20 @@ function scentResults(a: Answers): Ranked[] {
     const occasionScore = ['work', 'everyday'].includes(str(a, 'occasion')) ? c.citrus + c.musky - c.spicy : str(a, 'occasion') === 'date' ? c.floral + c.fruity : c.woody + c.musky
     const score = selected.reduce((sum, f) => sum + c[f] * 4, 0) + moodScore * 1.5 + occasionScore - Math.abs(depth - strength * 2) * 2
     const match = selected.map(f => `${label('scent', 'families', f)} ${c[f]}/10`)
-    return { score, result: {
+    return withPhoto('scent', photo, { score, result: {
       id: p.id, title: p.name, subtitle: `${selectedText('scent', a, 'mood')} 느껴보고 싶은 시향 후보`, summary: `${p.description} 고른 ${labels('scent', 'families', selected)} 계열, 사용할 때(${selectedText('scent', a, 'occasion')}), 원하는 분위기(${selectedText('scent', a, 'mood')})를 함께 반영했어요.`, tags: selected.map(f => label('scent', 'families', f)), metrics: scentFamilies.map(([id, name]) => metric(name, c[id], 10)), palette: [p.primaryColor, p.secondaryColor, '#F7F1E7'], sections: [section('대표·보조 노트', '대표적인 향과 함께 어우러지는 노트를 비교해보세요.', [`대표 노트: ${p.mainScent.name}`, `보조 노트 1: ${p.subScent1.name}`, `보조 노트 2: ${p.subScent2.name}`]), section('취향과 만나는 지점', `${match.join(' · ')}. 원하는 깊이 ${strength}/5와 ${selectedText('scent', a, 'mood')} 무드를 함께 비교했어요.`), section('나란히 시향하기', '서로 다른 시향지에 향 이름을 적고 첫 느낌과 잠시 뒤의 느낌을 비교해보세요.', [`사용할 때: ${selectedText('scent', a, 'occasion')}`, `강하게 느껴지는 계열 제외: ${labels('scent', 'avoided', avoided) || '없음'}`, '향의 강도 지표는 상대적인 특징이며 지속시간이나 조향 비율이 아닙니다.'])],
-    } }
+    } }, photo && scentBoost(p, photo))
   })
 }
 
-const ENGINES: Record<PreferenceId, (a: Answers) => Ranked[]> = { sommelier: wineResults, cocktail: drinkResults, barista: coffeeResults, 'taste-dna': tasteResults, 'style-profiler': styleResults, coord: outfitResults, aura: auraResults, travel: travelResults, scent: scentResults }
+const ENGINES: Record<PreferenceId, (a: Answers, photo: PhotoReading | null) => Ranked[]> = { sommelier: wineResults, cocktail: drinkResults, barista: coffeeResults, 'taste-dna': tasteResults, 'style-profiler': styleResults, coord: outfitResults, aura: auraResults, travel: travelResults, scent: scentResults }
 
-export function recommend(id: PreferenceId, answers: Answers): RecommendationBundle {
+/** photo — 사진에서 읽은 것(없으면 답변만으로). 사진이 더한 점수와 까닭은 후보마다 '사진에서 읽은 것'에 적힌다 */
+export function recommend(id: PreferenceId, answers: Answers, photo: PhotoReading | null = null): RecommendationBundle {
   const config = definition(id)
   const errors = validateAnswers(id, answers)
   if (Object.keys(errors).length) throw new Error(Object.values(errors).join('\n'))
-  const ranked = ENGINES[id](answers).sort((a, b) => b.score - a.score || a.result.id.localeCompare(b.result.id, 'en'))
+  const ranked = ENGINES[id](answers, photo).sort((a, b) => b.score - a.score || a.result.id.localeCompare(b.result.id, 'en'))
   if (!ranked.length) throw new Error('조건에 맞는 결과가 없어요. 선택 내용을 조정해주세요.')
   const seen = new Set<string>()
   const distinct = ranked.filter(({ result }) => { const key = JSON.stringify(result.sections); if (seen.has(key)) return false; seen.add(key); return true })

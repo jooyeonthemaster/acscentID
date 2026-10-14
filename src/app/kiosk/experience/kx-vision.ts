@@ -5,10 +5,13 @@
 import type { FaceLandmarker, HandLandmarker, ImageSegmenter } from '@mediapipe/tasks-vision'
 import { getCachedAsset, type AssetPace } from './kx-assets'
 
-/** hair — 머리카락·피부·옷을 가르는 분할 모델(16MB, 컬러 모드가 쓰는 것과 같은 파일·같은 보관함) */
-export type VisionKind = 'face' | 'hand' | 'hair'
+/**
+ * hair — 머리카락·피부·옷을 가르는 분할 모델(16MB, 컬러 모드가 쓰는 것과 같은 파일·같은 보관함)
+ * faces — face 와 같은 모델 파일로 여섯 얼굴까지 · 표정 값(blendshape)까지 낸다(체험 18종). face 엔진은 그대로 둔다(메이크업·직업 탐색)
+ */
+export type VisionKind = 'face' | 'faces' | 'hand' | 'hair'
 const WASM_PATH = '/mediapipe/wasm'
-const MODEL: Record<VisionKind, string> = { face: '/models/face_landmarker.task', hand: '/models/hand_landmarker.task', hair: '/models/selfie_multiclass_256x256.tflite' }
+const MODEL: Record<VisionKind, string> = { face: '/models/face_landmarker.task', faces: '/models/face_landmarker.task', hand: '/models/hand_landmarker.task', hair: '/models/selfie_multiclass_256x256.tflite' }
 
 interface Files { loader: Blob; binary: Blob; model: Blob }
 
@@ -33,7 +36,7 @@ export function preloadVision(kind: VisionKind): () => void {
 }
 
 type Engine = FaceLandmarker | HandLandmarker | ImageSegmenter
-const engines: { face?: Promise<FaceLandmarker>; hand?: Promise<HandLandmarker>; hair?: Promise<ImageSegmenter> } = {}
+const engines: { face?: Promise<FaceLandmarker>; faces?: Promise<FaceLandmarker>; hand?: Promise<HandLandmarker>; hair?: Promise<ImageSegmenter> } = {}
 
 async function create(kind: VisionKind): Promise<Engine> {
   const files = await fetchFiles(kind, new AbortController().signal, 'now')
@@ -41,13 +44,14 @@ async function create(kind: VisionKind): Promise<Engine> {
   const fileset = { wasmLoaderPath: URL.createObjectURL(files.loader), wasmBinaryPath: URL.createObjectURL(files.binary) }
   const baseOptions = { modelAssetBuffer: new Uint8Array(await files.model.arrayBuffer()), delegate: 'CPU' as const }
   if (kind === 'hair') return vision.ImageSegmenter.createFromOptions(fileset, { baseOptions, runningMode: 'IMAGE', outputCategoryMask: false, outputConfidenceMasks: true })
+  if (kind === 'faces') return vision.FaceLandmarker.createFromOptions(fileset, { baseOptions, runningMode: 'IMAGE', numFaces: 6, outputFaceBlendshapes: true, minFaceDetectionConfidence: 0.4, minFacePresenceConfidence: 0.4 })
   return kind === 'face'
     ? vision.FaceLandmarker.createFromOptions(fileset, { baseOptions, runningMode: 'IMAGE', numFaces: 1, minFaceDetectionConfidence: 0.4, minFacePresenceConfidence: 0.4 })
     : vision.HandLandmarker.createFromOptions(fileset, { baseOptions, runningMode: 'IMAGE', numHands: 1, minHandDetectionConfidence: 0.35, minHandPresenceConfidence: 0.35 })
 }
 
 /** 엔진을 준비한다(이미 준비됐거나 준비 중이면 그것을). 없는 파일은 지금 받는다. 실패는 기억하지 않는다 — 다음에 다시 시도 */
-export function loadVision(kind: 'face'): Promise<FaceLandmarker>
+export function loadVision(kind: 'face' | 'faces'): Promise<FaceLandmarker>
 export function loadVision(kind: 'hand'): Promise<HandLandmarker>
 export function loadVision(kind: 'hair'): Promise<ImageSegmenter>
 export function loadVision(kind: VisionKind): Promise<Engine> {

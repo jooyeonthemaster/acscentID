@@ -58,3 +58,36 @@
   .ex-camera-view { max-height: 47vh; }
   .ex-count-picker { gap: 5px; }
 }
+/* 사진 단계(PhotoStep) — 여럿이 찍을 때는 가로 액자 */
+.ex-camera-view[data-wide] { width: 100%; aspect-ratio: 4/3; max-height: 50vh; }
+.ex-group-guide { position: absolute; inset: 12% 7% 8%; border: 2px dashed #fff; border-radius: 26px; box-shadow: 0 0 0 999px rgb(0 0 0 / .09); }
+.ex-photo-reads { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 18px; }
+.ex-photo-reads b { font-size: 15px; color: var(--kx-accent); }
+.ex-photo-read { display: grid; grid-template-columns: 132px 1fr; gap: 16px; align-items: start; margin-bottom: 18px; }
+.ex-photo-read:not(:has(.ex-photo-thumb)) { grid-template-columns: 1fr; }
+.ex-photo-thumb { overflow: hidden; border-radius: 14px; aspect-ratio: 3/4; background: var(--kx-accent-soft); }
+.ex-photo-thumb[data-wide] { aspect-ratio: 4/3; }
+.ex-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ex-photo-facts { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.ex-photo-facts > div { display: flex; flex-direction: column; gap: 4px; padding: 11px 14px; border: 1px solid var(--kx-line); border-radius: 12px; background: var(--kx-paper); }
+.ex-photo-facts dt { font-size: 12px; font-weight: 800; color: var(--kx-accent); }
+.ex-photo-facts dd { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; font-weight: 700; line-height: 1.45; word-break: keep-all; }
+.ex-photo-swatches { display: inline-flex; gap: 3px; flex: none; }
+.ex-photo-swatches i { display: block; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #0002; }
+.ex-photo-note { margin-top: 16px; }
+.ex-photo-note h3 { display: flex; align-items: center; gap: 8px; }
+.ex-photo-note p { font-size: 14px; }
+/* 고르기 타일 윗변에 걸친 꼬리표 — 타일 안 글자 폭을 줄이지 않게 */
+.ex-mood-pick { position: absolute; top: -10px; left: 12px; padding: 3px 9px; border-radius: 999px; background: var(--kx-accent); color: #fff; font-size: 11px; font-weight: 800; line-height: 1.4; }
+.ex-social-choices { padding-top: 6px; }
+/* 결과 가져가기 — 영수증 · 휴대폰 */
+.ex-take { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.kx-root .ex-take-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 150px; padding: 18px 12px; border: 1.5px solid var(--kx-line); border-radius: 16px; background: var(--kx-paper); color: var(--kx-ink); text-align: center; }
+.kx-root .ex-take-option svg { color: var(--kx-accent); }
+.kx-root .ex-take-option b { font-size: 19px; font-weight: 800; }
+.kx-root .ex-take-option small { color: var(--kx-soft); font-size: 12px; line-height: 1.55; word-break: keep-all; }
+.kx-root .ex-take-option[data-main] { border-color: var(--kx-accent); background: var(--kx-accent-soft); }
+.kx-root .ex-take-option[aria-pressed='true'] { border-color: var(--kx-accent); }
+.kx-root .ex-take-option:disabled { opacity: .5; }
+.ex-take + .ex-save-card { min-height: 0; padding: 22px 18px; }
+@media (max-width: 390px) { .ex-photo-read { grid-template-columns: 96px 1fr; } .ex-photo-facts dd { font-size: 15px; } }

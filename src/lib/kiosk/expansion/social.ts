@@ -1,4 +1,5 @@
 import { josa } from './korean'
+import { closeness, closenessLabel, expression, handLabel, leaning, outfitLook, PHOTO_PLANS, readingLine, SMILE_BRIGHT, SMILE_SOFT, type PhotoReading } from './photo'
 import type { ChoiceOption, ExperienceResult } from './types'
 
 export type SocialId = 'team' | 'couple'
@@ -62,8 +63,30 @@ const ACTIVITY: Record<string, { team: string; couple: string; detail: string }>
 }
 export interface SocialAnalysis { result: ExperienceResult; common: string[]; interests: { id: string; count: number }[]; missing: number[] }
 
-/** 선택 응답만 집계한다. 외모·심리 능력·관계의 성공을 추정하지 않는다. */
-export function analyzeParticipants(id: SocialId, people: Participant[]): SocialAnalysis {
+/**
+ * 함께 찍은 사진에서 읽은 것 — 인원·함께 웃은 정도·모여 선 거리·고개 방향·옷 색. 얼굴을 이름과 짝짓지 않는다(누가 누구인지 찾지 않는다).
+ * 관계나 팀의 능력을 판정하지 않고 '사진 속 모습'만 적는다.
+ */
+export function groupPhotoSection(id: SocialId, people: number, photo: PhotoReading): { title: string; body: string; items: string[] } {
+  const face = expression(photo), near = closeness(photo), lean = id === 'couple' ? leaning(photo) : null
+  const items: string[] = []
+  if (id === 'team') items.push(`사진에서 찾은 얼굴 ${photo.faces.length}명 · 참여자 ${people}명${photo.faces.length < people ? ' — 모두 들어오지 않았다면 다음엔 한 걸음 뒤에서 찍어 보세요.' : ''}`)
+  if (face) {
+    const smiles = photo.faces.map((x) => x.smile)
+    const all = smiles.every((x) => x >= SMILE_BRIGHT), none = smiles.every((x) => x < SMILE_SOFT)
+    items.push(id === 'couple'
+      ? `미소: ${all ? '두 사람 모두 환하게 웃었어요' : none ? '두 사람 모두 차분한 표정이에요' : smiles.some((x) => x >= SMILE_BRIGHT) ? '한 사람은 환하게, 한 사람은 살며시 웃었어요' : '두 사람 모두 살며시 웃었어요'}`
+      : `함께 웃은 정도 ${face.smile}/100 — ${face.smile >= SMILE_BRIGHT ? '웃음이 가득한 팀 사진이에요' : face.smile >= SMILE_SOFT ? '편안한 미소가 모인 사진이에요' : '차분하게 모인 사진이에요'}`)
+  }
+  if (near !== null) items.push(`서 있는 거리: ${closenessLabel(near)}`)
+  if (lean) items.push(lean.both ? '고개: 서로 쪽으로 기울였어요' : lean.one ? '고개: 한 사람이 상대 쪽으로 기울였어요' : '고개: 둘 다 똑바로 섰어요')
+  if (photo.outfit.length) items.push(`${id === 'team' ? '우리 팀' : '두 사람'}의 색: ${photo.outfit.map((x) => x.name).join(' · ')}`)
+  items.push(near !== null && near < 45 ? '다음 사진에서는 한 걸음씩 가까이 서 보세요.' : face && face.smile < SMILE_SOFT ? '다음 사진에서는 각자 좋아하는 포즈로 한 장 더 남겨 보세요.' : '오늘의 사진처럼 다음 만남에서도 같은 자리에서 한 장 남겨 비교해 보세요.')
+  return { title: id === 'team' ? '사진 속 우리 팀' : '사진 속 두 사람', body: `${readingLine(photo, PHOTO_PLANS[id])}. 사진은 기기 안에서 읽고 바로 지웠어요.`, items }
+}
+
+/** 선택 응답만 집계한다. 외모·심리 능력·관계의 성공을 추정하지 않는다. 사진이 있으면 '사진 속 모습'을 따로 적는다 */
+export function analyzeParticipants(id: SocialId, people: Participant[], photo: PhotoReading | null = null): SocialAnalysis {
   const error = validateParticipants(id, people)
   if (error) throw new Error(error)
   const interests = INTERESTS.map((option) => ({ id: option.id, count: people.filter((person) => person.interests.includes(option.id)).length })).filter((item) => item.count > 0).sort((a, b) => b.count - a.count)
@@ -95,6 +118,10 @@ export function analyzeParticipants(id: SocialId, people: Participant[]): Social
     basic.sections.push({ title: '서로에게 물어볼 점', body: different.length ? '다름은 점수가 아니에요. 이번에는 누구의 방식을 먼저 해 볼지 정해 보세요.' : '이번에는 같은 선택을 했어요. 다음 만남에도 지금의 취향이 같은지 물어보세요.', items: different.map((item) => `${item.label}: ${first.name.trim()} — ${optionLabel(item.options, first[item.key])} / ${second.name.trim()} — ${optionLabel(item.options, second[item.key])}`) })
   }
   basic.sections.push(...activities)
+  if (photo) {
+    basic.sections.push(groupPhotoSection(id, people.length, photo))
+    if (photo.outfit.length) basic.palette = photo.outfit.map((x) => x.hex)
+  }
   return { result: basic, common, interests, missing: [] }
 }
 
@@ -110,14 +137,49 @@ export const PALM_STORIES = [
   { id: 'life', label: '일상의 선', keyword: '작은 쉼표', story: '일상을 상징하는 이야기예요. 수명이나 건강을 뜻하지 않아요. 오늘 편안했던 순간 하나를 떠올려 보세요.', action: '잠깐 쉬며 오늘 좋았던 장면을 떠올려요.' },
 ] as const
 
-/** 사진/랜드마크를 받지 않는다. 사진 유무 검증 이후 선택 주제만으로 이야기를 구성한다. */
-export function cameraStory(id: 'lookalike' | 'face' | 'palm', choice: string): ExperienceResult {
+/**
+ * 사진의 표정과 옷 색에 어울리는 가상 스타 무드 — 고르기 화면에서 먼저 짚어 줄 뿐, 고르는 것은 손님이다.
+ * 얼굴 생김새를 누구와도 비교하지 않는다.
+ */
+export function suggestMood(photo: PhotoReading | null): { id: (typeof STAR_MOODS)[number]['id']; reason: string } | null {
+  if (!photo) return null
+  const face = expression(photo), look = outfitLook(photo)
+  const and = (first: string, second: string | null) => second ? `${josa(first, '과/와')} ${second}` : first
+  if (face?.bright) return { id: 'bright', reason: and(face.label, look && `${look.main.name} 옷`) }
+  if (look && (look.depth === 'dark' || (look.palette === 'neutral' && look.depth !== 'light'))) return { id: 'chic', reason: and(`${look.depth === 'dark' ? '짙은' : '단정한'} ${look.main.name} 옷`, face?.label ?? null) }
+  return { id: 'soft', reason: and(face?.label ?? '편안한 표정', look && `${look.main.name} 옷`) }
+}
+
+/** 손가락을 펼친 모양으로 먼저 펼칠 이야기(PALM_STORIES 의 순번) — 활짝 펴면 생각, 가지런히 모으면 쉼, 그 사이는 마음 */
+export function palmFocus(photo: PhotoReading | null): number {
+  const spread = photo?.hand?.spread
+  if (spread === undefined) return 0
+  return spread >= 55 ? 1 : spread < 25 ? 2 : 0
+}
+
+const FACE_LINES = {
+  bright: '환하게 웃으며 남긴 오늘의 한 장. 그 미소를 오늘 만나는 사람에게도 나눠 보세요.',
+  soft: '살며시 머금은 미소. 오늘 찾은 작은 즐거움 하나를 기록해 보세요.',
+  calm: '차분한 표정으로 남긴 한 장. 오늘은 내 속도를 지켜도 괜찮아요.',
+}
+
+/** 사진의 표정·손 모양·옷 색은 이야기의 한 줄과 순서에만 쓴다(성격·운명을 읽지 않는다). 사진은 받지 않고 읽은 값만 받는다 */
+export function cameraStory(id: 'lookalike' | 'face' | 'palm', choice: string, photo: PhotoReading | null = null): ExperienceResult {
+  const plan = PHOTO_PLANS[id]
+  const read = photo ? `${readingLine(photo, plan)}. 사진은 기기 안에서 읽고 바로 지웠어요.` : ''
   if (id === 'lookalike') {
     const mood = STAR_MOODS.find((item) => item.id === choice)
     if (!mood) throw new Error('원하는 분위기를 골라 주세요.')
-    return { id: `${id}-${choice}`, title: `${mood.name} · ${mood.title}`, subtitle: '내가 선택한 가상 스타 무드', summary: `직접 고른 ${josa(mood.title, '을/를')} 사진 연출 아이디어로 정리했어요.`, tags: [...mood.words], palette: [mood.color, '#eef5fa', '#203e63'], sections: [{ title: '사진 분위기', body: mood.light }, { title: '스타일 힌트', body: mood.styling }, { title: '직접 해 보기', body: mood.action }], footnote: '서아·루미·준은 가상 인물입니다. 실존 연예인 식별·얼굴 유사도 비교를 하지 않습니다. 결과는 선택한 분위기로 만들며 촬영 사진은 업로드하지 않습니다.' }
+    const suggested = suggestMood(photo)
+    const picked = suggested?.id === mood.id
+    return { id: `${id}-${choice}`, title: `${mood.name} · ${mood.title}`, subtitle: '내가 선택한 가상 스타 무드', summary: `직접 고른 ${josa(mood.title, '을/를')} 사진 연출 아이디어로 정리했어요.${suggested ? picked ? ` 사진의 ${suggested.reason}에도 어울리는 무드예요.` : ` 사진의 ${suggested.reason}에는 ${STAR_MOODS.find((item) => item.id === suggested.id)!.title}도 어울려요.` : ''}`, tags: [...mood.words], palette: [mood.color, ...(photo?.outfit.slice(0, 2).map((x) => x.hex) ?? ['#eef5fa', '#203e63'])], sections: [{ title: '사진 분위기', body: mood.light }, { title: '스타일 힌트', body: mood.styling }, { title: '직접 해 보기', body: mood.action }, ...(photo ? [{ title: '사진에서 읽은 것', body: read, items: [suggested ? `표정과 옷 색으로 짚어 드린 무드: ${STAR_MOODS.find((item) => item.id === suggested.id)!.name} · ${STAR_MOODS.find((item) => item.id === suggested.id)!.title}` : '', picked ? '짚어 드린 무드를 그대로 골랐어요.' : '짚어 드린 무드 대신 직접 끌리는 무드를 골랐어요.'].filter(Boolean) }] : [])], footnote: '서아·루미·준은 가상 인물입니다. 실존 연예인 식별·얼굴 유사도 비교를 하지 않습니다. 표정과 옷 색만 기기에서 읽어 무드를 짚어 드리며, 얼굴 생김새는 비교하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
   }
-  if (id === 'palm') return { id: 'palm-stories', title: '손 위에 펼치는 오늘의 이야기', subtitle: '선 세 개, 작은 행동 세 가지', summary: '손 모양을 확인했어요. 아래 선은 설명을 위한 그림이며, 실제 사진에서 손금을 추출하거나 해석한 결과가 아니에요.', tags: PALM_STORIES.map((item) => item.keyword), sections: PALM_STORIES.map((item) => ({ title: item.label, body: item.story, items: [item.action] })), footnote: '전통 손금에서 착안한 창작 이야기입니다. 실제 손금 선을 추출하지 않으며 미래·건강·수명을 예측하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
+  if (id === 'palm') {
+    const first = palmFocus(photo)
+    const order = [first, ...PALM_STORIES.map((_, i) => i).filter((i) => i !== first)]
+    const hand = photo?.hand ? handLabel(photo.hand) : null
+    return { id: `palm-stories-${first}`, title: '손 위에 펼치는 오늘의 이야기', subtitle: hand ? `${hand} → ${PALM_STORIES[first].label}부터` : '선 세 개, 작은 행동 세 가지', summary: `${hand ? `사진 속 손(${hand})을 보고 '${PALM_STORIES[first].label}' 이야기를 먼저 펼쳤어요. ` : '손 모양을 확인했어요. '}아래 선은 설명을 위한 그림이며, 실제 사진에서 손금을 추출하거나 해석한 결과가 아니에요.`, tags: order.map((i) => PALM_STORIES[i].keyword), sections: [...order.map((i) => ({ title: PALM_STORIES[i].label, body: PALM_STORIES[i].story, items: [PALM_STORIES[i].action] })), ...(photo?.hand ? [{ title: '사진에서 읽은 것', body: read, items: ['손가락을 활짝 펴면 생각의 선, 가지런히 모으면 일상의 선, 그 사이는 마음의 선부터 펼쳐요.'] }] : [])], footnote: '전통 손금에서 착안한 창작 이야기입니다. 손가락을 펼친 정도만 읽고 실제 손금 선을 추출하지 않으며 미래·건강·수명을 예측하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
+  }
   const topic = FACE_TOPICS.find((item) => item.id === choice)
   if (!topic) throw new Error('이야기 주제를 골라 주세요.')
   const stories: Record<string, [string, string, string]> = {
@@ -126,5 +188,9 @@ export function cameraStory(id: 'lookalike' | 'face' | 'palm', choice: string): 
     rest: ['내 안의 쉼표', '나를 위한 쉼을 고른 오늘, 해야 하는 일 사이에 작은 빈칸을 남겨 보세요. 잠깐의 여유도 소중한 선택이에요.', '나를 편안하게 하는 장소나 음악 한 가지를 골라 보세요.'],
   }
   const [title, body, action] = stories[choice]
-  return { id: `${id}-${choice}`, title, subtitle: topic.label, summary: body, tags: [topic.label, '재미로 보는 이야기'], sections: [{ title: '오늘의 이야기', body }, { title: '오늘의 한마디', body: '나의 선택은 내가 만들어 갈 수 있어요.' }, { title: '작은 행동', body: action }], footnote: '얼굴의 존재만 기기에서 확인합니다. 이야기는 선택한 주제로 만들며 외모에서 성격·능력·건강·운명을 추정하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
+  const face = photo ? expression(photo) : null
+  const look = photo ? outfitLook(photo) : null
+  const tilted = photo?.faces[0] && Math.abs(photo.faces[0].tilt) >= 6
+  const today = face ? [FACE_LINES[face.bright ? 'bright' : face.calm ? 'calm' : 'soft'], ...(tilted ? ['고개를 살짝 기울인 모습처럼, 익숙한 일도 다른 각도에서 한 번 더 바라보세요.'] : []), ...(look ? [`오늘 이야기의 색은 입고 온 ${josa(look.main.name, '이에요/예요')}.`] : [])] : []
+  return { id: `${id}-${choice}`, title, subtitle: topic.label, summary: body, tags: [topic.label, ...(face ? [face.label] : []), '재미로 보는 이야기'], ...(look ? { palette: photo!.outfit.map((x) => x.hex) } : {}), sections: [{ title: '오늘의 이야기', body }, { title: '오늘의 한마디', body: today.length ? today.join(' ') : '나의 선택은 내가 만들어 갈 수 있어요.' }, { title: '작은 행동', body: action }, ...(photo ? [{ title: '사진에서 읽은 것', body: read, items: ['표정과 고개 기울기는 지금 이 순간의 모습이에요. 성격이나 앞날을 뜻하지 않아요.'] }] : [])], footnote: '표정(미소·고개 기울기)과 옷 색만 기기에서 읽습니다. 이야기는 선택한 주제로 만들며 얼굴 생김새에서 성격·능력·건강·운명을 추정하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
 }

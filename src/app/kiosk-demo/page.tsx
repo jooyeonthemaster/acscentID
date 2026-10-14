@@ -18,7 +18,7 @@ const screenShot = (mode: string) => `/assets/kiosk-demo/screen-${mode}.webp`
 const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'reading', title: 'AI 분석 · 리딩', note: '사진이나 생년월일로 나를 읽어 주는 프로그램' },
   { id: 'studio', title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
-  { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 내 선택으로 만드는 가이드' },
+  { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 사진 한 장과 내 선택으로 만드는 가이드' },
   { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
   { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 3D 제품 · 비전 월 · 문화유산 탐색' },
 ]
@@ -26,7 +26,7 @@ const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
   { Icon: Languages, title: '언어 안내', text: '기존 10종은 5개 언어, 새로 추가된 18종은 한국어로 제공합니다.' },
   { Icon: Smartphone, title: '휴대폰으로 받기', text: '체험 스튜디오의 결과는 QR을 찍어 휴대폰에 저장합니다.' },
-  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함은 영수증으로도 뽑습니다.' },
+  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함과 새 체험 18종은 결과를 영수증으로도 뽑습니다.' },
   { Icon: Sparkles, title: '행사 맞춤', text: '첫 화면 문구와 배경, 영수증 문구를 행사에 맞춰 바꿀 수 있습니다.' },
 ]
 const NOTES = [
