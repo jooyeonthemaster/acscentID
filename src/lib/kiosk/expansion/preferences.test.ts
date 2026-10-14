@@ -248,3 +248,55 @@ test('one change in every input is reflected in the result or its explanation', 
     }
   }
 })
+
+test('result sentences attach the right Korean particle to every chosen word', async () => {
+  const { josa } = await import('./korean')
+  assert.equal(josa('레몬·라임', '을/를'), '레몬·라임을')
+  assert.equal(josa('민트', '을/를'), '민트를')
+  assert.equal(josa('미디엄', '과/와'), '미디엄과')
+  assert.equal(josa('다크', '과/와'), '다크와')
+  assert.equal(josa('로퍼', '으로/로'), '로퍼로')
+  assert.equal(josa('스커트와 보온 레깅스', '으로/로'), '스커트와 보온 레깅스로')
+  assert.equal(josa('3', '을/를'), '3을')
+  assert.equal(josa('맛있는 발견', '이에요/예요'), '맛있는 발견이에요')
+  // 실제 결과 문장: 받침과 맞지 않는 조사가 바뀌는 단어 뒤에 붙지 않는다
+  // 고치기 전에 실제로 나오던 틀린 표현들
+  const bad = /레몬·라임를|생강를|미디엄와|미디엄를|산책를|음식를|체험를|특별한 자리을|선명한 포인트과|블루·화이트을|브라운·베이지을|라벤더을|민트을|피치을|골드을|로즈을|식사와 함께에|매일 가볍게에|둘러보기 움직일|향를|균형를|여운를/
+  const cases: [PreferenceId, Answers][] = [
+    ['cocktail', { ...valid('cocktail'), ingredients: ['citrus', 'ginger'] }],
+    ['barista', { ...valid('barista'), roast: 'medium' }],
+    ['style-profiler', { ...valid('style-profiler'), occasion: 'event', palette: 'vivid' }],
+    ['coord', { ...valid('coord'), palette: 'blue' }],
+    ['aura', { ...valid('aura'), color: 'lavender' }],
+    ['travel', { ...valid('travel'), activities: ['nature', 'food', 'craft'], pace: 'active' }],
+    ['sommelier', { ...valid('sommelier'), occasion: 'meal' }],
+    ['scent', { ...valid('scent'), occasion: 'everyday' }],
+  ]
+  for (const [id, a] of cases) for (const r of all(recommend(id, a))) assert.doesNotMatch(`${r.subtitle} ${text(r)}`, bad, `${id}:${r.id}`)
+})
+
+test('cocktail sweetness and carbonation change the actual recipe while keeping one glass', () => {
+  const base = { ...valid('cocktail'), drinkType: 'mocktail', ingredients: ['mint'], flavors: ['citrus'] }
+  const amounts = (r: ExperienceResult) => r.sections.find(s => s.title === '재료와 비율')!.items!
+  for (const sweetness of ['normal', 'less', 'more']) for (const sparkle of ['yes', 'no']) for (const drinkType of ['mocktail', 'cocktail']) {
+    for (const r of all(recommend('cocktail', { ...base, drinkType, sweetness, sparkle }))) {
+      const lines = amounts(r)
+      assert.equal(lines.reduce((sum, line) => sum + Number(line.match(/ (\d+) ml/)![1]), 0), 180, `${sweetness}/${sparkle}/${r.id}`)
+      assert.ok(lines.every(line => Number(line.match(/ (\d+) ml/)![1]) > 0), lines.join(','))
+      if (sweetness === 'less') assert.ok(!lines.some(l => l.startsWith('설탕 시럽')), r.id)
+      if (sparkle === 'no') assert.ok(!lines.some(l => l.startsWith('탄산수')), r.id)
+    }
+  }
+  const plain = recommend('cocktail', { ...base, sweetness: 'normal' }).primary, sweet = recommend('cocktail', { ...base, sweetness: 'more' }).primary
+  const syrup = (r: ExperienceResult) => Number(amounts(r).find(l => l.startsWith('설탕 시럽'))?.match(/ (\d+) ml/)?.[1] ?? 0)
+  assert.equal(syrup(sweet), syrup(plain) + 10)
+  assert.ok(validateAnswers('cocktail', { ...base, drinkType: 'cocktail', excluded: ['alcohol'] }).excluded, 'alcohol conflict must show on the exclusion step too')
+})
+
+test('candidates with the same content are not offered as different alternatives', () => {
+  const pinned = recommend('coord', { ...valid('coord'), weather: 'mild', included: ['shirt', 'pants', 'sneakers'] })
+  const outfits = all(pinned).map(r => JSON.stringify(r.sections))
+  assert.equal(new Set(outfits).size, outfits.length)
+  if (pinned.alternatives.length === 0) assert.match(text(pinned.primary), /꼭 넣을 아이템을 줄이면/)
+  for (const id of IDS) { const r = recommend(id, valid(id)); assert.equal(new Set(all(r).map(x => JSON.stringify(x.sections))).size, all(r).length, id) }
+})

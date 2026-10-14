@@ -1,14 +1,15 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Check, Heart, Lightbulb, Pencil, Send, Users } from 'lucide-react'
-import { analyzeParticipants, CONVERSATIONS, INTERESTS, newParticipant, optionLabel, PACES, participantComplete, PLANS, ROLES, validateParticipants, type Participant, type SocialAnalysis, type SocialId } from '@/lib/kiosk/expansion/social'
+import { Check, Flag, Heart, Lightbulb, Link2, ListChecks, Pencil, Send, Users } from 'lucide-react'
+import { analyzeParticipants, CONVERSATIONS, duplicateNames, INTERESTS, newParticipant, optionLabel, PACES, participantComplete, PLANS, ROLES, validateParticipants, type Participant, type SocialAnalysis, type SocialId } from '@/lib/kiosk/expansion/social'
 import { KX_IDLE, KxKeyboard, KxSpinner } from '../kx'
 import { ChoiceTile, Completion, ExpansionFrame, ExpansionSave, ExpansionStart, PrimaryButton, ResultPanel } from './shared'
 import './camera-social.css'
 
 type Step = 'start' | 'setup' | 'answer' | 'handoff' | 'review' | 'processing' | 'result' | 'detail' | 'save' | 'complete' | 'missing'
 const personName = (person: Participant, index: number) => person.name.trim() || `${index + 1}번째 참여자`
+const ROLE_ICON = { idea: Lightbulb, organize: ListChecks, connect: Link2, finish: Flag } as const
 
 export default function ParticipantModes({ id }: { id: SocialId }) {
   const [step, setStep] = useState<Step>('start')
@@ -24,6 +25,7 @@ export default function ParticipantModes({ id }: { id: SocialId }) {
   const person = people[active]
   const complete = participantComplete(id, person)
   const completedCount = people.filter((item) => participantComplete(id, item)).length
+  const duplicates = duplicateNames(people)
   useEffect(() => {
     if (keyboard === null) return
     // 여섯 명 이름 목록 아래에서도 모든 터치 키가 보이도록 본문만 내려 준다.
@@ -61,16 +63,17 @@ export default function ParticipantModes({ id }: { id: SocialId }) {
   if (step === 'start') return <ExpansionStart id={id} headline={team ? '우리의 다름이 팀의 가능성으로' : '같아서 좋고, 달라서 새로운 우리'} description={team ? '각자 좋아하는 역할과 관심사를 고르면 함께 해 볼 활동을 찾아요.' : '두 사람의 취향과 대화 방식을 나란히 놓고 다음 데이트를 골라요.'} onStart={() => setStep('setup')} />
   if (step === 'save' && analysis) return <ExpansionSave result={analysis.result} onBack={() => setStep('result')} onComplete={() => setStep('complete')} />
   if (step === 'complete') return <Completion title={team ? '우리 팀 카드가 준비됐어요' : '두 사람의 카드가 준비됐어요'} onBack={() => setStep('result')} />
-  if (step === 'setup') return <ExpansionFrame title={team ? '몇 명이 함께하나요?' : '두 사람의 이름을 알려 주세요'} subtitle="별명을 써도 좋아요. 각자 차례에 직접 답해요." onBack={() => setStep('start')} screen={KX_IDLE.edit} actions={keyboard === null ? <PrimaryButton disabled={people.some((item) => !item.name.trim())} onClick={() => { setActive(0); setEditing(false); setStep('answer') }}>첫 번째 사람 시작하기</PrimaryButton> : undefined}>
+  if (step === 'setup') return <ExpansionFrame title={team ? '몇 명이 함께하나요?' : '두 사람의 이름을 알려 주세요'} subtitle="별명을 써도 좋아요. 각자 차례에 직접 답해요." onBack={() => setStep('start')} screen={KX_IDLE.edit} actions={keyboard === null ? <PrimaryButton disabled={people.some((item) => !item.name.trim()) || duplicates.length > 0} onClick={() => { setActive(0); setEditing(false); setStep('answer') }}>첫 번째 사람 시작하기</PrimaryButton> : undefined}>
     {team && <div className="ex-count-picker" role="group" aria-label="팀 인원">{[2, 3, 4, 5, 6].map((count) => <button key={count} type="button" aria-pressed={people.length === count} onClick={() => resize(count)}>{count}<small>명</small></button>)}</div>}
-    <div className="ex-stack">{people.map((item, index) => <label key={item.id} className="ex-participant-name"><span>{index + 1}</span><input aria-label={`${index + 1}번째 참여자 이름`} placeholder={`${index + 1}번째 참여자 이름 또는 별명`} value={item.name} maxLength={16} onFocus={() => setKeyboard(index)} onChange={(event) => { setKeyboard(null); update(index, { name: event.target.value }) }} /><button type="button" aria-label={`${index + 1}번째 참여자 터치 키보드 열기`} onClick={() => setKeyboard(index)}><Pencil size={21} /></button></label>)}</div>
+    <div className="ex-stack">{people.map((item, index) => <label key={item.id} className="ex-participant-name"><span>{index + 1}</span><input aria-invalid={duplicates.includes(index) || undefined} aria-label={`${index + 1}번째 참여자 이름`} placeholder={`${index + 1}번째 참여자 이름 또는 별명`} value={item.name} maxLength={16} onFocus={() => setKeyboard(index)} onChange={(event) => { setKeyboard(null); update(index, { name: event.target.value }) }} /><button type="button" aria-label={`${index + 1}번째 참여자 터치 키보드 열기`} onClick={() => setKeyboard(index)}><Pencil size={21} /></button></label>)}</div>
+    {duplicates.length > 0 && <p className="ex-alert" role="alert">{duplicates.map((index) => `${index + 1}번`).join(' · ')} 참여자의 이름이 같아요. 결과에서 구분할 수 있게 한 사람의 이름을 바꿔 주세요.</p>}
     <p className="ex-note">이름과 답변은 체험 동안 기기에만 있어요. 카드 받기를 누르면 결과 카드에 이름이 포함돼요.</p>
     {keyboard !== null && people[keyboard] && <div ref={keyboardHost}><KxKeyboard key={keyboard} value={people[keyboard].name} onChange={(name) => update(keyboard, { name })} onClose={() => setKeyboard(null)} maxLength={16} hint={`${keyboard + 1}번째 참여자 이름`} /></div>}
   </ExpansionFrame>
   if (step === 'handoff') return <ExpansionFrame title={`${personName(person, active)}에게 넘겨 주세요`} subtitle="서로의 답을 보기 전에 각자 골라요" onBack={() => { setActive(Math.max(0, active - 1)); setStep('answer') }} actions={<><PrimaryButton secondary onClick={() => setStep('setup')}><Pencil size={19} />이름 수정</PrimaryButton><PrimaryButton onClick={() => setStep('answer')}>{personName(person, active)}, 시작하기</PrimaryButton></>}><div className="ex-handoff-hero"><Send size={82} strokeWidth={1.2} /><span>{active + 1} / {people.length}</span></div>{peopleStrip}<div className="ex-panel"><b>한 사람씩, 편안하게</b><p>다음 사람에게 화면을 넘기고 직접 답하도록 해 주세요. 모든 답변은 마지막에 확인하고 수정할 수 있어요.</p></div></ExpansionFrame>
   if (step === 'answer') return <ExpansionFrame title={`${personName(person, active)}의 차례`} subtitle={`${active + 1} / ${people.length}명 · ${team ? '역할 하나, 관심사 최대 두 개' : '취향과 대화 방식'}`} onBack={() => { setNotice(''); if (editing) setStep('review'); else setStep(active === 0 ? 'setup' : 'handoff') }} screen={KX_IDLE.edit} actions={<PrimaryButton onClick={continueAnswer}>{complete ? <Check size={21} /> : null}{editing ? '수정 완료' : '답변 완료'}</PrimaryButton>}>
     <div className="ex-person-progress"><span style={{ width: `${((active + 1) / people.length) * 100}%` }} /></div>
-    {team && <section className="ex-social-question"><h2>어떤 역할을 해 보고 싶나요?</h2><div className="ex-grid">{ROLES.map((role) => <ChoiceTile key={role.id} label={role.label} note={role.note} selected={person.role === role.id} onClick={() => update(active, { role: role.id })}><Lightbulb size={27} /></ChoiceTile>)}</div></section>}
+    {team && <section className="ex-social-question"><h2>어떤 역할을 해 보고 싶나요?</h2><div className="ex-grid">{ROLES.map((role) => { const RoleIcon = ROLE_ICON[role.id as keyof typeof ROLE_ICON] ?? Lightbulb; return <ChoiceTile key={role.id} label={role.label} note={role.note} selected={person.role === role.id} onClick={() => update(active, { role: role.id })}><RoleIcon size={27} /></ChoiceTile> })}</div></section>}
     <section className="ex-social-question"><h2>{team ? '함께할 때 좋아하는 것' : '함께하고 싶은 데이트'}</h2><p className="ex-note">한 개 또는 두 개를 골라요</p><div className="ex-grid">{INTERESTS.map((option) => <ChoiceTile key={option.id} label={option.label} note={option.note} selected={person.interests.includes(option.id)} onClick={() => toggleInterest(option.id)} />)}</div></section>
     {!team && [{ key: 'pace' as const, title: '함께 보내는 속도는?', options: PACES }, { key: 'planning' as const, title: '계획은 어떻게?', options: PLANS }, { key: 'conversation' as const, title: '대화할 때 편한 방식은?', options: CONVERSATIONS }].map((question) => <section className="ex-social-question" key={question.key}><h2>{question.title}</h2><div className="ex-grid">{question.options.map((option) => <ChoiceTile key={option.id} label={option.label} note={option.note} selected={person[question.key] === option.id} onClick={() => update(active, { [question.key]: option.id })} />)}</div></section>)}
     {notice && <p role="alert" className="ex-alert">{notice}</p>}

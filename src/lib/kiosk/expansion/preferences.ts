@@ -1,4 +1,5 @@
 import { perfumes } from '../../../data/perfumes'
+import { josa } from './korean'
 import type { Answers, AnswerSummary, ChoiceOption, ExperienceResult, PreferenceDefinition, PreferenceId, Question, RecommendationBundle, ResultMetric, ResultSection } from './types'
 
 // These experiences run locally. A recommendation is a transparent match against
@@ -27,8 +28,8 @@ export const PREFERENCES: Record<PreferenceId, PreferenceDefinition> = {
     footnote: '칵테일은 성인용입니다. 제외 재료는 레시피 구성에서 빼지만, 구입 재료의 원재료 표시와 교차 접촉 여부는 직접 확인해주세요.',
     steps: [
       { title: '어떤 한 잔', questions: [single('drinkType', '알코올을 넣을까요?', [['mocktail', '논알코올', '주류를 넣지 않는 레시피'], ['cocktail', '칵테일', '성인용 · 주류를 넣는 레시피']]), single('mood', '오늘의 기분은요?', [['fresh', '산뜻하게'], ['relax', '차분하게'], ['bold', '선명하게'], ['festive', '즐겁게']])] },
-      { title: '맛과 재료', questions: [multi('flavors', '어떤 맛이 좋아요?', [['citrus', '새콤하게'], ['berry', '달콤한 과일'], ['herbal', '향긋하게'], ['spicy', '알싸하게'], ['tropical', '트로피컬']], 1, 2), multi('ingredients', '넣고 싶은 재료는요?', [['citrus', '레몬·라임'], ['berry', '베리'], ['mint', '민트'], ['ginger', '생강'], ['pineapple', '파인애플'], ['tea', '차'], ['apple', '사과'], ['cucumber', '오이']], 1, 3)] },
-      { title: '제외 재료', questions: [multi('excluded', '빼고 싶은 재료가 있나요?', [['citrus', '레몬·라임'], ['berry', '베리'], ['mint', '민트'], ['ginger', '생강'], ['pineapple', '파인애플'], ['tea', '차'], ['apple', '사과'], ['cucumber', '오이'], ['alcohol', '알코올']], 0, 9, '선택한 재료가 들어가는 레시피는 추천에서 제외해요.')] },
+      { title: '맛과 재료', questions: [multi('flavors', '어떤 맛이 좋아요?', [['citrus', '새콤하게'], ['berry', '달콤한 과일'], ['herbal', '향긋하게'], ['spicy', '알싸하게'], ['tropical', '트로피컬']], 1, 2), multi('ingredients', '넣고 싶은 재료는요?', [['citrus', '레몬·라임'], ['berry', '베리'], ['mint', '민트'], ['ginger', '생강'], ['pineapple', '파인애플'], ['tea', '차'], ['apple', '사과'], ['cucumber', '오이']], 1, 3), single('sweetness', '단맛은 어느 정도로 할까요?', [['normal', '보통', '레시피의 시럽 그대로'], ['less', '덜 달게', '시럽 없이 재료의 단맛만'], ['more', '더 달게', '시럽 10 ml 더']])] },
+      { title: '제외 재료와 탄산', questions: [multi('excluded', '빼고 싶은 재료가 있나요?', [['citrus', '레몬·라임'], ['berry', '베리'], ['mint', '민트'], ['ginger', '생강'], ['pineapple', '파인애플'], ['tea', '차'], ['apple', '사과'], ['cucumber', '오이'], ['alcohol', '알코올']], 0, 9, '선택한 재료가 들어가는 레시피는 추천에서 제외해요.'), single('sparkle', '탄산은 넣을까요?', [['yes', '탄산 있게', '톡 쏘는 탄산수'], ['no', '탄산 없이', '탄산수 대신 차가운 물']])] },
     ],
   },
   barista: {
@@ -137,7 +138,11 @@ export function validateAnswers(id: PreferenceId, answers: Answers): Record<stri
   if (id === 'cocktail') {
     const conflict = list(answers, 'ingredients').filter(x => list(answers, 'excluded').includes(x))
     if (conflict.length) errors.excluded = `${labels(id, 'ingredients', conflict)}: 넣을 재료와 제외 재료에 동시에 고를 수 없어요.`
-    if (str(answers, 'drinkType') === 'cocktail' && list(answers, 'excluded').includes('alcohol')) errors.drinkType = '알코올을 빼려면 논알코올을 선택해주세요.'
+    if (str(answers, 'drinkType') === 'cocktail' && list(answers, 'excluded').includes('alcohol')) {
+      errors.drinkType = '알코올을 빼려면 논알코올을 선택해주세요.'
+      // 제외 단계에서 '알코올'을 누른 그 자리에서 알린다(다음 화면을 넘긴 뒤에야 첫 단계로 돌려보내지 않게)
+      errors.excluded ??= '첫 단계에서 칵테일을 골랐어요. 알코올을 빼려면 이 선택을 해제하고 첫 단계에서 논알코올을 골라주세요.'
+    }
   }
   if (id === 'coord') {
     const included = list(answers, 'included'), excluded = list(answers, 'excluded')
@@ -175,12 +180,14 @@ const WINES: Wine[] = [
   { id: 'sweet-rose', title: '부드러운 스위트 로제', color: 'rose', target: [4, 2, 3], aromas: ['red-fruit', 'floral'], occasions: ['gathering', 'quiet'], notes: ['붉은 과일과 꽃의 달콤한 인상', '부드럽고 친근한 질감'], pair: '베리 디저트 · 과일 플래터 · 가벼운 간식', tip: '단맛 표시를 확인하고 조금씩 비교해보세요.', palette: ['#BE677D', '#EBC0C3', '#FFF1E6'] },
 ]
 
+const WINE_COLOR: Record<string, string> = { red: '레드', white: '화이트', rose: '로제' }
+const WINE_MOMENT: Record<string, string> = { meal: '식사와 함께 비교해볼 스타일', gathering: '가벼운 모임에서 비교해볼 스타일', quiet: '조용한 저녁에 비교해볼 스타일' }
 function wineResults(a: Answers): Ranked[] {
   const wanted = [num(a, 'sweetness'), num(a, 'acidity'), num(a, 'body')]
   return WINES.map(w => {
     const matches = list(a, 'aromas').filter(x => w.aromas.includes(x))
     const score = 80 - w.target.reduce((sum, x, i) => sum + Math.abs(x - wanted[i]) * 7, 0) + matches.length * 8 + (w.occasions.includes(str(a, 'occasion')) ? 5 : 0) + (str(a, 'wineColor') === w.color ? 22 : 0)
-    return { score, result: { id: w.id, title: w.title, subtitle: `${selectedText('sommelier', a, 'occasion')}에 비교해볼 스타일`, summary: `${matches.length ? labels('sommelier', 'aromas', matches) : '선택한 맛과 다른 균형'}에 초점을 둔 후보예요. 단맛 ${w.target[0]}, 산미 ${w.target[1]}, 바디 ${w.target[2]}의 스타일 예시입니다.`, tags: [label('sommelier', 'wineColor', w.color), ...w.aromas.map(x => label('sommelier', 'aromas', x))], metrics: ['단맛', '산미', '바디'].map((x, i) => metric(x, w.target[i])), palette: w.palette, sections: [section('테이스팅 노트', w.notes[0], w.notes.slice(1)), section('함께 먹기', w.pair), section('비교해볼 포인트', w.tip), section('나의 취향과 비교', `선택한 값: 단맛 ${wanted[0]} · 산미 ${wanted[1]} · 바디 ${wanted[2]}. ${selectedText('sommelier', a, 'wineColor')} 범위와 ${selectedText('sommelier', a, 'occasion')} 상황을 반영했어요.`)] } }
+    return { score, result: { id: w.id, title: w.title, subtitle: WINE_MOMENT[str(a, 'occasion')], summary: `${matches.length ? labels('sommelier', 'aromas', matches) : '선택한 맛과 다른 균형'}에 초점을 둔 후보예요. 단맛 ${w.target[0]}, 산미 ${w.target[1]}, 바디 ${w.target[2]}의 스타일 예시입니다.`, tags: [WINE_COLOR[w.color], ...w.aromas.map(x => label('sommelier', 'aromas', x))], metrics: ['단맛', '산미', '바디'].map((x, i) => metric(x, w.target[i])), palette: w.palette, sections: [section('테이스팅 노트', w.notes[0], w.notes.slice(1)), section('함께 먹기', w.pair), section('비교해볼 포인트', w.tip), section('나의 취향과 비교', `선택한 값: 단맛 ${wanted[0]} · 산미 ${wanted[1]} · 바디 ${wanted[2]}. 와인 색(${selectedText('sommelier', a, 'wineColor')})과 즐길 순간(${selectedText('sommelier', a, 'occasion')})을 반영했어요.`)] } }
   })
 }
 
@@ -191,9 +198,9 @@ const DRINKS: Drink[] = [
   { id: 'citrus-garden', name: '시트러스 가든', flavor: ['citrus', 'herbal'], mood: 'fresh', ingredients: [ing('레몬즙', 25, 'citrus'), ing('민트 우린 물', 40, 'mint'), ing('탄산수', 100), ing('설탕 시럽', 15)], spirit: 'gin', notes: '레몬의 새콤함 뒤로 민트가 산뜻하게 남아요.', color: '#CFD783' },
   { id: 'berry-spark', name: '베리 스파크', flavor: ['berry', 'citrus'], mood: 'festive', ingredients: [ing('베리 주스', 65, 'berry'), ing('라임즙', 15, 'citrus'), ing('탄산수', 90), ing('설탕 시럽', 10)], spirit: 'vodka', notes: '베리의 달콤함과 라임의 선명함을 비교해보세요.', color: '#C85173' },
   { id: 'ginger-sunset', name: '진저 선셋', flavor: ['spicy', 'citrus'], mood: 'bold', ingredients: [ing('생강 우린 물', 70, 'ginger'), ing('레몬즙', 20, 'citrus'), ing('탄산수', 70), ing('설탕 시럽', 20)], spirit: 'rum', notes: '생강의 알싸함에 산뜻한 레몬을 더한 조합이에요.', color: '#D8AC59' },
-  { id: 'pineapple-cloud', name: '파인애플 클라우드', flavor: ['tropical', 'berry'], mood: 'festive', ingredients: [ing('파인애플 주스', 100, 'pineapple'), ing('탄산수', 70), ing('설탕 시럽', 10)], spirit: 'rum', notes: '열대 과일의 풍미를 탄산으로 가볍게 풀어요.', color: '#E6CC66' },
+  { id: 'pineapple-cloud', name: '파인애플 클라우드', flavor: ['tropical', 'berry'], mood: 'festive', ingredients: [ing('파인애플 주스', 100, 'pineapple'), ing('탄산수', 70), ing('설탕 시럽', 10)], spirit: 'rum', notes: '열대 과일의 풍미를 가볍게 풀어요.', color: '#E6CC66' },
   { id: 'tea-breeze', name: '티 브리즈', flavor: ['herbal'], mood: 'relax', ingredients: [ing('식힌 홍차', 100, 'tea'), ing('탄산수', 65), ing('설탕 시럽', 15)], spirit: 'vodka', notes: '차의 향을 중심으로 천천히 즐기는 한 잔이에요.', color: '#B68962' },
-  { id: 'apple-light', name: '애플 라이트', flavor: ['berry', 'citrus'], mood: 'fresh', ingredients: [ing('사과 주스', 100, 'apple'), ing('탄산수', 80)], spirit: 'vodka', notes: '사과 자체의 단맛에 가벼운 탄산을 더해요.', color: '#E5D6A3' },
+  { id: 'apple-light', name: '애플 라이트', flavor: ['berry', 'citrus'], mood: 'fresh', ingredients: [ing('사과 주스', 100, 'apple'), ing('탄산수', 80)], spirit: 'vodka', notes: '사과 자체의 단맛을 가볍게 살려요.', color: '#E5D6A3' },
   { id: 'cucumber-calm', name: '큐컴버 캄', flavor: ['herbal'], mood: 'relax', ingredients: [ing('오이 우린 물', 110, 'cucumber'), ing('탄산수', 60), ing('설탕 시럽', 10)], spirit: 'gin', notes: '오이의 맑은 향에 여백을 둔 조합이에요.', color: '#B2D5BA' },
   { id: 'berry-still', name: '소프트 베리', flavor: ['berry'], mood: 'relax', ingredients: [ing('베리 주스', 100, 'berry'), ing('물', 70), ing('설탕 시럽', 10)], spirit: 'vodka', notes: '탄산 없이 부드럽게 마시는 베리 음료예요.', color: '#C98295' },
   { id: 'tropical-tea', name: '트로피컬 티', flavor: ['tropical', 'herbal'], mood: 'bold', ingredients: [ing('파인애플 주스', 80, 'pineapple'), ing('식힌 홍차', 90, 'tea'), ing('설탕 시럽', 10)], spirit: 'rum', notes: '달콤한 열대 과일과 차의 여운을 함께 느껴보세요.', color: '#C89154' },
@@ -207,7 +214,16 @@ function drinkResults(a: Answers): Ranked[] {
   return valid.map(d => {
     const allTags = d.ingredients.flatMap(i => i.tags)
     const hit = wanted.filter(t => allTags.includes(t))
-    const ingredients = d.ingredients.map(i => ({ ...i }))
+    let ingredients = d.ingredients.map(i => ({ ...i }))
+    const sweetness = str(a, 'sweetness'), sparkle = str(a, 'sparkle') !== 'no'
+    const hadSparkle = ingredients.some(i => i.name === '탄산수')
+    // 단맛: 시럽을 빼거나 10 ml 더하고, 그만큼 희석 재료(탄산수·물, 없으면 가장 많은 재료)에서 맞춰 한 잔 분량을 지킨다
+    const diluent = () => { const at = ingredients.findIndex(i => i.name === '탄산수' || i.name === '물'); return at >= 0 ? at : ingredients.reduce((best, x, i) => x.name !== '설탕 시럽' && x.ml > ingredients[best].ml ? i : best, 0) }
+    const syrup = ingredients.findIndex(i => i.name === '설탕 시럽')
+    if (sweetness === 'less' && syrup >= 0) { const ml = ingredients[syrup].ml; ingredients.splice(syrup, 1); ingredients[diluent()].ml += ml }
+    if (sweetness === 'more') { ingredients[diluent()].ml -= 10; if (syrup >= 0) ingredients[syrup].ml += 10; else ingredients.push(ing('설탕 시럽', 10)) }
+    // 탄산 없이: 탄산수를 같은 양의 차가운 물로
+    if (!sparkle) ingredients = ingredients.map(i => i.name === '탄산수' ? { ...i, name: '차가운 물' } : i)
     if (alcoholic) {
       // Keep the one-glass liquid total at 180 ml; replace 30 ml of the longest
       // non-syrup ingredient. Every alcoholic branch is explicit in the card.
@@ -218,8 +234,11 @@ function drinkResults(a: Answers): Ranked[] {
     const total = ingredients.reduce((s, i) => s + i.ml, 0)
     const hasSparkle = ingredients.some(i => i.name === '탄산수')
     const proportions = ingredients.map(i => `${i.name} ${i.ml} ml · ${Math.round(i.ml / total * 100)}%`)
-    return { score: hit.length * 16 + list(a, 'flavors').filter(f => d.flavor.includes(f)).length * 12 + (str(a, 'mood') === d.mood ? 9 : 0), result: {
-      id: `${d.id}-${alcoholic ? 'cocktail' : 'mocktail'}`, title: `${d.name}${alcoholic ? '' : ' · 논알코올'}`, subtitle: `1잔 · 액체 ${total} ml · 얼음 별도`, summary: `${d.notes} ${selectedText('cocktail', a, 'mood')} 즐기고 싶은 오늘을 위해 ${hit.length ? labels('cocktail', 'ingredients', hit) : '제외 재료를 뺀 대체 조합'}를 반영했어요.`, tags: [alcoholic ? '주류 포함' : '주류 무첨가', ...d.flavor.map(f => label('cocktail', 'flavors', f))], palette: [d.color, '#FFF6DE', '#455B46'], metrics: [metric('한 잔 분량', total, 250), metric('주류 분량', alcoholic ? 30 : 0, total)], sections: [section('재료와 비율', '표시된 분량은 얼음을 제외한 액체 기준입니다.', proportions), section('만드는 순서', '깨끗한 잔과 계량 도구를 준비해주세요.', ['잔에 얼음을 채워요.', `${hasSparkle ? '탄산수를 제외한' : '표시된'} 재료를 분량대로 넣고 가볍게 저어요.`, hasSparkle ? '탄산수는 마지막에 넣고 한두 번만 천천히 섞어요.' : '전체가 고르게 섞이면 바로 즐겨요.']), section('선택을 반영했어요', `넣고 싶은 재료: ${labels('cocktail', 'ingredients', wanted)}. 제외한 재료: ${labels('cocktail', 'excluded', excluded) || '없음'}.`, hit.length < wanted.length ? ['모든 선호 재료를 한 잔에 넣지는 않았어요. 제외 조건을 우선해서 구성했어요.'] : ['선택한 선호 재료가 모두 들어 있어요.']), section('대안과 조정', hasSparkle ? '탄산수는 같은 양의 물로 바꾸면 부드럽게 마실 수 있어요.' : '더 연하게 마시고 싶으면 얼음이 녹는 속도를 보며 물을 조금 더해보세요.', ['단맛은 시럽을 조금씩 줄이며 맞춰주세요.', '가공 주스·시럽의 원재료도 확인해주세요.'])],
+    const sweetBase = d.ingredients.some(i => i.tags.some(t => ['berry', 'pineapple', 'apple'].includes(t)))
+    const score = hit.length * 16 + list(a, 'flavors').filter(f => d.flavor.includes(f)).length * 12 + (str(a, 'mood') === d.mood ? 9 : 0)
+      + (sparkle === hadSparkle ? 8 : 0) + (sweetness === 'less' && !d.ingredients.some(i => i.name === '설탕 시럽') ? 6 : 0) + (sweetness === 'more' && sweetBase ? 6 : 0)
+    return { score, result: {
+      id: `${d.id}-${alcoholic ? 'cocktail' : 'mocktail'}`, title: `${d.name}${alcoholic ? '' : ' · 논알코올'}`, subtitle: `1잔 · 액체 ${total} ml · 얼음 별도`, summary: `${d.notes} ${selectedText('cocktail', a, 'mood')} 즐기고 싶은 오늘을 위해 ${hit.length ? `${josa(labels('cocktail', 'ingredients', hit), '을/를')} 넣었어요.` : excluded.length ? '제외한 재료를 피해 비슷한 맛으로 구성했어요.' : '고른 맛에 가까운 재료로 구성했어요.'}`, tags: [alcoholic ? '주류 포함' : '주류 무첨가', ...d.flavor.map(f => label('cocktail', 'flavors', f))], palette: [d.color, '#FFF6DE', '#455B46'], metrics: [metric('한 잔 분량', total, 250), metric('주류 분량', alcoholic ? 30 : 0, total)], sections: [section('재료와 비율', '표시된 분량은 얼음을 제외한 액체 기준입니다.', proportions), section('만드는 순서', '깨끗한 잔과 계량 도구를 준비해주세요.', ['잔에 얼음을 채워요.', `${hasSparkle ? '탄산수를 제외한' : '표시된'} 재료를 분량대로 넣고 가볍게 저어요.`, hasSparkle ? '탄산수는 마지막에 넣고 한두 번만 천천히 섞어요.' : '전체가 고르게 섞이면 바로 즐겨요.']), section('선택을 반영했어요', `넣고 싶은 재료: ${labels('cocktail', 'ingredients', wanted)}. 제외한 재료: ${labels('cocktail', 'excluded', excluded) || '없음'}.`, [hit.length < wanted.length ? '모든 선호 재료를 한 잔에 넣지는 않았어요. 제외 조건을 우선해서 구성했어요.' : '선택한 선호 재료가 모두 들어 있어요.', `단맛: ${selectedText('cocktail', a, 'sweetness')}${sweetness === 'less' ? ' — 시럽을 빼고 재료 자체의 단맛으로 맞췄어요.' : sweetness === 'more' ? ' — 시럽을 10 ml 더했어요.' : ''}`, `탄산: ${selectedText('cocktail', a, 'sparkle')}${!sparkle && hadSparkle ? ' — 탄산수 대신 차가운 물을 넣었어요.' : sparkle && !hadSparkle ? ' — 이 레시피는 원래 탄산이 없어요. 마지막에 탄산수를 조금 더해도 돼요.' : ''}`]), section('대안과 조정', hasSparkle ? '탄산수는 같은 양의 물로 바꾸면 부드럽게 마실 수 있어요.' : '더 연하게 마시고 싶으면 얼음이 녹는 속도를 보며 물을 조금 더해보세요.', ['단맛은 시럽을 조금씩 넣으며 맞춰주세요.', '가공 주스·시럽의 원재료도 확인해주세요.'])],
     } }
   })
 }
@@ -243,7 +262,7 @@ function coffeeResults(a: Answers): Ranked[] {
   }
   const r = recipe[brew]
   return COFFEES.map(c => ({ score: 70 - Math.abs(c.acidity - num(a, 'acidity')) * 9 - Math.abs(c.body - num(a, 'body')) * 7 + (c.roast === str(a, 'roast') ? 18 : 0) + (c.usual.includes(str(a, 'usual')) ? 8 : 0) + (serve === 'milk' ? c.body * 2 : 0), result: {
-    id: `${c.id}-${brew}-${serve}-${decaf ? 'decaf' : 'regular'}`, title: `${decaf ? '디카페인으로 찾는 ' : ''}${c.name}`, subtitle: `${selectedText('barista', a, 'brew')} · ${selectedText('barista', a, 'serve')}`, summary: `${c.note}를 탐색해보세요. 평소 ${selectedText('barista', a, 'usual')}를 고르는 취향과 산미 ${num(a, 'acidity')}, 바디 ${num(a, 'body')}를 반영한 후보예요.`, tags: [label('barista', 'roast', c.roast), decaf ? '디카페인 원두로 찾기' : '일반 원두'], metrics: [metric('산미', c.acidity), metric('바디', c.body), metric('원두 g', r.dose, 30)], palette: ['#684333', '#B88E66', '#F0E6D6'], sections: [section('원두와 로스팅', c.origin, [label('barista', 'roast', c.roast), decaf ? '같은 풍미 방향의 디카페인 원두를 확인하세요. 카페인이 완전히 없는 것은 아닙니다.' : '로스터가 표시한 테이스팅 노트를 함께 확인하세요.']), section('추출 가이드', `${selectedText('barista', a, 'brew')}의 시작점이며 정답 비율은 아닙니다.`, r.lines), section('마시는 방법', serve === 'milk' ? brew === 'espresso' ? '위 가이드의 우유 양을 기준으로 더하거나 줄여보세요.' : '완성한 커피에 우유를 조금씩 더해 취향의 비율을 찾아보세요.' : serve === 'iced' ? '얼음이 녹으며 연해지는 것도 고려해주세요.' : brew === 'cold' ? '콜드브루는 냉장 추출한 뒤 마실 분량에만 뜨거운 물을 더해요.' : '조금 식었을 때 향과 산미가 어떻게 바뀌는지 비교해요.'), section('다음 비교', `현재 선택한 ${selectedText('barista', a, 'roast')}와 이 후보의 ${label('barista', 'roast', c.roast)}를 같은 추출법으로 비교하면 차이를 알기 쉬워요.`)],
+    id: `${c.id}-${brew}-${serve}-${decaf ? 'decaf' : 'regular'}`, title: `${decaf ? '디카페인으로 찾는 ' : ''}${c.name}`, subtitle: `${selectedText('barista', a, 'brew')} · ${selectedText('barista', a, 'serve')}`, summary: `${josa(c.note, '을/를')} 탐색해보세요. 평소 마시는 커피(${selectedText('barista', a, 'usual')})와 산미 ${num(a, 'acidity')}, 바디 ${josa(String(num(a, 'body')), '을/를')} 반영한 후보예요.`, tags: [label('barista', 'roast', c.roast), decaf ? '디카페인 원두로 찾기' : '일반 원두'], metrics: [metric('산미', c.acidity), metric('바디', c.body), metric('원두 g', r.dose, 30)], palette: ['#684333', '#B88E66', '#F0E6D6'], sections: [section('원두와 로스팅', c.origin, [label('barista', 'roast', c.roast), decaf ? '같은 풍미 방향의 디카페인 원두를 확인하세요. 카페인이 완전히 없는 것은 아닙니다.' : '로스터가 표시한 테이스팅 노트를 함께 확인하세요.']), section('추출 가이드', `${selectedText('barista', a, 'brew')}의 시작점이며 정답 비율은 아닙니다.`, r.lines), section('마시는 방법', serve === 'milk' ? brew === 'espresso' ? '위 가이드의 우유 양을 기준으로 더하거나 줄여보세요.' : '완성한 커피에 우유를 조금씩 더해 취향의 비율을 찾아보세요.' : serve === 'iced' ? '얼음이 녹으며 연해지는 것도 고려해주세요.' : brew === 'cold' ? '콜드브루는 냉장 추출한 뒤 마실 분량에만 뜨거운 물을 더해요.' : '조금 식었을 때 향과 산미가 어떻게 바뀌는지 비교해요.'), section('다음 비교', c.roast === str(a, 'roast') ? `고른 ${label('barista', 'roast', c.roast)} 로스팅 안에서도 산지와 가공 방식이 다른 원두를 같은 추출법으로 비교해보세요.` : `고른 ${selectedText('barista', a, 'roast')} 로스팅과 이 후보의 ${label('barista', 'roast', c.roast)} 로스팅을 같은 추출법으로 비교하면 차이를 알기 쉬워요.`)],
   } }))
 }
 
@@ -279,10 +298,11 @@ const STYLES = [
   { id: 'technical', name: '움직이는 유틸리티', occasions: ['weekend', 'work'], palettes: ['earth', 'neutral'], silhouette: ['relaxed', 'regular'], pieces: ['기능성 톱', '움직이기 편한 팬츠', '가벼운 바람막이', '편안한 워킹화'], tip: '수납과 활동성을 먼저 보고 매끈한 색으로 정리해요.' },
 ]
 
+const FIT: Record<string, string> = { slim: '몸에 가까운', regular: '적당히 여유 있는', relaxed: '넉넉한' }
 function styleResults(a: Answers): Ranked[] {
   const focus = ['top', 'bottom', 'outer', 'shoes'].indexOf(str(a, 'focus'))
   return STYLES.map(s => ({ score: (list(a, 'styles').includes(s.id) ? 40 : 0) + (s.occasions.includes(str(a, 'occasion')) ? 12 : 0) + (s.palettes.includes(str(a, 'palette')) ? 10 : 0) + (s.silhouette.includes(str(a, 'silhouette')) ? 8 : 0), result: {
-    id: s.id, title: s.name, subtitle: `${selectedText('style-profiler', a, 'occasion')}을 위한 무드보드`, summary: `${labels('style-profiler', 'styles', list(a, 'styles'))} 취향을 ${selectedText('style-profiler', a, 'palette')}과 ${selectedText('style-profiler', a, 'silhouette')} 실루엣으로 풀어봐요.`, tags: [selectedText('style-profiler', a, 'palette'), selectedText('style-profiler', a, 'silhouette')], palette: STYLE_PALETTES[str(a, 'palette')], sections: [section('무드보드의 원칙', s.tip, [`상황: ${selectedText('style-profiler', a, 'occasion')}`, `비율: ${selectedText('style-profiler', a, 'silhouette')}`, `색감: ${selectedText('style-profiler', a, 'palette')}`]), section('아이템 조합', '이미 가진 옷에서 비슷한 구성을 먼저 찾아보세요.', s.pieces), section('먼저 바꿔볼 하나', `${selectedText('style-profiler', a, 'focus')}부터 시작한다면 ${s.pieces[focus]}를 비교해보세요.`), section('다른 시도', str(a, 'occasion') === 'work' ? '일하는 환경의 드레스코드 안에서 작은 색 포인트를 더해요.' : str(a, 'occasion') === 'event' ? '주인공 아이템 하나를 정하고 나머지 색은 두세 가지로 줄여요.' : '편안한 기본 조합에 오늘 가장 끌리는 소재 하나를 더해요.')],
+    id: s.id, title: s.name, subtitle: `${josa(selectedText('style-profiler', a, 'occasion'), '을/를')} 위한 무드보드`, summary: `${labels('style-profiler', 'styles', list(a, 'styles'))} 취향을 ${josa(selectedText('style-profiler', a, 'palette'), '과/와')} ${FIT[str(a, 'silhouette')]} 실루엣으로 풀어봐요.`, tags: [selectedText('style-profiler', a, 'palette'), selectedText('style-profiler', a, 'silhouette')], palette: STYLE_PALETTES[str(a, 'palette')], sections: [section('무드보드의 원칙', s.tip, [`상황: ${selectedText('style-profiler', a, 'occasion')}`, `비율: ${selectedText('style-profiler', a, 'silhouette')}`, `색감: ${selectedText('style-profiler', a, 'palette')}`]), section('아이템 조합', '이미 가진 옷에서 비슷한 구성을 먼저 찾아보세요.', s.pieces), section('먼저 바꿔볼 하나', `${selectedText('style-profiler', a, 'focus')}부터 시작한다면 ${josa(s.pieces[focus], '을/를')} 비교해보세요.`), section('다른 시도', str(a, 'occasion') === 'work' ? '일하는 환경의 드레스코드 안에서 작은 색 포인트를 더해요.' : str(a, 'occasion') === 'event' ? '주인공 아이템 하나를 정하고 나머지 색은 두세 가지로 줄여요.' : '편안한 기본 조합에 오늘 가장 끌리는 소재 하나를 더해요.')],
   } }))
 }
 
@@ -321,7 +341,7 @@ function outfitResults(a: Answers): Ranked[] {
     const pieces = [`상의: ${topIds.map(x => names[x]).join(' + ')}`, `하의: ${names[bottom]}`, `신발: ${names[shoe]}`, ...(outer ? [`겉옷: ${names[outer]}`] : []), `가방: ${occasion === 'work' ? '문서가 들어가는 단정한 토트백' : occasion === 'active' ? '손이 자유로운 작은 크로스백' : '가벼운 캔버스백'}`]
     const tip = weather === 'hot' ? '통기성과 편안함을 우선하고, 햇빛과 실내 냉방에 맞춰 얇은 겉옷을 조절하세요.' : weather === 'cold' ? '보온 이너와 겉옷을 겹쳐 입고 실내에서는 한 겹씩 조절하세요.' : weather === 'rain' ? '빗물에 젖는 밑단과 미끄러운 바닥을 확인하고 우산을 챙겨요.' : '가벼운 겉옷으로 아침저녁 온도 차에 대응하세요.'
     return { score: (o.style === str(a, 'style') ? 30 : 0) + (occasion === 'work' && ['clean', 'smart'].includes(o.id) ? 14 : 0) + (occasion === 'date' && ['soft', 'layer'].includes(o.id) ? 14 : 0) + (occasion === 'active' && o.id === 'motion' ? 20 : 0) + (occasion === 'weekend' && o.id === 'easy' ? 14 : 0), result: {
-      id: o.id, title: o.name, subtitle: `${selectedText('coord', a, 'weather')} · ${selectedText('coord', a, 'occasion')}`, summary: `${selectedText('coord', a, 'palette')}을 기본으로 ${selectedText('coord', a, 'style')} 취향을 반영한 조합이에요. ${tip}`, tags: [label('coord', 'style', o.style), selectedText('coord', a, 'palette')], palette: COORD_PALETTES[str(a, 'palette')], sections: [section('아이템 구성', '같은 종류라도 소재와 길이를 상황에 맞춰 골라주세요.', pieces), section('포함·제외 반영', `포함: ${labels('coord', 'included', included) || '지정 없음'} / 제외: ${labels('coord', 'excluded', excluded) || '지정 없음'}`), section('날씨에 맞추기', tip, weather === 'rain' && shoe === 'loafers' ? ['로퍼는 직접 포함한 선택을 유지했어요. 방수성과 접지력을 확인하거나 다른 신발로 바꿔보세요.'] : undefined), section('바꿔볼 아이템', `현재 신발은 ${names[shoe]}입니다.`, ['sneakers', 'loafers'].filter(x => x !== shoe && allowed(x)).map(x => `신발을 ${names[x]}로 바꿔 비교해보세요.`))],
+      id: o.id, title: o.name, subtitle: `${selectedText('coord', a, 'weather')} · ${selectedText('coord', a, 'occasion')}`, summary: `${josa(selectedText('coord', a, 'palette'), '을/를')} 기본으로 ${selectedText('coord', a, 'style')} 취향을 반영한 조합이에요. ${tip}`, tags: [label('coord', 'style', o.style), selectedText('coord', a, 'palette')], palette: COORD_PALETTES[str(a, 'palette')], sections: [section('아이템 구성', '같은 종류라도 소재와 길이를 상황에 맞춰 골라주세요.', pieces), section('포함·제외 반영', `포함: ${labels('coord', 'included', included) || '지정 없음'} / 제외: ${labels('coord', 'excluded', excluded) || '지정 없음'}`), section('날씨에 맞추기', tip, weather === 'rain' && shoe === 'loafers' ? ['로퍼는 직접 포함한 선택을 유지했어요. 방수성과 접지력을 확인하거나 다른 신발로 바꿔보세요.'] : undefined), section('바꿔볼 아이템', `현재 신발은 ${names[shoe]}입니다.`, ['sneakers', 'loafers'].filter(x => x !== shoe && allowed(x)).map(x => `신발을 ${josa(names[x], '으로/로')} 바꿔 비교해보세요.`))],
     } }
   })
 }
@@ -338,7 +358,7 @@ const AURAS = [
 function auraResults(a: Answers): Ranked[] {
   const chosen = AURAS.find(x => x.id === str(a, 'color'))!
   return AURAS.map(c => ({ score: (c.id === chosen.id ? 30 : 0) + (c.mood === str(a, 'mood') ? 14 : 0) + (c.atmosphere === str(a, 'atmosphere') ? 14 : 0) - Math.abs(c.energy - num(a, 'energy')) * 4, result: {
-    id: c.id, title: c.name, subtitle: `${selectedText('aura', a, 'color')}을 더한 오늘의 컬러 이야기`, summary: `${selectedText('aura', a, 'mood')}라는 답변과 ${selectedText('aura', a, 'atmosphere')}을 바라는 마음을 색으로 표현했어요. ${c.phrase}`, tags: [selectedText('aura', a, 'mood'), selectedText('aura', a, 'atmosphere')], palette: [chosen.hex, c.hex, '#F9F3E9'], metrics: [metric('직접 고른 활동 속도', num(a, 'energy'))], sections: [section('색의 이야기', c.phrase, [`기본색: ${label('aura', 'color', c.id)}`, `직접 고른 포인트: ${selectedText('aura', a, 'color')}`]), section('오늘의 작은 행동', c.action), section('나에게 맞게', num(a, 'energy') <= 2 ? '오늘은 이 행동을 아주 짧게 해도 좋아요. 쉬는 시간을 먼저 남겨두세요.' : num(a, 'energy') >= 4 ? '흥미가 이어지면 한 번 더 시도해보세요. 중간의 쉬는 시간도 챙겨요.' : '부담 없는 속도로 한 가지를 먼저 해보세요.')],
+    id: c.id, title: c.name, subtitle: `${josa(selectedText('aura', a, 'color'), '을/를')} 더한 오늘의 컬러 이야기`, summary: `‘${selectedText('aura', a, 'mood')}’라는 답변과 ${josa(selectedText('aura', a, 'atmosphere'), '을/를')} 바라는 마음을 색으로 표현했어요. ${c.phrase}`, tags: [selectedText('aura', a, 'mood'), selectedText('aura', a, 'atmosphere')], palette: [chosen.hex, c.hex, '#F9F3E9'], metrics: [metric('직접 고른 활동 속도', num(a, 'energy'))], sections: [section('색의 이야기', c.phrase, [`기본색: ${label('aura', 'color', c.id)}`, `직접 고른 포인트: ${selectedText('aura', a, 'color')}`]), section('오늘의 작은 행동', c.action), section('나에게 맞게', num(a, 'energy') <= 2 ? '오늘은 이 행동을 아주 짧게 해도 좋아요. 쉬는 시간을 먼저 남겨두세요.' : num(a, 'energy') >= 4 ? '흥미가 이어지면 한 번 더 시도해보세요. 중간의 쉬는 시간도 챙겨요.' : '부담 없는 속도로 한 가지를 먼저 해보세요.')],
   } }))
 }
 
@@ -368,6 +388,7 @@ const ROUTES = [
   { id: 'make', title: '직접 남기는 코스', first: ['craft', 'culture', 'nature', 'food', 'shopping'], pace: 'balanced' },
 ]
 
+const PACE_WAY: Record<string, string> = { slow: '천천히 쉬면서', balanced: '균형 있게', active: '여러 곳을 둘러보며' }
 function travelResults(a: Answers): Ranked[] {
   const selected = list(a, 'activities'), setting = str(a, 'setting'), duration = str(a, 'duration'), pace = str(a, 'pace')
   const days = duration === 'two-days' ? 2 : 1, budget = duration === 'half' ? 240 : 480
@@ -408,7 +429,7 @@ function travelResults(a: Answers): Ranked[] {
     }
     const companionNote: Record<string, string> = { solo: '혼자 정한 속도를 지켜요. 관심이 가는 곳에서는 조금 더 머물러도 좋아요.', partner: '각자 가장 기대하는 활동을 하나씩 정하고 순서를 함께 조율해요.', friends: '만날 위치와 다시 모일 시간을 미리 정해두면 편해요.', family: '쉬는 자리·화장실·이동 편의를 먼저 확인하고 동행의 속도에 맞춰요.' }
     return { score: selected.includes(r.first[0]) ? 25 + (r.pace === pace ? 12 : 0) : (r.pace === pace ? 12 : 0), result: {
-      id: r.id, title: r.title, subtitle: `${selectedText('travel', a, 'duration')} · ${selectedText('travel', a, 'companion')}`, summary: `${labels('travel', 'activities', selected)}를 중심으로 ${selectedText('travel', a, 'setting')} 조건을 지킨 코스예요. ${selectedText('travel', a, 'pace')} 움직일 수 있도록 ${totalMinutes}분으로 구성했어요.`, tags: [selectedText('travel', a, 'setting'), selectedText('travel', a, 'planning')], metrics: [metric('예상 소요 분', totalMinutes, budget * days), metric('실내 활동 수', indoorStops, totalStops), metric('활동 수', totalStops, 14)], palette: ['#268075', '#E7D8BC', '#ED9B78'], sections: [section('코스 순서', '10시 출발 예시 · 구간마다 이동 15분을 포함했어요. 실제 거리와 교통에 따라 조정해주세요.', schedule), section('활동 상세', '특정 상호나 장소가 아닌 활동 유형입니다.', detail), section('동행과 속도', companionNote[str(a, 'companion')]), section('바꾸는 방법', str(a, 'planning') === 'planned' ? '먼저 방문할 장소의 예약·운영시간을 확인하고 이 순서에 맞춰 조정하세요.' : '각 구간의 활동은 같은 관심사의 다른 장소로 바꿀 수 있어요. 이동 시간이 늘면 마지막 활동을 줄여요.', [`선택한 활동: ${labels('travel', 'activities', selected)}`, setting === 'indoor' ? '비가 와도 실내 활동으로 유지해요. 건물 사이 이동은 필요할 수 있어요.' : '기상 상황에 따라 실내 코스로 다시 조정해보세요.'])],
+      id: r.id, title: r.title, subtitle: `${selectedText('travel', a, 'duration')} · ${selectedText('travel', a, 'companion')}`, summary: `${josa(labels('travel', 'activities', selected), '을/를')} 중심으로 ‘${selectedText('travel', a, 'setting')}’ 조건을 지킨 코스예요. ${PACE_WAY[pace]} 움직일 수 있도록 ${totalMinutes}분으로 구성했어요.`, tags: [selectedText('travel', a, 'setting'), selectedText('travel', a, 'planning')], metrics: [metric('예상 소요 분', totalMinutes, budget * days), metric('실내 활동 수', indoorStops, totalStops), metric('활동 수', totalStops, 14)], palette: ['#268075', '#E7D8BC', '#ED9B78'], sections: [section('코스 순서', '10시 출발 예시 · 구간마다 이동 15분을 포함했어요. 실제 거리와 교통에 따라 조정해주세요.', schedule), section('활동 상세', '특정 상호나 장소가 아닌 활동 유형입니다.', detail), section('동행과 속도', companionNote[str(a, 'companion')]), section('바꾸는 방법', str(a, 'planning') === 'planned' ? '먼저 방문할 장소의 예약·운영시간을 확인하고 이 순서에 맞춰 조정하세요.' : '각 구간의 활동은 같은 관심사의 다른 장소로 바꿀 수 있어요. 이동 시간이 늘면 마지막 활동을 줄여요.', [`선택한 활동: ${labels('travel', 'activities', selected)}`, setting === 'indoor' ? '비가 와도 실내 활동으로 유지해요. 건물 사이 이동은 필요할 수 있어요.' : '기상 상황에 따라 실내 코스로 다시 조정해보세요.'])],
     } }
   })
 }
@@ -426,7 +447,7 @@ function scentResults(a: Answers): Ranked[] {
     const score = selected.reduce((sum, f) => sum + c[f] * 4, 0) + moodScore * 1.5 + occasionScore - Math.abs(depth - strength * 2) * 2
     const match = selected.map(f => `${label('scent', 'families', f)} ${c[f]}/10`)
     return { score, result: {
-      id: p.id, title: p.name, subtitle: `${selectedText('scent', a, 'mood')} 느껴보고 싶은 시향 후보`, summary: `${p.description} 고른 ${labels('scent', 'families', selected)} 계열과 ${selectedText('scent', a, 'occasion')}에 원하는 느낌을 반영했어요.`, tags: selected.map(f => label('scent', 'families', f)), metrics: scentFamilies.map(([id, name]) => metric(name, c[id], 10)), palette: [p.primaryColor, p.secondaryColor, '#F7F1E7'], sections: [section('대표·보조 노트', '대표적인 향과 함께 어우러지는 노트를 비교해보세요.', [`대표 노트: ${p.mainScent.name}`, `보조 노트 1: ${p.subScent1.name}`, `보조 노트 2: ${p.subScent2.name}`]), section('취향과 만나는 지점', `${match.join(' · ')}. 원하는 깊이 ${strength}/5와 ${selectedText('scent', a, 'mood')} 무드를 함께 비교했어요.`), section('나란히 시향하기', '서로 다른 시향지에 향 이름을 적고 첫 느낌과 잠시 뒤의 느낌을 비교해보세요.', [`사용할 때: ${selectedText('scent', a, 'occasion')}`, `강하게 느껴지는 계열 제외: ${labels('scent', 'avoided', avoided) || '없음'}`, '향의 강도 지표는 상대적인 특징이며 지속시간이나 조향 비율이 아닙니다.'])],
+      id: p.id, title: p.name, subtitle: `${selectedText('scent', a, 'mood')} 느껴보고 싶은 시향 후보`, summary: `${p.description} 고른 ${labels('scent', 'families', selected)} 계열, 사용할 때(${selectedText('scent', a, 'occasion')}), 원하는 분위기(${selectedText('scent', a, 'mood')})를 함께 반영했어요.`, tags: selected.map(f => label('scent', 'families', f)), metrics: scentFamilies.map(([id, name]) => metric(name, c[id], 10)), palette: [p.primaryColor, p.secondaryColor, '#F7F1E7'], sections: [section('대표·보조 노트', '대표적인 향과 함께 어우러지는 노트를 비교해보세요.', [`대표 노트: ${p.mainScent.name}`, `보조 노트 1: ${p.subScent1.name}`, `보조 노트 2: ${p.subScent2.name}`]), section('취향과 만나는 지점', `${match.join(' · ')}. 원하는 깊이 ${strength}/5와 ${selectedText('scent', a, 'mood')} 무드를 함께 비교했어요.`), section('나란히 시향하기', '서로 다른 시향지에 향 이름을 적고 첫 느낌과 잠시 뒤의 느낌을 비교해보세요.', [`사용할 때: ${selectedText('scent', a, 'occasion')}`, `강하게 느껴지는 계열 제외: ${labels('scent', 'avoided', avoided) || '없음'}`, '향의 강도 지표는 상대적인 특징이며 지속시간이나 조향 비율이 아닙니다.'])],
     } }
   })
 }
@@ -439,6 +460,13 @@ export function recommend(id: PreferenceId, answers: Answers): RecommendationBun
   if (Object.keys(errors).length) throw new Error(Object.values(errors).join('\n'))
   const ranked = ENGINES[id](answers).sort((a, b) => b.score - a.score || a.result.id.localeCompare(b.result.id, 'en'))
   if (!ranked.length) throw new Error('조건에 맞는 결과가 없어요. 선택 내용을 조정해주세요.')
-  const results = ranked.slice(0, 4).map(({ result }) => ({ ...result, footnote: config.footnote }))
+  const seen = new Set<string>()
+  const distinct = ranked.filter(({ result }) => { const key = JSON.stringify(result.sections); if (seen.has(key)) return false; seen.add(key); return true })
+  const results = distinct.slice(0, 4).map(({ result }) => ({ ...result, footnote: config.footnote }))
+  if (id === 'coord' && results.length === 1) {
+    // 다른 조합이 없는 이유를 알린다(비교 버튼은 후보가 하나면 나타나지 않는다)
+    const pinned = results[0].sections.find(x => x.title === '포함·제외 반영')
+    if (pinned) pinned.items = ['꼭 넣을 아이템으로 상의·하의·신발이 모두 정해져서 다른 조합 후보가 없어요. 꼭 넣을 아이템을 줄이면 다른 조합을 비교할 수 있어요.']
+  }
   return { primary: results[0], alternatives: results.slice(1), summary: summarizeAnswers(id, answers) }
 }

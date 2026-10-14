@@ -27,7 +27,7 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/barista.webp"
   },
   "taste-dna": {
-    "name": "미각 DNA 프로파일",
+    "name": "미각 DNA",
     "tag": "TASTE!",
     "color": "#5D6C36",
     "note": "좋아하는 맛 선택 → 취향 지도와 음식 조합",
@@ -43,7 +43,7 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/style-profiler.webp"
   },
   "coord": {
-    "name": "코디 추천 키오스크",
+    "name": "코디 추천",
     "tag": "LOOK!",
     "color": "#3E6260",
     "note": "날씨·상황·취향 → 아이템별 코디와 대안",
@@ -51,15 +51,15 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/coord.webp"
   },
   "lookalike": {
-    "name": "연예인 닮은꼴 진단",
+    "name": "가상 스타 무드 체험",
     "tag": "STAR!",
     "color": "#256D99",
-    "note": "얼굴 확인·분위기 선택 → 가상 스타 스타일 3종",
+    "note": "얼굴 확인·분위기 선택 → 가상 스타 3명의 사진 무드 · 실존 인물 비교 없음",
     "category": "엔터테인먼트",
     "hero": "/assets/kiosk-expansion/lookalike.webp"
   },
   "science": {
-    "name": "과학 체험 키오스크",
+    "name": "과학 체험",
     "tag": "LAB!",
     "color": "#2664BA",
     "note": "빛의 삼원색 실험 → 슬라이더로 색을 섞는 터치 실험",
@@ -67,18 +67,18 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/science.webp"
   },
   "palm": {
-    "name": "손금 로봇",
+    "name": "손금 이야기",
     "tag": "PALM!",
     "color": "#3B5B72",
-    "note": "손바닥 확인 → 설명용 손금 선으로 즐기는 이야기",
+    "note": "손 확인 → 설명용 손 그림으로 즐기는 창작 이야기",
     "category": "운세",
     "hero": "/assets/kiosk-expansion/palm.webp"
   },
   "aura": {
-    "name": "오라 리딩",
+    "name": "오라 컬러 체험",
     "tag": "AURA!",
     "color": "#785DA9",
-    "note": "기분·분위기·색 선택 → 오라 컬러와 오늘의 키워드",
+    "note": "기분·분위기·색 선택 → 오늘의 컬러 카드와 작은 행동",
     "category": "운세",
     "hero": "/assets/kiosk-expansion/aura.webp"
   },
@@ -91,10 +91,10 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/product.webp"
   },
   "team": {
-    "name": "팀 케미 분석",
+    "name": "팀 케미",
     "tag": "TEAM!",
     "color": "#D07735",
-    "note": "여러 명의 선택 답변 → 협업 스타일·역할·공통 관심사",
+    "note": "2~6명이 각자 답변 → 함께 고른 관심사·하고 싶은 역할",
     "category": "기업",
     "hero": "/assets/kiosk-expansion/team.webp"
   },
@@ -115,7 +115,7 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/heritage.webp"
   },
   "travel": {
-    "name": "여행 성향 진단",
+    "name": "여행 성향",
     "tag": "TRIP!",
     "color": "#268075",
     "note": "여행에서 원하는 것 선택 → 여행 취향과 하루 코스",
@@ -131,7 +131,7 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/scent.webp"
   },
   "face": {
-    "name": "관상 분석",
+    "name": "관상에서 착안한 이야기",
     "tag": "FACE!",
     "color": "#805849",
     "note": "촬영·주제 선택 → 전통 관상에서 착안한 창작 이야기",
@@ -139,7 +139,7 @@ export const EXPANSION_META = {
     "hero": "/assets/kiosk-expansion/face.webp"
   },
   "couple": {
-    "name": "커플 케미 진단",
+    "name": "커플 케미",
     "tag": "US!",
     "color": "#A65258",
     "note": "두 사람 취향·대화 질문 → 같은 점·다른 점·데이트 아이디어",

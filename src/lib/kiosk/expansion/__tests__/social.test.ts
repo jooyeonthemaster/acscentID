@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { analyzeParticipants, cameraStory, newParticipant, participantComplete, validateParticipants, type Participant } from '../social'
+import { analyzeParticipants, cameraStory, duplicateNames, newParticipant, participantComplete, validateParticipants, type Participant } from '../social'
+import { layoutWall } from '../wall-layout'
 
 const participant = (index: number, patch: Partial<Participant> = {}): Participant => ({ ...newParticipant(index), name: `참여자 ${index + 1}`, role: index % 2 ? 'finish' : 'idea', interests: ['art'], pace: 'calm', planning: 'planned', conversation: 'listen', ...patch })
 
@@ -92,4 +93,24 @@ test('출력 결과에는 사진·랜드마크·바이너리가 포함되지 않
     assert.equal(Object.hasOwn(result, 'landmarks'), false)
     assert.doesNotMatch(JSON.stringify(result), /data:image|base64|blob:/)
   }
+})
+
+test('participants with the same name are rejected so roles and differences stay attributable', () => {
+  const people = [{ ...newParticipant(0), name: '하늘', role: 'idea', interests: ['food'] }, { ...newParticipant(1), name: ' 하늘 ', role: 'finish', interests: ['art'] }]
+  assert.deepEqual(duplicateNames(people), [0, 1])
+  assert.match(validateParticipants('team', people) ?? '', /이름이 같은/)
+  assert.equal(validateParticipants('team', [people[0], { ...people[1], name: '민준' }]), null)
+})
+
+test('vision wall cards chosen at the same spot are spread out, newest card keeps its spot', () => {
+  const messages = Array.from({ length: 6 }, (_, i) => ({ id: `m${i}`, x: 50, y: 50 }))
+  const sizes = new Map(messages.map((m) => [m.id, [24, 18] as [number, number]]))
+  const spots = layoutWall(messages, sizes)
+  assert.deepEqual(spots.m5, [50, 50])
+  const boxes = messages.map((m) => spots[m.id])
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    const overlap = Math.max(0, 24 - Math.abs(boxes[i][0] - boxes[j][0])) * Math.max(0, 18 - Math.abs(boxes[i][1] - boxes[j][1]))
+    assert.equal(overlap, 0, `${i}-${j} overlap`)
+  }
+  for (const [x, y] of boxes) assert.ok(x >= 12 && x <= 88 && y >= 9 && y <= 91)
 })

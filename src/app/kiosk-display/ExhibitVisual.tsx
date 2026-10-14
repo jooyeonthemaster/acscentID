@@ -1,6 +1,7 @@
 'use client'
-import { useRef, type CSSProperties } from 'react'
-import type { ExhibitContent, HeritageConfig, ProductConfig, WallDraft } from '@/lib/kiosk/expansion/exhibit'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import type { ExhibitContent, HeritageConfig, ProductConfig, WallDraft, WallMessage } from '@/lib/kiosk/expansion/exhibit'
+import { layoutWall } from '@/lib/kiosk/expansion/wall-layout'
 import './display.css'
 
 function Box({ width, height, depth, top, className = '' }: { width: number; height: number; depth: number; top: number; className?: string }) {
@@ -54,12 +55,36 @@ export function HeritageScene({ config }: { config: HeritageConfig }) {
     {config.comparison !== null && <><div className="ix-heritage-after" style={{ clipPath: `inset(0 0 0 ${config.comparison}%)` }}><PalaceDrawing config={{ ...config, era: 'present' }} /></div><div className="ix-compare-line" style={{ left: `${config.comparison}%` }} /><span className="ix-era-label">옛 풍경</span><span className="ix-era-label ix-era-label--right">오늘의 풍경</span></>}
   </div>
 }
-export function VisionTile({ message, placed = false }: { message: WallDraft; placed?: boolean }) {
+/** at: 전시 화면이 겹치지 않게 다시 잡은 자리(%) — 없으면 고른 자리를 화면 안쪽으로 맞춰 쓴다 */
+export function VisionTile({ message, placed = false, at, id }: { message: WallDraft; placed?: boolean; at?: [number, number]; id?: string }) {
   const long = [...message.text].length > 35
-  return <div className="ix-vision-tile" data-shape={message.shape} data-placed={placed || undefined} data-long={long || undefined} style={{ backgroundColor: message.color, ...(placed ? { left: long ? `clamp(26%, ${message.x}%, 74%)` : `clamp(16%, ${message.x}%, 84%)`, top: long ? `clamp(34%, ${message.y}%, 66%)` : `clamp(22%, ${message.y}%, 78%)` } : {}) }}><span>{message.text || '우리의 내일에 남길 한 문장'}</span></div>
+  const spot = at ? { left: `${at[0]}%`, top: `${at[1]}%` } : { left: long ? `clamp(26%, ${message.x}%, 74%)` : `clamp(16%, ${message.x}%, 84%)`, top: long ? `clamp(34%, ${message.y}%, 66%)` : `clamp(22%, ${message.y}%, 78%)` }
+  return <div className="ix-vision-tile" data-message={id} data-shape={message.shape} data-placed={placed || undefined} data-long={long || undefined} style={{ backgroundColor: message.color, ...(placed ? spot : {}) }}><span>{message.text || '우리의 내일에 남길 한 문장'}</span></div>
+}
+/**
+ * 전시 화면의 비전 월 — 방문자마다 고른 자리가 같으면(기본값 가운데) 카드가 한 자리에 겹쳐 쌓여 마지막 한 장만 보였다.
+ * 그려진 카드의 실제 크기를 재서, 가장 최근 카드는 고른 자리에 두고 앞선 카드를 가까운 빈자리로 옮긴다(wall-layout.ts).
+ */
+function WallBoard({ messages }: { messages: WallMessage[] }) {
+  const board = useRef<HTMLDivElement>(null)
+  const [spots, setSpots] = useState<Record<string, [number, number]>>({})
+  useLayoutEffect(() => {
+    const el = board.current
+    if (!el) return
+    // ResizeObserver 는 observe 하자마자 한 번 부른다 — 처음 배치와 창 크기 변화를 함께 맡는다
+    const observer = new ResizeObserver(() => {
+      const width = el.clientWidth, height = el.clientHeight
+      if (!width || !height) return
+      const sizes = new Map([...el.querySelectorAll<HTMLElement>('[data-message]')].map(tile => [tile.dataset.message!, [tile.offsetWidth / width * 100, tile.offsetHeight / height * 100] as [number, number]]))
+      setSpots(layoutWall(messages, sizes))
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [messages])
+  return <div ref={board} className="ix-wall-board ix-wall-board--display">{messages.map(message => <VisionTile key={message.id} id={message.id} message={message} placed at={spots[message.id]} />)}</div>
 }
 export function ExhibitVisual({ content }: { content: ExhibitContent }) {
   if (content.kind === 'product') return <ProductScene config={content.config} />
   if (content.kind === 'heritage') return <HeritageScene config={content.config} />
-  return <div className="ix-wall-board ix-wall-board--display">{content.messages.map(message => <VisionTile key={message.id} message={message} placed />)}</div>
+  return <WallBoard messages={content.messages} />
 }

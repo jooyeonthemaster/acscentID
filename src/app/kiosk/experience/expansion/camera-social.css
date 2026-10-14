@@ -34,6 +34,7 @@
 .ex-participant-name { display: flex; gap: 12px; min-height: 64px; align-items: center; border: 1px solid var(--kx-line); padding: 8px 10px; border-radius: 12px; background: var(--kx-paper); }
 .ex-participant-name > span, .ex-person-avatar { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--kx-accent-soft); color: var(--kx-accent); font-weight: 800; }
 .ex-participant-name input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--kx-ink); font-size: 17px; outline-offset: 5px; }
+.ex-participant-name:has(input[aria-invalid]) { border-color: #b8463c; box-shadow: 0 0 0 2px #b8463c26; }
 .ex-participant-name button { display: grid; place-items: center; min-width: 48px; min-height: 48px; border-radius: 9px; color: var(--kx-accent); }
 .ex-participant-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 18px 0; }
 .ex-participant-strip > div { flex: 1 1 65px; max-width: 130px; display: flex; flex-direction: column; align-items: center; gap: 7px; text-align: center; min-width: 0; }

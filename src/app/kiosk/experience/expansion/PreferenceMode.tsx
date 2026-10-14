@@ -45,7 +45,10 @@ export default function PreferenceMode({ id }: { id: PreferenceId }) {
     // On a long touch form the invalid field can be above the visible area.
     // Keep the answer intact and bring the first actionable message into view.
     const heading = questionRegion.current?.querySelector<HTMLElement>(`#q-${first.key}`)
-    heading?.scrollIntoView({ block: 'center' })
+    // 선택지가 많으면(제외 재료 9개) 안내가 화면 아래로 밀려 잘린다 — 안내 문장이 보이게 맞춘다
+    const message = questionRegion.current?.querySelector<HTMLElement>(`#error-${first.key}`)
+    if (message) message.scrollIntoView({ block: 'end' })
+    else heading?.scrollIntoView({ block: 'center' })
     heading?.focus({ preventScroll: true })
   }, [page, step, errors, definition])
   const candidates = bundle ? [bundle.primary, ...bundle.alternatives] : []

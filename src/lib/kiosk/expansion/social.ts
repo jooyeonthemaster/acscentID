@@ -1,3 +1,4 @@
+import { josa } from './korean'
 import type { ChoiceOption, ExperienceResult } from './types'
 
 export type SocialId = 'team' | 'couple'
@@ -37,9 +38,17 @@ export function participantComplete(id: SocialId, person: Participant): boolean 
     && new Set(person.interests).size === person.interests.length && person.interests.every((value) => known(INTERESTS, value))
     && (id === 'team' ? known(ROLES, person.role) : known(PACES, person.pace) && known(PLANS, person.planning) && known(CONVERSATIONS, person.conversation))
 }
+/** 이름이 다른 사람과 같은 참여자 번호(0부터) */
+export function duplicateNames(people: Participant[]): number[] {
+  const names = people.map((person) => person.name.trim().toLowerCase())
+  return names.flatMap((name, index) => name && names.filter((other) => other === name).length > 1 ? [index] : [])
+}
 export function validateParticipants(id: SocialId, people: Participant[]): string | null {
   if (people.length < 2 || people.length > (id === 'couple' ? 2 : 6)) return id === 'couple' ? '두 사람이 함께 참여해 주세요.' : '참여자는 2명부터 6명까지예요.'
   if (new Set(people.map((person) => person.id)).size !== people.length) return '참여자 정보가 겹칩니다. 인원을 다시 확인해 주세요.'
+  // 같은 이름이면 결과의 역할·차이 설명에서 누구인지 구분할 수 없다
+  const names = people.map((person) => person.name.trim().toLowerCase()).filter(Boolean)
+  if (new Set(names).size !== names.length) return '이름이 같은 참여자가 있어요. 서로 구분되게 바꿔 주세요.'
   const incomplete = people.findIndex((person) => !participantComplete(id, person))
   return incomplete < 0 ? null : `${incomplete + 1}번째 참여자의 이름과 답변을 확인해 주세요.`
 }
@@ -66,7 +75,7 @@ export function analyzeParticipants(id: SocialId, people: Participant[]): Social
     id: `${id}-${JSON.stringify(people.map(({ name, role, interests: selected, pace, planning, conversation }) => [name.trim(), role, [...selected].sort(), pace, planning, conversation]))}`,
     title: common.length ? '같이 좋아하는 것에서 시작해요' : '다른 취향이 만나 넓어지는 우리',
     subtitle: names,
-    summary: common.length ? `${people.length}명 모두 고른 관심사는 ${common.map((key) => optionLabel(INTERESTS, key)).join(', ')}예요. 이 관심사로 작은 활동을 시작해 보세요.` : '모두가 함께 고른 관심사는 없어요. 각자 좋아하는 것을 한 번씩 번갈아 경험하는 것도 좋은 시작입니다.',
+    summary: common.length ? `${people.length}명 모두 고른 관심사는 ${josa(common.map((key) => optionLabel(INTERESTS, key)).join(', '), '이에요/예요')}. 이 관심사로 작은 활동을 시작해 보세요.` : '모두가 함께 고른 관심사는 없어요. 각자 좋아하는 것을 한 번씩 번갈아 경험하는 것도 좋은 시작입니다.',
     tags: [id === 'team' ? `${people.length}명의 팀` : '두 사람의 선택', ...common.map((key) => optionLabel(INTERESTS, key))],
     sections: [{ title: '선택한 관심사', body: '오늘 직접 고른 응답을 집계했어요.', items: interestSummary }],
     metrics: interests.map((item) => ({ label: optionLabel(INTERESTS, item.id), value: item.count, max: people.length })),
@@ -106,7 +115,7 @@ export function cameraStory(id: 'lookalike' | 'face' | 'palm', choice: string): 
   if (id === 'lookalike') {
     const mood = STAR_MOODS.find((item) => item.id === choice)
     if (!mood) throw new Error('원하는 분위기를 골라 주세요.')
-    return { id: `${id}-${choice}`, title: `${mood.name} · ${mood.title}`, subtitle: '내가 선택한 가상 스타 무드', summary: `직접 고른 ${mood.title}를 사진 연출 아이디어로 정리했어요.`, tags: [...mood.words], palette: [mood.color, '#eef5fa', '#203e63'], sections: [{ title: '사진 분위기', body: mood.light }, { title: '스타일 힌트', body: mood.styling }, { title: '직접 해 보기', body: mood.action }], footnote: '서아·루미·준은 가상 인물입니다. 실존 연예인 식별·얼굴 유사도 비교를 하지 않습니다. 결과는 선택한 분위기로 만들며 촬영 사진은 업로드하지 않습니다.' }
+    return { id: `${id}-${choice}`, title: `${mood.name} · ${mood.title}`, subtitle: '내가 선택한 가상 스타 무드', summary: `직접 고른 ${josa(mood.title, '을/를')} 사진 연출 아이디어로 정리했어요.`, tags: [...mood.words], palette: [mood.color, '#eef5fa', '#203e63'], sections: [{ title: '사진 분위기', body: mood.light }, { title: '스타일 힌트', body: mood.styling }, { title: '직접 해 보기', body: mood.action }], footnote: '서아·루미·준은 가상 인물입니다. 실존 연예인 식별·얼굴 유사도 비교를 하지 않습니다. 결과는 선택한 분위기로 만들며 촬영 사진은 업로드하지 않습니다.' }
   }
   if (id === 'palm') return { id: 'palm-stories', title: '손 위에 펼치는 오늘의 이야기', subtitle: '선 세 개, 작은 행동 세 가지', summary: '손 모양을 확인했어요. 아래 선은 설명을 위한 그림이며, 실제 사진에서 손금을 추출하거나 해석한 결과가 아니에요.', tags: PALM_STORIES.map((item) => item.keyword), sections: PALM_STORIES.map((item) => ({ title: item.label, body: item.story, items: [item.action] })), footnote: '전통 손금에서 착안한 창작 이야기입니다. 실제 손금 선을 추출하지 않으며 미래·건강·수명을 예측하지 않습니다. 촬영 사진은 업로드하지 않습니다.' }
   const topic = FACE_TOPICS.find((item) => item.id === choice)
