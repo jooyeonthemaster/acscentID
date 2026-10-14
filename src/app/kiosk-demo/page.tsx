@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
@@ -26,17 +26,19 @@ const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
   { Icon: Languages, title: '언어 안내', text: '기존 10종은 5개 언어, 새로 추가된 18종은 한국어로 제공합니다.' },
   { Icon: Smartphone, title: '휴대폰으로 받기', text: '체험 스튜디오의 결과는 QR을 찍어 휴대폰에 저장합니다.' },
-  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함과 새 체험 18종은 결과를 영수증으로도 뽑습니다.' },
+  { Icon: WandSparkles, title: 'AI 분석 · 합성', text: '새 체험 18종은 사진과 답변을 AI가 함께 보고 풀이하고, 그중 6종은 사진으로 화보 · 오라 · 타임머신 · 포스터 · 룩북을 새로 만듭니다.' },
+  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함은 영수증으로도 뽑고, 새 체험 18종은 결과 화면의 인쇄하기 한 번이면 바로 나옵니다.' },
   { Icon: Sparkles, title: '행사 맞춤', text: '첫 화면 문구와 배경, 영수증 문구를 행사에 맞춰 바꿀 수 있습니다.' },
 ]
 const NOTES = [
   '카메라나 마이크를 쓰는 프로그램은 브라우저가 권한을 물을 때 허용해 주세요.',
-  'AI가 그림을 그리는 프로그램은 결과가 나오기까지 10초쯤 걸립니다.',
+  'AI가 분석하는 데 3~7초, 사진으로 그림을 새로 만드는 프로그램은 10~20초쯤 걸립니다.',
   '영수증 출력은 프린터가 달린 실제 키오스크에서 동작합니다. 브라우저에서는 미리보기로 보여 줍니다.',
   '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 키오스크에는 표시되지 않습니다.',
 ]
 /** 머리말의 키오스크 한 대 — 화면이 이 차례로 3초마다 바뀐다(움직임 줄이기를 켠 브라우저는 첫 화면에 머문다) */
-const HERO = ['ai-tarot', 'studio-draw', 'studio-voice', 'studio-card', 'ai-color', 'studio-makeup', 'studio-nail', 'studio-career', 'studio-skin', 'kwave-2026']
+// 새 체험 다섯(스타 무드 · 코디 · 오라 · 문화유산 · 칵테일)과 기존 다섯을 번갈아 — 칸 수는 kiosk-demo.css 의 30초 순환(10칸)에 맞춘다
+const HERO = ['studio-lookalike', 'ai-tarot', 'studio-coord', 'studio-draw', 'studio-aura', 'studio-card', 'studio-heritage', 'ai-color', 'studio-cocktail', 'kwave-2026']
   .map((mode) => KIOSK_DEMOS.find((demo) => demo.mode === mode)!)
 
 /**

@@ -5,9 +5,10 @@
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const KIOSK_DEMO_PARAM = 'demo'
 
+import { usesImage } from './expansion/image-prompts'
 import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
 
-export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'touch' | 'display'
+export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'analysis' | 'touch' | 'display'
 
 export interface KioskDemo {
   /** 운영 모드 id(src/lib/kiosk/modes.ts) */
@@ -22,7 +23,7 @@ export interface KioskDemo {
   color: string
 }
 
-export const KIOSK_DEMO_NEEDS: Record<KioskDemoNeed, string> = { camera: '카메라', mic: '마이크', ai: 'AI 생성', touch: '터치', display: '전시 화면 연동' }
+export const KIOSK_DEMO_NEEDS: Record<KioskDemoNeed, string> = { camera: '카메라', mic: '마이크', ai: 'AI 생성', analysis: 'AI 분석', touch: '터치', display: '전시 화면 연동' }
 
 export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'kwave-2026', tag: 'SAJU!', name: '사주 향 처방', desc: '생년월일시로 사주 오행을 읽고, 부족한 기운을 채우는 향을 처방전 영수증으로 뽑아 줍니다.', needs: ['touch', 'ai'], group: 'reading', color: '#1f5a45' },
@@ -36,8 +37,8 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '관심사 · MBTI · 재미로 보는 관상으로 어울리는 직업을 찾아 줍니다.', needs: ['touch', 'camera'], group: 'studio', color: '#315ca8' },
   { mode: 'studio-makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', desc: '내 얼굴에 립 · 아이 · 블러셔 · 헤어 색을 올려 보고 머리 모양도 바꿔 봅니다.', needs: ['camera', 'ai'], group: 'studio', color: '#754f70' },
   ...EXPANSION_IDS.map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
-    // 18종 모두 사진 한 장으로 시작한다(사진 없이도 되는 체험도 카메라가 있어야 제대로 보인다)
-    needs: ['product','heritage','vision-wall'].includes(id) ? ['camera','touch','display'] : ['camera','touch'],
+    // 18종 모두 사진 한 장으로 시작하고 AI 가 분석한다. 6종은 사진으로 새 그림까지 만든다(AI 생성)
+    needs: ['camera', usesImage(id) ? 'ai' : 'analysis', ...(['product','heritage','vision-wall'].includes(id) ? ['display' as const] : [])],
     group:['science','product','heritage','vision-wall'].includes(id) ? 'interactive' : ['team','couple','lookalike','palm','face'].includes(id) ? 'social' : 'preferences',
   })),
 ]
