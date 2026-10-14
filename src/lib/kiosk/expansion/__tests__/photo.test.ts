@@ -129,7 +129,7 @@ test('손금 이야기는 손을 펼친 정도로 순서만 바꾸고, 손금 �
   const story = cameraStory('palm', '', wide)
   assert.equal(story.sections[0].title, '생각의 선')
   assert.match(story.summary, /사진 속 손\(손가락을 활짝 펼침 · 엄지를 벌림\)을 보고 '생각의 선' 이야기를 먼저 펼쳤어요/)
-  assert.match(story.footnote!, /실제 손금 선을 추출하지 않으며/)
+  assert.match(story.footnote!, /실제 손금 선을 해석하지 않으며/)
 })
 
 test('관상 이야기는 표정으로 한 줄을 더하고 성격·운명을 말하지 않는다', () => {
@@ -172,11 +172,11 @@ test('모든 체험에 사진 계획이 있고, 영수증은 사진에서 읽은
   const receipt = expansionReceipt('travel', travel.primary)
   const headings = receipt.blocks.filter((b) => b.kind === 'heading').map((b) => (b as { text: string }).text)
   assert.equal(headings.at(-1), PHOTO_SECTION)
-  assert.ok(headings.length <= 5)
+  assert.ok(headings.length <= 4)
   assert.equal(receipt.tag, 'TRIP!')
   assert.ok(receipt.blocks.every((b) => b.kind !== 'image' || !b.src.startsWith('data:')), '영수증에 촬영 사진은 없다')
   const lists = receipt.blocks.filter((b) => b.kind === 'list') as { items: string[] }[]
-  assert.ok(lists.every((b) => b.items.length <= 7))
+  assert.ok(lists.every((b) => b.items.length <= 5))
 })
 
 test('outfitLook — 팔레트·온도·짙기', () => {

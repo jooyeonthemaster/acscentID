@@ -5,6 +5,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Camera, Hand, RefreshCw, ScanFace, ShieldCheck, Users } from 'lucide-react'
+import { usesImage } from '@/lib/kiosk/expansion/image-prompts'
+import { josa } from '@/lib/kiosk/expansion/korean'
 import { PHOTO_PLANS, readingFacts, type PhotoReading } from '@/lib/kiosk/expansion/photo'
 import type { ExpansionId, ExperienceResult } from '@/lib/kiosk/expansion/types'
 import { KX_IDLE, KxCamView, KxSpinner, useKxCamera } from '../kx'
@@ -47,7 +49,8 @@ export function PhotoNote({ result }: { result: ExperienceResult }) {
 export function PhotoStep({ id, reading, onRead, onNext, onBack, onSkip, headline, guide }: {
   id: ExpansionId
   reading: PhotoReading | null
-  onRead: (reading: PhotoReading) => void
+  /** 읽은 값과 찍은 사진(data: 주소 — AI 분석·합성에 보낸 뒤 처음으로 돌아가면 사라진다) */
+  onRead: (reading: PhotoReading, photo: string) => void
   onNext: () => void
   onBack: () => void
   /** 사진 없이 하기 — plan.optional 일 때만 보인다 */
@@ -79,7 +82,7 @@ export function PhotoStep({ id, reading, onRead, onNext, onBack, onSkip, headlin
     if (stage !== 'reading' || !photo) return
     const run = ++job.current
     readPhoto(photo, plan)
-      .then((made) => { if (run !== job.current) return; deliver.current(made); setStage('shown') })
+      .then((made) => { if (run !== job.current) return; deliver.current(made, photo); setStage('shown') })
       .catch((error: unknown) => { if (run !== job.current) return; setProblem(error instanceof PhotoReadError ? error.problem : 'tool'); setStage('error') })
     return () => { job.current += 1 }
   }, [stage, photo, plan])
@@ -95,11 +98,11 @@ export function PhotoStep({ id, reading, onRead, onNext, onBack, onSkip, headlin
   </ExpansionFrame>
 
   if (stage === 'confirm' && photo) return <ExpansionFrame title="이 사진으로 읽을까요?" subtitle="다시 찍으면 이전 사진은 지워져요" onBack={again} actions={<><PrimaryButton secondary onClick={again}><RefreshCw size={20} />다시 찍기</PrimaryButton><PrimaryButton onClick={() => setStage('reading')}>이 사진으로 계속</PrimaryButton></>}>
-    <div className="ex-camera-view" data-wide={wide || undefined}><KxCamView cam={null} photo={photo} badge="기기에서만 읽어요" /></div>
+    <div className="ex-camera-view" data-wide={wide || undefined}><KxCamView cam={null} photo={photo} badge="AI 분석에만 써요" /></div>
     <p className="ex-note">{plan.uses}</p>
   </ExpansionFrame>
 
-  if (stage === 'reading') return <ExpansionFrame title="사진을 읽고 있어요" subtitle="사진은 이 기기를 떠나지 않아요" busy screen="busy">
+  if (stage === 'reading') return <ExpansionFrame title="사진을 읽고 있어요" subtitle="기기에서 먼저 표정과 색을 재요" busy screen="busy">
     <div className="ex-social-wait" role="status"><KxSpinner size={54} /><h2>{plan.reads.join(' · ')}</h2><p>처음에는 읽는 도구를 받는 데 시간이 걸릴 수 있어요.</p><PrimaryButton secondary onClick={() => { job.current += 1; setStage('confirm') }}>사진 확인으로 돌아가기</PrimaryButton></div>
   </ExpansionFrame>
 
@@ -107,7 +110,7 @@ export function PhotoStep({ id, reading, onRead, onNext, onBack, onSkip, headlin
     <div className="ex-social-wait"><RefreshCw size={54} /><p className="ex-alert" role="alert">{PROBLEM[problem]}</p>{problem === 'tool' && skipButton}<p className="ex-note">사진을 서버에 보내지 않았어요.</p></div>
   </ExpansionFrame>
 
-  if (stage === 'shown' && reading) return <ExpansionFrame title="사진에서 읽은 것" subtitle="이 값만 남기고 사진은 체험이 끝나면 지워요" onBack={photo ? () => setStage('confirm') : onBack} screen={KX_IDLE.result} actions={<><PrimaryButton secondary onClick={again}><RefreshCw size={20} />다시 찍기</PrimaryButton><PrimaryButton onClick={onNext}>이대로 계속 <ArrowRight size={22} /></PrimaryButton></>}>
+  if (stage === 'shown' && reading) return <ExpansionFrame title="사진에서 읽은 것" subtitle="사진은 체험이 끝나면 지워요" onBack={photo ? () => setStage('confirm') : onBack} screen={KX_IDLE.result} actions={<><PrimaryButton secondary onClick={again}><RefreshCw size={20} />다시 찍기</PrimaryButton><PrimaryButton onClick={onNext}>이대로 계속 <ArrowRight size={22} /></PrimaryButton></>}>
     <div className="ex-photo-read">
       {photo && <div className="ex-photo-thumb" data-wide={wide || undefined}>
         {/* 방금 찍은 data: 사진 — 최적화할 원격 그림이 아니다 */}
@@ -116,13 +119,13 @@ export function PhotoStep({ id, reading, onRead, onNext, onBack, onSkip, headlin
       </div>}
       <PhotoFacts id={id} reading={reading} />
     </div>
-    <div className="ex-panel"><h3>결과에 이렇게 쓰여요</h3><p>{plan.uses}</p></div>
+    <div className="ex-panel"><h3>결과에 이렇게 쓰여요</h3><p>{plan.uses} 마지막에 AI가 사진과 답변을 함께 보고 결과를 풀어 줘요{usesImage(id) ? ' — 이 체험은 사진으로 새 그림도 만들어요' : ''}.</p></div>
   </ExpansionFrame>
 
   return <ExpansionFrame title={headline ?? HEADLINE[plan.subject]} subtitle="사진 한 장으로 결과가 달라져요" onBack={onBack} actions={<>{skipButton}<PrimaryButton onClick={() => setStage('capture')}>촬영 시작하기 <Camera size={20} /></PrimaryButton></>}>
     <div className="ex-camera-intro"><Icon size={72} strokeWidth={1.2} /><h2>{headline ?? HEADLINE[plan.subject]}</h2><p>{guide ?? plan.uses}</p></div>
     <div className="ex-photo-reads"><b>사진에서 읽는 것</b><div className="ex-tags">{plan.reads.map((read) => <span key={read}>{read}</span>)}</div></div>
-    <div className="ex-panel ex-camera-privacy"><ShieldCheck size={25} /><div><b>사진은 이 기기 안에서만</b><p>{plan.reads.join(' · ')}만 기기에서 읽고, 사진은 서버에 보내지 않아요. 결과 카드와 영수증에도 사진은 들어가지 않아요.</p></div></div>
+    <div className="ex-panel ex-camera-privacy"><ShieldCheck size={25} /><div><b>사진은 분석에만 쓰고 저장하지 않아요</b><p>기기에서 {josa(plan.reads.join(' · '), '을/를')} 재고, AI가 사진과 답변을 함께 보고 결과를 만들어요. 사진은 서버에 저장하지 않고, 영수증과 결과 카드에도 찍은 사진은 들어가지 않아요{usesImage(id) ? '(AI가 새로 만든 그림은 들어가요)' : ''}.</p></div></div>
     <ol className="ex-camera-tips">{TIPS[plan.subject].map((tip) => <li key={tip}>{tip}</li>)}</ol>
   </ExpansionFrame>
 }

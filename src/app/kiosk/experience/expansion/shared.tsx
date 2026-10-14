@@ -1,13 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Check, CircleHelp, Home, Loader2, Printer, RefreshCw, Smartphone, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CircleHelp, Home, Printer, Smartphone, X } from 'lucide-react'
 import { PHOTO_PLANS } from '@/lib/kiosk/expansion/photo'
 import { expansionReceipt } from '@/lib/kiosk/expansion/receipt'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from '@/lib/kiosk/expansion/types'
-import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
-import { KxReceiptSheet, useKx, useKxScreen } from '../kx'
-import type { KxShare, KxShareFile } from '../kx-share'
+import { KxReceiptSheet, KxSaveSheet, useKx, useKxScreen } from '../kx'
+import type { KxShareFile } from '../kx-share'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, wrapLines } from '../kx-canvas'
 import { preloadVision } from '../kx-vision'
 import './camera-social.css'
@@ -56,7 +55,7 @@ export function ExpansionFrame({ title, subtitle, onBack, children, actions, bus
     </div>
     {actions && <footer className="ex-actions">{actions}</footer>}
     {dialog === 'home' && <Dialog title="처음으로 돌아갈까요?" onClose={() => setDialog(null)}><p>현재 입력과 사진에서 읽은 값이 지워집니다. 결과가 필요하다면 먼저 영수증이나 휴대폰으로 받아 주세요.</p><div className="ex-stack"><PrimaryButton onClick={() => setDialog(null)}>계속 체험하기</PrimaryButton><PrimaryButton secondary onClick={home}>입력 지우고 처음으로</PrimaryButton></div></Dialog>}
-    {dialog === 'help' && <Dialog title="편하게 체험해 보세요" onClose={() => setDialog(null)}><ol className="ex-guide"><li><b>사진 한 장으로 시작해요</b><span>표정·옷 색 같은 것만 이 기기에서 읽고 결과에 더해요. 사진은 서버로 보내지 않아요.</span></li><li><b>직접 선택해요</b><span>마음에 드는 카드를 누르세요. 이전 버튼으로 돌아가 답을 바꾸면 결과에도 반영됩니다.</span></li><li><b>영수증이나 휴대폰으로 가져가요</b><span>결과는 영수증으로 뽑거나 QR로 휴대폰에 받을 수 있어요. 저장 링크는 24시간 동안 열립니다.</span></li></ol><p className="ex-note">카메라·인터넷·전시 연결이 되지 않으면 현장 운영자에게 알려 주세요. 이 체험은 한국어로 제공됩니다.</p><PrimaryButton onClick={() => setDialog(null)}>알겠어요</PrimaryButton></Dialog>}
+    {dialog === 'help' && <Dialog title="편하게 체험해 보세요" onClose={() => setDialog(null)}><ol className="ex-guide"><li><b>사진 한 장으로 시작해요</b><span>사진과 답변을 AI가 함께 보고 결과를 만들어요. 사진은 분석·합성에만 쓰고 저장하지 않아요.</span></li><li><b>직접 선택해요</b><span>마음에 드는 카드를 누르세요. 이전 버튼으로 돌아가 답을 바꾸면 결과에도 반영됩니다.</span></li><li><b>인쇄하기 한 번이면 끝</b><span>결과 화면에서 인쇄하기를 누르면 바로 영수증이 나와요. 휴대폰으로 받기도 있어요(저장 링크는 24시간).</span></li></ol><p className="ex-note">카메라·인터넷·전시 연결이 되지 않으면 현장 운영자에게 알려 주세요. 이 체험은 한국어로 제공됩니다.</p><PrimaryButton onClick={() => setDialog(null)}>알겠어요</PrimaryButton></Dialog>}
   </section>
 }
 
@@ -79,7 +78,7 @@ export function ExpansionStart({ id, headline, description, onStart }: { id: Exp
       <img src={meta.hero} alt="" fetchPriority="high" />
     </div>
     <p className="ex-start-copy">{description ?? meta.note}</p>
-    <div className="ex-start-steps"><span>01. 사진 한 장</span><span>02. 체험하기</span><span>03. 영수증·휴대폰</span></div>
+    <div className="ex-start-steps"><span>01. 사진 한 장</span><span>02. AI 분석</span><span>03. 바로 인쇄</span></div>
     <PrimaryButton onClick={onStart}>체험 시작하기 <ArrowRight size={25} /></PrimaryButton>
     <p className="ex-start-foot">화면을 터치해 나만의 이야기를 찾아보세요</p>
   </section>
@@ -114,8 +113,8 @@ export function ResultPanel({ result }: { result: ExperienceResult }) {
   </article>
 }
 
-/** Export all result text (including sections below the viewport), with measured line heights. */
-export async function renderExperienceCard(id: ExpansionId, result: ExperienceResult) {
+/** Export all result text (including sections below the viewport), with measured line heights. art — AI 합성 그림(없으면 체험 대표 그림) */
+export async function renderExperienceCard(id: ExpansionId, result: ExperienceResult, art: string | null = null) {
   const meta = EXPANSION_META[id], family = kxFontFamily()
   await fontsReady(`500 28px ${family}`, `800 44px ${family}`)
   const [, measure] = makeCanvas(900, 100)
@@ -135,14 +134,15 @@ export async function renderExperienceCard(id: ExpansionId, result: ExperienceRe
   ]
   const laid = blocks.map(b => { measure.font = `${b.weight} ${b.size}px ${family}`; const lines = wrapLines(measure, b.text, 756); return { ...b, lines, height: lines.length * b.size * 1.55 + b.gap } })
   const paletteHeight = result.palette?.length ? 86 : 0
-  const art = await loadImage(meta.hero).catch(() => null)
-  const artHeight = art ? 330 : 0
+  const picture = await loadImage(art ?? meta.hero).catch(() => null)
+  // 합성 그림은 잘리지 않게 제 비율로(세로 그림은 높게), 대표 그림은 띠로
+  const artHeight = picture ? (art ? Math.round(756 * picture.naturalHeight / picture.naturalWidth) + 30 : 330) : 0
   const height = Math.ceil(144 + artHeight + paletteHeight + laid.reduce((n, b) => n + b.height, 0))
   const [canvas, ctx] = makeCanvas(900, height)
   ctx.fillStyle = '#F9F6EF'; ctx.fillRect(0, 0, 900, height)
   ctx.strokeStyle = meta.color; ctx.lineWidth = 1.5; ctx.strokeRect(25, 25, 850, height - 50)
   let y = 70
-  if (art) { drawCover(ctx, art, 72, y, 756, 300); y += artHeight }
+  if (picture) { drawCover(ctx, picture, 72, y, 756, artHeight - 30); y += artHeight }
   ctx.textBaseline = 'top'
   for (let i = 0; i < laid.length; i++) {
     const b = laid[i]; ctx.font = `${b.weight} ${b.size}px ${family}`; ctx.fillStyle = b.color
@@ -153,66 +153,24 @@ export async function renderExperienceCard(id: ExpansionId, result: ExperienceRe
 }
 
 /**
- * 결과 가져가기 — 영수증(키오스크 프린터로, QR 이 같이 찍힌다)과 휴대폰 QR 둘 다. 프린터가 없는 브라우저에서는 영수증 미리보기와 PNG 저장.
- * 둘이 같은 결과 카드를 한 번만 올려 같이 쓴다(cacheKey 가 같다). 촬영 사진은 어느 쪽에도 들어가지 않는다.
+ * 결과 화면의 바닥 버튼 — 인쇄하기(누르면 바로 영수증, QR 이 같이 찍힌다) · 휴대폰으로 받기. 기존 체험과 같은 창(KxReceiptSheet · KxSaveSheet)을 쓴다.
+ * 둘은 같은 결과 카드(+ AI 합성 그림) 업로드 한 번을 같이 쓴다. 촬영 사진은 어느 쪽에도 들어가지 않는다.
  */
-export function ExpansionSave({ result, onBack, onComplete }: { result: ExperienceResult; onBack: () => void; onComplete: () => void }) {
-  const { id, share } = useKx()
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [file, setFile] = useState<KxShare | null>(null)
+export function TakeActions({ result, image = null, imageLabel = 'AI 합성 이미지' }: { result: ExperienceResult; image?: string | null; imageLabel?: string }) {
+  const { id } = useKx()
   const [printing, setPrinting] = useState(false)
-  const [took, setTook] = useState(false)
-  const [now, setNow] = useState(Date.now)
-  const request = useRef(0)
-  const mounted = useRef(true)
-  /** QR 유효시간이 지나 새로 만들 때 올린다 — 같은 결과라도 새 링크 */
-  const [nonce, setNonce] = useState(0)
-  const [hasPrinter] = useState(() => Boolean(getKioskBridge()?.hasPrinter))
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
-  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer) }, [])
-  const expired = !!file && file.expiresAt <= now
+  const [saving, setSaving] = useState(false)
   // The complete content, not only result.id, is part of the cache identity.
-  const keyFor = (n: number) => `expansion:${id}:${JSON.stringify(result)}:${n}`
-  const cacheKey = keyFor(nonce)
-  const build = useCallback(async (): Promise<KxShareFile[]> => [{ name: 'experience-card.jpg', type: 'image/jpeg', label: result.title, blob: await renderExperienceCard(id as ExpansionId, result) }], [id, result])
-  const receipt = useCallback(() => expansionReceipt(id as ExpansionId, result), [id, result])
-  const upload = async (n = nonce) => {
-    if (status === 'loading') return
-    const ticket = ++request.current
-    setStatus('loading'); setFile(null)
-    try {
-      const made = await share(keyFor(n), build)
-      if (!mounted.current || request.current !== ticket) return
-      setFile(made); setNow(Date.now()); setStatus('ready'); setTook(true)
-    } catch { if (mounted.current && request.current === ticket) setStatus('error') }
-  }
+  const cacheKey = `expansion:${id}:${JSON.stringify(result)}:${image?.length ?? 0}`
+  const build = useCallback(async (): Promise<KxShareFile[]> => [
+    { name: 'experience-card.jpg', type: 'image/jpeg', label: result.title, blob: await renderExperienceCard(id as ExpansionId, result, image) },
+    ...(image ? [{ name: 'ai-image.jpg', type: 'image/jpeg' as const, label: imageLabel, blob: await (await fetch(image)).blob() }] : []),
+  ], [id, result, image, imageLabel])
+  const receipt = useCallback(() => expansionReceipt(id as ExpansionId, result, image ? { src: image, caption: imageLabel } : null), [id, result, image, imageLabel])
   return <>
-    <ExpansionFrame title="결과를 가져가요" subtitle="영수증으로 뽑거나 휴대폰으로 받아요" onBack={onBack} screen={180} actions={<><PrimaryButton secondary onClick={onBack}>결과로 돌아가기</PrimaryButton><PrimaryButton disabled={!took} onClick={onComplete}>다 받았어요 <Check size={22} /></PrimaryButton></>}>
-      <div className="ex-take">
-        <button type="button" className="ex-take-option" data-main={hasPrinter || undefined} onClick={() => { setPrinting(true); setTook(true) }}><Printer size={34} strokeWidth={1.6} aria-hidden="true" /><b>영수증으로 받기</b><small>{hasPrinter ? '결과와 휴대폰 QR이 함께 인쇄돼요' : '영수증 미리보기 · 프린터가 있는 키오스크에서 인쇄돼요'}</small></button>
-        <button type="button" className="ex-take-option" aria-pressed={status !== 'idle'} onClick={() => void upload()} disabled={status === 'loading'}><Smartphone size={34} strokeWidth={1.6} aria-hidden="true" /><b>휴대폰으로 받기</b><small>QR을 찍어 결과 카드를 저장해요</small></button>
-      </div>
-      <div className="ex-save-card">
-        {status === 'idle' && <><h2>{result.title}</h2><p className="ex-note">영수증과 QR에는 결과만 담겨요. 촬영한 사진은 서버에 올리지도, 인쇄하지도 않아요. QR을 만들면 결과 카드가 서버에 24시간 보관됩니다.</p></>}
-        {status === 'loading' && <div role="status" className="ex-stack ex-center"><Loader2 className="kx-spin" size={48} /><h2>카드를 준비하고 있어요</h2><p>결과 이미지를 안전하게 올리는 중이에요.</p></div>}
-        {status === 'error' && <div role="alert" className="ex-stack"><h2>저장 링크를 만들지 못했어요</h2><p>입력과 결과는 그대로 있어요. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><PrimaryButton onClick={() => void upload()}><RefreshCw size={22} />다시 시도하기</PrimaryButton></div>}
-        {status === 'ready' && file && (expired ? <div role="status" className="ex-stack"><h2>QR 유효시간이 지났어요</h2><p>새로운 저장 링크를 만들 수 있어요.</p><PrimaryButton onClick={() => { setNonce(nonce + 1); void upload(nonce + 1) }}>새 QR 만들기</PrimaryButton></div> : <>
-          <p className="ex-eyebrow">SCAN & KEEP</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="ex-qr" src={file.qr} alt="체험 결과 저장 링크 QR 코드" />
-          <h2>휴대폰 카메라로 비춰 주세요</h2><p>링크를 열고 ‘다운로드’를 누르면<br />결과 카드를 저장할 수 있어요.</p><p className="ex-note">유효시간: {new Date(file.expiresAt).toLocaleString('ko-KR')}까지</p>
-          <a className="ex-save-link" href={file.url} target="_blank" rel="noopener noreferrer">저장 페이지 열기 ↗</a>
-        </>)}
-      </div>
-    </ExpansionFrame>
+    <PrimaryButton secondary onClick={() => setSaving(true)}><Smartphone size={21} />휴대폰으로 받기</PrimaryButton>
+    <PrimaryButton onClick={() => setPrinting(true)}><Printer size={22} />인쇄하기</PrimaryButton>
+    <KxSaveSheet open={saving} cacheKey={cacheKey} build={build} onClose={() => setSaving(false)} />
     <KxReceiptSheet open={printing} cacheKey={cacheKey} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
   </>
-}
-
-export function Completion({ title = '오늘의 체험을 간직하세요', onBack }: { title?: string; onBack?: () => void }) {
-  const { home } = useKx()
-  const [left, setLeft] = useState(15)
-  useEffect(() => { const timer = window.setInterval(() => setLeft(n => Math.max(0, n - 1)), 1000); return () => window.clearInterval(timer) }, [])
-  useEffect(() => { if (!left) home() }, [left, home])
-  return <ExpansionFrame title="체험이 끝났어요" screen={30} onBack={onBack} actions={<PrimaryButton onClick={home}>입력 지우고 처음으로 <Home size={21} /></PrimaryButton>}><div className="ex-complete"><span><Check size={60} /></span><h2>{title}</h2><p>다음 체험자를 위해<br />{left}초 뒤 입력과 사진을 지워요.</p>{onBack && <PrimaryButton secondary onClick={onBack}>결과 다시 보기</PrimaryButton>}</div></ExpansionFrame>
 }

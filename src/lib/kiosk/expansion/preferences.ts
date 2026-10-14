@@ -177,7 +177,7 @@ const add = (b: Boost, points: number, reason: string) => { if (points > 0) { b.
 export const PHOTO_SECTION = '사진에서 읽은 것'
 /** 결과 맨 끝에 붙는다(카드·영수증에도 같이). 점수를 더하지 않은 후보도 그렇다고 적는다 */
 const photoSection = (id: PreferenceId, photo: PhotoReading, b: Boost): ResultSection =>
-  section(PHOTO_SECTION, `${readingLine(photo, PHOTO_PLANS[id])}. 사진은 기기 안에서 읽고 바로 지웠어요.`, [...(b.reasons.length ? b.reasons : ['이 후보에는 사진으로 더한 점수가 없어요. 답변으로 고른 후보예요.']), ...b.notes])
+  section(PHOTO_SECTION, `${readingLine(photo, PHOTO_PLANS[id])}. 기기에서 잰 값으로 더한 점수예요.`, [...(b.reasons.length ? b.reasons : ['이 후보에는 사진으로 더한 점수가 없어요. 답변으로 고른 후보예요.']), ...b.notes])
 /** 사진이 있을 때만 후보에 점수와 '사진에서 읽은 것'을 더한다 */
 const withPhoto = (id: PreferenceId, photo: PhotoReading | null, ranked: Ranked, b: Boost | null): Ranked => !photo || !b ? ranked : { score: ranked.score + b.points, result: { ...ranked.result, ...(b.palette ? { palette: b.palette } : {}), sections: [...ranked.result.sections, photoSection(id, photo, b)] } }
 /** 옷 색(많이 보이는 둘)을 앞에 두고 원래 색을 잇는다 — 같은 색은 한 번만 */

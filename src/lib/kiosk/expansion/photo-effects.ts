@@ -64,5 +64,5 @@ export function photoMission(photo: PhotoReading): PhotoMission | null {
 
 /** 결과에 붙이는 '사진으로 고른 첫 설정' */
 export function photoPickSection(id: ExpansionId, photo: PhotoReading, reasons: string[], after = '처음 설정만 사진으로 골랐어요. 그 뒤 직접 바꾼 설정이 결과에 남아요.'): ResultSection {
-  return { title: '사진에서 읽은 것', body: `${readingLine(photo, PHOTO_PLANS[id])}. 사진은 기기 안에서 읽고 바로 지웠어요.`, items: [...reasons, after] }
+  return { title: '사진에서 읽은 것', body: `${readingLine(photo, PHOTO_PLANS[id])}. 기기에서 잰 값으로 고른 첫 설정이에요.`, items: [...reasons, after] }
 }
