@@ -27,7 +27,7 @@
 .bd-brand { font-size: 19px; font-weight: 800; letter-spacing: 0.26em; }
 .bd-pill { padding: 5px 13px; border: 1.5px solid var(--bd-ink); border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; }
 
-.bd-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; gap: clamp(24px, 5vw, 64px); padding-block: clamp(20px, 5vw, 56px) clamp(40px, 7vw, 88px); }
+.bd-hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 64px); padding-block: clamp(20px, 5vw, 56px) clamp(40px, 7vw, 88px); }
 .bd-hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; min-width: 0; }
 .bd-eyebrow { color: var(--bd-soft); font-size: 14px; font-weight: 600; letter-spacing: 0.02em; }
 .bd h1 { font-size: clamp(31px, 4.2vw, 54px); font-weight: 800; line-height: 1.14; letter-spacing: -0.035em; text-wrap: balance; }
@@ -36,30 +36,27 @@
 .bd-button:hover { background: var(--bd-accent); transform: translateY(-2px); }
 .bd-button:focus-visible, .bd-card:focus-visible { outline: 3px solid var(--bd-accent); outline-offset: 4px; }
 
-/* 포토부스 정면 그림(.bd-booth) — 매장 부스(가로 1920x1080 터치 모니터 위에 캐논 DSLR)의 특징만 옮겼다.
-   치수는 부스 폭을 100cqw 로 둔 비율: 베젤 옆 3% · 위 3.4% · 아래 5% · 모서리 2.4%, 위 가운데 DSLR(폭 17%), 아래 받침대 */
+/* 포토부스 정면 그림(.bd-booth) — 매장 포토부스 실물 사진(2026-10)에서 몸체 폭 기준으로 쟀다(정면으로 펴서):
+   흰 세로 몸체 · 위 가운데 둥근 구멍(지름 13%, 위에서 7%) 안에 캐논 렌즈 · 가로 화면(폭 80%, 16:9, 위에서 36%) ·
+   화면 아래 인화물 출구(폭 36%·얇게, 화면 아래로 27%) 오른쪽에 회색 받침. 몸체는 바닥까지 이어지므로 아래로 흐려진다 */
 .bd-booth { container-type: inline-size; position: relative; display: block; width: 100%; transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.bd-booth-cam { position: relative; z-index: 1; display: block; width: 17cqw; height: 10.5cqw; margin: 0 auto -1.2cqw; border-radius: 1.6cqw 1.6cqw 0.8cqw 0.8cqw; background: linear-gradient(180deg, #3c3f46, #1d1f24 60%, #15161a); box-shadow: inset 0 0.25cqw 0 rgba(255, 255, 255, 0.12), 0 0.8cqw 1.6cqw rgba(8, 10, 18, 0.22); }
-/* 셔터 버튼 혹 — 왼쪽 위 */
-.bd-booth-cam::before { content: ''; position: absolute; top: -1.4cqw; left: 1.8cqw; width: 4.4cqw; height: 1.8cqw; border-radius: 0.8cqw 0.8cqw 0 0; background: #2a2c31; }
-/* 렌즈 */
-.bd-booth-cam i { position: absolute; top: 52%; left: 50%; width: 7.4cqw; height: 7.4cqw; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #8090ad 0 9%, #1c2335 24%, #07090e 58%, #2b2e35 62%, #121316 72%); box-shadow: 0 0 0 0.4cqw #0e0f12; transform: translate(-50%, -50%); }
-.bd-booth-body { position: relative; display: block; padding: 3.4cqw 3cqw 5cqw; border-radius: 2.4cqw; background: linear-gradient(180deg, #1d1f23 0%, #121316 50%, #0f1012 100%); box-shadow: inset 0 0 0 0.25cqw rgba(255, 255, 255, 0.07), 0 2cqw 5cqw rgba(8, 10, 18, 0.2); }
-.bd-booth-body::before { content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; background: linear-gradient(125deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.015) 22%, transparent 34%); pointer-events: none; }
-.bd-booth-screen { position: relative; isolation: isolate; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 0.3cqw; background: #050608; box-shadow: 0 0 0 0.2cqw #070809; }
+.bd-booth-body { position: relative; display: block; height: 158cqw; border-radius: 1.2cqw 1.2cqw 0 0; background: linear-gradient(90deg, #f3f4f6 0%, #fbfbfc 18%, #ffffff 55%, #f1f2f4 96%, #e3e5e9 100%); box-shadow: inset 0 0 0 0.3cqw rgba(17, 20, 27, 0.05), 0 2cqw 5cqw rgba(8, 10, 18, 0.14); -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%); mask-image: linear-gradient(180deg, #000 82%, transparent 100%); }
+/* 둥근 구멍 — 안쪽이 그늘지고, 렌즈(검은 뚜껑)가 꽉 찬다 */
+.bd-booth-cam { position: absolute; top: 7cqw; left: 50%; display: block; width: 13cqw; height: 13cqw; border-radius: 50%; background: radial-gradient(circle, #0b0c0e 62%, #2a2c31 70%, #9da1a8 74%, #e7e8eb 78%); box-shadow: inset 0 0.6cqw 1cqw rgba(0, 0, 0, 0.5); transform: translateX(-50%); }
+.bd-booth-cam i { position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle at 40% 36%, #5c6273 0 6%, #1b1e26 18%, #0a0b0e 46%, #24262b 58%, #101114 66%, #2c2e33 72%, #0d0e10 80%); }
+.bd-booth-screen { position: absolute; top: 36cqw; left: 10cqw; isolation: isolate; display: block; width: 80cqw; aspect-ratio: 16 / 9; overflow: hidden; border: 0.7cqw solid #0b0c0e; border-radius: 0.4cqw; background: #050608; box-shadow: inset 0 0 0 0.2cqw #000, 0 0.3cqw 0.6cqw rgba(0, 0, 0, 0.12); }
 .bd-booth-screen img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.bd-booth-screen::after { content: ''; position: absolute; inset: 0; z-index: 3; background: linear-gradient(118deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 26%, transparent 42%); pointer-events: none; }
-.bd-booth-stand { display: block; width: 12cqw; height: 6cqw; margin: 0 auto; background: linear-gradient(90deg, #15161a, #2a2c31 50%, #15161a); -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 100%); mask-image: linear-gradient(180deg, #000 40%, transparent 100%); }
+.bd-booth-screen::after { content: ''; position: absolute; inset: 0; z-index: 3; background: linear-gradient(118deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.035) 26%, transparent 42%); pointer-events: none; }
+/* 인화물 출구 — 검은 구멍, 오른쪽에 회색 받침 */
+.bd-booth-slot { position: absolute; top: 108cqw; left: 32cqw; z-index: 2; display: block; width: 36cqw; height: 5.5cqw; border-radius: 0.3cqw; background: linear-gradient(180deg, #040405, #1a1b1f); box-shadow: inset 0 0.6cqw 1cqw rgba(0, 0, 0, 0.55), 0 0.2cqw 0 rgba(255, 255, 255, 0.9); }
+.bd-booth-slot i { position: absolute; top: 18%; right: 0; bottom: 0; width: 26%; background: linear-gradient(180deg, #8d9097, #c9cbd0 40%, #e9eaed); }
+/* 출구에서 나오는 인화물 — 위쪽은 출구 안에 들어가 있다(출구가 위에 그려진다) */
+.bd-booth-print { position: absolute; top: 109.5cqw; left: 36cqw; z-index: 1; display: block; width: 26cqw; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 0.6cqw; box-shadow: 0 1.6cqw 3cqw rgba(8, 10, 18, 0.25); transform: rotate(-2deg); }
+.bd-booth-print img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* 4×6 인화물 견본 — 무테 사진에 그림자 */
-.bd-print { position: relative; display: block; width: 100%; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 6px; background: #fff; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 14px 30px rgba(8, 10, 18, 0.18), 0 2px 6px rgba(8, 10, 18, 0.12); transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.bd-print img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-/* 머리말 — 부스 화면이 다섯 가지로 3초마다 바뀌고, 오른쪽 아래에 인화물 한 장 */
-.bd-hero-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; margin: 0; padding-right: clamp(0px, 4vw, 40px); }
-.bd-booth--hero { width: 100%; }
-.bd-hero-print { position: absolute; right: 0; bottom: 34px; z-index: 2; width: clamp(96px, 20%, 150px); aspect-ratio: 2 / 3; overflow: hidden; border-radius: 4px; box-shadow: 0 16px 32px rgba(8, 10, 18, 0.32); transform: rotate(5deg); }
-.bd-hero-print img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 머리말 — 부스 화면이 다섯 가지로 3초마다 바뀌고, 출구에서 인화물이 나와 있다 */
+.bd-hero-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; margin: 0; }
+.bd-booth--hero { width: min(100%, 360px); }
 .bd-cycle { position: absolute; inset: 0; }
 .bd-cycle img { position: absolute; inset: 0; opacity: 0; animation: bd-cycle 15s linear infinite; animation-delay: calc(var(--i) * 3s - 15s); }
 .bd-now { position: relative; width: 100%; height: 1.6em; font-size: 15px; text-align: center; }
@@ -89,10 +86,9 @@
 .bd h2 { font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; letter-spacing: -0.03em; }
 .bd-group-head h2 span { margin-left: 8px; color: var(--bd-soft); font-size: 0.6em; font-weight: 700; vertical-align: 0.5em; }
 .bd-group-head p { color: var(--bd-soft); font-size: 15px; }
-.bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: clamp(22px, 3vw, 34px) clamp(14px, 2vw, 24px); }
-.bd-grid--print { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+.bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: clamp(22px, 3vw, 34px) clamp(14px, 2vw, 24px); }
 .bd-grid > li { display: flex; min-width: 0; }
-.bd-card { display: flex; flex-direction: column; gap: 12px; width: 100%; min-width: 0; border-radius: 16px; }
+.bd-card { display: flex; flex-direction: column; gap: 4px; width: 100%; min-width: 0; border-radius: 16px; }
 .bd-card-body { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 0; padding-inline: 2px; }
 .bd-tag { color: var(--bd-tone); font-size: 13px; font-weight: 800; letter-spacing: 0.12em; }
 .bd-card b { font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -0.03em; }
@@ -102,7 +98,7 @@
 .bd-open { display: inline-flex; align-items: center; gap: 4px; margin-top: auto; padding-top: 10px; color: var(--bd-ink); font-size: 15px; font-weight: 800; }
 .bd-open svg { transition: transform 0.22s ease; }
 @media (hover: hover) {
-  .bd-card:hover .bd-booth, .bd-card:hover .bd-print { transform: translateY(-6px); }
+  .bd-card:hover .bd-booth { transform: translateY(-6px); }
   .bd-card:hover .bd-open { color: var(--bd-tone); }
   .bd-card:hover .bd-open svg { transform: translate(3px, -3px); }
 }
@@ -125,14 +121,13 @@
 
 @media (max-width: 760px) {
   .bd-hero { grid-template-columns: minmax(0, 1fr); }
-  .bd-hero-stage { padding-right: 18px; }
-  .bd-grid, .bd-grid--print { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .bd-grid:not(.bd-grid--print) { grid-template-columns: minmax(0, 1fr); }
+  .bd-booth--hero { width: min(72vw, 300px); }
+  .bd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bd-card b { font-size: 17px; }
   .bd-desc { font-size: 13.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bd-button, .bd-booth, .bd-print, .bd-open svg { transition: none; }
+  .bd-button, .bd-booth, .bd-open svg { transition: none; }
   .bd-cycle img, .bd-now span { animation: none; }
   .bd-cycle img:first-child, .bd-now span:first-child { opacity: 1; }
 }

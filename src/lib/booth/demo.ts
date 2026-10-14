@@ -27,10 +27,10 @@ export interface BoothDemo {
   needs: BoothDemoNeed[]
   group: 'idol' | 'store'
   color: string
-  /** 카드 그림(가로 16:10 부스 화면 견본 또는 인화물 견본) */
-  image: string
-  /** image 가 세로 인화물(2:3)이면 true — 랜딩이 다른 틀에 넣는다 */
-  print?: boolean
+  /** 부스 화면 견본(1280×720 데모 화면을 960×540 으로) */
+  screen: string
+  /** 출구로 나오는 인화물 견본(4×6, AI 아이돌만) */
+  print?: string
 }
 
 export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
@@ -40,14 +40,14 @@ export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
 const shot = (name: string) => `/assets/booth-demo/${name}.webp`
 
 export const BOOTH_DEMOS: BoothDemo[] = [
-  { id: 'idol-ending-fairy', mode: 'kwave-2026', concept: 'ending-fairy', tag: 'ENDING FAIRY', name: '음방 엔딩요정', desc: '음악방송 무대가 끝난 순간의 엔딩 클로즈업. 헤드셋 마이크와 반짝이 메이크업, 컨페티까지.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#7a4fd0', image: shot('print-ending-fairy'), print: true },
-  { id: 'idol-album-jacket', mode: 'kwave-2026', concept: 'album-jacket', tag: 'ALBUM', name: '앨범 재킷', desc: '스튜디오에서 찍은 공식 컨셉 포토처럼, 채도 낮은 필름 색감의 화보 한 장.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#8a6a52', image: shot('print-album-jacket'), print: true },
-  { id: 'idol-stage-fancam', mode: 'kwave-2026', concept: 'stage-fancam', tag: 'FANCAM', name: '무대 직캠', desc: '콘서트 무대에서 안무 중인 순간. 조명 빔과 대형 LED, 걸크러시 무대 의상.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#c0303f', image: shot('print-stage-fancam'), print: true },
-  { id: 'idol-mv-still', mode: 'kwave-2026', concept: 'mv-still', tag: 'MV', name: '뮤비 스틸', desc: '네온이 가득한 뮤직비디오의 한 장면처럼, 강한 컬러 조명과 액세서리.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#1f8a9a', image: shot('print-mv-still'), print: true },
-  { id: 'store-template', mode: 'wow', program: 'template', tag: 'WITH BIAS', name: '최애와 찍기', desc: '최애 사진 옆 빈자리에 서면 카메라 화면이 그대로 합성돼 같은 무대에 선 한 장이 됩니다.', needs: ['camera', 'print'], group: 'store', color: '#d0507a', image: shot('screen-template') },
-  { id: 'store-together', mode: 'wow', program: 'together', tag: 'PHOTOCARD', name: '포카 · 직찍 합성', desc: '폰으로 QR을 찍어 포토카드나 직찍을 올리면 인물만 오려 내 옆에 세워 함께 찍습니다.', needs: ['camera', 'phone', 'print'], group: 'store', color: '#3b6fd8', image: shot('screen-together') },
-  { id: 'store-solo', mode: 'wow', program: 'solo', tag: '1 CUT · 4 CUTS', name: '일반 촬영', desc: '한 컷 또는 네 컷(2×2)을 찍고 프레임을 골라 4×6으로 인화합니다.', needs: ['camera', 'print'], group: 'store', color: '#2f8a5a', image: shot('screen-solo') },
-  { id: 'store-card', mode: 'wow', program: 'card', tag: 'CARD SCAN', name: '포토카드 QR', desc: '매장에서 판매하는 포토카드 뒷면 QR을 카메라에 비추면, 그 카드 속 인물과 함께 찍습니다.', needs: ['camera', 'qr', 'print'], group: 'store', color: '#b5762a', image: shot('screen-card') },
+  { id: 'idol-ending-fairy', mode: 'kwave-2026', concept: 'ending-fairy', tag: 'ENDING FAIRY', name: '음방 엔딩요정', desc: '음악방송 무대가 끝난 순간의 엔딩 클로즈업. 헤드셋 마이크와 반짝이 메이크업, 컨페티까지.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#7a4fd0', screen: shot('idol-ending-fairy'), print: shot('print-ending-fairy') },
+  { id: 'idol-album-jacket', mode: 'kwave-2026', concept: 'album-jacket', tag: 'ALBUM', name: '앨범 재킷', desc: '스튜디오에서 찍은 공식 컨셉 포토처럼, 채도 낮은 필름 색감의 화보 한 장.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#8a6a52', screen: shot('idol-album-jacket'), print: shot('print-album-jacket') },
+  { id: 'idol-stage-fancam', mode: 'kwave-2026', concept: 'stage-fancam', tag: 'FANCAM', name: '무대 직캠', desc: '콘서트 무대에서 안무 중인 순간. 조명 빔과 대형 LED, 걸크러시 무대 의상.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#c0303f', screen: shot('idol-stage-fancam'), print: shot('print-stage-fancam') },
+  { id: 'idol-mv-still', mode: 'kwave-2026', concept: 'mv-still', tag: 'MV', name: '뮤비 스틸', desc: '네온이 가득한 뮤직비디오의 한 장면처럼, 강한 컬러 조명과 액세서리.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#1f8a9a', screen: shot('idol-mv-still'), print: shot('print-mv-still') },
+  { id: 'store-template', mode: 'wow', program: 'template', tag: 'WITH BIAS', name: '최애와 찍기', desc: '최애 사진 옆 빈자리에 서면 카메라 화면이 그대로 합성돼 같은 무대에 선 한 장이 됩니다.', needs: ['camera', 'print'], group: 'store', color: '#d0507a', screen: shot('screen-template') },
+  { id: 'store-together', mode: 'wow', program: 'together', tag: 'PHOTOCARD', name: '포카 · 직찍 합성', desc: '폰으로 QR을 찍어 포토카드나 직찍을 올리면 인물만 오려 내 옆에 세워 함께 찍습니다.', needs: ['camera', 'phone', 'print'], group: 'store', color: '#3b6fd8', screen: shot('screen-together') },
+  { id: 'store-solo', mode: 'wow', program: 'solo', tag: '1 CUT · 4 CUTS', name: '일반 촬영', desc: '한 컷 또는 네 컷(2×2)을 찍고 프레임을 골라 4×6으로 인화합니다.', needs: ['camera', 'print'], group: 'store', color: '#2f8a5a', screen: shot('screen-solo') },
+  { id: 'store-card', mode: 'wow', program: 'card', tag: 'CARD SCAN', name: '포토카드 QR', desc: '매장에서 판매하는 포토카드 뒷면 QR을 카메라에 비추면, 그 카드 속 인물과 함께 찍습니다.', needs: ['camera', 'qr', 'print'], group: 'store', color: '#b5762a', screen: shot('screen-card') },
 ]
 
 /** 데모로 여는 주소 */

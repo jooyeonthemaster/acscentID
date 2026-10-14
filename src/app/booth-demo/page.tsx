@@ -43,25 +43,26 @@ const HERO_CAPTION: Record<string, { tag: string; name: string; color: string }>
   'screen-card': { tag: 'CARD SCAN', name: '포토카드 QR', color: '#b5762a' },
 }
 
-/** 부스를 정면에서 본 모양 — 가로 모니터 위에 DSLR. 그림 파일 없이 코드로 그린다(booth-demo.css 의 .bd-booth) */
-function Booth({ children, className }: { children: ReactNode; className?: string }) {
+/**
+ * 매장 포토부스를 정면에서 본 모양 — 그림 파일 없이 코드로 그린다(booth-demo.css 의 .bd-booth).
+ * 실물(2026-10 사진)의 특징만 옮겼다: 흰 세로 몸체 · 위 가운데 둥근 구멍 안의 캐논 렌즈 · 가운데 가로 화면(16:9) ·
+ * 그 아래 가로로 긴 인화물 출구(오른쪽에 회색 받침). 몸체는 바닥까지 이어지므로 아래로 흐려진다.
+ * print 가 있으면 출구에서 인화물이 나오는 모습.
+ */
+function Booth({ children, print, className }: { children: ReactNode; print?: string; className?: string }) {
   return (
     <span className={`bd-booth${className ? ` ${className}` : ''}`}>
-      <span className="bd-booth-cam" aria-hidden="true"><i /></span>
       <span className="bd-booth-body">
+        <span className="bd-booth-cam" aria-hidden="true"><i /></span>
         <span className="bd-booth-screen">{children}</span>
+        <span className="bd-booth-slot" aria-hidden="true"><i /></span>
+        {print && (
+          <span className="bd-booth-print" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={print} alt="" width={600} height={900} loading="lazy" decoding="async" />
+          </span>
+        )}
       </span>
-      <span className="bd-booth-stand" aria-hidden="true" />
-    </span>
-  )
-}
-
-/** 4×6 인화물 — 흰 테두리 없이 사진 한 장(무테) */
-function Print({ src, alt }: { src: string; alt: string }) {
-  return (
-    <span className="bd-print">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} width={600} height={900} loading="lazy" decoding="async" />
     </span>
   )
 }
@@ -83,7 +84,7 @@ export default function BoothDemoPage() {
             <a className="bd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
           <figure className="bd-hero-stage" aria-label="매장 포토부스 화면이 프로그램마다 바뀌며 도는 모습과 인화물">
-            <Booth className="bd-booth--hero">
+            <Booth className="bd-booth--hero" print="/assets/booth-demo/print-ending-fairy.webp">
               <span className="bd-cycle" aria-hidden="true">
                 {HERO.map((name, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -91,10 +92,6 @@ export default function BoothDemoPage() {
                 ))}
               </span>
             </Booth>
-            <span className="bd-hero-print" aria-hidden="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/booth-demo/print-ending-fairy.webp" alt="" width={600} height={900} decoding="async" />
-            </span>
             <figcaption className="bd-now" aria-hidden="true">
               {HERO.map((name, i) => {
                 const c = HERO_CAPTION[name]
@@ -113,18 +110,14 @@ export default function BoothDemoPage() {
                   <h2 id={`bd-${group.id}`}>{group.title}<span>{demos.length}</span></h2>
                   <p>{group.note}</p>
                 </div>
-                <ul className={`bd-grid${group.id === 'idol' ? ' bd-grid--print' : ''}`}>
+                <ul className="bd-grid">
                   {demos.map((demo) => (
                     <li key={demo.id}>
                       <a className="bd-card" href={boothDemoHref(demo)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
-                        {demo.print ? (
-                          <Print src={demo.image} alt={`${demo.name} 인화물 견본`} />
-                        ) : (
-                          <Booth>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={demo.image} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
-                          </Booth>
-                        )}
+                        <Booth print={demo.print}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={demo.screen} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
+                        </Booth>
                         <span className="bd-card-body">
                           <span className="bd-tag">{demo.tag}</span>
                           <b>{demo.name}</b>
