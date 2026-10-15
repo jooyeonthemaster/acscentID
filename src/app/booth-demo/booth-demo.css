@@ -91,8 +91,12 @@
 .bd h2 { font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; letter-spacing: -0.03em; }
 .bd-group-head h2 span { margin-left: 8px; color: var(--bd-soft); font-size: 0.6em; font-weight: 700; vertical-align: 0.5em; }
 .bd-group-head p { color: var(--bd-soft); font-size: 15px; }
-.bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: clamp(22px, 3vw, 34px) clamp(14px, 2vw, 24px); }
+.bd-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(22px, 3vw, 34px) clamp(14px, 2vw, 24px); }
 .bd-grid > li { display: flex; min-width: 0; }
+/* 한 줄 3개 — 화면 견본을 크게 보이게, 카드의 부스 몸체는 인화물 출구 조금 아래까지만 */
+.bd-grid .bd-booth-body { height: 124cqw; }
+/* 인화물이 나오는 카드(AI 아이돌)는 인화물이 보이게 원래 높이 */
+.bd-grid .bd-booth-body:has(.bd-booth-print) { height: 158cqw; }
 .bd-card { display: flex; flex-direction: column; gap: 4px; width: 100%; min-width: 0; border-radius: 16px; }
 .bd-card-body { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 0; padding-inline: 2px; }
 .bd-tag { color: var(--bd-tone); font-size: 13px; font-weight: 800; letter-spacing: 0.12em; }
