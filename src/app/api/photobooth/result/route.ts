@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { isDemoTicket } from '@/lib/booth/demo-server'
+import { readIdolTicket } from '@/lib/booth/idol-generate'
 import {
   RESULT_PHOTO_BUCKET,
   RESULT_PHOTO_DIR,
@@ -27,10 +28,15 @@ function takeDemoUpload(now = Date.now()) {
   return ++demoWindowCount <= DEMO_UPLOADS_PER_MINUTE
 }
 
+function validTicket(ticket: unknown) {
+  try { readIdolTicket(ticket); return true } catch { return false }
+}
+
 /**
  * 부스 완성 사진을 "폰으로 받기"용으로 올린다 (부스 전용, 비로그인)
  * POST /api/photobooth/result  { shotId, imageBase64 } → { token, path }
  * 영업용 데모(/booth-demo)는 촬영 기록 대신 데모 표로: { demoTicket, imageBase64 } — 매장 통계에 남기지 않는다.
+ * 포토부스 프로그램 14종은 생성 표로: { ticket, imageBase64 }.
  *
  * 손님이 [폰으로 받기]를 누른 사진과 인화물 QR(행사 모드)용 사진을 7일 보관한다 (src/lib/photobooth/result-photo.ts).
  */
@@ -39,7 +45,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null)
     const shotId = typeof body?.shotId === 'string' ? body.shotId : ''
     const imageBase64 = typeof body?.imageBase64 === 'string' ? body.imageBase64 : ''
-    const demo = isDemoTicket(body?.demoTicket)
+    // 포토부스 프로그램(src/app/booth/programs)은 이번 손님의 생성 표로 — 촬영 기록 없이(통계는 따로 남긴다)
+    const programTicket = !isDemoTicket(body?.demoTicket) && validTicket(body?.ticket)
+    const demo = isDemoTicket(body?.demoTicket) || programTicket
     if (demo && !takeDemoUpload()) {
       return NextResponse.json({ error: '잠시 후 다시 시도해 주세요' }, { status: 429 })
     }

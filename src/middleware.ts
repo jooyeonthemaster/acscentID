@@ -106,7 +106,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // next-intl + 기존 매처 통합
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|icon|apple-icon|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest)$).*)',
+    // next-intl + 기존 매처 통합 — 정적 영상·소리(mp4·webm·mp3 등)도 로케일 처리에서 뺀다(포토부스 프로그램 영상)
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|icon|apple-icon|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest|mp4|webm|mov|mp3|m4a|wav|ogg)$).*)',
   ],
 }

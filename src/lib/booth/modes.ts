@@ -1,6 +1,10 @@
 // 포토부스 운영 모드 — 매장 상시 운영과 외부 행사마다 첫 화면 문구·제목줄·인화물 하단·콘텐츠가 다르다.
 // 관리자가 포토부스 STORE ADMIN(우측 하단 → PIN) '운영 모드'에서 고르고, 같은 종류의 포토부스가 모두 따라간다
 // (기기 설정 settings-booth 의 mode). 키오스크 모드(src/lib/kiosk/modes.ts)와 같은 방식 — docs/kiosk-modes.md '포토부스'
+// 포토부스 프로그램 14종(런웨이·한복·뮤직비디오 등, src/lib/booth/programs/catalog.ts)도 운영 모드 하나씩이다 —
+// 그 모드면 화면 디자인(클래식·레트로·맥) 설정과 상관없이 프로그램 전용 화면(src/app/booth/programs)이 뜬다.
+
+import { PROGRAMS, type ProgramId } from './programs/catalog'
 
 /** 대기 화면(WELCOME 창) 문구 — 부스 화면은 한국어라, 외국인 손님이 많은 행사 모드는 영어를 한 줄 곁들인다 */
 export interface BoothAttract {
@@ -48,6 +52,8 @@ export interface BoothMode {
    * 손님 동의 문구에 보관을 안내하는 행사 모드만 켠다. 매장 모드는 [폰으로 받기]를 누른 사진만 올린다
    */
   printQr?: boolean
+  /** 포토부스 프로그램 모드 — 이 프로그램 하나만 도는 전용 화면 */
+  program?: ProgramId
 }
 
 export const BOOTH_MODES: BoothMode[] = [
@@ -86,6 +92,14 @@ export const BOOTH_MODES: BoothMode[] = [
     defaultBackground: 'booth-event-kwave-2026-idol',
     printQr: true,
   },
+  ...PROGRAMS.map((p): BoothMode => ({
+    id: p.id,
+    label: `${p.wordmark} ${p.name}`,
+    note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : ''} · 4×6 인화·QR` : '프로그램 · 영상 · QR 다운로드',
+    brandLine: `${p.wordmark} · NEANDER PHOTOBOOTH`,
+    storeEvents: false,
+    program: p.id,
+  })),
 ]
 
 export const DEFAULT_BOOTH_MODE = BOOTH_MODES[0]

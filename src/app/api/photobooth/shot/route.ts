@@ -5,7 +5,9 @@ import { resolveCurrentEvent } from '@/lib/photobooth/current-event'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const MODES = ['solo', 'together', 'template', 'card'] as const
+// program: 포토부스 프로그램 14종(src/lib/booth/programs/catalog.ts) — frame_title 에 프로그램 id.
+// DB 의 mode 검사에 program 을 넣는 SQL(supabase/migrations/20261015_photobooth_programs.sql)을 실행해야 기록된다
+const MODES = ['solo', 'together', 'template', 'card', 'program'] as const
 
 function text(value: unknown, max = 120): string | null {
   return typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null

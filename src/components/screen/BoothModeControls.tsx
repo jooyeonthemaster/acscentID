@@ -49,7 +49,7 @@ export function BoothModeControls({ value, pass, onSave, onSelectBackground, dis
             onClick={() => void pick(mode.id)}>
             <b>{mode.label}{saving === mode.id ? ' · 저장 중…' : ''}</b>
             <span>{mode.note}</span>
-            <em>{mode.stageMakeup ? 'K-POP 무대 메이크업 룩' : '기존 촬영 그대로'}{mode.defaultBackground ? ' · 전용 배경' : ''}</em>
+            <em>{mode.program ? '프로그램 전용 화면' : mode.stageMakeup ? 'K-POP 무대 메이크업 룩' : '기존 촬영 그대로'}{mode.defaultBackground ? ' · 전용 배경' : ''}</em>
           </button>
         ))}
       </div>

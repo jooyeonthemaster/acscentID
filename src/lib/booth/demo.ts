@@ -1,4 +1,5 @@
 // 영업용 포토부스 데모(/booth-demo) — 랜딩에서 고르는 프로그램 목록과, 데모로 연 부스 화면의 주소 규칙.
+// 포토부스 프로그램 14종(src/lib/booth/programs/catalog.ts)도 같은 주소 규칙 /booth?mode=<프로그램 id>&demo=1 — 프로그램 전용 화면이 뜬다.
 // 키오스크 데모(src/lib/kiosk/demo.ts)와 같은 방식: /booth?mode=…&demo=1 로 연다.
 //   - 매장 기기 설정(운영 모드·이용권·화면 디자인)을 건드리지 않고 주소의 모드로 돈다. 화면 디자인은 매장과 같은 맥
 //   - 이용권 없이, 촬영 기록(매장 통계)을 남기지 않는다. STORE ADMIN 은 열리지 않는다(설정이 매장 기기에 바로 적용되므로)
@@ -11,7 +12,9 @@ export const BOOTH_DEMO_PARAM = 'demo'
 /** 매장 모드에서 바로 시작하는 프로그램(BoothClient 의 Mode) */
 export type BoothDemoProgram = 'template' | 'together' | 'solo' | 'card'
 
-export type BoothDemoNeed = 'camera' | 'ai' | 'phone' | 'print' | 'qr'
+import { PROGRAMS } from './programs/catalog'
+
+export type BoothDemoNeed = 'camera' | 'ai' | 'phone' | 'print' | 'qr' | 'video' | 'mic' | 'two'
 
 export interface BoothDemo {
   id: string
@@ -25,7 +28,9 @@ export interface BoothDemo {
   name: string
   desc: string
   needs: BoothDemoNeed[]
-  group: 'idol' | 'store'
+  group: 'idol' | 'store' | 'photo' | 'video'
+  /** 카드에 보이는 기능 표시(프로그램) — 없으면 needs 로 */
+  badges?: string[]
   color: string
   /** 부스 화면 견본(1280×720 데모 화면을 960×540 으로) */
   screen: string
@@ -34,7 +39,7 @@ export interface BoothDemo {
 }
 
 export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
-  camera: '카메라', ai: 'AI 생성', phone: '휴대폰 연동', print: '4×6 인화', qr: 'QR 인식',
+  camera: '카메라', ai: 'AI 생성', phone: '휴대폰 연동', print: '4×6 인화', qr: 'QR 인식', video: '영상', mic: '마이크', two: '2인',
 }
 
 const shot = (name: string) => `/assets/booth-demo/${name}.webp`
@@ -48,6 +53,21 @@ export const BOOTH_DEMOS: BoothDemo[] = [
   { id: 'store-together', mode: 'wow', program: 'together', tag: 'PHOTOCARD', name: '포카 · 직찍 합성', desc: '폰으로 QR을 찍어 포토카드나 직찍을 올리면 인물만 오려 내 옆에 세워 함께 찍습니다.', needs: ['camera', 'phone', 'print'], group: 'store', color: '#3b6fd8', screen: shot('screen-together') },
   { id: 'store-solo', mode: 'wow', program: 'solo', tag: '1 CUT · 4 CUTS', name: '일반 촬영', desc: '한 컷 또는 네 컷(2×2)을 찍고 프레임을 골라 4×6으로 인화합니다.', needs: ['camera', 'print'], group: 'store', color: '#2f8a5a', screen: shot('screen-solo') },
   { id: 'store-card', mode: 'wow', program: 'card', tag: 'CARD SCAN', name: '포토카드 QR', desc: '매장에서 판매하는 포토카드 뒷면 QR을 카메라에 비추면, 그 카드 속 인물과 함께 찍습니다.', needs: ['camera', 'qr', 'print'], group: 'store', color: '#b5762a', screen: shot('screen-card') },
+  // 포토부스 프로그램 14종 — 화면 견본은 실제 시작 화면 캡처(/assets/booth-demo/program-<id>.webp)
+  ...PROGRAMS.map((p): BoothDemo => ({
+    id: `program-${p.id}`,
+    mode: p.id,
+    tag: p.card.tag,
+    name: p.name,
+    desc: p.card.desc,
+    needs: p.kind === 'photo'
+      ? ['camera', 'ai', ...(p.capture.people > 1 ? ['two' as const] : []), 'print']
+      : p.kind === 'mv' ? ['camera', 'mic', 'video', 'qr'] : ['phone', 'video', 'qr'],
+    badges: p.card.badges,
+    group: p.kind === 'photo' ? 'photo' : 'video',
+    color: p.card.color,
+    screen: shot(`program-${p.id}`),
+  })),
 ]
 
 /** 데모로 여는 주소 */

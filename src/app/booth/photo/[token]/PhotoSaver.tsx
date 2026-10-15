@@ -12,6 +12,8 @@ interface Props {
   expiresAt: number
   /** 부스 화면 언어(QR 주소 ?lang=) */
   lang: BoothLang
+  /** 포토부스 프로그램 사진 — 매장 브랜드 표기 없이 */
+  plain?: boolean
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed'
@@ -35,7 +37,7 @@ function formatExpiry(ts: number, htmlLang: string) {
   }).format(new Date(ts))
 }
 
-export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt, lang }: Props) {
+export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt, lang, plain = false }: Props) {
   const t = boothText(lang)
   const htmlLang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
   const [loaded, setLoaded] = useState(false)
@@ -85,7 +87,7 @@ export default function PhotoSaver({ imageUrl, downloadUrl, fileName, expiresAt,
 
   return (
     <div lang={htmlLang} className="min-h-svh bg-neutral-950 text-white flex flex-col items-center px-5 pt-8 pb-10 text-center">
-      <p className="text-sm font-bold tracking-[0.25em] text-white/50 mb-6">AC&apos;SCENT WOW</p>
+      {!plain && <p className="text-sm font-bold tracking-[0.25em] text-white/50 mb-6">AC&apos;SCENT WOW</p>}
 
       {missing ? (
         <div className="flex flex-1 flex-col items-center justify-center">

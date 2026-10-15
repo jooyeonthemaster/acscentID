@@ -133,24 +133,33 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
 }
 
 export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number, faces: string[] = []): Promise<string> {
-  if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
   const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
-  if (!isImage(photo, 3_000_000)) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
   // 얼굴 참고 사진(부스가 자른 클로즈업) — 사람 수까지만, 형식이 틀리면 빼고 본 사진만으로
   const refs = faces.filter((face) => isImage(face, 600_000)).slice(0, people)
+  return generateBoothImage(buildIdolPrompt(concept, people, refs.length), photo, refs)
+}
+
+/**
+ * 부스 이미지 생성 공통(AI 아이돌·포토부스 프로그램 14종) — 프롬프트 + 본 사진(+ 다른 사진들) → 2:3 JPEG data URL.
+ * 같은 전용 키·같은 1분 상한·같은 모델 순서(60초 → 예비 모델 45초)를 쓴다.
+ */
+export async function generateBoothImage(prompt: string, photo: string, more: string[] = []): Promise<string> {
+  if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
+  const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
+  if (!isImage(photo, 3_000_000) || !more.every((m) => isImage(m, 3_000_000))) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
 
   const now = Date.now()
   if (now - windowStart > 60_000) { windowStart = now; windowCount = 0 }
   if (++windowCount > PER_MINUTE) throw new IdolError('잠시 후 다시 시도해 주세요.', 429)
 
   // 가끔 이미지 모델이 한참 멈춘다(운영에서 110초 넘게 걸린 적) — 손님이 오래 서 있지 않게 첫 시도는 짧게 끊고,
-  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스는 얼굴 인식 메이크업 사진으로 대신한다
+  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스가 실패 안내(다시 만들기)를 띄운다
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
   // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
   const attempts: [string, number][] = [[primary, 60_000], [FALLBACK_MODEL, 45_000]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, buildIdolPrompt(concept, people, refs.length), photo, refs)
+    url = await requestImage(model, timeout, prompt, photo, more)
     if (url) break
   }
   if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)

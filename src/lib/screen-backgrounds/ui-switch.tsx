@@ -56,9 +56,10 @@ export function ScreenUiGate({ target, classic: Classic, retro: Retro, special }
   )
 }
 
-/** 서버에서 확인한 설정이 지금 UI와 다르면, 손님이 없을 때(idle) 새로고침해 갈아탄다 */
-export function useScreenUiSwitch(current: ScreenUi, settings: DeviceSettings, confirmed: boolean, idle: boolean) {
+/** 서버에서 확인한 설정이 지금 UI와 다르면, 손님이 없을 때(idle) 새로고침해 갈아탄다.
+ *  leave: 운영 모드가 이 화면이 아닌 전용 화면으로 바뀌었다(포토부스 프로그램 모드 등) — 역시 새로고침해 Gate 가 다시 고르게 */
+export function useScreenUiSwitch(current: ScreenUi, settings: DeviceSettings, confirmed: boolean, idle: boolean, leave = false) {
   useEffect(() => {
-    if (confirmed && idle && settings.ui !== current) window.location.reload()
-  }, [current, settings.ui, confirmed, idle])
+    if (confirmed && idle && (settings.ui !== current || leave)) window.location.reload()
+  }, [current, settings.ui, confirmed, idle, leave])
 }

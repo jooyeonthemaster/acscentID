@@ -75,6 +75,7 @@ import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgr
 import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { isProgramId } from '@/lib/booth/programs/catalog'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { useQuitConfirm } from '@/components/screen/QuitConfirm'
@@ -1930,7 +1931,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // ======================
   // Render
   // ======================
-  useScreenUiSwitch(design, deviceSettings, backgroundsSynced && !demo, step === 'home' || backgroundAdminOpen)
+  useScreenUiSwitch(design, deviceSettings, backgroundsSynced && !demo, step === 'home' || backgroundAdminOpen, isProgramId(deviceBaseSettings.mode))
   const stepMeta = BOOTH_STEP_META[step]
   // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
   // 테마 글꼴은 한국어 전용이라 한자권 언어에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다(키오스크와 같은 글꼴)

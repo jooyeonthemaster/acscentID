@@ -87,6 +87,7 @@ import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { contrast, toBoothTheme } from '@/lib/screen-backgrounds/theme'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { isProgramId } from '@/lib/booth/programs/catalog'
 import { screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
@@ -1889,7 +1890,7 @@ export function BoothClassic() {
   // ======================
   // Render
   // ======================
-  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
+  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen, isProgramId(deviceBaseSettings.mode))
   return (
     <div
       className={`relative min-h-screen overflow-hidden bg-neutral-950 text-white flex flex-col select-none ${KIOSK_FONT_CLASS} ${lightHome ? 'booth-tone-light' : 'booth-tone-dark'}`}
