@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     const { data, error } = await client.storage.from(RESULT_MEDIA_BUCKET).createSignedUploadUrl(resultMediaPath(token))
     if (error || !data) {
       console.error('[media] 업로드 주소 실패:', error?.message)
-      const missing = /not found/i.test(error?.message ?? '')
+      // 버킷이 없으면 'The related resource does not exist'(statusCode 404) — SQL(20261015_photobooth_programs.sql) 실행 전
+      const missing = /not found|does not exist/i.test(error?.message ?? '') || String((error as { statusCode?: unknown } | null)?.statusCode) === '404'
       return NextResponse.json(
         { error: missing ? '영상 보관 저장소가 아직 준비되지 않았어요. 직원에게 알려 주세요.' : '영상을 올릴 준비를 하지 못했어요.' },
         { status: missing ? 503 : 500, headers },
