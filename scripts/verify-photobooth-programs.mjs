@@ -114,9 +114,10 @@ test('이용권 정책 — 14종 기본 필요, K-WAVE 기본 없음, 10개 넘�
   assert.equal(pass.parsePassSettings({ 'BAD ID': true }), null)
 })
 
-test('데모 — 기존 8개 그대로 + 프로그램 14개, 주소 규칙 /booth?mode=<id>&demo=1', () => {
+test('데모 — AI 아이돌 4개 + 프로그램 14개(매장 포토부스 카드는 2026-10-15 뺐다), 주소 규칙 /booth?mode=<id>&demo=1', () => {
   const ids = demo.BOOTH_DEMOS.map((d) => d.id)
-  for (const old of ['idol-ending-fairy', 'idol-album-jacket', 'idol-stage-fancam', 'idol-mv-still', 'store-template', 'store-together', 'store-solo', 'store-card']) assert.ok(ids.includes(old), old)
+  for (const old of ['idol-ending-fairy', 'idol-album-jacket', 'idol-stage-fancam', 'idol-mv-still']) assert.ok(ids.includes(old), old)
+  assert.ok(!ids.some((id) => id.startsWith('store-')))
   assert.equal(new Set(ids).size, ids.length)
   for (const id of IDS) {
     const d = demo.BOOTH_DEMOS.find((x) => x.mode === id)
@@ -124,7 +125,7 @@ test('데모 — 기존 8개 그대로 + 프로그램 14개, 주소 규칙 /boot
     assert.equal(demo.boothDemoHref(d), `/booth?mode=${id}&demo=1`)
     assert.ok(existsSync(path.join(root, 'public', d.screen)), `${id} 카드 그림 ${d.screen}`)
   }
-  assert.equal(demo.boothDemoHref(demo.BOOTH_DEMOS.find((d) => d.id === 'store-solo')), '/booth?mode=wow&demo=1&program=solo')
+  assert.equal(demo.boothDemoHref({ mode: 'wow', program: 'solo' }), '/booth?mode=wow&demo=1&program=solo')
 })
 
 test('휴대폰 사진 받기 세션 — 서명·만료·위조 거절', () => {

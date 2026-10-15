@@ -10,7 +10,7 @@ import './booth-demo.css'
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/photobooth-demo.md
 export const metadata: Metadata = {
   title: 'NEANDER 포토부스 데모',
-  description: 'AI 아이돌·런웨이·한복·웨딩 등 AI 사진 프로그램과 뮤직비디오·추억 무비 영상, 매장 포토부스 프로그램을 직접 눌러 보는 데모입니다.',
+  description: 'AI 아이돌·런웨이·한복·웨딩 등 AI 사진 프로그램과 뮤직비디오·추억 무비 영상을 직접 눌러 보는 데모입니다.',
   robots: { index: false, follow: false },
 }
 
@@ -18,7 +18,6 @@ const GROUPS: { id: BoothDemo['group']; title: string; short: string; note: stri
   { id: 'photo', title: 'AI 사진 프로그램', short: 'AI 사진', note: '런웨이 · 패션 타임머신 · 졸업 · 한복 · 웨딩 · 초상화 — 한 컷을 찍으면 프로그램마다 다른 화면과 인화 디자인으로 AI 사진을 만들어 4×6 인화와 QR로 줍니다' },
   { id: 'video', title: '영상 프로그램', short: '영상', note: '15초 뮤직비디오와 사진 5~20장으로 만드는 추억 영상 — 부스에서 편집해 QR로 휴대폰에 받습니다(AI 영상이 아닌 편집 영상)' },
   { id: 'idol', title: 'AI 아이돌 포토', short: 'AI 아이돌', note: '한 컷을 찍으면 내 얼굴 그대로 K-POP 아이돌 컨셉 사진을 만들어 4×6으로 인화합니다' },
-  { id: 'store', title: '매장 포토부스', short: '매장', note: '최애와 함께 찍고, 포토카드와 합성하고, 네 컷으로 남기는 생일카페 · 팬 이벤트용 프로그램' },
 ]
 const FEATURES = [
   { Icon: WandSparkles, title: 'AI 사진 프로그램', text: '얼굴은 그대로 두고 의상 · 배경 · 화풍만 바꿉니다. 런웨이 · 한복 · 졸업 · 웨딩(2인) 등 프로그램마다 화면과 인화 디자인이 다릅니다.' },
@@ -35,17 +34,17 @@ const NOTES = [
   '영상 프로그램은 영상 길이만큼 만드는 시간이 걸립니다. 뮤직비디오는 카메라와 마이크 권한이 필요합니다.',
   '타임캡슐 · 미래 가족은 재미로 보는 창작 이미지, 역사 속 한 장면은 역사에서 영감을 받은 상상화입니다.',
   '인쇄는 프린터가 달린 실제 부스에서 바로 나옵니다. 브라우저에서는 인쇄 미리보기로 보여 드립니다.',
-  '포카 · 직찍 합성과 추억 무비는 화면의 QR을 휴대폰으로 찍어 사진을 올립니다.',
+  '추억 무비와 \'휴대폰 사진 가져오기\'는 화면의 QR을 휴대폰으로 찍어 사진을 올립니다.',
   '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않습니다.',
 ]
 /** 머리말의 부스 화면 — 3초마다 바뀐다(칸 수는 booth-demo.css 의 15초 순환에 맞춘다) */
-const HERO = ['idol-home', 'screen-template', 'screen-together', 'screen-solo', 'screen-card']
+const HERO = ['idol-home', 'program-runway', 'program-hanbok', 'program-wedding', 'program-music-video']
 const HERO_CAPTION: Record<string, { tag: string; name: string; color: string }> = {
   'idol-home': { tag: 'AI IDOL', name: '아이돌 컨셉 고르기', color: '#7a4fd0' },
-  'screen-template': { tag: 'WITH BIAS', name: '최애와 찍기', color: '#d0507a' },
-  'screen-together': { tag: 'PHOTOCARD', name: '포카 · 직찍 합성', color: '#3b6fd8' },
-  'screen-solo': { tag: '1 CUT · 4 CUTS', name: '일반 촬영', color: '#2f8a5a' },
-  'screen-card': { tag: 'CARD SCAN', name: '포토카드 QR', color: '#b5762a' },
+  'program-runway': { tag: 'WALK!', name: '런웨이 포토부스', color: '#e8336d' },
+  'program-hanbok': { tag: 'HANBOK!', name: '한복 포토부스', color: '#2f6b4f' },
+  'program-wedding': { tag: 'VOW!', name: '웨딩 포토부스', color: '#7a5240' },
+  'program-music-video': { tag: 'MV!', name: '뮤직비디오 메이커', color: '#6a3fe0' },
 }
 
 /**
@@ -85,7 +84,7 @@ export default function BoothDemoPage() {
           <div className="bd-hero-copy">
             <p className="bd-eyebrow">가로형 터치 포토부스 · DSLR · 4×6 인화 · 영상</p>
             <h1>찍으면 바로,<br />화보 한 장 · 영상 한 편</h1>
-            <p className="bd-lead">매장과 행사장에서 그대로 도는 포토부스 프로그램 {BOOTH_DEMOS.length}가지입니다. 런웨이 · 한복 · 웨딩 같은 AI 사진, 뮤직비디오 · 추억 영상, AI 아이돌, 최애와 함께 찍는 생일카페 촬영까지 — 아래에서 골라 직접 눌러 보세요.</p>
+            <p className="bd-lead">매장과 행사장에서 그대로 도는 포토부스 프로그램 {BOOTH_DEMOS.length}가지입니다. 런웨이 · 한복 · 웨딩 같은 AI 사진, 뮤직비디오 · 추억 영상, AI 아이돌까지 — 아래에서 골라 직접 눌러 보세요.</p>
             <a className="bd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
           <figure className="bd-hero-stage" aria-label="매장 포토부스 화면이 프로그램마다 바뀌며 도는 모습과 인화물">

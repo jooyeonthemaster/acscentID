@@ -4,7 +4,7 @@
 
 ## 구성
 - 랜딩 `src/app/booth-demo/`(page.tsx · booth-demo.css). 로케일 라우팅 밖(`middleware.ts`), `robots: noindex`.
-- 목록·주소 규칙 `src/lib/booth/demo.ts`(`BOOTH_DEMOS`): AI 사진 프로그램 12종 + 영상 프로그램 2종(docs/photobooth-programs.md) + AI 아이돌 4종(컨셉별) + 매장 프로그램 4종(최애와 찍기 · 포카 직찍 합성 · 일반 촬영 · 포토카드 QR). 랜딩 위 분류 탭으로 이동.
+- 목록·주소 규칙 `src/lib/booth/demo.ts`(`BOOTH_DEMOS`): AI 사진 프로그램 12종 + 영상 프로그램 2종(docs/photobooth-programs.md) + AI 아이돌 4종(컨셉별). 랜딩 위 분류 탭으로 이동. 매장 포토부스 카드 4종(최애와 찍기 등)은 2026-10-15 랜딩에서 뺐다(`program=` 주소 규칙은 그대로 동작).
 - 카드를 누르면 새 창으로 `/booth?mode=<운영 모드>&demo=1[&concept=…|&program=…]`.
 - 그림 `public/assets/booth-demo/` — 부스 화면은 데모 주소를 1280×720 으로 찍어 960×540 webp(워터마크·개발 표시를 걷고), AI 아이돌은 예시 인화물(design-review/kwave-idol-examples-4). 화면이 바뀌면 다시 찍는다.
 - 부스 그림(`.bd-booth`)은 그림 파일 없이 CSS 로 — 가로 모니터 위에 DSLR, 아래 받침대.
