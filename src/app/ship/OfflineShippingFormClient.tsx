@@ -23,13 +23,16 @@ interface FormState {
   productName: string
 }
 
-const EMPTY_FORM: FormState = {
+// 상품 칸은 지금 판매 중인 상품을 예시로 미리 채워 둔다 — 손님이 지우거나 고칠 수 있다
+const DEFAULT_PRODUCT_NAME = '홀로그램 이리온즈 카드'
+
+const INITIAL_FORM: FormState = {
   name: '',
   phone: '',
   zipCode: '',
   address: '',
   addressDetail: '',
-  productName: '',
+  productName: DEFAULT_PRODUCT_NAME,
 }
 
 // 010-1234-5678 형태로 자동 하이픈
@@ -50,7 +53,7 @@ const LABEL_CLASS =
   'flex items-center gap-1.5 text-sm font-bold text-[var(--ink)] mb-1.5 lg:text-base'
 
 export function OfflineShippingFormClient() {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [form, setForm] = useState<FormState>(INITIAL_FORM)
   // 허니팟 — 봇이 채우면 서버가 저장 없이 통과시킨다
   const [honeypot, setHoneypot] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -109,7 +112,7 @@ export function OfflineShippingFormClient() {
       }
 
       setDoneNumber(data.requestNumber || '')
-      setForm(EMPTY_FORM)
+      setForm(INITIAL_FORM)
     } catch (err) {
       console.error('Offline shipping submit failed:', err)
       setError(err instanceof Error ? err.message : '접수에 실패했습니다.')
@@ -266,7 +269,7 @@ export function OfflineShippingFormClient() {
                 type="text"
                 value={form.productName}
                 onChange={(e) => update('productName', e.target.value)}
-                placeholder="예: 킥플립 계훈 문고리"
+                placeholder={`예: ${DEFAULT_PRODUCT_NAME}`}
                 maxLength={100}
                 className={INPUT_CLASS}
               />
