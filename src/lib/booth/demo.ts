@@ -28,7 +28,7 @@ export interface BoothDemo {
   name: string
   desc: string
   needs: BoothDemoNeed[]
-  group: 'idol' | 'photo' | 'video'
+  group: 'idol' | 'photo' | 'video' | 'housing'
   /** 카드에 보이는 기능 표시(프로그램) — 없으면 needs 로 */
   badges?: string[]
   color: string
@@ -60,7 +60,7 @@ export const BOOTH_DEMOS: BoothDemo[] = [
       ? ['camera', 'ai', ...(p.capture.people > 1 ? ['two' as const] : []), 'print']
       : p.kind === 'mv' ? ['camera', 'mic', 'video', 'qr'] : ['phone', 'video', 'qr'],
     badges: p.card.badges,
-    group: p.kind === 'photo' ? 'photo' : 'video',
+    group: p.id.startsWith('housing-') ? 'housing' : p.kind === 'photo' ? 'photo' : 'video',
     color: p.card.color,
     screen: shot(`program-${p.id}`),
   })),

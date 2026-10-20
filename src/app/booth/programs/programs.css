@@ -149,6 +149,9 @@ canvas.pg-cam-video { transform: none; }
 .pg-guide i { width: 30%; aspect-ratio: 3 / 4; border: 3px dashed rgba(255, 255, 255, 0.85); border-radius: 50%; margin-top: -6%; }
 .pg-guide--1 i + i { display: none; }
 .pg-guide--2 i { width: 24%; }
+/* 여럿(입주 기념사진) — 얼굴 칸 대신 화면 안쪽 테두리만 */
+.pg-guide--group i { display: none; }
+.pg-guide--group { inset: 6%; border: 3px dashed rgba(255, 255, 255, 0.7); border-radius: 18px; }
 .pg-count { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--pg-display); font-size: 220px; color: #fff; text-shadow: 0 6px 40px rgba(0, 0, 0, 0.45); animation: pg-pop 1s ease-out infinite; }
 @keyframes pg-pop { from { transform: scale(1.25); opacity: 0.4; } 20% { transform: scale(1); opacity: 1; } to { opacity: 0.85; } }
 .pg-flash { position: absolute; inset: 0; background: #fff; animation: pg-flash 0.26s ease-out forwards; border-radius: 16px; }
@@ -535,6 +538,41 @@ canvas.pg-cam-video { transform: none; }
 .pg[data-program='memory-movie'] .pg-intro::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: repeating-linear-gradient(90deg, #2a1d12 0 10px, #f5ede1 10px 22px, #2a1d12 22px 32px) top / 100% 10px no-repeat, repeating-linear-gradient(90deg, #2a1d12 0 10px, #f5ede1 10px 22px, #2a1d12 22px 32px) bottom / 100% 10px no-repeat, #2a1d12; opacity: 0.92; }
 .pg[data-program='memory-movie'] .pg-script { bottom: 84px; }
 .pg[data-program='memory-movie'] .pg-slide, .pg[data-program='memory-movie'] .pg-player { border-top: 16px solid #2a1d12; border-bottom: 16px solid #2a1d12; }
+
+/* 15 입주 기념사진 MOVE IN! — 크림 · 하늘색 · 지붕 빨강 */
+.pg[data-program='housing-movein'] {
+  --pg-bg: #f7f1e6; --pg-ink: #1f3f5a; --pg-muted: #5b7d97; --pg-accent: #2f6f9f; --pg-on-accent: #fff;
+  --pg-surface: #fffdf8; --pg-line: #d6e2ea; --pg-radius: 18px; --pg-display: var(--pg-f-anton), Impact, sans-serif;
+  --pg-bg-image: radial-gradient(circle at 92% 6%, rgba(169, 200, 222, 0.45), transparent 24%), linear-gradient(180deg, transparent 86%, rgba(188, 216, 174, 0.35) 86%);
+  --pg-photo-border: 10px solid #fff; --pg-photo-shadow: 0 16px 34px rgba(31, 63, 90, 0.2);
+}
+.pg[data-program='housing-movein'] .pg-wordmark { color: #2f6f9f; }
+.pg[data-program='housing-movein'] .pg-wordmark--xl { font-size: 116px; }
+.pg[data-program='housing-movein'] .pg-script { color: #c4553a; text-shadow: 0 0 10px #fff; }
+
+/* 16 드림하우스 매거진 COVER! — 흰 지면 · 검정 세리프 · 빨강 포인트 */
+.pg[data-program='housing-cover'] {
+  --pg-bg: #fbf8f3; --pg-ink: #1d1d1d; --pg-muted: #6b645c; --pg-accent: #c2412d; --pg-on-accent: #fff;
+  --pg-surface: #ffffff; --pg-line: #e4ddd3; --pg-radius: 2px; --pg-display: var(--pg-f-playfair), Georgia, serif; --pg-display-weight: 900;
+  --pg-photo-border: none; --pg-photo-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+.pg[data-program='housing-cover'] .pg-wordmark { font-style: italic; letter-spacing: -0.02em; padding-right: 0.08em; }
+.pg[data-program='housing-cover'] .pg-wordmark--xl { font-size: 104px; border-bottom: 4px solid #1d1d1d; }
+.pg[data-program='housing-cover'] .pg-intro::after { content: 'MY HOME'; position: absolute; left: 0; right: 0; top: 14px; text-align: center; font: 900 54px var(--pg-f-playfair), Georgia, serif; color: #fff; letter-spacing: 0.04em; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }
+.pg[data-program='housing-cover'] .pg-script { color: #c2412d; text-shadow: 0 0 8px #fff; }
+
+/* 17 2046 미래 도시 주민 2046! — 밤바다 남색 · 민트 빛 */
+.pg[data-program='housing-2046'] {
+  --pg-bg: #0f2b3a; --pg-outer: #081c26; --pg-ink: #eafffb; --pg-muted: #9fd8cd; --pg-accent: #1d8a78; --pg-on-accent: #fff;
+  --pg-surface: rgba(255, 255, 255, 0.06); --pg-line: rgba(94, 234, 212, 0.35); --pg-radius: 20px; --pg-display: var(--pg-f-anton), Impact, sans-serif;
+  --pg-bg-image: radial-gradient(circle at 85% 0%, rgba(94, 234, 212, 0.3), transparent 35%), radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.2), transparent 35%);
+  --pg-photo-border: 2px solid rgba(94, 234, 212, 0.55); --pg-photo-shadow: 0 0 40px rgba(94, 234, 212, 0.25);
+}
+.pg[data-program='housing-2046'] .pg-wordmark { color: #5eead4; text-shadow: 0 0 18px rgba(94, 234, 212, 0.55); }
+.pg[data-program='housing-2046'] .pg-panel { background: rgba(10, 36, 48, 0.75); }
+.pg[data-program='housing-2046'] .pg-opt { background: rgba(255, 255, 255, 0.05); }
+.pg[data-program='housing-2046'] .pg-modal-card { --pg-accent: #1d8a78; }
+.pg[data-program='housing-2046'] .pg-script { color: #d8fbf4; text-shadow: 0 0 12px #14b8a6; }
 
 /* 소개 그림에 이미 손글씨가 들어 있는 프로그램은 화면 손글씨를 겹쳐 쓰지 않는다 */
 .pg:is([data-program='idol-makeup'], [data-program='fan-card'], [data-program='graduation'], [data-program='history'], [data-program='timecapsule'], [data-program='wedding'], [data-program='future-family'], [data-program='memory-movie']) .pg-start .pg-script { display: none; }

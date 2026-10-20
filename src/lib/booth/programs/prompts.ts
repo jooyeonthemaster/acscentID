@@ -21,6 +21,18 @@ function identity(people: number, inputs: number): string {
   ].join('\n')
 }
 
+/** 혼자도 여럿도 — 찍힌 사람 수 그대로(입주 기념사진) */
+function identityGroup(): string {
+  return [
+    'IMAGE 1 is a photo of one or more real people. Count them and keep EXACTLY that many people — never add, remove, duplicate or merge anyone.',
+    'IDENTITY LOCK — the most important rule:',
+    "- Preserve every person's real face exactly: face shape, eyes and eyelids, brows, nose, lips, jawline, moles and marks, skin tone, ethnicity, age and gender presentation. Children stay children.",
+    '- Everyone must be instantly recognizable as themselves. Do not beautify, swap or regenerate faces, enlarge the eyes, change the nose or lips, or lighten/darken the skin.',
+    "- Keep each person's own hairstyle, hair color and glasses; keep their own clothes (only neatened).",
+    '- Keep their relative positions from the photo, all faces clearly visible and similar in size.',
+  ].join('\n')
+}
+
 const photo = (framing: string) =>
   `PHOTOGRAPHY: professional quality, sharp focus on the eyes, light natural retouching that keeps skin texture, realistic adult body proportions, vertical 2:3 image that fills the entire frame edge to edge (no borders, frames, split panels or collage), ${framing}.`
 
@@ -110,6 +122,27 @@ export function buildProgramPrompt(program: ProgramDef, choices: Record<string, 
         identity(2, inputs), '',
         `SCENE: ${c('scene')}. STYLE: ${c('style')}. Everyone smiling warmly, wholesome and family-friendly, fully clothed.`,
         'Vertical 2:3 composition filling the frame with all three faces clearly visible.', NO_TEXT,
+      ].join('\n')
+    case 'housing-movein':
+      return [
+        `EDIT IMAGE 1 into a joyful move-in day commemorative photo of the SAME real people, ${c('home')}.`,
+        identityGroup(), '',
+        `PROP: ${c('prop')}. Everyone smiles naturally like on a happy moving day; casual comfortable clothes.`,
+        photo('framed from the knees or waist up so every face is clearly visible, bright natural daylight, warm and hopeful mood'), NO_TEXT,
+      ].join('\n')
+    case 'housing-cover':
+      return [
+        `EDIT IMAGE 1 into an interior-design magazine cover photo of the SAME real person at home in ${c('room')}, ${c('pose')}.`,
+        identity(people, inputs), '',
+        'STYLING: tasteful smart-casual outfit that suits the interior; the home looks real, lived-in and beautifully styled.',
+        photo('an editorial lifestyle portrait from the waist or knees up, the face in the upper-middle of the frame with calm empty wall or ceiling space above the head for a magazine title'), NO_TEXT,
+      ].join('\n')
+    case 'housing-2046':
+      return [
+        `EDIT IMAGE 1 into an imaginative photo of the SAME real person as a happy resident of ${c('city')}, ${c('time')}. This is a playful creative imagining, not a prediction or a real plan.`,
+        identity(people, inputs), '',
+        'STYLING: comfortable near-future casual clothes in soft tones (no costumes, no armor, no helmets); hopeful, peaceful, people-friendly city — not dystopian.',
+        photo('the person framed from the waist up in the foreground with the future city clearly visible behind them'), NO_TEXT,
       ].join('\n')
     default:
       throw new Error(`no prompt for ${program.id}`)

@@ -165,13 +165,18 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
           const faces = await countFaces(still)
           setFaceWarning(faces >= 0 && faces < 2 ? `얼굴이 ${faces}명만 보여요. 두 분 모두 화면에 들어오게 다시 찍는 걸 권해요.` : null)
         }
+        // 여럿이 서는 입주 기념사진 — 얼굴이 없거나 너무 많으면 다시 찍기를 권한다
+        if (program.capture.group) {
+          const faces = await countFaces(still)
+          setFaceWarning(faces === 0 ? '얼굴이 보이지 않아요. 모두 화면에 들어오게 다시 찍는 걸 권해요.' : faces > 4 ? `얼굴이 ${faces}명 보여요. 4명까지 가장 잘 나와요.` : null)
+        }
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : '촬영하지 못했어요.')
       } finally {
         setCount(null)
       }
     }, delay * 1000 + 50))
-  }, [count, camera, consent, done, delay, active, setShot, program.capture.people, need])
+  }, [count, camera, consent, done, delay, active, setShot, program.capture.people, program.capture.group, need])
 
   const retake = (i: number) => { setShot(i, null); setFaceWarning(null) }
   /** 휴대폰에서 받은 사진을 빈 칸부터(빈 칸이 없으면 앞에서부터) 채운다 */
@@ -202,7 +207,7 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
         <div className="pg-cam pg-cam--live" data-live style={{ gridColumn: active + 1, gridRow: 1 }}>
           <video ref={camera.videoRef} muted playsInline autoPlay className="pg-cam-video" hidden={camera.source === 'dslr'} />
           <canvas ref={camera.liveRef} className="pg-cam-video" hidden={camera.source !== 'dslr'} />
-          <div className={`pg-guide pg-guide--${program.capture.people === 2 && need === 1 ? 2 : 1}`} aria-hidden="true"><i /><i /></div>
+          <div className={`pg-guide pg-guide--${program.capture.group ? 'group' : program.capture.people === 2 && need === 1 ? 2 : 1}`} aria-hidden="true"><i /><i /></div>
           {camera.state === 'starting' && <p className="pg-cam-note">카메라를 켜는 중…</p>}
           {camera.state === 'ready' && <p className="pg-cam-ready"><i />카메라 준비 완료</p>}
           {need > 1 && <p className="pg-cam-turn">{active === 0 ? '첫 번째 사람' : '두 번째 사람'} · 촬영 중</p>}
@@ -249,7 +254,7 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
             <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
           </label>
           <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
-            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : program.capture.people === 2 && need === 1 ? '함께 촬영하기' : '촬영하기'}
+            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : (program.capture.people === 2 && need === 1) || program.capture.group ? '함께 촬영하기' : '촬영하기'}
           </button>
           <button type="button" className="pg-btn pg-btn--line" onClick={() => setPhone(true)} disabled={count !== null || !consent}>
             <ImagePlus size={20} />{need > 1 ? '사진 두 장 가져오기' : '휴대폰 사진 가져오기'}

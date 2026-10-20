@@ -390,6 +390,96 @@ const DESIGNS: Record<string, [Design, Design]> = {
       text(ctx, 'AI가 만든 창작 이미지예요', PRINT_W / 2, 1720, `700 32px ${G()}`, '#c4622d')
     },
   ],
+  // ── 주거복지대전 3종 ──
+  'housing-movein': [
+    (ctx, { result, labels }) => {
+      // 입주 기념 액자 — 크림 바탕 · 하늘색 이중 테두리 · 아래 기념 문구
+      rect(ctx, 0, 0, PRINT_W, PRINT_H, '#f7f1e6')
+      stroke(ctx, 40, 40, 1120, 1720, '#2f6f9f', 6)
+      stroke(ctx, 62, 62, 1076, 1676, '#2f6f9f', 2)
+      text(ctx, 'MOVE IN!', PRINT_W / 2, 210, `150px ${A()}`, '#2f6f9f')
+      photoClip(ctx, result, 110, 260, 980, 1180, 10, 0.3)
+      text(ctx, '입주를 축하합니다', PRINT_W / 2, 1560, `700 72px ${G()}`, '#1f3f5a')
+      text(ctx, `${labels.home ?? ''} · ${today()}`, PRINT_W / 2, 1650, `700 38px ${G()}`, '#5b7d97')
+    },
+    (ctx, { result }) => {
+      // 우리 집 프레임 — 사진을 지붕 있는 집 모양으로
+      rect(ctx, 0, 0, PRINT_W, PRINT_H, '#dcebf5')
+      for (let i = 0; i < 7; i++) rect(ctx, 0, 1480 + i * 48, PRINT_W, 24, i % 2 ? '#cfe3c4' : '#bcd8ae')
+      const x = 110, w = 980, roof = 300, top = 150, bottom = 1500
+      ctx.save(); shadow(ctx, 30, 'rgba(30,60,90,0.3)')
+      ctx.beginPath(); ctx.moveTo(x - 30, top + roof); ctx.lineTo(PRINT_W / 2, top); ctx.lineTo(x + w + 30, top + roof); ctx.lineTo(x + w, top + roof); ctx.lineTo(x + w, bottom); ctx.lineTo(x, bottom); ctx.lineTo(x, top + roof); ctx.closePath()
+      ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.restore()
+      ctx.save()
+      ctx.beginPath(); ctx.moveTo(x + 40, top + roof + 10); ctx.lineTo(PRINT_W / 2, top + 50); ctx.lineTo(x + w - 40, top + roof + 10); ctx.lineTo(x + w - 30, top + roof + 10); ctx.lineTo(x + w - 30, bottom - 30); ctx.lineTo(x + 30, bottom - 30); ctx.lineTo(x + 30, top + roof + 10); ctx.closePath(); ctx.clip()
+      cover(ctx, result, x + 30, top + 50, w - 60, bottom - top - 80, 0.3)
+      ctx.restore()
+      ctx.save(); ctx.strokeStyle = '#c4553a'; ctx.lineWidth = 34; ctx.lineJoin = 'round'
+      ctx.beginPath(); ctx.moveTo(x - 50, top + roof + 14); ctx.lineTo(PRINT_W / 2, top - 10); ctx.lineTo(x + w + 50, top + roof + 14); ctx.stroke(); ctx.restore()
+      text(ctx, 'Welcome Home', PRINT_W / 2, 1640, `96px ${S()}`, '#1f3f5a')
+      text(ctx, `우리 집 첫날 · ${today()}`, PRINT_W / 2, 1730, `700 36px ${G()}`, '#2f6f9f')
+    },
+  ],
+  'housing-cover': [
+    (ctx, { result, labels }) => {
+      // 매거진 표지 — 사진 전면 + 위 큰 제호 + 왼쪽 표지 문구
+      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.2)
+      const fade = ctx.createLinearGradient(0, 0, 0, 520)
+      fade.addColorStop(0, 'rgba(0,0,0,0.35)'); fade.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = fade; ctx.fillRect(0, 0, PRINT_W, 520)
+      fitText(ctx, 'MY HOME', PRINT_W / 2, 270, 1080, 300, P(), '#ffffff', '900', 'center', (c) => shadow(c, 16, 'rgba(0,0,0,0.3)'))
+      text(ctx, `DREAM HOME ISSUE · ${today()}`, PRINT_W / 2, 340, `34px ${A()}`, '#ffffff', 'center', (c) => { c.letterSpacing = '10px'; shadow(c, 10, 'rgba(0,0,0,0.4)') })
+      const bottom = ctx.createLinearGradient(0, PRINT_H - 620, 0, PRINT_H)
+      bottom.addColorStop(0, 'rgba(0,0,0,0)'); bottom.addColorStop(1, 'rgba(0,0,0,0.6)')
+      ctx.fillStyle = bottom; ctx.fillRect(0, PRINT_H - 620, PRINT_W, 620)
+      rect(ctx, 70, PRINT_H - 420, 300, 64, '#c2412d')
+      text(ctx, 'COVER STORY', 220, PRINT_H - 375, `36px ${A()}`, '#ffffff', 'center', (c) => { c.letterSpacing = '4px' })
+      text(ctx, `${labels.room ?? ''} 집에 사는 나`, 70, PRINT_H - 250, `700 76px ${G()}`, '#ffffff', 'left', (c) => shadow(c, 14, 'rgba(0,0,0,0.45)'))
+      text(ctx, '내가 꿈꾸는 집, 나다운 하루', 74, PRINT_H - 160, `700 44px ${G()}`, '#f3e6dc', 'left', (c) => shadow(c, 12, 'rgba(0,0,0,0.45)'))
+      text(ctx, 'COVER!', PRINT_W - 70, PRINT_H - 80, `56px ${A()}`, '#ffffff', 'right')
+    },
+    (ctx, { result, labels }) => {
+      // 인테리어 화보 — 흰 지면 · 위 사진 · 아래 기사 머리
+      rect(ctx, 0, 0, PRINT_W, PRINT_H, '#fbf8f3')
+      text(ctx, 'MY HOME', 80, 140, `900 92px ${P()}`, '#1d1d1d', 'left')
+      text(ctx, today(), PRINT_W - 80, 130, `30px ${A()}`, '#c2412d', 'right', (c) => { c.letterSpacing = '6px' })
+      rect(ctx, 80, 170, PRINT_W - 160, 4, '#1d1d1d')
+      photoClip(ctx, result, 80, 210, PRINT_W - 160, 1220, 0, 0.25)
+      text(ctx, 'INTERIOR', 80, 1520, `40px ${A()}`, '#c2412d', 'left', (c) => { c.letterSpacing = '10px' })
+      fitText(ctx, `${labels.room ?? ''} — 나다운 집의 조건`, 80, 1610, PRINT_W - 160, 74, G(), '#1d1d1d', '700', 'left')
+      text(ctx, '좋아하는 빛과 재료로 채운 공간에서, 오늘의 나를 만났어요.', 80, 1690, `36px ${G()}`, '#55504a', 'left')
+    },
+  ],
+  'housing-2046': [
+    (ctx, { result, labels }) => {
+      // 미래 주민 카드 — 재미로 만든 가상 카드(공식 신분증처럼 보이지 않게 '재미로 만든 카드'를 적는다)
+      rect(ctx, 0, 0, PRINT_W, PRINT_H, '#0f2b3a')
+      const glow = ctx.createRadialGradient(PRINT_W * 0.8, 200, 50, PRINT_W * 0.8, 200, 900)
+      glow.addColorStop(0, 'rgba(94,234,212,0.35)'); glow.addColorStop(1, 'rgba(94,234,212,0)')
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
+      text(ctx, '2046!', 80, 200, `170px ${A()}`, '#5eead4', 'left')
+      text(ctx, 'FUTURE RESIDENT CARD', 86, 268, `38px ${A()}`, '#d8fbf4', 'left', (c) => { c.letterSpacing = '8px' })
+      ctx.save(); shadow(ctx, 40, 'rgba(0,0,0,0.45)'); rect(ctx, 80, 330, 1040, 1300, '#f4fbfa', 36); ctx.restore()
+      photoClip(ctx, result, 120, 370, 960, 960, 24, 0.25)
+      text(ctx, '미래 도시 주민', 130, 1430, `700 40px ${G()}`, '#1d8a78', 'left')
+      fitText(ctx, labels.city ?? '', 130, 1510, 620, 72, G(), '#0f2b3a', '700', 'left')
+      text(ctx, `입주 2046 · 발급 ${today()}`, 130, 1580, `30px ${A()}`, '#4b6b74', 'left', (c) => { c.letterSpacing = '4px' })
+      ctx.save(); ctx.strokeStyle = '#1d8a78'; ctx.lineWidth = 6
+      ctx.beginPath(); ctx.arc(1000, 1490, 80, 0, Math.PI * 2); ctx.stroke(); ctx.restore()
+      text(ctx, '2046', 1000, 1505, `44px ${A()}`, '#1d8a78')
+      text(ctx, '재미로 만든 미래 주민 카드 · AI가 만든 창작 이미지예요', PRINT_W / 2, 1720, `700 30px ${G()}`, '#9fd8cd')
+    },
+    (ctx, { result, labels }) => {
+      // 미래 도시 포스터 — 사진 전면 + 큰 연도
+      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
+      const fade = ctx.createLinearGradient(0, PRINT_H - 700, 0, PRINT_H)
+      fade.addColorStop(0, 'rgba(8,30,40,0)'); fade.addColorStop(1, 'rgba(8,30,40,0.85)')
+      ctx.fillStyle = fade; ctx.fillRect(0, PRINT_H - 700, PRINT_W, 700)
+      text(ctx, '2046', PRINT_W / 2, PRINT_H - 250, `300px ${A()}`, 'rgba(255,255,255,0.92)', 'center', (c) => { c.letterSpacing = '20px' })
+      text(ctx, `${labels.city ?? ''} · SEE YOU IN 2046`, PRINT_W / 2, PRINT_H - 150, `40px ${A()}`, '#5eead4', 'center', (c) => { c.letterSpacing = '6px' })
+      text(ctx, 'AI가 만든 창작 이미지예요', PRINT_W / 2, PRINT_H - 80, `700 30px ${G()}`, '#d8fbf4')
+    },
+  ],
 }
 
 function fanCard(ctx: Ctx, input: PrintInput, x: number, y: number, w: number, h: number, rot: number) {

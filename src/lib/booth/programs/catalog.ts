@@ -6,6 +6,8 @@
 export const PROGRAM_IDS = [
   'runway', 'fashion-time', 'idol-makeup', 'fan-card', 'graduation', 'history', 'timecapsule',
   'brand-avatar', 'hanbok', 'traditional', 'wedding', 'future-family', 'music-video', 'memory-movie',
+  // 2026 대한민국 주거복지대전(2026-12-16) 특화 — docs/photobooth-programs.md '주거복지대전 3종'
+  'housing-movein', 'housing-cover', 'housing-2046',
 ] as const
 export type ProgramId = (typeof PROGRAM_IDS)[number]
 
@@ -50,6 +52,8 @@ export interface ProgramDef {
     people: 1 | 2
     /** 2: 두 사람을 따로 한 장씩(미래 가족) — 없으면 한 장에 모두 */
     shots: 1 | 2
+    /** 혼자도 여럿(최대 4명)도 한 컷에 — 찍힌 사람 수 그대로 생성한다(입주 기념사진) */
+    group?: boolean
   }
   options: { title: string; sub: string; cta: string; groups: ProgramOptionGroup[] }
   generating: { title: string; sub: string; stages: [string, string, string] }
@@ -439,6 +443,86 @@ export const PROGRAMS: ProgramDef[] = [
     creative: '올린 사진을 순서대로 이어 붙인 편집 영상이에요(AI 영상 아님)',
     intro: intro('memory-movie'), script: 'Memories make a brighter you', designs: ['영상', '영상'],
     card: { tag: 'REPLAY!', desc: '휴대폰으로 사진 5~20장을 올리고 순서·음악·제목을 고르면 추억 영상이 되고, QR로 받아요.', color: '#6b4a2b', badges: ['휴대폰 업로드', '영상', 'QR 다운로드'] },
+  },
+  {
+    id: 'housing-movein', kind: 'photo', name: '입주 기념사진', wordmark: 'MOVE IN!',
+    headline: '우리 집 첫날을\n한 장에 남겨요', lead: '혼자도, 가족·친구와 함께도 — 새 집 입주 기념사진을 찍어 드려요',
+    steps: ['함께 촬영', '우리 집 고르기', '기념 인화'], startCta: '입주 사진 찍기',
+    capture: { title: '모두 정면을 봐 주세요', hint: '혼자도, 가족·친구와 함께도 좋아요(최대 4명). 모든 얼굴이 화면에 들어오게 서 주세요', people: 1, shots: 1, group: true },
+    options: {
+      title: '어떤 집에 입주할까요?', sub: '새 집과 손에 들 소품을 골라 주세요', cta: '이 집으로 입주하기',
+      groups: [
+        { id: 'home', label: '우리 집', look: 'tiles', options: [
+          { id: 'apartment', label: '새 아파트 거실', sub: '큰 창 · 공원 뷰', swatch: 'linear-gradient(160deg,#e9f1f7,#a9c8de 55%,#7fb37a)', prompt: 'standing together in the bright, newly finished living room of a Korean apartment on move-in day: clean light wood floors, a big window with a green park view, a few taped cardboard moving boxes on the floor' },
+          { id: 'house', label: '마당 있는 집', sub: '잔디 마당 · 현관', swatch: 'linear-gradient(160deg,#f6efe2,#d9b98c 55%,#7aa86a)', prompt: 'standing together in front of the wooden front door of a small new two-story house with a lawn yard and a little flower bed on move-in day, a few moving boxes on the porch, clear blue sky' },
+          { id: 'first', label: '첫 독립 원룸', sub: '햇살 드는 내 방', swatch: 'linear-gradient(160deg,#fff4dc,#f2cf8f 60%,#c7a07a)', prompt: 'standing together in a sunny, newly furnished small studio apartment on move-in day: a loft bed, a desk by the window, potted plants, a few half-opened moving boxes' },
+        ] },
+        { id: 'prop', label: '손에 들 것', look: 'chips', options: [
+          { id: 'key', label: '새 집 열쇠', prompt: 'one person proudly holds up a set of new house keys tied with a small red ribbon' },
+          { id: 'flower', label: '집들이 꽃다발', prompt: 'one person holds a bright housewarming flower bouquet' },
+          { id: 'box', label: '이삿짐 상자', prompt: 'one person carries a cardboard moving box' },
+        ] },
+      ],
+    },
+    generating: { title: '새 집에\n입주하는 중이에요', sub: '모두의 얼굴 그대로, 우리 집 첫날을 만들고 있어요', stages: ['사진 확인', '새 집 꾸미는 중', '기념사진 마무리'] },
+    result: { title: '입주를 축하해요!', sub: '마음에 드는 기념 디자인을 골라 주세요' },
+    save: { title: '우리 집 첫날을 간직하세요', sub: 'QR로 받거나 바로 인쇄할 수 있어요' },
+    intro: intro('housing-movein'), script: 'Welcome Home', designs: ['입주 기념 액자', '우리 집 프레임'],
+    card: { tag: 'MOVE IN!', desc: '혼자도 가족·친구와 함께도 — 새 아파트·마당 있는 집·첫 원룸에 입주하는 기념사진을 4×6으로 뽑아 줘요.', color: '#2f6f9f', badges: ['AI 생성', '1~4인', '4×6 인화'] },
+  },
+  {
+    id: 'housing-cover', kind: 'photo', name: '드림하우스 매거진', wordmark: 'COVER!',
+    headline: '내가 꿈꾸는 집,\n잡지 표지가 되다', lead: '꿈꾸는 인테리어 속 주인공이 되어 매거진 표지를 찍어 보세요',
+    steps: ['촬영', '인테리어', '표지 완성'], startCta: '표지 모델 되기',
+    capture: { title: '표지 모델처럼\n정면을 봐 주세요', hint: '얼굴과 어깨가 가이드 안에 들어오게 서 주세요', people: 1, shots: 1 },
+    options: {
+      title: '어떤 집이 내 스타일일까요?', sub: '꿈꾸는 인테리어와 포즈를 골라 주세요', cta: '이 집으로 표지 찍기',
+      groups: [
+        { id: 'room', label: '인테리어', look: 'tiles', options: [
+          { id: 'nordic', label: '북유럽', sub: '화이트 우드 · 패브릭', swatch: 'linear-gradient(160deg,#fbf8f2,#e3d5c0 60%,#b9c7c9)', prompt: 'a Scandinavian-style home interior: white walls, light oak wood, soft linen fabrics, a woven rug, pendant lamp and plenty of daylight' },
+          { id: 'modern', label: '모던 미니멀', sub: '콘크리트 · 블랙', swatch: 'linear-gradient(160deg,#e9e7e3,#9a9690 55%,#1f1f1f)', prompt: 'a modern minimalist home interior: polished concrete, matte black fixtures, a low sofa, sculptural lighting and clean empty surfaces' },
+          { id: 'plant', label: '플랜테리어', sub: '초록 식물 가득', swatch: 'linear-gradient(160deg,#eef3e4,#8fb47a 55%,#3f6b45)', prompt: 'a lush plant-filled home interior (planterior): many large green houseplants, hanging plants, rattan furniture and warm sunlight' },
+          { id: 'hanok', label: '모던 한옥', sub: '서까래 · 창호', swatch: 'linear-gradient(160deg,#f6efe2,#c9a77c 55%,#6b4f35)', prompt: 'a modern hanok home interior: exposed wooden rafters, paper lattice windows (changho), warm wooden floors and simple modern furniture' },
+        ] },
+        { id: 'pose', label: '포즈', look: 'chips', options: [
+          { id: 'sofa', label: '소파에 앉아', prompt: 'sitting relaxed on the sofa, looking at the camera with a confident, warm smile' },
+          { id: 'window', label: '창가에 서서', prompt: 'standing by a large window in soft daylight, looking at the camera' },
+          { id: 'kitchen', label: '주방에서', prompt: 'leaning on a kitchen island with a coffee cup, looking at the camera' },
+        ] },
+      ],
+    },
+    generating: { title: '표지를\n촬영하는 중이에요', sub: '꿈꾸는 집 속의 나를 매거진 화보로 만들고 있어요', stages: ['사진 확인', '인테리어 화보 촬영 중', '표지 편집'] },
+    result: { title: '이번 호 표지 모델은 나', sub: '마음에 드는 표지 디자인을 골라 주세요' },
+    save: { title: '나의 표지를 가져가세요', sub: 'QR로 받거나 바로 인쇄할 수 있어요' },
+    intro: intro('housing-cover'), script: 'My Dream Home', designs: ['매거진 표지', '인테리어 화보'],
+    card: { tag: 'COVER!', desc: '북유럽·모던·플랜테리어·모던 한옥 — 꿈꾸는 집 속 주인공이 되어 인테리어 매거진 표지를 찍어요.', color: '#c2412d', badges: ['AI 생성', '매거진 표지', '4×6 인화'] },
+  },
+  {
+    id: 'housing-2046', kind: 'photo', name: '2046 미래 도시 주민', wordmark: '2046!',
+    headline: '20년 뒤,\n나는 어떤 도시에 살까', lead: '숲이 된 빌딩, 바다 위 마을 — 미래 도시의 주민이 되어 보세요',
+    steps: ['촬영', '미래 도시', '주민 카드'], startCta: '미래 도시로 이사 가기',
+    capture: { title: '미래 주민 사진을\n찍어 볼게요', hint: '얼굴과 어깨가 가이드 안에 들어오게 서 주세요', people: 1, shots: 1 },
+    options: {
+      title: '어느 미래 도시에 살아 볼까요?', sub: '도시와 시간을 골라 주세요', cta: '이 도시로 이사 가기',
+      groups: [
+        { id: 'city', label: '미래 도시', look: 'tiles', options: [
+          { id: 'forest', label: '수직 숲 도시', sub: '나무로 덮인 타워', swatch: 'linear-gradient(160deg,#e3f2e6,#6fb68a 55%,#2d6a54)', prompt: 'a future green city of 2046 with tall residential towers covered in trees and hanging gardens, sky bridges between buildings, clean air' },
+          { id: 'ocean', label: '바다 위 마을', sub: '플로팅 하우스', swatch: 'linear-gradient(160deg,#e2f4fb,#6cc3e0 55%,#1f6f9a)', prompt: 'a future floating neighborhood of 2046 on calm blue sea: modular floating homes with solar roofs, wooden boardwalks and small gardens' },
+          { id: 'smart', label: '스마트 마을', sub: '드론 · 자율 셔틀', swatch: 'linear-gradient(160deg,#ece9ff,#8b84f0 55%,#2b2a6e)', prompt: 'a friendly future smart neighborhood of 2046: low-rise homes with solar glass, small delivery drones in the sky, a rounded self-driving shuttle and a community park' },
+        ] },
+        { id: 'time', label: '시간', look: 'chips', options: [
+          { id: 'day', label: '맑은 낮', prompt: 'bright clear daylight' },
+          { id: 'sunset', label: '노을', prompt: 'warm golden sunset light' },
+          { id: 'night', label: '빛나는 밤', prompt: 'a calm night with soft glowing city lights' },
+        ] },
+      ],
+    },
+    generating: { title: '미래 도시로\n이사하는 중이에요', sub: '20년 뒤 도시의 주민이 된 나를 만들고 있어요', stages: ['사진 확인', '미래 도시 짓는 중', '주민 카드 발급'] },
+    result: { title: '2046 미래 도시에\n오신 걸 환영해요', sub: '마음에 드는 디자인을 골라 주세요' },
+    save: { title: '미래의 나를 가져가세요', sub: 'QR로 받거나 바로 인쇄할 수 있어요' },
+    creative: '재미로 상상해 보는 미래 도시 — AI가 만든 창작 이미지예요. 실제 계획이나 미래를 예측하지 않아요',
+    intro: intro('housing-2046'), script: 'See you in 2046', designs: ['미래 주민 카드', '미래 도시 포스터'],
+    card: { tag: '2046!', desc: '수직 숲 도시·바다 위 마을·스마트 마을 — 20년 뒤 미래 도시의 주민이 된 나를 주민 카드로 뽑아요.', color: '#1d8a78', badges: ['AI 생성', '창작 이미지', '4×6 인화'] },
   },
 ]
 

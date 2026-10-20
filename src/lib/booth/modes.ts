@@ -95,7 +95,7 @@ export const BOOTH_MODES: BoothMode[] = [
   ...PROGRAMS.map((p): BoothMode => ({
     id: p.id,
     label: `${p.wordmark} ${p.name}`,
-    note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : ''} · 4×6 인화·QR` : '프로그램 · 영상 · QR 다운로드',
+    note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : p.capture.group ? ' · 1~4인' : ''} · 4×6 인화·QR` : '프로그램 · 영상 · QR 다운로드',
     brandLine: `${p.wordmark} · NEANDER PHOTOBOOTH`,
     storeEvents: false,
     program: p.id,
