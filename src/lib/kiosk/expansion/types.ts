@@ -1,4 +1,4 @@
-export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple"] as const
+export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-navi","housing-home","housing-mate"] as const
 export type ExpansionId = (typeof EXPANSION_IDS)[number]
 export const isExpansionId = (id: string): id is ExpansionId => (EXPANSION_IDS as readonly string[]).includes(id)
 export const EXPANSION_META = {
@@ -146,7 +146,32 @@ export const EXPANSION_META = {
     "category": "기존 기능 확장",
     "hero": "/assets/kiosk-expansion/couple.webp"
   }
-} as const
+,
+  // 주거복지대전(2026-12-16) 체험 3종 — 데이터·규칙은 housing.ts, 화면은 app/kiosk/experience/expansion/HousingModes.tsx
+  "housing-navi": {
+    "name": "주거복지 내비게이터",
+    "tag": "NAVI!",
+    "color": "#1F5C8B",
+    "note": "몇 가지 질문 → 먼저 알아볼 주거복지 정책과 신청처를 처방전으로",
+    "category": "주거복지",
+    "hero": "/assets/kiosk-expansion/housing-navi.webp"
+  },
+  "housing-home": {
+    "name": "2036 우리 집의 나",
+    "tag": "MY HOME!",
+    "color": "#2C7A6B",
+    "note": "사진 한 장 + 미래의 집 장면 → AI 캐리커처(선화는 영수증에 또렷하게)",
+    "category": "주거복지",
+    "hero": "/assets/kiosk-expansion/housing-home.webp"
+  },
+  "housing-mate": {
+    "name": "우리 집 성향 테스트",
+    "tag": "MATE!",
+    "color": "#B5603A",
+    "note": "여덟 가지 질문 → 주거 성향 캐릭터 · 잘 맞는 이웃 · 어울리는 주거 모델",
+    "category": "주거복지",
+    "hero": "/assets/kiosk-expansion/housing-mate.webp"
+  }} as const
 export type PreferenceId = 'sommelier' | 'cocktail' | 'barista' | 'taste-dna' | 'style-profiler' | 'coord' | 'aura' | 'travel' | 'scent'
 export type Answers = Record<string, string | string[] | number>
 export interface ChoiceOption { id: string; label: string; note?: string; color?: string; icon?: string }

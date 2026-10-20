@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, CircleHelp, Home, Printer, Smartphone, X 
 import { PHOTO_PLANS } from '@/lib/kiosk/expansion/photo'
 import { expansionReceipt } from '@/lib/kiosk/expansion/receipt'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from '@/lib/kiosk/expansion/types'
+import { NO_PHOTO_IDS } from '@/lib/kiosk/expansion/housing'
 import { KxReceiptSheet, KxSaveSheet, useKx, useKxScreen } from '../kx'
 import type { KxShareFile } from '../kx-share'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, wrapLines } from '../kx-canvas'
@@ -55,15 +56,19 @@ export function ExpansionFrame({ title, subtitle, onBack, children, actions, bus
     </div>
     {actions && <footer className="ex-actions">{actions}</footer>}
     {dialog === 'home' && <Dialog title="처음으로 돌아갈까요?" onClose={() => setDialog(null)}><p>현재 입력과 사진에서 읽은 값이 지워집니다. 결과가 필요하다면 먼저 영수증이나 휴대폰으로 받아 주세요.</p><div className="ex-stack"><PrimaryButton onClick={() => setDialog(null)}>계속 체험하기</PrimaryButton><PrimaryButton secondary onClick={home}>입력 지우고 처음으로</PrimaryButton></div></Dialog>}
-    {dialog === 'help' && <Dialog title="편하게 체험해 보세요" onClose={() => setDialog(null)}><ol className="ex-guide"><li><b>사진 한 장으로 시작해요</b><span>사진과 답변을 AI가 함께 보고 결과를 만들어요. 사진은 분석·합성에만 쓰고 저장하지 않아요.</span></li><li><b>직접 선택해요</b><span>마음에 드는 카드를 누르세요. 이전 버튼으로 돌아가 답을 바꾸면 결과에도 반영됩니다.</span></li><li><b>인쇄하기 한 번이면 끝</b><span>결과 화면에서 인쇄하기를 누르면 바로 영수증이 나와요. 휴대폰으로 받기도 있어요(저장 링크는 24시간).</span></li></ol><p className="ex-note">카메라·인터넷·전시 연결이 되지 않으면 현장 운영자에게 알려 주세요. 이 체험은 한국어로 제공됩니다.</p><PrimaryButton onClick={() => setDialog(null)}>알겠어요</PrimaryButton></Dialog>}
+    {dialog === 'help' && <Dialog title="편하게 체험해 보세요" onClose={() => setDialog(null)}><ol className="ex-guide">{noPhoto(id) ? <li><b>질문 몇 가지에 답해요</b><span>사진은 찍지 않아요. 답변으로 결과를 만들고 AI가 쉬운 말로 풀어 줘요. 입력한 내용은 저장하지 않아요.</span></li> : <li><b>사진 한 장으로 시작해요</b><span>사진과 답변을 AI가 함께 보고 결과를 만들어요. 사진은 분석·합성에만 쓰고 저장하지 않아요.</span></li>}<li><b>직접 선택해요</b><span>마음에 드는 카드를 누르세요. 이전 버튼으로 돌아가 답을 바꾸면 결과에도 반영됩니다.</span></li><li><b>인쇄하기 한 번이면 끝</b><span>결과 화면에서 인쇄하기를 누르면 바로 영수증이 나와요. 휴대폰으로 받기도 있어요(저장 링크는 24시간).</span></li></ol><p className="ex-note">카메라·인터넷·전시 연결이 되지 않으면 현장 운영자에게 알려 주세요. 이 체험은 한국어로 제공됩니다.</p><PrimaryButton onClick={() => setDialog(null)}>알겠어요</PrimaryButton></Dialog>}
   </section>
 }
 
-export function ExpansionStart({ id, headline, description, onStart }: { id: ExpansionId; headline?: string; description?: string; onStart: () => void }) {
+/** 사진을 쓰지 않는 체험(주거복지 내비게이터·성향 테스트) — 시작·도움말 문구와 사진 도구 미리 받기가 다르다 */
+const noPhoto = (id: string) => (NO_PHOTO_IDS as readonly string[]).includes(id)
+
+export function ExpansionStart({ id, headline, description, onStart, steps }: { id: ExpansionId; headline?: string; description?: string; onStart: () => void; steps?: [string, string, string] }) {
   useKxScreen('start')
   const meta = EXPANSION_META[id]
   // 손님이 없는 첫 화면에서 사진을 읽을 도구를 천천히 받아 둔다(손님이 시작하면 멈추고, 필요한 순간에 이어 받는다)
   useEffect(() => {
+    if (noPhoto(id)) return
     const plan = PHOTO_PLANS[id]
     const stops = [preloadVision(plan.subject === 'hand' ? 'hand' : 'faces'), ...(plan.outfit ? [preloadVision('hair')] : [])]
     return () => stops.forEach((stop) => stop())
@@ -78,7 +83,7 @@ export function ExpansionStart({ id, headline, description, onStart }: { id: Exp
       <img src={meta.hero} alt="" fetchPriority="high" />
     </div>
     <p className="ex-start-copy">{description ?? meta.note}</p>
-    <div className="ex-start-steps"><span>01. 사진 한 장</span><span>02. AI 분석</span><span>03. 바로 인쇄</span></div>
+    <div className="ex-start-steps">{(steps ?? ['사진 한 장', 'AI 분석', '바로 인쇄']).map((step, i) => <span key={step}>{`0${i + 1}. ${step}`}</span>)}</div>
     <PrimaryButton onClick={onStart}>체험 시작하기 <ArrowRight size={25} /></PrimaryButton>
     <p className="ex-start-foot">화면을 터치해 나만의 이야기를 찾아보세요</p>
   </section>

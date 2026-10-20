@@ -59,6 +59,10 @@ export const PHOTO_PLANS: Record<ExpansionId, PhotoPlan> = {
   scent: face(['표정', '옷 색'], '옷 색과 어울리는 향 계열, 표정에 어울리는 무드의 향에 점수를 더해요.'),
   face: { ...face(['표정', '고개 기울기', '옷 색'], '표정과 고개의 기울기로 오늘의 이야기 한 줄을 더해요. 얼굴 생김새로 성격·능력·운명을 보지 않아요.'), optional: false },
   couple: { subject: 'pair', outfit: true, reads: ['두 사람의 미소', '서 있는 거리', '고개 방향', '옷 색'], uses: '두 사람의 미소, 서 있는 거리, 고개 방향과 옷 색을 사진 케미로 담아요. 관계를 판정하지 않아요.', optional: true },
+  // 주거복지 — 내비게이터·성향 테스트는 사진을 쓰지 않는다(정책 안내라 얼굴이 필요 없다 · NO_PHOTO_IDS). 캐리커처는 사진이 중심
+  'housing-navi': face([], '사진을 쓰지 않아요.', false),
+  'housing-home': { ...face(['표정', '옷 색'], '표정과 옷 색을 캐리커처의 분위기에 담아요. 얼굴은 그림을 만드는 데만 쓰고 저장하지 않아요.'), optional: false },
+  'housing-mate': face([], '사진을 쓰지 않아요.', false),
 }
 
 // ───────────────────────── 색 ─────────────────────────

@@ -3,6 +3,7 @@
 // 'AI 분석'은 맨 앞 절이라 늘 들어가고, '사진에서 읽은 것'은 뒤쪽에 있어도 빠뜨리지 않는다. 촬영 사진 자체는 찍지 않는다.
 
 import type { KxReceipt, KxReceiptBlock } from '@/app/kiosk/experience/kx-receipt'
+import { NO_PHOTO_IDS } from './housing'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from './types'
 
 const MAX_SECTIONS = 4
@@ -26,5 +27,7 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   const cut = rest.length > shown.length || result.sections.some((section) => (section.items?.length ?? 0) > MAX_ITEMS)
   if (cut) blocks.push({ kind: 'text', text: '나머지 내용은 휴대폰으로 받는 결과 카드에 모두 있어요.', small: true, center: true })
   if (result.footnote) blocks.push({ kind: 'rule' }, { kind: 'text', text: result.footnote, small: true })
-  return { tag: meta.tag, title: result.title, subtitle: result.subtitle ?? meta.name, blocks, foot: art ? `${meta.name} · AI가 새로 만든 그림만 인쇄했어요 · 촬영 사진은 저장하지 않아요` : `${meta.name} · 촬영 사진은 저장하거나 인쇄하지 않아요` }
+  // 사진을 쓰지 않는 체험(주거복지 내비게이터·성향 테스트)은 사진 이야기 대신 입력 이야기
+  const noPhoto = (NO_PHOTO_IDS as readonly string[]).includes(id)
+  return { tag: meta.tag, title: result.title, subtitle: result.subtitle ?? meta.name, blocks, foot: noPhoto ? `${meta.name} · 입력한 내용은 저장하지 않아요` : art ? `${meta.name} · AI가 새로 만든 그림만 인쇄했어요 · 촬영 사진은 저장하지 않아요` : `${meta.name} · 촬영 사진은 저장하거나 인쇄하지 않아요` }
 }

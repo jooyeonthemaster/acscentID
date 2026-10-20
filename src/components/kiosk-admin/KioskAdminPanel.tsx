@@ -18,8 +18,7 @@ import { createPortal } from 'react-dom'
 import {
   ArrowRight, Brush, CalendarDays, Check, ChevronLeft, ChevronRight, CircleAlert, Compass, Droplets, FlaskConical, GalleryHorizontalEnd, Hand, IdCard, ImageIcon, Info,
   LockKeyhole as Lock, Mic, MoonStar, Palette, Pencil, Power, RefreshCw, Settings, Store, Type, WifiOff, X,
-  Wine, Martini, Coffee, Utensils, Shirt, Sparkles, Atom, Box, Users, MessagesSquare, Landmark, Plane, Heart, ScanFace, Search,
-} from 'lucide-react'
+  Wine, Martini, Coffee, Utensils, Shirt, Sparkles, Atom, Box, Users, MessagesSquare, Landmark, Plane, Heart, ScanFace, Search, House } from 'lucide-react'
 import { KIOSK_FONT_CLASS, hanjaFontVar } from '@/app/kiosk/fonts'
 import type { KioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { EXPERIENCE_META, kioskExperience, type ExperienceId } from '@/lib/kiosk/experience'
@@ -75,7 +74,7 @@ const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: t
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }
 const EXPERIENCE_ICON: Record<ExperienceId, typeof Store> = { nail: Hand, card: IdCard, skin: Droplets, draw: Pencil, voice: Mic, career: Compass, makeup: Brush,
-  sommelier:Wine, cocktail:Martini, barista:Coffee, 'taste-dna':Utensils, 'style-profiler':Shirt, coord:Shirt, lookalike:Sparkles, science:Atom, palm:Hand, aura:Sparkles, product:Box, team:Users, 'vision-wall':MessagesSquare, heritage:Landmark, travel:Plane, scent:Droplets, face:ScanFace, couple:Heart,
+  sommelier:Wine, cocktail:Martini, barista:Coffee, 'taste-dna':Utensils, 'style-profiler':Shirt, coord:Shirt, lookalike:Sparkles, science:Atom, palm:Hand, aura:Sparkles, product:Box, team:Users, 'vision-wall':MessagesSquare, heritage:Landmark, travel:Plane, scent:Droplets, face:ScanFace, couple:Heart, 'housing-navi':Compass, 'housing-home':House, 'housing-mate':Users
 }
 const modeCopy = (mode: KioskMode) => {
   if (MODE_COPY[mode.id]) return MODE_COPY[mode.id]

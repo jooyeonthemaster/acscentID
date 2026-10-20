@@ -4,6 +4,7 @@ import { EXHIBIT_COLORS } from '../exhibit'
 import { closeness, colorFamily, dominantColors, expression, faceSignal, handSignal, hexToLab, leaning, outfitLook, PHOTO_PLANS, readingFacts, swatch, type FaceSignal, type PhotoReading } from '../photo'
 import { photoHeritage, photoMission, photoProduct, photoWall } from '../photo-effects'
 import { PHOTO_SECTION, recommend } from '../preferences'
+import { NO_PHOTO_IDS } from '../housing'
 import { expansionReceipt } from '../receipt'
 import { analyzeParticipants, cameraStory, newParticipant, palmFocus, suggestMood } from '../social'
 import { EXPANSION_IDS, type Answers } from '../types'
@@ -167,7 +168,8 @@ test('터치 전시의 첫 설정 — 무엇을 읽어 무엇을 골랐는지 �
 })
 
 test('모든 체험에 사진 계획이 있고, 영수증은 사진에서 읽은 것을 빠뜨리지 않는다', () => {
-  for (const id of EXPANSION_IDS) assert.ok(PHOTO_PLANS[id]?.reads.length, id)
+  // 사진을 쓰지 않는 체험(주거복지 내비게이터·성향 테스트)은 읽을 것도 없다
+  for (const id of EXPANSION_IDS) assert.ok(PHOTO_PLANS[id] && ((NO_PHOTO_IDS as readonly string[]).includes(id) ? !PHOTO_PLANS[id].reads.length : PHOTO_PLANS[id].reads.length), id)
   const travel = recommend('travel', { companion: 'friends', duration: 'two-days', activities: ['culture', 'food', 'nature'], pace: 'active', setting: 'mixed', planning: 'planned' }, reading({ faces: [face({ smile: 90 })], outfit: wearing('#C0392B') }))
   const receipt = expansionReceipt('travel', travel.primary)
   const headings = receipt.blocks.filter((b) => b.kind === 'heading').map((b) => (b as { text: string }).text)

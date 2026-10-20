@@ -56,7 +56,7 @@ test('결과에 AI 분석을 맨 앞 절로 붙이고, 두 번 붙이지 않는�
 })
 
 test('이미지 합성 — 여섯 체험만, 값 검사, 사람을 바꾸지 말고 글자를 그리지 말라는 원칙이 늘 붙는다', () => {
-  assert.deepEqual([...IMAGE_MODES], ['lookalike', 'aura', 'heritage', 'couple', 'team', 'coord'])
+  assert.deepEqual([...IMAGE_MODES], ['lookalike', 'aura', 'heritage', 'couple', 'team', 'coord', 'housing-home'])
   assert.equal(readImageParams('sommelier', {}), null)
   assert.equal(readImageParams('lookalike', { mood: 'celebrity' }), null)
   assert.equal(readImageParams('team', { activity: 'games', count: 9 }), null)
