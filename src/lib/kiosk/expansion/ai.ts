@@ -2,6 +2,7 @@
 // 정해진 후보가 있으면 그중 하나를 고르고(pick), 그 사람에게 맞춘 풀이를 쓴다. 상품·향료·레시피는 지어내지 않는다 — 후보 밖은 거절하고 다시 받는다.
 // 이 파일은 요청 검사·지시문·응답 검사·결과 합치기만(DOM·네트워크 없음 · 시험 가능). 호출은 app/api/kiosk/experience/expansion.
 
+import { catalogForPrompt, normalizeId, PREFER_COUNT, validateRecipe, type RawRecipe } from './recipe'
 import { EXPANSION_META, isExpansionId, type ExpansionId, type ExperienceResult } from './types'
 
 export interface AiCandidate { id: string; title: string; summary: string }
@@ -15,6 +16,8 @@ export interface AiRequest {
   candidates: AiCandidate[]
   /** 모드별 맥락(고른 주제·실험 기록·문장 등) */
   context: string
+  /** 조향 레시피를 함께 짤 때(주거복지대전 3종) — 규칙이 매긴 향료 순위 위쪽(주향 후보) */
+  recipe?: { prefer: string[] }
 }
 export interface AiAnalysis {
   /** 고른 후보 id — 후보가 없는 체험은 null */
@@ -25,7 +28,12 @@ export interface AiAnalysis {
   /** 사진에서 본 것 — 사진이 없으면 빈 목록 */
   photo: string[]
   tips: string[]
+  /** 조향 레시피 — recipe 요청에만 */
+  recipe?: RawRecipe
 }
+
+/** 레시피를 짤 수 있는 체험 */
+export const RECIPE_IDS: readonly ExpansionId[] = ['housing-scent', 'housing-home', 'housing-mate']
 
 export const AI_SECTION = 'AI 분석'
 const isPhotoUrl = (value: unknown): value is string => typeof value === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= 1_500_000
@@ -39,7 +47,11 @@ export function readAiRequest(body: unknown): AiRequest | null {
   if (b.photo != null && !isPhotoUrl(b.photo)) return null
   const answers = Array.isArray(b.answers) ? b.answers.slice(0, 24).map((x) => ({ label: clean((x as Record<string, unknown>)?.label, 60), value: clean((x as Record<string, unknown>)?.value, 120) })).filter((x) => x.label) : []
   const candidates = Array.isArray(b.candidates) ? b.candidates.slice(0, 4).map((x) => ({ id: clean((x as Record<string, unknown>)?.id, 80), title: clean((x as Record<string, unknown>)?.title, 60), summary: clean((x as Record<string, unknown>)?.summary, 320) })).filter((x) => x.id && x.title) : []
-  return { id: b.id, photo: isPhotoUrl(b.photo) ? b.photo : null, facts: clean(b.facts, 400), answers, candidates, context: clean(b.context, 1500) }
+  // 레시피 주향 후보 — 실제 향료 id 만, 중복 없이, PREFER_COUNT 개까지
+  const preferRaw = (b.recipe as { prefer?: unknown } | undefined)?.prefer
+  const prefer = Array.isArray(preferRaw) ? [...new Set(preferRaw.map(normalizeId).filter((x): x is string => !!x))].slice(0, PREFER_COUNT) : []
+  const recipe = RECIPE_IDS.includes(b.id) && prefer.length >= 3 ? { prefer } : undefined
+  return { id: b.id, photo: isPhotoUrl(b.photo) ? b.photo : null, facts: clean(b.facts, 400), answers, candidates, context: clean(b.context, 1500), ...(recipe ? { recipe } : {}) }
 }
 
 /** 모드마다 AI 의 역할과 그 모드만의 금지·주의 */
@@ -62,9 +74,9 @@ const MODE: Record<ExpansionId, { role: string; rules: string[] }> = {
   scent: { role: '향 큐레이터. 후보 향 중 하나를 골라 시향할 때의 포인트를 풀어 준다.', rules: ['후보에 없는 향 이름·노트를 지어내지 않는다. 피부·알레르기 판단을 하지 않는다.'] },
   face: { role: '전통 관상에서 착안한 이야기꾼. 손님이 고른 주제와 지금의 표정·분위기로 따뜻한 창작 이야기를 쓴다.', rules: ['이목구비·얼굴형으로 성격·능력·건강·운명을 판정하지 않는다. 표정·옷·분위기만 말한다.', '재미로 보는 창작 이야기임이 드러나게 쓴다.'] },
   couple: { role: '데이트 플래너. 두 사람 사진의 분위기와 각자 고른 답변을 보고 함께 해 볼 데이트를 제안한다.', rules: ['누가 누구인지 추측하지 않는다. 관계의 성공·궁합을 판정하지 않는다.'] },
-  'housing-navi': { role: '주거복지 상담 안내자. 규칙표로 이미 골라 둔 정책 후보 중 손님이 가장 먼저 알아보면 좋을 하나를 골라, 왜 그것부터인지와 다음에 할 일을 쉬운 말로 풀어 준다.', rules: ['후보에 적힌 정책 이름·대상·신청처만 쓴다. 금액·금리·소득 기준 숫자·기간을 새로 만들지 않는다.', '받을 수 있다고 단정하지 않는다("~를 알아보세요", "~에서 확인해 보세요"). 자격은 공고·기관 심사로 정해진다.', '정치적 평가나 정부 정책의 좋고 나쁨을 말하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
-  'housing-home': { role: '미래 주거 이야기꾼. 손님이 고른 10년 뒤 집 장면에서 그 사람이 보낼 하루를 짧고 따뜻하게 그려 준다.', rules: ['특정 정책·상품·회사·가격을 말하지 않는다.', '미래를 예언하지 않는다. 상상해 보는 하루로 쓴다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
-  'housing-mate': { role: '주거 성향 큐레이터. 성향 후보 중 손님의 답과 가장 잘 맞는 하나를 골라, 어울리는 이웃·공간 이야기를 풀어 준다.', rules: ['재미로 보는 성향 이야기다. 사람의 됨됨이를 판정하지 않는다.', '특정 단지·정책의 자격이나 입주를 약속하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
+  'housing-scent': { role: '홈 프래그런스 조향사. 손님이 답한 우리 집 환경(집 형태·함께 사는 사람·햇빛·고민·머무는 곳·원하는 분위기·피하고 싶은 향)을 읽고, 그 집에 가장 잘 맞는 블렌드를 짠다.', rules: ['집의 고민(습기·냄새 등)을 향으로 해결·제거·살균한다고 말하지 않는다. 기분과 분위기를 바꾸는 향으로 말한다.', '건강·수면·치료 효과를 말하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
+  'housing-home': { role: '미래 주거 조향사. 손님이 고른 10년 뒤 집 장면과 사진 속 분위기(표정·옷 색)로 그 집에서 보낼 하루를 그리고, 그 집에 어울리는 블렌드를 짠다.', rules: ['특정 정책·상품·회사·가격을 말하지 않는다.', '미래를 예언하지 않는다. 상상해 보는 하루로 쓴다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
+  'housing-mate': { role: '주거 성향 조향사. 성향 후보 중 손님의 답과 가장 잘 맞는 하나를 골라, 어울리는 이웃·공간 이야기와 그 성향의 시그니처 블렌드를 짠다.', rules: ['재미로 보는 성향 이야기다. 사람의 됨됨이를 판정하지 않는다.', '특정 단지·정책의 자격이나 입주를 약속하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
 }
 
 /** 어떤 체험에서도 쓰면 안 되는 말 — 들어가면 그 이유를 붙여 다시 받는다 */
@@ -73,9 +85,11 @@ const FORBIDDEN: [RegExp, string][] = [
   [/생명선|수명|단명|장수할|팔자|운명이 정해|재물운/, '손금·운명·수명 판정'],
   [/잘생|못생|뚱뚱|날씬|체형이|살이 쪄|피부색|피부 ?톤|피부결|인종|나이 들어 보|어려 보/, '외모·피부·체형·나이 평가'],
   // 사진 한 장으로 사람의 됨됨이를 단정하지 않는다(2026-10-14 실호출: 손 모양에서 '따뜻한 마음씨가 느껴집니다')
-  [/마음씨|성품|타고난|기질|성향이|태도가 느껴|성격이에요|성격을 가진|성격이 [가-힣]+(해요|네요|군요)/, '성격·됨됨이 단정'],
+  [/마음씨|마음이 느껴|성품|타고난|기질|성향이|태도가 느껴|성격이에요|성격을 가진|성격이 [가-힣]+(해요|네요|군요)/, '성격·됨됨이 단정'],
   // 팀·커플의 구성이나 궁합을 판정하지 않는다(같은 날 실호출: '함께 새로운 프로젝트를 시작하기에 최적의 구성입니다')
   [/최적의 (구성|조합|팀)|궁합이|천생연분|완벽한 (팀|커플|조합)|잘 맞는 (팀|커플|사이)/, '관계·팀 판정'],
+  // 향이 냄새·습기를 없애거나 몸에 효과가 있다고 하지 않는다(주거복지대전 조향 레시피)
+  [/살균|항균|탈취|냄새를 (없애|제거|잡아)|숙면|불면|치료|효능|면역력/, '향의 효능·제거 단정'],
 ]
 
 /** 지시문 — 손님 입력은 따옴표·줄바꿈을 걷어 한 줄로 넣는다(readAiRequest) */
@@ -90,6 +104,16 @@ export function buildAiPrompt(req: AiRequest): string {
     req.answers.length ? `- 손님의 답변: ${req.answers.map((a) => `${a.label}=${a.value}`).join(' / ')}` : '',
     req.candidates.length ? `- 후보(반드시 이 중 하나를 pick 에 id 로): ${req.candidates.map((c) => `{id: ${c.id}, 이름: ${c.title}, 설명: ${c.summary}}`).join(' ')}` : '',
     req.context ? `- 맥락: ${req.context}` : '',
+    ...(req.recipe ? [
+      '',
+      '# 조향 — 아래 실제 향료 30종 중 셋을 골라 블렌드 레시피(recipe)를 짠다',
+      catalogForPrompt(),
+      `- 주향(비율이 가장 큰 향료)은 반드시 다음 추천 후보 중 하나: ${req.recipe.prefer.join(', ')} (손님 답변으로 매긴 순위, 앞일수록 잘 맞는다).`,
+      '- 나머지 둘은 30종 어디서든 고르되, 주향과 어우러져 손님 답변의 분위기를 완성하게. 셋은 서로 다른 향료. 피하고 싶다고 한 계열은 쓰지 않는다.',
+      '- ratio 는 정수(%), 각 10~70, 셋의 합은 정확히 100. 큰 비율부터 차례로.',
+      '- id 는 목록의 표기 그대로(예: AC\'SCENT 07). 목록에 없는 향료·노트·브랜드를 만들지 않는다.',
+      '- name 은 이 블렌드의 한국어 이름(2~16자, 예: 햇살 드는 오후의 거실). story 는 이 향이 손님의 집에서 어떤 장면을 만드는지 1~2문장(40~160자).',
+    ] : []),
     '',
     '# 규칙',
     '- 한국어 존댓말(~요). 손님에게 직접 말하듯 다정하고 구체적으로.',
@@ -100,7 +124,7 @@ export function buildAiPrompt(req: AiRequest): string {
     req.candidates.length ? '- pick 은 후보 id 중 하나를 글자 그대로. 후보 밖의 상품·이름을 만들지 않는다.' : '- 후보가 없으므로 pick 은 null.',
     '',
     '# 출력 — JSON 하나만',
-    `{"pick": ${req.candidates.length ? '"후보 id"' : 'null'}, "headline": "결과 한 줄 제목(30자 이내)", "insight": "왜 이 결과인지 사진·답변을 엮어 2~3문장(90~260자)", "photo": ${req.photo ? '["사진에서 본 것 1(60자 이내)", "사진에서 본 것 2"]' : '[]'}, "tips": ["오늘 해 볼 것 1(60자 이내)", "오늘 해 볼 것 2"]}`,
+    `{"pick": ${req.candidates.length ? '"후보 id"' : 'null'}, "headline": "결과 한 줄 제목(30자 이내)", "insight": "왜 이 결과인지 사진·답변을 엮어 2~3문장(90~260자)", "photo": ${req.photo ? '["사진에서 본 것 1(60자 이내)", "사진에서 본 것 2"]' : '[]'}, "tips": ["오늘 해 볼 것 1(60자 이내)", "오늘 해 볼 것 2"]${req.recipe ? ', "recipe": {"name": "블렌드 이름", "story": "이 향이 만드는 장면", "notes": [{"id": "AC\'SCENT ??", "ratio": 50, "reason": "이 향료를 넣은 이유(30자 이내)"}, {"id": "…", "ratio": 30, "reason": "…"}, {"id": "…", "ratio": 20, "reason": "…"}]}' : ''}}`,
   ]
   return lines.filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n')
 }
@@ -128,8 +152,9 @@ export function validateAiAnalysis(value: unknown, req: AiRequest): AiAnalysis {
     insight: text(v.insight, 'insight', 320, 40),
     photo: req.photo ? list(v.photo, 'photo', 1, 3, 80) : [],
     tips: list(v.tips, 'tips', 2, 3, 80),
+    ...(req.recipe ? { recipe: validateRecipe(v.recipe, req.recipe.prefer) } : {}),
   }
-  const all = [analysis.headline, analysis.insight, ...analysis.photo, ...analysis.tips].join(' ')
+  const all = [analysis.headline, analysis.insight, ...analysis.photo, ...analysis.tips, ...(analysis.recipe ? [analysis.recipe.name, analysis.recipe.story, ...analysis.recipe.notes.map((n) => n.reason)] : [])].join(' ')
   if (!/[가-힣]/.test(all)) throw new Error('한국어로 써야 합니다.')
   for (const [pattern, why] of FORBIDDEN) if (pattern.test(all)) throw new Error(`규칙 위반(${why}): "${all.match(pattern)?.[0]}" 같은 표현을 빼고 다시 쓰십시오.`)
   return analysis

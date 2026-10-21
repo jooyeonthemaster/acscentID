@@ -1,4 +1,5 @@
-export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-navi","housing-home","housing-mate"] as const
+import type { ScentRecipe } from './recipe'
+export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-scent","housing-home","housing-mate"] as const
 export type ExpansionId = (typeof EXPANSION_IDS)[number]
 export const isExpansionId = (id: string): id is ExpansionId => (EXPANSION_IDS as readonly string[]).includes(id)
 export const EXPANSION_META = {
@@ -148,27 +149,27 @@ export const EXPANSION_META = {
   }
 ,
   // 주거복지대전(2026-12-16) 체험 3종 — 데이터·규칙은 housing.ts, 화면은 app/kiosk/experience/expansion/HousingModes.tsx
-  "housing-navi": {
-    "name": "주거복지 내비게이터",
-    "tag": "NAVI!",
+  "housing-scent": {
+    "name": "우리 집 향 처방",
+    "tag": "ROOM!",
     "color": "#1F5C8B",
-    "note": "몇 가지 질문 → 먼저 알아볼 주거복지 정책과 신청처를 처방전으로",
+    "note": "사는 집 · 햇빛 · 고민 · 원하는 분위기 → AI가 우리 집에 맞는 향료 셋을 블렌딩한 조향 레시피",
     "category": "주거복지",
-    "hero": "/assets/kiosk-expansion/housing-navi.webp"
+    "hero": "/assets/kiosk-expansion/housing-scent.webp"
   },
   "housing-home": {
-    "name": "2036 우리 집의 나",
+    "name": "2036 우리 집의 향",
     "tag": "MY HOME!",
     "color": "#2C7A6B",
-    "note": "사진 한 장 + 미래의 집 장면 → AI 캐리커처(선화는 영수증에 또렷하게)",
+    "note": "사진 한 장 + 10년 뒤 집 장면 → AI 캐리커처와 그 집에 어울리는 조향 레시피",
     "category": "주거복지",
     "hero": "/assets/kiosk-expansion/housing-home.webp"
   },
   "housing-mate": {
-    "name": "우리 집 성향 테스트",
+    "name": "우리 집 성향 향수",
     "tag": "MATE!",
     "color": "#B5603A",
-    "note": "여덟 가지 질문 → 주거 성향 캐릭터 · 잘 맞는 이웃 · 어울리는 주거 모델",
+    "note": "여덟 가지 질문 → 주거 성향 캐릭터 · 잘 맞는 이웃 · 그 성향의 시그니처 조향 레시피",
     "category": "주거복지",
     "hero": "/assets/kiosk-expansion/housing-mate.webp"
   }} as const
@@ -180,6 +181,7 @@ export interface QuestionStep { title: string; note?: string; questions: Questio
 export interface PreferenceDefinition { id: PreferenceId; headline: string; description: string; guide: string[]; steps: QuestionStep[]; resultLabel: string; footnote?: string }
 export interface ResultSection { title: string; body: string; items?: string[] }
 export interface ResultMetric { label: string; value: number; max: number; color?: string }
-export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string }
+/** recipe — 조향 레시피(주거복지대전 3종, recipe.ts). 있으면 화면·카드·영수증이 레시피 칸을 먼저 그린다 */
+export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string; recipe?: ScentRecipe }
 export interface AnswerSummary { key: string; label: string; value: string; step: number }
 export interface RecommendationBundle { primary: ExperienceResult; alternatives: ExperienceResult[]; summary: AnswerSummary[] }

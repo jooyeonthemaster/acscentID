@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { DemoWatermarkUnlock } from '@/components/demo/DemoWatermarkUnlock'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
@@ -21,7 +22,7 @@ const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 사진 한 장과 내 선택으로 만드는 가이드' },
   { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
   { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 3D 제품 · 비전 월 · 문화유산 탐색' },
-  { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전에 맞춘 체험 — 정책 처방전 · 10년 뒤 우리 집 캐리커처 · 주거 성향 테스트' },
+  { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전에 맞춘 체험 — 나의 주거환경에 맞는 향 처방 · 10년 뒤 우리 집 캐리커처와 향 · 주거 성향 향수 — 셋 다 조향 레시피 영수증' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
@@ -35,7 +36,7 @@ const NOTES = [
   '카메라나 마이크를 쓰는 프로그램은 브라우저가 권한을 물을 때 허용해 주세요.',
   'AI가 분석하는 데 3~7초, 사진으로 그림을 새로 만드는 프로그램은 10~20초쯤 걸립니다.',
   '영수증 출력은 프린터가 달린 실제 키오스크에서 동작합니다. 브라우저에서는 미리보기로 보여 줍니다.',
-  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 키오스크에는 표시되지 않습니다.',
+  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 키오스크에는 표시되지 않고, 관리자는 아래 \'워터마크 끄기\'에서 비밀번호로 끌 수 있습니다.',
 ]
 /** 머리말의 키오스크 한 대 — 화면이 이 차례로 3초마다 바뀐다(움직임 줄이기를 켠 브라우저는 첫 화면에 머문다) */
 // 새 체험 다섯(스타 무드 · 코디 · 오라 · 문화유산 · 칵테일)과 기존 다섯을 번갈아 — 칸 수는 kiosk-demo.css 의 30초 순환(10칸)에 맞춘다
@@ -147,6 +148,7 @@ export default function KioskDemoPage() {
         <a href="tel:02-336-3368">Tel. 02-336-3368</a>
         <a href="tel:010-8507-5121">Mobile. 010-8507-5121</a>
         <span>neander@neander.co.kr</span>
+        <DemoWatermarkUnlock />
       </footer>
     </div>
   )

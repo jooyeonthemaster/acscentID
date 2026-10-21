@@ -74,7 +74,7 @@ const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: t
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }
 const EXPERIENCE_ICON: Record<ExperienceId, typeof Store> = { nail: Hand, card: IdCard, skin: Droplets, draw: Pencil, voice: Mic, career: Compass, makeup: Brush,
-  sommelier:Wine, cocktail:Martini, barista:Coffee, 'taste-dna':Utensils, 'style-profiler':Shirt, coord:Shirt, lookalike:Sparkles, science:Atom, palm:Hand, aura:Sparkles, product:Box, team:Users, 'vision-wall':MessagesSquare, heritage:Landmark, travel:Plane, scent:Droplets, face:ScanFace, couple:Heart, 'housing-navi':Compass, 'housing-home':House, 'housing-mate':Users
+  sommelier:Wine, cocktail:Martini, barista:Coffee, 'taste-dna':Utensils, 'style-profiler':Shirt, coord:Shirt, lookalike:Sparkles, science:Atom, palm:Hand, aura:Sparkles, product:Box, team:Users, 'vision-wall':MessagesSquare, heritage:Landmark, travel:Plane, scent:Droplets, face:ScanFace, couple:Heart, 'housing-scent':Compass, 'housing-home':House, 'housing-mate':Users
 }
 const modeCopy = (mode: KioskMode) => {
   if (MODE_COPY[mode.id]) return MODE_COPY[mode.id]

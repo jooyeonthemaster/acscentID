@@ -4,6 +4,7 @@
 
 import type { KxReceipt, KxReceiptBlock } from '@/app/kiosk/experience/kx-receipt'
 import { NO_PHOTO_IDS } from './housing'
+import { noteAmount, noteLabel, RECIPE_COUNTER, RECIPE_PRODUCT } from './recipe'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from './types'
 
 const MAX_SECTIONS = 4
@@ -16,10 +17,20 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   const picture: KxReceiptBlock = art ? { kind: 'image', src: art.src, width: 360, frame: true, tone: 172, caption: art.caption } : { kind: 'image', src: meta.hero, width: 300, tone: 168 }
   const blocks: KxReceiptBlock[] = [picture, { kind: 'text', text: result.summary }]
   if (result.tags.length) blocks.push({ kind: 'text', text: result.tags.map((tag) => `#${tag}`).join('  '), small: true, bold: true })
-  if (result.metrics?.length) blocks.push({ kind: 'pairs', rows: result.metrics.map((m) => [m.label, `${m.value} / ${m.max}`]) })
+  const recipe = result.recipe
+  if (recipe) {
+    // 조향 레시피가 영수증의 주인공 — 향료 · 비율 · 용량을 계열 점수 대신 크게 싣고, 절은 둘까지(길이를 맞춘다)
+    blocks.push(
+      { kind: 'rule' }, { kind: 'heading', text: `조향 레시피 · ${recipe.name}` },
+      { kind: 'text', text: `${recipe.product} · 향료 ${RECIPE_PRODUCT.fragranceMl}ml + 퍼퓸 베이스 ${recipe.baseMl}ml${recipe.ai ? '' : ' · 기본 레시피'}`, small: true },
+      { kind: 'pairs', rows: [...recipe.notes.map((n): [string, string] => [noteLabel(n), noteAmount(n)]), ['퍼퓸 베이스', `${recipe.baseMl.toFixed(1)}ml`]] },
+      { kind: 'list', items: recipe.notes.map((n) => `${n.name} — ${n.reason}`) },
+      { kind: 'text', text: RECIPE_COUNTER, bold: true, center: true },
+    )
+  } else if (result.metrics?.length) blocks.push({ kind: 'pairs', rows: result.metrics.map((m) => [m.label, `${m.value} / ${m.max}`]) })
   const photo = result.sections.filter((section) => isPhoto(section.title))
   const rest = result.sections.filter((section) => !isPhoto(section.title))
-  const shown = rest.slice(0, Math.max(1, MAX_SECTIONS - photo.length))
+  const shown = rest.slice(0, Math.max(1, (recipe ? MAX_SECTIONS - 2 : MAX_SECTIONS) - photo.length))
   for (const section of [...shown, ...photo]) {
     blocks.push({ kind: 'rule' }, { kind: 'heading', text: section.title }, { kind: 'text', text: section.body })
     if (section.items?.length) blocks.push({ kind: 'list', items: section.items.slice(0, MAX_ITEMS) })

@@ -1,17 +1,18 @@
 'use client'
 
-// 주거복지대전(2026-12-16) 체험 3종 화면 — 주거복지 내비게이터 · 우리 집 성향 테스트 · 2036 우리 집의 나.
-// 데이터·규칙은 lib/kiosk/expansion/housing.ts. 결과는 체험 18종과 같은 결과 카드(ExperienceResult)라
-// 인쇄(영수증 + QR)·휴대폰으로 받기(TakeActions)·AI 분석(AiWait)을 그대로 쓴다.
-// 내비게이터·성향 테스트는 사진을 찍지 않는다(정책 안내에 얼굴이 필요 없다).
+// 주거복지대전(2026-12-16) 체험 3종 화면 — 우리 집 향 처방 · 우리 집 성향 향수 · 2036 우리 집의 향.
+// 셋 다 끝은 조향 레시피 영수증이다: 규칙이 향료 순위를 매기고(housing.ts) AI 가 그 위에서 셋을 블렌딩한다(ai.ts recipe · recipe.ts).
+// 결과는 체험 18종과 같은 결과 카드(ExperienceResult + recipe)라 인쇄(영수증 + QR)·휴대폰으로 받기(TakeActions)·AI 분석(AiWait)을 그대로 쓴다.
+// 향 처방·성향 향수는 사진을 찍지 않는다. AI 를 기다리지 않으면 규칙 기본 레시피(50/30/20)로 나온다.
 
 import { useState } from 'react'
 import { ArrowRight, House, Palette, RefreshCw } from 'lucide-react'
 import { applyAiAnalysis, type AiAnalysis } from '@/lib/kiosk/expansion/ai'
 import {
-  HOME_SCENES, HOME_STYLES, homeResult, MATE_QUESTIONS, mateCandidates, mateResult, mateSummary,
-  NAVI_QUESTIONS, naviCandidates, naviResult, naviSummary, type Answers, type HomeScene, type HomeStyle, type MateType,
+  HOME_SCENES, HOME_STYLES, homeRanked, homeResult, homeRuleRecipe, MATE_QUESTIONS, mateCandidates, mateRanked, mateResult, mateRuleRecipe, mateSummary, rankMates,
+  SCENT_QUESTIONS, scentRanked, scentResult, scentRuleRecipe, scentSummary, type Answers, type HomeScene, type HomeStyle, type MateType,
 } from '@/lib/kiosk/expansion/housing'
+import { PREFER_COUNT, preferIds, toRecipe } from '@/lib/kiosk/expansion/recipe'
 import { IMAGE_LABEL, type ImageParams } from '@/lib/kiosk/expansion/image-prompts'
 import { PHOTO_PLANS, readingLine, type PhotoReading } from '@/lib/kiosk/expansion/photo'
 import type { ExperienceResult, Question } from '@/lib/kiosk/expansion/types'
@@ -20,7 +21,7 @@ import { AiImage, AiWait } from './AiStep'
 import { PhotoStep } from './PhotoStep'
 import { ChoiceTile, ExpansionFrame, ExpansionStart, PrimaryButton, ResultPanel, TakeActions } from './shared'
 
-export type HousingId = 'housing-navi' | 'housing-mate' | 'housing-home'
+export type HousingId = 'housing-scent' | 'housing-mate' | 'housing-home'
 
 /** 한 화면에 한 문항 — 큰 타일로 고르고 '다음' */
 function QuestionPage({ question: q, value, onChange }: { question: Question; value: Answers[string] | undefined; onChange: (value: Answers[string]) => void }) {
@@ -29,6 +30,9 @@ function QuestionPage({ question: q, value, onChange }: { question: Question; va
   const choose = (id: string) => {
     setLimit(false)
     if (q.type !== 'multi') { onChange(id); return }
+    // '없어요·다 괜찮아요(none)'는 혼자만 — 고르면 나머지를 비우고, 다른 것을 고르면 none 을 뺀다
+    if (id === 'none') { onChange(selected.includes('none') ? [] : ['none']); return }
+    if (selected.includes('none')) { onChange([id]); return }
     if (selected.includes(id)) onChange(selected.filter((v) => v !== id))
     else if (selected.length < (q.max ?? Infinity)) onChange([...selected, id])
     else setLimit(true)
@@ -41,14 +45,14 @@ function QuestionPage({ question: q, value, onChange }: { question: Question; va
 
 const answered = (q: Question, value: Answers[string] | undefined) => q.type === 'multi' ? Array.isArray(value) && value.length > 0 : typeof value === 'string' && value !== ''
 
-/** 내비게이터·성향 테스트 공통 — 시작 → 문항(한 화면에 하나) → AI 분석 → 결과 */
+/** 향 처방·성향 향수 공통 — 시작 → 문항(한 화면에 하나) → AI 분석·블렌딩 → 결과(조향 레시피) */
 function QuizMode({ id, questions, start, build, request, resultTitle }: {
-  id: 'housing-navi' | 'housing-mate'
+  id: 'housing-scent' | 'housing-mate'
   questions: Question[]
   start: { headline: string; description: string; steps: [string, string, string] }
   /** 답 + AI 분석(없으면 null) → 결과 카드 */
   build: (answers: Answers, analysis: AiAnalysis | null) => ExperienceResult
-  request: (answers: Answers) => { answers: { label: string; value: string }[]; candidates: { id: string; title: string; summary: string }[]; context: string }
+  request: (answers: Answers) => { answers: { label: string; value: string }[]; candidates: { id: string; title: string; summary: string }[]; context: string; recipe: { prefer: string[] } }
   resultTitle: string
 }) {
   const [page, setPage] = useState<'start' | 'quiz' | 'ai' | 'result'>('start')
@@ -81,41 +85,40 @@ function QuizMode({ id, questions, start, build, request, resultTitle }: {
   </ExpansionFrame>
 }
 
-/** AI 가 '가장 먼저 알아볼 것'으로 고른 정책을 1번으로 올린다 */
-function naviWithAi(answers: Answers, analysis: AiAnalysis | null): ExperienceResult {
-  const base = naviResult(answers)
-  if (!analysis) return base
-  const ids = naviCandidates(answers).map((c) => c.id)
-  const pickIndex = analysis.pick ? ids.indexOf(analysis.pick) : -1
-  let sections = base.sections
-  if (pickIndex > 0) {
-    const policies = sections.slice(0, ids.length)
-    const rest = sections.slice(ids.length)
-    const [picked] = policies.splice(pickIndex, 1)
-    sections = [picked, ...policies, ...rest].map((s, i) => (i < ids.length ? { ...s, title: s.title.replace(/^\d+\./, `${i + 1}.`) } : s))
-  }
-  return applyAiAnalysis({ ...base, sections }, analysis)
+export function ScentMode() {
+  return <QuizMode
+    id="housing-scent"
+    questions={SCENT_QUESTIONS.map((q) => ({ key: q.key, title: q.title, note: q.note, type: q.multi ? 'multi' : 'single', max: q.multi, required: true, options: q.options.map(({ id, label, note }) => ({ id, label, note })) }))}
+    resultTitle="우리 집 향"
+    start={{ headline: '우리 집에 꼭 맞는 향을 처방해 드려요', description: '사는 집과 햇빛, 작은 고민, 원하는 분위기를 알려 주시면 AI가 향료 30종 중 셋을 골라 우리 집 조향 레시피를 짜 드려요. 사진은 찍지 않아요.', steps: ['질문 일곱 개', 'AI 블렌딩', '레시피 인쇄'] }}
+    request={(answers) => ({ answers: scentSummary(answers), candidates: [], context: '손님의 주거 환경에 맞춘 홈 프래그런스 블렌드를 짠다. 결과는 조향 레시피 영수증으로 인쇄된다.', recipe: { prefer: preferIds(scentRanked(answers)) } })}
+    build={(answers, analysis) => {
+      const recipe = analysis?.recipe ? toRecipe(analysis.recipe, true) : scentRuleRecipe(answers)
+      const result = scentResult(answers, recipe)
+      return analysis ? applyAiAnalysis(result, analysis) : result
+    }}
+  />
 }
 
-export function NaviMode() {
-  return <QuizMode
-    id="housing-navi"
-    questions={NAVI_QUESTIONS}
-    resultTitle="처방전"
-    start={{ headline: '나에게 맞는 주거복지, 한 번에 찾아요', description: '여섯 가지 질문에 답하면 먼저 알아볼 정책과 신청처를 처방전으로 뽑아 드려요. 사진은 찍지 않아요.', steps: ['질문 여섯 개', 'AI 맞춤 안내', '처방전 인쇄'] }}
-    request={(answers) => ({ answers: naviSummary(answers), candidates: naviCandidates(answers), context: '정책 후보는 손님 답을 규칙표에 넣어 이미 골라 둔 것이다. 손님이 행사장 상담 부스에서 이어 물어볼 수 있다.' })}
-    build={naviWithAi}
-  />
+/** 성향 후보 위 둘의 시그니처 향료를 섞어 주향 후보로(AI 가 성향과 레시피를 함께 고른다) */
+function matePrefer(answers: Answers) {
+  const [first, second] = rankMates(answers)
+  return [...new Set([...preferIds(mateRanked(first)).slice(0, 5), ...preferIds(mateRanked(second)).slice(0, 5)])].slice(0, PREFER_COUNT)
 }
 
 export function MateMode() {
   return <QuizMode
     id="housing-mate"
     questions={MATE_QUESTIONS.map((q) => ({ key: q.key, title: q.title, type: 'single', required: true, options: q.options.map(({ id, label, note }) => ({ id, label, note })) }))}
-    resultTitle="내 성향"
-    start={{ headline: '나는 어떤 집, 어떤 이웃과 잘 맞을까?', description: '여덟 가지 질문으로 나의 주거 성향 캐릭터와 잘 맞는 이웃, 어울리는 주거 모델을 찾아 드려요. 사진은 찍지 않아요.', steps: ['질문 여덟 개', 'AI 성향 풀이', '결과 카드 인쇄'] }}
-    request={(answers) => ({ answers: mateSummary(answers), candidates: mateCandidates(answers), context: '세대 공존 주거를 주제로 한 재미있는 성향 테스트다. 결과 카드에는 스탬프 랠리 칸이 있다.' })}
-    build={(answers, analysis) => { const result = mateResult(answers, (analysis?.pick ?? undefined) as MateType | undefined); return analysis ? applyAiAnalysis(result, analysis) : result }}
+    resultTitle="내 성향 향수"
+    start={{ headline: '나의 주거 성향, 어떤 향일까?', description: '여덟 가지 질문으로 나의 주거 성향 캐릭터와 잘 맞는 이웃을 찾고, 그 성향을 담은 시그니처 조향 레시피를 뽑아 드려요. 사진은 찍지 않아요.', steps: ['질문 여덟 개', 'AI 성향 블렌딩', '레시피 인쇄'] }}
+    request={(answers) => ({ answers: mateSummary(answers), candidates: mateCandidates(answers), context: '세대 공존 주거를 주제로 한 재미있는 성향 테스트다. 고른 성향(pick)의 분위기를 담은 시그니처 블렌드를 짠다. 결과 영수증에는 조향 레시피와 스탬프 랠리 칸이 있다.', recipe: { prefer: matePrefer(answers) } })}
+    build={(answers, analysis) => {
+      const type = ((analysis?.pick ?? undefined) as MateType | undefined) ?? rankMates(answers)[0]
+      const recipe = analysis?.recipe ? toRecipe(analysis.recipe, true) : mateRuleRecipe(type)
+      const result = mateResult(answers, type, recipe)
+      return analysis ? applyAiAnalysis(result, analysis) : result
+    }}
   />
 }
 
@@ -141,12 +144,12 @@ export function HomeMode() {
     setDrawn((n) => n + 1)
     setStep('ai')
     void ai.run({
-      analysis: { id: 'housing-home', photo: shot, facts: photo ? readingLine(photo, PHOTO_PLANS['housing-home']) : '', answers: [{ label: '미래의 집', value: HOME_SCENES[scene].label }, { label: '화풍', value: HOME_STYLES[style].label }], candidates: [], context: `손님이 고른 10년 뒤(2036년) 집 장면: ${HOME_SCENES[scene].story}. 이 집에서 보낼 하루를 그려 준다.` },
+      analysis: { id: 'housing-home', photo: shot, facts: photo ? readingLine(photo, PHOTO_PLANS['housing-home']) : '', answers: [{ label: '미래의 집', value: HOME_SCENES[scene].label }, { label: '화풍', value: HOME_STYLES[style].label }], candidates: [], context: `손님이 고른 10년 뒤(2036년) 집 장면: ${HOME_SCENES[scene].story}. 이 집에서 보낼 하루를 그리고, 그 집과 사진 속 분위기에 어울리는 블렌드를 짠다.`, recipe: { prefer: preferIds(homeRanked(scene)) } },
       image: () => ({ params: next, photo: shot }),
     }).then((finished) => { if (finished) setStep('result') })
   }
 
-  if (step === 'start') return <ExpansionStart id="housing-home" headline="10년 뒤 우리 집, 그곳의 나를 그려 드려요" description="사진 한 장을 찍고 미래의 집 장면을 고르면 AI가 그 집에서 지내는 나를 캐리커처로 그려 드려요. 선화는 영수증에 또렷하게 나와요." steps={['사진 한 장', 'AI 캐리커처', '바로 인쇄']} onStart={() => { setPhoto(null); setShot(null); setDrawn(0); ai.reset(); setStep('photo') }} />
+  if (step === 'start') return <ExpansionStart id="housing-home" headline="10년 뒤 우리 집, 그곳의 향을 만들어요" description="사진 한 장을 찍고 미래의 집 장면을 고르면 AI가 그 집에서 지내는 나를 캐리커처로 그리고, 그 집에 어울리는 조향 레시피를 짜 드려요." steps={['사진 한 장', 'AI 캐리커처 · 블렌딩', '레시피 인쇄']} onStart={() => { setPhoto(null); setShot(null); setDrawn(0); ai.reset(); setStep('photo') }} />
   if (step === 'photo') return <PhotoStep id="housing-home" reading={photo} onRead={(made, taken) => { setPhoto(made); setShot(taken); setDrawn(0); ai.reset() }} onNext={() => setStep('choose')} onBack={() => setStep('start')} headline="그림의 주인공을 찍어요" guide="얼굴과 머리 모양, 옷 색이 잘 보이게 정면을 봐 주세요. 사진은 그림을 만드는 데만 쓰고 저장하지 않아요." />
   if (step === 'ai') return <AiWait id="housing-home" state={ai.state} onRetry={draw} onSkip={() => { ai.skip(); setStep('result') }} onBack={() => { ai.reset(); setStep('choose') }} />
   if (step === 'choose') {
@@ -158,7 +161,9 @@ export function HomeMode() {
       <div className="ex-grid">{(Object.keys(HOME_STYLES) as HomeStyle[]).map((id) => <ChoiceTile key={id} label={HOME_STYLES[id].label} note={HOME_STYLES[id].note} selected={style === id} onClick={() => setStyle(id)}><Palette size={30} strokeWidth={1.4} /></ChoiceTile>)}</div>
     </ExpansionFrame>
   }
-  const base = homeResult(params?.id === 'housing-home' ? params.scene : scene, params?.id === 'housing-home' ? params.style : style)
+  const drawnScene = params?.id === 'housing-home' ? params.scene : scene
+  const recipe = done?.analysis?.recipe ? toRecipe(done.analysis.recipe, true) : homeRuleRecipe(drawnScene)
+  const base = homeResult(drawnScene, params?.id === 'housing-home' ? params.style : style, recipe)
   const result = done?.analysis ? applyAiAnalysis(base, done.analysis) : base
   const image = done?.image ?? null
   return <ExpansionFrame title={result.title} subtitle={result.subtitle} onBack={() => setStep('choose')} screen={120} actions={<TakeActions result={result} image={image} imageLabel={label} />}>
@@ -169,5 +174,5 @@ export function HomeMode() {
 }
 
 export default function HousingModes({ id }: { id: HousingId }) {
-  return id === 'housing-navi' ? <NaviMode /> : id === 'housing-mate' ? <MateMode /> : <HomeMode />
+  return id === 'housing-scent' ? <ScentMode /> : id === 'housing-mate' ? <MateMode /> : <HomeMode />
 }

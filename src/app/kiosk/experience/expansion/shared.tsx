@@ -6,6 +6,7 @@ import { PHOTO_PLANS } from '@/lib/kiosk/expansion/photo'
 import { expansionReceipt } from '@/lib/kiosk/expansion/receipt'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from '@/lib/kiosk/expansion/types'
 import { NO_PHOTO_IDS } from '@/lib/kiosk/expansion/housing'
+import { FAMILY_KO, noteAmount, noteLabel, RECIPE_COUNTER, type ScentRecipe } from '@/lib/kiosk/expansion/recipe'
 import { KxReceiptSheet, KxSaveSheet, useKx, useKxScreen } from '../kx'
 import type { KxShareFile } from '../kx-share'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, wrapLines } from '../kx-canvas'
@@ -108,9 +109,26 @@ function MetricChart({ result }: { result: ExperienceResult }) {
   </svg>
 }
 
+/** 조향 레시피 칸 — 향료 셋(번호 · 이름 · 비율 막대 · 용량 · 넣은 이유) + 베이스 */
+function RecipePanel({ recipe }: { recipe: ScentRecipe }) {
+  return <section className="ex-panel ex-recipe" aria-label="조향 레시피">
+    <p className="ex-eyebrow">SCENT RECIPE · {recipe.product}{recipe.ai ? '' : ' · 기본 레시피'}</p>
+    <h3>{recipe.name}</h3>
+    <ul className="ex-recipe-list">{recipe.notes.map((n) => <li key={n.id}>
+      <span className="ex-recipe-name"><b>{noteLabel(n)}</b><small>{FAMILY_KO[n.family]}</small></span>
+      <span className="ex-recipe-amount">{noteAmount(n)}</span>
+      <span className="ex-recipe-bar" aria-hidden="true"><i style={{ width: `${n.ratio}%` }} /></span>
+      <span className="ex-recipe-why">{n.reason}</span>
+    </li>)}</ul>
+    <p className="ex-recipe-base">+ 퍼퓸 베이스 {recipe.baseMl}ml</p>
+    <p className="ex-note">{RECIPE_COUNTER}</p>
+  </section>
+}
+
 export function ResultPanel({ result }: { result: ExperienceResult }) {
   return <article className="ex-result" data-result={result.id}>
     <div className="ex-result-intro"><p className="ex-eyebrow">MY EXPERIENCE CARD</p>{result.subtitle && <p className="ex-result-sub">{result.subtitle}</p>}<h2>{result.title}</h2><p>{result.summary}</p><div className="ex-tags">{result.tags.map((tag, i) => <span key={`${tag}-${i}`}>{tag}</span>)}</div></div>
+    {result.recipe && <RecipePanel recipe={result.recipe} />}
     {!!result.palette?.length && <div className="ex-palette">{result.palette.map((color, i) => <div key={`${color}-${i}`}><span style={{ background: color }} /><small>{color}</small></div>)}</div>}
     {!!result.metrics?.length && <div className="ex-panel ex-metrics"><MetricChart result={result} /><div className="ex-stack">{result.metrics.map(m => <div key={m.label} className="ex-metric"><span>{m.label}<b>{m.value}<small> / {m.max}</small></b></span><meter min={0} max={m.max} value={m.value} style={{ accentColor: m.color }}>{m.value}</meter></div>)}</div></div>}
     {result.sections.map((section, i) => <section className="ex-panel" key={`${section.title}-${i}`}><h3>{section.title}</h3><p>{section.body}</p>{section.items?.length ? <ul className="ex-detail-list">{section.items.map((item, n) => <li key={n}>{item}</li>)}</ul> : null}</section>)}
@@ -129,6 +147,10 @@ export async function renderExperienceCard(id: ExpansionId, result: ExperienceRe
     ...(result.subtitle ? [{ text: result.subtitle, size: 26, weight: 600, color: '#625C61', gap: 16 }] : []),
     { text: result.summary, size: 28, weight: 500, color: '#302E32', gap: 20 },
     { text: result.tags.map(x => '#'+x).join('  '), size: 23, weight: 600, color: meta.color, gap: 24 },
+    ...(result.recipe ? [
+      { text: `조향 레시피 · ${result.recipe.name}`, size: 32, weight: 800, color: meta.color, gap: 10 },
+      { text: [...result.recipe.notes.map(n => `${noteLabel(n)}   ${noteAmount(n)}\n   ${n.reason}`), `퍼퓸 베이스   ${result.recipe.baseMl}ml`, `${result.recipe.product}${result.recipe.ai ? '' : ' · 기본 레시피'}`].join('\n'), size: 26, weight: 600, color: '#302E32', gap: 28 },
+    ] : []),
     ...(result.metrics ?? []).map(m => ({ text: `${m.label}   ${m.value} / ${m.max}`, size: 26, weight: 600, color: '#302E32', gap: 10 })),
     ...result.sections.flatMap(s => [
       { text: s.title, size: 32, weight: 800, color: meta.color, gap: 10 },
