@@ -1,9 +1,9 @@
 'use client'
 
 // 주거복지대전(2026-12-16) 체험 3종 화면 — 우리 집 향 처방 · 우리 집 성향 향수 · 2036 우리 집의 향.
-// 셋 다 끝은 조향 레시피 영수증이다: 규칙이 향료 순위를 매기고(housing.ts) AI 가 그 위에서 셋을 블렌딩한다(ai.ts recipe · recipe.ts).
+// 셋 다 끝은 조향 레시피 영수증이다: 규칙이 향료 순위를 매기고(housing.ts) AI 가 그 위에서 향료 둘(최대)을 블렌딩한다(ai.ts recipe · recipe.ts).
 // 결과는 체험 18종과 같은 결과 카드(ExperienceResult + recipe)라 인쇄(영수증 + QR)·휴대폰으로 받기(TakeActions)·AI 분석(AiWait)을 그대로 쓴다.
-// 향 처방·성향 향수는 사진을 찍지 않는다. AI 를 기다리지 않으면 규칙 기본 레시피(50/30/20)로 나온다.
+// 향 처방·성향 향수는 사진을 찍지 않는다. AI 를 기다리지 않으면 규칙 기본 레시피(60/40)로 나온다.
 
 import { useEffect, useState } from 'react'
 import { ArrowRight, RefreshCw } from 'lucide-react'
@@ -103,8 +103,8 @@ export function ScentMode() {
     questions={SCENT_QUESTIONS.map((q) => ({ key: q.key, title: q.title, note: q.note, type: q.multi ? 'multi' : 'single', max: q.multi, required: true, options: q.options.map(({ id, label, note }) => ({ id, label, note })) }))}
     resultTitle="우리 집 향"
     art={(question, option) => choiceArt('scent', question, option)}
-    wait={{ src: WAIT_ART.scent, title: '우리 집에 맞는 향을 블렌딩하고 있어요', sub: '향료 30종 중 셋을 골라 비율을 맞추는 중 · 보통 5~10초', skip: '기다리지 않고 기본 레시피 보기' }}
-    start={{ headline: '우리 집에 꼭 맞는 향을 처방해 드려요', description: '사는 집과 햇빛, 작은 고민, 원하는 분위기를 알려 주시면 AI가 향료 30종 중 셋을 골라 우리 집 조향 레시피를 짜 드려요. 사진은 찍지 않아요.', steps: ['질문 일곱 개', 'AI 블렌딩', '레시피 인쇄'] }}
+    wait={{ src: WAIT_ART.scent, title: '우리 집에 맞는 향을 블렌딩하고 있어요', sub: '향료 30종 중 둘을 골라 비율을 맞추는 중 · 보통 5~10초', skip: '기다리지 않고 기본 레시피 보기' }}
+    start={{ headline: '우리 집에 꼭 맞는 향을 처방해 드려요', description: '사는 집과 햇빛, 작은 고민, 원하는 분위기를 알려 주시면 AI가 향료 30종 중 둘을 골라 우리 집 조향 레시피를 짜 드려요. 사진은 찍지 않아요.', steps: ['질문 일곱 개', 'AI 블렌딩', '레시피 인쇄'] }}
     request={(answers) => ({ answers: scentSummary(answers), candidates: [], context: '손님의 주거 환경에 맞춘 홈 프래그런스 블렌드를 짠다. 결과는 조향 레시피 영수증으로 인쇄된다.', recipe: { prefer: preferIds(scentRanked(answers)) } })}
     build={(answers, analysis) => {
       const recipe = analysis?.recipe ? toRecipe(analysis.recipe, true) : scentRuleRecipe(answers)

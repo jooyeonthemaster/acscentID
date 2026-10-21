@@ -1,7 +1,8 @@
-// 주거복지대전 키오스크 3종의 조향 레시피 — 실제 향료 30종(src/data/perfumes.ts)에서 셋을 골라 비율을 정한 '블렌딩 레시피'.
-// 규칙(답변 → 향 계열 가중치)이 향료 순위를 매기고, AI 가 그 순위 위쪽에서 주향을 고른 뒤 나머지 둘과 비율을 짠다(ai.ts recipe).
-// 검사는 여기 한 곳: 향료 셋 · 서로 다름 · 실제 id · 비율 정수 10~70 · 합 100 · 주향은 규칙 상위 후보 안.
-// AI 를 건너뛰면(기다리지 않기) 규칙 상위 셋을 50/30/20 으로 — 화면·영수증에 '기본 레시피'라고 적는다.
+// 주거복지대전 키오스크 3종의 조향 레시피 — 실제 향료 30종(src/data/perfumes.ts)에서 최대 둘을 골라 비율을 정한 '블렌딩 레시피'.
+// 2026-10-22 사용자 지시: "조향 레시피는 두 개까지만 혼합" — 향료 하나(100%) 또는 둘(각 20~80%).
+// 규칙(답변 → 향 계열 가중치)이 향료 순위를 매기고, AI 가 그 순위 위쪽에서 주향을 고른 뒤 보조 향료 하나와 비율을 짠다(ai.ts recipe).
+// 검사는 여기 한 곳: 향료 1~2개 · 서로 다름 · 실제 id · 둘이면 비율 정수 20~80 · 합 100 · 주향은 규칙 상위 후보 안.
+// AI 를 건너뛰면(기다리지 않기) 규칙 상위 둘(다른 계열)을 60/40 으로 — 화면·영수증에 '기본 레시피'라고 적는다.
 // DOM·네트워크 없음(화면·서버·시험이 같이 쓴다).
 
 import { perfumes, type Perfume } from '@/data/perfumes'
@@ -16,6 +17,8 @@ export const RECIPE_PRODUCT = { label: '퍼퓸 10ml', fragranceMl: 2, baseMl: 8 
 const DENSITY = 0.9
 /** AI 에 넘기는 주향 후보 수 — 규칙 순위 위에서부터 */
 export const PREFER_COUNT = 8
+/** 한 레시피에 섞는 향료 수 상한 */
+export const MAX_NOTES = 2
 
 export interface RecipeNote {
   id: string
@@ -87,18 +90,19 @@ export function validateRecipe(value: unknown, prefer: string[]): RawRecipe {
   const story = typeof v.story === 'string' ? v.story.trim() : ''
   if (story.length < 20 || story.length > 200) throw new Error('recipe.story 는 20~200자여야 합니다.')
   const raw = Array.isArray(v.notes) ? v.notes : []
-  if (raw.length !== 3) throw new Error('recipe.notes 는 정확히 3개(향료 셋)여야 합니다.')
+  if (raw.length < 1 || raw.length > MAX_NOTES) throw new Error(`recipe.notes 는 향료 1~${MAX_NOTES}개여야 합니다(보통 2개).`)
+  const single = raw.length === 1
   const notes = raw.map((x, i) => {
     const n = (x ?? {}) as Record<string, unknown>
     const id = normalizeId(n.id)
     if (!id) throw new Error(`recipe.notes[${i}].id 는 향료 목록의 id(예: AC'SCENT 07) 중 하나여야 합니다.`)
     const ratio = typeof n.ratio === 'number' ? n.ratio : Number(n.ratio)
-    if (!Number.isInteger(ratio) || ratio < 10 || ratio > 70) throw new Error(`recipe.notes[${i}].ratio 는 10~70 사이 정수(%)여야 합니다.`)
+    if (!Number.isInteger(ratio) || (single ? ratio !== 100 : ratio < 20 || ratio > 80)) throw new Error(single ? '향료가 하나면 ratio 는 100 이어야 합니다.' : `recipe.notes[${i}].ratio 는 20~80 사이 정수(%)여야 합니다.`)
     const reason = typeof n.reason === 'string' ? n.reason.trim().slice(0, 50) : ''
     if (reason.length < 4) throw new Error(`recipe.notes[${i}].reason 이 비었습니다.`)
     return { id, ratio, reason }
   })
-  if (new Set(notes.map((n) => n.id)).size !== 3) throw new Error('recipe.notes 의 향료 셋은 서로 달라야 합니다.')
+  if (new Set(notes.map((n) => n.id)).size !== notes.length) throw new Error('recipe.notes 의 향료는 서로 달라야 합니다.')
   const sum = notes.reduce((s, n) => s + n.ratio, 0)
   if (sum !== 100) throw new Error(`recipe.notes 의 ratio 합은 100 이어야 합니다(지금 ${sum}).`)
   notes.sort((a, b) => b.ratio - a.ratio)
@@ -110,16 +114,12 @@ export function toRecipe(raw: RawRecipe, ai: boolean): ScentRecipe {
   return { name: raw.name, story: raw.story, notes: raw.notes.map((n) => note(n.id, n.ratio, n.reason)), product: RECIPE_PRODUCT.label, baseMl: RECIPE_PRODUCT.baseMl, ai }
 }
 
-/** AI 없이 — 규칙 상위 셋을 50/30/20 으로(같은 계열만 셋이 되지 않게 둘째·셋째는 다른 계열 먼저) */
+/** AI 없이 — 규칙 1위를 주향, 다른 계열 중 가장 높은 것을 보조로 60/40 */
 export function ruleRecipe(ranked: Perfume[], name: string, story: string): ScentRecipe {
-  const picked: Perfume[] = [ranked[0]]
-  for (const p of ranked.slice(1)) {
-    if (picked.length === 3) break
-    if (!picked.some((q) => familyOf(q) === familyOf(p))) picked.push(p)
-  }
-  for (const p of ranked.slice(1)) { if (picked.length === 3) break; if (!picked.includes(p)) picked.push(p) }
-  const ratios = [50, 30, 20]
-  const reasons = ['주향 — 답변과 가장 잘 맞는 향', '보조 — 분위기를 넓혀 주는 향', '마무리 — 잔향을 잡아 주는 향']
+  const second = ranked.slice(1).find((p) => familyOf(p) !== familyOf(ranked[0])) ?? ranked[1]
+  const picked: Perfume[] = [ranked[0], second]
+  const ratios = [60, 40]
+  const reasons = ['주향 — 답변과 가장 잘 맞는 향', '보조 — 분위기를 넓혀 주는 향']
   return toRecipe({ name, story, notes: picked.map((p, i) => ({ id: p.id, ratio: ratios[i], reason: reasons[i] })) }, false)
 }
 

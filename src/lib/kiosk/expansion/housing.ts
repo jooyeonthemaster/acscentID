@@ -2,7 +2,7 @@
 //  · housing-scent 우리 집 향 처방 — 사는 집·빛·고민·머무는 곳·원하는 분위기 → 우리 집에 맞는 블렌드
 //  · housing-mate  우리 집 성향 향수 — 여덟 문항 → 주거 성향 캐릭터 · 잘 맞는 이웃 · 그 성향의 시그니처 블렌드
 //  · housing-home  2036 우리 집의 향 — 사진 한 장 + 미래의 집 장면 → AI 캐리커처 + 그 집의 블렌드(장면·화풍은 image-prompts.ts)
-// 답변은 향 계열 가중치(FamilyWeights)가 되어 향료 30종의 순위를 매기고(recipe.ts rankPerfumes), AI 가 그 위쪽에서 주향을 골라 셋을 블렌딩한다.
+// 답변은 향 계열 가중치(FamilyWeights)가 되어 향료 30종의 순위를 매기고(recipe.ts rankPerfumes), AI 가 그 위쪽에서 주향을 골라 최대 둘을 블렌딩한다.
 // 2026-10-21 사용자 지시로 정책 내비게이터를 향 처방으로 바꿨다("키오스크 프로그램은 결국 조향을 위한 것").
 
 import { mateArt } from './housing-art'

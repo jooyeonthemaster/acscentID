@@ -153,7 +153,7 @@ export const EXPANSION_META = {
     "name": "우리 집 향 처방",
     "tag": "ROOM!",
     "color": "#1F5C8B",
-    "note": "사는 집 · 햇빛 · 고민 · 원하는 분위기 → AI가 우리 집에 맞는 향료 셋을 블렌딩한 조향 레시피",
+    "note": "사는 집 · 햇빛 · 고민 · 원하는 분위기 → AI가 우리 집에 맞는 향료 둘을 블렌딩한 조향 레시피",
     "category": "주거복지",
     "hero": "/assets/kiosk-expansion/housing-scent.webp"
   },

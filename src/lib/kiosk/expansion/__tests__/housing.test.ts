@@ -13,9 +13,8 @@ import { normalizeId, preferIds, rankPerfumes, toRecipe, validateRecipe } from '
 const scent = (patch: Answers = {}): Answers => ({ home: 'studio', with: 'alone', light: 'dim', worry: ['damp'], stay: 'bed', mood: 'rest', avoid: ['none'], ...patch })
 const ids = new Set(perfumes.map((p) => p.id))
 const goodRaw = (prefer: string[]) => ({ name: '햇살 드는 오후', story: '창으로 들어온 오후 햇살이 방 안에 오래 머무는 듯한 포근한 블렌드예요.', notes: [
-  { id: prefer[0], ratio: 50, reason: '주향으로 포근함을 잡아요' },
-  { id: prefer[1], ratio: 30, reason: '맑은 공기를 더해요' },
-  { id: prefer[2], ratio: 20, reason: '잔향을 부드럽게 마무리해요' },
+  { id: prefer[0], ratio: 60, reason: '주향으로 포근함을 잡아요' },
+  { id: prefer[1], ratio: 40, reason: '맑은 공기를 더해요' },
 ] })
 
 test('향 처방 — 원하는 분위기가 가장 크게 반영되고, 피하는 계열이 강한 향료는 빠진다', () => {
@@ -28,33 +27,35 @@ test('향 처방 — 원하는 분위기가 가장 크게 반영되고, 피하�
   assert.ok(rankPerfumes({ citrus: 3 }).slice(0, 3).every((p) => p.characteristics.citrus >= 7))
 })
 
-test('기본 레시피(AI 없이) — 실제 향료 셋 · 서로 다름 · 50/30/20 · 용량은 향료 2ml 기준', () => {
+test('기본 레시피(AI 없이) — 실제 향료 둘 · 서로 다른 계열 · 60/40 · 용량은 향료 2ml 기준', () => {
   const recipe = scentRuleRecipe(scent())
   assert.equal(recipe.ai, false)
-  assert.equal(recipe.notes.length, 3)
-  assert.equal(new Set(recipe.notes.map((n) => n.id)).size, 3)
-  assert.deepEqual(recipe.notes.map((n) => n.ratio), [50, 30, 20])
+  assert.equal(recipe.notes.length, 2)
+  assert.notEqual(recipe.notes[0].family, recipe.notes[1].family)
+  assert.deepEqual(recipe.notes.map((n) => n.ratio), [60, 40])
   assert.ok(recipe.notes.every((n) => ids.has(n.id)))
   assert.equal(recipe.notes.reduce((s, n) => s + n.ml, 0), 2)
-  assert.equal(recipe.notes[0].ml, 1)
-  for (const type of MATE_TYPES) assert.equal(mateRuleRecipe(type).notes.length, 3)
-  for (const scene of Object.keys(HOME_SCENES) as (keyof typeof HOME_SCENES)[]) assert.equal(homeRuleRecipe(scene).notes.length, 3)
+  assert.equal(recipe.notes[0].ml, 1.2)
+  for (const type of MATE_TYPES) assert.equal(mateRuleRecipe(type).notes.length, 2)
+  for (const scene of Object.keys(HOME_SCENES) as (keyof typeof HOME_SCENES)[]) assert.equal(homeRuleRecipe(scene).notes.length, 2)
 })
 
-test('AI 레시피 검사 — 합 100 · 셋 · 서로 다름 · 실제 id · 주향은 추천 후보 안', () => {
+test('AI 레시피 검사 — 향료 최대 둘 · 합 100 · 서로 다름 · 실제 id · 주향은 추천 후보 안', () => {
   const prefer = preferIds(scentRanked(scent()))
   const raw = validateRecipe(goodRaw(prefer), prefer)
-  assert.deepEqual(raw.notes.map((n) => n.ratio), [50, 30, 20])
+  assert.deepEqual(raw.notes.map((n) => n.ratio), [60, 40])
+  assert.equal(validateRecipe({ ...goodRaw(prefer), notes: [{ id: prefer[0], ratio: 100, reason: '하나로 충분해요' }] }, prefer).notes.length, 1)
   assert.equal(normalizeId("AC'SCENT 7"), "AC'SCENT 07")
   assert.equal(normalizeId('ACSCENT 99'), null)
   const bad = (patch: (r: ReturnType<typeof goodRaw>) => void, why: RegExp) => { const r = goodRaw(prefer); patch(r); assert.throws(() => validateRecipe(r, prefer), why) }
-  bad((r) => { r.notes[2].ratio = 25 }, /합은 100/)
+  bad((r) => { r.notes[1].ratio = 30 }, /합은 100/)
   bad((r) => { r.notes[1].id = r.notes[0].id }, /서로 달라야/)
   bad((r) => { r.notes[0].id = "AC'SCENT 99" }, /id 는 향료 목록/)
-  bad((r) => { r.notes.pop() }, /정확히 3개/)
-  bad((r) => { r.notes[0].ratio = 75; r.notes[1].ratio = 15; r.notes[2].ratio = 10 }, /10~70/)
+  bad((r) => { r.notes.push({ id: prefer[2], ratio: 10, reason: '세 번째 향료' }) }, /1~2개/)
+  bad((r) => { r.notes.pop() }, /하나면 ratio 는 100/)
+  bad((r) => { r.notes[0].ratio = 85; r.notes[1].ratio = 15 }, /20~80/)
   const outside = perfumes.find((p) => !prefer.includes(p.id))!.id
-  bad((r) => { r.notes[0].id = outside; r.notes[1].id = prefer[1]; r.notes[2].id = prefer[2] }, /주향은 추천 후보/)
+  bad((r) => { r.notes[0].id = outside; r.notes[1].id = prefer[1] }, /주향은 추천 후보/)
 })
 
 test('AI 요청 — 레시피는 주거복지대전 3종만, 주향 후보는 실제 id 만 · 지시문에 향료 목록이 들어간다', () => {
@@ -65,15 +66,16 @@ test('AI 요청 — 레시피는 주거복지대전 3종만, 주향 후보는 �
   const prompt = buildAiPrompt(req)
   assert.match(prompt, /AC'SCENT 30/)
   assert.match(prompt, /합은 정확히 100/)
+  assert.match(prompt, /두 가지까지/)
   assert.match(prompt, /"recipe"/)
   const base = { headline: '포근한 오후의 방', insight: '해가 잘 들지 않는 원룸에서 깊은 휴식을 원하신다고 하셔서, 따뜻하고 부드러운 향을 중심으로 맑은 기운을 살짝 더해 균형을 맞췄어요.', photo: [], tips: ['잠들기 전에 한 번 뿌려 보세요.', '창을 잠깐 열어 환기해 보세요.'] }
   assert.throws(() => validateAiAnalysis({ pick: null, ...base }, req), /recipe/)
   const ok = validateAiAnalysis({ pick: null, ...base, recipe: goodRaw(prefer) }, req)
-  assert.equal(ok.recipe?.notes.length, 3)
+  assert.equal(ok.recipe?.notes.length, 2)
   assert.throws(() => validateAiAnalysis({ pick: null, ...base, insight: base.insight + ' 습한 냄새를 탈취해 줘요.', recipe: goodRaw(prefer) }, req), /효능/)
 })
 
-test('향 처방 결과 · 영수증 — 레시피가 주인공(향료 · 비율 · 용량 · 베이스 · 조향 안내), 계열 점수 줄은 빼고 절은 둘까지', () => {
+test('향 처방 결과 · 영수증 — 레시피 상자가 머리 바로 아래(향료 · 비율 · 용량 · 베이스 · 조향 안내), 계열 점수 줄은 빼고 절은 둘까지', () => {
   const prefer = preferIds(scentRanked(scent()))
   const recipe = toRecipe(validateRecipe(goodRaw(prefer), prefer), true)
   const result = scentResult(scent(), recipe)
@@ -82,16 +84,16 @@ test('향 처방 결과 · 영수증 — 레시피가 주인공(향료 · 비율
   const withAi = { ...result, sections: [{ title: 'AI 분석 · 한 줄', body: '풀이' }, ...result.sections] }
   const receipt = expansionReceipt('housing-scent', withAi)
   const headings = receipt.blocks.filter((b) => b.kind === 'heading').map((b) => (b as { text: string }).text)
-  assert.equal(headings[0], '조향 레시피 · 햇살 드는 오후')
-  assert.ok(headings.length <= 3)
-  const pairs = receipt.blocks.find((b) => b.kind === 'pairs') as { rows: [string, string][] }
-  assert.equal(pairs.rows.length, 4)
-  assert.match(pairs.rows[0][1], /^50% · 1\.0ml/)
-  assert.deepEqual(pairs.rows[3], ['퍼퓸 베이스', '8.0ml'])
-  assert.ok(receipt.blocks.some((b) => b.kind === 'text' && /조향 스태프/.test(b.text)))
+  assert.ok(headings.length <= 2)
+  const box = receipt.blocks[0]
+  assert.ok(box.kind === 'recipe', '레시피 상자가 맨 앞')
+  assert.equal(box.name, '햇살 드는 오후')
+  assert.deepEqual(box.notes.map((n) => [n.ratio, n.amount]), [[60, '1.2ml (1.08g)'], [40, '0.8ml (0.72g)']])
+  assert.equal(box.base, '+ 퍼퓸 베이스 8ml')
+  assert.match(box.note, /조향 스태프/)
   assert.match(receipt.foot ?? '', /입력한 내용은 저장하지 않아요/)
   const rule = expansionReceipt('housing-scent', scentResult(scent(), scentRuleRecipe(scent())))
-  assert.ok(rule.blocks.some((b) => b.kind === 'text' && /기본 레시피/.test(b.text)))
+  assert.ok(rule.blocks[0].kind === 'recipe' && /기본/.test(rule.blocks[0].label))
 })
 
 test('성향 향수 — 성향은 여섯 중 하나, 잘 맞는 이웃은 다른 성향, 레시피가 있어도 영수증에 스탬프 랠리 칸이 남는다', () => {
@@ -106,7 +108,7 @@ test('성향 향수 — 성향은 여섯 중 하나, 잘 맞는 이웃은 다른
   const withAi = { ...result, sections: [{ title: 'AI 분석 · 한 줄', body: '풀이' }, ...result.sections] }
   const headings = expansionReceipt('housing-mate', withAi).blocks.filter((b) => b.kind === 'heading').map((b) => (b as { text: string }).text)
   assert.ok(headings.includes('스탬프 랠리'), headings.join(' / '))
-  assert.ok(headings[0].startsWith('조향 레시피'))
+  assert.equal(expansionReceipt('housing-mate', withAi).blocks[0].kind, 'recipe')
 })
 
 test('성향 향수 — 어느 성향이든 한 번은 1등이 될 수 있다(답 조합 탐색)', () => {
@@ -132,7 +134,7 @@ test('2036 우리 집의 향 — 장면·화풍 검사, 선화는 흑백, 그림
   }
   const result = homeResult('share', 'line', homeRuleRecipe('share'))
   assert.match(result.subtitle ?? '', /2036/)
-  assert.equal(result.recipe?.notes.length, 3)
+  assert.equal(result.recipe?.notes.length, 2)
   const receipt = expansionReceipt('housing-home', result, { src: 'data:image/jpeg;base64,AA', caption: '그림' })
   assert.match(receipt.foot ?? '', /촬영 사진은 저장하지 않아요/)
 })
@@ -164,6 +166,6 @@ test('성향 향수 결과 — 캐릭터 그림과 도장 칸 셋(영수증에�
   assert.equal(result.sections.find((s) => s.title === '스탬프 랠리')?.stamps, 3)
   const receipt = expansionReceipt('housing-mate', result)
   assert.ok(receipt.blocks.some((b) => b.kind === 'stamps' && b.count === 3))
-  assert.ok(receipt.blocks[0].kind === 'image' && /housing-mate-quiet/.test(receipt.blocks[0].src))
-  assert.ok(expansionReceipt('housing-scent', scentResult(scent(), scentRuleRecipe(scent()))).blocks[0].kind === 'image')
+  assert.ok(receipt.blocks.some((b) => b.kind === 'image' && /housing-mate-quiet/.test(b.src)))
+  assert.ok(expansionReceipt('housing-scent', scentResult(scent(), scentRuleRecipe(scent()))).blocks.some((b) => b.kind === 'image' && /housing-receipt-room/.test(b.src)))
 })

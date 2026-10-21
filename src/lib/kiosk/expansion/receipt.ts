@@ -5,7 +5,7 @@
 import type { KxReceipt, KxReceiptBlock } from '@/app/kiosk/experience/kx-receipt'
 import { NO_PHOTO_IDS } from './housing'
 import { RECEIPT_ROOM_ART } from './housing-art'
-import { noteAmount, noteLabel, RECIPE_COUNTER, RECIPE_PRODUCT } from './recipe'
+import { RECIPE_COUNTER } from './recipe'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from './types'
 
 const MAX_SECTIONS = 4
@@ -21,18 +21,18 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   const picture: KxReceiptBlock = art ? { kind: 'image', src: art.src, width: 360, frame: true, tone: 172, caption: art.caption }
     : result.art ? { kind: 'image', src: result.art.src, width: 330, frame: true, tone: 160, caption: result.art.caption }
       : { kind: 'image', src: RECEIPT_ART[id] ?? meta.hero, width: 300, tone: RECEIPT_ART[id] ? 176 : 168 }
-  const blocks: KxReceiptBlock[] = [picture, { kind: 'text', text: result.summary }]
-  if (result.tags.length) blocks.push({ kind: 'text', text: result.tags.map((tag) => `#${tag}`).join('  '), small: true, bold: true })
   const recipe = result.recipe
+  // 조향 레시피가 영수증의 주인공 — 머리 바로 아래 굵은 상자에 크게(2026-10-22 사용자: "한눈에 알아볼 수 있도록 크게"), 그다음 그림·요약
+  const blocks: KxReceiptBlock[] = recipe ? [{
+    kind: 'recipe', label: `조향 레시피 · ${recipe.product}${recipe.ai ? '' : ' · 기본'}`, name: recipe.name,
+    notes: recipe.notes.map((n) => ({ no: n.no, name: n.name, ratio: n.ratio, amount: `${n.ml.toFixed(1)}ml (${n.g.toFixed(2)}g)` })),
+    base: `+ 퍼퓸 베이스 ${recipe.baseMl}ml`, note: RECIPE_COUNTER,
+  }] : []
+  blocks.push(picture, { kind: 'text', text: result.summary })
+  if (result.tags.length) blocks.push({ kind: 'text', text: result.tags.map((tag) => `#${tag}`).join('  '), small: true, bold: true })
   if (recipe) {
-    // 조향 레시피가 영수증의 주인공 — 향료 · 비율 · 용량을 계열 점수 대신 크게 싣고, 절은 둘까지(길이를 맞춘다)
-    blocks.push(
-      { kind: 'rule' }, { kind: 'heading', text: `조향 레시피 · ${recipe.name}` },
-      { kind: 'text', text: `${recipe.product} · 향료 ${RECIPE_PRODUCT.fragranceMl}ml + 퍼퓸 베이스 ${recipe.baseMl}ml${recipe.ai ? '' : ' · 기본 레시피'}`, small: true },
-      { kind: 'pairs', rows: [...recipe.notes.map((n): [string, string] => [noteLabel(n), noteAmount(n)]), ['퍼퓸 베이스', `${recipe.baseMl.toFixed(1)}ml`]] },
-      { kind: 'list', items: recipe.notes.map((n) => `${n.name} — ${n.reason}`) },
-      { kind: 'text', text: RECIPE_COUNTER, bold: true, center: true },
-    )
+    // 넣은 이유는 작게(상자 아래) — 상자에는 숫자만
+    blocks.push({ kind: 'list', items: recipe.notes.map((n) => `${n.name} — ${n.reason}`) })
   } else if (result.metrics?.length) blocks.push({ kind: 'pairs', rows: result.metrics.map((m) => [m.label, `${m.value} / ${m.max}`]) })
   const photo = result.sections.filter((section) => isPhoto(section.title))
   const rest = result.sections.filter((section) => !isPhoto(section.title))

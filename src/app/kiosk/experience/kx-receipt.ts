@@ -14,6 +14,8 @@ export type KxReceiptBlock =
   | { kind: 'rule' }
   /** 도장 빈칸 — 점선 원(지름 약 18mm, 실제 도장을 찍을 수 있는 크기). 스탬프 랠리 */
   | { kind: 'stamps'; count: number }
+  /** 조향 레시피 — 영수증에서 한눈에 보이게 굵은 테두리 상자 안에 크게(향료 번호·이름·비율·용량, 베이스, 안내) */
+  | { kind: 'recipe'; label: string; name: string; notes: { no: string; name: string; ratio: number; amount: string }[]; base: string; note: string }
 
 export interface KxReceipt {
   /** 큰 글자(NAIL! · CARD! …) */
@@ -104,6 +106,39 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
       }
       ctx.textAlign = 'left'
       y += 8
+    }
+    if (block.kind === 'recipe') {
+      const top = y, pad = 18, x0 = M, x1 = W - M
+      y += 8
+      // 검은 띠 머리 — 흰 글자
+      ctx.fillRect(x0, y, inner, 44)
+      ctx.fillStyle = '#fff'; ctx.font = `900 24px ${family}`; ctx.textAlign = 'center'
+      ctx.fillText(block.label, W / 2, y + 9)
+      ctx.fillStyle = INK
+      y += 44 + 14
+      text(block.name, 30, 900, { center: true, gap: 10 })
+      block.notes.forEach((note, i) => {
+        if (i) { for (let x = x0 + pad; x < x1 - pad; x += 10) ctx.fillRect(x, y, 6, 2); y += 14 }
+        // 왼쪽: 번호 · 이름(크게) / 오른쪽: 비율(아주 크게)
+        ctx.textAlign = 'left'
+        ctx.font = `800 22px ${family}`; ctx.fillText(`No.${note.no}`, x0 + pad, y + 4)
+        ctx.font = `900 34px ${family}`
+        const nameLines = wrapLines(ctx, note.name, inner - pad * 2 - 150)
+        nameLines.forEach((line, n) => ctx.fillText(line, x0 + pad, y + 32 + n * 40))
+        ctx.textAlign = 'right'
+        ctx.font = `900 60px Impact, 'Arial Narrow', ${family}`; ctx.fillText(`${note.ratio}%`, x1 - pad, y + 2)
+        y += 32 + nameLines.length * 40 + 4
+        ctx.textAlign = 'left'; ctx.font = `700 21px ${family}`; ctx.fillText(note.amount, x0 + pad, y)
+        y += 34
+      })
+      ctx.fillRect(x0 + pad, y, inner - pad * 2, 2); y += 12
+      ctx.textAlign = 'left'; ctx.font = `800 24px ${family}`; ctx.fillText(block.base, x0 + pad, y)
+      y += 38
+      text(block.note, 18, 800, { center: true, gap: 6 })
+      // 굵은 테두리
+      const h = y - top + 4
+      ctx.fillRect(x0, top, inner, 4); ctx.fillRect(x0, top + h - 4, inner, 4); ctx.fillRect(x0, top, 4, h); ctx.fillRect(x1 - 4, top, 4, h)
+      y += 22
     }
     if (block.kind === 'stamps') {
       const n = Math.max(1, Math.min(4, block.count)), d = 128, gap = (inner - n * d) / (n + 1)
