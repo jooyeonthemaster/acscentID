@@ -184,6 +184,6 @@ export interface ResultSection { title: string; body: string; items?: string[]; 
 export interface ResultMetric { label: string; value: number; max: number; color?: string }
 /** recipe — 조향 레시피(주거복지대전 3종, recipe.ts). 있으면 화면·카드·영수증이 레시피 칸을 먼저 그린다
  *  art — 결과를 대표하는 그림(성향 캐릭터 등, AI 합성이 아닌 준비된 그림). 결과 카드 머리와 영수증 그림에 쓴다 */
-export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string; recipe?: ScentRecipe; art?: { src: string; caption: string } }
+export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string; recipe?: ScentRecipe; art?: { src: string; caption: string; wide?: boolean } }
 export interface AnswerSummary { key: string; label: string; value: string; step: number }
 export interface RecommendationBundle { primary: ExperienceResult; alternatives: ExperienceResult[]; summary: AnswerSummary[] }

@@ -15,7 +15,7 @@ export type KxReceiptBlock =
   /** 도장 빈칸 — 점선 원(지름 약 18mm, 실제 도장을 찍을 수 있는 크기). 스탬프 랠리 */
   | { kind: 'stamps'; count: number }
   /** 조향 레시피 — 영수증에서 한눈에 보이게 굵은 테두리 상자 안에 크게(향료 번호·이름·비율·용량, 베이스, 안내) */
-  | { kind: 'recipe'; label: string; name: string; notes: { no: string; name: string; ratio: number; amount: string }[]; base: string; note: string }
+  | { kind: 'recipe'; label: string; name: string; notes: { no: string; name: string; grams: string; detail: string }[]; base: string; note: string }
 
 export interface KxReceipt {
   /** 큰 글자(NAIL! · CARD! …) */
@@ -109,8 +109,7 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
     }
     if (block.kind === 'recipe') {
       const top = y, pad = 18, x0 = M, x1 = W - M
-      y += 8
-      // 검은 띠 머리 — 흰 글자
+      // 검은 띠 머리 — 흰 글자(테두리에 붙여 한 덩어리로)
       ctx.fillRect(x0, y, inner, 44)
       ctx.fillStyle = '#fff'; ctx.font = `900 24px ${family}`; ctx.textAlign = 'center'
       ctx.fillText(block.label, W / 2, y + 9)
@@ -119,17 +118,16 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
       text(block.name, 30, 900, { center: true, gap: 10 })
       block.notes.forEach((note, i) => {
         if (i) { for (let x = x0 + pad; x < x1 - pad; x += 10) ctx.fillRect(x, y, 6, 2); y += 14 }
-        // 왼쪽: 번호 · 이름(크게) / 오른쪽: 비율(아주 크게)
+        // 첫 줄: 번호 · 이름(크게) / 둘째 줄: 무게(아주 크게, 계량 기준) — 오른쪽에 비율·ml 작게
         ctx.textAlign = 'left'
-        ctx.font = `800 22px ${family}`; ctx.fillText(`No.${note.no}`, x0 + pad, y + 4)
-        ctx.font = `900 34px ${family}`
-        const nameLines = wrapLines(ctx, note.name, inner - pad * 2 - 150)
-        nameLines.forEach((line, n) => ctx.fillText(line, x0 + pad, y + 32 + n * 40))
-        ctx.textAlign = 'right'
-        ctx.font = `900 60px Impact, 'Arial Narrow', ${family}`; ctx.fillText(`${note.ratio}%`, x1 - pad, y + 2)
-        y += 32 + nameLines.length * 40 + 4
-        ctx.textAlign = 'left'; ctx.font = `700 21px ${family}`; ctx.fillText(note.amount, x0 + pad, y)
-        y += 34
+        ctx.font = `800 22px ${family}`; ctx.fillText(`No.${note.no}`, x0 + pad, y + 8)
+        ctx.font = `900 32px ${family}`
+        const nameLines = wrapLines(ctx, note.name, inner - pad * 2 - 80)
+        nameLines.forEach((line, n) => ctx.fillText(line, x0 + pad + 76, y + 2 + n * 38))
+        y += nameLines.length * 38 + 6
+        ctx.font = `900 76px Impact, 'Arial Narrow', ${family}`; ctx.fillText(note.grams, x0 + pad, y)
+        ctx.textAlign = 'right'; ctx.font = `700 21px ${family}`; ctx.fillText(note.detail, x1 - pad, y + 46)
+        y += 92
       })
       ctx.fillRect(x0 + pad, y, inner - pad * 2, 2); y += 12
       ctx.textAlign = 'left'; ctx.font = `800 24px ${family}`; ctx.fillText(block.base, x0 + pad, y)

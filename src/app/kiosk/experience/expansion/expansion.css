@@ -175,3 +175,10 @@
 .ex-start[data-housing] h2 { font-size:28px; line-height:1.35; }
 .ex-start[data-housing] .ex-start-steps { justify-content:flex-start; gap:6px; padding-top:12px; border-top:1px solid var(--kx-line); }
 .ex-start[data-housing] .ex-start-steps span + span::before { content:'·'; margin:0 6px 0 0; }
+/* 레시피 계량은 무게가 기준 — 그램을 크게, 비율·ml 은 작게 아래 */
+.ex-recipe-amount { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.ex-recipe-amount b { font-size:26px; font-weight:900; letter-spacing:-.02em; color:var(--kx-accent); }
+.ex-recipe-amount small { font-size:12px; font-weight:600; color:var(--kx-soft); }
+/* 넓은 결과 그림(향 처방 — 향을 둘 곳) — 위에 큰 그림, 아래에 이름·한 줄 */
+.kx-root .ex-result-art[data-wide] { flex-direction:column; align-items:stretch; gap:12px; }
+.ex-result-art[data-wide] img { width:100%; height:auto; aspect-ratio:16 / 10; border-radius:20px; }

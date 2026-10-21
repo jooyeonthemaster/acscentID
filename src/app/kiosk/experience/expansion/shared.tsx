@@ -6,7 +6,7 @@ import { PHOTO_PLANS } from '@/lib/kiosk/expansion/photo'
 import { expansionReceipt } from '@/lib/kiosk/expansion/receipt'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from '@/lib/kiosk/expansion/types'
 import { NO_PHOTO_IDS } from '@/lib/kiosk/expansion/housing'
-import { FAMILY_KO, noteAmount, noteLabel, RECIPE_COUNTER, type ScentRecipe } from '@/lib/kiosk/expansion/recipe'
+import { FAMILY_KO, noteAmount, noteDetail, noteGrams, noteLabel, RECIPE_COUNTER, type ScentRecipe } from '@/lib/kiosk/expansion/recipe'
 import { KxReceiptSheet, KxSaveSheet, useKx, useKxScreen } from '../kx'
 import type { KxShareFile } from '../kx-share'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, wrapLines } from '../kx-canvas'
@@ -120,7 +120,7 @@ function RecipePanel({ recipe }: { recipe: ScentRecipe }) {
     <h3>{recipe.name}</h3>
     <ul className="ex-recipe-list">{recipe.notes.map((n) => <li key={n.id}>
       <span className="ex-recipe-name"><b>{noteLabel(n)}</b><small>{FAMILY_KO[n.family]}</small></span>
-      <span className="ex-recipe-amount">{noteAmount(n)}</span>
+      <span className="ex-recipe-amount"><b>{noteGrams(n)}</b><small>{noteDetail(n)}</small></span>
       <span className="ex-recipe-bar" aria-hidden="true"><i style={{ width: `${n.ratio}%` }} /></span>
       <span className="ex-recipe-why">{n.reason}</span>
     </li>)}</ul>
@@ -131,7 +131,7 @@ function RecipePanel({ recipe }: { recipe: ScentRecipe }) {
 
 export function ResultPanel({ result }: { result: ExperienceResult }) {
   return <article className="ex-result" data-result={result.id}>
-    {result.art && <figure className="ex-result-art">
+    {result.art && <figure className="ex-result-art" data-wide={result.art.wide || undefined}>
       {/* 준비된 결과 그림(성향 캐릭터 등) — 글자 없는 그림 */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={result.art.src} alt="" /><figcaption><b>{result.title}</b><span>{result.art.caption}</span></figcaption>

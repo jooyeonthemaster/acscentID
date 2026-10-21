@@ -5,7 +5,7 @@
 // 답변은 향 계열 가중치(FamilyWeights)가 되어 향료 30종의 순위를 매기고(recipe.ts rankPerfumes), AI 가 그 위쪽에서 주향을 골라 최대 둘을 블렌딩한다.
 // 2026-10-21 사용자 지시로 정책 내비게이터를 향 처방으로 바꿨다("키오스크 프로그램은 결국 조향을 위한 것").
 
-import { mateArt } from './housing-art'
+import { choiceArt, mateArt } from './housing-art'
 import { josa } from './korean'
 import { FAMILIES, FAMILY_KO, findPerfume, rankPerfumes, ruleRecipe, type Family, type FamilyWeights, type ScentRecipe } from './recipe'
 import type { ExperienceResult } from './types'
@@ -120,6 +120,12 @@ function placement(a: Answers): string[] {
   return out.slice(0, 3)
 }
 
+function stayArt(a: Answers): { src: string; caption: string; wide: boolean } | null {
+  const stay = picks(a, 'stay')[0]
+  const option = stay ? scentOption('stay', stay) : undefined
+  return option ? { src: choiceArt('scent', 'stay', option.id), caption: `${option.label}에 두는 우리 집 향`, wide: true } : null
+}
+
 export function scentResult(a: Answers, recipe: ScentRecipe): ExperienceResult {
   return {
     id: 'housing-scent',
@@ -129,6 +135,8 @@ export function scentResult(a: Answers, recipe: ScentRecipe): ExperienceResult {
     tags: ['우리집향', ...recipe.notes.map((n) => n.name.replace(/\s/g, '')), '주거복지대전'],
     metrics: recipeMetrics(recipe),
     recipe,
+    // 결과 그림 — 손님이 가장 오래 머문다고 한 곳(그 향을 쓸 곳)의 그림
+    ...(stayArt(a) ? { art: stayArt(a)! } : {}),
     sections: [
       { title: '이렇게 써 보세요', body: '우리 집에서 향을 가장 잘 느끼는 방법이에요.', items: placement(a) },
       { title: '우리 집 진단', body: '답해 주신 우리 집이에요.', items: scentSummary(a).map((x) => `${x.label}: ${x.value}`) },

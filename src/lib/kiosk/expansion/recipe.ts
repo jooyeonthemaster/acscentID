@@ -125,6 +125,9 @@ export function ruleRecipe(ranked: Perfume[], name: string, story: string): Scen
 
 /** 화면·카드·영수증 공용 한 줄 — 'No.07 로즈' / '50% · 1.0ml (0.9g)' */
 export const noteLabel = (n: RecipeNote) => `No.${n.no} ${n.name}`
-export const noteAmount = (n: RecipeNote) => `${n.ratio}% · ${n.ml.toFixed(1)}ml (${n.g.toFixed(2)}g)`
+/** 계량은 무게(g)가 기준 — 2026-10-22 사용자: "중요한 건 퍼센트가 아니라 그람수" */
+export const noteGrams = (n: RecipeNote) => `${n.g.toFixed(2)}g`
+export const noteDetail = (n: RecipeNote) => `${n.ratio}% · ${n.ml.toFixed(1)}ml`
+export const noteAmount = (n: RecipeNote) => `${noteGrams(n)} (${noteDetail(n)})`
 export const RECIPE_STEPS = ['레시피의 향료를 순서대로 계량해요.', '퍼퓸 베이스와 섞은 뒤 가볍게 흔들어요.', '서늘하고 어두운 곳에서 하루 이상 숙성하면 더 잘 어우러져요.']
 export const RECIPE_COUNTER = '이 영수증을 조향 스태프에게 보여 주시면 적힌 레시피대로 만들어 드려요.'
