@@ -13,7 +13,7 @@
 - 매장 기기 설정(운영 모드·이용권·화면 디자인)을 건드리지 않고 주소의 모드로 돈다. 화면 디자인은 매장과 같은 맥(BoothScreen), 디자인 설정이 바뀌어도 새로고침하지 않는다.
 - 이용권 없이, 촬영 기록(매장 통계 `photobooth_shots`)을 남기지 않는다. STORE ADMIN 은 열리지 않는다(설정이 매장 기기에 바로 적용되므로).
 - `concept` 는 첫 화면에서 미리 고르고, `program` 은 첫 화면을 건너뛰고 바로 연다(처음 한 번).
-- NEANDER 워터마크(`BoothWatermark`, 키오스크와 같은 CSS) — 화면에만, 인화물·받는 사진에는 없다. 랜딩 바닥글의 '관리자 · 워터마크 끄기'에서 관리자 PIN 으로 그 브라우저만 끌 수 있다(docs/kiosk-modes.md '웹브라우저 워터마크').
+- NEANDER 워터마크(`BoothWatermark`, 키오스크와 같은 CSS) — 화면에만, 인화물·받는 사진에는 없다. 워터마크 없는 판은 `/booth-demo/clean`(여기서 연 화면은 `demo=clean`, docs/kiosk-modes.md '웹브라우저 워터마크').
 
 ## 데모 표와 비용 상한 (`src/lib/booth/demo-server.ts`)
 - `POST /api/photobooth/demo/ticket` → 데모 표(생성 표와 같은 서명, 주인 `demo`). 같은 사이트 요청만, 1분 10장.

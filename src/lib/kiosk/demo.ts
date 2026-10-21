@@ -4,6 +4,8 @@
 
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const KIOSK_DEMO_PARAM = 'demo'
+/** 워터마크 없는 데모 — 랜딩 /kiosk-demo/clean 에서 연 주소는 demo=clean (2026-10-22 사용자 지시: 없앤 버전은 링크가 다르게) */
+export const DEMO_CLEAN = 'clean'
 
 import { usesImage } from './expansion/image-prompts'
 import { NO_PHOTO_IDS } from './expansion/housing'
@@ -46,4 +48,4 @@ export const KIOSK_DEMOS: KioskDemo[] = [
 ]
 
 /** 데모로 여는 주소 — 미리보기 주소에 데모 표시를 붙인다 */
-export const kioskDemoHref = (mode: string) => `/kiosk?mode=${encodeURIComponent(mode)}&${KIOSK_DEMO_PARAM}=1`
+export const kioskDemoHref = (mode: string, clean = false) => `/kiosk?mode=${encodeURIComponent(mode)}&${KIOSK_DEMO_PARAM}=${clean ? DEMO_CLEAN : '1'}`

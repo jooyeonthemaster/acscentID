@@ -67,8 +67,12 @@ export const BOOTH_DEMOS: BoothDemo[] = [
 ]
 
 /** 데모로 여는 주소 */
-export function boothDemoHref(demo: Pick<BoothDemo, 'mode' | 'concept' | 'program'>): string {
-  const q = new URLSearchParams({ mode: demo.mode, [BOOTH_DEMO_PARAM]: '1' })
+/** 워터마크 없는 데모 — 랜딩 /booth-demo/clean 에서 연 주소는 demo=clean */
+export const BOOTH_DEMO_CLEAN = 'clean'
+export const boothDemoClean = () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get(BOOTH_DEMO_PARAM) === BOOTH_DEMO_CLEAN
+
+export function boothDemoHref(demo: Pick<BoothDemo, 'mode' | 'concept' | 'program'>, clean = false): string {
+  const q = new URLSearchParams({ mode: demo.mode, [BOOTH_DEMO_PARAM]: clean ? BOOTH_DEMO_CLEAN : '1' })
   if (demo.concept) q.set('concept', demo.concept)
   if (demo.program) q.set('program', demo.program)
   return `/booth?${q.toString()}`
