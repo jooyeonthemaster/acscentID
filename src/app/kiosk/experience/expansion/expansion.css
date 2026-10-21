@@ -136,3 +136,42 @@
 .ex-recipe-bar i { display:block; height:100%; border-radius:inherit; background:var(--kx-accent); }
 .ex-recipe-why { grid-column:1 / -1; font-size:13px; line-height:1.6; color:var(--kx-muted, #6b6670); }
 .ex-panel .ex-recipe-base { margin-top:12px; font-size:15px; font-weight:700; }
+
+/* ── 주거복지대전 3종(2026-10-22 목업 design-review/housing-mockups) ── */
+/* 그림 카드 — 그림 위(16:10) · 글자 아래, 선택하면 테마색 테두리와 그림 위 오른쪽의 체크 */
+.kx-root .ex-choice--art { flex-direction:column; align-items:stretch; gap:0; min-height:0; padding:0; overflow:hidden; border-radius:18px; }
+.ex-choice-art { display:block; aspect-ratio:16 / 10; background:var(--kx-accent-soft); overflow:hidden; }
+.ex-choice-art img { display:block; width:100%; height:100%; object-fit:cover; }
+.ex-choice--art .ex-choice-text { gap:3px; padding:11px 13px 13px; min-height:58px; justify-content:center; }
+.ex-choice--art b { font-size:16px; line-height:1.35; }
+.ex-choice--art small { font-size:11.5px; line-height:1.45; }
+.ex-choice--art .ex-choice-check { top:9px; right:9px; width:24px; height:24px; background:#fffc; border-color:#fff; box-shadow:0 1px 4px #0002; }
+.kx-root .ex-choice--art[data-selected] { background:var(--kx-paper); box-shadow:0 0 0 1px var(--kx-accent); }
+.ex-choice--art[data-selected] .ex-choice-text { background:var(--kx-accent-soft); }
+/* 첫 화면 그림 — 둥근 사각형, 그림 제 색 그대로 */
+.ex-start[data-housing] .ex-hero { border-radius:16px; max-height:420px; box-shadow:0 10px 26px #0000001a; }
+.ex-start[data-housing] .ex-hero img { mix-blend-mode:normal; }
+/* 결과 대표 그림(성향 캐릭터) */
+.kx-root .ex-result-art { display:flex; align-items:center; gap:16px; margin:0 0 18px; }
+.ex-result-art img { width:128px; height:128px; border-radius:18px; object-fit:cover; flex-shrink:0; box-shadow:0 6px 18px #0000001f; }
+.ex-result-art figcaption { display:flex; flex-direction:column; gap:6px; }
+.ex-result-art b { font-size:24px; font-weight:800; color:var(--kx-accent); letter-spacing:-.03em; }
+.ex-result-art span { font-size:14px; color:var(--kx-soft); }
+/* 스탬프 랠리 도장 칸 */
+.ex-stamps { display:flex; justify-content:space-around; gap:12px; margin-top:16px; }
+.ex-stamps span { width:76px; height:76px; border:2px dashed var(--kx-accent); border-radius:50%; opacity:.7; }
+/* 그림 대기 화면 */
+.kx-root .ex-art-wait { display:flex; flex-direction:column; align-items:center; gap:12px; padding-top:8px; text-align:center; }
+.ex-art-wait img { width:100%; max-width:440px; aspect-ratio:1; object-fit:cover; border-radius:24px; box-shadow:0 12px 30px #0000001a; }
+.ex-art-wait h2 { margin-top:14px; font-size:27px; line-height:1.4; font-weight:800; letter-spacing:-.04em; text-wrap:balance; }
+.kx-root .ex-art-wait p { color:var(--kx-soft); font-size:14px; }
+.ex-art-dots { display:flex; gap:8px; margin-top:4px; }
+.ex-art-dots i { width:8px; height:8px; border-radius:50%; background:var(--kx-line); }
+.ex-art-dots i[data-on] { background:var(--kx-accent); animation:ex-art-pulse 1.2s ease-in-out infinite; }
+.kx-root .ex-art-steps { color:var(--kx-accent); font-weight:700; }
+@keyframes ex-art-pulse { 50% { opacity:.35; } }
+/* 첫 화면 — 목업처럼 워드마크·제목·설명·단계를 왼쪽 정렬 */
+.ex-start[data-housing] .ex-wordmark, .ex-start[data-housing] h2, .kx-root .ex-start[data-housing] .ex-start-copy { text-align:left; align-self:stretch; }
+.ex-start[data-housing] h2 { font-size:28px; line-height:1.35; }
+.ex-start[data-housing] .ex-start-steps { justify-content:flex-start; gap:6px; padding-top:12px; border-top:1px solid var(--kx-line); }
+.ex-start[data-housing] .ex-start-steps span + span::before { content:'·'; margin:0 6px 0 0; }

@@ -52,7 +52,8 @@ export function ExpansionFrame({ title, subtitle, onBack, children, actions, bus
       <div className="ex-top-tools">{onBack && <button type="button" className="ex-nav" onClick={() => setDialog('home')} disabled={busy} aria-label="처음으로"><Home size={20} /></button>}<button type="button" className="ex-nav" onClick={() => setDialog('help')} aria-label="도움말"><CircleHelp size={21} /></button></div>
     </header>
     <div ref={body} className="ex-body" tabIndex={-1}>
-      <div className="ex-heading"><p className="ex-eyebrow">{meta.name}</p><h1 className="ex-title">{title}</h1>{subtitle && <p className="ex-subtitle">{subtitle}</p>}</div>
+      {/* 제목이 없는 화면(그림 대기)은 머리 글자를 그리지 않는다 */}
+      {title && <div className="ex-heading"><p className="ex-eyebrow">{meta.name}</p><h1 className="ex-title">{title}</h1>{subtitle && <p className="ex-subtitle">{subtitle}</p>}</div>}
       {children}
     </div>
     {actions && <footer className="ex-actions">{actions}</footer>}
@@ -74,7 +75,7 @@ export function ExpansionStart({ id, headline, description, onStart, steps }: { 
     const stops = [preloadVision(plan.subject === 'hand' ? 'hand' : 'faces'), ...(plan.outfit ? [preloadVision('hair')] : [])]
     return () => stops.forEach((stop) => stop())
   }, [id])
-  return <section className="ex-start" data-page="start">
+  return <section className="ex-start" data-page="start" data-housing={id.startsWith('housing-') || undefined}>
     <header className="ex-start-top"><span>{meta.category} · INTERACTIVE EXPERIENCE</span><span>한국어</span></header>
     <h1 className="ex-wordmark" data-long={meta.tag.length > 6}>{meta.tag}</h1>
     <h2>{headline ?? meta.name}</h2>
@@ -90,8 +91,11 @@ export function ExpansionStart({ id, headline, description, onStart, steps }: { 
   </section>
 }
 
-export function ChoiceTile({ label, note, selected, onClick, color, children }: { label: string; note?: string; selected: boolean; onClick: () => void; color?: string; children?: ReactNode }) {
-  return <button type="button" className="ex-choice" aria-pressed={selected} onClick={onClick} data-selected={selected || undefined}>
+/** image — 카드 위쪽 그림(주거복지대전 3종의 선택지 그림). 있으면 그림 위·글자 아래의 세로 카드가 된다 */
+export function ChoiceTile({ label, note, selected, onClick, color, image, children }: { label: string; note?: string; selected: boolean; onClick: () => void; color?: string; image?: string; children?: ReactNode }) {
+  return <button type="button" className={image ? 'ex-choice ex-choice--art' : 'ex-choice'} aria-pressed={selected} onClick={onClick} data-selected={selected || undefined}>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    {image && <span className="ex-choice-art" aria-hidden="true"><img src={image} alt="" loading="eager" decoding="async" /></span>}
     {color && <span className="ex-swatch" style={{ background: color }} aria-hidden="true" />}{children}
     <span className="ex-choice-text"><b>{label}</b>{note && <small>{note}</small>}</span><span className="ex-choice-check" aria-hidden="true">{selected && <Check size={16} />}</span>
   </button>
@@ -127,11 +131,16 @@ function RecipePanel({ recipe }: { recipe: ScentRecipe }) {
 
 export function ResultPanel({ result }: { result: ExperienceResult }) {
   return <article className="ex-result" data-result={result.id}>
-    <div className="ex-result-intro"><p className="ex-eyebrow">MY EXPERIENCE CARD</p>{result.subtitle && <p className="ex-result-sub">{result.subtitle}</p>}<h2>{result.title}</h2><p>{result.summary}</p><div className="ex-tags">{result.tags.map((tag, i) => <span key={`${tag}-${i}`}>{tag}</span>)}</div></div>
+    {result.art && <figure className="ex-result-art">
+      {/* 준비된 결과 그림(성향 캐릭터 등) — 글자 없는 그림 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={result.art.src} alt="" /><figcaption><b>{result.title}</b><span>{result.art.caption}</span></figcaption>
+    </figure>}
+    <div className="ex-result-intro"><p className="ex-eyebrow">MY EXPERIENCE CARD</p>{/* 대표 그림이 있으면 이름·한 줄은 그림 옆에 이미 있다 */}{!result.art && result.subtitle && <p className="ex-result-sub">{result.subtitle}</p>}{!result.art && <h2>{result.title}</h2>}<p>{result.summary}</p><div className="ex-tags">{result.tags.map((tag, i) => <span key={`${tag}-${i}`}>{tag}</span>)}</div></div>
     {result.recipe && <RecipePanel recipe={result.recipe} />}
     {!!result.palette?.length && <div className="ex-palette">{result.palette.map((color, i) => <div key={`${color}-${i}`}><span style={{ background: color }} /><small>{color}</small></div>)}</div>}
     {!!result.metrics?.length && <div className="ex-panel ex-metrics"><MetricChart result={result} /><div className="ex-stack">{result.metrics.map(m => <div key={m.label} className="ex-metric"><span>{m.label}<b>{m.value}<small> / {m.max}</small></b></span><meter min={0} max={m.max} value={m.value} style={{ accentColor: m.color }}>{m.value}</meter></div>)}</div></div>}
-    {result.sections.map((section, i) => <section className="ex-panel" key={`${section.title}-${i}`}><h3>{section.title}</h3><p>{section.body}</p>{section.items?.length ? <ul className="ex-detail-list">{section.items.map((item, n) => <li key={n}>{item}</li>)}</ul> : null}</section>)}
+    {result.sections.map((section, i) => <section className="ex-panel" key={`${section.title}-${i}`}><h3>{section.title}</h3><p>{section.body}</p>{section.stamps ? <div className="ex-stamps" aria-label={`도장 칸 ${section.stamps}개`}>{Array.from({ length: section.stamps }, (_, n) => <span key={n} />)}</div> : section.items?.length ? <ul className="ex-detail-list">{section.items.map((item, n) => <li key={n}>{item}</li>)}</ul> : null}</section>)}
     {result.footnote && <p className="ex-note">{result.footnote}</p>}
   </article>
 }

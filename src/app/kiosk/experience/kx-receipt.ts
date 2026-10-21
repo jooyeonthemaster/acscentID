@@ -12,6 +12,8 @@ export type KxReceiptBlock =
   | { kind: 'text'; text: string; bold?: boolean; small?: boolean; center?: boolean }
   | { kind: 'pairs'; rows: [string, string][] }
   | { kind: 'rule' }
+  /** 도장 빈칸 — 점선 원(지름 약 18mm, 실제 도장을 찍을 수 있는 크기). 스탬프 랠리 */
+  | { kind: 'stamps'; count: number }
 
 export interface KxReceipt {
   /** 큰 글자(NAIL! · CARD! …) */
@@ -102,6 +104,16 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
       }
       ctx.textAlign = 'left'
       y += 8
+    }
+    if (block.kind === 'stamps') {
+      const n = Math.max(1, Math.min(4, block.count)), d = 128, gap = (inner - n * d) / (n + 1)
+      for (let i = 0; i < n; i++) {
+        const cx = M + gap * (i + 1) + d * i + d / 2, cy = y + d / 2
+        // 점선 원 — 짧은 호를 띄엄띄엄(감열지에서 또렷하게 굵기 3)
+        ctx.lineWidth = 3
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 18) { ctx.beginPath(); ctx.arc(cx, cy, d / 2 - 2, a, a + Math.PI / 30); ctx.strokeStyle = INK; ctx.stroke() }
+      }
+      y += d + 18
     }
     if (block.kind === 'image') {
       const image = await loadImage(block.src).catch(() => null)

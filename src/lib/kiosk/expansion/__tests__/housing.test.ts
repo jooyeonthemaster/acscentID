@@ -136,3 +136,34 @@ test('2036 우리 집의 향 — 장면·화풍 검사, 선화는 흑백, 그림
   const receipt = expansionReceipt('housing-home', result, { src: 'data:image/jpeg;base64,AA', caption: '그림' })
   assert.match(receipt.foot ?? '', /촬영 사진은 저장하지 않아요/)
 })
+
+test('그림 에셋 — 키오스크 3종·포토부스 3종의 모든 선택지·장면·캐릭터·대기 그림 파일이 있다', async () => {
+  const { existsSync } = await import('node:fs')
+  const { join } = await import('node:path')
+  const { choiceArt, mateArt, RECEIPT_ROOM_ART, sceneArt, styleArt, WAIT_ART } = await import('../housing-art')
+  const { SCENT_QUESTIONS } = await import('../housing')
+  const { PROGRAMS } = await import('@/lib/booth/programs/catalog')
+  const file = (url: string) => join(process.cwd(), 'public', url)
+  const urls = [
+    ...SCENT_QUESTIONS.flatMap((q) => q.options.map((o) => choiceArt('scent', q.key, o.id))),
+    ...MATE_QUESTIONS.flatMap((q) => q.options.map((o) => choiceArt('mate', q.key, o.id))),
+    ...(Object.keys(HOME_SCENES) as (keyof typeof HOME_SCENES)[]).map(sceneArt),
+    ...(Object.keys(HOME_STYLES) as (keyof typeof HOME_STYLES)[]).map(styleArt),
+    ...MATE_TYPES.map(mateArt), ...Object.values(WAIT_ART), RECEIPT_ROOM_ART,
+  ]
+  const booth = PROGRAMS.filter((p) => p.id.startsWith('housing-')).flatMap((p) => [p.intro, ...p.options.groups.flatMap((g) => g.options.map((o) => o.image))])
+  assert.equal(booth.filter((x) => !x).length, 0, '포토부스 주거복지 3종은 모든 선택지에 그림이 있다')
+  const missing = [...urls, ...booth as string[]].filter((u) => !existsSync(file(u)))
+  assert.deepEqual(missing, [])
+  assert.equal(urls.length, 31 + 32 + 4 + 2 + 6 + 3 + 1)
+})
+
+test('성향 향수 결과 — 캐릭터 그림과 도장 칸 셋(영수증에는 점선 원 블록)', () => {
+  const result = mateResult(Object.fromEntries(MATE_QUESTIONS.map((q) => [q.key, q.options[0].id])), 'quiet', mateRuleRecipe('quiet'))
+  assert.match(result.art?.src ?? '', /housing-mate-quiet\.webp$/)
+  assert.equal(result.sections.find((s) => s.title === '스탬프 랠리')?.stamps, 3)
+  const receipt = expansionReceipt('housing-mate', result)
+  assert.ok(receipt.blocks.some((b) => b.kind === 'stamps' && b.count === 3))
+  assert.ok(receipt.blocks[0].kind === 'image' && /housing-mate-quiet/.test(receipt.blocks[0].src))
+  assert.ok(expansionReceipt('housing-scent', scentResult(scent(), scentRuleRecipe(scent()))).blocks[0].kind === 'image')
+})

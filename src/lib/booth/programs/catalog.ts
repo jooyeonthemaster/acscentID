@@ -22,6 +22,8 @@ export interface ProgramOption {
   swatch?: string
   /** 생성 프롬프트 조각(영어) */
   prompt?: string
+  /** 타일·칩 그림(글자 없는 사진·아이콘) — 있으면 색 대신 그림을 보여 준다(주거복지대전 3종, public/assets/booth-programs/housing/) */
+  image?: string
 }
 
 export interface ProgramOptionGroup {
@@ -72,6 +74,8 @@ export interface ProgramDef {
 }
 
 const intro = (id: ProgramId) => `/assets/booth-programs/${id}.webp`
+/** 주거복지대전 3종의 선택지 그림 — 파일 이름은 booth-housing-<프로그램>-<그룹>-<선택지> (목업 design-review/housing-mockups) */
+const housingArt = (program: 'movein' | 'cover' | '2046', group: string, option: string) => `/assets/booth-programs/housing/booth-housing-${program}-${group}-${option}.webp`
 
 /** 사진 프로그램의 기본 시간 */
 const PHOTO_STAGES: [string, string, string] = ['사진 확인', '스타일 생성 중', '마무리']
@@ -453,14 +457,14 @@ export const PROGRAMS: ProgramDef[] = [
       title: '어떤 집에 입주할까요?', sub: '새 집과 손에 들 소품을 골라 주세요', cta: '이 집으로 입주하기',
       groups: [
         { id: 'home', label: '우리 집', look: 'tiles', options: [
-          { id: 'apartment', label: '새 아파트 거실', sub: '큰 창 · 공원 뷰', swatch: 'linear-gradient(160deg,#e9f1f7,#a9c8de 55%,#7fb37a)', prompt: 'standing together in the bright, newly finished living room of a Korean apartment on move-in day: clean light wood floors, a big window with a green park view, a few taped cardboard moving boxes on the floor' },
-          { id: 'house', label: '마당 있는 집', sub: '잔디 마당 · 현관', swatch: 'linear-gradient(160deg,#f6efe2,#d9b98c 55%,#7aa86a)', prompt: 'standing together in front of the wooden front door of a small new two-story house with a lawn yard and a little flower bed on move-in day, a few moving boxes on the porch, clear blue sky' },
-          { id: 'first', label: '첫 독립 원룸', sub: '햇살 드는 내 방', swatch: 'linear-gradient(160deg,#fff4dc,#f2cf8f 60%,#c7a07a)', prompt: 'standing together in a sunny, newly furnished small studio apartment on move-in day: a loft bed, a desk by the window, potted plants, a few half-opened moving boxes' },
+          { id: 'apartment', image: housingArt('movein', 'home', 'apartment'), label: '새 아파트 거실', sub: '큰 창 · 공원 뷰', swatch: 'linear-gradient(160deg,#e9f1f7,#a9c8de 55%,#7fb37a)', prompt: 'standing together in the bright, newly finished living room of a Korean apartment on move-in day: clean light wood floors, a big window with a green park view, a few taped cardboard moving boxes on the floor' },
+          { id: 'house', image: housingArt('movein', 'home', 'house'), label: '마당 있는 집', sub: '잔디 마당 · 현관', swatch: 'linear-gradient(160deg,#f6efe2,#d9b98c 55%,#7aa86a)', prompt: 'standing together in front of the wooden front door of a small new two-story house with a lawn yard and a little flower bed on move-in day, a few moving boxes on the porch, clear blue sky' },
+          { id: 'first', image: housingArt('movein', 'home', 'first'), label: '첫 독립 원룸', sub: '햇살 드는 내 방', swatch: 'linear-gradient(160deg,#fff4dc,#f2cf8f 60%,#c7a07a)', prompt: 'standing together in a sunny, newly furnished small studio apartment on move-in day: a loft bed, a desk by the window, potted plants, a few half-opened moving boxes' },
         ] },
         { id: 'prop', label: '손에 들 것', look: 'chips', options: [
-          { id: 'key', label: '새 집 열쇠', prompt: 'one person proudly holds up a set of new house keys tied with a small red ribbon' },
-          { id: 'flower', label: '집들이 꽃다발', prompt: 'one person holds a bright housewarming flower bouquet' },
-          { id: 'box', label: '이삿짐 상자', prompt: 'one person carries a cardboard moving box' },
+          { id: 'key', image: housingArt('movein', 'prop', 'key'), label: '새 집 열쇠', prompt: 'one person proudly holds up a set of new house keys tied with a small red ribbon' },
+          { id: 'flower', image: housingArt('movein', 'prop', 'flower'), label: '집들이 꽃다발', prompt: 'one person holds a bright housewarming flower bouquet' },
+          { id: 'box', image: housingArt('movein', 'prop', 'box'), label: '이삿짐 상자', prompt: 'one person carries a cardboard moving box' },
         ] },
       ],
     },
@@ -479,15 +483,15 @@ export const PROGRAMS: ProgramDef[] = [
       title: '어떤 집이 내 스타일일까요?', sub: '꿈꾸는 인테리어와 포즈를 골라 주세요', cta: '이 집으로 표지 찍기',
       groups: [
         { id: 'room', label: '인테리어', look: 'tiles', options: [
-          { id: 'nordic', label: '북유럽', sub: '화이트 우드 · 패브릭', swatch: 'linear-gradient(160deg,#fbf8f2,#e3d5c0 60%,#b9c7c9)', prompt: 'a Scandinavian-style home interior: white walls, light oak wood, soft linen fabrics, a woven rug, pendant lamp and plenty of daylight' },
-          { id: 'modern', label: '모던 미니멀', sub: '콘크리트 · 블랙', swatch: 'linear-gradient(160deg,#e9e7e3,#9a9690 55%,#1f1f1f)', prompt: 'a modern minimalist home interior: polished concrete, matte black fixtures, a low sofa, sculptural lighting and clean empty surfaces' },
-          { id: 'plant', label: '플랜테리어', sub: '초록 식물 가득', swatch: 'linear-gradient(160deg,#eef3e4,#8fb47a 55%,#3f6b45)', prompt: 'a lush plant-filled home interior (planterior): many large green houseplants, hanging plants, rattan furniture and warm sunlight' },
-          { id: 'hanok', label: '모던 한옥', sub: '서까래 · 창호', swatch: 'linear-gradient(160deg,#f6efe2,#c9a77c 55%,#6b4f35)', prompt: 'a modern hanok home interior: exposed wooden rafters, paper lattice windows (changho), warm wooden floors and simple modern furniture' },
+          { id: 'nordic', image: housingArt('cover', 'room', 'nordic'), label: '북유럽', sub: '화이트 우드 · 패브릭', swatch: 'linear-gradient(160deg,#fbf8f2,#e3d5c0 60%,#b9c7c9)', prompt: 'a Scandinavian-style home interior: white walls, light oak wood, soft linen fabrics, a woven rug, pendant lamp and plenty of daylight' },
+          { id: 'modern', image: housingArt('cover', 'room', 'modern'), label: '모던 미니멀', sub: '콘크리트 · 블랙', swatch: 'linear-gradient(160deg,#e9e7e3,#9a9690 55%,#1f1f1f)', prompt: 'a modern minimalist home interior: polished concrete, matte black fixtures, a low sofa, sculptural lighting and clean empty surfaces' },
+          { id: 'plant', image: housingArt('cover', 'room', 'plant'), label: '플랜테리어', sub: '초록 식물 가득', swatch: 'linear-gradient(160deg,#eef3e4,#8fb47a 55%,#3f6b45)', prompt: 'a lush plant-filled home interior (planterior): many large green houseplants, hanging plants, rattan furniture and warm sunlight' },
+          { id: 'hanok', image: housingArt('cover', 'room', 'hanok'), label: '모던 한옥', sub: '서까래 · 창호', swatch: 'linear-gradient(160deg,#f6efe2,#c9a77c 55%,#6b4f35)', prompt: 'a modern hanok home interior: exposed wooden rafters, paper lattice windows (changho), warm wooden floors and simple modern furniture' },
         ] },
         { id: 'pose', label: '포즈', look: 'chips', options: [
-          { id: 'sofa', label: '소파에 앉아', prompt: 'sitting relaxed on the sofa, looking at the camera with a confident, warm smile' },
-          { id: 'window', label: '창가에 서서', prompt: 'standing by a large window in soft daylight, looking at the camera' },
-          { id: 'kitchen', label: '주방에서', prompt: 'leaning on a kitchen island with a coffee cup, looking at the camera' },
+          { id: 'sofa', image: housingArt('cover', 'pose', 'sofa'), label: '소파에 앉아', prompt: 'sitting relaxed on the sofa, looking at the camera with a confident, warm smile' },
+          { id: 'window', image: housingArt('cover', 'pose', 'window'), label: '창가에 서서', prompt: 'standing by a large window in soft daylight, looking at the camera' },
+          { id: 'kitchen', image: housingArt('cover', 'pose', 'kitchen'), label: '주방에서', prompt: 'leaning on a kitchen island with a coffee cup, looking at the camera' },
         ] },
       ],
     },
@@ -506,14 +510,14 @@ export const PROGRAMS: ProgramDef[] = [
       title: '어느 미래 도시에 살아 볼까요?', sub: '도시와 시간을 골라 주세요', cta: '이 도시로 이사 가기',
       groups: [
         { id: 'city', label: '미래 도시', look: 'tiles', options: [
-          { id: 'forest', label: '수직 숲 도시', sub: '나무로 덮인 타워', swatch: 'linear-gradient(160deg,#e3f2e6,#6fb68a 55%,#2d6a54)', prompt: 'a future green city of 2046 with tall residential towers covered in trees and hanging gardens, sky bridges between buildings, clean air' },
-          { id: 'ocean', label: '바다 위 마을', sub: '플로팅 하우스', swatch: 'linear-gradient(160deg,#e2f4fb,#6cc3e0 55%,#1f6f9a)', prompt: 'a future floating neighborhood of 2046 on calm blue sea: modular floating homes with solar roofs, wooden boardwalks and small gardens' },
-          { id: 'smart', label: '스마트 마을', sub: '드론 · 자율 셔틀', swatch: 'linear-gradient(160deg,#ece9ff,#8b84f0 55%,#2b2a6e)', prompt: 'a friendly future smart neighborhood of 2046: low-rise homes with solar glass, small delivery drones in the sky, a rounded self-driving shuttle and a community park' },
+          { id: 'forest', image: housingArt('2046', 'city', 'forest'), label: '수직 숲 도시', sub: '나무로 덮인 타워', swatch: 'linear-gradient(160deg,#e3f2e6,#6fb68a 55%,#2d6a54)', prompt: 'a future green city of 2046 with tall residential towers covered in trees and hanging gardens, sky bridges between buildings, clean air' },
+          { id: 'ocean', image: housingArt('2046', 'city', 'ocean'), label: '바다 위 마을', sub: '플로팅 하우스', swatch: 'linear-gradient(160deg,#e2f4fb,#6cc3e0 55%,#1f6f9a)', prompt: 'a future floating neighborhood of 2046 on calm blue sea: modular floating homes with solar roofs, wooden boardwalks and small gardens' },
+          { id: 'smart', image: housingArt('2046', 'city', 'smart'), label: '스마트 마을', sub: '드론 · 자율 셔틀', swatch: 'linear-gradient(160deg,#ece9ff,#8b84f0 55%,#2b2a6e)', prompt: 'a friendly future smart neighborhood of 2046: low-rise homes with solar glass, small delivery drones in the sky, a rounded self-driving shuttle and a community park' },
         ] },
         { id: 'time', label: '시간', look: 'chips', options: [
-          { id: 'day', label: '맑은 낮', prompt: 'bright clear daylight' },
-          { id: 'sunset', label: '노을', prompt: 'warm golden sunset light' },
-          { id: 'night', label: '빛나는 밤', prompt: 'a calm night with soft glowing city lights' },
+          { id: 'day', image: housingArt('2046', 'time', 'day'), label: '맑은 낮', prompt: 'bright clear daylight' },
+          { id: 'sunset', image: housingArt('2046', 'time', 'sunset'), label: '노을', prompt: 'warm golden sunset light' },
+          { id: 'night', image: housingArt('2046', 'time', 'night'), label: '빛나는 밤', prompt: 'a calm night with soft glowing city lights' },
         ] },
       ],
     },

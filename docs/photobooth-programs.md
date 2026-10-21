@@ -78,3 +78,4 @@
 - 이용권: 무료 공공 행사용이라 세 모드 모두 **기본 이용권 없음**(`pass-policy.ts`, STORE ADMIN 에서 바꿀 수 있다).
 - 데모 랜딩: 부스 `/booth-demo` 와 키오스크 `/kiosk-demo` 모두 '주거복지 · 공공 행사' 묶음.
 - 검증(2026-10-21, 로컬 데모 · 실제 생성): 3인 단체 · 1인 모두 얼굴 · 머리 · 안경 유지, 인원 그대로. 로컬 `.env.local` 의 부스 전용 키는 만료(401)라 시험 때만 일반 키를 환경 변수로 넣었다 — 운영 Vercel 키 상태는 따로 확인 필요.
+- 그림 선택지(2026-10-22 목업 반영): `ProgramOption.image` 가 있으면 타일은 4:3 사진 위 · 이름 아래, 칩은 왼쪽 아이콘(`ui.tsx` · `.pg-opt--art`). 그림은 `public/assets/booth-programs/housing/booth-housing-<프로그램>-<그룹>-<선택지>.webp`(catalog.ts `housingArt`). 시작 소개 그림 3장은 목업 support/hero-* 로 교체, MOVE IN! 인화 2종에 지붕 장식·워드마크.

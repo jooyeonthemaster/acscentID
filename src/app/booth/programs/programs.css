@@ -577,3 +577,13 @@ canvas.pg-cam-video { transform: none; }
 /* 소개 그림에 이미 손글씨가 들어 있는 프로그램은 화면 손글씨를 겹쳐 쓰지 않는다 */
 .pg:is([data-program='idol-makeup'], [data-program='fan-card'], [data-program='graduation'], [data-program='history'], [data-program='timecapsule'], [data-program='wedding'], [data-program='future-family'], [data-program='memory-movie']) .pg-start .pg-script { display: none; }
 .pg[data-program='memory-movie'] .pg-wordmark--xl { font-size: 92px; padding-right: 0.1em; }
+
+/* 그림 선택지(주거복지대전 3종, 2026-10-22 목업) — 타일은 4:3 사진 위·이름 아래, 칩은 왼쪽 작은 아이콘 + 이름 */
+.pg-opt--art { padding: 0 0 8px; overflow: hidden; gap: 6px; justify-items: stretch; text-align: left; }
+.pg-opt--art .pg-opt-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: calc(var(--pg-radius) - 2px) calc(var(--pg-radius) - 2px) 0 0; }
+.pg-opt--art .pg-opt-label { padding: 0 9px; font-size: 14px; }
+.pg-group--chips .pg-opt--art { display: flex; align-items: center; gap: 8px; padding: 6px 10px; text-align: left; }
+.pg-group--chips .pg-opt--art .pg-opt-img { width: 40px; height: 40px; aspect-ratio: 1; border-radius: 8px; flex-shrink: 0; }
+.pg-group--chips .pg-opt--art .pg-opt-label { padding: 0; }
+.pg .pg-group--chips .pg-opt--art[aria-checked='true'] { background: color-mix(in srgb, var(--pg-accent) 12%, var(--pg-surface)); color: inherit; }
+.pg-opt--art .pg-opt-check { top: 6px; right: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }

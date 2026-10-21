@@ -24,3 +24,10 @@
 - 단위 테스트 `__tests__/housing.test.ts`(레시피 검사 · 순위 · 영수증 · 스탬프 칸).
 - 실제 AI 로 세 모드 끝까지(기록 API 가로챔): 예) 습한 원룸 · 침실 · 깊은 휴식 → 라벤더 50 · 민트 30 · 샌달우드 20 '달빛 아래 보랏빛 숲'.
 - 성향 테스트 문구에서 '따뜻한 마음이 느껴져요'가 나와 성격 단정 금지어에 '마음이 느껴'를 더했다.
+
+## 그림 에셋 (2026-10-22 목업 반영)
+목업 `design-review/housing-mockups`(로컬 전용 — screens/ 32장, assets/ 96개, support/)를 기준으로 화면을 다듬었다.
+- 키오스크 그림: `public/assets/kiosk-expansion/housing/` — 파일 이름이 데이터 계약(`src/lib/kiosk/expansion/housing-art.ts`): 선택지 `housing-<scent|mate>-<문항>-<선택지>`, 2036 장면·화풍, 성향 캐릭터 6, 대기 그림 3(blend · draw · mate), 향 처방 영수증 선화. 시작 그림 3장은 support/hero-* 로 교체.
+- 선택 카드는 그림 위(16:10) · 글자 아래(`ChoiceTile image`), 대기 화면은 큰 그림 + '기다리지 않고 기본 레시피 보기'(`AiWait art`), 성향 결과는 캐릭터 카드(`ExperienceResult.art`), 스탬프 랠리는 점선 원 도장 칸(`ResultSection.stamps` · 영수증 `stamps` 블록, 지름 약 18mm).
+- 영수증 그림: AI 합성 그림 → 결과 대표 그림(성향 캐릭터) → 향 처방 전용 선화 → 체험 대표 그림 순.
+- 모든 선택지에 그림 파일이 있는지는 `__tests__/housing.test.ts` 가 파일로 확인한다.

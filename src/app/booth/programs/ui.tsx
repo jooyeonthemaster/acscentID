@@ -51,8 +51,10 @@ export function OptionGroups({ groups, choices, onChange, disabled }: {
             {group.options.map((option) => {
               const on = choices[group.id] === option.id
               return (
-                <button key={option.id} type="button" role="radio" aria-checked={on} className="pg-opt" onClick={() => onChange(group.id, option.id)}>
-                  {group.look !== 'chips' && <span className="pg-opt-swatch" style={{ background: option.swatch }} aria-hidden="true" />}
+                <button key={option.id} type="button" role="radio" aria-checked={on} className={option.image ? 'pg-opt pg-opt--art' : 'pg-opt'} onClick={() => onChange(group.id, option.id)}>
+                  {/* 그림이 있으면 타일은 사진, 칩은 작은 아이콘 — 글자 없는 그림, 이름은 아래 글자 */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {option.image ? <img className="pg-opt-img" src={option.image} alt="" aria-hidden="true" /> : group.look !== 'chips' && <span className="pg-opt-swatch" style={{ background: option.swatch }} aria-hidden="true" />}
                   <span className="pg-opt-label">{option.label}{option.sub && group.look === 'tiles' && <small>{option.sub}</small>}</span>
                   {on && <span className="pg-opt-check" aria-hidden="true"><Check size={16} strokeWidth={3} /></span>}
                 </button>

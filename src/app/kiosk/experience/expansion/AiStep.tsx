@@ -11,11 +11,25 @@ import { KxSpinner } from '../kx'
 import type { AiJobState } from './ai-client'
 import { ExpansionFrame, PrimaryButton } from './shared'
 
-export function AiWait({ id, state, onRetry, onSkip, onBack }: { id: ExpansionId; state: AiJobState; onRetry: () => void; onSkip: () => void; onBack: () => void }) {
+/** art — 그림이 있는 대기 화면(주거복지대전 3종): 큰 그림 · 한 줄 제목 · 설명 · 진행 점 · '기다리지 않고 …' 버튼 */
+export interface AiWaitArt { src: string; title: string; sub: string; skip: string; steps?: string }
+
+export function AiWait({ id, state, onRetry, onSkip, onBack, art }: { id: ExpansionId; state: AiJobState; onRetry: () => void; onSkip: () => void; onBack: () => void; art?: AiWaitArt }) {
   if (state.phase === 'error') return <ExpansionFrame title="AI 분석을 받지 못했어요" onBack={onBack} actions={<><PrimaryButton secondary onClick={onSkip}>AI 분석 없이 결과 보기</PrimaryButton><PrimaryButton onClick={onRetry}><RefreshCw size={20} />다시 시도하기</PrimaryButton></>}>
     <div className="ex-social-wait"><RefreshCw size={54} /><p className="ex-alert" role="alert">{state.busy ? '지금 요청이 많아요. 잠시 뒤 다시 시도해 주세요.' : '인터넷 연결을 확인한 뒤 다시 시도해 주세요.'} 입력한 내용은 그대로 있어요.</p><p className="ex-note">AI 분석 없이 보면 답변과 기기에서 읽은 값으로만 만든 결과가 나와요.</p></div>
   </ExpansionFrame>
   const imaging = state.phase === 'imaging'
+  if (art) return <ExpansionFrame title="" busy screen="busy" actions={<PrimaryButton secondary onClick={onSkip}>{art.skip}</PrimaryButton>}>
+    <div className="ex-art-wait" role="status" aria-live="polite">
+      {/* 글자 없는 대기 그림 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={art.src} alt="" />
+      <h2>{art.title}</h2>
+      <p>{art.sub}</p>
+      <span className="ex-art-dots" aria-hidden="true"><i data-on={!imaging || undefined} /><i data-on={imaging || undefined} /><i /></span>
+      {art.steps && <p className="ex-art-steps">{art.steps}</p>}
+    </div>
+  </ExpansionFrame>
   return <ExpansionFrame title={imaging ? IMAGE_WAIT[id as ImageMode] ?? '이미지를 만들고 있어요' : 'AI가 분석하고 있어요'} subtitle={imaging ? '10~20초쯤 걸려요' : '사진과 답변을 함께 보고 있어요'} busy screen="busy">
     <div className="ex-social-wait ex-ai-wait" role="status" aria-live="polite">
       <span className="ex-ai-orb" aria-hidden="true"><Sparkles size={46} strokeWidth={1.4} /></span>

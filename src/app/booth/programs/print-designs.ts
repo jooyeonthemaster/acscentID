@@ -397,8 +397,11 @@ const DESIGNS: Record<string, [Design, Design]> = {
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#f7f1e6')
       stroke(ctx, 40, 40, 1120, 1720, '#2f6f9f', 6)
       stroke(ctx, 62, 62, 1076, 1676, '#2f6f9f', 2)
-      text(ctx, 'MOVE IN!', PRINT_W / 2, 210, `150px ${A()}`, '#2f6f9f')
-      photoClip(ctx, result, 110, 260, 980, 1180, 10, 0.3)
+      // 목업 b4-5: 워드마크 위에 작은 지붕 선
+      ctx.save(); ctx.strokeStyle = '#c4553a'; ctx.lineWidth = 8; ctx.lineJoin = 'round'
+      ctx.beginPath(); ctx.moveTo(PRINT_W / 2 - 90, 92); ctx.lineTo(PRINT_W / 2, 50); ctx.lineTo(PRINT_W / 2 + 90, 92); ctx.stroke(); ctx.restore()
+      text(ctx, 'MOVE IN!', PRINT_W / 2, 230, `150px ${A()}`, '#2f6f9f')
+      photoClip(ctx, result, 110, 270, 980, 1170, 10, 0.3)
       text(ctx, '입주를 축하합니다', PRINT_W / 2, 1560, `700 72px ${G()}`, '#1f3f5a')
       text(ctx, `${labels.home ?? ''} · ${today()}`, PRINT_W / 2, 1650, `700 38px ${G()}`, '#5b7d97')
     },
@@ -406,7 +409,9 @@ const DESIGNS: Record<string, [Design, Design]> = {
       // 우리 집 프레임 — 사진을 지붕 있는 집 모양으로
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#dcebf5')
       for (let i = 0; i < 7; i++) rect(ctx, 0, 1480 + i * 48, PRINT_W, 24, i % 2 ? '#cfe3c4' : '#bcd8ae')
-      const x = 110, w = 980, roof = 300, top = 150, bottom = 1500
+      // 목업 b4-6: 맨 위 워드마크, 그 아래 지붕 있는 집 모양 사진
+      text(ctx, 'MOVE IN!', PRINT_W / 2, 190, `130px ${A()}`, '#2f6f9f')
+      const x = 110, w = 980, roof = 280, top = 260, bottom = 1500
       ctx.save(); shadow(ctx, 30, 'rgba(30,60,90,0.3)')
       ctx.beginPath(); ctx.moveTo(x - 30, top + roof); ctx.lineTo(PRINT_W / 2, top); ctx.lineTo(x + w + 30, top + roof); ctx.lineTo(x + w, top + roof); ctx.lineTo(x + w, bottom); ctx.lineTo(x, bottom); ctx.lineTo(x, top + roof); ctx.closePath()
       ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.restore()

@@ -4,17 +4,23 @@
 
 import type { KxReceipt, KxReceiptBlock } from '@/app/kiosk/experience/kx-receipt'
 import { NO_PHOTO_IDS } from './housing'
+import { RECEIPT_ROOM_ART } from './housing-art'
 import { noteAmount, noteLabel, RECIPE_COUNTER, RECIPE_PRODUCT } from './recipe'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from './types'
 
 const MAX_SECTIONS = 4
+/** 체험 대표 그림 대신 영수증에 찍는 그림(감열지에 잘 나오는 선화) */
+const RECEIPT_ART: Partial<Record<ExpansionId, string>> = { 'housing-scent': RECEIPT_ROOM_ART }
 const MAX_ITEMS = 5
 const isPhoto = (title: string) => title === '사진에서 읽은 것' || title.startsWith('사진 속')
 
 export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art: { src: string; caption: string } | null = null): KxReceipt {
   const meta = EXPANSION_META[id]
   // 합성 그림은 어두운 배경(오라)이 많아 밝게 찍는다
-  const picture: KxReceiptBlock = art ? { kind: 'image', src: art.src, width: 360, frame: true, tone: 172, caption: art.caption } : { kind: 'image', src: meta.hero, width: 300, tone: 168 }
+  // 그림: AI 합성 그림 → 결과 대표 그림(성향 캐릭터) → 영수증 전용 선화(향 처방) → 체험 대표 그림
+  const picture: KxReceiptBlock = art ? { kind: 'image', src: art.src, width: 360, frame: true, tone: 172, caption: art.caption }
+    : result.art ? { kind: 'image', src: result.art.src, width: 330, frame: true, tone: 160, caption: result.art.caption }
+      : { kind: 'image', src: RECEIPT_ART[id] ?? meta.hero, width: 300, tone: RECEIPT_ART[id] ? 176 : 168 }
   const blocks: KxReceiptBlock[] = [picture, { kind: 'text', text: result.summary }]
   if (result.tags.length) blocks.push({ kind: 'text', text: result.tags.map((tag) => `#${tag}`).join('  '), small: true, bold: true })
   const recipe = result.recipe
@@ -33,7 +39,8 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   const shown = rest.slice(0, Math.max(1, (recipe ? MAX_SECTIONS - 2 : MAX_SECTIONS) - photo.length))
   for (const section of [...shown, ...photo]) {
     blocks.push({ kind: 'rule' }, { kind: 'heading', text: section.title }, { kind: 'text', text: section.body })
-    if (section.items?.length) blocks.push({ kind: 'list', items: section.items.slice(0, MAX_ITEMS) })
+    if (section.stamps) blocks.push({ kind: 'stamps', count: section.stamps })
+    else if (section.items?.length) blocks.push({ kind: 'list', items: section.items.slice(0, MAX_ITEMS) })
   }
   const cut = rest.length > shown.length || result.sections.some((section) => (section.items?.length ?? 0) > MAX_ITEMS)
   if (cut) blocks.push({ kind: 'text', text: '나머지 내용은 휴대폰으로 받는 결과 카드에 모두 있어요.', small: true, center: true })
