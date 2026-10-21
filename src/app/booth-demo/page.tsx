@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ArrowDown, ArrowUpRight, Camera, Clapperboard, Languages, Printer, QrCode, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { DemoWatermarkUnlock } from '@/components/demo/DemoWatermarkUnlock'
 import { BOOTH_DEMOS, BOOTH_DEMO_NEEDS, boothDemoHref, type BoothDemo } from '@/lib/booth/demo'
 import './booth-demo.css'
 
@@ -36,7 +37,7 @@ const NOTES = [
   '타임캡슐 · 미래 가족 · 2046 미래 도시는 재미로 보는 창작 이미지, 역사 속 한 장면은 역사에서 영감을 받은 상상화입니다.',
   '인쇄는 프린터가 달린 실제 부스에서 바로 나옵니다. 브라우저에서는 인쇄 미리보기로 보여 드립니다.',
   '추억 무비와 \'휴대폰 사진 가져오기\'는 화면의 QR을 휴대폰으로 찍어 사진을 올립니다.',
-  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않습니다.',
+  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않고, 관리자는 아래 \'워터마크 끄기\'에서 비밀번호로 끌 수 있습니다.',
 ]
 /** 머리말의 부스 화면 — 3초마다 바뀐다(칸 수는 booth-demo.css 의 15초 순환에 맞춘다) */
 const HERO = ['idol-home', 'program-runway', 'program-hanbok', 'program-wedding', 'program-music-video']
@@ -169,6 +170,7 @@ export default function BoothDemoPage() {
         <a href="tel:02-336-3368">Tel. 02-336-3368</a>
         <a href="tel:010-8507-5121">Mobile. 010-8507-5121</a>
         <span>neander@neander.co.kr</span>
+        <DemoWatermarkUnlock />
       </footer>
     </div>
   )
