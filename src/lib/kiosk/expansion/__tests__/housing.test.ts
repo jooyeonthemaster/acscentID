@@ -88,7 +88,8 @@ test('향 처방 결과 · 영수증 — 레시피 상자가 머리 바로 아�
   const box = receipt.blocks[0]
   assert.ok(box.kind === 'recipe', '레시피 상자가 맨 앞')
   assert.equal(box.name, '햇살 드는 오후')
-  assert.deepEqual(box.notes.map((n) => [n.grams, n.detail]), [['1.08g', '60% · 1.2ml'], ['0.72g', '40% · 0.8ml']])
+  // 그램과 ml 은 같은 숫자(1ml = 1g)
+  assert.deepEqual(box.notes.map((n) => [n.grams, n.detail]), [['1.20g', '60% · 1.20ml'], ['0.80g', '40% · 0.80ml']])
   assert.match(result.art?.src ?? '', /housing-scent-stay-bed\.webp$/)
   assert.ok(receipt.blocks.some((b) => b.kind === 'image' && /housing-receipt-room/.test(b.src)), '영수증은 결과 그림 대신 선화')
   assert.equal(box.base, '+ 퍼퓸 베이스 8ml')

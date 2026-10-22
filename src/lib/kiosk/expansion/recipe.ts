@@ -14,7 +14,8 @@ export type FamilyWeights = Partial<Record<Family, number>>
 
 /** 레시피를 짜는 제품 — 퍼퓸 10ml(향료 2ml + 퍼퓸 베이스 8ml, 매장 키오스크 기본 제품과 같은 구성) */
 export const RECIPE_PRODUCT = { label: '퍼퓸 10ml', fragranceMl: 2, baseMl: 8 } as const
-const DENSITY = 0.9
+/** 계량 환산 — 2026-10-22 사용자: "그람수와 미리수가 같게" → 1ml = 1g(매장 키오스크 기본 제품의 0.9 비중과 다르다) */
+const DENSITY = 1
 /** AI 에 넘기는 주향 후보 수 — 규칙 순위 위에서부터 */
 export const PREFER_COUNT = 8
 /** 한 레시피에 섞는 향료 수 상한 */
@@ -127,7 +128,7 @@ export function ruleRecipe(ranked: Perfume[], name: string, story: string): Scen
 export const noteLabel = (n: RecipeNote) => `No.${n.no} ${n.name}`
 /** 계량은 무게(g)가 기준 — 2026-10-22 사용자: "중요한 건 퍼센트가 아니라 그람수" */
 export const noteGrams = (n: RecipeNote) => `${n.g.toFixed(2)}g`
-export const noteDetail = (n: RecipeNote) => `${n.ratio}% · ${n.ml.toFixed(1)}ml`
+export const noteDetail = (n: RecipeNote) => `${n.ratio}% · ${n.ml.toFixed(2)}ml`
 export const noteAmount = (n: RecipeNote) => `${noteGrams(n)} (${noteDetail(n)})`
 export const RECIPE_STEPS = ['레시피의 향료를 순서대로 계량해요.', '퍼퓸 베이스와 섞은 뒤 가볍게 흔들어요.', '서늘하고 어두운 곳에서 하루 이상 숙성하면 더 잘 어우러져요.']
 export const RECIPE_COUNTER = '이 영수증을 조향 스태프에게 보여 주시면 적힌 레시피대로 만들어 드려요.'
