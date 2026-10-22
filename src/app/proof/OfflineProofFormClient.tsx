@@ -761,7 +761,7 @@ export function OfflineProofFormClient({ products }: { products: OfflineProofPro
               className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[var(--ink)] py-3.5 text-base font-extrabold text-white transition-colors hover:bg-black disabled:opacity-50"
             >
               {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              {submitting ? '제출하는 중…' : '증빙 제출하기'}
+              {submitting ? '제출하는 중…' : '제출하기'}
             </button>
           </form>
         </section>
