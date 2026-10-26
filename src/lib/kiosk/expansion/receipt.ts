@@ -41,8 +41,7 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   const shown = rest.slice(0, Math.max(1, (recipe ? MAX_SECTIONS - 2 : MAX_SECTIONS) - photo.length))
   for (const section of [...shown, ...photo]) {
     blocks.push({ kind: 'rule' }, { kind: 'heading', text: section.title }, { kind: 'text', text: section.body })
-    if (section.stamps) blocks.push({ kind: 'stamps', count: section.stamps })
-    else if (section.items?.length) blocks.push({ kind: 'list', items: section.items.slice(0, MAX_ITEMS) })
+    if (section.items?.length) blocks.push({ kind: 'list', items: section.items.slice(0, MAX_ITEMS) })
   }
   const cut = rest.length > shown.length || result.sections.some((section) => (section.items?.length ?? 0) > MAX_ITEMS)
   if (cut) blocks.push({ kind: 'text', text: '나머지 내용은 휴대폰으로 받는 결과 카드에 모두 있어요.', small: true, center: true })

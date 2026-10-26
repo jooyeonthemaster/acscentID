@@ -310,9 +310,7 @@ export function mateResult(a: Answers, pick: MateType | undefined, recipe: Scent
     recipe,
     art: { src: mateArt(type), caption: p.tagline },
     metrics: (Object.keys(MATE_AXES) as MateAxis[]).map((axis) => ({ label: MATE_AXES[axis], value: Math.round((axes[axis] / top) * 10), max: 10 })),
-    // 레시피가 있는 영수증은 절 둘(AI 분석 + 하나)까지라 스탬프 랠리를 맨 앞에 둔다 — 도장 칸이 종이에 있어야 한다
     sections: [
-      { title: '스탬프 랠리', body: '이 영수증을 들고 행사장 다른 부스를 둘러보세요. 아래 빈칸에 부스 도장을 모아 보세요.', stamps: 3 },
       { title: `잘 맞는 이웃 · ${partner.name}`, body: p.matchWhy },
       { title: '어울리는 우리 집', body: `${josa(p.name, '은/는')} 이런 주거 모델에서 편안해요.`, items: p.homes },
       { title: '오늘 해 볼 것', body: p.try },

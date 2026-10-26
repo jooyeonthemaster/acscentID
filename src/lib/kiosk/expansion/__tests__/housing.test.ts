@@ -99,7 +99,7 @@ test('향 처방 결과 · 영수증 — 레시피 상자가 머리 바로 아�
   assert.ok(rule.blocks[0].kind === 'recipe' && /기본/.test(rule.blocks[0].label))
 })
 
-test('성향 향수 — 성향은 여섯 중 하나, 잘 맞는 이웃은 다른 성향, 레시피가 있어도 영수증에 스탬프 랠리 칸이 남는다', () => {
+test('성향 향수 — 성향은 여섯 중 하나, 잘 맞는 이웃은 다른 성향, 영수증은 레시피 상자 다음 AI 분석·잘 맞는 이웃', () => {
   for (const type of MATE_TYPES) assert.notEqual(MATE_PROFILES[type].match, type)
   const allFirst = Object.fromEntries(MATE_QUESTIONS.map((q) => [q.key, q.options[0].id]))
   const allSecond = Object.fromEntries(MATE_QUESTIONS.map((q) => [q.key, q.options[1].id]))
@@ -110,7 +110,7 @@ test('성향 향수 — 성향은 여섯 중 하나, 잘 맞는 이웃은 다른
   assert.ok(result.recipe)
   const withAi = { ...result, sections: [{ title: 'AI 분석 · 한 줄', body: '풀이' }, ...result.sections] }
   const headings = expansionReceipt('housing-mate', withAi).blocks.filter((b) => b.kind === 'heading').map((b) => (b as { text: string }).text)
-  assert.ok(headings.includes('스탬프 랠리'), headings.join(' / '))
+  assert.ok(headings.some((h) => h.startsWith('잘 맞는 이웃')), headings.join(' / '))
   assert.equal(expansionReceipt('housing-mate', withAi).blocks[0].kind, 'recipe')
 })
 
@@ -163,12 +163,35 @@ test('그림 에셋 — 키오스크 3종·포토부스 3종의 모든 선택지
   assert.equal(urls.length, 31 + 32 + 4 + 2 + 6 + 3 + 1)
 })
 
-test('성향 향수 결과 — 캐릭터 그림과 도장 칸 셋(영수증에는 점선 원 블록)', () => {
+test('성향 향수 결과 — 캐릭터 그림', () => {
   const result = mateResult(Object.fromEntries(MATE_QUESTIONS.map((q) => [q.key, q.options[0].id])), 'quiet', mateRuleRecipe('quiet'))
   assert.match(result.art?.src ?? '', /housing-mate-quiet\.webp$/)
-  assert.equal(result.sections.find((s) => s.title === '스탬프 랠리')?.stamps, 3)
   const receipt = expansionReceipt('housing-mate', result)
-  assert.ok(receipt.blocks.some((b) => b.kind === 'stamps' && b.count === 3))
   assert.ok(receipt.blocks.some((b) => b.kind === 'image' && /housing-mate-quiet/.test(b.src)))
   assert.ok(expansionReceipt('housing-scent', scentResult(scent(), scentRuleRecipe(scent()))).blocks.some((b) => b.kind === 'image' && /housing-receipt-room/.test(b.src)))
+})
+
+test('제안서(2026-10-26) — NEXT! AI 분석 요청·검사: 직업은 규칙 그대로, 관상은 외모 판정 금지', async () => {
+  const { buildCareerPrompt, readCareerAiRequest, validateCareerAi } = await import('@/lib/kiosk/career-ai')
+  assert.equal(readCareerAiRequest({ careers: [] }), null)
+  const req = readCareerAiRequest({ lang: 'ko', photo: null, interests: ['그리기 · 꾸미기'], mbti: 'ENFP', answers: [{ label: '쉬는 날', value: '그림 그리기' }], careers: [{ name: '브랜드 디자이너', desc: '브랜드의 얼굴을 만들어요' }], traits: [] })!
+  assert.equal(req.mbti, 'ENFP')
+  assert.match(buildCareerPrompt(req), /이 순서·이름 그대로/)
+  const base = { headline: '그리는 손이 향하는 곳', insight: '그리기와 꾸미기를 고르시고 쉬는 날에도 그림을 그리신다고 하셔서, 브랜드의 첫인상을 만드는 일을 먼저 탐색해 보시면 좋겠어요.', photo: [], tips: ['좋아하는 로고 세 개를 모아 보세요.', '동네 가게 간판을 다시 그려 보세요.'] }
+  assert.equal(validateCareerAi(base, req).tips.length, 2)
+  assert.throws(() => validateCareerAi({ ...base, insight: base.insight + ' 잘생긴 얼굴이 돋보여요.' }, req), /외모/)
+  assert.throws(() => validateCareerAi({ ...base, insight: base.insight + ' 차분한 눈매에서 따뜻함이 느껴져요.' }, req), /이목구비/)
+})
+
+test('제안서(2026-10-26) — 포토부스 코멘트: 대상 프로그램 셋, 검사와 기본 문구, 과거로의 여행 배경', async () => {
+  const { fallbackComment, hasComment, parseComment } = await import('@/lib/booth/programs/comment')
+  const { PROGRAMS, findProgram } = await import('@/lib/booth/programs/catalog')
+  assert.deepEqual(PROGRAMS.filter(hasComment).map((p) => p.id).sort(), ['history', 'housing-2046', 'housing-movein'])
+  assert.equal(parseComment({ comment: '"햇살 가득한 새 집, 첫날을 축하해요"' }), '햇살 가득한 새 집, 첫날을 축하해요')
+  assert.throws(() => parseComment({ comment: 'hi' }))
+  assert.throws(() => parseComment({ comment: '날씬한 모습이 새 집과 어울려요' }), /외모/)
+  const history = findProgram('history')!
+  assert.equal(history.name, '과거로의 여행')
+  assert.deepEqual(history.options.groups.find((g) => g.id === 'scene')!.options.map((o) => o.label), ['궁궐', '정원', '별빛 마당'])
+  assert.match(fallbackComment(history, { scene: '별빛 마당' }), /별빛 마당/)
 })

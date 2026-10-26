@@ -179,8 +179,7 @@ export interface ChoiceOption { id: string; label: string; note?: string; color?
 export interface Question { key: string; title: string; note?: string; type: 'single' | 'multi' | 'scale'; options?: ChoiceOption[]; min?: number; max?: number; step?: number; initial?: number; required?: boolean; unit?: string }
 export interface QuestionStep { title: string; note?: string; questions: Question[] }
 export interface PreferenceDefinition { id: PreferenceId; headline: string; description: string; guide: string[]; steps: QuestionStep[]; resultLabel: string; footnote?: string }
-/** stamps — 도장 빈칸 수(스탬프 랠리): 화면·영수증이 목록 대신 점선 원을 그린다 */
-export interface ResultSection { title: string; body: string; items?: string[]; stamps?: number }
+export interface ResultSection { title: string; body: string; items?: string[] }
 export interface ResultMetric { label: string; value: number; max: number; color?: string }
 /** recipe — 조향 레시피(주거복지대전 3종, recipe.ts). 있으면 화면·카드·영수증이 레시피 칸을 먼저 그린다
  *  art — 결과를 대표하는 그림(성향 캐릭터 등, AI 합성이 아닌 준비된 그림). 결과 카드 머리와 영수증 그림에 쓴다 */

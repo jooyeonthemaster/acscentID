@@ -19,6 +19,8 @@ export interface PrintInput {
   choices: Record<string, string>
   /** 고른 옵션 이름(그룹 id → 이름) */
   labels: Record<string, string>
+  /** AI 코멘트 한 줄(주거복지대전 3종·과거로의 여행 — 2026-10-26 제안서 '코멘트 및 사진 인쇄') */
+  comment?: string
 }
 
 type Ctx = CanvasRenderingContext2D
@@ -251,21 +253,25 @@ const DESIGNS: Record<string, [Design, Design]> = {
     },
   ],
   history: [
-    (ctx, { result, labels }) => {
+    (ctx, { result, labels, comment }) => {
       paper(ctx, '#efe2c8', 'rgba(120,70,30,0.09)', 2200)
       ctx.save(); shadow(ctx, 24); rect(ctx, 90, 120, 1020, 1400, '#f7eedb'); ctx.restore()
       photoClip(ctx, result, 120, 150, 960, 1340, 0, 0.25)
       text(ctx, 'TIME!', PRINT_W / 2, 1650, `900 120px ${P()}`, '#b23a2a')
-      text(ctx, `${labels.role ?? ''} · ${labels.scene ?? ''} — 역사에서 영감을 받은 상상화`, PRINT_W / 2, 1720, `700 34px ${G()}`, '#5b3a22')
+      if (comment) {
+        fitText(ctx, comment, PRINT_W / 2, 1712, 900, 40, G(), '#5b3a22', '700')
+        text(ctx, `${labels.role ?? ''} · ${labels.scene ?? ''} — 역사에서 영감을 받은 상상화`, PRINT_W / 2, 1765, `600 26px ${G()}`, '#8a6a4a')
+      } else text(ctx, `${labels.role ?? ''} · ${labels.scene ?? ''} — 역사에서 영감을 받은 상상화`, PRINT_W / 2, 1720, `700 34px ${G()}`, '#5b3a22')
       seal(ctx, 1040, 1620, 90, '時')
     },
-    (ctx, { result }) => {
+    (ctx, { result, comment }) => {
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#3d2a1c')
       rect(ctx, 0, 0, PRINT_W, 90, '#8a5a32'); rect(ctx, 0, PRINT_H - 90, PRINT_W, 90, '#8a5a32')
       paper(ctx, 'rgba(0,0,0,0)', 'rgba(0,0,0,0)', 0)
       rect(ctx, 130, 130, 940, 1540, '#f3e6cb')
       photoClip(ctx, result, 170, 230, 860, 1180, 0, 0.25)
-      text(ctx, '꽃이 피는 역사 속에서도, 나는 있었다', PRINT_W / 2, 1520, `52px ${S()}`, '#5b3a22')
+      // 코멘트가 있으면 고정 문구 대신 AI 코멘트(손글씨체)
+      fitText(ctx, comment ?? '꽃이 피는 역사 속에서도, 나는 있었다', PRINT_W / 2, 1520, 860, 52, S(), '#5b3a22')
       seal(ctx, PRINT_W / 2, 1600, 70, '畵')
     },
   ],
@@ -392,7 +398,7 @@ const DESIGNS: Record<string, [Design, Design]> = {
   ],
   // ── 주거복지대전 3종 ──
   'housing-movein': [
-    (ctx, { result, labels }) => {
+    (ctx, { result, labels, comment }) => {
       // 입주 기념 액자 — 크림 바탕 · 하늘색 이중 테두리 · 아래 기념 문구
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#f7f1e6')
       stroke(ctx, 40, 40, 1120, 1720, '#2f6f9f', 6)
@@ -402,10 +408,11 @@ const DESIGNS: Record<string, [Design, Design]> = {
       ctx.beginPath(); ctx.moveTo(PRINT_W / 2 - 90, 92); ctx.lineTo(PRINT_W / 2, 50); ctx.lineTo(PRINT_W / 2 + 90, 92); ctx.stroke(); ctx.restore()
       text(ctx, 'MOVE IN!', PRINT_W / 2, 230, `150px ${A()}`, '#2f6f9f')
       photoClip(ctx, result, 110, 270, 980, 1170, 10, 0.3)
-      text(ctx, '입주를 축하합니다', PRINT_W / 2, 1560, `700 72px ${G()}`, '#1f3f5a')
-      text(ctx, `${labels.home ?? ''} · ${today()}`, PRINT_W / 2, 1650, `700 38px ${G()}`, '#5b7d97')
+      text(ctx, '입주를 축하합니다', PRINT_W / 2, 1545, `700 68px ${G()}`, '#1f3f5a')
+      if (comment) fitText(ctx, comment, PRINT_W / 2, 1625, 980, 42, G(), '#2f6f9f', '700')
+      text(ctx, `${labels.home ?? ''} · ${today()}`, PRINT_W / 2, comment ? 1690 : 1650, `700 ${comment ? 32 : 38}px ${G()}`, '#5b7d97')
     },
-    (ctx, { result }) => {
+    (ctx, { result, comment }) => {
       // 우리 집 프레임 — 사진을 지붕 있는 집 모양으로
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#dcebf5')
       for (let i = 0; i < 7; i++) rect(ctx, 0, 1480 + i * 48, PRINT_W, 24, i % 2 ? '#cfe3c4' : '#bcd8ae')
@@ -421,8 +428,9 @@ const DESIGNS: Record<string, [Design, Design]> = {
       ctx.restore()
       ctx.save(); ctx.strokeStyle = '#c4553a'; ctx.lineWidth = 34; ctx.lineJoin = 'round'
       ctx.beginPath(); ctx.moveTo(x - 50, top + roof + 14); ctx.lineTo(PRINT_W / 2, top - 10); ctx.lineTo(x + w + 50, top + roof + 14); ctx.stroke(); ctx.restore()
-      text(ctx, 'Welcome Home', PRINT_W / 2, 1640, `96px ${S()}`, '#1f3f5a')
-      text(ctx, `우리 집 첫날 · ${today()}`, PRINT_W / 2, 1730, `700 36px ${G()}`, '#2f6f9f')
+      text(ctx, 'Welcome Home', PRINT_W / 2, comment ? 1610 : 1640, `${comment ? 84 : 96}px ${S()}`, '#1f3f5a')
+      if (comment) fitText(ctx, comment, PRINT_W / 2, 1685, 980, 40, G(), '#1f3f5a', '700')
+      text(ctx, `우리 집 첫날 · ${today()}`, PRINT_W / 2, comment ? 1750 : 1730, `700 ${comment ? 30 : 36}px ${G()}`, '#2f6f9f')
     },
   ],
   'housing-cover': [
@@ -456,7 +464,7 @@ const DESIGNS: Record<string, [Design, Design]> = {
     },
   ],
   'housing-2046': [
-    (ctx, { result, labels }) => {
+    (ctx, { result, labels, comment }) => {
       // 미래 주민 카드 — 재미로 만든 가상 카드(공식 신분증처럼 보이지 않게 '재미로 만든 카드'를 적는다)
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#0f2b3a')
       const glow = ctx.createRadialGradient(PRINT_W * 0.8, 200, 50, PRINT_W * 0.8, 200, 900)
@@ -465,21 +473,25 @@ const DESIGNS: Record<string, [Design, Design]> = {
       text(ctx, '2046!', 80, 200, `170px ${A()}`, '#5eead4', 'left')
       text(ctx, 'FUTURE RESIDENT CARD', 86, 268, `38px ${A()}`, '#d8fbf4', 'left', (c) => { c.letterSpacing = '8px' })
       ctx.save(); shadow(ctx, 40, 'rgba(0,0,0,0.45)'); rect(ctx, 80, 330, 1040, 1300, '#f4fbfa', 36); ctx.restore()
-      photoClip(ctx, result, 120, 370, 960, 960, 24, 0.25)
-      text(ctx, '미래 도시 주민', 130, 1430, `700 40px ${G()}`, '#1d8a78', 'left')
-      fitText(ctx, labels.city ?? '', 130, 1510, 620, 72, G(), '#0f2b3a', '700', 'left')
-      text(ctx, `입주 2046 · 발급 ${today()}`, 130, 1580, `30px ${A()}`, '#4b6b74', 'left', (c) => { c.letterSpacing = '4px' })
+      // 코멘트가 있으면 사진을 조금 줄여 카드 아래에 한 줄(주민 카드 '코멘트')
+      const ph = comment ? 880 : 960, base = 370 + ph
+      photoClip(ctx, result, 120, 370, 960, ph, 24, 0.25)
+      text(ctx, '미래 도시 주민', 130, base + 100, `700 40px ${G()}`, '#1d8a78', 'left')
+      fitText(ctx, labels.city ?? '', 130, base + 180, 620, 72, G(), '#0f2b3a', '700', 'left')
+      text(ctx, `입주 2046 · 발급 ${today()}`, 130, base + 245, `30px ${A()}`, '#4b6b74', 'left', (c) => { c.letterSpacing = '4px' })
       ctx.save(); ctx.strokeStyle = '#1d8a78'; ctx.lineWidth = 6
-      ctx.beginPath(); ctx.arc(1000, 1490, 80, 0, Math.PI * 2); ctx.stroke(); ctx.restore()
-      text(ctx, '2046', 1000, 1505, `44px ${A()}`, '#1d8a78')
+      ctx.beginPath(); ctx.arc(1000, base + 160, 80, 0, Math.PI * 2); ctx.stroke(); ctx.restore()
+      text(ctx, '2046', 1000, base + 175, `44px ${A()}`, '#1d8a78')
+      if (comment) fitText(ctx, `“${comment}”`, PRINT_W / 2, base + 325, 960, 40, G(), '#1d8a78', '700')
       text(ctx, '재미로 만든 미래 주민 카드 · AI가 만든 창작 이미지예요', PRINT_W / 2, 1720, `700 30px ${G()}`, '#9fd8cd')
     },
-    (ctx, { result, labels }) => {
+    (ctx, { result, labels, comment }) => {
       // 미래 도시 포스터 — 사진 전면 + 큰 연도
       cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
       const fade = ctx.createLinearGradient(0, PRINT_H - 700, 0, PRINT_H)
       fade.addColorStop(0, 'rgba(8,30,40,0)'); fade.addColorStop(1, 'rgba(8,30,40,0.85)')
       ctx.fillStyle = fade; ctx.fillRect(0, PRINT_H - 700, PRINT_W, 700)
+      if (comment) fitText(ctx, comment, PRINT_W / 2, PRINT_H - 520, 1040, 46, G(), '#ffffff', '700', 'center', (c) => shadow(c, 14, 'rgba(0,0,0,0.5)'))
       text(ctx, '2046', PRINT_W / 2, PRINT_H - 250, `300px ${A()}`, 'rgba(255,255,255,0.92)', 'center', (c) => { c.letterSpacing = '20px' })
       text(ctx, `${labels.city ?? ''} · SEE YOU IN 2046`, PRINT_W / 2, PRINT_H - 150, `40px ${A()}`, '#5eead4', 'center', (c) => { c.letterSpacing = '6px' })
       text(ctx, 'AI가 만든 창작 이미지예요', PRINT_W / 2, PRINT_H - 80, `700 30px ${G()}`, '#d8fbf4')

@@ -37,13 +37,14 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'studio-skin', tag: 'SKIN!', name: '스킨케어', desc: '피부 상태를 체크하고 아침 · 저녁 루틴을 직접 고쳐 만듭니다.', needs: ['touch'], group: 'studio', color: '#426b58' },
   { mode: 'studio-draw', tag: 'DRAW!', name: '캐리커처', desc: '사진을 선화 · 수채화 · 코믹 세 가지 화풍의 그림으로 바꿉니다. 여럿이 함께 찍어도 됩니다.', needs: ['camera', 'ai'], group: 'studio', color: '#b34734' },
   { mode: 'studio-voice', tag: 'VOICE!', name: '보이스 체험', desc: '목소리를 녹음해 다람쥐 · 거인 · 외계인 같은 여덟 가지 필터로 들어 봅니다.', needs: ['mic'], group: 'studio', color: '#187b8d' },
-  { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '관심사 · MBTI · 재미로 보는 관상으로 어울리는 직업을 찾아 줍니다.', needs: ['touch', 'camera'], group: 'studio', color: '#315ca8' },
+  { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '질문 여덟 개와 관상 사진을 AI가 함께 보고 탐색해 볼 직업과 가이드를 인쇄해 줍니다.', needs: ['touch', 'camera', 'analysis'], group: 'housing', color: '#315ca8' },
   { mode: 'studio-makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', desc: '내 얼굴에 립 · 아이 · 블러셔 · 헤어 색을 올려 보고 머리 모양도 바꿔 봅니다.', needs: ['camera', 'ai'], group: 'studio', color: '#754f70' },
   ...EXPANSION_IDS.map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
     // 체험 18종은 사진 한 장으로 시작하고 AI 가 분석한다. 6종(+ 2036 우리 집의 나)은 사진으로 새 그림까지 만든다(AI 생성)
     // 주거복지 내비게이터·성향 테스트는 사진 없이 질문만(NO_PHOTO_IDS)
     needs: (NO_PHOTO_IDS as readonly string[]).includes(id) ? ['touch', 'analysis'] : ['camera', usesImage(id) ? 'ai' : 'analysis', ...(['product','heritage','vision-wall'].includes(id) ? ['display' as const] : [])],
-    group: id.startsWith('housing-') ? 'housing' : ['science','product','heritage','vision-wall'].includes(id) ? 'interactive' : ['team','couple','lookalike','palm','face'].includes(id) ? 'social' : 'preferences',
+    // 주거복지대전 제안서(2026-10-26) 묶음: 향 처방 · 제품 인터랙티브(TOUCH!) · 비전 월(VISION!) + 직업 탐색(NEXT!, 위)
+    group: ['housing-scent', 'product', 'vision-wall'].includes(id) ? 'housing' : id.startsWith('housing-') ? 'preferences' : ['science','heritage'].includes(id) ? 'interactive' : ['team','couple','lookalike','palm','face'].includes(id) ? 'social' : 'preferences',
   })),
 ]
 

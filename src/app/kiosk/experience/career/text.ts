@@ -52,6 +52,13 @@ export interface CareerText {
   save: string
   saveTitle: string
   resultFoot: string
+  /** AI 분석(2026-10-26 주거복지대전 제안서) — 대기 · 결과 · 인쇄 */
+  aiWait: string
+  aiWaitSub: string
+  aiSkip: string
+  aiTitle: string
+  print: string
+  receiptCareers: string
   cardLabel: string
 }
 
@@ -73,7 +80,7 @@ const ko: CareerText = {
   },
   faceTitle: ['마지막으로,', '관상도 볼까요?'],
   faceSub: '재미로 보는 인상 읽기예요',
-  facePrivacy: '사진은 이 기기 안에서만 보고 저장하지 않아요.',
+  facePrivacy: '사진은 AI 분석에만 쓰고 저장하지 않아요.',
   faceShoot: '관상 보기',
   faceSkip: '건너뛰기',
   faceReading: '인상을 읽고 있어요…',
@@ -144,6 +151,7 @@ const ko: CareerText = {
   save: '탐색 가이드 저장',
   saveTitle: '탐색 가이드 받기',
   resultFoot: '재미로 보는 탐색 · 적성 검사가 아니에요',
+  aiWait: 'AI가 나의 다음 가능성을 읽고 있어요', aiWaitSub: '고른 활동과 답, 관상을 함께 보고 있어요 · 보통 5~10초', aiSkip: '기다리지 않고 결과 보기', aiTitle: 'AI 분석', print: '인쇄하기', receiptCareers: '탐색해 볼 직업',
   cardLabel: '나의 직업 탐색 가이드',
 }
 
@@ -165,7 +173,7 @@ const en: CareerText = {
   },
   faceTitle: ['Lastly,', 'a face reading?'],
   faceSub: 'A playful read of your features, just for fun',
-  facePrivacy: 'Your photo stays on this device and is not saved.',
+  facePrivacy: 'Your photo is used only for the AI reading and is not stored.',
   faceShoot: 'Read my face',
   faceSkip: 'Skip',
   faceReading: 'Reading your features…',
@@ -236,6 +244,7 @@ const en: CareerText = {
   save: 'Save my guide',
   saveTitle: 'Get my guide',
   resultFoot: 'A playful exploration · not an aptitude test',
+  aiWait: 'AI is reading your next possibilities', aiWaitSub: 'Looking at your picks, answers and face reading · about 5–10 s', aiSkip: 'Skip and see results', aiTitle: 'AI insight', print: 'Print', receiptCareers: 'Careers to explore',
   cardLabel: 'My career exploration guide',
 }
 
@@ -257,7 +266,7 @@ const ja: CareerText = {
   },
   faceTitle: ['最後に、', '人相も見てみますか？'],
   faceSub: '遊び感覚で顔の印象を読みます',
-  facePrivacy: '写真はこの端末の中だけで読み取り、保存しません。',
+  facePrivacy: '写真はAI分析にだけ使い、保存しません。',
   faceShoot: '人相を見る',
   faceSkip: 'スキップ',
   faceReading: '印象を読み取っています…',
@@ -328,6 +337,7 @@ const ja: CareerText = {
   save: '探索ガイドを保存',
   saveTitle: '探索ガイドを受け取る',
   resultFoot: '遊び感覚の探索 · 適性検査ではありません',
+  aiWait: 'AIがあなたの次の可能性を読んでいます', aiWaitSub: '選んだ活動・回答・人相をあわせて見ています · 5〜10秒ほど', aiSkip: '待たずに結果を見る', aiTitle: 'AI分析', print: '印刷する', receiptCareers: '探ってみたい職業',
   cardLabel: 'あなたの職業探索ガイド',
 }
 
@@ -349,7 +359,7 @@ const zhHans: CareerText = {
   },
   faceTitle: ['最后，', '也来看看面相？'],
   faceSub: '纯属趣味的印象解读',
-  facePrivacy: '照片只在这台设备内查看，不会保存。',
+  facePrivacy: '照片仅用于 AI 分析，不会保存。',
   faceShoot: '看面相',
   faceSkip: '跳过',
   faceReading: '正在解读印象…',
@@ -420,6 +430,7 @@ const zhHans: CareerText = {
   save: '保存探索指南',
   saveTitle: '领取探索指南',
   resultFoot: '趣味探索 · 并非能力倾向测验',
+  aiWait: 'AI 正在解读你的下一种可能', aiWaitSub: '正在结合你选的活动、回答和面相 · 约 5–10 秒', aiSkip: '不等了，直接看结果', aiTitle: 'AI 分析', print: '打印', receiptCareers: '可以探索的职业',
   cardLabel: '你的职业探索指南',
 }
 
@@ -441,7 +452,7 @@ const zhHant: CareerText = {
   },
   faceTitle: ['最後，', '也來看看面相？'],
   faceSub: '純屬趣味的印象解讀',
-  facePrivacy: '照片只在這台裝置內查看，不會儲存。',
+  facePrivacy: '照片僅用於 AI 分析，不會保存。',
   faceShoot: '看面相',
   faceSkip: '略過',
   faceReading: '正在解讀印象…',
@@ -512,6 +523,7 @@ const zhHant: CareerText = {
   save: '儲存探索指南',
   saveTitle: '領取探索指南',
   resultFoot: '趣味探索 · 並非性向測驗',
+  aiWait: 'AI 正在解讀你的下一種可能', aiWaitSub: '正在結合你選的活動、回答和面相 · 約 5–10 秒', aiSkip: '不等了，直接看結果', aiTitle: 'AI 分析', print: '列印', receiptCareers: '可以探索的職業',
   cardLabel: '你的職業探索指南',
 }
 

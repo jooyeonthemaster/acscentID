@@ -118,3 +118,14 @@
 .crr-clue-sheet li { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 12px; font-size: 15.5px; line-height: 1.4; }
 .crr-clue-sheet li b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dfeafd; color: #1946cd; font-size: 15px; font-weight: 900; }
 .crr-clue-sheet li strong { display: block; font-weight: 800; }
+
+/* AI 분석(2026-10-26 주거복지대전 제안서) — 대기 화면 · 결과 풀이 · 저장/인쇄 두 버튼 */
+.crr-ai-wait { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding-top: 18px; }
+.crr-ai-wait img { width: 78%; max-width: 360px; aspect-ratio: 1; object-fit: contain; }
+.crr-ai { margin: 6px 0 12px; padding: 16px 18px; border-radius: 18px; background: #eef3ff; border: 1.5px solid #c9d6ff; display: grid; gap: 6px; }
+.crr-ai em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-size: 13px; font-weight: 800; color: #1946cd; }
+.crr-ai b { font-size: 18px; font-weight: 800; color: #10358f; line-height: 1.4; }
+.crr-ai p { font-size: 14px; line-height: 1.7; color: #33415f; }
+.crr-ai ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.7; color: #4a5f8f; }
+.crr-take { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.crr-take .kx-btn { min-height: 64px; font-size: 19px; white-space: nowrap; gap: 8px; padding-inline: 10px; }

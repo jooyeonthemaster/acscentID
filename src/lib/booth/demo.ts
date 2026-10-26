@@ -60,7 +60,8 @@ export const BOOTH_DEMOS: BoothDemo[] = [
       ? ['camera', 'ai', ...(p.capture.people > 1 ? ['two' as const] : []), 'print']
       : p.kind === 'mv' ? ['camera', 'mic', 'video', 'qr'] : ['phone', 'video', 'qr'],
     badges: p.card.badges,
-    group: p.id.startsWith('housing-') ? 'housing' : p.kind === 'photo' ? 'photo' : 'video',
+    // 주거복지대전 제안서(2026-10-26) 묶음: 입주 기념사진 · 2046 미래 도시 주민 · 과거로의 여행(TIME!)
+    group: ['housing-movein', 'housing-2046', 'history'].includes(p.id) ? 'housing' : p.kind === 'photo' ? 'photo' : 'video',
     color: p.card.color,
     screen: shot(`program-${p.id}`),
   })),

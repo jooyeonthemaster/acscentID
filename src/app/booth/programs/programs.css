@@ -587,3 +587,6 @@ canvas.pg-cam-video { transform: none; }
 .pg-group--chips .pg-opt--art .pg-opt-label { padding: 0; }
 .pg .pg-group--chips .pg-opt--art[aria-checked='true'] { background: color-mix(in srgb, var(--pg-accent) 12%, var(--pg-surface)); color: inherit; }
 .pg-opt--art .pg-opt-check { top: 6px; right: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
+/* AI 코멘트(주거복지대전 제안서 '코멘트 및 사진 인쇄') — 결과 패널 제목 아래 한 줄 */
+.pg-comment { margin: 4px 0 10px; padding: 10px 14px; border-radius: var(--pg-radius); background: color-mix(in srgb, var(--pg-accent) 10%, var(--pg-surface)); color: var(--pg-ink); font-size: 16px; font-weight: 700; line-height: 1.5; }
+.pg-comment span { color: var(--pg-accent); font-size: 20px; }

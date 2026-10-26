@@ -9,9 +9,13 @@ import './booth-demo.css'
 // AI 아이돌 사진은 진짜로 만든다(1분 3장·하루 40장 상한 — src/lib/booth/demo-server.ts).
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/photobooth-demo.md
 
+/** 주거복지 묶음은 제안서(2026-10-26) 순서 — 입주 기념사진 · 2046 미래 도시 주민 · 과거로의 여행 */
+const HOUSING_ORDER = ['housing-movein', 'housing-2046', 'history']
+const order = (mode: string) => { const i = HOUSING_ORDER.indexOf(mode); return i < 0 ? 99 : i }
+
 const GROUPS: { id: BoothDemo['group']; title: string; short: string; note: string }[] = [
   { id: 'photo', title: 'AI 사진 프로그램', short: 'AI 사진', note: '런웨이 · 패션 타임머신 · 졸업 · 한복 · 웨딩 · 초상화 — 한 컷을 찍으면 프로그램마다 다른 화면과 인화 디자인으로 AI 사진을 만들어 4×6 인화와 QR로 줍니다' },
-  { id: 'housing', title: '주거복지 · 공공 행사', short: '주거복지', note: '2026 대한민국 주거복지대전에 맞춘 AI 사진 — 가족·친구와 함께 찍는 입주 기념사진 · 드림하우스 매거진 표지 · 2046 미래 도시 주민 카드' },
+  { id: 'housing', title: '주거복지 · 공공 행사', short: '주거복지', note: '2026 대한민국 주거복지대전 AI 체험존 — 입주 기념사진 · 2046 미래 도시 주민 카드 · 과거로의 여행. 사진(4×6)과 AI 코멘트를 함께 인화합니다' },
   { id: 'video', title: '영상 프로그램', short: '영상', note: '15초 뮤직비디오와 사진 5~20장으로 만드는 추억 영상 — 부스에서 편집해 QR로 휴대폰에 받습니다(AI 영상이 아닌 편집 영상)' },
   { id: 'idol', title: 'AI 아이돌 포토', short: 'AI 아이돌', note: '한 컷을 찍으면 내 얼굴 그대로 K-POP 아이돌 컨셉 사진을 만들어 4×6으로 인화합니다' },
 ]
@@ -110,7 +114,7 @@ export function BoothDemoLanding({ clean = false }: { clean?: boolean }) {
 
         <div id="demos" className="bd-demos">
           {GROUPS.map((group) => {
-            const demos = BOOTH_DEMOS.filter((demo) => demo.group === group.id)
+            const demos = BOOTH_DEMOS.filter((demo) => demo.group === group.id).sort((a, b) => order(a.mode) - order(b.mode))
             return (
               <section key={group.id} id={`bd-${group.id}`} className="bd-group" aria-labelledby={`bd-${group.id}-title`}>
                 <div className="bd-group-head">

@@ -80,7 +80,7 @@ const MODE: Record<ExpansionId, { role: string; rules: string[] }> = {
 }
 
 /** 어떤 체험에서도 쓰면 안 되는 말 — 들어가면 그 이유를 붙여 다시 받는다 */
-const FORBIDDEN: [RegExp, string][] = [
+export const FORBIDDEN: [RegExp, string][] = [
   [/연예인|아이돌|배우 [가-힣]{2,3}|닮았|닮은 사람/, '실존 인물·닮은 사람 언급'],
   [/생명선|수명|단명|장수할|팔자|운명이 정해|재물운/, '손금·운명·수명 판정'],
   [/잘생|못생|뚱뚱|날씬|체형이|살이 쪄|피부색|피부 ?톤|피부결|인종|나이 들어 보|어려 보/, '외모·피부·체형·나이 평가'],

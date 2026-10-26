@@ -131,4 +131,5 @@ export const noteGrams = (n: RecipeNote) => `${n.g.toFixed(2)}g`
 export const noteDetail = (n: RecipeNote) => `${n.ratio}% · ${n.ml.toFixed(2)}ml`
 export const noteAmount = (n: RecipeNote) => `${noteGrams(n)} (${noteDetail(n)})`
 export const RECIPE_STEPS = ['레시피의 향료를 순서대로 계량해요.', '퍼퓸 베이스와 섞은 뒤 가볍게 흔들어요.', '서늘하고 어두운 곳에서 하루 이상 숙성하면 더 잘 어우러져요.']
-export const RECIPE_COUNTER = '이 영수증을 조향 스태프에게 보여 주시면 적힌 레시피대로 만들어 드려요.'
+/** 2026-10-26 주거복지대전 제안서: 결과물은 '레시피 인쇄 + 향수 10ml 증정품' */
+export const RECIPE_COUNTER = '이 영수증을 조향 스태프에게 보여 주시면 레시피대로 향수 10ml를 만들어 드려요(증정).'

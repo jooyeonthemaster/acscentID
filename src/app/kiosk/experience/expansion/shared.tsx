@@ -140,7 +140,7 @@ export function ResultPanel({ result }: { result: ExperienceResult }) {
     {result.recipe && <RecipePanel recipe={result.recipe} />}
     {!!result.palette?.length && <div className="ex-palette">{result.palette.map((color, i) => <div key={`${color}-${i}`}><span style={{ background: color }} /><small>{color}</small></div>)}</div>}
     {!!result.metrics?.length && <div className="ex-panel ex-metrics"><MetricChart result={result} /><div className="ex-stack">{result.metrics.map(m => <div key={m.label} className="ex-metric"><span>{m.label}<b>{m.value}<small> / {m.max}</small></b></span><meter min={0} max={m.max} value={m.value} style={{ accentColor: m.color }}>{m.value}</meter></div>)}</div></div>}
-    {result.sections.map((section, i) => <section className="ex-panel" key={`${section.title}-${i}`}><h3>{section.title}</h3><p>{section.body}</p>{section.stamps ? <div className="ex-stamps" aria-label={`도장 칸 ${section.stamps}개`}>{Array.from({ length: section.stamps }, (_, n) => <span key={n} />)}</div> : section.items?.length ? <ul className="ex-detail-list">{section.items.map((item, n) => <li key={n}>{item}</li>)}</ul> : null}</section>)}
+    {result.sections.map((section, i) => <section className="ex-panel" key={`${section.title}-${i}`}><h3>{section.title}</h3><p>{section.body}</p>{section.items?.length ? <ul className="ex-detail-list">{section.items.map((item, n) => <li key={n}>{item}</li>)}</ul> : null}</section>)}
     {result.footnote && <p className="ex-note">{result.footnote}</p>}
   </article>
 }

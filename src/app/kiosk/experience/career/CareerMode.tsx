@@ -2,14 +2,18 @@
 
 // 미래 직업 탐색(NEXT!) — 좋아하는 활동(8개 중 여럿) → MBTI(선택) → 상황 질문 다섯 개 → 관상(선택) → 탐색해 볼 직업 세 가지와 작은 첫 도전.
 // 목업 06-future-career. 관심사가 중심이고, MBTI·관상은 재미로 곁들이는 단서다(data.ts · face.ts).
-// 적성·미래를 단정하지 않는다 — 문구도 '탐색해 볼'·'첫 도전'·'재미로 보는'으로 쓴다. 관상 사진은 기기 안에서만 보고 남기지 않는다.
+// 적성·미래를 단정하지 않는다 — 문구도 '탐색해 볼'·'첫 도전'·'재미로 보는'으로 쓴다.
+// 2026-10-26 주거복지대전 제안서(질문 → 관상 찍기(AI 분석) → 사진 인화): 직업은 규칙이 고르고, AI(/api/kiosk/experience/career)가 사진·답을 보고 풀이를 쓴다.
+// 관상 사진은 AI 분석에만 보내고 저장하지 않는다. 결과는 영수증 인쇄(KxReceiptSheet)와 휴대폰 저장(KxSaveSheet) 둘 다.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import {
-  ArrowRight, CalendarDays, Check, Download, Ear, FlaskConical, Gift, GraduationCap, Hammer, HeartHandshake, Image as ImageIcon, Lightbulb, Megaphone, MessagesSquare, Palette, Presentation, Puzzle, ScanFace,
+  ArrowRight, CalendarDays, Check, Download, Printer, Ear, FlaskConical, Gift, GraduationCap, Hammer, HeartHandshake, Image as ImageIcon, Lightbulb, Megaphone, MessagesSquare, Palette, Presentation, Puzzle, ScanFace,
   Search, Sparkles, Users, X,
 } from 'lucide-react'
-import { KX_IDLE, KxCamView, KxFoot, KxHome, KxLang, KxPage, KxSaveSheet, KxSpinner, KxStart, KxSteps, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
+import { KX_IDLE, KxCamView, KxFoot, KxHome, KxLang, KxPage, KxReceiptSheet, KxSaveSheet, KxSpinner, KxStart, KxSteps, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
+import type { KxReceipt } from '../kx-receipt'
+import type { CareerAiAnalysis } from '@/lib/kiosk/career-ai'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, fillLines, fontsReady, kxFontFamily, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
 import { loadVision, photoCanvas, preloadVision } from '../kx-vision'
@@ -154,7 +158,7 @@ function FaceScan({ photo, reading }: { photo: string; reading: FaceReading | nu
 export default function CareerMode() {
   const { lang, t: k } = useKx()
   const t = kxText(CAREER_TEXT, lang)
-  const [step, setStep] = useState<'start' | 'ask' | 'face' | 'result'>('start')
+  const [step, setStep] = useState<'start' | 'ask' | 'face' | 'ai' | 'result'>('start')
   /** 0 = 활동 고르기(여러 개) · 1 = MBTI · 2~6 = 상황 질문 */
   const [index, setIndex] = useState(0)
   const [picks, setPicks] = useState<CareerInterest[]>([])
@@ -168,11 +172,15 @@ export default function CareerMode() {
   const [guideOpen, setGuideOpen] = useState(false)
   const [cluesOpen, setCluesOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [printing, setPrinting] = useState(false)
+  /** AI 분석 — 결과에 붙는 풀이(실패·건너뛰기면 null) */
+  const [analysis, setAnalysis] = useState<CareerAiAnalysis | null>(null)
+  const aiRun = useRef(0)
   const cam = useKxCamera(step === 'face' && !shot)
   const QUESTIONS_FROM = 2
   const lastAsk = QUESTIONS_FROM + CAREER_QUESTIONS.length - 1
 
-  useKxScreen(step === 'start' ? 'start' : shot || cam.countdown !== null ? 'busy' : saving || guideOpen || cluesOpen ? KX_IDLE.save : step === 'result' ? KX_IDLE.result : step === 'face' ? KX_IDLE.camera : KX_IDLE.step)
+  useKxScreen(step === 'start' ? 'start' : step === 'ai' || shot || cam.countdown !== null ? 'busy' : saving || guideOpen || cluesOpen ? KX_IDLE.save : step === 'result' ? KX_IDLE.result : step === 'face' ? KX_IDLE.camera : KX_IDLE.step)
 
   // 질문에 답하는 동안 얼굴 인식 도구를 조금씩 받아 둔다(관상 단계에서 기다리지 않게)
   useEffect(() => {
@@ -188,7 +196,33 @@ export default function CareerMode() {
     return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags) }]
   }, [result, t, clueTags])
 
-  /** 관상 — 찍은 사진에서 인상을 읽는다. 읽는 동안 특징점이 찍히는 것을 잠깐 보여 준 뒤 결과로 */
+  /** AI 분석 — 규칙이 고른 직업 셋과 답·관상 사진(있으면)을 보내 풀이를 받는다. 실패하거나 건너뛰면 풀이 없이 결과로 */
+  const analyze = useCallback(async (photo: string | null, faceTraits: FaceTrait[]) => {
+    const run = ++aiRun.current
+    setAnalysis(null)
+    setStep('ai')
+    const r = exploreCareers(picks, answers.map((a) => a ?? 0), mbti, faceTraits)
+    try {
+      const small = photo ? (await photoCanvas(photo, 768)).toDataURL('image/jpeg', 0.85) : null
+      const res = await fetch('/api/kiosk/experience/career', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(100_000),
+        body: JSON.stringify({
+          lang, photo: small, mbti,
+          interests: picks.map((id) => t.interests[id]),
+          answers: CAREER_QUESTIONS.map((_, i) => ({ label: t.questions[i].title.join(' '), value: answers[i] === null ? '' : t.questions[i].options[answers[i]!] })),
+          careers: r.careers.map((id) => ({ name: t.careers[id].name, desc: t.careers[id].desc })),
+          traits: faceTraits.map((trait) => t.traits[trait][0]),
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (run === aiRun.current && res.ok && data?.analysis) setAnalysis(data.analysis as CareerAiAnalysis)
+    } catch (error) {
+      console.error('[kiosk] 직업 탐색 AI 분석 실패:', error)
+    }
+    if (run === aiRun.current) setStep('result')
+  }, [picks, answers, mbti, lang, t])
+
+  /** 관상 — 찍은 사진에서 인상을 읽는다. 읽는 동안 특징점이 찍히는 것을 잠깐 보여 준 뒤 AI 분석으로 */
   const read = useCallback(async (photo: string) => {
     setShot(photo)
     setReading(null)
@@ -198,13 +232,13 @@ export default function CareerMode() {
       setNoFace(false)
       setReading(found)
       setTraits(found.traits)
-      window.setTimeout(() => { setShot(null); setStep('result') }, 2400)
+      window.setTimeout(() => { setShot(null); void analyze(photo, found.traits) }, 2400)
     } catch (error) {
       console.error('[kiosk] 얼굴을 읽지 못했습니다:', error)
       setNoFace(true)
       setShot(null)
     }
-  }, [])
+  }, [analyze])
 
   if (step === 'start') {
     return (
@@ -318,7 +352,7 @@ export default function CareerMode() {
             ? <p className="crr-alert" role="alert"><b>{t.faceFail[0]}</b>{t.faceFail[1]}</p>
             : <p className="crr-privacy">{t.facePrivacy}</p>}
         <div className="crr-face-actions">
-          <button type="button" className="kx-btn" disabled={Boolean(shot) || cam.countdown !== null} onClick={() => { setTraits([]); setStep('result') }}>{t.faceSkip}</button>
+          <button type="button" className="kx-btn" disabled={Boolean(shot) || cam.countdown !== null} onClick={() => { setTraits([]); void analyze(null, []) }}>{t.faceSkip}</button>
           <button type="button" className="kx-btn kx-btn--primary" disabled={Boolean(shot) || cam.state !== 'ready' || cam.countdown !== null} onClick={() => cam.shoot((photo) => void read(photo))}>
             <ScanFace size={26} strokeWidth={2} aria-hidden="true" />{t.faceShoot}
           </button>
@@ -328,8 +362,41 @@ export default function CareerMode() {
     )
   }
 
+  if (step === 'ai') {
+    return (
+      <KxPage name="career-ai">
+        {top}
+        <div className="crr-ai-wait" role="status" aria-live="polite">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/kiosk-experiences/career-hero.webp" alt="" draggable={false} />
+          <KxSpinner size={40} />
+          <h1 className="kx-title">{t.aiWait}</h1>
+          <p className="kx-desc">{t.aiWaitSub}</p>
+        </div>
+        <div className="kx-spacer" />
+        <button type="button" className="kx-btn kx-btn--wide" onClick={() => { aiRun.current++; setStep('result') }}>{t.aiSkip}</button>
+        <KxFoot>{t.faceDisclaimer}</KxFoot>
+      </KxPage>
+    )
+  }
+
   if (!result) return null
   const topCareer = result.careers[0]
+  /** 영수증 — 탐색해 볼 직업 셋 · AI 풀이 · 작은 첫 도전(QR 은 영수증 창이 붙인다) */
+  const receipt = (): KxReceipt => ({
+    tag: 'NEXT!', title: t.resultTitle, subtitle: t.tagline,
+    blocks: [
+      { kind: 'image', src: axisArt(CAREERS[topCareer].primary), width: 300, tone: 160 },
+      { kind: 'text', text: [...result.axes.slice(0, 2).map((axis) => `#${t.axes[axis]}`), ...clueTags.map((clue) => `#${clue}`)].join('  '), small: true, bold: true, center: true },
+      { kind: 'rule' }, { kind: 'heading', text: t.receiptCareers },
+      { kind: 'list', items: result.careers.map((id) => `${t.careers[id].name} — ${t.careers[id].desc}`) },
+      ...(analysis ? [{ kind: 'rule' as const }, { kind: 'heading' as const, text: `${t.aiTitle} · ${analysis.headline}` }, { kind: 'text' as const, text: analysis.insight }, { kind: 'list' as const, items: [...analysis.photo, ...analysis.tips] }] : []),
+      { kind: 'rule' }, { kind: 'heading', text: t.firstLabel }, { kind: 'text', text: t.careers[topCareer].first, bold: true },
+      { kind: 'list', items: t.guides[CAREERS[topCareer].primary] },
+      { kind: 'text', text: t.resultFoot, small: true, center: true },
+    ],
+    foot: t.facePrivacy,
+  })
   const hasClues = Boolean(mbti) || traits.length > 0
   return (
     <KxPage name="career-result">
@@ -341,7 +408,15 @@ export default function CareerMode() {
         {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
         {clueTags.map((clue) => <span key={clue} data-clue>{clue}</span>)}
       </p>
-      <ol className="crr-careers" data-tight={hasClues || undefined}>
+      {analysis && (
+        <section className="crr-ai" aria-label={t.aiTitle}>
+          <em><Sparkles size={16} strokeWidth={2} aria-hidden="true" />{t.aiTitle}</em>
+          <b>{analysis.headline}</b>
+          <p>{analysis.insight}</p>
+          {analysis.photo.length + analysis.tips.length > 0 && <ul>{[...analysis.photo, ...analysis.tips].map((line, i) => <li key={i}>{line}</li>)}</ul>}
+        </section>
+      )}
+      <ol className="crr-careers" data-tight={hasClues || Boolean(analysis) || undefined}>
         {result.careers.map((id) => {
           const career = CAREERS[id]
           return (
@@ -374,9 +449,14 @@ export default function CareerMode() {
         <button type="button" onClick={() => setGuideOpen(true)}>{t.guide}<ArrowRight size={16} strokeWidth={2.4} aria-hidden="true" /></button>
       </section>
       <div className="kx-spacer" />
-      <button type="button" className="kx-btn kx-btn--primary kx-btn--wide crr-next" onClick={() => setSaving(true)}>
-        <Download size={26} strokeWidth={2.2} aria-hidden="true" />{t.save}
-      </button>
+      <div className="crr-take">
+        <button type="button" className="kx-btn crr-next" onClick={() => setSaving(true)}>
+          <Download size={24} strokeWidth={2.2} aria-hidden="true" />{t.save}
+        </button>
+        <button type="button" className="kx-btn kx-btn--primary crr-next" onClick={() => setPrinting(true)}>
+          <Printer size={24} strokeWidth={2.2} aria-hidden="true" />{t.print}
+        </button>
+      </div>
       <KxFoot>{t.resultFoot}</KxFoot>
       {guideOpen && (
         <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={t.guideTitle} onPointerDown={(event) => { if (event.target === event.currentTarget) setGuideOpen(false) }}>
@@ -412,6 +492,7 @@ export default function CareerMode() {
         </div>
       )}
       <KxSaveSheet open={saving} cacheKey={`${lang}|${result.careers.join()}|${clueTags.join()}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
+      <KxReceiptSheet open={printing} cacheKey={`${lang}|${result.careers.join()}|${clueTags.join()}`} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
     </KxPage>
   )
 }

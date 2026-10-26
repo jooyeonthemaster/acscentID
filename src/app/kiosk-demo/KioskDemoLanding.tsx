@@ -8,6 +8,10 @@ import './kiosk-demo.css'
 // /kiosk-demo/clean 은 같은 랜딩의 워터마크 없는 판 — demo=clean 으로 열어 워터마크를 깔지 않는다.
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/kiosk-modes.md '영업용 데모'
 
+/** 주거복지 묶음은 제안서(2026-10-26) 순서 — 전시 둘(TOUCH! · VISION!) 다음 AI 체험 둘(NEXT! · ROOM!) */
+const HOUSING_ORDER = ['studio-product', 'studio-vision-wall', 'studio-career', 'studio-housing-scent']
+const order = (mode: string) => { const i = HOUSING_ORDER.indexOf(mode); return i < 0 ? 99 : i }
+
 /** 그 프로그램의 첫 화면(560×996 CSS 크기로 찍어 600×1067 로 줄인 것) */
 const screenShot = (mode: string) => `/assets/kiosk-demo/screen-${mode}.webp`
 const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
@@ -15,8 +19,8 @@ const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'studio', title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
   { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 사진 한 장과 내 선택으로 만드는 가이드' },
   { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
-  { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 3D 제품 · 비전 월 · 문화유산 탐색' },
-  { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전에 맞춘 체험 — 나의 주거환경에 맞는 향 처방 · 10년 뒤 우리 집 캐리커처와 향 · 주거 성향 향수 — 셋 다 조향 레시피 영수증' },
+  { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 문화유산 탐색' },
+  { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전 AI 체험존 — 제품 인터랙티브 체험관(TOUCH!) · 비전 월(VISION!) · 미래 직업 탐색(NEXT!) · 우리 집 향 처방(ROOM!)' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
@@ -87,7 +91,7 @@ export function KioskDemoLanding({ clean = false }: { clean?: boolean }) {
 
         <div id="demos" className="kd-demos">
           {GROUPS.map((group) => {
-            const demos = KIOSK_DEMOS.filter((demo) => demo.group === group.id)
+            const demos = KIOSK_DEMOS.filter((demo) => demo.group === group.id).sort((a, b) => order(a.mode) - order(b.mode))
             return (
               <section key={group.id} className="kd-group" aria-labelledby={`kd-${group.id}`}>
                 <div className="kd-group-head">

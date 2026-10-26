@@ -28,7 +28,7 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
   const [shots, setShots] = useState<(Shot | null)[]>(() => Array(need).fill(null))
   const [shotUrls, setShotUrls] = useState<(string | null)[]>(() => Array(need).fill(null))
   const [choices, setChoices] = useState(() => defaultChoices(program))
-  const [result, setResult] = useState<{ image: HTMLImageElement; prints: [string, string] } | null>(null)
+  const [result, setResult] = useState<{ image: HTMLImageElement; prints: [string, string]; comment?: string } | null>(null)
   const [design, setDesign] = useState<0 | 1>(0)
 
   // ctx 의 함수는 화면 틀의 상태 설정 함수라 바뀌지 않는다 — ctx 객체(매번 새로 만듦)가 아니라 함수에 묶는다
@@ -75,6 +75,7 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
       {step === 'result' && result && (
         <Split className="pg-result" visual={<PrintPreview src={result.prints[design]} />}>
           <PanelHead title={program.result.title} sub={program.result.sub} />
+          {result.comment && <p className="pg-comment"><span aria-hidden="true">“</span>{result.comment}<span aria-hidden="true">”</span></p>}
           <div className="pg-designs" role="radiogroup" aria-label="디자인">
             {result.prints.map((src, i) => (
               <button key={i} type="button" role="radio" aria-checked={design === i} className="pg-design" onClick={() => setDesign(i as 0 | 1)}>
@@ -328,7 +329,7 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
   shotUrls: string[]
   choices: Record<string, string>
   labels: Record<string, string>
-  onDone: (r: { image: HTMLImageElement; prints: [string, string] }) => void
+  onDone: (r: { image: HTMLImageElement; prints: [string, string]; comment?: string }) => void
   onStyle: () => void
 }) {
   const { program } = ctx
@@ -357,9 +358,11 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
         setStage(2)
         const [image] = await Promise.all([loadImage(data.image), loadCanvasFonts()])
         const original = shots[0]
-        const input: PrintInput = { result: image, original, choices, labels }
+        // 코멘트(주거복지대전 제안서 '코멘트 및 사진 인쇄') — 있으면 결과 화면과 인화물에
+        const comment = typeof data.comment === 'string' ? data.comment : undefined
+        const input: PrintInput = { result: image, original, choices, labels, comment }
         const prints: [string, string] = [renderProgramPrint(program, 0, input), renderProgramPrint(program, 1, input)]
-        if (!abort.signal.aborted) doneRef.current({ image, prints })
+        if (!abort.signal.aborted) doneRef.current({ image, prints, comment })
       } catch (cause) {
         if (abort.signal.aborted) return
         setError(cause instanceof Error ? cause.message : 'AI 사진을 만들지 못했어요.')

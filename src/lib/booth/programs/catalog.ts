@@ -216,21 +216,22 @@ export const PROGRAMS: ProgramDef[] = [
     card: { tag: 'GRAD!', desc: '가운 색·학사모·배경을 골라 졸업 앨범 같은 한 장을 만들어요.', color: '#1f5a3d', badges: ['AI 생성', '4×6 인화', 'QR 저장'] },
   },
   {
-    id: 'history', kind: 'photo', name: '역사 속 한 장면', wordmark: 'TIME!',
-    headline: '역사 속 한 장면,\n그 주인공이 되어봐요', lead: '역사에서 영감을 받은 상상화',
-    steps: ['역할', '장면', '나만의 기록'], startCta: '역사 속으로 떠나기',
+    id: 'history', kind: 'photo', name: '과거로의 여행', wordmark: 'TIME!',
+    headline: '역사 속 한 장면,\n그 주인공이 되어봐요', lead: '궁궐이나 정원, 별빛 마당의 한 장면 속으로 — 역사에서 영감을 받은 상상화',
+    steps: ['촬영', '과거 배경', '기념 인화'], startCta: '역사 속으로 떠나기',
     capture: { title: '시간 여행을 준비해요', hint: '얼굴을 가이드 안에 맞춰 주세요', people: 1, shots: 1 },
     options: {
-      title: '어떤 장면으로 떠날까요?', sub: '역사에서 영감을 받은 상상화', cta: '이 장면으로 만들기',
+      title: '어느 과거로 떠날까요?', sub: '배경과 역할을 골라 주세요 · 역사에서 영감을 받은 상상화', cta: '이 장면으로 만들기',
       groups: [
-        { id: 'role', label: '역할 선택', look: 'chips', options: [
+        { id: 'role', label: '역할', look: 'chips', options: [
           { id: 'painter', label: '화원', prompt: 'as a Joseon-era court painter holding a fine brush in front of a silk painting on an easel' },
           { id: 'astronomer', label: '천문관', prompt: 'as a Joseon-era royal astronomer beside a bronze armillary sphere' },
           { id: 'scribe', label: '기록관', prompt: 'as a Joseon-era royal scribe writing on hanji scrolls at a low desk' },
         ] },
-        { id: 'scene', label: '장면 선택', look: 'chips', options: [
-          { id: 'palace', label: '궁궐 정원', prompt: 'in a palace garden with a traditional pavilion and pink spring blossoms' },
-          { id: 'study', label: '한옥 서재', prompt: 'in a calm hanok study with paper windows and wooden shelves' },
+        // 2026-10-26 주거복지대전 제안서: '궁궐이나 정원, 별빛 마당의 한 장면' — 과거 배경 셋
+        { id: 'scene', label: '과거 배경', look: 'chips', options: [
+          { id: 'palace', label: '궁궐', prompt: 'in front of a grand Joseon palace hall with stone steps, red pillars and colorful dancheong eaves' },
+          { id: 'garden', label: '정원', prompt: 'in a palace garden with a traditional pavilion by a lotus pond and pink spring blossoms' },
           { id: 'night', label: '별빛 마당', prompt: 'in a hanok courtyard under a starry night sky with paper lanterns' },
         ] },
       ],
@@ -240,7 +241,7 @@ export const PROGRAMS: ProgramDef[] = [
     save: { title: '시간 여행을 간직해요', sub: '특별한 순간을 오래도록 간직하세요' },
     creative: '역사 기록이 아니라, 역사에서 영감을 받은 상상화예요',
     intro: intro('history'), script: '꽃이 피는 역사 속에서도, 나는 있었다', designs: ['화첩', '족자'],
-    card: { tag: 'TIME!', desc: '화원·천문관·기록관이 되어 궁궐 정원이나 별빛 마당의 한 장면 속으로. 역사에서 영감을 받은 상상화예요.', color: '#b23a2a', badges: ['AI 생성', '상상화', '4×6 인화'] },
+    card: { tag: 'TIME!', desc: '궁궐이나 정원, 별빛 마당의 한 장면 속으로 떠나는 과거로의 여행. 화원·천문관·기록관이 된 나를 상상화와 코멘트로 인화해요.', color: '#b23a2a', badges: ['AI 생성', '상상화', '4×6 인화'] },
   },
   {
     id: 'timecapsule', kind: 'photo', name: '타임캡슐 포토', wordmark: 'LATER!',

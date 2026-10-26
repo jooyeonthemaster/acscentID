@@ -128,7 +128,7 @@ export function MateMode() {
     art={(question, option) => choiceArt('mate', question, option)}
     wait={{ src: WAIT_ART.mate, title: '나의 주거 성향을 블렌딩하고 있어요', sub: '성향 캐릭터와 시그니처 향을 함께 고르는 중', skip: '기다리지 않고 기본 레시피 보기' }}
     start={{ headline: '나의 주거 성향, 어떤 향일까?', description: '여덟 가지 질문으로 나의 주거 성향 캐릭터와 잘 맞는 이웃을 찾고, 그 성향을 담은 시그니처 조향 레시피를 뽑아 드려요. 사진은 찍지 않아요.', steps: ['질문 여덟 개', 'AI 성향 블렌딩', '레시피 인쇄'] }}
-    request={(answers) => ({ answers: mateSummary(answers), candidates: mateCandidates(answers), context: '세대 공존 주거를 주제로 한 재미있는 성향 테스트다. 고른 성향(pick)의 분위기를 담은 시그니처 블렌드를 짠다. 결과 영수증에는 조향 레시피와 스탬프 랠리 칸이 있다.', recipe: { prefer: matePrefer(answers) } })}
+    request={(answers) => ({ answers: mateSummary(answers), candidates: mateCandidates(answers), context: '세대 공존 주거를 주제로 한 재미있는 성향 테스트다. 고른 성향(pick)의 분위기를 담은 시그니처 블렌드를 짠다. 결과 영수증에는 조향 레시피가 인쇄된다.', recipe: { prefer: matePrefer(answers) } })}
     build={(answers, analysis) => {
       const type = ((analysis?.pick ?? undefined) as MateType | undefined) ?? rankMates(answers)[0]
       const recipe = analysis?.recipe ? toRecipe(analysis.recipe, true) : mateRuleRecipe(type)
