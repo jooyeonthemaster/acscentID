@@ -70,6 +70,7 @@ const TABS: { id: Tab; label: string }[] = [
 const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: typeof Store }> = {
   wow: { name: '매장 기본', lines: ['최애 이미지 분석', '사진으로 찾는 나만의 향'], Icon: Store },
   'kwave-2026': { name: 'K-WAVE 사주', lines: ['사주 분석', '전용 배경 사용'], Icon: MoonStar },
+  'ai-perfumer': { name: 'AI 조향사', lines: ['본인 사진으로 향 레시피', '퍼퓸 10ml 고정 · 전용 배경 사용'], Icon: FlaskConical },
   'ai-color': { name: 'AI 퍼스널 컬러', lines: ['사진 한 장으로 컬러 진단', '컬러 전용 디자인 사용'], Icon: Palette },
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }

@@ -22,7 +22,20 @@ interface KioskAnalyzeRequest {
   mock?: boolean;
   /** 키오스크 화면 언어 — AI 문장과 향수 텍스트가 이 언어로 나온다 (기본 ko) */
   lang?: KioskLang;
+  /** 'polite' = 존댓말(공공 행사 모드, modes.ts politeTone). 없으면 매장 톤 */
+  tone?: unknown;
 }
+
+// 공공 행사 모드의 말투 — 공용 지시문(사이트와 같이 쓴다)의 '반말·주접·이모지 필수'를 이 요청에서만 덮는다
+const POLITE_TONE_RULES = `
+
+[말투 — 공공 행사 키오스크 · 위의 말투 지시보다 우선]
+이 결과는 연령대가 다양한 공공 행사 손님에게 화면과 영수증으로 보여 줍니다.
+- 위 형식 설명에 적힌 '반말', '주접 톤', '드립', '이모지 필수' 지시는 이번 요청에서 모두 무시하세요.
+- 모든 문장은 정중한 존댓말(해요체: ~해요, ~이에요, ~어울려요)로 씁니다. 반말은 한 문장도 쓰지 않습니다.
+- 유행어·밈·과장된 감탄(예: 찰떡, 미쳤다, 폭발)은 쓰지 않고, 차분하고 따뜻하게 설명합니다.
+- 이모지와 특수 기호 장식은 쓰지 않습니다.
+- 한국어가 아닌 언어로 쓸 때도 그 언어의 정중한 말투를 씁니다(일본어는 です・ます체).`;
 
 interface KioskAnalyzeResponse {
   success: boolean;
@@ -262,7 +275,9 @@ export async function POST(request: NextRequest) {
     }
 
     const basePrompt = buildGeminiPrompt(cleanForm, locale);
-    const prompt = traditional ? toTraditionalChinesePrompt(basePrompt) : basePrompt;
+    const localizedPrompt = traditional ? toTraditionalChinesePrompt(basePrompt) : basePrompt;
+    const politeTone = body.tone === 'polite';
+    const prompt = politeTone ? localizedPrompt + POLITE_TONE_RULES : localizedPrompt;
     const model = getModel();
 
     const parts: GeminiPart[] = [{ text: prompt }];
@@ -271,7 +286,7 @@ export async function POST(request: NextRequest) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: base64Data } });
     }
 
-    console.log(`[${requestId}] Gemini 호출 시작 (image=${Boolean(imageBase64)}, lang=${lang})`);
+    console.log(`[${requestId}] Gemini 호출 시작 (image=${Boolean(imageBase64)}, lang=${lang}${politeTone ? ', 존댓말' : ''})`);
     const started = Date.now();
     const result = await withTimeout(
       model.generateContent({ contents: [{ role: 'user', parts }] }),

@@ -219,7 +219,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [styles, setStyles] = useState<string[]>([])
   const [personalities, setPersonalities] = useState<string[]>([])
   const [charms, setCharms] = useState<string[]>([])
-  const [productType, setProductType] = useState<ProductType>('perfume_10ml')
+  const [chosenProduct, setProductType] = useState<ProductType>('perfume_10ml')
   const [photo, setPhoto] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [camError, setCamError] = useState(false)
@@ -285,6 +285,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   } = screenBackgrounds
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다)
   const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
+  const productType: ProductType = kioskMode.fixedProduct ?? chosenProduct
   const programTheme = kioskProgramTheme(kioskMode.id)
   // 문서 언어 — 화면 낭독기·자동 번역·글꼴 선택이 화면 언어를 따르게(키오스크 경로는 로케일 레이아웃 밖이라 비어 있었다)
   const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
@@ -299,10 +301,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const activePrograms = useMemo(() => PROGRAMS.filter((p) => kioskMode.programs.includes(p.id)), [kioskMode])
   /** 운영 프로그램이 하나뿐이면 선택 화면은 탭만 늘리므로 건너뛴다 */
   const showProgramStep = activePrograms.length > 1
-  /** 프로그램을 정한다 — 퍼스널 컬러는 본인 얼굴이 필요하므로 폰 사진(QR) 대신 키오스크 카메라가 먼저 */
+  /** 프로그램을 정한다 — 퍼스널 컬러·내 이미지 분석은 본인 얼굴이 필요하므로 폰 사진(QR) 대신 키오스크 카메라가 먼저 */
   const pickProgram = useCallback((id: Program) => {
     setProgram(id)
-    setPhotoSource(id === 'color' ? 'camera' : DEFAULT_PHOTO_SOURCE)
+    setPhotoSource(id === 'color' || id === 'personal' ? 'camera' : DEFAULT_PHOTO_SOURCE)
     // 디퓨저는 매장 이미지 분석에서만 고를 수 있다 — 다른 프로그램으로 옮기면 고른 제품을 향수로 되돌린다
     if (id !== 'idol' && id !== 'personal') setProductType((cur) => (cur.startsWith('diffuser') ? 'perfume_10ml' : cur))
   }, [])
@@ -781,6 +783,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           imageBase64: photo,
           mock: isMockRequested(),
           lang,
+          // 공공 행사 모드는 존댓말로 받는다
+          ...(kioskMode.politeTone ? { tone: 'polite' as const } : {}),
         }
 
       let res: Response
@@ -829,16 +833,18 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws,
+    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
   const steps = useMemo<Step[]>(() => {
-    if (program === 'color') return COLOR_STEPS
-    if (program === 'tarot') return TAROT_STEPS
-    if (program !== 'saju') return IMAGE_STEPS
-    return purpose === 'compatibility' ? SAJU_STEPS_COMPAT : SAJU_STEPS
-  }, [program, purpose])
+    const base = program === 'color' ? COLOR_STEPS
+      : program === 'tarot' ? TAROT_STEPS
+      : program !== 'saju' ? IMAGE_STEPS
+      : purpose === 'compatibility' ? SAJU_STEPS_COMPAT : SAJU_STEPS
+    // 제품이 정해진 모드는 제품 고르기 단계를 건너뛴다
+    return kioskMode.fixedProduct ? base.filter((s) => s !== 'product') : base
+  }, [program, purpose, kioskMode.fixedProduct])
 
   /** 단계 표시 — '번호 · 이름'을 단계 순서에서 계산한다(예전엔 01·05·06만 손으로 적혀 6단계가 '05 · PRODUCT'였다) */
   const stepPill = (s: Step) => `${String(steps.indexOf(s) + 1).padStart(2, '0')} · ${STEP_LABELS[s]}`
