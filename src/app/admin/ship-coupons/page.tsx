@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import QRCode from 'qrcode'
 import {
   AlertTriangle,
@@ -314,6 +315,15 @@ export default function AdminShipCouponsPage() {
   return (
     <div>
       <style>{`
+        /* 인쇄 카드는 <body> 바로 아래에 따로 그린다(createPortal).
+           관리자 틀 안에 두면 A4 폭에서 모바일 상단바(h-14)가 보이지 않는 빈칸으로 남아 첫 줄이 밀리고,
+           다섯째 줄이 다음 장으로 넘어간다. */
+        .ship-print-root {
+          display: none;
+        }
+
+        /* 실물 쿠폰(/admin/coupons)과 같은 102 × 57mm 카드, 2 × 5 = 10장.
+           A4 297mm 를 꽉 채우면 반올림으로 줄이 넘어갈 수 있어 296mm 로 1mm 여유를 둔다. */
         .ship-coupon-page {
           display: grid;
           grid-template-columns: repeat(2, 102mm);
@@ -322,11 +332,11 @@ export default function AdminShipCouponsPage() {
           justify-content: center;
           align-content: start;
           width: 210mm;
-          min-height: 297mm;
-          padding: 2mm;
-          background: white;
+          height: 296mm;
+          padding-top: 1.5mm;
           box-sizing: border-box;
           overflow: hidden;
+          background: white;
         }
 
         .ship-coupon-card {
@@ -341,66 +351,33 @@ export default function AdminShipCouponsPage() {
         }
 
         @media print {
-          @page { size: A4; margin: 0; }
+          @page {
+            size: A4;
+            margin: 0;
+          }
 
           html,
           body {
             width: 210mm !important;
-            min-height: 297mm !important;
-          }
-
-          body {
-            background: white !important;
+            height: auto !important;
+            min-height: 0 !important;
             margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: white !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
 
-          body * {
-            visibility: hidden !important;
-          }
-
-          .admin-shell {
-            position: static !important;
-            inset: auto !important;
-            width: auto !important;
-            min-height: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
-            background: white !important;
-            z-index: auto !important;
-          }
-
-          .admin-shell aside,
-          .admin-no-print {
+          body > *:not(.ship-print-root) {
             display: none !important;
           }
 
-          .admin-shell-main {
-            margin-left: 0 !important;
-            min-height: 0 !important;
-            transition: none !important;
-          }
-
-          .ship-coupons-main {
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-
-          .ship-print-root,
-          .ship-print-root * {
-            visibility: visible !important;
-          }
-
           .ship-print-root {
-            position: static !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            display: block !important;
           }
 
           .ship-coupon-page {
-            margin: 0 !important;
-            height: 297mm !important;
             break-after: page;
             page-break-after: always;
           }
@@ -412,7 +389,7 @@ export default function AdminShipCouponsPage() {
         }
       `}</style>
 
-      <div className="admin-no-print">
+      <div>
         <AdminHeader
           title="택배 교환권"
           subtitle="교환권 QR을 찍은 손님만 /ship 에서 택배를 접수할 수 있어요 · 교환권 1장 = 1회"
@@ -428,9 +405,9 @@ export default function AdminShipCouponsPage() {
         />
       </div>
 
-      <main className="ship-coupons-main space-y-6 p-4 sm:p-6">
+      <main className="space-y-6 p-4 sm:p-6">
         {setupError && (
-          <div className="admin-no-print flex items-start gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+          <div className="flex items-start gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm font-bold text-amber-900">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
               <p>교환권 테이블이 아직 없어요. Supabase SQL 에디터에서 아래 파일을 한 번 실행해주세요.</p>
@@ -439,7 +416,7 @@ export default function AdminShipCouponsPage() {
           </div>
         )}
 
-        <div className="admin-no-print grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           {/* 발급 */}
           <section className="h-fit rounded-xl border-2 border-slate-900 bg-white p-5">
             <div className="mb-4 flex items-center gap-3">
@@ -655,44 +632,48 @@ export default function AdminShipCouponsPage() {
           </section>
         </div>
 
-        {/* 인쇄 전용 — 화면에는 숨기고 인쇄할 때만 A4 카드로 나온다 */}
-        <section className="ship-print-root hidden print:block">
-          {printPages.map((page, pageIndex) => (
-            <div key={pageIndex} className="ship-coupon-page">
-              {page.map((item) => (
-                <article key={item.id} className="ship-coupon-card flex bg-white p-[4mm] text-slate-950">
-                  <div className="flex min-w-0 flex-1 flex-col justify-between pr-[3mm]">
-                    <div>
-                      <div className="mb-[2mm] inline-flex rounded-full bg-slate-950 px-[3mm] py-[1mm] text-[7.5pt] font-black text-white">
-                        AC&apos;SCENT 택배 교환권
+        {/* 인쇄 전용 — <body> 바로 아래에 그리고, 화면에는 숨겨 둔다 (위 <style> 설명) */}
+        {printItems.length > 0 &&
+          createPortal(
+            <section className="ship-print-root" aria-hidden="true">
+              {printPages.map((page, pageIndex) => (
+                <div key={pageIndex} className="ship-coupon-page">
+                  {page.map((item) => (
+                    <article key={item.id} className="ship-coupon-card flex bg-white p-[4.5mm] text-slate-950">
+                      <div className="flex min-w-0 flex-1 flex-col justify-between pr-[2.5mm]">
+                        <div>
+                          <div className="mb-[2mm] inline-flex rounded-full bg-slate-950 px-[3mm] py-[1mm] text-[7.5pt] font-black text-white">
+                            특전 교환권 (택배)
+                          </div>
+                          <h3 className="line-clamp-2 text-[15pt] font-black leading-tight">{item.productName}</h3>
+                          <p className="mt-[1.5mm] text-[7pt] font-bold leading-snug text-slate-600">
+                            QR을 찍어 받으실 주소를 입력해주세요.
+                            <br />
+                            교환권이 여러 장이면 한 번에 접수돼요.
+                          </p>
+                        </div>
+                        <div className="space-y-[0.8mm]">
+                          <div className="text-[5.8pt] font-black leading-none text-slate-400">교환권 코드 · 1회만 접수</div>
+                          <div className="font-mono text-[14pt] font-black leading-none tracking-[0.08em]">
+                            {formatShipCouponCode(item.code)}
+                          </div>
+                          <div className="text-[5.8pt] font-bold text-slate-500">QR이 안 되면 acscent.co.kr/ship 에서 입력</div>
+                        </div>
                       </div>
-                      <h3 className="line-clamp-2 text-[15pt] font-black leading-tight">{item.productName}</h3>
-                      <p className="mt-[1.5mm] text-[7pt] font-bold leading-snug text-slate-600">
-                        QR을 찍어 받으실 주소를 입력해주세요.
-                        <br />
-                        교환권이 여러 장이면 한 번에 접수돼요.
-                      </p>
-                    </div>
-                    <div className="space-y-[0.8mm]">
-                      <div className="text-[5.8pt] font-black leading-none text-slate-400">교환권 코드 · 1회만 접수</div>
-                      <div className="font-mono text-[14pt] font-black leading-none tracking-[0.08em]">
-                        {formatShipCouponCode(item.code)}
+                      <div className="flex w-[31mm] shrink-0 flex-col items-center justify-center gap-[1.5mm]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={item.qr} alt={`${item.code} QR`} className="h-[30mm] w-[30mm]" />
+                        <div className="w-full rounded-full bg-yellow-300 py-[1mm] text-center text-[6.5pt] font-black text-slate-950">
+                          택배 접수
+                        </div>
                       </div>
-                      <div className="text-[5.8pt] font-bold text-slate-500">QR이 안 되면 acscent.co.kr/ship 에서 코드 입력</div>
-                    </div>
-                  </div>
-                  <div className="flex w-[29mm] flex-col items-center justify-center gap-[1.5mm]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.qr} alt={`${item.code} QR`} className="h-[27mm] w-[27mm]" />
-                    <div className="w-full rounded-full bg-yellow-300 py-[1mm] text-center text-[6.5pt] font-black text-slate-950">
-                      택배 접수
-                    </div>
-                  </div>
-                </article>
+                    </article>
+                  ))}
+                </div>
               ))}
-            </div>
-          ))}
-        </section>
+            </section>,
+            document.body
+          )}
       </main>
     </div>
   )
