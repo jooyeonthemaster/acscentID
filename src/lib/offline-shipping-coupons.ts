@@ -55,3 +55,35 @@ export function isShipCouponTableMissing(error: { code?: string; message?: strin
   if (!error) return false
   return error.code === 'PGRST205' || error.code === '42P01'
 }
+
+interface ShipCouponUse<T> {
+  code: string
+  batch_id: string
+  request: T | T[] | null
+}
+
+/**
+ * 쓰인 교환권 줄 → 접수 건 목록 (접수마다 쓴 교환권 코드를 모아 붙인다, 오래된 접수부터).
+ * batchId 를 주면 그 묶음 교환권이 한 장이라도 쓰인 접수만 — 코드는 다른 묶음 것까지 다 붙인다.
+ */
+export function groupShipCouponRequests<T extends { id: string; created_at: string }>(
+  rows: ShipCouponUse<T>[],
+  batchId?: string | null
+): (T & { coupon_codes: string[] })[] {
+  const byRequest = new Map<string, { request: T; codes: string[]; inBatch: boolean }>()
+  for (const row of rows) {
+    const request = Array.isArray(row.request) ? row.request[0] : row.request
+    if (!request) continue
+    let entry = byRequest.get(request.id)
+    if (!entry) {
+      entry = { request, codes: [], inBatch: false }
+      byRequest.set(request.id, entry)
+    }
+    entry.codes.push(formatShipCouponCode(row.code))
+    if (batchId && row.batch_id === batchId) entry.inBatch = true
+  }
+  return [...byRequest.values()]
+    .filter((entry) => !batchId || entry.inBatch)
+    .sort((a, b) => a.request.created_at.localeCompare(b.request.created_at))
+    .map((entry) => ({ ...entry.request, coupon_codes: entry.codes }))
+}

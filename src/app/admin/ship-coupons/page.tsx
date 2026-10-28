@@ -8,12 +8,14 @@ import {
   Ban,
   ChevronDown,
   ChevronUp,
+  FileSpreadsheet,
   Loader2,
   PackageCheck,
   Printer,
   RefreshCw,
   Search,
 } from 'lucide-react'
+import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
 import {
   SHIP_COUPON_MAX_ISSUE,
@@ -127,6 +129,7 @@ export default function AdminShipCouponsPage() {
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [voiding, setVoiding] = useState<string | null>(null)
+  const [exporting, setExporting] = useState<string | null>(null)
 
   const [printItems, setPrintItems] = useState<PrintItem[]>([])
   const [printPending, setPrintPending] = useState(false)
@@ -239,6 +242,35 @@ export default function AdminShipCouponsPage() {
       setIssueError(err instanceof Error ? err.message : '교환권 발급에 실패했습니다')
     } finally {
       setIssuing(false)
+    }
+  }
+
+  // 교환권으로 들어온 접수 → 배송 약식 엑셀(+ 교환권 코드 열). batchId 가 있으면 그 묶음 것만
+  const downloadExcel = async (batchId: string | null, key: string) => {
+    setExporting(key)
+    try {
+      const response = await fetch(`/api/admin/ship-coupons/export${batchId ? `?batch=${batchId}` : ''}`)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || '엑셀 생성에 실패했습니다')
+      }
+      if (response.headers.get('X-Request-Count') === '0') {
+        alert('교환권으로 들어온 접수가 아직 없습니다.')
+        return
+      }
+      const encodedName = (response.headers.get('Content-Disposition') || '').match(/filename\*=UTF-8''([^;]+)/)?.[1]
+      const url = URL.createObjectURL(await response.blob())
+      const link = document.createElement('a')
+      link.href = url
+      link.download = encodedName ? decodeURIComponent(encodedName) : '택배교환권_접수.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '엑셀 다운로드에 실패했습니다')
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -528,6 +560,16 @@ export default function AdminShipCouponsPage() {
           <section className="min-w-0 rounded-xl border-2 border-slate-200 bg-white p-5">
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <h2 className="flex-1 text-lg font-black text-slate-950">발급한 교환권</h2>
+              <button
+                type="button"
+                onClick={() => void downloadExcel(null, 'all')}
+                disabled={exporting !== null || !rows.some((row) => row.status === 'used')}
+                title="교환권으로 들어온 접수 전체 — 받는분·연락처·주소·상품·교환권 코드"
+                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-emerald-600 bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-100 disabled:opacity-40"
+              >
+                {exporting === 'all' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                접수 내역 엑셀
+              </button>
               <div className="relative w-full sm:w-72">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
@@ -539,6 +581,14 @@ export default function AdminShipCouponsPage() {
                 />
               </div>
             </div>
+
+            <p className="-mt-2 mb-4 text-xs font-medium text-slate-500">
+              교환권으로 들어온 택배 접수는{' '}
+              <Link href="/admin/offline-shipping" className="font-bold text-slate-800 underline underline-offset-2">
+                오프라인 배송 접수
+              </Link>
+              에도 그대로 쌓여요. 배송 상태 변경·택배사 양식 엑셀은 거기서 하세요.
+            </p>
 
             {loadError && (
               <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{loadError}</p>
@@ -582,6 +632,16 @@ export default function AdminShipCouponsPage() {
                           ))}
                         </div>
                         <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => void downloadExcel(batch.id, batch.id)}
+                            disabled={batch.counts.used === 0 || exporting !== null}
+                            title="이 묶음 교환권으로 들어온 접수 엑셀"
+                            className="inline-flex items-center gap-1 rounded-lg border-2 border-emerald-600 bg-emerald-50 px-2.5 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-100 disabled:opacity-40"
+                          >
+                            {exporting === batch.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
+                            접수 엑셀
+                          </button>
                           <button
                             type="button"
                             onClick={() => void printCoupons(batch.coupons, batch.id)}

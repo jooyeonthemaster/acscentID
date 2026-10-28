@@ -5,6 +5,7 @@
  * 간단한 표 형식으로 생성한다.
  *   A: 접수일 / B: 접수번호 / C: 받는분 / D: 연락처 / E: 우편번호
  *   F: 주소 / G: 상품 / H: 상태 / I: 관리자 메모
+ *   (택배 교환권 내보내기는 J: 교환권 코드 를 덧붙인다)
  */
 
 import ExcelJS from 'exceljs'
@@ -30,6 +31,12 @@ export interface OfflineShippingExcelRequest {
   memo?: string | null
   status: string
   admin_memo?: string | null
+  /** 이 접수에 쓰인 택배 교환권 코드 — withCouponCodes 일 때만 열로 나온다 */
+  coupon_codes?: string[]
+}
+
+interface OfflineShippingWorkbookOptions {
+  withCouponCodes?: boolean
 }
 
 /** UTC ISO 문자열 → KST 기준 엑셀 날짜 serial (환경 타임존 의존 제거) */
@@ -46,7 +53,8 @@ const HEADERS = ['접수일', '접수번호', '받는분', '연락처', '우편�
  * 접수 목록 → 배송 약식 xlsx 버퍼
  */
 export async function buildOfflineShippingWorkbook(
-  requests: OfflineShippingExcelRequest[]
+  requests: OfflineShippingExcelRequest[],
+  options: OfflineShippingWorkbookOptions = {}
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'ACSCENT Admin'
@@ -55,11 +63,13 @@ export async function buildOfflineShippingWorkbook(
   sheet.columns = [
     { width: 12 }, { width: 16 }, { width: 12 }, { width: 15 }, { width: 9 },
     { width: 44 }, { width: 24 }, { width: 11 }, { width: 24 },
+    ...(options.withCouponCodes ? [{ width: 24 }] : []),
   ]
 
   // 헤더 행 — 파란 배경 + 흰색 볼드 (매출 엑셀과 동일 스타일)
   const headerRow = sheet.getRow(1)
-  HEADERS.forEach((label, index) => {
+  const headers = options.withCouponCodes ? [...HEADERS, '교환권 코드'] : HEADERS
+  headers.forEach((label, index) => {
     const cell = headerRow.getCell(index + 1)
     cell.value = label
     cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
@@ -87,6 +97,7 @@ export async function buildOfflineShippingWorkbook(
     row.getCell(8).value =
       OFFLINE_SHIPPING_STATUS_LABELS[request.status as OfflineShippingStatus] ?? request.status
     row.getCell(9).value = request.admin_memo || ''
+    if (options.withCouponCodes) row.getCell(10).value = (request.coupon_codes || []).join(', ')
     row.commit()
   })
 
