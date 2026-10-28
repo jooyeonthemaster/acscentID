@@ -4,7 +4,7 @@ import { BOOTH_DEMOS, BOOTH_DEMO_NEEDS, boothDemoHref, type BoothDemo } from '@/
 import './booth-demo.css'
 
 // 영업용 포토부스 데모 랜딩 — 키오스크 데모(/kiosk-demo)와 같은 방식. 고른 프로그램을 /booth?mode=…&demo=1 로 새 창에 연다:
-// 매장 기기 설정을 건드리지 않고, 이용권·촬영 기록·관리자 창 없이, 화면에 NEANDER 워터마크(BoothWatermark).
+// 매장 기기 설정을 건드리지 않고, 이용권·촬영 기록·관리자 창 없이, 화면에 DEMO 워터마크(BoothWatermark).
 // /booth-demo/clean 은 같은 랜딩의 워터마크 없는 판 — demo=clean 으로 열어 워터마크를 깔지 않는다.
 // AI 아이돌 사진은 진짜로 만든다(1분 3장·하루 40장 상한 — src/lib/booth/demo-server.ts).
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/photobooth-demo.md
@@ -35,7 +35,7 @@ const NOTES = [
   '타임캡슐 · 미래 가족 · 2046 미래 도시는 재미로 보는 창작 이미지, 역사 속 한 장면은 역사에서 영감을 받은 상상화입니다.',
   '인쇄는 프린터가 달린 실제 부스에서 바로 나옵니다. 브라우저에서는 인쇄 미리보기로 보여 드립니다.',
   '추억 무비와 \'휴대폰 사진 가져오기\'는 화면의 QR을 휴대폰으로 찍어 사진을 올립니다.',
-  '데모 화면에는 NEANDER 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않습니다.',
+  '데모 화면에는 DEMO 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않습니다.',
 ]
 /** 머리말의 부스 화면 — 3초마다 바뀐다(칸 수는 booth-demo.css 의 15초 순환에 맞춘다) */
 const HERO = ['idol-home', 'program-runway', 'program-hanbok', 'program-wedding', 'program-music-video']

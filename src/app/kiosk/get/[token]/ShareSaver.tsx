@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, Download, FileText, Loader2 } from 'lucide-react'
 import { shareFileUrl, type ShareFileMeta, type ShareMeta } from '@/lib/kiosk/share'
 import { SHARE_TEXT } from './text'
-import { isExpansionId } from '@/lib/kiosk/expansion/types'
 
 /** 아이폰·아이패드(데스크톱 모드 포함) — 사진 앱 저장은 공유 시트의 "이미지 저장"으로만 된다 */
 function isIOS() {
@@ -97,7 +96,7 @@ export function ShareSaver({ token, meta, tag, color, htmlLang, expiresAt }: {
     <div lang={htmlLang} className="flex min-h-svh flex-col items-center gap-4 bg-neutral-950 px-5 pb-10 pt-8 text-center text-white">
       <p className="text-3xl font-black tracking-tight" style={{ color: '#fff', textShadow: `0 0 28px ${color}` }}>{tag}</p>
       <h1 className="break-keep text-xl font-bold">{text.title}</h1>
-      {meta.files.map((file) => <Item key={file.name} token={token} file={file} text={text} prefix={isExpansionId(meta.kind) ? 'kiosk' : 'acscent'} />)}
+      {meta.files.map((file) => <Item key={file.name} token={token} file={file} text={text} prefix="kiosk" />)}
       <p className="max-w-sm break-keep text-sm leading-relaxed text-white/70">{text.hint}</p>
       <p className="max-w-sm break-keep text-sm leading-relaxed text-white/55">{text.keep(formatExpiry(expiresAt, htmlLang))}</p>
     </div>

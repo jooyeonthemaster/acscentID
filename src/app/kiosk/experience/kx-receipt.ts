@@ -67,8 +67,8 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
   const rule = (thick = 2, gap = 14) => { ctx.fillRect(M, y, inner, thick); y += thick + gap }
   const dashes = (gap = 14) => { for (let x = M; x < W - M; x += 10) ctx.fillRect(x, y, 6, 2); y += 2 + gap }
 
-  // 머리
-  text("AC'SCENT", 17, 800, { center: true, spacing: 6, gap: 2 })
+  // 머리 — 체험 모드는 브랜드·회사명을 찍지 않는다(2026-10-28 사용자 지시): 체험 워드마크부터
+  y += 6
   text(receipt.tag, 68, 900, { center: true, font: `Impact, 'Arial Narrow', ${family}`, gap: 0 })
   text(receipt.title, 27, 800, { center: true, gap: receipt.subtitle ? 0 : 6 })
   if (receipt.subtitle) text(receipt.subtitle, 19, 600, { center: true, gap: 6 })
@@ -163,7 +163,6 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
   }
   rule(1, 12)
   if (receipt.foot) text(receipt.foot, 16, 500, { center: true, gap: 4 })
-  text('www.acscent.co.kr', 16, 700, { center: true, spacing: 1, gap: 0 })
   y += 46
 
   const out = document.createElement('canvas')

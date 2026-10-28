@@ -18,7 +18,7 @@ const Experience = dynamic(() => import('./experience/ExperienceApp').then(m => 
 export function KioskScreen() {
   return (
     <>
-      {/* 매장 키오스크 앱이 아닌 웹브라우저로 열면 NEANDER 워터마크 */}
+      {/* 매장 키오스크 앱이 아닌 웹브라우저로 열면 DEMO 워터마크 */}
       <KioskWatermark />
       <Gate
         target="kiosk"

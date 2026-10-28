@@ -62,6 +62,8 @@ export interface KioskMode {
     eventLinesByLang?: Partial<Record<KioskLang, string[]>>
     /** 제조 레시피를 상자로 감싼다 */
     recipeBox?: boolean
+    /** 레시피를 영수증 머리 바로 아래에 크게(검은 띠 · 큰 향 이름 · 아주 큰 분량) — 손님이 직접 조향하는 행사(AI 조향사) */
+    recipeHero?: boolean
     /** 맨 아래 크게 찍는 안내(첫 줄 크게) — 없으면 매장 '카운터에 제출' 문구. 언어별, 없는 언어는 영어 */
     counterNotice?: Partial<Record<KioskLang, string[]>>
   }
@@ -69,6 +71,8 @@ export interface KioskMode {
   defaultBackground?: string
   /** 제품을 하나로 정해 둔 모드 — 제품 고르기 단계를 건너뛰고 그 제품 기준 레시피를 찍는다(행사: 정해진 분량만 준비) */
   fixedProduct?: ProductType
+  /** 레시피 그램을 ml 과 같은 숫자로(1ml = 1g) — 행사 현장에서 숫자 둘이 달라 헷갈리지 않게(2026-10-28 사용자 지시, AI 조향사) */
+  gramsEqualMl?: boolean
   /** 사진 분석 문장을 존댓말로 — 연령대가 다양한 공공 행사에서 매장의 반말·주접 톤을 쓰지 않는다(/api/kiosk/analyze 의 tone) */
   politeTone?: boolean
   /** 체험 모드(네일·명함 등) — 기존 화면 셸 대신 전용 화면(src/app/kiosk/experience)이 돈다. programs·attract·receipt 는 쓰이지 않는다 */
@@ -90,7 +94,7 @@ export const KIOSK_MODES: KioskMode[] = [
     id: 'kwave-2026',
     label: 'K-WAVE 댄스 페스티벌',
     note: '2026.10.3~10.4 · 이태원로 세계문화마을 · 사주 분석',
-    brandName: "AC'SCENT × K-WAVE",
+    brandName: "K-WAVE",
     storeEvents: false,
     programs: ['saju'],
     resultOnePage: true,
@@ -189,10 +193,11 @@ export const KIOSK_MODES: KioskMode[] = [
     id: 'ai-perfumer',
     label: 'AI 조향사',
     note: '행사 · 팝업용 · 본인 사진으로 향 레시피 (퍼퓸 10ml)',
-    brandName: "AC'SCENT AI PERFUMER",
+    brandName: "AI PERFUMER",
     storeEvents: false,
     programs: ['personal'],
     fixedProduct: 'perfume_10ml',
+    gramsEqualMl: true,
     politeTone: true,
     poster: {
       word: 'SCEN',
@@ -264,6 +269,8 @@ export const KIOSK_MODES: KioskMode[] = [
       subtitle: 'AI PERFUMER · SCENT RECIPE',
       eventLines: [],
       recipeBox: true,
+      // 2026-10-28 사용자: "레시피 부분이 눈에 띄게 크게 — 한눈에 봐도 이걸 보고 조향을 해야 하는구나 싶게"
+      recipeHero: true,
       counterNotice: {
         ko: ['이 영수증을 직원에게 보여주세요.', '적힌 레시피 그대로 조향을 하시면 됩니다.'],
         en: ['Please show this receipt to our staff.', 'Blend your perfume exactly as the recipe says.'],
@@ -280,7 +287,7 @@ export const KIOSK_MODES: KioskMode[] = [
     id: 'ai-color',
     label: 'AI 퍼스널 컬러',
     note: '행사 · 팝업용 · 사진 한 장으로 퍼스널 컬러 진단',
-    brandName: "AC'SCENT AI COLOR",
+    brandName: "AI COLOR",
     storeEvents: false,
     programs: ['color'],
     attract: {
@@ -347,7 +354,7 @@ export const KIOSK_MODES: KioskMode[] = [
     id: 'ai-tarot',
     label: 'AI 타로',
     note: '행사 · 팝업용 · 카드 세 장(과거 · 현재 · 미래) 리딩',
-    brandName: "AC'SCENT AI TAROT",
+    brandName: "AI TAROT",
     storeEvents: false,
     programs: ['tarot'],
     attract: {

@@ -1,11 +1,11 @@
-/* NEANDER 워터마크(KioskWatermark) — 웹브라우저로 연 키오스크 화면 전체에 비스듬히 반복한다.
+/* DEMO 워터마크(KioskWatermark) — 웹브라우저로 연 키오스크 화면 전체에 비스듬히 반복한다.
    낱말 하나가 든 조각을 두 겹으로, 한 겹은 반 칸 어긋나게 깐다(벽돌 쌓기). 조각 가장자리에 걸치는 글자가 없어 이음매에서 잘리지 않는다 */
 .kdm-watermark {
   position: fixed;
   inset: 0;
   z-index: 2147483000;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='210' viewBox='0 0 340 210'%3E%3Ctext x='170' y='105' text-anchor='middle' dominant-baseline='middle' transform='rotate(-24 170 105)' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='27' letter-spacing='6' fill='rgba(255,255,255,0.24)' stroke='rgba(20,24,40,0.28)' stroke-width='1' paint-order='stroke'%3ENEANDER%3C/text%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='210' viewBox='0 0 340 210'%3E%3Ctext x='170' y='105' text-anchor='middle' dominant-baseline='middle' transform='rotate(-24 170 105)' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='27' letter-spacing='6' fill='rgba(255,255,255,0.24)' stroke='rgba(20,24,40,0.28)' stroke-width='1' paint-order='stroke'%3ENEANDER%3C/text%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='210' viewBox='0 0 340 210'%3E%3Ctext x='170' y='105' text-anchor='middle' dominant-baseline='middle' transform='rotate(-24 170 105)' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='27' letter-spacing='6' fill='rgba(255,255,255,0.24)' stroke='rgba(20,24,40,0.28)' stroke-width='1' paint-order='stroke'%3EDEMO%3C/text%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='210' viewBox='0 0 340 210'%3E%3Ctext x='170' y='105' text-anchor='middle' dominant-baseline='middle' transform='rotate(-24 170 105)' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='27' letter-spacing='6' fill='rgba(255,255,255,0.24)' stroke='rgba(20,24,40,0.28)' stroke-width='1' paint-order='stroke'%3EDEMO%3C/text%3E%3C/svg%3E");
   background-size: 340px 210px;
   background-position: 0 0, 170px 105px;
 }

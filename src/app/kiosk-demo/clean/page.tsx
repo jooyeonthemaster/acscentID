@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { KioskDemoLanding } from '../KioskDemoLanding'
 
-// 워터마크 없는 데모 랜딩 — 여기서 연 화면은 demo=clean 이라 NEANDER 워터마크가 깔리지 않는다(2026-10-22 사용자 지시).
+// 워터마크 없는 데모 랜딩 — 여기서 연 화면은 demo=clean 이라 DEMO 워터마크가 깔리지 않는다(2026-10-22 사용자 지시).
 // 주소를 받은 사람만 본다(검색 노출 금지). 워터마크 있는 기본판은 /kiosk-demo.
 export const metadata: Metadata = {
   title: 'NEANDER 키오스크 데모',

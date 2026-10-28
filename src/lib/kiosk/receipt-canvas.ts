@@ -158,6 +158,10 @@ export interface ReceiptRenderOptions {
     eventLines?: string[]
     /** 제조 레시피를 굵은 상자로 감싼다 — 손님이 직접 조향하는 행사장에서 레시피를 바로 찾게 */
     recipeBox?: boolean
+    /** 레시피를 머리 바로 아래에 크게 — 검은 띠 · 큰 향 이름 · 아주 큰 분량(AI 조향사 행사, 2026-10-28) */
+    recipeHero?: boolean
+    /** 브랜드(AC'SCENT)를 찍지 않는다 — 매장(wow) 밖 행사·체험 모드(2026-10-28). 머리는 부제만 크게, 향 번호는 No.07 */
+    brandless?: boolean
     /** 사주 영수증 양식 — 'sheet'(사주 감정서형, 기본) · 'prescription'(이전 처방전형 그대로) */
     receiptStyle?: 'sheet' | 'prescription'
     /** 한자 글꼴 — 'kaishu'(霞鶩文楷) · 'gothic'(Noto Sans TC, 이전) */
@@ -391,6 +395,23 @@ class ReceiptBuilder {
       }
     })
     this.y = yTop + t
+  }
+
+  /** 검은 띠 + 흰 글자(가운데) — 상자 테두리와 같은 바깥 폭 */
+  band(label: string, size = 24) {
+    const h = Math.round(size * 1.9), top = Math.round(this.y)
+    const x = MARGIN - 14, w = this.width - x * 2
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      ctx.fillRect(x, top, w, h)
+      ctx.fillStyle = '#fff'
+      ctx.font = this.font(size, 800, this.fonts.sans)
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(label, this.width / 2, top + h / 2)
+      ctx.textAlign = 'left'
+    })
+    this.y = top + h
   }
 
   /** 위(yTop)부터 지금까지를 굵은 테두리 상자로 감싼다 — 본문(MARGIN)보다 바깥으로 그려 안쪽 여백을 만든다 */
@@ -996,6 +1017,8 @@ export async function renderKioskReceipt(
 ): Promise<{ base64: string; dataUrl: string; width: number; height: number }> {
   const width = opts.width ?? 512
   const fonts = resolveFonts(opts.lang, opts.brand?.hanjaFont === 'kaishu')
+  /** 큰 레시피(AI 조향사) — 만들 제품과 레시피가 있을 때만 */
+  const recipeHero = !!opts.brand?.recipeHero && !(data.color || data.tarot) && data.recipeRows.length > 0
   if (typeof document !== 'undefined' && document.fonts) {
     try {
       // fonts.ready는 '이미 요청된' 페이스만 기다린다 — 캔버스가 쓰는 웨이트를 명시적으로 로드
@@ -1028,8 +1051,10 @@ export async function renderKioskReceipt(
   const L: NonNullable<ReceiptSaju['labels']> = data.saju?.labels ?? SAJU_LABELS_KO
   if (sheet) {
     b.space(30)
-    b.text("AC'SCENT", { size: 32, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
-    b.space(4)
+    if (!opts.brand?.brandless) {
+      b.text("AC'SCENT", { size: 32, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
+      b.space(4)
+    }
     b.text(opts.brand?.subtitle ?? 'SAJU SCENT', { size: 14, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
     b.space(14)
     b.rule(3)
@@ -1047,9 +1072,15 @@ export async function renderKioskReceipt(
   }
   if (!sheet) {
   b.space(34)
-  b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
-  b.space(6)
-  b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  if (opts.brand?.brandless) {
+    // 브랜드 없이 — 부제(예: AI PERFUMER · SCENT RECIPE)를 머리로 크게
+    const head = opts.brand?.subtitle ?? 'SCENT REPORT'
+    b.text(head, { size: b.fitOneLine(head, 30, 800, 'display'), weight: 800, family: 'display', align: 'center', lineHeight: 1.2 })
+  } else {
+    b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
+    b.space(6)
+    b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  }
   if (sajuFirst) {
     // 사주 처방전 — 한약방 처방전처럼 큰 한자 제목을 두 줄 괘선 사이에
     b.space(16)
@@ -1079,6 +1110,40 @@ export async function renderKioskReceipt(
   if (!noProduct) b.row('PRODUCT', data.productLabel, { mono: true })
   b.space(10)
   b.rule(1.5, true)
+
+  // ── 큰 레시피(AI 조향사) — 손님이 영수증을 들자마자 '이걸 보고 조향하면 되는구나'가 보이게 맨 위에 크게.
+  //   검은 띠 → 레시피 이름 → 향마다 번호·이름(크게)·분량(아주 크게) → 베이스 → 직원 안내, 굵은 상자로 감싼다
+  if (recipeHero) {
+    b.space(18)
+    const top = b.y
+    b.band((opts.lang ?? 'ko') === 'ko' ? '조향 레시피 · SCENT RECIPE' : 'SCENT RECIPE', 24)
+    b.space(14)
+    const title = data.recipeTitle ?? `${data.productLabel} 제조 레시피`
+    b.text(title, { size: b.fitOneLine(title, 26, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    b.space(10)
+    for (const [i, row] of data.recipeRows.entries()) {
+      if (i) { b.space(6); b.rule(1.5, true); b.space(10) }
+      b.text(row.id.replace(/^AC'SCENT\s*/, 'No.'), { size: 22, weight: 800, family: 'mono', align: 'center', letterSpacing: 2 })
+      b.text(row.name, { size: b.fitOneLine(row.name, 46, 900), weight: 900, align: 'center', lineHeight: 1.25 })
+      b.space(4)
+      const grams = `${row.amountG.toFixed(2)}g`
+      b.text(grams, { size: b.fitOneLine(grams, 88, 800, 'display'), weight: 800, family: 'display', align: 'center', lineHeight: 1.1 })
+      b.text(`${row.ratio}%  ·  ${row.amountMl.toFixed(2)}ml`, { size: 20, weight: 700, align: 'center' })
+    }
+    b.space(10)
+    b.rule(2)
+    b.space(10)
+    b.text(`+ ${data.baseText}`, { size: b.fitOneLine(`+ ${data.baseText}`, 30, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    b.space(8)
+    for (let i = 0; i < data.steps.length; i++) b.text(`${i + 1}. ${data.steps[i]}`, { size: 17, weight: 500, lineHeight: 1.45 })
+    if (data.counterNotice?.[0]) {
+      b.space(10)
+      b.text(data.counterNotice[0], { size: b.fitOneLine(data.counterNotice[0], 24, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    }
+    b.space(16)
+    b.box(top, 5)
+    b.space(6)
+  }
   }
 
   // ── 사진
@@ -1339,7 +1404,8 @@ export async function renderKioskReceipt(
 
   // 퍼스널 컬러·타로는 향을 추천하지 않는다 — 레시피를 찍지 않는다(진단서/리딩이 굵은 선으로 끝나 있다)
   if (isExtra) b.space(14)
-  if (!isExtra) {
+  // 큰 레시피를 이미 맨 위에 찍었으면 아래 레시피 칸은 건너뛴다
+  if (!isExtra && !recipeHero) {
   b.rule(3)
   b.space(14)
 
@@ -1352,7 +1418,7 @@ export async function renderKioskReceipt(
   b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 23, weight: 700 })
   b.space(10)
   for (const r of data.recipeRows) {
-    b.row(`${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
+    b.row(opts.brand?.brandless ? r.id.replace(/^AC'SCENT\s*/, 'No.') : `${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
       size: 19,
       weightL: 700,
       mono: true,

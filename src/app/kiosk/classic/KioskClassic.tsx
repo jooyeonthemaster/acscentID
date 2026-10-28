@@ -253,6 +253,8 @@ export function KioskClassic() {
   } = screenBackgrounds
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다, src/lib/kiosk/modes.ts)
   const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  /** 매장(wow) 모드만 브랜드(AC'SCENT)를 보인다 — 행사·체험 모드는 브랜드·회사명 없이(2026-10-28) */
+  const storeBrand = kioskMode.id === 'wow'
   // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
   const productType: ProductType = kioskMode.fixedProduct ?? chosenProduct
   const programTheme = kioskProgramTheme(kioskMode.id)
@@ -669,7 +671,7 @@ export function KioskClassic() {
 
   // ── 분석 ─────────────────────────────────────────────────
   // 분석 대기 문구 — 프로그램마다 다르다
-  const statusLines = program === 'saju' ? sx.statusLines : program === 'color' ? px.color.statusLines : program === 'tarot' ? px.tarot.statusLines : t.statusLines
+  const statusLines = program === 'saju' ? sx.statusLines : program === 'color' ? px.color.statusLines : program === 'tarot' ? px.tarot.statusLines : storeBrand ? t.statusLines : t.statusLines.map((line) => line.replace(/AC’SCENT(\s|の)?/, ''))
   const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
     const isSaju = program === 'saju'
@@ -895,10 +897,11 @@ export function KioskClassic() {
         name: persona.name,
         ratio: 100,
         amountMl: Math.round(ml * 100) / 100,
-        amountG: Math.round(ml * FRAGRANCE_DENSITY * 100) / 100,
+        // 행사 모드(AI 조향사)는 그램과 ml 을 같은 숫자로 — 매장은 향료 비중 0.9
+        amountG: Math.round(ml * (kioskMode.gramsEqualMl ? 1 : FRAGRANCE_DENSITY) * 100) / 100,
       },
     ]
-  }, [persona, productInfo])
+  }, [persona, productInfo, kioskMode.gramsEqualMl])
 
   // ── 결과 아카이브 (Electron 셸에서만) ─────────────────────────
   useEffect(() => {
@@ -999,7 +1002,7 @@ export function KioskClassic() {
         footerLines: [
           ...(mocked ? [px.demoNote] : []),
           isColorResult(result) ? px.color.disclaimer : px.tarot.disclaimer,
-          "AC'SCENT · www.acscent.co.kr",
+          ...(storeBrand ? ["AC'SCENT · www.acscent.co.kr"] : []),
         ],
         ...(isColorResult(result) ? { color: buildReceiptColor(result, px) } : { tarot: buildReceiptTarot(result, px, lang) }),
       }
@@ -1039,7 +1042,7 @@ export function KioskClassic() {
         precautions: t.receipt.precautions,
         footerLines: [
           ...(mocked ? [t.receipt.demoNote] : []),
-          "AC'SCENT · www.acscent.co.kr",
+          ...(storeBrand ? ["AC'SCENT · www.acscent.co.kr"] : []),
         ],
         ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
       }
@@ -1054,10 +1057,12 @@ export function KioskClassic() {
         ...(isColorResult(result) ? { subtitle: px.color.receipt.subtitle } : isTarotResult(result) ? { subtitle: px.tarot.receipt.subtitle } : {}),
         // STORE ADMIN 에서 고른 사주 영수증 양식·한자 글꼴(되돌리기용)
         receiptStyle: deviceBaseSettings.receiptStyle ?? 'sheet', hanjaFont: deviceBaseSettings.hanjaFont ?? 'kaishu',
+        // 매장(wow) 밖 체험 모드는 브랜드·회사명을 찍지 않는다(2026-10-28 사용자 지시)
+        brandless: !storeBrand,
       },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont, storeBrand])
 
   /** 영수증 한 장을 인쇄한다(프린터 없는 웹 초안은 PNG 저장) — 미리보기의 버튼과 '영수증 출력'이 함께 쓴다 */
   const printReceiptData = useCallback(async (target: { dataUrl: string; base64: string }) => {

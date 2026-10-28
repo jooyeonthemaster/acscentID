@@ -4,7 +4,7 @@
 //   - 매장 기기 설정(운영 모드·이용권·화면 디자인)을 건드리지 않고 주소의 모드로 돈다. 화면 디자인은 매장과 같은 맥
 //   - 이용권 없이, 촬영 기록(매장 통계)을 남기지 않는다. STORE ADMIN 은 열리지 않는다(설정이 매장 기기에 바로 적용되므로)
 //   - AI 아이돌 사진·폰으로 받기는 데모 표(/api/photobooth/demo/ticket)로 — 1분 3장·하루 40장 상한(src/lib/booth/demo-server.ts)
-//   - 화면에 NEANDER 워터마크(BoothWatermark). 인화물·받는 사진에는 찍지 않는다
+//   - 화면에 DEMO 워터마크(BoothWatermark). 인화물·받는 사진에는 찍지 않는다
 
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const BOOTH_DEMO_PARAM = 'demo'

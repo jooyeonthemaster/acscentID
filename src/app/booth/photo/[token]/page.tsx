@@ -11,7 +11,7 @@ import { BOOTH_LANGS, boothText, parseBoothLang } from '@/lib/booth/i18n'
 
 // 부스 [이미지 저장] QR 을 폰으로 찍으면 열리는 페이지 — 손님이 자기 사진을 갤러리에 저장한다
 export const metadata = {
-  title: "내 사진 | AC'SCENT WOW",
+  title: "내 사진",
   robots: { index: false, follow: false },
 }
 

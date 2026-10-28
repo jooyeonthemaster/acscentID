@@ -12,7 +12,7 @@ export async function generateMetadata({
 }) {
   const { lang } = await searchParams
   const t = kioskText(isKioskLang(lang) ? lang : 'ko')
-  return { title: `${t.upload.pageTitle} | AC'SCENT`, robots: { index: false, follow: false } }
+  return { title: t.upload.pageTitle, robots: { index: false, follow: false } }
 }
 
 export default async function KioskUploadPage({
