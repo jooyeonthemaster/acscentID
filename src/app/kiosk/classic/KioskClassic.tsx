@@ -20,7 +20,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
-import { idleWindowFor, IDLE_WARN_S } from '@/lib/kiosk/idle'
+import { idleWindowFor, IDLE_WARN_S, SHARE_IDLE_SILENT_S } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
@@ -55,8 +55,14 @@ import { TarotReportView } from '../TarotReport'
 import { TarotSteps, useTarotSession } from '../TarotSteps'
 import { ColorCaptureStep, ProgramAnalyzeError, ProgramAnalyzing, ProgramIdleDialog, ProgramInfoStep, ProgramLangMenu, ProgramReceiptModal, ProgramTopBar, type ProgramProgress } from '../ProgramScreens'
 import { programUiText } from '@/lib/kiosk/program-ui-i18n'
-import { colorFocusFor, releaseGarment } from '@/lib/kiosk/garment-recolor'
+import { colorFocusFor, releaseGarment, setGarmentDownloadFast } from '@/lib/kiosk/garment-recolor'
 import { useCamFrame } from '../useCamFrame'
+import { Smartphone } from 'lucide-react'
+import { KX_COMMON } from '../experience/kx-i18n'
+import { usePcFit } from '../pc/usePcFit'
+import { ColorShareSheet } from '../pc/ColorShareSheet'
+import { drawColorCard } from '../pc/color-card'
+import '../pc/color-pc.css'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
@@ -180,7 +186,13 @@ function isSajuResult(r: KioskAnalysisResult | null): r is SajuAnalysisResult {
   return Boolean(r && 'sajuChart' in r)
 }
 
-export function KioskClassic() {
+/**
+ * pinnedMode: 링크가 정한 운영 모드(노트북 가로 화면 /kiosk/pc/color 의 ai-color) — 기기 설정·미리보기 주소보다 먼저 쓰고,
+ *   기기 설정이 바뀌어도 화면을 갈아타지 않는다.
+ * pc: 노트북 가로 화면 — 두 칸 배치·창 크기 맞추기·이름은 노트북 자판으로·결과는 휴대폰 QR(영수증 없음)·관리자 창 없음.
+ *   매장 키오스크(둘 다 없음)는 예전과 같다. docs/kiosk-pc.md
+ */
+export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; pc?: boolean }) {
   const [step, setStep] = useState<Step>('attract')
   const [program, setProgram] = useState<Program>(DEFAULT_PROGRAM)
   const [name, setName] = useState('')
@@ -252,9 +264,14 @@ export function KioskClassic() {
     synced: backgroundsSynced,
   } = screenBackgrounds
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다, src/lib/kiosk/modes.ts)
-  const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  const kioskMode = findKioskMode(pinnedMode ?? previewModeId() ?? deviceSettings.mode)
   /** 매장(wow) 모드만 브랜드(AC'SCENT)를 보인다 — 행사·체험 모드는 브랜드·회사명 없이(2026-10-28) */
   const storeBrand = kioskMode.id === 'wow'
+  const pcFit = usePcFit(pc)
+  // 노트북 — 옷 색 미리보기 파일을 쉬지 않고 받는다(매장 키오스크는 손님 없을 때 천천히)
+  useEffect(() => { if (pc) setGarmentDownloadFast(true) }, [pc])
+  /** 노트북 — 결과 [휴대폰으로 받기] 창 */
+  const [sharing, setSharing] = useState(false)
   // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
   const productType: ProductType = kioskMode.fixedProduct ?? chosenProduct
   const programTheme = kioskProgramTheme(kioskMode.id)
@@ -370,6 +387,7 @@ export function KioskClassic() {
     setResult(null)
     setMocked(false)
     setReceipt(null)
+    setSharing(false)
     setIdleLeft(null)
     setOskOpen(false)
     setPhotoSource(DEFAULT_PHOTO_SOURCE)
@@ -398,7 +416,8 @@ export function KioskClassic() {
   // ── 유휴 리셋 ─────────────────────────────────────────────
   const receiptOpen = Boolean(receipt)
 
-  const idleWin = idleWindowFor({
+  // 노트북 — 결과 QR 을 폰으로 찍고 저장하는 동안은 화면을 건드리지 않는다
+  const idleWin = sharing ? { silent: SHARE_IDLE_SILENT_S, warn: IDLE_WARN_S } : idleWindowFor({
     step,
     receiptOpen,
     qrWaiting: step === 'capture' && photoSource === 'qr',
@@ -845,7 +864,7 @@ export function KioskClassic() {
     if (!result) return []
     // 퍼스널 컬러·타로 — 한 화면 스크롤
     if (isColorResult(result)) {
-      return [{ label: px.color.chapter, render: () => <ColorReportView result={result} photo={photo} px={px} ui={pu} name={name.trim()} />, scroll: true }]
+      return [{ label: px.color.chapter, render: () => <ColorReportView result={result} photo={photo} px={px} ui={pu} name={name.trim()} pc={pc} />, scroll: true }]
     }
     if (isTarotResult(result)) {
       return [{ label: px.tarot.chapter, render: () => <TarotReportView result={result} px={px} lang={lang} scrollMore={sx.scrollMore} />, scroll: true }]
@@ -868,7 +887,7 @@ export function KioskClassic() {
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t, sx, px, pu, name, photo, lang, kioskMode.resultOnePage])
+  }, [result, t, sx, px, pu, name, photo, lang, kioskMode.resultOnePage, pc])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
@@ -964,7 +983,7 @@ export function KioskClassic() {
         detail: extraRecordDetail(result),
         ticket: ticketRef.current,
         mocked,
-        device: kiosk ? `shell ${kiosk.version}` : 'web',
+        device: kiosk ? `shell ${kiosk.version}` : pc ? 'pc' : 'web',
       }),
     })
       .then((res) => res.json())
@@ -975,7 +994,7 @@ export function KioskClassic() {
   }, [
     step, result, scentResult, persona, match, program, name, gender, photoSource, productType,
     productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx, px,
-  t.gender,
+  t.gender, pc,
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
@@ -1286,9 +1305,10 @@ export function KioskClassic() {
     : programTheme === 'color'
       ? step === 'info' || step === 'capture' ? { kind: 'stepper', current: step === 'info' ? 0 : 1, labels: [pu.stepper.info, pu.stepper.photo] } : null
       : showHeader && step !== 'cards' ? { kind: 'bar', index: stepIdx, total: steps.length, label: STEP_LABELS[step] } : null
-  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
+  // 링크가 모드를 정한 화면(노트북)은 기기 설정을 따라 갈아타지 않는다
+  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced && !pinnedMode, step === 'attract' || backgroundAdminOpen)
   // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
-  useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
+  useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced && !pinnedMode, step === 'attract', backgroundAdminOpen)
 
   return (
     <div
@@ -1297,8 +1317,10 @@ export function KioskClassic() {
       data-program-step={step}
       data-background={activeBackground.id}
       data-lang={lang}
+      data-layout={pc ? 'pc' : undefined}
       lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
       style={{
+        ...pcFit,
         '--ksk-background-image': `url("${activeBackground.image}")`,
         // 테마 글꼴은 한국어 전용이라 한자권에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다
         '--ksk-display-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : activeBackground.displayFont,
@@ -1621,7 +1643,21 @@ export function KioskClassic() {
             gender={gender}
             onGender={setGender}
             onOpenKeyboard={() => setOskOpen(true)}
-            keyboard={oskOpen ? (
+            nameField={pc ? (
+              // 노트북 — 자판으로 바로 친다(한글 입력기 그대로). Enter 는 성별을 골랐으면 다음으로
+              <input
+                className="pg-input pg-input--text"
+                value={name}
+                maxLength={12}
+                placeholder={t.namePlaceholder}
+                autoComplete="off"
+                spellCheck={false}
+                aria-label={programTheme === 'color' ? pu.color.nameLabel : t.nameLabel}
+                onChange={(event) => setName(event.target.value.slice(0, 12))}
+                onKeyDown={(event) => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && gender) goNext() }}
+              />
+            ) : undefined}
+            keyboard={!pc && oskOpen ? (
               <OnScreenKeyboard
                 value={name}
                 onChange={setName}
@@ -2033,6 +2069,12 @@ export function KioskClassic() {
                   <button className="ksk-btn ksk-btn-primary" onClick={() => setChapterIdx((i) => i + 1)}>
                     {t.next}
                   </button>
+                ) : pc && isColorResult(result) ? (
+                  // 노트북 — 영수증 프린터가 없다. 결과 카드를 올려 휴대폰 QR 로 받는다
+                  <button className="ksk-btn ksk-btn-primary pc-share-btn" onClick={() => setSharing(true)}>
+                    <Smartphone size={22} strokeWidth={1.8} aria-hidden="true" />
+                    <span>{KX_COMMON[lang].saveTitle}</span>
+                  </button>
                 ) : (
                   <button className="ksk-btn ksk-btn-primary" onClick={openReceipt}>
                     {kiosk?.hasPrinter && !printedOnce ? t.receiptPrint : t.receiptPreview}
@@ -2096,7 +2138,18 @@ export function KioskClassic() {
         )}
       </div>
 
-      <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />
+      {!pc && <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />}
+      {pc && result && isColorResult(result) && (
+        <ColorShareSheet
+          open={sharing}
+          lang={lang}
+          cacheKey={`${lang}|${result.colorDiagnosis.typeId}|${result.colorDiagnosis.title}|${name.trim()}`}
+          build={() => drawColorCard({ result, px, ui: pu, name: name.trim(), date: new Intl.DateTimeFormat(KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date()) })}
+          label={px.color.receipt.title}
+          closeLabel={t.close}
+          onClose={() => setSharing(false)}
+        />
+      )}
 
       {receipt && programTheme && (
         <ProgramReceiptModal
@@ -2149,7 +2202,7 @@ export function KioskClassic() {
         </div>
       )}
       {/* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */}
-      {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
+      {!pc && !backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
         <button
           type="button"
           aria-label="매장 관리자 설정 열기"

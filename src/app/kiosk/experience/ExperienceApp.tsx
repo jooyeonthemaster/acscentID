@@ -18,7 +18,9 @@ import { KX_COMMON } from './kx-i18n'
 import { KxContext, KxIdleDialog, type KxContextValue, type KxScreenKind } from './kx'
 import { uploadShare, type KxShare, type KxShareFile } from './kx-share'
 import { useExperienceSwitch } from './useExperienceSwitch'
+import { usePcFit } from '../pc/usePcFit'
 import './experience.css'
+import './experience-pc.css'
 import { EXPANSION_META, isExpansionId } from '@/lib/kiosk/expansion/types'
 
 // 모드 화면은 그 모드일 때만 싣는다(인식 엔진·그림이 모드마다 다르다)
@@ -33,8 +35,13 @@ const MODES: Partial<Record<ExperienceId, ComponentType>> = {
 }
 const ExpansionMode = dynamic(() => import('./expansion/ExpansionMode'), { ssr:false })
 
-export function ExperienceApp({ id }: { id: ExperienceId }) {
+/**
+ * pc: 노트북 가로 화면(/kiosk/pc/…) — 가로 두 칸 배치·창 크기 맞추기. 링크가 모드를 정하므로 기기 설정을 따라 갈아타지 않고,
+ * 관리자 창을 열지 않는다(docs/kiosk-pc.md)
+ */
+export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boolean }) {
   const screen = useScreenBackgrounds('kiosk')
+  const fit = usePcFit(pc)
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const [lang, setLang] = useState<KioskLang>('ko')
   /** 처음으로 돌아갈 때마다 올린다 — 모드 화면을 통째로 새로 그려 상태를 비운다 */
@@ -96,7 +103,7 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
   }, [silent, adminOpen, home])
 
   // 운영 모드가 바뀌면(다른 체험·매장·사주…) 손님이 없을 때 새로고침해 갈아탄다
-  useExperienceSwitch(id, screen.baseSettings.mode, screen.synced, kind === 'start', adminOpen)
+  useExperienceSwitch(id, screen.baseSettings.mode, screen.synced && !pc, kind === 'start', adminOpen)
 
   // 관리자 핫스팟 — 짧게 누르거나 1.5초 누르면 인증창(다른 모드와 같은 자리)
   const hold = useRef<number | undefined>(undefined)
@@ -110,7 +117,7 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
   const holdUp = () => { window.clearTimeout(hold.current); hold.current = undefined }
   useEffect(() => () => window.clearTimeout(hold.current), [])
 
-  const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind, share }), [id, lang, home, share])
+  const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind, share, pc }), [id, lang, home, share, pc])
   const expanded = isExpansionId(id)
   const Mode = expanded ? ExpansionMode : MODES[id]
 
@@ -120,7 +127,8 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
       data-x={id}
       data-lang={lang}
       data-expansion={expanded ? id : undefined}
-      style={{ ...(isCjkLang(lang) ? { '--kx-font': CJK_FONT_STACK[lang] } : {}), ...(expanded ? { '--kx-accent': EXPANSION_META[id].color } : {}) } as CSSProperties}
+      data-layout={pc ? 'pc' : undefined}
+      style={{ ...fit, ...(isCjkLang(lang) ? { '--kx-font': CJK_FONT_STACK[lang] } : {}), ...(expanded ? { '--kx-accent': EXPANSION_META[id].color } : {}) } as CSSProperties}
     >
       <KxContext.Provider value={context}>
         <div className="kx-stage">
@@ -129,7 +137,7 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
         {idleLeft !== null && <KxIdleDialog left={idleLeft} total={IDLE_WARN_S} />}
       </KxContext.Provider>
       {/* 처리·카운트다운 중이 아니면 우측 상단 모서리에서 관리자 인증창을 연다(언어 버튼 위의 얇은 띠) */}
-      {!adminOpen && kind !== 'busy' && (
+      {!pc && !adminOpen && kind !== 'busy' && (
         <button
           type="button"
           aria-label="매장 관리자 설정 열기"
@@ -141,7 +149,7 @@ export function ExperienceApp({ id }: { id: ExperienceId }) {
           onClick={() => { if (!held.current) openAdmin(); held.current = false }}
         />
       )}
-      <KioskAdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} screen={screen} kiosk={kiosk} />
+      {!pc && <KioskAdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} screen={screen} kiosk={kiosk} />}
     </div>
   )
 }

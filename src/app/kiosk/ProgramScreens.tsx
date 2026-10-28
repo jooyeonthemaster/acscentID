@@ -95,7 +95,7 @@ export function ProgramTopBar({ brand, langMenu, progress }: { brand: string; la
 
 // ───────────────────────── 고객 정보 ─────────────────────────
 
-export function ProgramInfoStep({ theme, t, ui, eyebrow, name, gender, onGender, onOpenKeyboard, keyboard, onHome, onNext }: {
+export function ProgramInfoStep({ theme, t, ui, eyebrow, name, gender, onGender, onOpenKeyboard, keyboard, nameField, onHome, onNext }: {
   theme: KioskProgramTheme
   t: KioskText
   ui: ProgramUiText
@@ -107,6 +107,8 @@ export function ProgramInfoStep({ theme, t, ui, eyebrow, name, gender, onGender,
   onOpenKeyboard: () => void
   /** 열려 있으면 셸의 터치 키보드 */
   keyboard: ReactNode | null
+  /** 노트북 가로 화면 — 터치 키보드 대신 실제 입력 칸(노트북 자판·한글 입력기로 친다) */
+  nameField?: ReactNode
   onHome: () => void
   onNext: () => void
 }) {
@@ -119,10 +121,12 @@ export function ProgramInfoStep({ theme, t, ui, eyebrow, name, gender, onGender,
       <p className="pg-desc" data-center={color || undefined}>{color ? (typing ? ui.color.typingDesc : ui.color.infoDesc) : t.infoDesc}</p>
       <div className={color ? 'pg-card pg-info-card' : 'pg-info-card'}>
         <p className="pg-label">{color ? ui.color.nameLabel : t.nameLabel} <em>{t.nameOptional}</em></p>
-        <button type="button" className="pg-input" data-empty={!name || undefined} data-active={typing || undefined} onClick={onOpenKeyboard}>
-          <span>{name || t.namePlaceholder}</span>
-          {color && !typing && <Pencil size={22} strokeWidth={1.6} aria-hidden="true" />}
-        </button>
+        {nameField ?? (
+          <button type="button" className="pg-input" data-empty={!name || undefined} data-active={typing || undefined} onClick={onOpenKeyboard}>
+            <span>{name || t.namePlaceholder}</span>
+            {color && !typing && <Pencil size={22} strokeWidth={1.6} aria-hidden="true" />}
+          </button>
+        )}
         <p className="pg-label">{color ? ui.color.genderLabel : t.genderLabel}</p>
         <div className="pg-choices">
           {GENDER_OPTIONS.map((g) => (

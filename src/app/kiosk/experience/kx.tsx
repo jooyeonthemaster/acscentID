@@ -34,6 +34,8 @@ export interface KxContextValue {
   setScreen: (kind: KxScreenKind) => void
   /** 결과 올리기 — 휴대폰으로 받기 창과 영수증의 QR 이 같이 쓴다. 같은 결과(cacheKey)는 한 번만 올린다 */
   share: (cacheKey: string, build: () => Promise<KxShareFile[]>) => Promise<KxShare>
+  /** 노트북 가로 화면(/kiosk/pc/…) — 영수증 프린터가 없어 결과는 휴대폰 QR 로만 받는다 */
+  pc: boolean
 }
 
 export const KxContext = createContext<KxContextValue | null>(null)

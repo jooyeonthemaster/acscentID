@@ -25,8 +25,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // 파일 이름의 날짜는 한국 시간 기준(서버는 UTC)
   const stamp = new Date(shareCreatedAt(token) + 9 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '')
-  const prefix = name === 'experience-card.jpg' ? 'kiosk' : 'acscent'
-  const filename = `${prefix}-${name.slice(0, name.lastIndexOf('.'))}-${stamp}-${token.slice(-4)}.${ext}`
+  // 체험 결과는 브랜드 없이(2026-10-28) — 받기 페이지(ShareSaver)의 저장 이름과 같은 kiosk- 로
+  const filename = `kiosk-${name.slice(0, name.lastIndexOf('.'))}-${stamp}-${token.slice(-4)}.${ext}`
   const download = request.nextUrl.searchParams.get('download') === '1'
   return new NextResponse(new Uint8Array(data), {
     headers: {

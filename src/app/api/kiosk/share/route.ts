@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { kioskEnabled } from '@/lib/kiosk/access'
-import { EXPERIENCE_IDS } from '@/lib/kiosk/experience'
 import { isKioskLang } from '@/lib/kiosk/i18n'
 import {
   SHARE_BUCKET, SHARE_DIR, SHARE_MAX_FILES, SHARE_MAX_TOTAL_BYTES, SHARE_TYPES,
-  createShareToken, isShareExpired, isShareFileName, isShareToken, looksLike, shareFolder, sharePagePath,
+  createShareToken, isShareExpired, isShareFileName, isShareKind, isShareToken, looksLike, shareFolder, sharePagePath,
   type ShareFileMeta, type ShareMeta, type ShareType,
 } from '@/lib/kiosk/share'
 import { putShareFile, putShareMeta } from '@/lib/kiosk/share-store'
@@ -27,8 +26,8 @@ export async function POST(request: NextRequest) {
   if (!kioskEnabled(request)) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   try {
     const body = await request.json().catch(() => null)
-    const kind = String(body?.kind ?? '')
-    if (!(EXPERIENCE_IDS as readonly string[]).includes(kind)) return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
+    const kind = body?.kind
+    if (!isShareKind(kind)) return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     const list: unknown[] = Array.isArray(body?.files) ? body.files : []
     if (!list.length || list.length > SHARE_MAX_FILES) return NextResponse.json({ error: '파일을 확인해 주세요' }, { status: 400 })
 
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: '파일을 올리지 못했습니다' }, { status: 500 })
       }
     }
-    const meta: ShareMeta = { kind: kind as ShareMeta['kind'], lang: isKioskLang(body?.lang) ? body.lang : 'ko', files: files.map((f) => f.meta) }
+    const meta: ShareMeta = { kind, lang: isKioskLang(body?.lang) ? body.lang : 'ko', files: files.map((f) => f.meta) }
     const metaError = await putShareMeta(client, token, meta)
     if (metaError) {
       console.error('[kiosk-share] 목록 저장 실패:', metaError)

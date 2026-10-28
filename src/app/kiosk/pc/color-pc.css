@@ -1,0 +1,155 @@
+/* 노트북 가로 화면 — AI 퍼스널 컬러(/kiosk/pc/color). 기존(classic) 셸 + Chromatic Archive 위에 data-layout='pc' 일 때만 덮는다.
+   docs/kiosk-pc.md · 기준 1280×780 CSS 픽셀(usePcFit). 왼쪽 넓은 칸 = 카메라·사진·그림, 오른쪽 칸 = 제목·설명·버튼.
+   그리드에서 오른쪽 칸 맨 위 빈 줄(::before)과 맨 아래 빈 줄(1fr)이 남는 높이를 나눠 가져 오른쪽 글이 세로 가운데에 온다. */
+
+.ksk-root[data-layout='pc'] { --pc-panel: 520px; --pc-gap: 56px; padding: 14px; }
+.ksk-root[data-layout='pc'][data-program-theme] .ksk-stage { max-width: 1500px; padding: 18px 32px 20px; }
+.ksk-root[data-layout='pc'] button:not(:disabled), .ksk-root[data-layout='pc'] label.pg-file { cursor: pointer; }
+@media (hover: hover) {
+  .ksk-root[data-layout='pc'] :is(.ksk-btn, .ksk-alt, .pg-wide, .pg-choice, .clr2-tabs button, .clr2-compare-btn):hover:not(:disabled):not([data-on]) { background: var(--pg-accent-soft); }
+  .ksk-root[data-layout='pc'] .ksk-btn-primary:hover:not(:disabled) { background: #343d8f; }
+  .ksk-root[data-layout='pc'] .clr-swatch:hover { transform: translateY(-2px); }
+}
+
+/* ── 첫 화면 — 왼쪽 색 견본 부채, 오른쪽 COLOR! · 소개 · 시작 ─────────── */
+.ksk-root[data-layout='pc'] .program-attract {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pc-panel);
+  grid-template-rows: auto 1fr auto auto 1fr;
+  grid-template-areas: 'bar bar' 'art .' 'art intro' 'art start' 'art .';
+  column-gap: var(--pc-gap);
+  padding: 0;
+}
+.ksk-root[data-layout='pc'] .program-attract .program-brandbar { grid-area: bar; margin-bottom: 0; }
+.ksk-root[data-layout='pc'] .program-intro { grid-area: intro; }
+.ksk-root[data-layout='pc'] .program-art { grid-area: art; min-height: 0; margin: 12px 0; }
+.ksk-root[data-layout='pc'] .program-start-area { grid-area: start; margin-top: 18px; }
+.ksk-root[data-layout='pc'][data-program-theme] .program-wordmark { font-size: 150px; }
+.ksk-root[data-layout='pc'][data-program-theme] .program-headline { margin-top: 22px; font-size: 30px; }
+.ksk-root[data-layout='pc'][data-program-theme]:not([data-lang='ko']) .program-headline { font-size: 26px; }
+.ksk-root[data-layout='pc'][data-program-theme] .program-start { min-height: 78px; font-size: 29px; }
+.ksk-root[data-layout='pc'] .program-color-index { left: 0; top: 18%; bottom: 18%; width: 18px; }
+
+/* ── 안쪽 화면 공통 — 머리띠는 전체 폭, 본문은 두 칸 ─────────── */
+.ksk-root[data-layout='pc'] .pg-top { margin-bottom: 4px; }
+.ksk-root[data-layout='pc'] .pg-stepper { padding: 10px 2px; }
+.ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color']) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pc-panel);
+  grid-template-rows: 1fr repeat(10, auto) 1fr;
+  column-gap: var(--pc-gap);
+  padding: 8px 4px 4px;
+  overflow: hidden;
+}
+.ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color'])::before { content: ''; grid-area: 1 / 2; }
+.ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color']) > * { grid-column: 2; min-width: 0; }
+.ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color']) > .pg-spacer { display: none; }
+/* 왼쪽 칸 — 화면마다 그림 하나 */
+.ksk-root[data-layout='pc'] :is(.pg-info > .pg-info-art, .pg-capture > .pg-cam-slot, .pg-capture > .pg-qr, .pg-analyzing > .pg-analyzing-art) {
+  grid-column: 1; grid-row: 1 / -1; min-height: 0; margin: 0;
+}
+.ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing) :is(.pg-title, .pg-desc) { text-align: left; }
+.ksk-root[data-layout='pc'] .ksk-actions.pg-actions { margin: 18px 0 0; padding: 0; border-top: 0; background: transparent; }
+.ksk-root[data-layout='pc'] .ksk-actions.pg-actions::before { display: none; }
+
+/* 고객 정보 — 이름은 노트북 자판으로 */
+.ksk-root[data-layout='pc'] .pg-info .pg-title { font-size: 40px; }
+.ksk-root[data-layout='pc'] .pg-info-art { justify-content: center; gap: 18px; }
+.ksk-root[data-layout='pc'] .pg-info-art img { width: min(420px, 82%); }
+.ksk-root[data-layout='pc'] .pg-info-art p { font-size: 18px; }
+.ksk-root[data-layout='pc'] .pg-input--text { outline: none; cursor: text; }
+.ksk-root[data-layout='pc'] .pg-input--text::placeholder { color: var(--pg-soft); font-weight: 500; opacity: 1; }
+.ksk-root[data-layout='pc'] .pg-input--text:focus { border-color: var(--pg-accent); box-shadow: 0 0 0 3px var(--pg-accent-soft); }
+
+/* 촬영 · 사진 확인 · 폰으로 올리기 — 왼쪽 카메라 액자(3:4, useCamFrame 이 칸 크기를 잰다) */
+.ksk-root[data-layout='pc'] .pg-capture > .pg-cam-slot { align-items: center; padding: 6px 0; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-title { font-size: 36px; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-desc { font-size: 16px; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-tips { margin-top: 10px; font-size: 16px; gap: 10px; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-strip { width: 100%; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-check { justify-content: flex-start; }
+.ksk-root[data-layout='pc'] .pg-capture .pg-note--small { justify-content: flex-start; }
+.ksk-root[data-layout='pc'] .pg-capture > .pg-qr { align-self: center; justify-self: center; width: min(460px, 100%); }
+.ksk-root[data-layout='pc'] .pg-capture .pg-qr-img { width: 240px; height: 240px; }
+
+/* 분석 대기 — 왼쪽 부채와 점 고리, 오른쪽 이름·체크 목록·진행 */
+.ksk-root[data-layout='pc'] .pg-analyzing > .pg-analyzing-art { align-self: center; justify-self: center; width: min(480px, 100%); aspect-ratio: 1; }
+.ksk-root[data-layout='pc'] .pg-analyzing .pg-title--hero { align-items: flex-start; font-size: 46px; }
+.ksk-root[data-layout='pc'] .pg-analyzing .pg-wait, .ksk-root[data-layout='pc'] .pg-analyzing .pg-foot { text-align: left; }
+
+/* 분석 실패 — 가운데 카드 */
+.ksk-root[data-layout='pc'] .pg-error-wrap { align-items: center; }
+.ksk-root[data-layout='pc'] .pg-error-wrap > .pg-error { width: min(620px, 100%); }
+
+/* ── 결과 — 왼쪽 옷 색 미리보기(붙박이), 오른쪽 유형·색·톤·스타일(넘겨 보기), 맨 아래 처음으로 · 휴대폰으로 받기 ─────────── */
+.ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-body { display: flex; flex-direction: column; padding: 4px 4px 0; overflow: hidden; }
+.ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result { flex: 1; min-height: 0; height: auto; }
+.ksk-root[data-layout='pc'] .clr2[data-pc] {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); column-gap: 44px; padding: 0;
+}
+.ksk-root[data-layout='pc'] .clr2-pc-side { display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow: hidden; }
+.ksk-root[data-layout='pc'] .clr2-pc-main {
+  display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; padding: 4px 14px 16px 2px;
+  scrollbar-width: thin; scrollbar-color: #c4c7d9 transparent; overscroll-behavior: contain;
+}
+/* 미리보기 사진은 왼쪽 칸 높이에 맞춘다 */
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try { flex: 1; min-height: 0; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-h3 { margin-top: 0; font-size: 28px; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-frame { flex: 1; min-height: 0; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) .clr2-photo { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; height: 100%; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare { flex: 1; min-height: 0; align-items: center; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare .clr2-photo { width: 100%; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-drape { flex: 1; justify-content: center; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-drape .clr-portrait { width: min(340px, 80%); }
+/* 오른쪽 — 유형 이름을 크게 */
+.ksk-root[data-layout='pc'] .clr2-pc-main .clr2-type h2 { font-size: 54px; }
+.ksk-root[data-layout='pc'] .clr2-pc-main .clr2-tagline { font-size: 19px; }
+.ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions { flex: none; margin: 10px 0 0; padding: 12px 0 0; }
+.ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn { min-height: 64px; }
+.ksk-root[data-layout='pc'] .pc-share-btn { gap: 10px; }
+
+/* ── 휴대폰으로 받기(QR) 창 ─────────── */
+.ksk-root[data-layout='pc'] .pcs-sheet {
+  position: absolute; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px;
+  background: rgba(23, 27, 66, 0.55); animation: pcs-fade 0.22s ease-out;
+}
+.ksk-root[data-layout='pc'] .pcs-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(460px, 100%); padding: 30px 28px 24px;
+  border: 1px solid var(--pg-ink); border-radius: 4px; background: var(--pg-paper); color: var(--pg-ink); text-align: center;
+  box-shadow: 0 24px 60px rgba(23, 27, 66, 0.3); animation: pcs-zoom 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ksk-root[data-layout='pc'] .pcs-card h2 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.04em; }
+.ksk-root[data-layout='pc'] .pcs-desc { margin: 0; color: var(--pg-soft); font-size: 16px; line-height: 1.45; word-break: keep-all; }
+.ksk-root[data-layout='pc'] .pcs-x { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 48px; height: 48px; border: 0; background: transparent; color: var(--pg-soft); }
+.ksk-root[data-layout='pc'] .pcs-qr { display: grid; place-items: center; width: 268px; height: 268px; margin: 6px 0; border: 1px solid var(--pg-line); background: #fff; }
+.ksk-root[data-layout='pc'] .pcs-qr img { width: 244px; height: 244px; image-rendering: pixelated; animation: pcs-zoom 0.3s ease-out; }
+.ksk-root[data-layout='pc'] .pcs-qr p { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 0; padding: 16px; color: var(--pg-soft); font-size: 15px; line-height: 1.45; }
+.ksk-root[data-layout='pc'] .pcs-qr .ksk-btn { min-height: 52px; gap: 8px; font-size: 16px; }
+.ksk-root[data-layout='pc'] .pcs-keep { margin: 0; color: var(--pg-soft); font-size: 13.5px; word-break: keep-all; }
+.ksk-root[data-layout='pc'] .pcs-done { width: 100%; margin-top: 6px; }
+@keyframes pcs-fade { from { opacity: 0; } }
+@keyframes pcs-zoom { from { opacity: 0; transform: scale(0.95); } }
+
+/* 오른쪽 칸 아래에 글이 더 있다는 것을 보이게 아래 36px 를 옅게 — 마지막 칸 아래에 그만큼 여백을 둬 끝까지 내리면 글이 흐려지지 않는다 */
+.ksk-root[data-layout='pc'] .clr2-pc-main { mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); }
+.ksk-root[data-layout='pc'] .clr2-pc-main > :last-child { margin-bottom: 30px; }
+/* 미리보기 — 탭 줄 오른쪽에 '나란히 비교'를 붙이고 설명 한 줄을 빼서 사진을 크게 */
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); gap: 12px 10px;
+}
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-h3 { grid-column: 1 / -1; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-sub { display: none; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-tabs { grid-column: 1 / 3; margin: 0; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-compare-btn { grid-column: 3; grid-row: 2; align-self: stretch; min-height: 52px; padding: 0 10px; font-size: 15px; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-frame { grid-column: 1 / -1; grid-row: 3; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-tabs button { min-height: 54px; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-compare-btn { margin: 0; }
+/* 나란히 비교 — 두 사진을 칸 높이에 맞추고, 돌아가기 버튼은 제 높이로(셸의 .ksk-btn 은 flex: 1 이라 세로로 늘어난다) */
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] { display: flex; flex-direction: column; gap: 10px; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] > .clr2-h3 { flex: none; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] > .clr2-sub { flex: none; margin: 0; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); margin: 0; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare .clr2-frame { min-height: 0; height: 100%; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare .clr2-photo { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; height: 100%; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-selected { flex: none; min-height: 52px; }
+.ksk-root[data-layout='pc'] .clr2-pc-side .clr2-back { flex: none; min-height: 56px; }

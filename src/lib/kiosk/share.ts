@@ -10,8 +10,17 @@
  * 토큰 = 생성 시각(base36 8자) + 무작위 20자 → 시각을 따로 저장하지 않아도 만료를 판단한다.
  */
 
-import { EXPERIENCE_IDS, type ExperienceId } from './experience'
+import { EXPERIENCE_IDS, EXPERIENCE_META } from './experience'
 import { isKioskLang, type KioskLang } from './i18n'
+
+/** 결과를 올리는 화면 — 체험 모드 + 퍼스널 컬러(노트북 가로 화면 /kiosk/pc/color, 2026-10-28) */
+export const SHARE_KINDS = [...EXPERIENCE_IDS, 'color'] as const
+export type ShareKind = (typeof SHARE_KINDS)[number]
+export const isShareKind = (value: unknown): value is ShareKind => (SHARE_KINDS as readonly string[]).includes(String(value))
+/** 받기 페이지 머리의 큰 글자와 색 */
+export function shareKindMeta(kind: ShareKind): { tag: string; color: string } {
+  return kind === 'color' ? { tag: 'COLOR!', color: '#272F73' } : EXPERIENCE_META[kind]
+}
 
 export const SHARE_BUCKET = 'analysis-images'
 export const SHARE_DIR = 'kiosk/share'
@@ -43,7 +52,7 @@ export interface ShareFileMeta {
 }
 
 export interface ShareMeta {
-  kind: ExperienceId
+  kind: ShareKind
   lang: KioskLang
   files: ShareFileMeta[]
 }
@@ -85,9 +94,9 @@ export function looksLike(type: ShareType, bytes: Uint8Array): boolean {
 
 export function parseShareMeta(value: unknown): ShareMeta | null {
   const raw = value as Partial<ShareMeta> | null
-  if (!raw || !(EXPERIENCE_IDS as readonly string[]).includes(String(raw.kind)) || !Array.isArray(raw.files)) return null
+  if (!raw || !isShareKind(raw.kind) || !Array.isArray(raw.files)) return null
   const files = raw.files.filter((file): file is ShareFileMeta =>
     Boolean(file) && isShareFileName(String(file.name)) && Object.hasOwn(SHARE_TYPES, String(file.type)) && typeof file.label === 'string' && Number.isFinite(file.size))
   if (!files.length) return null
-  return { kind: raw.kind as ExperienceId, lang: isKioskLang(raw.lang) ? raw.lang : 'ko', files }
+  return { kind: raw.kind, lang: isKioskLang(raw.lang) ? raw.lang : 'ko', files }
 }

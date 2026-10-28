@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createServiceRoleClient } from '@/lib/supabase/service'
-import { EXPERIENCE_META } from '@/lib/kiosk/experience'
 import { KIOSK_LANGS } from '@/lib/kiosk/i18n'
-import { isShareExpired, isShareToken, parseShareMeta, shareExpiresAt } from '@/lib/kiosk/share'
+import { isShareExpired, isShareToken, parseShareMeta, shareExpiresAt, shareKindMeta } from '@/lib/kiosk/share'
 import { getShareMeta } from '@/lib/kiosk/share-store'
 import { ShareSaver } from './ShareSaver'
 import { SHARE_TEXT } from './text'
@@ -35,8 +34,8 @@ export default async function KioskSharePage({ params }: { params: Promise<{ tok
     <ShareSaver
       token={token}
       meta={meta}
-      tag={EXPERIENCE_META[meta.kind].tag}
-      color={EXPERIENCE_META[meta.kind].color}
+      tag={shareKindMeta(meta.kind).tag}
+      color={shareKindMeta(meta.kind).color}
       htmlLang={KIOSK_LANGS.find((l) => l.id === meta.lang)?.htmlLang ?? 'ko'}
       expiresAt={shareExpiresAt(token)}
     />

@@ -29,13 +29,22 @@ const ICONS: Record<string, IconType> = {
 }
 const axisArt = (axis: CareerAxis) => `/assets/kiosk-experiences/career-${axis}.webp`
 
-/** 저장용 탐색 가이드 한 장 */
-async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[]): Promise<Blob> {
+/** 저장용 탐색 가이드 한 장 — AI 풀이가 있으면 직업 셋 위에 함께 싣는다(휴대폰으로 받는 결과가 화면 결과와 같게) */
+async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[], analysis: CareerAiAnalysis | null): Promise<Blob> {
   const family = kxFontFamily()
   await fontsReady(`800 40px ${family}`, `500 30px ${family}`)
   const W = 1080, pad = 80
   const ink = '#10358f', soft = '#4a5f8f', accent = '#1946cd', orange = '#f2702a'
   const measure = makeCanvas(W, 10)[1]
+  // AI 풀이 상자 — 한 줄 제목 · 풀이 · 짚어 본 것들(점 목록)
+  const aiInner = W - pad * 2 - 40
+  measure.font = `800 36px ${family}`
+  const aiHead = analysis ? wrapLines(measure, analysis.headline, aiInner) : []
+  measure.font = `500 30px ${family}`
+  const aiBody = analysis ? wrapLines(measure, analysis.insight, aiInner) : []
+  measure.font = `500 27px ${family}`
+  const aiPoints = analysis ? [...analysis.photo, ...analysis.tips].map((line) => wrapLines(measure, line, aiInner - 30)) : []
+  const aiH = analysis ? 96 + aiHead.length * 48 + 14 + aiBody.length * 44 + (aiPoints.length ? 18 + aiPoints.reduce((sum, lines) => sum + lines.length * 38 + 10, 0) : 0) + 34 : 0
   measure.font = `500 31px ${family}`
   const cards = result.careers.map((id) => ({ id, lines: wrapLines(measure, t.careers[id].desc, W - pad * 2 - 80) }))
   const top = result.careers[0]
@@ -44,7 +53,7 @@ async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[
   const firstLines = wrapLines(measure, t.careers[top].first, W - pad * 2 - 80)
   measure.font = `500 30px ${family}`
   const guideLines = guide.map((line) => wrapLines(measure, line, W - pad * 2 - 150))
-  const H = 400 + cards.reduce((sum, card) => sum + 150 + card.lines.length * 44, 0) + 150 + firstLines.length * 50 + guideLines.reduce((sum, lines) => sum + lines.length * 42 + 22, 0) + 190
+  const H = 400 + (analysis ? aiH + 24 : 0) + cards.reduce((sum, card) => sum + 150 + card.lines.length * 44, 0) + 150 + firstLines.length * 50 + guideLines.reduce((sum, lines) => sum + lines.length * 42 + 22, 0) + 190
   const [canvas, ctx] = makeCanvas(W, H)
   const sky = ctx.createLinearGradient(0, 0, 0, H)
   sky.addColorStop(0, '#dff0fe')
@@ -77,6 +86,38 @@ async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[
     tx += w + 14
   }
   let y = 410
+  if (analysis) {
+    ctx.fillStyle = '#eef3ff'
+    roundRect(ctx, pad - 20, y, W - (pad - 20) * 2, aiH, 28)
+    ctx.fill()
+    ctx.strokeStyle = '#c9d6ff'
+    ctx.lineWidth = 3
+    ctx.stroke()
+    let ay = y + 34
+    ctx.fillStyle = accent
+    ctx.font = `800 26px ${family}`
+    ctx.fillText(`✦ ${t.aiTitle}`, pad, ay)
+    ay += 52
+    ctx.fillStyle = ink
+    ctx.font = `800 36px ${family}`
+    ay = fillLines(ctx, aiHead, pad, ay, 48) + 14
+    ctx.fillStyle = '#33415f'
+    ctx.font = `500 30px ${family}`
+    ay = fillLines(ctx, aiBody, pad, ay, 44)
+    if (aiPoints.length) {
+      ay += 18
+      ctx.font = `500 27px ${family}`
+      for (const lines of aiPoints) {
+        ctx.fillStyle = accent
+        ctx.beginPath()
+        ctx.arc(pad + 8, ay + 17, 5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = soft
+        ay = fillLines(ctx, lines, pad + 30, ay, 38) + 10
+      }
+    }
+    y += aiH + 24
+  }
   cards.forEach((card, index) => {
     const h = 122 + card.lines.length * 44
     ctx.fillStyle = '#ffffff'
@@ -156,7 +197,7 @@ function FaceScan({ photo, reading }: { photo: string; reading: FaceReading | nu
 }
 
 export default function CareerMode() {
-  const { lang, t: k } = useKx()
+  const { lang, t: k, pc } = useKx()
   const t = kxText(CAREER_TEXT, lang)
   const [step, setStep] = useState<'start' | 'ask' | 'face' | 'ai' | 'result'>('start')
   /** 0 = 활동 고르기(여러 개) · 1 = MBTI · 2~6 = 상황 질문 */
@@ -193,8 +234,8 @@ export default function CareerMode() {
   const clueTags = useMemo(() => [...(mbti ? [mbti] : []), ...(traits[0] ? [t.traits[traits[0]][0]] : [])], [mbti, traits, t])
   const build = useCallback(async (): Promise<KxShareFile[]> => {
     if (!result) throw new Error('결과가 없습니다')
-    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags) }]
-  }, [result, t, clueTags])
+    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags, analysis) }]
+  }, [result, t, clueTags, analysis])
 
   /** AI 분석 — 규칙이 고른 직업 셋과 답·관상 사진(있으면)을 보내 풀이를 받는다. 실패하거나 건너뛰면 풀이 없이 결과로 */
   const analyze = useCallback(async (photo: string | null, faceTraits: FaceTrait[]) => {
@@ -398,9 +439,10 @@ export default function CareerMode() {
     foot: t.facePrivacy,
   })
   const hasClues = Boolean(mbti) || traits.length > 0
-  return (
-    <KxPage name="career-result">
-      {top}
+  // 받는 그림에 AI 풀이도 들어간다 — 풀이가 다르면 다른 결과로 보고 다시 올린다
+  const shareKey = `${lang}|${result.careers.join()}|${clueTags.join()}|${analysis?.headline ?? ''}`
+  const heading = (
+    <>
       <p className="crr-done"><i aria-hidden="true"><Check size={16} strokeWidth={3} /></i>{t.done}</p>
       <h1 className="kx-title crr-result-title">{t.resultTitle}</h1>
       <p className="kx-desc">{t.resultSub}</p>
@@ -408,6 +450,10 @@ export default function CareerMode() {
         {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
         {clueTags.map((clue) => <span key={clue} data-clue>{clue}</span>)}
       </p>
+    </>
+  )
+  const aiPart = (
+    <>
       {analysis && (
         <section className="crr-ai" aria-label={t.aiTitle}>
           <em><Sparkles size={16} strokeWidth={2} aria-hidden="true" />{t.aiTitle}</em>
@@ -416,22 +462,28 @@ export default function CareerMode() {
           {analysis.photo.length + analysis.tips.length > 0 && <ul>{[...analysis.photo, ...analysis.tips].map((line, i) => <li key={i}>{line}</li>)}</ul>}
         </section>
       )}
-      <ol className="crr-careers" data-tight={hasClues || Boolean(analysis) || undefined}>
-        {result.careers.map((id) => {
-          const career = CAREERS[id]
-          return (
-            <li key={id} className="crr-career">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={axisArt(career.primary)} alt="" draggable={false} />
-              <div>
-                <b>{t.careers[id].name}</b>
-                <span>{t.careers[id].desc}</span>
-                <p className="crr-tags">{[career.primary, career.secondary].filter((axis): axis is CareerAxis => Boolean(axis)).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}</p>
-              </div>
-            </li>
-          )
-        })}
-      </ol>
+    </>
+  )
+  const careerList = (
+    <ol className="crr-careers" data-tight={hasClues || Boolean(analysis) || undefined}>
+      {result.careers.map((id) => {
+        const career = CAREERS[id]
+        return (
+          <li key={id} className="crr-career">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={axisArt(career.primary)} alt="" draggable={false} />
+            <div>
+              <b>{t.careers[id].name}</b>
+              <span>{t.careers[id].desc}</span>
+              <p className="crr-tags">{[career.primary, career.secondary].filter((axis): axis is CareerAxis => Boolean(axis)).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}</p>
+            </div>
+          </li>
+        )
+      })}
+    </ol>
+  )
+  const cluesPart = (
+    <>
       {hasClues && (
         <button type="button" className="crr-clues" onClick={() => setCluesOpen(true)}>
           <ScanFace size={30} strokeWidth={1.7} aria-hidden="true" />
@@ -439,24 +491,48 @@ export default function CareerMode() {
           <i>{t.cluesOpen}<ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" /></i>
         </button>
       )}
-      <section className="crr-first">
-        <Lightbulb size={38} strokeWidth={1.6} aria-hidden="true" />
-        <div>
-          <em>{t.firstLabel}</em>
-          <b>{t.careers[topCareer].first}</b>
-          <span>{t.firstNote}</span>
-        </div>
-        <button type="button" onClick={() => setGuideOpen(true)}>{t.guide}<ArrowRight size={16} strokeWidth={2.4} aria-hidden="true" /></button>
-      </section>
-      <div className="kx-spacer" />
-      <div className="crr-take">
-        <button type="button" className="kx-btn crr-next" onClick={() => setSaving(true)}>
-          <Download size={24} strokeWidth={2.2} aria-hidden="true" />{t.save}
-        </button>
+    </>
+  )
+  const firstPart = (
+    <section className="crr-first">
+      <Lightbulb size={38} strokeWidth={1.6} aria-hidden="true" />
+      <div>
+        <em>{t.firstLabel}</em>
+        <b>{t.careers[topCareer].first}</b>
+        <span>{t.firstNote}</span>
+      </div>
+      <button type="button" onClick={() => setGuideOpen(true)}>{t.guide}<ArrowRight size={16} strokeWidth={2.4} aria-hidden="true" /></button>
+    </section>
+  )
+  const takePart = (
+    <div className="crr-take">
+      {/* 노트북(pc)에는 영수증 프린터가 없다 — 휴대폰으로 받기 하나를 크게 */}
+      <button type="button" className={pc ? 'kx-btn kx-btn--primary crr-next' : 'kx-btn crr-next'} onClick={() => setSaving(true)}>
+        <Download size={24} strokeWidth={2.2} aria-hidden="true" />{t.save}
+      </button>
+      {!pc && (
         <button type="button" className="kx-btn kx-btn--primary crr-next" onClick={() => setPrinting(true)}>
           <Printer size={24} strokeWidth={2.2} aria-hidden="true" />{t.print}
         </button>
-      </div>
+      )}
+    </div>
+  )
+  return (
+    <KxPage name="career-result">
+      {top}
+      {pc ? (
+        // 노트북 가로 화면 — 왼쪽은 나에 대한 풀이, 오른쪽은 탐색해 볼 직업과 받기
+        <div className="crr-pc-cols">
+          <div className="crr-pc-side">{heading}{aiPart}{cluesPart}</div>
+          <div className="crr-pc-main">{careerList}{firstPart}{takePart}</div>
+        </div>
+      ) : (
+        <>
+          {heading}{aiPart}{careerList}{cluesPart}{firstPart}
+          <div className="kx-spacer" />
+          {takePart}
+        </>
+      )}
       <KxFoot>{t.resultFoot}</KxFoot>
       {guideOpen && (
         <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={t.guideTitle} onPointerDown={(event) => { if (event.target === event.currentTarget) setGuideOpen(false) }}>
@@ -491,8 +567,8 @@ export default function CareerMode() {
           </div>
         </div>
       )}
-      <KxSaveSheet open={saving} cacheKey={`${lang}|${result.careers.join()}|${clueTags.join()}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
-      <KxReceiptSheet open={printing} cacheKey={`${lang}|${result.careers.join()}|${clueTags.join()}`} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
+      <KxSaveSheet open={saving} cacheKey={shareKey} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
+      <KxReceiptSheet open={printing} cacheKey={shareKey} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
     </KxPage>
   )
 }

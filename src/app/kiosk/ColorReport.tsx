@@ -92,7 +92,7 @@ function useGarmentTryOn(photo: string | null, hex: string, palette: string[]) {
   return { state, overlay: overlays[hex] ?? null, overlays, retry }
 }
 
-export function ColorReportView({ result, photo, px, ui, name }: {
+export function ColorReportView({ result, photo, px, ui, name, pc = false }: {
   result: ColorAnalysisResult
   /** 원본 사진(진단에 쓴 그것) — 없으면 드레이프만 */
   photo: string | null
@@ -101,6 +101,8 @@ export function ColorReportView({ result, photo, px, ui, name }: {
   name: string
   /** 예전 호출 호환 — 이 화면은 '더 보기' 버튼으로 스크롤한다 */
   scrollMore?: string
+  /** 노트북 가로 화면(/kiosk/pc/color) — 두 칸 */
+  pc?: boolean
 }) {
   const tx = px.color
   const u = ui.color
@@ -181,17 +183,18 @@ export function ColorReportView({ result, photo, px, ui, name }: {
   )
   const [first, ...rest] = sentences(d.summary)
 
-  return (
-    <div className="sjr clr clr2" ref={rootRef}>
-      <header className="clr2-head">
-        <p className="clr2-kicker">{u.resultKicker(name)}</p>
-        <div className="clr2-type">
-          <h2>{tx.typeNames[d.typeId]}</h2>
-          <span className="clr2-badge" data-tone={d.undertone}>{tx.undertone[d.undertone]}</span>
-        </div>
-        <p className="clr2-tagline">{d.title}</p>
-      </header>
-
+  const head = (
+    <header className="clr2-head">
+      <p className="clr2-kicker">{u.resultKicker(name)}</p>
+      <div className="clr2-type">
+        <h2>{tx.typeNames[d.typeId]}</h2>
+        <span className="clr2-badge" data-tone={d.undertone}>{tx.undertone[d.undertone]}</span>
+      </div>
+      <p className="clr2-tagline">{d.title}</p>
+    </header>
+  )
+  const look = (
+    <>
       {garment ? (
         <section className="clr2-try" data-view={view}>
           <h3 className="clr2-h3">{view === 'compare' ? u.compareTitle : u.tryOnTitle}</h3>
@@ -249,81 +252,100 @@ export function ColorReportView({ result, photo, px, ui, name }: {
           )}
         </section>
       )}
-
-      <section className="sjr-card clr-palette">
-        {!garment && <p className="sjr-kicker">{tx.drapeTitle}</p>}
-        <p className="clr-hint">{garment ? u.paletteHint : u.drapeHint}</p>
-        <p className="clr-swatch-label">{tx.best}</p>
-        {swatches(type.best, false)}
-        {nameList(false)}
-        <p className="clr-swatch-label">{tx.avoid}</p>
-        {swatches(type.avoid, true)}
-        {nameList(true)}
-      </section>
-
-      <button type="button" className="clr2-more" onClick={() => toneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-        <span>{u.moreTone}</span><ArrowDown size={18} strokeWidth={1.8} aria-hidden="true" />
-      </button>
-
-      <div className="clr2-section" ref={toneRef}>
-        <p className="clr2-mini" data-reveal="">{u.resultKicker(name)} · <b>{tx.typeNames[d.typeId]} · {tx.undertone[d.undertone]}</b></p>
-        <h3 className="clr2-h2" data-reveal="">{tx.gaugeTitle}</h3>
-        <div className="clr2-callout" data-reveal="">
-          {d.undertone === 'warm' ? <Sun size={34} strokeWidth={1.4} aria-hidden="true" /> : <Snowflake size={34} strokeWidth={1.4} aria-hidden="true" />}
-          <p>{first}</p>
-        </div>
-        {rest.length > 0 && <div data-reveal=""><Brief text={rest.join(' ')} n={FULL} tx={px} /></div>}
-        {d.confidence === 'low' && <p className="xpr-note xpr-note--warn" data-reveal="">{tx.lowConfidence}</p>}
-        <div className="clr-gauges">
-          {GAUGE_KEYS.map((key) => (
-            <div key={key} className="clr-gauge" data-reveal="">
-              <b>{tx.gauges[key].label}</b>
-              <span>{tx.gauges[key].low}</span>
-              {/* --v: 화면에 들어올 때 가운데에서 제 자리(점수)로 미끄러져 가는 거리를 재는 데 쓴다(program-motion.css) */}
-              <span className="clr-gauge-track"><i style={{ left: `${d.scores[key]}%`, '--v': d.scores[key] } as CSSProperties} /></span>
-              <span>{tx.gauges[key].high}</span>
-            </div>
-          ))}
-        </div>
-        <h3 className="clr2-h2" data-reveal="">{tx.observeTitle}</h3>
-        <ul className="clr2-observe" data-reveal="">
-          {([['skin', Smile], ['hair', Waves], ['eyes', Eye]] as const).map(([key, Icon]) => (
-            <li key={key}><Icon size={22} strokeWidth={1.5} aria-hidden="true" /><b>{tx.observe[key]}</b><span>{d.observation[key]}</span></li>
-          ))}
-        </ul>
-        <p className="xpr-note">{tx.disclaimer}</p>
-        <button type="button" className="clr2-more clr2-more--box" onClick={() => styleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-          <span>{u.moreStyle}</span><ArrowDown size={18} strokeWidth={1.8} aria-hidden="true" />
-        </button>
+    </>
+  )
+  const palette = (
+    <section className="sjr-card clr-palette">
+      {!garment && <p className="sjr-kicker">{tx.drapeTitle}</p>}
+      <p className="clr-hint">{garment ? u.paletteHint : u.drapeHint}</p>
+      <p className="clr-swatch-label">{tx.best}</p>
+      {swatches(type.best, false)}
+      {nameList(false)}
+      <p className="clr-swatch-label">{tx.avoid}</p>
+      {swatches(type.avoid, true)}
+      {nameList(true)}
+    </section>
+  )
+  const more = (
+    <button type="button" className="clr2-more" onClick={() => toneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+      <span>{u.moreTone}</span><ArrowDown size={18} strokeWidth={1.8} aria-hidden="true" />
+    </button>
+  )
+  const tone = (
+    <div className="clr2-section" ref={toneRef}>
+      <p className="clr2-mini" data-reveal="">{u.resultKicker(name)} · <b>{tx.typeNames[d.typeId]} · {tx.undertone[d.undertone]}</b></p>
+      <h3 className="clr2-h2" data-reveal="">{tx.gaugeTitle}</h3>
+      <div className="clr2-callout" data-reveal="">
+        {d.undertone === 'warm' ? <Sun size={34} strokeWidth={1.4} aria-hidden="true" /> : <Snowflake size={34} strokeWidth={1.4} aria-hidden="true" />}
+        <p>{first}</p>
       </div>
-
-      <div className="clr2-section" ref={styleRef}>
-        <h3 className="clr2-h2" data-reveal="">{tx.stylingTitle}</h3>
-        <p className="clr2-sub" data-reveal="">{u.styleSub}</p>
-        <div className="clr2-styles">
-          {([
-            ['makeup', Paintbrush, type.best.slice(1, 3), 'round'],
-            ['hair', Scissors, [...HAIR_CHIPS[d.undertone]], 'round'],
-            ['fashion', Shirt, type.best.slice(3, 7), 'square'],
-            ['accessory', Gem, [METAL_CHIPS[d.metal]], 'round'],
-          ] as const).map(([key, Icon, chips, shape]) => (
-            <section key={key} className="clr2-style" data-reveal="">
-              <div>
-                <p className="clr2-style-title">{tx.styling[key]}{key === 'accessory' ? ` · ${tx.metal[d.metal]}` : ''}</p>
-                <Brief text={d.styling[key]} n={FULL} tx={px} />
-                <div className="clr2-chips" data-shape={shape}>{chips.map((hex) => <i key={hex} style={{ background: hex }} />)}</div>
-              </div>
-              <Icon className="clr2-style-icon" size={56} strokeWidth={1} aria-hidden="true" />
-            </section>
-          ))}
-        </div>
-        {result.keywords.length > 0 && (
-          <div className="sjr-chips clr-keywords" data-reveal="">
-            {result.keywords.map((k) => <span key={k} className="sjr-chip">#{k}</span>)}
+      {rest.length > 0 && <div data-reveal=""><Brief text={rest.join(' ')} n={FULL} tx={px} /></div>}
+      {d.confidence === 'low' && <p className="xpr-note xpr-note--warn" data-reveal="">{tx.lowConfidence}</p>}
+      <div className="clr-gauges">
+        {GAUGE_KEYS.map((key) => (
+          <div key={key} className="clr-gauge" data-reveal="">
+            <b>{tx.gauges[key].label}</b>
+            <span>{tx.gauges[key].low}</span>
+            {/* --v: 화면에 들어올 때 가운데에서 제 자리(점수)로 미끄러져 가는 거리를 재는 데 쓴다(program-motion.css) */}
+            <span className="clr-gauge-track"><i style={{ left: `${d.scores[key]}%`, '--v': d.scores[key] } as CSSProperties} /></span>
+            <span>{tx.gauges[key].high}</span>
           </div>
-        )}
-        <p className="xpr-note">{tx.disclaimer}</p>
+        ))}
       </div>
+      <h3 className="clr2-h2" data-reveal="">{tx.observeTitle}</h3>
+      <ul className="clr2-observe" data-reveal="">
+        {([['skin', Smile], ['hair', Waves], ['eyes', Eye]] as const).map(([key, Icon]) => (
+          <li key={key}><Icon size={22} strokeWidth={1.5} aria-hidden="true" /><b>{tx.observe[key]}</b><span>{d.observation[key]}</span></li>
+        ))}
+      </ul>
+      <p className="xpr-note">{tx.disclaimer}</p>
+      <button type="button" className="clr2-more clr2-more--box" onClick={() => styleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+        <span>{u.moreStyle}</span><ArrowDown size={18} strokeWidth={1.8} aria-hidden="true" />
+      </button>
+    </div>
+  )
+  const styleGuide = (
+    <div className="clr2-section" ref={styleRef}>
+      <h3 className="clr2-h2" data-reveal="">{tx.stylingTitle}</h3>
+      <p className="clr2-sub" data-reveal="">{u.styleSub}</p>
+      <div className="clr2-styles">
+        {([
+          ['makeup', Paintbrush, type.best.slice(1, 3), 'round'],
+          ['hair', Scissors, [...HAIR_CHIPS[d.undertone]], 'round'],
+          ['fashion', Shirt, type.best.slice(3, 7), 'square'],
+          ['accessory', Gem, [METAL_CHIPS[d.metal]], 'round'],
+        ] as const).map(([key, Icon, chips, shape]) => (
+          <section key={key} className="clr2-style" data-reveal="">
+            <div>
+              <p className="clr2-style-title">{tx.styling[key]}{key === 'accessory' ? ` · ${tx.metal[d.metal]}` : ''}</p>
+              <Brief text={d.styling[key]} n={FULL} tx={px} />
+              <div className="clr2-chips" data-shape={shape}>{chips.map((hex) => <i key={hex} style={{ background: hex }} />)}</div>
+            </div>
+            <Icon className="clr2-style-icon" size={56} strokeWidth={1} aria-hidden="true" />
+          </section>
+        ))}
+      </div>
+      {result.keywords.length > 0 && (
+        <div className="sjr-chips clr-keywords" data-reveal="">
+          {result.keywords.map((k) => <span key={k} className="sjr-chip">#{k}</span>)}
+        </div>
+      )}
+      <p className="xpr-note">{tx.disclaimer}</p>
+    </div>
+  )
+
+  // 노트북 가로 화면 — 왼쪽은 옷 색 미리보기(사진)를 붙박아 두고, 오른쪽(유형·색·톤·스타일)만 넘겨 본다 — 색을 누르며 왼쪽 사진을 본다
+  if (pc) {
+    return (
+      <div className="sjr clr clr2" data-pc="" ref={rootRef}>
+        <div className="clr2-pc-side">{look}</div>
+        <div className="clr2-pc-main">{head}{palette}{more}{tone}{styleGuide}</div>
+      </div>
+    )
+  }
+  return (
+    <div className="sjr clr clr2" ref={rootRef}>
+      {head}{look}{palette}{more}{tone}{styleGuide}
     </div>
   )
 }

@@ -20,6 +20,9 @@ export const RECEIPT_IDLE_SILENT_S = 20
 /** 폰으로 QR 을 찍고 갤러리를 뒤지는 동안은 화면 터치가 없다(최애 사진 받기) — 총 7분 */
 export const QR_IDLE_SILENT_S = 410
 
+/** 결과를 휴대폰 QR 로 받는 동안(노트북 화면) — 폰 카메라를 켜고 저장하는 사이 화면 입력이 없다 */
+export const SHARE_IDLE_SILENT_S = 150
+
 /** 카메라 앞에서 포즈를 잡는 동안도 터치가 없다(최애 분석 촬영) */
 export const CAPTURE_IDLE_SILENT_S = 60
 

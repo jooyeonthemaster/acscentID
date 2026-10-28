@@ -82,6 +82,12 @@ const ASSET_CACHE = 'kiosk-garment-assets-v1'
  */
 const CHUNK_BYTES = 320 * 1024
 const CHUNK_GAP_MS = 1300
+/**
+ * 노트북 가로 화면(/kiosk/pc/color) — 매장 키오스크의 USB Wi-Fi 동글과 달리 노트북 망은 넉넉하다고 보고 큰 조각을 쉬지 않고 받는다
+ * (천천히 받으면 2~4분 — 행사 시작 직후 손님은 옷 색 미리보기 대신 드레이프를 본다). 손님이 시작하면 멈추는 것은 같다.
+ */
+let fastDownload = false
+export function setGarmentDownloadFast(on: boolean): void { fastDownload = on }
 
 /** 받다 만 조각 — 손님이 와서 멈춰도 앱이 켜져 있는 동안은 다음 첫 화면에서 이어 받는다 */
 const partial = new Map<string, { etag: string | null; total: number; type: string; chunks: BlobPart[]; received: number }>()
@@ -109,7 +115,8 @@ async function getAsset(url: string, signal: AbortSignal): Promise<Blob> {
     const part = partial.get(url)
     const from = part?.received ?? 0
     if (part && from >= part.total) return keep(new Blob(part.chunks, { type: part.type }))
-    const res = await fetch(url, { signal, cache: 'no-store', priority: 'low', headers: { Range: `bytes=${from}-${from + CHUNK_BYTES - 1}` } } as RequestInit)
+    const size = fastDownload ? 4 * 1024 * 1024 : CHUNK_BYTES
+    const res = await fetch(url, { signal, cache: 'no-store', priority: 'low', headers: { Range: `bytes=${from}-${from + size - 1}` } } as RequestInit)
     const type = res.headers.get('content-type') ?? 'application/octet-stream'
     // 부분 요청을 무시하고 통째로 준 서버 — 받은 것을 그대로 쓴다
     if (res.status === 200) return keep(new Blob([await res.arrayBuffer()], { type }))
@@ -128,7 +135,7 @@ async function getAsset(url: string, signal: AbortSignal): Promise<Blob> {
     next.chunks.push(bytes)
     next.received += bytes.byteLength
     partial.set(url, next)
-    if (next.received < next.total) await pause(CHUNK_GAP_MS, signal)
+    if (next.received < next.total && !fastDownload) await pause(CHUNK_GAP_MS, signal)
   }
 }
 

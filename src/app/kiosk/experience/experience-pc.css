@@ -1,0 +1,147 @@
+/* 노트북 가로 화면(/kiosk/pc/caricature · /kiosk/pc/career) — ExperienceApp pc 일 때만(data-layout='pc'). docs/kiosk-pc.md
+   기준 1280×780 CSS 픽셀(usePcFit 가 창에 맞춰 zoom) — 폭은 1280 이상, 높이는 780 근처다.
+   왼쪽 넓은 칸 = 카메라·그림, 오른쪽 칸(--pc-panel) = 제목·설명·버튼. 세로 키오스크의 부품을 그대로 두고 자리만 옮긴다.
+   그리드에서 오른쪽 칸 맨 위 빈 줄(::before)과 맨 아래 빈 줄(1fr)이 남는 높이를 나눠 가져 오른쪽 글이 세로 가운데에 온다. */
+
+.kx-root[data-layout='pc'] { --pc-panel: 520px; --pc-gap: 56px; }
+.kx-root[data-layout='pc'] .kx-stage { max-width: 1500px; }
+.kx-root[data-layout='pc'] .kx-stage::after { inset: 12px; }
+.kx-root[data-layout='pc'] :is(.kx-start, .kx-page) { padding: 22px 44px 20px; }
+/* 마우스·트랙패드로 쓴다 — 넘치는 칸은 스크롤 막대를 보이고, 누를 수 있는 것에 손가락 커서 */
+.kx-root[data-layout='pc'] .kx-page { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--kx-ink) 28%, transparent) transparent; }
+.kx-root[data-layout='pc'] button:not(:disabled) { cursor: pointer; }
+@media (hover: hover) {
+  .kx-root[data-layout='pc'] .kx-btn--primary:hover:not(:disabled) { filter: brightness(1.12); }
+  .kx-root[data-layout='pc'] :is(.crr-tile, .crr-option, .crr-mbti button):hover:not([data-on]) { border-color: color-mix(in srgb, var(--kx-accent) 35%, transparent); }
+}
+
+/* ── 첫 화면 — 왼쪽 그림 · 오른쪽 큰 글자·소개·시작 ─────────── */
+.kx-root[data-layout='pc'] .kx-start {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pc-panel);
+  grid-template-rows: auto 1fr auto auto auto auto 1fr auto;
+  grid-template-areas:
+    'bar bar'
+    'art .'
+    'art word'
+    'art head'
+    'art info'
+    'art cta'
+    'art .'
+    'foot foot';
+  column-gap: var(--pc-gap);
+}
+.kx-root[data-layout='pc'] .kx-start-bar { grid-area: bar; }
+.kx-root[data-layout='pc'] .kx-wordmark { grid-area: word; }
+.kx-root[data-layout='pc'] .kx-headline { grid-area: head; }
+.kx-root[data-layout='pc'] .kx-start-art { grid-area: art; min-height: 0; margin: 10px 0 6px; }
+.kx-root[data-layout='pc'] .kx-start-info { grid-area: info; margin: 18px 0 22px; }
+.kx-root[data-layout='pc'] .kx-cta { grid-area: cta; }
+.kx-root[data-layout='pc'] .kx-start > .kx-foot { grid-area: foot; }
+
+/* ── 캐리커처(DRAW!) — 왼쪽 종이(카메라·사진·그림), 오른쪽 단계·제목·고르기·버튼 ─────────── */
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pc-panel);
+  grid-template-rows: auto 1fr repeat(9, auto) 1fr;
+  column-gap: var(--pc-gap);
+}
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page::before { content: ''; grid-area: 2 / 2; }
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page > * { grid-column: 2; min-width: 0; }
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page > .kx-top { grid-column: 1 / -1; grid-row: 1; }
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page > .drw-stage { grid-column: 1; grid-row: 2 / -1; min-height: 0; padding: 18px 0 30px; }
+/* 안내창은 칸에 넣지 않는다 — 화면 전체를 덮는다 */
+.kx-root[data-layout='pc'][data-x='draw'] .kx-page > :is(.kx-sheet, .kx-idle) { grid-column: auto; grid-row: auto; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-steps { margin: 0 0 6px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-title { margin-top: 10px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-who { justify-self: center; margin-top: 14px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-note { margin-top: 14px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-go { margin-top: 18px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-pair { margin-top: 18px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-pair:has(> :only-child) { grid-template-columns: 1fr; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-pair + .drw-go { margin-top: 10px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-progress { margin-top: 18px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-styles { margin-top: 14px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-level { margin-top: 6px; }
+/* 종이는 왼쪽 칸 높이를 다 쓴다. 같이 찍기(가로 종이)는 폭에 맞춘다 */
+.kx-root[data-layout='pc'][data-x='draw'] .drw-stage[data-small] { padding: 18px 0 30px; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-paper { max-width: 88%; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-paper[data-wide] { width: 92%; max-width: 92%; }
+/* 결과 — 원본 폴라로이드는 종이 오른쪽 아래에 걸친다 */
+.kx-root[data-layout='pc'][data-x='draw'] .drw-stage[data-result] .drw-original { right: 2%; bottom: 14px; width: 22%; }
+.kx-root[data-layout='pc'][data-x='draw'] .drw-stage[data-result] .drw-original[data-wide] { width: 28%; bottom: 4px; }
+
+/* ── 미래 직업 탐색(NEXT!) ─────────── */
+/* 질문 — 가로로 넓게: 위에 질문, 아래에 답(활동 4열 · MBTI 8열 · 답 3개 나란히), 맨 아래 왼쪽 이전/고른 수 · 오른쪽 다음 */
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  grid-template-rows: auto auto 1fr auto auto;
+  column-gap: 32px;
+}
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > :is(.kx-top, .kx-steps, .crr-question, .kx-foot) { grid-column: 1 / -1; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-spacer { display: none; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .crr-pill { grid-column: 1; justify-self: start; align-self: center; margin-top: 14px; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .crr-next { grid-column: 2; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-question { align-self: center; justify-self: center; width: 100%; max-width: 1180px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-question .kx-title { font-size: 38px; }
+/* 두 줄로 나눠 쓰던 질문을 한 줄로(가로가 넉넉하다) */
+.kx-root[data-layout='pc'][data-x='career'] .crr-question .kx-title span { display: inline; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-question .kx-title span + span::before { content: ' '; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-question .kx-desc { margin-bottom: 18px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-tile { min-height: 124px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-mbti { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-mbti button { min-height: 96px; font-size: 23px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-options { flex-direction: row; gap: 16px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-option {
+  flex: 1 1 0; min-width: 0; grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; justify-items: center; gap: 14px;
+  min-height: 250px; padding: 24px 18px 20px; text-align: center;
+}
+.kx-root[data-layout='pc'][data-x='career'] .crr-option b { align-self: center; font-size: 23px; }
+
+/* 관상 — 왼쪽 카메라, 오른쪽 안내·버튼 */
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pc-panel);
+  grid-template-rows: auto auto 1fr repeat(5, auto) 1fr auto;
+  column-gap: var(--pc-gap);
+}
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face']::before { content: ''; grid-area: 3 / 2; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > * { grid-column: 2; min-width: 0; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > :is(.kx-top, .kx-steps) { grid-column: 1 / -1; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-cam-slot { grid-column: 1; grid-row: 3 / -2; min-height: 0; padding: 14px 0 6px; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-foot { grid-column: 1 / -1; grid-row: -2 / -1; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-actions { margin-top: 18px; }
+
+/* AI 분석 대기 — 그림 왼쪽, 글 오른쪽 */
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait {
+  flex: 1; display: grid; grid-template-columns: 360px minmax(0, 560px); grid-template-rows: 1fr auto auto auto 1fr;
+  justify-content: center; align-items: center; column-gap: 56px; padding-top: 0; text-align: left;
+}
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > img { grid-column: 1; grid-row: 1 / -1; width: 360px; max-width: none; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > :not(img) { grid-column: 2; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > svg { grid-row: 2; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > .kx-title { grid-row: 3; margin: 6px 0 0; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > .kx-desc { grid-row: 4; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait :is(.kx-title, .kx-desc) { text-align: left; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] > .kx-spacer { display: none; }
+.kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] > .kx-btn { align-self: center; width: min(520px, 100%); }
+
+/* 결과 — 왼쪽: 완료·제목·태그·AI 풀이·단서 / 오른쪽: 직업 셋·첫 도전·휴대폰으로 받기 */
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-cols {
+  flex: 1 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px; align-items: center; margin-top: 6px;
+}
+.kx-root[data-layout='pc'][data-x='career'] :is(.crr-pc-side, .crr-pc-main) { display: flex; flex-direction: column; min-width: 0; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side { align-items: flex-start; text-align: left; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side :is(.kx-title, .kx-desc) { text-align: left; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-done { align-self: flex-start; margin-top: 0; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-tags { justify-content: flex-start; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai { align-self: stretch; margin: 16px 0 0; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai b { font-size: 20px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai p { font-size: 15.5px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai ul { font-size: 14.5px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-clues { align-self: stretch; margin-top: 12px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers { margin-top: 0; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take { grid-template-columns: 1fr; margin-top: 4px; }
+.kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take .kx-btn { min-height: 74px; font-size: 24px; }

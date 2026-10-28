@@ -130,7 +130,7 @@ function Doodles({ text }: { text?: string }) {
 }
 
 export default function DrawMode() {
-  const { lang, home, c } = useKx()
+  const { lang, home, c, pc } = useKx()
   const t = kxText(DRAW_TEXT, lang)
   const [step, setStep] = useState<Step>('start')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -379,7 +379,8 @@ export default function DrawMode() {
       </div>
       <div className="drw-pair">
         <button type="button" className="kx-btn drw-ghost" onClick={() => setStep('style')}><Images size={22} strokeWidth={2} aria-hidden="true" />{t.again}</button>
-        <button type="button" className="kx-btn drw-ghost" onClick={() => setPrinting(true)}><Printer size={22} strokeWidth={2} aria-hidden="true" />{c.receipt}</button>
+        {/* 노트북(pc)에는 영수증 프린터가 없다 — 휴대폰으로 받기만 */}
+        {!pc && <button type="button" className="kx-btn drw-ghost" onClick={() => setPrinting(true)}><Printer size={22} strokeWidth={2} aria-hidden="true" />{c.receipt}</button>}
       </div>
       <button type="button" className="kx-btn kx-btn--primary kx-btn--wide drw-go" onClick={() => setSaving(true)}>{t.save}<ArrowRight size={28} strokeWidth={2.3} aria-hidden="true" /></button>
       <KxSaveSheet open={saving} cacheKey={`${lang}|${combo}|${art.length}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
