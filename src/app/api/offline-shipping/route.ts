@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
+import {
+  SHIP_COUPON_MAX_PER_REQUEST,
+  SHIP_COUPON_TABLE,
+  formatShipCouponCode,
+  isShipCouponTableMissing,
+  normalizeShipCouponCode,
+  summarizeShipCouponProducts,
+} from '@/lib/offline-shipping-coupons'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +17,7 @@ const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 const PHONE_ALLOWED_PATTERN = /^[\d\-\s()+]+$/
 
 interface FieldSpec {
-  key: 'name' | 'phone' | 'zip_code' | 'address' | 'address_detail' | 'product_name'
+  key: 'name' | 'phone' | 'zip_code' | 'address' | 'address_detail'
   label: string
   required: boolean
   maxLength: number
@@ -21,8 +29,9 @@ const FIELD_SPECS: FieldSpec[] = [
   { key: 'zip_code', label: '우편번호', required: false, maxLength: 10 },
   { key: 'address', label: '주소', required: true, maxLength: 200 },
   { key: 'address_detail', label: '상세주소', required: false, maxLength: 100 },
-  { key: 'product_name', label: '상품', required: false, maxLength: 200 }, // 토글 상품 이름 + 직접 입력 100자
 ]
+
+const SUBMIT_FAILED = '접수에 실패했습니다. 잠시 후 다시 시도해주세요'
 
 /** TB-YYMMDD-XXXX 형식 접수번호 생성 */
 function generateRequestNumber(): string {
@@ -37,6 +46,9 @@ function generateRequestNumber(): string {
 /**
  * 오프라인 매장 택배 접수 (QR 폼 /ship 전용, 비로그인 공개)
  * POST /api/offline-shipping
+ *
+ * 택배 교환권이 있어야 접수된다. 교환권은 한 번만 쓸 수 있고, 상품은 교환권에 정해진 상품으로 채운다.
+ * 순서: 교환권을 'used' 로 잠금(조건부 update) → 접수 저장 → 교환권에 접수 건 연결. 저장이 실패하면 잠금을 푼다.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -72,7 +84,90 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '올바른 연락처를 입력해주세요' }, { status: 400 })
     }
 
+    const rawCodes: unknown[] = Array.isArray(body.coupon_codes) ? body.coupon_codes : []
+    const codes = [...new Set(rawCodes.filter((c): c is string => typeof c === 'string').map(normalizeShipCouponCode))]
+      .filter(Boolean)
+    if (codes.length === 0) {
+      return NextResponse.json({ error: '택배 교환권이 필요합니다' }, { status: 400 })
+    }
+    if (codes.length > SHIP_COUPON_MAX_PER_REQUEST) {
+      return NextResponse.json(
+        { error: `교환권은 한 번에 ${SHIP_COUPON_MAX_PER_REQUEST}장까지 접수할 수 있어요` },
+        { status: 400 }
+      )
+    }
+
     const serviceClient = createServiceRoleClient()
+
+    const { data: coupons, error: lookupError } = await serviceClient
+      .from(SHIP_COUPON_TABLE)
+      .select('id, code, product_name, status')
+      .in('code', codes)
+
+    if (isShipCouponTableMissing(lookupError)) {
+      return NextResponse.json({ error: '택배 접수를 준비하고 있어요. 매장 스태프에게 문의해주세요.' }, { status: 503 })
+    }
+    if (lookupError || !coupons) {
+      console.error('Ship coupon lookup failed:', lookupError)
+      return NextResponse.json({ error: SUBMIT_FAILED }, { status: 500 })
+    }
+
+    // 없는 코드·이미 쓴 코드는 어떤 코드인지 알려 줘서 폼이 빼고 다시 보낼 수 있게 한다
+    const byCode = new Map(coupons.map((coupon) => [coupon.code, coupon]))
+    const unusable = codes.filter((code) => byCode.get(code)?.status !== 'active')
+    if (unusable.length > 0) {
+      return NextResponse.json(
+        {
+          error: `쓸 수 없는 교환권이 있어요: ${unusable.map(formatShipCouponCode).join(', ')} (이미 접수했거나 없는 교환권)`,
+          unusableCodes: unusable,
+        },
+        { status: 409 }
+      )
+    }
+
+    const couponIds = coupons.map((coupon) => coupon.id)
+    const usedAt = new Date().toISOString()
+
+    // 동시에 같은 교환권으로 두 번 접수해도 한쪽만 잠기도록 status='active' 조건을 건다
+    const { data: locked, error: lockError } = await serviceClient
+      .from(SHIP_COUPON_TABLE)
+      .update({ status: 'used', used_at: usedAt, updated_at: usedAt })
+      .in('id', couponIds)
+      .eq('status', 'active')
+      .select('id')
+
+    const releaseLocks = async (ids: string[]) => {
+      if (ids.length === 0) return
+      const { error } = await serviceClient
+        .from(SHIP_COUPON_TABLE)
+        .update({ status: 'active', used_at: null, updated_at: new Date().toISOString() })
+        .in('id', ids)
+        .eq('used_at', usedAt)
+        .is('shipping_request_id', null)
+      if (error) console.error('Ship coupon lock release failed:', error, ids)
+    }
+
+    if (lockError || !locked || locked.length !== couponIds.length) {
+      await releaseLocks((locked || []).map((row) => row.id))
+      if (lockError) {
+        console.error('Ship coupon lock failed:', lockError)
+        return NextResponse.json({ error: SUBMIT_FAILED }, { status: 500 })
+      }
+      const lockedIds = new Set((locked || []).map((row) => row.id))
+      const taken = coupons.filter((coupon) => !lockedIds.has(coupon.id)).map((coupon) => coupon.code)
+      return NextResponse.json(
+        {
+          error: `방금 다른 접수에 쓰인 교환권이 있어요: ${taken.map(formatShipCouponCode).join(', ')}`,
+          unusableCodes: taken,
+        },
+        { status: 409 }
+      )
+    }
+
+    // 상품 칸은 손님 입력 대신 교환권 순서(손님이 추가한 순서)대로 요약
+    const productName = summarizeShipCouponProducts(
+      codes.map((code) => byCode.get(code)?.product_name).filter((name): name is string => !!name)
+    )
 
     // 접수번호 유니크 충돌(23505) 시 재시도
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -86,22 +181,30 @@ export async function POST(request: NextRequest) {
           zip_code: values.zip_code,
           address: values.address,
           address_detail: values.address_detail,
-          product_name: values.product_name,
+          product_name: productName,
           status: 'received',
         })
-        .select('request_number')
+        .select('id, request_number')
         .single()
 
       if (!error) {
-        return NextResponse.json({ success: true, requestNumber: data.request_number })
+        const { error: linkError } = await serviceClient
+          .from(SHIP_COUPON_TABLE)
+          .update({ shipping_request_id: data.id, updated_at: new Date().toISOString() })
+          .in('id', couponIds)
+        // 연결이 실패해도 교환권은 이미 'used' 라 다시 쓰이지 않는다 — 기록만 남긴다
+        if (linkError) console.error('Ship coupon link failed:', linkError, data.request_number, codes)
+
+        return NextResponse.json({ success: true, requestNumber: data.request_number, productName })
       }
       if (error.code !== '23505') {
         console.error('Offline shipping insert failed:', error)
-        return NextResponse.json({ error: '접수에 실패했습니다. 잠시 후 다시 시도해주세요' }, { status: 500 })
+        break
       }
     }
 
-    return NextResponse.json({ error: '접수에 실패했습니다. 잠시 후 다시 시도해주세요' }, { status: 500 })
+    await releaseLocks(couponIds)
+    return NextResponse.json({ error: SUBMIT_FAILED }, { status: 500 })
   } catch (error) {
     console.error('Offline shipping POST error:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })

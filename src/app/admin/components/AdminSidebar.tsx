@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   Users,
   Ticket,
+  PackageCheck,
   QrCode,
   ChevronLeft,
   ChevronRight,
@@ -136,6 +137,12 @@ const navGroups: NavGroup[] = [
         label: '오프라인 배송 접수',
         icon: Truck,
         description: '매장 QR 택배 접수',
+      },
+      {
+        href: '/admin/ship-coupons',
+        label: '택배 교환권',
+        icon: PackageCheck,
+        description: '상품별 1회용 QR 발급 · 인쇄',
       },
       {
         href: '/admin/offline-proofs',

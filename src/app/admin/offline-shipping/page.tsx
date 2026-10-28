@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
+import Link from 'next/link'
 import { AdminHeader } from '../components/AdminHeader'
 import {
   Package,
@@ -498,6 +499,12 @@ export default function AdminOfflineShippingPage() {
             <div className="flex-1 min-w-[200px]">
               <p className="text-sm font-black text-slate-900">손님용 접수 폼</p>
               <p className="mt-0.5 break-all font-mono text-xs text-slate-600">{SHIP_FORM_URL}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500">
+                교환권이 있어야 접수돼요. 이 주소·배너 QR로 들어오면 교환권 코드 입력 화면이 나와요.{' '}
+                <Link href="/admin/ship-coupons" className="font-bold text-slate-900 underline underline-offset-2">
+                  교환권 발급하러 가기
+                </Link>
+              </p>
             </div>
             <button
               onClick={copyFormUrl}
