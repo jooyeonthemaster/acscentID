@@ -20,11 +20,13 @@ interface FormState {
   zipCode: string
   address: string
   addressDetail: string
-  productName: string
+  selectedProducts: string[]
+  productEtc: string
 }
 
-// 상품 칸은 지금 판매 중인 상품을 예시로 미리 채워 둔다 — 손님이 지우거나 고칠 수 있다
-const DEFAULT_PRODUCT_NAME = '홀로그램 이리온즈 카드'
+// 상품 칸 토글 — 지금 판매 중인 상품. 목록에 없는 상품은 아래 칸에 직접 적는다.
+// 저장은 기존처럼 product_name 한 칸에 '지젤 코스터, 지젤 스프링노트, (직접 입력)' 으로 이어 붙인다.
+const PRODUCT_OPTIONS = ['지젤 코스터', '지젤 스프링노트', '지젤 마스킹테이프']
 
 const INITIAL_FORM: FormState = {
   name: '',
@@ -32,7 +34,14 @@ const INITIAL_FORM: FormState = {
   zipCode: '',
   address: '',
   addressDetail: '',
-  productName: DEFAULT_PRODUCT_NAME,
+  selectedProducts: [],
+  productEtc: '',
+}
+
+function joinProductName(form: FormState): string {
+  return [...PRODUCT_OPTIONS.filter((option) => form.selectedProducts.includes(option)), form.productEtc.trim()]
+    .filter(Boolean)
+    .join(', ')
 }
 
 // 010-1234-5678 형태로 자동 하이픈
@@ -60,8 +69,17 @@ export function OfflineShippingFormClient() {
   const [error, setError] = useState<string | null>(null)
   const [doneNumber, setDoneNumber] = useState<string | null>(null)
 
-  const update = (key: keyof FormState, value: string) => {
+  const update = (key: Exclude<keyof FormState, 'selectedProducts'>, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const toggleProduct = (option: string) => {
+    setForm((prev) => ({
+      ...prev,
+      selectedProducts: prev.selectedProducts.includes(option)
+        ? prev.selectedProducts.filter((item) => item !== option)
+        : [...prev.selectedProducts, option],
+    }))
   }
 
   const handleAddressSearch = async () => {
@@ -100,7 +118,7 @@ export function OfflineShippingFormClient() {
           zip_code: form.zipCode,
           address: form.address,
           address_detail: form.addressDetail,
-          product_name: form.productName,
+          product_name: joinProductName(form),
           website: honeypot,
         }),
       })
@@ -264,12 +282,34 @@ export function OfflineShippingFormClient() {
                 <Package size={14} />
                 상품 <span className="font-normal text-[var(--muted-ink)]">(선택)</span>
               </label>
+              {/* 여러 개 고를 수 있는 토글 — 폰 폭에서 이름이 길면 두 줄로 접힌다 */}
+              <div className="mb-1.5 grid grid-cols-3 gap-1.5" role="group" aria-label="상품 고르기">
+                {PRODUCT_OPTIONS.map((option) => {
+                  const selected = form.selectedProducts.includes(option)
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleProduct(option)}
+                      className={`flex min-h-[44px] items-center justify-center rounded-[6px] border px-1.5 py-1 text-center text-[13px] font-bold leading-tight break-keep transition-colors lg:text-sm ${
+                        selected
+                          ? 'border-[var(--ink)] bg-[var(--ink)] text-white'
+                          : 'border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--soft)]'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  )
+                })}
+              </div>
               <input
                 id="ship-product"
                 type="text"
-                value={form.productName}
-                onChange={(e) => update('productName', e.target.value)}
-                placeholder={`예: ${DEFAULT_PRODUCT_NAME}`}
+                value={form.productEtc}
+                onChange={(e) => update('productEtc', e.target.value)}
+                placeholder="그 외 상품은 직접 입력"
+                enterKeyHint="done"
                 maxLength={100}
                 className={INPUT_CLASS}
               />

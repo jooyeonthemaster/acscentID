@@ -21,7 +21,7 @@ const FIELD_SPECS: FieldSpec[] = [
   { key: 'zip_code', label: '우편번호', required: false, maxLength: 10 },
   { key: 'address', label: '주소', required: true, maxLength: 200 },
   { key: 'address_detail', label: '상세주소', required: false, maxLength: 100 },
-  { key: 'product_name', label: '상품', required: false, maxLength: 100 },
+  { key: 'product_name', label: '상품', required: false, maxLength: 200 }, // 토글 상품 이름 + 직접 입력 100자
 ]
 
 /** TB-YYMMDD-XXXX 형식 접수번호 생성 */
