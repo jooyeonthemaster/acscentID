@@ -19,6 +19,7 @@ import { KxContext, KxIdleDialog, type KxContextValue, type KxScreenKind } from 
 import { uploadShare, type KxShare, type KxShareFile } from './kx-share'
 import { useExperienceSwitch } from './useExperienceSwitch'
 import { usePcFit } from '../pc/usePcFit'
+import { PcHubBack, usePcHub } from '../pc/PcHub'
 import './experience.css'
 import './experience-pc.css'
 import { EXPANSION_META, isExpansionId } from '@/lib/kiosk/expansion/types'
@@ -102,6 +103,9 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
     }
   }, [silent, adminOpen, home])
 
+  // 행사 랜딩에서 열었으면(?hub=) 체험을 마치고 첫 화면으로 돌아오는 순간 랜딩으로
+  const hub = usePcHub(pc, kind === 'start')
+
   // 운영 모드가 바뀌면(다른 체험·매장·사주…) 손님이 없을 때 새로고침해 갈아탄다
   useExperienceSwitch(id, screen.baseSettings.mode, screen.synced && !pc, kind === 'start', adminOpen)
 
@@ -135,6 +139,7 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
           {Mode && <Mode key={`${id}-${session}`} />}
         </div>
         {idleLeft !== null && <KxIdleDialog left={idleLeft} total={IDLE_WARN_S} />}
+        {hub && kind === 'start' && <PcHubBack hub={hub} />}
       </KxContext.Provider>
       {/* 처리·카운트다운 중이 아니면 우측 상단 모서리에서 관리자 인증창을 연다(언어 버튼 위의 얇은 띠) */}
       {!pc && !adminOpen && kind !== 'busy' && (

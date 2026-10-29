@@ -17,4 +17,22 @@ export const KIOSK_PC_PROGRAMS: readonly KioskPcProgram[] = [
 
 export const findKioskPcProgram = (slug: string) => KIOSK_PC_PROGRAMS.find((program) => program.slug === slug)
 
-export const kioskPcHref = (slug: KioskPcProgram['slug']) => `/kiosk/pc/${slug}`
+/**
+ * 행사 랜딩(체험 목록) — 랜딩에서 연 체험 주소에는 ?hub=<id> 가 붙는다. 그 체험은 손님이 끝내거나 '처음으로'를 누르면
+ * 자기 첫 화면 대신 랜딩으로 돌아가고, 첫 화면에 '체험 목록' 버튼이 생긴다(src/app/kiosk/pc/PcHub.tsx).
+ */
+export const KIOSK_PC_HUBS = {
+  /** 2026학년도 2학기 JBNU 전공탐색박람회(2026.11.4~5, 전북대 진수당) — docs/kiosk-pc.md */
+  jbnu: { href: '/kiosk/pc/jbnu', label: '체험 목록' },
+} as const
+export type KioskPcHubId = keyof typeof KIOSK_PC_HUBS
+export type KioskPcHub = (typeof KIOSK_PC_HUBS)[KioskPcHubId]
+
+/** 지금 주소의 ?hub= — 없거나 모르는 이름이면 null */
+export function kioskPcHub(): KioskPcHub | null {
+  if (typeof window === 'undefined') return null
+  const id = new URLSearchParams(window.location.search).get('hub')
+  return id && Object.hasOwn(KIOSK_PC_HUBS, id) ? KIOSK_PC_HUBS[id as KioskPcHubId] : null
+}
+
+export const kioskPcHref = (slug: KioskPcProgram['slug'], hub?: KioskPcHubId) => `/kiosk/pc/${slug}${hub ? `?hub=${hub}` : ''}`

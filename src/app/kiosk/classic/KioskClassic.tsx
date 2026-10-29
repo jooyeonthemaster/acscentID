@@ -60,6 +60,7 @@ import { useCamFrame } from '../useCamFrame'
 import { Smartphone } from 'lucide-react'
 import { KX_COMMON } from '../experience/kx-i18n'
 import { usePcFit } from '../pc/usePcFit'
+import { PcHubBack, usePcHub } from '../pc/PcHub'
 import { ColorShareSheet } from '../pc/ColorShareSheet'
 import { drawColorCard } from '../pc/color-card'
 import '../pc/color-pc.css'
@@ -272,6 +273,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   useEffect(() => { if (pc) setGarmentDownloadFast(true) }, [pc])
   /** 노트북 — 결과 [휴대폰으로 받기] 창 */
   const [sharing, setSharing] = useState(false)
+  // 행사 랜딩에서 열었으면(?hub=) 손님이 끝내고 첫 화면으로 돌아오는 순간 랜딩으로
+  const hub = usePcHub(pc, step === 'attract')
   // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
   const productType: ProductType = kioskMode.fixedProduct ?? chosenProduct
   const programTheme = kioskProgramTheme(kioskMode.id)
@@ -2187,6 +2190,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       )}
 
       {toast && <div className="ksk-toast">{toast}</div>}
+      {hub && step === 'attract' && <PcHubBack hub={hub} />}
       {idleLeft !== null && programTheme && <ProgramIdleDialog t={t} left={idleLeft} total={IDLE_WARN_S} />}
       {idleLeft !== null && !programTheme && (
         // 무입력 안내 — 어느 단계든 화면 가운데 10초 안내창. 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다

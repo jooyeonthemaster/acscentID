@@ -12,7 +12,8 @@ export const PC_BASE_HEIGHT = 780
 const MIN_ZOOM = 0.6
 const MAX_ZOOM = 1.7
 
-const viewport = () => ({ w: window.innerWidth, h: window.innerHeight })
+// 서버에서 그릴 때(랜딩 페이지)는 창이 없다 — 기준 크기로 두고 붙은 뒤 다시 잰다
+const viewport = () => (typeof window === 'undefined' ? { w: PC_BASE_WIDTH, h: PC_BASE_HEIGHT } : { w: window.innerWidth, h: window.innerHeight })
 
 /** 루트 요소에 줄 크기·zoom — 꺼져 있으면 undefined(세로 키오스크는 그대로) */
 export function usePcFit(on: boolean): CSSProperties | undefined {
@@ -20,6 +21,7 @@ export function usePcFit(on: boolean): CSSProperties | undefined {
   useEffect(() => {
     if (!on) return
     const update = () => setSize(viewport())
+    update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [on])

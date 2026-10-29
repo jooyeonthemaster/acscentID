@@ -1,0 +1,98 @@
+/* JBNU 전공탐색박람회 AI 체험존 랜딩 — 키디자인(남색 바탕 · 노랑·초록·크림 삼각 깃발 · 흰 굵은 제목 · 마스코트) 위에 체험 블록 셋.
+   1280×780 CSS 픽셀 기준(usePcFit 가 창에 맞춰 zoom). 색은 포스터에서 잰 값 — 남색 #023793 · 짙은 남색 #04246c ·
+   노랑 #ecac3c · 초록 #249c8c · 크림 #f4f4dc. 움직임은 transform·opacity 만. */
+
+.jb-root {
+  --jb-navy: #023793;
+  --jb-deep: #04246c;
+  --jb-yellow: #ecac3c;
+  --jb-teal: #249c8c;
+  --jb-cream: #f4f4dc;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 34px 40px 18px;
+  background: radial-gradient(ellipse 70% 55% at 50% 42%, #0a44a8 0%, var(--jb-navy) 62%, #022f80 100%);
+  color: #fff;
+  font-family: var(--font-heading-serif), 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.jb-root *, .jb-root *::before, .jb-root *::after { box-sizing: border-box; }
+.jb-root :is(h1, h2, p, ul) { margin: 0; padding: 0; }
+.jb-root ul { list-style: none; }
+.jb-root em { font-style: normal; }
+.jb-root img { display: block; -webkit-user-drag: none; }
+/* 창 크기를 잰 뒤에 보인다(그 전의 기준 크기 화면이 한 번 비치지 않게) */
+.jb-root:not([data-ready]) { opacity: 0; }
+
+/* 깃발 — 위 양쪽 모서리 */
+.jb-flags { position: absolute; top: 0; width: 272px; height: auto; pointer-events: none; transform-origin: top center; animation: jb-swing 5.5s ease-in-out 1s infinite; }
+.jb-flags[data-side='left'] { left: 0; transform-origin: top left; }
+.jb-flags[data-side='right'] { right: 0; transform-origin: top right; animation-delay: 2.2s; }
+@keyframes jb-swing { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(1.4deg); } }
+
+/* 머리 — 현수막의 제목 그대로 + 일시·장소 */
+.jb-head { position: relative; z-index: 1; flex: none; display: flex; flex-direction: column; align-items: center; animation: jb-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+.jb-head h1 img { width: 780px; max-width: 100%; height: auto; }
+.jb-when { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-family: var(--font-score-dream), inherit; font-size: 20px; font-weight: 600; }
+.jb-when b { color: var(--jb-yellow); font-weight: 700; }
+.jb-when b::after { content: ''; display: inline-block; width: 2px; height: 16px; margin: 0 0 -1px 10px; background: var(--jb-yellow); }
+.jb-when i { width: 6px; height: 6px; margin: 0 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+
+/* 체험존 */
+.jb-zone { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.jb-zone-head { display: flex; align-items: baseline; gap: 16px; animation: jb-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s backwards; }
+.jb-zone-head h2 { display: flex; align-items: center; gap: 10px; color: #fff; font-family: var(--font-score-dream), inherit; font-size: 30px; font-weight: 700; letter-spacing: -0.03em; }
+.jb-zone-head h2 span { color: var(--jb-yellow); font-size: 26px; }
+.jb-zone-head p { color: var(--jb-cream); font-size: 18px; font-weight: 600; opacity: 0.9; }
+
+.jb-cards { display: grid; grid-template-columns: repeat(3, 300px); gap: 24px; margin-top: 18px; }
+.jb-cards > li { animation: jb-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.22s + var(--i) * 0.09s) backwards; }
+.jb-card {
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  border-radius: 20px; background: #fffdf6; color: #172252; text-decoration: none;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.0), 0 14px 0 -4px var(--jb-deep), 0 22px 40px rgba(1, 18, 60, 0.45);
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.2s ease;
+}
+.jb-card:hover { transform: translateY(-6px); box-shadow: 0 0 0 4px var(--jb-yellow), 0 18px 0 -4px var(--jb-deep), 0 30px 50px rgba(1, 18, 60, 0.5); }
+.jb-card:active { transform: translateY(-2px) scale(0.985); }
+.jb-card:focus-visible { outline: 4px solid var(--jb-yellow); outline-offset: 4px; }
+.jb-shot { position: relative; display: block; aspect-ratio: 880 / 501; overflow: hidden; background: #e8ecf6; border-bottom: 1px solid rgba(23, 34, 82, 0.1); }
+.jb-shot img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.jb-card:hover .jb-shot img { transform: scale(1.04); }
+.jb-body { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 14px 18px 4px; }
+.jb-body em { align-self: flex-start; padding: 2px 10px; border-radius: 6px; background: var(--c); color: #fff; font-family: Impact, 'Arial Narrow', sans-serif; font-size: 15px; letter-spacing: 0.02em; }
+.jb-body b { margin-top: 4px; font-family: var(--font-score-dream), inherit; font-size: 23px; font-weight: 700; letter-spacing: -0.04em; }
+.jb-desc { color: #4a5578; font-size: 14.5px; font-weight: 500; line-height: 1.45; }
+.jb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.jb-chips span { padding: 3px 10px; border-radius: 999px; background: #eef1f8; color: #34406b; font-size: 12.5px; font-weight: 700; }
+.jb-go {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; margin: 12px 14px 14px;
+  border-radius: 12px; background: var(--jb-yellow); color: var(--jb-deep); font-family: var(--font-score-dream), inherit; font-size: 19px; font-weight: 700;
+  transition: background-color 0.2s ease;
+}
+.jb-card:hover .jb-go { background: #f4bd4c; }
+.jb-go svg { transition: transform 0.2s ease; }
+.jb-card:hover .jb-go svg { transform: translateX(4px); }
+
+.jb-note { display: flex; align-items: center; gap: 8px; margin-top: 28px; color: var(--jb-cream); font-size: 15.5px; font-weight: 600; opacity: 0.92; animation: jb-fade 0.6s ease-out 0.6s backwards; }
+
+/* 마스코트 — 아래 양쪽 */
+.jb-mascot { position: absolute; bottom: 8px; z-index: 0; height: 236px; width: auto; pointer-events: none; animation: jb-bob 4.2s ease-in-out infinite; }
+.jb-mascot[data-side='left'] { left: 22px; }
+.jb-mascot[data-side='right'] { right: 22px; animation-delay: -2.1s; }
+@keyframes jb-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+/* 로고 — 아래 가운데 */
+.jb-foot { position: relative; z-index: 1; flex: none; display: flex; align-items: center; gap: 30px; margin-top: 14px; animation: jb-fade 0.6s ease-out 0.7s backwards; }
+.jb-foot img { height: 34px; width: auto; }
+
+@keyframes jb-rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes jb-fade { from { opacity: 0; } }

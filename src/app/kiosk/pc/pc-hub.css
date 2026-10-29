@@ -1,0 +1,10 @@
+/* 행사 랜딩에서 연 체험의 첫 화면 — 위 가운데 '← 체험 목록'(체험 화면의 zoom 안에 있다) */
+.pc-hub-back {
+  position: absolute; top: 18px; left: 50%; z-index: 70; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 18px 0 14px; border: 1.5px solid rgba(23, 34, 82, 0.18); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9); color: #172252; box-shadow: 0 4px 14px rgba(23, 34, 82, 0.12);
+  font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; text-decoration: none;
+  transform: translateX(-50%); animation: pc-hub-in 0.4s ease-out 0.6s backwards;
+}
+.pc-hub-back:hover { background: #fff; }
+@keyframes pc-hub-in { from { opacity: 0; transform: translate(-50%, -8px); } }
