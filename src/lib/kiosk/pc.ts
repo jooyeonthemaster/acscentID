@@ -22,12 +22,22 @@ export const findKioskPcProgram = (slug: string) => KIOSK_PC_PROGRAMS.find((prog
  * 행사 랜딩(체험 목록) — 랜딩에서 연 체험 주소에는 ?hub=<id> 가 붙는다. 그 체험은 손님이 끝내거나 '처음으로'를 누르면
  * 자기 첫 화면 대신 랜딩으로 돌아가고, 첫 화면에 '체험 목록' 버튼이 생긴다(src/app/kiosk/pc/PcHub.tsx).
  */
+export type KioskPcHub = {
+  href: string
+  label: string
+  /** 체험 화면 맨 아래 띠에 늘 보이는 주관·주최 로고(밝은 바탕용 그림) */
+  footerLogos?: readonly { src: string; alt: string }[]
+}
 export const KIOSK_PC_HUBS = {
   /** 2026학년도 2학기 JBNU 전공탐색박람회(2026.11.4~5, 전북대 진수당) — docs/kiosk-pc.md */
-  jbnu: { href: '/kiosk/pc/jbnu', label: '체험 목록' },
-} as const
+  jbnu: {
+    href: '/kiosk/pc/jbnu',
+    label: '체험 목록',
+    // 2026-10-29 사용자 지시: JST 공유대학 로고를 랜딩 아래와 모든 프로그램 하단의 잘 보이는 곳에
+    footerLogos: [{ src: '/assets/kiosk-pc/jbnu/logo-jst.webp', alt: 'JST 공유대학 · Jeonbuk Saemangeum Tech. Platform University' }],
+  },
+} satisfies Record<string, KioskPcHub>
 export type KioskPcHubId = keyof typeof KIOSK_PC_HUBS
-export type KioskPcHub = { href: string; label: string }
 
 /**
  * 행사 전용 주소(2026-10-29 사용자 지시: "acscent 빼고 이 행사에 맞는 .vercel.app 도메인") — 같은 Vercel 프로젝트에 붙인 도메인.
@@ -42,7 +52,7 @@ export function kioskPcHub(): KioskPcHub | null {
   if (typeof window === 'undefined') return null
   const id = new URLSearchParams(window.location.search).get('hub')
   if (!id || !Object.hasOwn(KIOSK_PC_HUBS, id)) return null
-  const hub = KIOSK_PC_HUBS[id as KioskPcHubId]
+  const hub: KioskPcHub = KIOSK_PC_HUBS[id as KioskPcHubId]
   return KIOSK_PC_EVENT_HOSTS[window.location.hostname] === id ? { ...hub, href: '/' } : hub
 }
 

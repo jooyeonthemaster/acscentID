@@ -19,7 +19,7 @@ import { KxContext, KxIdleDialog, type KxContextValue, type KxScreenKind } from 
 import { uploadShare, type KxShare, type KxShareFile } from './kx-share'
 import { useExperienceSwitch } from './useExperienceSwitch'
 import { usePcFit } from '../pc/usePcFit'
-import { PcHubBack, usePcHub } from '../pc/PcHub'
+import { PcHubBack, PcHubFooter, usePcHub } from '../pc/PcHub'
 import './experience.css'
 import './experience-pc.css'
 import { EXPANSION_META, isExpansionId } from '@/lib/kiosk/expansion/types'
@@ -132,6 +132,7 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
       data-lang={lang}
       data-expansion={expanded ? id : undefined}
       data-layout={pc ? 'pc' : undefined}
+      data-hub-foot={hub?.footerLogos?.length ? '' : undefined}
       style={{ ...fit, ...(isCjkLang(lang) ? { '--kx-font': CJK_FONT_STACK[lang] } : {}), ...(expanded ? { '--kx-accent': EXPANSION_META[id].color } : {}) } as CSSProperties}
     >
       <KxContext.Provider value={context}>
@@ -140,6 +141,7 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
         </div>
         {idleLeft !== null && <KxIdleDialog left={idleLeft} total={IDLE_WARN_S} />}
         {hub && kind === 'start' && <PcHubBack hub={hub} />}
+        {hub && <PcHubFooter hub={hub} />}
       </KxContext.Provider>
       {/* 처리·카운트다운 중이 아니면 우측 상단 모서리에서 관리자 인증창을 연다(언어 버튼 위의 얇은 띠) */}
       {!pc && !adminOpen && kind !== 'busy' && (

@@ -8,3 +8,15 @@
 }
 .pc-hub-back:hover { background: #fff; }
 @keyframes pc-hub-in { from { opacity: 0; transform: translate(-50%, -8px); } }
+
+/* 행사 로고 띠 — 랜딩에서 연 체험 화면 맨 아래(모든 단계에 늘 보인다). 본문은 띠 높이만큼 줄여 버튼을 가리지 않는다 */
+.pc-hub-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 35;
+  display: flex; align-items: center; justify-content: center; gap: 28px; height: 62px; padding: 0 24px;
+  border-top: 1px solid rgba(23, 34, 82, 0.1); background: rgba(255, 255, 255, 0.95); box-shadow: 0 -6px 18px rgba(23, 34, 82, 0.06);
+  pointer-events: none;
+}
+.pc-hub-foot img { display: block; width: auto; height: 42px; }
+.kx-root[data-layout='pc'][data-hub-foot] .kx-stage { height: calc(100% - 62px); }
+/* 기존 셸(퍼스널 컬러) — 바깥 여백 14px + 띠 62px */
+.ksk-root[data-layout='pc'][data-hub-foot] { padding-bottom: 76px; }

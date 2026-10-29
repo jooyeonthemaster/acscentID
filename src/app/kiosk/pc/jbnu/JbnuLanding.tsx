@@ -93,6 +93,8 @@ export function JbnuLanding() {
         <img src={`${ASSET}/logo-glocal.webp`} alt="글로컬대학사업" draggable={false} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`${ASSET}/logo-jbnu.webp`} alt="전북대학교 학생취업진로처 취업진로지원과" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img data-logo="jst" src={`${ASSET}/logo-jst-white.webp`} alt="JST 공유대학 · Jeonbuk Saemangeum Tech. Platform University" draggable={false} />
       </footer>
     </main>
   )

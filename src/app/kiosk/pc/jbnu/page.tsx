@@ -6,8 +6,8 @@ import { JbnuLanding } from './JbnuLanding'
 
 const TITLE = 'JBNU 전공탐색박람회 · AI 체험존'
 const DESCRIPTION = 'AI 퍼스널 컬러 · AI 캐리커처 · AI 미래 직업 탐색 — 2026학년도 2학기 JBNU 전공탐색박람회 (11.4~5 전북대학교 진수당)'
-/** 링크 미리보기(카카오톡 등) — 이 랜딩 첫 화면을 1200×630 으로 찍은 그림. 첫 화면이 바뀌면 다시 찍는다 */
-const OG_IMAGE = '/assets/kiosk-pc/jbnu/og.jpg'
+/** 링크 미리보기(카카오톡 등) — 이 랜딩 첫 화면을 1200×630 으로 찍은 그림. 첫 화면이 바뀌면 다시 찍고 파일 이름 끝 번호를 올린다(카톡이 그림도 저장해 둔다) */
+const OG_IMAGE = '/assets/kiosk-pc/jbnu/og-2.jpg'
 
 /**
  * 링크 미리보기는 사이트 공통(AC'SCENT IDENTITY 그림·문구) 대신 이 랜딩의 것으로(2026-10-29 사용자 지시: 카톡 썸네일이 첫 페이지로).

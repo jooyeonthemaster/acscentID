@@ -62,7 +62,7 @@ import { Smartphone } from 'lucide-react'
 import { KX_COMMON } from '../experience/kx-i18n'
 import { usePcFit } from '../pc/usePcFit'
 import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
-import { PcHubBack, usePcHub } from '../pc/PcHub'
+import { PcHubBack, PcHubFooter, usePcHub } from '../pc/PcHub'
 import { ColorShareSheet } from '../pc/ColorShareSheet'
 import { drawColorCard } from '../pc/color-card'
 import '../pc/color-pc.css'
@@ -1485,6 +1485,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
       data-background={activeBackground.id}
       data-lang={lang}
       data-layout={pc ? 'pc' : undefined}
+      data-hub-foot={hub?.footerLogos?.length ? '' : undefined}
       lang={KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'}
       style={{
         ...pcFit,
@@ -2355,6 +2356,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
 
       {toast && <div className="ksk-toast">{toast}</div>}
       {hub && step === 'attract' && <PcHubBack hub={hub} />}
+      {hub && <PcHubFooter hub={hub} />}
       {idleLeft !== null && programTheme && <ProgramIdleDialog t={t} left={idleLeft} total={IDLE_WARN_S} />}
       {idleLeft !== null && !programTheme && (
         // 무입력 안내 — 어느 단계든 화면 가운데 10초 안내창. 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다

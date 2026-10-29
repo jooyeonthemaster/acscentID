@@ -36,6 +36,19 @@ export function usePcHub(pc: boolean, atStart: boolean): KioskPcHub | null {
   return hub
 }
 
+/** 체험 화면 맨 아래 띠 — 행사 주관·주최 로고. 화면 틀이 띠 높이만큼 본문을 줄인다(data-hub-foot) */
+export function PcHubFooter({ hub }: { hub: KioskPcHub }) {
+  if (!hub.footerLogos?.length) return null
+  return (
+    <footer className="pc-hub-foot">
+      {hub.footerLogos.map((logo) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img key={logo.src} src={logo.src} alt={logo.alt} draggable={false} />
+      ))}
+    </footer>
+  )
+}
+
 /** 체험 첫 화면 위 가운데의 '← 체험 목록' */
 export function PcHubBack({ hub }: { hub: KioskPcHub }) {
   return (

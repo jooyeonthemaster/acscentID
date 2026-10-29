@@ -93,6 +93,8 @@
 /* 로고 — 아래 가운데 */
 .jb-foot { position: relative; z-index: 1; flex: none; display: flex; align-items: center; gap: 30px; margin-top: 14px; animation: jb-fade 0.6s ease-out 0.7s backwards; }
 .jb-foot img { height: 34px; width: auto; }
+/* JST 공유대학 — 두 줄 글자가 들어 있어 조금 크게 */
+.jb-foot img[data-logo='jst'] { height: 42px; }
 
 @keyframes jb-rise { from { opacity: 0; transform: translateY(16px); } }
 @keyframes jb-fade { from { opacity: 0; } }
