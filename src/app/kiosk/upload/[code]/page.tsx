@@ -28,7 +28,7 @@ export default async function KioskUploadPage({
   return (
     // 폰에도 같은 한자권 웹폰트를 실어 준다 — 기기 글꼴에 기대지 않는다
     <div className={`${notoSansJP.variable} ${notoSansSC.variable} ${notoSansTC.variable}`}>
-      <KioskUploadClient code={normalized} lang={lang} program={p === 'color' ? 'color' : undefined} />
+      <KioskUploadClient code={normalized} lang={lang} program={p === 'color' || p === 'perfumer' ? p : undefined} />
     </div>
   )
 }

@@ -15,6 +15,7 @@ import { compressImage } from '@/lib/image/compressor'
 import { kioskText, isKioskLang, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { programUiText } from '@/lib/kiosk/program-ui-i18n'
 import './upload-color.css'
+import { PerfumerUploadView } from './PerfumerUploadView'
 
 type Status =
   | 'checking'
@@ -26,7 +27,7 @@ type Status =
   | 'done'
   | 'error'
 
-export function KioskUploadClient({ code, lang: langProp, program }: { code: string; lang?: string; program?: 'color' }) {
+export function KioskUploadClient({ code, lang: langProp, program }: { code: string; lang?: string; program?: 'color' | 'perfumer' }) {
   // 키오스크가 QR 주소에 ?lang= 을 실어 보낸다 — 손님 폰도 같은 언어로 열린다
   const lang: KioskLang = isKioskLang(langProp) ? langProp : 'ko'
   const t = kioskText(lang).upload
@@ -106,6 +107,21 @@ export function KioskUploadClient({ code, lang: langProp, program }: { code: str
       setErrorMessage(error instanceof Error ? error.message : t.uploadFailed)
     }
   }, [code, preview, t])
+
+  // SCENT! AI 조향사 키오스크에서 온 손님 — 전용 화면(목업 08). 상태·업로드는 위 그대로
+  if (program === 'perfumer') {
+    return (
+      <PerfumerUploadView
+        lang={lang}
+        status={status}
+        errorMessage={errorMessage}
+        preview={preview}
+        fileInputRef={fileInputRef}
+        onFile={handleFile}
+        onConfirm={confirmUpload}
+      />
+    )
+  }
 
   // 퍼스널 컬러 키오스크에서 온 손님 — Chromatic Archive 화면(목업 M01–M04). 다른 프로그램(최애 분석)은 예전 화면
   if (program === 'color') {

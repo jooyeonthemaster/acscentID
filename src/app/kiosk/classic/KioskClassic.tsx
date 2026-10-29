@@ -67,6 +67,10 @@ import { ColorShareSheet } from '../pc/ColorShareSheet'
 import { drawColorCard } from '../pc/color-card'
 import '../pc/color-pc.css'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from '../SajuReport'
+import { PerfumerApp } from '../perfumer/PerfumerApp'
+import type { PerfumerCtx, PfStep } from '../perfumer/types'
+import { usePerfumerSwitch } from '../perfumer/usePerfumerSwitch'
+import { perfumerText } from '@/lib/kiosk/perfumer-i18n'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
 function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
@@ -194,8 +198,10 @@ function isSajuResult(r: KioskAnalysisResult | null): r is SajuAnalysisResult {
  *   기기 설정이 바뀌어도 화면을 갈아타지 않는다.
  * pc: 노트북 가로 화면 — 두 칸 배치·창 크기 맞추기·이름은 노트북 자판으로·결과는 휴대폰 QR(영수증 없음)·관리자 창 없음.
  *   매장 키오스크(둘 다 없음)는 예전과 같다. docs/kiosk-pc.md
+ * design: 'perfumer' — SCENT! AI 조향사(ai-perfumer) 전용 화면(../perfumer). 상태·동작은 이 셸이 그대로 들고 그리기만 바꾼다.
+ *   기기의 화면 디자인 설정(기존·레트로·맥)과 상관없이 KioskScreen 이 이 모드에서 이 값으로 싣는다.
  */
-export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; pc?: boolean }) {
+export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: string; pc?: boolean; design?: 'perfumer' }) {
   const [step, setStep] = useState<Step>('attract')
   const [program, setProgram] = useState<Program>(DEFAULT_PROGRAM)
   const [name, setName] = useState('')
@@ -207,6 +213,10 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   const [photo, setPhoto] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [camError, setCamError] = useState(false)
+  /** 카메라 오류 종류 — 권한이 막혔는지(denied), 장치가 없거나 연결이 안 되는지(unavailable). SCENT! 화면이 나눠 안내한다 */
+  const [camErrorKind, setCamErrorKind] = useState<'denied' | 'unavailable' | null>(null)
+  /** 카메라 영상이 실제로 재생되기 시작했는가 — 그 전에는 '카메라를 준비하고 있어요' */
+  const [camReady, setCamReady] = useState(false)
   const [progress, setProgress] = useState(0)
   /** 분석 실패 — 분석 화면에 남는 오류 카드(다시 시도·처음으로). null 이면 진행 중 */
   const [analyzeError, setAnalyzeError] = useState<AnalyzeErrorKind | null>(null)
@@ -239,6 +249,12 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   const [printing, setPrinting] = useState(false)
   // 실제로 한 번 뽑았는지 — 선채번 때문에 ticketRef 유무로는 판단할 수 없다
   const [printedOnce, setPrintedOnce] = useState(false)
+  /** 프린터가 알린 실패 — 성공처럼 보이지 않게 SCENT! 화면은 안내창으로 띄운다(다른 화면은 예전처럼 토스트) */
+  const [printError, setPrintError] = useState<string | null>(null)
+  /** 영수증 원판을 만드는 중(발권 번호 받기·그리기) — receiptOpeningRef 의 화면용 짝 */
+  const [receiptBusy, setReceiptBusy] = useState(false)
+  /** 화면에 보일 발권 번호 — ticketRef 와 같은 값(렌더 중에는 ref 를 읽지 않는다) */
+  const [ticketNo, setTicketNo] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [idleLeft, setIdleLeft] = useState<number | null>(null)
   const [oskOpen, setOskOpen] = useState(false)
@@ -270,6 +286,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   const kioskMode = findKioskMode(pinnedMode ?? previewModeId() ?? deviceSettings.mode)
   /** 매장(wow) 모드만 브랜드(AC'SCENT)를 보인다 — 행사·체험 모드는 브랜드·회사명 없이(2026-10-28) */
   const storeBrand = kioskMode.id === 'wow'
+  /** SCENT! AI 조향사 전용 화면으로 그리는가 — 모드가 바뀌어 갈아타기 전(새로고침 전)에는 예전 화면으로 */
+  const perfumerUi = design === 'perfumer' && kioskMode.design === 'perfumer'
   const pcFit = usePcFit(pc)
   // 노트북 — 옷 색 미리보기 파일을 쉬지 않고 받는다(매장 키오스크는 손님 없을 때 천천히)
   useEffect(() => { if (pc) setGarmentDownloadFast(true) }, [pc])
@@ -307,6 +325,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
+  /** SCENT! 화면이 카메라 영상 요소를 거는 콜백 ref */
+  const setVideoEl = useCallback((el: HTMLVideoElement | null) => { videoRef.current = el }, [])
   const streamRef = useRef<MediaStream | null>(null)
   const ticketRef = useRef<string | null>(null)
   // 영수증 열기·인쇄가 진행 중인지 — 연타해도 한 번만 렌더·인쇄한다
@@ -408,6 +428,10 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
     recordIdRef.current = null
     recordedRef.current = false
     setPrintedOnce(false)
+    setPrintError(null)
+    setReceiptBusy(false)
+    setTicketNo(null)
+    setCamErrorKind(null)
     setLang('ko')
     setLangOpen(false)
     // Electron 셸에선 다음 손님을 위해 카메라 스트림 유지, 웹에선 해제
@@ -496,13 +520,18 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
         }
         if (cancelled) return
         setCamError(false)
+        setCamErrorKind(null)
         if (videoRef.current) {
           videoRef.current.srcObject = streamRef.current
           await videoRef.current.play().catch(() => {})
         }
-      } catch {
+        if (!cancelled) setCamReady(true)
+      } catch (e) {
         if (cancelled) return
         setCamError(true)
+        // 권한 거부(NotAllowed·Security)는 다시 시도해도 같다 — 화면이 '권한' 안내를 따로 띄운다. 재시도는 예전처럼 계속
+        const name = e instanceof DOMException ? e.name : ''
+        setCamErrorKind(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied' : 'unavailable')
         retry = window.setTimeout(attach, 4000)
       }
     }
@@ -510,6 +539,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
     return () => {
       cancelled = true
       if (retry) window.clearTimeout(retry)
+      setCamReady(false)
     }
   }, [step, photo, photoSource])
 
@@ -576,7 +606,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       // 배포된 사이트 주소를 쓴다(공개 주소로 열린 화면은 그 주소 — 행사 전용 주소 포함, public-origin.ts)
       const origin = publicOrigin()
       // 손님 폰도 키오스크와 같은 언어로 열리게 한다
-      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : ''}`
+      // p: 폰 화면 디자인 — 퍼스널 컬러·SCENT! AI 조향사는 전용 화면, 그 밖은 예전 화면(세션·업로드 규약은 같다)
+      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : perfumerUi ? '&p=perfumer' : ''}`
       const QRCode = (await import('qrcode')).default
       const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 1 })
       if (gen !== qrGeneration.current) return
@@ -590,7 +621,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       console.error('[kiosk] QR 세션 생성 실패:', e)
       setQrState('failed')
     }
-  }, [lang, program])
+  }, [lang, program, perfumerUi])
 
   /** 진행 중인 QR 세션만 버린다 (입력 소스는 그대로) — 늦게 도착한 응답은 세대 번호로 무효화 */
   const clearQr = useCallback(() => {
@@ -1106,6 +1137,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
     if (printBusyRef.current) return
     printBusyRef.current = true
     setPrinting(true)
+    setPrintError(null)
     try {
       const res = await kiosk.printReceipt({
         receiptImageBase64: target.base64,
@@ -1135,29 +1167,38 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
             const again = await buildReceipt()
             if (again) setReceipt(again)
           }
-          showToast(t.toastTicketIssued(res.ticket ?? ''))
+          setTicketNo(ticketRef.current ?? res.ticket ?? null)
+          // SCENT! 화면은 출력 완료 화면이 알린다
+          if (!perfumerUi) showToast(t.toastTicketIssued(res.ticket ?? ''))
         }
       } else {
-        showToast(t.toastPrintFailed(res.error ?? t.printerError))
+        setPrintError(res.error ?? t.printerError)
+        if (!perfumerUi) showToast(t.toastPrintFailed(res.error ?? t.printerError))
       }
     } catch (e) {
       console.error('[kiosk] 인쇄 실패:', e)
-      showToast(t.toastPrintFailedStaff)
+      setPrintError(t.toastPrintFailedStaff)
+      if (!perfumerUi) showToast(t.toastPrintFailedStaff)
     } finally {
       printBusyRef.current = false
       setPrinting(false)
     }
-  }, [kiosk, buildReceipt, showToast, t, scentResult, px.printed])
+  }, [kiosk, buildReceipt, showToast, t, scentResult, px.printed, perfumerUi])
 
   const openReceipt = useCallback(async () => {
     if (receiptOpeningRef.current || printBusyRef.current) return
     receiptOpeningRef.current = true
+    setReceiptBusy(true)
+    setPrintError(null)
     try {
       // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
       // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
       if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
         const t = await kiosk.nextTicket().catch(() => null)
-        if (t?.success && t.ticket) ticketRef.current = t.ticket
+        if (t?.success && t.ticket) {
+          ticketRef.current = t.ticket
+          setTicketNo(t.ticket)
+        }
       }
       const r = await buildReceipt()
       if (r) {
@@ -1171,6 +1212,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       showToast(t.toastReceiptFailed)
     } finally {
       receiptOpeningRef.current = false
+      setReceiptBusy(false)
     }
   }, [buildReceipt, kiosk, showToast, t, scentResult, printedOnce, printReceiptData])
 
@@ -1315,9 +1357,125 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       ? step === 'info' || step === 'capture' ? { kind: 'stepper', current: step === 'info' ? 0 : 1, labels: [pu.stepper.info, pu.stepper.photo] } : null
       : showHeader && step !== 'cards' ? { kind: 'bar', index: stepIdx, total: steps.length, label: STEP_LABELS[step] } : null
   // 링크가 모드를 정한 화면(노트북)은 기기 설정을 따라 갈아타지 않는다
-  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced && !pinnedMode, step === 'attract' || backgroundAdminOpen)
+  // SCENT! 전용 화면은 기기의 화면 디자인 설정(기존·레트로·맥)과 상관없이 돈다 — 그 설정이 달라도 갈아타지 않는다
+  useScreenUiSwitch(design === 'perfumer' ? deviceSettings.ui : 'classic', deviceSettings, backgroundsSynced && !pinnedMode, step === 'attract' || backgroundAdminOpen)
   // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
   useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced && !pinnedMode, step === 'attract', backgroundAdminOpen)
+  // SCENT! AI 조향사 모드로(또는 그 모드에서 다른 모드로) 바뀌면 전용 화면으로 갈아탄다
+  usePerfumerSwitch(design === 'perfumer', deviceBaseSettings.mode, backgroundsSynced && !pinnedMode, step === 'attract', backgroundAdminOpen)
+
+  // 관리자 창 · 우측 상단 모서리 핫스팟 — 모든 화면이 같이 쓴다
+  const adminPanel = !pc ? <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} /> : null
+  /* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */
+  const adminHotspot = !pc && !backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt ? (
+    <button
+      type="button"
+      aria-label="매장 관리자 설정 열기"
+      className="ksk-exit-hotspot"
+      onPointerDown={onExitDown}
+      onPointerUp={onExitUp}
+      onPointerLeave={onExitUp}
+      onPointerCancel={onExitUp}
+      onClick={() => {
+        if (!exitTriggered.current) openBackgroundAdmin()
+        exitTriggered.current = false
+      }}
+    />
+  ) : null
+
+  if (perfumerUi) {
+    const pfText = perfumerText(lang)
+    const pfSteps: PfStep[] = ['attract', 'info', 'style', 'personality', 'charm', 'capture', 'analyzing', 'result']
+    const ctx: PerfumerCtx = {
+      step: pfSteps.includes(step as PfStep) ? (step as PfStep) : 'attract',
+      inputSteps: steps as PfStep[],
+      lang,
+      setLang,
+      langLocked: step === 'analyzing' || step === 'result',
+      t,
+      p: pfText,
+      attractTitle: [attract.title1, attract.title2],
+      maxPick: MAX_PICK,
+      name,
+      gender,
+      setGender,
+      keyboardOpen: oskOpen,
+      openKeyboard: () => setOskOpen(true),
+      keyboard: oskOpen ? (
+        <OnScreenKeyboard
+          value={name}
+          onChange={setName}
+          onClose={() => setOskOpen(false)}
+          maxLength={12}
+          hint={t.namePlaceholder}
+          labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: pfText.keyboardDone }}
+          initialMode={oskModeFor(lang)}
+          traditional={lang === 'zh-Hant'}
+        />
+      ) : null,
+      picks: { style: styles, personality: personalities, charm: charms },
+      pickLabels: { style: t.styles, personality: t.personalities, charm: t.charms },
+      pickOptions: { style: [...STYLES], personality: [...PERSONALITIES], charm: [...CHARM_POINTS] },
+      togglePick: (kind, value) => {
+        const set = kind === 'style' ? setStyles : kind === 'personality' ? setPersonalities : setCharms
+        set((list) => toggleIn(list, value, MAX_PICK))
+      },
+      start: startSession,
+      next: () => { setOskOpen(false); goNext() },
+      prev: () => { setOskOpen(false); goPrev() },
+      home: resetAll,
+      photo,
+      photoSource,
+      videoRef: setVideoEl,
+      frame: { slotRef: camFrame.slotRef, size: camFrame.size, onPhotoLoad: camFrame.onPhotoLoad },
+      camReady,
+      camError: camError ? camErrorKind ?? 'unavailable' : null,
+      countdown,
+      inShell: Boolean(kiosk),
+      onFile: onUploadFallback,
+      shoot: startCountdown,
+      retake: () => {
+        setPhoto(null)
+        // QR로 받은 사진을 물리면 세션이 이미 소진됐다 — 버리고 새 QR을 받는다
+        if (photoSource === 'qr') clearQr()
+      },
+      useCamera,
+      useQr: () => void startQrSession(),
+      regenQr: () => void startQrSession(),
+      backFromQr: () => { clearQr(); goPrev() },
+      qr: { state: qrState, dataUrl: qrDataUrl, code: qrCode, unreachable: qrUnreachable },
+      analyze: startAnalysis,
+      analyzeError,
+      statusLines,
+      statusIdx,
+      eta: analyzingEta,
+      result: result && !isSajuResult(result) ? scentResult : null,
+      mocked,
+      product: {
+        label: t.products[productInfo.id]?.label ?? productInfo.label,
+        fragranceMl: productInfo.fragranceVolumeMl,
+        baseMl: productInfo.totalVolumeMl - productInfo.fragranceVolumeMl,
+      },
+      receipt,
+      receiptBusy,
+      printing,
+      printedOnce,
+      printError,
+      hasPrinter: Boolean(kiosk?.hasPrinter),
+      ticket: ticketNo,
+      openReceipt: () => void openReceipt(),
+      printAgain: printReceipt,
+      savePng: printReceipt,
+      closeReceipt: () => { setReceipt(null); setPrintError(null) },
+      dismissPrintError: () => setPrintError(null),
+      idleLeft,
+      idleTotal: IDLE_WARN_S,
+      toast,
+      adminHotspot,
+      adminPanel,
+    }
+    return <PerfumerApp ctx={ctx} />
+  }
 
   return (
     <div
@@ -2147,7 +2305,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
         )}
       </div>
 
-      {!pc && <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />}
+      {adminPanel}
       {pc && result && isColorResult(result) && (
         <ColorShareSheet
           open={sharing}
@@ -2211,22 +2369,7 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
           </div>
         </div>
       )}
-      {/* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */}
-      {!pc && !backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
-        <button
-          type="button"
-          aria-label="매장 관리자 설정 열기"
-          className="ksk-exit-hotspot"
-          onPointerDown={onExitDown}
-          onPointerUp={onExitUp}
-          onPointerLeave={onExitUp}
-          onPointerCancel={onExitUp}
-          onClick={() => {
-            if (!exitTriggered.current) openBackgroundAdmin()
-            exitTriggered.current = false
-          }}
-        />
-      )}
+      {adminHotspot}
     </div>
   )
 }

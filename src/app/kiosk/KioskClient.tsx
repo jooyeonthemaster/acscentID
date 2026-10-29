@@ -47,6 +47,7 @@ import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-bac
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { useExperienceSwitch } from './experience/useExperienceSwitch'
+import { usePerfumerSwitch } from './perfumer/usePerfumerSwitch'
 import { KioskAdminPanel } from '@/components/kiosk-admin/KioskAdminPanel'
 import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines, KIOSK_MODE_IDS, type KioskProgramId } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
@@ -1383,6 +1384,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
   // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
   useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
+  // SCENT! AI 조향사 모드로 바뀌면 전용 화면으로 갈아탄다(그 화면은 레트로·맥 설정과 무관하다)
+  usePerfumerSwitch(false, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
   const titleExtra =
     step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
 

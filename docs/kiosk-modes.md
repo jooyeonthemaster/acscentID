@@ -88,9 +88,24 @@ K-WAVE 모드 전용: 제조 레시피를 **굵은 상자**로 감싸고(`recipe
 - **제품 고정**(`fixedProduct: 'perfume_10ml'`): 제품 고르기 단계를 건너뛰고 퍼퓸 10ml 레시피(향료 2ml + 베이스 8ml)만 찍는다. 정해진 분량만 준비하는 행사에서 50ml·디퓨저 레시피가 나오지 않게.
 - **촬영은 키오스크 카메라가 먼저**: 본인 얼굴이 필요해 퍼스널 컬러처럼 카메라로 시작한다(폰 QR 올리기는 그대로 고를 수 있다). 매장 최애 분석은 예전처럼 QR 이 먼저.
 - **존댓말**(`politeTone`): 공용 분석 지시문(사이트와 같이 쓴다)은 반말·주접·이모지를 시킨다 — 이 모드는 `/api/kiosk/analyze` 에 `tone: 'polite'` 를 보내고 서버가 말투 규칙(해요체·유행어·이모지 금지)을 덧붙인다. 매장·사이트 톤은 그대로.
-- 첫 화면은 홍보 배너 모양 제목(**SCEN**T! / 내 사진으로 찾는 나만의 향, / AI 조향사), 5개 언어 문구. 전용 배경 `kiosk-study-01`(퍼퓸 랩 파스텔) — 기기에서 이 모드를 골랐을 때만 깔린다(`?mode=` 미리보기는 평소 배경).
+- 화면은 2026-10-29 부터 아래 '전용 화면'(SCENT! 리디자인)으로 돈다. 모드의 `poster`·`attract`·`defaultBackground` 는 화면에 쓰이지 않고(첫 화면 제목 두 줄만 `attract.title1/2` 를 쓴다), 기기의 화면 디자인·배경 설정과도 무관하다.
 - 영수증: 부제 `AI PERFUMER · SCENT RECIPE`, 레시피 상자, 맨 아래 '이 영수증을 직원에게 보여주세요. / 적힌 레시피 그대로 조향을 하시면 됩니다.' 행사 줄(`eventLines`)은 비어 있다 — 행사명·장소·날짜가 정해지면 넣는다.
 - 기록은 `program: 'personal'` 로 남는다(`kiosk_analyses` CHECK 에 원래 있다).
+
+### 전용 화면 — SCENT! 리디자인 (`design: 'perfumer'`, 2026-10-29)
+
+목업 `docs/design-mockups/scent-ai-perfumer-redesign-20261028`(01–08, 폴더 루트 PNG 가 최종본) 을 실제 화면으로 옮긴 것.
+
+- **어떻게 붙나**: 모드에 `design: 'perfumer'`. `KioskScreen` 이 지금 모드(미리보기 `?mode=` → 기기 체험 모드 → 함께 쓰는 운영 모드)가 이 디자인이면 화면 설정(기존·레트로·맥)과 상관없이 `perfumer/PerfumerKiosk` = `<KioskClassic design="perfumer" />` 를 싣는다. 모드가 이쪽으로/에서 바뀌면 `usePerfumerSwitch` 가 손님이 없을 때 새로고침해 갈아탄다(기존·레트로 셸, 이 화면 모두). 기존 셸의 `useScreenUiSwitch` 는 이 화면에서 화면 설정 차이로 새로고침하지 않는다.
+- **상태·동작은 기존(classic) 셸 그대로**: 분석 요청·카메라 스트림·카운트다운·QR 세션/폴링·영수증 원판·Electron 인쇄·기록·무입력 규칙은 `KioskClassic` 이 들고, `src/app/kiosk/perfumer/` 는 그리기만 한다(약속은 `perfumer/types.ts` 의 `PerfumerCtx`). 셸에 더한 것은 화면용 상태뿐: `camReady`(영상 재생 시작) · `camErrorKind`(권한 거부 denied / 장치·연결 unavailable) · `printError`(프린터 실패 응답 — 이 화면은 안내창, 다른 화면은 예전처럼 토스트) · `receiptBusy` · `ticketNo`.
+- **촬영 액자**: `useCamFrame` 약속(찍기 전·카운트다운·찍은 뒤 액자 크기·구도 동일)을 지키려고 액자 아래 자리(`.pf-cam-alt`)와 제목(두 줄)을 상태마다 같은 높이로 잡는다. 목업의 액자는 거의 정사각이지만 실제 사진 자르기가 3:4 라 3:4 로 둔다.
+- **인쇄**: 결과의 '레시피 출력' → 원판을 만들고(출력 준비) 프린터가 있으면 바로 첫 장 인쇄(인쇄 중) → 성공 응답이면 완료 화면(한 장 더 출력 · 결과 다시 보기 · 체험 마치기). 실패 응답은 성공으로 보이지 않게 안내창(다시 출력하기 · 결과로 돌아가기). 연타는 셸의 `receiptOpeningRef`·`printBusyRef` 가 막는다. 프린터 없는 웹은 미리보기 + PNG 저장(예전 동작). 화면의 영수증은 실제 80mm 원판 그대로.
+- **분석 대기**: 실제로 알 수 없는 퍼센트·남은 시간은 보이지 않는다 — 하는 일 목록에서 지금 문구만 짚고(셸의 statusIdx), 막대는 끝없는 흐름. '보통 20~40초' 안내는 기존 문구.
+- **결과 세 화면**: 나의 향(번호·이름·계열·매칭·추천 이유·키워드·TOP/MIDDLE/BASE 노트 — 노트는 향의 인상이지 제조 원료가 아니다) · 프로필(10가지 특성·6가지 계열·퍼스널 컬러) · 해석(분위기·스타일·표정·컨셉, 추천 계절·시간, 사용 가이드, AI 해석 vs 내 선택). 긴 글은 글자를 줄이지 않고 스크롤, 출력 버튼은 어느 탭에서든 아래 고정 줄.
+- **휴대폰 업로드**: 이 화면이 만든 QR 은 `…/kiosk/upload/<code>?lang=<언어>&p=perfumer` — `p=perfumer` 일 때만 `upload/[code]/PerfumerUploadView.tsx`(목업 08). 세션 코드·언어·업로드 API 는 다른 모드와 같다. 같은 QR 로는 한 번만 보낼 수 있어(세션 소진) 완료 화면에 '다른 사진은 키오스크에서 새 QR' 안내를 둔다(목업의 '다른 사진 올리기' 버튼 대신).
+- **크기**: 모든 치수는 `--u = min(100vw/560, 100vh/996)` 의 배수 — 매장 키오스크(셸이 CSS 560 을 1.93배)와 1080×1920 브라우저가 같은 화면. 규칙은 모두 `.pf-root`/`.pfm-root` 아래에만 건다(다른 모드 화면 영향 없음). 진행을 알리는 움직임(돌아가는 표시·카운트다운 고리·대기 흐름)은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다).
+- **장식 사진**: `public/assets/kiosk-programs/perfumer/*.webp`(약 0.5MB, `src/lib/kiosk/perfumer-art.ts`) — 모든 병은 무지(글자·로고·숫자·라벨 없음). 목업 조각을 분위기 참고로만 주고 새로 생성(Gemini 3 Pro Image 2K, 2026-10-29). 첫 화면에서 미리 받고, 결과의 계열 사진(citrus·floral·fruity·woody·musky·spicy)은 그 한 장만. 세리프 워드마크는 Bodoni Moda(OFL, `public/fonts/bodoni-moda/`)를 직접 싣는다.
+- **문구**: 새 화면에만 있는 문구는 `src/lib/kiosk/perfumer-i18n.ts`(5개 언어), 나머지는 기존 `i18n.ts`.
 
 ## 첫 화면 제목 — 홍보 배너 모양 (`poster`)
 

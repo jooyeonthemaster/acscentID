@@ -75,6 +75,8 @@ export interface KioskMode {
   gramsEqualMl?: boolean
   /** 사진 분석 문장을 존댓말로 — 연령대가 다양한 공공 행사에서 매장의 반말·주접 톤을 쓰지 않는다(/api/kiosk/analyze 의 tone) */
   politeTone?: boolean
+  /** 전용 화면 디자인 — 'perfumer' 면 기존·레트로·맥 화면 설정과 상관없이 SCENT! AI 조향사 화면(src/app/kiosk/perfumer)으로 돈다 */
+  design?: 'perfumer'
   /** 체험 모드(네일·명함 등) — 기존 화면 셸 대신 전용 화면(src/app/kiosk/experience)이 돈다. programs·attract·receipt 는 쓰이지 않는다 */
   experience?: ExperienceId
 }
@@ -199,6 +201,7 @@ export const KIOSK_MODES: KioskMode[] = [
     fixedProduct: 'perfume_10ml',
     gramsEqualMl: true,
     politeTone: true,
+    design: 'perfumer',
     poster: {
       word: 'SCEN',
       accent: 'T!',
@@ -440,6 +443,12 @@ const LEGACY_KIOSK_MODE_IDS: Record<string, string> = { 'ai-lab': 'ai-color' }
 
 /** 저장·미리보기에서 받는 id — 지금 모드 + 옛 이름 */
 export const KIOSK_MODE_IDS = [...KIOSK_MODES.map((m) => m.id), ...Object.keys(LEGACY_KIOSK_MODE_IDS)]
+
+/** 전용 화면 디자인이 있는 모드인가 — 없는 이름이면 undefined */
+export function kioskModeDesign(id: string | null | undefined): KioskMode['design'] {
+  if (!id || !KIOSK_MODE_IDS.includes(id)) return undefined
+  return findKioskMode(id).design
+}
 
 export function findKioskMode(id: string | null | undefined): KioskMode {
   const current = id ? LEGACY_KIOSK_MODE_IDS[id] ?? id : id
