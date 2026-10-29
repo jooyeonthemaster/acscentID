@@ -26,6 +26,7 @@ import { idleWindowFor, IDLE_WARN_S } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from './PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { publicOrigin } from '@/lib/kiosk/public-origin'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
 import { ProgramAttract } from './ProgramAttract'
@@ -579,8 +580,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error(data.error || '세션 생성 실패')
       // QR은 고객 폰이 접속하는 주소다 — 키오스크의 로컬 주소로는 폰이 닿을 수 없으므로
-      // 배포된 사이트 주소(NEXT_PUBLIC_SITE_URL)를 쓴다. 웹 초안에서는 현재 주소로 폴백.
-      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      // 배포된 사이트 주소를 쓴다(공개 주소로 열린 화면은 그 주소 — 행사 전용 주소 포함, public-origin.ts)
+      const origin = publicOrigin()
       // 손님 폰도 키오스크와 같은 언어로 열리게 한다
       const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : ''}`
       const QRCode = (await import('qrcode')).default

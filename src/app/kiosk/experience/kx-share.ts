@@ -2,6 +2,7 @@
 
 import type { KioskLang } from '@/lib/kiosk/i18n'
 import { SHARE_TTL_HOURS, type ShareKind, type ShareType } from '@/lib/kiosk/share'
+import { publicOrigin } from '@/lib/kiosk/public-origin'
 
 export interface KxShareFile {
   /** 영문 소문자·숫자·하이픈 + 확장자(jpg·png·wav·pdf) */
@@ -35,9 +36,8 @@ export async function uploadShare(kind: ShareKind, lang: KioskLang, files: KxSha
   const response = await fetch('/api/kiosk/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(40000) })
   const result = await response.json().catch(() => null)
   if (!response.ok || !result?.path) throw new Error(result?.error || 'share failed')
-  // 폰이 여는 주소 — 배포된 사이트 주소. 웹 초안에서는 지금 주소로
-  const local = process.env.NODE_ENV !== 'production' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
-  const url = `${local ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}${result.path}`
+  // 폰이 여는 주소 — 화면을 연 공개 주소(행사 전용 주소 포함), 기기 안 서버면 배포 주소(public-origin.ts)
+  const url = `${publicOrigin()}${result.path}`
   const QRCode = (await import('qrcode')).default
   return { url, qr: await QRCode.toDataURL(url, { width: 520, margin: 1 }), expiresAt: started + SHARE_TTL_HOURS * 60 * 60 * 1000 }
 }

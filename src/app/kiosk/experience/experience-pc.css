@@ -145,3 +145,7 @@
 .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers { margin-top: 0; }
 .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take { grid-template-columns: 1fr; margin-top: 4px; }
 .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take .kx-btn { min-height: 74px; font-size: 24px; }
+/* 건너뛰기를 뺀 관상 버튼 줄(노트북) — 한 칸 */
+.kx-root[data-layout='pc'][data-x='career'] .crr-face-actions:has(> :only-child) { grid-template-columns: 1fr; }
+/* 사진 안내가 길어졌다 — 두 줄로 */
+.kx-root[data-layout='pc'][data-x='career'] .crr-privacy { font-size: 14.5px; line-height: 1.45; }

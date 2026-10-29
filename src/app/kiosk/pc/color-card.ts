@@ -1,12 +1,13 @@
 // 퍼스널 컬러 결과 카드 — 노트북 화면의 [휴대폰으로 받기]가 올리는 그림 한 장(1080 폭 JPG, Chromatic Archive 색).
 // 유형 · 한 줄 · 잘 어울리는 색 8 · 피할 색 4(이름) · 톤 눈금 · 스타일 가이드 · 키워드.
-// 손님 사진은 넣지 않는다 — 퍼스널 컬러 사진은 AI 진단에만 쓰고 기록·영수증·저장에 남기지 않는다(docs/kiosk-modes.md).
+// 손님 사진(진단에 쓴 그 사진)을 머리 오른쪽에 넣는다(2026-10-29 사용자 지시: "결과물에 본인을 찍은 사진이 있도록").
+// 손님이 [휴대폰으로 받기]를 누를 때만 올라가 24시간 보관된다 — 기록·영수증에는 여전히 넣지 않는다.
 
 import { personalColorType } from '@/lib/kiosk/color-types'
 import type { ColorGaugeKey, ProgramText } from '@/lib/kiosk/program-i18n'
 import type { ProgramUiText } from '@/lib/kiosk/program-ui-i18n'
 import type { ColorAnalysisResult } from '@/types/analysis'
-import { canvasBlob, fontsReady, makeCanvas, roundRect, wrapLines } from '../experience/kx-canvas'
+import { canvasBlob, drawCover, fontsReady, loadImage, makeCanvas, roundRect, wrapLines } from '../experience/kx-canvas'
 
 const W = 1080
 const PAD = 84
@@ -25,15 +26,24 @@ function screenFont(): string {
   return root ? getComputedStyle(root).fontFamily : 'sans-serif'
 }
 
-export async function drawColorCard({ result, px, ui, name, date }: {
+/** 머리 오른쪽 사진 칸(3:4) */
+const PHOTO_W = 300
+const PHOTO_H = 400
+
+export async function drawColorCard({ result, px, ui, name, date, photo }: {
   result: ColorAnalysisResult
   px: ProgramText
   ui: ProgramUiText
   name: string
   date: string
+  /** 진단에 쓴 손님 사진(data: 주소) — 없으면 글만 */
+  photo: string | null
 }): Promise<Blob> {
   const family = screenFont()
   await fontsReady(`900 80px ${family}`, `700 30px ${family}`, `500 28px ${family}`)
+  const picture = photo ? await loadImage(photo).catch(() => null) : null
+  // 사진이 있으면 머리 글은 사진 왼쪽 폭에서 줄을 나눈다
+  const headW = picture ? INNER - PHOTO_W - 40 : INNER
   const tx = px.color
   const d = result.colorDiagnosis
   const type = personalColorType(d.typeId)
@@ -68,9 +78,27 @@ export async function drawColorCard({ result, px, ui, name, date }: {
     text('AI PERSONAL COLOR', PAD, y, `800 24px ${family}`, INK)
     text(date, W - PAD, y, `600 22px ${family}`, SOFT, 'right')
     y += 54
+    const photoTop = y
+    if (picture && draw) {
+      // 흰 테 · 옅은 그림자 · 둥근 모서리 안에 3:4 로 잘라(얼굴이 위쪽이라 위를 조금 더 남긴다)
+      const px0 = W - PAD - PHOTO_W
+      ctx.save()
+      ctx.shadowColor = 'rgba(39, 47, 115, 0.22)'
+      ctx.shadowBlur = 24
+      ctx.shadowOffsetY = 8
+      ctx.fillStyle = '#ffffff'
+      roundRect(ctx, px0 - 10, photoTop - 10, PHOTO_W + 20, PHOTO_H + 20, 18)
+      ctx.fill()
+      ctx.restore()
+      ctx.save()
+      roundRect(ctx, px0, photoTop, PHOTO_W, PHOTO_H, 12)
+      ctx.clip()
+      drawCover(ctx, picture, px0, photoTop, PHOTO_W, PHOTO_H, 0.3)
+      ctx.restore()
+    }
     text(ui.color.resultKicker(name), PAD, y, `700 32px ${family}`, SOFT)
     y += 56
-    y = lines(tx.typeNames[d.typeId], PAD, y, INNER, `900 84px ${family}`, INK, 96) + 10
+    y = lines(tx.typeNames[d.typeId], PAD, y, headW, `900 84px ${family}`, INK, 96) + 10
     // 웜/쿨 띠
     ctx.font = `800 28px ${family}`
     const badge = tx.undertone[d.undertone]
@@ -82,7 +110,8 @@ export async function drawColorCard({ result, px, ui, name, date }: {
     }
     text(badge, PAD + 22, y + 10, `800 28px ${family}`, '#fff')
     y += 74
-    y = lines(d.title, PAD, y, INNER, `700 36px ${family}`, INK, 50) + 34
+    y = lines(d.title, PAD, y, headW, `700 36px ${family}`, INK, 50) + 34
+    if (picture) y = Math.max(y, photoTop + PHOTO_H + 44)
     rule(y)
     y += 40
 

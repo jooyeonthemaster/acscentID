@@ -24,6 +24,7 @@ import { idleWindowFor, IDLE_WARN_S, SHARE_IDLE_SILENT_S } from '@/lib/kiosk/idl
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { publicOrigin } from '@/lib/kiosk/public-origin'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
 import { ProgramAttract } from '../ProgramAttract'
@@ -60,6 +61,7 @@ import { useCamFrame } from '../useCamFrame'
 import { Smartphone } from 'lucide-react'
 import { KX_COMMON } from '../experience/kx-i18n'
 import { usePcFit } from '../pc/usePcFit'
+import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
 import { PcHubBack, usePcHub } from '../pc/PcHub'
 import { ColorShareSheet } from '../pc/ColorShareSheet'
 import { drawColorCard } from '../pc/color-card'
@@ -323,7 +325,11 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
   const t = kioskText(lang)
   const sx = sajuText(lang)
   const px = programText(lang)
-  const pu = programUiText(lang)
+  // 노트북 — 결과 그림에 손님 사진이 들어가므로 '분석에만 사용' 안내를 바꾼다(PC_PHOTO_NOTE)
+  const pu = useMemo(() => {
+    const base = programUiText(lang)
+    return pc ? { ...base, color: { ...base.color, captureDesc: PC_PHOTO_NOTE[lang], privacy: PC_PHOTO_NOTE[lang], qrPrivacy: PC_PHOTO_NOTE[lang] } } : base
+  }, [lang, pc])
   const attract = modeAttract(kioskMode, lang, {
     ticket: 'FOR YOUR BIAS · HONGDAE', wordmark: 'WOW!', sub: t.attractSub, cardNo: '01 PHOTO → 01 SCENT',
     title1: t.attractTitle1, title2: t.attractTitle2, body1: t.attractBody1, body2: t.attractBody2, tags: t.attractTags,
@@ -567,8 +573,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error(data.error || '세션 생성 실패')
       // QR은 고객 폰이 접속하는 주소다 — 키오스크의 로컬 주소로는 폰이 닿을 수 없으므로
-      // 배포된 사이트 주소(NEXT_PUBLIC_SITE_URL)를 쓴다. 웹 초안에서는 현재 주소로 폴백.
-      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      // 배포된 사이트 주소를 쓴다(공개 주소로 열린 화면은 그 주소 — 행사 전용 주소 포함, public-origin.ts)
+      const origin = publicOrigin()
       // 손님 폰도 키오스크와 같은 언어로 열리게 한다
       const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : ''}`
       const QRCode = (await import('qrcode')).default
@@ -2146,8 +2152,8 @@ export function KioskClassic({ pinnedMode, pc = false }: { pinnedMode?: string; 
         <ColorShareSheet
           open={sharing}
           lang={lang}
-          cacheKey={`${lang}|${result.colorDiagnosis.typeId}|${result.colorDiagnosis.title}|${name.trim()}`}
-          build={() => drawColorCard({ result, px, ui: pu, name: name.trim(), date: new Intl.DateTimeFormat(KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date()) })}
+          cacheKey={`${lang}|${result.colorDiagnosis.typeId}|${result.colorDiagnosis.title}|${name.trim()}|${photo?.length ?? 0}`}
+          build={() => drawColorCard({ result, px, ui: pu, name: name.trim(), photo, date: new Intl.DateTimeFormat(KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date()) })}
           label={px.color.receipt.title}
           closeLabel={t.close}
           onClose={() => setSharing(false)}

@@ -15,7 +15,8 @@ import { KX_IDLE, KxCamView, KxFoot, KxHome, KxLang, KxPage, KxReceiptSheet, KxS
 import type { KxReceipt } from '../kx-receipt'
 import type { CareerAiAnalysis } from '@/lib/kiosk/career-ai'
 import { kxText } from '../kx-i18n'
-import { canvasBlob, fillLines, fontsReady, kxFontFamily, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
+import { canvasBlob, drawCover, fillLines, fontsReady, kxFontFamily, loadImage, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
+import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
 import { loadVision, photoCanvas, preloadVision } from '../kx-vision'
 import { CAREERS, CAREER_INTERESTS, CAREER_QUESTIONS, CAREER_TOTAL, MBTI_TYPES, exploreCareers, mbtiLetters, type CareerAxis, type CareerInterest, type CareerResult, type FaceTrait, type MbtiType } from './data'
 import { readFace, type FaceReading } from './face'
@@ -29,11 +30,19 @@ const ICONS: Record<string, IconType> = {
 }
 const axisArt = (axis: CareerAxis) => `/assets/kiosk-experiences/career-${axis}.webp`
 
-/** 저장용 탐색 가이드 한 장 — AI 풀이가 있으면 직업 셋 위에 함께 싣는다(휴대폰으로 받는 결과가 화면 결과와 같게) */
-async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[], analysis: CareerAiAnalysis | null): Promise<Blob> {
+/**
+ * 저장용 탐색 가이드 한 장 — AI 풀이가 있으면 직업 셋 위에 함께 싣는다(휴대폰으로 받는 결과가 화면 결과와 같게).
+ * photo: 관상에 쓴 손님 사진 — 노트북 화면에서만 넘긴다(머리 오른쪽, 2026-10-29 사용자 지시). 매장 키오스크는 사진 없이.
+ */
+async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[], analysis: CareerAiAnalysis | null, photo: string | null): Promise<Blob> {
   const family = kxFontFamily()
   await fontsReady(`800 40px ${family}`, `500 30px ${family}`)
+  const picture = photo ? await loadImage(photo).catch(() => null) : null
   const W = 1080, pad = 80
+  // 사진 칸(3:4) — 머리 글(제목·부제·태그)은 그 왼쪽 폭 안에서
+  const photoW = 260, photoH = 347, photoX = W - pad - photoW, photoY = 70
+  const headRight = picture ? photoX - 30 : W - pad
+  const bodyTop = picture ? Math.max(410, photoY + photoH + 40) : 410
   const ink = '#10358f', soft = '#4a5f8f', accent = '#1946cd', orange = '#f2702a'
   const measure = makeCanvas(W, 10)[1]
   // AI 풀이 상자 — 한 줄 제목 · 풀이 · 짚어 본 것들(점 목록)
@@ -53,7 +62,7 @@ async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[
   const firstLines = wrapLines(measure, t.careers[top].first, W - pad * 2 - 80)
   measure.font = `500 30px ${family}`
   const guideLines = guide.map((line) => wrapLines(measure, line, W - pad * 2 - 150))
-  const H = 400 + (analysis ? aiH + 24 : 0) + cards.reduce((sum, card) => sum + 150 + card.lines.length * 44, 0) + 150 + firstLines.length * 50 + guideLines.reduce((sum, lines) => sum + lines.length * 42 + 22, 0) + 190
+  const H = bodyTop - 10 + (analysis ? aiH + 24 : 0) + cards.reduce((sum, card) => sum + 150 + card.lines.length * 44, 0) + 150 + firstLines.length * 50 + guideLines.reduce((sum, lines) => sum + lines.length * 42 + 22, 0) + 190
   const [canvas, ctx] = makeCanvas(W, H)
   const sky = ctx.createLinearGradient(0, 0, 0, H)
   sky.addColorStop(0, '#dff0fe')
@@ -67,17 +76,32 @@ async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[
   ctx.fillText('NEXT!', pad, 70)
   ctx.fillStyle = ink
   ctx.font = `900 74px ${family}`
-  ctx.fillText(t.resultTitle, pad, 160)
+  ctx.fillText(t.resultTitle, pad, 160, headRight - pad)
   ctx.fillStyle = soft
   ctx.font = `500 32px ${family}`
-  ctx.fillText(t.resultSub, pad, 258)
+  ctx.fillText(t.resultSub, pad, 258, headRight - pad)
+  if (picture) {
+    ctx.save()
+    ctx.shadowColor = 'rgba(16, 53, 143, 0.22)'
+    ctx.shadowBlur = 24
+    ctx.shadowOffsetY = 8
+    ctx.fillStyle = '#ffffff'
+    roundRect(ctx, photoX - 10, photoY - 10, photoW + 20, photoH + 20, 26)
+    ctx.fill()
+    ctx.restore()
+    ctx.save()
+    roundRect(ctx, photoX, photoY, photoW, photoH, 18)
+    ctx.clip()
+    drawCover(ctx, picture, photoX, photoY, photoW, photoH, 0.3)
+    ctx.restore()
+  }
   ctx.font = `700 30px ${family}`
   let tx = pad
   // 관심 축 둘 + 곁들인 단서(MBTI · 관상에서 가장 눈에 띈 인상) — 넘치면 거기서 멈춘다
   const tags: [string, boolean][] = [...result.axes.slice(0, 2).map((axis): [string, boolean] => [`#${t.axes[axis]}`, false]), ...clues.map((clue): [string, boolean] => [clue, true])]
   for (const [label, soft] of tags) {
     const w = ctx.measureText(label).width + 44
-    if (tx + w > W - pad) break
+    if (tx + w > headRight) break
     ctx.fillStyle = soft ? '#fde9dc' : '#dfeafd'
     roundRect(ctx, tx, 318, w, 54, 27)
     ctx.fill()
@@ -85,7 +109,7 @@ async function drawGuideCard(t: CareerText, result: CareerResult, clues: string[
     ctx.fillText(label, tx + 22, 329)
     tx += w + 14
   }
-  let y = 410
+  let y = bodyTop
   if (analysis) {
     ctx.fillStyle = '#eef3ff'
     roundRect(ctx, pad - 20, y, W - (pad - 20) * 2, aiH, 28)
@@ -198,7 +222,11 @@ function FaceScan({ photo, reading }: { photo: string; reading: FaceReading | nu
 
 export default function CareerMode() {
   const { lang, t: k, pc } = useKx()
-  const t = kxText(CAREER_TEXT, lang)
+  // 노트북 — 결과 그림에 관상 사진이 들어가므로 '저장하지 않아요' 안내를 바꾼다
+  const t = useMemo(() => {
+    const base = kxText(CAREER_TEXT, lang)
+    return pc ? { ...base, facePrivacy: PC_PHOTO_NOTE[lang] } : base
+  }, [lang, pc])
   const [step, setStep] = useState<'start' | 'ask' | 'face' | 'ai' | 'result'>('start')
   /** 0 = 활동 고르기(여러 개) · 1 = MBTI · 2~6 = 상황 질문 */
   const [index, setIndex] = useState(0)
@@ -208,6 +236,8 @@ export default function CareerMode() {
   /** 관상 — 찍은 사진(읽는 동안만 쓴다)과 읽은 결과 */
   const [shot, setShot] = useState<string | null>(null)
   const [reading, setReading] = useState<FaceReading | null>(null)
+  /** 관상에 쓴 사진 — 노트북 화면에서 결과 그림에 넣는다 */
+  const [facePhoto, setFacePhoto] = useState<string | null>(null)
   const [traits, setTraits] = useState<FaceTrait[]>([])
   const [noFace, setNoFace] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
@@ -234,8 +264,8 @@ export default function CareerMode() {
   const clueTags = useMemo(() => [...(mbti ? [mbti] : []), ...(traits[0] ? [t.traits[traits[0]][0]] : [])], [mbti, traits, t])
   const build = useCallback(async (): Promise<KxShareFile[]> => {
     if (!result) throw new Error('결과가 없습니다')
-    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags, analysis) }]
-  }, [result, t, clueTags, analysis])
+    return [{ name: 'career-guide.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawGuideCard(t, result, clueTags, analysis, pc ? facePhoto : null) }]
+  }, [result, t, clueTags, analysis, pc, facePhoto])
 
   /** AI 분석 — 규칙이 고른 직업 셋과 답·관상 사진(있으면)을 보내 풀이를 받는다. 실패하거나 건너뛰면 풀이 없이 결과로 */
   const analyze = useCallback(async (photo: string | null, faceTraits: FaceTrait[]) => {
@@ -273,6 +303,7 @@ export default function CareerMode() {
       setNoFace(false)
       setReading(found)
       setTraits(found.traits)
+      setFacePhoto(photo)
       window.setTimeout(() => { setShot(null); void analyze(photo, found.traits) }, 2400)
     } catch (error) {
       console.error('[kiosk] 얼굴을 읽지 못했습니다:', error)
@@ -393,7 +424,10 @@ export default function CareerMode() {
             ? <p className="crr-alert" role="alert"><b>{t.faceFail[0]}</b>{t.faceFail[1]}</p>
             : <p className="crr-privacy">{t.facePrivacy}</p>}
         <div className="crr-face-actions">
-          <button type="button" className="kx-btn" disabled={Boolean(shot) || cam.countdown !== null} onClick={() => { setTraits([]); void analyze(null, []) }}>{t.faceSkip}</button>
+          {/* 노트북 — 결과 그림에 사진이 들어가야 해서 건너뛰기는 카메라가 안 될 때만 */}
+          {(!pc || cam.state === 'error') && (
+            <button type="button" className="kx-btn" disabled={Boolean(shot) || cam.countdown !== null} onClick={() => { setTraits([]); setFacePhoto(null); void analyze(null, []) }}>{t.faceSkip}</button>
+          )}
           <button type="button" className="kx-btn kx-btn--primary" disabled={Boolean(shot) || cam.state !== 'ready' || cam.countdown !== null} onClick={() => cam.shoot((photo) => void read(photo))}>
             <ScanFace size={26} strokeWidth={2} aria-hidden="true" />{t.faceShoot}
           </button>
@@ -440,7 +474,7 @@ export default function CareerMode() {
   })
   const hasClues = Boolean(mbti) || traits.length > 0
   // 받는 그림에 AI 풀이도 들어간다 — 풀이가 다르면 다른 결과로 보고 다시 올린다
-  const shareKey = `${lang}|${result.careers.join()}|${clueTags.join()}|${analysis?.headline ?? ''}`
+  const shareKey = `${lang}|${result.careers.join()}|${clueTags.join()}|${analysis?.headline ?? ''}|${pc && facePhoto ? facePhoto.length : 0}`
   const heading = (
     <>
       <p className="crr-done"><i aria-hidden="true"><Check size={16} strokeWidth={3} /></i>{t.done}</p>

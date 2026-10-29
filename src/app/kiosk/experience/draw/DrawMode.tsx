@@ -4,13 +4,14 @@
 // 그림은 서버의 이미지 생성(/api/kiosk/experience/caricature)이 그린다 — 한 장마다 비용이 들어 사진 한 장에 세 장까지,
 // 같은 조합은 다시 그리지 않는다. 사진은 그리는 데만 쓰고 저장하지 않으며, 받기를 누른 결과만 올라간다.
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { ArrowRight, Camera, Check, Images, Pencil, Printer, RefreshCw, UserRound, UsersRound } from 'lucide-react'
 import { KX_IDLE, KX_PHOTO_RATIO, KxBack, KxCamView, KxHome, KxPage, KxReceiptSheet, KxSaveSheet, KxStart, KxTop, useKx, useKxCamera, useKxScreen, type KxShareFile } from '../kx'
 import type { KxReceipt } from '../kx-receipt'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, roundRect } from '../kx-canvas'
 import { DRAW_TEXT, type DrawLevel, type DrawStyle, type DrawText } from './text'
+import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
 import './draw.css'
 
 type Step = 'start' | 'capture' | 'confirm' | 'style' | 'drawing' | 'result'
@@ -131,7 +132,11 @@ function Doodles({ text }: { text?: string }) {
 
 export default function DrawMode() {
   const { lang, home, c, pc } = useKx()
-  const t = kxText(DRAW_TEXT, lang)
+  // 노트북 — 받는 포스터에 원본 사진이 들어간다는 것을 안내에 맞춘다(매장 키오스크 문구는 그대로)
+  const t = useMemo(() => {
+    const base = kxText(DRAW_TEXT, lang)
+    return pc ? { ...base, privacy: PC_PHOTO_NOTE[lang] } : base
+  }, [lang, pc])
   const [step, setStep] = useState<Step>('start')
   const [photo, setPhoto] = useState<string | null>(null)
   const [style, setStyle] = useState<DrawStyle>('comic')
