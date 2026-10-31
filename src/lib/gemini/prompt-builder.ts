@@ -1,4 +1,4 @@
-import { formatPerfumesForPrompt } from './perfume-formatter';
+import { formatPerfumesForPrompt, getPerfumeById } from './perfume-formatter';
 import { wrapPromptWithLocale } from './locale-prompt-wrapper';
 import type { Locale } from '@/i18n/config';
 
@@ -24,8 +24,11 @@ export interface FigureDataInput {
   figureRequest: string;
 }
 
-export function buildGeminiPrompt(formData: FormDataInput, locale: Locale = 'ko'): string {
-  const perfumeDatabase = formatPerfumesForPrompt(locale);
+export function buildGeminiPrompt(formData: FormDataInput, locale: Locale = 'ko', assignedPerfumeId?: string): string {
+  const assignedPerfume = assignedPerfumeId ? getPerfumeById(assignedPerfumeId) : undefined;
+  if (assignedPerfumeId && !assignedPerfume) throw new Error('Unknown assigned perfume');
+  const perfumeDatabase = formatPerfumesForPrompt(locale)
+    .filter((perfume) => !assignedPerfumeId || perfume.id === assignedPerfumeId);
   const isSelfAnalysis = formData.targetType === 'self';
 
   const genderLabels: Record<string, string> = {
@@ -172,7 +175,7 @@ ${isSelfAnalysis ? `⚠️ **매우 중요**: 이번 대상은 실존 사용자 
 
 ⚠️ **이미지 분석 결과 + 향수 노트 특성 + 캐릭터 분위기를 종합해서 결정!**
 
-# 30가지 향수 데이터베이스
+# ${assignedPerfume ? '이번 조향 체험에 배정된 향수 데이터' : '30가지 향수 데이터베이스'}
 
 ${JSON.stringify(perfumeDatabase, null, 2)}
 
@@ -184,7 +187,7 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 3️⃣ **traits는 참고용**: traits 수치가 높다고 무조건 좋은 매칭이 아님! characteristics 궁합이 더 중요함
 
 ## ⚠️ 매칭 시 주의사항:
-- **30종 모든 향수를 동등한 후보로 취급할 것!** 특정 향수에 편향되지 말 것
+- ${assignedPerfume ? '**이번 체험의 후보는 위에 배정된 1종뿐입니다. 다른 향을 선택하지 마세요.**' : '**30종 모든 향수를 동등한 후보로 취급할 것!** 특정 향수에 편향되지 말 것'}
 - traits 수치가 극단적인 향수를 무의식적으로 선호하지 말 것
 - 각 향수의 **category(시트러스/플로럴/우디/머스크/프루티/스파이시)**를 확인하고, 캐릭터 분위기와 가장 잘 맞는 계열의 향수를 선택할 것
 - 예를 들어: 자연스럽고 건강한 캐릭터 → fruity 계열도 고려, 명상적이고 차분한 캐릭터 → woody/spicy 계열의 다양한 향수 고려
@@ -230,7 +233,7 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
   "matchingKeywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "matchingPerfumes": [
     {
-      "perfumeId": "위 30개 중 가장 잘 어울리는 향수 ID (예: AC'SCENT 03)",
+      "perfumeId": "${assignedPerfumeId ?? "위 30개 중 가장 잘 어울리는 향수 ID (예: AC'SCENT 03)"}",
       "score": 0.85-1.0 사이 숫자,
       "matchReason": "이미지에서 분석한 캐릭터의 구체적 특성(눈빛, 표정, 의상, 분위기 등)을 언급하면서 왜 이 향수가 어울리는지 설명 (반말, 이모지 필수, 2-3문장). 캐릭터 이름은 자연스러울 때만 1번 정도 언급.",
       "noteComments": {
@@ -331,7 +334,18 @@ ${JSON.stringify(perfumeDatabase, null, 2)}
 - **matchingKeywords는 반드시 긍정적인 키워드만 사용!** 부정적인 키워드(무기력, 피곤, 우울, 지친, 슬픈, 외로운, 불안한 등) 절대 금지!
 `.trim();
 
-  return wrapPromptWithLocale(prompt, locale);
+  const assignment = assignedPerfume ? `
+
+# AI 조향사 최종 향 배정 규칙 — 위의 자유 매칭·예시보다 우선
+- 이번 체험의 향은 서버가 미리 배정한 ${assignedPerfume.id} 한 가지입니다. 다른 향으로 바꾸지 마세요.
+- matchingPerfumes 는 반드시 한 항목이고, perfumeId 는 정확히 "${assignedPerfume.id}"여야 합니다.
+- 향 이름: ${perfumeDatabase[0].name}
+- 실제 노트: TOP ${assignedPerfume.mainScent.name} / MIDDLE ${assignedPerfume.subScent1.name} / BASE ${assignedPerfume.subScent2.name}
+- matchReason, noteComments, usageGuide, comparisonAnalysis.reflectionDetails, scentRecommendation 은 모두 이 향과 실제 노트를 기준으로 작성하세요. 다른 향의 이름이나 노트를 섞지 마세요.
+- 사진 관찰과 선택 키워드는 그대로 분석하고, 배정된 향에 맞추려고 traits·scentCategories·사진 관찰을 지어내거나 바꾸지 마세요.
+- 배정된 향으로 즐길 수 있는 분위기와 사용법을 손님의 사진·선택에 연결해 설명하세요.
+` : '';
+  return wrapPromptWithLocale(prompt + assignment, locale);
 }
 
 // ===== 피규어 디퓨저 전용 프롬프트 =====

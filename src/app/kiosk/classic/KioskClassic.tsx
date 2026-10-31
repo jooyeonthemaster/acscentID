@@ -22,6 +22,7 @@ import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
 import { idleWindowFor, IDLE_WARN_S, SHARE_IDLE_SILENT_S } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
+import { perfumerCandidates, readPerfumerRotation, recordPerfumerScent } from '@/lib/kiosk/perfumer-rotation'
 import { PosterTitle } from '../PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
 import { publicOrigin } from '@/lib/kiosk/public-origin'
@@ -340,6 +341,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const countdownTimer = useRef<number | undefined>(undefined)
   const toastTimer = useRef<number | undefined>(undefined)
   const qrGeneration = useRef(0)
+  const analysisGeneration = useRef(0)
+  const analysisAbort = useRef<AbortController | null>(null)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
@@ -380,6 +383,9 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   }, [])
 
   const resetAll = useCallback(() => {
+    analysisGeneration.current++
+    analysisAbort.current?.abort()
+    analysisAbort.current = null
     clearCountdown()
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     setToast(null)
@@ -438,7 +444,11 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     if (!kiosk) stopStream()
   }, [kiosk, stopStream, clearCountdown, resetTarot])
 
-  useEffect(() => () => stopStream(), [stopStream])
+  useEffect(() => () => {
+    analysisGeneration.current++
+    analysisAbort.current?.abort()
+    stopStream()
+  }, [stopStream])
 
   // capture 스텝 이탈/언마운트 시 카운트다운 정리 (고아 interval이 상태를 재오염시키는 것 방지)
   useEffect(() => {
@@ -733,6 +743,17 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const statusLines = program === 'saju' ? sx.statusLines : program === 'color' ? px.color.statusLines : program === 'tarot' ? px.tarot.statusLines : storeBrand ? t.statusLines : t.statusLines.map((line) => line.replace(/AC’SCENT(\s|の)?/, ''))
   const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
+    analysisAbort.current?.abort()
+    const controller = new AbortController()
+    analysisAbort.current = controller
+    const generation = ++analysisGeneration.current
+    const isCurrent = () => generation === analysisGeneration.current
+    const perfumer = kioskMode.id === 'ai-perfumer'
+    const rotation = perfumer ? readPerfumerRotation() : null
+    const requestTimeout = window.setTimeout(
+      () => controller.abort(new DOMException('Analysis timed out', 'TimeoutError')),
+      program === 'idol' || program === 'personal' ? 75_000 : 110_000,
+    )
     const isSaju = program === 'saju'
     setStep('analyzing')
     setProgress(0)
@@ -753,6 +774,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
 
     // 실패가 확정되면 진행률을 그 자리에서 멈추고 오류 카드를 띄운다(입력은 그대로 두어 '다시 시도'가 바로 된다)
     const fail = (kind: AnalyzeErrorKind, detail: unknown) => {
+      if (!isCurrent()) return
       console.error(`[kiosk] 분석 실패(${kind}):`, detail)
       window.clearInterval(progTimer)
       window.clearInterval(statusTimer)
@@ -819,6 +841,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
           lang,
           // 공공 행사 모드는 존댓말로 받는다
           ...(kioskMode.politeTone ? { tone: 'polite' as const } : {}),
+          ...(rotation ? { mode: 'ai-perfumer', perfumerRotation: rotation } : {}),
         }
 
       let res: Response
@@ -827,7 +850,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // 무인 기기: 네트워크가 행 걸려도 반드시 끝난다 (사주는 서사가 길어 더 준다 — 서버는 92초 안에 답한다)
-          signal: AbortSignal.timeout(program === 'idol' || program === 'personal' ? 75_000 : 110_000),
+          signal: controller.signal,
           body: JSON.stringify(body),
         })
       } catch (e) {
@@ -842,6 +865,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
         return
       }
       // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
+      if (!isCurrent()) return
       // 얼굴을 못 찾은 사진(퍼스널 컬러) — 다시 보내도 같으니 사진을 물리고 다시 찍게 한다
       if (json.error === 'NO_FACE') {
         setNoFacePhoto(photo)
@@ -854,20 +878,33 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
         fail('server', `${res.status} ${json.error ?? ''}`)
         return
       }
-      setResult(json.data as KioskAnalysisResult)
+      const nextResult = json.data as KioskAnalysisResult
+      if (rotation) {
+        const id = scentResultOf(nextResult)?.matchingPerfumes?.[0]?.perfumeId
+        if (!id || !perfumerCandidates(rotation).includes(id) || !perfumerCandidates(readPerfumerRotation()).includes(id)) {
+          fail('server', '향 순환 후보 밖의 결과입니다.')
+          return
+        }
+        // 성공하고 지금 손님에게 유효한 응답만 기기의 30종 순환에서 소진한다.
+        recordPerfumerScent(id)
+      }
+      setResult(nextResult)
       setMocked(Boolean(json.mocked))
     } finally {
+      window.clearTimeout(requestTimeout)
+      if (isCurrent()) analysisAbort.current = null
       window.clearInterval(progTimer)
       window.clearInterval(statusTimer)
     }
 
+    if (!isCurrent()) return
     setProgress(100)
-    window.setTimeout(() => setStep('result'), 450)
+    window.setTimeout(() => { if (isCurrent()) setStep('result') }, 450)
   }, [
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone,
+    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone, kioskMode.id,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────

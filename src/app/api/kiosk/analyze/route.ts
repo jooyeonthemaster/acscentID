@@ -9,6 +9,8 @@ import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 import { isKioskLang, analysisLocale, type KioskLang } from '@/lib/kiosk/i18n';
 import { toTraditionalChinesePrompt, applyTraditionalPersona } from '@/lib/kiosk/analysis-lang';
 import { getLocalizedPerfumeText } from '@/data/perfumes-i18n';
+import { allocatePerfumerScent } from '@/lib/kiosk/perfumer-allocation';
+import { normalizePerfumerRotation, pickPerfumerScent } from '@/lib/kiosk/perfumer-rotation';
 
 // 키오스크 전용 분석 라우트 — /api/analyze와 동일한 파이프라인(프롬프트→Gemini→파서)이되
 // 인증·일일한도 게이트가 없다. 무인 기기에서 로그인 없이 돌아야 하기 때문.
@@ -24,6 +26,9 @@ interface KioskAnalyzeRequest {
   lang?: KioskLang;
   /** 'polite' = 존댓말(공공 행사 모드, modes.ts politeTone). 없으면 매장 톤 */
   tone?: unknown;
+  mode?: unknown;
+  /** 기기의 남은 향·최근 성공 향 ID만 전달한다. 사진·이름은 순환 기록에 저장하지 않는다. */
+  perfumerRotation?: unknown;
 }
 
 // 공공 행사 모드의 말투 — 공용 지시문(사이트와 같이 쓴다)의 '반말·주접·이모지 필수'를 이 요청에서만 덮는다
@@ -142,8 +147,9 @@ const MOCK_TEXT: Record<KioskLang, {
   },
 };
 
-function generateKioskMockResult(lang: KioskLang = 'ko'): ImageAnalysisResult {
-  const p = perfumes[Math.floor(Math.random() * perfumes.length)];
+function generateKioskMockResult(lang: KioskLang = 'ko', assignedPerfumeId?: string): ImageAnalysisResult {
+  const p = perfumes.find((perfume) => perfume.id === assignedPerfumeId)
+    ?? perfumes[Math.floor(Math.random() * perfumes.length)];
   const m = MOCK_TEXT[lang];
   // 향수 텍스트는 분석 경로와 같은 번역 데이터를 쓴다 (번체는 아래에서 applyTraditionalPersona 로 덮는다)
   const { locale } = analysisLocale(lang);
@@ -263,18 +269,27 @@ export async function POST(request: NextRequest) {
       customCharm: '',
     };
 
+    // 기존 배포 화면도 tone:'polite'를 보내므로 서버부터 갱신해도 편중 완화가 적용된다.
+    const perfumer = body.mode === 'ai-perfumer' || body.tone === 'polite';
+    const useMock = Boolean((mock && mockAllowed()) || !process.env.OPENROUTER_API_KEY);
+    const assignedPerfumeId = perfumer
+      ? useMock
+        ? pickPerfumerScent(normalizePerfumerRotation(body.perfumerRotation), [])
+        : await allocatePerfumerScent(body.perfumerRotation)
+      : undefined;
+
     // 데모 모드(개발/명시적 허용 시) 또는 키 미설정 시 mock 반환 — 응답에 mocked를 명시해
     // 클라이언트가 '데모 결과'임을 표기하고 실제 제조용으로 오인되지 않게 한다
-    if ((mock && mockAllowed()) || !process.env.OPENROUTER_API_KEY) {
+    if (useMock) {
       console.log(`[${requestId}] mock 응답 반환 (mock=${Boolean(mock)}, key=${Boolean(process.env.OPENROUTER_API_KEY)})`);
       return NextResponse.json<KioskAnalyzeResponse>({
         success: true,
-        data: finalize(generateKioskMockResult(lang)),
+        data: finalize(generateKioskMockResult(lang, assignedPerfumeId)),
         mocked: true,
       });
     }
 
-    const basePrompt = buildGeminiPrompt(cleanForm, locale);
+    const basePrompt = buildGeminiPrompt(cleanForm, locale, assignedPerfumeId);
     const localizedPrompt = traditional ? toTraditionalChinesePrompt(basePrompt) : basePrompt;
     const politeTone = body.tone === 'polite';
     const prompt = politeTone ? localizedPrompt + POLITE_TONE_RULES : localizedPrompt;
@@ -297,6 +312,10 @@ export async function POST(request: NextRequest) {
 
     const responseText = result.response.text();
     const parsed = parseGeminiResponse(responseText, locale);
+    // AI가 배정을 무시하면 성공으로 내보내지 않는다. ID만 치환하면 설명·노트와 제조 향이 어긋난다.
+    if (assignedPerfumeId && parsed.matchingPerfumes[0]?.perfumeId !== assignedPerfumeId) {
+      throw new Error(`Assigned perfume mismatch: expected ${assignedPerfumeId}`);
+    }
     const data = finalize(parsed);
 
     return NextResponse.json<KioskAnalyzeResponse>({ success: true, data });
