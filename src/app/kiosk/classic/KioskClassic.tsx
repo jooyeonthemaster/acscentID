@@ -1452,7 +1452,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
       ) : null,
       picks: { style: styles, personality: personalities, charm: charms },
       pickLabels: { style: t.styles, personality: t.personalities, charm: t.charms },
-      pickOptions: { style: [...STYLES], personality: [...PERSONALITIES], charm: [...CHARM_POINTS] },
+      pickOptions: { style: STYLES.filter((value) => value !== '섹시한'), personality: [...PERSONALITIES], charm: [...CHARM_POINTS] },
       togglePick: (kind, value) => {
         const set = kind === 'style' ? setStyles : kind === 'personality' ? setPersonalities : setCharms
         set((list) => toggleIn(list, value, MAX_PICK))
