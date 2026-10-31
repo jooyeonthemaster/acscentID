@@ -1,7 +1,7 @@
 'use client'
 
 // 키오스크 현장 관리자 창 — 고객 화면 우측 상단 모서리 → 6자리 PIN 으로 연다. 기존·레트로·맥 셸이 같이 쓴다.
-// 설정을 작업별 탭으로 나눈다: 홈(지금 상태) · 운영 모드 · 화면·글꼴 · 평소 배경 · 행사 배경. 앱 종료는 따로 확인한다.
+// 설정을 작업별 탭으로 나눈다: 홈(지금 상태) · 운영 모드 · 화면·글꼴 · 평소 배경 · 행사 배경 · 휴식 안내.
 // (목업 ~/Downloads/Kiosk-Admin-Redesign-20261010 · docs/kiosk-admin.md)
 //
 // 지켜야 하는 동작(예전 관리자 창과 같다):
@@ -11,13 +11,13 @@
 //  · 화면 디자인을 바꾸면 저장 뒤 페이지가 새로 열린다(useScreenUiSwitch) — 관리자 창도 닫힌다.
 //  · 컬러·타로와 체험 모드(네일·명함·스킨케어…)는 전용 디자인을 쓴다 — 일반 디자인·글꼴·평소 배경은 매장·사주 모드에서 보인다.
 //  · 인증은 10분. 끝나면 저장이 403 으로 거절된다 — 다시 비밀번호를 받는다.
-//  · 인터넷이 끊기면 기기(셸)가 PIN 을 확인해 '앱 종료'만 연다.
+//  · 인터넷이 끊기면 기기(셸)가 PIN 을 확인해 기기 안의 휴식 안내와 앱 종료만 연다.
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   ArrowRight, Brush, CalendarDays, Check, ChevronLeft, ChevronRight, CircleAlert, Compass, Droplets, FlaskConical, GalleryHorizontalEnd, Hand, IdCard, ImageIcon, Info,
-  LockKeyhole as Lock, Mic, MoonStar, Palette, Pencil, Power, RefreshCw, Settings, Store, Type, WifiOff, X,
+  LockKeyhole as Lock, Mic, MoonStar, Palette, Pencil, Power, RefreshCw, Settings, Store, Type, X,
   Wine, Martini, Coffee, Utensils, Shirt, Sparkles, Atom, Box, Users, MessagesSquare, Landmark, Plane, Heart, ScanFace, Search, House } from 'lucide-react'
 import { KIOSK_FONT_CLASS, hanjaFontVar } from '@/app/kiosk/fonts'
 import type { KioskBridge } from '@/lib/kiosk/kiosk-bridge'
@@ -32,6 +32,9 @@ import { DEFAULT_RETRO_FONT, findScreenFont, screenFontFamily } from '@/lib/scre
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { AdminEvents } from './AdminEvents'
 import { AdminFontPicker } from './AdminFontPicker'
+import { BreakNoticeTab } from './BreakNoticeTab'
+import { KioskBreakNoticeView } from './KioskBreakNotice'
+import { getBreakNoticeSnapshot, getServerBreakNoticeSnapshot, subscribeBreakNotice, type KioskBreakNotice } from '@/lib/kiosk/break-notice'
 import { AdminLayerProvider, AdminModal, Notice, Spinner, errorStatus, errorText, isAuthError, useAdminLayerRoot, useFocusTrap, type NoticeTone } from './admin-ui'
 import './kiosk-admin.css'
 
@@ -61,9 +64,10 @@ export interface KioskAdminScreen {
   unlock: (pin: string) => Promise<boolean>
 }
 
-type Tab = 'home' | 'mode' | 'look' | 'backgrounds' | 'events'
+type Tab = 'home' | 'mode' | 'look' | 'backgrounds' | 'events' | 'break'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'home', label: '홈' }, { id: 'mode', label: '운영 모드' }, { id: 'look', label: '화면·글꼴' }, { id: 'backgrounds', label: '평소 배경' }, { id: 'events', label: '행사 배경' },
+  { id: 'break', label: '휴식 안내' },
 ]
 
 /** 관리자 창에서 부르는 모드 이름과 두 줄 설명 — 목록에 없는 모드(새 행사)는 modes.ts 의 이름·설명을 그대로 쓴다 */
@@ -98,20 +102,25 @@ const FONT_SAMPLE = '오늘의 최애, 어떤 향으로 기억할까요?'
 const defaultFontLabel = (ui: ScreenUi) => (ui === 'retro' ? '기본 (에스코어드림)' : ui === 'mac' ? '기본 (시스템 글꼴)' : '기본 (배경의 글꼴 조합)')
 const PIN_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '지우기', '0', '확인'] as const
 
-export function KioskAdminPanel({ open, onClose, screen, kiosk }: {
+export function KioskAdminPanel({ open, onOpen, onClose, screen, kiosk }: {
   open: boolean
+  onOpen: () => void
   onClose: () => void
   screen: KioskAdminScreen
   kiosk: KioskBridge | undefined
 }) {
-  if (!open || typeof document === 'undefined') return null
+  const notice = useSyncExternalStore(subscribeBreakNotice, getBreakNoticeSnapshot, getServerBreakNoticeSnapshot)
+  if (typeof document === 'undefined' || (!open && !notice.active)) return null
   // 고객 화면의 테마 CSS·zoom 이 닿지 않게 body 에 띄운다
-  return createPortal(<AdminWindow onClose={onClose} screen={screen} kiosk={kiosk} />, document.body)
+  return createPortal(open
+    ? <AdminWindow onClose={onClose} screen={screen} kiosk={kiosk} notice={notice} />
+    : <KioskBreakNoticeView notice={notice} onAdmin={onOpen} />, document.body)
 }
 
-function AdminWindow({ onClose, screen, kiosk }: { onClose: () => void; screen: KioskAdminScreen; kiosk: KioskBridge | undefined }) {
-  /** pin: 비밀번호 받는 중 · ok: 인증됨 · offline: 인터넷 없이 기기에서만 확인(앱 종료만) */
+function AdminWindow({ onClose, screen, kiosk, notice }: { onClose: () => void; screen: KioskAdminScreen; kiosk: KioskBridge | undefined; notice: KioskBreakNotice }) {
+  /** pin: 비밀번호 받는 중 · ok: 인증됨 · offline: 기기에서 확인(휴식 안내·앱 종료만) */
   const [auth, setAuth] = useState<'pin' | 'ok' | 'offline'>('pin')
+  const authExpiresAt = useRef(0)
   /** 인증 10분이 끝나 저장이 거절됐다 — 다시 인증하면 보던 탭으로 돌아간다 */
   const [expired, setExpired] = useState(false)
   const [tab, setTab] = useState<Tab>('home')
@@ -127,6 +136,22 @@ function AdminWindow({ onClose, screen, kiosk }: { onClose: () => void; screen: 
   const copy = modeCopy(mode)
   const programTheme = kioskProgramTheme(mode.id)
   const onAuthExpired = useCallback(() => setExpired(true), [])
+  const authenticated = (kind: 'ok' | 'offline') => {
+    authExpiresAt.current = Date.now() + 10 * 60 * 1000
+    setAuth(kind)
+    setExpired(false)
+  }
+  // 기기 저장만 쓰는 휴식 안내에도 서버 설정과 같은 인증 유효 시간을 적용한다.
+  useEffect(() => {
+    if (auth === 'pin' || expired) return
+    const timer = window.setTimeout(() => setExpired(true), Math.max(0, authExpiresAt.current - Date.now()))
+    return () => window.clearTimeout(timer)
+  }, [auth, expired])
+  const canSaveBreak = () => {
+    if (auth !== 'pin' && Date.now() < authExpiresAt.current) return true
+    setExpired(true)
+    return false
+  }
   const go = useCallback((next: Tab) => { setTab(next); setEventId(null); setFlash('') }, [])
   // 탭을 바꾸면 본문을 맨 위로
   useEffect(() => { bodyRef.current?.scrollTo({ top: 0 }) }, [tab, eventId])
@@ -166,7 +191,7 @@ function AdminWindow({ onClose, screen, kiosk }: { onClose: () => void; screen: 
   if (auth === 'pin') {
     return shell(
       <PinPad kiosk={kiosk} unlock={screen.unlock} reauth={expired} onClose={onClose}
-        onUnlocked={() => { setAuth('ok'); setExpired(false) }} onOffline={() => setAuth('offline')} />, true,
+        onUnlocked={() => authenticated('ok')} onOffline={() => authenticated('offline')} />, true,
     )
   }
 
@@ -184,17 +209,15 @@ function AdminWindow({ onClose, screen, kiosk }: { onClose: () => void; screen: 
     </nav>
   )
 
-  // ── 인터넷 없이 열린 창 — 설정은 못 바꾸고 앱 종료만 ──
-  if (auth === 'offline') {
+  // ── 인터넷 없이 열린 창 — 기기 안의 휴식 안내와 앱 종료만 ──
+  if (auth === 'offline' && !expired) {
     return shell(
       <>
-        {header}{tabs(true)}
+        {header}
+        <nav className="kadm-tabs" aria-label="관리자 설정"><button type="button" aria-current="page">휴식 안내</button></nav>
         <div className="kadm-body">
-          <div className="kadm-empty kadm-empty--page">
-            <i><WifiOff size={48} strokeWidth={1.6} aria-hidden="true" /></i>
-            <b>인터넷 연결을 확인해 주세요</b>
-            <span>지금은 설정을 바꿀 수 없어요.<br />앱 종료는 가능합니다. 연결이 돌아오면 다시 열어 주세요.</span>
-          </div>
+          <Notice tone="warn" title="인터넷 없이 기기에서 인증했어요.">이 키오스크의 휴식 안내와 앱 종료만 사용할 수 있어요. 다른 설정은 인터넷 연결 후 변경해 주세요.</Notice>
+          <BreakNoticeTab notice={notice} onClose={onClose} canSave={canSaveBreak} />
         </div>
         <footer className="kadm-foot">
           <button type="button" className="kadm-btn kadm-btn--quit" onClick={askQuit}><Power size={24} strokeWidth={2} aria-hidden="true" />앱 종료</button>
@@ -228,10 +251,11 @@ function AdminWindow({ onClose, screen, kiosk }: { onClose: () => void; screen: 
     <>
       {header}{tabs(false)}
       <div className="kadm-body" ref={bodyRef} role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
-        {tab === 'home' && <HomeTab screen={screen} mode={mode} flash={flash} go={go} />}
+        {tab === 'home' && <HomeTab screen={screen} mode={mode} flash={flash} go={go} notice={notice} />}
         {tab === 'mode' && <ModeTab screen={screen} onAuthExpired={onAuthExpired} />}
         {tab === 'look' && <LookTab screen={screen} onAuthExpired={onAuthExpired} go={go} />}
         {tab === 'backgrounds' && <BackgroundsTab screen={screen} onAuthExpired={onAuthExpired} />}
+        {tab === 'break' && <BreakNoticeTab notice={notice} onClose={onClose} canSave={canSaveBreak} />}
         {tab === 'events' && (
           <AdminEvents modeName={copy.name} storeEvents={mode.storeEvents && !programTheme} detailId={eventId} onDetail={setEventId}
             onApplied={() => void screen.refresh()} onAuthExpired={onAuthExpired} onHome={() => go('home')} />
@@ -287,7 +311,7 @@ function PinPad({ kiosk, unlock, reauth, onUnlocked, onOffline, onClose }: {
     setChecking(true)
     const id = ++request.current
     const wrong = () => setError({ title: '비밀번호가 올바르지 않습니다.', text: '다시 입력해 주세요.' })
-    /* 서버에 닿지 못하면 기기(셸)에 PIN 을 확인받아 앱 종료만 연다. 처리했으면 true */
+    /* 서버에 닿지 못하면 기기(셸)에 PIN 을 확인받아 휴식 안내·앱 종료를 연다. 처리했으면 true */
     const offline = async () => {
       if (!kiosk?.checkAdminPin) return false
       const ok = await kiosk.checkAdminPin(next).catch(() => false)
@@ -372,7 +396,7 @@ function modeArt(mode: KioskMode, background: ScreenBackground): { src: string; 
   return { src: background.thumbnail_url || background.image_url, cover: true }
 }
 
-function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: KioskMode; flash: string; go: (tab: Tab) => void }) {
+function HomeTab({ screen, mode, flash, go, notice }: { screen: KioskAdminScreen; mode: KioskMode; flash: string; go: (tab: Tab) => void; notice: KioskBreakNotice }) {
   const copy = modeCopy(mode)
   const theme = dedicatedDesign(mode.id)
   const art = modeArt(mode, screen.activeBackground)
@@ -380,6 +404,7 @@ function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: 
   const design = theme ? `${theme} 전용 디자인` : `${SCREEN_UI_LABELS[ui]} · ${findScreenFont(screen.liveEvent?.font ?? screen.baseSettings.font)?.label ?? '기본 글꼴'}`
   const event = theme || !mode.storeEvents ? '이 모드에서는 사용 안 함' : screen.liveEvent ? `${screen.liveEvent.title} 적용 중` : '적용 중인 행사 없음'
   const links: { tab: Tab; title: string; text: string; Icon: typeof Settings }[] = [
+    { tab: 'break', title: '브레이크 타임 공지', text: notice.active ? '공지 표시 중 · 운영 재개' : '휴식 안내 띄우기', Icon: Coffee },
     { tab: 'mode', title: '운영 모드', text: '손님에게 보여줄 서비스', Icon: Settings },
     { tab: 'look', title: '화면·글꼴', text: '기본 디자인과 글씨', Icon: Type },
     { tab: 'backgrounds', title: '평소 배경', text: '행사가 없을 때의 배경', Icon: ImageIcon },
@@ -390,7 +415,7 @@ function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: 
       {flash && <Notice tone="ok" compact>{flash}</Notice>}
       <div>
         <h2 className="kadm-h1">지금 운영 상태</h2>
-        <p className="kadm-sub">설정은 이 매장의 모든 키오스크에 공유돼요.<br />체험 모드만 고른 이 키오스크에 따로 저장돼요.</p>
+        <p className="kadm-sub">화면 설정은 이 매장의 모든 키오스크에 공유돼요.<br />체험 모드와 휴식 안내는 이 키오스크에만 저장돼요.</p>
       </div>
       <section className="kadm-status">
         <span className="kadm-status-art" data-cover={art.cover || undefined}>
@@ -398,7 +423,7 @@ function HomeTab({ screen, mode, flash, go }: { screen: KioskAdminScreen; mode: 
           <img src={art.src} alt="" />
         </span>
         <div>
-          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone="ok">현재 운영 중</span>{screen.deviceMode && <span className="kadm-pill" data-tone="plan">이 키오스크만</span>}</p>
+          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone={notice.active ? 'plan' : 'ok'}>{notice.active ? '브레이크 타임' : '현재 운영 중'}</span>{screen.deviceMode && <span className="kadm-pill" data-tone="plan">이 키오스크만</span>}</p>
           <dl>
             <div><dt>화면</dt><dd>{design}</dd></div>
             <div><dt>행사 배경</dt><dd>{event}</dd></div>

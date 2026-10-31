@@ -1,0 +1,324 @@
+/* 브레이크타임 — 현장 관리자 편집과 손님에게 보이는 전체 화면을 함께 쓴다. */
+.kbreak-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.kbreak-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.kbreak-editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.kbreak-presets,
+.kbreak-time-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kadm .kbreak-presets > button {
+  flex: 1 1 120px;
+}
+.kadm .kbreak-time-buttons > button {
+  flex: 1 1 80px;
+}
+.kadm .kbreak-presets > button[aria-pressed='true'],
+.kadm .kbreak-time-buttons > button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.kbreak-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+.kbreak-field > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.kbreak-field small {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 500;
+}
+.kbreak-field :is(input, textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.5;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.kbreak-field textarea {
+  min-height: 116px;
+  resize: vertical;
+}
+.kbreak-field :is(input, textarea):focus-visible {
+  outline: 3px solid #a9b0ec;
+  outline-offset: 2px;
+}
+.kbreak-editor-actions {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg, #fbfcfe);
+}
+
+/* body 포털에서 고객 화면의 테마·변수와 무관하게 표시한다. */
+.kbreak-screen,
+.kbreak-preview {
+  --kbreak-ink: #24316a;
+  --kbreak-muted: #61677c;
+  --kbreak-accent: #3346b8;
+  --kbreak-paper: #f8f4e9;
+  color: var(--kbreak-ink);
+  font-family: var(--font-wanted), var(--font-heading-serif), -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.kbreak-screen *,
+.kbreak-screen *::before,
+.kbreak-screen *::after,
+.kbreak-preview * {
+  box-sizing: border-box;
+}
+.kbreak-screen :is(h1, h2, h3, p),
+.kbreak-preview :is(h1, h2, h3, p) {
+  margin: 0;
+}
+.kbreak-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(20px, 4vw, 64px);
+  background: var(--kbreak-paper);
+  background-image: radial-gradient(ellipse at 50% 65%, #fffcf6 0%, transparent 70%);
+  overflow: auto;
+  overscroll-behavior: contain;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+.kbreak-screen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: none;
+}
+.kbreak-screen-label {
+  font-size: clamp(14px, 1.8vw, 20px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.kbreak-admin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 100px;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #d1d2d6;
+  border-radius: 999px;
+  background: #ffffff80;
+  color: #535971;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.kbreak-admin:focus-visible {
+  outline: 3px solid var(--kbreak-accent);
+  outline-offset: 4px;
+}
+.kbreak-admin:active {
+  background: #fff;
+}
+.kbreak-screen-body {
+  display: grid;
+  flex: 1 0 auto;
+  place-items: center;
+  padding: clamp(36px, 7vh, 100px) 0;
+}
+.kbreak-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: min(800px, 100%);
+}
+.kbreak-eyebrow {
+  color: var(--kbreak-accent);
+  font-size: clamp(15px, 2vw, 21px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.kbreak-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(110px, 18vw, 170px);
+  aspect-ratio: 1;
+  margin: 10px 0;
+  border: 1px solid #3346b822;
+  border-radius: 50%;
+  background: #ececf6;
+  color: var(--kbreak-accent);
+}
+.kbreak-icon svg {
+  width: 48%;
+  height: 48%;
+}
+.kbreak-title {
+  max-width: 100%;
+  font-size: clamp(34px, 5.5vw, 64px);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  white-space: pre-line;
+}
+.kbreak-message {
+  max-width: 680px;
+  color: var(--kbreak-muted);
+  font-size: clamp(19px, 2.5vw, 28px);
+  font-weight: 450;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+.kbreak-resume {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 24px;
+  border: 1px solid #3346b833;
+  border-radius: 999px;
+  background: #fffaf2;
+  color: var(--kbreak-accent);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 600;
+}
+.kbreak-resume time {
+  font-variant-numeric: tabular-nums;
+}
+.kbreak-card-end {
+  display: flex;
+  gap: 8px;
+  padding-top: 18px;
+}
+.kbreak-card-end i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3346b833;
+}
+
+/* 관리자 미리보기는 실제 안내 카드의 문구와 구성을 그대로 축소한다. */
+.kbreak-preview {
+  display: grid;
+  place-items: center;
+  padding: 26px 18px;
+  border: 1px solid #e5dfcf;
+  border-radius: 14px;
+  background: var(--kbreak-paper);
+}
+.kbreak-preview .kbreak-card {
+  gap: 12px;
+}
+.kbreak-preview .kbreak-eyebrow {
+  font-size: 11px;
+}
+.kbreak-preview .kbreak-icon {
+  width: 62px;
+  margin: 0;
+}
+.kbreak-preview .kbreak-title {
+  font-size: 23px;
+}
+.kbreak-preview .kbreak-message {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.kbreak-preview .kbreak-resume {
+  gap: 6px;
+  padding: 7px 13px;
+  font-size: 13px;
+}
+.kbreak-preview .kbreak-resume svg {
+  width: 16px;
+  height: 16px;
+}
+.kbreak-preview .kbreak-card-end {
+  padding-top: 4px;
+}
+
+@media (max-width: 420px) {
+  .kbreak-screen {
+    padding: 18px;
+  }
+  .kbreak-title {
+    font-size: 32px;
+  }
+  .kbreak-screen-label {
+    font-size: 13px;
+  }
+  .kbreak-card {
+    gap: 20px;
+  }
+}
+@media (max-height: 850px) and (min-width: 700px) {
+  .kbreak-screen-body {
+    padding: 24px 0;
+  }
+  .kbreak-card {
+    gap: 16px;
+  }
+  .kbreak-icon {
+    width: 90px;
+    margin: 0;
+  }
+  .kbreak-title {
+    font-size: 40px;
+  }
+  .kbreak-message {
+    font-size: 20px;
+  }
+  .kbreak-card-end {
+    display: none;
+  }
+}

@@ -93,7 +93,7 @@ export function AdminEscape({ onClose }: { onClose: () => void }) {
   return null
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /** 창이 열리면 그 안으로 포커스를 옮기고 Tab 이 밖으로 나가지 않게 한다. 닫히면 열기 전 자리로 돌려준다 */
 export function useFocusTrap<T extends HTMLElement>(active: boolean, resetKey?: unknown) {

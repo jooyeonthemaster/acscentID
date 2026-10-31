@@ -156,7 +156,7 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
           onClick={() => { if (!held.current) openAdmin(); held.current = false }}
         />
       )}
-      {!pc && <KioskAdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} screen={screen} kiosk={kiosk} />}
+      {!pc && <KioskAdminPanel open={adminOpen} onOpen={openAdmin} onClose={() => setAdminOpen(false)} screen={screen} kiosk={kiosk} />}
     </div>
   )
 }

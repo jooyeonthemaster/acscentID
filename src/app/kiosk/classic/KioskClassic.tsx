@@ -1402,7 +1402,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   usePerfumerSwitch(design === 'perfumer', deviceBaseSettings.mode, backgroundsSynced && !pinnedMode, step === 'attract', backgroundAdminOpen)
 
   // 관리자 창 · 우측 상단 모서리 핫스팟 — 모든 화면이 같이 쓴다
-  const adminPanel = !pc ? <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} /> : null
+  const adminPanel = !pc ? <KioskAdminPanel open={backgroundAdminOpen} onOpen={openBackgroundAdmin} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} /> : null
   /* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */
   const adminHotspot = !pc && !backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt ? (
     <button

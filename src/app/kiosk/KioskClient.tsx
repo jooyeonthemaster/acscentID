@@ -2231,7 +2231,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         </>
       )}
 
-      <KioskAdminPanel open={backgroundAdminOpen} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />
+      <KioskAdminPanel open={backgroundAdminOpen} onOpen={openBackgroundAdmin} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />
 
       {receipt && programTheme && (
         <ProgramReceiptModal
