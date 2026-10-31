@@ -1,7 +1,7 @@
 'use client'
 
 // 키오스크 현장 관리자 창 — 고객 화면 우측 상단 모서리 → 6자리 PIN 으로 연다. 기존·레트로·맥 셸이 같이 쓴다.
-// 설정을 작업별 탭으로 나눈다: 홈(지금 상태) · 운영 모드 · 화면·글꼴 · 평소 배경 · 행사 배경 · 휴식 안내.
+// 설정을 작업별 탭으로 나눈다: 홈(지금 상태) · 운영 모드 · 화면·글꼴 · 평소 배경 · 행사 배경 · 운영 안내.
 // (목업 ~/Downloads/Kiosk-Admin-Redesign-20261010 · docs/kiosk-admin.md)
 //
 // 지켜야 하는 동작(예전 관리자 창과 같다):
@@ -11,7 +11,7 @@
 //  · 화면 디자인을 바꾸면 저장 뒤 페이지가 새로 열린다(useScreenUiSwitch) — 관리자 창도 닫힌다.
 //  · 컬러·타로와 체험 모드(네일·명함·스킨케어…)는 전용 디자인을 쓴다 — 일반 디자인·글꼴·평소 배경은 매장·사주 모드에서 보인다.
 //  · 인증은 10분. 끝나면 저장이 403 으로 거절된다 — 다시 비밀번호를 받는다.
-//  · 인터넷이 끊기면 기기(셸)가 PIN 을 확인해 기기 안의 휴식 안내와 앱 종료만 연다.
+//  · 인터넷이 끊기면 기기(셸)가 PIN 을 확인해 기기 안의 운영 안내와 앱 종료만 연다.
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
@@ -67,7 +67,7 @@ export interface KioskAdminScreen {
 type Tab = 'home' | 'mode' | 'look' | 'backgrounds' | 'events' | 'break'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'home', label: '홈' }, { id: 'mode', label: '운영 모드' }, { id: 'look', label: '화면·글꼴' }, { id: 'backgrounds', label: '평소 배경' }, { id: 'events', label: '행사 배경' },
-  { id: 'break', label: '휴식 안내' },
+  { id: 'break', label: '운영 안내' },
 ]
 
 /** 관리자 창에서 부르는 모드 이름과 두 줄 설명 — 목록에 없는 모드(새 행사)는 modes.ts 의 이름·설명을 그대로 쓴다 */
@@ -118,7 +118,7 @@ export function KioskAdminPanel({ open, onOpen, onClose, screen, kiosk }: {
 }
 
 function AdminWindow({ onClose, screen, kiosk, notice }: { onClose: () => void; screen: KioskAdminScreen; kiosk: KioskBridge | undefined; notice: KioskBreakNotice }) {
-  /** pin: 비밀번호 받는 중 · ok: 인증됨 · offline: 기기에서 확인(휴식 안내·앱 종료만) */
+  /** pin: 비밀번호 받는 중 · ok: 인증됨 · offline: 기기에서 확인(운영 안내·앱 종료만) */
   const [auth, setAuth] = useState<'pin' | 'ok' | 'offline'>('pin')
   const authExpiresAt = useRef(0)
   /** 인증 10분이 끝나 저장이 거절됐다 — 다시 인증하면 보던 탭으로 돌아간다 */
@@ -141,7 +141,7 @@ function AdminWindow({ onClose, screen, kiosk, notice }: { onClose: () => void; 
     setAuth(kind)
     setExpired(false)
   }
-  // 기기 저장만 쓰는 휴식 안내에도 서버 설정과 같은 인증 유효 시간을 적용한다.
+  // 기기 저장만 쓰는 운영 안내에도 서버 설정과 같은 인증 유효 시간을 적용한다.
   useEffect(() => {
     if (auth === 'pin' || expired) return
     const timer = window.setTimeout(() => setExpired(true), Math.max(0, authExpiresAt.current - Date.now()))
@@ -209,14 +209,14 @@ function AdminWindow({ onClose, screen, kiosk, notice }: { onClose: () => void; 
     </nav>
   )
 
-  // ── 인터넷 없이 열린 창 — 기기 안의 휴식 안내와 앱 종료만 ──
+  // ── 인터넷 없이 열린 창 — 기기 안의 운영 안내와 앱 종료만 ──
   if (auth === 'offline' && !expired) {
     return shell(
       <>
         {header}
-        <nav className="kadm-tabs" aria-label="관리자 설정"><button type="button" aria-current="page">휴식 안내</button></nav>
+        <nav className="kadm-tabs" aria-label="관리자 설정"><button type="button" aria-current="page">운영 안내</button></nav>
         <div className="kadm-body">
-          <Notice tone="warn" title="인터넷 없이 기기에서 인증했어요.">이 키오스크의 휴식 안내와 앱 종료만 사용할 수 있어요. 다른 설정은 인터넷 연결 후 변경해 주세요.</Notice>
+          <Notice tone="warn" title="인터넷 없이 기기에서 인증했어요.">이 키오스크의 운영 안내와 앱 종료만 사용할 수 있어요. 다른 설정은 인터넷 연결 후 변경해 주세요.</Notice>
           <BreakNoticeTab notice={notice} onClose={onClose} canSave={canSaveBreak} />
         </div>
         <footer className="kadm-foot">
@@ -311,7 +311,7 @@ function PinPad({ kiosk, unlock, reauth, onUnlocked, onOffline, onClose }: {
     setChecking(true)
     const id = ++request.current
     const wrong = () => setError({ title: '비밀번호가 올바르지 않습니다.', text: '다시 입력해 주세요.' })
-    /* 서버에 닿지 못하면 기기(셸)에 PIN 을 확인받아 휴식 안내·앱 종료를 연다. 처리했으면 true */
+    /* 서버에 닿지 못하면 기기(셸)에 PIN 을 확인받아 운영 안내·앱 종료를 연다. 처리했으면 true */
     const offline = async () => {
       if (!kiosk?.checkAdminPin) return false
       const ok = await kiosk.checkAdminPin(next).catch(() => false)
@@ -404,7 +404,7 @@ function HomeTab({ screen, mode, flash, go, notice }: { screen: KioskAdminScreen
   const design = theme ? `${theme} 전용 디자인` : `${SCREEN_UI_LABELS[ui]} · ${findScreenFont(screen.liveEvent?.font ?? screen.baseSettings.font)?.label ?? '기본 글꼴'}`
   const event = theme || !mode.storeEvents ? '이 모드에서는 사용 안 함' : screen.liveEvent ? `${screen.liveEvent.title} 적용 중` : '적용 중인 행사 없음'
   const links: { tab: Tab; title: string; text: string; Icon: typeof Settings }[] = [
-    { tab: 'break', title: '브레이크 타임 공지', text: notice.active ? '공지 표시 중 · 운영 재개' : '휴식 안내 띄우기', Icon: Coffee },
+    { tab: 'break', title: '휴식·운영 종료 공지', text: notice.active ? '공지 표시 중 · 운영 재개' : '운영 안내 띄우기', Icon: Coffee },
     { tab: 'mode', title: '운영 모드', text: '손님에게 보여줄 서비스', Icon: Settings },
     { tab: 'look', title: '화면·글꼴', text: '기본 디자인과 글씨', Icon: Type },
     { tab: 'backgrounds', title: '평소 배경', text: '행사가 없을 때의 배경', Icon: ImageIcon },
@@ -415,7 +415,7 @@ function HomeTab({ screen, mode, flash, go, notice }: { screen: KioskAdminScreen
       {flash && <Notice tone="ok" compact>{flash}</Notice>}
       <div>
         <h2 className="kadm-h1">지금 운영 상태</h2>
-        <p className="kadm-sub">화면 설정은 이 매장의 모든 키오스크에 공유돼요.<br />체험 모드와 휴식 안내는 이 키오스크에만 저장돼요.</p>
+        <p className="kadm-sub">화면 설정은 이 매장의 모든 키오스크에 공유돼요.<br />체험 모드와 운영 안내는 이 키오스크에만 저장돼요.</p>
       </div>
       <section className="kadm-status">
         <span className="kadm-status-art" data-cover={art.cover || undefined}>
@@ -423,7 +423,7 @@ function HomeTab({ screen, mode, flash, go, notice }: { screen: KioskAdminScreen
           <img src={art.src} alt="" />
         </span>
         <div>
-          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone={notice.active ? 'plan' : 'ok'}>{notice.active ? '브레이크 타임' : '현재 운영 중'}</span>{screen.deviceMode && <span className="kadm-pill" data-tone="plan">이 키오스크만</span>}</p>
+          <p className="kadm-status-name"><b>{copy.name}</b><span className="kadm-pill" data-tone={notice.active ? 'plan' : 'ok'}>{notice.active ? notice.kind === 'closed' ? '운영 종료' : '브레이크 타임' : '현재 운영 중'}</span>{screen.deviceMode && <span className="kadm-pill" data-tone="plan">이 키오스크만</span>}</p>
           <dl>
             <div><dt>화면</dt><dd>{design}</dd></div>
             <div><dt>행사 배경</dt><dd>{event}</dd></div>

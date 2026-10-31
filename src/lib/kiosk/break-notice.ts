@@ -1,5 +1,6 @@
 export interface KioskBreakNotice {
   active: boolean
+  kind: 'break' | 'closed'
   title: string
   message: string
   resumeTime: string
@@ -7,8 +8,17 @@ export interface KioskBreakNotice {
 
 export const DEFAULT_BREAK_NOTICE: KioskBreakNotice = Object.freeze({
   active: false,
+  kind: 'break',
   title: '브레이크 타임',
   message: '더 나은 체험을 위해 잠시 쉬어갑니다.\n잠시 후 다시 찾아주세요.',
+  resumeTime: '',
+})
+
+export const CLOSED_NOTICE: KioskBreakNotice = Object.freeze({
+  active: false,
+  kind: 'closed',
+  title: '운영 종료 안내',
+  message: '오늘의 체험 운영이 종료되었습니다.\n함께해 주셔서 감사합니다.',
   resumeTime: '',
 })
 
@@ -22,12 +32,16 @@ function noticeText(raw: unknown, max: number, fallback: string): string {
 
 export function normalizeBreakNotice(raw: unknown): KioskBreakNotice {
   const value = raw && typeof raw === 'object' ? raw as Partial<KioskBreakNotice> : {}
+  // 이전 버전이 저장한 공지에는 kind가 없으므로 기존 브레이크 안내로 읽는다.
+  const kind = value.kind === 'closed' ? 'closed' : 'break'
+  const defaults = kind === 'closed' ? CLOSED_NOTICE : DEFAULT_BREAK_NOTICE
   const time = typeof value.resumeTime === 'string' ? value.resumeTime.trim() : ''
   return {
     active: value.active === true,
-    title: noticeText(value.title, 40, DEFAULT_BREAK_NOTICE.title),
-    message: noticeText(value.message, 240, DEFAULT_BREAK_NOTICE.message),
-    resumeTime: TIME_PATTERN.test(time) ? time : '',
+    kind,
+    title: noticeText(value.title, 40, defaults.title),
+    message: noticeText(value.message, 240, defaults.message),
+    resumeTime: kind === 'break' && TIME_PATTERN.test(time) ? time : '',
   }
 }
 
@@ -56,7 +70,7 @@ export function getBreakNoticeSnapshot(): KioskBreakNotice {
   const next = normalizeBreakNotice(parsed)
   cachedRaw = raw
   if (
-    next.active !== cachedSnapshot.active || next.title !== cachedSnapshot.title ||
+    next.active !== cachedSnapshot.active || next.kind !== cachedSnapshot.kind || next.title !== cachedSnapshot.title ||
     next.message !== cachedSnapshot.message || next.resumeTime !== cachedSnapshot.resumeTime
   ) cachedSnapshot = Object.freeze(next)
   return cachedSnapshot
