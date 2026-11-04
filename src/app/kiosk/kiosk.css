@@ -372,7 +372,8 @@
 }
 .ksk-attract-tray {
   position: absolute;
-  top: 16px;
+  /* 화면 맨 위 36px 는 관리자 핫스팟(우측 상단 모서리) 자리 — 언어 버튼을 그 아래로 내린다 */
+  top: 42px;
   right: 16px;
   z-index: 60;
 }
@@ -657,8 +658,19 @@
 }
 
 /* ── 촬영: 이미지 뷰어 액자 (영상에는 효과 없음) ───────────── */
+/* 액자 자리 — 남는 높이를 다 받는다. 액자는 이 안에서 3:4 를 지키는 가장 큰 크기(useCamFrame 이 재서 넣는다).
+   폭만 100% 로 두면 자리가 모자랄 때 높이만 줄어 넓적해지고, 3:4 로 찍힌 사진이 확대되어 보인다 */
+.ksk-cam-slot {
+  flex: 1 1 0;
+  min-height: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 .ksk-cam {
   position: relative;
+  flex: none;
+  box-sizing: border-box;
   width: 100%;
   aspect-ratio: 3 / 4;
   padding: 4px;
@@ -676,6 +688,10 @@
 }
 .ksk-cam video {
   transform: scaleX(-1);
+}
+/* 폰으로 받은 사진 — 3:4 가 아닐 수 있어 잘리지 않게 액자 안에 통째로 */
+.ksk-cam[data-fit='contain'] img {
+  object-fit: contain;
 }
 .ksk-cam-corner {
   position: absolute;
@@ -829,6 +845,31 @@
   gap: 16px;
   padding: 22px 18px 20px;
   background: var(--rt-sky-100);
+}
+.ksk-analyze-error-title {
+  /* 분석 실패 카드 — 몇 초 뒤 사라지던 토스트 대신 화면에 남는다 */
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--rt-blue-700);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.ksk-analyze-error-desc {
+  margin: 0 0 18px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--rt-ink-soft);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* 일본어·중국어는 띄어쓰기가 없어 keep-all 이 줄을 못 나눈다 — 기본 줄바꿈(문장부호가 줄 앞에 오지 않게) */
+[data-lang='ja'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc),
+[data-lang='zh-Hans'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc),
+[data-lang='zh-Hant'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc) {
+  word-break: normal;
+  overflow-wrap: normal;
 }
 .ksk-analyzing-status {
   min-height: 3.2em;
@@ -1211,207 +1252,19 @@
   word-break: keep-all;
 }
 
-/* ── 기기 관리자 (PIN · 배경 선택) ─────────────────────── */
-.ksk-admin-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 80;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(34, 44, 102, 0.45);
-}
-.ksk-admin-panel {
-  display: flex;
-  width: min(560px, 100%);
-  max-height: 100%;
-}
-.ksk-admin-win {
-  width: 100%;
-  max-height: 100%;
-}
-.ksk-admin-body {
-  overflow-y: auto;
-  padding: 16px;
-}
-.ksk-admin-title {
-  margin: 0 0 4px;
-  font-size: 22px;
-  font-weight: 800;
-}
-.ksk-admin-lock {
-  width: min(360px, 100%);
-  margin: 0 auto;
-  padding: 14px 0 4px;
-  text-align: center;
-}
-.ksk-admin-lock > p {
-  margin: 0 0 16px;
-  font-size: 16px;
-  color: var(--rt-ink-soft);
-}
-.ksk-admin-lock > strong {
-  display: block;
-  min-height: 1.5em;
-  margin: 10px 0 0;
-  font-size: 15px;
-  color: var(--rt-danger);
-}
-.ksk-admin-dots.rt-field {
-  justify-content: center;
-  gap: 14px;
-  min-height: 58px;
-}
-.ksk-admin-dots i {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--rt-lo-2);
-}
-.ksk-admin-dots i[data-filled='true'] {
-  background: var(--rt-blue-600);
-  border-color: var(--rt-blue-700);
-}
-.ksk-admin-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 14px;
-}
-.ksk-admin-pad .rt-btn {
-  min-height: 60px;
-  font-size: 24px;
-}
-.ksk-admin-pad .rt-btn[data-action='true'] {
-  font-size: 16px;
-}
-.ksk-admin-offline {
-  padding: 14px 0 4px;
-}
-.ksk-admin-offline > p {
-  margin: 0 0 18px;
-  font-size: 16px;
-  line-height: 1.65;
-  color: var(--rt-ink-soft);
-  text-align: center;
-  word-break: keep-all;
-}
-.ksk-admin-themes > p {
-  margin: 8px 0 12px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--rt-ink-soft);
-  word-break: keep-all;
-}
-.ksk-admin-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.ksk-admin-toolbar .rt-btn {
-  min-height: 48px;
-  padding: 6px 14px;
-  font-size: 15px;
-}
-.ksk-admin-themes > .ksk-admin-error {
-  padding: 10px 12px;
-  color: var(--rt-danger);
-  background: var(--rt-danger-soft);
-  border: 1px solid var(--rt-danger);
-}
-.ksk-admin-themes > .ksk-admin-status {
-  min-height: 22px;
-  margin: 6px 0;
-  color: var(--rt-blue-700);
-}
-.ksk-admin-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  max-height: min(48dvh, 820px);
-  padding: 8px 10px 8px 4px;
-  overscroll-behavior: contain;
-  background: var(--rt-well);
-  box-shadow: var(--rt-sunken);
-}
-.ksk-admin-grid > .rt-choice {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
-  padding: 5px;
-  text-align: left;
-}
-.ksk-admin-preview {
-  position: relative;
-  display: block;
-  aspect-ratio: 9 / 16;
-  overflow: hidden;
-  border: 1px solid var(--rt-edge);
-}
-.ksk-admin-preview img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ksk-admin-preview b {
-  position: absolute;
-  inset: auto 6px 6px;
-  padding: 3px 4px;
-  background: rgba(247, 249, 255, 0.9);
-  border: 1px solid var(--rt-lo);
-  font-size: 14px;
-  line-height: 1.2;
-  text-align: center;
-  color: var(--rt-ink);
-}
-.ksk-admin-theme-name {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 4px 4px;
-}
-.ksk-admin-theme-name b {
-  font-size: 14px;
-  word-break: keep-all;
-}
-.ksk-admin-theme-name em {
-  font-style: normal;
-  font-size: 12px;
-  color: var(--rt-ink-soft);
-}
-.ksk-admin-grid > [aria-pressed='true'] .ksk-admin-theme-name em {
-  color: var(--rt-purple-deep);
-  font-weight: 800;
-}
-.ksk-admin-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-.ksk-admin-actions .rt-btn {
-  flex: 1;
-  min-height: 58px;
-}
-.ksk-admin-actions .ksk-admin-quit {
-  flex: 0 0 38%;
-}
-@media (max-width: 480px) {
-  .ksk-admin-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+/* ── 기기 관리자 ─────────────────────── */
+/* 관리자 창은 테마와 무관한 공용 창이다 — src/components/kiosk-admin (kiosk-admin.css). 여기에는 여는 자리만 둔다. */
 
-/* 우하단 숨김 관리자 영역 (Electron 셸에서만 의미) */
+/* 우측 상단 숨김 관리자 영역 (Electron 셸에서만 의미) */
 .ksk-exit-hotspot {
   position: absolute;
+  /* 관리자 창 — 우측 상단 모서리(2026-10-09, 예전엔 우측 하단). 바로 아래에 언어 버튼이 있어
+     겹치지 않게 모서리 위쪽의 얇은 띠로 둔다(언어 버튼은 화면 위에서 36px 아래부터) */
+  top: 0;
   right: 0;
-  bottom: 0;
   z-index: 70;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 36px;
   border: 0;
   background: transparent;
   opacity: 0;
@@ -1700,7 +1553,6 @@
   line-height: 1.5;
 }
 
-
 .ksk-chapter-title {
   font-size: 24px;
   font-weight: 800;
@@ -1801,4 +1653,41 @@
   background: var(--rt-lilac-100);
   color: var(--rt-purple-deep);
   box-shadow: inset 0 0 0 3px var(--rt-purple), inset 5px 5px 0 rgba(86, 99, 159, 0.28);
+}
+
+/* 일본어·중국어 — 띄어쓰기가 없어 word-break: keep-all 이면 문장 전체가 한 단어가 되어 줄을 못 나누고
+   폭을 넘친다(05 WISH 제목 「…ありますか？」의 「？」가 잘림). 화면 언어가 한자권이면 키오스크 전체를 기본 줄바꿈으로
+   — 문장부호가 줄 앞에 오지 않는 규칙(금칙)은 브라우저 기본이 지킨다. 한국어·영어는 그대로 keep-all */
+.ksk-root:is([data-lang='ja'], [data-lang='zh-Hans'], [data-lang='zh-Hant']) * {
+  word-break: normal;
+}
+/* 질문 제목은 두 줄이 되면 줄 길이를 고르게 — 「か？」만 둘째 줄에 남지 않게 */
+.ksk-title {
+  text-wrap: balance;
+}
+/* 일본어 제목은 문절 단위로 끊는다(Chrome 119+, 못 알아들으면 기본 줄바꿈) — 「気になっていることは／ありますか？」 */
+.ksk-root[data-lang='ja'] .ksk-title {
+  word-break: auto-phrase;
+}
+
+/* 06 제품 단계 — 결과 언어 안내 한 줄(결과 화면에는 언어 버튼이 없다) */
+.ksk-result-lang {
+  /* 버튼 바 위의 흐림(.ksk-actions::before)보다 위에 — 안 그러면 흐리게 묻힌다 */
+  position: relative;
+  z-index: 6;
+  margin: auto 0 0;
+  padding-top: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 맥 화면 — 누를 수 없는 주 버튼이 활성 버튼처럼 파랗게 보였다(mac.css 가 :disabled 를 구분하지 않는다).
+   공용 mac.css 는 포토부스도 쓰므로 키오스크 범위에서만 덮는다 */
+.rt[data-ui='mac'] .ksk-btn-primary:disabled {
+  background: #e6e9ef;
+  background-image: none;
+  border-color: #d3d8e0;
+  color: #9aa3b2;
+  box-shadow: none;
 }

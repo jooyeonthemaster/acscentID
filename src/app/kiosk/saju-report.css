@@ -99,12 +99,15 @@
 .sjr-layer-head span { font-size: 28px; font-weight: 800; }
 .sjr-layer .sjr-brief p { font-size: 21px; }
 
-@media (max-width: 760px) {
-  .sjr { font-size: 18px; }
-  .sjr-flow, .sjr-grid2 { grid-template-columns: minmax(0, 1fr); }
-  .sjr-tile-glyph { font-size: 48px; }
-  .sjr-big { font-size: 30px; }
-}
+/* 결과 열은 언제나 560px(실기 셸이 1080 화면에 1.93배로 확대) — 화면 폭이 아니라 이 열 기준으로 한 줄씩 쌓는다.
+   예전엔 760px 이하에서만 한 줄로 바꿔, 넓은 브라우저(1080)로 보면 3칸 카드가 좁아져 영어 단어가 중간에서 끊겼다 */
+.sjr { font-size: 18px; }
+.sjr-flow, .sjr-grid2 { grid-template-columns: minmax(0, 1fr); }
+.sjr-tile-glyph { font-size: 48px; }
+.sjr-big { font-size: 30px; }
+/* 단어 중간에서 끊지 않는다 — 한 단어가 칸보다 길 때만 */
+.sjr { overflow-wrap: break-word; }
+.sjr-more { white-space: nowrap; }
 
 /* 한 장(스크롤) — 행사 모드. 장 사이를 띄우고 장 이름을 배경 위에서도 읽히는 짙은 띠로 */
 .sjr-onepage { display: flex; flex-direction: column; gap: 34px; }
@@ -120,3 +123,19 @@
   font-weight: 800;
   letter-spacing: 0.04em;
 }
+
+/* 맨 위 요약 — 처방 향·용신을 첫 화면에 */
+.sjr-summary { padding: 22px 24px; border: 1px solid var(--sjr-gold, #a8864f); border-left: 8px solid var(--sjr-el, #a8864f); border-radius: 18px; background: #1d1a16; color: #fbf8f2; box-shadow: 0 10px 28px rgba(29, 26, 22, 0.35); }
+.sjr-summary p { margin: 0; }
+.sjr-summary-kicker { font-size: 18px; font-weight: 700; color: #e9d9b6; letter-spacing: 0.04em; }
+.sjr-summary-scent { margin-top: 6px !important; font-size: 34px; font-weight: 800; line-height: 1.2; overflow-wrap: break-word; }
+.sjr-summary-scent span { margin-right: 6px; font-size: 22px; opacity: 0.85; letter-spacing: 0.04em; }
+.sjr-summary-yongsin { display: flex; align-items: center; gap: 12px; margin-top: 14px !important; font-size: 20px; font-weight: 700; color: #f2e8d2; }
+.sjr-summary-glyph { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; font-family: var(--ksk-hanja-font, var(--font-noto-tc, 'Noto Sans TC')), sans-serif; font-size: 28px; font-weight: 800; }
+.sjr-summary-bridge { margin-top: 12px !important; padding-top: 12px; border-top: 1px solid rgba(233, 217, 182, 0.35); font-size: 20px; color: #e9d9b6; }
+
+/* 아래로 더 보기 — 스크롤 영역 아래에 붙는다. 끝에 닿으면 사라진다 */
+.sjr-more-hint { position: sticky; bottom: 96px; z-index: 6; display: flex; justify-content: center; margin-top: -24px; pointer-events: none; transition: opacity 0.3s; }
+.sjr-more-hint[data-hidden='true'] { opacity: 0; }
+.sjr-more-hint span { padding: 10px 22px; border-radius: 999px; background: #1d1a16; color: #e9d9b6; font-size: 20px; font-weight: 800; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35); animation: sjr-nudge 1.6s ease-in-out infinite; }
+@keyframes sjr-nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }

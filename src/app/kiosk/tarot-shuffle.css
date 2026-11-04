@@ -1,0 +1,81 @@
+/* Moonlit Garden 섞기 연출 — 카드의 움직임(transform)은 TarotShuffleAnimation 이 Web Animations 로 그린다.
+   여기는 자리·크기·뒷면 색만. 연출 영역은 부채꼴 덱과 같은 높이라(부모가 높이를 넘겨줌) 섞기 ↔ 펼치기 때 화면이 들썩이지 않고,
+   더미가 부채꼴의 한가운데에 놓여 '가운데 더미에서 나눠 준다'로 이어진다. */
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-animation {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  color: #66516f;
+  pointer-events: none;
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-table {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 220px;
+  isolation: isolate;
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-table::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(330px, 92%);
+  height: 150px;
+  border: 1px solid #b1a17c55;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #c5c9b118, transparent 72%);
+  transform: translate(-50%, -42%);
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 108px;
+  margin: -54px 0 0 -36px;
+  transform-origin: 50% 80%;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-card .trt-card--back {
+  height: 100%;
+  border: 1px solid #8c9278;
+  border-radius: 6px;
+  background: #c5c9b1;
+  color: #646b51;
+  box-shadow: inset 0 0 0 2px #e5e3cf, 0 3px 7px #53405f1c;
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-card[data-side='right'] .trt-card--back {
+  border-color: #94809f;
+  background: #d7c9e1;
+  color: #6b517e;
+  box-shadow: inset 0 0 0 2px #eee5f2, 0 3px 7px #53405f1c;
+}
+
+.ksk-root[data-program-theme='tarot'] .trt-shuffle-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 90%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #66516f;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}

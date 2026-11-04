@@ -13,8 +13,8 @@ const BRAND_SEO: Record<Locale, {
 }> = {
   ko: {
     title: '브랜드 스토리',
-    description: "향기로 전하는 당신의 정체성. 주식회사 네안더의 AI 기반 퍼퓸 추천 서비스 AC'SCENT IDENTITY. 10,000건 이상 분석, 만족도 95%. 서울 마포구 홍대입구.",
-    keywords: ['악센트 아이디', '네안더', '브랜드 스토리', '홍대 향수', 'AI 향수 브랜드'],
+    description: "향기로 전하는 당신의 정체성. 주식회사 네안데르의 AI 기반 퍼퓸 추천 서비스 AC'SCENT IDENTITY. 10,000건 이상 분석, 만족도 95%. 서울 마포구 홍대입구.",
+    keywords: ['악센트 아이디', '네안데르', '브랜드 스토리', '홍대 향수', 'AI 향수 브랜드'],
     breadcrumbParent: '브랜드',
     breadcrumbCurrent: '브랜드 스토리',
   },

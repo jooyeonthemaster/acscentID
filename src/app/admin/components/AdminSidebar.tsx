@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   Users,
   Ticket,
+  PackageCheck,
   QrCode,
   ChevronLeft,
   ChevronRight,
@@ -28,6 +29,7 @@ import {
   Truck,
   Camera,
   Monitor,
+  Receipt,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -135,6 +137,18 @@ const navGroups: NavGroup[] = [
         label: '오프라인 배송 접수',
         icon: Truck,
         description: '매장 QR 택배 접수',
+      },
+      {
+        href: '/admin/ship-coupons',
+        label: '택배 교환권',
+        icon: PackageCheck,
+        description: '상품별 1회용 QR 발급 · 인쇄',
+      },
+      {
+        href: '/admin/offline-proofs',
+        label: '오프라인 결제 증빙',
+        icon: Receipt,
+        description: '결제 내역 사진 · 입금 계좌',
       },
       {
         href: '/admin/reservations',

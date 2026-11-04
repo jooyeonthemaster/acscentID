@@ -136,7 +136,8 @@ export function extractResponseText(data: OpenRouterCompletion): string {
 }
 
 export interface GeminiCompatModel {
-  generateContent: (request: GenerateContentRequest) => Promise<{ response: { text: () => string } }>;
+  /** finishReason — 'length' 면 maxOutputTokens 에 걸려 잘린 응답이다(JSON 이 닫히지 않는다) */
+  generateContent: (request: GenerateContentRequest) => Promise<{ response: { text: () => string; finishReason?: string } }>;
 }
 
 // Gemini 모델 가져오기 (기본 설정)
@@ -151,17 +152,21 @@ export function getModelWithConfig(options: {
   maxOutputTokens?: number;
   temperature?: number;
   json?: boolean;
+  /** 기본 OPENROUTER_TEXT_MODEL 대신 쓸 모델(예: 재시도용 빠른 모델) */
+  model?: string;
 } = {}): GeminiCompatModel {
   return {
     async generateContent(request) {
       const content = toOpenAIContent(normalizeRequest(request));
       const data = await openRouterChat([{ role: 'user', content }], {
+        model: options.model,
         temperature: options.temperature,
         maxOutputTokens: options.maxOutputTokens,
         json: options.json,
       });
       const text = extractResponseText(data);
-      return { response: { text: () => text } };
+      const finishReason = data.choices?.[0]?.finish_reason;
+      return { response: { text: () => text, finishReason } };
     },
   };
 }

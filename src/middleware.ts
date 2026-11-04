@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { routing } from '@/i18n/routing'
+import { KIOSK_PC_EVENT_HOSTS, KIOSK_PC_HUBS } from '@/lib/kiosk/pc'
 
 // next-intl 미들웨어 생성
 const intlMiddleware = createMiddleware(routing)
@@ -27,6 +28,19 @@ const PUBLIC_FILE_PATTERN =
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // 행사 전용 주소(jbnu-major-fair.vercel.app 등, src/lib/kiosk/pc.ts) — 첫 화면은 그 행사 랜딩, 사이트의 다른 페이지(브랜드)는 열지 않는다.
+  // 체험(/kiosk/…)·API·받기 페이지·정적 파일만 지나간다
+  // 주소는 Host 머리글로 본다(개발 서버의 nextUrl 은 자기 이름 localhost 라 행사 주소를 시험할 수 없다)
+  const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? request.nextUrl.hostname).split(':')[0].toLowerCase()
+  const eventHub = KIOSK_PC_EVENT_HOSTS[host]
+  if (eventHub) {
+    if (pathname === '/') return NextResponse.rewrite(new URL(KIOSK_PC_HUBS[eventHub].href, request.url))
+    const allowed =
+      pathname.startsWith('/kiosk/') || pathname.startsWith('/api/') || pathname.startsWith('/_next') ||
+      pathname.startsWith('/favicon') || PUBLIC_METADATA_PATHS.has(pathname) || PUBLIC_FILE_PATTERN.test(pathname)
+    if (!allowed) return NextResponse.redirect(new URL('/', request.url))
+  }
+
   // API, admin, auth, _next, 정적 파일 및 SEO 메타 파일은 i18n 미들웨어 제외
   const shouldSkipIntl =
     pathname.startsWith('/api/') ||
@@ -34,10 +48,16 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/c/') ||
     pathname === '/ship' ||
+    pathname === '/proof' ||
     pathname === '/booth' ||
     pathname.startsWith('/booth/') ||
     pathname === '/kiosk' ||
     pathname.startsWith('/kiosk/') ||
+    pathname === '/kiosk-demo' ||
+    pathname === '/kiosk-demo/clean' ||
+    pathname === '/booth-demo' ||
+    pathname === '/booth-demo/clean' ||
+    pathname.startsWith('/kiosk-display/') ||
     pathname === '/coupon/claim' ||
     pathname === '/coupon/register' ||
     pathname.startsWith('/_next') ||
@@ -103,7 +123,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // next-intl + 기존 매처 통합
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|icon|apple-icon|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest)$).*)',
+    // next-intl + 기존 매처 통합 — 정적 영상·소리(mp4·webm·mp3 등)도 로케일 처리에서 뺀다(포토부스 프로그램 영상)
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|icon|apple-icon|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff|woff2|ttf|eot|stl|glb|gltf|bin|txt|xml|webmanifest|mp4|webm|mov|mp3|m4a|wav|ogg)$).*)',
   ],
 }

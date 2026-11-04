@@ -44,6 +44,14 @@
   /* 중앙 여백이 있는 배경 원화를 그대로 보여주고 개별 입력 카드만 바탕을 둔다. */
   background: transparent;
 }
+/* 대기 화면 밖(입력·분석·결과) — 배경 원화의 장식(사주 배경의 매듭·술 등)이 제목·단계 표시와 겹치면
+   짙은 장식 위 짙은 글자라 읽을 수 없다. 배경 기본색(--paper)을 거의 불투명하게 깔아 글자 바탕을 만든다.
+   원화는 옅게 비치고, 대기 화면은 원래대로 둔다(배경 이미지·관리자 배경 설정은 그대로) */
+.ksk-stage:not([data-step='attract']) {
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
 
 .ksk-mono {
   font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
@@ -604,8 +612,19 @@
 }
 
 /* ── 촬영 ─────────────────────────────── */
+/* 액자 자리 — 남는 높이를 다 받는다. 액자는 이 안에서 3:4 를 지키는 가장 큰 크기(useCamFrame 이 재서 넣는다).
+   폭만 100% 로 두면 자리가 모자랄 때 높이만 줄어 넓적해지고, 3:4 로 찍힌 사진이 확대되어 보인다 */
+.ksk-cam-slot {
+  flex: 1 1 0;
+  min-height: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 .ksk-cam {
   position: relative;
+  flex: none;
+  box-sizing: border-box;
   width: 100%;
   aspect-ratio: 3 / 4;
   background: #101010;
@@ -619,6 +638,10 @@
 }
 .ksk-cam video {
   transform: scaleX(-1);
+}
+/* 폰으로 받은 사진 — 3:4 가 아닐 수 있어 잘리지 않게 액자 안에 통째로 */
+.ksk-cam[data-fit='contain'] img {
+  object-fit: contain;
 }
 .ksk-cam-corner {
   position: absolute;
@@ -772,6 +795,42 @@
   height: 100%;
   background: var(--ink);
   transition: width 0.5s ease;
+}
+.ksk-analyze-error {
+  /* 분석 실패 카드 — 몇 초 뒤 사라지던 토스트 대신 화면에 남아 '다시 시도'·'처음으로'를 고르게 한다 */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: auto 0;
+  border: 2px solid var(--line);
+  border-radius: var(--ksk-radius);
+  background: var(--surface-strong);
+  padding: 30px 24px 22px;
+  box-shadow: var(--ksk-shadow);
+}
+.ksk-analyze-error-title {
+  text-wrap: balance;
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.ksk-analyze-error-desc {
+  margin: 0 0 6px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* 일본어·중국어는 띄어쓰기가 없어 keep-all 이 줄을 못 나눈다 — 기본 줄바꿈(문장부호가 줄 앞에 오지 않게) */
+[data-lang='ja'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc),
+[data-lang='zh-Hans'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc),
+[data-lang='zh-Hant'] :is(.ksk-analyze-error-title, .ksk-analyze-error-desc) {
+  word-break: normal;
+  overflow-wrap: normal;
 }
 .ksk-analyzing-status {
   font-size: 17px;
@@ -953,13 +1012,15 @@
   z-index: 40;
 }
 
-/* 우하단 관리자 종료 핫스팟 (Electron 셸에서만 의미) */
+/* 우측 상단 관리자 핫스팟 (Electron 셸에서만 의미) */
 .ksk-exit-hotspot {
   position: absolute;
+  /* 관리자 창 — 우측 상단 모서리(2026-10-09, 예전엔 우측 하단). 바로 아래에 언어 버튼이 있어
+     겹치지 않게 모서리 위쪽의 얇은 띠로 둔다(언어 버튼은 화면 위에서 36px 아래부터) */
+  top: 0;
   right: 0;
-  bottom: 0;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 36px;
   z-index: 50;
   opacity: 0;
 }
@@ -1497,271 +1558,18 @@
   border-style: dashed;
 }
 
-/* ── 배경 관리자 ─────────────────────────────────────── */
-.ksk-admin-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 80;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  padding: 22px;
-  background: rgba(18, 27, 38, 0.64);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.ksk-admin-panel {
-  width: min(620px, 100%);
-  max-height: 92%;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border: 2px solid rgba(255, 255, 255, 0.22);
-  border-radius: 26px;
-  background: #122e4d;
-  color: #fff;
-  padding: 24px;
-  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.34);
-  font-family: var(--font-score-dream), 'Apple SD Gothic Neo', sans-serif;
-}
-.ksk-admin-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  padding-bottom: 18px;
-}
-.ksk-admin-head p {
-  margin: 0 0 5px;
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-.ksk-admin-head h2 {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.25;
-  font-weight: 800;
-}
-.ksk-admin-head button {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  font: inherit;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-}
-.ksk-admin-lock {
-  width: min(340px, 100%);
-  margin: 0 auto;
-  padding: 28px 0 4px;
-  text-align: center;
-}
-.ksk-admin-lock > p {
-  margin: 0 0 20px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
-}
-.ksk-admin-lock > strong {
-  display: block;
-  margin: 13px 0 -4px;
-  color: #ff9d9d;
-  font-size: 14px;
-}
-.ksk-admin-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 34px;
-}
-.ksk-admin-dots i {
-  width: 15px;
-  height: 15px;
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  border-radius: 999px;
-}
-.ksk-admin-dots i[data-filled='true'] {
-  border-color: #ffd457;
-  background: #ffd457;
-}
-.ksk-admin-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
-  margin-top: 22px;
-}
-.ksk-admin-pad button {
-  min-height: 58px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font: inherit;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.ksk-admin-pad button:active {
-  background: rgba(255, 255, 255, 0.18);
-}
-.ksk-admin-pad button[data-action='true'] {
-  font-size: 14px;
-}
-.ksk-admin-pad button:last-child {
-  border-color: #ffd457;
-  background: #ffd457;
-  color: #173e68;
-}
-.ksk-admin-pad button:disabled {
-  opacity: 0.3;
-}
-/* 인터넷이 끊겨 기기에서만 PIN을 확인한 상태 — 앱 종료만 연다 */
-.ksk-admin-offline {
-  padding: 26px 0 4px;
-}
-.ksk-admin-offline > p {
-  margin: 0 0 22px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 16px;
-  line-height: 1.65;
-  text-align: center;
-  word-break: keep-all;
-}
-.ksk-admin-themes > p {
-  margin: 20px 0 16px;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 14px;
-  line-height: 1.55;
-}
-.ksk-admin-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  max-height: min(52dvh, 840px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 4px;
-}
-.ksk-admin-grid > button {
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.16);
-  border-radius: 17px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  padding: 0;
-  text-align: left;
-  cursor: pointer;
-}
-.ksk-admin-grid > button[data-selected='true'] {
-  border-color: #ffd457;
-  box-shadow: 0 0 0 3px rgba(255, 212, 87, 0.14);
-}
-.ksk-admin-preview {
-  position: relative;
-  display: block;
-  aspect-ratio: 9 / 16;
-  overflow: hidden;
-}
-.ksk-admin-preview img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ksk-admin-preview b {
-  position: absolute;
-  inset: auto 10px 9px;
-  color: #173e68;
-  font-size: 18px;
-  line-height: 1.1;
-  text-align: center;
-}
-.ksk-admin-theme-name {
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px;
-}
-.ksk-admin-theme-name b {
-  font-size: 14px;
-  word-break: keep-all;
-}
-.ksk-admin-theme-name em {
-  color: rgba(255, 255, 255, 0.48);
-  font-size: 11px;
-  font-style: normal;
-}
-.ksk-admin-grid > button[data-selected='true'] .ksk-admin-theme-name em {
-  color: #ffd457;
-}
-.ksk-admin-apply {
-  width: 100%;
-  min-height: 58px;
-  margin-top: 18px;
-  border: 0;
-  border-radius: 17px;
-  background: #fff;
-  color: #173e68;
-  font: inherit;
-  font-size: 17px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.ksk-admin-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.ksk-admin-toolbar button {
-  min-height: 44px;
-  padding: 8px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  background: transparent;
-  color: #fff;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-.ksk-admin-panel button:disabled { opacity: 0.45; cursor: wait; }
-.ksk-admin-themes > .ksk-admin-error {
-  color: #ffb7b7;
-  border: 1px solid rgba(255, 157, 157, 0.4);
-  border-radius: 12px;
-  padding: 12px;
-}
-.ksk-admin-themes > .ksk-admin-status {
-  min-height: 22px;
-  margin: 6px 0;
-  color: #ffd457;
-}
-.ksk-admin-panel button:focus-visible {
-  outline: 3px solid #ffd457;
-  outline-offset: 3px;
-}
-@media (max-width: 480px) {
-  .ksk-admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+/* ── 기기 관리자 ─────────────────────────────────────── */
+/* 관리자 창은 테마와 무관한 공용 창이다 — src/components/kiosk-admin (kiosk-admin.css). 여기에는 여는 자리만 둔다. */
 
-/* 우하단 숨김 관리자 영역 */
+/* 우측 상단 숨김 관리자 영역 */
 .ksk-exit-hotspot {
   position: absolute;
+  /* 관리자 창 — 우측 상단 모서리(2026-10-09, 예전엔 우측 하단). 바로 아래에 언어 버튼이 있어
+     겹치지 않게 모서리 위쪽의 얇은 띠로 둔다(언어 버튼은 화면 위에서 36px 아래부터) */
+  top: 0;
   right: 0;
-  bottom: 0;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 36px;
   z-index: 70;
   border: 0;
   background: transparent;
@@ -1881,33 +1689,6 @@
 /* 상한을 채운 뒤의 미선택 항목 — 눌러도 반응이 없으므로 눌러도 되는지 눈으로 구분되게 */
 .ksk-chip[data-muted='true'] {
   opacity: 0.45;
-}
-
-/* 관리자 패널 하단 — 적용/종료 */
-.ksk-admin-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-.ksk-admin-actions .ksk-admin-apply {
-  flex: 1;
-  margin-top: 0;
-}
-.ksk-admin-quit {
-  flex: 0 0 34%;
-  border: 2px solid var(--accent);
-  border-radius: var(--ksk-radius);
-  background: transparent;
-  color: var(--accent);
-  font: inherit;
-  font-size: 17px;
-  font-weight: 700;
-  padding: 16px 12px;
-  cursor: pointer;
-}
-.ksk-admin-quit:active {
-  background: var(--accent);
-  color: var(--on-accent, #fff);
 }
 
 /* 영수증 미리보기 맨 아래 — 다음 손님을 위한 복귀 */
@@ -2079,3 +1860,30 @@
 /* 칩이 헤더 오른쪽 글자(STEP …)와 겹치지 않게 자리를 비운다 */
 .ksk-top { padding-right: 96px; }
 .ksk-attract { padding-top: 96px; }
+
+/* 일본어·중국어 — 띄어쓰기가 없어 word-break: keep-all 이면 문장 전체가 한 단어가 되어 줄을 못 나누고
+   폭을 넘친다(05 WISH 제목 「…ありますか？」의 「？」가 잘림). 화면 언어가 한자권이면 키오스크 전체를 기본 줄바꿈으로
+   — 문장부호가 줄 앞에 오지 않는 규칙(금칙)은 브라우저 기본이 지킨다. 한국어·영어는 그대로 keep-all */
+.ksk-root:is([data-lang='ja'], [data-lang='zh-Hans'], [data-lang='zh-Hant']) * {
+  word-break: normal;
+}
+/* 질문 제목은 두 줄이 되면 줄 길이를 고르게 — 「か？」만 둘째 줄에 남지 않게 */
+.ksk-title {
+  text-wrap: balance;
+}
+/* 일본어 제목은 문절 단위로 끊는다(Chrome 119+, 못 알아들으면 기본 줄바꿈) — 「気になっていることは／ありますか？」 */
+.ksk-root[data-lang='ja'] .ksk-title {
+  word-break: auto-phrase;
+}
+
+/* 06 제품 단계 — 결과 언어 안내 한 줄(결과 화면에는 언어 버튼이 없다) */
+.ksk-result-lang {
+  /* 버튼 바 위의 흐림(.ksk-actions::before)보다 위에 — 안 그러면 흐리게 묻힌다 */
+  position: relative;
+  z-index: 6;
+  margin: auto 0 0;
+  padding-top: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}

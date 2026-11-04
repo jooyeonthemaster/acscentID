@@ -42,6 +42,8 @@ export interface SajuText {
   skip: string
   statusLines: string[]
   eta: string
+  /** 궁합 상대 이름을 비웠을 때 — 해석문에 그대로 들어간다 */
+  partnerDefault: string
   // 결과
   chapters: [string, string, string, string]
   pillarHeads: { hour: string; day: string; month: string; year: string }
@@ -75,6 +77,10 @@ export interface SajuText {
   moment: string
   why: string
   match: (pct: number) => string
+  /** 한 장 결과(행사 모드) 맨 위 요약 제목 */
+  summary: string
+  /** 한 장 결과 아래로 더 있음 표시 */
+  scrollMore: string
   // 영수증
   receipt: {
     myeongsik: string
@@ -134,7 +140,8 @@ const ko: SajuText = {
   wishHint: '고민 한 줄',
   skip: '건너뛰기',
   statusLines: ['만세력에서 생시를 찾는 중...', '네 기둥을 세우는 중...', '오행의 균형을 재는 중...', '용신을 정하는 중...', '기운에 맞는 향을 고르는 중...'],
-  eta: '명식을 풀이하는 데 40~80초쯤 걸립니다.',
+  eta: '명식을 풀이하는 데 30~60초쯤 걸립니다.',
+  partnerDefault: '상대방',
   chapters: ['命式 · 명식', '解 · 풀이', '望 · 물음', '香 · 처방'],
   pillarHeads: { hour: '시', day: '일', month: '월', year: '년' },
   me: '나',
@@ -167,6 +174,8 @@ const ko: SajuText = {
   moment: '이런 순간에',
   why: '왜 이 향인가요',
   match: pct => `어울림 ${pct}%`,
+  summary: '나의 사주 향',
+  scrollMore: '아래로 더 보기',
   receipt: { myeongsik: '四柱命式 · 명식', dayMaster: '日干 일간', yongsin: '用神 용신', born: '生時 생시', elements: '오행 분포', bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전', sheetSub: '사주 향 감정서', info: ['姓名', '性別', '生年月日', '生時', '鑑定日'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
@@ -218,7 +227,8 @@ const en: SajuText = {
   wishHint: 'One line',
   skip: 'Skip',
   statusLines: ['Finding your birth in the calendar...', 'Raising the four pillars...', 'Weighing the five elements...', 'Choosing the element you need...', 'Picking the scent for your energy...'],
-  eta: 'Reading your chart takes about 40–80 seconds.',
+  eta: 'Reading your chart takes about 30–60 seconds.',
+  partnerDefault: 'Partner',
   chapters: ['命式 · Chart', '解 · Reading', '望 · Your question', '香 · Scent'],
   pillarHeads: { hour: 'Hour', day: 'Day', month: 'Month', year: 'Year' },
   me: 'You',
@@ -251,6 +261,8 @@ const en: SajuText = {
   moment: 'A moment for it',
   why: 'Why this scent',
   match: pct => `Match ${pct}%`,
+  summary: 'Your saju scent',
+  scrollMore: 'Scroll for more',
   receipt: { myeongsik: '四柱命式 · CHART', dayMaster: 'DAY MASTER', yongsin: 'NEEDED', born: 'BORN', elements: 'FIVE ELEMENTS', bridge: 'WHY THIS SCENT', ritual: 'HOW TO WEAR', rxScent: '處方 香 · YOUR SCENT', title: 'SAJU SCENT PRESCRIPTION', sheetSub: 'SAJU SCENT READING', info: ['NAME', 'GENDER', 'BORN', 'HOUR', 'DATE'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
@@ -294,7 +306,8 @@ const ja: SajuText = {
   wishHint: '悩みを一行',
   skip: 'スキップ',
   statusLines: ['万年暦で生まれた時を探しています...', '四つの柱を立てています...', '五行のバランスを測っています...', '用神を決めています...', '気に合う香りを選んでいます...'],
-  eta: '命式の読み解きには40〜80秒ほどかかります。',
+  eta: '命式の読み解きには30〜60秒ほどかかります。',
+  partnerDefault: 'お相手',
   chapters: ['命式', '解 · 読み解き', '望 · 問い', '香 · 処方'],
   pillarHeads: { hour: '時', day: '日', month: '月', year: '年' },
   me: '私',
@@ -327,6 +340,8 @@ const ja: SajuText = {
   moment: 'こんな瞬間に',
   why: 'なぜこの香りか',
   match: pct => `相性 ${pct}%`,
+  summary: 'あなたの四柱の香り',
+  scrollMore: '下にスクロール',
   receipt: { myeongsik: '四柱命式', dayMaster: '日干', yongsin: '用神', born: '生時', elements: '五行の分布', bridge: '命と香 · 処方の理由', ritual: '處方 · 使い方', rxScent: '處方 香 · 処方の香り', title: '四柱香 処方箋', sheetSub: '四柱香 鑑定書', info: ['氏名', '性別', '生年月日', '生時', '鑑定日'], rows: ['十星', '天干', '地支', '十星'], seal: ['香室', '之印'] },
 }
 
@@ -370,7 +385,8 @@ const zhHans: SajuText = {
   wishHint: '一句烦恼',
   skip: '跳过',
   statusLines: ['正在万年历中查找出生时间...', '正在立起四柱...', '正在衡量五行平衡...', '正在确定用神...', '正在挑选合适的香气...'],
-  eta: '解读命盘大约需要 40–80 秒。',
+  eta: '解读命盘大约需要 30–60 秒。',
+  partnerDefault: '对方',
   chapters: ['命式 · 命盘', '解 · 解读', '望 · 提问', '香 · 处方'],
   pillarHeads: { hour: '时', day: '日', month: '月', year: '年' },
   me: '我',
@@ -403,6 +419,8 @@ const zhHans: SajuText = {
   moment: '适合的瞬间',
   why: '为什么是这款香',
   match: pct => `契合 ${pct}%`,
+  summary: '你的四柱之香',
+  scrollMore: '向下滑动查看更多',
   receipt: { myeongsik: '四柱命式 · 命盘', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分布', bridge: '命与香 · 处方缘由', ritual: '處方 · 用法', rxScent: '處方 香 · 处方香气', title: '四柱香 处方笺', sheetSub: '四柱香 鉴定书', info: ['姓名', '性别', '出生日期', '时辰', '鉴定日'], rows: ['十神', '天干', '地支', '十神'], seal: ['香室', '之印'] },
 }
 
@@ -447,7 +465,8 @@ const zhHant: SajuText = {
   wishHint: '一句煩惱',
   skip: '跳過',
   statusLines: ['正在萬年曆中查找出生時間...', '正在立起四柱...', '正在衡量五行平衡...', '正在確定用神...', '正在挑選合適的香氣...'],
-  eta: '解讀命盤大約需要 40–80 秒。',
+  eta: '解讀命盤大約需要 30–60 秒。',
+  partnerDefault: '對方',
   chapters: ['命式 · 命盤', '解 · 解讀', '望 · 提問', '香 · 處方'],
   pillarHeads: { hour: '時', day: '日', month: '月', year: '年' },
   noHour: '時辰不明',
@@ -475,6 +494,8 @@ const zhHant: SajuText = {
   moment: '適合的瞬間',
   why: '為什麼是這款香',
   match: pct => `契合 ${pct}%`,
+  summary: '你的四柱之香',
+  scrollMore: '向下滑動查看更多',
   receipt: { myeongsik: '四柱命式 · 命盤', dayMaster: '日干', yongsin: '用神', born: '出生', elements: '五行分佈', bridge: '命與香 · 處方緣由', ritual: '處方 · 用法', rxScent: '處方 香 · 處方香氣', title: '四柱香 處方箋', sheetSub: '四柱香 鑑定書', info: ['姓名', '性別', '出生日期', '時辰', '鑑定日'], rows: ['十神', '天干', '地支', '十神'], seal: ['香室', '之印'] },
 }
 

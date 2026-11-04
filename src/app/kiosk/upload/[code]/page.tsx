@@ -12,7 +12,7 @@ export async function generateMetadata({
 }) {
   const { lang } = await searchParams
   const t = kioskText(isKioskLang(lang) ? lang : 'ko')
-  return { title: `${t.upload.pageTitle} | AC'SCENT`, robots: { index: false, follow: false } }
+  return { title: t.upload.pageTitle, robots: { index: false, follow: false } }
 }
 
 export default async function KioskUploadPage({
@@ -20,15 +20,15 @@ export default async function KioskUploadPage({
   searchParams,
 }: {
   params: Promise<{ code: string }>
-  searchParams: Promise<{ lang?: string }>
+  searchParams: Promise<{ lang?: string; p?: string }>
 }) {
   const { code } = await params
-  const { lang } = await searchParams
+  const { lang, p } = await searchParams
   const normalized = decodeURIComponent(code).trim().toUpperCase()
   return (
     // 폰에도 같은 한자권 웹폰트를 실어 준다 — 기기 글꼴에 기대지 않는다
     <div className={`${notoSansJP.variable} ${notoSansSC.variable} ${notoSansTC.variable}`}>
-      <KioskUploadClient code={normalized} lang={lang} />
+      <KioskUploadClient code={normalized} lang={lang} program={p === 'color' || p === 'perfumer' ? p : undefined} />
     </div>
   )
 }

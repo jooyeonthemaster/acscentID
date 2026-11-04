@@ -22,6 +22,9 @@ import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
+import { makePrintQr, renderIdolPrint, uploadResultPhoto, type IdolPrintArgs, type ResultUploadAuth } from '@/lib/booth/print-qr'
+import { readBoothDemo, requestDemoTicket } from '@/lib/booth/demo'
+import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { preloadFaceDetect } from '@/lib/booth/face-detect'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
@@ -72,6 +75,7 @@ import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgr
 import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { isProgramId } from '@/lib/booth/programs/catalog'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
 import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
 import { useQuitConfirm } from '@/components/screen/QuitConfirm'
@@ -442,15 +446,24 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     unlock: unlockBackgroundAdmin,
   } = useScreenBackgrounds('booth')
   // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·제목줄·편집 화면 무대 메이크업이 바뀐다
-  const boothMode = findBoothMode(deviceBaseSettings.mode)
+  /** 영업용 데모(/booth?mode=…&demo=1, src/lib/booth/demo.ts) — 매장 기기 설정 대신 주소의 모드로, 이용권·기록·관리자 창 없이 */
+  const demo = useMemo(() => readBoothDemo(), [])
+  const boothMode = findBoothMode(demo?.mode ?? deviceBaseSettings.mode)
   /** 이 운영 모드에서 이용권 번호를 받는가 — 스토어 어드민 '운영 모드 · 이용권 번호'(src/lib/booth/pass-policy.ts) */
-  const passRequired = boothPassRequired(deviceBaseSettings)
+  const passRequired = !demo && boothPassRequired(deviceBaseSettings)
   const stageMakeup = boothMode.stageMakeup ?? null
   // 행사 모드 AI 아이돌 사진 — 첫 화면 컨셉(짝 메이크업 룩도 같이 바뀜), 동의 여부, 이용권 확인 때 받은 생성 표, 서버 키 설정 여부
   const [stageConceptId, setStageConceptId] = useState(DEFAULT_IDOL_CONCEPT.id)
   /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
   const [lang, setLang] = useState<BoothLang>('ko')
   const t = boothText(lang)
+  // 화면 낭독기·번역기가 알도록 문서 언어도 맞춘다(부스 화면에 있는 동안만)
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+    return () => { root.lang = prev }
+  }, [lang])
   // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
   const langRef = useRef(lang)
   langRef.current = lang
@@ -460,6 +473,15 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [idolTicket, setIdolTicket] = useState<string | null>(null)
   /** AI 아이돌 사진 인화 디자인(컨셉별 4종 — src/lib/booth/idol-layouts.ts). null 이면 그 컨셉의 첫 디자인 */
   const [idolDesignId, setIdolDesignId] = useState<string | null>(null)
+  const demoTicketRef = useRef<string | null>(null)
+  const fetchDemoTicket = useCallback(async () => {
+    const ticket = await requestDemoTicket()
+    if (ticket) demoTicketRef.current = ticket
+    return ticket
+  }, [])
+  useEffect(() => {
+    if (demo) void fetchDemoTicket()
+  }, [demo, fetchDemoTicket])
   const pickConcept = useCallback((id: string) => {
     setStageConceptId(id)
     setIdolDesignId(null)
@@ -531,6 +553,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
   // ---------- 매장 관리자 (우하단 길게 누르기 → 비밀번호 → 배경·앱 종료) ----------
   const openAdmin = useCallback(() => {
+    // 데모에서 바꾼 설정은 매장 기기에 바로 적용된다 — 열지 않는다
+    if (demo) return
     backgroundAuthRequest.current += 1
     setIsAttract(false)
     setBackgroundAdminOpen(true)
@@ -541,7 +565,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setBackgroundUnlocking(false)
     setExitNotice(null)
     void refreshBackgrounds()
-  }, [refreshBackgrounds])
+  }, [refreshBackgrounds, demo])
 
   const closeAdmin = useCallback(() => {
     backgroundAuthRequest.current += 1
@@ -927,7 +951,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     (nextMode: Mode) => {
       if (passVerified || !passRequired) {
         // 이용권 없이 쓰는 운영 모드 — 행사 모드면 AI 사진 생성 표만 따로 받는다(못 받으면 메이크업 사진으로)
-        if (!passVerified && stageMakeup && !idolTicket) void requestFreeIdolTicket().then(setIdolTicket)
+        if (!passVerified && stageMakeup && !idolTicket) void (demo ? fetchDemoTicket() : requestFreeIdolTicket()).then(setIdolTicket)
         proceedToMode(nextMode)
         return
       }
@@ -937,8 +961,17 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       setPassError('')
       setStep('pass')
     },
-    [passVerified, passRequired, stageMakeup, idolTicket, proceedToMode]
+    [passVerified, passRequired, stageMakeup, idolTicket, proceedToMode, demo, fetchDemoTicket]
   )
+
+  // 데모: 주소의 컨셉을 미리 고르고, 매장 프로그램은 첫 화면을 건너뛰고 바로 연다(처음 한 번만)
+  const demoStartedRef = useRef(false)
+  useEffect(() => {
+    if (!demo || demoStartedRef.current || step !== 'home') return
+    demoStartedRef.current = true
+    if (demo.concept && findIdolConcept(demo.concept)) pickConcept(demo.concept)
+    if (demo.program && !stageMakeup) startMode(demo.program)
+  }, [demo, step, pickConcept, startMode, stageMakeup])
 
   // ---------- 템플릿 선택 → 빈 영역 기하 계산 ----------
   const selectTemplate = useCallback(
@@ -1582,9 +1615,16 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         // AI 아이돌 사진(행사 모드 + 동의) — 메이크업·스티커 없이 고른 인화 디자인으로. AI 사진이 오기 전·못 만들었으면 찍은 원본 그대로
         const idolConcept = findIdolConcept(stageConceptId)
         if (stageMakeup && idolOn && idolConcept && shotImages.length === 1) {
-          drawIdolDesign(ctx, idolConcept, idolDesignId,
-            idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
-            stageMakeup.eventLines[0])
+          const args: IdolPrintArgs = {
+            concept: idolConcept,
+            designId: idolDesignId,
+            pics: idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
+            event: stageMakeup.eventLines[0],
+          }
+          // 완성하기에서 QR 없는 원판·QR 넣은 원판을 다시 그린다(src/lib/booth/print-qr.ts)
+          idolPrintRef.current = args
+          // 인화물 QR 이 켜진 모드면 미리보기에 자리를 보여 준다(완성하기를 누르면 진짜 QR)
+          drawIdolDesign(ctx, args.concept, args.designId, args.pics, args.event, boothMode.printQr ? 'placeholder' : null)
           return
         }
 
@@ -1707,6 +1747,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     idolImage,
     idolOn,
     idolDesignId,
+    boothMode.printQr,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -1746,6 +1787,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // ---------- 완료 / 인쇄 ----------
   /** 촬영 내역 기록 — 사진은 보내지 않고 메타데이터만. 실패해도 손님 흐름을 막지 않는다 */
   const logShot = useCallback(async () => {
+    // 데모 촬영은 매장 통계에 남기지 않는다
+    if (demo) return
     try {
       const res = await fetch('/api/photobooth/shot', {
         method: 'POST',
@@ -1764,7 +1807,19 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     } catch (error) {
       console.error('[photobooth] 촬영 기록 실패:', error)
     }
-  }, [mode, cutCount, scannedCard, selectedFrame, selectedTemplate, useCutout, cutout])
+  }, [mode, cutCount, scannedCard, selectedFrame, selectedTemplate, useCutout, cutout, demo])
+
+  /** 사진 올리기 자격 — 매장은 촬영 기록(없으면 먼저 만든다), 데모는 데모 표 */
+  const uploadAuth = useCallback(async (): Promise<ResultUploadAuth> => {
+    if (demo) {
+      const ticket = demoTicketRef.current ?? (await fetchDemoTicket())
+      if (!ticket) throw new Error('데모 표를 받지 못했어요')
+      return { demoTicket: ticket }
+    }
+    if (!shotIdRef.current) await logShot()
+    if (!shotIdRef.current) throw new Error('촬영 기록이 없어요')
+    return { shotId: shotIdRef.current }
+  }, [demo, fetchDemoTicket, logShot])
 
   const markShot = useCallback(async (payload: { printed?: boolean; downloaded?: boolean }) => {
     if (!shotIdRef.current) return
@@ -1779,17 +1834,37 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     }
   }, [])
 
-  const finishCompose = useCallback(() => {
+  /** 편집 화면에 마지막으로 그린 AI 아이돌 인화 디자인(완성하기에서 QR 을 넣어 다시 그린다) */
+  const idolPrintRef = useRef<IdolPrintArgs | null>(null)
+
+  const finishCompose = useCallback(async () => {
     const canvas = composeCanvasRef.current
     if (!canvas) return
     setFinishing(true)
     try {
-      setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
       setPrintStatus('idle')
       setSaveQr(null)
       setSaveStatus('idle')
+      const idolPrint = idolOn && boothMode.printQr ? idolPrintRef.current : null
+      if (idolPrint) {
+        // 인화물 오른쪽 아래 폰 다운로드 QR — QR 없는 원판을 올려 주소를 받고, 그 QR 을 넣은 원판을 인쇄한다
+        const clean = renderIdolPrint(idolPrint, null)
+        try {
+          const path = await uploadResultPhoto(await uploadAuth(), clean)
+          const url = withBoothLang(`${window.location.origin}${path}`, langRef.current)
+          const qr = await makePrintQr(url)
+          setResultUrl(renderIdolPrint(idolPrint, qr.image))
+          setSaveQr({ url, qrDataUrl: qr.qrDataUrl })
+        } catch (error) {
+          // 올리기 실패(네트워크 등) — QR 없이 예전처럼. [폰으로 받기]는 그때 다시 올린다
+          console.error('[photobooth] 인화물 QR 만들기 실패:', error)
+          setResultUrl(clean)
+        }
+      } else {
+        setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
+        logShot()
+      }
       setStep('result')
-      logShot()
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
@@ -1797,7 +1872,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     } finally {
       setFinishing(false)
     }
-  }, [logShot])
+  }, [logShot, idolOn, boothMode.printQr, uploadAuth])
 
   const handlePrint = useCallback(async () => {
     if (printStatus === 'printing') return
@@ -1835,16 +1910,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     }
     setSaveStatus('uploading')
     try {
-      // 촬영 기록이 아직 안 만들어졌으면(네트워크 지연) 먼저 만든다 — 서버가 기록으로 요청을 확인한다
-      if (!shotIdRef.current) await logShot()
-      const res = await fetch('/api/photobooth/result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shotId: shotIdRef.current, imageBase64: resultUrl }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data.path) throw new Error(data.error || `업로드 실패 (${res.status})`)
-      const url = withBoothLang(`${window.location.origin}${data.path}`, langRef.current)
+      // 서버가 촬영 기록(데모는 데모 표)으로 요청을 확인한다 — 기록이 아직 없으면(네트워크 지연) 먼저 만든다
+      const path = await uploadResultPhoto(await uploadAuth(), resultUrl)
+      const url = withBoothLang(`${window.location.origin}${path}`, langRef.current)
       const qrDataUrl = await QRCode.toDataURL(url, { width: 640, margin: 1 })
       setSaveQr({ url, qrDataUrl })
       setSaveQrOpen(true)
@@ -1853,7 +1921,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       console.error('[photobooth] 사진 QR 만들기 실패:', error)
       setSaveStatus('failed')
     }
-  }, [resultUrl, saveStatus, saveQr, logShot])
+  }, [resultUrl, saveStatus, saveQr, uploadAuth])
 
   const eventPeriod = event ? formatPeriod(event) : null
   const templateLabel = event?.artist ? t.tileTemplateWith(event.artist) : t.tileTemplate
@@ -1863,7 +1931,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // ======================
   // Render
   // ======================
-  useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
+  useScreenUiSwitch(design, deviceSettings, backgroundsSynced && !demo, step === 'home' || backgroundAdminOpen, isProgramId(deviceBaseSettings.mode))
   const stepMeta = BOOTH_STEP_META[step]
   // 이벤트 색이 있으면 장식(겹친 창 테두리 등)에만 싣는다 — 기능 UI는 레트로 토큰 고정
   // 테마 글꼴은 한국어 전용이라 한자권 언어에서는 글리프가 없다 — 그 언어 글꼴로 바꾼다(키오스크와 같은 글꼴)
@@ -1887,6 +1955,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     >
       {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId]} />
+      {demo && <BoothWatermark />}
       {/* 4x6 인쇄 전용 영역 */}
       <style>{`
         @font-face {
@@ -2006,7 +2075,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         </div>
       )}
 
-      <div className="bth-frame rt-stack">
+      {/* 대기 화면이 떠 있으면 뒤 화면은 Tab·화면 낭독기에서 뺀다 */}
+      <div className="bth-frame rt-stack" inert={isAttract}>
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
         <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
         <section className="bth-window rt-win">
@@ -2526,6 +2596,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {liveLookName}
                 </p>
               )}
+              {idolOn && <p className="bth-sub">{t.cameraHint}</p>}
               {mode === 'template' && shotProgress?.current !== 2 && (
                 <p className="bth-sub">{t.printAsSeen}</p>
               )}
@@ -2650,10 +2721,10 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             </div>
 
             <div className="bth-split-side">
-              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·못 만듦) */}
               {idolOn && idolShot && (
                 <div className="rt-group">
-                  <span className="rt-group-label">{t.groupIdol}</span>
+                  <span className="rt-group-label">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</span>
                   <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="retro" lang={lang} />
                 </div>
               )}

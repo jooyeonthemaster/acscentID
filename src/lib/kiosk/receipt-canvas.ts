@@ -66,6 +66,49 @@ const SAJU_LABELS_KO = {
   bridge: '命과 香 · 처방의 연유', ritual: '處方 · 쓰는 법', rxScent: '處方 香 · 처방 향', title: '사주 향 처방전',
 }
 
+/** AI 퍼스널 컬러 — 흑백 감열지라 색 견본 대신 유형 이름·색 이름·눈금으로 찍는다 (extra-receipt.ts 가 만든다) */
+export interface ReceiptColor {
+  title: string
+  typeName: string
+  undertone: string
+  nickname: string
+  summary: string
+  toneLabel: string
+  gauges: { label: string; low: string; high: string; value: number }[]
+  bestLabel: string
+  bestNames: string[]
+  avoidLabel: string
+  avoidNames: string[]
+  stylingLabel: string
+  styling: { label: string; text: string }[]
+}
+
+export interface ReceiptTarotCard {
+  position: string
+  roman: string
+  name: string
+  orientation: string
+  reversed: boolean
+  element: 'fire' | 'water' | 'air' | 'earth'
+  title: string
+  keywords: string
+  /** 앞면 원화 주소 — 있으면 카드 칸에 흑백 점묘로 찍는다(못 불러오면 예전 글자 카드) */
+  artSrc?: string
+}
+
+/** AI 타로 — 뽑힌 세 장을 카드 모양으로 그리고 자리별 한 줄·흐름·조언을 찍는다 */
+export interface ReceiptTarot {
+  title: string
+  topic: string
+  question?: string
+  headline: string
+  cards: ReceiptTarotCard[]
+  flowLabel: string
+  flow: string
+  adviceLabel: string
+  advice: string[]
+}
+
 export interface ReceiptData {
   ticket: string | null // null이면 "PREVIEW"
   date: string
@@ -95,6 +138,10 @@ export interface ReceiptData {
   footerLines: string[]
   /** 사주 프로그램일 때만 — 명식·용신·처방 섹션이 추가된다 */
   saju?: ReceiptSaju
+  /** AI 퍼스널 컬러 · AI 타로일 때만 — 진단서/리딩만 찍는다. 향·레시피·제품 주의사항·카운터 안내·티켓 번호는 없다
+   *  (이 두 프로그램은 향을 추천하지 않는다 — perfumeNo·recipeRows 등 향 칸은 비워 넘긴다) */
+  color?: ReceiptColor
+  tarot?: ReceiptTarot
 }
 
 export interface ReceiptRenderOptions {
@@ -111,6 +158,10 @@ export interface ReceiptRenderOptions {
     eventLines?: string[]
     /** 제조 레시피를 굵은 상자로 감싼다 — 손님이 직접 조향하는 행사장에서 레시피를 바로 찾게 */
     recipeBox?: boolean
+    /** 레시피를 머리 바로 아래에 크게 — 검은 띠 · 큰 향 이름 · 아주 큰 분량(AI 조향사 행사, 2026-10-28) */
+    recipeHero?: boolean
+    /** 브랜드(AC'SCENT)를 찍지 않는다 — 매장(wow) 밖 행사·체험 모드(2026-10-28). 머리는 부제만 크게, 향 번호는 No.07 */
+    brandless?: boolean
     /** 사주 영수증 양식 — 'sheet'(사주 감정서형, 기본) · 'prescription'(이전 처방전형 그대로) */
     receiptStyle?: 'sheet' | 'prescription'
     /** 한자 글꼴 — 'kaishu'(霞鶩文楷) · 'gothic'(Noto Sans TC, 이전) */
@@ -216,7 +267,8 @@ function strokeRectCrisp(
 /** 사진 → 감열 인쇄용 1비트 캔버스: 휘도 변환 → 히스토그램 2%/98% 스트레치 →
  *  평균 밝기를 150으로 끌어올리는 감마(0.45~2.4) → Floyd-Steinberg 디더링(임계 128).
  *  JIMFF 셸의 toneMapForThermal과 동일한 파라미터. */
-function ditherForThermal(img: HTMLImageElement, dw: number, dh: number): HTMLCanvasElement {
+/** toneTarget — 감마로 맞출 평균 밝기. 사진은 150, 선화(타로 원화)는 175 로 밝게 해야 선이 또렷하다(150 이면 면이 점으로 탁해진다) */
+export function ditherForThermal(img: CanvasImageSource, dw: number, dh: number, toneTarget = 150): HTMLCanvasElement {
   const c = document.createElement('canvas')
   c.width = dw
   c.height = dh
@@ -261,7 +313,7 @@ function ditherForThermal(img: HTMLImageElement, dw: number, dh: number): HTMLCa
   }
   mean /= n
   // 평균을 toneTarget(150)으로 — 어두운 셀피가 검은 덩어리가 되는 것 방지
-  const gamma = Math.max(0.45, Math.min(2.4, Math.log(150 / 255) / Math.log(Math.max(1, mean) / 255)))
+  const gamma = Math.max(0.45, Math.min(2.4, Math.log(toneTarget / 255) / Math.log(Math.max(1, mean) / 255)))
   for (let i = 0; i < n; i++) {
     lum[i] = 255 * Math.pow(lum[i] / 255, gamma)
   }
@@ -343,6 +395,23 @@ class ReceiptBuilder {
       }
     })
     this.y = yTop + t
+  }
+
+  /** 검은 띠 + 흰 글자(가운데) — 상자 테두리와 같은 바깥 폭 */
+  band(label: string, size = 24) {
+    const h = Math.round(size * 1.9), top = Math.round(this.y)
+    const x = MARGIN - 14, w = this.width - x * 2
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      ctx.fillRect(x, top, w, h)
+      ctx.fillStyle = '#fff'
+      ctx.font = this.font(size, 800, this.fonts.sans)
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(label, this.width / 2, top + h / 2)
+      ctx.textAlign = 'left'
+    })
+    this.y = top + h
   }
 
   /** 위(yTop)부터 지금까지를 굵은 테두리 상자로 감싼다 — 본문(MARGIN)보다 바깥으로 그려 안쪽 여백을 만든다 */
@@ -793,6 +862,131 @@ class ReceiptBuilder {
     return { x, yTop, size }
   }
 
+  // ───────── 퍼스널 컬러 · 타로 부품 ─────────
+
+  /** 양 끝 이름이 붙은 눈금 — 0~100 자리에 검은 표식. 색 없이도 웜/쿨·밝기가 읽힌다 */
+  gauge(label: string, low: string, high: string, value: number) {
+    const size = 16
+    const lh = 34
+    const labelW = 104, endW = 78
+    const trackX = MARGIN + labelW + endW + 8
+    const trackW = this.width - MARGIN - endW - 8 - trackX
+    const yMid = Math.round(this.y + lh / 2)
+    this.ops.push((ctx) => {
+      ctx.fillStyle = INK
+      ctx.textBaseline = 'middle'
+      ctx.font = this.font(17, 700, this.fonts.sans)
+      ctx.textAlign = 'left'
+      ctx.fillText(label, MARGIN, yMid)
+      ctx.font = this.font(size, 500, this.fonts.sans)
+      ctx.textAlign = 'right'
+      ctx.fillText(low, trackX - 8, yMid)
+      ctx.textAlign = 'left'
+      ctx.fillText(high, trackX + trackW + 8, yMid)
+      ctx.fillRect(trackX, yMid - 1, trackW, 2)
+      for (let i = 0; i <= 4; i++) ctx.fillRect(trackX + Math.round((trackW - 2) * (i / 4)), yMid - 5, 2, 10)
+      const mx = trackX + Math.round(trackW * Math.max(0, Math.min(1, value / 100)))
+      ctx.fillRect(mx - 5, yMid - 11, 10, 22)
+    })
+    this.y += lh
+  }
+
+  /**
+   * 타로 세 장 — 자리 이름(반전 띠) · 카드 · 정/역방향.
+   * 원화(arts)가 있으면 카드 칸에 흑백 점묘(사진과 같은 감열 처리)로 찍고 그 아래 이름, 역방향은 원화를 거꾸로.
+   * 원화가 없으면 예전 글자 카드(로마 숫자·원소 기호·이름, 역방향은 안쪽을 거꾸로).
+   */
+  tarotCards(cards: ReceiptTarotCard[], arts: (HTMLImageElement | null)[] = []) {
+    const gap = 14
+    const n = cards.length || 3
+    const colW = Math.floor((this.innerWidth() - gap * (n - 1)) / n)
+    // 원화 칸 — 카드 안쪽 여백 11, 원화 비율 그대로(350×600)
+    const pad = 11
+    const artW = colW - pad * 2
+    const artRatio = arts.find(Boolean) ? arts.find(Boolean)!.naturalHeight / arts.find(Boolean)!.naturalWidth : 0
+    const artH = artRatio ? Math.round(artW * artRatio) : 0
+    const nameH = 30
+    const headH = 28, cardH = artH ? pad + artH + 6 + nameH + 6 : Math.round(colW * 1.45), footH = 26
+    // 점묘는 미리 만들어 둔다(그리기 단계는 동기)
+    const dithered = arts.map((img) => (img && artH ? ditherForThermal(img, artW, artH, 175) : null))
+    const yTop = Math.round(this.y)
+    this.ops.push((ctx) => {
+      cards.forEach((card, i) => {
+        const x = MARGIN + i * (colW + gap)
+        const cy = yTop + headH + 6
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'center'
+        ctx.fillStyle = INK
+        ctx.fillRect(x, yTop, colW, headH)
+        ctx.fillStyle = '#ffffff'
+        ctx.font = this.font(17, 700, this.fonts.sans)
+        ctx.fillText(card.position, x + colW / 2, yTop + headH / 2)
+
+        strokeRectCrisp(ctx, x, cy, colW, cardH, 3)
+        strokeRectCrisp(ctx, x + 7, cy + 7, colW - 14, cardH - 14, 1)
+        const fitName = (max: number) => {
+          let size = max
+          ctx.font = this.font(size, 800, this.fonts.sans)
+          while (size > 11 && ctx.measureText(card.name).width > colW - 24) {
+            size -= 1
+            ctx.font = this.font(size, 800, this.fonts.sans)
+          }
+        }
+        const art = dithered[i]
+        if (art) {
+          const ax = x + pad, ay = cy + pad
+          ctx.save()
+          if (card.reversed) {
+            ctx.translate(ax + artW / 2, ay + artH / 2)
+            ctx.rotate(Math.PI)
+            ctx.drawImage(art, -artW / 2, -artH / 2)
+          } else {
+            ctx.drawImage(art, ax, ay)
+          }
+          ctx.restore()
+          // 이름은 종이에서 읽히게 늘 바로 — 방향은 카드 아래 줄이 알려 준다
+          ctx.fillStyle = INK
+          fitName(19)
+          ctx.fillText(card.name, x + colW / 2, ay + artH + 6 + nameH / 2)
+          ctx.font = this.font(15, 600, this.fonts.sans)
+          ctx.fillText(card.orientation, x + colW / 2, cy + cardH + 6 + footH / 2)
+          return
+        }
+        ctx.save()
+        ctx.translate(x + colW / 2, cy + cardH / 2)
+        if (card.reversed) ctx.rotate(Math.PI)
+        ctx.fillStyle = INK
+        ctx.font = this.font(30, 700, "Georgia, 'Times New Roman', serif")
+        ctx.fillText(card.roman, 0, -cardH / 2 + 34)
+        // 이름 — 칸 폭에 맞춰 줄인다
+        fitName(19)
+        ctx.fillText(card.name, 0, cardH / 2 - 30)
+        ctx.restore()
+        // 원소 기호 — 불 △ · 바람 △에 가로줄 · 물 ▽ · 흙 ▽에 가로줄.
+        // 뒤집히면 다른 원소가 되므로 역방향 카드에서도 돌리지 않고 가운데에 그린다
+        const up = card.element === 'fire' || card.element === 'air'
+        const gx = x + colW / 2, gy = cy + cardH / 2
+        const r = 26
+        ctx.lineWidth = 3
+        ctx.strokeStyle = INK
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
+        ctx.moveTo(gx, gy + (up ? -r : r))
+        ctx.lineTo(gx + r, gy + (up ? r - 4 : -r + 4))
+        ctx.lineTo(gx - r, gy + (up ? r - 4 : -r + 4))
+        ctx.closePath()
+        ctx.stroke()
+        if (card.element === 'air' || card.element === 'earth') ctx.fillRect(gx - 15, gy + (up ? 4 : -7), 30, 3)
+
+        ctx.fillStyle = INK
+        ctx.font = this.font(15, 600, this.fonts.sans)
+        ctx.fillText(card.orientation, x + colW / 2, cy + cardH + 6 + footH / 2)
+      })
+      ctx.textAlign = 'left'
+    })
+    this.y = yTop + headH + 6 + cardH + 6 + footH
+  }
+
   render(): { canvas: HTMLCanvasElement; height: number } {
     const canvas = document.createElement('canvas')
     canvas.width = this.width
@@ -823,6 +1017,8 @@ export async function renderKioskReceipt(
 ): Promise<{ base64: string; dataUrl: string; width: number; height: number }> {
   const width = opts.width ?? 512
   const fonts = resolveFonts(opts.lang, opts.brand?.hanjaFont === 'kaishu')
+  /** 큰 레시피(AI 조향사) — 만들 제품과 레시피가 있을 때만 */
+  const recipeHero = !!opts.brand?.recipeHero && !(data.color || data.tarot) && data.recipeRows.length > 0
   if (typeof document !== 'undefined' && document.fonts) {
     try {
       // fonts.ready는 '이미 요청된' 페이스만 기다린다 — 캔버스가 쓰는 웨이트를 명시적으로 로드
@@ -840,6 +1036,12 @@ export async function renderKioskReceipt(
       /* 폰트 로드 실패 시 폴백 폰트로 진행 */
     }
   }
+  // 타로 원화 — 타로 첫 화면에서 받아 둔 것이라 보통 바로 온다. 망이 끊겨도 영수증이 멈추지 않게 4초 안에 못 받으면 글자 카드로
+  const tarotArt = data.tarot
+    ? await Promise.all(data.tarot.cards.map((card) => card.artSrc
+      ? Promise.race([loadImage(card.artSrc), new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))])
+      : Promise.resolve(null)))
+    : []
   const b = new ReceiptBuilder(width, fonts)
 
   // ── 헤더
@@ -849,8 +1051,10 @@ export async function renderKioskReceipt(
   const L: NonNullable<ReceiptSaju['labels']> = data.saju?.labels ?? SAJU_LABELS_KO
   if (sheet) {
     b.space(30)
-    b.text("AC'SCENT", { size: 32, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
-    b.space(4)
+    if (!opts.brand?.brandless) {
+      b.text("AC'SCENT", { size: 32, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
+      b.space(4)
+    }
     b.text(opts.brand?.subtitle ?? 'SAJU SCENT', { size: 14, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
     b.space(14)
     b.rule(3)
@@ -868,9 +1072,15 @@ export async function renderKioskReceipt(
   }
   if (!sheet) {
   b.space(34)
-  b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
-  b.space(6)
-  b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  if (opts.brand?.brandless) {
+    // 브랜드 없이 — 부제(예: AI PERFUMER · SCENT RECIPE)를 머리로 크게
+    const head = opts.brand?.subtitle ?? 'SCENT REPORT'
+    b.text(head, { size: b.fitOneLine(head, 30, 800, 'display'), weight: 800, family: 'display', align: 'center', lineHeight: 1.2 })
+  } else {
+    b.text("AC'SCENT", { size: 46, weight: 800, family: 'display', align: 'center', letterSpacing: 6, lineHeight: 1.1 })
+    b.space(6)
+    b.text(opts.brand?.subtitle ?? 'WOW · SCENT REPORT', { size: 16, weight: 600, family: 'mono', align: 'center', letterSpacing: 3 })
+  }
   if (sajuFirst) {
     // 사주 처방전 — 한약방 처방전처럼 큰 한자 제목을 두 줄 괘선 사이에
     b.space(16)
@@ -893,11 +1103,47 @@ export async function renderKioskReceipt(
   }
 
   // ── 발권 정보
-  b.row(`${data.date}  ${data.time}`, data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { mono: true })
+  // 퍼스널 컬러·타로는 만들 제품이 없다 — 발권 번호·제품 줄을 찍지 않는다
+  const noProduct = Boolean(data.color || data.tarot)
+  b.row(`${data.date}  ${data.time}`, noProduct ? '' : data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { mono: true })
   b.row('NAME', data.customerName || '-', { mono: true })
-  b.row('PRODUCT', data.productLabel, { mono: true })
+  if (!noProduct) b.row('PRODUCT', data.productLabel, { mono: true })
   b.space(10)
   b.rule(1.5, true)
+
+  // ── 큰 레시피(AI 조향사) — 손님이 영수증을 들자마자 '이걸 보고 조향하면 되는구나'가 보이게 맨 위에 크게.
+  //   검은 띠 → 레시피 이름 → 향마다 번호·이름(크게)·분량(아주 크게) → 베이스 → 직원 안내, 굵은 상자로 감싼다
+  if (recipeHero) {
+    b.space(18)
+    const top = b.y
+    b.band((opts.lang ?? 'ko') === 'ko' ? '조향 레시피 · SCENT RECIPE' : 'SCENT RECIPE', 24)
+    b.space(14)
+    const title = data.recipeTitle ?? `${data.productLabel} 제조 레시피`
+    b.text(title, { size: b.fitOneLine(title, 26, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    b.space(10)
+    for (const [i, row] of data.recipeRows.entries()) {
+      if (i) { b.space(6); b.rule(1.5, true); b.space(10) }
+      b.text(row.id.replace(/^AC'SCENT\s*/, 'No.'), { size: 22, weight: 800, family: 'mono', align: 'center', letterSpacing: 2 })
+      b.text(row.name, { size: b.fitOneLine(row.name, 46, 900), weight: 900, align: 'center', lineHeight: 1.25 })
+      b.space(4)
+      const grams = `${row.amountG.toFixed(2)}g`
+      b.text(grams, { size: b.fitOneLine(grams, 88, 800, 'display'), weight: 800, family: 'display', align: 'center', lineHeight: 1.1 })
+      b.text(`${row.ratio}%  ·  ${row.amountMl.toFixed(2)}ml`, { size: 20, weight: 700, align: 'center' })
+    }
+    b.space(10)
+    b.rule(2)
+    b.space(10)
+    b.text(`+ ${data.baseText}`, { size: b.fitOneLine(`+ ${data.baseText}`, 30, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    b.space(8)
+    for (let i = 0; i < data.steps.length; i++) b.text(`${i + 1}. ${data.steps[i]}`, { size: 17, weight: 500, lineHeight: 1.45 })
+    if (data.counterNotice?.[0]) {
+      b.space(10)
+      b.text(data.counterNotice[0], { size: b.fitOneLine(data.counterNotice[0], 24, 800), weight: 800, align: 'center', lineHeight: 1.3 })
+    }
+    b.space(16)
+    b.box(top, 5)
+    b.space(6)
+  }
   }
 
   // ── 사진
@@ -909,6 +1155,79 @@ export async function renderKioskReceipt(
     }
   }
 
+  // 퍼스널 컬러·타로 — 진단서/리딩만
+  const isExtra = Boolean(data.color || data.tarot)
+  const heading = (label: string, align: 'left' | 'center' = 'left') =>
+    b.text(label, { size: 16, weight: 700, align, letterSpacing: 2 })
+  const drawColor = (c: ReceiptColor) => {
+    b.space(20)
+    heading(c.title, 'center')
+    b.space(8)
+    b.text(c.typeName, { size: b.fitOneLine(c.typeName, 46, 800), weight: 800, align: 'center', lineHeight: 1.2 })
+    b.space(2)
+    b.text(c.undertone, { size: 19, weight: 700, align: 'center' })
+    b.space(6)
+    b.text(c.nickname, { size: 20, weight: 600, align: 'center', lineHeight: 1.4, maxLines: 2 })
+    b.space(14)
+    b.rule(1.5, true)
+    b.space(12)
+    b.text(c.summary, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 12 })
+    b.space(14)
+    heading(c.toneLabel)
+    b.space(6)
+    for (const g of c.gauges) b.gauge(g.label, g.low, g.high, g.value)
+    b.space(12)
+    heading(c.bestLabel)
+    b.space(6)
+    b.text(c.bestNames.join(' · '), { size: 19, weight: 700, lineHeight: 1.5 })
+    b.space(10)
+    heading(c.avoidLabel)
+    b.space(6)
+    b.text(c.avoidNames.join(' · '), { size: 18, weight: 500, lineHeight: 1.5 })
+    b.space(14)
+    heading(c.stylingLabel)
+    b.space(6)
+    for (const row of c.styling) {
+      b.text(row.label, { size: 18, weight: 700 })
+      b.text(row.text, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 6 })
+      b.space(8)
+    }
+    b.space(4)
+    b.rule(3)
+  }
+  const drawTarot = (t: ReceiptTarot) => {
+    b.space(20)
+    heading(t.title, 'center')
+    b.space(8)
+    b.text(t.headline, { size: 30, weight: 800, align: 'center', lineHeight: 1.3, maxLines: 3 })
+    b.space(4)
+    b.text(t.question ? `${t.topic} · ${t.question}` : t.topic, { size: 17, weight: 500, align: 'center', lineHeight: 1.5, maxLines: 2 })
+    b.space(16)
+    b.tarotCards(t.cards, tarotArt)
+    b.space(14)
+    for (const card of t.cards) {
+      // 정방향은 카드 그림 아래에 이미 찍혔다 — 줄 머리에는 역방향만 덧붙인다
+      b.text(`${card.position} · ${card.roman} ${card.name}${card.reversed ? ` · ${card.orientation}` : ''}`, { size: 18, weight: 700, lineHeight: 1.6 })
+      b.text(card.title, { size: 19, weight: 700, lineHeight: 1.45 })
+      b.text(card.keywords, { size: 17, weight: 500, lineHeight: 1.5, maxLines: 2 })
+      b.space(8)
+    }
+    b.space(4)
+    b.rule(1.5, true)
+    b.space(12)
+    heading(t.flowLabel)
+    b.space(8)
+    b.text(t.flow, { size: 18, weight: 500, lineHeight: 1.55, maxLines: 16 })
+    b.space(14)
+    heading(t.adviceLabel)
+    b.space(8)
+    for (const [i, line] of t.advice.entries()) {
+      b.text(line, { size: 18, weight: 500, lineHeight: 1.5, bullet: `${i + 1}.` })
+      b.space(3)
+    }
+    b.space(8)
+    b.rule(3)
+  }
   const drawScent = () => {
     // ── 매칭 향
     b.space(22)
@@ -1052,10 +1371,13 @@ export async function renderKioskReceipt(
     b.space(14)
   }
   if (sheet) drawSheet()
-  else if (sajuFirst) { drawSaju(); drawScent() } else { drawScent(); drawSaju() }
+  else if (sajuFirst) { drawSaju(); drawScent() }
+  else if (data.color) drawColor(data.color)
+  else if (data.tarot) drawTarot(data.tarot)
+  else { drawScent(); drawSaju() }
 
   // ── 분석 (이미지 분석 프로그램 전용 — 사주는 위 서사가 대신한다)
-  if (!data.saju && data.analysisText) {
+  if (!data.saju && !isExtra && data.analysisText) {
     b.text('ANALYSIS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     b.text(data.analysisText, { size: 19, weight: 500, lineHeight: 1.55, maxLines: 6 })
@@ -1063,7 +1385,7 @@ export async function renderKioskReceipt(
   }
 
   // ── 퍼스널 컬러
-  if (!data.saju && data.personalColorText) {
+  if (!data.saju && !isExtra && data.personalColorText) {
     b.text('PERSONAL COLOR', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     b.text(data.personalColorText, { size: 21, weight: 700 })
@@ -1073,13 +1395,17 @@ export async function renderKioskReceipt(
   }
 
   // ── 시그널 (사주판은 오행 분포가 그 역할을 한다)
-  if (!data.saju && data.signals.length > 0) {
+  if (!data.saju && !isExtra && data.signals.length > 0) {
     b.text('SIGNALS', { size: 16, weight: 600, family: 'mono', letterSpacing: 3 })
     b.space(8)
     for (const s of data.signals) b.bar(s.label, s.value)
     b.space(14)
   }
 
+  // 퍼스널 컬러·타로는 향을 추천하지 않는다 — 레시피를 찍지 않는다(진단서/리딩이 굵은 선으로 끝나 있다)
+  if (isExtra) b.space(14)
+  // 큰 레시피를 이미 맨 위에 찍었으면 아래 레시피 칸은 건너뛴다
+  if (!isExtra && !recipeHero) {
   b.rule(3)
   b.space(14)
 
@@ -1092,7 +1418,7 @@ export async function renderKioskReceipt(
   b.text(data.recipeTitle ?? `${data.productLabel} 제조 레시피`, { size: 23, weight: 700 })
   b.space(10)
   for (const r of data.recipeRows) {
-    b.row(`${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
+    b.row(opts.brand?.brandless ? r.id.replace(/^AC'SCENT\s*/, 'No.') : `${r.id}`, `${r.ratio}%  ·  ${r.amountMl.toFixed(1)}ml (${r.amountG.toFixed(1)}g)`, {
       size: 19,
       weightL: 700,
       mono: true,
@@ -1115,6 +1441,8 @@ export async function renderKioskReceipt(
     b.space(12)
   }
 
+  }
+
   // ── 푸터
   for (const line of data.footerLines) {
     b.text(line, { size: 17, weight: 500, align: 'center', lineHeight: 1.6 })
@@ -1134,6 +1462,8 @@ export async function renderKioskReceipt(
   }
   b.space(16)
 
+  // 제품 주의사항·카운터 제출 안내·티켓 번호는 만들 제품이 있을 때만
+  if (!isExtra) {
   // ── 주의사항 (실물 라벨 PRECAUTION과 동일 문구)
   b.rule(1.5, true)
   b.space(12)
@@ -1170,6 +1500,10 @@ export async function renderKioskReceipt(
   b.space(2)
   b.text(data.ticket ? `NO. ${data.ticket}` : 'PREVIEW', { size: data.ticket ? 44 : 28, weight: 800, family: 'mono', align: 'center', letterSpacing: 2, lineHeight: 1.2 })
   b.space(30)
+
+  } else {
+    b.space(14)
+  }
 
   const { canvas, height } = b.render()
   const dataUrl = canvas.toDataURL('image/png')

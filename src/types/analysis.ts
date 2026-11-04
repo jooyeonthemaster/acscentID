@@ -818,3 +818,82 @@ export const SAJU_ELEMENT_INFO: Record<SajuElement, { hanja: string; color: stri
   금: { hanja: '金', color: '#B8B8B0', onDark: '#D6D6CE', onCream: '#6E6E66', noteFamily: '시트러스 · 클린' },
   수: { hanja: '水', color: '#2C3E60', onDark: '#8FA8CC', onCream: '#2C3E60', noteFamily: '머스크 · 딥' },
 };
+
+
+// ============================================================
+// 키오스크 전용 — AI 퍼스널 컬러 진단 · AI 타로 (초안)
+// 팔레트·뽑힌 카드는 코드가 정하고 스냅샷으로 남긴다. AI는 관찰과 해석(colorDiagnosis · tarotReading)만 쓴다.
+// 두 프로그램은 향을 추천하지 않는다 — 결과에 향·제품·레시피가 없다(ImageAnalysisResult 를 잇지 않는다).
+// ============================================================
+
+/** 8유형 — 계절 × 톤 중 실제로 쓰는 조합만 (src/lib/kiosk/color-types.ts) */
+export type PersonalColorTypeId =
+  | 'spring-light' | 'spring-bright'
+  | 'summer-light' | 'summer-mute'
+  | 'autumn-mute' | 'autumn-deep'
+  | 'winter-bright' | 'winter-deep';
+
+export interface ColorDiagnosis {
+  typeId: PersonalColorTypeId;
+  undertone: 'warm' | 'cool';
+  /** 한 줄 별명 — '맑은 햇살의 봄 라이트' */
+  title: string;
+  /** 진단 요약 3-4문장 */
+  summary: string;
+  /** 네 축 0-100 — warmth 0=쿨·100=웜, brightness 명도, clarity 0=부드러움·100=선명, contrast 대비 */
+  scores: { warmth: number; brightness: number; clarity: number; contrast: number };
+  /** 사진에서 본 것 — 각 1문장 */
+  observation: { skin: string; hair: string; eyes: string };
+  /** 색 이름(손님 언어) — 유형 팔레트(color-types.ts)와 같은 순서. 흑백 영수증에는 견본 대신 이름이 찍힌다 */
+  bestColorNames: string[];
+  avoidColorNames: string[];
+  styling: { makeup: string; hair: string; fashion: string; accessory: string };
+  metal: 'gold' | 'silver' | 'rose-gold';
+  /** 조명·가림 때문에 확신이 낮으면 화면에 안내한다 */
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface ColorAnalysisResult {
+  colorDiagnosis: ColorDiagnosis;
+  /** 이 톤의 인상 키워드(손님 언어) */
+  keywords: string[];
+}
+
+export type TarotTopic = 'general' | 'love' | 'career' | 'money' | 'self';
+export type TarotElement = 'fire' | 'water' | 'air' | 'earth';
+export type TarotPosition = 'past' | 'present' | 'future';
+
+/** 손님이 뽑은 카드 한 장 — 메이저 아르카나 0~21 */
+export interface TarotDraw {
+  id: number;
+  reversed: boolean;
+}
+
+/** 뽑힌 세 장 스냅샷 — 화면·영수증이 이것만으로 다시 그린다 */
+export interface TarotSpreadSnapshot {
+  topic: TarotTopic;
+  question?: string;
+  /** element — 카드 문양·강조색에 쓰는 원소(황금새벽회 대응) */
+  cards: (TarotDraw & { position: TarotPosition; element: TarotElement })[];
+}
+
+export interface TarotReading {
+  /** 세 장의 흐름 한 줄 */
+  headline: string;
+  /** 과거·현재·미래 순서 3개 */
+  cards: { title: string; keywords: string[]; reading: string }[];
+  /** 세 장을 잇는 종합 풀이 */
+  flow: string;
+  /** 정확히 3개 */
+  advice: string[];
+}
+
+export interface TarotAnalysisResult {
+  tarotSpread: TarotSpreadSnapshot;
+  tarotReading: TarotReading;
+  /** 이 리딩의 키워드(손님 언어) */
+  keywords: string[];
+}
+
+/** 키오스크 분석 결과 전체 — 향이 있는 것(이미지·사주)과 없는 것(퍼스널 컬러·타로) */
+export type KioskAnalysisResult = ImageAnalysisResult | SajuAnalysisResult | ColorAnalysisResult | TarotAnalysisResult;

@@ -9,6 +9,8 @@ export interface IdolConcept {
   id: string
   name: { ko: string; en: string }
   desc: { ko: string; en: string }
+  /** 화면·인화물의 짧은 영문 라벨(ENDING FAIRY · ALBUM · FANCAM · MV) — 모든 컨셉이 'ON STAGE' 하나였다 */
+  tag: string
   /** 생성 프롬프트 조각(영어) — 서버가 id 로 찾아 쓴다(화면에서 온 문장은 쓰지 않는다) */
   prompt: {
     scene: string
@@ -32,6 +34,7 @@ export interface IdolConcept {
 export const IDOL_CONCEPTS: IdolConcept[] = [
   {
     id: 'ending-fairy',
+    tag: 'ENDING FAIRY',
     name: { ko: '음방 엔딩요정', en: 'Ending Fairy' },
     desc: { ko: '음악방송 무대가 끝난 순간, 카메라를 바라보는 엔딩 클로즈업', en: 'The music-show ending close-up, right after the stage' },
     prompt: {
@@ -47,6 +50,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
   },
   {
     id: 'album-jacket',
+    tag: 'ALBUM',
     name: { ko: '앨범 재킷', en: 'Album Jacket' },
     desc: { ko: '스튜디오에서 찍은 공식 컨셉 포토, 맑고 고급스럽게', en: 'An official concept photo from a high-end studio' },
     prompt: {
@@ -62,6 +66,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
   },
   {
     id: 'stage-fancam',
+    tag: 'FANCAM',
     name: { ko: '무대 직캠', en: 'Stage Fancam' },
     desc: { ko: '콘서트 무대 위 카리스마, 조명과 응원봉 사이에서', en: 'Charisma on a concert stage, among lights and lightsticks' },
     prompt: {
@@ -76,6 +81,7 @@ export const IDOL_CONCEPTS: IdolConcept[] = [
   },
   {
     id: 'mv-still',
+    tag: 'MV',
     name: { ko: '뮤비 스틸', en: 'MV Still' },
     desc: { ko: '네온 불빛 가득한 뮤직비디오의 한 장면처럼', en: 'Like a frame from a neon-lit music video' },
     prompt: {

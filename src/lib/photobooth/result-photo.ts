@@ -10,7 +10,8 @@
 
 export const RESULT_PHOTO_BUCKET = 'analysis-images'
 export const RESULT_PHOTO_DIR = 'photobooth/results'
-export const RESULT_PHOTO_TTL_HOURS = 24
+// 7일 — 인화물 오른쪽 아래 QR(행사 모드)로 집에 가서도 받을 수 있게(2026-10-02). 예전엔 [폰으로 받기]를 누른 사진만 24시간
+export const RESULT_PHOTO_TTL_HOURS = 7 * 24
 const TTL_MS = RESULT_PHOTO_TTL_HOURS * 60 * 60 * 1000
 
 const TOKEN_PATTERN = /^[0-9a-z]{8}[0-9A-Za-z]{20}$/

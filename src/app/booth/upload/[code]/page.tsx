@@ -3,7 +3,7 @@ import { parseBoothLang } from '@/lib/booth/i18n'
 
 // 포토부스 고객 폰 업로드 페이지 — 부스 QR 경유, 검색 노출 금지
 export const metadata = {
-  title: "사진 올리기 | AC'SCENT PHOTO",
+  title: "사진 올리기",
   robots: { index: false, follow: false },
 }
 

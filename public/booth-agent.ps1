@@ -7,8 +7,9 @@
 #          있으면 실행한 뒤 결과를 돌려줍니다.
 #
 # 실행: irm http://172.30.1.40:3000/booth-agent.ps1 | iex
+#   맥 IP 가 바뀌었으면: $env:ACS_AGENT='http://<맥IP>:3000'; irm http://<맥IP>:3000/booth-agent.ps1 | iex
 
-$server = 'http://172.30.1.40:3000'
+$server = if ($env:ACS_AGENT) { $env:ACS_AGENT } else { 'http://172.30.1.40:3000' }
 $token  = 'wow-booth-2026'
 $url    = "$server/api/photobooth/agent"
 

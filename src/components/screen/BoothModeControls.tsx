@@ -2,7 +2,7 @@
 
 // 포토부스 STORE ADMIN '운영 모드' — 매장 상시 ↔ 행사 모드(예: K-WAVE K-POP 무대 메이크업).
 // 고르면 같은 종류의 포토부스 모두가 다음 손님부터 그 모드로 돈다. 목록은 src/lib/booth/modes.ts
-// (키오스크 KioskModeControls 와 같은 모양 — 같은 CSS)
+// (CSS 이름이 kiosk-mode-controls 인 것은 예전에 키오스크 운영 모드 부품과 같이 쓰던 이름이라서다)
 import { useState } from 'react'
 import { BOOTH_MODES, findBoothMode } from '@/lib/booth/modes'
 import { passRequiredFor } from '@/lib/booth/pass-policy'
@@ -49,7 +49,7 @@ export function BoothModeControls({ value, pass, onSave, onSelectBackground, dis
             onClick={() => void pick(mode.id)}>
             <b>{mode.label}{saving === mode.id ? ' · 저장 중…' : ''}</b>
             <span>{mode.note}</span>
-            <em>{mode.stageMakeup ? 'K-POP 무대 메이크업 룩' : '기존 촬영 그대로'}{mode.defaultBackground ? ' · 전용 배경' : ''}</em>
+            <em>{mode.program ? '프로그램 전용 화면' : mode.stageMakeup ? 'K-POP 무대 메이크업 룩' : '기존 촬영 그대로'}{mode.defaultBackground ? ' · 전용 배경' : ''}</em>
           </button>
         ))}
       </div>

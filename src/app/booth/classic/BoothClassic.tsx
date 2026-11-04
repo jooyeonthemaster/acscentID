@@ -20,6 +20,7 @@
 import { FramePicker } from '@/components/photobooth/FramePicker'
 import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
+import { makePrintQr, renderIdolPrint, uploadResultPhoto, type IdolPrintArgs } from '@/lib/booth/print-qr'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { preloadFaceDetect } from '@/lib/booth/face-detect'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
@@ -86,6 +87,7 @@ import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { contrast, toBoothTheme } from '@/lib/screen-backgrounds/theme'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
+import { isProgramId } from '@/lib/booth/programs/catalog'
 import { screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
@@ -435,6 +437,13 @@ export function BoothClassic() {
   /** 화면 언어(우측 상단 버튼) — 손님마다 한국어에서 시작한다. 사전은 src/lib/booth/i18n.ts */
   const [lang, setLang] = useState<BoothLang>('ko')
   const t = boothText(lang)
+  // 화면 낭독기·번역기가 알도록 문서 언어도 맞춘다(부스 화면에 있는 동안만)
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = BOOTH_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+    return () => { root.lang = prev }
+  }, [lang])
   // 콜백·효과 안에서 쓰는 언어·사전 — 언어를 바꿔도 스캔·촬영 흐름을 다시 시작하지 않게 ref 로 읽는다
   const langRef = useRef(lang)
   langRef.current = lang
@@ -1570,9 +1579,16 @@ export function BoothClassic() {
         // AI 아이돌 사진(행사 모드 + 동의) — 메이크업·스티커 없이 고른 인화 디자인으로. AI 사진이 오기 전·못 만들었으면 찍은 원본 그대로
         const idolConcept = findIdolConcept(stageConceptId)
         if (stageMakeup && idolOn && idolConcept && shotImages.length === 1) {
-          drawIdolDesign(ctx, idolConcept, idolDesignId,
-            idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
-            stageMakeup.eventLines[0])
+          const args: IdolPrintArgs = {
+            concept: idolConcept,
+            designId: idolDesignId,
+            pics: idolImage ? { main: idolImage, before: shotImages[0] } : { main: shotImages[0], before: null },
+            event: stageMakeup.eventLines[0],
+          }
+          // 완성하기에서 QR 없는 원판·QR 넣은 원판을 다시 그린다(src/lib/booth/print-qr.ts)
+          idolPrintRef.current = args
+          // 인화물 QR 이 켜진 모드면 미리보기에 자리를 보여 준다(완성하기를 누르면 진짜 QR)
+          drawIdolDesign(ctx, args.concept, args.designId, args.pics, args.event, boothMode.printQr ? 'placeholder' : null)
           return
         }
 
@@ -1695,6 +1711,7 @@ export function BoothClassic() {
     idolImage,
     idolOn,
     idolDesignId,
+    boothMode.printQr,
   ])
 
   // ---------- 캔버스 드래그 ----------
@@ -1767,17 +1784,39 @@ export function BoothClassic() {
     }
   }, [])
 
-  const finishCompose = useCallback(() => {
+  /** 편집 화면에 마지막으로 그린 AI 아이돌 인화 디자인(완성하기에서 QR 을 넣어 다시 그린다) */
+  const idolPrintRef = useRef<IdolPrintArgs | null>(null)
+
+  const finishCompose = useCallback(async () => {
     const canvas = composeCanvasRef.current
     if (!canvas) return
     setFinishing(true)
     try {
-      setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
       setPrintStatus('idle')
       setSaveQr(null)
       setSaveStatus('idle')
+      const idolPrint = idolOn && boothMode.printQr ? idolPrintRef.current : null
+      if (idolPrint) {
+        // 인화물 오른쪽 아래 폰 다운로드 QR — QR 없는 원판을 올려 주소를 받고, 그 QR 을 넣은 원판을 인쇄한다
+        const clean = renderIdolPrint(idolPrint, null)
+        try {
+          if (!shotIdRef.current) await logShot()
+          if (!shotIdRef.current) throw new Error('촬영 기록이 없어요')
+          const path = await uploadResultPhoto({ shotId: shotIdRef.current }, clean)
+          const url = withBoothLang(`${window.location.origin}${path}`, langRef.current)
+          const qr = await makePrintQr(url)
+          setResultUrl(renderIdolPrint(idolPrint, qr.image))
+          setSaveQr({ url, qrDataUrl: qr.qrDataUrl })
+        } catch (error) {
+          // 올리기 실패(네트워크 등) — QR 없이 예전처럼. [폰으로 받기]는 그때 다시 올린다
+          console.error('[photobooth] 인화물 QR 만들기 실패:', error)
+          setResultUrl(clean)
+        }
+      } else {
+        setResultUrl(canvas.toDataURL('image/jpeg', 0.95))
+        logShot()
+      }
       setStep('result')
-      logShot()
     } catch (error) {
       // 외부 이미지 CORS 문제 등으로 캔버스가 오염된 경우
       console.error('결과 생성 실패:', error)
@@ -1785,7 +1824,7 @@ export function BoothClassic() {
     } finally {
       setFinishing(false)
     }
-  }, [logShot])
+  }, [logShot, idolOn, boothMode.printQr])
 
   const handlePrint = useCallback(async () => {
     if (printStatus === 'printing') return
@@ -1851,7 +1890,7 @@ export function BoothClassic() {
   // ======================
   // Render
   // ======================
-  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen)
+  useScreenUiSwitch('classic', deviceSettings, backgroundsSynced, step === 'home' || backgroundAdminOpen, isProgramId(deviceBaseSettings.mode))
   return (
     <div
       className={`relative min-h-screen overflow-hidden bg-neutral-950 text-white flex flex-col select-none ${KIOSK_FONT_CLASS} ${lightHome ? 'booth-tone-light' : 'booth-tone-dark'}`}
@@ -2038,7 +2077,7 @@ export function BoothClassic() {
       )}
 
       {/* 헤더 */}
-      <header className={`booth-stage-ui relative z-10 flex min-h-16 items-center justify-between gap-5 border-b px-8 py-2.5 backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/35 text-[var(--booth-ink)]' : 'border-white/10'}`}>
+      <header inert={isAttract} className={`booth-stage-ui relative z-10 flex min-h-16 items-center justify-between gap-5 border-b px-8 py-2.5 backdrop-blur-sm ${lightHome ? 'border-[var(--booth-ink)]/15 bg-white/35 text-[var(--booth-ink)]' : 'border-white/10'}`}>
         <div className="flex min-w-0 items-center gap-5">
           {step !== 'home' && (
             <button
@@ -2091,6 +2130,7 @@ export function BoothClassic() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
+        inert={isAttract}
         className="booth-stage-ui relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-5"
       >
         {/* ---------- 홈: 이벤트 배너 + 체험 선택 ---------- */}
@@ -2579,6 +2619,7 @@ export function BoothClassic() {
                   ? t.printAsSeen
                   : liveLookName ?? ''}
               </p>
+              {idolOn && <p className="text-white/70 text-base mb-6 -mt-4 break-keep">{t.cameraHint}</p>}
 
               {/* 컷 수 선택 (일반 촬영만 — 행사 AI 아이돌 사진은 한 컷) */}
               {mode === 'solo' && !idolOn && (
@@ -2693,10 +2734,10 @@ export function BoothClassic() {
             {/* 옵션이 많아도(프레임 56종·같이 찍기 조정) 페이지가 넘치지 않게 열 안에서만 스크롤하고,
                 완성·다시 찍기는 열 바닥에 붙여 늘 보이게 한다 */}
             <div className="w-full max-w-sm flex flex-col gap-6 lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
-              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·다시 만들기) */}
+              {/* 행사 모드: AI 아이돌 사진(만드는 중·완성·못 만듦) */}
               {idolOn && idolShot && (
                 <div>
-                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol}</p>
+                  <p className="text-sm font-semibold text-white/60 mb-3">{t.groupIdol(findIdolConcept(stageConceptId)?.tag ?? 'ON STAGE')}</p>
                   <IdolStagePanel stage={idol} conceptId={stageConceptId} variant="classic" lang={lang} />
                 </div>
               )}

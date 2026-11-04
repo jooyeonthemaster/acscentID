@@ -13,7 +13,7 @@ export const runtime = 'nodejs'
  * 손님 이름이 들어가므로 조회는 관리자(/api/admin/kiosk)로만 열어 둔다.
  */
 
-const PROGRAMS = ['personal', 'idol', 'saju'] as const
+const PROGRAMS = ['personal', 'idol', 'saju', 'color', 'tarot'] as const
 const PHOTO_SOURCES = ['camera', 'qr'] as const
 
 const MAX_TEXT = 2000
@@ -94,6 +94,9 @@ export async function POST(request: NextRequest) {
       analysis_text: text(body.analysis_text, MAX_TEXT),
       recipe: jsonValue(body.recipe),
       saju: jsonValue(body.saju),
+      // 퍼스널 컬러·타로 요약 — detail 컬럼은 20261008 마이그레이션이 만든다. 다른 프로그램은 이 키를
+      // 아예 보내지 않으므로, 마이그레이션 전에도 기존 프로그램 기록은 그대로 들어간다
+      ...(program === 'color' || program === 'tarot' ? { detail: jsonValue(body.detail) } : {}),
       ticket: text(body.ticket, 20),
       mocked: body.mocked === true,
       device: text(body.device, 40),

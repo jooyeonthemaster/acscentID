@@ -12,8 +12,8 @@ import { macFontVars } from '@/components/mac/theme'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { STYLES, PERSONALITIES, CHARM_POINTS, GENDER_OPTIONS } from '@/app/[locale]/input/constants'
 import {
-  ImageAnalysisResult,
   SajuAnalysisResult,
+  KioskAnalysisResult,
   TRAIT_LABELS,
   TraitScores,
   SEASON_LABELS,
@@ -22,9 +22,15 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
+import { idleWindowFor, IDLE_WARN_S } from '@/lib/kiosk/idle'
+import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
+import { perfumerCandidates, readPerfumerRotation, recordPerfumerScent } from '@/lib/kiosk/perfumer-rotation'
 import { PosterTitle } from './PosterTitle'
 import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { publicOrigin } from '@/lib/kiosk/public-origin'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
+import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
+import { ProgramAttract } from './ProgramAttract'
 import { KIOSK_FONT_CLASS, CJK_FONT_STACK, hanjaFontVar } from './fonts'
 import { OnScreenKeyboard } from './OnScreenKeyboard'
 import {
@@ -40,15 +46,22 @@ import './kiosk.css'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { toKioskTheme, toRetroDesktop, retroDesktopVars } from '@/lib/screen-backgrounds/theme'
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
-import { findScreenFont, screenFontFamily } from '@/lib/screen-fonts/catalog'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
-import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
-import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
-import { useQuitConfirm } from '@/components/screen/QuitConfirm'
-import { KioskModeControls } from '@/components/screen/KioskModeControls'
-import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines } from '@/lib/kiosk/modes'
+import { useExperienceSwitch } from './experience/useExperienceSwitch'
+import { usePerfumerSwitch } from './perfumer/usePerfumerSwitch'
+import { KioskAdminPanel } from '@/components/kiosk-admin/KioskAdminPanel'
+import { findKioskMode, modeAttract, modeCounterNotice, modeEventLines, KIOSK_MODE_IDS, type KioskProgramId } from '@/lib/kiosk/modes'
 import { sajuLocale, sajuText } from '@/lib/kiosk/saju-i18n'
 import { buildReceiptSaju } from '@/lib/kiosk/saju-receipt'
+import { programText } from '@/lib/kiosk/program-i18n'
+import { buildReceiptColor, buildReceiptTarot, extraAnalysisText, extraRecordDetail, isColorResult, isTarotResult, scentResultOf } from '@/lib/kiosk/extra-receipt'
+import { ColorReportView } from './ColorReport'
+import { TarotReportView } from './TarotReport'
+import { TarotSteps, useTarotSession } from './TarotSteps'
+import { ColorCaptureStep, ProgramAnalyzeError, ProgramAnalyzing, ProgramIdleDialog, ProgramInfoStep, ProgramLangMenu, ProgramReceiptModal, ProgramTopBar, type ProgramProgress } from './ProgramScreens'
+import { programUiText } from '@/lib/kiosk/program-ui-i18n'
+import { colorFocusFor, releaseGarment } from '@/lib/kiosk/garment-recolor'
+import { useCamFrame } from './useCamFrame'
 import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, SajuReadingView } from './SajuReport'
 import {
   PixelIcon,
@@ -70,7 +83,7 @@ function oskModeFor(lang: KioskLang): 'ko' | 'en' | 'ja' | 'zh' {
 }
 
 /** 사이트의 세 분석 프로그램을 키오스크로 옮긴 것 */
-export type Program = 'personal' | 'idol' | 'saju'
+export type Program = KioskProgramId
 
 /**
  * 켜는 프로그램은 운영 모드(src/lib/kiosk/modes.ts)가 정한다 — 매장은 최애 이미지 분석, K-WAVE 는 사주.
@@ -87,6 +100,9 @@ const PROGRAMS: {
   { id: 'personal', hanja: '我', title: '내 이미지 분석', desc: '사진 속 나의 분위기에서 향을 찾습니다', note: '사진 필요', enabled: false },
   { id: 'idol', hanja: '愛', title: '최애 이미지 분석', desc: '좋아하는 사람의 사진에서 향을 찾습니다', note: '사진 필요', enabled: true },
   { id: 'saju', hanja: '命', title: '사주 향 분석', desc: '태어난 시각의 기운으로 향을 처방합니다', note: '생년월일시 필요', enabled: false },
+  // 화면에 보이는 이름·설명은 program-i18n.ts(5개 언어)에서 온다 — 여기 문구는 목록을 읽는 사람용
+  { id: 'color', hanja: '色', title: 'AI 퍼스널 컬러 진단', desc: '얼굴빛에 어울리는 색과 향을 찾습니다', note: '촬영 필요', enabled: false },
+  { id: 'tarot', hanja: '占', title: 'AI 타로', desc: '카드 세 장의 흐름에서 향을 찾습니다', note: '카드 3장', enabled: false },
 ]
 
 const DEFAULT_PROGRAM: Program = 'idol'
@@ -103,6 +119,9 @@ type Step =
   | 'hour'
   | 'partner'
   | 'wish'
+  | 'topic'
+  | 'question'
+  | 'cards'
   | 'product'
   | 'capture'
   | 'analyzing'
@@ -120,6 +139,10 @@ const DEFAULT_PHOTO_SOURCE: 'camera' | 'qr' = 'qr'
 const IMAGE_STEPS: Step[] = ['info', 'style', 'personality', 'charm', 'product', 'capture']
 const SAJU_STEPS: Step[] = ['info', 'purpose', 'birth', 'hour', 'wish', 'product']
 const SAJU_STEPS_COMPAT: Step[] = ['info', 'purpose', 'birth', 'hour', 'partner', 'wish', 'product']
+// 퍼스널 컬러 — 얼굴을 찍으면 바로 진단. 타로 — 카드를 펼치면 바로 풀이.
+// 둘 다 향을 추천하지 않으므로 제품 고르기 단계가 없다(진단서 · 리딩만 인쇄)
+const COLOR_STEPS: Step[] = ['info', 'capture']
+const TAROT_STEPS: Step[] = ['info', 'topic', 'question', 'cards']
 
 const STEP_LABELS: Record<string, string> = {
   info: 'PROFILE',
@@ -131,6 +154,9 @@ const STEP_LABELS: Record<string, string> = {
   hour: 'HOUR',
   partner: 'PARTNER',
   wish: 'WISH',
+  topic: 'TOPIC',
+  question: 'QUESTION',
+  cards: 'CARDS',
   product: 'PRODUCT',
   capture: 'PHOTO',
 }
@@ -158,30 +184,7 @@ const DESK_ITEMS: { icon: PixelIconName; label: string }[] = [
 const MAX_PICK = 3
 const FRAGRANCE_DENSITY = 0.9 // g/ml — types/feedback.ts calculateGranuleAmounts와 동일 계수
 
-// 폰으로 QR을 찍고 갤러리를 뒤지는 동안은 화면 터치가 없다 — 유휴 한도를 따로 길게 잡는다
-const QR_IDLE_LIMIT = 420
-
-/* 영수증 미리보기·발권 후: 손님은 이미 볼일을 마쳤다. 20초 조용하면 10초짜리
-   안내 팝업을 띄우고, 그래도 아무도 없으면 처음 화면으로 돌아간다. */
-const RECEIPT_IDLE_SILENT = 20
-const RECEIPT_IDLE_WARN = 10
-
-const IDLE_LIMIT: Partial<Record<Step, number>> = {
-  program: 120,
-  info: 120,
-  style: 120,
-  personality: 120,
-  charm: 120,
-  purpose: 120,
-  birth: 180,
-  hour: 150,
-  partner: 180,
-  wish: 180,
-  product: 120,
-  capture: 180,
-  analyzing: 120, // fetch 타임아웃(75s)의 보험 — 어떤 경우에도 무인 기기가 잠기지 않게
-  result: 360, // 장이 여러 개라 읽는 시간이 길다
-}
+// 무입력 타임아웃 값·규칙은 src/lib/kiosk/idle.ts (포토부스와 같은 30초 + 10초 안내)
 
 function toggleIn(list: string[], value: string, max: number): string[] {
   if (list.includes(value)) return list.filter((v) => v !== value)
@@ -194,9 +197,20 @@ function isMockRequested(): boolean {
   return new URLSearchParams(window.location.search).get('mock') === '1'
 }
 
+/**
+ * 미리보기용 — /kiosk?mode=ai-color · ?mode=ai-tarot 처럼 열면 기기 설정(모든 키오스크가 따라가는 운영 모드)을 건드리지 않고
+ * 그 모드로 본다. 매장 기기는 셸이 여는 주소가 고정이라 영향이 없다.
+ */
+function previewModeId(): string | null {
+  if (typeof window === 'undefined') return null
+  const id = new URLSearchParams(window.location.search).get('mode')
+  // 없는 모드 이름이면 무시하고 기기 설정을 따른다(예전엔 매장 기본 모드로 떨어졌다)
+  return id && KIOSK_MODE_IDS.includes(id) ? id : null
+}
+
 /** 사주 결과 → 영수증 명식/처방 데이터 */
 
-function isSajuResult(r: ImageAnalysisResult | SajuAnalysisResult | null): r is SajuAnalysisResult {
+function isSajuResult(r: KioskAnalysisResult | null): r is SajuAnalysisResult {
   return Boolean(r && 'sajuChart' in r)
 }
 
@@ -208,14 +222,19 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [styles, setStyles] = useState<string[]>([])
   const [personalities, setPersonalities] = useState<string[]>([])
   const [charms, setCharms] = useState<string[]>([])
-  const [productType, setProductType] = useState<ProductType>('perfume_10ml')
+  const [chosenProduct, setProductType] = useState<ProductType>('perfume_10ml')
   const [photo, setPhoto] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [camError, setCamError] = useState(false)
   /** 분석 응답을 실제로 받았는지 — 받기 전에는 진행률을 모르므로 퍼센트를 만들지 않는다 */
   const [analysisDone, setAnalysisDone] = useState(false)
+  /** 분석 실패 — 분석 화면에 남는 오류 카드(다시 시도·처음으로). null 이면 진행 중 */
+  const [analyzeError, setAnalyzeError] = useState<AnalyzeErrorKind | null>(null)
+  /** 촬영 화면에 남는 안내(퍼스널 컬러에서 얼굴을 못 찾았을 때) — 2.6초 토스트는 다시 찍는 화면에서 이미 사라져 있었다 */
+  // 퍼스널 컬러 — 얼굴을 못 찾은 사진. 촬영 화면에 흐리게 보여 주고 다시 찍게 한다(목업 C13)
+  const [noFacePhoto, setNoFacePhoto] = useState<string | null>(null)
   const [statusIdx, setStatusIdx] = useState(0)
-  const [result, setResult] = useState<ImageAnalysisResult | SajuAnalysisResult | null>(null)
+  const [result, setResult] = useState<KioskAnalysisResult | null>(null)
   const [mocked, setMocked] = useState(false)
   const [chapterIdx, setChapterIdx] = useState(0)
   // 사주 입력
@@ -233,6 +252,9 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [partnerCalendar, setPartnerCalendar] = useState<'solar' | 'lunar'>('solar')
   const [partnerLeap, setPartnerLeap] = useState(false)
   const [partnerOskOpen, setPartnerOskOpen] = useState(false)
+  // AI 타로 — 주제·질문·섞은 덱·뽑은 카드
+  const tarot = useTarotSession()
+  const resetTarot = tarot.reset
   const [receipt, setReceipt] = useState<{ dataUrl: string; base64: string } | null>(null)
   const [printing, setPrinting] = useState(false)
   // 실제로 한 번 뽑았는지 — 선채번 때문에 ticketRef 유무로는 판단할 수 없다
@@ -242,6 +264,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [oskOpen, setOskOpen] = useState(false)
   // 폰 QR 업로드
   const [photoSource, setPhotoSource] = useState<'camera' | 'qr'>(DEFAULT_PHOTO_SOURCE)
+  // 촬영 액자 — 3:4 로 찍히는 그대로 보이게 크기를 재고, 카메라로 찍은 사진을 확인하는 동안은 그 크기로 묶는다.
+  // 폰으로 받은 사진은 비율이 제각각이라 액자를 그 사진에 맞춘다
+  const camFrame = useCamFrame({
+    frozen: Boolean(photo) && photoSource === 'camera',
+    fitPhoto: Boolean(photo) && photoSource !== 'camera',
+  })
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrState, setQrState] = useState<'idle' | 'creating' | 'waiting' | 'expired' | 'failed'>('idle')
@@ -250,45 +278,54 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // 처음 화면으로 돌아갈 때(다음 손님) 한국어로 되돌아간다.
   const [lang, setLang] = useState<KioskLang>('ko')
   const [langOpen, setLangOpen] = useState(false)
+  const screenBackgrounds = useScreenBackgrounds('kiosk')
   const {
-    backgrounds,
     activeBackground: backgroundRecord,
-    selectedId: backgroundId,
-    loading: backgroundsLoading,
-    error: backgroundsError,
     refresh: refreshBackgrounds,
-    liveEvent: screenLiveEvent,
     baseSettings: deviceBaseSettings,
-    selectBackground,
     settings: deviceSettings,
-    saveSettings,
     synced: backgroundsSynced,
-    unlock: unlockBackgroundAdmin,
-  } = useScreenBackgrounds('kiosk')
+  } = screenBackgrounds
   // 운영 모드 — 켜는 프로그램·첫 화면 문구·영수증 머리말 (STORE ADMIN 에서 고른다)
-  const kioskMode = findKioskMode(deviceSettings.mode)
+  const kioskMode = findKioskMode(previewModeId() ?? deviceSettings.mode)
+  /** 매장(wow) 모드만 브랜드(AC'SCENT)를 보인다 — 행사·체험 모드는 브랜드·회사명 없이(2026-10-28) */
+  const storeBrand = kioskMode.id === 'wow'
+  // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
+  const productType: ProductType = kioskMode.fixedProduct ?? chosenProduct
+  const programTheme = kioskProgramTheme(kioskMode.id)
+  // 문서 언어 — 화면 낭독기·자동 번역·글꼴 선택이 화면 언어를 따르게(키오스크 경로는 로케일 레이아웃 밖이라 비어 있었다)
+  const htmlLang = KIOSK_LANGS.find((l) => l.id === lang)?.htmlLang ?? 'ko'
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.lang
+    root.lang = htmlLang
+    return () => {
+      root.lang = prev
+    }
+  }, [htmlLang])
   const activePrograms = useMemo(() => PROGRAMS.filter((p) => kioskMode.programs.includes(p.id)), [kioskMode])
   /** 운영 프로그램이 하나뿐이면 선택 화면은 탭만 늘리므로 건너뛴다 */
   const showProgramStep = activePrograms.length > 1
+  /** 프로그램을 정한다 — 퍼스널 컬러·내 이미지 분석은 본인 얼굴이 필요하므로 폰 사진(QR) 대신 키오스크 카메라가 먼저 */
+  const pickProgram = useCallback((id: Program) => {
+    setProgram(id)
+    setPhotoSource(id === 'color' || id === 'personal' ? 'camera' : DEFAULT_PHOTO_SOURCE)
+    // 디퓨저는 매장 이미지 분석에서만 고를 수 있다 — 다른 프로그램으로 옮기면 고른 제품을 향수로 되돌린다
+    if (id !== 'idol' && id !== 'personal') setProductType((cur) => (cur.startsWith('diffuser') ? 'perfume_10ml' : cur))
+  }, [])
   const startSession = useCallback(() => {
-    setProgram(activePrograms[0]?.id ?? DEFAULT_PROGRAM)
+    pickProgram(activePrograms[0]?.id ?? DEFAULT_PROGRAM)
     setStep(showProgramStep ? 'program' : 'info')
-  }, [activePrograms, showProgramStep])
+  }, [activePrograms, showProgramStep, pickProgram])
+  /** 현장 관리자 창 — 인증(PIN)·설정·앱 종료는 창이 맡는다(KioskAdminPanel) */
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
-  const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
-  /** 인터넷이 끊겨 기기에서만 PIN을 확인한 상태 — 앱 종료만 연다 */
-  const [backgroundAdminOffline, setBackgroundAdminOffline] = useState(false)
-  const [backgroundPassword, setBackgroundPassword] = useState('')
-  const [backgroundPasswordError, setBackgroundPasswordError] = useState('')
-  const [backgroundUnlocking, setBackgroundUnlocking] = useState(false)
-  const [backgroundSaving, setBackgroundSaving] = useState<string | null>(null)
-  const [backgroundActionError, setBackgroundActionError] = useState('')
-  const backgroundAuthRequest = useRef(0)
-  const backgroundDialogRef = useRef<HTMLDivElement>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const ticketRef = useRef<string | null>(null)
+  // 영수증 열기·인쇄가 진행 중인지 — 연타해도 한 번만 렌더·인쇄한다
+  const receiptOpeningRef = useRef(false)
+  const printBusyRef = useRef(false)
   const idleDeadline = useRef<number>(0)
   const savedRef = useRef(false)
   // DB 기록(kiosk_analyses) 한 건의 id — 영수증 출력 시 printed 갱신에 쓴다
@@ -297,10 +334,14 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const countdownTimer = useRef<number | undefined>(undefined)
   const toastTimer = useRef<number | undefined>(undefined)
   const qrGeneration = useRef(0)
+  const analysisGeneration = useRef(0)
+  const analysisAbort = useRef<AbortController | null>(null)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const t = kioskText(lang)
   const sx = sajuText(lang)
+  const px = programText(lang)
+  const pu = programUiText(lang)
   // 첫 화면 문구 — 운영 모드에 행사 문구가 있으면 그것, 없으면 매장 기본
   const attract = modeAttract(kioskMode, lang, {
     ticket: 'FOR YOUR BIAS · HONGDAE', wordmark: 'WOW!', sub: t.attractSub, cardNo: '01 PHOTO > 01 SCENT',
@@ -310,19 +351,6 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // 레트로 UI에서 배경은 바탕화면·장식색만 맡는다 (창·버튼 색은 retro.css 고정).
   // 글꼴은 기기 설정(관리자가 고름) — 없으면 고딕 에스코어드림. 명조는 쓰지 않는다.
   const retroDesk = toRetroDesktop(backgroundRecord, deviceSettings.font)
-
-  const chooseBackground = useCallback(async (id: string) => {
-    if (!backgroundAdminUnlocked || backgroundSaving) return
-    setBackgroundSaving(id)
-    setBackgroundActionError('')
-    try {
-      await selectBackground(id)
-    } catch (error) {
-      setBackgroundActionError(error instanceof Error ? error.message : '배경을 저장하지 못했습니다. 다시 시도해주세요.')
-    } finally {
-      setBackgroundSaving(null)
-    }
-  }, [backgroundAdminUnlocked, backgroundSaving, selectBackground])
 
   const showToast = useCallback((msg: string) => {
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
@@ -345,10 +373,14 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   }, [])
 
   const resetAll = useCallback(() => {
+    analysisGeneration.current++
+    analysisAbort.current?.abort()
+    analysisAbort.current = null
     clearCountdown()
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     setToast(null)
     setStep('attract')
+    setAnalyzeError(null)
     setProgram(DEFAULT_PROGRAM)
     setName('')
     setGender('')
@@ -370,6 +402,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setPartnerCalendar('solar')
     setPartnerLeap(false)
     setPartnerOskOpen(false)
+    resetTarot()
+    setNoFacePhoto(null)
+    // 옷 색 미리보기 — 이전 손님 사진의 마스크·덧그림을 지우고 계산 중인 것은 버린다
+    releaseGarment()
     setProductType('perfume_10ml')
     setPhoto(null)
     setAnalysisDone(false)
@@ -391,9 +427,13 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setLangOpen(false)
     // Electron 셸에선 다음 손님을 위해 카메라 스트림 유지, 웹에선 해제
     if (!kiosk) stopStream()
-  }, [kiosk, stopStream, clearCountdown])
+  }, [kiosk, stopStream, clearCountdown, resetTarot])
 
-  useEffect(() => () => stopStream(), [stopStream])
+  useEffect(() => () => {
+    analysisGeneration.current++
+    analysisAbort.current?.abort()
+    stopStream()
+  }, [stopStream])
 
   // capture 스텝 이탈/언마운트 시 카운트다운 정리 (고아 interval이 상태를 재오염시키는 것 방지)
   useEffect(() => {
@@ -404,17 +444,21 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // ── 유휴 리셋 ─────────────────────────────────────────────
   const receiptOpen = Boolean(receipt)
 
+  const idleWin = idleWindowFor({
+    step,
+    receiptOpen,
+    qrWaiting: step === 'capture' && photoSource === 'qr',
+    analyzeFailed: analyzeError !== null,
+  })
+  const idleSilent = idleWin?.silent ?? 0
+  const idleWarn = idleWin?.warn ?? 0
+
   useEffect(() => {
-    const limit = receiptOpen
-      ? RECEIPT_IDLE_SILENT + RECEIPT_IDLE_WARN
-      : step === 'capture' && photoSource === 'qr'
-        ? QR_IDLE_LIMIT
-        : IDLE_LIMIT[step]
+    const limit = idleSilent + idleWarn
     if (!limit || backgroundAdminOpen) {
       setIdleLeft(null)
       return
     }
-    const warnFrom = receiptOpen ? RECEIPT_IDLE_WARN : 15
     idleDeadline.current = Date.now() + limit * 1000
     const bump = () => {
       idleDeadline.current = Date.now() + limit * 1000
@@ -433,7 +477,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       if (left <= 0) {
         resetAll()
       } else {
-        setIdleLeft(left <= warnFrom ? left : null)
+        setIdleLeft(left <= idleWarn ? left : null)
       }
     }, 1000)
     return () => {
@@ -442,7 +486,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       window.clearInterval(timer)
       setIdleLeft(null)
     }
-  }, [step, photoSource, resetAll, receiptOpen, printing, backgroundAdminOpen])
+  }, [step, idleSilent, idleWarn, resetAll, printing, backgroundAdminOpen])
 
   // ── 카메라 ────────────────────────────────────────────────
   useEffect(() => {
@@ -547,10 +591,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error(data.error || '세션 생성 실패')
       // QR은 고객 폰이 접속하는 주소다 — 키오스크의 로컬 주소로는 폰이 닿을 수 없으므로
-      // 배포된 사이트 주소(NEXT_PUBLIC_SITE_URL)를 쓴다. 웹 초안에서는 현재 주소로 폴백.
-      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      // 배포된 사이트 주소를 쓴다(공개 주소로 열린 화면은 그 주소 — 행사 전용 주소 포함, public-origin.ts)
+      const origin = publicOrigin()
       // 손님 폰도 키오스크와 같은 언어로 열리게 한다
-      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}`
+      const url = `${origin.replace(/\/$/, '')}/kiosk/upload/${data.code}?lang=${lang}${program === 'color' ? '&p=color' : ''}`
       const QRCode = (await import('qrcode')).default
       const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 1 })
       if (gen !== qrGeneration.current) return
@@ -564,7 +608,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       console.error('[kiosk] QR 세션 생성 실패:', e)
       setQrState('failed')
     }
-  }, [lang])
+  }, [lang, program])
 
   /** 진행 중인 QR 세션만 버린다 (입력 소스는 그대로) — 늦게 도착한 응답은 세대 번호로 무효화 */
   const clearQr = useCallback(() => {
@@ -670,22 +714,50 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     reader.readAsDataURL(file)
   }, [])
 
+
   // ── 분석 ─────────────────────────────────────────────────
+  // 분석 대기 문구 — 프로그램마다 다르다
+  const statusLines = program === 'saju' ? sx.statusLines : program === 'color' ? px.color.statusLines : program === 'tarot' ? px.tarot.statusLines : storeBrand ? t.statusLines : t.statusLines.map((line) => line.replace(/AC’SCENT(\s|の)?/, ''))
+  const analyzingEta = program === 'saju' ? sx.eta : program === 'color' ? px.color.eta : program === 'tarot' ? px.tarot.eta : t.analyzingEta
   const startAnalysis = useCallback(async () => {
+    analysisAbort.current?.abort()
+    const controller = new AbortController()
+    analysisAbort.current = controller
+    const generation = ++analysisGeneration.current
+    const isCurrent = () => generation === analysisGeneration.current
+    const perfumer = kioskMode.id === 'ai-perfumer'
+    const rotation = perfumer ? readPerfumerRotation() : null
+    const requestTimeout = window.setTimeout(
+      () => controller.abort(new DOMException('Analysis timed out', 'TimeoutError')),
+      program === 'idol' || program === 'personal' ? 75_000 : 110_000,
+    )
     const isSaju = program === 'saju'
     setStep('analyzing')
     setAnalysisDone(false)
+    setAnalyzeError(null)
     setChapterIdx(0)
 
     // 응답 한 번으로 끝나는 요청이라 진행률을 알 수 없다 — 상태 문구만 돌린다
-    const lines = isSaju ? sx.statusLines : t.statusLines
+    const lines = statusLines
     const statusTimer = window.setInterval(() => {
       setStatusIdx((i) => (i + 1) % lines.length)
     }, 2600)
 
-    const backStep: Step = isSaju ? 'product' : 'capture'
+    // 실패가 확정되면 그 자리에서 멈추고 오류 카드를 띄운다(입력은 그대로 두어 '다시 시도'가 바로 된다)
+    const fail = (kind: AnalyzeErrorKind, detail: unknown) => {
+      if (!isCurrent()) return
+      console.error(`[kiosk] 분석 실패(${kind}):`, detail)
+      window.clearInterval(statusTimer)
+      setAnalyzeError(kind)
+    }
     try {
-      const url = isSaju ? '/api/kiosk/analyze/saju' : '/api/kiosk/analyze'
+      const url = isSaju ? '/api/kiosk/analyze/saju'
+        : program === 'color' ? '/api/kiosk/analyze/color'
+        : program === 'tarot' ? '/api/kiosk/analyze/tarot'
+        : '/api/kiosk/analyze'
+      // 퍼스널 컬러 — 옷·배경을 지운 진단용 사진과 피부·머리카락 색(기기에 모델이 있을 때만). 진단이 옷 색에 끌리지 않게.
+      // 원본은 그대로 같이 보낸다 — 진단용 사진을 못 쓰면 서버가 원본으로 진단한다
+      const colorFocus = program === 'color' && photo ? await colorFocusFor(photo) : null
       const body = isSaju
         ? {
           name: name.trim() || t.guest,
@@ -698,7 +770,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           ...(purpose === 'compatibility'
             ? {
               partner: {
-                name: partnerName.trim() || '상대방',
+                name: partnerName.trim() || sx.partnerDefault,
                 gender: partnerGender || '',
                 relation: partnerRelation,
                 birth: digitsToBirth(partnerDigits, partnerCalendar, partnerLeap, null),
@@ -706,6 +778,19 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             }
             : {}),
           ...(wish.trim() ? { wish: wish.trim() } : {}),
+          mock: isMockRequested(),
+        }
+        : program === 'color'
+        ? { name: name.trim() || t.guest, gender, imageBase64: photo, ...(colorFocus ? { focusImage: colorFocus.image, measure: colorFocus.measure } : {}), lang, mock: isMockRequested() }
+        : program === 'tarot'
+        ? {
+          name: name.trim() || t.guest,
+          gender,
+          topic: tarot.topic,
+          ...(tarot.question.trim() ? { question: tarot.question.trim() } : {}),
+          // 화면에서 뽑은 세 장(과거·현재·미래) — 서버는 검증만 하고 해석한다
+          cards: tarot.draws,
+          lang,
           mock: isMockRequested(),
         }
         : {
@@ -724,46 +809,85 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           imageBase64: photo,
           mock: isMockRequested(),
           lang,
+          // 공공 행사 모드는 존댓말로 받는다
+          ...(kioskMode.politeTone ? { tone: 'polite' as const } : {}),
+          ...(rotation ? { mode: 'ai-perfumer', perfumerRotation: rotation } : {}),
         }
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // 무인 기기: 네트워크가 행 걸려도 반드시 입력 화면으로 복귀한다 (사주는 서사가 길어 더 준다)
-        signal: AbortSignal.timeout(isSaju ? 110_000 : 75_000),
-        body: JSON.stringify(body),
-      })
-      const json = await res.json()
-      // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
-      if (!res.ok || !json.success || !json.data) {
-        throw new Error(json.error || '분석 결과가 비어 있습니다')
+      let res: Response
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // 무인 기기: 네트워크가 행 걸려도 반드시 끝난다 (사주는 서사가 길어 더 준다 — 서버는 92초 안에 답한다)
+          signal: controller.signal,
+          body: JSON.stringify(body),
+        })
+      } catch (e) {
+        fail(classifyFetchError(e), e)
+        return
       }
-      setResult(json.data as ImageAnalysisResult | SajuAnalysisResult)
+      let json: { success?: boolean; data?: unknown; error?: string; mocked?: boolean }
+      try {
+        json = await res.json()
+      } catch (e) {
+        fail('server', e)
+        return
+      }
+      // 실패 시 가짜 결과로 진행하지 않는다 — 랜덤 레시피가 실물로 제조되면 안 되기 때문
+      if (!isCurrent()) return
+      // 얼굴을 못 찾은 사진(퍼스널 컬러) — 다시 보내도 같으니 사진을 물리고 다시 찍게 한다
+      if (json.error === 'NO_FACE') {
+        setNoFacePhoto(photo)
+        releaseGarment()
+        setPhoto(null)
+        setStep('capture')
+        return
+      }
+      if (!res.ok || !json.success || !json.data) {
+        fail('server', `${res.status} ${json.error ?? ''}`)
+        return
+      }
+      const nextResult = json.data as KioskAnalysisResult
+      if (rotation) {
+        const id = scentResultOf(nextResult)?.matchingPerfumes?.[0]?.perfumeId
+        if (!id || !perfumerCandidates(rotation).includes(id) || !perfumerCandidates(readPerfumerRotation()).includes(id)) {
+          fail('server', '향 순환 후보 밖의 결과입니다.')
+          return
+        }
+        recordPerfumerScent(id)
+      }
+      setResult(nextResult)
       setMocked(Boolean(json.mocked))
-    } catch (e) {
-      console.error('[kiosk] 분석 실패:', e)
-      showToast(t.toastAnalyzeFailed)
-      setStep(backStep)
-      return
     } finally {
+      window.clearTimeout(requestTimeout)
+      if (isCurrent()) analysisAbort.current = null
       window.clearInterval(statusTimer)
     }
 
     // 끝난 건 사실이므로 블록을 다 채워 보여 주고 넘어간다
+    if (!isCurrent()) return
     setAnalysisDone(true)
-    window.setTimeout(() => setStep('result'), 450)
+    window.setTimeout(() => { if (isCurrent()) setStep('result') }, 450)
   }, [
-    program, name, gender, styles, personalities, charms, photo, showToast,
+    program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx.statusLines,
+    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone, kioskMode.id,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
   const steps = useMemo<Step[]>(() => {
-    if (program !== 'saju') return IMAGE_STEPS
-    return purpose === 'compatibility' ? SAJU_STEPS_COMPAT : SAJU_STEPS
-  }, [program, purpose])
+    const base = program === 'color' ? COLOR_STEPS
+      : program === 'tarot' ? TAROT_STEPS
+      : program !== 'saju' ? IMAGE_STEPS
+      : purpose === 'compatibility' ? SAJU_STEPS_COMPAT : SAJU_STEPS
+    // 제품이 정해진 모드는 제품 고르기 단계를 건너뛴다
+    return kioskMode.fixedProduct ? base.filter((s) => s !== 'product') : base
+  }, [program, purpose, kioskMode.fixedProduct])
+
+  /** 단계 표시 — '번호 · 이름'을 단계 순서에서 계산한다(예전엔 01·05·06만 손으로 적혀 6단계가 '05 · PRODUCT'였다) */
+  const stepPill = (s: Step) => `${String(steps.indexOf(s) + 1).padStart(2, '0')} · ${STEP_LABELS[s]}`
 
   const goNext = useCallback(() => {
     const i = steps.indexOf(step)
@@ -784,6 +908,13 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
      없을 만큼 작아지므로, 원래 크기로 두고 스크롤한다 (들어오면 힌트 애니메이션이 돈다). */
   const chapters = useMemo(() => {
     if (!result) return []
+    // 퍼스널 컬러·타로 — 한 화면 스크롤
+    if (isColorResult(result)) {
+      return [{ label: px.color.chapter, render: () => <ColorReportView result={result} photo={photo} px={px} ui={pu} name={name.trim()} />, scroll: true }]
+    }
+    if (isTarotResult(result)) {
+      return [{ label: px.tarot.chapter, render: () => <TarotReportView result={result} px={px} lang={lang} scrollMore={sx.scrollMore} />, scroll: true }]
+    }
     if (isSajuResult(result)) {
       // 행사 모드 — 4장을 한 화면 스크롤로(장 넘기느라 줄이 길어지지 않게)
       if (kioskMode.resultOnePage) {
@@ -802,22 +933,24 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       { label: t.chapterProfile, render: () => <ChapterProfile result={result} t={t} />, scroll: false },
       { label: t.chapterReading, render: () => <ChapterReading result={result} t={t} />, scroll: true },
     ]
-  }, [result, t, sx, kioskMode.resultOnePage])
+  }, [result, t, sx, px, pu, name, photo, lang, kioskMode.resultOnePage])
 
   const scrollChapter = step === 'result' && Boolean(chapters[chapterIdx]?.scroll)
 
   // ── 결과 파생 데이터 ───────────────────────────────────────
-  const match = result?.matchingPerfumes?.[0]
+  // 향이 있는 결과(이미지 분석·사주)만 향·레시피를 가진다 — 퍼스널 컬러·타로는 null
+  const scentResult = scentResultOf(result)
+  const match = scentResult?.matchingPerfumes?.[0]
   const persona = match?.persona
   const productInfo = PRODUCT_TYPES.find((p) => p.id === productType)!
 
   const topTraits = useMemo(() => {
-    if (!result) return []
-    return (Object.entries(result.traits) as [keyof TraitScores, number][])
+    if (!scentResult) return []
+    return (Object.entries(scentResult.traits) as [keyof TraitScores, number][])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([key, value]) => ({ label: t.traits[key] ?? TRAIT_LABELS[key], value }))
-  }, [result, t])
+  }, [scentResult, t])
 
   const recipeRows = useMemo(() => {
     if (!persona) return []
@@ -829,10 +962,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         name: persona.name,
         ratio: 100,
         amountMl: Math.round(ml * 100) / 100,
-        amountG: Math.round(ml * FRAGRANCE_DENSITY * 100) / 100,
+        // 행사 모드(AI 조향사)는 그램과 ml 을 같은 숫자로 — 매장은 향료 비중 0.9
+        amountG: Math.round(ml * (kioskMode.gramsEqualMl ? 1 : FRAGRANCE_DENSITY) * 100) / 100,
       },
     ]
-  }, [persona, productInfo])
+  }, [persona, productInfo, kioskMode.gramsEqualMl])
 
   // ── 결과 아카이브 (Electron 셸에서만) ─────────────────────────
   useEffect(() => {
@@ -845,8 +979,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         productType,
         perfumeId: persona?.id,
         result,
-        // 셸은 순수 base64를 기대한다 (Buffer.from(photoBase64, 'base64')) — dataURL 접두어 제거
-        photoBase64: photo ? photo.split(',')[1] : null,
+        // 셸은 순수 base64를 기대한다 (Buffer.from(photoBase64, 'base64')) — dataURL 접두어 제거.
+        // 퍼스널 컬러는 본인 얼굴 사진이고 화면에 '저장하지 않습니다'라고 안내한다 — 기기 아카이브에 넘기지 않는다
+        // (셸은 받은 사진을 output/<시각>/photo.jpg 로 남긴다)
+        photoBase64: photo && !isColorResult(result) ? photo.split(',')[1] : null,
       })
       .catch(() => {})
   }, [step, result, kiosk, name, productType, persona, photo])
@@ -855,7 +991,9 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // 결과 화면에 도달한 건만 남긴다. 실패해도 손님 플로우는 그대로 진행한다 —
   // 기록은 운영 통계용이지 손님이 기다릴 이유가 없다.
   useEffect(() => {
-    if (step !== 'result' || !result || !persona || !match || recordedRef.current) return
+    if (step !== 'result' || !result || recordedRef.current) return
+    // 향이 있는 프로그램은 향 정보가 준비된 뒤에 남긴다. 퍼스널 컬러·타로는 향·제품 칸을 비워 남긴다
+    if (scentResult && (!persona || !match)) return
     recordedRef.current = true
 
     const saju = isSajuResult(result) ? buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') : null
@@ -867,22 +1005,28 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         customer_name: name.trim() || '게스트',
         gender,
         // 사주는 사진을 쓰지 않는다
-        photo_source: isSajuResult(result) ? null : photoSource,
-        product_type: productType,
-        product_label: productInfo.label,
-        perfume_id: persona.id,
-        perfume_no: perfumeNoFromId(persona.id),
-        perfume_name: persona.name,
-        category_en: scentCategoryEn(persona.id),
-        match_score: match.score,
-        keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords)?.slice(0, 5),
-        traits: topTraits,
-        personal_color: result.personalColor
-          ? `${SEASON_LABELS[result.personalColor.season]} ${TONE_LABELS[result.personalColor.tone]}`
-          : null,
-        analysis_text: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
-        recipe: recipeRows,
+        photo_source: isSajuResult(result) || isTarotResult(result) ? null : photoSource,
+        product_type: scentResult ? productType : null,
+        product_label: scentResult ? productInfo.label : null,
+        perfume_id: persona?.id ?? null,
+        perfume_no: persona ? perfumeNoFromId(persona.id) : null,
+        perfume_name: persona?.name ?? null,
+        category_en: persona ? scentCategoryEn(persona.id) : null,
+        match_score: match?.score ?? null,
+        keywords: scentResult
+          ? (scentResult.matchingKeywords?.length ? scentResult.matchingKeywords : persona?.keywords)?.slice(0, 5)
+          : isColorResult(result) || isTarotResult(result) ? result.keywords.slice(0, 5) : null,
+        traits: scentResult ? topTraits : null,
+        personal_color: isColorResult(result)
+          ? px.color.typeNames[result.colorDiagnosis.typeId]
+          : scentResult?.personalColor
+            ? `${SEASON_LABELS[scentResult.personalColor.season]} ${TONE_LABELS[scentResult.personalColor.tone]}`
+            : null,
+        analysis_text: extraAnalysisText(result) ?? [scentResult?.analysis?.mood, scentResult?.analysis?.style].filter(Boolean).join(' '),
+        recipe: scentResult ? recipeRows : null,
         saju,
+        // 퍼스널 컬러·타로 요약(유형·눈금 / 주제·뽑힌 카드) — 다른 프로그램은 null
+        detail: extraRecordDetail(result),
         ticket: ticketRef.current,
         mocked,
         device: kiosk ? `shell ${kiosk.version}` : 'web',
@@ -894,102 +1038,115 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       })
       .catch((e) => console.error('[kiosk] 분석 기록 실패:', e))
   }, [
-    step, result, persona, match, program, name, gender, photoSource, productType,
-    productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx,
+    step, result, scentResult, persona, match, program, name, gender, photoSource, productType,
+    productInfo, topTraits, recipeRows, mocked, kiosk, lang, sx, px,
   t.gender,
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
   const buildReceipt = useCallback(async (): Promise<{ dataUrl: string; base64: string } | null> => {
-    if (!result || !persona || !match) return null
+    if (!result) return null
     const now = new Date()
     const two = (n: number) => String(n).padStart(2, '0')
-    const baseMl = productInfo.totalVolumeMl - productInfo.fragranceVolumeMl
-    const categoryEn = scentCategoryEn(persona.id)
-
-    const data: ReceiptData = {
-      ticket: ticketRef.current,
+    const stamp = {
       date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())}`,
       time: `${two(now.getHours())}:${two(now.getMinutes())}`,
       customerName: name.trim() || t.guest,
       gender,
-      productLabel: t.products[productInfo.id]?.label ?? productInfo.label,
-      perfumeNo: perfumeNoFromId(persona.id),
-      perfumeName: persona.name,
-      categoryEn,
-      score: match.score,
-      keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords).slice(0, 5),
-      notes: {
-        top: persona.mainScent?.name ?? '-',
-        middle: persona.subScent1?.name ?? '-',
-        base: persona.subScent2?.name ?? '-',
-      },
-      analysisText: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
-      personalColorText: result.personalColor
-        ? t.personalColor(
-            t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
-            t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
-          )
-        : '',
-      palette: result.personalColor?.palette?.slice(0, 4) ?? [],
-      signals: topTraits,
-      recipeRows,
-      baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
-      steps: t.receipt.steps,
-      // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
-      counterNotice: modeCounterNotice(kioskMode, lang, t.receipt.counterNotice),
-      recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
-      precautions: t.receipt.precautions,
-      footerLines: [
-        ...(mocked ? [t.receipt.demoNote] : []),
-        "AC'SCENT · www.acscent.co.kr",
-      ],
-      ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
+    }
+    let data: ReceiptData
+    if (isColorResult(result) || isTarotResult(result)) {
+      // 퍼스널 컬러 · 타로 — 진단서/리딩만. 향·제품·레시피·발권 번호가 없다(영수증 렌더러가 그 구역을 찍지 않는다)
+      data = {
+        ...stamp,
+        ticket: null,
+        productLabel: '', perfumeNo: '', perfumeName: '', categoryEn: '', score: 0,
+        keywords: result.keywords.slice(0, 5),
+        notes: { top: '', middle: '', base: '' },
+        analysisText: '', personalColorText: '', palette: [], signals: [], recipeRows: [], baseText: '', steps: [],
+        footerLines: [
+          ...(mocked ? [px.demoNote] : []),
+          isColorResult(result) ? px.color.disclaimer : px.tarot.disclaimer,
+          ...(storeBrand ? ["AC'SCENT · www.acscent.co.kr"] : []),
+        ],
+        ...(isColorResult(result) ? { color: buildReceiptColor(result, px) } : { tarot: buildReceiptTarot(result, px, lang) }),
+      }
+    } else {
+      if (!persona || !match) return null
+      const baseMl = productInfo.totalVolumeMl - productInfo.fragranceVolumeMl
+      const categoryEn = scentCategoryEn(persona.id)
+      data = {
+        ...stamp,
+        ticket: ticketRef.current,
+        productLabel: t.products[productInfo.id]?.label ?? productInfo.label,
+        perfumeNo: perfumeNoFromId(persona.id),
+        perfumeName: persona.name,
+        categoryEn,
+        score: match.score,
+        keywords: (result.matchingKeywords?.length ? result.matchingKeywords : persona.keywords).slice(0, 5),
+        notes: {
+          top: persona.mainScent?.name ?? '-',
+          middle: persona.subScent1?.name ?? '-',
+          base: persona.subScent2?.name ?? '-',
+        },
+        analysisText: [result.analysis?.mood, result.analysis?.style].filter(Boolean).join(' '),
+        personalColorText: result.personalColor
+          ? t.personalColor(
+              t.seasons[result.personalColor.season] ?? SEASON_LABELS[result.personalColor.season],
+              t.tones[result.personalColor.tone] ?? TONE_LABELS[result.personalColor.tone]
+            )
+          : '',
+        palette: result.personalColor?.palette?.slice(0, 4) ?? [],
+        signals: topTraits,
+        recipeRows,
+        baseText: baseMl > 0 ? t.receipt.baseText(baseMl.toFixed(1)) : t.receipt.baseNone,
+        steps: t.receipt.steps,
+        // 손님이 읽어야 하는 안내 — 향 번호와 같은 크기로 크게 찍힌다
+        counterNotice: modeCounterNotice(kioskMode, lang, t.receipt.counterNotice),
+        recipeTitle: t.receipt.recipeTitle(t.products[productInfo.id]?.label ?? productInfo.label),
+        precautions: t.receipt.precautions,
+        footerLines: [
+          ...(mocked ? [t.receipt.demoNote] : []),
+          ...(storeBrand ? ["AC'SCENT · www.acscent.co.kr"] : []),
+        ],
+        ...(isSajuResult(result) ? { saju: buildReceiptSaju(result, sx, lang === 'ko', gender ? ((t.gender as Record<string, string>)[gender] ?? gender) : '') } : {}),
+      }
     }
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
-      photoSrc: isSajuResult(result) ? null : photo,
+      photoSrc: isSajuResult(result) || isColorResult(result) || isTarotResult(result) ? null : photo,
       lang,
       // 운영 모드의 영수증 머리말·행사 줄. 사주 결과면 명식이 맨 앞에 오는 처방전 모양
       brand: {
         ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent',
+        // 퍼스널 컬러·타로는 프로그램이 제 머리말을 쓴다(한 모드에 두 프로그램이 같이 있어서)
+        ...(isColorResult(result) ? { subtitle: px.color.receipt.subtitle } : isTarotResult(result) ? { subtitle: px.tarot.receipt.subtitle } : {}),
         // STORE ADMIN 에서 고른 사주 영수증 양식·한자 글꼴(되돌리기용)
         receiptStyle: deviceBaseSettings.receiptStyle ?? 'sheet', hanjaFont: deviceBaseSettings.hanjaFont ?? 'kaishu',
+        // 매장(wow) 밖 체험 모드는 브랜드·회사명을 찍지 않는다(2026-10-28 사용자 지시)
+        brandless: !storeBrand,
       },
     })
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont, storeBrand])
 
-  const openReceipt = useCallback(async () => {
-    try {
-      // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
-      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket) {
-        const t = await kiosk.nextTicket().catch(() => null)
-        if (t?.success && t.ticket) ticketRef.current = t.ticket
-      }
-      const r = await buildReceipt()
-      if (r) setReceipt(r)
-    } catch (e) {
-      console.error('[kiosk] 영수증 렌더 실패:', e)
-      showToast(t.toastReceiptFailed)
-    }
-  }, [buildReceipt, kiosk, showToast, t])
-
-  const printReceipt = useCallback(async () => {
-    if (!receipt) return
+  /** 영수증 한 장을 인쇄한다(프린터 없는 웹 초안은 PNG 저장) — 미리보기의 버튼과 '영수증 출력'이 함께 쓴다 */
+  const printReceiptData = useCallback(async (target: { dataUrl: string; base64: string }) => {
     if (!kiosk?.hasPrinter) {
       // 웹 초안: PNG 다운로드로 대체
       const a = document.createElement('a')
-      a.href = receipt.dataUrl
+      a.href = target.dataUrl
       a.download = `acscent-receipt-${Date.now()}.png`
       a.click()
       showToast(t.toastPngSaved)
       return
     }
+    if (printBusyRef.current) return
+    printBusyRef.current = true
     setPrinting(true)
     try {
       const res = await kiosk.printReceipt({
-        receiptImageBase64: receipt.base64,
+        receiptImageBase64: target.base64,
         ticket: ticketRef.current ?? undefined,
       })
       if (res.success) {
@@ -1006,13 +1163,18 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             }),
           }).catch((e) => console.error('[kiosk] 출력 기록 실패:', e))
         }
-        if (res.ticket && !ticketRef.current) {
-          ticketRef.current = res.ticket
-          // 구형 셸(선채번 미지원) 경로: 채번된 번호를 반영해 재인쇄용 원판만 갱신
-          const again = await buildReceipt()
-          if (again) setReceipt(again)
+        if (!scentResult) {
+          // 퍼스널 컬러·타로 — 발권 번호가 없는 영수증
+          showToast(px.printed)
+        } else {
+          if (res.ticket && !ticketRef.current) {
+            ticketRef.current = res.ticket
+            // 구형 셸(선채번 미지원) 경로: 채번된 번호를 반영해 재인쇄용 원판만 갱신
+            const again = await buildReceipt()
+            if (again) setReceipt(again)
+          }
+          showToast(t.toastTicketIssued(res.ticket ?? ''))
         }
-        showToast(t.toastTicketIssued(res.ticket ?? ''))
       } else {
         showToast(t.toastPrintFailed(res.error ?? t.printerError))
       }
@@ -1020,42 +1182,48 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       console.error('[kiosk] 인쇄 실패:', e)
       showToast(t.toastPrintFailedStaff)
     } finally {
+      printBusyRef.current = false
       setPrinting(false)
     }
-  }, [receipt, kiosk, buildReceipt, showToast, t])
+  }, [kiosk, buildReceipt, showToast, t, scentResult, px.printed])
+
+  const openReceipt = useCallback(async () => {
+    if (receiptOpeningRef.current || printBusyRef.current) return
+    receiptOpeningRef.current = true
+    try {
+      // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
+      // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
+      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
+        const t = await kiosk.nextTicket().catch(() => null)
+        if (t?.success && t.ticket) ticketRef.current = t.ticket
+      }
+      const r = await buildReceipt()
+      if (r) {
+        setReceipt(r)
+        // 프린터가 있는 기기 — '영수증 출력'을 누르면 미리보기와 함께 바로 인쇄한다(처음 한 장).
+        // 이미 뽑았으면 미리보기만 연다 — 한 장 더는 미리보기의 버튼으로(같은 발권 번호가 두 장 나가지 않게)
+        if (kiosk?.hasPrinter && !printedOnce) void printReceiptData(r)
+      }
+    } catch (e) {
+      console.error('[kiosk] 영수증 렌더 실패:', e)
+      showToast(t.toastReceiptFailed)
+    } finally {
+      receiptOpeningRef.current = false
+    }
+  }, [buildReceipt, kiosk, showToast, t, scentResult, printedOnce, printReceiptData])
+
+  const printReceipt = useCallback(() => {
+    if (receipt) void printReceiptData(receipt)
+  }, [receipt, printReceiptData])
 
   // ── 관리자 핫스팟 (짧게 누르기 / 1.5초 홀드 모두 서버 인증 후 설정) ────
   const exitHold = useRef<number | undefined>(undefined)
   const exitTriggered = useRef(false)
   const openBackgroundAdmin = useCallback(() => {
-    backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(true)
-    setBackgroundAdminUnlocked(false)
-    setBackgroundAdminOffline(false)
-    setBackgroundPassword('')
-    setBackgroundPasswordError('')
-    setBackgroundActionError('')
-    setBackgroundUnlocking(false)
     void refreshBackgrounds()
   }, [refreshBackgrounds])
-  const closeBackgroundAdmin = useCallback(() => {
-    backgroundAuthRequest.current += 1
-    setBackgroundAdminOpen(false)
-    setBackgroundAdminUnlocked(false)
-    setBackgroundAdminOffline(false)
-    setBackgroundPassword('')
-    setBackgroundPasswordError('')
-    setBackgroundUnlocking(false)
-  }, [])
-  const quitKioskApp = useCallback(() => {
-    if (kiosk) void kiosk.quitApp()
-    else {
-      closeBackgroundAdmin()
-      showToast('키오스크 앱에서만 종료할 수 있습니다')
-    }
-  }, [kiosk, closeBackgroundAdmin, showToast])
-  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
-  const [askQuitKiosk, quitConfirmNode] = useQuitConfirm(quitKioskApp)
+  const closeBackgroundAdmin = useCallback(() => setBackgroundAdminOpen(false), [])
   const onExitDown = useCallback(() => {
     exitTriggered.current = false
     if (exitHold.current) window.clearTimeout(exitHold.current)
@@ -1070,103 +1238,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     exitHold.current = undefined
   }, [])
 
-  const pressBackgroundAdminKey = useCallback(async (key: string) => {
-    if (backgroundUnlocking) return
-    setBackgroundPasswordError('')
-    if (key === '지우기') {
-      setBackgroundPassword((value) => value.slice(0, -1))
-      return
-    }
-    // 6자리가 차면 확인 버튼 없이 바로 인증한다(포토부스와 같은 방식). 확인 버튼은 다시 시도용으로 남겨 둔다
-    let pin = backgroundPassword
-    if (key !== '확인') {
-      if (backgroundPassword.length >= 6) return
-      pin = `${backgroundPassword}${key}`.slice(0, 6)
-      setBackgroundPassword(pin)
-      if (pin.length < 6) return
-    }
-    if (pin.length !== 6) return
-    setBackgroundUnlocking(true)
-    const requestId = ++backgroundAuthRequest.current
-
-    /* 서버에 닿지 못하면 기기(셸)에 PIN을 확인받아 앱 종료만 연다.
-       배경 선택은 서버가 있어야 하니 열지 않는다. 처리했으면 true. */
-    const unlockOffline = async () => {
-      if (!kiosk?.checkAdminPin) return false
-      const ok = await kiosk.checkAdminPin(pin).catch(() => false)
-      if (requestId !== backgroundAuthRequest.current) return true
-      setBackgroundPassword('')
-      if (ok) setBackgroundAdminOffline(true)
-      else setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
-      return true
-    }
-
-    try {
-      // 끊긴 게 확실하면 서버 응답(최대 12초)을 기다리지 않는다
-      if (navigator.onLine === false && (await unlockOffline())) return
-      const unlocked = await unlockBackgroundAdmin(pin)
-      if (requestId !== backgroundAuthRequest.current) return
-      setBackgroundPassword('')
-      if (unlocked) setBackgroundAdminUnlocked(true)
-      else setBackgroundPasswordError('비밀번호가 올바르지 않습니다.')
-    } catch (error) {
-      if (requestId === backgroundAuthRequest.current && !(await unlockOffline())) {
-        setBackgroundPassword('')
-        // fetch 자체가 실패하면 브라우저 원문('Failed to fetch')이 오므로 안내 문구로 바꾼다
-        const unreachable = error instanceof TypeError || navigator.onLine === false
-        setBackgroundPasswordError(
-          unreachable
-            ? '인터넷에 연결되어 있지 않습니다. 연결을 확인해주세요.'
-            : error instanceof Error ? error.message : '관리자 인증에 실패했습니다. 연결을 확인해주세요.'
-        )
-      }
-    } finally {
-      if (requestId === backgroundAuthRequest.current) setBackgroundUnlocking(false)
-    }
-  }, [backgroundPassword, backgroundUnlocking, unlockBackgroundAdmin, kiosk])
-
-  useEffect(() => {
-    if (!backgroundAdminOpen) return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closeBackgroundAdmin()
-      } else if (!backgroundAdminUnlocked && !backgroundAdminOffline && (/^[0-9]$/.test(event.key) || event.key === 'Backspace' || event.key === 'Enter')) {
-        event.preventDefault()
-        void pressBackgroundAdminKey(event.key === 'Backspace' ? '지우기' : event.key === 'Enter' ? '확인' : event.key)
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [backgroundAdminOpen, backgroundAdminUnlocked, backgroundAdminOffline, pressBackgroundAdminKey, closeBackgroundAdmin])
-
-  useEffect(() => {
-    if (!backgroundAdminOpen) return
-    const previous = document.activeElement as HTMLElement | null
-    const dialog = backgroundDialogRef.current
-    dialog?.querySelector<HTMLButtonElement>('button')?.focus()
-    const keepFocus = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab' || !dialog) return
-      const controls = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])'))
-      const first = controls[0], last = controls[controls.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last?.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first?.focus()
-      }
-    }
-    dialog?.addEventListener('keydown', keepFocus)
-    return () => {
-      dialog?.removeEventListener('keydown', keepFocus)
-      previous?.focus()
-    }
-  }, [backgroundAdminOpen])
-
   useEffect(() => () => {
     if (exitHold.current) window.clearTimeout(exitHold.current)
-    backgroundAuthRequest.current += 1
   }, [])
 
   /* ── 한 화면에 맞추기 ──────────────────────────────────────
@@ -1181,7 +1254,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       if (!body) return
       body.style.setProperty('--ksk-fit', '1')
       // 글이 긴 장은 축소 대신 스크롤 — 줄이면 읽을 수 없는 크기가 된다
-      if (scrollChapter) return
+      if (scrollChapter || programTheme) return
       // scrollHeight 를 읽는 순간 레이아웃이 확정된다 (zoom 1 기준 실측)
       const avail = body.clientHeight
       const content = body.scrollHeight
@@ -1201,7 +1274,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       window.clearTimeout(t2)
       window.removeEventListener('resize', fit)
     }
-  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter])
+  }, [step, chapterIdx, oskOpen, wishOpen, partnerOskOpen, photo, result, qrState, camError, styles, personalities, charms, scrollChapter, programTheme, tarot.questionOpen, tarot.picks.length, tarot.revealed, tarot.deck.length])
 
   /* ── 스크롤 힌트 ──────────────────────────────────────────
      스크롤바를 숨겨 둔 터치 화면에서는 "아래에 더 있다"를 알 방법이 없다.
@@ -1272,6 +1345,15 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   // ── 렌더 ─────────────────────────────────────────────────
   const stepIdx = steps.indexOf(step)
   const showHeader = stepIdx >= 0
+  // 퍼스널 컬러·타로 전용 화면 — 작은 브랜드 줄 + 언어 버튼 + 단계(컬러: 두 단계 / 타로: 진행 막대)
+  const programLang = step !== 'analyzing' && step !== 'result' && !backgroundAdminOpen ? (
+    <ProgramLangMenu lang={lang} open={langOpen} onToggle={() => setLangOpen((open) => !open)} onPick={(next) => { setLang(next); setLangOpen(false) }} label={t.langMenuLabel} closeLabel={t.close} />
+  ) : null
+  const programProgress: ProgramProgress = !programTheme || step === 'attract'
+    ? null
+    : programTheme === 'color'
+      ? step === 'info' || step === 'capture' ? { kind: 'stepper', current: step === 'info' ? 0 : 1, labels: [pu.stepper.info, pu.stepper.photo] } : null
+      : showHeader && step !== 'cards' ? { kind: 'bar', index: stepIdx, total: steps.length, label: STEP_LABELS[step] } : null
 
   // 언어 전환 — 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 그 전까지만 연다
   const langControl =
@@ -1288,7 +1370,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             setLangOpen((open) => !open)
           }}
         >
-          <PixelIcon name="globe" size={24} />
+          {programTheme ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c5 5 5 13 0 18M12 3c-5 5-5 13 0 18" />
+            </svg>
+          ) : <PixelIcon name="globe" size={24} />}
           <span className="rt-pixel">{KIOSK_LANGS.find((l) => l.id === lang)?.code}</span>
         </button>
         {langOpen && (
@@ -1332,6 +1418,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     ? `${String(stepIdx + 1).padStart(2, '0')}/${String(steps.length).padStart(2, '0')}`
     : ''
   useScreenUiSwitch(design, deviceSettings, backgroundsSynced, step === 'attract' || backgroundAdminOpen)
+  // 체험 모드(네일·명함 등)로 바뀌면 전용 화면으로 갈아탄다 — 손님이 없을 때 새로고침
+  useExperienceSwitch(null, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
+  // SCENT! AI 조향사 모드로 바뀌면 전용 화면으로 갈아탄다(그 화면은 레트로·맥 설정과 무관하다)
+  usePerfumerSwitch(false, deviceBaseSettings.mode, backgroundsSynced, step === 'attract', backgroundAdminOpen)
   const titleExtra =
     step === 'analyzing' ? 'RUNNING' : step === 'result' ? 'REPORT' : showHeader ? STEP_LABELS[step] : undefined
 
@@ -1339,6 +1429,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     <div
       className={`ksk-root rt rt--kiosk rt-desktop ${KIOSK_FONT_CLASS} ${RETRO_FONT_CLASS}`}
       data-ui={design}
+      data-program-theme={programTheme}
+      data-program-step={step}
       data-background={activeBackground.id}
       data-tone={retroDesk.tone}
       data-lang={lang}
@@ -1356,14 +1448,14 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           '--ksk-body-font': isCjkLang(lang) ? CJK_FONT_STACK[lang] : retroDesk.bodyFont,
           '--ksk-display-tracking': retroDesk.displayTracking,
           ...(design === 'mac' ? macFontVars(isCjkLang(lang) ? CJK_FONT_STACK[lang] : deviceSettings.font ? retroDesk.bodyFont : undefined) : {}),
+          ...kioskProgramThemeVars(programTheme, isCjkLang(lang) ? CJK_FONT_STACK[lang] : undefined),
         } as CSSProperties
       }
     >
       {/* 관리자 창 배경 목록의 추천 글꼴 미리보기까지 — 창이 열렸을 때만 싣는다 */}
-      {quitConfirmNode}
-      <ScreenFontFace ids={[retroDesk.fontId, ...(backgroundAdminOpen ? backgrounds.map((b) => b.font) : [])]} />
+      <ScreenFontFace ids={[retroDesk.fontId]} />
       {step !== 'attract' && (
-      <div className="ksk-stage rt-stack">
+      <div className="ksk-stage rt-stack" data-step={step}>
         <span className="rt-ghost rt-ghost-1" aria-hidden="true" />
         <span className="rt-ghost rt-ghost-2" aria-hidden="true" />
         <section className="ksk-window rt-win">
@@ -1373,8 +1465,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             {titleExtra && <span className="rt-win-title-extra">{titleExtra}</span>}
           </header>
 
+          {programTheme && <ProgramTopBar brand={kioskMode.brandName} langMenu={programLang} progress={programProgress} />}
+
           {/* 메뉴바 — 현재 단계(블록)와 언어 전환 */}
-          <div className="ksk-menubar">
+          {!programTheme && (<div className="ksk-menubar">
             {showHeader ? (
               <div className="ksk-menubar-step">
                 <span className="rt-pixel">STEP {stepCode}</span>
@@ -1397,46 +1491,68 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </div>
             )}
             {langControl}
-          </div>
+          </div>)}
 
           <div className="ksk-winbody">
         {step === 'program' && (
           <div className="ksk-body">
             <p className="ksk-eyebrow ksk-mono">PROGRAM</p>
-            <h1 className="ksk-title">어떤 분석을 해볼까요?</h1>
-            <p className="ksk-desc">프로그램에 따라 물어보는 것이 달라집니다.</p>
+            <h1 className="ksk-title">{px.pickTitle}</h1>
+            <p className="ksk-desc">{px.pickDesc}</p>
             <div className="ksk-programs">
               {activePrograms.map((p) => (
                 <button
                   key={p.id}
                   className="ksk-program"
-                  data-on={program === p.id}
                   onClick={() => {
-                    setProgram(p.id)
+                    pickProgram(p.id)
                     setStep('info')
                   }}
                 >
                   <span className="ksk-program-hanja">{p.hanja}</span>
                   <span className="ksk-program-body">
-                    <b>{p.title}</b>
-                    <span>{p.desc}</span>
+                    <b>{px.programs[p.id].title}</b>
+                    <span>{px.programs[p.id].desc}</span>
                   </span>
-                  <em className="ksk-mono">{p.note}</em>
+                  <em className="ksk-mono">{px.programs[p.id].note}</em>
                 </button>
               ))}
             </div>
             <div style={{ flex: 1 }} />
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={resetAll}>
-                처음으로
+                {t.home}
               </button>
             </div>
           </div>
         )}
 
+        {(step === 'topic' || step === 'question' || step === 'cards') && (
+          <TarotSteps
+            step={step}
+            session={tarot}
+            tx={px.tarot}
+            labels={{ prev: t.prev, next: t.next }}
+            lang={lang}
+            pill={stepPill}
+            onPrev={goPrev}
+            onNext={goNext}
+            questionNote={pu.tarot.questionNote}
+            revealedDesc={pu.tarot.revealedDesc(name)}
+            keyboard={(props) => (
+              <OnScreenKeyboard
+                {...props}
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
+              />
+            )}
+          />
+        )}
+
         {step === 'purpose' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.purpose}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('purpose')}</p>
             <h1 className="ksk-title">{sx.purposeTitle}</h1>
             <p className="ksk-desc">{sx.purposeDesc}</p>
             <SajuPurposeGrid value={purpose} onChange={setPurpose} tx={sx} />
@@ -1454,7 +1570,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
         {step === 'birth' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.birth}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('birth')}</p>
             <h1 className="ksk-title">{sx.birthTitle}</h1>
             <SajuBirthPad
               digits={birthDigits}
@@ -1483,7 +1599,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
         {step === 'hour' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.hour}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('hour')}</p>
             <h1 className="ksk-title">{sx.hourTitle}</h1>
             <p className="ksk-desc">{sx.hourDesc}</p>
             <SajuHourGrid value={hourIndex} onChange={setHourIndex} tx={sx} />
@@ -1501,7 +1617,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
         {step === 'partner' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.partner}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('partner')}</p>
             <h1 className="ksk-title">{sx.partnerTitle}</h1>
             <label className="ksk-field-label ksk-mono">{sx.relation}</label>
             <SajuRelationGrid value={partnerRelation} onChange={setPartnerRelation} tx={sx} />
@@ -1541,6 +1657,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 onClose={() => setPartnerOskOpen(false)}
                 maxLength={12}
                 hint={sx.partnerName}
+                // 화면 언어 자판·라벨 — 이름 칸과 같게(예전엔 고민·상대 이름 칸이 언어와 상관없이 한글 자판)
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
               />
             ) : (
               <div className="ksk-actions">
@@ -1565,7 +1685,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
         {step === 'wish' && (
           <div className="ksk-body">
-            <p className="ksk-eyebrow ksk-mono">{STEP_LABELS.wish}</p>
+            <p className="ksk-eyebrow ksk-mono">{stepPill('wish')}</p>
             <h1 className="ksk-title">{sx.wishTitle}</h1>
             <p className="ksk-desc">{sx.wishDesc}</p>
             <button className="ksk-input ksk-input-tall" data-empty={!wish} onClick={() => setWishOpen(true)}>
@@ -1579,6 +1699,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 onClose={() => setWishOpen(false)}
                 maxLength={40}
                 hint={sx.wishHint}
+                // 화면 언어 자판·라벨 — 이름 칸과 같게(예전엔 고민·상대 이름 칸이 언어와 상관없이 한글 자판)
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
               />
             ) : (
               <div className="ksk-actions">
@@ -1593,18 +1717,44 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </div>
         )}
 
-        {step === 'info' && (
+        {step === 'info' && programTheme && (
+          <ProgramInfoStep
+            theme={programTheme}
+            t={t}
+            ui={pu}
+            eyebrow={stepPill('info')}
+            name={name}
+            gender={gender}
+            onGender={setGender}
+            onOpenKeyboard={() => setOskOpen(true)}
+            keyboard={oskOpen ? (
+              <OnScreenKeyboard
+                value={name}
+                onChange={setName}
+                onClose={() => setOskOpen(false)}
+                maxLength={12}
+                hint={t.namePlaceholder}
+                labels={{ aria: t.oskAria, placeholder: t.oskPlaceholder, space: t.oskSpace, done: t.oskDone }}
+                initialMode={oskModeFor(lang)}
+                traditional={lang === 'zh-Hant'}
+              />
+            ) : null}
+            onHome={resetAll}
+            onNext={goNext}
+          />
+        )}
+        {step === 'info' && !programTheme && (
           <div className="ksk-body">
             <h1 className="ksk-title">
               {program === 'idol' ? t.infoTitleIdol : t.infoTitleSelf}
             </h1>
             <p className="ksk-desc">{t.infoDesc}</p>
-            <label className="ksk-field-label ksk-mono">NAME {t.nameOptional}</label>
+            <label className="ksk-field-label">{t.nameLabel} {t.nameOptional}</label>
             {/* 터치 전용: 네이티브 키보드를 띄우지 않고 자체 OSK를 연다 */}
             <button className="ksk-input" data-empty={!name} onClick={() => setOskOpen(true)}>
               {name || t.namePlaceholder}
             </button>
-            <label className="ksk-field-label ksk-mono">GENDER</label>
+            <label className="ksk-field-label">{t.genderLabel}</label>
             <div className="ksk-chips" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               {GENDER_OPTIONS.map((g) => (
                 <button key={g.key} className="ksk-chip" data-on={gender === g.key} onClick={() => setGender(g.key)}>
@@ -1687,8 +1837,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             <h1 className="ksk-title">{t.productTitle}</h1>
             <p className="ksk-desc">{t.productDesc}</p>
             <div className="ksk-products">
-              {/* 사주 프로그램은 향수만 — 디퓨저 5ml 는 매장 최애 분석에서만 */}
-              {PRODUCT_TYPES.filter((p) => program !== 'saju' || !p.id.startsWith('diffuser')).map((p) => (
+              {/* 디퓨저 5ml 는 매장 이미지 분석에서만 — 사주·퍼스널 컬러·타로는 향수만 */}
+              {PRODUCT_TYPES.filter((p) => program === 'idol' || program === 'personal' || !p.id.startsWith('diffuser')).map((p) => (
                 <button
                   key={p.id}
                   className="ksk-product"
@@ -1705,6 +1855,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               ))}
             </div>
             <div style={{ flex: 1 }} />
+            {/* 결과 화면에는 언어 버튼이 없다 — 분석 전에 어떤 언어로 나오는지 알린다 */}
+            <p className="ksk-result-lang">{t.resultLangNote}</p>
             <div className="ksk-actions">
               <button className="ksk-btn" onClick={goPrev}>
                 {t.prev}
@@ -1716,7 +1868,42 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </div>
         )}
 
-        {step === 'capture' && (
+        {step === 'capture' && program === 'color' && (
+          <ColorCaptureStep
+            t={t}
+            ui={pu}
+            titles={{ capture: px.color.captureTitle, confirm: px.color.confirmTitle }}
+            photo={photo}
+            photoSource={photoSource}
+            videoRef={videoRef}
+            frameRef={camFrame.slotRef}
+            frameSize={camFrame.size}
+            onPhotoLoad={camFrame.onPhotoLoad}
+            countdown={countdown}
+            camError={camError}
+            inShell={Boolean(kiosk)}
+            onFile={onUploadFallback}
+            noFacePhoto={noFacePhoto}
+            qrState={qrState}
+            qrDataUrl={qrDataUrl}
+            qrCode={qrCode}
+            qrUnreachable={qrUnreachable}
+            onRetake={() => {
+              setPhoto(null)
+              releaseGarment()
+              // QR로 받은 사진을 물리면 세션이 이미 소진됐다 — 버리고 새 QR을 받는다
+              if (photoSource === 'qr') clearQr()
+            }}
+            onStart={startAnalysis}
+            onUseCamera={useCamera}
+            onUseQr={() => { setNoFacePhoto(null); void startQrSession() }}
+            onRegenQr={() => void startQrSession()}
+            onBackFromQr={() => { clearQr(); goPrev() }}
+            onPrev={goPrev}
+            onShoot={() => { setNoFacePhoto(null); startCountdown() }}
+          />
+        )}
+        {step === 'capture' && program !== 'color' && (
           <div className="ksk-body">
             <h1 className="ksk-title">
               {photo ? t.captureConfirm : photoSource === 'qr' ? t.captureQrTitle : t.captureCamTitle}
@@ -1770,10 +1957,11 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 )}
               </div>
             ) : (
-              <div className="ksk-cam">
+              <div className="ksk-cam-slot" ref={camFrame.slotRef}>
+              <div className="ksk-cam" style={camFrame.size ?? undefined} data-fit={photo && photoSource !== 'camera' ? 'contain' : undefined}>
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={t.selectedPhotoAlt} />
+                  <img src={photo} alt={t.selectedPhotoAlt} onLoad={camFrame.onPhotoLoad} />
                 ) : (
                   <video ref={videoRef} playsInline muted />
                 )}
@@ -1802,8 +1990,10 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                 </div>
               )}
               </div>
+              </div>
             )}
-            <div style={{ flex: 1 }} />
+            {/* 카메라 쪽은 액자 자리(.ksk-cam-slot)가 남는 높이를 받는다 — 밀어내는 칸은 QR 안내일 때만 */}
+            {!photo && photoSource === 'qr' && <div style={{ flex: 1 }} />}
             {photo ? (
               <div className="ksk-actions">
                 <button
@@ -1826,7 +2016,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   className="ksk-alt"
                   onClick={() => {
                     clearQr()
-                    setStep('product')
+                    goPrev()
                   }}
                 >
                   {t.backStep}
@@ -1850,7 +2040,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   {t.useQr}
                 </button>
                 <div className="ksk-actions">
-                  <button className="ksk-btn" onClick={() => setStep('product')}>
+                  <button className="ksk-btn" onClick={() => goPrev()}>
                     {t.prev}
                   </button>
                   <button
@@ -1866,18 +2056,51 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           </div>
         )}
 
-        {step === 'analyzing' && (
+        {step === 'analyzing' && analyzeError && programTheme && (
+          <ProgramAnalyzeError
+            theme={programTheme}
+            t={t}
+            ui={pu}
+            kind={analyzeError}
+            onHome={resetAll}
+            onRetry={startAnalysis}
+            onRetake={program === 'color' ? () => { setPhoto(null); releaseGarment(); setAnalyzeError(null); setStep('capture') } : undefined}
+          />
+        )}
+        {step === 'analyzing' && analyzeError && !programTheme && (
+          <div className="ksk-body">
+            <div className="ksk-analyzing">
+              <RetroWindow className="ksk-loading ksk-analyze-error" icon="hourglass" title={analyzeError === 'network' ? 'OFFLINE' : 'ERROR'}>
+                <div role="alert">
+                  <h2 className="ksk-analyze-error-title">{t.analyzeError[`${analyzeError}Title`]}</h2>
+                  <p className="ksk-analyze-error-desc">{t.analyzeError[`${analyzeError}Desc`]}</p>
+                </div>
+                <div className="ksk-actions">
+                  <button className="ksk-btn" onClick={resetAll}>{t.analyzeError.home}</button>
+                  <button className="ksk-btn ksk-btn-primary" onClick={startAnalysis}>{t.analyzeError.retry}</button>
+                </div>
+                {/* 퍼스널 컬러 — 사진이 원인이면 같은 사진으로 다시 보내도 또 실패한다. 다시 찍는 길을 준다 */}
+                {program === 'color' && (
+                  <button className="ksk-alt" onClick={() => { setPhoto(null); setAnalyzeError(null); setStep('capture') }}>{px.color.retake}</button>
+                )}
+              </RetroWindow>
+            </div>
+          </div>
+        )}
+
+        {step === 'analyzing' && !analyzeError && programTheme && (
+          <ProgramAnalyzing theme={programTheme} ui={pu} name={name} statusLines={statusLines} eta={analyzingEta} done={analysisDone} cards={tarot.draws.map((d) => d.id)} />
+        )}
+        {step === 'analyzing' && !analyzeError && !programTheme && (
           <div className="ksk-body">
             <div className="ksk-analyzing">
               <RetroWindow className="ksk-loading" ghosts icon="hourglass" title={analysisDone ? 'DONE' : 'ANALYZING...'}>
                 <p className="ksk-analyzing-status" role="status" aria-live="polite">
-                  {(program === 'saju' ? sx.statusLines : t.statusLines)[
-                    statusIdx % (program === 'saju' ? sx.statusLines : t.statusLines).length
-                  ]}
+                  {statusLines[statusIdx % statusLines.length]}
                 </p>
                 <RetroProgress value={analysisDone ? 1 : null} blocks={14} label="ANALYZING" />
                 <p className="ksk-analyzing-eta">
-                  {program === 'saju' ? sx.eta : t.analyzingEta}
+                  {analyzingEta}
                 </p>
               </RetroWindow>
               <RetroStickers
@@ -1918,7 +2141,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   </button>
                 ) : (
                   <button className="ksk-btn ksk-btn-primary" onClick={openReceipt}>
-                    {kiosk?.hasPrinter ? t.receiptPrint : t.receiptPreview}
+                    {kiosk?.hasPrinter && !printedOnce ? t.receiptPrint : t.receiptPreview}
                   </button>
                 )}
               </div>
@@ -1931,14 +2154,20 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       </div>
       )}
 
-      {step === 'attract' && (
+      {step === 'attract' && programTheme && (
+        <div className="ksk-stage" data-step="attract">
+          <ProgramAttract theme={programTheme} lang={lang} attract={attract} brand={kioskMode.brandName} langControl={programLang} onStart={startSession} />
+        </div>
+      )}
+      {step === 'attract' && !programTheme && (
         <>
           {/* 대기 화면 — 레퍼런스처럼 바탕화면 아이콘 줄 + 겹친 창 + 작은 시작 창. 어디를 눌러도 시작 */}
           <div
             className="ksk-attract"
             role="button"
             tabIndex={0}
-            aria-label={t.attractCta}
+            // 낭독기가 제목 글자를 'SAJ U!'처럼 쪼개 읽지 않게 시작 영역 전체에 이름을 붙인다
+            aria-label={kioskMode.poster ? `SAJU! ${kioskMode.poster.main} — ${t.attractCta}` : t.attractCta}
             onClick={startSession}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') startSession()
@@ -1954,7 +2183,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <span className="ksk-attract-ticket rt-tag rt-pixel">{attract.ticket}</span>
                   <div className="ksk-attract-wordmark rt-pixel">
                     <span>AC&rsquo;SCENT</span>
-                    <strong>{attract.wordmark}</strong>
+                    {/* 레트로 픽셀 글꼴은 글자 폭이 넓다 — 'COLOR!'·'TAROT!'처럼 6자면 창 밖으로 나가 끝 글자가 잘린다. 5자 폭에 맞춰 줄인다 */}
+                    <strong style={design === 'retro' && attract.wordmark.length > 5 ? { fontSize: Math.round((86 * 5) / attract.wordmark.length) } : undefined}>{attract.wordmark}</strong>
                   </div>
                   <p className="ksk-attract-sub">{attract.sub}</p>
                 </>
@@ -2001,128 +2231,22 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
         </>
       )}
 
-      {backgroundAdminOpen && (
-        <div
-          className="ksk-admin-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label="키오스크 배경 관리"
-          onPointerDown={(event) => {
-            if (event.target === event.currentTarget) closeBackgroundAdmin()
-          }}
-        >
-          <div className="ksk-admin-panel" ref={backgroundDialogRef}>
-            <RetroWindow
-              className="ksk-admin-win"
-              bodyClassName="ksk-admin-body"
-              icon="lock"
-              title="STORE ADMIN"
-              onClose={closeBackgroundAdmin}
-              closeLabel="닫기"
-            >
-            <h2 className="ksk-admin-title">키오스크 배경 설정</h2>
+      <KioskAdminPanel open={backgroundAdminOpen} onOpen={openBackgroundAdmin} onClose={closeBackgroundAdmin} screen={screenBackgrounds} kiosk={kiosk} />
 
-            {backgroundAdminOffline ? (
-              <div className="ksk-admin-offline">
-                <p>
-                  인터넷에 연결되어 있지 않아 배경은 바꿀 수 없습니다.
-                  <br />
-                  연결이 돌아오면 다시 열어 주세요. 앱 종료는 지금 할 수 있습니다.
-                </p>
-                <div className="ksk-admin-actions">
-                  <button type="button" className="ksk-admin-apply rt-btn" onClick={closeBackgroundAdmin}>
-                    닫기
-                  </button>
-                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={askQuitKiosk}>
-                    앱 종료
-                  </button>
-                </div>
-              </div>
-            ) : !backgroundAdminUnlocked ? (
-              <div className="ksk-admin-lock">
-                <p>관리자 비밀번호 6자리를 입력해주세요.</p>
-                <div className="ksk-admin-dots rt-field" aria-label={`${backgroundPassword.length}자리 입력됨`}>
-                  {Array.from({ length: 6 }, (_, index) => (
-                    <i key={index} data-filled={index < backgroundPassword.length} />
-                  ))}
-                </div>
-                <strong role="status">{backgroundUnlocking ? '인증 확인 중…' : backgroundPasswordError}</strong>
-                <div className="ksk-admin-pad">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '지우기', '0', '확인'].map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={key === '확인' ? 'rt-btn rt-btn--primary' : 'rt-btn'}
-                      data-action={key === '확인' || key === '지우기'}
-                      disabled={backgroundUnlocking || (key === '확인' && backgroundPassword.length !== 6)}
-                      onClick={() => void pressBackgroundAdminKey(key)}
-                    >
-                      {key}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="ksk-admin-themes">
-                <p>배경과 글꼴은 모든 단계에 적용됩니다. 관리자 페이지와 같은 목록·선택을 사용하며 수정·삭제한 사항도 자동 반영됩니다.</p>
-                <KioskModeControls value={deviceSettings.mode} settings={deviceBaseSettings} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
-                <DeviceDesignControls settings={deviceBaseSettings} onSave={saveSettings} disabled={!!backgroundSaving} sample="오늘의 최애, 어떤 향으로 기억할까요?" eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null} />
-                <DeviceAdminTools target="kiosk" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
-                <div className="ksk-admin-toolbar">
-                  <b>화면 배경 · {backgrounds.length}개</b>
-                  <button type="button" className="rt-btn" disabled={backgroundsLoading || !!backgroundSaving} onClick={() => void refreshBackgrounds()}>
-                    {backgroundsLoading ? '불러오는 중…' : '새로고침'}
-                  </button>
-                </div>
-                {(backgroundActionError || backgroundsError) && (
-                  <p className="ksk-admin-error" role="alert">{backgroundActionError || backgroundsError}</p>
-                )}
-                <p className="ksk-admin-status" role="status">
-                  {backgroundSaving ? '서버에 배경을 저장하고 있습니다…' : backgroundsLoading ? '배경 목록을 불러오고 있습니다…' : ''}
-                </p>
-                <div className="ksk-admin-grid rt-scroll">
-                  {backgrounds.map((record) => {
-                    const background = toKioskTheme(record)
-                    return (
-                    <button
-                      key={background.id}
-                      type="button"
-                      className="rt-choice"
-                      data-selected={background.id === backgroundId}
-                      aria-pressed={background.id === backgroundId}
-                      disabled={!!backgroundSaving}
-                      onClick={() => void chooseBackground(background.id)}
-                    >
-                      <span className="ksk-admin-preview">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={record.thumbnail_url || background.image} alt="" loading="lazy" decoding="async" />
-                        {/* 추천 글꼴이 있는 배경은 그 글꼴로 미리 — 고르면 기기 글꼴도 그것으로 바뀐다 */}
-                        <b style={{ fontFamily: screenFontFamily(record.font) ?? retroDesk.displayFont }}>오늘의 최애향</b>
-                      </span>
-                      <span className="ksk-admin-theme-name">
-                        <b>{background.title}</b>
-                        <em>{background.id === backgroundId ? '적용 중' : findScreenFont(record.font)?.label ? `글꼴 · ${findScreenFont(record.font)?.label}` : '선택'}</em>
-                      </span>
-                    </button>
-                  )})}
-                </div>
-                <div className="ksk-admin-actions">
-                  <button type="button" className="ksk-admin-apply rt-btn" onClick={closeBackgroundAdmin}>
-                    닫기
-                  </button>
-                  {/* 앱 종료 — 비밀번호를 이미 통과한 뒤라 여기서 바로 내릴 수 있다 */}
-                  <button type="button" className="ksk-admin-quit rt-btn rt-btn--danger" onClick={askQuitKiosk}>
-                    앱 종료
-                  </button>
-                </div>
-              </div>
-            )}
-            </RetroWindow>
-          </div>
-        </div>
+      {receipt && programTheme && (
+        <ProgramReceiptModal
+          t={t}
+          title={programTheme === 'color' ? pu.color.receiptTitle(name) : undefined}
+          desc={programTheme === 'color' ? pu.color.receiptDesc : undefined}
+          dataUrl={receipt.dataUrl}
+          primaryLabel={kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
+          busy={printing}
+          onClose={() => setReceipt(null)}
+          onPrimary={printReceipt}
+          onHome={resetAll}
+        />
       )}
-
-      {receipt && (
+      {receipt && !programTheme && (
         <div className="ksk-modal" role="dialog" aria-modal="true" aria-label={t.receiptAlt}>
           <RetroWindow className="ksk-modal-win" bodyClassName="ksk-modal-body" icon="printer" title="RECEIPT">
             {/* 프린터에서 나온 종이처럼 — 길어서 아래로 밀어 본다(스크롤바를 보여 준다) */}
@@ -2158,12 +2282,13 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
           <span>{toast}</span>
         </div>
       )}
-      {idleLeft !== null && receiptOpen ? (
-        // 화면 어디를 눌러도(pointerdown) 대기 시간이 다시 채워지고 팝업은 닫힌다
+      {idleLeft !== null && programTheme && <ProgramIdleDialog t={t} left={idleLeft} total={IDLE_WARN_S} />}
+      {idleLeft !== null && !programTheme && (
+        // 무입력 안내 — 어느 단계든 화면 가운데 10초 안내창. 어디를 눌러도(pointerdown) 시간이 다시 채워지고 닫힌다
         <div className="ksk-idle-popup" role="alertdialog" aria-live="assertive" aria-label={t.idleTitle}>
           <RetroWindow className="ksk-idle-win" bodyClassName="ksk-idle-card" icon="hourglass" title="STANDBY">
             <span className="ksk-idle-count rt-pixel">{idleLeft}</span>
-            <RetroProgress value={idleLeft / RECEIPT_IDLE_WARN} blocks={RECEIPT_IDLE_WARN} label={t.idleTitle} />
+            <RetroProgress value={idleLeft / IDLE_WARN_S} blocks={IDLE_WARN_S} label={t.idleTitle} />
             <h2>{t.idleTitle}</h2>
             <p>{t.idleDesc}</p>
             <button type="button" className="ksk-btn ksk-btn-primary">
@@ -2171,15 +2296,8 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
             </button>
           </RetroWindow>
         </div>
-      ) : (
-        idleLeft !== null && (
-          <div className="ksk-idle rt-toast" role="status">
-            <PixelIcon name="hourglass" size={24} />
-            <span>{t.idleBanner(idleLeft)}</span>
-          </div>
-        )
       )}
-      {/* 안전한 모든 단계의 우하단에서 동일한 관리자 인증창을 연다. */}
+      {/* 안전한 모든 단계의 우측 상단 모서리에서 동일한 관리자 인증창을 연다(언어 버튼 위의 얇은 띠). */}
       {!backgroundAdminOpen && step !== 'analyzing' && countdown === null && !printing && !receipt && (
         <button
           type="button"

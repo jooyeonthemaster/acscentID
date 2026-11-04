@@ -88,7 +88,8 @@ export function parseGeminiResponse(responseText: string, locale: Locale = 'ko')
   } catch (error) {
     console.error('Gemini response parsing error:', error);
     console.error('Response text:', responseText);
-    throw new Error('Failed to parse Gemini response');
+    // 원인을 함께 올린다 — 사주 교정 재시도 프롬프트와 운영 로그가 '무엇이' 틀렸는지 알아야 한다
+    throw new Error(`Failed to parse Gemini response: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

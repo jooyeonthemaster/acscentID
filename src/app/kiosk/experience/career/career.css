@@ -1,0 +1,131 @@
+/* 미래 직업 탐색(NEXT!) — 코발트·스카이·오렌지. 목업 06-future-career */
+.kx-root[data-x='career'] { --crr-orange: #f2702a; background: linear-gradient(180deg, #dff0fe 0%, #edf6ff 42%, #ffffff 100%); }
+.kx-root[data-x='career'] .kx-wordmark { border-bottom: 0; padding-bottom: 0; font-size: 184px; letter-spacing: -0.02em; line-height: 0.9; }
+.kx-root[data-x='career'] .kx-headline { margin-top: 8px; color: var(--kx-accent); font-size: 31px; font-weight: 900; }
+.kx-root[data-x='career'] .kx-start-bar .kx-home { color: var(--kx-accent); }
+.kx-root[data-x='career'] .kx-btn--primary { box-shadow: 0 6px 0 #0f2f96; }
+.crr-sub { font-size: 23px; font-weight: 900; color: var(--kx-accent); }
+.crr-note { margin-top: -6px; color: var(--kx-soft); font-size: 16px; font-weight: 600; }
+.crr-mark { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.crr-mark b { font-family: var(--kx-display); font-size: 38px; font-weight: 900; color: var(--kx-accent); }
+.crr-mark span { margin-top: 2px; color: var(--kx-accent); font-size: 10.5px; font-weight: 800; white-space: nowrap; }
+.kx-root[data-x='career'] .kx-home, .kx-root[data-x='career'] .kx-lang-btn { color: var(--kx-accent); }
+.kx-root[data-x='career'] .kx-steps { margin-top: 12px; }
+.kx-root[data-x='career'] .kx-step-dot { border-width: 2px; border-color: var(--kx-accent); background: #fff; color: var(--kx-accent); }
+.kx-root[data-x='career'] .kx-steps li + li::before { height: 2px; background: var(--kx-accent); }
+.kx-root[data-x='career'] .kx-steps li[data-state='now'] .kx-step-dot { border-color: var(--crr-orange); background: var(--crr-orange); color: #fff; }
+.kx-root[data-x='career'] .kx-steps li[data-state='done'] .kx-step-dot { background: var(--kx-accent); color: #fff; }
+.crr-question { display: flex; flex-direction: column; animation: kx-rise 0.42s var(--kx-ease) backwards; }
+.crr-count { margin-top: 8px; color: var(--kx-accent); font-size: 26px; font-weight: 800; text-align: center; }
+.crr-count b { color: var(--crr-orange); font-size: 38px; font-weight: 900; }
+.kx-root[data-x='career'] .kx-title { margin-top: 0; font-size: 36px; }
+.kx-root[data-x='career'] .kx-title span { display: block; }
+.kx-root[data-x='career'] .kx-desc { color: var(--kx-accent); font-size: 18px; font-weight: 500; }
+.crr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.kx-root .crr-tile { position: relative; display: grid; grid-template-columns: 62px 1fr; align-items: center; gap: 12px; min-height: 118px; padding: 10px 12px; border: 3px solid transparent; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); color: var(--kx-ink); text-align: left; transition: transform 0.16s ease-out, border-color 0.2s ease; animation: kx-rise 0.42s var(--kx-ease) backwards; }
+.crr-tile:nth-child(n + 3) { animation-delay: 0.05s; }
+.crr-tile:nth-child(n + 5) { animation-delay: 0.1s; }
+.crr-tile:nth-child(n + 7) { animation-delay: 0.15s; }
+.kx-root .crr-tile[data-on] { border-color: var(--kx-accent); }
+.kx-root .crr-tile:active { transform: scale(0.97); }
+.crr-tile-icon { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 16px; background: var(--kx-accent-soft); color: var(--kx-accent); }
+.crr-tile[data-tone='warm'] .crr-tile-icon { background: #fde9dc; color: var(--crr-orange); }
+.crr-tile b { font-size: 19px; font-weight: 900; line-height: 1.22; letter-spacing: -0.03em; }
+.crr-check { position: absolute; top: -8px; right: -6px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--crr-orange); color: #fff; animation: kx-pop 0.32s var(--kx-spring); }
+.crr-options { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.kx-root .crr-option { display: grid; grid-template-columns: 86px 1fr 42px; align-items: center; gap: 14px; min-height: 112px; padding: 10px 18px; border: 3px solid transparent; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); color: var(--kx-ink); text-align: left; transition: transform 0.14s ease-out, border-color 0.2s ease; animation: kx-rise 0.42s var(--kx-ease) backwards; }
+.crr-option:nth-child(2) { animation-delay: 0.07s; }
+.crr-option:nth-child(3) { animation-delay: 0.14s; }
+.kx-root .crr-option[data-on] { border-color: var(--kx-accent); }
+.crr-option-icon { display: grid; place-items: center; width: 86px; height: 86px; border-radius: 18px; background: var(--kx-accent-soft); color: var(--kx-accent); }
+.crr-option:nth-child(2) .crr-option-icon { background: #fde9dc; color: var(--crr-orange); }
+.crr-option b { font-size: 24px; font-weight: 900; line-height: 1.25; }
+.crr-radio { display: grid; place-items: center; width: 42px; height: 42px; border: 2.5px solid #9fb6ea; border-radius: 50%; color: #fff; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.crr-option[data-on] .crr-radio { border-color: var(--crr-orange); background: var(--crr-orange); }
+.crr-option[data-on] .crr-radio svg { animation: kx-pop 0.3s var(--kx-spring); }
+.kx-root .crr-pill { flex: none; align-self: center; display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 22px; border-radius: 999px; background: var(--kx-accent-soft); color: var(--kx-accent); font-size: 17px; font-weight: 800; }
+.kx-root .crr-pill--btn { min-height: 50px; border: 2px solid var(--kx-accent); background: #fff; }
+.kx-root .crr-next { flex: none; min-height: 74px; margin-top: 14px; margin-bottom: 6px; border-radius: 16px; font-size: 28px; }
+
+/* 결과 */
+.crr-done { flex: none; align-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; margin-top: 16px; padding: 0 16px 0 8px; border: 2px solid var(--crr-orange); border-radius: 999px; background: #fff; color: var(--kx-accent); font-size: 15px; font-weight: 800; }
+.crr-done i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--crr-orange); color: #fff; }
+.kx-root[data-x='career'] .crr-result-title { margin-top: 4px; font-size: 44px; }
+.crr-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.crr-tags span { display: inline-flex; align-items: center; min-height: 30px; padding: 0 14px; border-radius: 999px; background: var(--kx-accent-soft); color: var(--kx-accent); font-size: 14.5px; font-weight: 800; }
+.crr-careers { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.crr-career { display: grid; grid-template-columns: 138px 1fr; align-items: center; gap: 14px; min-height: 124px; padding: 8px 16px 8px 10px; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(25, 70, 205, 0.1); animation: kx-rise 0.46s var(--kx-ease) backwards; }
+.crr-career:nth-child(1) { animation-delay: 0.2s; }
+.crr-career:nth-child(2) { animation-delay: 0.3s; }
+.crr-career:nth-child(3) { animation-delay: 0.4s; }
+.crr-career img { width: 138px; height: 104px; object-fit: contain; }
+.crr-career b { display: block; color: var(--kx-accent); font-size: 28px; font-weight: 900; letter-spacing: -0.04em; line-height: 1.2; }
+.crr-career span { display: block; margin: 2px 0 8px; color: var(--kx-soft); font-size: 15px; line-height: 1.35; }
+.crr-career .crr-tags { justify-content: flex-start; }
+.crr-first { flex: none; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; border: 2px solid var(--crr-orange); border-radius: 16px; background: #fffaf5; color: var(--crr-orange); animation: kx-rise 0.46s var(--kx-ease) 0.5s backwards; }
+.crr-first em { display: block; color: var(--crr-orange); font-size: 14px; font-weight: 800; }
+.crr-first b { display: block; color: var(--kx-ink); font-size: 16.5px; font-weight: 800; line-height: 1.3; }
+.crr-first span { display: block; color: var(--kx-soft); font-size: 12.5px; }
+.kx-root .crr-first button { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 14px; border: 2px solid var(--crr-orange); border-radius: 999px; background: #fff; color: var(--crr-orange); font-size: 14px; font-weight: 800; white-space: nowrap; }
+.crr-guide ol { display: flex; flex-direction: column; gap: 10px; width: 100%; margin: 6px 0; text-align: left; }
+.crr-guide li { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 12px; font-size: 16.5px; line-height: 1.4; }
+.crr-guide li b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dfeafd; color: #1946cd; font-size: 15px; }
+.kx-root[data-x='career'] .kx-foot { margin-top: 16px; }
+.kx-root[data-x='career'] .crr-career { min-height: 138px; }
+
+/* MBTI — 열여섯 가지를 네 줄로 */
+.crr-mbti { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
+.kx-root .crr-mbti button { min-height: 86px; border: 3px solid transparent; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px rgba(25, 70, 205, 0.1); color: var(--kx-accent); font-size: 21px; font-weight: 900; letter-spacing: 0.02em; transition: transform 0.14s ease-out, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+.kx-root .crr-mbti button[data-on] { border-color: var(--crr-orange); background: var(--crr-orange); color: #fff; }
+.kx-root .crr-mbti button:active { transform: scale(0.94); }
+.crr-mbti-note { min-height: 44px; margin-top: 12px; color: var(--kx-accent); font-size: 16.5px; font-weight: 700; line-height: 1.35; text-align: center; animation: kx-rise 0.3s var(--kx-ease) backwards; }
+
+/* 관상 — 재미로 보는 인상 읽기 */
+.kx-root[data-x='career'] .crr-face-title { margin-top: 12px; }
+.kx-root[data-x='career'] .kx-cam { border-radius: 22px; }
+.kx-root[data-x='career'] .kx-cam-corner { display: none; }
+.crr-face-guide { width: 100%; height: 100%; }
+.crr-scan { position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 100%; border-radius: 22px; overflow: hidden; background: #dfe8f7; }
+.crr-scan img, .crr-scan canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.crr-scan canvas { opacity: 0; transition: opacity 0.5s ease; }
+.crr-scan canvas[data-on] { opacity: 1; }
+/* 위에서 아래로 훑는 빛 */
+.crr-scan i { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(180deg, rgba(120, 190, 255, 0), rgba(120, 190, 255, 0.5) 85%, #fff 100%); animation: crr-scan 1.5s ease-in-out infinite alternate; }
+@keyframes crr-scan { from { transform: translateY(-60%); } to { transform: translateY(420%); } }
+.crr-privacy, .crr-reading { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin-top: 10px; color: var(--kx-accent); font-size: 15.5px; font-weight: 700; text-align: center; }
+.crr-reading { font-size: 19px; font-weight: 900; }
+.crr-alert { flex: none; display: flex; flex-direction: column; align-items: center; min-height: 48px; margin-top: 10px; padding: 6px 14px; border: 2px solid var(--crr-orange); border-radius: 14px; background: #fffaf5; font-size: 14.5px; text-align: center; animation: kx-shake 0.5s ease-out 0.1s; }
+.crr-alert b { color: var(--crr-orange); font-size: 16.5px; }
+.crr-face-actions { flex: none; display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 10px; }
+.kx-root .crr-face-actions .kx-btn { min-height: 74px; border-radius: 16px; font-size: 24px; }
+.kx-root .crr-face-actions .kx-btn:not(.kx-btn--primary) { border-width: 2px; background: #fff; font-size: 19px; }
+
+/* 결과 — 나를 읽은 단서(MBTI · 관상) */
+.crr-tags span[data-clue] { background: #fde9dc; color: var(--crr-orange); }
+.kx-root[data-x='career'] .crr-careers[data-tight] { gap: 8px; margin-top: 10px; }
+.kx-root[data-x='career'] .crr-careers[data-tight] .crr-career { min-height: 112px; grid-template-columns: 112px 1fr; }
+.crr-careers[data-tight] .crr-career img { width: 112px; height: 86px; }
+.crr-careers[data-tight] .crr-career b { font-size: 25px; }
+.crr-careers[data-tight] .crr-career span { margin-bottom: 5px; font-size: 14px; }
+.kx-root .crr-clues { flex: none; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; min-height: 60px; margin-top: 10px; padding: 6px 14px; border: 2px solid var(--kx-accent); border-radius: 16px; background: #fff; color: var(--kx-accent); text-align: left; animation: kx-rise 0.46s var(--kx-ease) 0.45s backwards; transition: transform 0.14s ease-out; }
+.kx-root .crr-clues:active { transform: scale(0.98); }
+.crr-clues em { display: block; font-size: 13px; font-weight: 800; }
+.crr-clues b { display: block; color: var(--kx-ink); font-size: 16px; font-weight: 800; line-height: 1.25; }
+.crr-clues i { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; font-weight: 800; white-space: nowrap; }
+.kx-root[data-x='career'] .crr-first { margin-top: 8px; }
+.crr-clue-sheet h3 { align-self: flex-start; margin-top: 4px; color: #1946cd; font-size: 17px; font-weight: 900; }
+.crr-clue-sheet ul { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+.crr-clue-sheet li { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 12px; font-size: 15.5px; line-height: 1.4; }
+.crr-clue-sheet li b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dfeafd; color: #1946cd; font-size: 15px; font-weight: 900; }
+.crr-clue-sheet li strong { display: block; font-weight: 800; }
+
+/* AI 분석(2026-10-26 주거복지대전 제안서) — 대기 화면 · 결과 풀이 · 저장/인쇄 두 버튼 */
+.crr-ai-wait { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding-top: 18px; }
+.crr-ai-wait img { width: 78%; max-width: 360px; aspect-ratio: 1; object-fit: contain; }
+.crr-ai { margin: 6px 0 12px; padding: 16px 18px; border-radius: 18px; background: #eef3ff; border: 1.5px solid #c9d6ff; display: grid; gap: 6px; }
+.crr-ai em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-size: 13px; font-weight: 800; color: #1946cd; }
+.crr-ai b { font-size: 18px; font-weight: 800; color: #10358f; line-height: 1.4; }
+.crr-ai p { font-size: 14px; line-height: 1.7; color: #33415f; }
+.crr-ai ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.7; color: #4a5f8f; }
+.crr-take { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.crr-take .kx-btn { min-height: 64px; font-size: 19px; white-space: nowrap; gap: 8px; padding-inline: 10px; }

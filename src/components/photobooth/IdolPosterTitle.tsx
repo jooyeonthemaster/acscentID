@@ -14,7 +14,8 @@ const CJK = "'Pretendard', var(--font-noto-jp), var(--font-noto-sc), var(--font-
 
 export function IdolPosterTitle({ poster }: { poster: BoothPoster }) {
   return (
-    <div className="flex flex-col items-center text-center" style={{ color: INK, fontFamily: DISPLAY }} aria-label={`${poster.word}${poster.accent} ${poster.line} ${poster.main}`}>
+    // 한 덩어리 이름으로 읽게 — 글자마다 나뉜 span 이 'IDO' 'L!' 로 쪼개 읽혔다
+    <div className="flex flex-col items-center text-center" style={{ color: INK, fontFamily: DISPLAY }} role="img" aria-label={`${poster.word}${poster.accent} ${poster.line} ${poster.main}`}>
       <p style={{ fontWeight: 900, fontSize: 'clamp(72px, 15vh, 168px)', lineHeight: 0.86, letterSpacing: '-0.045em', margin: 0 }}>
         {poster.word}
         <span style={{ color: BRICK }}>{poster.accent}</span>

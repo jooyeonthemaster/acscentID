@@ -53,6 +53,8 @@ const ko = {
   infoTitleSelf: '어떻게 불러드릴까요?',
   infoDesc: '이름은 영수증 리포트에 함께 인쇄됩니다.',
   nameOptional: '(선택)',
+  nameLabel: '이름',
+  genderLabel: '성별',
   namePlaceholder: '이름 또는 별명',
   gender: { Male: '남성', Female: '여성', Other: '기타' },
 
@@ -77,6 +79,8 @@ const ko = {
   // ── 제품 ──
   productTitle: '어떤 제품으로 만들까요?',
   productDesc: '분석 결과 레시피가 선택한 제품 기준으로 인쇄됩니다.',
+  /** 분석 직전 — 결과 화면에는 언어 버튼이 없어 미리 알린다 */
+  resultLangNote: '결과는 한국어로 나와요.',
   products: {
     perfume_10ml: { label: '퍼퓸 10ml', description: '휴대용 미니 용량' },
     perfume_50ml: { label: '퍼퓸 50ml', description: '정품 풀용량' },
@@ -155,7 +159,6 @@ const ko = {
   savePng: 'PNG 저장',
 
   // ── 대기 ──
-  idleBanner: (n: number) => `${n}초 후 처음 화면으로 돌아갑니다`,
   idleTitle: '잠시 후 처음 화면으로 돌아갑니다',
   idleDesc: '계속 보시려면 화면을 터치해 주세요.',
   idleContinue: '계속 보기',
@@ -169,7 +172,17 @@ const ko = {
   toastPrintFailed: (err: string) => `인쇄 실패: ${err}`,
   printerError: '프린터 오류',
   toastPrintFailedStaff: '인쇄에 실패했습니다. 직원에게 문의해 주세요.',
-  toastAnalyzeFailed: '분석 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+  /** 분석 실패 카드 — 네트워크(기기→서버 연결 끊김)·시간 초과·분석 실패(서버가 결과를 못 만듦)를 나눠 안내 */
+  analyzeError: {
+    networkTitle: '인터넷 연결이 끊겼어요',
+    networkDesc: '키오스크가 분석 서버에 닿지 못했어요. 잠시 후 다시 시도하거나 직원에게 알려 주세요.',
+    timeoutTitle: '분석이 너무 오래 걸려요',
+    timeoutDesc: '지금 분석 요청이 몰려 응답이 늦어요. 한 번 더 시도해 주세요.',
+    serverTitle: '분석을 마치지 못했어요',
+    serverDesc: '이번에는 결과를 만들지 못했어요. 입력하신 내용은 그대로 있으니 한 번 더 시도해 주세요.',
+    retry: '다시 시도',
+    home: '처음으로',
+  },
 
   // ── 온스크린 키보드 ──
   oskAria: '터치 키보드',
@@ -254,6 +267,8 @@ const en: KioskText = {
   infoTitleSelf: 'What should we call you?',
   infoDesc: 'The name will be printed on your receipt report.',
   nameOptional: '(optional)',
+  nameLabel: 'Name',
+  genderLabel: 'Gender',
   namePlaceholder: 'Name or nickname',
   gender: { Male: 'Male', Female: 'Female', Other: 'Other' },
 
@@ -276,6 +291,7 @@ const en: KioskText = {
 
   productTitle: 'Which product should we make?',
   productDesc: 'The recipe will be printed for the product you choose.',
+  resultLangNote: 'Your results will be shown in English.',
   products: {
     perfume_10ml: { label: 'Perfume 10ml', description: 'Pocket-size mini' },
     perfume_50ml: { label: 'Perfume 50ml', description: 'Full-size bottle' },
@@ -348,7 +364,6 @@ const en: KioskText = {
   print: 'Print',
   savePng: 'Save PNG',
 
-  idleBanner: (n) => `Returning to the start screen in ${n}s`,
   idleTitle: 'Returning to the start screen soon',
   idleDesc: 'Touch the screen to keep viewing.',
   idleContinue: 'Keep viewing',
@@ -361,7 +376,16 @@ const en: KioskText = {
   toastPrintFailed: (err) => `Print failed: ${err}`,
   printerError: 'printer error',
   toastPrintFailedStaff: 'Printing failed. Please ask a staff member.',
-  toastAnalyzeFailed: 'Could not reach the analysis server. Please try again in a moment.',
+  analyzeError: {
+    networkTitle: 'The connection was lost',
+    networkDesc: 'The kiosk could not reach the analysis server. Please try again in a moment, or ask our staff.',
+    timeoutTitle: 'The analysis is taking too long',
+    timeoutDesc: 'Many requests are coming in right now. Please try once more.',
+    serverTitle: 'We couldn’t finish your analysis',
+    serverDesc: 'Something went wrong this time. Your answers are saved, so please try once more.',
+    retry: 'Try again',
+    home: 'Start over',
+  },
 
   oskAria: 'Touch keyboard',
   oskPlaceholder: 'Type here',
@@ -441,6 +465,8 @@ const ja: KioskText = {
   infoTitleSelf: 'お名前を教えてください',
   infoDesc: 'お名前はレシートのレポートに印字されます。',
   nameOptional: '（任意）',
+  nameLabel: 'お名前',
+  genderLabel: '性別',
   namePlaceholder: '名前またはニックネーム',
   gender: { Male: '男性', Female: '女性', Other: 'その他' },
 
@@ -463,6 +489,7 @@ const ja: KioskText = {
 
   productTitle: 'どの製品にしますか？',
   productDesc: '分析結果のレシピは、選んだ製品に合わせて印字されます。',
+  resultLangNote: '結果は日本語で表示されます。',
   products: {
     perfume_10ml: { label: 'パフューム 10ml', description: '持ち歩きに便利なミニサイズ' },
     perfume_50ml: { label: 'パフューム 50ml', description: 'フルサイズ' },
@@ -534,7 +561,6 @@ const ja: KioskText = {
   print: '印刷する',
   savePng: 'PNGで保存',
 
-  idleBanner: (n) => `${n}秒後に最初の画面に戻ります`,
   idleTitle: 'まもなく最初の画面に戻ります',
   idleDesc: '続けて見るには画面をタッチしてください。',
   idleContinue: '続けて見る',
@@ -547,7 +573,16 @@ const ja: KioskText = {
   toastPrintFailed: (err) => `印刷に失敗しました: ${err}`,
   printerError: 'プリンターエラー',
   toastPrintFailedStaff: '印刷に失敗しました。スタッフにお声がけください。',
-  toastAnalyzeFailed: '分析サーバーに接続できませんでした。少し待ってからもう一度お試しください。',
+  analyzeError: {
+    networkTitle: 'インターネット接続が切れました',
+    networkDesc: 'キオスクが分析サーバーにつながりませんでした。少し待ってからもう一度お試しいただくか、スタッフにお声がけください。',
+    timeoutTitle: '分析に時間がかかっています',
+    timeoutDesc: 'ただいま分析が混み合っています。もう一度お試しください。',
+    serverTitle: '分析を完了できませんでした',
+    serverDesc: '今回は結果を作成できませんでした。入力内容はそのまま残っているので、もう一度お試しください。',
+    retry: 'もう一度試す',
+    home: '最初に戻る',
+  },
 
   oskAria: 'タッチキーボード',
   oskPlaceholder: '入力してください',
@@ -627,6 +662,8 @@ const zhHans: KioskText = {
   infoTitleSelf: '怎么称呼你？',
   infoDesc: '名字会打印在小票报告上。',
   nameOptional: '（可选）',
+  nameLabel: '姓名',
+  genderLabel: '性别',
   namePlaceholder: '名字或昵称',
   gender: { Male: '男', Female: '女', Other: '其他' },
 
@@ -649,6 +686,7 @@ const zhHans: KioskText = {
 
   productTitle: '要做成哪种产品？',
   productDesc: '分析结果的配方会按所选产品打印。',
+  resultLangNote: '结果将以简体中文显示。',
   products: {
     perfume_10ml: { label: '香水 10ml', description: '便携迷你装' },
     perfume_50ml: { label: '香水 50ml', description: '正装大容量' },
@@ -720,7 +758,6 @@ const zhHans: KioskText = {
   print: '打印',
   savePng: '保存 PNG',
 
-  idleBanner: (n) => `${n} 秒后返回首页`,
   idleTitle: '即将返回首页',
   idleDesc: '如需继续查看，请触摸屏幕。',
   idleContinue: '继续查看',
@@ -733,7 +770,16 @@ const zhHans: KioskText = {
   toastPrintFailed: (err) => `打印失败：${err}`,
   printerError: '打印机错误',
   toastPrintFailedStaff: '打印失败，请联系工作人员。',
-  toastAnalyzeFailed: '无法连接分析服务器，请稍后再试。',
+  analyzeError: {
+    networkTitle: '网络连接已断开',
+    networkDesc: '终端无法连接到分析服务器。请稍后再试，或联系工作人员。',
+    timeoutTitle: '分析时间过长',
+    timeoutDesc: '当前分析请求较多，请再试一次。',
+    serverTitle: '未能完成分析',
+    serverDesc: '这次没能生成结果。您输入的内容已保留，请再试一次。',
+    retry: '重试',
+    home: '返回首页',
+  },
 
   oskAria: '触摸键盘',
   oskPlaceholder: '请输入',
@@ -815,6 +861,8 @@ const zhHant: KioskText = {
   infoTitleSelf: '怎麼稱呼你？',
   infoDesc: '名字會列印在收據報告上。',
   nameOptional: '（選填）',
+  nameLabel: '姓名',
+  genderLabel: '性別',
   namePlaceholder: '名字或暱稱',
   gender: { Male: '男', Female: '女', Other: '其他' },
 
@@ -837,6 +885,7 @@ const zhHant: KioskText = {
 
   productTitle: '要做成哪種產品？',
   productDesc: '分析結果的配方會依所選產品列印。',
+  resultLangNote: '結果將以繁體中文顯示。',
   products: {
     perfume_10ml: { label: '香水 10ml', description: '隨身迷你裝' },
     perfume_50ml: { label: '香水 50ml', description: '正裝大容量' },
@@ -908,7 +957,6 @@ const zhHant: KioskText = {
   print: '列印',
   savePng: '儲存 PNG',
 
-  idleBanner: (n) => `${n} 秒後返回首頁`,
   idleTitle: '即將返回首頁',
   idleDesc: '如需繼續查看，請觸碰螢幕。',
   idleContinue: '繼續查看',
@@ -921,7 +969,16 @@ const zhHant: KioskText = {
   toastPrintFailed: (err) => `列印失敗：${err}`,
   printerError: '印表機錯誤',
   toastPrintFailedStaff: '列印失敗，請聯絡工作人員。',
-  toastAnalyzeFailed: '無法連線到分析伺服器，請稍後再試。',
+  analyzeError: {
+    networkTitle: '網路連線已中斷',
+    networkDesc: '終端無法連線到分析伺服器。請稍後再試，或洽詢工作人員。',
+    timeoutTitle: '分析時間過長',
+    timeoutDesc: '目前分析請求較多，請再試一次。',
+    serverTitle: '未能完成分析',
+    serverDesc: '這次沒能產生結果。您輸入的內容已保留，請再試一次。',
+    retry: '重試',
+    home: '返回首頁',
+  },
 
   oskAria: '觸控鍵盤',
   oskPlaceholder: '請輸入',

@@ -23,10 +23,11 @@ export class IdolError extends Error {
 
 // ───────────────────────── 생성 이용권(ticket) ─────────────────────────
 // 이용권 번호가 확인된 부스만 생성할 수 있게, /api/photobooth/pass 가 짧게 쓰는 서명 표를 준다.
-// 표 하나로 IDOL_TICKET_USES 번(첫 생성 + 다시 만들기)까지 — 서버 인스턴스 안에서 센다(여럿이면 조금 느슨).
+// 표 하나로 IDOL_TICKET_USES 번까지 — 서버 인스턴스 안에서 센다(여럿이면 조금 느슨).
+// '다시 만들기'는 없앴다(2026-10-02, 비용) — 2번 = 첫 생성 + 네트워크 재시도나 '다시 찍기' 한 번. 넘으면 찍은 사진 그대로 인화
 
 const TICKET_MS = 15 * 60 * 1000
-export const IDOL_TICKET_USES = 3
+export const IDOL_TICKET_USES = 2
 
 function secret() {
   const value = process.env.SCREEN_BACKGROUND_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -46,8 +47,8 @@ export function issueIdolTicket(pass: string, now = Date.now()) {
 
 const uses = new Map<string, number>()
 
-/** 표가 맞고 기한·횟수가 남았으면 1회 쓴다 */
-export function spendIdolTicket(ticket: unknown): void {
+/** 표가 서명·기한이 맞으면 표의 주인(사용 처리한 이용권 id, 'free', 'demo' 등)을 돌려준다 — 횟수는 쓰지 않는다 */
+export function readIdolTicket(ticket: unknown): { payload: string; pass: string } {
   if (typeof ticket !== 'string' || ticket.length > 300) throw new IdolError('이용권을 먼저 확인해 주세요.', 401)
   const cut = ticket.lastIndexOf('.')
   const payload = ticket.slice(0, cut), signed = ticket.slice(cut + 1)
@@ -56,10 +57,17 @@ export function spendIdolTicket(ticket: unknown): void {
   const expires = Number(payload.split('.')[0])
   if (!ok || !Number.isFinite(expires)) throw new IdolError('이용권을 먼저 확인해 주세요.', 401)
   if (expires < Date.now()) throw new IdolError('시간이 지났어요. 처음부터 다시 해 주세요.', 401)
+  return { payload, pass: payload.split('.')[1] ?? '' }
+}
+
+/** 표가 맞고 기한·횟수가 남았으면 1회 쓰고 표의 주인을 돌려준다 */
+export function spendIdolTicket(ticket: unknown): string {
+  const { payload, pass } = readIdolTicket(ticket)
   const used = uses.get(payload) ?? 0
   if (used >= IDOL_TICKET_USES) throw new IdolError('이번 이용권으로 만들 수 있는 횟수를 다 썼어요.', 429)
   uses.set(payload, used + 1)
   if (uses.size > 2000) for (const key of [...uses.keys()].slice(0, 1000)) uses.delete(key)
+  return pass
 }
 
 // ───────────────────────── 생성 ─────────────────────────
@@ -125,24 +133,33 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
 }
 
 export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number, faces: string[] = []): Promise<string> {
-  if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
   const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
-  if (!isImage(photo, 3_000_000)) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
   // 얼굴 참고 사진(부스가 자른 클로즈업) — 사람 수까지만, 형식이 틀리면 빼고 본 사진만으로
   const refs = faces.filter((face) => isImage(face, 600_000)).slice(0, people)
+  return generateBoothImage(buildIdolPrompt(concept, people, refs.length), photo, refs)
+}
+
+/**
+ * 부스 이미지 생성 공통(AI 아이돌·포토부스 프로그램 14종) — 프롬프트 + 본 사진(+ 다른 사진들) → 2:3 JPEG data URL.
+ * 같은 전용 키·같은 1분 상한·같은 모델 순서(60초 → 예비 모델 45초)를 쓴다.
+ */
+export async function generateBoothImage(prompt: string, photo: string, more: string[] = []): Promise<string> {
+  if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
+  const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
+  if (!isImage(photo, 3_000_000) || !more.every((m) => isImage(m, 3_000_000))) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
 
   const now = Date.now()
   if (now - windowStart > 60_000) { windowStart = now; windowCount = 0 }
   if (++windowCount > PER_MINUTE) throw new IdolError('잠시 후 다시 시도해 주세요.', 429)
 
   // 가끔 이미지 모델이 한참 멈춘다(운영에서 110초 넘게 걸린 적) — 손님이 오래 서 있지 않게 첫 시도는 짧게 끊고,
-  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스는 얼굴 인식 메이크업 사진으로 대신한다
+  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스가 실패 안내(다시 만들기)를 띄운다
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
   // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
   const attempts: [string, number][] = [[primary, 60_000], [FALLBACK_MODEL, 45_000]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, buildIdolPrompt(concept, people, refs.length), photo, refs)
+    url = await requestImage(model, timeout, prompt, photo, more)
     if (url) break
   }
   if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)

@@ -98,6 +98,8 @@ export async function saveDeviceSettings(target: ScreenTarget, patch: Partial<De
   }
   if (Object.hasOwn(patch, 'mode')) {
     // 기기 종류마다 모드 목록이 따로 — 키오스크 src/lib/kiosk/modes.ts, 포토부스 src/lib/booth/modes.ts
+    // 키오스크는 2026-10-13 부터 매장 기본(null)만 여기에 저장한다 — 체험 모드는 고른 기기에만 적는다(src/lib/kiosk/device-mode.ts).
+    // 다시 켜지 않은 예전 앱이 보내는 다른 모드 id 도 계속 받는다.
     const modeIds = target === 'kiosk' ? KIOSK_MODE_IDS : BOOTH_MODE_IDS
     if (patch.mode !== null && !modeIds.includes(patch.mode as string)) throw new BackgroundError('운영 모드를 확인해주세요.')
     next.mode = patch.mode ?? null

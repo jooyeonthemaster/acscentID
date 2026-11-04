@@ -1,5 +1,19 @@
 {
   "crons": [
-    { "path": "/api/cron/screen-events", "schedule": "0 19 * * *" }
+    {
+      "path": "/api/cron/screen-events",
+      "schedule": "0 19 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/kiosk-programs/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=2592000"
+        }
+      ]
+    }
   ]
 }

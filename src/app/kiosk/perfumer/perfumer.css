@@ -1,0 +1,1982 @@
+/* SCENT! AI 조향사 — 목업 docs/design-mockups/scent-ai-perfumer-redesign-20261028.
+   크기는 모두 --u(560×996 기준 1px)의 배수: 매장 키오스크(셸이 CSS 560 을 1080 에 1.93배)와 1080×1920 브라우저가 같은 화면이 된다.
+   이 파일의 규칙은 모두 .pf-root 아래에서만 걸린다 — 다른 운영 모드 화면에는 영향이 없다.
+   매장 POS 는 윈도우 애니메이션이 꺼져 prefers-reduced-motion 이 켜져 있다(kiosk-reduced-motion-trap) — 진행을 알리는 움직임
+   (돌아가는 표시·카운트다운 고리·대기 흐름)은 그 설정에 묶지 않는다. */
+
+@font-face {
+  font-family: 'PF Bodoni';
+  src: url('/fonts/bodoni-moda/BodoniModa-latin.woff2') format('woff2');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.pf-root {
+  --u: min(calc(100vw / 560), calc(100vh / 996));
+  --pad: calc(var(--u) * 26);
+  --paper: #f5f3ed;
+  --ink: #172324;
+  --ink-2: #2b3536;
+  --muted: #687170;
+  --faint: #a3aaa8;
+  --blue: #244eea;
+  --blue-soft: #e8ecff;
+  --blue-line: #b9c6f8;
+  --line: #d9dcd4;
+  --white: #fffefa;
+  --font: var(--pf-font, var(--font-heading-serif)), 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --serif: 'PF Bodoni', 'Bodoni 72', 'Didot', 'Times New Roman', serif;
+  --serif-ko: var(--font-noto-serif-kr), 'Noto Serif KR', 'AppleMyungjo', serif;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 한자권은 띄어쓰기가 없어 keep-all 이면 줄이 넘친다 */
+.pf-root:is([data-lang='ja'], [data-lang='zh-Hans'], [data-lang='zh-Hant']) {
+  word-break: normal;
+  line-break: strict;
+  letter-spacing: 0;
+}
+.pf-root *,
+.pf-root *::before,
+.pf-root *::after {
+  box-sizing: border-box;
+}
+/* :where — 특이도 0. 버튼마다 정한 글자 크기·색을 덮지 않게 */
+:where(.pf-root) :where(button) {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pf-root button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+/* lucide 아이콘 — 크기는 --i(기준 px) 로 정한다(속성 width/height 보다 CSS 가 이긴다) */
+.pf-root .lucide {
+  width: calc(var(--u) * var(--i, 24));
+  height: calc(var(--u) * var(--i, 24));
+  flex: none;
+}
+.pf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ── 머리띠 ─────────────────────────────────────────────
+   관리자 핫스팟(우측 상단 96×36, 투명)이 언어 버튼을 덮지 않게 도구는 위에서 36 아래부터 */
+.pf-top {
+  flex: none;
+  width: calc(var(--u) * 560);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--u) * 36) var(--pad) calc(var(--u) * 6);
+  position: relative;
+  z-index: 10;
+}
+.pf-top-brand {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 9);
+  white-space: nowrap;
+}
+.pf-top-brand > span:last-child {
+  font-size: calc(var(--u) * 15);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pf-wordmark {
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: calc(var(--u) * 30);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+.pf-wordmark em {
+  font-style: normal;
+  color: var(--blue);
+}
+.pf-top-tools {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 6);
+}
+.pf-icon-btn {
+  --i: 25;
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 46);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.pf-icon-btn:active {
+  background: rgba(23, 35, 36, 0.06);
+}
+.pf-lang-btn {
+  --i: 16;
+  height: calc(var(--u) * 46);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 5);
+  padding: 0 calc(var(--u) * 6);
+  border: 0;
+  background: transparent;
+  font-size: calc(var(--u) * 15);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pf-lang-btn[data-locked] {
+  color: var(--muted);
+}
+
+/* ── 본문 틀 ─────────────────────────────────────────── */
+.pf-main {
+  flex: 1;
+  min-height: 0;
+  width: calc(var(--u) * 560);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: pf-in 0.32s ease-out both;
+}
+.pf-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--pad);
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.pf-screen::-webkit-scrollbar {
+  display: none;
+}
+
+/* 고정 하단 버튼 줄 — 내용이 길어 스크롤해도 늘 보인다 */
+.pf-bottom {
+  flex: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: calc(var(--u) * 12);
+  margin-top: auto;
+  padding: calc(var(--u) * 16) 0 calc(var(--u) * 24);
+  background: linear-gradient(rgba(245, 243, 237, 0), var(--paper) calc(var(--u) * 14));
+}
+.pf-bottom[data-single] {
+  grid-template-columns: 1fr;
+}
+
+.pf-btn {
+  --i: 22;
+  min-width: 0;
+  height: calc(var(--u) * 64);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  padding: 0 calc(var(--u) * 14);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 14);
+  background: var(--white);
+  font-size: calc(var(--u) * 20);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pf-btn > span {
+  min-width: 0;
+}
+.pf-btn[data-wide] {
+  width: 100%;
+}
+.pf-btn[data-variant='primary'] {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 18) rgba(36, 78, 234, 0.22);
+}
+.pf-btn[data-variant='outline'] {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pf-btn[data-variant='text'] {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.pf-btn:not(:disabled):active {
+  transform: scale(0.98);
+}
+.pf-btn:disabled {
+  cursor: default;
+  color: var(--faint);
+}
+.pf-btn[data-variant='primary']:disabled {
+  border-color: #a9b9f7;
+  background: #a9b9f7;
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: none;
+}
+.pf-btn[data-variant='outline']:disabled {
+  border-color: var(--line);
+}
+
+.pf-check {
+  --i: 16;
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 28);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+}
+
+/* ── 단계 표시 ─────────────────────────────────────────── */
+.pf-dots {
+  list-style: none;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  width: 48%;
+  margin: calc(var(--u) * 16) auto calc(var(--u) * 22);
+  padding: 0;
+}
+.pf-dots::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--u) * 6);
+  right: calc(var(--u) * 6);
+  top: 50%;
+  height: 1px;
+  background: var(--line);
+}
+.pf-dots li {
+  position: relative;
+  width: calc(var(--u) * 12);
+  height: calc(var(--u) * 12);
+  border-radius: 50%;
+  background: #cdd1c9;
+}
+.pf-dots li[data-state='done'] {
+  background: #a3b4f5;
+}
+.pf-dots li[data-state='now'] {
+  background: var(--blue);
+  box-shadow: 0 0 0 calc(var(--u) * 5) rgba(36, 78, 234, 0.13);
+}
+.pf-stephead {
+  margin: 0 0 calc(var(--u) * 12);
+  font-size: calc(var(--u) * 16);
+  color: var(--muted);
+}
+.pf-stephead b {
+  color: var(--blue);
+  font-weight: 600;
+}
+.pf-stephead em {
+  margin-left: calc(var(--u) * 12);
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── 글 ─────────────────────────────────────────────── */
+.pf-title {
+  margin: 0;
+  font-size: calc(var(--u) * 36);
+  line-height: 1.24;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.pf-root:is([data-lang='ja'], [data-lang='zh-Hans'], [data-lang='zh-Hant']) .pf-title {
+  letter-spacing: 0;
+}
+.pf-title--pick {
+  max-width: 64%;
+  font-size: calc(var(--u) * 40);
+}
+.pf-title--capture {
+  max-width: 64%;
+  /* 촬영·카운트다운·사진 확인 제목이 늘 같은 높이(두 줄) — 액자 자리가 상태마다 달라지지 않게 */
+  min-height: calc(var(--u) * 44 * 1.24 * 2);
+  font-size: calc(var(--u) * 44);
+}
+.pf-title--center {
+  text-align: center;
+}
+.pf-desc {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 18);
+  line-height: 1.5;
+  color: #3f4a4a;
+}
+.pf-desc--center {
+  text-align: center;
+}
+.pf-note {
+  margin: calc(var(--u) * 20) 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 15);
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+.pf-eyebrow {
+  margin: calc(var(--u) * 24) 0 calc(var(--u) * 12);
+  text-align: center;
+  font-size: calc(var(--u) * 13);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  color: var(--muted);
+}
+.pf-text {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 17);
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.pf-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 8);
+  margin: calc(var(--u) * 16) 0 0;
+  padding: 0;
+}
+.pf-chips li {
+  padding: calc(var(--u) * 8) calc(var(--u) * 16);
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: calc(var(--u) * 17);
+  font-weight: 600;
+}
+.pf-chips--center {
+  justify-content: center;
+}
+.pf-textlink {
+  align-self: center;
+  margin: calc(var(--u) * 10) auto 0;
+  padding: calc(var(--u) * 10) calc(var(--u) * 18);
+  border: 0;
+  background: transparent;
+  font-size: calc(var(--u) * 17);
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.pf-spin {
+  animation: pf-spin 1s linear infinite;
+}
+
+/* ── 시작 ─────────────────────────────────────────────── */
+.pf-attract {
+  overflow: hidden;
+}
+.pf-attract-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: calc(var(--u) * 8);
+}
+.pf-attract .pf-wordmark {
+  font-size: calc(var(--u) * 122);
+  letter-spacing: -0.045em;
+}
+.pf-attract-sub {
+  margin: calc(var(--u) * -2) 0 0;
+  font-family: var(--serif-ko);
+  font-size: calc(var(--u) * 36);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.pf-attract-title {
+  margin: calc(var(--u) * 22) 0 0;
+  font-size: calc(var(--u) * 36);
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.pf-attract-art {
+  flex: 1 1 auto;
+  min-height: calc(var(--u) * 220);
+  margin: calc(var(--u) * -34) calc(var(--pad) * -1) 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+.pf-attract-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 58%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 80%, transparent 100%);
+  animation: pf-breathe 9s ease-in-out infinite;
+}
+.pf-attract-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding-bottom: calc(var(--u) * 20);
+}
+.pf-attract-line {
+  margin: 0 0 calc(var(--u) * 18);
+  font-size: calc(var(--u) * 22);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.pf-attract-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 0 calc(var(--u) * 22);
+  padding: 0;
+}
+.pf-attract-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 4);
+  font-size: calc(var(--u) * 16);
+  font-weight: 600;
+}
+.pf-attract-steps li span {
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+  color: var(--muted);
+}
+.pf-attract-steps li + li::before {
+  content: '';
+  position: absolute;
+  left: -22%;
+  width: 44%;
+  top: 62%;
+  height: 1px;
+  background: var(--line);
+}
+.pf-attract-foot .pf-btn {
+  height: calc(var(--u) * 66);
+  font-size: calc(var(--u) * 22);
+}
+.pf-attract-note {
+  margin: calc(var(--u) * 12) 0 0;
+  font-size: calc(var(--u) * 15);
+  color: var(--muted);
+}
+
+/* ── 이름 · 성별 ─────────────────────────────────────────── */
+.pf-field-label {
+  margin: calc(var(--u) * 26) 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 16);
+  font-weight: 600;
+}
+.pf-field-label span {
+  font-weight: 500;
+  color: var(--muted);
+}
+.pf-field {
+  width: 100%;
+  height: calc(var(--u) * 66);
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--u) * 22);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 14);
+  background: var(--white);
+  font-size: calc(var(--u) * 24);
+  font-weight: 600;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pf-field[data-focus] {
+  border: 2px solid var(--blue);
+  box-shadow: 0 0 0 calc(var(--u) * 4) rgba(36, 78, 234, 0.08);
+}
+.pf-field em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--faint);
+}
+.pf-caret {
+  display: inline-block;
+  width: 2px;
+  height: calc(var(--u) * 30);
+  margin-left: calc(var(--u) * 4);
+  background: var(--blue);
+  animation: pf-blink 1.1s step-end infinite;
+}
+.pf-gender {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 10);
+}
+.pf-option {
+  height: calc(var(--u) * 62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 12);
+  background: var(--white);
+  font-size: calc(var(--u) * 20);
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.pf-option[data-on] {
+  border-color: var(--blue-line);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.pf-info-art {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: calc(var(--u) * 210);
+  margin: calc(var(--u) * 14) calc(var(--pad) * -1) 0;
+  overflow: hidden;
+}
+.pf-info-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 35% 62%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+}
+.pf-namecard {
+  position: absolute;
+  right: calc(var(--u) * 40);
+  bottom: calc(var(--u) * 34);
+  width: calc(var(--u) * 214);
+  height: calc(var(--u) * 132);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 12);
+  border-radius: calc(var(--u) * 10);
+  background: #fefdf9;
+  box-shadow: 0 calc(var(--u) * 14) calc(var(--u) * 26) rgba(23, 35, 36, 0.14), 0 1px 2px rgba(23, 35, 36, 0.12);
+  transform: rotate(-6deg);
+  animation: pf-card-in 0.5s 0.15s ease-out both;
+}
+.pf-namecard-name {
+  max-width: 88%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--serif-ko);
+  font-size: calc(var(--u) * 34);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.pf-namecard-name[data-empty] {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: calc(var(--u) * 24);
+  color: #b5bab5;
+}
+.pf-namecard-mark {
+  font-family: var(--serif);
+  font-size: calc(var(--u) * 16);
+  font-weight: 800;
+}
+.pf-namecard-mark em {
+  font-style: normal;
+  color: var(--blue);
+}
+
+/* 터치 키보드 — 셸의 자판(ksk-osk)을 이 디자인으로 입힌다 */
+.pf-keyboard {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-top: calc(var(--u) * 16);
+}
+.pf-root .ksk-osk {
+  margin: 0;
+  padding: calc(var(--u) * 10) calc(var(--u) * 8);
+  border: 0;
+  border-radius: calc(var(--u) * 16);
+  background: #e7e9e5;
+}
+/* 위 입력 칸이 값을 보여 주므로 자판의 미리보기 줄은 숨긴다 — 가나·병음을 조합하는 중에만 보인다 */
+.pf-root .ksk-osk-preview {
+  display: none;
+}
+.pf-root .ksk-osk-preview:has(.ksk-osk-pending) {
+  display: flex;
+  min-height: calc(var(--u) * 44);
+  margin-bottom: calc(var(--u) * 8);
+  padding: 0 calc(var(--u) * 14);
+  border: 0;
+  border-radius: calc(var(--u) * 10);
+  background: var(--white);
+}
+.pf-root .ksk-osk-value {
+  font-size: calc(var(--u) * 20);
+}
+.pf-root .ksk-osk-caret {
+  background: var(--blue);
+}
+.pf-root .ksk-osk-cands {
+  min-height: calc(var(--u) * 50);
+  gap: calc(var(--u) * 6);
+  margin-bottom: calc(var(--u) * 8);
+}
+.pf-root .ksk-cand,
+.pf-root .ksk-cand:not(:active) {
+  border: 0;
+  border-radius: calc(var(--u) * 9);
+  background: var(--white);
+  color: var(--ink);
+  font-size: calc(var(--u) * 24);
+}
+.pf-root .ksk-osk-keys {
+  gap: calc(var(--u) * 8);
+}
+.pf-root .ksk-osk-row {
+  gap: calc(var(--u) * 6);
+}
+.pf-root .ksk-key {
+  height: calc(var(--u) * 54);
+  border: 0;
+  border-radius: calc(var(--u) * 9);
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(23, 35, 36, 0.2);
+  color: var(--ink);
+  font-size: calc(var(--u) * 22);
+  font-weight: 500;
+}
+.pf-root .ksk-key-wide,
+.pf-root .ksk-key-mode {
+  background: #d3d7db;
+  font-size: calc(var(--u) * 18);
+}
+.pf-root .ksk-key-space {
+  font-size: calc(var(--u) * 17);
+  color: var(--ink);
+}
+.pf-root .ksk-osk .ksk-key-done {
+  border: 0;
+  background: var(--blue);
+  color: #fff;
+  font-size: calc(var(--u) * 18);
+  font-weight: 700;
+}
+.pf-root .ksk-key:active,
+.pf-root .ksk-cand:active {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.pf-root .ksk-key[data-on='true'] {
+  background: var(--blue);
+  color: #fff;
+}
+.pf-root .ksk-osk .ksk-key-done:active {
+  background: #1b3cc0;
+  color: #fff;
+}
+
+/* ── 스타일 · 성격 · 매력 ─────────────────────────────── */
+.pf-pick-deco {
+  position: absolute;
+  /* 오른쪽은 화면 끝에 맞춘다 — 밖으로 나가면 화면 칸이 옆으로 밀려 스크롤된다 */
+  top: calc(var(--u) * -64);
+  right: 0;
+  width: calc(var(--u) * 300);
+  height: calc(var(--u) * 300);
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: radial-gradient(circle at 64% 40%, #000 34%, transparent 70%);
+  mask-image: radial-gradient(circle at 64% 40%, #000 34%, transparent 70%);
+  /* 숨 쉬듯 커질 때 오른쪽 끝이 화면 밖으로 나가지 않게 오른쪽 위를 기준으로 */
+  transform-origin: 100% 0;
+  animation: pf-breathe 9s ease-in-out infinite;
+}
+.pf-pick > :not(.pf-pick-deco) {
+  position: relative;
+  z-index: 1;
+}
+.pf-picked {
+  margin: calc(var(--u) * 24) 0 calc(var(--u) * 12);
+  font-size: calc(var(--u) * 17);
+  font-weight: 600;
+}
+.pf-picked[data-full] {
+  color: var(--blue);
+}
+.pf-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--u) * 12);
+}
+.pf-card {
+  --i: 34;
+  position: relative;
+  height: calc(var(--u) * 118);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 14);
+  background: rgba(255, 254, 250, 0.88);
+  color: var(--blue);
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+.pf-card > span:not(.pf-check) {
+  color: var(--ink);
+  font-size: calc(var(--u) * 19);
+  font-weight: 500;
+  line-height: 1.2;
+}
+.pf-card[data-on] {
+  border: 2px solid var(--blue);
+  background: var(--blue-soft);
+}
+.pf-card[data-on] > span:not(.pf-check) {
+  color: var(--blue);
+  font-weight: 600;
+}
+.pf-card[data-muted] {
+  opacity: 0.45;
+}
+.pf-card-check {
+  position: absolute;
+  top: calc(var(--u) * 10);
+  right: calc(var(--u) * 10);
+  animation: pf-pop 0.2s ease-out both;
+}
+
+/* ── 촬영 · 사진 확인 ─────────────────────────────────── */
+.pf-cam-slot {
+  flex: 1 1 auto;
+  min-height: calc(var(--u) * 300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: calc(var(--u) * 18);
+}
+.pf-cam {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 22);
+  background: #d9d6ce;
+}
+.pf-cam video,
+.pf-cam > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+/* 미리보기는 거울처럼 — 찍힌 사진도 같은 방향으로 남는다(capturePhoto 가 좌우를 뒤집어 그린다) */
+.pf-cam video {
+  transform: scaleX(-1);
+}
+.pf-cam-guide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.pf-cam-guide ellipse {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2.4;
+}
+.pf-count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(23, 35, 36, 0.16);
+}
+.pf-count svg {
+  grid-area: 1 / 1;
+  width: 64%;
+  height: auto;
+  transform: rotate(-90deg);
+}
+.pf-count-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 5;
+}
+.pf-count-arc {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 327;
+  animation: pf-count 1s linear both;
+}
+.pf-count span {
+  grid-area: 1 / 1;
+  font-size: calc(var(--u) * 140);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 20) rgba(23, 35, 36, 0.3);
+  animation: pf-pop 0.3s ease-out both;
+}
+.pf-cam-state {
+  --i: 40;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  padding: calc(var(--u) * 24);
+  background: rgba(245, 243, 237, 0.94);
+  text-align: center;
+}
+.pf-cam-state b {
+  font-size: calc(var(--u) * 22);
+  font-weight: 800;
+}
+.pf-cam-state p {
+  margin: 0;
+  font-size: calc(var(--u) * 17);
+  line-height: 1.5;
+  color: #3f4a4a;
+}
+.pf-cam-state[data-error] {
+  color: var(--ink);
+}
+.pf-cam-retry,
+.pf-cam-staff {
+  --i: 16;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 6);
+  font-size: calc(var(--u) * 15);
+  color: var(--muted);
+}
+.pf-cam-file {
+  height: calc(var(--u) * 54);
+  margin-top: calc(var(--u) * 6);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pf-cam-alt {
+  flex: none;
+  height: calc(var(--u) * 116);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  text-align: center;
+}
+.pf-cam-alt[data-hidden] {
+  visibility: hidden;
+}
+.pf-cam-alt .pf-chips {
+  margin: 0;
+}
+.pf-cam-alt p {
+  margin: calc(var(--u) * 12) 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 15);
+  color: var(--muted);
+}
+.pf-cam-alt .pf-btn {
+  height: calc(var(--u) * 56);
+  font-size: calc(var(--u) * 19);
+}
+.pf-ready {
+  --i: 16;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  /* .pf-desc 와 같은 높이(18 × 1.5 + 10) — 액자 자리가 촬영 화면과 같게 */
+  height: calc(var(--u) * 27);
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 18);
+}
+.pf-ready .pf-check {
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
+}
+.pf-capture .pf-chips {
+  margin-top: calc(var(--u) * 14);
+}
+
+/* ── 휴대폰 QR ─────────────────────────────────────────── */
+.pf-qr-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 82%, transparent 100%);
+}
+.pf-qr > :not(.pf-qr-bg),
+.pf-receipt > :not(.pf-qr-bg) {
+  position: relative;
+  z-index: 1;
+}
+.pf-qr-scan {
+  --i: 44;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  margin: calc(var(--u) * 20) 0 calc(var(--u) * 14);
+  font-size: calc(var(--u) * 18);
+  text-align: center;
+}
+.pf-qr-card {
+  align-self: center;
+  position: relative;
+  width: calc(var(--u) * 214);
+  height: calc(var(--u) * 214);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 18);
+  background: #fff;
+  box-shadow: 0 calc(var(--u) * 12) calc(var(--u) * 30) rgba(23, 35, 36, 0.12);
+  flex: none;
+}
+.pf-qr-card > img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.pf-qr-card[data-state='expired'] > img {
+  opacity: 0.2;
+}
+.pf-qr-code {
+  position: absolute;
+  bottom: calc(var(--u) * -26);
+  font-size: calc(var(--u) * 13);
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.pf-qr-wait {
+  --i: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  text-align: center;
+  font-size: calc(var(--u) * 15);
+  color: var(--muted);
+}
+.pf-qr-wait b {
+  font-size: calc(var(--u) * 18);
+  color: var(--ink);
+}
+.pf-qr-warn {
+  margin: calc(var(--u) * 30) 0 0;
+  padding: calc(var(--u) * 10) calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 10);
+  background: #fff1e8;
+  color: #a6401c;
+  font-size: calc(var(--u) * 14);
+  line-height: 1.5;
+}
+.pf-qr-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: calc(var(--u) * 42) 0 0;
+  padding: 0;
+  text-align: center;
+}
+.pf-qr-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 16);
+  font-weight: 600;
+}
+.pf-qr-steps li > span {
+  width: calc(var(--u) * 44);
+  height: calc(var(--u) * 44);
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--blue);
+  font-size: calc(var(--u) * 15);
+}
+.pf-qr-arrow {
+  --i: 18;
+  position: absolute;
+  right: calc(var(--u) * -9);
+  top: calc(var(--u) * 13);
+  color: var(--faint);
+}
+.pf-qr-regen {
+  height: calc(var(--u) * 56);
+}
+
+/* ── 분석 대기 · 실패 ─────────────────────────────────── */
+.pf-analyzing,
+.pf-error {
+  text-align: center;
+}
+.pf-analyzing-art {
+  flex: 1 1 auto;
+  min-height: calc(var(--u) * 230);
+  margin: calc(var(--u) * 6) calc(var(--pad) * -1) 0;
+  overflow: hidden;
+}
+.pf-analyzing-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 58%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
+  animation: pf-breathe 7s ease-in-out infinite;
+}
+.pf-status {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 12);
+  width: fit-content;
+  margin: calc(var(--u) * 6) auto 0;
+  padding: 0;
+  text-align: left;
+}
+.pf-status li {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 18);
+  color: var(--faint);
+  transition: color 0.3s ease;
+}
+.pf-status li i {
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 22);
+  flex: none;
+  border: 1.5px solid #c5cac3;
+  border-radius: 50%;
+  transition: border 0.3s ease;
+}
+.pf-status li[data-on] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.pf-status li[data-on] i {
+  border: calc(var(--u) * 6) solid var(--blue);
+  animation: pf-pulse 1.3s ease-in-out infinite;
+}
+.pf-flow {
+  position: relative;
+  height: calc(var(--u) * 6);
+  margin: calc(var(--u) * 26) 12% calc(var(--u) * 4);
+  border-radius: calc(var(--u) * 6);
+  background: var(--blue-soft);
+  overflow: hidden;
+}
+.pf-flow i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32%;
+  border-radius: inherit;
+  background: var(--blue);
+  animation: pf-flow 1.7s ease-in-out infinite;
+}
+.pf-eyebrow--soft {
+  color: var(--faint);
+}
+.pf-error-art {
+  position: relative;
+  align-self: center;
+  flex: 1 1 auto;
+  width: calc(var(--u) * 300);
+  min-height: calc(var(--u) * 210);
+  max-height: calc(var(--u) * 290);
+  margin: calc(var(--u) * 8) 0;
+}
+.pf-error-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 72%);
+}
+.pf-error-pause {
+  --i: 40;
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  width: calc(var(--u) * 92);
+  height: calc(var(--u) * 92);
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: calc(var(--u) * 3) solid var(--blue);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--blue);
+}
+.pf-kept {
+  margin: calc(var(--u) * 4) 0 calc(var(--u) * 12);
+  font-size: calc(var(--u) * 18);
+}
+.pf-kept-card {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 18);
+  padding: calc(var(--u) * 14);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 18);
+  background: rgba(255, 254, 250, 0.92);
+  text-align: left;
+}
+.pf-kept-card img {
+  width: calc(var(--u) * 108);
+  height: calc(var(--u) * 108);
+  flex: none;
+  border-radius: calc(var(--u) * 12);
+  object-fit: cover;
+}
+.pf-kept-card b {
+  display: block;
+  font-size: calc(var(--u) * 28);
+  font-weight: 800;
+}
+.pf-kept-card span {
+  display: inline-block;
+  margin-top: calc(var(--u) * 10);
+  padding: calc(var(--u) * 8) calc(var(--u) * 16);
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: #33427a;
+  font-size: calc(var(--u) * 17);
+}
+.pf-note--center {
+  text-align: center;
+}
+
+/* ── 결과 ─────────────────────────────────────────────── */
+.pf-result {
+  overflow: hidden;
+}
+.pf-report {
+  margin: calc(var(--u) * 10) 0 calc(var(--u) * 12);
+  font-size: calc(var(--u) * 15);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+.pf-demo {
+  margin-left: calc(var(--u) * 10);
+  padding: calc(var(--u) * 3) calc(var(--u) * 10);
+  border-radius: calc(var(--u) * 6);
+  background: #ffe8d6;
+  color: #9a4b12;
+  font-size: calc(var(--u) * 12);
+  letter-spacing: 0;
+}
+.pf-tabs {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 4);
+  padding: calc(var(--u) * 5);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+}
+.pf-tabs button {
+  height: calc(var(--u) * 48);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: calc(var(--u) * 17);
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.pf-tabs button[data-on] {
+  background: var(--blue);
+  color: #fff;
+}
+.pf-result-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 calc(var(--pad) * -1);
+  padding: calc(var(--u) * 20) var(--pad) calc(var(--u) * 6);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c9cdc5 transparent;
+  animation: pf-in 0.3s ease-out both;
+}
+.pf-result-body::-webkit-scrollbar {
+  width: calc(var(--u) * 4);
+}
+.pf-result-body::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: #c9cdc5;
+}
+.pf-result .pf-bottom {
+  position: static;
+  padding-top: calc(var(--u) * 12);
+}
+
+.pf-scent {
+  position: relative;
+}
+.pf-scent > :not(.pf-scent-art) {
+  position: relative;
+  z-index: 1;
+}
+.pf-scent-art {
+  position: absolute;
+  top: calc(var(--u) * 46);
+  right: calc(var(--pad) * -1);
+  width: 56%;
+  height: calc(var(--u) * 540);
+  object-fit: cover;
+  object-position: 74% 50%;
+  z-index: 0;
+  /* 글 쪽(왼쪽)은 충분히 비워 글이 그림에 묻히지 않게 */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.25) 24%, #000 56%), linear-gradient(to bottom, #000 66%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.25) 24%, #000 56%), linear-gradient(to bottom, #000 66%, transparent 100%);
+  mask-composite: intersect;
+}
+.pf-scent .pf-title {
+  font-size: calc(var(--u) * 34);
+}
+.pf-scent-no {
+  margin: calc(var(--u) * 40) 0 0;
+  font-family: var(--serif);
+  font-size: calc(var(--u) * 42);
+  font-weight: 700;
+  color: #6e7775;
+  line-height: 1;
+}
+.pf-scent-name {
+  max-width: 56%;
+  margin: calc(var(--u) * 8) 0 0;
+  font-size: calc(var(--u) * 42);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+}
+.pf-scent-meta {
+  margin: calc(var(--u) * 12) 0 0;
+  font-size: calc(var(--u) * 17);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.pf-scent-meta b {
+  font-size: calc(var(--u) * 24);
+  color: var(--blue);
+  letter-spacing: 0;
+}
+.pf-scent .pf-chips {
+  max-width: 56%;
+}
+.pf-scent-reason {
+  max-width: 54%;
+  margin: calc(var(--u) * 18) 0 0;
+  font-size: calc(var(--u) * 18);
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-shadow: 0 0 calc(var(--u) * 10) var(--paper), 0 0 calc(var(--u) * 4) var(--paper);
+}
+.pf-notes {
+  margin: calc(var(--u) * 26) 0 0;
+  border-radius: calc(var(--u) * 12);
+  background: rgba(245, 243, 237, 0.88);
+}
+.pf-notes > div {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 92) 1fr;
+  gap: calc(var(--u) * 10);
+  align-items: baseline;
+  padding: calc(var(--u) * 14) 0;
+  border-bottom: 1px solid var(--line);
+}
+.pf-notes dt {
+  font-size: calc(var(--u) * 15);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.pf-notes dd {
+  margin: 0;
+}
+.pf-notes dd b {
+  font-size: calc(var(--u) * 19);
+  font-weight: 700;
+}
+.pf-notes dd span {
+  display: block;
+  margin-top: calc(var(--u) * 4);
+  font-size: calc(var(--u) * 15);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.pf-profile .pf-title,
+.pf-reading .pf-title {
+  font-size: calc(var(--u) * 36);
+}
+.pf-sec {
+  margin-top: calc(var(--u) * 24);
+  padding-top: calc(var(--u) * 20);
+  border-top: 1px solid var(--line);
+}
+.pf-sec h2 {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 10);
+  margin: 0 0 calc(var(--u) * 14);
+  font-size: calc(var(--u) * 20);
+  font-weight: 800;
+}
+.pf-sec h2 span {
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+  color: var(--muted);
+}
+.pf-bars-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 calc(var(--u) * 24);
+}
+.pf-bars {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 12);
+  margin: 0;
+  padding: 0;
+}
+.pf-bars li {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 82) 1fr calc(var(--u) * 20);
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 16);
+}
+.pf-bars li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pf-bars i {
+  display: block;
+  height: calc(var(--u) * 10);
+  border-radius: calc(var(--u) * 6);
+  background: #e1e4de;
+  overflow: hidden;
+}
+.pf-bars i b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transform-origin: left center;
+  animation: pf-grow 0.8s ease-out both;
+}
+.pf-bars em {
+  font-style: normal;
+  text-align: right;
+  color: var(--muted);
+}
+.pf-palette {
+  list-style: none;
+  display: flex;
+  gap: calc(var(--u) * 12);
+  margin: 0;
+  padding: 0;
+}
+.pf-palette li {
+  width: calc(var(--u) * 50);
+  height: calc(var(--u) * 50);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(23, 35, 36, 0.1);
+}
+
+.pf-reading-hero {
+  position: relative;
+  min-height: calc(var(--u) * 200);
+}
+.pf-reading-hero img {
+  position: absolute;
+  top: calc(var(--u) * -20);
+  right: calc(var(--pad) * -1);
+  width: 50%;
+  height: calc(var(--u) * 236);
+  object-fit: cover;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34%), linear-gradient(to bottom, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, #000 34%), linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-composite: intersect;
+}
+.pf-reading-hero .pf-title {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(var(--u) * 26);
+}
+.pf-rows {
+  margin: 0;
+}
+.pf-rows > div {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 80) 1fr;
+  gap: calc(var(--u) * 12);
+  padding: calc(var(--u) * 14) 0;
+  border-bottom: 1px solid var(--line);
+}
+.pf-rows dt {
+  font-size: calc(var(--u) * 17);
+  font-weight: 800;
+}
+.pf-rows dd {
+  margin: 0;
+  font-size: calc(var(--u) * 16.5);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.pf-moments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--u) * 14);
+  margin-top: calc(var(--u) * 20);
+}
+.pf-moment {
+  padding: calc(var(--u) * 14);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 14);
+  background: var(--white);
+}
+.pf-moment h3 {
+  margin: 0 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 17);
+  font-weight: 800;
+}
+.pf-moment p {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 15);
+  line-height: 1.55;
+  color: #3f4a4a;
+}
+.pf-moment-art {
+  --i: 34;
+  height: calc(var(--u) * 76);
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--u) * 10);
+  background: linear-gradient(135deg, #e8ecff, #f5f3ed);
+  color: var(--blue);
+}
+.pf-moment[data-season='spring'] .pf-moment-art { background: linear-gradient(135deg, #f9d5de, #f6ead0); color: #c2577a; }
+.pf-moment[data-season='summer'] .pf-moment-art { background: linear-gradient(135deg, #cde7f7, #fff1b8); color: #2d7eb8; }
+.pf-moment[data-season='autumn'] .pf-moment-art { background: linear-gradient(135deg, #f3d1a8, #e9b98a); color: #a85b22; }
+.pf-moment[data-season='winter'] .pf-moment-art { background: linear-gradient(135deg, #e3e9f5, #c9d6ee); color: #4a6aa8; }
+.pf-moment[data-time='morning'] .pf-moment-art { background: linear-gradient(135deg, #fce6c4, #f7f0da); color: #d08a1e; }
+.pf-moment[data-time='afternoon'] .pf-moment-art { background: linear-gradient(135deg, #fff1b8, #cde7f7); color: #c48a00; }
+.pf-moment[data-time='evening'] .pf-moment-art { background: linear-gradient(135deg, #f6c6a6, #c9b3e3); color: #b4553a; }
+.pf-moment[data-time='night'] .pf-moment-art { background: linear-gradient(135deg, #3a4672, #1e2547); color: #e8ecff; }
+.pf-tips {
+  margin: calc(var(--u) * 10) 0 0;
+  padding-left: calc(var(--u) * 22);
+  font-size: calc(var(--u) * 16);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.pf-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--u) * 18);
+}
+.pf-compare h3 {
+  margin: 0 0 calc(var(--u) * 6);
+  font-size: calc(var(--u) * 16);
+  font-weight: 800;
+}
+.pf-compare .pf-text {
+  font-size: calc(var(--u) * 15.5);
+}
+.pf-compare .pf-chips {
+  margin-top: calc(var(--u) * 6);
+}
+.pf-compare .pf-chips li {
+  font-size: calc(var(--u) * 15);
+  padding: calc(var(--u) * 6) calc(var(--u) * 12);
+}
+
+/* ── 영수증 · 인쇄 ─────────────────────────────────────── */
+.pf-receipt {
+  text-align: center;
+}
+.pf-receipt-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: calc(var(--u) * 16);
+}
+.pf-badge {
+  margin-bottom: calc(var(--u) * 14);
+  padding: calc(var(--u) * 8) calc(var(--u) * 18);
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+}
+.pf-badge[data-tone='warn'] {
+  background: #ffe5da;
+  color: #a6401c;
+}
+.pf-paper {
+  align-self: center;
+  flex: 1 1 auto;
+  position: relative;
+  width: calc(var(--u) * 300);
+  min-height: calc(var(--u) * 240);
+  margin: calc(var(--u) * 18) 0 calc(var(--u) * 6);
+  border-radius: calc(var(--u) * 4);
+  background: #fff;
+  box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 40) rgba(23, 35, 36, 0.18), 0 2px 6px rgba(23, 35, 36, 0.1);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  animation: pf-in 0.35s ease-out both;
+}
+.pf-paper img {
+  width: 100%;
+  display: block;
+}
+.pf-paper-wait {
+  --i: 36;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+}
+.pf-printing-sub {
+  color: var(--muted);
+}
+.pf-printer {
+  position: relative;
+  align-self: center;
+  flex: 1 1 auto;
+  width: calc(var(--u) * 360);
+  min-height: calc(var(--u) * 330);
+  margin-top: calc(var(--u) * 20);
+}
+.pf-printer-body {
+  position: absolute;
+  top: calc(var(--u) * 10);
+  left: 0;
+  right: 0;
+  height: calc(var(--u) * 170);
+  border-radius: calc(var(--u) * 34) calc(var(--u) * 34) calc(var(--u) * 20) calc(var(--u) * 20);
+  background: linear-gradient(#ffffff, #e9ebe8);
+  box-shadow: 0 calc(var(--u) * 22) calc(var(--u) * 40) rgba(23, 35, 36, 0.16), inset 0 -2px 0 rgba(23, 35, 36, 0.06);
+}
+.pf-printer-body i {
+  position: absolute;
+  top: calc(var(--u) * 26);
+  left: 24%;
+  right: 24%;
+  height: calc(var(--u) * 6);
+  border-radius: calc(var(--u) * 6);
+  background: var(--blue);
+  box-shadow: 0 0 calc(var(--u) * 16) rgba(36, 78, 234, 0.7);
+  animation: pf-pulse 1.4s ease-in-out infinite;
+}
+.pf-printer-paper {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--u) * 140);
+  left: 50%;
+  width: calc(var(--u) * 210);
+  margin-left: calc(var(--u) * -105);
+  height: calc(var(--u) * 190);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 calc(var(--u) * 10) calc(var(--u) * 20) rgba(23, 35, 36, 0.12);
+  clip-path: inset(0 0 100% 0);
+  animation: pf-feed 3.2s ease-out forwards;
+}
+.pf-printer-paper img {
+  width: 100%;
+  display: block;
+}
+.pf-printing-foot {
+  margin: 0 0 calc(var(--u) * 16);
+}
+.pf-printing .pf-bottom {
+  padding-bottom: calc(var(--u) * 8);
+}
+.pf-done-check {
+  --i: 46;
+  width: calc(var(--u) * 96);
+  height: calc(var(--u) * 96);
+  display: grid;
+  place-items: center;
+  margin-bottom: calc(var(--u) * 14);
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  animation: pf-pop 0.4s ease-out both;
+}
+.pf-done-desc {
+  color: var(--blue);
+}
+.pf-done-visual {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: calc(var(--u) * 230);
+  max-height: calc(var(--u) * 360);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin: calc(var(--u) * 14) 0 calc(var(--u) * 16);
+}
+.pf-done-receipt {
+  width: calc(var(--u) * 196);
+  height: 92%;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 4);
+  background: #fff;
+  box-shadow: 0 calc(var(--u) * 16) calc(var(--u) * 30) rgba(23, 35, 36, 0.16);
+  transform: rotate(-4deg);
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+}
+.pf-done-receipt img {
+  width: 100%;
+  display: block;
+}
+.pf-done-bottle {
+  height: 100%;
+  width: auto;
+  max-width: 46%;
+  margin-left: calc(var(--u) * -26);
+  object-fit: contain;
+  -webkit-mask-image: radial-gradient(ellipse 48% 50% at 54% 54%, #000 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 48% 50% at 54% 54%, #000 62%, transparent 100%);
+}
+.pf-spec {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 10);
+  margin: 0 0 calc(var(--u) * 14);
+  padding: 0;
+}
+.pf-spec li {
+  height: calc(var(--u) * 54);
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 12);
+  background: var(--white);
+  font-size: calc(var(--u) * 18);
+  font-weight: 700;
+}
+
+/* ── 안내창 ─────────────────────────────────────────────── */
+.pf-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+}
+.pf-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(23, 35, 36, 0.3);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: default;
+}
+.pf-dialog {
+  position: relative;
+  width: calc(var(--u) * 430);
+  max-width: 88vw;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 12);
+  padding: calc(var(--u) * 34) calc(var(--u) * 30) calc(var(--u) * 26);
+  border-radius: calc(var(--u) * 26);
+  background: var(--white);
+  box-shadow: 0 calc(var(--u) * 24) calc(var(--u) * 60) rgba(23, 35, 36, 0.24);
+  text-align: center;
+  animation: pf-pop 0.24s ease-out both;
+}
+.pf-dialog .pf-btn {
+  height: calc(var(--u) * 60);
+}
+.pf-dialog-title {
+  margin: 0;
+  font-size: calc(var(--u) * 28);
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.pf-dialog-sub {
+  margin: 0;
+  font-size: calc(var(--u) * 16);
+  color: var(--muted);
+}
+.pf-dialog-sub--blue {
+  margin-top: calc(var(--u) * -6);
+  color: var(--blue);
+}
+.pf-dialog-desc {
+  margin: calc(var(--u) * 2) 0 calc(var(--u) * 6);
+  font-size: calc(var(--u) * 18);
+  line-height: 1.5;
+}
+.pf-langs {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 10);
+  margin: calc(var(--u) * 10) 0 calc(var(--u) * 6);
+  padding: 0;
+}
+.pf-langs button {
+  width: 100%;
+  height: calc(var(--u) * 58);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 16);
+  padding: 0 calc(var(--u) * 18);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 12);
+  background: var(--white);
+  font-size: calc(var(--u) * 21);
+  text-align: left;
+}
+.pf-langs button[data-on] {
+  border-color: var(--blue-line);
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 700;
+}
+.pf-radio {
+  --i: 16;
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 28);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #b5bab5;
+  border-radius: 50%;
+}
+[data-on] > .pf-radio {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+.pf-idle-ring {
+  position: relative;
+  align-self: center;
+  width: calc(var(--u) * 140);
+  height: calc(var(--u) * 140);
+  margin: calc(var(--u) * 4) 0;
+}
+.pf-idle-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.pf-idle-track {
+  fill: none;
+  stroke: #e3e6ef;
+  stroke-width: 7;
+}
+.pf-idle-arc {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.pf-idle-ring span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--u) * 60);
+  font-weight: 800;
+  color: var(--blue);
+}
+.pf-dialog-icon {
+  --i: 70;
+  position: relative;
+  align-self: center;
+  margin: calc(var(--u) * 4) 0;
+  color: var(--ink);
+}
+.pf-dialog-icon--qr .lucide:first-child {
+  --i: 78;
+  color: #8c9396;
+}
+.pf-dialog-icon--qr .lucide:last-child {
+  --i: 36;
+  position: absolute;
+  right: calc(var(--u) * -12);
+  bottom: calc(var(--u) * -6);
+  border-radius: 50%;
+  background: var(--white);
+}
+.pf-dialog-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 6);
+  padding: calc(var(--u) * 14);
+  border: 1.5px solid var(--line);
+  border-radius: calc(var(--u) * 14);
+  background: #fbfaf6;
+}
+.pf-dialog-card b {
+  font-size: calc(var(--u) * 20);
+  font-weight: 800;
+}
+.pf-dialog-card span {
+  font-size: calc(var(--u) * 16);
+  color: var(--muted);
+}
+
+.pf-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--u) * 120);
+  z-index: 70;
+  max-width: calc(var(--u) * 480);
+  padding: calc(var(--u) * 14) calc(var(--u) * 24);
+  border-radius: 999px;
+  background: rgba(23, 35, 36, 0.92);
+  color: #fff;
+  font-size: calc(var(--u) * 17);
+  text-align: center;
+  transform: translateX(-50%);
+  animation: pf-toast 0.25s ease-out both;
+}
+
+/* ── 움직임 ─────────────────────────────────────────────── */
+@keyframes pf-in {
+  from { opacity: 0; transform: translateY(calc(var(--u) * 10)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pf-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pf-card-in {
+  from { opacity: 0; transform: rotate(-12deg) translateY(calc(var(--u) * 16)); }
+  to { opacity: 1; transform: rotate(-6deg); }
+}
+@keyframes pf-toast {
+  from { opacity: 0; transform: translate(-50%, calc(var(--u) * 10)); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes pf-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes pf-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pf-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@keyframes pf-flow {
+  from { left: -32%; }
+  to { left: 100%; }
+}
+@keyframes pf-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+@keyframes pf-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes pf-count {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 327; }
+}
+@keyframes pf-feed {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}

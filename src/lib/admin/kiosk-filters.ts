@@ -3,7 +3,7 @@
  * 동일한 조건을 쓰도록 공유한다. (`offline-shipping-filters.ts`와 동일한 구조)
  */
 
-export const KIOSK_PROGRAMS = ['personal', 'idol', 'saju'] as const
+export const KIOSK_PROGRAMS = ['personal', 'idol', 'saju', 'color', 'tarot'] as const
 
 export type KioskProgram = (typeof KIOSK_PROGRAMS)[number]
 
@@ -11,6 +11,8 @@ export const KIOSK_PROGRAM_LABELS: Record<KioskProgram, string> = {
   personal: '내 이미지',
   idol: '최애 이미지',
   saju: '사주 향',
+  color: '퍼스널 컬러',
+  tarot: '타로',
 }
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/

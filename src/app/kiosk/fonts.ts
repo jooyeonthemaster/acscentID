@@ -25,7 +25,8 @@ export const notoSansSC = Noto_Sans_SC({
 
 export const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
-  weight: ['400', '500', '700', '800'],
+  // 가변 폰트 한 벌로 모든 굵기를 제공한다. 고정 굵기별 Google 응답의 쿼리 URL이 Turbopack 빌드를 깨는 것을 피한다.
+  weight: 'variable',
   variable: '--font-noto-tc',
   display: 'swap',
   preload: false,

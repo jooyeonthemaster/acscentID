@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-09",
+  "generator": "Built-in image_gen",
+  "approvedConcepts": [
+    "Chromatic Archive",
+    "Moonlit Garden"
+  ],
+  "assets": [
+    {
+      "file": "public/assets/kiosk-programs/color-archive-fan.webp",
+      "prompt": "Use case: background-extraction / product-mockup. Supplied image is a REFERENCE for approved color archive art direction. Create only the physical colored paper swatch fan from the left screen as a standalone production website hero asset, NOT a UI or screenshot. Seven thick matte paper color sample cards spread in an elegant fan with a small brushed metal rivet near lower left, tomato red foreground, then peach, butter yellow, sage green, powder blue, lavender. Original tactile paper and subtle natural contact shadows, similar angle and material to reference. Centered with room around object, fills 85 percent canvas, no clipping. Truly TRANSPARENT background with alpha. No letters, words, numbers, brand, captions, stars, frame, devices or UI. Landscape 4:3. The entire background must be transparent, no checkered pattern, keep soft object shadow."
+    },
+    {
+      "file": "public/assets/kiosk-programs/moonlit-garden-background.webp",
+      "prompt": "Use case: background-extraction. Supplied image is a REFERENCE for the approved moonlit garden tarot design. Create a standalone VERTICAL 9:16 decorative background for a live touchscreen interface. Recreate the left screen's elegant original botanical engraving border on flat ivory parchment #F7F2E8: delicate muted olive foliage and purple wisteria on very far left and right margins; small crescent moon high at right edge, a calm tiny moonlit garden landscape and cat silhouette in the bottom outer edge. All foliage must stay within the outermost 9 percent left and right edges, with fine corners. Central 80 percent width and top to bottom from 8% to 92% MUST be visually quiet flat light ivory, with no illustration, no texture contrast, usable for actual UI and large text. Keep contrast modest on botanical border. Remove EVERY UI element from reference: NO words, letters, typography, logos, cards, icons, circles, button, borders around screens, shadows of panels, or frames. One full canvas background only, no mockup board. Beautiful fine ink linework/engraved illustrations, tactile subtle paper, soft sage and muted plum. Native portrait image."
+    },
+    {
+      "file": "public/assets/kiosk-programs/moonlit-tarot-fan.webp",
+      "prompt": "Use case: background-extraction / illustration-story. Supplied image is a REFERENCE. Create only the three beautifully illustrated tarot cards fanned in the center of its left screen, as a standalone production hero asset. Exactly THREE ornate 2:3 cards: left crescent moon on sage night, middle sun on dusty lavender, right eight-point star on muted sage. Cream paper card borders decorated with delicate original floral engraving and tiny gold stars. Left card tilts -13 degrees, middle upright above others, right +13 degrees. Fine literary botanical etching, cream, muted olive sage, dusty lavender, subtle metallic linework. Match the reference's calm moonlit garden mood. Cards fill 85 percent of wide canvas and are fully visible. Truly transparent background with alpha, preserve light contact shadows under overlapping cards. NO words, labels, letters, numbers, interface, hands, scenery, border frame or watermarks. Landscape 4:3, no checkerboard."
+    }
+  ]
+}
