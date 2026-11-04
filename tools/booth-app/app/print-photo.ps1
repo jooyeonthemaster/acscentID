@@ -14,6 +14,9 @@
     원판은 90도 돌려 그 페이지에 얹는다(이 PC 의 dslrBooth 띠지 설정과 같은 조합).
   안 잘린 조합: 'PR (4x6)' + 2인치(문서 설정·프린터 기본 설정 둘 다), '(6x4)' 를 돌려(가로 방향) 쓴 것.
   'PR (4x6) x 2' 는 2인치 자르기가 아니다(6x8 용지에 두 장).
+  ⚠ 같은 조합이라도 PrintTicket → DEVMODE 로 '만든' 설정은 안 잘렸다(되읽으면 CUT_2INCH 로 보이는데도) — 잘린 것은
+  드라이버가 직접 만든 DEVMODE(dslrBooth 가 저장해 둔 PageDevmodeSnapshot) 뿐이다. 그래서 그 원본을 옆 파일
+  strip-devmode.b64 로 두고 그대로 쓴다 → 없으면 이 PC 의 dslrBooth printer_settings.xml 에서 → 그것도 없으면 PrintTicket 으로 만든다.
   이 인쇄 한 건의 DEVMODE 에만 넣는다 — 프린터 기본값은 그대로라 매장 4x6 사진은 잘리지 않는다.
   켜지 못하면 경고만 남기고 보통으로(PR 4x6, 자르지 않고) 인쇄한다.
   -Copies: 같은 원판을 몇 장(4x6 기준) — 띠지는 장마다 두 장씩 나온다.
@@ -33,28 +36,46 @@ if ($Printer) { $doc.PrinterSettings.PrinterName = $Printer }
 if (-not $doc.PrinterSettings.IsValid) { throw "printer not valid: $($doc.PrinterSettings.PrinterName)" }
 $papers = @($doc.PrinterSettings.PaperSizes)
 
-# 2인치 자르기 — 사용자 기본 인쇄 설정(PrintTicket)에서 용지 PC · 세로 · CUT_2INCH 로 바꿔 DEVMODE 로 만들어 이 문서에만 넣는다.
-# 드라이버 고유 값(자르기)은 DEVMODE 뒷부분에 그대로 남는다. 용지·방향은 System.Drawing 쪽에도 같은 값으로 다시 적는다
+# 2인치 자르기 — 잘리는 DEVMODE(용지 PC · 세로 · CUT_2INCH)를 이 문서에만 넣는다. 용지·방향은 원본 그대로(다르면만 맞춘다)
 $cut = 'standard'
+$cutOn = $false
 if ($Cut2Inch) {
   try {
-    Add-Type -AssemblyName System.Printing
-    Add-Type -AssemblyName ReachFramework
     if (-not ('AcsGMem' -as [type])) {
       Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class AcsGMem { [DllImport("kernel32.dll")] public static extern IntPtr GlobalAlloc(uint f, UIntPtr n); [DllImport("kernel32.dll")] public static extern IntPtr GlobalLock(IntPtr h); [DllImport("kernel32.dll")] public static extern bool GlobalUnlock(IntPtr h); [DllImport("kernel32.dll")] public static extern IntPtr GlobalFree(IntPtr h); }'
     }
     $pc = $papers | Where-Object { $_.PaperName -eq '(6x4)' } | Select-Object -First 1
     if (-not $pc) { throw 'no (6x4) paper in this driver' }
-    $name = $doc.PrinterSettings.PrinterName
-    $queue = (New-Object System.Printing.LocalPrintServer).GetPrintQueue($name)
-    $xml = (New-Object IO.StreamReader($queue.UserPrintTicket.GetXmlStream())).ReadToEnd()
-    if ($xml -notmatch 'CUT_STANDARD|CUT_2INCH') { throw 'no 2inch cut option in this driver' }
-    $xml = $xml -replace 'ns0000:CUT_STANDARD', 'ns0000:CUT_2INCH'
-    $xml = [regex]::Replace($xml, '(PageMediaSize">\s*<psf:Option name=")[^"]+"', '${1}ns0000:PC"')
-    $xml = [regex]::Replace($xml, '(PageOrientation">\s*<psf:Option name=")[^"]+"', '${1}psk:Portrait"')
-    $ticket = New-Object System.Printing.PrintTicket((New-Object IO.MemoryStream(, [Text.Encoding]::UTF8.GetBytes($xml))))
-    $converter = New-Object System.Printing.Interop.PrintTicketConverter($name, $queue.ClientPrintSchemaVersion)
-    $devmode = $converter.ConvertPrintTicketToDevMode($ticket, [System.Printing.Interop.BaseDevModeType]::UserDefault)
+    $devmode = $null
+    $source = ''
+    # 1) 앱 폴더의 원본(이 PC 의 dslrBooth 띠지 설정에서 뽑은 것, 2026-11-04 실물로 잘림 확인)
+    $saved = Join-Path $PSScriptRoot 'strip-devmode.b64'
+    if (Test-Path $saved) { $devmode = [Convert]::FromBase64String((Get-Content $saved -Raw).Trim()); $source = 'saved' }
+    # 2) 이 PC 의 dslrBooth 띠지 설정(자르기가 켜져 있을 때만)
+    if (-not $devmode) {
+      $dslr = Join-Path $env:APPDATA 'dslrBooth\printer_settings.xml'
+      if (Test-Path $dslr) {
+        $x = [Net.WebUtility]::HtmlDecode((Get-Content $dslr -Raw))
+        $m = [regex]::Match($x, 'PageDevmodeSnapshot">\s*<psf:Value[^>]*>([^<]+)<')
+        if ($m.Success -and $x -match 'CUTTERCONTROL">\s*<psf:Option name="ns0000:CUT_2INCH"') { $devmode = [Convert]::FromBase64String($m.Groups[1].Value.Trim()); $source = 'dslrbooth' }
+      }
+    }
+    # 3) 마지막 수단 — 사용자 기본 PrintTicket 에서 만든 것(이 PC 에서는 안 잘렸다)
+    if (-not $devmode) {
+      Add-Type -AssemblyName System.Printing
+      Add-Type -AssemblyName ReachFramework
+      $name = $doc.PrinterSettings.PrinterName
+      $queue = (New-Object System.Printing.LocalPrintServer).GetPrintQueue($name)
+      $xml = (New-Object IO.StreamReader($queue.UserPrintTicket.GetXmlStream())).ReadToEnd()
+      if ($xml -notmatch 'CUT_STANDARD|CUT_2INCH') { throw 'no 2inch cut option in this driver' }
+      $xml = $xml -replace 'ns0000:CUT_STANDARD', 'ns0000:CUT_2INCH'
+      $xml = [regex]::Replace($xml, '(PageMediaSize">\s*<psf:Option name=")[^"]+"', '${1}ns0000:PC"')
+      $xml = [regex]::Replace($xml, '(PageOrientation">\s*<psf:Option name=")[^"]+"', '${1}psk:Portrait"')
+      $ticket = New-Object System.Printing.PrintTicket((New-Object IO.MemoryStream(, [Text.Encoding]::UTF8.GetBytes($xml))))
+      $converter = New-Object System.Printing.Interop.PrintTicketConverter($name, $queue.ClientPrintSchemaVersion)
+      $devmode = $converter.ConvertPrintTicketToDevMode($ticket, [System.Printing.Interop.BaseDevModeType]::UserDefault)
+      $source = 'ticket'
+    }
     $h = [AcsGMem]::GlobalAlloc(0x0042, [UIntPtr][uint64]$devmode.Length)
     $ptr = [AcsGMem]::GlobalLock($h)
     [Runtime.InteropServices.Marshal]::Copy($devmode, 0, $ptr, $devmode.Length)
@@ -62,9 +83,10 @@ if ($Cut2Inch) {
     $doc.PrinterSettings.SetHdevmode($h)
     $doc.DefaultPageSettings.SetHdevmode($h)
     [AcsGMem]::GlobalFree($h) | Out-Null
-    $doc.DefaultPageSettings.PaperSize = $pc
-    $doc.DefaultPageSettings.Landscape = $false
-    $cut = '2inch'
+    if ($doc.DefaultPageSettings.PaperSize.PaperName -ne '(6x4)') { $doc.DefaultPageSettings.PaperSize = $pc }
+    if ($doc.DefaultPageSettings.Landscape) { $doc.DefaultPageSettings.Landscape = $false }
+    $cutOn = $true
+    $cut = "2inch($source)"
   } catch {
     $cut = "standard(2inch failed: $($_.Exception.Message))"
     $doc = New-Object System.Drawing.Printing.PrintDocument
@@ -72,7 +94,7 @@ if ($Cut2Inch) {
   }
 }
 
-if ($cut -ne '2inch') {
+if (-not $cutOn) {
   # 용지: 이름이 맞는 것 → 없으면 4x6 크기(1/100인치 413x615, 세로·가로 무관)에 맞는 것
   $size = $papers | Where-Object { $_.PaperName -eq $Paper } | Select-Object -First 1
   if (-not $size) {
@@ -86,7 +108,7 @@ if ($cut -ne '2inch') {
 
 $img = [System.Drawing.Image]::FromFile($Image)
 try {
-  if ($cut -eq '2inch') {
+  if ($cutOn) {
     # 띠지: 페이지는 가로로 긴 6x4 그대로 — 세로 원판을 90도 돌려 얹는다
     if ($img.Height -gt $img.Width) { $img.RotateFlip([System.Drawing.RotateFlipType]::Rotate90FlipNone) }
   } else {
