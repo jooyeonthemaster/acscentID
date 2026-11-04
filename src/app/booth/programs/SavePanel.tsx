@@ -114,7 +114,7 @@ export function usePrint(image: string | null, onPrinted: () => void) {
   return { state, error, print, browser: !getBoothShell() }
 }
 
-export function PrintCard({ printer, label = '사진 1장 인쇄' }: { printer: ReturnType<typeof usePrint>; label?: string }) {
+export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 사진 한 장 · 화면과 같은 디자인' }: { printer: ReturnType<typeof usePrint>; label?: string; note?: string }) {
   const { state, error, print, browser } = printer
   return (
     <section className="pg-card pg-print" aria-label={label}>
@@ -128,7 +128,7 @@ export function PrintCard({ printer, label = '사진 1장 인쇄' }: { printer: 
       ) : state === 'sent' ? (
         <p role="status">{browser ? '인쇄 창을 열었어요. 부스에서는 프린터로 바로 보내요.' : '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.'}</p>
       ) : (
-        <p>4×6 사진 한 장 · 화면과 같은 디자인</p>
+        <p>{note}</p>
       )}
       <button type="button" className="pg-btn pg-btn--line" onClick={() => void print()} disabled={state === 'sending' || state === 'sent' || state === 'failed'}>
         {state === 'sending' ? <><Loader2 className="pg-spin" size={18} />보내는 중…</> : state === 'sent' ? '인쇄 요청 보냄' : '인쇄하기'}

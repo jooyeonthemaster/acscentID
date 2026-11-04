@@ -1,0 +1,370 @@
+'use client'
+
+// ANSAN 타임캡슐 흐름(2026 안산사이언스밸리 과학축제 AI 포토존) — 직원 없이 손님 혼자 끝까지:
+// 촬영(가로 3:2, 혼자~4명, 동의 · 5초) → 확인 → AI 미래 세 장(/api/photobooth/timecapsule) → 네 컷 보기 · 띠지 디자인 → 인화(자동) · QR.
+// 옵션 고르기는 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
+// 인쇄 원판은 4×6 에 띠지 둘(프린터 2인치 자르기), 폰 저장은 띠지 한 장(strip-print.ts).
+
+import { AlertTriangle, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { countFaces, preloadFaceDetect } from '@/lib/booth/face-detect'
+import { STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
+import { useCamera } from './use-camera'
+import { toRequestJpeg, type FlowCtx } from './flow'
+import { loadCanvasFonts } from './fonts'
+import { PhoneSheet } from './PhotoFlow'
+import { savePhoto } from './save'
+import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
+import { renderStrip, stripSheet } from './strip-print'
+import { Creative, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
+import { loadImage } from './video'
+
+type Step = 'capture' | 'generating' | 'result' | 'save'
+const COUNTDOWN_S = 5
+
+/** 찍은 사진을 화면과 같은 가로 3:2 로(가운데) — 미리보기 칸이 3:2 cover 라 손님이 본 그대로 */
+function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
+  const w = src instanceof HTMLImageElement ? src.naturalWidth : src.width
+  const h = src instanceof HTMLImageElement ? src.naturalHeight : src.height
+  const cw = Math.min(w, h * 1.5), ch = cw / 1.5
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(cw); canvas.height = Math.round(ch)
+  canvas.getContext('2d')!.drawImage(src, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, canvas.width, canvas.height)
+  return canvas
+}
+
+interface Strips { prints: [string, string]; sheets: [string, string] }
+
+export function StripFlow({ ctx }: { ctx: FlowCtx }) {
+  const [step, setStep] = useState<Step>('capture')
+  const [shot, setShot] = useState<HTMLCanvasElement | null>(null)
+  const [shotUrl, setShotUrl] = useState<string | null>(null)
+  const [future, setFuture] = useState<(HTMLImageElement | null)[]>([])
+  const [strips, setStrips] = useState<Strips | null>(null)
+  const [design, setDesign] = useState<0 | 1>(0)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const { setStep: showStep, setDirty } = ctx
+  useEffect(() => { showStep(step === 'capture' ? 1 : step === 'generating' ? 2 : 3) }, [step, showStep])
+  useEffect(() => { setDirty(step !== 'capture' || !!shot) }, [step, shot, setDirty])
+  useEffect(() => { preloadFaceDetect() }, [])
+
+  const take = (pic: HTMLCanvasElement | null) => {
+    setShot(pic); setShotUrl(pic ? pic.toDataURL('image/jpeg', 0.85) : null)
+  }
+
+  return (
+    <>
+      {step === 'capture' && (
+        <CaptureStep ctx={ctx} shot={shot} shotUrl={shotUrl} notice={notice} onShot={(pic) => { setNotice(null); take(pic) }} onNext={() => setStep('generating')} />
+      )}
+      {step === 'generating' && shot && shotUrl && (
+        <Generate
+          ctx={ctx} shot={shot} shotUrl={shotUrl}
+          onDone={(images, prints) => { setFuture(images); setStrips(prints); setDesign(0); setStep('result'); ctx.onResult() }}
+          onRetake={(message) => { setNotice(message); take(null); setStep('capture') }}
+        />
+      )}
+      {step === 'result' && shotUrl && strips && (
+        <Split className="pg-strip-result" visual={<FourCuts now={shotUrl} future={future.map((img) => img?.src ?? null)} />}>
+          <PanelHead title={ctx.program.result.title} sub={ctx.program.result.sub} />
+          {future.some((img) => !img) && <p className="pg-warn" role="status"><AlertTriangle size={18} aria-hidden="true" />한 장면은 만들지 못해 &lsquo;도착하는 중&rsquo; 칸으로 인화돼요.</p>}
+          <div className="pg-strip-designs" role="radiogroup" aria-label="띠지 디자인">
+            {strips.prints.map((src, i) => (
+              <button key={i} type="button" role="radio" aria-checked={design === i} className="pg-design" onClick={() => setDesign(i as 0 | 1)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" width={100} height={300} />
+                <span>{ctx.program.designs[i]}</span>
+                {design === i && <i aria-hidden="true"><Check size={16} strokeWidth={3} /></i>}
+              </button>
+            ))}
+          </div>
+          <Creative text={ctx.program.creative} />
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('save')}><Printer size={26} />띠지 인화하기<span aria-hidden="true">→</span></button>
+        </Split>
+      )}
+      {step === 'save' && strips && <SaveStep ctx={ctx} strip={strips.prints[design]} sheet={strips.sheets[design]} />}
+    </>
+  )
+}
+
+/** 네 컷 크게 — 지금 · 10 · 20 · 30년 후 */
+function FourCuts({ now, future, pending, empty = '도착하는 중' }: { now: string; future: (string | null)[]; pending?: boolean; empty?: string }) {
+  const cuts = [{ year: STRIP_NOW_YEAR, label: '지금', src: now as string | null }, ...STRIP_STEPS.map((s, i) => ({ year: s.year, label: s.label, src: future[i] ?? null }))]
+  return (
+    <div className="pg-four">
+      {cuts.map((cut, i) => (
+        <figure key={cut.year} className="pg-four-cut" data-pending={(pending && i > 0) || undefined}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {cut.src ? <img src={cut.src} alt={`${cut.year}년 ${cut.label}`} /> : <span className="pg-four-empty">{pending ? <span className="pg-spin-box" aria-hidden="true" /> : empty}</span>}
+          <figcaption><b>{cut.year}</b>{cut.label}</figcaption>
+        </figure>
+      ))}
+    </div>
+  )
+}
+
+// ───────────────────────── 촬영 ─────────────────────────
+
+function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
+  ctx: FlowCtx
+  shot: HTMLCanvasElement | null
+  shotUrl: string | null
+  notice: string | null
+  onShot: (pic: HTMLCanvasElement | null) => void
+  onNext: () => void
+}) {
+  const { program } = ctx
+  const camera = useCamera({ enabled: !shot })
+  const [count, setCount] = useState<number | null>(null)
+  const [flash, setFlash] = useState(false)
+  const [consent, setConsent] = useState(false)
+  const [phone, setPhone] = useState(false)
+  const [faceWarning, setFaceWarning] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const timers = useRef<number[]>([])
+  useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), [])
+  const { setBusy } = ctx
+  useEffect(() => { setBusy(count !== null) }, [count, setBusy])
+
+  /** 찍힌 얼굴 수 확인 — 0명·너무 많음만 알려 준다(아기·옆얼굴은 검출기가 놓칠 수 있어 적게 잡힌 건 막지 않는다) */
+  const checkFaces = async (pic: HTMLCanvasElement) => {
+    const faces = await countFaces(pic)
+    setFaceWarning(faces === 0 ? '얼굴이 잘 보이지 않아요. 모두 화면 가운데로 와서 다시 찍는 걸 권해요.'
+      : faces > STRIP_MAX_PEOPLE ? `얼굴이 ${faces}명 보여요. ${STRIP_MAX_PEOPLE}명까지 함께 찍을 수 있어요 — 뒤에 지나가는 분이 찍혔다면 그대로 진행해도 돼요.`
+        : null)
+  }
+
+  const shoot = useCallback(() => {
+    if (count !== null || camera.state !== 'ready' || !consent || shot) return
+    setError(null); setFaceWarning(null)
+    setCount(COUNTDOWN_S)
+    for (let i = 1; i <= COUNTDOWN_S; i++) {
+      timers.current.push(window.setTimeout(() => setCount(COUNTDOWN_S - i > 0 ? COUNTDOWN_S - i : 0), i * 1000))
+    }
+    timers.current.push(window.setTimeout(async () => {
+      setFlash(true)
+      timers.current.push(window.setTimeout(() => setFlash(false), 260))
+      try {
+        const pic = crop32(await camera.still())
+        onShot(pic)
+        void checkFaces(pic)
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : '촬영하지 못했어요.')
+      } finally {
+        setCount(null)
+      }
+    }, COUNTDOWN_S * 1000 + 50))
+  }, [count, camera, consent, shot, onShot])
+
+  const retake = () => { setFaceWarning(null); onShot(null) }
+
+  const phoneSheet = phone && (
+    <PhoneSheet ctx={ctx} need={1} onClose={() => setPhone(false)} onPhotos={([pic]) => { setPhone(false); if (pic) { const c = crop32(pic); onShot(c); void checkFaces(c) } }} />
+  )
+
+  if (camera.state === 'error' && !shot) {
+    return (
+      <Split className="pg-capture-step" visual={<div className="pg-cam pg-cam--off pg-cam--wide"><CameraOff size={96} aria-hidden="true" /><p>카메라가 연결되지 않았어요</p></div>}>
+        <PanelHead title="카메라가 연결되지 않았어요" sub={camera.error ?? '연결을 확인한 뒤 다시 시도해 주세요'} />
+        <div className="pg-stack">
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={camera.retry}><RefreshCw size={20} />다시 연결하기</button>
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => setPhone(true)}><ImagePlus size={20} />휴대폰 사진 가져오기</button>
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={ctx.home}>처음으로</button>
+        </div>
+        {phoneSheet}
+      </Split>
+    )
+  }
+
+  const visual = (
+    <div className="pg-strip-capture">
+      <div className="pg-cam pg-cam--wide" data-live={!shot || undefined}>
+        {shotUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={shotUrl} alt="촬영한 사진" />
+        ) : (
+          <>
+            <video ref={camera.videoRef} muted playsInline autoPlay className="pg-cam-video" hidden={camera.source === 'dslr'} />
+            <canvas ref={camera.liveRef} className="pg-cam-video" hidden={camera.source !== 'dslr'} />
+            <div className="pg-guide pg-guide--group" aria-hidden="true"><i /><i /></div>
+            {camera.state === 'starting' && <p className="pg-cam-note">카메라를 켜는 중…</p>}
+            {camera.state === 'ready' && count === null && <p className="pg-cam-ready"><i />모두 점선 안으로 · 아기는 안고 찍어도 돼요</p>}
+            {count !== null && count > 0 && <b className="pg-count" aria-live="assertive">{count}</b>}
+          </>
+        )}
+        {flash && <div className="pg-flash" aria-hidden="true" />}
+      </div>
+    </div>
+  )
+
+  return (
+    <Split className="pg-capture-step" visual={visual}>
+      <PanelHead title={shot ? '사진을 확인해 주세요' : program.capture.title} sub={shot ? '모두 잘 나왔으면 미래로 떠나요' : program.capture.hint} />
+      {notice && <p className="pg-error-text" role="alert">{notice}</p>}
+      {faceWarning && <p className="pg-warn" role="alert"><AlertTriangle size={18} aria-hidden="true" />{faceWarning}</p>}
+      {error && <p className="pg-error-text" role="alert">{error}</p>}
+      {!shot ? (
+        <>
+          <label className="pg-consent">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
+            <span>사진 촬영과 AI 사진 만들기에 동의해요. <b>만 14세 미만 어린이는 보호자가 함께 확인해 주세요.</b> 찍은 사진은 만들기에만 쓰고, 완성된 띠지만 7일 보관해요.</span>
+          </label>
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
+            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : `촬영하기 · ${COUNTDOWN_S}초 뒤 찰칵`}
+          </button>
+          {!consent && <p className="pg-muted">촬영하려면 위 동의를 눌러 주세요.</p>}
+        </>
+      ) : (
+        <div className="pg-actions">
+          <button type="button" className="pg-btn pg-btn--line" onClick={retake}><RotateCcw size={20} />다시 찍기</button>
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={onNext}><Sparkles size={20} />이 사진으로 미래 만들기</button>
+        </div>
+      )}
+      {phoneSheet}
+    </Split>
+  )
+}
+
+// ───────────────────────── 생성 ─────────────────────────
+
+/** '로/으로' — 받침 없거나 ㄹ 받침이면 '로' */
+const ro = (word: string) => { const jong = (word.charCodeAt(word.length - 1) - 0xac00) % 28; return jong === 0 || jong === 8 ? '로' : '으로' }
+/** 기다리는 동안 바뀌는 한 줄 — 컷마다 가는 곳 */
+const TRAVEL = STRIP_STEPS.map((s) => `${s.label} ${s.place}${ro(s.place)} 가는 중…`)
+
+function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
+  ctx: FlowCtx
+  shot: HTMLCanvasElement
+  shotUrl: string
+  onDone: (images: (HTMLImageElement | null)[], strips: Strips) => void
+  onRetake: (message: string) => void
+}) {
+  const { program } = ctx
+  const [stage, setStage] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  const elapsed = useElapsed(!error)
+  const done = useRef({ onDone, onRetake })
+  done.current = { onDone, onRetake }
+
+  useEffect(() => {
+    const abort = new AbortController()
+    ctx.setBusy(true)
+    setError(null); setStage(0)
+    const ask = async (years: StripYears[], photo: string): Promise<StripResponse> => {
+      const ticket = await ctx.getTicket()
+      const res = await fetch('/api/photobooth/timecapsule', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abort.signal,
+        body: JSON.stringify({ ticket, photo, years }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 422) throw Object.assign(new Error(data.error || '다시 찍어 주세요.'), { retake: true })
+      if (!res.ok || !Array.isArray(data.images)) throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)
+      return data as StripResponse
+    }
+    ;(async () => {
+      try {
+        const photo = toRequestJpeg(shot, 2048)
+        const stageTimer = window.setTimeout(() => setStage(1), 4500)
+        const first = await ask(STRIP_STEPS.map((s) => s.years), photo)
+        window.clearTimeout(stageTimer)
+        const byYears = new Map(first.images.map((i) => [i.years, i.image]))
+        // 못 만든 칸만 한 번 더(같은 표의 두 번째) — 이것도 안 되면 '도착하는 중' 칸으로
+        const missing = STRIP_STEPS.map((s) => s.years).filter((y) => !byYears.get(y))
+        if (missing.length) {
+          setStage(1)
+          const again = await ask(missing, photo).catch(() => null)
+          again?.images.forEach((i) => { if (i.image) byYears.set(i.years, i.image) })
+        }
+        setStage(2)
+        const [images] = await Promise.all([
+          Promise.all(STRIP_STEPS.map((s) => { const src = byYears.get(s.years); return src ? loadImage(src) : Promise.resolve(null) })),
+          loadCanvasFonts(),
+        ])
+        const input = { now: shot, future: images }
+        const canvases = [renderStrip(0, input), renderStrip(1, input)] as const
+        const strips: Strips = {
+          prints: [canvases[0].toDataURL('image/jpeg', 0.93), canvases[1].toDataURL('image/jpeg', 0.93)],
+          sheets: [stripSheet(canvases[0]), stripSheet(canvases[1])],
+        }
+        if (!abort.signal.aborted) done.current.onDone(images, strips)
+      } catch (cause) {
+        if (abort.signal.aborted) return
+        if ((cause as { retake?: boolean }).retake) { done.current.onRetake(cause instanceof Error ? cause.message : '다시 찍어 주세요.'); return }
+        setError(cause instanceof Error ? cause.message : 'AI 사진을 만들지 못했어요.')
+      } finally {
+        ctx.setBusy(false)
+      }
+    })()
+    return () => { abort.abort(); ctx.setBusy(false) }
+    // 다시 만들기(attempt)마다 새로
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempt])
+
+  if (error) {
+    return (
+      <Split className="pg-generating pg-generating--error" visual={<FourCuts now={shotUrl} future={[]} empty="?" />}>
+        <div className="pg-error-icon" aria-hidden="true"><AlertTriangle size={44} /></div>
+        <PanelHead title="잠시 문제가 생겼어요" sub="찍은 사진은 그대로예요" />
+        <p className="pg-error-text" role="alert">{error}</p>
+        <div className="pg-stack">
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setAttempt((n) => n + 1)}><RefreshCw size={20} />다시 만들기</button>
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => done.current.onRetake('')}><Camera size={20} />다시 찍기</button>
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={ctx.home}>처음으로</button>
+        </div>
+      </Split>
+    )
+  }
+
+  return (
+    <Split className="pg-generating" visual={<FourCuts now={shotUrl} future={[]} pending />}>
+      <PanelHead title={program.generating.title} sub={program.generating.sub} />
+      <Progress caption={`${elapsed}초 지남 · 보통 30~40초 걸려요`} />
+      <p className="pg-travel" aria-live="polite">{stage === 2 ? '띠지를 꾸미는 중…' : TRAVEL[Math.floor(elapsed / 5) % TRAVEL.length]}</p>
+      <Stages labels={program.generating.stages} active={stage} />
+      <Creative text={program.creative} />
+    </Split>
+  )
+}
+
+// ───────────────────────── 인화 · 저장 ─────────────────────────
+
+function StripPreview({ src }: { src: string }) {
+  return (
+    <div className="pg-strip-preview">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="인화될 띠지" width={200} height={600} />
+    </div>
+  )
+}
+
+function SaveStep({ ctx, strip, sheet }: { ctx: FlowCtx; strip: string; sheet: string }) {
+  const { program, markShot, setDirty } = ctx
+  const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
+  const saved = useSavedLink(make, true)
+  const printer = usePrint(sheet, () => markShot({ printed: true }))
+  // [띠지 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
+  const sent = useRef(false)
+  const { print } = printer
+  useEffect(() => {
+    if (sent.current) return
+    sent.current = true
+    void print()
+  }, [print])
+  useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
+  return (
+    <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
+      <PanelHead title={program.save.title} sub={program.save.sub} />
+      <div className="pg-save-cards">
+        <PrintCard printer={printer} label="띠지 2장 인쇄" note="2×6 띠지 두 장 · 한 장은 함께 온 분께" />
+        <QrCard state={saved} />
+      </div>
+      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>
+      <div className="pg-print-area" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={sheet} alt="" />
+      </div>
+    </Split>
+  )
+}

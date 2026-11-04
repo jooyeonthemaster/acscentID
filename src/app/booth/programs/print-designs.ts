@@ -25,7 +25,7 @@ export interface PrintInput {
 
 type Ctx = CanvasRenderingContext2D
 
-function cover(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, focusY = 0.35) {
+export function cover(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, focusY = 0.35) {
   const { w: sw, h: sh } = size(pic)
   const scale = Math.max(w / sw, h / sh)
   const cw = w / scale, ch = h / scale
@@ -34,7 +34,7 @@ function cover(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, f
   ctx.drawImage(pic, cx, cy, cw, ch, x, y, w, h)
 }
 
-function text(ctx: Ctx, value: string, x: number, y: number, font: string, color: string, align: CanvasTextAlign = 'center', extra?: (c: Ctx) => void) {
+export function text(ctx: Ctx, value: string, x: number, y: number, font: string, color: string, align: CanvasTextAlign = 'center', extra?: (c: Ctx) => void) {
   ctx.save()
   ctx.font = font
   ctx.fillStyle = color
@@ -46,7 +46,7 @@ function text(ctx: Ctx, value: string, x: number, y: number, font: string, color
 }
 
 /** 폭에 맞춰 글자 크기를 줄인다 */
-function fitText(ctx: Ctx, value: string, x: number, y: number, maxW: number, px: number, family: string, color: string, weight = '', align: CanvasTextAlign = 'center', extra?: (c: Ctx) => void) {
+export function fitText(ctx: Ctx, value: string, x: number, y: number, maxW: number, px: number, family: string, color: string, weight = '', align: CanvasTextAlign = 'center', extra?: (c: Ctx) => void) {
   let s = px
   ctx.save()
   for (; s > 20; s -= 4) { ctx.font = `${weight} ${s}px ${family}`; if (ctx.measureText(value).width <= maxW) break }
@@ -54,7 +54,7 @@ function fitText(ctx: Ctx, value: string, x: number, y: number, maxW: number, px
   text(ctx, value, x, y, `${weight} ${s}px ${family}`, color, align, extra)
 }
 
-function rect(ctx: Ctx, x: number, y: number, w: number, h: number, fill: string, radius = 0) {
+export function rect(ctx: Ctx, x: number, y: number, w: number, h: number, fill: string, radius = 0) {
   ctx.save()
   ctx.fillStyle = fill
   ctx.beginPath()
@@ -73,7 +73,7 @@ function stroke(ctx: Ctx, x: number, y: number, w: number, h: number, color: str
   ctx.restore()
 }
 
-function photoClip(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, radius: number, focusY = 0.35) {
+export function photoClip(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, radius: number, focusY = 0.35) {
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(x, y, w, h, radius)
@@ -82,7 +82,7 @@ function photoClip(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: numbe
   ctx.restore()
 }
 
-function shadow(ctx: Ctx, blur = 30, color = 'rgba(0,0,0,0.25)') {
+export function shadow(ctx: Ctx, blur = 30, color = 'rgba(0,0,0,0.25)') {
   ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.shadowOffsetY = blur / 3
 }
 
@@ -96,7 +96,7 @@ function paper(ctx: Ctx, base: string, speck: string, count = 1400) {
   ctx.restore()
 }
 
-function star(ctx: Ctx, cx: number, cy: number, r: number, fill: string) {
+export function star(ctx: Ctx, cx: number, cy: number, r: number, fill: string) {
   ctx.save()
   ctx.fillStyle = fill
   ctx.beginPath()
@@ -134,18 +134,18 @@ function seal(ctx: Ctx, cx: number, cy: number, s: number, glyph: string) {
   text(ctx, glyph, cx, cy + s * 0.28, `700 ${s * 0.7}px ${gowun.style.fontFamily}`, '#fbeee0')
 }
 
-const today = () => {
+export const today = () => {
   const d = new Date()
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
 type Design = (ctx: Ctx, input: PrintInput) => void
 
-const A = () => anton.style.fontFamily
-const P = () => playfair.style.fontFamily
+export const A = () => anton.style.fontFamily
+export const P = () => playfair.style.fontFamily
 const B = () => bagel.style.fontFamily
 const H = () => blackHan.style.fontFamily
-const G = () => gowun.style.fontFamily
+export const G = () => gowun.style.fontFamily
 const S = () => pen.style.fontFamily
 
 const DESIGNS: Record<string, [Design, Design]> = {

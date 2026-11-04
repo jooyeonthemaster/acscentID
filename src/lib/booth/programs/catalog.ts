@@ -8,11 +8,16 @@ export const PROGRAM_IDS = [
   'brand-avatar', 'hanbok', 'traditional', 'wedding', 'future-family', 'music-video', 'memory-movie',
   // 2026 대한민국 주거복지대전(2026-12-16) 특화 — docs/photobooth-programs.md '주거복지대전 3종'
   'housing-movein', 'housing-cover', 'housing-2046',
+  // 2026 안산사이언스밸리 과학축제(11-07~08) AI 포토존 — 운영 모드 'ANSAN'(modes.ts), docs/photobooth-programs.md 'ANSAN 타임캡슐'
+  'ansan-2026',
 ] as const
 export type ProgramId = (typeof PROGRAM_IDS)[number]
 
-/** photo: AI 사진 한 장 → 4×6 인화·QR / mv: 15초 촬영 영상 편집 / movie: 휴대폰 사진 5~20장 → 슬라이드 영상 */
-export type ProgramKind = 'photo' | 'mv' | 'movie'
+/**
+ * photo: AI 사진 한 장 → 4×6 인화·QR / mv: 15초 촬영 영상 편집 / movie: 휴대폰 사진 5~20장 → 슬라이드 영상
+ * strip: 한 컷 → 지금 + AI 세 장 = 2×6 띠지 네 컷(4×6 한 장에 띠지 둘, 프린터 2인치 자르기) — ANSAN 타임캡슐
+ */
+export type ProgramKind = 'photo' | 'mv' | 'movie' | 'strip'
 
 export interface ProgramOption {
   id: string
@@ -71,6 +76,8 @@ export interface ProgramDef {
   designs: [string, string]
   /** 데모 카드 */
   card: { tag: string; desc: string; color: string; badges: string[] }
+  /** 행사 전용 — 운영 모드는 modes.ts 의 행사 항목(이름·기간)으로 따로 두고, 프로그램 모드 목록·영업용 데모 랜딩에는 넣지 않는다 */
+  event?: boolean
 }
 
 const intro = (id: ProgramId) => `/assets/booth-programs/${id}.webp`
@@ -528,6 +535,21 @@ export const PROGRAMS: ProgramDef[] = [
     creative: '재미로 상상해 보는 미래 도시 — AI가 만든 창작 이미지예요. 실제 계획이나 미래를 예측하지 않아요',
     intro: intro('housing-2046'), script: 'See you in 2046', designs: ['미래 주민 카드', '미래 도시 포스터'],
     card: { tag: '2046!', desc: '수직 숲 도시·바다 위 마을·스마트 마을 — 20년 뒤 미래 도시의 주민이 된 나를 주민 카드로 뽑아요.', color: '#1d8a78', badges: ['AI 생성', '창작 이미지', '4×6 인화'] },
+  },
+  // ANSAN 타임캡슐 — 타임캡슐 LATER!(10·20년 후의 나)를 축제용으로: 혼자~4명 한 컷 → 지금·10·20·30년 후 띠지 네 컷.
+  // 직원 없이 쓰게 옵션 고르기를 없앴다(장면은 컷마다 정해 둠: 미래 과학관 → 초록 미래 도시 → 우주 정거장). 흐름은 StripFlow.tsx
+  {
+    id: 'ansan-2026', kind: 'strip', event: true, name: 'AI 포토존 · 미래로 가는 타임캡슐', wordmark: 'LATER!',
+    headline: '10년, 20년, 30년 뒤\n우리는 어떤 모습일까?', lead: '함께 한 장 찍으면 AI가 미래의 우리를 네 컷 띠지로 만들어 드려요',
+    steps: ['함께 촬영', 'AI 미래 여행', '띠지 인화'], startCta: '타임캡슐 열기',
+    capture: { title: '모두 화면 안에\n들어와 주세요', hint: '혼자도, 가족·친구와 함께도 좋아요(최대 4명). 아기는 안고 찍어도 돼요', people: 1, shots: 1, group: true },
+    options: { title: '', sub: '', cta: '', groups: [] },
+    generating: { title: '미래로\n여행하는 중이에요', sub: '10년 · 20년 · 30년 뒤의 우리를 한꺼번에 만들고 있어요', stages: ['얼굴 확인', '미래 세 장면', '띠지 완성'] },
+    result: { title: '미래의 우리를\n만났어요!', sub: '띠지 디자인을 고르고 인화해요' },
+    save: { title: '타임캡슐을 가져가세요', sub: '아래 출구로 띠지 2장이 나와요 · 휴대폰에도 저장할 수 있어요' },
+    creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
+    intro: intro('ansan-2026'), script: 'See you later!', designs: ['타임캡슐', '우주 정거장'],
+    card: { tag: 'LATER!', desc: '혼자~4명이 한 컷을 찍으면 지금·10년·20년·30년 뒤의 우리를 2×6 띠지 네 컷으로 뽑아요.', color: '#5b55d6', badges: ['AI 생성', '1~4인', '2×6 띠지'] },
   },
 ]
 
