@@ -311,7 +311,6 @@ canvas.pg-cam-video { transform: none; }
 .pg-pin i[data-filled] { background: var(--pg-accent); border-color: var(--pg-accent); }
 .pg-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .pg-keypad button { min-height: 64px; border-radius: var(--pg-radius); border: 2px solid var(--pg-line); background: var(--pg-surface); font-size: 26px; font-weight: 800; display: grid; place-items: center; }
-.pg-keypad--sm button { min-height: 56px; font-size: 22px; }
 
 /* ── 창 ── */
 .pg-modal { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(10, 10, 14, 0.55); backdrop-filter: blur(3px); }
@@ -326,21 +325,6 @@ canvas.pg-cam-video { transform: none; }
 .pg-sheet-qr { display: flex; gap: 16px; align-items: center; justify-content: center; text-align: left; }
 .pg-sheet-qr img { width: 200px; height: 200px; image-rendering: pixelated; }
 .pg-sheet-qr b { font-size: 20px; }
-.pg-admin { display: grid; gap: 12px; text-align: left; }
-.pg-admin header { display: flex; justify-content: space-between; align-items: center; }
-.pg-admin header b { font-size: 20px; letter-spacing: 0.08em; }
-.pg-admin-body { max-height: 440px; overflow-y: auto; }
-.pg-modal-card:has(.pg-admin-body) { width: min(900px, 94%); }
-/* 관리자 — 앱 종료(맨 위) · 띠지 최대 장수(ANSAN) */
-.pg-admin-quit, .pg-admin-strip { display: grid; gap: 8px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; color: #1f2937; }
-.pg-admin-quit p { margin: 0; font-size: 15px; font-weight: 700; }
-.pg-admin-quit > .pg-btn { justify-self: start; }
-.pg .pg-btn--danger { background: #b91c1c; color: #fff; }
-.pg-admin-strip b { font-size: 16px; }
-.pg-admin-strip b small { margin-left: 6px; font-size: 12px; font-weight: 600; color: #64748b; }
-.pg-admin-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 8px; background: #eef0f4; justify-self: start; }
-.pg-admin-seg button { min-height: 44px; min-width: 64px; padding: 0 14px; border: 0; border-radius: 6px; background: transparent; color: #475569; font-size: 16px; font-weight: 800; }
-.pg-admin-seg button[aria-checked='true'] { background: #1f2937; color: #fff; }
 .pg-admin-hold { position: absolute; right: 0; bottom: 0; z-index: 5; width: 72px; height: 72px; border: 0; background: transparent; opacity: 0; }
 
 /* ── 인쇄 4×6 — 화면에서 고른 원판 한 장만 ── */

@@ -7,15 +7,14 @@
 // 매장: 이용권 정책(src/lib/booth/pass-policy.ts)대로 이용권 번호를 받고, 촬영 통계를 남기고, 오른쪽 아래를 길게 누르면 STORE ADMIN(운영 모드).
 // 데모: 이용권·통계·관리자 없이, 데모 표(1분 3장·하루 40장 — 모든 데모 생성이 함께 센다)로만 생성·저장한다. 기기 설정을 바꾸지 않는다.
 
-import { Camera, CircleHelp, Home, Image as ImageIcon, Loader2, Lock, Power, Sparkles, X } from 'lucide-react'
+import { Camera, CircleHelp, Home, Image as ImageIcon, Loader2, Lock, Sparkles, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { findProgram, type ProgramDef, type ProgramId } from '@/lib/booth/programs/catalog'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
 import { requestDemoTicket } from '@/lib/booth/demo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
-import { BoothModeControls } from '@/components/screen/BoothModeControls'
+import { BoothAdminDialog } from '../BoothAdminDialog'
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
-import { getBoothShell } from '@/lib/photobooth/booth-shell'
 import { STRIP_MAX_CHOICES, readStripMax, writeStripMax } from './strip-count'
 import { FONT_VARS } from './fonts'
 import { logProgramShot, markProgramShot } from './save'
@@ -167,8 +166,17 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
             <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setHelp(false)}>닫기</button>
           </Modal>
         )}
-        {admin && <AdminPanel program={program} settings={screenSettings} onClose={() => setAdmin(false)} />}
       </div>
+      {/* STORE ADMIN — 매장 화면과 같은 창(BoothAdminDialog). 화면 기준 창이라 확대되는 무대(pg-stage) 밖에 둔다 */}
+      {admin && (
+        <BoothAdminDialog
+          screen={screenSettings}
+          design={screenSettings.settings.ui === 'retro' ? 'retro' : 'mac'}
+          onClose={() => setAdmin(false)}
+          extra={program.kind === 'strip' ? <StripMaxControl /> : null}
+          standalone
+        />
+      )}
       {demo && <BoothWatermark />}
     </div>
   )
@@ -302,98 +310,22 @@ function AdminHold({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-/** 앱 종료 — 부스 앱(exe)만. 매장 화면(BoothClient)과 같이 한 번 더 묻고, 카메라를 놓고 꺼진다 */
-function AppQuit() {
-  const [ask, setAsk] = useState(false)
-  const [quitting, setQuitting] = useState(false)
-  const shell = getBoothShell()
-  if (!shell) return null
-  const quit = async () => {
-    setQuitting(true)
-    await shell.quit().catch(() => undefined)
-  }
-  return (
-    <section className="pg-admin-quit" aria-label="앱 종료">
-      {!ask ? (
-        <button type="button" className="pg-btn pg-btn--line" onClick={() => setAsk(true)}><Power size={20} />앱 종료</button>
-      ) : (
-        <>
-          <p>{quitting ? '카메라 연결을 풀고 종료하는 중…' : '카메라 연결을 풀고 부스 앱을 종료할까요?'}</p>
-          <div className="pg-actions">
-            <button type="button" className="pg-btn pg-btn--line" onClick={() => setAsk(false)} disabled={quitting}>취소</button>
-            <button type="button" className="pg-btn pg-btn--danger" onClick={() => void quit()} disabled={quitting}><Power size={20} />종료</button>
-          </div>
-        </>
-      )}
-    </section>
-  )
-}
-
-/** ANSAN 띠지 — 손님이 고를 수 있는 최대 인화 장수(이 부스에만 저장, strip-count.ts) */
+/** ANSAN 띠지 — 손님이 고를 수 있는 최대 인화 장수(이 부스에만 저장, strip-count.ts). 관리자 창 왼쪽 맨 위, 운영 모드와 같은 모양(kmc) */
 function StripMaxControl() {
   const [max, setMax] = useState(() => readStripMax())
   const [failed, setFailed] = useState(false)
   return (
-    <section className="pg-admin-strip" aria-label="띠지 인화 최대 장수">
-      <b>띠지 인화 최대 장수 <small>이 부스만 · 4×6 한 장 = 띠지 2장</small></b>
-      <div className="pg-admin-seg" role="radiogroup" aria-label="띠지 인화 최대 장수">
+    <section className="kmc" aria-label="띠지 인화 최대 장수">
+      <div className="kmc-head">
+        <b>띠지 인화 최대 장수</b>
+        <span>이 부스만 · 4×6 한 장 = 띠지 2장 · 손님은 2장부터 {max}장까지 2장 단위로 골라요</span>
+      </div>
+      <div className="kmc-seg" role="group" aria-label="띠지 인화 최대 장수">
         {STRIP_MAX_CHOICES.map((n) => (
-          <button key={n} type="button" role="radio" aria-checked={max === n} onClick={() => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }}>{n}장</button>
+          <button key={n} type="button" aria-pressed={max === n} onClick={() => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }}>{n}장</button>
         ))}
       </div>
-      <p className="pg-muted">손님은 2장부터 {max}장까지 2장 단위로 고를 수 있어요. 다음 손님부터 적용돼요.</p>
-      {failed && <p className="pg-error-text" role="alert">이 부스에 저장하지 못했어요.</p>}
+      {failed && <p className="kmc-error" role="alert">이 부스에 저장하지 못했어요.</p>}
     </section>
-  )
-}
-
-function AdminPanel({ program, settings, onClose }:{ program: ProgramDef; settings: ReturnType<typeof useScreenBackgrounds>; onClose: () => void }) {
-  const [pin, setPin] = useState('')
-  const [unlocked, setUnlocked] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [checking, setChecking] = useState(false)
-  const pinRef = useRef('')
-  const press = async (key: string) => {
-    if (checking) return
-    const next = key === 'back' ? pinRef.current.slice(0, -1) : (pinRef.current + key).slice(0, 6)
-    pinRef.current = next
-    setPin(next); setError(null)
-    if (next.length !== 6) return
-    setChecking(true)
-    try {
-      const ok = await settings.unlock(next)
-      if (ok) setUnlocked(true)
-      else { setError('비밀번호가 맞지 않아요.'); setPin(''); pinRef.current = '' }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '확인하지 못했어요.'); setPin(''); pinRef.current = ''
-    } finally {
-      setChecking(false)
-    }
-  }
-  return (
-    <Modal label="STORE ADMIN" onClose={onClose}>
-      <div className="pg-admin">
-        <header><b>STORE ADMIN</b><button type="button" className="pg-icon-btn" onClick={onClose} aria-label="닫기"><X size={24} /></button></header>
-        {!unlocked ? (
-          <>
-            <p>관리자 비밀번호 6자리</p>
-            <div className="pg-pin">{Array.from({ length: 6 }, (_, i) => <i key={i} data-filled={i < pin.length || undefined} />)}</div>
-            {error && <p className="pg-error-text" role="alert">{error}</p>}
-            <div className="pg-keypad pg-keypad--sm">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0'].map((k) => (
-                <button key={k} type="button" onClick={() => void press(k)} disabled={checking}>{k === 'back' ? '←' : k}</button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="pg-admin-body">
-            <AppQuit />
-            {program.kind === 'strip' && <StripMaxControl />}
-            <BoothModeControls value={settings.baseSettings.mode} sharedMode={settings.sharedMode} deviceMode={settings.deviceMode} pass={settings.baseSettings.pass} onSave={settings.saveSettings} onSelectBackground={settings.selectBackground} />
-            <p className="pg-muted">다른 모드를 고르면 닫을 때 그 화면으로 바뀝니다.</p>
-          </div>
-        )}
-      </div>
-    </Modal>
   )
 }
