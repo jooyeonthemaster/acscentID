@@ -1,5 +1,5 @@
 // 포토부스 운영 모드 — 매장 상시 운영과 외부 행사마다 첫 화면 문구·제목줄·인화물 하단·콘텐츠가 다르다.
-// 관리자가 포토부스 STORE ADMIN(우측 하단 → PIN) '운영 모드'에서 고르고, 같은 종류의 포토부스가 모두 따라간다
+// 관리자가 포토부스 STORE ADMIN(우측 하단 → PIN) '운영 모드'에서 고른다 — '이 부스만'(그 기기, src/lib/booth/device-mode.ts) 또는 '모든 부스 공통'
 // (기기 설정 settings-booth 의 mode). 키오스크 모드(src/lib/kiosk/modes.ts)와 같은 방식 — docs/kiosk-modes.md '포토부스'
 // 포토부스 프로그램 14종(런웨이·한복·뮤직비디오 등, src/lib/booth/programs/catalog.ts)도 운영 모드 하나씩이다 —
 // 그 모드면 화면 디자인(클래식·레트로·맥) 설정과 상관없이 프로그램 전용 화면(src/app/booth/programs)이 뜬다.

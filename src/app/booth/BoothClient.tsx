@@ -444,6 +444,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     saveSettings,
     synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
+    sharedMode: boothSharedMode,
+    deviceMode: boothDeviceMode,
   } = useScreenBackgrounds('booth')
   // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·제목줄·편집 화면 무대 메이크업이 바뀐다
   /** 영업용 데모(/booth?mode=…&demo=1, src/lib/booth/demo.ts) — 매장 기기 설정 대신 주소의 모드로, 이용권·기록·관리자 창 없이 */
@@ -3259,7 +3261,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   <div className="bth-admin-split">
                   <div className="bth-admin-main">
                   <div className="bth-admin-settings rt-scroll">
-                    <BoothModeControls value={deviceBaseSettings.mode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
+                    <BoothModeControls value={deviceBaseSettings.mode} sharedMode={boothSharedMode} deviceMode={boothDeviceMode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                     {screenZoom !== null && (
                       <div className="bth-zoom">
                         <b>화면 크기</b>

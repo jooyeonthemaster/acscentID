@@ -5,6 +5,7 @@ import { useAutoUpdate } from '@/lib/photobooth/use-auto-update'
 import { ScreenDesignContext } from '@/components/mac/design-context'
 import { BOOTH_DEMO_PARAM } from '@/lib/booth/demo'
 import { isProgramId } from '@/lib/booth/programs/catalog'
+import { readDeviceBoothMode } from '@/lib/booth/device-mode'
 
 // 기존·레트로·맥 화면 중 기기 설정의 하나만 싣는다 — 클래식과 공통 화면의 전역 CSS가 섞이지 않게(ui-switch.tsx 참고)
 const Gate = dynamic(() => import('@/lib/screen-backgrounds/ui-switch').then(m => m.ScreenUiGate), {
@@ -33,5 +34,14 @@ export function BoothScreen() {
       </ScreenDesignContext.Provider>
     )
   }
-  return <Gate target="booth" retro={Retro} classic={Classic} special={(mode) => (isProgramId(mode) ? <Program id={mode} demo={false} /> : null)} />
+  // 운영 모드 = 이 부스에 따로 고른 모드(booth/device-mode.ts) → 없으면 모든 부스 공통(서버 캐시)
+  return (
+    <Gate
+      target="booth" retro={Retro} classic={Classic}
+      special={(mode) => {
+        const current = readDeviceBoothMode() ?? mode
+        return isProgramId(current) ? <Program id={current} demo={false} /> : null
+      }}
+    />
+  )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import catalog from './catalog.json'
 import { DEFAULT_DEVICE_SETTINGS, isFontId, isScreenUi, neutralBackground, resolveSelected, type BackgroundSnapshot, type DeviceSettings, type ScreenBackground, type ScreenTarget } from './types'
 import { validateBackground } from './validation'
@@ -8,6 +8,7 @@ import { kstToday, type LiveEventOverride } from '@/lib/screen-events/types'
 import { findKioskMode } from '@/lib/kiosk/modes'
 import { useDeviceKioskMode, writeDeviceKioskMode } from '@/lib/kiosk/device-mode'
 import { findBoothMode } from '@/lib/booth/modes'
+import { readDeviceBoothMode, subscribeDeviceBoothMode } from '@/lib/booth/device-mode'
 import { parsePassSettings } from '@/lib/booth/pass-policy'
 
 const POLL_MS = 15000
@@ -149,9 +150,11 @@ export function useScreenBackgrounds(target: ScreenTarget) {
 
   const selectedId = snapshot.selected[target] || ''
   const sharedSettings = snapshot.settings[target]
-  // 키오스크 체험 모드는 고른 그 기기에만 저장된다(device-mode.ts) — 있으면 모든 키오스크가 함께 쓰는 운영 모드(서버 값)보다 먼저다
-  const storedDeviceMode = useDeviceKioskMode()
-  const deviceMode = target === 'kiosk' ? storedDeviceMode : null
+  // 키오스크 체험 모드·포토부스 '이 부스만' 운영 모드는 고른 그 기기에만 저장된다(kiosk/device-mode.ts · booth/device-mode.ts)
+  // — 있으면 모든 기기가 함께 쓰는 운영 모드(서버 값)보다 먼저다
+  const storedKioskMode = useDeviceKioskMode()
+  const storedBoothMode = useSyncExternalStore(subscribeDeviceBoothMode, readDeviceBoothMode, () => null)
+  const deviceMode = target === 'kiosk' ? storedKioskMode : storedBoothMode
   const baseSettings = useMemo(() => (deviceMode ? { ...sharedSettings, mode: deviceMode } : sharedSettings), [sharedSettings, deviceMode])
   // 이벤트 기간이면 이벤트 배경·글꼴이 평소 선택보다 우선한다(docs/screen-events.md). 끝나면 저절로 평소 설정.
   // 매장 이벤트는 매장 운영 모드에서만 — 키오스크·포토부스가 외부 행사(K-WAVE 등) 모드면 와우 생카 배경·글꼴을 띄우지 않는다
@@ -159,7 +162,7 @@ export function useScreenBackgrounds(target: ScreenTarget) {
   const storeEvents = kioskMode ? kioskMode.storeEvents : findBoothMode(baseSettings.mode).storeEvents
   const liveEvent = storeEvents && live && kstToday() <= live.ends_on ? live : null
   // 체험 모드의 전용 배경(K-WAVE)도 그 기기에서만 깐다 — 함께 쓰는 '평소 배경' 선택은 건드리지 않아, 매장 기본으로 돌아가면 원래 배경이 나온다
-  const modeBackgroundId = deviceMode ? kioskMode?.defaultBackground : undefined
+  const modeBackgroundId = deviceMode ? (kioskMode ? kioskMode.defaultBackground : findBoothMode(deviceMode).defaultBackground) : undefined
   const modeBackground = useMemo(() => (modeBackgroundId ? snapshot.backgrounds.find(item => item.id === modeBackgroundId) ?? null : null), [snapshot.backgrounds, modeBackgroundId])
   const selectedBackground = useMemo(() => modeBackground || snapshot.backgrounds.find(item => item.id === selectedId) || neutralBackground(target), [snapshot.backgrounds, modeBackground, selectedId, target])
   const activeBackground = liveEvent?.background ?? selectedBackground
@@ -169,7 +172,7 @@ export function useScreenBackgrounds(target: ScreenTarget) {
   // settings = 화면에 쓰는 값(이벤트·전용 배경 글꼴 우선), baseSettings = 저장된 기기 설정(관리자 창에서 고르는 값, 운영 모드는 이 기기의 체험 모드가 먼저)
   return {
     backgrounds: snapshot.backgrounds, activeBackground, selectedId, settings, baseSettings, liveEvent, synced, loading, error, refresh, selectBackground, saveSettings, unlock,
-    /** 모든 키오스크가 함께 쓰는 운영 모드(서버 값) · 이 기기에만 켠 체험 모드 · 그것을 바꾸는 함수 · 체험 모드가 깐 전용 배경 */
+    /** 모든 기기가 함께 쓰는 운영 모드(서버 값) · 이 기기에만 켠 모드 · 키오스크 체험 모드를 바꾸는 함수(부스는 booth/device-mode.ts 의 writeDeviceBoothMode) · 기기 모드가 깐 전용 배경 */
     sharedMode: sharedSettings.mode ?? null, deviceMode, setDeviceMode: writeDeviceKioskMode, modeBackground,
   }
 }

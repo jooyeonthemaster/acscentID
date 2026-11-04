@@ -340,7 +340,7 @@ function AdminPanel({ settings, onClose }: { settings: ReturnType<typeof useScre
           </>
         ) : (
           <div className="pg-admin-body">
-            <BoothModeControls value={settings.baseSettings.mode} pass={settings.baseSettings.pass} onSave={settings.saveSettings} onSelectBackground={settings.selectBackground} />
+            <BoothModeControls value={settings.baseSettings.mode} sharedMode={settings.sharedMode} deviceMode={settings.deviceMode} pass={settings.baseSettings.pass} onSave={settings.saveSettings} onSelectBackground={settings.selectBackground} />
             <p className="pg-muted">다른 모드를 고르면 닫을 때 그 화면으로 바뀝니다.</p>
           </div>
         )}
