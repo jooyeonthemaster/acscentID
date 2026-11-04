@@ -4,8 +4,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('boothShell', {
   isShell: true,
   info: () => ipcRenderer.invoke('booth:info'),
-  /** 대화상자 없이 바로 인화 — 완성 원판(JPEG data URL)을 넘기면 프린터로 직접 보낸다 */
-  print: (imageDataUrl) => ipcRenderer.invoke('booth:print', imageDataUrl),
+  /** 대화상자 없이 바로 인화 — 완성 원판(JPEG data URL)을 넘기면 프린터로 직접 보낸다. options.cut '2inch' = 띠지 두 장으로 자르기 */
+  print: (imageDataUrl, options) => ipcRenderer.invoke('booth:print', imageDataUrl, options),
   /** 카메라를 놓고 앱 종료 */
   quit: () => ipcRenderer.invoke('booth:quit'),
   reload: () => ipcRenderer.invoke('booth:reload'),

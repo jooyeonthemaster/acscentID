@@ -349,7 +349,7 @@ function SaveStep({ ctx, strip, sheet }: { ctx: FlowCtx; strip: string; sheet: s
   const { program, markShot, setDirty } = ctx
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
   const saved = useSavedLink(make, true)
-  const printer = usePrint(sheet, () => markShot({ printed: true }))
+  const printer = usePrint(sheet, () => markShot({ printed: true }), '2inch')
   // [띠지 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
   const sent = useRef(false)
   const { print } = printer

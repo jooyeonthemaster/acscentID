@@ -11,8 +11,8 @@ export interface BoothShell {
     printerName: string | null
     zoomFactor: number
   }>
-  /** 대화상자 없이 바로 인화 — 완성 원판(JPEG data URL)을 넘긴다 */
-  print(imageDataUrl?: string): Promise<{ ok: boolean; error: string | null; printer: string | null }>
+  /** 대화상자 없이 바로 인화 — 완성 원판(JPEG data URL)을 넘긴다. cut '2inch' = 프린터 2인치 자르기(2×6 띠지 두 장 — ANSAN), 예전 앱은 무시 */
+  print(imageDataUrl?: string, options?: { cut?: '2inch' }): Promise<{ ok: boolean; error: string | null; printer: string | null }>
   /** 카메라를 놓고 앱 종료 */
   quit(): Promise<{ ok: boolean }>
   reload(): Promise<{ ok: boolean }>

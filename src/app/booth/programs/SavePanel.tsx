@@ -89,8 +89,8 @@ export function QrCard({ state, label = '휴대폰으로 저장', progress }: {
   )
 }
 
-/** 인쇄 — 부스 앱이면 프린터로 바로, 브라우저면 인쇄 창(미리보기) */
-export function usePrint(image: string | null, onPrinted: () => void) {
+/** 인쇄 — 부스 앱이면 프린터로 바로, 브라우저면 인쇄 창(미리보기). cut '2inch' = 띠지 두 장으로 자르기(부스 앱만, ANSAN) */
+export function usePrint(image: string | null, onPrinted: () => void, cut?: '2inch') {
   const [state, setState] = useState<PrintState>('idle')
   const [error, setError] = useState<string | null>(null)
   const print = useCallback(async () => {
@@ -104,13 +104,13 @@ export function usePrint(image: string | null, onPrinted: () => void) {
       return
     }
     try {
-      const result = await shell.print(image)
+      const result = await shell.print(image, cut ? { cut } : undefined)
       if (result.ok) setState('sent')
       else { setState('failed'); setError(result.error || '프린터가 응답하지 않아요.') }
     } catch (cause) {
       setState('failed'); setError(cause instanceof Error ? cause.message : '프린터가 응답하지 않아요.')
     }
-  }, [image, state, onPrinted])
+  }, [image, state, onPrinted, cut])
   return { state, error, print, browser: !getBoothShell() }
 }
 

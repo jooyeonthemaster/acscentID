@@ -5,13 +5,19 @@
   매장 DS-RX1 의 기본 용지는 가로 (6x4) 라서, 세로 4x6 페이지가 가로 용지에 얹혀
   잘리거나 축소돼 나왔다(2026-09-21 실물 확인). 그래서 용지를 이름으로 직접 지정한다.
 
-  실행: powershell -NoProfile -ExecutionPolicy Bypass -File print-photo.ps1 -Image <jpg> [-Printer <이름>] [-Paper "PR (4x6)"]
+  실행: powershell -NoProfile -ExecutionPolicy Bypass -File print-photo.ps1 -Image <jpg> [-Printer <이름>] [-Paper "PR (4x6)"] [-Cut2Inch]
   (이 파일은 UTF-8 BOM 으로 저장해야 한글 주석이 깨지지 않는다)
+
+  -Cut2Inch: 2×6 띠지 둘을 나란히 그린 4x6 원판(ANSAN 타임캡슐)을 가운데로 잘라 두 장으로.
+  DS-RX1 드라이버의 '2inch cut'(인쇄 설정 ns0000:DocumentCUTTERCONTROL = CUT_2INCH)을 이 인쇄 한 건에만 켠다
+  — 프린터 기본값은 그대로라 매장 4x6 사진은 잘리지 않는다(2026-11-04 매장 부스 실물 확인).
+  'PR (4x6) x 2' 용지는 2인치 자르기가 아니다(6x8 용지에 두 장). 켜지 못하면 경고만 남기고 보통으로 인쇄한다.
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Image,
   [string]$Printer = '',
-  [string]$Paper = 'PR (4x6)'
+  [string]$Paper = 'PR (4x6)',
+  [switch]$Cut2Inch
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -19,6 +25,37 @@ Add-Type -AssemblyName System.Drawing
 $doc = New-Object System.Drawing.Printing.PrintDocument
 if ($Printer) { $doc.PrinterSettings.PrinterName = $Printer }
 if (-not $doc.PrinterSettings.IsValid) { throw "printer not valid: $($doc.PrinterSettings.PrinterName)" }
+
+# 2인치 자르기 — 사용자 기본 인쇄 설정(PrintTicket)에서 자르기만 바꿔 DEVMODE 로 만들어 이 문서에만 넣는다.
+# 용지·방향은 아래에서 다시 정한다(SetHdevmode 뒤에 정해야 덮이지 않는다). 드라이버 고유 값은 DEVMODE 뒷부분에 그대로 남는다
+$cut = 'standard'
+if ($Cut2Inch) {
+  try {
+    Add-Type -AssemblyName System.Printing
+    Add-Type -AssemblyName ReachFramework
+    if (-not ('AcsGMem' -as [type])) {
+      Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class AcsGMem { [DllImport("kernel32.dll")] public static extern IntPtr GlobalAlloc(uint f, UIntPtr n); [DllImport("kernel32.dll")] public static extern IntPtr GlobalLock(IntPtr h); [DllImport("kernel32.dll")] public static extern bool GlobalUnlock(IntPtr h); [DllImport("kernel32.dll")] public static extern IntPtr GlobalFree(IntPtr h); }'
+    }
+    $name = $doc.PrinterSettings.PrinterName
+    $queue = (New-Object System.Printing.LocalPrintServer).GetPrintQueue($name)
+    $xml = (New-Object IO.StreamReader($queue.UserPrintTicket.GetXmlStream())).ReadToEnd()
+    if ($xml -notmatch 'CUT_STANDARD|CUT_2INCH') { throw 'no 2inch cut option in this driver' }
+    $xml = $xml -replace 'ns0000:CUT_STANDARD', 'ns0000:CUT_2INCH'
+    $ticket = New-Object System.Printing.PrintTicket((New-Object IO.MemoryStream(, [Text.Encoding]::UTF8.GetBytes($xml))))
+    $converter = New-Object System.Printing.Interop.PrintTicketConverter($name, $queue.ClientPrintSchemaVersion)
+    $devmode = $converter.ConvertPrintTicketToDevMode($ticket, [System.Printing.Interop.BaseDevModeType]::UserDefault)
+    $h = [AcsGMem]::GlobalAlloc(0x0042, [UIntPtr][uint64]$devmode.Length)
+    $ptr = [AcsGMem]::GlobalLock($h)
+    [Runtime.InteropServices.Marshal]::Copy($devmode, 0, $ptr, $devmode.Length)
+    [AcsGMem]::GlobalUnlock($h) | Out-Null
+    $doc.PrinterSettings.SetHdevmode($h)
+    $doc.DefaultPageSettings.SetHdevmode($h)
+    [AcsGMem]::GlobalFree($h) | Out-Null
+    $cut = '2inch'
+  } catch {
+    $cut = "standard(2inch failed: $($_.Exception.Message))"
+  }
+}
 
 # 용지: 이름이 맞는 것 → 없으면 4x6 크기(1/100인치 413x615, 세로·가로 무관)에 맞는 것
 $papers = @($doc.PrinterSettings.PaperSizes)
@@ -58,7 +95,7 @@ try {
 
   $doc.Print()
   $p = $doc.DefaultPageSettings
-  "printed|$($doc.PrinterSettings.PrinterName)|$($p.PaperSize.PaperName)|$($p.PaperSize.Width)x$($p.PaperSize.Height)|landscape=$($p.Landscape)|img=$($img.Width)x$($img.Height)"
+  "printed|$($doc.PrinterSettings.PrinterName)|$($p.PaperSize.PaperName)|$($p.PaperSize.Width)x$($p.PaperSize.Height)|landscape=$($p.Landscape)|img=$($img.Width)x$($img.Height)|cut=$cut"
 } finally {
   $img.Dispose()
 }
