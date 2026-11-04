@@ -7,7 +7,7 @@
 // 매장: 이용권 정책(src/lib/booth/pass-policy.ts)대로 이용권 번호를 받고, 촬영 통계를 남기고, 오른쪽 아래를 길게 누르면 STORE ADMIN(운영 모드).
 // 데모: 이용권·통계·관리자 없이, 데모 표(1분 3장·하루 40장 — 모든 데모 생성이 함께 센다)로만 생성·저장한다. 기기 설정을 바꾸지 않는다.
 
-import { Camera, CircleHelp, Home, Image as ImageIcon, Loader2, Lock, Sparkles, X } from 'lucide-react'
+import { Camera, CircleHelp, Home, Image as ImageIcon, Loader2, Lock, Power, Sparkles, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { findProgram, type ProgramDef, type ProgramId } from '@/lib/booth/programs/catalog'
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
@@ -15,6 +15,8 @@ import { requestDemoTicket } from '@/lib/booth/demo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
+import { getBoothShell } from '@/lib/photobooth/booth-shell'
+import { STRIP_MAX_CHOICES, readStripMax, writeStripMax } from './strip-count'
 import { FONT_VARS } from './fonts'
 import { logProgramShot, markProgramShot } from './save'
 import type { FlowCtx } from './flow'
@@ -165,7 +167,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
             <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setHelp(false)}>닫기</button>
           </Modal>
         )}
-        {admin && <AdminPanel settings={screenSettings} onClose={() => setAdmin(false)} />}
+        {admin && <AdminPanel program={program} settings={screenSettings} onClose={() => setAdmin(false)} />}
       </div>
       {demo && <BoothWatermark />}
     </div>
@@ -300,7 +302,52 @@ function AdminHold({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-function AdminPanel({ settings, onClose }: { settings: ReturnType<typeof useScreenBackgrounds>; onClose: () => void }) {
+/** 앱 종료 — 부스 앱(exe)만. 매장 화면(BoothClient)과 같이 한 번 더 묻고, 카메라를 놓고 꺼진다 */
+function AppQuit() {
+  const [ask, setAsk] = useState(false)
+  const [quitting, setQuitting] = useState(false)
+  const shell = getBoothShell()
+  if (!shell) return null
+  const quit = async () => {
+    setQuitting(true)
+    await shell.quit().catch(() => undefined)
+  }
+  return (
+    <section className="pg-admin-quit" aria-label="앱 종료">
+      {!ask ? (
+        <button type="button" className="pg-btn pg-btn--line" onClick={() => setAsk(true)}><Power size={20} />앱 종료</button>
+      ) : (
+        <>
+          <p>{quitting ? '카메라 연결을 풀고 종료하는 중…' : '카메라 연결을 풀고 부스 앱을 종료할까요?'}</p>
+          <div className="pg-actions">
+            <button type="button" className="pg-btn pg-btn--line" onClick={() => setAsk(false)} disabled={quitting}>취소</button>
+            <button type="button" className="pg-btn pg-btn--danger" onClick={() => void quit()} disabled={quitting}><Power size={20} />종료</button>
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
+/** ANSAN 띠지 — 손님이 고를 수 있는 최대 인화 장수(이 부스에만 저장, strip-count.ts) */
+function StripMaxControl() {
+  const [max, setMax] = useState(() => readStripMax())
+  const [failed, setFailed] = useState(false)
+  return (
+    <section className="pg-admin-strip" aria-label="띠지 인화 최대 장수">
+      <b>띠지 인화 최대 장수 <small>이 부스만 · 4×6 한 장 = 띠지 2장</small></b>
+      <div className="pg-admin-seg" role="radiogroup" aria-label="띠지 인화 최대 장수">
+        {STRIP_MAX_CHOICES.map((n) => (
+          <button key={n} type="button" role="radio" aria-checked={max === n} onClick={() => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }}>{n}장</button>
+        ))}
+      </div>
+      <p className="pg-muted">손님은 2장부터 {max}장까지 2장 단위로 고를 수 있어요. 다음 손님부터 적용돼요.</p>
+      {failed && <p className="pg-error-text" role="alert">이 부스에 저장하지 못했어요.</p>}
+    </section>
+  )
+}
+
+function AdminPanel({ program, settings, onClose }:{ program: ProgramDef; settings: ReturnType<typeof useScreenBackgrounds>; onClose: () => void }) {
   const [pin, setPin] = useState('')
   const [unlocked, setUnlocked] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -340,6 +387,8 @@ function AdminPanel({ settings, onClose }: { settings: ReturnType<typeof useScre
           </>
         ) : (
           <div className="pg-admin-body">
+            <AppQuit />
+            {program.kind === 'strip' && <StripMaxControl />}
             <BoothModeControls value={settings.baseSettings.mode} sharedMode={settings.sharedMode} deviceMode={settings.deviceMode} pass={settings.baseSettings.pass} onSave={settings.saveSettings} onSelectBackground={settings.selectBackground} />
             <p className="pg-muted">다른 모드를 고르면 닫을 때 그 화면으로 바뀝니다.</p>
           </div>

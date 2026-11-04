@@ -256,7 +256,8 @@ ipcMain.handle('booth:set-zoom', (event, factor) => {
  * 브라우저 인쇄에 맡기면 용지를 이름으로 고를 수 없어, 기본 용지가 가로 (6x4) 인 DS-RX1 에서
  * 세로 원판이 잘리거나 축소돼 나왔다. 그래서 파일로 저장한 뒤 print-photo.ps1 로 인쇄한다.
  * 실패하면 예전 방식(화면 인쇄)으로 물러난다 — 부스가 사진을 못 뽑는 상황은 없어야 한다.
- * options.cut === '2inch' 이면 이 한 건만 프린터 '2inch cut'(4x6 → 2x6 띠지 두 장, ANSAN 타임캡슐) — 예전 웹은 options 를 안 보낸다.
+ * options.cut === '2inch' 이면 이 한 건만 프린터 '2inch cut'(4x6 → 2x6 띠지 두 장, ANSAN 타임캡슐), options.copies 는 장수(1~10)
+ * — 예전 웹은 options 를 안 보낸다.
  */
 ipcMain.handle('booth:print', async (event, imageDataUrl, options) => {
   const viaPage = () =>
@@ -293,6 +294,8 @@ ipcMain.handle('booth:print', async (event, imageDataUrl, options) => {
   ]
   if (config.printerName) args.push('-Printer', config.printerName)
   if (options && options.cut === '2inch') args.push('-Cut2Inch')
+  const copies = options && Number.isInteger(options.copies) ? Math.min(10, Math.max(1, options.copies)) : 1
+  if (copies > 1) args.push('-Copies', String(copies))
 
   return new Promise((resolve) => {
     execFile('powershell.exe', args, { windowsHide: true, timeout: 60000 }, (error, stdout, stderr) => {
@@ -301,7 +304,7 @@ ipcMain.handle('booth:print', async (event, imageDataUrl, options) => {
       if (!error && /^printed\|/m.test(out)) {
         const [, printer, paper, size, landscape] = out.match(/printed\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)/) || []
         const cut = (out.match(/\|cut=(.*)$/m) || [])[1] || 'standard'
-        log('인쇄 완료:', printer, paper, size, landscape, `cut=${cut}`)
+        log('인쇄 완료:', printer, paper, size, landscape, `copies=${copies}`, `cut=${cut}`)
         resolve({ ok: true, error: null, printer })
         return
       }

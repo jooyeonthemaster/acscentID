@@ -16,6 +16,7 @@ import { PhoneSheet } from './PhotoFlow'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { renderStrip, stripSheet } from './strip-print'
+import { STRIPS_PER_SHEET, readStripMax, stripCountChoices } from './strip-count'
 import { Creative, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 
@@ -43,6 +44,9 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [strips, setStrips] = useState<Strips | null>(null)
   const [design, setDesign] = useState<0 | 1>(0)
   const [notice, setNotice] = useState<string | null>(null)
+  // 인화 장수(띠지) — 2장 단위, 최대는 이 부스 관리자 설정(strip-count.ts)
+  const [countChoices] = useState(() => stripCountChoices(readStripMax()))
+  const [count, setCount] = useState(STRIPS_PER_SHEET)
 
   const { setStep: showStep, setDirty } = ctx
   useEffect(() => { showStep(step === 'capture' ? 1 : step === 'generating' ? 2 : 3) }, [step, showStep])
@@ -79,11 +83,21 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
               </button>
             ))}
           </div>
+          {countChoices.length > 1 && (
+            <fieldset className="pg-strip-count">
+              <legend>인화 장수 <small>띠지는 2장씩 나와요</small></legend>
+              <div role="radiogroup" aria-label="인화 장수">
+                {countChoices.map((n) => (
+                  <button key={n} type="button" role="radio" aria-checked={count === n} onClick={() => setCount(n)}>{n}장</button>
+                ))}
+              </div>
+            </fieldset>
+          )}
           <Creative text={ctx.program.creative} />
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('save')}><Printer size={26} />띠지 인화하기<span aria-hidden="true">→</span></button>
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('save')}><Printer size={26} />띠지 {count}장 인화하기<span aria-hidden="true">→</span></button>
         </Split>
       )}
-      {step === 'save' && strips && <SaveStep ctx={ctx} strip={strips.prints[design]} sheet={strips.sheets[design]} />}
+      {step === 'save' && strips && <SaveStep ctx={ctx} strip={strips.prints[design]} sheet={strips.sheets[design]} count={count} />}
     </>
   )
 }
@@ -345,11 +359,12 @@ function StripPreview({ src }: { src: string }) {
   )
 }
 
-function SaveStep({ ctx, strip, sheet }: { ctx: FlowCtx; strip: string; sheet: string }) {
+function SaveStep({ ctx, strip, sheet, count }: { ctx: FlowCtx; strip: string; sheet: string; count: number }) {
   const { program, markShot, setDirty } = ctx
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
   const saved = useSavedLink(make, true)
-  const printer = usePrint(sheet, () => markShot({ printed: true }), '2inch')
+  // 4×6 한 장 = 띠지 두 장(프린터 2인치 자르기) — 고른 장수만큼 장을 이어 인쇄
+  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies: Math.max(1, Math.ceil(count / STRIPS_PER_SHEET)) })
   // [띠지 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
   const sent = useRef(false)
   const { print } = printer
@@ -363,7 +378,7 @@ function SaveStep({ ctx, strip, sheet }: { ctx: FlowCtx; strip: string; sheet: s
     <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
       <PanelHead title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
-        <PrintCard printer={printer} label="띠지 2장 인쇄" note="2×6 띠지 두 장 · 한 장은 함께 온 분께" />
+        <PrintCard printer={printer} label={`띠지 ${count}장 인쇄`} note="2×6 띠지 · 함께 온 분과 나눠 가져요" />
         <QrCard state={saved} />
       </div>
       <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>
