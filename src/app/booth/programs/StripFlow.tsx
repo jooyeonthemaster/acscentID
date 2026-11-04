@@ -106,6 +106,15 @@ function FourCuts({ now, future, pending, empty = '도착하는 중' }: { now: s
 
 // ───────────────────────── 촬영 ─────────────────────────
 
+/** 동의 안내 — 체크박스 없이 늘 보이고, 아래 버튼을 누르면 동의한 것으로 */
+function ConsentNote() {
+  return (
+    <p className="pg-consent pg-consent--note">
+      <span><b>아래 버튼을 누르면 동의한 것으로 봐요.</b> 사진 촬영과 AI 사진 만들기 · 만 14세 미만 어린이는 보호자가 함께 확인해 주세요. 찍은 사진은 만들기에만 쓰고, 완성된 띠지만 7일 보관해요.</span>
+    </p>
+  )
+}
+
 function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
   ctx: FlowCtx
   shot: HTMLCanvasElement | null
@@ -118,7 +127,6 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
   const camera = useCamera({ enabled: !shot })
   const [count, setCount] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
-  const [consent, setConsent] = useState(false)
   const [phone, setPhone] = useState(false)
   const [faceWarning, setFaceWarning] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -135,8 +143,9 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
         : null)
   }
 
+  // 동의는 체크박스 대신 [동의하고 촬영하기] 버튼 한 번으로(2026-11-04 현장 요청 — 직원 없이 한 번에) — 문구는 버튼 바로 위에 늘 보인다
   const shoot = useCallback(() => {
-    if (count !== null || camera.state !== 'ready' || !consent || shot) return
+    if (count !== null || camera.state !== 'ready' || shot) return
     setError(null); setFaceWarning(null)
     setCount(COUNTDOWN_S)
     for (let i = 1; i <= COUNTDOWN_S; i++) {
@@ -155,7 +164,7 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
         setCount(null)
       }
     }, COUNTDOWN_S * 1000 + 50))
-  }, [count, camera, consent, shot, onShot])
+  }, [count, camera, shot, onShot])
 
   const retake = () => { setFaceWarning(null); onShot(null) }
 
@@ -169,7 +178,8 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
         <PanelHead title="카메라가 연결되지 않았어요" sub={camera.error ?? '연결을 확인한 뒤 다시 시도해 주세요'} />
         <div className="pg-stack">
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={camera.retry}><RefreshCw size={20} />다시 연결하기</button>
-          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => setPhone(true)}><ImagePlus size={20} />휴대폰 사진 가져오기</button>
+          <ConsentNote />
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => setPhone(true)}><ImagePlus size={20} />동의하고 휴대폰 사진 가져오기</button>
           <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={ctx.home}>처음으로</button>
         </div>
         {phoneSheet}
@@ -206,14 +216,10 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {!shot ? (
         <>
-          <label className="pg-consent">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
-            <span>사진 촬영과 AI 사진 만들기에 동의해요. <b>만 14세 미만 어린이는 보호자가 함께 확인해 주세요.</b> 찍은 사진은 만들기에만 쓰고, 완성된 띠지만 7일 보관해요.</span>
-          </label>
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
-            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : `촬영하기 · ${COUNTDOWN_S}초 뒤 찰칵`}
+          <ConsentNote />
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready'}>
+            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : `동의하고 촬영하기 · ${COUNTDOWN_S}초`}
           </button>
-          {!consent && <p className="pg-muted">촬영하려면 위 동의를 눌러 주세요.</p>}
         </>
       ) : (
         <div className="pg-actions">
