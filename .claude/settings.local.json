@@ -120,7 +120,9 @@
       "Bash(find /c/Users/jooye/Desktop/PPUDUCKXSPOT/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "Bash(head -200 /c/Users/jooye/Desktop/PPUDUCKXSPOT/src/app/[locale]/checkout/page.tsx)",
       "Bash(mkdir -p /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/chemistry)",
-      "Bash(cp /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/perfume/KakaoTalk_20260125_225218071.jpg /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/chemistry/chemistry-thumbnail.jpg)"
+      "Bash(cp /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/perfume/KakaoTalk_20260125_225218071.jpg /c/Users/jooye/Desktop/PPUDUCKXSPOT/public/images/chemistry/chemistry-thumbnail.jpg)",
+      "Bash(ssh -i ~/.ssh/acscent_kiosk Administrator@172.30.1.1:*)",
+      "Bash(scp -q -i ~/.ssh/acscent_kiosk:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jooye\\Desktop\\PPUDUCKXSPOT\\src\\app\\api\\admin\\qr",
