@@ -3,14 +3,14 @@
 // ANSAN 타임캡슐 흐름(2026 안산사이언스밸리 과학축제 AI 포토존) — 직원 없이 손님 혼자 끝까지:
 // 촬영(가로 3:2, 혼자~4명, 동의 · 5초) → 확인 → AI 미래 세 장(/api/photobooth/timecapsule) → 네 컷 보기 → 프레임·장수 고르기 → 인화(자동) · QR.
 // 장면 옵션은 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
-// 프레임은 기본 디자인 2종 + 프레임 10종(strip-frames.ts). 장수는 2장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
+// 화면은 축제 공식 웹사이트 디자인(WHITEPRINT — AsvParts.tsx · asv.css). 프레임은 기본 디자인 2종(ASV 화이트·블랙) + 프레임 10종(strip-frames.ts). 장수는 2장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
 // 인쇄 원판은 4×6 에 같은 사진 둘(프린터 2인치 자르기). 폰 저장은 사진 한 장(strip-print.ts).
 
 import { AlertTriangle, ArrowLeft, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { countFaces, preloadFaceDetect } from '@/lib/booth/face-detect'
 import { STRIP_FRAMES, type StripFrameDef } from '@/lib/booth/programs/strip-frames'
-import { STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
+import { ASV_FESTIVAL, STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
 import { useCamera } from './use-camera'
 import { toRequestJpeg, type FlowCtx } from './flow'
 import { loadCanvasFonts } from './fonts'
@@ -19,7 +19,8 @@ import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { framePhotoLayer, renderFrameStrip, renderStrip, stripSheet, stripThumb, type StripInput } from './strip-print'
 import { STRIPS_PER_SHEET, readStripAuto, readStripMax, stripCountOptions, stripSheets } from './strip-count'
-import { Creative, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
+import { Split, useElapsed } from './ui'
+import { AsvHead, AsvNote, RegMarks } from './AsvParts'
 import { loadImage } from './video'
 
 type Step = 'capture' | 'generating' | 'result' | 'frame' | 'save'
@@ -87,10 +88,15 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
       )}
       {step === 'result' && shotUrl && (
         <Split className="pg-strip-result" visual={<FourCuts now={shotUrl} future={future.map((img) => img?.src ?? null)} />}>
-          <PanelHead title={ctx.program.result.title} sub={ctx.program.result.sub} />
+          <AsvHead index={3} label="Result" title={ctx.program.result.title} sub={ctx.program.result.sub} />
+          <dl className="asv-readout">
+            <div><dt>Persons</dt><dd>{people > 0 ? people : '–'}</dd></div>
+            <div><dt>Cuts</dt><dd>{1 + future.filter(Boolean).length}<small>/4</small></dd></div>
+            <div><dt>Span</dt><dd>30<small>yrs</small></dd></div>
+          </dl>
           {future.some((img) => !img) && <p className="pg-warn" role="status"><AlertTriangle size={18} aria-hidden="true" />한 장면은 만들지 못해 &lsquo;도착하는 중&rsquo; 칸으로 인화돼요.</p>}
-          <Creative text={ctx.program.creative} />
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('frame')}>프레임 고르기<span aria-hidden="true">→</span></button>
+          {ctx.program.creative && <AsvNote>{ctx.program.creative}</AsvNote>}
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('frame')}><span>프레임 고르기</span><span aria-hidden="true">→</span></button>
         </Split>
       )}
       {step === 'frame' && shot && (
@@ -115,10 +121,16 @@ function FourCuts({ now, future, pending, empty = '도착하는 중' }: { now: s
       {cuts.map((cut, i) => (
         <figure key={cut.year} className="pg-four-cut" data-pending={(pending && i > 0) || undefined}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {cut.src ? <img src={cut.src} alt={`${cut.year}년 ${cut.label}`} /> : <span className="pg-four-empty">{pending ? <span className="pg-spin-box" aria-hidden="true" /> : empty}</span>}
+          {cut.src ? <img src={cut.src} alt={`${cut.year}년 ${cut.label}`} /> : (
+            <span className="pg-four-empty">
+              {pending ? <><span className="asv-scanline" aria-hidden="true" /><span className="asv-mono">Rendering · {cut.year}</span></> : empty}
+            </span>
+          )}
+          <span className="asv-cut-idx asv-mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
           <figcaption><b>{cut.year}</b>{cut.label}</figcaption>
         </figure>
       ))}
+      <RegMarks />
     </div>
   )
 }
@@ -141,15 +153,15 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
 }) {
   const { program } = ctx
   const [choices] = useState<StripChoice[]>(() => [
-    { id: 'basic-capsule', name: program.designs[0], basic: 0 },
-    { id: 'basic-space', name: program.designs[1], basic: 1 },
+    { id: 'asv-white', name: program.designs[0], basic: 0 },
+    { id: 'asv-ink', name: program.designs[1], basic: 1 },
     ...STRIP_FRAMES.map((frame) => ({ id: frame.id, name: frame.name, frame })),
   ])
   const chosen = choices.find((c) => c.id === choiceId) ?? choices[0]
   // 고르는 칸의 그림 — 프레임은 투명 작은 그림 뒤에 내 사진을 깔고, 기본 디자인은 작게 줄여 쓴다
   const [photoLayer] = useState(() => framePhotoLayer(input))
   const [basicThumbs] = useState(() => [renderStrip(0, input), renderStrip(1, input)].map((strip, i) => {
-    rendered.current.set(i === 0 ? 'basic-capsule' : 'basic-space', strip)
+    rendered.current.set(i === 0 ? 'asv-white' : 'asv-ink', strip)
     return stripThumb(strip)
   }))
   const [preview, setPreview] = useState<{ id: string; url: string } | null>(null)
@@ -194,8 +206,9 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
         <div className="pg-frame-layout">
           {preview ? <StripPreview src={preview.url} /> : <div className="pg-strip-preview pg-strip-preview--wait"><span className="pg-spin-box" aria-hidden="true" /></div>}
           <div className="pg-frame-grid" role="radiogroup" aria-label="프레임">
-            {choices.map((choice) => (
+            {choices.map((choice, n) => (
               <button key={choice.id} type="button" role="radio" aria-checked={chosen.id === choice.id} aria-label={choice.name} className="pg-frame-tile" onClick={() => onChoice(choice.id)}>
+                <span className="asv-tile-idx asv-mono" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
                 {/* eslint-disable @next/next/no-img-element */}
                 {choice.frame
                   ? <span className="pg-frame-thumb" style={{ backgroundImage: `url(${photoLayer})` }}><img src={choice.frame.thumb} alt="" width={240} height={720} /></span>
@@ -208,7 +221,7 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
         </div>
       )}
     >
-      <PanelHead title="프레임을 골라 주세요" sub={`지금 고른 프레임: ${chosen.name}`} />
+      <AsvHead index={3} label="Frame" title="프레임을 골라 주세요" sub={<>지금 고른 프레임 <b className="asv-chosen">{chosen.name}</b></>} />
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {countChoices.length > 1 && (
         <fieldset className="pg-strip-count">
@@ -220,10 +233,9 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
           </div>
         </fieldset>
       )}
-      <p className="pg-muted">인화지 한 장에서 같은 사진 2장이 나와요.</p>
-      <Creative text={program.creative} />
+      <AsvNote label="Print">인화지 한 장에서 같은 사진 2장이 나와요. 함께 온 분과 나눠 가져요.</AsvNote>
       <button type="button" className="pg-btn pg-btn--line pg-btn--wide pg-strip-back" onClick={onBack}><ArrowLeft size={20} />네 컷 다시 보기</button>
-      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" disabled={!ready} onClick={print}><Printer size={26} />사진 {count}장 인화하기<span aria-hidden="true">→</span></button>
+      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" disabled={!ready} onClick={print}><Printer size={26} /><span>사진 {count}장 인화하기</span><span aria-hidden="true">→</span></button>
     </Split>
   )
 }
@@ -234,6 +246,7 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
 function ConsentNote() {
   return (
     <p className="pg-consent pg-consent--note">
+      <i className="asv-mono">Consent</i>
       <span><b>아래 버튼을 누르면 동의한 것으로 봐요.</b> 사진 촬영과 AI 사진 만들기 · 만 14세 미만 어린이는 보호자가 함께 확인해 주세요. 찍은 사진은 만들기에만 쓰고, 완성된 사진만 7일 보관해요.</span>
     </p>
   )
@@ -299,7 +312,7 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
   if (camera.state === 'error' && !shot) {
     return (
       <Split className="pg-capture-step" visual={<div className="pg-cam pg-cam--off pg-cam--wide"><CameraOff size={96} aria-hidden="true" /><p>카메라가 연결되지 않았어요</p></div>}>
-        <PanelHead title="카메라가 연결되지 않았어요" sub={camera.error ?? '연결을 확인한 뒤 다시 시도해 주세요'} />
+        <AsvHead index={1} label="Camera" title="카메라가 연결되지 않았어요" sub={camera.error ?? '연결을 확인한 뒤 다시 시도해 주세요'} />
         <div className="pg-stack">
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={camera.retry}><RefreshCw size={20} />다시 연결하기</button>
           <ConsentNote />
@@ -322,19 +335,22 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
             <video ref={camera.videoRef} muted playsInline autoPlay className="pg-cam-video" hidden={camera.source === 'dslr'} />
             <canvas ref={camera.liveRef} className="pg-cam-video" hidden={camera.source !== 'dslr'} />
             <div className="pg-guide pg-guide--group" aria-hidden="true"><i /><i /></div>
+            <span className="asv-cross" aria-hidden="true" />
             {camera.state === 'starting' && <p className="pg-cam-note">카메라를 켜는 중…</p>}
-            {camera.state === 'ready' && count === null && <p className="pg-cam-ready"><i />모두 점선 안으로 · 아기는 안고 찍어도 돼요</p>}
+            {camera.state === 'ready' && count === null && <p className="pg-cam-ready"><i />모두 모서리 표시 안으로 · 아기는 안고 찍어도 돼요</p>}
             {count !== null && count > 0 && <b className="pg-count" aria-live="assertive">{count}</b>}
           </>
         )}
+        <span className="asv-cam-hud asv-mono" aria-hidden="true"><span>{shot ? 'Still · 3:2' : 'Cam 01 · Live'}</span><span>1–4 Persons</span></span>
         {flash && <div className="pg-flash" aria-hidden="true" />}
+        <RegMarks />
       </div>
     </div>
   )
 
   return (
     <Split className="pg-capture-step" visual={visual}>
-      <PanelHead title={shot ? '사진을 확인해 주세요' : program.capture.title} sub={shot ? '모두 잘 나왔으면 미래로 떠나요' : program.capture.hint} />
+      <AsvHead index={1} label={shot ? 'Check' : 'Capture'} title={shot ? '사진을 확인해 주세요' : program.capture.title} sub={shot ? '모두 잘 나왔으면 미래로 떠나요' : program.capture.hint} />
       {notice && <p className="pg-error-text" role="alert">{notice}</p>}
       {faceWarning && <p className="pg-warn" role="alert"><AlertTriangle size={18} aria-hidden="true" />{faceWarning}</p>}
       {error && <p className="pg-error-text" role="alert">{error}</p>}
@@ -342,13 +358,13 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
         <>
           <ConsentNote />
           <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready'}>
-            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : `동의하고 촬영하기 · ${COUNTDOWN_S}초`}
+            <Camera size={30} /><span>{count !== null ? `${count || '찰칵'}…` : `동의하고 촬영하기 · ${COUNTDOWN_S}초`}</span>
           </button>
         </>
       ) : (
         <div className="pg-actions">
           <button type="button" className="pg-btn pg-btn--line" onClick={retake}><RotateCcw size={20} />다시 찍기</button>
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={onNext}><Sparkles size={20} />이 사진으로 미래 만들기</button>
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={onNext}><Sparkles size={20} /><span>이 사진으로 미래 만들기</span></button>
         </div>
       )}
       {phoneSheet}
@@ -431,8 +447,7 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
   if (error) {
     return (
       <Split className="pg-generating pg-generating--error" visual={<FourCuts now={shotUrl} future={[]} empty="?" />}>
-        <div className="pg-error-icon" aria-hidden="true"><AlertTriangle size={44} /></div>
-        <PanelHead title="잠시 문제가 생겼어요" sub="찍은 사진은 그대로예요" />
+        <AsvHead index={2} label="Error" title="잠시 문제가 생겼어요" sub="찍은 사진은 그대로예요" />
         <p className="pg-error-text" role="alert">{error}</p>
         <div className="pg-stack">
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setAttempt((n) => n + 1)}><RefreshCw size={20} />다시 만들기</button>
@@ -445,11 +460,21 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
 
   return (
     <Split className="pg-generating" visual={<FourCuts now={shotUrl} future={[]} pending />}>
-      <PanelHead title={program.generating.title} sub={program.generating.sub} />
-      <Progress caption={`${elapsed}초 지남 · 보통 30~40초 걸려요`} />
-      <p className="pg-travel" aria-live="polite">{stage === 2 ? '사진을 꾸미는 중…' : TRAVEL[Math.floor(elapsed / 5) % TRAVEL.length]}</p>
-      <Stages labels={program.generating.stages} active={stage} />
-      <Creative text={program.creative} />
+      <AsvHead index={2} label="AI Render" title={program.generating.title} sub={program.generating.sub} />
+      <div className="asv-meter" role="progressbar" aria-busy="true" aria-label="AI 사진 만드는 중">
+        <p className="asv-mono"><span>Elapsed</span><b>{String(elapsed).padStart(3, '0')}</b><span>sec</span><em>보통 30~40초</em></p>
+        <span className="asv-meter-bar" aria-hidden="true"><i /></span>
+      </div>
+      <ol className="asv-stages">
+        {program.generating.stages.map((label, i) => (
+          <li key={label} data-state={i < stage ? 'done' : i === stage ? 'active' : 'todo'}>
+            <i className="asv-mono">{String(i + 1).padStart(2, '0')}</i><span>{label}</span>
+            <b className="asv-mono">{i < stage ? 'Done' : i === stage ? 'Run' : 'Wait'}</b>
+          </li>
+        ))}
+      </ol>
+      <p className="pg-travel asv-mono" aria-live="polite">{stage === 2 ? '사진을 꾸미는 중…' : TRAVEL[Math.floor(elapsed / 5) % TRAVEL.length]}</p>
+      {program.creative && <AsvNote>{program.creative}</AsvNote>}
     </Split>
   )
 }
@@ -459,8 +484,11 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
 function StripPreview({ src }: { src: string }) {
   return (
     <div className="pg-strip-preview">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="인화될 사진" width={200} height={600} />
+      <span className="asv-strip-box">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="인화될 사진" width={200} height={600} />
+        <span className="asv-dim-v" aria-hidden="true"><i>6 in</i></span>
+      </span>
     </div>
   )
 }
@@ -483,12 +511,13 @@ function SaveStep({ ctx, order }: { ctx: FlowCtx; order: StripOrder }) {
   useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
   return (
     <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
-      <PanelHead title={program.save.title} sub={program.save.sub} />
+      <AsvHead index={3} label="Print · Save" title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
         <PrintCard printer={printer} label={`사진 ${count}장 인쇄`} note="2×6 사진 · 함께 온 분과 나눠 가져요" />
         <QrCard state={saved} />
       </div>
-      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>
+      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}><span>완료 · 처음으로</span><span aria-hidden="true">→</span></button>
+      <p className="asv-sign asv-mono">{ASV_FESTIVAL.name}<span>{ASV_FESTIVAL.dates} · {ASV_FESTIVAL.venue}</span></p>
       <div className="pg-print-area" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={sheet} alt="" />

@@ -1,0 +1,299 @@
+/* ANSAN(2026 안산사이언스밸리 과학축제 AI 포토존) — 축제 공식 웹사이트 디자인 'WHITEPRINT(백색 도면)'를 부스 화면에.
+   흰 종이 위의 기계 도면: 면은 평평하게, 선은 1px, 모서리는 각지게(둥근 모서리 · 그림자 · 그라데이션 · 파스텔 없음).
+   채도는 볼트 파랑 한 색(강조 연도 · 활성 상태 · 누를 때). 큰 영문은 Bricolage Grotesque 800 대문자, 한글은 Pretendard 800, 라벨은 JetBrains Mono.
+   모션은 기계적으로 — 딱 멈추는 하드 이징, 클립 · 스캔라인. 바운스 없음.
+   이 파일은 ProgramApp 이 ANSAN(띠지 kind)일 때 붙이는 .asv 아래에서만 — 다른 프로그램 13종은 programs.css 그대로. */
+
+.asv {
+  --asv-paper-50: #f7f8fa;
+  --asv-paper-100: #f1f3f6;
+  --asv-paper-200: #e8ebef;
+  --asv-paper-300: #dde1e7;
+  --asv-raised: #fcfcfd;
+  --asv-ink-900: #0b0d10;
+  --asv-ink-800: #171a1f;
+  --asv-ink-700: #262b33;
+  --asv-ink-600: #3c434e;
+  --asv-ink-500: #5c6472;
+  --asv-ink-400: #6f7785;
+  --asv-ink-300: #a9b0bb;
+  --asv-ink-200: #cbd0d8;
+  --asv-line: #d6dae0;
+  --asv-line-strong: #b4bac4;
+  --asv-volt: #1436ff;
+  --asv-volt-300: #7a8cff;
+  --asv-volt-100: #dde2ff;
+  --asv-volt-50: #eef0ff;
+  --asv-ease: cubic-bezier(0.76, 0, 0.24, 1);
+  --asv-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --asv-disp: var(--pg-f-bricolage), 'Pretendard', sans-serif;
+  --asv-mono: var(--pg-f-mono), 'Pretendard', ui-monospace, monospace;
+  --asv-ko: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+
+  --pg-bg: var(--asv-paper-50);
+  --pg-outer: var(--asv-paper-100);
+  --pg-ink: var(--asv-ink-900);
+  --pg-muted: var(--asv-ink-500);
+  --pg-accent: var(--asv-ink-900);
+  --pg-on-accent: var(--asv-paper-50);
+  --pg-surface: var(--asv-raised);
+  --pg-line: var(--asv-line);
+  --pg-radius: 0px;
+  --pg-display: var(--asv-disp);
+  --pg-display-weight: 800;
+  --pg-head: var(--asv-ko);
+  --pg-photo-border: 1px solid var(--asv-line-strong);
+  --pg-photo-shadow: none;
+  --pg-bg-image: radial-gradient(var(--asv-ink-200) 0.8px, transparent 0.9px);
+  font-family: var(--asv-ko);
+  font-feature-settings: 'tnum' 1;
+  word-break: keep-all;
+}
+.asv .pg-stage { background-size: 24px 24px; }
+
+/* ── 글자 · 도면 모티프 ── */
+.asv .asv-mono { font-family: var(--asv-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.3; }
+.asv .asv-disp { font-family: var(--asv-disp); font-weight: 800; font-variation-settings: 'opsz' 96, 'wdth' 100; letter-spacing: -0.045em; line-height: 0.86; text-transform: uppercase; }
+
+/* 네 모서리 크로스헤어 — 부모 position: relative */
+.asv .asv-reg { position: absolute; inset: 0; z-index: 2; pointer-events: none; --asv-reg-c: var(--asv-ink-500); }
+.asv .asv-reg > i { position: absolute; inset: 0; }
+.asv .asv-reg::before, .asv .asv-reg::after, .asv .asv-reg > i::before, .asv .asv-reg > i::after {
+  content: ''; position: absolute; width: 14px; height: 14px;
+  background:
+    linear-gradient(var(--asv-reg-c), var(--asv-reg-c)) center / 100% 1px no-repeat,
+    linear-gradient(var(--asv-reg-c), var(--asv-reg-c)) center / 1px 100% no-repeat;
+}
+.asv .asv-reg::before { top: -7px; left: -7px; }
+.asv .asv-reg::after { top: -7px; right: -7px; }
+.asv .asv-reg > i::before { bottom: -7px; left: -7px; }
+.asv .asv-reg > i::after { bottom: -7px; right: -7px; }
+
+/* 치수선 — 가로(라벨은 선 위) / 세로(라벨은 돌려서) */
+.asv .asv-dim { position: relative; display: block; height: 1px; background: var(--asv-ink-400); }
+.asv .asv-dim::before, .asv .asv-dim::after { content: ''; position: absolute; top: -5px; width: 1px; height: 11px; background: var(--asv-ink-400); }
+.asv .asv-dim::before { left: 0; }
+.asv .asv-dim::after { right: 0; }
+.asv .asv-dim > i { position: absolute; top: -1.45em; left: 50%; transform: translateX(-50%); padding: 0 0.6em; font: normal 500 11px/1.3 var(--asv-mono); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: var(--asv-ink-500); background: var(--asv-raised); }
+.asv .asv-dim-v { position: absolute; top: 0; bottom: 0; right: -17px; width: 1px; background: var(--asv-ink-400); }
+.asv .asv-dim-v::before, .asv .asv-dim-v::after { content: ''; position: absolute; left: -5px; width: 11px; height: 1px; background: var(--asv-ink-400); }
+.asv .asv-dim-v::before { top: 0; }
+.asv .asv-dim-v::after { bottom: 0; }
+.asv .asv-dim-v > i { position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%) rotate(-90deg); padding: 0 0.5em; font: normal 500 10px/1 var(--asv-mono); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: var(--asv-ink-500); background: var(--asv-paper-50); }
+
+/* 섹션 머리 — [01] ────── LABEL */
+.asv .asv-rule { display: flex; align-items: center; gap: 14px; color: var(--asv-ink-500); }
+.asv .asv-rule > i { flex: 1; height: 1px; background: var(--asv-line); }
+.asv .asv-index { flex: none; padding: 0.38em 0.6em 0.32em; border: 1px solid var(--asv-line-strong); font: 500 11px/1 var(--asv-mono); letter-spacing: 0.12em; color: var(--asv-ink-600); }
+.asv .asv-label { font: 500 11px/1.3 var(--asv-mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+.asv .asv-head { display: grid; gap: 12px; }
+.asv .asv-head h2 { margin: 4px 0 0; font: 800 31px/1.16 var(--asv-ko); letter-spacing: -0.035em; color: var(--asv-ink-900); }
+.asv .asv-head h2 span { display: block; }
+.asv .asv-head h2 span + span { color: var(--asv-volt); }
+.asv .asv-head p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--asv-ink-600); }
+.asv .asv-chosen { margin-left: 6px; font-weight: 800; color: var(--asv-volt); }
+
+/* 도면 주석 */
+.asv .asv-note { display: flex; gap: 12px; align-items: baseline; margin: 0; padding: 10px 12px; border: 1px solid var(--asv-line); background: var(--asv-paper-100); }
+.asv .asv-note b { flex: none; font: 500 10px/1.3 var(--asv-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--asv-ink-500); }
+.asv .asv-note span { font-size: 13.5px; font-weight: 600; line-height: 1.45; color: var(--asv-ink-700); }
+
+/* ── 버튼 — 각진 잉크 면, 누르면 볼트 면이 왼쪽에서 밀려 들어온다(사이트 btn-machine) ── */
+.asv .pg-btn, .asv .asv-btn {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 56px; padding: 0 22px; border: 1px solid var(--asv-ink-900); border-radius: 0;
+  background: transparent; color: var(--asv-ink-900);
+  font: 700 18px/1.2 var(--asv-ko); letter-spacing: -0.01em; white-space: nowrap;
+  transition: color 0.25s var(--asv-ease-out), border-color 0.25s var(--asv-ease-out);
+}
+.asv .pg-btn::after, .asv .asv-btn::after { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--asv-volt); transform: translateX(-101%); transition: transform 0.45s var(--asv-ease); }
+.asv .pg-btn:active:not(:disabled), .asv .asv-btn:active { transform: none; color: var(--asv-paper-50); border-color: var(--asv-volt); }
+.asv .pg-btn:active:not(:disabled)::after, .asv .asv-btn:active::after { transform: translateX(0); transition-duration: 0.18s; }
+.asv .pg-btn--accent, .asv .asv-btn { background: var(--asv-ink-900); color: var(--asv-paper-50); }
+.asv .pg-btn:disabled { opacity: 1; color: var(--asv-ink-300); border-color: var(--asv-line); background: var(--asv-paper-200); }
+.asv .pg-btn--hero, .asv .asv-btn--hero { width: 100%; min-height: 76px; margin-top: auto; padding: 0 26px; justify-content: space-between; font-size: 24px; font-weight: 800; }
+.asv .pg-btn--shoot { width: 100%; min-height: 84px; font-size: 24px; font-weight: 800; }
+.asv .pg-btn--hero > svg, .asv .pg-btn--shoot > svg { flex: none; }
+.asv .pg-btn--hero > span:last-child, .asv .asv-btn-arrow { font-family: var(--asv-mono); font-weight: 500; }
+.asv .pg-btn > span[aria-hidden='true']:last-child { font-family: var(--asv-mono); font-weight: 500; }
+
+/* ── 위 제목줄 ── */
+.asv .asv-top { position: relative; z-index: 3; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 64px; padding: 0 24px; background: var(--asv-paper-50); border-bottom: 1px solid var(--asv-line); }
+.asv .asv-top-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.asv .asv-logo { display: inline-flex; align-items: center; gap: 10px; }
+.asv .asv-mark { position: relative; flex: none; width: 16px; height: 16px; border: 1px solid var(--asv-ink-900); }
+.asv .asv-mark i { position: absolute; inset: 3px; background: var(--asv-volt); }
+.asv .asv-logo b { font-family: var(--asv-disp); font-weight: 800; font-variation-settings: 'opsz' 24, 'wdth' 100; font-size: 21px; line-height: 1; letter-spacing: -0.03em; white-space: nowrap; }
+.asv .asv-top-sub { color: var(--asv-ink-500); font-size: 10.5px; white-space: nowrap; }
+.asv .asv-top-meta { margin: 0; color: var(--asv-ink-600); font-size: 11px; white-space: nowrap; }
+.asv .asv-top-meta span { color: var(--asv-ink-300); }
+.asv .asv-steps { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; }
+.asv .asv-steps li { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--asv-ink-400); white-space: nowrap; }
+.asv .asv-steps li + li::before { content: ''; width: 32px; height: 1px; margin: 0 12px; background: var(--asv-line-strong); }
+.asv .asv-steps li i { padding: 4px 6px 3px; border: 1px solid var(--asv-line-strong); font: normal 500 11px/1 var(--asv-mono); letter-spacing: 0.1em; }
+.asv .asv-steps li[data-state='done'] { color: var(--asv-ink-600); }
+.asv .asv-steps li[data-state='done'] i { border-color: var(--asv-ink-900); color: var(--asv-ink-900); }
+.asv .asv-steps li[data-state='active'] { color: var(--asv-ink-900); }
+.asv .asv-steps li[data-state='active'] i { border-color: var(--asv-volt); background: var(--asv-volt); color: var(--asv-paper-50); }
+.asv .asv-top-right { justify-self: end; display: flex; gap: 8px; }
+.asv .asv-top-btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 14px; border: 1px solid var(--asv-line-strong); border-radius: 0; background: var(--asv-raised); font: 700 15px/1 var(--asv-ko); color: var(--asv-ink-900); }
+.asv .asv-top-btn:active { background: var(--asv-volt); border-color: var(--asv-volt); color: var(--asv-paper-50); }
+
+/* ── 시작 — 왼쪽 축제 로봇 · 거대 워드마크 · 예시 사진 / 오른쪽 사양서 ── */
+.asv .asv-start { display: grid; grid-template-columns: minmax(0, 1fr) 480px; height: 100%; }
+.asv .asv-hero { position: relative; overflow: hidden; background: var(--asv-raised); }
+.asv .asv-hero-robot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; mix-blend-mode: multiply; pointer-events: none; }
+.asv .asv-hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(to bottom, transparent, rgba(252, 252, 253, 0.82)); pointer-events: none; }
+.asv .asv-hero-hud { position: absolute; z-index: 2; left: 28px; top: 22px; display: grid; gap: 8px; color: var(--asv-ink-700); }
+.asv .asv-hero-years { display: flex; align-items: center; gap: 0; }
+.asv .asv-hero-years b { font-weight: 500; font-size: 12px; letter-spacing: 0.06em; color: var(--asv-ink-600); }
+.asv .asv-hero-years b + b::before { content: '→'; margin: 0 8px; color: var(--asv-ink-300); }
+.asv .asv-hero-years b[data-now] { color: var(--asv-volt); }
+.asv .asv-hero-dim { position: absolute; z-index: 2; left: 28px; right: 260px; top: 96px; }
+.asv .asv-hero-mark { position: absolute; z-index: 3; left: 26px; bottom: 30px; margin: 0; display: grid; gap: 14px; }
+.asv .asv-hero-mark .asv-disp { font-size: 178px; color: var(--asv-volt); }
+.asv .asv-hero-ko { font: 800 28px/1.1 var(--asv-ko); letter-spacing: -0.035em; color: var(--asv-ink-900); }
+.asv .asv-sample { position: absolute; z-index: 3; right: 34px; top: 30px; bottom: 26px; width: 190px; margin: 0; display: flex; flex-direction: column; gap: 12px; transform: rotate(-2.5deg); transform-origin: 50% 40%; }
+.asv .asv-sample-frame { position: relative; flex: 1; min-height: 0; border: 1px solid var(--asv-line-strong); background: var(--asv-paper-200); }
+.asv .asv-sample-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.asv .asv-sample figcaption { display: flex; justify-content: space-between; color: var(--asv-ink-700); }
+.asv .asv-sheet { display: flex; flex-direction: column; gap: 16px; min-height: 0; padding: 26px 28px 24px; border-left: 1px solid var(--asv-line); background: var(--asv-raised); }
+.asv .asv-sheet-title { margin: 6px 0 0; font: 800 36px/1.16 var(--asv-ko); letter-spacing: -0.035em; }
+.asv .asv-sheet-title span { display: block; }
+.asv .asv-sheet-title span + span { color: var(--asv-volt); }
+.asv .asv-sheet-lead { margin: 0; font-size: 16px; line-height: 1.6; color: var(--asv-ink-600); }
+.asv .asv-spec { margin: 2px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--asv-line); }
+.asv .asv-spec li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--asv-line); }
+.asv .asv-spec li i { font-style: normal; color: var(--asv-ink-400); font-size: 12px; }
+.asv .asv-spec li span { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.asv .asv-spec li small { color: var(--asv-ink-500); }
+.asv .asv-sheet-people { margin: 0; display: flex; align-items: baseline; gap: 8px; color: var(--asv-ink-600); }
+.asv .asv-sheet-people b { font-size: 13px; font-weight: 500; color: var(--asv-volt); }
+.asv .asv-sheet-people span:not(:first-child) { color: var(--asv-ink-300); }
+.asv .asv-sheet-people { text-transform: none; letter-spacing: 0.06em; }
+
+/* ── 화면 틀 · 패널 ── */
+.asv .pg-split { gap: 24px; padding: 18px 24px 22px; }
+.asv .pg-panel { gap: 14px; padding: 22px 24px; border-radius: 0; border: 1px solid var(--asv-line); background: var(--asv-raised); }
+.asv .pg-actions { gap: 10px; }
+.asv .pg-warn { padding: 10px 12px; border-radius: 0; border: 1px solid var(--asv-volt-300); background: var(--asv-volt-50); color: var(--asv-ink-900); font-size: 14.5px; line-height: 1.45; }
+.asv .pg-warn svg { flex: none; color: var(--asv-volt); }
+.asv .pg-error-text { color: var(--asv-ink-900); font-size: 15px; }
+.asv .pg-error-text::before { content: ''; flex: none; width: 8px; height: 8px; margin-top: 7px; background: var(--asv-volt); }
+.asv .pg-muted { color: var(--asv-ink-500); }
+
+/* ── 촬영 — 카메라 위 도면 HUD · 모서리 표시 ── */
+.asv .pg-cam { border-radius: 0; border: 1px solid var(--asv-ink-900); background: var(--asv-ink-900); box-shadow: none; }
+.asv .pg-cam .asv-reg { inset: 16px; --asv-reg-c: rgba(247, 248, 250, 0.9); }
+.asv .pg-cam .asv-reg::before, .asv .pg-cam .asv-reg::after, .asv .pg-cam .asv-reg > i::before, .asv .pg-cam .asv-reg > i::after { width: 20px; height: 20px; }
+.asv .pg-guide--group {
+  inset: 9%; border: 0; border-radius: 0; --c: rgba(247, 248, 250, 0.92);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 44px 2px no-repeat, linear-gradient(var(--c), var(--c)) top left / 2px 44px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 44px 2px no-repeat, linear-gradient(var(--c), var(--c)) top right / 2px 44px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 44px 2px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 2px 44px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 44px 2px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 2px 44px no-repeat;
+}
+.asv .asv-cross { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; pointer-events: none; background: linear-gradient(rgba(247, 248, 250, 0.7), rgba(247, 248, 250, 0.7)) center / 100% 1px no-repeat, linear-gradient(rgba(247, 248, 250, 0.7), rgba(247, 248, 250, 0.7)) center / 1px 100% no-repeat; }
+.asv .pg-cam-ready { left: 50%; top: 18px; transform: translateX(-50%); white-space: nowrap; gap: 10px; padding: 8px 12px; border-radius: 0; background: rgba(11, 13, 16, 0.78); font-size: 14px; }
+.asv .pg-cam-ready i { width: 8px; height: 8px; border-radius: 0; background: var(--asv-volt-300); animation: asv-blink 1.2s steps(2) infinite; }
+@keyframes asv-blink { 50% { opacity: 0.25; } }
+.asv .asv-cam-hud { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; justify-content: space-between; padding: 8px 16px; background: rgba(11, 13, 16, 0.62); color: var(--asv-paper-100); }
+.asv .pg-count { font-family: var(--asv-disp); font-weight: 800; font-variation-settings: 'opsz' 96, 'wdth' 100; font-size: 240px; letter-spacing: -0.04em; color: var(--asv-paper-50); text-shadow: 0 2px 30px rgba(11, 13, 16, 0.35); animation: asv-stamp 1s var(--asv-ease) infinite; }
+@keyframes asv-stamp { from { clip-path: inset(0 0 100% 0); transform: translateY(6%); } 35% { clip-path: inset(-10% -6% -10% -6%); transform: none; } to { clip-path: inset(-10% -6% -10% -6%); } }
+.asv .pg-flash { border-radius: 0; background: var(--asv-raised); }
+.asv .pg-cam--off { background: var(--asv-paper-200); color: var(--asv-ink-500); border-color: var(--asv-line-strong); }
+.asv .pg-consent { display: flex; gap: 12px; align-items: baseline; padding: 10px 12px; border-radius: 0; border: 1px solid var(--asv-line); background: var(--asv-paper-100); font-size: 13.5px; line-height: 1.5; color: var(--asv-ink-700); }
+.asv .pg-consent > i { flex: none; font-style: normal; font-size: 10px; color: var(--asv-ink-500); }
+.asv .pg-consent--note b { color: var(--asv-ink-900); font-weight: 800; }
+
+/* ── 네 컷 — 도면 액자 · 연도는 볼트 ── */
+.asv .pg-four { position: relative; gap: 12px; }
+.asv .pg-four-cut { border-radius: 0; border: 1px solid var(--asv-line-strong); background: var(--asv-paper-200); box-shadow: none; }
+.asv .pg-four-cut figcaption { left: 10px; bottom: 10px; gap: 8px; align-items: baseline; padding: 5px 10px 4px; border-radius: 0; background: var(--asv-paper-50); color: var(--asv-ink-900); font-size: 13px; font-weight: 700; }
+.asv .pg-four-cut figcaption b { font-family: var(--asv-disp); font-weight: 800; font-variation-settings: 'opsz' 96, 'wdth' 75; font-size: 22px; letter-spacing: -0.01em; color: var(--asv-volt); }
+.asv .asv-cut-idx { position: absolute; right: 8px; top: 8px; padding: 3px 5px 2px; background: var(--asv-ink-900); color: var(--asv-paper-50); font-size: 10px; }
+.asv .pg-four-cut[data-pending] { background: var(--asv-paper-200); animation: none; }
+.asv .pg-four-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--asv-ink-500); font-size: 18px; font-weight: 800; }
+.asv .pg-four-empty .asv-mono { color: var(--asv-ink-500); }
+.asv .asv-scanline { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--asv-volt); box-shadow: 0 0 0 0.5px var(--asv-volt-300); animation: asv-scan 1.8s var(--asv-ease) infinite; }
+@keyframes asv-scan { from { top: 0; } to { top: 100%; } }
+.asv .pg-four > .asv-reg { inset: -1px; }
+
+/* ── 생성 — 판독값 · 미터 · 단계 표 ── */
+.asv .asv-meter { padding: 14px 16px 16px; border: 1px solid var(--asv-line); background: var(--asv-paper-100); }
+.asv .asv-meter p { margin: 0; display: flex; align-items: baseline; gap: 10px; color: var(--asv-ink-500); }
+.asv .asv-meter b { font-family: var(--asv-mono); font-weight: 500; font-size: 46px; letter-spacing: 0.02em; color: var(--asv-ink-900); line-height: 1; }
+.asv .asv-meter em { margin-left: auto; font: 600 13px/1.3 var(--asv-ko); font-style: normal; letter-spacing: 0; text-transform: none; color: var(--asv-ink-500); }
+.asv .asv-meter-bar { position: relative; display: block; height: 1px; margin-top: 14px; overflow: hidden; background: var(--asv-line-strong); }
+.asv .asv-meter-bar i { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; background: var(--asv-ink-900); animation: asv-run 1.6s var(--asv-ease) infinite alternate; }
+@keyframes asv-run { to { transform: translateX(233%); } }
+.asv .asv-stages { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--asv-line); }
+.asv .asv-stages li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--asv-line); color: var(--asv-ink-400); }
+.asv .asv-stages li i { font-style: normal; font-size: 12px; }
+.asv .asv-stages li span { font-size: 16px; font-weight: 700; }
+.asv .asv-stages li b { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; }
+.asv .asv-stages li[data-state='done'] { color: var(--asv-ink-900); }
+.asv .asv-stages li[data-state='done'] b { color: var(--asv-ink-500); }
+.asv .asv-stages li[data-state='active'] { color: var(--asv-ink-900); }
+.asv .asv-stages li[data-state='active'] b { color: var(--asv-volt); }
+.asv .asv-stages li[data-state='active'] b::before { content: ''; width: 7px; height: 7px; background: var(--asv-volt); animation: asv-blink 1s steps(2) infinite; }
+.asv .pg-travel { margin: 0; text-align: left; font-family: var(--asv-ko); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--asv-ink-600); }
+.asv .pg-travel::before { content: '→ '; color: var(--asv-volt); font-family: var(--asv-mono); }
+
+/* ── 결과 판독값 ── */
+.asv .asv-readout { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border: 1px solid var(--asv-line); }
+.asv .asv-readout div { padding: 10px 12px 12px; border-right: 1px solid var(--asv-line); }
+.asv .asv-readout div:last-child { border-right: 0; }
+.asv .asv-readout dt { font: 500 10px/1.3 var(--asv-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--asv-ink-500); }
+.asv .asv-readout dd { margin: 8px 0 0; font-family: var(--asv-disp); font-weight: 800; font-variation-settings: 'opsz' 96, 'wdth' 100; font-size: 40px; line-height: 0.9; letter-spacing: -0.03em; color: var(--asv-ink-900); }
+.asv .asv-readout dd small { margin-left: 4px; font: 500 11px/1 var(--asv-mono); letter-spacing: 0.1em; color: var(--asv-ink-500); }
+
+/* ── 사진 미리보기 · 프레임 고르기 ── */
+.asv .pg-strip-preview { position: relative; }
+.asv .asv-strip-box { position: relative; display: block; height: 100%; aspect-ratio: 1 / 3; }
+.asv .asv-strip-box img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 0; border: 1px solid var(--asv-line-strong); box-shadow: none; background: var(--asv-raised); }
+.asv .pg-frame-layout .pg-strip-preview { aspect-ratio: 1 / 3; margin-right: 12px; }
+.asv .pg-frame-grid { gap: 10px; }
+.asv .pg-frame-tile { padding: 4px; border-radius: 0; border: 1px solid var(--asv-line); background: var(--asv-raised); }
+.asv .pg-frame-tile[aria-checked='true'] { border-color: var(--asv-volt); box-shadow: inset 0 0 0 1px var(--asv-volt); }
+.asv .pg-frame-tile > i { right: -1px; top: -1px; width: 22px; height: 22px; border-radius: 0; background: var(--asv-volt); color: var(--asv-paper-50); }
+.asv .asv-tile-idx { position: absolute; z-index: 1; left: 4px; top: 4px; padding: 2px 4px 1px; background: var(--asv-paper-50); color: var(--asv-ink-700); font-size: 9.5px; letter-spacing: 0.08em; }
+.asv .pg-frame-tile[aria-checked='true'] .asv-tile-idx { background: var(--asv-volt); color: var(--asv-paper-50); }
+.asv .pg-frame-thumb { border-radius: 0; background-color: var(--asv-paper-200); }
+.asv .pg-strip-count legend { margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--asv-ink-600); }
+.asv .pg-strip-count legend small { font: 500 10px/1 var(--asv-mono); letter-spacing: 0.1em; color: var(--asv-volt); }
+.asv .pg-strip-count [role='radiogroup'] { gap: 0; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
+.asv .pg-strip-count button { min-height: 56px; margin-left: -1px; border-radius: 0; border: 1px solid var(--asv-line-strong); background: var(--asv-raised); font: 800 19px/1 var(--asv-ko); color: var(--asv-ink-700); }
+.asv .pg-strip-count button:first-child { margin-left: 0; }
+.asv .pg-strip-count button[aria-checked='true'] { position: relative; z-index: 1; border-color: var(--asv-ink-900); background: var(--asv-ink-900); color: var(--asv-paper-50); }
+.asv .pg-strip-back { margin-top: auto; }
+
+/* ── 저장 · 인쇄 카드(SavePanel 공용 부품을 이 화면에서만) ── */
+.asv .pg-save-cards { gap: 10px; }
+.asv .pg-card { padding: 14px; border-radius: 0; border: 1px solid var(--asv-line); background: var(--asv-raised); }
+.asv .pg-print svg { color: var(--asv-ink-900); }
+.asv .pg-print b { font-weight: 800; }
+.asv .pg-print .pg-btn { min-height: 52px; padding: 0 18px; font-size: 16px; }
+.asv .pg-qr-code { border-radius: 0; border: 1px solid var(--asv-line); }
+.asv .pg-qr-text b { font-weight: 800; }
+.asv .pg-qr-time { color: var(--asv-volt); font-weight: 700; }
+.asv .asv-sign { display: grid; gap: 4px; margin: 0; color: var(--asv-ink-600); }
+.asv .asv-sign span { color: var(--asv-ink-400); letter-spacing: 0.1em; }
+
+/* ── 창(도움말 · 마칠까요 · 무입력 · 휴대폰 사진) ── */
+.asv .pg-modal { background: rgba(11, 13, 16, 0.42); backdrop-filter: none; }
+.asv .pg-modal-card { gap: 16px; padding: 28px; border-radius: 0; border: 1px solid var(--asv-ink-900); background: var(--asv-raised); box-shadow: none; color: var(--asv-ink-900); --pg-ink: var(--asv-ink-900); --pg-muted: var(--asv-ink-500); --pg-surface: var(--asv-raised); --pg-line: var(--asv-line); }
+.asv .pg-modal-card h3 { font: 800 26px/1.2 var(--asv-ko); letter-spacing: -0.035em; padding-bottom: 14px; border-bottom: 1px solid var(--asv-line); }
+.asv .pg-modal-card p { color: var(--asv-ink-600); }
+.asv .pg-help li { padding-bottom: 12px; border-bottom: 1px solid var(--asv-line); }
+.asv .pg-help svg { color: var(--asv-volt); }
+.asv .pg-idle-ring { border-radius: 0; background: conic-gradient(var(--asv-volt) calc(var(--left) * 360deg), var(--asv-paper-200) 0); }
+.asv .pg-idle-ring b { border-radius: 0; background: var(--asv-raised); font-family: var(--asv-mono); font-weight: 500; font-size: 46px; }
+.asv .pg-keypad button, .asv .pg-pin i { border-radius: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .asv .pg-count, .asv .asv-scanline, .asv .asv-meter-bar i, .asv .pg-cam-ready i, .asv .asv-stages li b::before { animation: none; }
+  .asv .asv-meter-bar i { width: 100%; }
+}

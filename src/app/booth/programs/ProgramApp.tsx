@@ -24,7 +24,9 @@ import { MvFlow } from './MvFlow'
 import { MovieFlow } from './MovieFlow'
 import { StripFlow } from './StripFlow'
 import { Modal, Wordmark } from './ui'
+import { AsvStart, AsvTopBar } from './AsvParts'
 import './programs.css'
+import './asv.css'
 
 const BASE_W = 1280
 const BASE_H = 720
@@ -128,11 +130,14 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   }
 
   return (
-    <div className={`pg ${FONT_VARS}`} data-program={program.id} data-kind={program.kind}>
+    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind}>
       <div className="pg-stage" style={{ '--pg-scale': scale } as CSSProperties}>
-        <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />
+        {/* ANSAN(띠지 kind)은 축제 공식 웹사이트 디자인(AsvParts · asv.css) */}
+        {program.kind === 'strip'
+          ? <AsvTopBar program={program} flow={screen === 'flow'} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />
+          : <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />}
         <main className="pg-body">
-          {screen === 'start' && <StartScreen program={program} onStart={start} />}
+          {screen === 'start' && (program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : <StartScreen program={program} onStart={start} />)}
           {screen === 'pass' && <PassScreen onBack={home} onTicket={(t) => { ticketRef.current = t; setScreen('flow') }} />}
           {screen === 'flow' && (
             program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
@@ -161,7 +166,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
               <li><Camera size={22} />화면의 가이드 안에 얼굴이 들어오게 서 주세요. 타이머가 끝나면 찍혀요.</li>
               <li><ImageIcon size={22} />카메라가 안 되면 휴대폰 사진으로도 할 수 있어요.</li>
               <li><Sparkles size={22} />{program.kind === 'strip' ? '미래 사진 세 장은 보통 30~40초 걸려요. 4명까지 함께 찍을 수 있고, 아기는 안고 찍어도 돼요.' : program.kind === 'photo' ? 'AI 사진은 보통 20~40초 걸려요. 실패해도 찍은 사진과 옵션은 그대로예요.' : '영상은 길이만큼 시간이 걸려요. 완성되면 QR로 휴대폰에 받아요.'}</li>
-              <li><CircleHelp size={22} />문제가 계속되면 매장 직원에게 말씀해 주세요.</li>
+              <li><CircleHelp size={22} />{program.kind === 'strip' ? '문제가 계속되면 부스 운영 스태프에게 말씀해 주세요.' : '문제가 계속되면 매장 직원에게 말씀해 주세요.'}</li>
             </ul>
             <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setHelp(false)}>닫기</button>
           </Modal>

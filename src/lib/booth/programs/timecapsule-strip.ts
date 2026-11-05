@@ -4,6 +4,15 @@
 
 export const STRIP_PROGRAM_ID = 'ansan-2026'
 export const STRIP_NOW_YEAR = 2026
+
+/** 축제 공식 표기 — 공식 웹사이트 디자인 문서(확정 카피)와 글자까지 같게. 바꾸거나 지어내지 않는다 */
+export const ASV_FESTIVAL = {
+  name: '2026 안산사이언스밸리(ASV) 과학축제',
+  short: 'ASV 2026',
+  dates: '2026.11.07(토) – 11.08(일)',
+  venue: '한양대학교 ERICA캠퍼스',
+  theme: '디지털 교육 & 88로봇위크',
+} as const
 /** 함께 찍을 수 있는 사람 수 — 넘으면 얼굴이 섞이기 쉬워 다시 찍게 한다 */
 export const STRIP_MAX_PEOPLE = 4
 

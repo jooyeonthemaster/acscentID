@@ -3,11 +3,13 @@
 // 같은 사진 둘을 나란히. 폰 저장(QR)은 사진 한 장. 자르는 자리(가운데)·용지 가장자리에 글자·사진이 걸리지 않게 여백.
 // 여백은 넉넉히(2026-11-04 실물 시험): 드라이버 용지가 테두리 여분까지 찍는 (4x6) 면 원판이 3~4% 커져 위 제목이 종이 끝에 붙고
 // 아래 날짜가 반쯤 잘렸다 — 위아래 약 6~7mm · 좌우 약 4mm 를 비운다.
-// 기본 디자인 2종(renderStrip): 타임캡슐(라벤더 · LATER! 테마) / 우주 정거장(남색 밤하늘). 프레임 10종은 renderFrameStrip.
+// 기본 디자인 2종(renderStrip): 축제 공식 웹사이트 디자인(WHITEPRINT) — ASV 화이트(종이 · 잉크 · 볼트) / ASV 블랙(사이트 다크 섹션).
+// 로고 마크 · 거대 영문 LATER · 치수선 · 칸 모서리 크로스헤어 · 볼트 연도. 축제 표기는 ASV_FESTIVAL(공식 확정 카피) 그대로. 프레임 10종은 renderFrameStrip.
 
 import type { StripFrameDef } from '@/lib/booth/programs/strip-frames'
-import { STRIP_NOW_YEAR, STRIP_STEPS } from '@/lib/booth/programs/timecapsule-strip'
-import { A, G, P, cover, photoClip, rect, shadow, star, text, today, type Pic } from './print-designs'
+import { ASV_FESTIVAL, STRIP_NOW_YEAR, STRIP_STEPS } from '@/lib/booth/programs/timecapsule-strip'
+import { bricolage, jetbrains } from './fonts'
+import { A, G, P, cover, rect, text, today, type Pic } from './print-designs'
 
 export const STRIP_W = 600
 export const STRIP_H = 1800
@@ -27,72 +29,68 @@ export interface StripInput {
   future: (Pic | null)[]
 }
 
+/** 영문 디스플레이 · 모노 라벨 · 한글 */
+const D = () => bricolage.style.fontFamily
+const M = () => jetbrains.style.fontFamily
+const K = 'Pretendard, sans-serif'
+
 interface Theme {
-  background: (ctx: Ctx) => void
-  title: string
+  paper: string
+  dot: string
+  ink: string
   sub: string
-  frame: string
-  shadow: string
-  pill: string
-  pillText: string
-  pillYear: string
-  foot: string
-  footSub: string
-  empty: [string, string]
+  mute: string
+  line: string
+  reg: string
+  volt: string
+  cellBg: string
 }
 
 const THEMES: Theme[] = [
-  // 타임캡슐 — 라벤더 하늘(프로그램 화면 LATER! 테마와 같은 색)
-  {
-    background: (ctx) => {
-      const g = ctx.createLinearGradient(0, 0, 0, STRIP_H)
-      g.addColorStop(0, '#e6e4ff'); g.addColorStop(1, '#f9f8ff')
-      ctx.fillStyle = g; ctx.fillRect(0, 0, STRIP_W, STRIP_H)
-    },
-    title: '#5b55d6', sub: '#6a66b8', frame: '#ffffff', shadow: 'rgba(60,50,150,0.22)',
-    pill: 'rgba(42,38,112,0.82)', pillText: '#ffffff', pillYear: '#d9d6ff', foot: '#2a2670', footSub: '#6a66b8',
-    empty: ['#dcd8ff', '#b9b2f5'],
-  },
-  // 우주 정거장 — 남색 밤하늘과 별
-  {
-    background: (ctx) => {
-      const g = ctx.createLinearGradient(0, 0, 0, STRIP_H)
-      g.addColorStop(0, '#0b1033'); g.addColorStop(1, '#1a1f5c')
-      ctx.fillStyle = g; ctx.fillRect(0, 0, STRIP_W, STRIP_H)
-      let seed = 11
-      const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
-      ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.75)'
-      for (let i = 0; i < 160; i++) { const r = rnd() * 1.6 + 0.4; ctx.beginPath(); ctx.arc(rnd() * STRIP_W, rnd() * STRIP_H, r, 0, Math.PI * 2); ctx.fill() }
-      ctx.restore()
-      star(ctx, 92, 70, 14, '#9ff3ff'); star(ctx, 512, 128, 10, '#ffe08a')
-    },
-    title: '#9ff3ff', sub: '#c9ccff', frame: '#9ff3ff', shadow: 'rgba(0,0,0,0.45)',
-    pill: 'rgba(159,243,255,0.92)', pillText: '#0b1033', pillYear: '#0b1033', foot: '#ffffff', footSub: '#aab0ff',
-    empty: ['#232a6e', '#121741'],
-  },
+  // ASV 화이트 — 사이트 기본 면(paper-50) · 잉크 글자 · 볼트 강조
+  { paper: '#f7f8fa', dot: '#cbd0d8', ink: '#0b0d10', sub: '#3c434e', mute: '#5c6472', line: '#b4bac4', reg: '#3c434e', volt: '#1436ff', cellBg: '#e8ebef' },
+  // ASV 블랙 — 사이트 다크 섹션(ink-900 바탕 · 종이 글자 · 다크 위 볼트 volt-300)
+  { paper: '#0b0d10', dot: '#262b33', ink: '#f7f8fa', sub: '#cbd0d8', mute: '#a9b0bb', line: '#3c434e', reg: '#a9b0bb', volt: '#7a8cff', cellBg: '#171a1f' },
 ]
 
 const cellY = (i: number) => TOP + i * (CELL_H + GAP)
 
+function line(ctx: Ctx, x0: number, y0: number, x1: number, y1: number, color: string, width = 2) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.restore()
+}
+
+/** 모서리 크로스헤어 — 인쇄라 사이트(1px)보다 굵게 */
+function crosshair(ctx: Ctx, x: number, y: number, color: string, arm = 12) {
+  line(ctx, x - arm, y, x + arm, y, color, 2)
+  line(ctx, x, y - arm, x, y + arm, color, 2)
+}
+
 function cell(ctx: Ctx, theme: Theme, pic: Pic | null, i: number, year: number, label: string) {
   const x = SIDE, y = cellY(i)
-  ctx.save(); shadow(ctx, 16, theme.shadow); rect(ctx, x - 5, y - 5, CELL_W + 10, CELL_H + 10, theme.frame, 16); ctx.restore()
   if (pic) {
-    photoClip(ctx, pic, x, y, CELL_W, CELL_H, 12, 0.4)
+    cover(ctx, pic, x, y, CELL_W, CELL_H, 0.4)
   } else {
-    // 못 만든 칸 — 빈 칸 대신 '아직 오는 중'
-    const g = ctx.createLinearGradient(x, y, x, y + CELL_H)
-    g.addColorStop(0, theme.empty[0]); g.addColorStop(1, theme.empty[1])
-    ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(x, y, CELL_W, CELL_H, 12); ctx.fill(); ctx.restore()
-    text(ctx, '미래가 아직', STRIP_W / 2, y + CELL_H / 2 - 6, `700 34px ${G()}`, theme.foot)
-    text(ctx, '도착하는 중이에요', STRIP_W / 2, y + CELL_H / 2 + 40, `700 34px ${G()}`, theme.foot)
+    // 못 만든 칸 — 빗금 위 '아직 오는 중'
+    rect(ctx, x, y, CELL_W, CELL_H, theme.cellBg)
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, CELL_W, CELL_H); ctx.clip()
+    for (let d = -CELL_H; d < CELL_W; d += 22) line(ctx, x + d, y + CELL_H, x + d + CELL_H, y, theme.line, 1.5)
+    ctx.restore()
+    text(ctx, 'PENDING', STRIP_W / 2, y + CELL_H / 2 - 52, `500 15px ${M()}`, theme.volt, 'center', (c) => { c.letterSpacing = '3px' })
+    text(ctx, '미래가 아직', STRIP_W / 2, y + CELL_H / 2 - 4, `800 32px ${K}`, theme.ink)
+    text(ctx, '도착하는 중이에요', STRIP_W / 2, y + CELL_H / 2 + 40, `800 32px ${K}`, theme.ink)
   }
-  // 칸 이름표 — 연도(크게) + 이름
-  const pillH = 44, px = x + 12, py = y + CELL_H - pillH - 12
-  ctx.save(); ctx.font = `30px ${A()}`; const yw = ctx.measureText(String(year)).width; ctx.font = `700 20px ${G()}`; const lw = ctx.measureText(label).width; ctx.restore()
-  rect(ctx, px, py, yw + lw + 42, pillH, theme.pill, pillH / 2)
-  text(ctx, String(year), px + 16, py + 33, `30px ${A()}`, theme.pillYear, 'left', (c) => { c.letterSpacing = '1px' })
-  text(ctx, label, px + 26 + yw, py + 30, `700 20px ${G()}`, theme.pillText, 'left')
+  ctx.save(); ctx.strokeStyle = theme.line; ctx.lineWidth = 2; ctx.strokeRect(x - 1, y - 1, CELL_W + 2, CELL_H + 2); ctx.restore()
+  ;[[x, y], [x + CELL_W, y], [x, y + CELL_H], [x + CELL_W, y + CELL_H]].forEach(([cx, cy]) => crosshair(ctx, cx, cy, theme.reg))
+  // 칸 번호 — 오른쪽 위 잉크 상자
+  const idx = String(i + 1).padStart(2, '0')
+  rect(ctx, x + CELL_W - 46, y + 12, 34, 26, theme.ink)
+  text(ctx, idx, x + CELL_W - 29, y + 31, `500 15px ${M()}`, theme.paper)
+  // 칸 이름표 — 연도(볼트 · 좁은 디스플레이) + 이름
+  const h = 46, px = x + 14, py = y + CELL_H - h - 14
+  ctx.save(); ctx.font = `800 32px ${D()}`; ctx.fontStretch = 'condensed'; const yw = ctx.measureText(String(year)).width; ctx.font = `700 20px ${K}`; const lw = ctx.measureText(label).width; ctx.restore()
+  rect(ctx, px, py, yw + lw + 40, h, theme.paper)
+  text(ctx, String(year), px + 14, py + 34, `800 32px ${D()}`, theme.volt, 'left', (c) => { c.fontStretch = 'condensed' })
+  text(ctx, label, px + 26 + yw, py + 31, `700 20px ${K}`, theme.ink, 'left')
 }
 
 /** 사진 한 장(600×1800) 캔버스 */
@@ -101,15 +99,41 @@ export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W; canvas.height = STRIP_H
   const ctx = canvas.getContext('2d')!
-  theme.background(ctx)
-  text(ctx, 'LATER!', STRIP_W / 2, 136, `italic 900 84px ${P()}`, theme.title)
-  text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 174, `700 21px ${G()}`, theme.sub)
+  ctx.imageSmoothingQuality = 'high'
+  // 도트 격자 종이
+  ctx.fillStyle = theme.paper; ctx.fillRect(0, 0, STRIP_W, STRIP_H)
+  ctx.fillStyle = theme.dot
+  for (let y = 12; y < STRIP_H; y += 24) for (let x = 12; x < STRIP_W; x += 24) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill() }
+
+  // 머리 — 로고 마크 · ASV 2026 · AI PHOTO ZONE
+  ctx.save(); ctx.strokeStyle = theme.ink; ctx.lineWidth = 2; ctx.strokeRect(SIDE + 1, 67, 20, 20); ctx.restore()
+  rect(ctx, SIDE + 6, 72, 12, 12, theme.volt)
+  text(ctx, ASV_FESTIVAL.short, SIDE + 34, 86, `800 25px ${D()}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
+  text(ctx, 'AI PHOTO ZONE', STRIP_W - SIDE, 85, `500 14px ${M()}`, theme.mute, 'right', (c) => { c.letterSpacing = '2.5px' })
+  // 거대 워드마크 + 한글 부제
+  text(ctx, 'LATER', SIDE - 6, 166, `800 100px ${D()}`, theme.volt, 'left', (c) => { c.letterSpacing = '-4px' })
+  text(ctx, '미래로 가는', STRIP_W - SIDE, 128, `800 23px ${K}`, theme.ink, 'right')
+  text(ctx, '타임캡슐', STRIP_W - SIDE, 158, `800 23px ${K}`, theme.ink, 'right')
+  // 치수선 — 네 컷이 재는 시간
+  const dy = 180
+  line(ctx, SIDE, dy, STRIP_W - SIDE, dy, theme.mute, 2)
+  line(ctx, SIDE + 1, dy - 7, SIDE + 1, dy + 7, theme.mute, 2)
+  line(ctx, STRIP_W - SIDE - 1, dy - 7, STRIP_W - SIDE - 1, dy + 7, theme.mute, 2)
+  const span = `${STRIP_NOW_YEAR} — ${STRIP_STEPS[STRIP_STEPS.length - 1].year}`
+  ctx.save(); ctx.font = `500 14px ${M()}`; ctx.letterSpacing = '2px'; const sw = ctx.measureText(span).width; ctx.restore()
+  rect(ctx, STRIP_W / 2 - sw / 2 - 10, dy - 9, sw + 20, 18, theme.paper)
+  text(ctx, span, STRIP_W / 2, dy + 5, `500 14px ${M()}`, theme.mute, 'center', (c) => { c.letterSpacing = '2px' })
+
   cell(ctx, theme, input.now, 0, STRIP_NOW_YEAR, '지금')
   STRIP_STEPS.forEach((step, i) => cell(ctx, theme, input.future[i] ?? null, i + 1, step.year, step.label))
-  const foot = cellY(4)
-  text(ctx, '2026 안산사이언스밸리 과학축제', STRIP_W / 2, foot + 44, `700 25px ${G()}`, theme.foot)
-  text(ctx, 'AI가 만든 재미로 보는 상상 사진이에요', STRIP_W / 2, foot + 76, `700 17px ${G()}`, theme.footSub)
-  text(ctx, today(), STRIP_W / 2, foot + 110, `22px ${A()}`, theme.footSub, 'center', (c) => { c.letterSpacing = '6px' })
+
+  // 바닥 — 축제 공식 표기 · 일시 · 장소 · 봉인 날짜
+  const fy = cellY(4) + 16
+  line(ctx, SIDE, fy, STRIP_W - SIDE, fy, theme.line, 2)
+  text(ctx, ASV_FESTIVAL.name, SIDE, fy + 38, `800 23px ${K}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
+  text(ctx, `${ASV_FESTIVAL.dates} · ${ASV_FESTIVAL.venue}`, SIDE, fy + 66, `600 15px ${K}`, theme.sub, 'left')
+  text(ctx, 'AI가 만든 재미로 보는 상상 사진이에요', SIDE, fy + 93, `600 14px ${K}`, theme.mute, 'left')
+  text(ctx, `SEALED ${today()}`, STRIP_W - SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'right', (c) => { c.letterSpacing = '1.5px' })
   return canvas
 }
 
