@@ -1,13 +1,15 @@
 'use client'
 
 // ANSAN 타임캡슐 흐름(2026 안산사이언스밸리 과학축제 AI 포토존) — 직원 없이 손님 혼자 끝까지:
-// 촬영(가로 3:2, 혼자~4명, 동의 · 5초) → 확인 → AI 미래 세 장(/api/photobooth/timecapsule) → 네 컷 보기 · 띠지 디자인 → 인화(자동) · QR.
-// 옵션 고르기는 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
-// 인쇄 원판은 4×6 에 띠지 둘(프린터 2인치 자르기), 폰 저장은 띠지 한 장(strip-print.ts).
+// 촬영(가로 3:2, 혼자~4명, 동의 · 5초) → 확인 → AI 미래 세 장(/api/photobooth/timecapsule) → 네 컷 보기 → 프레임·장수 고르기 → 인화(자동) · QR.
+// 장면 옵션은 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
+// 프레임은 기본 디자인 2종 + 프레임 10종(strip-frames.ts). 장수는 1장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
+// 인쇄 원판은 4×6 에 띠지 두 줄(프린터 2인치 자르기), 홀수 장수의 마지막 장은 한 줄만. 폰 저장은 띠지 한 장(strip-print.ts).
 
-import { AlertTriangle, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, ArrowLeft, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { countFaces, preloadFaceDetect } from '@/lib/booth/face-detect'
+import { STRIP_FRAMES, type StripFrameDef } from '@/lib/booth/programs/strip-frames'
 import { STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
 import { useCamera } from './use-camera'
 import { toRequestJpeg, type FlowCtx } from './flow'
@@ -15,12 +17,12 @@ import { loadCanvasFonts } from './fonts'
 import { PhoneSheet } from './PhotoFlow'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
-import { renderStrip, stripSheet } from './strip-print'
-import { STRIPS_PER_SHEET, readStripMax, stripCountChoices } from './strip-count'
+import { framePhotoLayer, renderFrameStrip, renderStrip, stripSheet, stripThumb, type StripInput } from './strip-print'
+import { STRIPS_PER_SHEET, readStripAuto, readStripMax, stripCountOptions, stripPrintPlan } from './strip-count'
 import { Creative, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 
-type Step = 'capture' | 'generating' | 'result' | 'save'
+type Step = 'capture' | 'generating' | 'result' | 'frame' | 'save'
 const COUNTDOWN_S = 5
 
 /** 찍은 사진을 화면과 같은 가로 3:2 로(가운데) — 미리보기 칸이 3:2 cover 라 손님이 본 그대로 */
@@ -34,19 +36,26 @@ function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
   return canvas
 }
 
-interface Strips { prints: [string, string]; sheets: [string, string] }
+/** 고를 수 있는 띠지 — 기본 디자인(basic) 또는 프레임(frame) */
+interface StripChoice { id: string; name: string; basic?: 0 | 1; frame?: StripFrameDef }
+/** 인화로 넘기는 것 */
+interface StripOrder { strip: string; sheet: string; copies: number; more: string | null; count: number }
 
 export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [step, setStep] = useState<Step>('capture')
   const [shot, setShot] = useState<HTMLCanvasElement | null>(null)
   const [shotUrl, setShotUrl] = useState<string | null>(null)
   const [future, setFuture] = useState<(HTMLImageElement | null)[]>([])
-  const [strips, setStrips] = useState<Strips | null>(null)
-  const [design, setDesign] = useState<0 | 1>(0)
+  const [people, setPeople] = useState(0)
+  const [choiceId, setChoiceId] = useState('')
+  const [order, setOrder] = useState<StripOrder | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  // 인화 장수(띠지) — 2장 단위, 최대는 이 부스 관리자 설정(strip-count.ts)
-  const [countChoices] = useState(() => stripCountChoices(readStripMax()))
+  // 인화 장수 — 1장 단위, 최대·자동 인화수는 이 부스 관리자 설정(strip-count.ts). 인원수를 알고 나서 정한다
+  const [countChoices, setCountChoices] = useState<number[]>([STRIPS_PER_SHEET])
   const [count, setCount] = useState(STRIPS_PER_SHEET)
+  const [autoCount, setAutoCount] = useState(false)
+  /** 이번 손님의 띠지 캔버스 — 프레임을 다시 고를 때 또 그리지 않게 */
+  const rendered = useRef(new Map<string, HTMLCanvasElement>())
 
   const { setStep: showStep, setDirty } = ctx
   useEffect(() => { showStep(step === 'capture' ? 1 : step === 'generating' ? 2 : 3) }, [step, showStep])
@@ -65,39 +74,35 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
       {step === 'generating' && shot && shotUrl && (
         <Generate
           ctx={ctx} shot={shot} shotUrl={shotUrl}
-          onDone={(images, prints) => { setFuture(images); setStrips(prints); setDesign(0); setStep('result'); ctx.onResult() }}
+          onDone={(images, headcount) => {
+            setFuture(images); setPeople(headcount); rendered.current.clear()
+            const autoOn = readStripAuto()
+            setAutoCount(autoOn)
+            const options = stripCountOptions(readStripMax(), autoOn, headcount)
+            setCountChoices(options.choices); setCount(options.initial)
+            setStep('result'); ctx.onResult()
+          }}
           onRetake={(message) => { setNotice(message); take(null); setStep('capture') }}
         />
       )}
-      {step === 'result' && shotUrl && strips && (
+      {step === 'result' && shotUrl && (
         <Split className="pg-strip-result" visual={<FourCuts now={shotUrl} future={future.map((img) => img?.src ?? null)} />}>
           <PanelHead title={ctx.program.result.title} sub={ctx.program.result.sub} />
           {future.some((img) => !img) && <p className="pg-warn" role="status"><AlertTriangle size={18} aria-hidden="true" />한 장면은 만들지 못해 &lsquo;도착하는 중&rsquo; 칸으로 인화돼요.</p>}
-          <div className="pg-strip-designs" role="radiogroup" aria-label="띠지 디자인">
-            {strips.prints.map((src, i) => (
-              <button key={i} type="button" role="radio" aria-checked={design === i} className="pg-design" onClick={() => setDesign(i as 0 | 1)}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" width={100} height={300} />
-                <span>{ctx.program.designs[i]}</span>
-                {design === i && <i aria-hidden="true"><Check size={16} strokeWidth={3} /></i>}
-              </button>
-            ))}
-          </div>
-          {countChoices.length > 1 && (
-            <fieldset className="pg-strip-count">
-              <legend>인화 장수 <small>띠지는 2장씩 나와요</small></legend>
-              <div role="radiogroup" aria-label="인화 장수">
-                {countChoices.map((n) => (
-                  <button key={n} type="button" role="radio" aria-checked={count === n} onClick={() => setCount(n)}>{n}장</button>
-                ))}
-              </div>
-            </fieldset>
-          )}
           <Creative text={ctx.program.creative} />
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('save')}><Printer size={26} />띠지 {count}장 인화하기<span aria-hidden="true">→</span></button>
+          <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" onClick={() => setStep('frame')}>프레임 고르기<span aria-hidden="true">→</span></button>
         </Split>
       )}
-      {step === 'save' && strips && <SaveStep ctx={ctx} strip={strips.prints[design]} sheet={strips.sheets[design]} count={count} />}
+      {step === 'frame' && shot && (
+        <FrameStep
+          ctx={ctx} input={{ now: shot, future }} rendered={rendered}
+          choiceId={choiceId} onChoice={setChoiceId}
+          countChoices={countChoices} count={count} onCount={setCount} people={autoCount ? people : 0}
+          onBack={() => setStep('result')}
+          onPrint={(next) => { setOrder(next); setStep('save') }}
+        />
+      )}
+      {step === 'save' && order && <SaveStep ctx={ctx} order={order} />}
     </>
   )
 }
@@ -115,6 +120,114 @@ function FourCuts({ now, future, pending, empty = '도착하는 중' }: { now: s
         </figure>
       ))}
     </div>
+  )
+}
+
+// ───────────────────────── 프레임 · 장수 ─────────────────────────
+
+function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, count, onCount, people, onBack, onPrint }: {
+  ctx: FlowCtx
+  input: StripInput
+  rendered: RefObject<Map<string, HTMLCanvasElement>>
+  choiceId: string
+  onChoice: (id: string) => void
+  countChoices: number[]
+  count: number
+  onCount: (n: number) => void
+  /** 자동 인화수가 켜져 있으면 찍힌 인원수, 아니면 0 */
+  people: number
+  onBack: () => void
+  onPrint: (order: StripOrder) => void
+}) {
+  const { program } = ctx
+  const [choices] = useState<StripChoice[]>(() => [
+    { id: 'basic-capsule', name: program.designs[0], basic: 0 },
+    { id: 'basic-space', name: program.designs[1], basic: 1 },
+    ...STRIP_FRAMES.map((frame) => ({ id: frame.id, name: frame.name, frame })),
+  ])
+  const chosen = choices.find((c) => c.id === choiceId) ?? choices[0]
+  // 고르는 칸의 그림 — 프레임은 투명 작은 그림 뒤에 내 사진을 깔고, 기본 디자인은 작게 줄여 쓴다
+  const [photoLayer] = useState(() => framePhotoLayer(input))
+  const [basicThumbs] = useState(() => [renderStrip(0, input), renderStrip(1, input)].map((strip, i) => {
+    rendered.current.set(i === 0 ? 'basic-capsule' : 'basic-space', strip)
+    return stripThumb(strip)
+  }))
+  const [preview, setPreview] = useState<{ id: string; url: string } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // 프레임 그림을 미리 받아 둔다 — 눌렀을 때 바로 그려지게(행사장 인터넷이 약하다)
+  useEffect(() => { for (const frame of STRIP_FRAMES) new Image().src = frame.file }, [])
+
+  // 고른 것을 그린다 — 그린 것은 이번 손님 동안 기억한다
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        let strip = rendered.current.get(chosen.id)
+        if (!strip && chosen.frame) {
+          strip = renderFrameStrip(chosen.frame, await loadImage(chosen.frame.file), input)
+          rendered.current.set(chosen.id, strip)
+        }
+        if (!alive || !strip) return
+        setPreview({ id: chosen.id, url: strip.toDataURL('image/jpeg', 0.93) })
+        setError(null)
+      } catch {
+        if (alive) setError('이 프레임을 불러오지 못했어요. 다른 프레임을 골라 주세요.')
+      }
+    })()
+    return () => { alive = false }
+    // input 은 이 화면이 떠 있는 동안 그대로다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chosen])
+
+  const ready = preview?.id === chosen.id
+  const print = () => {
+    const strip = rendered.current.get(chosen.id)
+    if (!ready || !preview || !strip) return
+    const plan = stripPrintPlan(count)
+    const half = plan.halfSheet ? stripSheet(strip, 1) : null
+    const sheet = plan.fullSheets > 0 ? stripSheet(strip, 2) : half!
+    onPrint({ strip: preview.url, sheet, copies: Math.max(1, plan.fullSheets), more: plan.fullSheets > 0 ? half : null, count })
+  }
+
+  return (
+    <Split
+      className="pg-strip-frame"
+      visual={(
+        <div className="pg-frame-layout">
+          {preview ? <StripPreview src={preview.url} /> : <div className="pg-strip-preview pg-strip-preview--wait"><span className="pg-spin-box" aria-hidden="true" /></div>}
+          <div className="pg-frame-grid" role="radiogroup" aria-label="프레임">
+            {choices.map((choice) => (
+              <button key={choice.id} type="button" role="radio" aria-checked={chosen.id === choice.id} aria-label={choice.name} className="pg-frame-tile" onClick={() => onChoice(choice.id)}>
+                {/* eslint-disable @next/next/no-img-element */}
+                {choice.frame
+                  ? <span className="pg-frame-thumb" style={{ backgroundImage: `url(${photoLayer})` }}><img src={choice.frame.thumb} alt="" width={240} height={720} /></span>
+                  : <span className="pg-frame-thumb"><img src={basicThumbs[choice.basic ?? 0]} alt="" width={240} height={720} /></span>}
+                {/* eslint-enable @next/next/no-img-element */}
+                {chosen.id === choice.id && <i aria-hidden="true"><Check size={14} strokeWidth={3} /></i>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    >
+      <PanelHead title="프레임을 골라 주세요" sub={`지금 고른 프레임: ${chosen.name}`} />
+      {error && <p className="pg-error-text" role="alert">{error}</p>}
+      {countChoices.length > 1 && (
+        <fieldset className="pg-strip-count">
+          <legend>인화 장수{people > 0 && <small>찍힌 {people}명까지</small>}</legend>
+          <div role="radiogroup" aria-label="인화 장수">
+            {countChoices.map((n) => (
+              <button key={n} type="button" role="radio" aria-checked={count === n} onClick={() => onCount(n)}>{n}장</button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      {count % STRIPS_PER_SHEET === 1 && <p className="pg-muted">인화지 한 장이 두 줄로 잘려 나와서, 빈 띠지 한 줄이 함께 나와요.</p>}
+      <Creative text={program.creative} />
+      <button type="button" className="pg-btn pg-btn--line pg-btn--wide pg-strip-back" onClick={onBack}><ArrowLeft size={20} />네 컷 다시 보기</button>
+      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" disabled={!ready} onClick={print}><Printer size={26} />띠지 {count}장 인화하기<span aria-hidden="true">→</span></button>
+    </Split>
   )
 }
 
@@ -257,7 +370,7 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
   ctx: FlowCtx
   shot: HTMLCanvasElement
   shotUrl: string
-  onDone: (images: (HTMLImageElement | null)[], strips: Strips) => void
+  onDone: (images: (HTMLImageElement | null)[], people: number) => void
   onRetake: (message: string) => void
 }) {
   const { program } = ctx
@@ -302,13 +415,9 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
           Promise.all(STRIP_STEPS.map((s) => { const src = byYears.get(s.years); return src ? loadImage(src) : Promise.resolve(null) })),
           loadCanvasFonts(),
         ])
-        const input = { now: shot, future: images }
-        const canvases = [renderStrip(0, input), renderStrip(1, input)] as const
-        const strips: Strips = {
-          prints: [canvases[0].toDataURL('image/jpeg', 0.93), canvases[1].toDataURL('image/jpeg', 0.93)],
-          sheets: [stripSheet(canvases[0]), stripSheet(canvases[1])],
-        }
-        if (!abort.signal.aborted) done.current.onDone(images, strips)
+        // 찍힌 인원수 — 서버 사람 읽기(아기까지 센다), 실패하면 브라우저 얼굴 검출(자동 인화수용)
+        const people = first.people > 0 ? first.people : Math.max(0, Math.min(await countFaces(shot), STRIP_MAX_PEOPLE))
+        if (!abort.signal.aborted) done.current.onDone(images, people)
       } catch (cause) {
         if (abort.signal.aborted) return
         if ((cause as { retake?: boolean }).retake) { done.current.onRetake(cause instanceof Error ? cause.message : '다시 찍어 주세요.'); return }
@@ -359,12 +468,13 @@ function StripPreview({ src }: { src: string }) {
   )
 }
 
-function SaveStep({ ctx, strip, sheet, count }: { ctx: FlowCtx; strip: string; sheet: string; count: number }) {
+function SaveStep({ ctx, order }: { ctx: FlowCtx; order: StripOrder }) {
   const { program, markShot, setDirty } = ctx
+  const { strip, sheet, copies, more, count } = order
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
   const saved = useSavedLink(make, true)
-  // 4×6 한 장 = 띠지 두 장(프린터 2인치 자르기) — 고른 장수만큼 장을 이어 인쇄
-  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies: Math.max(1, Math.ceil(count / STRIPS_PER_SHEET)) })
+  // 4×6 한 장 = 띠지 두 줄(프린터 2인치 자르기) — 두 줄 찬 장을 이어 인쇄하고, 홀수면 한 줄만 찬 장을 한 번 더
+  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies, more })
   // [띠지 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
   const sent = useRef(false)
   const { print } = printer
@@ -378,7 +488,7 @@ function SaveStep({ ctx, strip, sheet, count }: { ctx: FlowCtx; strip: string; s
     <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
       <PanelHead title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
-        <PrintCard printer={printer} label={`띠지 ${count}장 인쇄`} note="2×6 띠지 · 함께 온 분과 나눠 가져요" />
+        <PrintCard printer={printer} label={`띠지 ${count}장 인쇄`} note={count % STRIPS_PER_SHEET === 1 ? '2×6 띠지 · 함께 나오는 빈 띠지 한 줄은 버려 주세요' : '2×6 띠지 · 함께 온 분과 나눠 가져요'} />
         <QrCard state={saved} />
       </div>
       <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>

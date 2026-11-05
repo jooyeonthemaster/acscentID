@@ -3,10 +3,11 @@
 // 같은 띠지 둘을 나란히. 폰 저장(QR)은 띠지 한 장. 자르는 자리(가운데)·용지 가장자리에 글자·사진이 걸리지 않게 여백.
 // 여백은 넉넉히(2026-11-04 실물 시험): 드라이버 용지가 테두리 여분까지 찍는 (4x6) 면 원판이 3~4% 커져 위 제목이 종이 끝에 붙고
 // 아래 날짜가 반쯤 잘렸다 — 위아래 약 6~7mm · 좌우 약 4mm 를 비운다.
-// 디자인 2종: 타임캡슐(라벤더 · LATER! 테마) / 우주 정거장(남색 밤하늘).
+// 기본 디자인 2종(renderStrip): 타임캡슐(라벤더 · LATER! 테마) / 우주 정거장(남색 밤하늘). 프레임 10종은 renderFrameStrip.
 
+import type { StripFrameDef } from '@/lib/booth/programs/strip-frames'
 import { STRIP_NOW_YEAR, STRIP_STEPS } from '@/lib/booth/programs/timecapsule-strip'
-import { A, G, P, photoClip, rect, shadow, star, text, today, type Pic } from './print-designs'
+import { A, G, P, cover, photoClip, rect, shadow, star, text, today, type Pic } from './print-designs'
 
 export const STRIP_W = 600
 export const STRIP_H = 1800
@@ -112,12 +113,89 @@ export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement
   return canvas
 }
 
-/** 인쇄 원판 4×6(1200×1800) — 띠지 둘을 나란히(프린터가 가운데를 잘라 두 장) */
-export function stripSheet(strip: HTMLCanvasElement): string {
+// ───────────────────────── 프레임 10종(strip-frames.ts) ─────────────────────────
+// 프레임은 인생네컷처럼 제목이 아래에 있는 배치 — 1200×3600 PNG 의 좌표 계약(ansan-frames/coordinate-contract.json)을 절반으로 쓴다
+
+const FRAME_CELL = { x: 46, w: 508, h: 339, ys: [60, 413, 766, 1119] }
+
+function frameCell(ctx: Ctx, def: StripFrameDef, pic: Pic | null, i: number) {
+  const { x, w, h, ys } = FRAME_CELL
+  if (pic) {
+    cover(ctx, pic, x, ys[i], w, h, 0.4)
+  } else {
+    // 못 만든 칸 — 빈 칸 대신 '아직 오는 중'
+    rect(ctx, x, ys[i], w, h, def.tone === 'dark' ? '#23264a' : '#e8e6f5')
+    const ink = def.tone === 'dark' ? '#ffffff' : '#2a2670'
+    text(ctx, '미래가 아직', STRIP_W / 2, ys[i] + h / 2 - 6, `700 32px ${G()}`, ink)
+    text(ctx, '도착하는 중이에요', STRIP_W / 2, ys[i] + h / 2 + 38, `700 32px ${G()}`, ink)
+  }
+}
+
+/** 프레임 칸 이름표 — 계약의 비워 둔 자리(칸 왼쪽 아래에서 20px 안쪽) */
+function framePill(ctx: Ctx, def: StripFrameDef, i: number, year: number, label: string) {
+  const { x, h, ys } = FRAME_CELL
+  const pillH = 44, px = x + 20, py = ys[i] + h - pillH - 20
+  ctx.save(); ctx.font = `30px ${A()}`; const yw = ctx.measureText(String(year)).width; ctx.font = `700 20px ${G()}`; const lw = ctx.measureText(label).width; ctx.restore()
+  rect(ctx, px, py, yw + lw + 42, pillH, def.colors.pill, pillH / 2)
+  text(ctx, String(year), px + 16, py + 33, `30px ${A()}`, def.colors.pillYear, 'left', (c) => { c.letterSpacing = '1px' })
+  text(ctx, label, px + 26 + yw, py + 30, `700 20px ${G()}`, def.colors.pillText, 'left')
+}
+
+/** 프레임 띠지 한 장(600×1800) — 사진 → 프레임 → 이름표·아래 글자 */
+export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripInput): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = STRIP_W; canvas.height = STRIP_H
+  const ctx = canvas.getContext('2d')!
+  ctx.imageSmoothingQuality = 'high'
+  ctx.fillStyle = def.background; ctx.fillRect(0, 0, STRIP_W, STRIP_H)
+  frameCell(ctx, def, input.now, 0)
+  STRIP_STEPS.forEach((_, i) => frameCell(ctx, def, input.future[i] ?? null, i + 1))
+  ctx.drawImage(overlay, 0, 0, STRIP_W, STRIP_H)
+  framePill(ctx, def, 0, STRIP_NOW_YEAR, '지금')
+  STRIP_STEPS.forEach((step, i) => framePill(ctx, def, i + 1, step.year, step.label))
+  // 아래 글자 구역(가로 80~520, 세로 1485~1735)
+  const { title, sub, foot, footSub } = def.colors
+  text(ctx, 'LATER!', STRIP_W / 2, 1562, `italic 900 78px ${P()}`, title)
+  text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1600, `700 21px ${G()}`, sub)
+  text(ctx, '2026 안산사이언스밸리 과학축제', STRIP_W / 2, 1642, `700 25px ${G()}`, foot)
+  text(ctx, 'AI가 만든 재미로 보는 상상 사진이에요', STRIP_W / 2, 1674, `700 17px ${G()}`, footSub)
+  text(ctx, today(), STRIP_W / 2, 1710, `22px ${A()}`, footSub, 'center', (c) => { c.letterSpacing = '6px' })
+  return canvas
+}
+
+/** 프레임 고르는 칸에 깔 사진 네 장(240×720) — 투명 작은 그림(thumbs) 뒤에 깔면 내 사진이 든 프레임처럼 보인다 */
+export function framePhotoLayer(input: StripInput): string {
+  const scale = 0.4
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(STRIP_W * scale); canvas.height = Math.round(STRIP_H * scale)
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#d9d9e3'; ctx.fillRect(0, 0, canvas.width, canvas.height)
+  const { x, w, h, ys } = FRAME_CELL
+  ;[input.now, ...STRIP_STEPS.map((_, i) => input.future[i] ?? null)].forEach((pic, i) => {
+    if (pic) cover(ctx, pic, x * scale, ys[i] * scale, w * scale, h * scale, 0.4)
+  })
+  return canvas.toDataURL('image/jpeg', 0.8)
+}
+
+/** 띠지 캔버스를 고르는 칸 크기(240×720)로 */
+export function stripThumb(strip: HTMLCanvasElement): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = 240; canvas.height = 720
+  const ctx = canvas.getContext('2d')!
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(strip, 0, 0, 240, 720)
+  return canvas.toDataURL('image/jpeg', 0.8)
+}
+
+/**
+ * 인쇄 원판 4×6(1200×1800) — 프린터가 가운데를 잘라 두 줄이 된다. lines 2: 띠지 둘을 나란히 / 1: 왼쪽에만(오른쪽 줄은 비어 나온다, 홀수 장수)
+ */
+export function stripSheet(strip: HTMLCanvasElement, lines: 1 | 2 = 2): string {
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W * 2; canvas.height = STRIP_H
   const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(strip, 0, 0)
-  ctx.drawImage(strip, STRIP_W, 0)
+  if (lines === 2) ctx.drawImage(strip, STRIP_W, 0)
   return canvas.toDataURL('image/jpeg', 0.93)
 }

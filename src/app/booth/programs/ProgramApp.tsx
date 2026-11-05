@@ -15,7 +15,7 @@ import { requestDemoTicket } from '@/lib/booth/demo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
 import { BoothAdminDialog } from '../BoothAdminDialog'
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
-import { STRIP_MAX_CHOICES, readStripMax, writeStripMax } from './strip-count'
+import { STRIP_MAX_CHOICES, readStripAuto, readStripMax, writeStripAuto, writeStripMax } from './strip-count'
 import { FONT_VARS } from './fonts'
 import { logProgramShot, markProgramShot } from './save'
 import type { FlowCtx } from './flow'
@@ -310,21 +310,35 @@ function AdminHold({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-/** ANSAN 띠지 — 손님이 고를 수 있는 최대 인화 장수(이 부스에만 저장, strip-count.ts). 관리자 창 왼쪽 맨 위, 운영 모드와 같은 모양(kmc) */
+/** ANSAN 띠지 — 인화 장수 설정(이 부스에만 저장, strip-count.ts). 관리자 창 왼쪽 맨 위, 운영 모드와 같은 모양(kmc) */
 function StripMaxControl() {
   const [max, setMax] = useState(() => readStripMax())
+  const [auto, setAuto] = useState(() => readStripAuto())
   const [failed, setFailed] = useState(false)
+  const pickMax = (n: number) => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }
+  const pickAuto = (on: boolean) => { if (writeStripAuto(on)) { setAuto(on); setFailed(false) } else setFailed(true) }
   return (
-    <section className="kmc" aria-label="띠지 인화 최대 장수">
+    <section className="kmc" aria-label="띠지 인화 장수">
       <div className="kmc-head">
-        <b>띠지 인화 최대 장수</b>
-        <span>이 부스만 · 4×6 한 장 = 띠지 2장 · 손님은 2장부터 {max}장까지 2장 단위로 골라요</span>
+        <b>띠지 인화 장수</b>
+        <span>이 부스만 · 다음 손님부터 · 4×6 한 장 = 띠지 2줄(홀수면 빈 줄 하나)</span>
       </div>
-      <div className="kmc-seg" role="group" aria-label="띠지 인화 최대 장수">
-        {STRIP_MAX_CHOICES.map((n) => (
-          <button key={n} type="button" aria-pressed={max === n} onClick={() => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }}>{n}장</button>
-        ))}
+      <div className="kmc-row kmc-row--wide">
+        <span>최대 장수</span>
+        <div className="kmc-seg" role="group" aria-label="최대 장수">
+          {STRIP_MAX_CHOICES.map((n) => (
+            <button key={n} type="button" aria-pressed={max === n} onClick={() => pickMax(n)}>{n}장</button>
+          ))}
+        </div>
       </div>
+      <div className="kmc-row kmc-row--wide">
+        <span>자동 인화수</span>
+        <div className="kmc-seg" role="group" aria-label="자동 인화수">
+          <button type="button" aria-pressed={!auto} onClick={() => pickAuto(false)}>끔</button>
+          <button type="button" aria-pressed={auto} onClick={() => pickAuto(true)}>인원수까지만</button>
+        </div>
+      </div>
+      <p className="kmc-note">{auto ? `찍힌 인원수까지만 고를 수 있고 처음 값도 인원수예요. 최대 ${max}장은 넘지 않아요(혼자 찍으면 1장 고정).` : `손님은 1장부터 ${max}장까지 골라요.`}</p>
       {failed && <p className="kmc-error" role="alert">이 부스에 저장하지 못했어요.</p>}
     </section>
   )

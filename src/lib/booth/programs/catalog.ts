@@ -545,7 +545,7 @@ export const PROGRAMS: ProgramDef[] = [
     capture: { title: '모두 화면 안에\n들어와 주세요', hint: '혼자도, 가족·친구와 함께도 좋아요(최대 4명). 아기는 안고 찍어도 돼요', people: 1, shots: 1, group: true },
     options: { title: '', sub: '', cta: '', groups: [] },
     generating: { title: '미래로\n여행하는 중이에요', sub: '10년 · 20년 · 30년 뒤의 우리를 한꺼번에 만들고 있어요', stages: ['얼굴 확인', '미래 세 장면', '띠지 완성'] },
-    result: { title: '미래의 우리를\n만났어요!', sub: '띠지 디자인을 고르고 인화해요' },
+    result: { title: '미래의 우리를\n만났어요!', sub: '이제 프레임을 고르고 인화해요' },
     save: { title: '타임캡슐을 가져가세요', sub: '아래 출구로 띠지가 나와요 · 휴대폰에도 저장할 수 있어요' },
     creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
     intro: intro('ansan-2026'), script: 'See you later!', designs: ['타임캡슐', '우주 정거장'],
