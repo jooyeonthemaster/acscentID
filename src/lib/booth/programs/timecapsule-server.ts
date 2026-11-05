@@ -26,8 +26,11 @@ export interface StripPerson {
   look: string
 }
 
-/** 사람 읽기 모델 — 상자(box_2d)를 가장 잘 주는 Gemini Flash 계열, 첫 모델이 안 되면 다음 */
-const VISION_MODELS: [string, number][] = [['google/gemini-2.5-flash', 14_000], ['google/gemini-3-flash-preview', 10_000]]
+/**
+ * 사람 읽기 모델 — 첫 모델이 안 되거나 상자가 이상하면 다음.
+ * 2026-11-05 시험(가상 인물 10컷 × 5회): 3-flash 는 겹침 · 옆으로 긴 상자 0/50, 2.5-flash 는 겹침 7/50 · 긴 상자 10/50
+ */
+const VISION_MODELS: [string, number][] = [['google/gemini-3-flash-preview', 12_000], ['google/gemini-2.5-flash', 14_000]]
 
 const PEOPLE_PROMPT = [
   'You help a photo booth at a family science festival. Look at this booth photo.',
@@ -36,13 +39,34 @@ const PEOPLE_PROMPT = [
   'Return JSON only, in this exact shape:',
   '{"people":[{"box_2d":[ymin,xmin,ymax,xmax],"age":7,"presentation":"girl","look":"long black hair in pigtails, yellow t-shirt"}]}',
   '- box_2d: tight box around that person\'s HEAD (face and hair), coordinates normalized to 0-1000.',
-  '- age: your best estimate of their current age in whole years (a baby under one year is 0).',
-  '- presentation: one of "boy", "girl", "man", "woman", "unclear" (use "unclear" for babies if you cannot tell).',
+  // 3-flash 는 어른 나이를 높게 본다(30살 → 46살, 그러면 30년 뒤가 75살로 나온다) — 2026-11-05 시험: 평균 오차 4.0 → 3.1살
+  '- age: your best estimate of their current age in whole years (a baby under one year is 0). Do not overestimate adults: many guests are East Asian and look younger than people often assume. Smooth skin with no gray hair usually means 20s to 30s; use 40s only with visible smile lines or first gray hairs, 50s only with clear wrinkles or noticeable gray hair, and 60+ only with mostly gray hair and deep wrinkles.',
+  '- presentation: one of "boy", "girl", "man", "woman", "unclear". For babies and toddlers give your best guess from hair and clothing; use "unclear" only if there is no hint at all.',
   '- look: at most 12 words about hair and clothing, only to tell people apart. No judgments about looks.',
   '- Order the people from left to right as they appear in the image. At most 8 people. If nobody is visible return {"people":[]}.',
 ].join('\n')
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+
+const boxOverlap = (a: StripPerson['box'], b: StripPerson['box']) => {
+  const area = (x: StripPerson['box']) => (x.x1 - x.x0) * (x.y1 - x.y0)
+  const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0), h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0)
+  return w > 0 && h > 0 ? (w * h) / Math.min(area(a), area(b)) : 0
+}
+const OVERLAP_LIMIT = 0.6
+/** 부스 사진은 가로 3:2 */
+const PHOTO_ASPECT = 1.5
+
+/**
+ * 머리 상자가 믿을 만한가 — 두 사람 상자가 크게 겹치거나 머리 모양이 아니게 길쭉하면 모델이 자리를 잘못 잡은 것.
+ * 이러면 얼굴 클로즈업이 엉뚱한 사람(또는 두 사람)을 담아 얼굴이 섞인다 → 다음 모델에 다시 묻고, 그래도 이상하면 클로즈업 없이 만든다
+ */
+export function boxesLookWrong(people: StripPerson[]): boolean {
+  return people.some((a, i) => {
+    const ratio = ((a.box.x1 - a.box.x0) * PHOTO_ASPECT) / (a.box.y1 - a.box.y0)
+    return ratio > 1.6 || ratio < 0.5 || people.slice(i + 1).some((b) => boxOverlap(a.box, b.box) > OVERLAP_LIMIT)
+  })
+}
 
 /** 모델 답 → 사람 목록(검사·정렬·겹침 제거). 형식이 틀리면 null */
 export function parsePeople(text: string): StripPerson[] | null {
@@ -69,26 +93,28 @@ export function parsePeople(text: string): StripPerson[] | null {
     const look = String((item as { look?: unknown }).look ?? '').replace(/[^a-zA-Z0-9 ,'-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 90)
     people.push({ box: { x0: xmin, y0: ymin, x1: xmax, y1: ymax }, age, presentation, look })
   }
-  // 같은 머리를 두 번 잡은 것(많이 겹침)은 하나만
-  const area = (b: StripPerson['box']) => (b.x1 - b.x0) * (b.y1 - b.y0)
-  const overlap = (a: StripPerson['box'], b: StripPerson['box']) => {
-    const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0), h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0)
-    return w > 0 && h > 0 ? (w * h) / Math.min(area(a), area(b)) : 0
-  }
+  // 같은 사람을 두 번 적은 것(상자가 겹치고 묘사까지 같음)만 하나로. 상자만 겹친다고 지우면 실제 사람이 사라진다
+  // — 2.5-flash 가 넷째 사람 상자를 셋째 자리에 잘못 줘서 4명 사진이 3명으로 나왔다(2026-11-05 시험)
   const kept: StripPerson[] = []
-  for (const person of people) if (!kept.some((k) => overlap(k.box, person.box) > 0.6)) kept.push(person)
+  for (const person of people) if (!kept.some((k) => k.look === person.look && boxOverlap(k.box, person.box) > OVERLAP_LIMIT)) kept.push(person)
   return kept.sort((a, b) => (a.box.x0 + a.box.x1) - (b.box.x0 + b.box.x1))
 }
 
-/** 사진 속 사람 읽기 — 모델 둘 다 안 되면 null(프롬프트만으로 만든다) */
+/** 사진 속 사람 읽기 — 상자가 믿을 만한 첫 답. 모두 이상하면 가장 많이 찾은 답, 모델 둘 다 안 되면 null(프롬프트만으로 만든다) */
 export async function readPeople(photo: string): Promise<StripPerson[] | null> {
+  let best: StripPerson[] | null = null
   for (const [model, timeout] of VISION_MODELS) {
     const text = await askBoothVision(model, timeout, PEOPLE_PROMPT, [photo])
     const people = text ? parsePeople(text) : null
-    if (people) return people
-    if (text) console.error('[timecapsule] 사람 읽기 형식 오류', model, text.slice(0, 200))
+    if (!people) {
+      if (text) console.error('[timecapsule] 사람 읽기 형식 오류', model, text.slice(0, 200))
+      continue
+    }
+    if (people.length > 0 && !boxesLookWrong(people)) return people
+    if (people.length > 0) console.error('[timecapsule] 머리 상자가 이상해 다시 묻는다', model, people.length)
+    if (!best || people.length > best.length) best = people
   }
-  return null
+  return best
 }
 
 const toBuffer = (dataUrl: string) => Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64')
@@ -148,9 +174,13 @@ function stage(age: number): string {
   if (age <= 12) return `a child about ${age} — taller, with a longer and less round face than a younger child`
   if (age <= 17) return 'a teenager — teen height and a longer, slimmer face with no baby fat; clearly older than a child'
   if (age <= 29) return 'a grown young adult — adult height and an adult face (longer face, defined jawline and cheekbones, mature nose bridge); clearly NOT a child or a young teen'
-  if (age <= 59) return `an adult in their ${decade} with a mature adult face`
-  if (age <= 74) return `an older adult in their ${decade} — natural gray in the hair and gentle smile lines`
-  return `an elderly person around ${age} — healthy and cheerful, white or gray hair, gentle wrinkles`
+  // 2026-11-05 시험: '40대 어른'이라고만 하면 30년 뒤(목표 44~70살)가 10년쯤 젊게 나왔다 — 나이 든 티를 나이대마다 적는다
+  if (age <= 39) return 'an adult in their 30s — a settled, mature face with faint smile lines; clearly past their twenties'
+  if (age <= 49) return 'a middle-aged adult in their 40s — visible smile lines, faint crow\'s feet, a slightly fuller face and the first gray hairs'
+  if (age <= 59) return 'a middle-aged adult in their 50s — clear lines around the eyes and mouth, noticeable gray in the hair and a softer jawline'
+  if (age <= 74) return `an older adult in their ${decade} — mostly gray or silver hair, clear wrinkles around the eyes, mouth and forehead`
+  if (age <= 89) return `an elderly person around ${age} — white or silver hair, deep wrinkles, a thinner face, healthy and cheerful`
+  return `a very old person around ${age} — thin white hair, very deep wrinkles and a small frame, visibly older than someone in their eighties, healthy and cheerful`
 }
 
 function noun(p: Presentation, age: number): string {
@@ -198,9 +228,10 @@ export function buildStepPrompt(years: StripYears, people: StripPerson[] | null,
     '- Every person is a distinct individual. Never give one person another person\'s face, even within a family — a light family resemblance is fine, blended or swapped faces are not. A grown-up child must not look like a copy of a parent.',
     '- Body size and proportions match each person\'s NEW age: only people whose new age is 12 or younger are children; teenagers have teen bodies, adults have adult height and bodies.',
     '- Everyone wears new clothes for this new time — not the clothes from IMAGE 1. Hairstyles may change to suit the new age (a grown-up child should not keep a little-kid haircut), keeping their natural hair color.',
-    '- Healthy, cheerful, natural aging: no exaggerated wrinkles, no sad or tired faces, everyone smiling warmly.',
+    '- The aging must clearly show: wrinkles, gray hair and a more mature face are expected, and nobody may look younger than their listed new age. Keep it natural and healthy: no sad or tired faces, everyone smiling warmly.',
     '',
-    `COMPOSITION: one shared, natural scene; landscape 3:2 photo that fills the whole frame edge to edge (no borders, frames, split panels or collage); ${n === 1 ? 'the person' : 'everyone'} from about the chest or waist up, facing the camera, every face clearly visible, in the same left-to-right order and a similar arrangement as IMAGE 1. Poses may change naturally for their new ages (a baby who was held in arms becomes a child or adult standing beside the others).`,
+    `COMPOSITION: one shared, natural scene; landscape 3:2 photo that fills the whole frame edge to edge (no borders, frames, split panels or collage). A close ${n === 1 ? 'portrait' : 'group portrait'}: ${n === 1 ? 'the person is' : 'everyone is'} framed from the chest or waist up with large, clearly visible faces, facing the camera — never a full-body shot, no legs or feet in the picture (this prints small, so faces must be big). Same left-to-right order and a similar arrangement as IMAGE 1. Poses may change naturally for their new ages (a baby who was held in arms becomes a child or adult standing beside the others).`,
+    'NOBODY ELSE in the picture: no bystanders, visitors or other people anywhere, even far away in the background (robots and drones are fine).',
     `STYLING: ${clothes}; modest and age-appropriate.`,
     'PHOTOGRAPHY: professional, sharp focus on the eyes, soft flattering light, realistic photo (not a painting or cartoon).',
     'DO NOT add any text, captions, logos, watermarks, signs or readable letters or numbers anywhere. Do not make anyone resemble a real celebrity.',
@@ -210,7 +241,7 @@ export function buildStepPrompt(years: StripYears, people: StripPerson[] | null,
 
 // ───────────────────────── 만들기 ─────────────────────────
 
-/** 이미지 두 번 시도(첫 모델 48초 → 예비 38초) — 사람 읽기(최대 24초)까지 합쳐도 함수 시간 120초 안 */
+/** 이미지 두 번 시도(첫 모델 48초 → 예비 38초) — 사람 읽기(최대 26초)까지 합쳐도 함수 시간 120초 안 */
 const STEP_TIMEOUTS: [number, number] = [48_000, 38_000]
 
 export interface StripPlan {
@@ -226,7 +257,8 @@ export async function planStrip(photo: string): Promise<StripPlan> {
     throw new IdolError(`사진에 ${people.length}명이 보여요. ${STRIP_MAX_PEOPLE}명까지 함께 다시 찍어 주세요.`, 422)
   }
   const usable = people && people.length > 0 ? people : null
-  const faces = usable ? await faceCloseups(photo, usable).catch(() => []) : []
+  // 상자가 끝내 이상하면 클로즈업 없이 — 엉뚱한 얼굴을 참고로 주느니 본 사진만 본다
+  const faces = usable && !boxesLookWrong(usable) ? await faceCloseups(photo, usable).catch(() => []) : []
   return { people: usable, photo: main, faces: faces.length === usable?.length ? faces : [] }
 }
 
