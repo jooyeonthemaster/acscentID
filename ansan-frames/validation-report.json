@@ -1,0 +1,2017 @@
+{
+  "generated_at": "2026-11-04T14:20:56.110343+00:00",
+  "root": "/Users/idongju/Developer/acscent/ansan-frames",
+  "contract": {
+    "size": [
+      1200,
+      3600
+    ],
+    "mode": "RGBA",
+    "windows": [
+      [
+        92,
+        120,
+        1108,
+        798
+      ],
+      [
+        92,
+        826,
+        1108,
+        1504
+      ],
+      [
+        92,
+        1532,
+        1108,
+        2210
+      ],
+      [
+        92,
+        2238,
+        1108,
+        2916
+      ]
+    ],
+    "safe_rectangles": [
+      [
+        132,
+        160,
+        1068,
+        758
+      ],
+      [
+        132,
+        866,
+        1068,
+        1464
+      ],
+      [
+        132,
+        1572,
+        1068,
+        2170
+      ],
+      [
+        132,
+        2278,
+        1068,
+        2876
+      ]
+    ],
+    "coordinates": "half-open",
+    "default_corner_radius": 28
+  },
+  "errors": [],
+  "frames": [
+    {
+      "id": "laser-lab",
+      "name": "레이저 랩",
+      "file": "frames/ansan-frame-01-laser-lab.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 86572,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          167.0,
+          33.0,
+          104.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 66.6146,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-01-laser-lab.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-01-laser-lab.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "robot-friends",
+      "name": "로봇 친구",
+      "file": "frames/ansan-frame-02-robot-friends.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 214118,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          248.0,
+          252.0,
+          252.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 251.1496,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-02-robot-friends.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-02-robot-friends.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "science-doodles",
+      "name": "과학 공책 낙서",
+      "file": "frames/ansan-frame-03-science-doodles.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 178632,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          251.0,
+          241.0,
+          216.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 241.321,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-03-science-doodles.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-03-science-doodles.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "space-explorer",
+      "name": "우주 탐험",
+      "file": "frames/ansan-frame-04-space-explorer.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 136062,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          24.0,
+          42.0,
+          84.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 41.2056,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-04-space-explorer.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-04-space-explorer.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "lab-stripes",
+      "name": "실험 키트 스트라이프",
+      "file": "frames/ansan-frame-05-lab-stripes.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 118257,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          255.0,
+          240.0,
+          183.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 239.0736,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-05-lab-stripes.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-05-lab-stripes.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "green-earth",
+      "name": "초록 지구",
+      "file": "frames/ansan-frame-06-green-earth.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 138394,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          221.0,
+          242.0,
+          231.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 236.7412,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-06-green-earth.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-06-green-earth.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "drone-garden",
+      "name": "드론 정원",
+      "file": "frames/ansan-frame-07-drone-garden.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 157627,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          255.0,
+          213.0,
+          103.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 213.9872,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-07-drone-garden.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-07-drone-garden.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "time-capsule-film",
+      "name": "타임캡슐 필름",
+      "file": "frames/ansan-frame-08-time-capsule-film.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 36749,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          18.0,
+          20.0,
+          24.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 19.8636,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-08-time-capsule-film.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-08-time-capsule-film.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "starlight-observatory",
+      "name": "별빛 천문대",
+      "file": "frames/ansan-frame-09-starlight-observatory.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 126369,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          48.0,
+          43.0,
+          100.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 48.1784,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-09-starlight-observatory.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-09-starlight-observatory.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "anniversary-party",
+      "name": "40주년 축하 파티",
+      "file": "frames/ansan-frame-10-anniversary-party.png",
+      "errors": [],
+      "warnings": [],
+      "file_bytes": 145145,
+      "max_file_bytes": 2097152,
+      "file_size_ok": true,
+      "format": "PNG",
+      "mode": "RGBA",
+      "size": [
+        1200,
+        3600
+      ],
+      "size_ok": true,
+      "mode_ok": true,
+      "dpi": [
+        599.9988,
+        599.9988
+      ],
+      "dpi_600_ok": true,
+      "icc_profile_bytes": 588,
+      "srgb_ok": true,
+      "icc_description": "sRGB built-in",
+      "windows": [
+        {
+          "number": 1,
+          "rectangle": [
+            92,
+            120,
+            1108,
+            798
+          ],
+          "safe_rectangle": [
+            132,
+            160,
+            1068,
+            758
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            120,
+            1108,
+            798
+          ]
+        },
+        {
+          "number": 2,
+          "rectangle": [
+            92,
+            826,
+            1108,
+            1504
+          ],
+          "safe_rectangle": [
+            132,
+            866,
+            1068,
+            1464
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            826,
+            1108,
+            1504
+          ]
+        },
+        {
+          "number": 3,
+          "rectangle": [
+            92,
+            1532,
+            1108,
+            2210
+          ],
+          "safe_rectangle": [
+            132,
+            1572,
+            1068,
+            2170
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            1532,
+            1108,
+            2210
+          ]
+        },
+        {
+          "number": 4,
+          "rectangle": [
+            92,
+            2238,
+            1108,
+            2916
+          ],
+          "safe_rectangle": [
+            132,
+            2278,
+            1068,
+            2876
+          ],
+          "default_corner_radius": 28,
+          "safe_alpha_min": 0,
+          "safe_alpha_max": 0,
+          "safe_nonzero_pixels": 0,
+          "safe_fully_transparent": true,
+          "observed_nonopaque_bounds": [
+            92,
+            2238,
+            1108,
+            2916
+          ]
+        }
+      ],
+      "outside_window_nonopaque_pixels": 0,
+      "outside_windows_fully_opaque": true,
+      "footer": {
+        "rectangle": [
+          160,
+          2970,
+          1040,
+          3470
+        ],
+        "rgb_mean": [
+          255.0,
+          252.0,
+          246.0
+        ],
+        "rgb_std": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "luminance_mean": 252.2046,
+        "luminance_std": 0.0,
+        "advisory_std_threshold": 12,
+        "quiet_background_advisory_pass": true
+      },
+      "thumbnail": {
+        "file": "thumbs/ansan-frame-10-anniversary-party.webp",
+        "exists": true,
+        "format": "WEBP",
+        "mode": "RGBA",
+        "size": [
+          240,
+          720
+        ],
+        "format_ok": true,
+        "size_ok": true,
+        "decodes": true
+      },
+      "preview": {
+        "file": "previews/ansan-frame-10-anniversary-party.jpg",
+        "exists": true,
+        "format": "JPEG",
+        "mode": "RGB",
+        "size": [
+          1200,
+          3600
+        ],
+        "format_ok": true,
+        "decodes": true
+      },
+      "manual_review": {
+        "status": "required",
+        "outer_bleed_px": 72,
+        "checks": [
+          "No important illustration lies in the outer 72px trim band; background patterns may bleed.",
+          "No letters, digits, logos, signatures, watermarks, recognizable protected characters or branded symbols in final frame artwork.",
+          "At most three overlapping stickers per photo window; each is at most 120×120px and stays outside the safe rectangle.",
+          "Footer is visually quiet and the suggested manifest text colors remain legible.",
+          "Illustration line weights and details remain readable at final printed size."
+        ]
+      },
+      "passed": true
+    }
+  ],
+  "contact_sheet": {
+    "exists": true,
+    "format": "JPEG",
+    "mode": "RGB",
+    "size": [
+      3000,
+      3900
+    ],
+    "format_ok": true,
+    "decodes": true
+  },
+  "automatic_pass": true,
+  "manual_review_status": "required; record the visual review in README.md",
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "warning_count": 0
+  }
+}

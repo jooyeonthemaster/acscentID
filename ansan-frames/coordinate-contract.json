@@ -1,0 +1,57 @@
+{
+  "canvas": {
+    "width": 1200,
+    "height": 3600,
+    "mode": "RGBA",
+    "colorSpace": "sRGB",
+    "dpi": 600
+  },
+  "windows": [
+    {
+      "x": 92,
+      "y": 120,
+      "width": 1016,
+      "height": 678,
+      "radius": 28,
+      "safeInset": 40
+    },
+    {
+      "x": 92,
+      "y": 826,
+      "width": 1016,
+      "height": 678,
+      "radius": 28,
+      "safeInset": 40
+    },
+    {
+      "x": 92,
+      "y": 1532,
+      "width": 1016,
+      "height": 678,
+      "radius": 28,
+      "safeInset": 40
+    },
+    {
+      "x": 92,
+      "y": 2238,
+      "width": 1016,
+      "height": 678,
+      "radius": 28,
+      "safeInset": 40
+    }
+  ],
+  "footer": {
+    "x": 160,
+    "y": 2970,
+    "width": 880,
+    "height": 500
+  },
+  "importantArtInset": 72,
+  "maxPngBytes": 2097152,
+  "thumbnail": {
+    "width": 240,
+    "height": 720,
+    "format": "WebP"
+  },
+  "textAllowedOnOverlay": false
+}

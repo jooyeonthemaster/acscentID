@@ -1,0 +1,26 @@
+{
+  "status": "completed",
+  "scope": "Contact sheet, individual frames/previews and deterministic placement code",
+  "checks": {
+    "important_art_within_72px_safe_margin": true,
+    "no_letters_numbers_logos_or_watermarks_in_overlays": true,
+    "no_observed_reference_character_or_brand_art": true,
+    "window_stickers_maximum_one_per_window": true,
+    "window_sticker_boxes_at_most_56_by_112_pixels": true,
+    "footer_clear_and_text_colors_legible_in_previews": true,
+    "physical_printer_proof_performed": false
+  },
+  "notes": "Repeated background patterns may bleed into trim band. Main mascots are intentionally small because the reserved text region leaves narrow gutters. Automatic validation is separate; see validation-report.json.",
+  "frame_sha256": {
+    "frames/ansan-frame-01-laser-lab.png": "fe7883a9ba5b92675ccc17bafce5b7ea59bc3aa7406a22892ea1061912ada906",
+    "frames/ansan-frame-02-robot-friends.png": "621efe9b7d265912e927f38f0fd4f456cdd53ce7f499b38d287cd17c6297fc73",
+    "frames/ansan-frame-03-science-doodles.png": "4d55864281c9ded3448010fe1d5f27b131edddc093ea36c9727dc2715feab64a",
+    "frames/ansan-frame-04-space-explorer.png": "2f4d46c2412b15d913d9ab17afd99a8db1c05c9fa438a92c271ea5f7daed0a2f",
+    "frames/ansan-frame-05-lab-stripes.png": "dc4d3e42728dfb6925e141ebf155eec8707f333cb648a58bbffa99c14ef24c81",
+    "frames/ansan-frame-06-green-earth.png": "6bbfee595444d19bc0e2be45b6d42023048aeb1d2507f3226b2abf0deca30ed0",
+    "frames/ansan-frame-07-drone-garden.png": "2f1b8ea49d7abb5364dc65f72a0923c65f1ec587d0b20dfb41f909f412c980f5",
+    "frames/ansan-frame-08-time-capsule-film.png": "343b16b3d9601810cdeb309fd1824bfec8709602d3a4a7d1f017116efbc3f0fc",
+    "frames/ansan-frame-09-starlight-observatory.png": "f7ee15816b08dc6a4babfaf17af2ab8c3f5b6b030ba3b214c3db8f19dbfb99dd",
+    "frames/ansan-frame-10-anniversary-party.png": "85fd051e57dbd21c3e7aee5b0ae57b628e7fd48b54df6a51a97364e535ab0bf4"
+  }
+}

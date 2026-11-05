@@ -1,0 +1,192 @@
+[
+  {
+    "id": "laser-lab",
+    "file": "frames/ansan-frame-01-laser-lab.png",
+    "name": "레이저 랩",
+    "reference": "01 강한 단색 + 가로지르는 띠",
+    "tone": "dark",
+    "colors": {
+      "title": "#FFFFFF",
+      "sub": "#FFE0F1",
+      "foot": "#FFFFFF",
+      "footSub": "#FFE0F1",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#FFE6A8"
+    },
+    "background": "#A72168",
+    "thumb": "thumbs/ansan-frame-01-laser-lab.webp",
+    "preview": "previews/ansan-frame-01-laser-lab.jpg"
+  },
+  {
+    "id": "robot-friends",
+    "file": "frames/ansan-frame-02-robot-friends.png",
+    "name": "로봇 친구",
+    "reference": "02 흰 바탕 + 물결 창 + 가장자리 캐릭터",
+    "tone": "light",
+    "colors": {
+      "title": "#243B49",
+      "sub": "#415765",
+      "foot": "#243B49",
+      "footSub": "#415765",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#F8FCFC",
+    "thumb": "thumbs/ansan-frame-02-robot-friends.webp",
+    "preview": "previews/ansan-frame-02-robot-friends.jpg"
+  },
+  {
+    "id": "science-doodles",
+    "file": "frames/ansan-frame-03-science-doodles.png",
+    "name": "과학 공책 낙서",
+    "reference": "03 크림 모눈 + 과학 낙서 + 빈 말풍선",
+    "tone": "light",
+    "colors": {
+      "title": "#3C342E",
+      "sub": "#5C5346",
+      "foot": "#3C342E",
+      "footSub": "#5C5346",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#FBF1D8",
+    "thumb": "thumbs/ansan-frame-03-science-doodles.webp",
+    "preview": "previews/ansan-frame-03-science-doodles.jpg"
+  },
+  {
+    "id": "space-explorer",
+    "file": "frames/ansan-frame-04-space-explorer.png",
+    "name": "우주 탐험",
+    "reference": "04 수채 하늘 + 아래쪽 우주 일러스트",
+    "tone": "dark",
+    "colors": {
+      "title": "#FFFFFF",
+      "sub": "#DCEAFE",
+      "foot": "#FFFFFF",
+      "footSub": "#DCEAFE",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#FFE6A8"
+    },
+    "background": "#182A54",
+    "thumb": "thumbs/ansan-frame-04-space-explorer.webp",
+    "preview": "previews/ansan-frame-04-space-explorer.jpg"
+  },
+  {
+    "id": "lab-stripes",
+    "file": "frames/ansan-frame-05-lab-stripes.png",
+    "name": "실험 키트 스트라이프",
+    "reference": "05 파스텔 노랑 세로 줄무늬 + 실험 소품",
+    "tone": "light",
+    "colors": {
+      "title": "#393C3A",
+      "sub": "#5B5A46",
+      "foot": "#393C3A",
+      "footSub": "#5B5A46",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#FFF0B7",
+    "thumb": "thumbs/ansan-frame-05-lab-stripes.webp",
+    "preview": "previews/ansan-frame-05-lab-stripes.jpg"
+  },
+  {
+    "id": "green-earth",
+    "file": "frames/ansan-frame-06-green-earth.png",
+    "name": "초록 지구",
+    "reference": "06 하늘·민트 + 구름·하트 + 지구 마스코트",
+    "tone": "light",
+    "colors": {
+      "title": "#235846",
+      "sub": "#3F6556",
+      "foot": "#235846",
+      "footSub": "#3F6556",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#DDF2E7",
+    "thumb": "thumbs/ansan-frame-06-green-earth.webp",
+    "preview": "previews/ansan-frame-06-green-earth.jpg"
+  },
+  {
+    "id": "drone-garden",
+    "file": "frames/ansan-frame-07-drone-garden.png",
+    "name": "드론 정원",
+    "reference": "07 따뜻한 노랑 + 검정 선 꽃·드론",
+    "tone": "light",
+    "colors": {
+      "title": "#342E22",
+      "sub": "#5E502B",
+      "foot": "#342E22",
+      "footSub": "#5E502B",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#FFD567",
+    "thumb": "thumbs/ansan-frame-07-drone-garden.webp",
+    "preview": "previews/ansan-frame-07-drone-garden.jpg"
+  },
+  {
+    "id": "time-capsule-film",
+    "file": "frames/ansan-frame-08-time-capsule-film.png",
+    "name": "타임캡슐 필름",
+    "reference": "08 검정 필름 + 스프로킷 + 미세 빛 번짐",
+    "tone": "dark",
+    "colors": {
+      "title": "#FFFFFF",
+      "sub": "#DADFE6",
+      "foot": "#FFFFFF",
+      "footSub": "#DADFE6",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#FFE6A8"
+    },
+    "background": "#121418",
+    "thumb": "thumbs/ansan-frame-08-time-capsule-film.webp",
+    "preview": "previews/ansan-frame-08-time-capsule-film.jpg"
+  },
+  {
+    "id": "starlight-observatory",
+    "file": "frames/ansan-frame-09-starlight-observatory.png",
+    "name": "별빛 천문대",
+    "reference": "09 라벤더·남보라 + 별자리 + 천문대",
+    "tone": "dark",
+    "colors": {
+      "title": "#FFFFFF",
+      "sub": "#E5DEFF",
+      "foot": "#FFFFFF",
+      "footSub": "#E5DEFF",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#FFE6A8"
+    },
+    "background": "#302B64",
+    "thumb": "thumbs/ansan-frame-09-starlight-observatory.webp",
+    "preview": "previews/ansan-frame-09-starlight-observatory.jpg"
+  },
+  {
+    "id": "anniversary-party",
+    "file": "frames/ansan-frame-10-anniversary-party.png",
+    "name": "40주년 축하 파티",
+    "reference": "10 흰 바탕 + 색종이·풍선·별",
+    "tone": "light",
+    "colors": {
+      "title": "#473454",
+      "sub": "#68556D",
+      "foot": "#473454",
+      "footSub": "#68556D",
+      "pill": "rgba(0,0,0,0.78)",
+      "pillText": "#FFFFFF",
+      "pillYear": "#D7F6FF"
+    },
+    "background": "#FFFCF6",
+    "thumb": "thumbs/ansan-frame-10-anniversary-party.webp",
+    "preview": "previews/ansan-frame-10-anniversary-party.jpg"
+  }
+]
